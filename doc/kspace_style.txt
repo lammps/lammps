@@ -1,0 +1,100 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+kspace_style command :h3
+
+[Syntax:]
+
+kspace_style style value :pre
+
+style = {none} or {ewald} or {pppm} :ulb,l
+  {none} value = none
+  {ewald} value = precision
+    precision = desired accuracy
+  {pppm} value = precision
+    precision = desired accuracy
+  {pppm/tip4p} value = precision
+    precision = desired accuracy :pre
+:ule
+
+[Examples:]
+
+kspace_style pppm 1.0e-4
+kspace_style none :pre
+
+[Description:]
+
+Define a K-space solver for LAMMPS to use each timestep to compute
+long-range Coulombic interactions.  When such a solver is used in
+conjunction with an appropriate pair style, the cutoff for Coulombic
+interactions is effectively infinite; each charge in the system
+interacts with charges in an infinite array of periodic images of the
+simulation domain.
+
+The {ewald} style performs a standard Ewald summation as described in
+any solid-state physics text.
+
+The {pppm} style invokes a particle-particle particle-mesh solver
+"(Hockney)"_#Hockney which maps atom charge to a 3d mesh, uses 3d FFTs
+to solve Poisson's equation on the mesh, then interpolates electric
+fields on the mesh points back to the atoms.  It is closely related to
+the particle-mesh Ewald technique (PME) "(Darden)"_#Darden used in
+AMBER and CHARMM.  The cost of traditional Ewald summation scales as
+N^(3/2) where N is the number of atoms in the system.  The PPPM solver
+scales as Nlog(N) due to the FFTs, so it is almost always a faster
+choice "(Pollock)"_#Pollock.
+
+The {pppm/tip4p} style is identical to the {pppm} style except that it
+adds a charge at the massless 4th site in each TIP4P water molecule.
+It should be used with "pair styles"_pair_style.html with a
+{long/tip4p} in their style name.
+
+When a kspace style is used, a pair style that includes the
+short-range correction to the pairwise Coulombic forces must also be
+selected.  These styles are ones that have a {coul/long} in their
+style name.
+
+A precision value of 1.0e-4 means one part in 10000.  This setting is
+used in conjunction with the pairwise cutoff to determine the number
+of K-space vectors for style {ewald} or the FFT grid size for style
+{pppm}.
+
+[Restrictions:]
+
+A simulation must be 3d and periodic in all dimensions to use an Ewald
+or PPPM solver.  The only exception is if the slab option is set with
+"kspace_modify"_kspace_modify.html, in which case the xy dimensions
+must be periodic and the z dimension must be non-periodic.
+
+Kspace styles are part of the "kspace" package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+When using a long-range pairwise TIP4P potential, you must use kspace
+style {pppm/tip4p} and vice versa.
+
+[Related commands:]
+
+"kspace_modify"_kspace_modify.html, "pair_style"_pair_style.html
+lj/cut/coul/long, "pair_style"_pair_style.html lj/charmm/coul/long
+
+[Default:]
+
+kspace_style none :pre
+
+:line
+
+:link(Darden)
+[(Darden)] Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
+
+:link(Hockney) 
+[(Hockney)] Hockney and Eastwood, Computer Simulation Using Particles,
+Adam Hilger, NY (1989).
+
+:link(Pollock)
+[(Pollock)] Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).

@@ -1,0 +1,49 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix wiggle command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<P>fix ID group-ID wiggle dim amplitude period
+</P>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>wiggle = style name of this fix command
+<LI>dim = <I>x</I> or <I>y</I> or <I>z</I>
+<LI>amplitude = size of oscillation (distance units)
+<LI>period = time of oscillation (time units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 frozen wiggle 3.0 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Move a group of atoms in a sinusoidal oscillation.  This is useful in
+granular simulations when boundary atoms are wiggled to induce packing
+of the dynamic atoms.  The dimension <I>dim</I> of movement is specified as
+is the <I>amplitude</I> and <I>period</I> of the oscillations.  Each timestep
+the <I>dim</I> coordinate of each atom is set to
+</P>
+<PRE>coord = coord0 + A - A cos (omega * delta) 
+</PRE>
+<P>where <I>coord0</I> is the coordinate at the time the fix was specified,
+<I>A</I> is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
+elapsed time since the fix was specified.  The velocity of the atom is
+set to the derivative of this expression.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

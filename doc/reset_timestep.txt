@@ -1,0 +1,37 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+reset_timestep command :h3
+
+[Syntax:]
+
+reset_timestep N :pre
+
+N = timestep number :ul
+
+[Examples:]
+
+reset_timestep 0
+reset_timestep 4000000 :pre
+
+[Description:]
+
+Set the timestep counter to the specified value.  This command
+normally comes after the timestep has been set by reading it in from a
+file or a previous simulation advanced the timestep.
+
+The "read_data"_read_data.html and "create_box"_create_box.html
+commands set the timestep to 0; the "read_restart"_read_restart.html
+command sets the timestep to the value it had when the restart file
+was written.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

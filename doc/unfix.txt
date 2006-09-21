@@ -1,0 +1,33 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+unfix command :h3
+
+[Syntax:]
+
+unfix fix-ID :pre
+
+fix-ID = ID of a previously defined fix :ul
+
+[Examples:]
+
+unfix 2
+unfix lower-boundary :pre
+
+[Description:]
+
+Turn off a fix that was previously defined with a "fix"_fix.html
+command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix"_fix.html
+
+[Default:] none

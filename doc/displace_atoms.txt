@@ -1,0 +1,75 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+displace_atoms command :h3
+
+[Syntax:]
+
+displace_atoms group-ID style args keyword value ... :pre
+
+group-ID = ID of group of atoms to displace :ulb,l
+style = {move} or {ramp} :l
+  {move} args = delx dely delz
+    delx,dely,delz = distance to displace in each dimension (distance units)
+  {ramp} args = ddim dlo dhi dim clo chi
+    ddim = {x} or {y} or {z}
+    dlo,dhi = displacement distance between dlo and dhi (distance units)
+    dim = {x} or {y} or {z}
+    clo,chi = lower and upper bound of domain to displace (distance units) :pre
+zero or more keyword/value pairs may be appended to the args :l
+  keyword = {units}
+    value = {box} or {lattice} :pre
+:ule
+
+[Examples:]
+
+displace_atoms top move 0 -5 0 units box
+displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5 :pre
+
+[Description:]
+
+Displace a group of atoms.  This can be useful to move atoms a large
+distance before beginning a simulation.  For example, in a shear
+simulation, an initial strain can be imposed on the system.  Or two
+groups of atoms can be brought into closer proximity.
+
+The {move} style displaces the group of atoms by the specified 3d
+distance.  The {ramp} style displaces atoms a variable amount in one
+dimension depending on the atom's coordinate in a (possibly) different
+dimension.  For example, the second example command displaces atoms in
+the x-direction an amount between 0.0 and 5.0 distance units.  Each
+atom's displacement depends on the fractional distance its y
+coordinate is between 2.0 and 20.5.  Atoms with y-coordinates outside
+those bounds will be moved the minimum (0.0) or maximum (5.0) amount.
+
+Distance units for the displacement are determined by the setting of
+{box} or {lattice} for the {units} keyword.  {Box} means distance
+units as defined by the "units"_units.html command - e.g. Angstroms
+for {real} units.  {Lattice} means to use lattice spacings as defined
+by the "lattice"_lattice.html command.  The default is to use lattice
+units.
+
+Care should be taken not to move atoms on top of other atoms.  After
+the move, atoms are remapped to the periodic simulation box.  In
+parallel, atoms should not be moved so far that they cross more than
+one processor's sub-domain, else they may be lost.  If this is a
+problem, successive displace_atom commands can be used to move atoms a
+large distance.
+
+[Restrictions:]
+
+This command requires inter-processor communication to migrate atoms
+once they have been displaced.  This means that your system must be
+ready to perform a simulation before using this command (force fields
+setup, atom masses set, etc).
+
+[Related commands:] none
+
+[Default:]
+
+The option defaults are units = lattice.

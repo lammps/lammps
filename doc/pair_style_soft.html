@@ -1,0 +1,65 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style soft command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style soft cutoff 
+</PRE>
+<UL><LI>cutoff = global cutoff for soft interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style soft 2.5
+pair_coeff * * 0.0 60.0
+pair_coeff 1 1 0.0 60.0 3.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>soft</I> computes pairwise interactions with the formula
+</P>
+<CENTER><IMG SRC = "Eqs/pair_soft.jpg">
+</CENTER>
+<P>It is useful for pushing apart overlapping atoms, since it does not
+blow up as r goes to 0.  A is a pre-factor that varies in time from
+the start to the end of the run.  The <A HREF = "run.html">run</A> command documents
+how to make the ramping take place across multiple runs.  Rc is the
+cutoff.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>Astart (energy units)
+<LI>Astop (energy units)
+<LI>cutoff (distance units) 
+</UL>
+<P>Astart and Astop are the values of the prefactor at the start and end
+of the next run.  At intermediate times the value of A will be ramped
+between these 2 values.  Note that before performing a 2nd run, you
+will want to adjust the values of Astart and Astop for all type pairs,
+or switch to a new pair style.
+</P>
+<P>The last coefficient is optional.  If not specified, the global soft
+cutoff is used.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

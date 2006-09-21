@@ -1,0 +1,371 @@
+<HTML>
+<CENTER><A HREF = "Section_start.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_howto.html">Next Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>3. Commands 
+</H3>
+<P>This section describes how a LAMMPS input script is formatted and what
+commands are used to define a LAMMPS simulation.
+</P>
+3.1 <A HREF = "#3_1">LAMMPS input script</A><BR>
+3.2 <A HREF = "#3_2">Parsing rules</A><BR>
+3.3 <A HREF = "#3_3">Input script structure</A><BR>
+3.4 <A HREF = "#3_4">Commands listed by category</A><BR>
+3.5 <A HREF = "#3_5">Commands listed alphabetically</A> <BR>
+
+<HR>
+
+<A NAME = "3_1"></A><H4>3.1 LAMMPS input script 
+</H4>
+<P>LAMMPS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, LAMMPS exits.  Each
+command causes LAMMPS to take some action.  It may set an internal
+variable, read in a file, or run a simulation.  Most commands have
+default settings, which means you only need to use the command if you
+wish to change the default.
+</P>
+<P>In many cases, the ordering of commands in an input script is not
+important.  However the following rules apply:
+</P>
+<P>(1) LAMMPS does not read your entire input script and then perform a
+simulation with all the settings.  Rather, the input script is read
+one line at a time and each command takes effect when it is read.
+Thus this sequence of commands:
+</P>
+<PRE>timestep 0.5 
+run      100 
+run      100 
+</PRE>
+<P>does something different than this sequence:
+</P>
+<PRE>run      100 
+timestep 0.5 
+run      100 
+</PRE>
+<P>In the first case, the specified timestep (0.5 fmsec) is used for two
+simulations of 100 timesteps each.  In the 2nd case, the default
+timestep (1.0 fmsec) is used for the 1st 100 step simulation and a 0.5
+fmsec timestep is used for the 2nd one.
+</P>
+<P>(2) Some commands are only valid when they follow other commands.  For
+example you cannot set the temperature of a group of atoms until atoms
+have been defined and a group command is used to define which atoms
+belong to the group.
+</P>
+<P>(3) Sometimes command B will use values that can be set by command A.
+This means command A must precede command B in the input script if it
+is to have the desired effect.  For example, the
+<A HREF = "read_data.html">read_data</A> command initializes the system by setting
+up the simulation box and assigning atoms to processors.  If default
+values are not desired, the <A HREF = "processors.html">processors</A> and
+<A HREF = "boundary.html">boundary</A> commands need to be used before read_data to
+tell LAMMPS how to map processors to the simulation box.
+</P>
+<P>Many input script errors are detected by LAMMPS and an ERROR or
+WARNING message is printed.  <A HREF = "Section_errors.html">This section</A> gives
+more information on what errors mean.  The documentation for each
+command lists restrictions on how the command can be used.
+</P>
+<HR>
+
+<A NAME = "3_2"></A><H4>3.2 Parsing rules 
+</H4>
+<P>Each non-blank line in the input script is treated as a command.
+LAMMPS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.
+</P>
+<P>Here is how each line in the input script is parsed by LAMMPS:
+</P>
+<P>(1) If the line ends with a "&" character (with no trailing
+whitespace), the command is assumed to continue on the next line.  The
+next line is concatenated to the previous line by removing the "&"
+character and newline.  This allows long commands to be continued
+across two or more lines.
+</P>
+<P>(2) All characters from the first "#" character onward are treated as
+comment and discarded.
+</P>
+<P>(3) The line is searched repeatedly for $ characters which indicate
+variables that are replaced with text.  If the $ is followed by curly
+brackets, then the variable name is the text inside the curly
+brackets.  If no curly brackets follow the $, then the variable name
+is the character immediately following the $.  Thus ${myTemp} and $x
+refer to variable names "myTemp" and "x".  See the
+<A HREF = "variable.html">variable</A> command for details of how values are
+assigned to variables and how they are substituted for in input
+scripts.
+</P>
+<P>(4) The line is broken into "words" separated by whitespace (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.
+</P>
+<P>(5) The first word is the command name.  All successive words in the
+line are arguments.
+</P>
+<P>(6) Text with spaces can be enclosed in double quotes so it will be
+treated as a single argument.  See the <A HREF = "dump_modify.html">dump modify</A>
+or <A HREF = "fix_print.html">fix print</A> commands for examples.  A '#' or '$'
+charater that in text between double quotes will not be treated as a
+comment or substituted for as a variable.
+</P>
+<HR>
+
+<H4><A NAME = "3_3"></A>3.3 Input script structure 
+</H4>
+<P>This section describes the structure of a typical LAMMPS input script.
+The "examples" directory in the LAMMPS distribution contains many
+sample input scripts; the corresponding problems are discussed in
+<A HREF = "Section_example.html">this section</A>, and animated on the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW
+Site</A>.
+</P>
+<P>A LAMMPS input script typically has 4 parts:
+</P>
+<OL><LI>Initialization
+<LI>Atom definition
+<LI>Settings
+<LI>Run a simulation 
+</OL>
+<P>The last 2 parts can be repeated as many times as desired.  I.e. run a
+simulation, change some settings, run some more, etc.  Each of the 4
+parts is now described in more detail.  Remember that almost all the
+commands need only be used if a non-default value is desired.
+</P>
+<P>(1) Initialization
+</P>
+<P>Set parameters that need to be defined before atoms are created or
+read-in from a file.
+</P>
+<P>The relevant commands are <A HREF = "units.html">units</A>,
+<A HREF = "dimension.html">dimension</A>, <A HREF = "newton.html">newton</A>,
+<A HREF = "processors.html">processors</A>, <A HREF = "boundary.html">boundary</A>,
+<A HREF = "atom_style.html">atom_style</A>, <A HREF = "atom_modify.html">atom_modify</A>.
+</P>
+<P>If force-field parameters appear in the files that will be read, these
+commands tell LAMMPS what kinds of force fields are being used:
+<A HREF = "pair_style.html">pair_style</A>, <A HREF = "bond_style.html">bond_style</A>,
+<A HREF = "angle_style.html">angle_style</A>, <A HREF = "dihedral_style.html">dihedral_style</A>,
+<A HREF = "improper_style.html">improper_style</A>.
+</P>
+<P>(2) Atom definition
+</P>
+<P>There are 3 ways to define atoms in LAMMPS.  Read them in from a data
+or restart file via the <A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A> commands.  These files can contain
+molecular topology information.  Or create atoms on a lattice (with no
+molecular topology), using these commands: <A HREF = "lattice.html">lattice</A>,
+<A HREF = "orient.html">orient</A>, <A HREF = "origin.html">origin</A>, <A HREF = "region.html">region</A>,
+<A HREF = "create_box.html">create_box</A>, <A HREF = "create_atoms.html">create_atoms</A>.  The
+entire set of atoms can be duplicated to make a larger simulation
+using the <A HREF = "replicate.html">replicate</A> command.
+</P>
+<P>(3) Settings
+</P>
+<P>Once atoms and molecular topology are defined, a variety of settings
+can be specified: force field coefficients, simulation parameters,
+output options, etc.
+</P>
+<P>Force field coefficients are set by these commands (they can also be
+set in the read-in files): <A HREF = "pair_coeff.html">pair_coeff</A>,
+<A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "angle_coeff.html">angle_coeff</A>,
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A>,
+<A HREF = "improper_coeff.html">improper_coeff</A>,
+<A HREF = "kspace_style.html">kspace_style</A>, <A HREF = "dielectric.html">dielectric</A>,
+<A HREF = "special_bonds.html">special_bonds</A>.
+</P>
+<P>Various simulation parameters are set by these commands:
+<A HREF = "temperature.html">temperature</A>, <A HREF = "temp_modify.html">temp_modify</A>,
+<A HREF = "neighbor.html">neighbor</A>, <A HREF = "neigh_modify.html">neigh_modify</A>,
+<A HREF = "group.html">group</A>, <A HREF = "timestep.html">timestep</A>,
+<A HREF = "reset_timestep.html">reset_timestep</A>, <A HREF = "run_style.html">run_style</A>,
+<A HREF = "min_style.html">min_style</A>, <A HREF = "min_modify.html">min_modify</A>.
+</P>
+<P>Fixes impose a variety of boundary conditions, time integration, and
+diagnostic options.  The <A HREF = "fix.html">fix</A> command comes in many flavors.
+</P>
+<P>Output options are set by these commands: <A HREF = "thermo.html">thermo</A>,
+<A HREF = "dump.html">dump</A>, <A HREF = "restart.html">restart</A>.
+</P>
+<P>(4) Run a simulation
+</P>
+<P>A molecular dynamics simulation is run using the <A HREF = "run.html">run</A>
+command.  Energy minimizationn (molecular statics) is performed using
+the <A HREF = "minimize.html">minimize</A> command.  A parallel tempering
+(replica-exchange) simulation can be run using the
+<A HREF = "temper.html">temper</A> command.
+</P>
+<HR>
+
+<A NAME = "3_4"></A><H4>3.4 Commands listed by category 
+</H4>
+<P>This section lists all LAMMPS commands, grouped by category.  The
+<A HREF = "#3_5">next section</A> lists the same commands alphabetically.  Note that
+some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+</P>
+<P>Initialization:
+</P>
+<P><A HREF = "atom_modify.html">atom_modify</A>, <A HREF = "atom_style.html">atom_style</A>,
+<A HREF = "boundary.html">boundary</A>, <A HREF = "dimension.html">dimension</A>,
+<A HREF = "newton.html">newton</A>, <A HREF = "processors.html">processors</A>, <A HREF = "units.html">units</A>
+</P>
+<P>Atom definition:
+</P>
+<P><A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "create_box.html">create_box</A>,
+<A HREF = "lattice.html">lattice</A>, <A HREF = "orient.html">orient</A>, <A HREF = "origin.html">origin</A>,
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>,
+<A HREF = "region.html">region</A>, <A HREF = "replicate.html">replicate</A>
+</P>
+<P>Force fields:
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>, <A HREF = "angle_style.html">angle_style</A>,
+<A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "bond_style.html">bond_style</A>,
+<A HREF = "dielectric.html">dielectric</A>, <A HREF = "dihedral_coeff.html">dihedral_coeff</A>,
+<A HREF = "dihedral_style.html">dihedral_style</A>,
+<A HREF = "improper_coeff.html">improper_coeff</A>,
+<A HREF = "improper_style.html">improper_style</A>,
+<A HREF = "kspace_modify.html">kspace_modify</A>, <A HREF = "kspace_style.html">kspace_style</A>,
+<A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_modify.html">pair_modify</A>,
+<A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_write.html">pair_write</A>,
+<A HREF = "special_bonds.html">special_bonds</A>
+</P>
+<P>Settings:
+</P>
+<P><A HREF = "dipole.html">dipole</A>, <A HREF = "group.html">group</A>, <A HREF = "mass.html">mass</A>,
+<A HREF = "min_modify.html">min_modify</A>, <A HREF = "min_style.html">min_style</A>,
+<A HREF = "neigh_modify.html">neigh_modify</A>, <A HREF = "neighbor.html">neighbor</A>,
+<A HREF = "reset_timestep.html">reset_timestep</A>, <A HREF = "run_style.html">run_style</A>,
+<A HREF = "set.html">set</A>, <A HREF = "temp_modify.html">temp_modify</A>,
+<A HREF = "temperature.html">temperature</A>, <A HREF = "timestep.html">timestep</A>,
+<A HREF = "velocity.html">velocity</A>
+</P>
+<P>Fixes:
+</P>
+<P><A HREF = "fix.html">fix</A>, <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "unfix.html">unfix</A>
+</P>
+<P>Output:
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_modify.html">dump_modify</A>,
+<A HREF = "restart.html">restart</A>, <A HREF = "thermo.html">thermo</A>,
+<A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "thermo_style.html">thermo_style</A>,
+<A HREF = "undump.html">undump</A>, <A HREF = "write_restart.html">write_restart</A>
+</P>
+<P>Actions:
+</P>
+<P><A HREF = "delete_atoms.html">delete_atoms</A>, <A HREF = "delete_bonds.html">delete_bonds</A>,
+<A HREF = "displace_atoms.html">displace_atoms</A>, <A HREF = "minimize.html">minimize</A>,
+<A HREF = "run.html">run</A>, <A HREF = "temper.html">temper</A>
+</P>
+<P>Miscellaneous:
+</P>
+<P><A HREF = "clear.html">clear</A>, <A HREF = "echo.html">echo</A>, <A HREF = "include.html">include</A>,
+<A HREF = "jump.html">jump</A>, <A HREF = "label.html">label</A>, <A HREF = "log.html">log</A>,
+<A HREF = "next.html">next</A>, <A HREF = "print.html">print</A>, <A HREF = "shell.html">shell</A>,
+<A HREF = "variable.html">variable</A>
+</P>
+<HR>
+
+<H4><A NAME = "3_5"></A><A NAME = "comm"></A>3.5 Individual commands 
+</H4>
+<P>This section lists all LAMMPS commands alphabetically, with a separate
+listing below of styles within certain commands.  The <A HREF = "#3_4">previous
+section</A> lists the same commands, grouped by category.  Note that
+some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "angle_coeff.html">angle_coeff</A></TD><TD ><A HREF = "angle_style.html">angle_style</A></TD><TD ><A HREF = "atom_modify.html">atom_modify</A></TD><TD ><A HREF = "atom_style.html">atom_style</A></TD><TD ><A HREF = "bond_coeff.html">bond_coeff</A></TD><TD ><A HREF = "bond_style.html">bond_style</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "boundary.html">boundary</A></TD><TD ><A HREF = "clear.html">clear</A></TD><TD ><A HREF = "create_atoms.html">create_atoms</A></TD><TD ><A HREF = "create_box.html">create_box</A></TD><TD ><A HREF = "delete_atoms.html">delete_atoms</A></TD><TD ><A HREF = "delete_bonds.html">delete_bonds</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "dielectric.html">dielectric</A></TD><TD ><A HREF = "dihedral_coeff.html">dihedral_coeff</A></TD><TD ><A HREF = "dihedral_style.html">dihedral_style</A></TD><TD ><A HREF = "dimension.html">dimension</A></TD><TD ><A HREF = "dipole.html">dipole</A></TD><TD ><A HREF = "displace_atoms.html">displace_atoms</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "dump.html">dump</A></TD><TD ><A HREF = "dump_modify.html">dump_modify</A></TD><TD ><A HREF = "echo.html">echo</A></TD><TD ><A HREF = "fix.html">fix</A></TD><TD ><A HREF = "fix_modify.html">fix_modify</A></TD><TD ><A HREF = "group.html">group</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "improper_coeff.html">improper_coeff</A></TD><TD ><A HREF = "improper_style.html">improper_style</A></TD><TD ><A HREF = "include.html">include</A></TD><TD ><A HREF = "jump.html">jump</A></TD><TD ><A HREF = "kspace_modify.html">kspace_modify</A></TD><TD ><A HREF = "kspace_style.html">kspace_style</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "label.html">label</A></TD><TD ><A HREF = "lattice.html">lattice</A></TD><TD ><A HREF = "log.html">log</A></TD><TD ><A HREF = "mass.html">mass</A></TD><TD ><A HREF = "minimize.html">minimize</A></TD><TD ><A HREF = "min_modify.html">min_modify</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "min_style.html">min_style</A></TD><TD ><A HREF = "neigh_modify.html">neigh_modify</A></TD><TD ><A HREF = "neighbor.html">neighbor</A></TD><TD ><A HREF = "newton.html">newton</A></TD><TD ><A HREF = "next.html">next</A></TD><TD ><A HREF = "orient.html">orient</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "origin.html">origin</A></TD><TD ><A HREF = "pair_coeff.html">pair_coeff</A></TD><TD ><A HREF = "pair_modify.html">pair_modify</A></TD><TD ><A HREF = "pair_style.html">pair_style</A></TD><TD ><A HREF = "pair_write.html">pair_write</A></TD><TD ><A HREF = "print.html">print</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "processors.html">processors</A></TD><TD ><A HREF = "read_data.html">read_data</A></TD><TD ><A HREF = "read_restart.html">read_restart</A></TD><TD ><A HREF = "region.html">region</A></TD><TD ><A HREF = "replicate.html">replicate</A></TD><TD ><A HREF = "reset_timestep.html">reset_timestep</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "restart.html">restart</A></TD><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "run_style.html">run_style</A></TD><TD ><A HREF = "set.html">set</A></TD><TD ><A HREF = "shell.html">shell</A></TD><TD ><A HREF = "special_bonds.html">special_bonds</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "temp_modify.html">temp_modify</A></TD><TD ><A HREF = "temper.html">temper</A></TD><TD ><A HREF = "temperature.html">temperature</A></TD><TD ><A HREF = "thermo.html">thermo</A></TD><TD ><A HREF = "thermo_modify.html">thermo_modify</A></TD><TD ><A HREF = "thermo_style.html">thermo_style</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "timestep.html">timestep</A></TD><TD ><A HREF = "undump.html">undump</A></TD><TD ><A HREF = "unfix.html">unfix</A></TD><TD ><A HREF = "units.html">units</A></TD><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "velocity.html">velocity</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "write_restart.html">write_restart</A> 
+</TD></TR></TABLE></DIV>
+
+<P>Fix styles.  See the <A HREF = "fix.html">fix</A> command for one-line descriptions
+or click on the command itself for a full description:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "fix_addforce.html">fix addforce</A></TD><TD ><A HREF = "fix_aveforce.html">fix aveforce</A></TD><TD ><A HREF = "fix_com.html">fix com</A></TD><TD ><A HREF = "fix_drag.html">fix drag</A></TD><TD ><A HREF = "fix_efield.html">fix efield</A></TD><TD ><A HREF = "fix_enforce2d.html">fix enforce2d</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_freeze.html">fix freeze</A></TD><TD ><A HREF = "fix_gran_diag.html">fix gran/diag</A></TD><TD ><A HREF = "fix_gravity.html">fix gravity</A></TD><TD ><A HREF = "fix_gyration.html">fix gyration</A></TD><TD ><A HREF = "fix_indent.html">fix indent</A></TD><TD ><A HREF = "fix_insert.html">fix insert</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_langevin.html">fix langevin</A></TD><TD ><A HREF = "fix_lineforce.html">fix lineforce</A></TD><TD ><A HREF = "fix_msd.html">fix msd</A></TD><TD ><A HREF = "fix_momentum.html">fix momentum</A></TD><TD ><A HREF = "fix_nph.html">fix nph</A></TD><TD ><A HREF = "fix_npt.html">fix npt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_nve.html">fix nve</A></TD><TD ><A HREF = "fix_nve_gran.html">fix nve/gran</A></TD><TD ><A HREF = "fix_nvt.html">fix nvt</A></TD><TD ><A HREF = "fix_orient_fcc.html">fix orient/fcc</A></TD><TD ><A HREF = "fix_planeforce.html">fix planeforce</A></TD><TD ><A HREF = "fix_poems.html">fix poems</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_print.html">fix print</A></TD><TD ><A HREF = "fix_rdf.html">fix rdf</A></TD><TD ><A HREF = "fix_recenter.html">fix recenter</A></TD><TD ><A HREF = "fix_rigid.html">fix rigid</A></TD><TD ><A HREF = "fix_setforce.html">fix setforce</A></TD><TD ><A HREF = "fix_shake.html">fix shake</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_spring.html">fix spring</A></TD><TD ><A HREF = "fix_spring_rg.html">fix spring/rg</A></TD><TD ><A HREF = "fix_spring_self.html">fix spring/self</A></TD><TD ><A HREF = "fix_temp_rescale.html">fix temp/rescale</A></TD><TD ><A HREF = "fix_tmd.html">fix tmd</A></TD><TD ><A HREF = "fix_uniaxial.html">fix uniaxial</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_vcm.html">fix vcm</A></TD><TD ><A HREF = "fix_viscous.html">fix viscous</A></TD><TD ><A HREF = "fix_volume_rescale.html">fix volume/rescale</A></TD><TD ><A HREF = "fix_wall_gran.html">fix wall/gran</A></TD><TD ><A HREF = "fix_wall_lj93.html">fix wall/lj93</A></TD><TD ><A HREF = "fix_wall_reflect.html">fix wall/reflect</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_wiggle.html">fix wiggle</A> 
+</TD></TR></TABLE></DIV>
+
+<P>Pair styles.  See the <A HREF = "pair_style.html">pair_style</A> command for an
+overview of pair potentials.  Click on the style itself for a full
+description:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "pair_style_none.html">none</A></TD><TD ><A HREF = "pair_style_hybrid.html">hybrid</A></TD><TD ><A HREF = "pair_style_buck.html">buck</A></TD><TD ><A HREF = "pair_style_buck.html">buck/coul/cut</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_buck.html">buck/coul/long</A></TD><TD ><A HREF = "pair_style_dpd.html">dpd</A></TD><TD ><A HREF = "pair_style_eam.html">eam</A></TD><TD ><A HREF = "pair_style_eam.html">eam/alloy</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_eam.html">eam/fs</A></TD><TD ><A HREF = "pair_style_gran.html">gran/hertzian</A></TD><TD ><A HREF = "pair_style_gran.html">gran/history</A></TD><TD ><A HREF = "pair_style_gran.html">gran/no_history</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_charmm.html">lj/charmm/coul/charmm</A></TD><TD ><A HREF = "pair_style_charmm.html">lj/charmm/coul/charmm/implicit</A></TD><TD ><A HREF = "pair_style_charmm.html">lj/charmm/coul/long</A></TD><TD ><A HREF = "pair_style_class2.html">lj/class2</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_class2.html">lj/class2/coul/cut</A></TD><TD ><A HREF = "pair_style_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_style_lj.html">lj/cut</A></TD><TD ><A HREF = "pair_style_lj.html">lj/cut/coul/cut</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_lj.html">lj/cut/coul/debye</A></TD><TD ><A HREF = "pair_style_lj.html">lj/cut/coul/long</A></TD><TD ><A HREF = "pair_style_lj.html">lj/cut/coul/long/tip4p</A></TD><TD ><A HREF = "pair_style_lj_expand.html">lj/expand</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_lj_smooth.html">lj/smooth</A></TD><TD ><A HREF = "pair_style_morse.html">morse</A></TD><TD ><A HREF = "pair_style_soft.html">soft</A></TD><TD ><A HREF = "pair_style_table.html">table</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_style_yukawa.html">yukawa</A> 
+</TD></TR></TABLE></DIV>
+
+<P>Bond styles.  See the <A HREF = "bond_style.html">bond_style</A> command for an
+overview of bond potentials.  Click on the style itself for a full
+description:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_style_none.html">none</A></TD><TD WIDTH="100"><A HREF = "bond_style_hybrid.html">hybrid</A></TD><TD WIDTH="100"><A HREF = "bond_style_class2.html">class2</A></TD><TD WIDTH="100"><A HREF = "bond_style_fene.html">fene</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_style_fene_expand.html">fene/expand</A></TD><TD WIDTH="100"><A HREF = "bond_style_harmonic.html">harmonic</A></TD><TD WIDTH="100"><A HREF = "bond_style_morse.html">morse</A></TD><TD WIDTH="100"><A HREF = "bond_style_nonlinear.html">nonlinear</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_style_quartic.html">quartic</A> 
+</TD></TR></TABLE></DIV>
+
+<P>Angle styles.  See the <A HREF = "angle_style.html">angle_style</A> command for an
+overview of angle potentials.  Click on the style itself for a full
+description:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_style_none.html">none</A></TD><TD WIDTH="100"><A HREF = "angle_style_hybrid.html">hybrid</A></TD><TD WIDTH="100"><A HREF = "angle_style_charmm.html">charmm</A></TD><TD WIDTH="100"><A HREF = "angle_style_class2.html">class2</A></TD><TD WIDTH="100"><A HREF = "angle_style_cosine.html">cosine</A></TD><TD WIDTH="100"><A HREF = "angle_style_cosine_squared.html">cosine/squared</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_style_harmonic.html">harmonic</A> 
+</TD></TR></TABLE></DIV>
+
+<P>Dihedral styles.  See the <A HREF = "dihedral_style.html">dihedral_style</A> command
+for an overview of dihedral potentials.  Click on the style itself for
+a full description:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "dihedral_style_none.html">none</A></TD><TD WIDTH="100"><A HREF = "dihedral_style_hybrid.html">hybrid</A></TD><TD WIDTH="100"><A HREF = "dihedral_style_charmm.html">charmm</A></TD><TD WIDTH="100"><A HREF = "dihedral_style_class2.html">class2</A></TD><TD WIDTH="100"><A HREF = "dihedral_style_harmonic.html">harmonic</A></TD><TD WIDTH="100"><A HREF = "dihedral_style_helix.html">helix</A></TD><TD WIDTH="100"><A HREF = "dihedral_style_multi_harmonic.html">multi/harmonic</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "dihedral_style_opls.html">opls</A> 
+</TD></TR></TABLE></DIV>
+
+<P>Improper styles.  See the <A HREF = "improper_style.html">improper_style</A> command for an
+overview of improper potentials.  Click on the style itself for a full
+description:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "improper_style_none.html">none</A></TD><TD WIDTH="100"><A HREF = "improper_style_hybrid.html">hybrid</A></TD><TD WIDTH="100"><A HREF = "improper_style_class2.html">class2</A></TD><TD WIDTH="100"><A HREF = "improper_style_cvff.html">cvff</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "improper_style_harmonic.html">harmonic</A> 
+</TD></TR></TABLE></DIV>
+
+</HTML>

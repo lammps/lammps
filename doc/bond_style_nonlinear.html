@@ -1,0 +1,62 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>bond_style nonlinear command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>bond_style nonlinear 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>bond_style nonlinear
+bond_coeff 2 100.0 1.1 1.4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>nonlinear</I> bond style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/bond_nonlinear.jpg">
+</CENTER>
+<P>to define an anharmonic spring <A HREF = "#Rector">(Rector)</A> of equilibrium
+length r0 and maximum extension lamda.
+</P>
+<P>The following coefficients must be defined for each bond type via the
+<A HREF = "bond_coeff.html">bond_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>epsilon (energy)
+<LI>r0 (distance)
+<LI>lamda (distance) 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>Bond styles can only be set for atom styles that allow bonds to be
+defined.
+</P>
+<P>This bond style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Rector"></A>
+
+<P><B>(Rector)</B> Rector, Van Swol, Henderson, Molecular Physics, 82, 1009 (1994).
+</P>
+</HTML>

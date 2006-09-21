@@ -1,0 +1,56 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+bond_style nonlinear command :h3
+
+[Syntax:]
+
+bond_style nonlinear :pre
+
+[Examples:]
+
+bond_style nonlinear
+bond_coeff 2 100.0 1.1 1.4 :pre
+
+[Description:]
+
+The {nonlinear} bond style uses the potential
+
+:c,image(Eqs/bond_nonlinear.jpg)
+
+to define an anharmonic spring "(Rector)"_#Rector of equilibrium
+length r0 and maximum extension lamda.
+
+The following coefficients must be defined for each bond type via the
+"bond_coeff"_bond_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+epsilon (energy)
+r0 (distance)
+lamda (distance) :ul
+
+[Restrictions:]
+
+Bond styles can only be set for atom styles that allow bonds to be
+defined.
+
+This bond style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html
+
+[Default:] none
+
+:line
+
+:link(Rector)
+[(Rector)] Rector, Van Swol, Henderson, Molecular Physics, 82, 1009 (1994).

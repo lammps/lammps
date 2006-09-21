@@ -1,0 +1,69 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>write_restart command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>write_restart file 
+</PRE>
+<UL><LI>file = name of file to write restart information to 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>write_restart restart.equil
+write_restart poly.%.* 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Write a binary restart file of the current state of the simulation.
+See the <A HREF = "read_restart.html">read_restart</A> command for information about
+what is stored in a restart file.
+</P>
+<P>During a long simulation, the <A HREF = "restart.html">restart</A> command is
+typically used to dump restart files periodically.  The write_restart
+command is useful after a minimization or whenever you wish to write
+out a single current restart file.
+</P>
+<P>Similar to <A HREF = "dump.html">dump</A> files, the restart filename can contain
+two wild-card characters.  If a "*" appears in the filename, it is
+replaced with the current timestep value.  If a "%" character appears
+in the filename, then one file is written by each processor and the
+"%" character is replaced with the processor ID from 0 to P-1.  An
+additional file with the "%" replaced by "base" is also written, which
+contains global information.  For example, the files written for
+filename restart.% would be restart.base, restart.0, restart.1, ...
+restart.P-1.  This creates smaller files and can be a fast mode of
+output on parallel machines that support parallel I/O for output.
+</P>
+<P>Restart files can be read by a <A HREF = "read_restart.html">read_restart</A>
+command to restart a simulation from a particular state.  Because the
+file is binary (to enable exact restarts), it may not be readable on
+another machine.  In this case, the restart2data program in the tools
+directory can be used to convert a restart file to an ASCII data file.
+Both the read_restart commmand and restart2data tool can read in a
+restart file that was written with the "%" character so that multiple
+files were created.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command requires inter-processor communication to migrate atoms
+before the restart file is written.  This means that your system must
+be ready to perform a simulation before using this command (force
+fields setup, atom masses set, etc).
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "restart.html">restart</A>, <A HREF = "read_restart.html">read_restart</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

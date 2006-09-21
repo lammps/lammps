@@ -1,0 +1,121 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+delete_bonds command :h3
+
+[Syntax:]
+
+delete_bonds group-ID style args keyword ... :pre
+
+group-ID = group ID :ulb,l
+style = {multi} or {atom} or {bond} or {angle} or {dihedral} or
+        {improper} or {stats} :l
+  {multi} args = none
+  {atom} args = an atom type
+  {bond} args = a bond type
+  {angle} args = an angle type
+  {dihedral} args = a dihedral type
+  {improper} args = an improper type
+  {stats} args = none :pre
+zero or more keywords may be appended to the args :l
+keyword = {undo} or {remove} or {special} :l
+:ule
+
+[Examples:]
+
+delete_bonds frozen multi remove
+delete_bonds all atom 4 special
+delete_bonds all stats :pre
+
+[Description:]
+
+Turn off (or on) molecular topology interactions, i.e. bonds, angles,
+dihedrals, impropers.  This command is useful for deleting
+interactions that have been previously turned off by bond-breaking
+potentials.  It is also useful for turning off topology interactions
+between frozen or rigid atoms.  Pairwise interactions can be turned
+off via the "neigh_modify exclude"_neigh_modify.html command.  The
+"fix shake"_fix_shake.html command also effectively turns off certain
+bond and angle interactions.
+
+For all styles, an interaction is only turned off (or on) if all the
+atoms involved are in the specified group.  For style {multi} this is
+the only criterion applied - all types of bonds, angles, dihedrals,
+impropers in the group turned off.
+
+For style {atom}, one or more of the atoms involved must also be of
+the specified type.  For style {bond}, only bonds are candidates for
+turn-off, and the bond must be of the specified type.  Styles {angle},
+{dihedral}, and {improper} are treated similarly.
+
+For style {bond}, you can set the type to 0 to delete bonds that have
+been previously broken; e.g. see the "bond_style
+quartic"_bond_style.html command.
+
+For style {stats} no interactions are turned off (or on); the status
+of all interactions in the specified group is simply reported.  This
+is useful for diagnostic purposes if bonds have been turned off by a
+bond-breaking potential during a previous run.
+
+The default behavior of the delete_bonds command is to turn off
+interactions by toggling their type to a negative value.  E.g. a
+bond_type of 2 is set to -2.  The neighbor list creation routines will
+not include such an interaction in their interaction lists.  The
+default is also to not alter the list of 1-2, 1-3, 1-4 neighbors
+computed by the "special_bonds"_special_bonds.html command and used to
+weight pairwise force and energy calculations.  This means that
+pairwise computations will proceed as if the bond (or angle, etc) were
+still turned on.
+
+The keywords listed above can be appended to the argument list to
+alter the default behavior.
+
+The {undo} keyword inverts the delete_bonds command so that the
+specified bonds, angles, etc are turned on if they are currently
+turned off.  This means any negative value is toggled to positive.
+Note that the "fix shake"_fix_shake.html command also sets bond and
+angle types negative, so this option should not be used on those
+interactions.
+
+The {remove} keyword is invoked at the end of the delete_bonds
+operation.  It causes turned-off bonds (angles, etc) to be removed
+from each atom's data structure and then adjusts the global bond
+(angle, etc) counts accordingly.  Removal is a permanent change;
+removed bonds cannot be turned back on via the {undo} keyword.
+Removal does not alter the pairwise 1-2, 1-3, 1-4 weighting list.
+
+The {special} keyword is invoked at the end of the delete_bonds
+operation, after (optional) removal.  It re-computes the pairwise 1-2,
+1-3, 1-4 weighting list.  The weighting list computation treats
+turned-off bonds the same as turned-on.  Thus, turned-off bonds must
+be removed if you wish to change the weighting list. 
+
+Note that the choice of {remove} and {special} options affects how
+1-2, 1-3, 1-4 pairwise interactions will be computed across bonds that
+have been modified by the delete_bonds command.
+
+[Restrictions:]
+
+This command requires inter-processor communication to coordinate the
+deleting of bonds.  This means that your system must be ready to
+perform a simulation before using this command (force fields setup,
+atom masses set, etc).
+
+If deleted bonds (angles, etc) are removed but the 1-2, 1-3, 1-4
+weighting list is not recomputed, this can cause a later "fix
+shake"_fix_shake.html command to fail due to an atom's bonds being
+inconsistent with the weighting list.  This should only happen if the
+group used in the fix command includes both atoms in the bond, in
+which case you probably should be recomputing the weighting list.
+
+[Related commands:]
+
+"neigh_modify"_neigh_modify.html exclude,
+"special_bonds"_special_bonds.html, "fix shake"_fix_shake.html
+
+[Default:] none

@@ -1,0 +1,86 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix viscous command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID viscous gamma keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>viscous = style name of this fix command 
+
+<LI>gamma = damping coefficient (force/velocity units) 
+
+<LI>zero or more keyword/value pairs can be appended 
+
+<LI>keyword = <I>b</I> or <I>a</I> or <I>t</I> or <I>m</I> 
+
+<LI>zero or more keyword/value pairs may be appended to the args 
+
+<PRE>keyword = <I>scale</I>
+  <I>scale</I> values = type ratio
+    type = atom type (1-N)
+    ratio = factor to scale the damping coefficient by 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 flow viscous 0.1
+fix 1 damp viscous 0.5 scale 3 2.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Add a viscous damping force to atoms in the group that is proportional
+to the velocity of the atom.  The added force can be thought of as a
+frictional interaction with implicit solvent.  In granular simulations
+this can be useful for draining the kinetic energy from the system in
+a controlled fashion.  If used without additional thermostatting (to
+add kinetic energy to the system), it has the effect of slowly (or
+rapidly) freezing the system; hence it is a simple energy minimization
+technique.
+</P>
+<P>The damping force F is given by F = - gamma * velocity.  The larger
+the coefficient, the faster the kinetic energy is reduced.  If the
+optional keyword <I>scale</I> is used, gamma can scaled up or down by the
+specified factor for atoms of that type.  It can be used multiple
+times to adjust gamma for several atom types.
+</P>
+<P>In a Brownian dynamics context, gamma = kT / mD, where k = Bolztmann's
+constant, T = temperature, m = particle mass, and D = particle
+diffusion coefficient.  D can be written as kT / (6 pi eta d), where
+eta = viscosity of the frictional fluid and d = diameter of particle.
+This means gamma = 6 pi eta d, and thus is proportional to the
+viscosity of the fluid and the particle diameter.
+</P>
+<P>In the current implementation, rather than have the user specify a
+viscosity (in centiPoise or some other units), gamma is specified
+directly in force/velocity units.  If needed, gamma can be adjusted
+for atoms of different sizes (i.e. sigma) by using the <I>scale</I>
+keyword.
+</P>
+<P>Note that Brownian dynamics models also typically include a randomized
+force term to thermostat the system at a chosen temperature.  The <A HREF = "fix_langevin.html">fix
+langevin</A> command adds both a viscous damping term
+and this random force to each atom; hence if using fix <I>langevin</I> you
+do not typically need to use fix <I>viscous</I>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin.html">fix langevin</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

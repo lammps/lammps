@@ -1,0 +1,503 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+:line
+
+read_data command :h3
+
+[Syntax:]
+
+read_data file :pre
+
+file = name of data file to read in :ul
+
+[Examples:]
+
+read_data data.lj
+read_data ../run7/data.polymer.gz :pre
+
+[Description:]
+
+Read in a data file containing information LAMMPS needs to run a
+simulation.  The file can be ASCII text or a gzipped text file
+(detected by a .gz suffix).  This is one of 3 ways to specify initial
+atom coordinates; see the "read_restart"_read_restart.html and
+"create_atoms"_create_atoms.html commands for alternative methods.
+
+The structure of the data file is important, though many settings and
+sections are optional or can come in any order.  See the examples
+directory for sample data files for different problems.
+
+A data file has a header and a body.  The header appears first.  The
+first line of the header is always skipped; it typically contains a
+description of the file.  Then lines are read one at a time.  Lines
+can have a trailing comment starting with '#' that is ignored.  If the
+line is blank (only whitespace after comment is deleted), it is
+skipped.  If the line contains a header keyword, the corresponding
+value(s) is read from the line.  If it doesn't contain a header
+keyword, the line begins the body of the file.
+
+The body of the file contains zero or more sections.  The first line
+of a section has only a keyword.  The next line is skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used between sections.  Sections can appear in any order,
+with a few exceptions as noted below.
+
+The formatting of individual lines in the data file (indentation,
+spacing between words and numbers) is not important except that header
+and section keywords (e.g. atoms, xlo xhi, Masses, Bond Coeffs) must
+be capitalized as shown and can't have extra white space between their
+words - e.g. two spaces or a tab between "Bond" and "Coeffs" is not
+valid.
+
+:line
+
+These are the recognized header keywords.  Header lines can come in
+any order.  The value(s) is read from the beginning of the line.  Thus
+the keyword {atoms} should be in a line like "1000 atoms" and the
+keyword {ylo yhi} should be in a line like "-10.0 10.0 ylo yhi".  All
+these settings have a default value of 0, except the lo/hi box size
+defaults are -0.5 and 0.5.  A line need only appear if the value is
+different than the default.
+
+{atoms} = # of atoms in system
+{bonds} = # of bonds in system
+{angles} = # of angles in system
+{dihedrals} = # of dihedrals in system
+{impropers} = # of impropers in system
+{atom types} = # of atom types in system
+{bond types} = # of bond types in system
+{angle types} = # of angle types in system
+{dihedral types} = # of dihedral types in system
+{improper types} = # of improper types in system
+{xlo xhi} = simulation box boundaries in x dimension
+{ylo yhi} = simulation box boundaries in y dimension
+{zlo zhi} = simulation box boundaries in z dimension :ul
+
+For 2d simulations, the {zlo zhi} values should be set to bound the z
+coords for atoms that appear in the file; the default of -0.5 0.5 is
+valid if all z coords are 0.0.
+
+The initial simulation box size is determined by the lo/hi settings.
+In any dimension, the system may be periodic or non-periodic; see the
+"boundary"_boundary.html command.
+
+If the system is non-periodic (in a dimension), then all atoms in the
+data file should have coordinates (in that dimension) between the lo
+and hi values.  Furthermore, if running in parallel, the lo/hi values
+should be just a bit smaller/larger than the min/max extent of atoms.
+For example, if your atoms extend from 0 to 50, you should not specify
+the box bounds as -10000 and 10000.  Since LAMMPS uses the specified
+box size to layout the 3d grid of processors, this will be sub-optimal
+and may cause a parallel simulation to lose atoms when LAMMPS
+shrink-wraps the box to the atoms.
+
+If the system is periodic (in a dimension), then atom coordinates can
+be outside the bounds; they will be remapped (in a periodic sense)
+back inside the box.
+
+:line
+
+These are the section keywords for the body of the file.
+
+{Atoms, Velocities, Masses, Dipoles} = atom-property sections 
+{Bonds, Angles, Dihedrals, Impropers} = molecular topolgy sections 
+{Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
+   Improper Coeffs} = force field sections
+{BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs, \
+   EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs, \
+   BondBond13 Coeffs, AngleAngle Coeffs} = class 2 force field sections :ul
+
+Each section is now listed in alphabetic order.  The format of each
+section is described including the number of lines it must contain and
+rules (if any) for where it can appear in the data file.
+
+Any individual line in the various sections can have a trailing
+comment starting with "#" for annotation purposes.  E.g. in the
+Atoms section:
+
+10 1 17 -1.0 10.0 5.0 6.0   # salt ion :pre
+
+:line
+
+{Angle Coeffs} section:
+
+one line per angle type :ulb,l
+line syntax: ID coeffs :l
+  ID = angle type (1-N)
+  coeffs = list of coeffs :pre
+example: :l
+  6 70 108.5 0 0 :pre
+:ule
+
+The number and meaning of the coefficients are specific to the defined
+angle style.  See the "angle_style"_angle_style.html and
+"angle_coeff"_angle_coeff.html commands for details.  Coefficients can
+also be set via the "angle_coeff"_angle_coeff.html command in the
+input script.
+
+:line
+
+{AngleAngle Coeffs} section:
+
+one line per improper type :ulb,l
+line syntax: ID coeffs :l
+  ID = improper type (1-N)
+  coeffs = list of coeffs (see "improper_coeff"_improper_coeff.html) :pre
+:ule
+
+:line
+
+{AngleAngleTorsion Coeffs} section:
+
+one line per dihedral type :ulb,l
+line syntax: ID coeffs :l
+  ID = dihedral type (1-N)
+  coeffs = list of coeffs (see "dihedral_coeff"_dihedral_coeff.html) :pre
+:ule
+
+:line
+
+{Angles} section:
+
+one line per angle :ulb,l
+line syntax: ID type atom1 atom2 atom3 :l
+  ID = number of angle (1-Nangles)
+  type = angle type (1-Nangletype)
+  atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle :pre
+example: :b
+  2 2 17 29 430 :pre
+:ule
+
+The 3 atoms are ordered linearly within the angle.  Thus the central
+atom (around which the angle is computed) is the atom2 in the list.
+E.g. H,O,H for a water molecule.  The {Angles} section must appear
+after the {Atoms} section.  All values in this section must be
+integers (1, not 1.0).
+
+:line
+
+{AngleTorsion Coeffs} section:
+
+one line per dihedral type :ulb,l
+line syntax: ID coeffs :l
+  ID = dihedral type (1-N)
+  coeffs = list of coeffs (see "dihedral_coeff"_dihedral_coeff.html) :pre
+:ule
+
+:line
+
+{Atoms} section:
+
+one line per atom 
+line syntax: depends on atom style :ul
+
+This is the list of all possible quantities that can appear on each
+line of this section:
+
+atom-ID = integer ID of atom
+molecule-ID = integer ID of molecule the atom belongs to
+type-ID = integer type ID of atom (1-Ntype)
+q = charge on atom
+diameter = diameter of atom
+density = density of atom
+x,y,z = coordinates of atom
+mux,muy,muz = components of dipole orientation of atom
+nx,ny,nz = image indices for atom :ul
+
+Which of these quantities are actually listed depends on the "atom
+style"_atom_style.html.  This is the list of which styles require each
+quantity:
+
+atom-ID = all styles
+molecule-ID = angle, bond, molecular, full styles
+type-ID = all styles
+q = charge, dipole, full styles
+diameter = granular style
+density = granular style
+x,y,z = all styles
+mux,muy,muz = dipole style
+nx,ny,nz = optional for all styles (see below) :ul
+
+Any quantity that is used by the atom style appears in the order
+listed above.  Thus if the atom style is {atomic}, an atom line should
+have 5 quantities: atom-ID, type-ID, x, y, z.  If the atom style is
+{hybrid eam dipole molecular}, then an atom line should have 10
+quantites: atom-ID, molecule-ID, type-ID, q, x, y, z, mux, muy, muz.
+
+The units for these quantities depend on the unit style; see the
+"units"_units.html command for details.
+
+For 2d simulations specify z as 0.0, or whatever value is within the
+{zlo zhi} setting in the data file header.
+
+The atom-ID is used to identify the atom throughout the simulation and
+in dump files.  Normally, it is a unique value from 1 to Natoms for
+each atom.  Unique values larger than Natoms can be used, but they
+will cause extra memory to be allocated on each processor, if an atom
+map array is used (see the "atom_modify"_atom_modify.html command).
+If an atom map array is not used (e.g. an atomic system with no
+bonds), velocities are not assigned in the data file, and you don't
+care if unique atom IDs appear in dump files, then IDs can be set to
+non-unique values > 0.
+
+The molecule ID is a 2nd identifier attached to an atom.  Normally, it
+is a number from 1 to N, identifying which molecule the atom belongs
+to.  It can be 0 if it is an unbonded atom or if you don't care about
+molecule assignments.
+
+An {Atoms} section must appear in the data file if natoms > 0 in the
+header section.  The atoms can be listed in any order. 
+
+Atom lines (all or none of them) can optionally list 3 final integer
+values: nx,ny,nz.  For periodic dimensions, they specify which image
+of the box the atom is considered to be in.  An image of 0 means the
+box as defined.  A value of 2 means add 2 box lengths to get the true
+value.  A value of -1 means subtract 1 box length to get the true
+value.  LAMMPS updates these flags as atoms cross periodic boundaries
+during the simulation.  The flags can be output via the
+"dump"_dump.html and "dump_modify"_dump_modify.html commands.  If
+nx,ny,nz values are not set in the data file, LAMMPS initializes them
+to 0.
+
+Atom velocities are set to 0.0 when the {Atoms} section is read.  They
+may later be set by a {Velocities} section or by a
+"velocity"_velocity.html command in the input script.
+
+:line
+
+{Bond Coeffs} section:
+
+one line per bond type :ulb,l
+line syntax: ID coeffs :l
+  ID = bond type (1-N)
+  coeffs = list of coeffs :pre
+example: :l
+  4 250 1.49 :pre
+:ule
+
+The number and meaning of the coefficients are specific to the defined
+bond style.  See the "bond_style"_bond_style.html and
+"bond_coeff"_bond_coeff.html commands for details.  Coefficients can
+also be set via the "bond_coeff"_bond_coeff.html command in the input
+script.
+
+:line
+
+{BondAngle Coeffs} section:
+
+one line per angle type :ulb,l
+line syntax: ID coeffs :l
+  ID = angle type (1-N)
+  coeffs = list of coeffs (see class 2 section of "angle_coeff"_angle_coeff.html) :pre
+:ule
+
+:line
+
+{BondBond Coeffs} section:
+
+one line per angle type :ulb,l
+line syntax: ID coeffs :l
+  ID = angle type (1-N)
+  coeffs = list of coeffs (see class 2 section of "angle_coeff"_angle_coeff.html) :pre
+:ule
+
+:line
+
+{BondBond13 Coeffs} section:
+
+one line per dihedral type :ulb,l
+line syntax: ID coeffs :l
+  ID = dihedral type (1-N)
+  coeffs = list of coeffs (see class 2 section of "dihedral_coeff"_dihedral_coeff.html) :pre
+:ule
+
+:line
+
+{Bonds} section:
+
+one line per bond :ulb,l
+line syntax: ID type atom1 atom2 :l
+  ID = bond number (1-Nbonds)
+  type = bond type (1-Nbondtype)
+  atom1,atom2 = IDs of 1st,2nd atoms in bond :pre
+example: :l
+  12 3 17 29 :pre
+:ule
+
+The {Bonds} section must appear after the {Atoms} section.  All values
+in this section must be integers (1, not 1.0).
+
+:line
+
+{Dihedral Coeffs} section:
+
+one line per dihedral type :ulb,l
+line syntax: ID coeffs :l
+  ID = dihedral type (1-N)
+  coeffs = list of coeffs :pre
+example: :l
+  3 0.6 1 0 1 :pre
+:ule
+
+The number and meaning of the coefficients are specific to the defined
+dihedral style.  See the "dihedral_style"_dihedral_style.html and
+"dihedral_coeff"_dihedral_coeff.html commands for details.
+Coefficients can also be set via the
+"dihedral_coeff"_dihedral_coeff.html command in the input script.
+
+:line
+
+{Dihedrals} section:
+
+one line per dihedral :ulb,l
+line syntax: ID type atom1 atom2 atom3 atom4 :l
+  ID = number of dihedral (1-Ndihedrals)
+  type = dihedral type (1-Ndihedraltype)
+  atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral :pre
+example: :l
+  12 4 17 29 30 21 :pre
+:ule
+
+The 4 atoms are ordered linearly within the dihedral.  The {Dihedrals}
+section must appear after the {Atoms} section.  All values in this
+section must be integers (1, not 1.0).
+
+:line
+
+{Dipoles} section:
+
+one line per atom type :ulb,l
+line syntax: ID dipole-moment :
+  ID = atom type (1-N)
+  dipole-moment = value of dipole moment :pre
+example: :l
+  2 0.5 :pre
+:ule
+
+This defines the dipole moment of each atom type (which can be 0.0 for
+some types).  This can also be set via the "dipole"_dipole.html
+command in the input script.
+
+:line
+
+{EndBondTorsion Coeffs} section:
+
+one line per dihedral type :ulb,l
+line syntax: ID coeffs :l
+  ID = dihedral type (1-N)
+  coeffs = list of coeffs (see class 2 section of "dihedral_coeff"_dihedral_coeff.html) :pre
+:ule
+
+:line
+
+{Improper Coeffs} section:
+
+one line per improper type :ulb,l
+line syntax: ID coeffs :l
+  ID = improper type (1-N)
+  coeffs = list of coeffs :pre
+example: :l
+  2 20 0.0548311 :pre
+:ule
+
+The number and meaning of the coefficients are specific to the defined
+improper style.  See the "improper_style"_improper_style.html and
+"improper_coeff"_improper_coeff.html commands for details.
+Coefficients can also be set via the
+"improper_coeff"_improper_coeff.html command in the input script.
+
+:line
+
+{Impropers} section:
+
+one line per improper :ulb,l
+line syntax: ID type atom1 atom2 atom3 atom4 :l
+  ID = number of improper (1-Nimpropers)
+  type = improper type (1-Nimpropertype)
+  atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper :pre
+example: :l
+  12 3 17 29 13 100 :pre
+:ule
+
+The {Impropers} section must appear after the {Atoms} section.  All
+values in this section must be integers (1, not 1.0).
+
+:line
+
+{Masses} section:
+
+one line per atom type :ulb,l
+line syntax: ID mass :l
+  ID = atom type (1-N)
+  mass = mass value :pre
+example: :l
+  3 1.01 :pre
+:ule
+
+This defines the mass of each atom type.  This can also be set via the
+"mass"_mass.html command in the input script.  This section should not
+be used for atom styles that define a mass for individual atoms -
+e.g. atom style granular.
+
+:line
+
+{MiddleBondTorsion Coeffs} section:
+
+one line per dihedral type :ulb,l
+line syntax: ID coeffs :l
+  ID = dihedral type (1-N)
+  coeffs = list of coeffs (see class 2 section of "dihedral_coeff"_dihedral_coeff.html) :pre
+:ule
+
+:line
+
+{Pair Coeffs} section:
+
+one line per atom type :ulb,l
+line syntax: ID coeffs :l
+  ID = atom type (1-N)
+  coeffs = list of coeffs :pre
+example: :l
+  3 0.022 2.35197 0.022 2.35197 :pre
+:ule
+
+The number and meaning of the coefficients are specific to the defined
+pair style.  See the "pair_style"_pair_style.html and
+"pair_coeff"_pair_coeff.html commands for details.  Coefficients can
+also be set via the "pair_coeff"_pair_coeff.html command in the input
+script.
+
+:line
+
+{Velocities} section:
+
+one line per atom :ulb
+line syntax: atom-ID vx vy vz :l
+  atom-ID = integer ID of atom to assign velocity to
+  vx,vy,vz = components of velocity of the atom :pre
+example: :l
+  45 -3.4 0.05 1.25 :pre
+:ule
+
+The velocity lines can appear in any order.  This section can only be
+used after an {Atoms} section.  The {Atoms} section must have assigned
+a unique atom ID to each atom so that velocities can be assigned in
+this way.  Velocities can also be set by the "velocity"_velocity.html
+command in the input script.
+
+:line
+
+[Restrictions:]
+
+To read gzipped data files, you must compile LAMMPS with the -DGZIP
+option - see the "Making LAMMPS"_Section_start.html#2_2 section of the
+documentation.
+
+[Related commands:]
+
+"read_restart"_read_restart.html, "create_atoms"_create_atoms.html
+
+[Default:] none

@@ -1,0 +1,65 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style hybrid command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style hybrid style1 style2 ... 
+</PRE>
+<UL><LI>style1,style2 = list of one or more pair styles 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style hybrid lj/charmm/coul/long 10.0 eam
+pair_coeff 1*2 1*2 eam niu3
+pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
+pair_coeff 1*2 3 lj/cut 0.5 1.2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>hybrid</I> style enables the use of multiple pair styles in one
+simulation.  A pair style can be assigned to each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command.
+</P>
+<P>For example, a metal on a LJ surface could be computed where the metal
+atoms interact with each other via a <I>eam</I> potential, the surface
+atoms interact with each other via a <I>lj/cut</I> potential, and the
+metal/surface interaction is also via a <I>lj/cut</I> potential.
+</P>
+<P>All pair styles that will be used must be listed in the pair_style
+hybrid command (in any order).  The name of each sub-style is followed
+by its arguments, as illustrated in the example above.
+</P>
+<P>In the pair_coeff command, the first coefficient sets the pair style
+and the remaining coefficients are those appropriate to that style.
+For example, consider a simulation with 3 atom types: types 1 and 2
+are Ni atoms, type 3 are LJ atoms with charges.  The following
+commands would set up the hybrid simulation:
+</P>
+<PRE>atom_style hybrid eam charge
+pair_style hybrid eam lj/cut/coul/cut 10.0 lj/cut 8.0
+pair_coeff 1*2 1*2 eam niu3
+pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
+pair_coeff 1*2 3 lj/cut 0.5 1.2 
+</PRE>
+<P>The <A HREF = "atom_style.html">atom_style</A> hybrid command is needed because
+atoms in the simulation will have both EAM and charge attributes.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,131 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+read_restart command :h3
+
+[Syntax:]
+
+read_restart file :pre
+
+file = name of binary restart file to read in :ul
+
+[Examples:]
+
+read_restart save.10000
+read_restart restart.*
+read_restart poly.*.% :pre
+
+:pre
+
+[Description:]
+
+Read in a previously saved problem from a restart file.  This allows
+continuation of a previous run.
+
+Restart files are saved in binary format to enable exact restarts,
+meaning that the trajectories of a restarted run will precisely match
+those produced by the original run had it continued on.  Several
+things can prevent exact restarts due to round-off effects, in which
+case the trajectories in the 2 runs will slowly diverge.  These
+include running on a different number of processors or changing
+certain settings such as those set by the "newton"_newton.html or
+"processors"_processors.html commands.  LAMMPS will issue a WARNING in
+these cases.  Certain fixes will also not restart exactly, though they
+should provide statistically similar results.  These include the shake
+and langevin styles.  If a restarted run is immediately different than
+the run which produced the restart file, it could be a LAMMPS bug, so
+consider "reporting it"_Section_errors.html#9_2 if you think the
+behavior is wrong.
+
+Because restart files are binary, they may not be portable to other
+machines.  They can be converted to ASCII data files using the
+restart2data tool in the tools sub-directory of the LAMMPS
+distribution.
+
+Similar to how restart files are written (see the
+"write_restart"_write_restart.html and "restart"_restart.html
+commands), the restart filename can contain two wild-card characters.
+If a "*" appears in the filename, the directory is searched for all
+filenames that match the pattern where "*" is replaced with a timestep
+value.  The file with the largest timestep value is read in.  Thus,
+this effectively means, read the latest restart file.  It's useful if
+you want your script to continue a run from where it left off.  See
+the "run"_run.html command and its "upto" option for how to specify
+the run command so it doesn't need to be changed either.
+
+If a "%" character appears in the restart filename, LAMMPS expects a
+set of multiple files to exist.  The "restart"_restart.html and
+"write_restart"_write_restart.html commands explain how such sets are
+created.  Read_restart will first read a filename where "%" is
+replaced by "base".  This file tells LAMMPS how many processors
+created the set.  Read_restart then reads the additional files.  For
+example, if the restart file was specified as save.% when it was
+written, then read_restart reads the files save.base, save.0, save.1,
+... save.P-1, where P is the number of processors that created the
+restart file.  Note that only a single processor reads all the files,
+so the input does not use parallel I/O.  The number of processors
+which created the set can be different the number of processors in the
+current LAMMPS simulation.
+
+:line
+
+A restart file stores the units and atom style, simulation box
+attibutes, individual atoms and their attributes including molecular
+topology, force field styles and coefficients,
+"special_bonds"_special_bonds.html settings, and atom group
+definitions.  This means that commands for these quantities do not
+need to be specified in your input script that reads the restart file.
+The exceptions to this are listed below in the Restrictions section.
+
+Information about the "kspace_style"_kspace_style.html settings are
+not stored in the restart file.  Hence if you wish to invoke an Ewald
+or PPPM solver, this command must be re-issued after the restart file
+is read.
+
+The restart file also stores values for any fixes that require state
+information to enable restarting where they left off.  These include
+the {nvt} and {npt} styles that have a global state, as well as the
+{msd} and {wall/gran} styles that store information about each atom.
+
+"Fix"_fix.html commands are not stored in the restart file which means
+they must be specified in the input script that reads the restart
+file.  To re-enable a fix whose state was stored in the restart file,
+the fix command in the new input script must use the same fix-ID and
+group-ID as the input script that wrote the restart file.  LAMMPS will
+print a message indicating that the fix is being re-enabled.
+
+Note that no other information is stored in the restart file.  This
+means that your new input script should specify settings for
+quantities like timestep size, thermodynamic and dump output, etc.
+
+Bond interactions (angle, etc) that have been turned off by the "fix
+shake"_fix_shake.html or "delete_bonds"_delete_bonds.html command will
+be written to a restart file as if they are turned on.  This means
+they will need to be turned off again in a new run after the restart
+file is read.
+
+Bonds that are broken (e.g. by a bond-breaking potential) are written
+to the restart file as broken bonds with a type of 0.  Thus these
+bonds will still be broken when the restart file is read.
+
+[Restrictions:]
+
+The "pair_style"_pair_style.html {eam}, {table}, and {hybrid} styles
+do not store coefficient data for individual atom type pairs in the
+restart file.  Nor does the "bond_style"_bond_style.html {hybrid}
+style.  Thus you must use new "pair_coeff"_pair_coeff.html and
+"bond_coeff"_bond_coeff.html commands to read the appropriate
+tabulated files or reset the coefficients after the restart file is
+read.
+
+[Related commands:]
+
+"read_data"_read_data.html, "write_restart"_write_restart.html,
+"restart"_restart.html
+
+[Default:] none

@@ -1,0 +1,60 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style soft command :h3
+
+[Syntax:]
+
+pair_style soft cutoff :pre
+
+cutoff = global cutoff for soft interactions (distance units) :ul
+
+[Examples:]
+
+pair_style soft 2.5
+pair_coeff * * 0.0 60.0
+pair_coeff 1 1 0.0 60.0 3.0 :pre
+
+[Description:]
+
+Style {soft} computes pairwise interactions with the formula
+
+:c,image(Eqs/pair_soft.jpg)
+
+It is useful for pushing apart overlapping atoms, since it does not
+blow up as r goes to 0.  A is a pre-factor that varies in time from
+the start to the end of the run.  The "run"_run.html command documents
+how to make the ramping take place across multiple runs.  Rc is the
+cutoff.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+Astart (energy units)
+Astop (energy units)
+cutoff (distance units) :ul
+
+Astart and Astop are the values of the prefactor at the start and end
+of the next run.  At intermediate times the value of A will be ramped
+between these 2 values.  Note that before performing a 2nd run, you
+will want to adjust the values of Astart and Astop for all type pairs,
+or switch to a new pair style.
+
+The last coefficient is optional.  If not specified, the global soft
+cutoff is used.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

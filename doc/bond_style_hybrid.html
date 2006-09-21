@@ -1,0 +1,59 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>bond_style hybrid command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>bond_style hybrid style1 style2 ... 
+</PRE>
+<UL><LI>style1,style2 = list of one or more bond styles 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>bond_style hybrid harmonic fene
+bond_coeff 1 harmonic 80.0 1.2
+bond_coeff 2* fene 30.0 1.5 1.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>hybrid</I> style enables the use of multiple bond styles in one
+simulation.  A bond style is assigned to each bond type.  For example,
+bonds in a polymer flow (of bond type 1) could be computed with a
+<I>fene</I> potential and bonds in the wall boundary (of bond type 2) could
+be computed with a <I>harmonic</I> potential.  The assignment of bond type
+to style is made via the <A HREF = "bond_coeff.html">bond_coeff</A> command or in
+the data file.
+</P>
+<P>In the bond_coeff command, the first coefficient sets the bond style
+and the remaining coefficients are those appropriate to that style.
+In the example above, the 2 bond_coeff commands would set bonds of
+bond type 1 to be computed with a <I>harmonic</I> potential with
+coefficients 80.0, 1.2 for K, r0.  All other bond types (2-N) would be
+computed with a <I>fene</I> potential with coefficients 30.0, 1.5, 1.0, 1.0
+for K, R0, epsilon, sigma.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Bond styles can only be set for atom styles that allow bonds to be
+defined.
+</P>
+<P>This bond style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

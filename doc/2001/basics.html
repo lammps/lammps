@@ -1,0 +1,224 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+Basics of Using LAMMPS</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation.</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_931273040">Distribution</A> 
+    <LI>
+    <A HREF="#_cch3_930327142">Making LAMMPS</A> 
+    <LI>
+    <A HREF="#_cch3_930327155">Running LAMMPS</A> 
+    <LI>
+    <A HREF="#_cch3_930759879">Examples</A> 
+    <LI>
+    <A HREF="#_cch3_931282515">Other Tools</A> 
+    <LI>
+    <A HREF="#_cch3_931282000">Extending LAMMPS</A> 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_931273040">Distribution</A></H3>
+<P>
+When you unzip/untar the LAMMPS distribution you should have several
+directories: </P>
+<UL>
+    <LI>
+    src = source files for LAMMPS 
+    <LI>
+    doc = HTML documentation 
+    <LI>
+    examples = sample problems with inputs and outputs 
+    <LI>
+    tools = serial program for creating and massaging LAMMPS data files 
+    <LI>
+    converters = msi2lmp, lmp2arc, amber = codes & scripts for converting
+       between MSI/Discover, AMBER, and LAMMPS formats
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930327142">Making LAMMPS</A></H3>
+<P>
+The src directory contains the F90 and C source files for LAMMPS as 
+well as several sample Makefiles for different machines. To make LAMMPS 
+for a specfic machine, you simply type</P>
+<P>
+make machine</P>
+<P>
+from within the src directoy. E.g. "make sgi" or "make t3e". This
+should create an executable such as lmp_sgi or lmp_t3e.  For optimal
+performance you'll want to use a good F90 compiler to make LAMMPS; on
+Linux boxes I've been told the Leahy F90 compiler is a good choice.
+(If you don't have an F90 compiler, I can give you an older F77-based
+version of LAMMPS 99, but you'll lose the dynamic memory and some
+other new features in LAMMPS 2001.)</P>
+<P>
+In the src directory, there is one top-level Makefile and several
+low-level machine-specific files named Makefile.xxx where xxx = the
+machine name. If a low-level Makefile exists for your platform, you do
+not need to edit the top-level Makefile.  However you should check the
+system-specific section of the low-level Makefile to insure the
+various paths are correct for your environment. If a low-level
+Makefile does not exist for your platform, you will need to add a
+suitable target to the top-level Makefile. You will also need to
+create a new low-level Makefile using one of the existing ones as a
+template. If you wish to make LAMMPS for a single-processor
+workstation that doesn't have an installed MPI library, you can
+specify the "serial" target which uses a directory of MPI stubs to
+link against - e.g. &quot;make serial&quot;. You will need to make the
+stub library (type &quot;make&quot; in STUBS directory) for your
+workstation before doing this.</P>
+<P>
+Note that the two-level Makefile system allows you to make LAMMPS for 
+multiple platforms. Each target creates its own object directory for 
+separate storage of its *.o files.</P>
+<P>
+There are a few compiler switches of interest which can be specified
+in the low-level Makefiles.  If you use a F90FLAGS switch of -DSYNC
+then synchronization calls will be made before the timing routines in
+integrate.f. This may slow down the code slightly, but will make the
+individual timings reported at the end of a run more accurate. The
+F90FLAGS setting of -DSENDRECV will use MPI_Sendrecv calls for data
+exchange between processors instead of MPI_Irecv, MPI_Send,
+MPI_Wait. Sendrecv is often slower, but on some platforms can be
+faster, so it is worth trying, particularly if your communication
+timings seem slow.</P>
+<P>
+The CCFLAGS setting in the low-level Makefiles requires a FFT setting,
+for example -DFFT_SGI or -DFFT_T3E. This is for inclusion of the
+appropriate machine-specific native 1-d FFT libraries on various
+platforms. Currently, the supported machines and switches (used in
+fft_3d.c) are FFT_SGI, FFT_DEC, FFT_INTEL, FFT_T3E, and FFT_FFTW. The
+latter is a publicly available portable FFT library, <A
+HREF="http://www.fftw.org">FFTW</A>, which you can install on any
+machine. If none of these options is suitable for your machine, please
+contact me, and we'll discuss how to add the capability to call your
+machine's native FFT library. You can also use FFT_NONE if you have no
+need to use the PPPM option in LAMMPS.</P>
+<P>
+For Linux and T3E compilation, there is a also a CCFLAGS setting for KLUDGE
+needed (see Makefile.linux and Makefile.t3e).  This is to enable F90 to
+call C with appropriate underscores added to C function names.
+<HR>
+<H3>
+<A NAME="_cch3_930327155">Running LAMMPS</A></H3>
+<P>
+LAMMPS is run by redirecting a text file (script) of input commands into it.</P>
+<P>
+lmp_sgi &lt; in.lj</P>
+<P>
+lmp_t3e &lt; in.lj</P>
+<P>
+The script file contains commands that specify the parameters for the 
+simulation as well as to read other necessary files such as a data file 
+that describes the initial atom positions, molecular topology, and 
+force-field parameters. The <A HREF="input_commands.html">input_commands</A>
+ page describes all the possible commands that can be used. The <A
+ HREF="data_format.html">data_format</A> page describes the format of 
+the data file. </P>
+<P>
+LAMMPS can be run on any number of processors, including a single 
+processor. In principle you should get identical answers on any number 
+of processors and on any machine. In practice, numerical round-off can 
+cause slight differences and eventual divergence of dynamical 
+trajectories. </P>
+<P>
+When LAMMPS runs, it estimates the array sizes it should allocate based 
+on the problem you are simulating and the number of processors you 
+are running on. If you run out of physical memory, you will get a F90 
+allocation error and the code should hang or crash. The only thing you 
+can do about this is run on more processors or run a smaller problem. If 
+you get an error message to the screen about &quot;boosting&quot; 
+something, it means LAMMPS under-estimated the size needed for one (or 
+more) data arrays. The &quot;extra memory&quot; command can be used in 
+the input script to augment these sizes at run time. A few arrays are 
+hard-wired to sizes that should be sufficient for most users. These are 
+specified with parameter settings in the global.f file. If you get a 
+message to &quot;boost&quot; one of these parameters you will have to 
+change it and re-compile LAMMPS.</P>
+<P>
+Some LAMMPS errors are detected at setup; others like neighbor list
+overflow may not occur until the middle of a run. Except for F90
+allocation errors which may cause the code to hang (with an error
+message) since only one processor may incur the error, LAMMPS should
+always print a message to the screen and exit gracefully when it
+encounters a fatal error. If the code ever crashes or hangs without
+spitting out an error message first, it's probably a bug, so let me
+know about it. Of course this applies to algorithmic or parallelism
+issues, not to physics mistakes, like specifying too big a timestep or
+putting 2 atoms on top of each other! One exception is that different
+MPI implementations handle buffering of messages differently.  If the
+code hangs without an error message, it may be that you need to
+specify an MPI setting or two (usually via an environment variable) to
+enable buffering or boost the sizes of messages that can be
+buffered.</P>
+<HR>
+<H3>
+<A NAME="_cch3_930759879">Examples</A></H3>
+<P>
+There are several directories of sample problems in the examples
+directory. All of them use an input file (in.*) of commands and a data
+file (data.*) of initial atomic coordinates and produce one or more
+output files. Sample outputs on different machines and numbers of
+processors are included to compare your answers to.  See the README
+file in the examples sub-directory for more information on what LAMMPS
+features the examples illustrate.</P>
+<P>
+(1) lj = atomic simulations of Lennard-Jones systems.
+<P>
+(2) class2 = phenyalanine molecule using the DISCOVER cff95 class 2
+force field.
+<P>
+(3) lc = liquid crystal molecules with various Coulombic options and
+periodicity settings.
+<P>
+(4) flow = 2d flow of Lennard-Jones atoms in a channel using various
+constraint options.
+<P>
+(5) polymer = bead-spring polymer models with one or two chain types.
+</P>
+<HR>
+<H3>
+<A NAME="_cch3_931282515">Other Tools</A></H3>
+<P>
+The converters directory has source code and scripts for tools that
+perform input/output file conversions between MSI Discover, AMBER, and
+LAMMPS formats.  See the README files for the individual tools for
+additional information.
+<P>
+The tools directory has several serial programs that create and
+massage LAMMPS data files.
+<P>
+(1) setup_chain.f = create a data file of polymer bead-spring chains
+<P>
+(2) setup_lj.f = create a data file of an atomic LJ mixture of species
+<P>
+(3) setup_flow_2d.f = create a 2d data file of LJ particles with walls for
+	a flow simulation
+<P>
+(4) replicate.c = replicate or scale an existing data file into a new one
+<P>
+(5) peek_restart.f = print-out info from a binary LAMMPS restart file
+<P>
+(6) restart2data.f = convert a binary LAMMPS restart file into a text data file
+<P>
+See the comments at the top of each source file for information on how
+to use the tool.
+<HR>
+<H3>
+<A NAME="_cch3_931282000">Extending LAMMPS</A></H3>
+<P>
+User-written routines can be compiled and linked with LAMMPS, then
+invoked with the "diagnostic" command as LAMMPS runs.  These routines
+can be used for on-the-fly diagnostics or a variety of other purposes.
+The examples/lc directory shows an example of using the diagnostic
+command with the in.lc.big.fixes input script.  A sample diagnostic
+routine is given there also: diagnostic_temp_molecules.f.
+</BODY>
+</HTML>

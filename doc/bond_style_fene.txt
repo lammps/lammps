@@ -1,0 +1,60 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+bond_style fene command :h3
+
+[Syntax:]
+
+bond_style fene :pre
+
+[Examples:]
+
+bond_style fene
+bond_coeff 1 30.0 1.5 1.0 1.0 :pre
+
+[Description:]
+
+The {fene} bond style uses the potential
+
+:c,image(Eqs/bond_fene.jpg)
+
+to define a finite extensible nonlinear elastic (FENE) potential
+"(Kremer)"_#Kremer, used for bead-spring polymer models.  The first
+term is attractive, the 2nd Lennard-Jones term is repulsive.  The
+first term extends to R0, the maximum extent of the bond.  The 2nd
+term is cutoff at 2^(1/6) sigma, the minimum of the LJ potential.
+
+The following coefficients must be defined for each bond type via the
+"bond_coeff"_bond_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy/distance^2)
+R0 (distance)
+epsilon (energy)
+sigma (distance) :ul
+
+[Restrictions:]
+
+Bond styles can only be set for atom styles that allow bonds to be
+defined.
+
+This bond style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html
+
+[Default:] none
+
+:line
+
+:link(Kremer)
+[(Kremer)] Kremer, Grest, J Chem Phys, 92, 5057 (1990).

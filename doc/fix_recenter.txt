@@ -1,0 +1,87 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix recenter command :h3
+
+[Syntax:]
+
+fix ID group-ID recenter x y z keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+recenter = style name of this fix command :l
+x,y,z = constrain center-of-mass to these coords (distance units), \
+        any coord can also be NULL or INIT (see below) :l
+zero or more keyword/value pairs may be appended to the args :l
+keyword = {shift} or {units} :l
+  {shift} value = group-ID
+    group-ID = group of atoms whose coords are shifted
+  {units} value = {box} or {lattice} or {fraction} :pre
+:ule
+
+[Examples:]
+
+fix 1 all recenter 1 1 1 0 :pre
+
+[Description:]
+
+Constrain the center-of-mass position of a group of atoms by adjusting
+the coordinates of the atoms every timestep.  This is simply a small
+shift that does not alter the dynamics of the system or change the
+relative coordinates of any pair of atoms in the group.  This can be
+used to insure the entire collection of atoms (or a portion of them)
+do not drift during the simulation due to random perturbations
+(e.g. "fix langevin"_fix_langevin.html thermostatting).
+
+Distance units for the x,y,z values are determined by the setting of
+the {units} keyword, as discussed below.  One or more x,y,z values can
+also be specified as NULL, which means exclude that dimension from
+this operation.  Or it can be specified as INIT which means to
+constain the center-of-mass to its initial value at the beginning of
+the run.
+
+The center-of-mass (COM) is computed for the group specified by the
+fix.  If the current COM is different than the specified x,y,z, then a
+group of atoms has their coordinates shifted by the difference.  By
+default the shifted group is also the group specified by the fix.  A
+different group can be shifted by using the {shift} keyword.  For
+example, the COM could be computed on a protein to keep it in the
+center of the simulation box.  But the entire system (protein + water)
+could be shifted.
+
+If the {units} keyword is set to {box}, then the distance units of
+x,y,z are defined by the "units"_units.html command - e.g. Angstroms
+for {real} units.  {Lattice} means to use lattice spacings as defined
+by the "lattice"_lattice.html command.  {Fraction} means a fractional
+distance between the lo/hi box boundaries, e.g. 0.5 = middle of the
+box.  The default is to use lattice units.
+
+Note that the "velocity"_velocity.html command can be used to create
+velocities with zero aggregate linear and/or angular momentum.
+
+[Restrictions:]
+
+This fix should not be used with an x,y,z setting that causes a large
+shift in the system on the 1st timestep, due to the requested COM
+being very different from the initial COM.  This could cause atoms to
+be lost,especially in parallel.  Instead, use the
+"displace_atoms"_displace_atoms.html command, which can be used
+several times in succession to move atoms a large distance.
+
+This fix should be specified after integration fixes ("fix
+nve"_fix_nve.html, "fix_nvt"_fix_nvt.html, "fix npt"_fix_npt.html,
+etc), because the adjustments it makes to atom coordinates should come
+after atom coordinates are changed due to time integration.  LAMMPS
+will warn you if your fixes are not ordered this way.
+
+[Related commands:]
+
+"fix momentum"_fix_momentum.html, "velocity"_velocity.html
+
+[Default:]
+
+The option defaults are adjust = fix group-ID, and units = lattice.

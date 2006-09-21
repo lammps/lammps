@@ -1,0 +1,136 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>read_restart command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>read_restart file 
+</PRE>
+<UL><LI>file = name of binary restart file to read in 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>read_restart save.10000
+read_restart restart.*
+read_restart poly.*.% 
+</PRE>
+<PRE>
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Read in a previously saved problem from a restart file.  This allows
+continuation of a previous run.
+</P>
+<P>Restart files are saved in binary format to enable exact restarts,
+meaning that the trajectories of a restarted run will precisely match
+those produced by the original run had it continued on.  Several
+things can prevent exact restarts due to round-off effects, in which
+case the trajectories in the 2 runs will slowly diverge.  These
+include running on a different number of processors or changing
+certain settings such as those set by the <A HREF = "newton.html">newton</A> or
+<A HREF = "processors.html">processors</A> commands.  LAMMPS will issue a WARNING in
+these cases.  Certain fixes will also not restart exactly, though they
+should provide statistically similar results.  These include the shake
+and langevin styles.  If a restarted run is immediately different than
+the run which produced the restart file, it could be a LAMMPS bug, so
+consider <A HREF = "Section_errors.html#9_2">reporting it</A> if you think the
+behavior is wrong.
+</P>
+<P>Because restart files are binary, they may not be portable to other
+machines.  They can be converted to ASCII data files using the
+restart2data tool in the tools sub-directory of the LAMMPS
+distribution.
+</P>
+<P>Similar to how restart files are written (see the
+<A HREF = "write_restart.html">write_restart</A> and <A HREF = "restart.html">restart</A>
+commands), the restart filename can contain two wild-card characters.
+If a "*" appears in the filename, the directory is searched for all
+filenames that match the pattern where "*" is replaced with a timestep
+value.  The file with the largest timestep value is read in.  Thus,
+this effectively means, read the latest restart file.  It's useful if
+you want your script to continue a run from where it left off.  See
+the <A HREF = "run.html">run</A> command and its "upto" option for how to specify
+the run command so it doesn't need to be changed either.
+</P>
+<P>If a "%" character appears in the restart filename, LAMMPS expects a
+set of multiple files to exist.  The <A HREF = "restart.html">restart</A> and
+<A HREF = "write_restart.html">write_restart</A> commands explain how such sets are
+created.  Read_restart will first read a filename where "%" is
+replaced by "base".  This file tells LAMMPS how many processors
+created the set.  Read_restart then reads the additional files.  For
+example, if the restart file was specified as save.% when it was
+written, then read_restart reads the files save.base, save.0, save.1,
+... save.P-1, where P is the number of processors that created the
+restart file.  Note that only a single processor reads all the files,
+so the input does not use parallel I/O.  The number of processors
+which created the set can be different the number of processors in the
+current LAMMPS simulation.
+</P>
+<HR>
+
+<P>A restart file stores the units and atom style, simulation box
+attibutes, individual atoms and their attributes including molecular
+topology, force field styles and coefficients,
+<A HREF = "special_bonds.html">special_bonds</A> settings, and atom group
+definitions.  This means that commands for these quantities do not
+need to be specified in your input script that reads the restart file.
+The exceptions to this are listed below in the Restrictions section.
+</P>
+<P>Information about the <A HREF = "kspace_style.html">kspace_style</A> settings are
+not stored in the restart file.  Hence if you wish to invoke an Ewald
+or PPPM solver, this command must be re-issued after the restart file
+is read.
+</P>
+<P>The restart file also stores values for any fixes that require state
+information to enable restarting where they left off.  These include
+the <I>nvt</I> and <I>npt</I> styles that have a global state, as well as the
+<I>msd</I> and <I>wall/gran</I> styles that store information about each atom.
+</P>
+<P><A HREF = "fix.html">Fix</A> commands are not stored in the restart file which means
+they must be specified in the input script that reads the restart
+file.  To re-enable a fix whose state was stored in the restart file,
+the fix command in the new input script must use the same fix-ID and
+group-ID as the input script that wrote the restart file.  LAMMPS will
+print a message indicating that the fix is being re-enabled.
+</P>
+<P>Note that no other information is stored in the restart file.  This
+means that your new input script should specify settings for
+quantities like timestep size, thermodynamic and dump output, etc.
+</P>
+<P>Bond interactions (angle, etc) that have been turned off by the <A HREF = "fix_shake.html">fix
+shake</A> or <A HREF = "delete_bonds.html">delete_bonds</A> command will
+be written to a restart file as if they are turned on.  This means
+they will need to be turned off again in a new run after the restart
+file is read.
+</P>
+<P>Bonds that are broken (e.g. by a bond-breaking potential) are written
+to the restart file as broken bonds with a type of 0.  Thus these
+bonds will still be broken when the restart file is read.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The <A HREF = "pair_style.html">pair_style</A> <I>eam</I>, <I>table</I>, and <I>hybrid</I> styles
+do not store coefficient data for individual atom type pairs in the
+restart file.  Nor does the <A HREF = "bond_style.html">bond_style</A> <I>hybrid</I>
+style.  Thus you must use new <A HREF = "pair_coeff.html">pair_coeff</A> and
+<A HREF = "bond_coeff.html">bond_coeff</A> commands to read the appropriate
+tabulated files or reset the coefficients after the restart file is
+read.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "write_restart.html">write_restart</A>,
+<A HREF = "restart.html">restart</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

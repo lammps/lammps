@@ -1,0 +1,58 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dihedral_style charmm command :h3
+
+[Syntax:]
+
+dihedral_style charmm :pre
+
+[Examples:]
+
+dihedral_style charmm
+dihedral_coeff 1 120.0 1 60 0.5 :pre
+
+[Description:]
+
+The {charmm} dihedral style uses the potential
+
+:c,image(Eqs/dihedral_charmm.jpg)
+
+The following coefficients must be defined for each dihedral type via the
+"dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy)
+n (integer >= 0)
+d (integer value of degrees)
+weighting factor (0.0 to 1.0) :ul
+
+The weighting factor is applied to pairwise interaction between the
+1st and 4th atoms in the dihedral.  Note that this weighting factor is
+unrelated to the weighting factor specified by the "special
+bonds"_doc/special_bonds.html command which applies to all 1-4
+interactions in the system.  For CHARMM force fields, the latter
+should typically be set to 0.0, else the 1-4 interactions in a
+dihedral will be computed twice (once by the pair potential, and once
+by the dihedral/charmm potential).
+
+[Restrictions:]
+
+Dihedral styles can only be set for atom styles that allow dihedrals to be
+defined.
+
+This dihedral style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"dihedral_coeff"_dihedral_coeff.html
+
+[Default:] none

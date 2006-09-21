@@ -1,0 +1,55 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>improper_style cvff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>improper_style cvff 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>improper_style cvff
+improper_coeff 1 80.0 -1 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>cvff</I> improper style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/improper_cvff.jpg">
+</CENTER>
+<P>where phi is the Wilson out-of-plane angle.
+</P>
+<P>The following coefficients must be defined for each improper type via the
+<A HREF = "improper_coeff.html">improper_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>K (energy)
+<LI>d (+1 or -1)
+<LI>n (0,1,2,3,4,6) 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>Improper styles can only be set for atom styles that allow impropers to be
+defined.
+</P>
+<P>This improper style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "improper_coeff.html">improper_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

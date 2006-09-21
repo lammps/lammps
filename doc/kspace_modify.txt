@@ -1,0 +1,81 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+kspace_modify command :h3
+
+[Syntax:]
+
+kspace_modify keyword value ... :pre
+
+one or more keyword/value pairs may be listed :ulb,l
+keyword = {mesh} or {order} or {gewald} or {slab} :l
+  {mesh} value = x y z
+    x,y,z = PPPM FFT grid size in each dimension
+  {order} value = N
+    N = grid extent of Gaussian for PPPM mapping of each charge
+  {gewald} value = r
+    r = PPPM G-ewald parameter
+  {slab} value = volfactor
+    volfactor = ratio of the total extended volume used in the
+      2d approximation compared with the volume of the simulation domain :pre
+:ule
+
+[Examples:]
+
+kspace_modify mesh 24 24 30 order 6
+kspace_modify slab 3.0 :pre
+
+[Description:]
+
+Set parameters used by the kspace solvers defined by the
+"kspace_style"_kspace_style.html command.  Not all parameters are
+relevant to all kspace styles.
+
+The {mesh} keyword sets the 3d FFT grid size for kspace style pppm.
+Each dimension must be factorizable into powers of 2, 3, and 5.  When
+this option is not set, the PPPM solver chooses its own grid size,
+consistent with the user-specified accuracy and pairwise cutoff.
+Values for x,y,z of 0,0,0 unset the option.
+
+The {order} keyword determines how many grid spacings an atom's charge
+extends when it is mapped to the FFT grid in kspace style pppm.  The
+default for this parameter is 5, which means each charge spans 5 grid
+cells in each dimension.
+
+The {gewald} keyword sets the value of the PPPM G-ewald parameter.
+Without this setting, LAMMPS chooses the parameter automatically as a
+function of cutoff, precision, grid spacing, etc.  This means it can
+vary from one simulation to the next which may not be desirable for
+matching a KSpace solver to a pre-tabulated pairwise potential.  This
+setting can also be useful if PPPM fails to choose a good grid spacing
+and G-ewald parameter automatically.  If the value is set to 0.0,
+LAMMPS will choose the G-ewald parameter automatically.
+
+The {slab} keyword allows an Ewald or PPPM solver to be used for a
+systems that are periodic in x,y but non-periodic in z - a
+"boundary"_boundary.html setting of "boundary p p f".  This is done by
+treating the system as if it were periodic in z, but inserting empty
+volume between atom slabs and removing dipole inter-slab interactions
+so that slab-slab interactions are effectively turned off.  The
+volfactor value sets the ratio of the extended dimension in z divided
+by the actual dimension in z.  The recommended value is 3.0.  A larger
+value is inefficient; a smaller value introduces unwanted slab-slab
+interactions.  The use of fixed boundaries in z means that the user
+must prevent particle migration beyond the initial z-bounds, typically
+by providing a wall-style fix.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"kspace_style"_kspace_style.html, "boundary"_boundary.html
+
+[Default:]
+
+The option defaults are mesh = 0 0 0, order = 5, gewald = 0.0, and
+slab = 1.0.

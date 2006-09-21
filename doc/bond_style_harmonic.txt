@@ -1,0 +1,50 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+bond_style harmonic command :h3
+
+[Syntax:]
+
+bond_style harmonic :pre
+
+[Examples:]
+
+bond_style harmonic
+bond_coeff 5 80.0 1.2 :pre
+
+[Description:]
+
+The {harmonic} bond style uses the potential
+
+:c,image(Eqs/bond_harmonic.jpg)
+
+where r0 is the equilibrium bond distance.  Note that the usual 1/2
+factor is included in K.
+
+The following coefficients must be defined for each bond type via the
+"bond_coeff"_bond_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy/distance^2)
+r0 (distance) :ul
+
+[Restrictions:]
+
+Bond styles can only be set for atom styles that allow bonds to be
+defined.
+
+This bond style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html
+
+[Default:] none

@@ -1,0 +1,41 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+log command :h3
+
+[Syntax:]
+
+log file :pre
+
+file = name of new logfile :ul
+
+[Examples:]
+
+log log.equil :pre
+
+[Description:]
+
+This command closes the current LAMMPS log file, opens a new file with
+the specified name, and begins logging information to it.  If the
+specified file name is {none}, then no new log file is opened.
+
+If multiple processor partitions are being used, the file name should
+be a variable, so that different processors do not attempt to write to
+the same log file.
+
+The file "log.lammps" is the default log file for a LAMMPS run.  The
+name of the initial log file can also be set by the command-line
+switch -log.  See "this section"_Section_start.html#2_4 for details.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:]
+
+The default LAMMPS log file is named log.lammps

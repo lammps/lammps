@@ -1,0 +1,134 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_coeff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_coeff I J args 
+</PRE>
+<UL><LI>I,J = atom types (see asterik form below)
+<LI>args = coefficients for one or more pairs of atom types 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_coeff 1 2 1.0 1.0 2.5
+pair_coeff 2 * 1.0 1.0
+pair_coeff 3* 1*2 1.0 1.0 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff * * nialhjea 1 1 2
+pair_coeff * 3 morse.table ENTRY1
+pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid) 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify the pairwise force field coefficients for one or more pairs of
+atom types.  The number and meaning of the coefficients depends on the
+pair style.  Pair coefficients can also be set in the data file read
+by the <A HREF = "read_data.html">read_data</A> command or in a restart file.
+</P>
+<P>I and J can be specified in one of two ways.  Explicit numeric values
+can be used for each, as in the 1st example above.  I <= J is
+required.  LAMMPS sets the coefficients for the symmetric J,I
+interaction to the same values.
+</P>
+<P>A wild-card asterik can be used in place of in conjunction with the
+I,J arguments to set the coefficients for multiple pairs of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterik with no numeric values means all
+types from 1 to N.  A leading asterik means all types from 1 to n
+(inclusive).  A trailing asterik means all types from n to N
+(inclusive).  A middle asterik means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asteriks imply type pairs where J < I, they are ignored.
+</P>
+<P>Note that a pair_coeff command can override a previous setting for the
+same I,J pair.  For example, these commands set the coeffs for all I,J
+pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
+</P>
+<PRE>pair_coeff * * 1.0 1.0 2.5
+pair_coeff 2 3 2.0 1.0 1.12 
+</PRE>
+<P>A line in a data file that specifies pair coefficients uses the exact
+same format as the arguments of the pair_coeff command in an input
+script, with the exception of the I,J type arguments.  In each line of
+the "Pair Coeffs" section of a data file, only a single type I is
+specified, which sets the coefficients for type I interacting with
+type I.  This is because the section has exactly N lines, where N =
+the number of atom types.  For this reason, the wild-card asterik
+should also not be used as part of the I argument.  Thus in a data
+file, the line corresponding to the 1st example above would be listed
+as
+</P>
+<PRE>2 1.0 1.0 2.5 
+</PRE>
+<P>If coefficients for type pairs with I not equal J are not set
+explicity by a pair_coeff command, they are inferred from the I,I and
+J,J settings by mixing rules; see the <A HREF = "pair_modify.html">pair_modify</A>
+command for a discussion.  Exceptions to the mixing rules of the
+pair_modify command are discussed with the individual pair styles.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of pair styles defined in LAMMPS.  Click on
+the style to display the formula it computes, arguments specified in
+the pair_style command, and coefficients specified by the associated
+<A HREF = "pair_coeff.html">pair_coeff</A> command:
+</P>
+<UL><LI><A HREF = "pair_style_none.html">pair_style none</A> - turn off pairwise interactions
+<LI><A HREF = "pair_style_hybrid.html">pair_style hybrid</A> - define multiple styles of pairwise interactions 
+</UL>
+<UL><LI><A HREF = "pair_style_buck.html">pair_style buck</A> - Buckingham potential
+<LI><A HREF = "pair_style_buck.html">pair_style buck/coul/cut</A> - Buckinhham with cutoff Coulomb
+<LI><A HREF = "pair_style_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulomb
+<LI><A HREF = "pair_style_dipole.html">pair_style dipole/cut</A> - cutoff dipole and charge interactions
+<LI><A HREF = "pair_style_dpd.html">pair_style dpd</A> - dissipative particle dynamics (DPD)
+<LI><A HREF = "pair_style_eam.html">pair_style eam</A> - embedded atom method (EAM)
+<LI><A HREF = "pair_style_eam.html">pair_style eam/alloy</A> - alloy EAM
+<LI><A HREF = "pair_style_eam.html">pair_style eam/fs</A> - Finnis-Sinclair EAM
+<LI><A HREF = "pair_style_granular.html">pair_style gran/hertzian</A> - granular potential with Hertizain interactions
+<LI><A HREF = "pair_style_granular.html">pair_style gran/history</A> - granular potential with history effects
+<LI><A HREF = "pair_style_granular.html">pair_style gran/no_history</A> - granular potential without history effects
+<LI><A HREF = "pair_style_charmm.html">pair_style lj/charmm/coul/charmm</A> - CHARMM potential with cutoff Coulomb
+<LI><A HREF = "pair_style_charmm.html">pair_style lj/charmm/coul/charmm/implicit</A> - CHARMM for implicit solvent
+<LI><A HREF = "pair_style_charmm.html">pair_style lj/charmm/coul/long</A> - CHARMM with long-range Coulomb
+<LI><A HREF = "pair_style_class2.html">pair_style lj/class2</A> - COMPASS (class 2) force field with no Coulomb
+<LI><A HREF = "pair_style_class2.html">pair_style lj/class2/coul/cut</A> - COMPASS with cutoff Coulomb
+<LI><A HREF = "pair_style_class2.html">pair_style lj/class2/coul/long</A> - COMPASS with long-range Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut</A> - cutoff Lennard-Jones potential with no Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/cut</A> - LJ with cutoff Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/debye</A> - LJ with Debye damping added to Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/long</A> - LJ with long-range Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/long/tip4p</A> - LJ with long-range Coulomb for TIP4P water
+<LI><A HREF = "pair_style_lj_expand.html">pair_style lj/expand</A> - Lennard-Jones for variable size particles
+<LI><A HREF = "pair_style_lj_smooth.html">pair_style lj/smooth</A> - smoothed Lennard-Jones potential
+<LI><A HREF = "pair_style_morse.html">pair_style morse</A> - Morse potential
+<LI><A HREF = "pair_style_soft.html">pair_style soft</A> - Soft (cosine) potential
+<LI><A HREF = "pair_style_table.html">pair_style table</A> - tabulated pair potential
+<LI><A HREF = "pair_style_yukawa.html">pair_style yukawa</A> - Yukawa potential 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_modify.html">pair_modify</A>,
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>,
+<A HREF = "pair_write.html">pair_write</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

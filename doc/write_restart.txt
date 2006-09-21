@@ -1,0 +1,64 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+write_restart command :h3
+
+[Syntax:]
+
+write_restart file :pre
+
+file = name of file to write restart information to :ul
+
+[Examples:]
+
+write_restart restart.equil
+write_restart poly.%.* :pre
+
+[Description:]
+
+Write a binary restart file of the current state of the simulation.
+See the "read_restart"_read_restart.html command for information about
+what is stored in a restart file.
+
+During a long simulation, the "restart"_restart.html command is
+typically used to dump restart files periodically.  The write_restart
+command is useful after a minimization or whenever you wish to write
+out a single current restart file.
+
+Similar to "dump"_dump.html files, the restart filename can contain
+two wild-card characters.  If a "*" appears in the filename, it is
+replaced with the current timestep value.  If a "%" character appears
+in the filename, then one file is written by each processor and the
+"%" character is replaced with the processor ID from 0 to P-1.  An
+additional file with the "%" replaced by "base" is also written, which
+contains global information.  For example, the files written for
+filename restart.% would be restart.base, restart.0, restart.1, ...
+restart.P-1.  This creates smaller files and can be a fast mode of
+output on parallel machines that support parallel I/O for output.
+
+Restart files can be read by a "read_restart"_read_restart.html
+command to restart a simulation from a particular state.  Because the
+file is binary (to enable exact restarts), it may not be readable on
+another machine.  In this case, the restart2data program in the tools
+directory can be used to convert a restart file to an ASCII data file.
+Both the read_restart commmand and restart2data tool can read in a
+restart file that was written with the "%" character so that multiple
+files were created.
+
+[Restrictions:]
+
+This command requires inter-processor communication to migrate atoms
+before the restart file is written.  This means that your system must
+be ready to perform a simulation before using this command (force
+fields setup, atom masses set, etc).
+
+[Related commands:]
+
+"restart"_restart.html, "read_restart"_read_restart.html
+
+[Default:] none

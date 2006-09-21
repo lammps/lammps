@@ -1,0 +1,39 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix efield command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID efield ex ey ez 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>efield = style name of this fix command
+<LI>ex,ey,ez = E-field component values (electric field units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix kick external-field efield 1.0 0.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Add a force F = qE to each charged atom in the group due to an
+external electric field being applied to the system.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_addforce.html">fix addforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

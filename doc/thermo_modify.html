@@ -1,0 +1,101 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>thermo_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>thermo_modify keyword value ... 
+</PRE>
+<UL><LI>one or more keyword/value pairs may be listed 
+
+<LI>keyword = <I>temp</I> or <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> 
+
+<PRE>  <I>temp</I> value = ID of temperature
+  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
+  <I>norm</I> value = <I>yes</I> or <I>no</I>
+  <I>flush</I> value = <I>yes</I> or <I>no</I>
+  <I>line</I> value = <I>one</I> or <I>multi</I>
+  <I>format</I> value = <I>int</I> string or <I>float</I> string or N string
+    N = integer from 1 to # of quantities being printed
+    string = C-style format string
+  <I>window</I> value = N
+    N = number of previous print-outs to average over 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>thermo_modify temp mydef
+thermo_modify lost no flush yes
+thermo_modify line multi format float %g format 3 %15.8g 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set options for how thermodynamics are computed and printed by LAMMPS.
+</P>
+<P>The <I>temp</I> option allows you to specify how temperature is computed
+when used to output thermodynamic info (temperature, kinetic energy,
+pressure).  Different methods of computing temperature can be defined
+via the <A HREF = "temperature.html">temperature</A> command.
+</P>
+<P>The <I>lost</I> option determines whether LAMMPS checks for lost atoms each
+time it computes thermodynamics and what it does if atoms are lost.
+If the value is <I>ignore</I>, LAMMPS does not check for lost atoms.  If
+the value is <I>error</I> or <I>warn</I>, LAMMPS checks and either issues an
+error or warning.  The code will exit with an error and continue with
+a warning.  This can be a useful debugging option.
+</P>
+<P>The <I>norm</I> option determines whether the thermodynamic print-out is
+normalized by the number of atoms or is the total summed across all
+atoms.  Different unit styles have different defaults for this
+setting.
+</P>
+<P>The <I>flush</I> option invokes a flush operation after thermodynamic info
+is written to the log file.  This insures the output in that file is
+current (no buffering by the OS), even if LAMMPS halts before the
+simulation completes.
+</P>
+<P>The <I>line</I> option determines whether thermodynamics will be printed as
+a series of numeric values on one line or in a multi-line format with
+3 quantities with text strings per line and a dashed-line header
+containing the timestep and CPU time.  This modify option overrides
+the <I>one</I> and <I>multi</I> thermo_style settings.
+</P>
+<P>The <I>format</I> option sets the numeric format of individual printed
+quantities.  The <I>int</I> and <I>float</I> settings set the format for all
+integer or floating-point quantities printed.  The setting with a
+numeric value (e.g. format 5 %10.4g) sets the format of the Nth value
+printed.  If the format for a specific value has been set, it will
+take precedent over the <I>int</I> or <I>float</I> setting.
+</P>
+<P>The <I>window</I> option sets the number of previous thermodynamic screen
+outputs over which <A HREF = "thermo_style.html">thermo_style custom</A> <I>ave</I>
+quantities are averaged when printed.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "thermo.html">thermo</A>, <A HREF = "thermo_style.html">thermo_style</A>,
+<A HREF = "temperature.html">temperature</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are temp = default, lost = error, norm = yes for
+unit style of <I>lj</I>, norm = no for unit style of <I>real</I> and <I>metal</I>,
+flush = no, window = 10.  The defaults for the line and format options
+depend on the thermo style.  For styles "one", "granular", and
+"custom" the line and format defaults are "one", "%8d", and "%12.8g".
+For style "multi", the line and format defaults are "multi", "%8d",
+and "%14.4f".
+</P>
+</HTML>

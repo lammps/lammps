@@ -1,0 +1,98 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dihedral_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dihedral_style style 
+</PRE>
+<UL><LI>style = <I>none</I> or <I>hybrid</I> or <I>charmm</I> or <I>class2</I> or <I>harmonic</I> or <I>helix</I> or         <I>multi/harmonic</I> or <I>opls</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dihedral_style harmonic
+dihedral_style multi/harmonic
+dihedral_style hybrid harmonic charmm 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the formula(s) LAMMPS uses to compute dihedral interactions
+between quadruplets of atoms, which remain in force for the duration
+of the simulation.  The list of dihedral quadruplets is read in by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
+from a data or restart file.
+</P>
+<P>Hybrid models where dihedrals are computed using different dihedral
+potentials can be setup using the <I>hybrid</I> dihedral style.
+</P>
+<P>The coefficients associated with a dihedral style can be specified in a
+data or restart file or via the <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command.
+</P>
+<P>In the formulas listed for each dihedral style, <I>phi</I> is the torsional
+angle defined by the quadruplet of atoms.
+</P>
+<P>Note that when both an dihedral and pair style is defined, the
+<A HREF = "special_bond.html">special_bond</A> command often needs to be used to
+turn off (or weight) the pairwise interactions that would otherwise
+exist between the 4 bonded atoms.
+</P>
+<P>Here are some important points to take note of when defining the
+LAMMPS dihedral coefficients in the formulas that follow so that they
+are compatible with other force fields:
+</P>
+<UL><LI>The LAMMPS convention is that the trans position = 180 degrees, while
+in some force fields trans = 0 degrees. 
+
+<LI>Some force fields reverse the sign convention on <I>d</I>. 
+
+<LI>Some force fields divide/multiply <I>K</I> by the number of multiple
+torsions that contain the j-k bond in an i-j-k-l torsion. 
+
+<LI>Some force fields let <I>n</I> be positive or negative which corresponds to
+<I>d</I> = 1 or -1 for the harmonic style. 
+</UL>
+<HR>
+
+<P>Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
+the style to display the formula it computes and coefficients
+specified by the associated <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command:
+</P>
+<UL><LI><A HREF = "dihedral_style_none.html">dihedral_style none</A> - turn off dihedral interactions
+<LI><A HREF = "dihedral_style_hybrid.html">dihedral_style hybrid</A> - define multiple styles of dihedral interactions 
+</UL>
+<UL><LI><A HREF = "dihedral_style_charmm.html">dihedral_style charmm</A> - CHARMM dihedral
+<LI><A HREF = "dihedral_style_class2.html">dihedral_style class2</A> - COMPASS (class 2) dihedral
+<LI><A HREF = "dihedral_style_harmonic.html">dihedral_style harmonic</A> - harmonic dihedral
+<LI><A HREF = "dihedral_style_helix.html">dihedral_style helix</A> - helix dihedral
+<LI><A HREF = "dihedral_style_multi_harmonic.html">dihedral_style multi/harmonic</A> - multi-harmonic dihedral
+<LI><A HREF = "dihedral_style_opls.html">dihedral_style opls</A> - OPLS dihedral 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>Dihedral styles can only be set for atom styles that allow dihedrals
+to be defined.
+</P>
+<P>Dihedral styles are part of the "molecular" package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>dihedral_style none
+</P>
+</HTML>

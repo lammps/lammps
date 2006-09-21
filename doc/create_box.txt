@@ -1,0 +1,41 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+create_box command :h3
+
+[Syntax:]
+
+create_box N region-ID :pre
+
+N = # of atom types to use in this simulation
+region-ID = ID of region to use as simulation domain :ul
+
+[Examples:]
+
+create_atoms 2 mybox :pre
+
+[Description:]
+
+This command creates a simulation box that encloses the specified
+region.  Thus a "region"_region.html command must first be used to
+define a geometric domain.  If the region is not of style {block},
+LAMMPS encloses it with a rectangular simulation box.
+
+The argument N is the number of atom types that will be used in the
+simulation.
+
+[Restrictions:]
+
+An "atom_style"_atom_style.html and "region"_region.html must have
+been previously defined to use this command.
+
+[Related commands:]
+
+"create_atoms"_create_atoms.html, "region"_region.html
+
+[Default:] none

@@ -1,0 +1,58 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style hybrid command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style hybrid style1 style2 ... 
+</PRE>
+<UL><LI>style1,style2 = list of one or more angle styles 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style hybrid harmonic cosine
+angle_coeff 1 harmonic 80.0 1.2
+angle_coeff 2* cosine 50.0  
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>hybrid</I> style enables the use of multiple angle styles in one
+simulation.  An angle style is assigned to each angle type.  For
+example, angles in a polymer flow (of angle type 1) could be computed
+with a <I>harmonic</I> potential and angles in the wall boundary (of angle
+type 2) could be computed with a <I>cosine</I> potential.  The assignment
+of angle type to style is made via the <A HREF = "angle_coeff.html">angle_coeff</A>
+command or in the data file.
+</P>
+<P>In the angle_coeff command, the first coefficient sets the angle style
+and the remaining coefficients are those appropriate to that style.
+In the example above, the 2 angle_coeff commands would set angles of
+angle type 1 to be computed with a <I>harmonic</I> potential with
+coefficients 80.0, 1.2 for K, r0.  All other angle types (2-N) would
+be computed with a <I>cosine</I> potential with coefficient 50.0 for K.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Angle styles can only be set for atom styles that allow angles to be
+defined.
+</P>
+<P>This angle style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

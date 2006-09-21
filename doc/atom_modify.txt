@@ -1,0 +1,50 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+atom_modify command :h3
+
+[Syntax:]
+
+atom_modify keyword value ... :pre
+
+one or more keyword/value pairs may be appended :ulb,l
+keyword = {map} :l
+  {map} value = {array} or {hash} :pre
+:ule
+
+[Examples:]
+
+atom_modify map hash :pre
+
+[Description:]
+
+Modify properties of the atom style selected within LAMMPS.
+
+The {map} keyword determines how atom ID lookup is done for molecular
+problems.  Lookups are performed by bond (angle, etc) routines in
+LAMMPS to find the local atom index associated with a global atom ID.
+When the {array} value is used, each processor stores a lookup table
+of length N, where N is the total # of atoms in the system.  This is
+the fastest method for most simulations, but a processor can run out
+of memory to store the table for very large simulations.  The {hash}
+value uses a hash table to perform the lookups.  This method can be
+slightly slower than the {array} method, but its memory cost is
+proportional to N/P on each processor, where P is the total number of
+processors running the simulation.
+
+[Restrictions:]
+
+This command must be used before the simulation box is defined by a
+"read_data"_read_data.html or "create_box"_create_box.html command.
+
+[Related commands:] none
+
+[Default:]
+
+By default, atomic (non-molecular) problems do not allocate maps.
+For molecular problems, the option default is map = array.

@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>replicate command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>replicate nx ny nz 
+</PRE>
+<UL><LI>nx,ny,nz = replication factors in each dimension 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>replicate 2 3 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Replicate the current simulation one or more times in each dimension.
+For example, replication factors of 2,2,2 will create a simulation
+with 8x as many atoms by doubling the simulation domain in each
+dimension.  A replication factor of 1 in a dimension leaves the
+simulation domain unchanged.
+</P>
+<P>All properties of the atoms are replicated, including their
+velocities, which may or may not be desirable.  New atom IDs (tags)
+are assigned to new atoms, as are molecule IDs.  Bonds and other
+topology interactions are created between pairs of new atoms as well
+as between old and new atoms.  This is done by using the image flag
+for each atom to "unwrap" it out of the periodic box before
+replicating it.  This means that molecular bonds you specify in the
+orignal data file that span the periodic box should be between two
+atoms with image flags that differ by 1.  This will allow them to be
+unwrapped appropriately.
+</P>
+<P>This command operates similar to the replicate tool in the tools
+sub-directory of the LAMMPS distribution which creates new data files
+from old ones.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>A 2d simulation cannot be replicated in the z dimension.
+</P>
+<P>If a simulation is non-periodic in a dimension, care should be used
+when replicating it in that dimension, as it may put atoms nearly on
+top of each other.
+</P>
+<P>If the current simulation was read in from a restart file (before a
+run is performed), there can have been no fix information stored in
+the file for individual atoms.  Similarly, no fixes can be defined at
+the time the replicate command is used that require vectors of atom
+information to be stored.  This is because the replicate command does
+not know how to replicate that information for new atoms it creates.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

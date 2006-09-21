@@ -1,0 +1,128 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix command :h3
+
+[Syntax:]
+
+fix ID group-ID style args :pre
+
+ID = user-assigned name for the fix
+group-ID = ID of the group of atoms to apply the fix to
+style = one of a long list of possible style names (see below)
+args = arguments used by a particular style :ul
+
+[Examples:]
+
+fix 1 all nve
+fix 3 all nvt 300.0 300.0 0.01
+fix mine top setforce 0.0 NULL 0.0 :pre
+
+[Description:]
+
+Set a fix that will be applied to a group of atoms.  In LAMMPS, a
+"fix" is any operation that is applied to the system during
+timestepping or minimization.  Examples include updating of atom
+positions and velocities due to time integration, controlling
+temperature, applying constraint forces to atoms, enforcing boundary
+conditions, computing diagnostics, etc.  There are dozens of fixes
+defined in LAMMPS and new ones can be added - see "this
+section"_Section_modify.html for a discussion.
+
+Each fix style has its own documentation page which describes its
+arguments and what it does.  For example, see the "fix
+setforce"_fix_setforce.html page for information on style {setforce}.
+
+Fixes perform their operations at different stages of the timestep.
+If 2 or more fixes both operate at the same stage of the timestep,
+they are invoked in the order they were specified in the input script.
+
+Specifying a new fix with the same ID as an existing fix effectively
+replaces the old fix (and its parameters) with the new fix.  This can
+only be done if the new fix has the same style as the existing fix.
+
+Fixes can be deleted with the "unfix"_unfix.html command.  Note that
+this is the only way to turn off a fix; simply specifying a new fix
+with a similar style will not turn off the first one.  For example,
+using a "fix nve" command for a second run after using a "fix nvt"
+command for the first run, will not cancel out the NVT time
+integration invoked by the "fix nvt" command.  Thus two time
+integrators would be in place!
+
+Here is an alphabetic list of fix styles defined in LAMMPS:
+
+"fix addforce"_fix_addforce.html - add a force to each atom
+"fix aveforce"_fix_aveforce.html - add an averaged force to each atom
+"fix com"_fix_com.html - compute a center-of-mass
+"fix drag"_fix_drag.html - drag atoms towards a defined coordinate
+"fix efield"_fix_efield.html - impose electric field on system
+"fix enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
+"fix freeze"_fix_freeze.html - freeze atoms in a granular simulation
+"fix gran/diag"_fix_gran_diag.html - compute granular diagnostics
+"fix gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
+"fix gyration"_fix_gyration.html - compute radius of gyration
+"fix indent"_fix_indent.html - impose force due to an indenter
+"fix insert"_fix_insert.html - add new atoms to a granular simulation
+"fix langevin"_fix_langevin.html - Langevin temperature control
+"fix lineforce"_fix_lineforce.html - constrain atoms to move in a line
+"fix msd"_fix_msd.html - compute mean-squared displacement \
+     (i.e. diffusion coefficient)
+"fix momentum"_fix_momentum.html - zero the linear and/or angular momentum \
+  of a group of atoms
+"fix nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
+"fix npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
+"fix nve"_fix_nve.html - constant NVE time integration
+"fix nve/gran"_fix_nve_gran.html - NVE time integration for \
+     granular systems
+"fix nvt"_fix_nvt.html - constant NVT time integration via Nose/Hoover
+"fix orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
+"fix planeforce"_fix_planeforce.html - constrain atoms to move in a plane
+"fix poems"_fix_poems.html - constrain clusters of atoms to move \
+  as coupled rigid bodies
+"fix print"_fix_print.html - print text and variables during a simulation
+"fix rdf"_fix_rdf.html - compute radial distribution functions
+"fix recenter"_fix_recenter.html - constrain the center-of-mass position \
+  of a group of atoms
+"fix rigid"_fix_rigid.html - constrain one or more clusters of atoms to \
+     move as a rigid body
+"fix setforce"_fix_setforce.html - set the force on each atom
+"fix shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
+"fix spring"_fix_spring.html - apply harmonic spring force to group of atoms
+"fix spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
+     group of atoms
+"fix spring/self"_fix_spring_self.html - spring from each atom to its origin
+"fix temp/rescale"_fix_temp_rescale.html - temperature control by \
+     velocity rescaling
+"fix tmd"_fix_tmd.html - guide a group of atoms to a new configuration
+"fix uniaxial"_fix_uniaxial.html - uniaxial straining of system while \
+     preserving total volume
+"fix viscous"_fix_viscous.html - viscous damping for granular simulations
+"fix volume/rescale"_fix_volume_rescale.html - density control by \
+     volume rescaling
+"fix wall/gran"_fix_wall_gran.html - frictional wall(s) for \
+     granular simulations
+"fix wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9/3 wall
+"fix wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
+"fix wiggle"_fix_wiggle.html - oscillate walls and frozen atoms :ul
+
+[Restrictions:]
+
+Some fix styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+The {freeze}, {gran/diag}, {gravity}, {insert}, {nve/gran}, and
+{wall/gran} styles are part of the "granular" package.
+
+The {poems} style is part of the "poems" package.
+
+[Related commands:]
+
+"unfix"_unfix.html, "fix_modify"_fix_modify.html
+
+[Default:] none

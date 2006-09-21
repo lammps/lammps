@@ -1,0 +1,44 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+origin command :h3
+
+[Syntax:]
+
+origin x y z :pre
+
+x,y,z = origin of a lattice :ul
+
+[Examples:]
+
+origin 0.0 0.5 0.5 :pre
+
+[Description:]
+
+Set the origin of the lattice defined by the "lattice"_lattice.html
+command.  The lattice is used by the "create_atoms"_create_atoms.html
+command to create new atoms and by other commands that use a lattice
+spacing as a distance measure.  This command offsets the origin of the
+lattice from the (0,0,0) coordinate of the simulation box by some
+fraction of a lattice spacing in each dimension.
+
+The specified values are in lattice coordinates from 0.0 to 1.0, so
+that a value of 0.5 means the lattice is displaced 1/2 a cubic cell.
+
+[Restrictions:] none
+
+Related commands:]
+
+"lattice"_lattice.html, "orient"_orient.html
+
+[Default:]
+
+origin 0 0 0 :pre
+
+
+

@@ -1,0 +1,93 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>bond_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>bond_style style args 
+</PRE>
+<UL><LI>style = <I>none</I> or <I>hybrid</I> or <I>class2</I> or <I>fene</I> or <I>fene/expand</I> or         <I>harmonic</I> or <I>morse</I> or <I>nonlinear</I> or <I>quartic</I> 
+</UL>
+<PRE>  args = none for any style except <I>hybrid</I>
+  <I>hybrid</I> args = list of one or more styles 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>bond_style harmonic
+bond_style fene
+bond_style hybrid harmonic fene 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the formula(s) LAMMPS uses to compute bond interactions between
+pairs of atoms.  In LAMMPS, a bond differs from a pairwise
+interaction, which are set via the <A HREF = "pair_style.html">pair_style</A>
+command.  Bonds are defined between specified pairs of atoms and
+remain in force for the duration of the simulation (unless the bond
+breaks which is possible in some bond potentials).  The list of bonded
+atoms is read in by a <A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A> command from a data or restart file.
+By contrast, pair potentials are defined between pairs of atoms that
+are within a cutoff distance and the set of active interactions
+typically changes over time.
+</P>
+<P>Hybrid models where bonds are computed using different bond potentials
+can be setup using the <I>hybrid</I> bond style.
+</P>
+<P>The coefficients associated with a bond style can be specified in a
+data or restart file or via the <A HREF = "bond_coeff.html">bond_coeff</A> command.
+</P>
+<P>In the formulas listed for each bond style, <I>r</I> is the distance
+between the 2 atoms in the bond.
+</P>
+<P>Note that when both a bond and pair style is defined, the
+<A HREF = "special_bond.html">special_bond</A> command often needs to be used to
+turn off (or weight) the pairwise interaction that would otherwise
+exist between 2 bonded atoms.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
+the style to display the formula it computes and coefficients
+specified by the associated <A HREF = "bond_coeff.html">bond_coeff</A> command:
+</P>
+<UL><LI><A HREF = "bond_style_none.html">bond_style none</A> - turn off bonded interactions
+<LI><A HREF = "bond_style_hybrid.html">bond_style hybrid</A> - define multiple styles of bond interactions 
+</UL>
+<UL><LI><A HREF = "bond_style_class2.html">bond_style class2</A> - COMPASS (class 2) bond
+<LI><A HREF = "bond_style_fene.html">bond_style fene</A> - FENE (finite-extensible non-linear elastic) bond
+<LI><A HREF = "bond_style_fene_expand.html">bond_style fene/expand</A> - FENE bonds with variable size particles
+<LI><A HREF = "bond_style_harmonic.html">bond_style harmonic</A> - harmonic bond
+<LI><A HREF = "bond_style_morse.html">bond_style morse</A> - Morse bond
+<LI><A HREF = "bond_style_nonlinear.html">bond_style nonlinear</A> - nonlinear bond
+<LI><A HREF = "bond_style_quartic.html">bond_style quartic</A> - breakable quartic bond 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>Bond styles can only be set for atom styles that allow bonds to be
+defined.
+</P>
+<P>Bond styles are part of the "molecular" package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>bond_style none
+</P>
+</HTML>

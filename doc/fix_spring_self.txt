@@ -1,0 +1,38 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix spring/self command :h3
+
+[Syntax:]
+
+fix ID group-ID spring/self K :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+spring/self = style name of this fix command
+K = spring constant (force/distance units) :ul
+
+[Examples:]
+
+fix tether boundary-atoms spring/self 10.0 :pre
+
+[Description:]
+
+Apply a spring force independently to each atom in the group to tether
+it to its initial position.  The initial position for each atom is its
+location at the time the fix command was issued.  At each timestep,
+the magnitude of the force on each atom is -Kr, where r is the
+displacement of the atom from its current position to its initial
+position.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix drag"_fix_drag.html, "fix spring"_fix_spring.html
+
+[Default:] none

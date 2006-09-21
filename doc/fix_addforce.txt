@@ -1,0 +1,39 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix addforce command :h3
+
+[Syntax:]
+
+fix ID group-ID addforce fx fy fz :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+addforce = style name of this fix command
+fx,fy,fz = force component values (force units) :ul
+
+[Examples:]
+
+fix kick flow addforce 1.0 0.0 0.0 :pre
+
+[Description:]
+
+Add fx,fy,fz to the corresponding component of force for each atom in
+the group.  This command can be used to give an additional push to
+atoms in a simulation, such as for a simulation of Poiseuille flow in
+a channel.
+
+The forces due to this fix are also imposed during an energy
+minimization, invoked by the "minimize"_minimize.html command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix setforce"_fix_setforce.html, "fix aveforce"_fix_aveforce.html
+
+[Default:] none

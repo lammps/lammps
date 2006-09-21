@@ -1,0 +1,488 @@
+"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_howto.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+3. Commands :h3
+
+This section describes how a LAMMPS input script is formatted and what
+commands are used to define a LAMMPS simulation.
+
+3.1 "LAMMPS input script"_#3_1
+3.2 "Parsing rules"_#3_2
+3.3 "Input script structure"_#3_3
+3.4 "Commands listed by category"_#3_4
+3.5 "Commands listed alphabetically"_#3_5 :all(b)
+
+:line
+
+3.1 LAMMPS input script :link(3_1),h4
+
+LAMMPS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, LAMMPS exits.  Each
+command causes LAMMPS to take some action.  It may set an internal
+variable, read in a file, or run a simulation.  Most commands have
+default settings, which means you only need to use the command if you
+wish to change the default.
+
+In many cases, the ordering of commands in an input script is not
+important.  However the following rules apply:
+
+(1) LAMMPS does not read your entire input script and then perform a
+simulation with all the settings.  Rather, the input script is read
+one line at a time and each command takes effect when it is read.
+Thus this sequence of commands:
+
+timestep 0.5 
+run      100 
+run      100 :pre
+
+does something different than this sequence:
+
+run      100 
+timestep 0.5 
+run      100 :pre
+
+In the first case, the specified timestep (0.5 fmsec) is used for two
+simulations of 100 timesteps each.  In the 2nd case, the default
+timestep (1.0 fmsec) is used for the 1st 100 step simulation and a 0.5
+fmsec timestep is used for the 2nd one.
+
+(2) Some commands are only valid when they follow other commands.  For
+example you cannot set the temperature of a group of atoms until atoms
+have been defined and a group command is used to define which atoms
+belong to the group.
+
+(3) Sometimes command B will use values that can be set by command A.
+This means command A must precede command B in the input script if it
+is to have the desired effect.  For example, the
+"read_data"_read_data.html command initializes the system by setting
+up the simulation box and assigning atoms to processors.  If default
+values are not desired, the "processors"_processors.html and
+"boundary"_boundary.html commands need to be used before read_data to
+tell LAMMPS how to map processors to the simulation box.
+
+Many input script errors are detected by LAMMPS and an ERROR or
+WARNING message is printed.  "This section"_Section_errors.html gives
+more information on what errors mean.  The documentation for each
+command lists restrictions on how the command can be used.
+
+:line
+
+3.2 Parsing rules :link(3_2),h4
+
+Each non-blank line in the input script is treated as a command.
+LAMMPS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.
+
+Here is how each line in the input script is parsed by LAMMPS:
+
+(1) If the line ends with a "&" character (with no trailing
+whitespace), the command is assumed to continue on the next line.  The
+next line is concatenated to the previous line by removing the "&"
+character and newline.  This allows long commands to be continued
+across two or more lines.
+
+(2) All characters from the first "#" character onward are treated as
+comment and discarded.
+
+(3) The line is searched repeatedly for $ characters which indicate
+variables that are replaced with text.  If the $ is followed by curly
+brackets, then the variable name is the text inside the curly
+brackets.  If no curly brackets follow the $, then the variable name
+is the character immediately following the $.  Thus $\{myTemp\} and $x
+refer to variable names "myTemp" and "x".  See the
+"variable"_variable.html command for details of how values are
+assigned to variables and how they are substituted for in input
+scripts.
+
+(4) The line is broken into "words" separated by whitespace (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.
+
+(5) The first word is the command name.  All successive words in the
+line are arguments.
+
+(6) Text with spaces can be enclosed in double quotes so it will be
+treated as a single argument.  See the "dump modify"_dump_modify.html
+or "fix print"_fix_print.html commands for examples.  A '#' or '$'
+charater that in text between double quotes will not be treated as a
+comment or substituted for as a variable.
+
+:line
+
+3.3 Input script structure :h4,link(3_3)
+
+This section describes the structure of a typical LAMMPS input script.
+The "examples" directory in the LAMMPS distribution contains many
+sample input scripts; the corresponding problems are discussed in
+"this section"_Section_example.html, and animated on the "LAMMPS WWW
+Site"_lws.
+
+A LAMMPS input script typically has 4 parts:
+
+Initialization
+Atom definition
+Settings
+Run a simulation :ol
+
+The last 2 parts can be repeated as many times as desired.  I.e. run a
+simulation, change some settings, run some more, etc.  Each of the 4
+parts is now described in more detail.  Remember that almost all the
+commands need only be used if a non-default value is desired.
+
+(1) Initialization
+
+Set parameters that need to be defined before atoms are created or
+read-in from a file.
+
+The relevant commands are "units"_units.html,
+"dimension"_dimension.html, "newton"_newton.html,
+"processors"_processors.html, "boundary"_boundary.html,
+"atom_style"_atom_style.html, "atom_modify"_atom_modify.html.
+
+If force-field parameters appear in the files that will be read, these
+commands tell LAMMPS what kinds of force fields are being used:
+"pair_style"_pair_style.html, "bond_style"_bond_style.html,
+"angle_style"_angle_style.html, "dihedral_style"_dihedral_style.html,
+"improper_style"_improper_style.html.
+
+(2) Atom definition
+
+There are 3 ways to define atoms in LAMMPS.  Read them in from a data
+or restart file via the "read_data"_read_data.html or
+"read_restart"_read_restart.html commands.  These files can contain
+molecular topology information.  Or create atoms on a lattice (with no
+molecular topology), using these commands: "lattice"_lattice.html,
+"orient"_orient.html, "origin"_origin.html, "region"_region.html,
+"create_box"_create_box.html, "create_atoms"_create_atoms.html.  The
+entire set of atoms can be duplicated to make a larger simulation
+using the "replicate"_replicate.html command.
+
+(3) Settings
+
+Once atoms and molecular topology are defined, a variety of settings
+can be specified: force field coefficients, simulation parameters,
+output options, etc.
+
+Force field coefficients are set by these commands (they can also be
+set in the read-in files): "pair_coeff"_pair_coeff.html,
+"bond_coeff"_bond_coeff.html, "angle_coeff"_angle_coeff.html,
+"dihedral_coeff"_dihedral_coeff.html,
+"improper_coeff"_improper_coeff.html,
+"kspace_style"_kspace_style.html, "dielectric"_dielectric.html,
+"special_bonds"_special_bonds.html.
+
+Various simulation parameters are set by these commands:
+"temperature"_temperature.html, "temp_modify"_temp_modify.html,
+"neighbor"_neighbor.html, "neigh_modify"_neigh_modify.html,
+"group"_group.html, "timestep"_timestep.html,
+"reset_timestep"_reset_timestep.html, "run_style"_run_style.html,
+"min_style"_min_style.html, "min_modify"_min_modify.html.
+
+Fixes impose a variety of boundary conditions, time integration, and
+diagnostic options.  The "fix"_fix.html command comes in many flavors.
+
+Output options are set by these commands: "thermo"_thermo.html,
+"dump"_dump.html, "restart"_restart.html.
+
+(4) Run a simulation
+
+A molecular dynamics simulation is run using the "run"_run.html
+command.  Energy minimizationn (molecular statics) is performed using
+the "minimize"_minimize.html command.  A parallel tempering
+(replica-exchange) simulation can be run using the
+"temper"_temper.html command.
+
+:line
+
+3.4 Commands listed by category :link(3_4),h4
+
+This section lists all LAMMPS commands, grouped by category.  The
+"next section"_#3_5 lists the same commands alphabetically.  Note that
+some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+
+Initialization:
+
+"atom_modify"_atom_modify.html, "atom_style"_atom_style.html,
+"boundary"_boundary.html, "dimension"_dimension.html,
+"newton"_newton.html, "processors"_processors.html, "units"_units.html
+
+Atom definition:
+
+"create_atoms"_create_atoms.html, "create_box"_create_box.html,
+"lattice"_lattice.html, "orient"_orient.html, "origin"_origin.html,
+"read_data"_read_data.html, "read_restart"_read_restart.html,
+"region"_region.html, "replicate"_replicate.html
+
+Force fields:
+
+"angle_coeff"_angle_coeff.html, "angle_style"_angle_style.html,
+"bond_coeff"_bond_coeff.html, "bond_style"_bond_style.html,
+"dielectric"_dielectric.html, "dihedral_coeff"_dihedral_coeff.html,
+"dihedral_style"_dihedral_style.html,
+"improper_coeff"_improper_coeff.html,
+"improper_style"_improper_style.html,
+"kspace_modify"_kspace_modify.html, "kspace_style"_kspace_style.html,
+"pair_coeff"_pair_coeff.html, "pair_modify"_pair_modify.html,
+"pair_style"_pair_style.html, "pair_write"_pair_write.html,
+"special_bonds"_special_bonds.html
+
+Settings:
+
+"dipole"_dipole.html, "group"_group.html, "mass"_mass.html,
+"min_modify"_min_modify.html, "min_style"_min_style.html,
+"neigh_modify"_neigh_modify.html, "neighbor"_neighbor.html,
+"reset_timestep"_reset_timestep.html, "run_style"_run_style.html,
+"set"_set.html, "temp_modify"_temp_modify.html,
+"temperature"_temperature.html, "timestep"_timestep.html,
+"velocity"_velocity.html
+
+Fixes:
+
+"fix"_fix.html, "fix_modify"_fix_modify.html, "unfix"_unfix.html
+
+Output:
+
+"dump"_dump.html, "dump_modify"_dump_modify.html,
+"restart"_restart.html, "thermo"_thermo.html,
+"thermo_modify"_thermo_modify.html, "thermo_style"_thermo_style.html,
+"undump"_undump.html, "write_restart"_write_restart.html
+
+Actions:
+
+"delete_atoms"_delete_atoms.html, "delete_bonds"_delete_bonds.html,
+"displace_atoms"_displace_atoms.html, "minimize"_minimize.html,
+"run"_run.html, "temper"_temper.html
+
+Miscellaneous:
+
+"clear"_clear.html, "echo"_echo.html, "include"_include.html,
+"jump"_jump.html, "label"_label.html, "log"_log.html,
+"next"_next.html, "print"_print.html, "shell"_shell.html,
+"variable"_variable.html
+
+:line
+
+3.5 Individual commands :h4,link(3_5),link(comm)
+
+This section lists all LAMMPS commands alphabetically, with a separate
+listing below of styles within certain commands.  The "previous
+section"_#3_4 lists the same commands, grouped by category.  Note that
+some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command's documentation.
+
+"angle_coeff"_angle_coeff.html,
+"angle_style"_angle_style.html,
+"atom_modify"_atom_modify.html,
+"atom_style"_atom_style.html,
+"bond_coeff"_bond_coeff.html,
+"bond_style"_bond_style.html,
+"boundary"_boundary.html,
+"clear"_clear.html,
+"create_atoms"_create_atoms.html,
+"create_box"_create_box.html,
+"delete_atoms"_delete_atoms.html,
+"delete_bonds"_delete_bonds.html,
+"dielectric"_dielectric.html,
+"dihedral_coeff"_dihedral_coeff.html,
+"dihedral_style"_dihedral_style.html,
+"dimension"_dimension.html,
+"dipole"_dipole.html,
+"displace_atoms"_displace_atoms.html,
+"dump"_dump.html,
+"dump_modify"_dump_modify.html,
+"echo"_echo.html,
+"fix"_fix.html,
+"fix_modify"_fix_modify.html,
+"group"_group.html,
+"improper_coeff"_improper_coeff.html,
+"improper_style"_improper_style.html,
+"include"_include.html,
+"jump"_jump.html,
+"kspace_modify"_kspace_modify.html,
+"kspace_style"_kspace_style.html,
+"label"_label.html,
+"lattice"_lattice.html,
+"log"_log.html,
+"mass"_mass.html,
+"minimize"_minimize.html,
+"min_modify"_min_modify.html,
+"min_style"_min_style.html,
+"neigh_modify"_neigh_modify.html,
+"neighbor"_neighbor.html,
+"newton"_newton.html,
+"next"_next.html,
+"orient"_orient.html,
+"origin"_origin.html,
+"pair_coeff"_pair_coeff.html,
+"pair_modify"_pair_modify.html,
+"pair_style"_pair_style.html,
+"pair_write"_pair_write.html,
+"print"_print.html,
+"processors"_processors.html,
+"read_data"_read_data.html,
+"read_restart"_read_restart.html,
+"region"_region.html,
+"replicate"_replicate.html,
+"reset_timestep"_reset_timestep.html,
+"restart"_restart.html,
+"run"_run.html,
+"run_style"_run_style.html,
+"set"_set.html,
+"shell"_shell.html,
+"special_bonds"_special_bonds.html,
+"temp_modify"_temp_modify.html,
+"temper"_temper.html,
+"temperature"_temperature.html,
+"thermo"_thermo.html,
+"thermo_modify"_thermo_modify.html,
+"thermo_style"_thermo_style.html,
+"timestep"_timestep.html,
+"undump"_undump.html,
+"unfix"_unfix.html,
+"units"_units.html,
+"variable"_variable.html,
+"velocity"_velocity.html,
+"write_restart"_write_restart.html :tb(c=6,ea=c)
+
+Fix styles.  See the "fix"_fix.html command for one-line descriptions
+or click on the command itself for a full description:
+
+"fix addforce"_fix_addforce.html,
+"fix aveforce"_fix_aveforce.html,
+"fix com"_fix_com.html,
+"fix drag"_fix_drag.html,
+"fix efield"_fix_efield.html,
+"fix enforce2d"_fix_enforce2d.html,
+"fix freeze"_fix_freeze.html,
+"fix gran/diag"_fix_gran_diag.html,
+"fix gravity"_fix_gravity.html,
+"fix gyration"_fix_gyration.html,
+"fix indent"_fix_indent.html,
+"fix insert"_fix_insert.html,
+"fix langevin"_fix_langevin.html,
+"fix lineforce"_fix_lineforce.html,
+"fix msd"_fix_msd.html,
+"fix momentum"_fix_momentum.html,
+"fix nph"_fix_nph.html,
+"fix npt"_fix_npt.html,
+"fix nve"_fix_nve.html,
+"fix nve/gran"_fix_nve_gran.html,
+"fix nvt"_fix_nvt.html,
+"fix orient/fcc"_fix_orient_fcc.html,
+"fix planeforce"_fix_planeforce.html,
+"fix poems"_fix_poems.html,
+"fix print"_fix_print.html,
+"fix rdf"_fix_rdf.html,
+"fix recenter"_fix_recenter.html,
+"fix rigid"_fix_rigid.html,
+"fix setforce"_fix_setforce.html,
+"fix shake"_fix_shake.html,
+"fix spring"_fix_spring.html,
+"fix spring/rg"_fix_spring_rg.html,
+"fix spring/self"_fix_spring_self.html,
+"fix temp/rescale"_fix_temp_rescale.html,
+"fix tmd"_fix_tmd.html,
+"fix uniaxial"_fix_uniaxial.html,
+"fix vcm"_fix_vcm.html,
+"fix viscous"_fix_viscous.html,
+"fix volume/rescale"_fix_volume_rescale.html,
+"fix wall/gran"_fix_wall_gran.html,
+"fix wall/lj93"_fix_wall_lj93.html,
+"fix wall/reflect"_fix_wall_reflect.html,
+"fix wiggle"_fix_wiggle.html :tb(c=6,ea=c)
+
+Pair styles.  See the "pair_style"_pair_style.html command for an
+overview of pair potentials.  Click on the style itself for a full
+description:
+
+"none"_pair_style_none.html,
+"hybrid"_pair_style_hybrid.html,
+"buck"_pair_style_buck.html,
+"buck/coul/cut"_pair_style_buck.html,
+"buck/coul/long"_pair_style_buck.html,
+"dpd"_pair_style_dpd.html,
+"eam"_pair_style_eam.html,
+"eam/alloy"_pair_style_eam.html,
+"eam/fs"_pair_style_eam.html,
+"gran/hertzian"_pair_style_gran.html,
+"gran/history"_pair_style_gran.html,
+"gran/no_history"_pair_style_gran.html,
+"lj/charmm/coul/charmm"_pair_style_charmm.html,
+"lj/charmm/coul/charmm/implicit"_pair_style_charmm.html,
+"lj/charmm/coul/long"_pair_style_charmm.html,
+"lj/class2"_pair_style_class2.html,
+"lj/class2/coul/cut"_pair_style_class2.html,
+"lj/class2/coul/long"_pair_style_class2.html,
+"lj/cut"_pair_style_lj.html,
+"lj/cut/coul/cut"_pair_style_lj.html,
+"lj/cut/coul/debye"_pair_style_lj.html,
+"lj/cut/coul/long"_pair_style_lj.html,
+"lj/cut/coul/long/tip4p"_pair_style_lj.html,
+"lj/expand"_pair_style_lj_expand.html,
+"lj/smooth"_pair_style_lj_smooth.html,
+"morse"_pair_style_morse.html,
+"soft"_pair_style_soft.html,
+"table"_pair_style_table.html,
+"yukawa"_pair_style_yukawa.html :tb(c=4,ea=c)
+
+Bond styles.  See the "bond_style"_bond_style.html command for an
+overview of bond potentials.  Click on the style itself for a full
+description:
+
+"none"_bond_style_none.html,
+"hybrid"_bond_style_hybrid.html,
+"class2"_bond_style_class2.html,
+"fene"_bond_style_fene.html,
+"fene/expand"_bond_style_fene_expand.html,
+"harmonic"_bond_style_harmonic.html,
+"morse"_bond_style_morse.html,
+"nonlinear"_bond_style_nonlinear.html,
+"quartic"_bond_style_quartic.html :tb(c=4,ea=c,w=100)
+
+Angle styles.  See the "angle_style"_angle_style.html command for an
+overview of angle potentials.  Click on the style itself for a full
+description:
+
+"none"_angle_style_none.html,
+"hybrid"_angle_style_hybrid.html,
+"charmm"_angle_style_charmm.html,
+"class2"_angle_style_class2.html,
+"cosine"_angle_style_cosine.html,
+"cosine/squared"_angle_style_cosine_squared.html,
+"harmonic"_angle_style_harmonic.html :tb(c=6,ea=c,w=100)
+
+Dihedral styles.  See the "dihedral_style"_dihedral_style.html command
+for an overview of dihedral potentials.  Click on the style itself for
+a full description:
+
+"none"_dihedral_style_none.html,
+"hybrid"_dihedral_style_hybrid.html,
+"charmm"_dihedral_style_charmm.html,
+"class2"_dihedral_style_class2.html,
+"harmonic"_dihedral_style_harmonic.html,
+"helix"_dihedral_style_helix.html,
+"multi/harmonic"_dihedral_style_multi_harmonic.html,
+"opls"_dihedral_style_opls.html :tb(c=7,ea=c,w=100)
+
+Improper styles.  See the "improper_style"_improper_style.html command for an
+overview of improper potentials.  Click on the style itself for a full
+description:
+
+"none"_improper_style_none.html,
+"hybrid"_improper_style_hybrid.html,
+"class2"_improper_style_class2.html,
+"cvff"_improper_style_cvff.html,
+"harmonic"_improper_style_harmonic.html :tb(c=4,ea=c,w=100)

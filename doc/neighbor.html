@@ -1,0 +1,65 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>neighbor command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>neighbor skin style 
+</PRE>
+<UL><LI>skin = extra distance beyond force cutoff (distance units)
+<LI>style = <I>bin</I> or <I>nsq</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>neighbor 0.3 bin
+neighbor 2.0 nsq 
+</PRE>
+<P><B>Description: </B>
+</P>
+<P>This command sets parameters that affect the building of the pairwise
+neighbor list.  All atom pairs within a cutoff distance equal to the
+their force cutoff plus the <I>skin</I> distance are stored in the list.
+Typically, the larger the skin distance, the less often neighbor lists
+need to be built, but more pairs must be checked for possible force
+interactions every timestep.
+</P>
+<P>The <I>style</I> value chooses what algorithm is used to build the list.
+<I>Binning</I> is an operation that scales linearly with N, the number of
+atoms on a processor.  It is almost always faster than the <I>nsq</I> style
+which scales as N^2.  For unsolvated small molecules in a non-periodic
+box, the <I>nsq</I> choice can sometimes be faster.  Either style should
+give the same answers.
+</P>
+<P>The default values for <I>skin</I> and <I>style</I> depend on the choice of
+units for the simulation.
+</P>
+<P>The <A HREF = "neigh_modify.html">neigh_modify</A> command has additional options
+that control how often neighbor lists are built and which pairs are
+stored in the list.
+</P>
+<P>When a run is finished, counts of the number of neighbors stored in
+the pairwise list and the number of times neighbor lists were built
+are printed to the screen and log file.  See <A HREF = "Section_start.html#2_5">this
+section</A> for details.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "neigh_modify.html">neigh_modify</A>, <A HREF = "units.html">units</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>0.3 bin      for lj units
+2.0 bin      for real or metal units 
+</PRE>
+</HTML>

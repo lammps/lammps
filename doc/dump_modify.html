@@ -1,0 +1,114 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dump_modify dump-ID keyword args ... 
+</PRE>
+<UL><LI>dump-ID = ID of dump to modify 
+
+<LI>one or more keyword/arg pairs may be appended 
+
+<LI>keyword = <I>format</I> or <I>scale</I> or <I>image</I> or <I>header</I> or <I>flush</I> or <I>region</I> or <I>thresh</I> 
+
+<PRE>  <I>format</I> arg = C-style format string for one line of output
+  <I>scale</I> arg = <I>yes</I> or <I>no</I>
+  <I>image</I> arg = <I>yes</I> or <I>no</I>
+  <I>flush</I> arg = <I>yes</I> or <I>no</I>
+  <I>every</I> arg = N
+    N = dump every this many timesteps
+  <I>region</I> arg = region-ID or "none"
+  <I>thresh</I> args = attribute operation value
+    attribute = same attributes (x,fy,eng,sxx,etc) used by dump custom style
+    operation = < or <= or > or >= or = or <>
+    value = numeric value to compare to
+    these 3 args can be replaced by the word "none" to turn off threshholding
+
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dump_modify 1 format "%d %d %20.15g %g %g" scale yes
+dump_modify myDump image yes scale no flush yes
+dump_modify 1 region mySphere thresh x < 0.0 thresh energy >= 3.2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Modify the parameters of a previously defined dump command.  Not all
+parameters are relevant to all dump styles.
+</P>
+<P>The text-based dump styles have a default C-style format string which
+simply specifies %d for integers and %g for real values.  The <I>format</I>
+keyword can be used to override the default with a new C-style format
+string.  Do not include a trailing "\n" newline character in the
+format string.  This option has no effect on the <I>dcd</I> and <I>xtc</I> dump
+styles since they write binary files.
+</P>
+<P>The <I>scale</I> and <I>image</I> keywords apply only to the dump <I>atom</I> style.
+A scale value of <I>yes</I> means atom coords are written in normalized
+units from 0.0 to 1.0 in each box dimension.  A value of <I>no</I> means
+they are written in absolute distance units (e.g. Angstroms or sigma).
+If the image value is <I>yes</I>, 3 flags are appended to each atom's
+coords which are the absolute box image of the atom in each dimension.
+For example, an x image flag of -2 with a normalized coord of 0.5
+means the atom is in the center of the box, but has passed thru the
+box boundary 2 times and is really 2 box lengths to the left of its
+current coordinate.  Note that for dump style <I>custom</I> these values
+can be printed in the dump file by using the appropriate atom
+attributes in the dump command itself.
+</P>
+
+
+<P>The <I>flush</I> option determines whether a flush operation in invoked
+after a dump snapshot is written to the dump file.  A flush insures
+the output in that file is current (no buffering by the OS), even if
+LAMMPS halts before the simulation completes.  Flushes cannot be
+performed with dump style <I>xtc</I>.
+</P>
+<P>The <I>every</I> option changes the dump frequency originally specified by
+the <A HREF = "dump.html">dump</A> command to a new value which must be > 0.  The
+dump frequency cannot be changed for the dump <I>dcd</I> style.
+</P>
+<P>The <I>region</I> keyword only applies to the dump <I>custom</I> style.  If
+specified, only atoms in the region will be written to the dump file.
+Only one region can be applied as a filter (the last one specified).
+See the <A HREF = "region.html">region</A> command for more details.  Note that a
+region can be defined as the "inside" or "outside" of a geometric
+shape, and it can be the "union" or "intersection" of a series of
+simpler regions.
+</P>
+<P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> style.
+Multiple threshholds can be specified.  Specifying "none" turns off
+all threshhold criteria.  If theshholds are specified, only atoms
+whose attributes meet all the threshhold criteria are written to the
+dump file.  The possible attributes that can be tested for are the
+same as those that can be specified in the <A HREF = "dump.html">dump custom</A>
+command.  Note that different attributes can be output by the dump
+custom command than are used as threshhold criteria by the dump_modify
+command.  E.g. you can output the coordinates and stress of atoms
+whose energy is above some thresshold.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "undump.html">undump</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are format = %d and %g for each integer or
+floating point value, scale = yes, image = no, flush = yes (except for
+dump <I>xtc</I> style), region = none, and thresh = none.
+</P>
+</HTML>

@@ -1,0 +1,79 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+temper command :h3
+
+[Syntax:]
+
+temper N M temp fix-ID seed1 seed2 index :pre
+
+N = total # of timesteps to run
+M = attempt a tempering swap every this many steps
+temp = initial temperature for this ensemble
+fix-ID = ID of the fix that will control temperature during the run
+seed1 = random # seed used to decide on adjacent temperature to partner with
+seed2 = random # seed for Boltzmann factor in Metropolis swap 
+index = which temperature (0 to N-1) I am simulating (optional) :ul
+
+[Examples:]
+
+temper 100000 100 $t tempfix 0 58728
+temper 40000 100 $t tempfix 0 32285 $w :pre
+
+[Description:]
+
+Run a parallel tempering (replica exchange) simulation of multiple
+ensembles of a system on multiple partitions of processors.  The
+processor partitions are defined using the -partition command-line
+switch (see "this section"_Section_start.html#2_4).  Each ensemble's
+temperature is typically controlled at a different value by a fix with
+ID {fix-ID} that controls temperature.  Possible fix styles are
+"nvt"_fix_nvt.html, "npt"_fix_npt.html, and
+"temp/rescale"_fix_temp_rescale.html.  The desired temperature is
+specified by {temp}, which is typically a variable previously set in
+the input script, so that each partition is assigned a different
+temperature.  See the "variable"_variable.html command for more
+details.  For example,
+
+variable t world 300.0 310.0 320.0 330.0 :pre
+
+As the tempering simulation runs for {N} timesteps, a swap between
+adjacent ensembles will be attempted every {M} timesteps.  If {seed1}
+is 0, then the swap attempts will alternate between odd and even
+pairings.  If {seed1} is non-zero then it is used as a seed in a
+random number generator to randomly choose an odd or even pairing each
+time.  Each attempted swap of temperatures is either accepted or
+rejected based on a Boltzmann-weighted Metropolis criterion which uses
+{seed2} in the random number generator.
+
+The last argument {index} is optional and is used when restarting a
+tempering run from a set of restart files (one for each replica) which
+had previously swapped to new temperatures.  The {index} value (from 0
+to N-1, where N is the # of replicas) identifies which temperature the
+replica was simulating on the timestep the restart files were written.
+Obviously, this argument must be a variable so that each partition has
+the correct value.  Set the variable to the {N} values listed in the
+log file for the previous run for the replica temperatures at that
+timestep.  For example if the log file listed
+
+500000 2 4 0 1 3 :pre
+
+then a setting of
+
+variable w proc 2 4 0 1 3 :pre
+
+would be used to restart the run with a tempering command like the
+example above with $w as the last argument.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html
+
+[Default:] none

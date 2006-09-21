@@ -1,0 +1,50 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dihedral_style multi/harmonic command :h3
+
+[Syntax:]
+
+dihedral_style multi/harmonic :pre
+
+[Examples:]
+
+dihedral_style multi/harmonic
+dihedral_coeff 1 20 20 20 20 20 :pre
+
+[Description:]
+
+The {multi/harmonic} dihedral style uses the potential
+
+:c,image(Eqs/dihedral_multi_harmonic.jpg)
+
+The following coefficients must be defined for each dihedral type via the
+"dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+A1 (energy)
+A2 (energy)
+A3 (energy)
+A4 (energy)
+A5 (energy) :ul
+
+[Restrictions:]
+
+Dihedral styles can only be set for atom styles that allow dihedrals to be
+defined.
+
+This dihedral style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"dihedral_coeff"_dihedral_coeff.html
+
+[Default:] none

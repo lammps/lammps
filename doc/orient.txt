@@ -1,0 +1,46 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+orient command :h3
+
+[Syntax:]
+
+orient dim i j k :pre
+
+dim = {x} or {y} or {z}
+i,j,k = orientation of lattice that is along box direction dim :ul
+
+[Examples:]
+
+orient x 1 1 0
+orient y -1 1 0
+orient z 0 0 1 :pre
+
+[Description:]
+
+Specify the orientation of a cubic lattice along simulation box
+directions {x} or {y} or {z}.  These 3 basis vectors are used when the
+"create_atoms"_create_atoms.html command generates a lattice of atoms.
+
+The 3 basis vectors B1, B2, B3 must be mutually orthogonal and form a
+right-handed system such that B1 cross B2 is in the direction of B3.
+
+The basis vectors should be specified in an irreducible form (smallest
+possible integers), though LAMMPS does not check for this.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"origin"_origin.html, "create_atoms"_create_atoms.html
+
+[Default:]
+
+orient x 1 0 0
+orient y 0 1 0
+orient z 0 0 1 :pre

@@ -1,0 +1,97 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style gran/hertizian command 
+</H3>
+<H3>pair_style gran/history command 
+</H3>
+<H3>pair_style gran/no_history command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style Kn, gamma_n xmu dampflag 
+</PRE>
+<UL><LI>style = <I>gran/hertzian</I> or <I>gran/history</I> or <I>gran/no_history</I> 
+
+<LI>Kn = spring constant for particle repulsion 
+
+<PRE>  (mg/d units where m is mass, g is the gravitational constant, d is diameter of a particle) 
+</PRE>
+<LI>gamma_n = damping coefficient for normal direction collisions (sqrt(g/d) units) 
+
+<LI>xmu = static yield criterion 
+
+<LI>dampflag = flag (0/1) for whether to (no/yes) include tangential damping 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style gran/history 200000.0 0.5 1.0 1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>gran</I> styles use the following formula <A HREF = "#Silbert">(Silbert)</A> for
+frictional force between two granular particles that are a distance r
+apart when r is less than the contact distance d.
+</P>
+<CENTER><IMG SRC = "Eqs/pair_granular.jpg">
+</CENTER>
+<P>The 1st term is a normal force and the 2nd term is a tangential force.
+The other quantites are as follows:
+</P>
+<UL><LI>delta = d - r
+<LI>f(x) = 1 for Hookean contacts used in pair styles <I>history</I> and <I>no_history</I>
+<LI>f(x) = sqrt(x) for pair style <I>hertzian</I>
+<LI>Kn = elastic constant for normal contact
+<LI>Kt = elastic constant for tangential contact = 2/7 of Kn
+<LI>gamma_n = viscoelastic constants for normal contact
+<LI>gamma_t = viscoelastic constants for tangential contact = 1/2 of gamma_n
+<LI>m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj
+<LI>Delta St = tangential displacement vector between the 2 spherical particles       which is truncated to satisfy a frictional yield criterion
+<LI>n = a unit vector along the line connecting the centers of the 2 particles
+<LI>Vn = normal component of the relative velocity of the 2 particles
+<LI>Vt = tangential component of the relative velocity of the 2 particles 
+</UL>
+<P>The Kn and gamma_n coefficients are set as parameters to the
+pair_style command.  Xmu is also specified which is the upper limit of
+the tangential force through the Coulomb criterion Ft = xmu*Fn.  The
+tangential force between 2 particles grows according to a tangential
+spring and dash-pot model until Ft/Fn = xmu and then is held at Ft =
+Fn*xmu until the particles lose contact.
+</P>
+<P>For granular styles there are no individual atom type coefficients
+that can be set.  All global settings are made via the pair_style
+command.
+</P>
+<P>See the citation for more discussion of the granular potentials.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P>All of these styles are part of the "granular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You must use <A HREF = "atom_style.html">atom style</A> <I>granular</I> with these pair
+styles.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Silbert"></A>
+
+<P><B>(Silbert)</B> Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
+E, 64, p 051302 (2001).
+</P>
+</HTML>

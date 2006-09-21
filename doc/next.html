@@ -1,0 +1,99 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>next command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>next variables 
+</PRE>
+<UL><LI>variables = one or more lower-case single-character variable names 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>next x
+next a t x 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command is used with variables defined by the
+<A HREF = "variable.html">variable</A> command.  It assigns the next value to the
+variable from the variable's list, so that when $X is subsequently
+substituted for in an input script command, the new value is used.  X
+is a single lower-case character from "a" to "z".
+</P>
+<P>All variables in a single next command must be the same style:
+<I>index</I>, <I>loop</I>, or <I>universe</I>.  <I>Equal</I>- or <I>world</I>-style variables
+cannot be incremented by a next command.
+</P>
+<P>When any of the variables in the next command has no more values, a
+flag is set that causes the input script to skip the next
+<A HREF = "jump.html">jump</A> command encountered.  This enables a loop containing
+a next command to exit.
+</P>
+<P>When the next command is used with <I>index</I>- or <I>loop</I>-style variables,
+the next value is assigned to the variable for all processors.  When
+the next command is used with <I>universe</I>-style variables, the next
+value is assigned to whichever processor partition executes the
+command first.  All processors in the partition are assigned the same
+value.  Running LAMMPS on multiple partitions of processors via the
+"-partition" command-line switch is described in <A HREF = "Section_start.html#2_4">this
+section</A> of the manual.  <I>Universe</I>-style
+variables are incremented using the files "tmp.lammps.variable" and
+"tmp.lammps.variable.lock" which you will see in your directory during
+such a LAMMPS run.
+</P>
+<P>Here is an example of running a series of simulations using the next
+command with an <I>index</I>-style variable.  If this input script is named
+in.polymer, 8 simulations would be run using data files from
+directories run1 thru run8.
+</P>
+<PRE>variable d index run1 run2 run3 run4 run5 run6 run7 run8
+shell cd $d
+read_data data.polymer
+run 10000
+shell cd ..
+clear
+next d
+jump in.polymer 
+</PRE>
+<P>If the variable "d" were of style <I>universe</I>, and the same in.polymer
+input script were run on 3 partitions of processors, then the first 3
+simulations would begin, one on each set of processors.  Whichever
+partition finished first, it would assign variable "d" the 4th value
+and run another simulation, and so forth until all 8 simulations were
+finished.
+</P>
+<P>Jump and next commands can also be nested to enable multi-level loops.
+For example, this script will run 15 simulations in a double loop.
+</P>
+<P>variable i loop 3
+variable j loop 5
+clear
+...
+read_data data.polymer.$i$j
+print Running simulation $i.$j
+run 10000
+next j
+jump in.script
+next i
+jump in.script
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "jump.html">jump</A>, <A HREF = "include.html">include</A>, <A HREF = "shell.html">shell</A>,
+<A HREF = "variable.html">variable</A>,
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,74 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>lattice command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>lattice style value 
+</PRE>
+<UL><LI>style = <I>none</I> or <I>sc</I> or <I>bcc</I> or <I>fcc</I> or <I>sq</I> or <I>sq2</I> or <I>hex</I> or <I>diamond</I> 
+
+<PRE>  <I>none</I> value = none
+  for all other styles:
+    value = reduced density (for LJ units)
+    value = cubic lattice constant in Angstroms (for real or metal units) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>lattice fcc 3.52
+lattice hex 0.85
+lattice none 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a lattice type and lattice constant.  This is required before
+using a commands that (optionally) use the lattice, such as
+<A HREF = "create_atoms.html">create_atoms</A> or <A HREF = "region.html">region</A>.  The lattice
+type must be consistent with the dimension of the simulation - see the
+<A HREF = "dimension.html">dimension</A> command.  Styles <I>sc</I> or <I>bcc</I> or <I>fcc</I> or
+<I>diamond</I> are for 3d problems.  Styles <I>sq</I> or <I>sq2</I> or <I>hex</I> are for
+2d problems.  Lattices of style <I>fcc</I>, <I>bcc</I>, <I>hex</I>, or <I>diamond</I> are
+described in any solid-state physics text.  A <I>sc</I> lattice is simple
+cubic, with atoms at the corners of a cube.  A <I>sq</I> lattice is square
+with atoms at the corners of a square.  A <I>sq2</I> lattice is a <I>sq</I>
+lattice with an additional atom at the center of the square.
+</P>
+<P>For unit style <I>real</I> or <I>metal</I>, the specified value is the cubic
+lattice constant in Angstroms.  For unit style <I>lj</I>, the value is the
+reduced density (rho*) which LAMMPS converts into a cubic lattice
+constant.  For 3d problems, the relationship "rho* = rho sigma^3" is
+used for the conversion, where rho = N/V with V = the volume of the
+cubic cell and N = 4 for <I>fcc</I>, 2 for <I>bcc</I>, 1 for <I>sc</I>, and 8 for
+<I>diamond</I> lattices.  For 2d problems, the relationship "rho* = rho
+sigma^2" is used for the conversion, where N = 2 for <I>sq2</I> or <I>hex</I>
+and 1 for <I>sq</I>.  In the hex case, the unit cell is actually
+rectangular; it is extended by a factor of sqrt(3) in the y-dimension.
+</P>
+<P>The command "lattice none" can be used to turn off the lattice
+setting.  Any command that attempts to use a lattice constant will
+then generate an error.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dimension.html">dimension</A>, <A HREF = "orient.html">orient</A>,
+<A HREF = "origin.html">origin</A>, <A HREF = "create_atoms.html">create_atoms</A>,
+<A HREF = "region.html">region</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>lattice none 
+</PRE>
+</HTML>

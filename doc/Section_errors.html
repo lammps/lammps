@@ -1,0 +1,2658 @@
+<HTML>
+<CENTER><A HREF = "Section_modify.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_history.html">Next Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>9. Errors 
+</H3>
+<P>This section describes the various kinds of errors you can encounter
+when using LAMMPS.
+</P>
+9.1 <A HREF = "#9_1">Common problems</A><BR>
+9.2 <A HREF = "#9_2">Reporting bugs</A><BR>
+9.3 <A HREF = "#9_3">Error & warning messages</A> <BR>
+
+<HR>
+
+<A NAME = "9_1"></A><H4>9.1 Common problems 
+</H4>
+<P>If two LAMMPS runs do not produce the same answer on different
+machines or different numbers of processors, this is typically not a
+bug.  In theory you should get identical answers on any number of
+processors and on any machine.  In practice, numerical round-off can
+cause slight differences and eventual divergence of molecular dynamics
+phase space trajectories within a few 100s or few 1000s of timesteps.
+However, the statistical properties of the two runs (e.g. average
+energy or temperature) should still be the same.
+</P>
+<P>If the <A HREF = "velocity.html">velocity</A> command is used to set initial atom
+velocities, a particular atom can be assigned a different velocity
+when the problem on different machines.  Obviously, this means the
+phase space trajectories of the two simulations will rapidly diverge.
+See the discussion of the <I>loop</I> option in the
+<A HREF = "velocity.html">velocity</A> command for details.
+</P>
+<P>A LAMMPS simulation typically has two stages, setup and run.  Most
+LAMMPS errors are detected at setup time; others like a bond
+stretching too far may not occur until the middle of a run.
+</P>
+<P>LAMMPS tries to flag errors and print informative error messages so
+you can fix the problem.  Of course LAMMPS cannot figure out your
+physics mistakes, like choosing too big a timestep, specifying invalid
+force field coefficients, or putting 2 atoms on top of each other!  If
+you find errors that LAMMPS doesn't catch that you think it should
+flag, please send us an <A HREF = "mailto:sjplimp@sandia.gov">email</A>.
+</P>
+
+
+<P>If you get an error message about an invalid command in your input
+script, you can determine what command is causing the problem by
+looking in the log.lammps file or using the <A HREF = "echo.html">echo command</A>
+to see it on the screen.  For a given command, LAMMPS expects certain
+arguments in a specified order.  If you mess this up, LAMMPS will
+often flag the error, but it may read a bogus argument and assign a
+value that is valid, but not what you wanted.  E.g. trying to read the
+string "abc" as an integer value and assigning the associated variable
+a value of 0.
+</P>
+<P>Generally, LAMMPS will print a message to the screen and exit
+gracefully when it encounters a fatal error.  Sometimes it will print
+a WARNING and continue on; you can decide if the WARNING is important
+or not.  If LAMMPS crashes or hangs without spitting out an error
+message first then it could be a bug (see <A HREF = "#9_2">this section</A>) or one
+of the following cases:
+</P>
+<P>LAMMPS runs in the available memory a processor allows to be
+allocated.  Most reasonable MD runs are compute limited, not memory
+limited, so this shouldn't be a bottleneck on most platforms.  Almost
+all large memory allocations in the code are done via C-style malloc's
+which will generate an error message if you run out of memory.
+Smaller chunks of memory are allocated via C++ "new" statements.  If
+you are unlucky you could run out of memory just when one of these
+small requests is made, in which case the code will crash or hang (in
+parallel), since LAMMPS doesn't trap on those errors.
+</P>
+<P>Illegal arithmetic can cause LAMMPS to run slow or crash.  This is
+typically due to invalid physics and numerics that your simulation is
+computing.  If you see wild thermodynamic values or NaN values in your
+LAMMPS output, something is wrong with your simulation.
+</P>
+<P>In parallel, one way LAMMPS can hang is due to how different MPI
+implementations handle buffering of messages.  If the code hangs
+without an error message, it may be that you need to specify an MPI
+setting or two (usually via an environment variable) to enable
+buffering or boost the sizes of messages that can be buffered.
+</P>
+<HR>
+
+<A NAME = "9_2"></A><H4>9.2 Reporting bugs 
+</H4>
+<P>If you are confident that you have found a bug in LAMMPS, we'd like to
+know about it via <A HREF = "mailto:sjplimp@sandia.gov">email</A>.
+</P>
+<P>First, check the "New features and bug fixes" section of the <A HREF = "http://lammps.sandia.gov">LAMMPS
+WWW site</A> to see if the bug has already been reported or fixed.
+</P>
+<P>If not, the most useful thing you can do for us is to isolate the
+problem.  Run it on the smallest number of atoms and fewest number of
+processors and with the simplest input script that reproduces the bug.
+</P>
+<P>Send an email that describes the problem and any ideas you have as to
+what is causing it or where in the code the problem might be.  We'll
+request your input script and data files if necessary.
+</P>
+<HR>
+
+<H4><A NAME = "9_3"></A>9.3 Error & warning Messages 
+</H4>
+<P>These are two alphabetic lists of the <A HREF = "#error">ERROR</A> and
+<A HREF = "#warn">WARNING</A> messages LAMMPS prints out and the reason why.  If the
+explanation here is not sufficient, the documentation for the
+offending command may help.  Grepping the source files for the text of
+the error message and staring at the source code and comments is also
+not a bad idea!  Note that sometimes the same message can be printed
+from multiple places in the code.
+</P>
+<H4><A NAME = "error"></A>Errors: 
+</H4>
+<DL>
+
+<DT><I>1-3 bond count is inconsistent</I> 
+
+<DD>An inconsistency was detected when computing the number of 1-3
+neighbors for each atom.  This likely means something is wrong with
+the bond topologies you have defined. 
+
+<DT><I>1-4 bond count is inconsistent</I> 
+
+<DD>An inconsistency was detected when computing the number of 1-4
+neighbors for each atom.  This likely means something is wrong with
+the bond topologies you have defined. 
+
+<DT><I>All angle coeffs are not set</I> 
+
+<DD>All angle coefficients must be set in the data file or by the
+angle_coeff command before running a simulation. 
+
+<DT><I>All bond coeffs are not set</I> 
+
+<DD>All bond coefficients must be set in the data file or by the
+bond_coeff command before running a simulation. 
+
+<DT><I>All EAM pair coeffs are not set</I> 
+
+<DD>All EAM pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation. 
+
+<DT><I>All dihedral coeffs are not set</I> 
+
+<DD>All dihedral coefficients must be set in the data file or by the
+dihedral_coeff command before running a simulation. 
+
+<DT><I>All dipole moments are not set</I> 
+
+<DD>For atom styles that define dipole moments for each atom type, all
+moments must be set in the data file or by the dipole command before
+running a simulation. 
+
+<DT><I>All improper coeffs are not set</I> 
+
+<DD>All improper coefficients must be set in the data file or by the
+improper_coeff command before running a simulation. 
+
+<DT><I>All masses are not set</I> 
+
+<DD>For atom styles that define masses for each atom type, all masses must
+be set in the data file or by the mass command before running a
+simulation.  They must also be set before using the velocity
+command. 
+
+<DT><I>All pair coeffs are not set</I> 
+
+<DD>All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation. 
+
+<DT><I>All universe variables must have same # of values</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>All variables in next command must be same style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Angle atoms %d %d %d missing on proc %d at step %d</I> 
+
+<DD>One or more of 3 atoms needed to compute a particular angle are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the angle has blown apart and an atom is
+too far away. 
+
+<DT><I>Angle atom missing in delete_bonds</I> 
+
+<DD>The delete_bonds command cannot find one or more atoms in a particular
+angle on a particular processor.  The pairwise cutoff is too short or
+the atoms are too far apart to make a valid angle. 
+
+<DT><I>Angle atom missing in set command</I> 
+
+<DD>The set command cannot find one or more atoms in a particular angle on
+a particular processor.  The pairwise cutoff is too short or the atoms
+are too far apart to make a valid angle. 
+
+<DT><I>Angle coeffs are not set</I> 
+
+<DD>No angle coefficients have been assigned in the data file or via the
+angle_coeff command. 
+
+<DT><I>Angle_coeff command before angle_style is defined</I> 
+
+<DD>Coefficients cannot be set in the data file or via the angle_coeff
+command until an angle_style has been assigned. 
+
+<DT><I>Angle_coeff command before simulation box is defined</I> 
+
+<DD>The angle_coeff command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Angle_coeff command when no angles allowed</I> 
+
+<DD>The chosen atom style does not allow for angles to be defined. 
+
+<DT><I>Angle coeff for hybrid has invalid style</I> 
+
+<DD>Angle style hybrid uses another angle style as one of its
+coefficients.  The angle style used in the angle_coeff command or read
+from a restart file is not recognized. 
+
+<DT><I>Angles assigned incorrectly</I> 
+
+<DD>Angles read in from the data file were not assigned correctly to
+atoms.  This means there is something invalid about the topology
+definitions. 
+
+<DT><I>Angles defined but no angle types</I> 
+
+<DD>The data file header lists angles but no angle types. 
+
+<DT><I>Angle style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Angle style hybrid cannot use same angle style twice</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atom count is inconsistent, cannot write restart file</I> 
+
+<DD>Sum of atoms across processors does not equal initial total count.
+This is probably because you have lost some atoms. 
+
+<DT><I>Atom IDs must be consecutive for dump dcd</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atom IDs must be consecutive for dump xtc</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atom IDs must be consecutive for dump xyz</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atom in too many rigid bodies - boost MAXBODY</I> 
+
+<DD>Fix poems has a parameter MAXBODY (in fix_poems.cpp) which determines
+the maximum number of rigid bodies a single atom can belong to (i.e. a
+multibody joint).  The bodies you have defined exceed this limit. 
+
+<DT><I>Atom_modify command after simulation box is defined</I> 
+
+<DD>The atom_modify command cannot be used after a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Atom_modify command before atom_style command</I> 
+
+<DD>The atom_modify command cannot be used before an atom style has
+been defined. 
+
+<DT><I>Atom style granular and dpd cannot be used together</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atom style granular must perform 3d simulations</I> 
+
+<DD>Atom style granular cannot be used with 2d simulations, because
+the pairwise potentials are inherently 3d. 
+
+<DT><I>Atom style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory.  Check the input script. 
+
+<DT><I>Atom_style command after simulation box is defined</I> 
+
+<DD>The atom_style command cannot be used after a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Attempting to rescale a 0.0 temperature</I> 
+
+<DD>Cannot rescale a temperature that is already 0.0. 
+
+<DT><I>Bad FENE bond</I> 
+
+<DD>Two atoms in a FENE bond have become so far apart that the bond cannot
+be computed. 
+
+<DT><I>Bad grid of processors</I> 
+
+<DD>The 3d grid of processors defined by the processors command does not
+match the number of processors LAMMPS is being run on. 
+
+<DT><I>Bad principal moments</I> 
+
+<DD>Fix rigid did not compute the principal moments of inertia of a rigid
+group of atoms correctly. 
+
+<DT><I>Bad slab parameter</I> 
+
+<DD>Kspace_modify value for the slab/volume keyword must be >= 2.0. 
+
+<DT><I>Bitmapped lookup tables require int/float be same size</I> 
+
+<DD>Cannot use pair tables on this machine, because of word sizes.  Use
+the pair_modify command with table 0 instead. 
+
+<DT><I>Bitmapped table is incorrect length in table file</I> 
+
+<DD>Number of table entries is not a correct power of 2. 
+
+<DT><I>Bitmapped table in file does not match requested table</I> 
+
+<DD>Setting for bitmapped table in pair_coeff command must match table
+in file exactly. 
+
+<DT><I>Bond and angle potentials must be defined for TIP4P</I> 
+
+<DD>Cannot use TIP4P pair potential unless bond and angle potentials
+are defined. 
+
+<DT><I>Bond atom missing in delete_bonds</I> 
+
+<DD>The delete_bonds command cannot find one or more atoms in a particular
+bond on a particular processor.  The pairwise cutoff is too short or
+the atoms are too far apart to make a valid bond. 
+
+<DT><I>Bond atom missing in set command</I> 
+
+<DD>The set command cannot find one or more atoms in a particular bond on
+a particular processor.  The pairwise cutoff is too short or the atoms
+are too far apart to make a valid bond. 
+
+<DT><I>Bond atoms %d %d missing on proc %d at step %d</I> 
+
+<DD>One or more of 2 atoms needed to compute a particular bond are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the bond has blown apart and an atom is
+too far away. 
+
+<DT><I>Bond coeff for hybrid has invalid style</I> 
+
+<DD>Bond style hybrid uses another bond style as one of its coefficients.
+The bond style used in the bond_coeff command or read from a restart
+file is not recognized. 
+
+<DT><I>Bond_coeff command before bond_style is defined</I> 
+
+<DD>Coefficients cannot be set in the data file or via the bond_coeff
+command until an bond_style has been assigned. 
+
+<DT><I>Bond_coeff command before simulation box is defined</I> 
+
+<DD>The bond_coeff command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Bond_coeff command when no bonds allowed</I> 
+
+<DD>The chosen atom style does not allow for bonds to be defined. 
+
+<DT><I>Bond coeffs are not set</I> 
+
+<DD>No bond coefficients have been assigned in the data file or via the
+bond_coeff command. 
+
+<DT><I>Bond potential must be defined for SHAKE</I> 
+
+<DD>Cannot use fix shake unless bond potential is defined. 
+
+<DT><I>Bonds assigned incorrectly</I> 
+
+<DD>Bonds read in from the data file were not assigned correctly to atoms.
+This means there is something invalid about the topology definitions. 
+
+<DT><I>Bonds defined but no bond types</I> 
+
+<DD>The data file header lists bonds but no bond types. 
+
+<DT><I>Bond style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory.  Check the input script. 
+
+<DT><I>Bond style hybrid cannot use same bond style twice</I> 
+
+<DD>The sub-style arguments of bond_style hybrid cannot be duplicated.
+Check the input script. 
+
+<DT><I>Bond style quartic cannot be used with 3,4-body interactions</I> 
+
+<DD>No angle, dihedral, or improper styles can be defined when using
+bond style quartic. 
+
+<DT><I>Both sides of boundary must be periodic</I> 
+
+<DD>Cannot specify a boundary as periodic only on the lo or hi side.  Must
+be periodic on both sides. 
+
+<DT><I>Boundary command after simulation box is defined</I> 
+
+<DD>The boundary command cannot be used after a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Box bounds are invalid</I> 
+
+<DD>The box boundaries specified in the read_data file are invalid.  The
+lo value must be less than the hi value for all 3 dimensions. 
+
+<DT><I>Can only wiggle zcylinder wall in z dim</I> 
+
+<DD>The Self-explanatory. 
+
+<DT><I>Cannot change dump_modify every for dump dcd</I> 
+
+<DD>The frequency of writing dump dcd snapshots cannot be changed. 
+
+<DT><I>Cannot compute PPPM G</I> 
+
+<DD>LAMMPS failed to compute a valid approximation for the PPPM g_ewald
+factor that partitions the computation between real space and k-space. 
+
+<DT><I>Cannot compute PPPM X grid spacing</I> 
+
+<DD>LAMMPS failed to compute a valid PPPM grid spacing in the x dimension. 
+
+<DT><I>Cannot compute PPPM Y grid spacing</I> 
+
+<DD>LAMMPS failed to compute a valid PPPM grid spacing in the y dimension. 
+
+<DT><I>Cannot compute PPPM Z grid spacing</I> 
+
+<DD>LAMMPS failed to compute a valid PPPM grid spacing in the z dimension. 
+
+<DT><I>Cannot create atoms with undefined lattice</I> 
+
+<DD>Must use the lattice command before using the create_atoms
+command. 
+
+<DT><I>Cannot create_box after simulation box is defined</I> 
+
+<DD>The create_box command cannot be used after a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Cannot create_box until atom_style is defined</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot create vels with loop all for non-contiguous atom IDs</I> 
+
+<DD>You cannot use the loop all option if you atom IDs do not span 1 to natoms 
+
+<DT><I>Cannot evaluate variable equal command</I> 
+
+<DD>Syntax or keyword names in mathematical expression are not
+recognized. 
+
+<DT><I>Cannot find delete_bonds group ID</I> 
+
+<DD>Group ID used in the delete_bonds command does not exist. 
+
+<DT><I>Cannot find set command group ID</I> 
+
+<DD>Group ID used in the set command does not exist. 
+
+<DT><I>Cannot fix nph on a non-periodic dimension</I> 
+
+<DD>Pressure can only be controlled on a dimension that is periodic. 
+
+<DT><I>Cannot fix npt on a non-periodic dimension</I> 
+
+<DD>Pressure can only be controlled on a dimension that is periodic. 
+
+<DT><I>Cannot fix volume/rescale on a non-periodic boundary</I> 
+
+<DD>Volume can only be rescaled on a dimension that is periodic. 
+
+<DT><I>Cannot fix uniaxial on non-periodic system</I> 
+
+<DD>Volume can only be rescaled uniaxially if system is periodic in all 3
+dimensions. 
+
+<DT><I>Cannot invoke single() with pairwise TIP4P potential</I> 
+
+<DD>Commands that invoke the single() function within pairwise potentials
+cannot be used with a TIP4P potential, due to the way it computes
+forces on other atoms besides the i,j pair.  This includes the eng and
+stress tensor components for the dump custom command. 
+
+<DT><I>Cannot open EAM potential file %s</I> 
+
+<DD>The specified EAM potential file cannot be opened.  Check that the
+path and name are correct. 
+
+<DT><I>Cannot open file %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct. 
+
+<DT><I>Cannot open fix com file %s</I> 
+
+<DD>The output file for the fix com command cannot be opened.  Check that
+the path and name are correct. 
+
+<DT><I>Cannot open fix gran/diag file %s</I> 
+
+<DD>The output file for the fix gran/diag command cannot be opened.  Check
+that the path and name are correct. 
+
+<DT><I>Cannot open fix msd file %s</I> 
+
+<DD>The output file for the fix msd command cannot be opened.  Check that
+the path and name are correct. 
+
+<DT><I>Cannot open fix poems file %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct. 
+
+<DT><I>Cannot open fix rdf file %s</I> 
+
+<DD>The output file for the fix rdf command cannot be opened.  Check that
+the path and name are correct. 
+
+<DT><I>Cannot open fix tmd file %s</I> 
+
+<DD>The output file for the fix tmd command cannot be opened.  Check that
+the path and name are correct. 
+
+<DT><I>Cannot open gzipped file</I> 
+
+<DD>LAMMPS is attempting to open a gzipped version of the specified file
+but was unsuccessful.  Check that the path and name are correct. 
+
+<DT><I>Cannot open pair_write file</I> 
+
+<DD>The specified output file for pair energies and forces cannot be
+opened.  Check that the path and name are correct. 
+
+<DT><I>Cannot open restart file %s</I> 
+
+<DD>The output restart file cannot be opened.  Check that the path and
+name are correct and that disk space is available. 
+
+<DT><I>Cannot read_data after simulation box is defined</I> 
+
+<DD>The read_data command cannot be used after a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Cannot read_data until atom_style is defined</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot read_restart after simulation box is defined</I> 
+
+<DD>The read_restart command cannot be used after a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Cannot redefine variable as a different style</I> 
+
+<DD>The variable was already used as a different style variable. 
+
+<DT><I>Cannot replicate 2d simulation in z dimension</I> 
+
+<DD>The replicate command cannot replicate a 2d simulation in the z
+dimension. 
+
+<DT><I>Cannot replicate with fixes that store atom quantities</I> 
+
+<DD>Either fixes are defined that create and store atom-based vectors or a
+restart file was read which included atom-based vectors for fixes.
+The replicate command cannot duplicate that information for new atoms.
+You should use the replicate command before fixes are applied to the
+system. 
+
+<DT><I>Cannot run 2d simulation with nonperiodic Z dimension</I> 
+
+<DD>Use the boundary command to make the z dimension periodic in order to
+run a 2d simulation. 
+
+<DT><I>Cannot set both respa pair and inner/middle/outer</I> 
+
+<DD>In the rRESPA integrator, you must compute pairwise potentials either
+all together (pair), or in pieces (inner/middle/outer).  You can't do
+both. 
+
+<DT><I>Cannot set dipole for this atom style</I> 
+
+<DD>This atom style does not support dipole settings for each atom type. 
+
+<DT><I>Cannot set dump_modify flush for dump xtc</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot set mass for this atom style</I> 
+
+<DD>This atom style does not support mass settings for each atom type.
+Instead they are defined on a per-atom basis in the data file. 
+
+<DT><I>Cannot set respa middle without inner/outer</I> 
+
+<DD>In the rRESPA integrator, you must define both a inner and outer
+setting in order to use a middle setting. 
+
+<DT><I>Cannot set these values with this atom style</I> 
+
+<DD>Choice of set style does not match attribute of atom style. 
+
+<DT><I>Cannot use atom style granular with chosen thermo settings</I> 
+
+<DD>Cannot output temperature or pressure with atom style granular. 
+
+<DT><I>Cannot use delete_bonds with non-molecular system</I> 
+
+<DD>Your choice of atom style does not have bonds. 
+
+<DT><I>Cannot use dump bond with non-molecular system</I> 
+
+<DD>Your choice of atom style does not have bonds. 
+
+<DT><I>Cannot use Ewald with 2d simulation</I> 
+
+<DD>The kspace style ewald cannot be used in 2d simulations.  You can use
+2d Ewald in a 3d simulation; see the kspace_modify command. 
+
+<DT><I>Cannot use fix gravity vector with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use fix poems with atom style granular</I> 
+
+<DD>This fix is not yet enabled for this atom style. 
+
+<DT><I>Cannot use fix rigid with atom style granular</I> 
+
+<DD>This fix is not yet enabled for this atom style. 
+
+<DT><I>Cannot use fix shake with non-molecular system</I> 
+
+<DD>Your choice of atom style does not have bonds. 
+
+<DT><I>Cannot use multiple long-range potentials with pair hybrid</I> 
+
+<DD>Only one sub-style potential with a long-range component can be
+used with pair_style hybrid. 
+
+<DT><I>Cannot use nonperiodic boundaries with Ewald</I> 
+
+<DD>For kspace style ewald, all 3 dimensions must have periodic boundaries
+unless you use the kspace_modify command to define a 2d slab with a
+non-periodic z dimension. 
+
+<DT><I>Cannot use nonperiodic boundaries with PPPM</I> 
+
+<DD>For kspace style pppm, All 3 dimensions must have periodic boundaries
+unless you use the kspace_modify command to define a 2d slab with a
+non-periodic z dimension. 
+
+<DT><I>Cannot use PPPM with 2d simulation</I> 
+
+<DD>The kspace style pppm cannot be used in 2d simulations.  You can use
+2d PPPM in a 3d simulation; see the kspace_modify command. 
+
+<DT><I>Cannot use region INF when box does not exist</I> 
+
+<DD>Regions that extend to the box boundaries can only be used after the
+create_box command has been used. 
+
+<DT><I>Cannot use vectors in variables unless atom map exists</I> 
+
+<DD>Vectors require an atom map to be able to lookup the vector index.
+Only atom styles with molecular information creat a global map. 
+
+<DT><I>Cannot zero momentum for less than 2 atoms</I> 
+
+<DD>Velocity command is being used with momentum-zeroing options on a
+group with 0 or 1 atoms. 
+
+<DT><I>Command-line variable already exists</I> 
+
+<DD>Cannot use the -var command-line option to define the same variable
+more than once. 
+
+<DT><I>Could not create 3d FFT plan</I> 
+
+<DD>The FFT setup in pppm failed. 
+
+<DT><I>Could not create 3d remap plan</I> 
+
+<DD>The FFT setup in pppm failed. 
+
+<DT><I>Could not find delete_atoms group ID</I> 
+
+<DD>Group ID used in the delete_atoms command does not exist. 
+
+<DT><I>Could not find delete_atoms region ID</I> 
+
+<DD>Region ID used in the delete_atoms command does not exist. 
+
+<DT><I>Could not find displace_atoms group ID</I> 
+
+<DD>A group ID used in the displace_atoms command does not exist. 
+
+<DT><I>Cound not find dump_modify ID</I> 
+
+<DD>A dump ID used in the dump_modify command does not exist. 
+
+<DT><I>Could not find dump group ID</I> 
+
+<DD>A group ID used in the dump command does not exist. 
+
+<DT><I>Could not find fix group ID</I> 
+
+<DD>A group ID used in the fix command does not exist. 
+
+<DT><I>Could not find fix poems group ID</I> 
+
+<DD>A group ID used in the fix poems command does not exist. 
+
+<DT><I>Could not find fix rigid group ID</I> 
+
+<DD>A group ID used in the fix rigid command does not exist. 
+
+<DT><I>Could not find fix_modify ID</I> 
+
+<DD>A fix ID used in the fix_modify command does not exist. 
+
+<DT><I>Could not find fix_modify temperature ID</I> 
+
+<DD>A temperature ID used in the fix_modify command does not exist. 
+
+<DT><I>Could not find fix spring vector group ID</I> 
+
+<DD>Group ID used with fix spring command does not exist. 
+
+<DT><I>Could not find temp_modify ID</I> 
+
+<DD>A temperature ID used in the temp_modify command does not exist. 
+
+<DT><I>Could not find temperature group ID</I> 
+
+<DD>A group ID used in the temperature command does not exist. 
+
+<DT><I>Could not find thermo temperature ID</I> 
+
+<DD>A temperature ID used in the thermo custom style does not exist. 
+
+<DT><I>Could not find thermo_modify temperature ID</I> 
+
+<DD>A temperature ID used in the thermo_modify command does not exist. 
+
+<DT><I>Could not find undump ID</I> 
+
+<DD>A dump ID used in the undump command does not exist. 
+
+<DT><I>Could not find unfix ID</I> 
+
+<DD>A fix ID used in the unfix command does not exist. 
+
+<DT><I>Could not find velocity group ID</I> 
+
+<DD>A group ID used in the velocity command does not exist. 
+
+<DT><I>Could not find velocity temperature ID</I> 
+
+<DD>A temperature ID used in the velocity command does not exist. 
+
+<DT><I>Could not open dump file</I> 
+
+<DD>The output file for the dump command cannot be opened.  Check that the
+path and name are correct. 
+
+<DT><I>Could not open input script</I> 
+
+<DD>The input script file named in a command-line argument could not be
+opened. 
+
+<DT><I>Could not open log.lammps</I> 
+
+<DD>The default LAMMPS log file cannot be opened.  Check that the
+directory you are running in allows for files to be created. 
+
+<DT><I>Could not open logfile</I> 
+
+<DD>The LAMMPS log file named in a command-line argument cannot be opened.
+Check that the path and name are correct. 
+
+<DT><I>Could not open logfile %s</I> 
+
+<DD>The LAMMPS log file specified in the input script cannot be opened.
+Check that the path and name are correct. 
+
+<DT><I>Could not open new input file %s</I> 
+
+<DD>The input script file named in an include or jump command could not be
+opened.  Check that the path and name are correct. 
+
+<DT><I>Could not open screen file</I> 
+
+<DD>The screen file specified as a command-line argument cannot be
+opened.  Check that the directory you are running in allows for files
+to be created. 
+
+<DT><I>Could not open universe log file</I> 
+
+<DD>For a multi-partition run, the master log file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. 
+
+<DT><I>Could not open universe screen file</I> 
+
+<DD>For a multi-partition run, the master screen file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. 
+
+<DT><I>Create_atoms command before simulation box is defined</I> 
+
+<DD>The create_atoms command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Create_atoms region ID does not exist</I> 
+
+<DD>A region ID used in the create_atoms command does not exist. 
+
+<DT><I>Create_box region must be of type inside</I> 
+
+<DD>The region used in the create_box command must not be an "outside"
+region.  See the region command for details. 
+
+<DT><I>Create_box region ID does not exist</I> 
+
+<DD>A region ID used in the create_box command does not exist. 
+
+<DT><I>Cyclic loop in joint connections</I> 
+
+<DD>Fix poems cannot (yet) work with coupled bodies whose joints connect
+the bodies in a ring (or cycle). 
+
+<DT><I>Delete_atoms command before simulation box is defined</I> 
+
+<DD>The delete_atoms command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Delete_atoms cutoff > neighbor cutoff</I> 
+
+<DD>Cannot use a cutoff with delete_atoms overlap that is larger than
+the force cutoff + neighbor skin. 
+
+<DT><I>Delete_bonds command before simulation box is defined</I> 
+
+<DD>The delete_bonds command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Delete_bonds command with no atoms existing</I> 
+
+<DD>No atoms are yet defined so the delete_bonds command cannot be used. 
+
+<DT><I>Did not assign all atoms correctly</I> 
+
+<DD>Atoms read in from a data file were not assigned correctly to
+processors.  This is likely due to some atom coordinates being
+outside a non-periodic simulation box. 
+
+<DT><I>Did not find keyword in table file</I> 
+
+<DD>Keyword used in pair_coeff command was not found in table file. 
+
+<DT><I>Did not find fix shake partner info</I> 
+
+<DD>Could not find bond partners implied by fix shake command.  This error
+can be triggered if the delete_bonds command was used before fix
+shake, and it removed bonds without resetting the 1-2, 1-3, 1-4
+weighting list via the special keyword. 
+
+<DT><I>Dihedral atoms %d %d %d %d missing on proc %d at step %d</I> 
+
+<DD>One or more of 4 atoms needed to compute a particular dihedral are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the dihedral has blown apart and an atom is
+too far away. 
+
+<DT><I>Dihedral atom missing in delete_bonds</I> 
+
+<DD>The delete_bonds command cannot find one or more atoms in a particular
+dihedral on a particular processor.  The pairwise cutoff is too short
+or the atoms are too far apart to make a valid dihedral. 
+
+<DT><I>Dihedral atom missing in set command</I> 
+
+<DD>The set command cannot find one or more atoms in a particular dihedral
+on a particular processor.  The pairwise cutoff is too short or the
+atoms are too far apart to make a valid dihedral. 
+
+<DT><I>Dihedral_coeff command before dihedral_style is defined</I> 
+
+<DD>Coefficients cannot be set in the data file or via the dihedral_coeff
+command until an dihedral_style has been assigned. 
+
+<DT><I>Dihedral_coeff command before simulation box is defined</I> 
+
+<DD>The dihedral_coeff command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Dihedral_coeff command when no dihedrals allowed</I> 
+
+<DD>The chosen atom style does not allow for dihedrals to be defined. 
+
+<DT><I>Dihedral coeff for hybrid has invalid style</I> 
+
+<DD>Dihedral style hybrid uses another dihedral style as one of its
+coefficients.  The dihedral style used in the dihedral_coeff command
+or read from a restart file is not recognized. 
+
+<DT><I>Dihedral coeffs are not set</I> 
+
+<DD>No dihedral coefficients have been assigned in the data file or via
+the dihedral_coeff command. 
+
+<DT><I>Dihedrals assigned incorrectly</I> 
+
+<DD>Dihedrals read in from the data file were not assigned correctly to
+atoms.  This means there is something invalid about the topology
+definitions. 
+
+<DT><I>Dihedrals defined but no dihedral types</I> 
+
+<DD>The data file header lists dihedrals but no dihedral types. 
+
+<DT><I>Dihedral style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Dihedral style hybrid cannot use same dihedral style twice</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Dimension command after simulation box is defined</I> 
+
+<DD>The dimension command cannot be used after a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Dipole command before simulation box is defined</I> 
+
+<DD>The dipole command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Displace_atoms command before simulation box is defined</I> 
+
+<DD>The displace_atoms command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Dump dcd must use group all</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Dump dcd of non-matching # of atoms</I> 
+
+<DD>Every snapshot written by dump dcd must contain the same # of atoms. 
+
+<DT><I>Dump xtc must use group all</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Dump_modify region ID does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Dump xtc must use group all</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Failed to allocate %d bytes for array %s</I> 
+
+<DD>Your LAMMPS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. 
+
+<DT><I>Failed to reallocate %d bytes for array %s</I> 
+
+<DD>Your LAMMPS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. 
+
+<DT><I>Fix command before simulation box is defined</I> 
+
+<DD>The fix command cannot be used before a read_data, read_restart, or
+create_box command. 
+
+<DT><I>Fix insert region ID does not exist</I> 
+
+<DD>A region ID used in the fix insert command does not exist. 
+
+<DT><I>Fix langevin period must be > 0.0</I> 
+
+<DD>The time window for temperature relaxation must be > 0 
+
+<DT><I>Fix langevin region ID does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix nph periods must be > 0.0</I> 
+
+<DD>The time window for pressure relaxation must be > 0 
+
+<DT><I>Fix npt periods must be > 0.0</I> 
+
+<DD>The time window for temperature or pressure relaxation must be > 0 
+
+<DT><I>Fix nvt period must be > 0.0</I> 
+
+<DD>The time window for temperature relaxation must be > 0 
+
+<DT><I>Fix orient/fcc file open failed</I> 
+
+<DD>The fix orient/fcc command could not open a specified file. 
+
+<DT><I>Fix orient/fcc file read failed</I> 
+
+<DD>The fix orient/fcc command could not read the needed parameters from a
+specified file. 
+
+<DT><I>Fix orient/fcc found self twice</I> 
+
+<DD>The neighbor lists used by fix orient/fcc are messed up.  If this
+error occurs, it is likely a bug, so send an email. 
+
+<DT><I>Fix rdf requires a pair style be defined</I> 
+
+<DD>Cannot use the rdf fix unless a pair style with a cutoff has been
+defined. 
+
+<DT><I>Fix temp/rescale region ID does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix tmd must come after integration fixes</I> 
+
+<DD>Any fix tmd command must appear in the input script after all time
+integration fixes (nve, nvt, npt).  See the fix tmd documentation for
+details. 
+
+<DT><I>Fix wall/gran can only be used with granular pair style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Granular pair styles do not use pair_coeff settings</I> 
+
+<DD>The pair_coeff command cannot be used with granular force fields. 
+
+<DT><I>Gravity must point in -z to use with fix insert</I> 
+
+<DD>The fix insert command assumes the theta angle for gravity is 180.0. 
+
+<DT><I>Group command before simulation box is defined</I> 
+
+<DD>The group command cannot be used before a read_data, read_restart, or
+create_box command. 
+
+<DT><I>Group ID does not exist</I> 
+
+<DD>A group ID used in the group command does not exist. 
+
+<DT><I>Group region ID does not exist</I> 
+
+<DD>A region ID used in the group command does not exist. 
+
+<DT><I>Illegal ... command</I> 
+
+<DD>Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command. 
+
+<DT><I>Improper atoms %d %d %d %d missing on proc %d at step %d</I> 
+
+<DD>One or more of 4 atoms needed to compute a particular improper are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the improper has blown apart and an atom is
+too far away. 
+
+<DT><I>Improper atom missing in delete_bonds</I> 
+
+<DD>The delete_bonds command cannot find one or more atoms in a particular
+improper on a particular processor.  The pairwise cutoff is too short
+or the atoms are too far apart to make a valid improper. 
+
+<DT><I>Improper atom missing in set command</I> 
+
+<DD>The set command cannot find one or more atoms in a particular improper
+on a particular processor.  The pairwise cutoff is too short or the
+atoms are too far apart to make a valid improper. 
+
+<DT><I>Improper_coeff command before improper_style is defined</I> 
+
+<DD>Coefficients cannot be set in the data file or via the improper_coeff
+command until an improper_style has been assigned. 
+
+<DT><I>Improper_coeff command before simulation box is defined</I> 
+
+<DD>The improper_coeff command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Improper_coeff command when no impropers allowed</I> 
+
+<DD>The chosen atom style does not allow for impropers to be defined. 
+
+<DT><I>Improper coeff for hybrid has invalid style</I> 
+
+<DD>Improper style hybrid uses another improper style as one of its
+coefficients.  The improper style used in the improper_coeff command
+or read from a restart file is not recognized. 
+
+<DT><I>Improper coeffs are not set</I> 
+
+<DD>No improper coefficients have been assigned in the data file or via
+the improper_coeff command. 
+
+<DT><I>Impropers assigned incorrectly</I> 
+
+<DD>Impropers read in from the data file were not assigned correctly to
+atoms.  This means there is something invalid about the topology
+definitions. 
+
+<DT><I>Impropers defined but no improper types</I> 
+
+<DD>The data file header lists improper but no improper types. 
+
+<DT><I>Improper style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Improper style hybrid cannot use same improper style twice</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Inconsistent dipole settings for some atoms</I> 
+
+<DD>Dipole moment must be 0 for non-dipole type atoms.  Dipole moment must
+be set for dipole type atoms. 
+
+<DT><I>Incorrect args for angle coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect args for bond coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect args for dihedral coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect args for improper coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect args for pair coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect atom format in data file</I> 
+
+<DD>Number of values per atom line in the data file is not consistent with
+the atom style. 
+
+<DT><I>Incorrect boundaries with slab Ewald</I> 
+
+<DD>Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with Ewald. 
+
+<DT><I>Incorrect boundaries with slab PPPM</I> 
+
+<DD>Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with PPPM. 
+
+<DT><I>Incorrect format in TMD target file</I> 
+
+<DD>Format of file read by fix tmd command is incorrect. 
+
+<DT><I>Incorrect multiplicity arg for dihedral coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect sign arg for dihedral coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Incorrect weight arg for dihedral coefficients</I> 
+
+<DD>Self-explanatory.  Check the input script or data file. 
+
+<DT><I>Insertion region extends outside simulation box</I> 
+
+<DD>Region specified with fix insert command extends outside the global
+simulation box. 
+
+<DT><I>Insufficient Jacobi rotations for POEMS body</I> 
+
+<DD>Eigensolve for rigid body was not sufficiently accurate. 
+
+<DT><I>Insufficient Jacobi rotations for rigid body</I> 
+
+<DD>Eigensolve for rigid body was not sufficiently accurate. 
+
+<DT><I>Invalid $ variable</I> 
+
+<DD>The character following a $ in the input script is not between "a" and
+"z". 
+
+<DT><I>Invalid angle style</I> 
+
+<DD>The choice of angle style is unknown. 
+
+<DT><I>Invalid angle type in Angles section of data file</I> 
+
+<DD>Angle type must be positive integer and within range of specified angle
+types. 
+
+<DT><I>Invalid angle type index for fix shake</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid atom ID in Angles section of data file</I> 
+
+<DD>Atom IDs must be positive integers and within range of defined
+atoms. 
+
+<DT><I>Invalid atom ID in Atoms section of data file</I> 
+
+<DD>Atom IDs must be positive integers. 
+
+<DT><I>Invalid atom ID in Bonds section of data file</I> 
+
+<DD>Atom IDs must be positive integers and within range of defined
+atoms. 
+
+<DT><I>Invalid atom ID in Dihedrals section of data file</I> 
+
+<DD>Atom IDs must be positive integers and within range of defined
+atoms. 
+
+<DT><I>Invalid atom ID in Impropers section of data file</I> 
+
+<DD>Atom IDs must be positive integers and within range of defined
+atoms. 
+
+<DT><I>Invalid atom ID in Velocities section of data file</I> 
+
+<DD>Atom IDs must be positive integers and within range of defined
+atoms. 
+
+<DT><I>Invalid atom mass for fix shake</I> 
+
+<DD>Mass specified in fix shake command must be > 0.0. 
+
+<DT><I>Invalid atom style</I> 
+
+<DD>The choice of atom style is unknown. 
+
+<DT><I>Invalid atom type in Atoms section of data file</I> 
+
+<DD>Atom types must range from 1 to specified # of types. 
+
+<DT><I>Invalid atom type in neighbor exclusion list</I> 
+
+<DD>Atom types must range from 1 to Ntypes inclusive. 
+
+<DT><I>Invalid atom type index for fix shake</I> 
+
+<DD>Atom types must range from 1 to Ntypes inclusive. 
+
+<DT><I>Invalid atom types in fix rdf command</I> 
+
+<DD>Atom types must range from 1 to Ntypes inclusive. 
+
+<DT><I>Invalid atom types in pair_write command</I> 
+
+<DD>Atom types must range from 1 to Ntypes inclusive. 
+
+<DT><I>Invalid bond style</I> 
+
+<DD>The choice of bond style is unknown. 
+
+<DT><I>Invalid bond type in Bonds section of data file</I> 
+
+<DD>Bond type must be positive integer and within range of specified bond
+types. 
+
+<DT><I>Invalid bond type index for fix shake</I> 
+
+<DD>Self-explanatory.  Check the fix shake command in the input script. 
+
+<DT><I>Invalid coeffs for this angle style</I> 
+
+<DD>Cannot set class 2 coeffs in data file for this angle style. 
+
+<DT><I>Invalid coeffs for this dihedral style</I> 
+
+<DD>Cannot set class 2 coeffs in data file for this dihedral style. 
+
+<DT><I>Invalid coeffs for this improper style</I> 
+
+<DD>Cannot set class 2 coeffs in data file for this improper style. 
+
+<DT><I>Invalid command-line argument</I> 
+
+<DD>One or more command-line arguments is invalid.  Check the syntax of
+the command you are using to launch LAMMPS. 
+
+<DT><I>Invalid cutoffs in pair_write command</I> 
+
+<DD>Inner cutoff must be larger than 0.0 and less than outer cutoff. 
+
+<DT><I>Invalid data file section: Angle Coeffs</I> 
+
+<DD>Atom style does not allow angles. 
+
+<DT><I>Invalid data file section: AngleAngle Coeffs</I> 
+
+<DD>Atom style does not allow impropers. 
+
+<DT><I>Invalid data file section: AngleAngleTorsion Coeffs</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid data file section: AngleTorsion Coeffs</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid data file section: Angles</I> 
+
+<DD>Atom style does not allow angles. 
+
+<DT><I>Invalid data file section: Bond Coeffs</I> 
+
+<DD>Atom style does not allow bonds. 
+
+<DT><I>Invalid data file section: BondAngle Coeffs</I> 
+
+<DD>Atom style does not allow angles. 
+
+<DT><I>Invalid data file section: BondBond Coeffs</I> 
+
+<DD>Atom style does not allow angles. 
+
+<DT><I>Invalid data file section: BondBond13 Coeffs</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid data file section: Bonds</I> 
+
+<DD>Atom style does not allow bonds. 
+
+<DT><I>Invalid data file section: Dihedral Coeffs</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid data file section: Dihedrals</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid data file section: EndBondTorsion Coeffs</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid data file section: Improper Coeffs</I> 
+
+<DD>Atom style does not allow impropers. 
+
+<DT><I>Invalid data file section: Impropers</I> 
+
+<DD>Atom style does not allow impropers. 
+
+<DT><I>Invalid data file section: MiddleBondTorsion Coeffs</I> 
+
+<DD>Atom style does not allow dihedrals. 
+
+<DT><I>Invalid dihedral style</I> 
+
+<DD>The choice of dihedral style is unknown. 
+
+<DT><I>Invalid dihedral type in Dihedrals section of data file</I> 
+
+<DD>Dihedral type must be positive integer and within range of specified
+dihedral types. 
+
+<DT><I>Invalid dump dcd filename</I> 
+
+<DD>Filenames used with the dump dcd style cannot be binary or compressed
+or cause multiple files to be written. 
+
+<DT><I>Invalid dump frequency</I> 
+
+<DD>Dumps frequency must be 1 or greater. 
+
+<DT><I>Invalid dump_modify threshhold operator</I> 
+
+<DD>Operator keyword used for threshhold specification in not recognized. 
+
+<DT><I>Invalid dump style</I> 
+
+<DD>The choice of dump style is unknown. 
+
+<DT><I>Invalid dump xtc filename</I> 
+
+<DD>Filenames used with the dump xtc style cannot be binary or compressed
+or cause multiple files to be written. 
+
+<DT><I>Invalid dump xyz filename</I> 
+
+<DD>Filenames used with the dump xyz style cannot be binary or cause files
+to be written by each processor. 
+
+<DT><I>Invalid group ID in neigh_modify command</I> 
+
+<DD>A group ID used in the neigh_modify command does not exist. 
+
+<DT><I>Invalid fix style</I> 
+
+<DD>The choice of fix style is unknown. 
+
+<DT><I>Invalid flag in header of restart file</I> 
+
+<DD>Value read from beginning of restart file is not recognized. 
+
+<DT><I>Invalid improper style</I> 
+
+<DD>The choice of improper style is unknown. 
+
+<DT><I>Invalid improper type in Impropers section of data file</I> 
+
+<DD>Improper type must be positive integer and within range of specified
+improper types. 
+
+<DT><I>Invalid keyword in dump custom command</I> 
+
+<DD>One or more attribute keywords are not recognized. 
+
+<DT><I>Invalid keyword in pair table parameters</I> 
+
+<DD>Keyword used in list of table parameters is not recognized. 
+
+<DT><I>Invalid keyword in thermo_style command</I> 
+
+<DD>One or more attribute keywords are not recognized. 
+
+<DT><I>Invalid keyword in variable equal command</I> 
+
+<DD>One or more attribute keywords are not recognized. 
+
+<DT><I>Invalid kspace style</I> 
+
+<DD>The choice of kspace style is unknown. 
+
+<DT><I>Invalid natoms for dump dcd</I> 
+
+<DD>Natoms is initially 0 which is not valid for the dump dcd style.
+Natoms must be constant for the duration of the simulation. 
+
+<DT><I>Invalid natoms for dump xtc</I> 
+
+<DD>Natoms is initially 0 which is not valid for the dump xtc style. 
+
+<DT><I>Invalid natoms for dump xyz</I> 
+
+<DD>Natoms is initially 0 which is not valid for the dump xyz style. 
+
+<DT><I>Invalid order of forces within respa levels</I> 
+
+<DD>For respa, ordering of force computations within respa levels must
+obey certain rules.  E.g. bonds cannot be compute less frequently than
+angles, pairwise forces cannot be computed less frequently than
+kspace, etc. 
+
+<DT><I>Invalid pair style</I> 
+
+<DD>The choice of pair style is unknown. 
+
+<DT><I>Invalid pair table cutoff</I> 
+
+<DD>Cutoffs in pair_coeff command are not valid with read-in pair table. 
+
+<DT><I>Invalid pair table length</I> 
+
+<DD>Length of read-in pair table is invalid 
+
+<DT><I>Invalid random number seed in set command</I> 
+
+<DD>Random number seed must be > 0. 
+
+<DT><I>Invalid region style</I> 
+
+<DD>The choice of region style is unknown. 
+
+<DT><I>Invalid style in pair_write command</I> 
+
+<DD>Self-explanatory.  Check the input script. 
+
+<DT><I>Invalid temperature style</I> 
+
+<DD>The choice of temperature style is unknown. 
+
+<DT><I>Invalid type for dipole set</I> 
+
+<DD>Dipole command must set a type from 1-N where N is the number of atom
+types. 
+
+<DT><I>Invalid type for mass set</I> 
+
+<DD>Mass command must set a type from 1-N where N is the number of atom
+types. 
+
+<DT><I>Invalid type in set command</I> 
+
+<DD>Type used in set command must be from 1-N where N is the number
+of atom types (bond types, angle types, etc). 
+
+<DT><I>Invalid variable in command-line argument</I> 
+
+<DD>Command-line arg -var must set a variable from "a" to "z". 
+
+<DT><I>Invalid variable in next command</I> 
+
+<DD>Next command in input script must set variables from "a" to "z". 
+
+<DT><I>Invalid variable in variable command</I> 
+
+<DD>Variable command in input script must set a variable from "a" to "z". 
+
+<DT><I>Invalid variable style with next command</I> 
+
+<DD>Variable styles <I>equal</I> and <I>world</I> cannot be used in a next
+command. 
+
+<DT><I>Invalid vector in variable equal command</I> 
+
+<DD>One or more vector names are not recognized. 
+
+<DT><I>KSpace style has not yet been set</I> 
+
+<DD>Cannot use kspace_modify command until a kspace style is set. 
+
+<DT><I>KSpace style is incompatible with Pair style</I> 
+
+<DD>Setting a kspace style requires that a pair style with a long-range
+Coulombic component be selected. 
+
+<DT><I>Label wasn't found in input script</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Lattice style incompatible with dimension</I> 
+
+<DD>2d simulation can use sq, sq2, or hex lattice.  3d simulation can use
+sc, bcc, or fcc lattice. 
+
+<DT><I>Lost atoms via displacement: original %.15g current %.15g</I> 
+
+<DD>Moving atoms via the displace_atoms command lost one or more atoms. 
+
+<DT><I>Lost atoms: original %.15g current %.15g</I> 
+
+<DD>A thermodynamic computation has detected lost atoms. 
+
+<DT><I>Marsaglia RNG cannot use 0 seed</I> 
+
+<DD>The random number generator use for the fix langevin command cannot
+use 0 as an initial seed. 
+
+<DT><I>Mass command before simulation box is defined</I> 
+
+<DD>The mass command cannot be used before a read_data, read_restart, or
+create_box command. 
+
+<DT><I>Minimize command before simulation box is defined</I> 
+
+<DD>The minimize command cannot be used before a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Min_style command before simulation box is defined</I> 
+
+<DD>The min_style command cannot be used before a read_data, read_restart,
+or create_box command. 
+
+<DT><I>More than one freeze fix</I> 
+
+<DD>You can only define one freeze fix. 
+
+<DT><I>More than one shake fix</I> 
+
+<DD>You can only define one SHAKE fix. 
+
+<DT><I>Must define angle_style before Angle Coeffs</I> 
+
+<DD>Must use an angle_style command before reading a data file that
+defines Angle Coeffs. 
+
+<DT><I>Must define angle_style before BondAngle Coeffs</I> 
+
+<DD>Must use an angle_style command before reading a data file that
+defines Angle Coeffs. 
+
+<DT><I>Must define angle_style before BondBond Coeffs</I> 
+
+<DD>Must use an angle_style command before reading a data file that
+defines Angle Coeffs. 
+
+<DT><I>Must define bond_style before Bond Coeffs</I> 
+
+<DD>Must use a bond_style command before reading a data file that
+defines Bond Coeffs. 
+
+<DT><I>Must define dihedral_style before AngleAngleTorsion Coeffs</I> 
+
+<DD>Must use a dihedral_style command before reading a data file that
+defines AngleAngleTorsion Coeffs. 
+
+<DT><I>Must define dihedral_style before AngleTorsion Coeffs</I> 
+
+<DD>Must use a dihedral_style command before reading a data file that
+defines AngleTorsion Coeffs. 
+
+<DT><I>Must define dihedral_style before BondBond13 Coeffs</I> 
+
+<DD>Must use a dihedral_style command before reading a data file that
+defines BondBond13 Coeffs. 
+
+<DT><I>Must define dihedral_style before Dihedral Coeffs</I> 
+
+<DD>Must use a dihedral_style command before reading a data file that
+defines Dihedral Coeffs. 
+
+<DT><I>Must define dihedral_style before EndBondTorsion Coeffs</I> 
+
+<DD>Must use a dihedral_style command before reading a data file that
+defines EndBondTorsion Coeffs. 
+
+<DT><I>Must define dihedral_style before MiddleBondTorsion Coeffs</I> 
+
+<DD>Must use a dihedral_style command before reading a data file that
+defines MiddleBondTorsion Coeffs. 
+
+<DT><I>Must define improper_style before AngleAngle Coeffs</I> 
+
+<DD>Must use an improper_style command before reading a data file that
+defines AngleAngle Coeffs. 
+
+<DT><I>Must define improper_style before Improper Coeffs</I> 
+
+<DD>Must use an improper_style command before reading a data file that
+defines Improper Coeffs. 
+
+<DT><I>Must define pair_style before Pair Coeffs</I> 
+
+<DD>Must use a pair_style command before reading a data file that defines
+Pair Coeffs. 
+
+<DT><I>Must have more than one processor partition to temper</I> 
+
+<DD>Cannot use the temper command with only one processor partition.  Use
+the -partition command-line option. 
+
+<DT><I>Must read Atoms before Angles</I> 
+
+<DD>The Atoms section of a data file must come before an Angles section. 
+
+<DT><I>Must read Atoms before Bonds</I> 
+
+<DD>The Atoms section of a data file must come before a Bonds section. 
+
+<DT><I>Must read Atoms before Dihedrals</I> 
+
+<DD>The Atoms section of a data file must come before a Dihedrals section. 
+
+<DT><I>Must read Atoms before Impropers</I> 
+
+<DD>The Atoms section of a data file must come before an Impropers
+section. 
+
+<DT><I>Must read Atoms before Velocities</I> 
+
+<DD>The Atoms section of a data file must come before a Velocities
+section. 
+
+<DT><I>Must set both respa inner and outer</I> 
+
+<DD>Cannot use just the inner or outer option with repsa without using the
+other. 
+
+<DT><I>Must specify a region in fix insert</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use -in switch with multiple partitions</I> 
+
+<DD>A multi-partition simulation cannot read the input script from stdin.
+The -in command-line option must be used to specify a file. 
+
+<DT><I>Must use a block or cylinder region with fix insert</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use a molecular atom style with fix poems molecule</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use a molecular atom style with fix rigid molecule</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use molecular atom style with neigh_modify exclude molecule</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use a z-axis cylinder with fix insert</I> 
+
+<DD>The axis of the cylinder region used with the fix insert command must
+be oriented along the z dimension. 
+
+<DT><I>Must use atom style dpd with pair style dpd</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use atom style granular with lj units</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use atom style granular with pair style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use atom style granular with chosen thermo settings</I> 
+
+<DD>If granular thermo info is to be output, must use atom style
+granular. 
+
+<DT><I>Must use atom style granular with granular thermo output</I> 
+
+<DD>If atom style is granular, must use thermo style granular or custom. 
+
+<DT><I>Must use charged atom style with fix efield</I> 
+
+<DD>The atom style being used does not allow atoms to have assigned
+charges.  Hence it will not work with this fix which generates a force
+due to an E-field acting on charge. 
+
+<DT><I>Must use charged atom style with this pair style</I> 
+
+<DD>The atom style being used does not allow atoms to have assigned
+charges.  Hence it will not work with this choice of pair style. 
+
+<DT><I>Must use fix freeze with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix gran/diag with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix gran/diag with granular pair style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix gravity chute with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix gravity spherical with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix gravity gradient with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix gravity with fix insert</I> 
+
+<DD>Insertion of granular particles must be done under the influence of
+gravity. 
+
+<DT><I>Must use fix insert with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix nve/gran with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use fix wall/gran with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use newton pairwise on with TIP4P potential</I> 
+
+<DD>Use of a TIP4P pair potential requires the newton command setting for
+pairwise interactions be "on", because of the way forces are computed
+on other atoms due to TIP4P interactions. 
+
+<DT><I>Must use region with side = in with fix insert</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use special bonds = 1,1,1 with bond style quartic</I> 
+
+<DD>The settings for the special_bonds command must be set as indicated
+when using bond style quartic. 
+
+<DT><I>Needed topology not in data file</I> 
+
+<DD>The header of the data file indicated that bonds or angles or
+dihedrals or impropers would be included, but they were not present. 
+
+<DT><I>Neighbor delay must be 0 or multiple of every setting</I> 
+
+<DD>The delay and every parameters set via the neigh_modify command are
+inconsistent.  If the delay setting is non-zero, then it must be a
+multiple of the every setting. 
+
+<DT><I>Neighbor list overflow, boost neigh_modify one or page</I> 
+
+<DD>There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the neighbor page size and the max number of
+neighbors allowed for one atom. 
+
+<DT><I>Newton bond change after simulation box is defined</I> 
+
+<DD>The newton command cannot be used to change the newton bond value
+after a read_data, read_restart, or create_box command. 
+
+<DT><I>No angles allowed with this atom style</I> 
+
+<DD>Self-explanatory.  Check data file. 
+
+<DT><I>No atoms in data file</I> 
+
+<DD>The header of the data file indicated that atoms would be included,
+but they were not present. 
+
+<DT><I>No atoms to compute diffusion for</I> 
+
+<DD>The fix msd command has no atoms to compute on. 
+
+<DT><I>No bonds allowed with this atom style</I> 
+
+<DD>Self-explanatory.  Check data file. 
+
+<DT><I>No dihedrals allowed with this atom style</I> 
+
+<DD>Self-explanatory.  Check data file. 
+
+<DT><I>No dump custom arguments specified</I> 
+
+<DD>The dump custom command requires that atom quantities be specified to
+output to dump file. 
+
+<DT><I>No impropers allowed with this atom style</I> 
+
+<DD>Self-explanatory.  Check data file. 
+
+<DT><I>No rigid bodies defined by fix rigid</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Non integer # of swaps in temper command</I> 
+
+<DD>Swap frequency in temper command must evenly divide the total # of
+timesteps. 
+
+<DT><I>Non-orthogonal lattice vectors</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>One or zero atoms in rigid body</I> 
+
+<DD>Any rigid body defined by the fix rigid command must contain 2 or more
+atoms. 
+
+<DT><I>One or more atoms belong to multiple rigid bodies</I> 
+
+<DD>Two or more rigid bodies defined by the fix rigid command cannot
+contain the same atom. 
+
+<DT><I>Orientation vectors are not right-handed</I> 
+
+<DD>The 3 vectors defined by the orient command must form a right-handed
+coordinate system. 
+
+<DT><I>Out of range atoms - cannot compute PPPM</I> 
+
+<DD>One or more atoms are attempting to map their charge to a PPPM grid
+point that is not owned by a processor.  This is usually because
+an atom has moved to far in a single timestep. 
+
+<DT><I>Pair distance < table inner cutoff</I> 
+
+<DD>Two atoms are closer together than the pairwise table allows. 
+
+<DT><I>Pair distance > table outer cutoff</I> 
+
+<DD>Two atoms are further apart than the pairwise table allows. 
+
+<DT><I>Pair style must be defined to use bond style quartic</I> 
+
+<DD>Bond style quartic requires a pair style be defined. 
+
+<DT><I>Pair table parameters did not set N</I> 
+
+<DD>List of pair table parameters must include N setting. 
+
+<DT><I>PPPM grid is too large</I> 
+
+<DD>The global PPPM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 4096.  You likely need to decrease the
+requested precision.  
+
+<DT><I>PPPM order cannot be greater than %d</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>PPPM stencil extends too far, reduce PPPM order</I> 
+
+<DD>The grid points that atom charge are mapped to cannot extend further
+than one neighbor processor away.  Reducing the PPPM order via the
+kspace_modify command will reduce the stencil distance. 
+
+<DT><I>Pair coeff for hybrid has invalid style</I> 
+
+<DD>Style in pair coeff must have been listed in pair_style command. 
+
+<DT><I>Pair cutoff < Respa interior cutoff</I> 
+
+<DD>One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs. 
+
+<DT><I>Pair style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory.  Check the input script. 
+
+<DT><I>Pair style hybrid cannot use same pair style twice</I> 
+
+<DD>The sub-style arguments of pair_style hybrid cannot be duplicated.
+Check the input script. 
+
+<DT><I>Pair inner cutoff < Respa interior cutoff</I> 
+
+<DD>One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs. 
+
+<DT><I>Pair inner cutoff >= Pair outer cutoff</I> 
+
+<DD>The specified cutoffs for the pair style are inconsistent. 
+
+<DT><I>Pair style is incompatible with DihedralCharmm</I> 
+
+<DD>When using a dihedral style charmm, a pair style with a CHARMM
+component must also be selected, so that 1-4 pairwise coefficients are
+specified. 
+
+<DT><I>Pair style is incompatible with KSpace style</I> 
+
+<DD>If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used. 
+
+<DT><I>Pair table cutoffs must all be equal to use with KSpace</I> 
+
+<DD>When using pair style table with a long-range KSpace solver, the
+cutoffs for all atom type pairs must all be the same, since the
+long-range solver starts at that cutoff. 
+
+<DT><I>Pair_coeff command before pair_style is defined</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Pair_coeff command before simulation box is defined</I> 
+
+<DD>The pair_coeff command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Pair_modify command before pair_style is defined</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Pair_write command before pair_style is defined</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>POEMS fix must come before NPT/NPH fix</I> 
+
+<DD>NPT/NPH fix must be defined in input script after all poems fixes,
+else the fix contribution to the pressure virial is incorrect. 
+
+<DT><I>Potential with shear history requires newton pair off</I> 
+
+<DD>Granular potentials that include shear history effects can only be run
+with a newton setting where pairwise newton is "off". 
+
+<DT><I>Proc grid in z != 1 for 2d simulation</I> 
+
+<DD>There cannot be more than 1 processor in the z dimension of a 2d
+simulation. 
+
+<DT><I>Processor partitions are inconsistent</I> 
+
+<DD>The total number of processors in all partitions must match the number
+of processors LAMMPS is running on. 
+
+<DT><I>Processors command after simulation box is defined</I> 
+
+<DD>The processors command cannot be used after a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Quaternion creation numeric error</I> 
+
+<DD>A numeric error occurred in the creation of a rigid body by the fix
+rigid command. 
+
+<DT><I>Quotes in a single arg</I> 
+
+<DD>A single word should not be quoted in the input script; only a set of
+words with intervening spaces should be quoted. 
+
+<DT><I>R0 < 0 for fix spring command</I> 
+
+<DD>Equilibrium spring length is invalid. 
+
+<DT><I>Region union region ID does not exist</I> 
+
+<DD>One or more of the region IDs specified by the region union command
+does not exist. 
+
+<DT><I>Replacing a fix, but new style != old style</I> 
+
+<DD>A fix ID can be used a 2nd time, but only if the style matches the
+previous fix.  In this case it is assumed you with to reset a fix's
+parameters.  This error may mean you are mistakenly re-using a fix ID
+when you do not intend to. 
+
+<DT><I>Replicate command before simulation box is defined</I> 
+
+<DD>The replicate command cannot be used before a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Replicate did not assign all atoms correctly</I> 
+
+<DD>Atoms replicated by the replicate command were not assigned correctly
+to processors.  This is likely due to some atom coordinates being
+outside a non-periodic simulation box. 
+
+<DT><I>Requested atom types in EAM setfl file do not exist</I> 
+
+<DD>Atom type specified in pair_style eam command does not match number of
+types in setfl potential file. 
+
+<DT><I>Respa inner cutoffs are invalid</I> 
+
+<DD>The first cutoff must be <= the second cutoff. 
+
+<DT><I>Respa inner/middle/outer used with invalid pair style</I> 
+
+<DD>Only a few pair potentials support the use of respa inner, middle,
+outer options. 
+
+<DT><I>Respa levels must be >= 1</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Respa middle cutoffs are invalid</I> 
+
+<DD>The first cutoff must be <= the second cutoff. 
+
+<DT><I>Respa not allowed with atom style granular</I> 
+
+<DD>Respa cannot be used with the granular atom style. 
+
+<DT><I>Reuse of dump ID</I> 
+
+<DD>A dump ID cannot be used twice. 
+
+<DT><I>Reuse of region ID</I> 
+
+<DD>A region ID cannot be used twice. 
+
+<DT><I>Reuse of temperature ID</I> 
+
+<DD>A temperature ID cannot be used twice. 
+
+<DT><I>Rigid body has degenerate moment of inertia</I> 
+
+<DD>Fix poems will only work with bodies (collections of atoms) that have
+non-zero principal moments of inertia.  This means they must be 3 or
+more non-colinear atoms, even with joint atoms removed. 
+
+<DT><I>Rigid fix must come before NPT/NPH fix</I> 
+
+<DD>NPT/NPH fix must be defined in input script after all rigid fixes,
+else the rigid fix contribution to the pressure virial is
+incorrect. 
+
+<DT><I>Run command before simulation box is defined</I> 
+
+<DD>The run command cannot be used before a read_data, read_restart, or
+create_box command. 
+
+<DT><I>Run_style command before simulation box is defined</I> 
+
+<DD>The run_style command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Set command before simulation box is defined</I> 
+
+<DD>The set command cannot be used before a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Set command with no atoms existing</I> 
+
+<DD>No atoms are yet defined so the set command cannot be used. 
+
+<DT><I>Shake angles have different bond types</I> 
+
+<DD>All 3-atom angle-constrained SHAKE clusters specified by the fix shake
+command that are the same angle type, must also have the same bond
+types for the 2 bonds in the angle. 
+
+<DT><I>Shake atoms %d %d %d %d missing on proc %d at step %d</I> 
+
+<DD>The 4 atoms in a single shake cluster specified by the fix shake
+command are not all accessible to a processor.  This probably means
+an atom has moved too far. 
+
+<DT><I>Shake atoms %d %d %d missing on proc %d at step %d</I> 
+
+<DD>The 3 atoms in a single shake cluster specified by the fix shake
+command are not all accessible to a processor.  This probably means
+an atom has moved too far. 
+
+<DT><I>Shake atoms %d %d missing on proc %d at step %d</I> 
+
+<DD>The 2 atoms in a single shake cluster specified by the fix shake
+command are not all accessible to a processor.  This probably means
+an atom has moved too far. 
+
+<DT><I>Shake cluster of more than 4 atoms</I> 
+
+<DD>A single cluster specified by the fix shake command can have no more
+than 4 atoms. 
+
+<DT><I>Shake clusters are connected</I> 
+
+<DD>A single cluster specified by the fix shake command must have a single
+central atom with up to 3 other atoms bonded to it. 
+
+<DT><I>Shake determinant = 0.0</I> 
+
+<DD>The determinant of the matrix being solved for a single cluster
+specified by the fix shake command is numerically invalid. 
+
+<DT><I>Shake fix must come before NPT/NPH fix</I> 
+
+<DD>NPT fix must be defined in input script after SHAKE fix, else the
+SHAKE fix contribution to the pressure virial is incorrect. 
+
+<DT><I>Substitution for undefined variable</I> 
+
+<DD>The variable specified with a $ symbol in an input script command has
+not been previously defined with a variable command. 
+
+<DT><I>Temperature region ID does not exist</I> 
+
+<DD>The region ID specified in the temperature command does not exist. 
+
+<DT><I>Temper command before simulation box is defined</I> 
+
+<DD>The temper command cannot be used before a read_data, read_restart, or
+create_box command. 
+
+<DT><I>Tempering fix ID is not defined</I> 
+
+<DD>The fix ID specified by the temper command does not exist. 
+
+<DT><I>Tempering fix is not valid</I> 
+
+<DD>The fix specified by the temper command is not one that controls
+temperature (nvt or langevin). 
+
+<DT><I>Thermodynamics not computed on tempering swap steps</I> 
+
+<DD>The thermo command must insure that thermodynamics (including energy)
+is computed on the timesteps that tempering swaps are attempted. 
+
+<DT><I>Thermodynamics must compute PE for temper</I> 
+
+<DD>The thermo style must insure that thermodynamics computations include
+potential energy when tempering is performed. 
+
+<DT><I>Thermo_style command before simulation box is defined</I> 
+
+<DD>The thermo_style command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+<DT><I>Timestep must be >= 0</I> 
+
+<DD>Specified timestep size is invalid. 
+
+<DT><I>TIP4P hydrogen has incorrect atom type</I> 
+
+<DD>The TIP4P pairwise computation found an H atom whose type does not
+agree with the specified H type. 
+
+<DT><I>TIP4P hydrogen is missing</I> 
+
+<DD>The TIP4P pairwise computation failed to find the correct H atom
+within a water molecule. 
+
+<DT><I>TMD target file did not list all group atoms</I> 
+
+<DD>The target file for the fix tmd command did not list all atoms in the
+fix group. 
+
+<DT><I>Too big a problem to run with a molecular atom style</I> 
+
+<DD>Cannot run a problem with > 2^31 atoms with molecular attributes. 
+
+<DT><I>Too few bits for lookup table</I> 
+
+<DD>Table size specified via pair_modify command does not work with your
+machine's floating point representation. 
+
+<DT><I>Too large an atom type in create_atoms command</I> 
+
+<DD>The atoms to be created by the create_atoms command must have a valid
+type. 
+
+<DT><I>Too many atoms in data file</I> 
+
+<DD>A data file cannot contain more than 2^31 atoms. 
+
+<DT><I>Too many atoms to use delete atoms command</I> 
+
+<DD>Cannot use delete_atoms command if number of atoms is greater than
+2^31. 
+
+<DT><I>Too many atoms to use velocity create with loop all</I> 
+
+<DD>Cannot use velocity create command with loop all setting if number of
+atoms is greater than 2^31.  Switch to local or geom setting. 
+
+<DT><I>Too many exponent bits for lookup table</I> 
+
+<DD>Table size specified via pair_modify command does not work with your
+machine's floating point representation. 
+
+<DT><I>Too many mantissa bits for lookup table</I> 
+
+<DD>Table size specified via pair_modify command does not work with your
+machine's floating point representation. 
+
+<DT><I>Too many groups</I> 
+
+<DD>The maximum number of atom groups (including the "all" group) is 
+given by MAX_GROUP in group.cpp and is 32. 
+
+<DT><I>Too many masses for fix shake</I> 
+
+<DD>The fix shake command cannot list more masses than there are atom
+types. 
+
+<DT><I>Too many total bits for bitmapped lookup table</I> 
+
+<DD>Table size specified via pair_modify command is too large.  Note that
+a value of N generates a 2^N size table. 
+
+<DT><I>Too many touching neighbors - boost MAXTOUCH</I> 
+
+<DD>A granular simulation has too many neighbors touching one atom.  The
+MAXTOUCH parameter in fix_shear_history.cpp must be set larger and
+LAMMPS must be re-built. 
+
+<DT><I>Tree structure in joint connections</I> 
+
+<DD>Fix poems cannot (yet) work with coupled bodies whose joints connect
+the bodies in a tree structure. 
+
+<DT><I>Unbalanced quotes in input line</I> 
+
+<DD>No matching end double quote was found following a leading double
+quote. 
+
+<DT><I>Unexpected end of data file</I> 
+
+<DD>LAMMPS hit the end of the data file while attempting to read a
+section.  Something is wrong with the format of the data file. 
+
+<DT><I>Units command after simulation box is defined</I> 
+
+<DD>The units command cannot be used after a read_data, read_restart, or
+create_box command. 
+
+<DT><I>Unknown atom style in restart file</I> 
+
+<DD>The atom style stored in the restart file is not recognized by LAMMPS. 
+
+<DT><I>Unknown command: %s</I> 
+
+<DD>The command is not known to LAMMPS.  Check the input script. 
+
+<DT><I>Unknown identifier in data file: %s</I> 
+
+<DD>A section of the data file cannot be read by LAMMPS. 
+
+<DT><I>Unknown section in data file: %s</I> 
+
+<DD>The keyword for a section of the data file is not recognized by
+LAMMPS. 
+
+<DT><I>Unknown table style in pair_style command</I> 
+
+<DD>Style of table is invalid for use with pair_style table command. 
+
+<DT><I>Universe variable count < # of partitions</I> 
+
+<DD>A world-style variable must specify a number of values >= to the
+number of processor partitions. 
+
+<DT><I>Use of displace_atoms with undefined lattice</I> 
+
+<DD>Must use lattice command with displace_atoms command if units option
+is set to lattice. 
+
+<DT><I>Use of fix indent with undefined lattice</I> 
+
+<DD>The lattice command must be used to define a lattice before using the
+fix indent command. 
+
+<DT><I>Use of region with undefined lattice</I> 
+
+<DD>If scale = lattice (the default) for the region command, then a
+lattice must first be defined via the lattice command. 
+
+<DT><I>Use of temperature ramp with undefined lattice</I> 
+
+<DD>If scale = lattice (the default) for the temperature ramp command,
+then a lattice must first be defined via the lattice command. 
+
+<DT><I>Use of velocity with undefined lattice</I> 
+
+<DD>If scale = lattice (the default) for the velocity set or velocity ramp
+command, then a lattice must first be defined via the lattice command. 
+
+<DT><I>Using variable equal keyword before simulation box is defined</I> 
+
+<DD>Cannot use simulation domain keywords in a equal style variable
+definition until the simulation box has been defined. 
+
+<DT><I>Using variable equal keyword before initial run</I> 
+
+<DD>Cannot use thermodynamic keywords in a equal style variable definition
+until a simulation run has been performed. 
+
+<DT><I>Velocity command before simulation box is defined</I> 
+
+<DD>The velocity command cannot be used before a read_data, read_restart,
+or create_box command. 
+
+<DT><I>Velocity command with no atoms existing</I> 
+
+<DD>A velocity command has been used, but no atoms yet exist. 
+
+<DT><I>Velocity ramp in z for a 2d problem</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>World variable count doesn't match # of partitions</I> 
+
+<DD>A world-style variable must specify a number of values equal to the
+number of processor partitions. 
+
+<DT><I>Write_restart command before simulation box is defined</I> 
+
+<DD>The write_restart command cannot be used before a read_data,
+read_restart, or create_box command. 
+
+
+</DL>
+<H4><A NAME = "warn"></A>Warnings: 
+</H4>
+<DL>
+
+<DT><I>FENE bond too long: %d %g</I> 
+
+<DD>A FENE bond has stretched dangerously far.  It's interaction strength
+will be truncated to attempt to prevent the bond from blowing up. 
+
+<DT><I>FENE bond too long: %d %d %d %g</I> 
+
+<DD>A FENE bond has stretched dangerously far.  It's interaction strength
+will be truncated to attempt to prevent the bond from blowing up. 
+
+<DT><I>Group for fix_modify temp != fix group</I> 
+
+<DD>The fix_modify command is specifying a temperature computation that
+computes a temperature on a different group of atoms than the fix
+itself operates on.  This is probably not what you want to do. 
+
+<DT><I>Less insertions than requested</I> 
+
+<DD>Less atom insertions occurred on this timestep due to the fix insert
+command than were scheduled.  This is probably because there were too
+many overlaps detected. 
+
+<DT><I>Lost atoms: original %.15g current %.15g</I> 
+
+<DD>A thermodynamic computation has detected lost atoms. 
+
+<DT><I>Mismatch between velocity and temperature groups</I> 
+
+<DD>The temperature computation used by the velocity command will not be
+on the same group of atoms that velocities are being set for.  This is
+probably not what you want. 
+
+<DT><I>More than one dump custom with a centro attribute</I> 
+
+<DD>Each dump custom command that uses a per-atom centro attribute will
+cause a full neighbor list to be built and looped over.  Thus it may
+be inefficient to use this attribute in multiple dump custom
+commands. 
+
+<DT><I>More than one dump custom with a stress attribute</I> 
+
+<DD>Each dump custom command that uses a per-atom stress tensor attribute
+will cause the neighbor list to be looped over and inter-processor
+communication to be performed.  Thus it may be inefficient to use
+these attributes in multiple dump custom commands. 
+
+<DT><I>More than one dump custom with an energy attribute</I> 
+
+<DD>Each dump custom command that uses a per-atom energy attribute will
+cause the neighbor list to be looped over and inter-processor
+communication to be performed.  Thus it may be inefficient to use this
+attribute in multiple dump custom commands. 
+
+<DT><I>More than one msd fix</I> 
+
+<DD>This will be computationally inefficient. 
+
+<DT><I>More than one poems fix</I> 
+
+<DD>This will be computationally inefficient and compute the fix's
+contribution to the virial (pressure) incorrectly. 
+
+<DT><I>More than one rigid fix</I> 
+
+<DD>This will be computationally inefficient and compute the fix's
+contribution to the virial (pressure) incorrectly. 
+
+<DT><I>No fixes defined, atoms won't move</I> 
+
+<DD>If you are not using a fix like nve, nvt, npt then atom velocities and
+coordinates will not be updated during timestepping. 
+
+<DT><I>No joints between rigid bodies, use fix rigid instead</I> 
+
+<DD>The bodies defined by fix poems are not connected by joints.  POEMS
+will integrate the body motion, but it would be more efficient to use
+fix rigid. 
+
+<DT><I>One or more respa levels compute no forces</I> 
+
+<DD>This is computationally inefficient. 
+
+<DT><I>Replacing a fix, but new group != old group</I> 
+
+<DD>The ID and style of a fix match for a fix you are changing with a fix
+command, but the new group you are specifying does not match the old
+group. 
+
+<DT><I>Replicating in a non-periodic dimension</I> 
+
+<DD>The parameters for a replicate command will cause a non-periodic
+dimension to be replicated; this may cause unwanted behavior. 
+
+<DT><I>Resetting angle_style to restart file value</I> 
+
+<DD>The angle style defined in the LAMMPS input script does not match that
+of the restart file. 
+
+<DT><I>Resetting bond_style to restart file value</I> 
+
+<DD>The bond style defined in the LAMMPS input script does not match that
+of the restart file. 
+
+<DT><I>Resetting boundary settings to restart file values</I> 
+
+<DD>The boundary settings defined in the LAMMPS input script do not match
+that of the restart file. 
+
+<DT><I>Resetting dihedral_style to restart file value</I> 
+
+<DD>The dihedral style defined in the LAMMPS input script does not match
+that of the restart file. 
+
+<DT><I>Resetting dimension to restart file value</I> 
+
+<DD>The dimension value defined in the LAMMPS input script does not match
+that of the restart file. 
+
+<DT><I>Resetting improper_style to restart file value</I> 
+
+<DD>The improper style defined in the LAMMPS input script does not match
+that of the restart file. 
+
+<DT><I>Resetting newton bond to restart file value</I> 
+
+<DD>The value of the newton setting for bonds defined in the LAMMPS input
+script does not match that of the restart file. 
+
+<DT><I>Resetting pair_style to restart file value</I> 
+
+<DD>The pair style defined in the LAMMPS input script does not match that
+of the restart file. 
+
+<DT><I>Resetting reneighboring criteria during minimization</I> 
+
+<DD>Minimization requires that neigh_modify settings be delay = 0, every =
+1, check = yes.  Since these settings were not in place, LAMMPS
+changed them and will restore them to their original values after the
+minimization. 
+
+<DT><I>Resetting unit_style to restart file value</I> 
+
+<DD>The unit style defined in the LAMMPS input script does not match that
+of the restart file. 
+
+<DT><I>Restart file used different # of processors</I> 
+
+<DD>The restart file was written out by a LAMMPS simulation running on a
+different number of processors.  Due to round-off, the trajectories of
+your restarted simulation may diverge a little more quickly than if
+you ran on the same # of processors. 
+
+<DT><I>Restart file used different 3d processor grid</I> 
+
+<DD>The restart file was written out by a LAMMPS simulation running on a
+different 3d grid of processors.  Due to round-off, the trajectories
+of your restarted simulation may diverge a little more quickly than if
+you ran on the same # of processors. 
+
+<DT><I>Restart file used different newton pair setting</I> 
+
+<DD>The restart file was written out by a LAMMPS simulation running with a
+different value of the newton pair setting.  The new simulation will
+use the value from the input script. 
+
+<DT><I>Restart file version does not match LAMMPS version</I> 
+
+<DD>The version of LAMMPS that wrote the restart file does not match the
+version of LAMMPS that is reading the restart file.  Generally this
+shouldn't be a problem, since restart file formats won't change very
+often if at all.  But if they do, the code will probably crash trying
+to read the file.  Versions of LAMMPS are specified by a date. 
+
+<DT><I>Shake determinant < 0.0</I> 
+
+<DD>The determinant of the quadratic equation being solved for a single
+cluster specified by the fix shake command is numerically suspect.  LAMMPS
+will set it to 0.0 and continue. 
+
+<DT><I>System is not charge neutral, net charge = %g</I> 
+
+<DD>The total charge on all atoms on the system is not 0.0, which
+is not valid for Ewald or PPPM. 
+
+<DT><I>Table inner cutoff >= outer cutoff</I> 
+
+<DD>You specified an inner cutoff for a Coulombic table that is longer
+than the global cutoff.  Probably not what you wanted. 
+
+<DT><I>Temperature for NPH is not for group all</I> 
+
+<DD>User-assigned temperature to NPH fix does not compute temperature for
+all atoms.  Since NPH computes a global pressure, the kinetic energy
+contribution from the temperature is assumed to also be for all atoms.
+Thus the pressure used by NPH could be inaccurate. 
+
+<DT><I>Temperature for NPH is style region</I> 
+
+<DD>User-assigned temperature to NPH fix has style region.  Since NPT
+computes a global pressure, the kinetic energy contribution from the
+temperature is assumed to also be for all atoms.  Thus the pressure
+used by NPT could be inaccurate. 
+
+<DT><I>Temperature for NPT is not for group all</I> 
+
+<DD>User-assigned temperature to NPT fix does not compute temperature for
+all atoms.  Since NPT computes a global pressure, the kinetic energy
+contribution from the temperature is assumed to also be for all atoms.
+Thus the pressure used by NPT could be inaccurate. 
+
+<DT><I>Temperature for NPT is style region</I> 
+
+<DD>User-assigned temperature to NPT fix has style region.  Since NPT
+computes a global pressure, the kinetic energy contribution from the
+temperature is assumed to also be for all atoms.  Thus the pressure
+used by NPT could be inaccurate. 
+
+<DT><I>Temperature for NVT is style region</I> 
+
+<DD>User-assigned temperature to NVT fix has style region.  Since NVT is a
+Nose/Hoover formulation that tracks average properties of a collection
+of atoms over time, it may be inaccurate to do this if the atoms
+in the region change. 
+
+<DT><I>Temperature for temp/rescale is style region</I> 
+
+<DD>User-assigned temperature to temp/rescale fix has style region, but
+the temp/rescale fix did not specify a region.  This means the
+temperature may be computed on a different set of atoms than are
+rescaled. 
+
+<DT><I>Temperature for thermo pressure is not for group all</I> 
+
+<DD>User-assigned temperature to thermo via the thermo_modify command does
+not compute temperature for all atoms.  Since thermo computes a global
+pressure, the kinetic energy contribution from the temperature is
+assumed to also be for all atoms.  Thus the pressure printed by thermo
+could be inaccurate. 
+
+<DT><I>Temperature for thermo pressure is style region</I> 
+
+<DD>User-assigned temperature to thermo via the thermo_modify command has
+style region.  Since thermo computes a global pressure, the kinetic
+energy contribution from the temperature is assumed to also be for all
+atoms.  Thus the pressure printed by thermo could be inaccurate. 
+
+<DT><I>Using variable equal keyword with non-current thermo</I> 
+
+<DD>The variable expression is being evaluated with a thermodynamic
+quantity on a timestep when thermodynamic information may not be
+current. 
+
+
+</DL>
+</HTML>

@@ -1,0 +1,105 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dump_modify command :h3
+
+[Syntax:]
+
+dump_modify dump-ID keyword args ... :pre
+
+dump-ID = ID of dump to modify :ulb,l
+one or more keyword/arg pairs may be appended :l
+keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {thresh} :l
+  {format} arg = C-style format string for one line of output
+  {scale} arg = {yes} or {no}
+  {image} arg = {yes} or {no}
+  {flush} arg = {yes} or {no}
+  {every} arg = N
+    N = dump every this many timesteps
+  {region} arg = region-ID or "none"
+  {thresh} args = attribute operation value
+    attribute = same attributes (x,fy,eng,sxx,etc) used by dump custom style
+    operation = < or <= or > or >= or = or <>
+    value = numeric value to compare to
+    these 3 args can be replaced by the word "none" to turn off threshholding
+:pre
+:ule
+
+[Examples:]
+
+dump_modify 1 format "%d %d %20.15g %g %g" scale yes
+dump_modify myDump image yes scale no flush yes
+dump_modify 1 region mySphere thresh x < 0.0 thresh energy >= 3.2 :pre
+
+[Description:]
+
+Modify the parameters of a previously defined dump command.  Not all
+parameters are relevant to all dump styles.
+
+The text-based dump styles have a default C-style format string which
+simply specifies %d for integers and %g for real values.  The {format}
+keyword can be used to override the default with a new C-style format
+string.  Do not include a trailing "\n" newline character in the
+format string.  This option has no effect on the {dcd} and {xtc} dump
+styles since they write binary files.
+
+The {scale} and {image} keywords apply only to the dump {atom} style.
+A scale value of {yes} means atom coords are written in normalized
+units from 0.0 to 1.0 in each box dimension.  A value of {no} means
+they are written in absolute distance units (e.g. Angstroms or sigma).
+If the image value is {yes}, 3 flags are appended to each atom's
+coords which are the absolute box image of the atom in each dimension.
+For example, an x image flag of -2 with a normalized coord of 0.5
+means the atom is in the center of the box, but has passed thru the
+box boundary 2 times and is really 2 box lengths to the left of its
+current coordinate.  Note that for dump style {custom} these values
+can be printed in the dump file by using the appropriate atom
+attributes in the dump command itself.
+
+:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+
+The {flush} option determines whether a flush operation in invoked
+after a dump snapshot is written to the dump file.  A flush insures
+the output in that file is current (no buffering by the OS), even if
+LAMMPS halts before the simulation completes.  Flushes cannot be
+performed with dump style {xtc}.
+
+The {every} option changes the dump frequency originally specified by
+the "dump"_dump.html command to a new value which must be > 0.  The
+dump frequency cannot be changed for the dump {dcd} style.
+
+The {region} keyword only applies to the dump {custom} style.  If
+specified, only atoms in the region will be written to the dump file.
+Only one region can be applied as a filter (the last one specified).
+See the "region"_region.html command for more details.  Note that a
+region can be defined as the "inside" or "outside" of a geometric
+shape, and it can be the "union" or "intersection" of a series of
+simpler regions.
+
+The {thresh} keyword only applies to the dump {custom} style.
+Multiple threshholds can be specified.  Specifying "none" turns off
+all threshhold criteria.  If theshholds are specified, only atoms
+whose attributes meet all the threshhold criteria are written to the
+dump file.  The possible attributes that can be tested for are the
+same as those that can be specified in the "dump custom"_dump.html
+command.  Note that different attributes can be output by the dump
+custom command than are used as threshhold criteria by the dump_modify
+command.  E.g. you can output the coordinates and stress of atoms
+whose energy is above some thresshold.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dump"_dump.html, "undump"_undump.html
+
+[Default:]
+
+The option defaults are format = %d and %g for each integer or
+floating point value, scale = yes, image = no, flush = yes (except for
+dump {xtc} style), region = none, and thresh = none.

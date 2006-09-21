@@ -1,0 +1,322 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dump ID group-ID style N file args 
+</PRE>
+<UL><LI>ID = user-assigned name for the dump 
+
+<LI>group-ID = ID of the group of atoms to be dumped 
+
+<LI>style = <I>atom</I> or <I>bond</I> or <I>custom</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> 
+
+<LI>N = dump every this many timesteps 
+
+<LI>file = name of file to write dump info to 
+
+<LI>args = list of arguments for a particular style 
+
+<PRE>  <I>atom</I> args = none
+  <I>bond</I> args = none
+  <I>custom</I> args = list of atom attributes
+    possible attributes = tag, mol, type, x, y, z, xs, ys, zs, xu, yu, zu,
+                 ix, iy, iz, vx, vy, vz, fx, fy, fz,
+                 q, mux, muy, muz, tqx, tqy, tqz,
+		 centro, eng, sxx, syy, szz, sxy, sxz, syz 
+      tag = atom ID
+      mol = molecule ID
+      type = atom type
+      x,y,z = unscaled atom coordinates
+      xs,ys,zs = scaled atom coordinates
+      xu,yu,zu = unwrapped atom coordinates
+      ix,iy,iz = box image that the atom is in in
+      vx,vy,vz = atom velocities
+      fx,fy,fz = forces on atoms
+      q = atom charge
+      mux,muy,muz = orientation of dipolar atom
+      tqx,tqy,tqz = torque on dipolar atoms
+      centro = per-atom centro-symmetry parameter
+      eng = per-atom pairwise energy
+      sxx, syy, szz, sxy, sxz, syz = per-atom stress tensor components
+  <I>dcd</I> args = none
+  <I>xtc</I> args = precision (optional)
+    precision = power-of-10 value from 10 to 1000000 (default = 1000)
+  <I>xyz</I> args = none 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dump myDump all atom 100 dump.atom
+dump 2 subgroup atom 50 dump.run.bin
+dump 4a all custom 100 dump.myforce.* tag type x y vx fx
+dump 4b flow custom 100 dump.%.myforce tag type eng sxx syy szz
+dump 1 all xtc 1000 file.xtc 100.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Dump a snapshot of atom quantities to one or more files every N
+timesteps in one of several styles.  As described below, the filename
+determines the kind of output (text or binary or gzipped, one big file
+or one per timestep, one big file or one per processor).  Only
+information for atoms in the specified group is dumped.  The
+<A HREF = "dump_modify.html">dump_modify</A> command can also alter what atoms are
+included.  Not all styles support all these options; see details
+below.
+</P>
+<P>Note that because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.
+</P>
+<P>Also note that when LAMMPS is running in parallel, the atom
+information written to dump files (typically one line per atom) may be
+written in an indeterminate order.  This is because data for a single
+snapshot is collected from multiple processors.  This is always the
+case for the <I>atom</I>, <I>bond</I>, and <I>custom</I> styles.  It is also the case
+for the <I>xyz</I> style if the dump group is not <I>all</I>.  It is not the
+case for the <I>dcd</I> and <I>xtc</I> styles which always write atoms in sorted
+order.  So does the <I>xyz</I> style if the dump group is <I>all</I>.
+</P>
+<HR>
+
+<P>The <I>style</I> keyword determines what atom quantities are written to the
+file and in what format.  Settings made via the
+<A HREF = "dump_modify.html">dump_modify</A> command can also alter the format of
+individual values and the file itself.
+</P>
+<P>The <I>atom</I>, <I>bond</I>, and <I>custom</I> styles create files in a simple text
+format that is self-explanatory.  Many of the LAMMPS <A HREF = "Section_tools.html">post-processing
+tools</A>, including
+<A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>, work with
+this format.
+</P>
+<P>For style <I>atom</I>, atom coordinates are written to the file, along with
+the atom ID and atom type.  By default, atom coords are written in a
+scaled format (from 0 to 1).  I.e. an x value of 0.25 means the atom
+is at a location 1/4 of the distance from xlo to xhi of the box
+boundaries.  The format can be changed to unscaled coords via the
+<A HREF = "dump_modify.html">dump_modify</A> settings.  Image flags can also be
+added for each atom via dump_modify.
+</P>
+<P>For style <I>bond</I>, the bond topology between atoms is written, in the
+same format specified in data files read in by the
+<A HREF = "read_data.html">read_data</A> command.  Both atoms in the bond must be in
+the dump group for the bond to be written.  Any bonds that have been
+broken (see the <A HREF = "bond_style.html">bond_style</A> command) by setting their
+bond type to 0 are not written.  Bonds that have been turned off (see
+the <A HREF = "fix_shake.html">fix shake</A> or <A HREF = "delete_bonds.html">delete_bonds</A>
+commands) by setting their bond type negative are written into the
+file.
+</P>
+<P>Style <I>custom</I> allows you to specify a list of atom attributes to be
+written to the dump file for each atom.  Possible attributes are
+listed above and will appear in the order specified.  Be careful not
+to specify a quantity that is not defined for a particular simulation
+- such as <I>q</I> for atom style <I>bond</I>, since that atom style doesn't
+assign charges.  Dumps occur at the very end of a timestep, so atom
+attributes will include effects due to fixes that are applied during
+the timestep.  An explanation of some of the dump custom quantities is
+given below.
+</P>
+<P>The <I>dcd</I> style writes DCD files, a standard atomic trajectory format
+used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
+files are binary and thus may not be portable to different machines.
+The dump group must be <I>all</I> for the <I>dcd</I> style.
+</P>
+<P>The <I>xtc</I> style writes XTC files, a compressed trajectory format used
+by the Gromacs molecular dynamics package, and described
+<A HREF = "http://www.gromacs.org/documentation/reference_3.3/online/xtc.html">here</A>.
+The precision used in XTC files can be specified; for example, a value
+of 100 means that coordinates are stored to 1/100 nanometer accuracy.
+XTC files are portable binary files written in the NFS XDR data
+format, so that any machine which supports XDR should be able to read
+them.  The dump group must be <I>all</I> for the <I>xtc</I> style.
+</P>
+<P>The <I>xyz</I> style writes XYZ files, which is a simple text-based
+coordinate format that many codes can read.
+</P>
+<P>Note that DCD, XTC, and XYZ formatted files can be read directly by
+<A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> (a popular molecular viewing
+program).  VMD will also read LAMMPS <I>atom</I> style dump files since
+someone added a LAMMPS plug-in to VMD.  I am told it requires an
+initial snapshot from an XYZ formatted file to get started.
+</P>
+<HR>
+
+<P>Dumps are performed on timesteps that are a multiple of N and on the
+first step of a run or minimization, excluding duplicate timesteps.  A
+dump is not performed on the last timestep of a run unless it is a
+multiple of N.  A dump is performed on the last timestep of a
+minimization if the minimization converges.  N can be changed between
+runs by using the <A HREF = "dump_modify.html">dump_modify</A> command (not allowed
+for <I>dcd</I> style).
+</P>
+<P>The specified filename determines how the dump file(s) is written.
+The default is to write one large text file, which is opened when the
+dump command is invoked and closed when an <A HREF = "undump.html">undump</A>
+command is used or when LAMMPS exits.  For the <I>dcd</I> and <I>xtc</I> styles,
+this is a single large binary file.
+</P>
+<P>Dump filenames can contian two wild-card characters.  If a "*"
+character appears in the filename, then one file per snapshot is
+written and the "*" character is replaced with the timestep value.
+For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,
+tmp.dump.20000, etc.  This option is not available for the <I>dcd</I> and
+<I>xtc</I> styles.
+</P>
+<P>If a "%" character appears in the filename, then one file is written
+for each processor and the "%" character is replaced with the
+processor ID from 0 to P-1.  For example, tmp.dump.% becomes
+tmp.dump.0, tmp.dump.1, ... tmp.dump.P-1, etc.  This creates smaller
+files and can be a fast mode of output on parallel machines that
+support parallel I/O for output. This option is not available for the
+<I>dcd</I>, <I>xtc</I>, and <I>xyz</I> styles.
+</P>
+<P>Note that the "*" and "%" characters can be used together to produce a
+large number of small dump files!
+</P>
+<P>If the filename ends with ".bin", the dump file (or files, if "*" or
+"%" is also used) is written in binary format.  A binary dump file
+will be about the same size as a text version, but will typically
+write out much faster.  Of course, when post-processing, you will need
+to convert it back to text format (see the <A HREF = "Section_tools.html#binary">binary2txt
+tool</A>) or write your own code to read the
+binary file.  The format of the binary file can be understood by
+looking at the tools/binary2txt.cpp file.  This option is only
+available for the <I>atom</I> and <I>custom</I> styles.
+</P>
+<P>If the filename ends with ".gz", the dump file (or files, if "*" or "%"
+is also used) is written in gzipped format.  A gzipped dump file will
+be about 3x smaller than the text version, but will also take longer
+to write.  This option is not available for the <I>dcd</I> and <I>xtc</I>
+styles.
+</P>
+<HR>
+
+<P>This section explains the atom quantities that can be specified as
+part of the <I>custom</I> style.
+</P>
+<P>The <I>tag</I>, <I>mol</I>, <I>type</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
+<I>fz</I>, <I>q</I> attributes are self-explanatory.  <I>Tag</I> is the atom ID.
+<I>Mol</I> is the molecule ID, included in the data file for molecular
+systems.  The <I>x</I>, <I>y</I>, <I>z</I> attributes write atom coordinates
+"unscaled", in the appropriate distance units (Angstroms, sigma, etc).
+Use <I>xs</I>, <I>ys</I>, <I>zs</I> if you want the coordinates "scaled" to the box
+size, so that each value is 0.0 to 1.0.  Use <I>xu</I>, <I>yu</I>, <I>zu</I> if you
+want the coordinates "unwrapped" by the image flags for each atom.
+Unwrapped means that if the atom has passed thru a periodic boundary
+one or more times, the value is printed for what the coordinate would
+be if it had not been wrapped back into the periodic box.  Note that
+using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the coordinate values may be far
+outside the box size printed with the snapshot.  The image flags can
+be printed directly using the <I>ix</I>, <I>iy</I>, <I>iz</I> attributes. The
+<A HREF = "dump_modify.html">dump_modify</A> documentation describes in more detail
+what is meant by scaled vs unscaled coordinates and the image flags.
+</P>
+<P>The <I>mux</I>, <I>muy</I>, <I>muz</I>, <I>tqy</I>, <I>tqx</I>, <I>tqy</I> attributes are specific
+to dipolar systems defined with an atom style of <I>dipole</I>.
+</P>
+<P>The <I>centro</I> attribute causes the centro-symmetry parameter to be
+computed for each atom in the dump group using the following formula
+from <A HREF = "#Kelchner">(Kelchner)</A>
+</P>
+<CENTER><IMG SRC = "Eqs/centro_symmetry.jpg">
+</CENTER>
+<P>where the 12 nearest neighbors are found and Ri and Ri+6 are the
+vectors from the central atom to the opposite pair of nearest
+neighbors.  In solid state systems this is a useful measure of the
+local lattice disorder around an atom and can be used to characterize
+whether the atom is part of a perfect lattice, a local defect (e.g. a
+dislocation or stacking fault), or at a surface.  The neighbor list
+needed to compute this quantity is constructed each time the dump is
+performed.  Thus it can be inefficient to dump this quantity too
+frequently or to have multiple dump commands, each with a <I>centro</I>
+attribute.
+</P>
+<P>The <I>eng</I> attribute computes the pairwise energy for each atom.  This
+is its pairwise interaction with all of its neighbors (divided by 2).
+Summed over all atoms, this should equal the pairwise energy of the
+entire system (Van der Waals + Coulombic).  However, for force fields
+that include a contribution to the pairwise energy that is computed as
+part of dihedral terms (i.e. 1-4 interactions), this contribution is
+not included in the per-atom pairwise energy.  Computation of the
+per-atom energy requires a loop thru the neighbor list and
+inter-processor communication, so it can be inefficient to dump this
+quantity too frequently or to have multiple dump commands, each with a
+<I>eng</I> attribute.
+</P>
+<P>The <I>sxx</I>, <I>syy</I>, <I>szz</I>, <I>sxy</I>, <I>sxz</I>, <I>syz</I> attributes compute the
+pairwise stress tensor for each atom where the <I>ab</I> component of the
+stress on atom <I>i</I> is given by
+</P>
+<CENTER><IMG SRC = "Eqs/stress_tensor.jpg">
+</CENTER>
+<P>where the first term is a kinetic energy component for atom <I>i</I>, <I>j</I>
+loops over the <I>N</I> neighbors of atom <I>i</I>, and <I>Fb</I> is one of 3
+components of force on atom <I>i</I> due to atom <I>j</I>.  Both <I>a</I> and <I>b</I> can
+take on values x,y,z to generate the 6 components of the symmetric
+tensor.
+</P>
+<P>Note that this formula for stress does not include virial
+contributions from intra-molecular interactions (e.g. bonds, angles,
+torsions, etc).  Also note that this quantity is the negative of the
+per-atom pressure tensor.  It is also really a stress-volume
+formulation.  It would need to be divided by a per-atom volume to have
+units of stress, but an individual atom's volume is not easy to
+compute in a deformed solid.  Computation of stress tensor components
+requires a loop thru the neighbor list and inter-processor
+communication, so it can be inefficient to dump this quantity too
+frequently or to have multiple dump commands, each with stress tensor
+attributes.
+</P>
+<P>See <A HREF = "Section_modify.html">this section</A> for information on how to modify
+LAMMPS to dump other kinds of per-atom quantities.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To write gzipped dump files, you must compile LAMMPS with the -DGZIP
+option - see the <A HREF = "Section_start.html#2_2">Making LAMMPS</A> section of the
+documentation.
+</P>
+<P>The <I>bond</I> style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The <I>xtc</I> style is part of the "xtc" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.  This is because
+some machines may not support the lo-level XDR data format that XTC
+files are written with, which will result in a compile-time error when
+a lo-level include file is not found.  Putting this style in a package
+makes it easy to exclude from a LAMMPS build for those machines.
+</P>
+<P>Granular systems and granular pair potentials cannot be used to
+compute per-atom energy and stress.  The <A HREF = "fix_gran_diag.html">fix
+gran/diag</A> command should be used instead.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Kelchner"></A>
+
+<P><B>(Kelchner)</B> Kelchner, Plimpton, Hamilton, Phys Rev B, 58, 11085 (1998).
+</P>
+</HTML>

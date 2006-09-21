@@ -1,0 +1,78 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>improper_style class2 command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>improper_style class2 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>improper_style class2
+improper_coeff 1 100.0 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>class2</I> improper style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/improper_class2.jpg">
+</CENTER>
+<P>where Ei is the improper term and Eaa is an angle-angle term.  The chi
+used in Ei is an average over 3 possible chi orientations.  The
+subscripts on the various theta's refer to different combinations of
+atoms i,j,k,l used to form the angle; theta1, theta2, theta3 are the
+equilibrium positions of those angles.
+</P>
+<P>The following coefficients must be defined for each improper type via the
+<A HREF = "improper_coeff.html">improper_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<P>For this style, only coefficients for the Ei formula can be specified
+in the input script.  These are the 2 coefficients:
+</P>
+<UL><LI>K (energy/radian^2)
+<LI>X0 (degrees) 
+</UL>
+<P>X0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+</P>
+<P>Coefficients for the Eaa formula must be specified in the data file.
+For the Eaa formula, the coefficients are listed under a
+"AngleAngle Coeffs" heading and each line lists 6 coefficients:
+</P>
+<UL><LI>M1 (energy/distance)
+<LI>M2 (energy/distance)
+<LI>M3 (energy/distance)
+<LI>theta1 (degrees)
+<LI>theta2 (degrees)
+<LI>theta3 (degrees) 
+</UL>
+<P>The theta values are specified in degrees, but LAMMPS converts them to
+radians internally; hence the units of M are in energy/radian^2.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Improper styles can only be set for atom styles that allow impropers to be
+defined.
+</P>
+<P>This improper style is part of the "class2" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "improper_coeff.html">improper_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

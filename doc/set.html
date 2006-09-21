@@ -1,0 +1,104 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>set command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>set ID style value 
+</PRE>
+<UL><LI>ID = ID of group or atom
+<LI>style = <I>atom</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or         <I>charge</I> or <I>dipole</I> or <I>type</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or 	<I>vx</I> or <I>vy</I> or <I>vz</I> or <I>q</I>
+<LI>value = value to set selected atom(s) to 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>set solvent atom 2
+set edge bond 4
+set half charge 0.5
+set 100 x 0.5
+set 1492 type 3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set an attribute for a single atom or each atom in a group.  The
+context depends on the specified <I>style</I>.
+</P>
+<P>Styles <I>atom</I>, <I>bond</I>, <I>angle</I>, <I>dihedral</I>, <I>improper</I>, <I>charge</I>, and
+<I>dipole</I> set attributes for all atoms in a group, so the specified ID
+is a group-ID string.
+</P>
+<P>Styles <I>type</I>, <I>mol</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, and <I>q</I> set the
+attribute of a single atom, so the specified ID is an atom-ID number
+(1-N).
+</P>
+<P>Since atom attributes are assigned by the <A HREF = "read_data.html">read_data</A>,
+<A HREF = "read_restart.html">read_restart</A> or <A HREF = "create_atoms.html">create_atoms</A>
+commands, this command changes those assignments.  This can be useful
+for altering pairwise and molecular force interactions, since
+force-field coefficients are defined in terms of types.  It can also
+be used to change the labeling of atoms when they are output in
+<A HREF = "dump.html">dump</A> files.  It can also be useful for debugging purposes;
+i.e. positioning an atom at a precise location to compute subsequent
+forces or energy.
+</P>
+<P>For style <I>atom</I>, the atom type of all atoms in the group is changed
+to the specified value from 1 to ntypes.  Note that ntypes must be
+within the range the simulation was initialized for.  The maximum
+number of types is set by the <A HREF = "create_box.html">create_box</A> command or
+the <I>atom types</I> field in the header of the data file read by the
+<A HREF = "read_data.html">read_data</A> command.
+</P>
+<P>For style <I>bond</I>, <I>angle</I>, <I>dihedral</I>, or <I>improper</I>, the bond type
+(angle type, etc) of all bonds (angles, etc) of atoms in the group is
+changed to the specified value from 1 to nbondtypes (angletypes, etc).
+All atoms in the bond (angle, etc) must be in the group in order for
+the change to be made.  The maximum number of types is set by the
+<I>bond types</I> (<I>angle types</I>, etc) field in the header of the data
+file.
+</P>
+<P>For style <I>charge</I>, the charge of each atom in the group is set to
+the specified value.
+</P>
+<P>For style <I>dipole</I>, the specified value is used as a random number
+seed.  The dipole moment of each atom in the group is set to a random
+orientation with a magnitude determined by the <A HREF = "dipole.html">dipole</A>
+command setting for that atom type.
+</P>
+<P>For styles <I>type</I>, <I>mol</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, or <I>q</I>, the
+corresponding attribute of a single atom with the specified atom-ID is
+set to the specified value.  E.g. the last example above, sets the
+atom-type of atom 1492 to 3.  If "type" were replaced by "q", the
+charge on atom 1492 would be set to 3; if it were replaced by "mol",
+then then the molecule-ID would be set to 3.  The values for x,y,z are
+in distance units, the values for vx,vy,vz are in velocity units, and
+the value for charge is in charge units, as explained by the
+<A HREF = "units.html">units</A> command.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command requires inter-processor communication to coordinate the
+setting of bond types (angle types, etc).  This means that your system
+must be ready to perform a simulation before using this command (force
+fields setup, atom masses set, etc).  This is not necessary to simply
+reset atom types.
+</P>
+<P>You cannot set the <I>mol</I> or <I>q</I> for an atom if the
+<A HREF = "atom_style.html">atom_style</A> does not have those attributes.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "create_box.html">create_box</A>, <A HREF = "create_atoms.html">create_atoms</A>,
+<A HREF = "read_data.html">read_data</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

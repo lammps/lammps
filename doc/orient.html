@@ -1,0 +1,51 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>orient command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>orient dim i j k 
+</PRE>
+<UL><LI>dim = <I>x</I> or <I>y</I> or <I>z</I>
+<LI>i,j,k = orientation of lattice that is along box direction dim 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>orient x 1 1 0
+orient y -1 1 0
+orient z 0 0 1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify the orientation of a cubic lattice along simulation box
+directions <I>x</I> or <I>y</I> or <I>z</I>.  These 3 basis vectors are used when the
+<A HREF = "create_atoms.html">create_atoms</A> command generates a lattice of atoms.
+</P>
+<P>The 3 basis vectors B1, B2, B3 must be mutually orthogonal and form a
+right-handed system such that B1 cross B2 is in the direction of B3.
+</P>
+<P>The basis vectors should be specified in an irreducible form (smallest
+possible integers), though LAMMPS does not check for this.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "origin.html">origin</A>, <A HREF = "create_atoms.html">create_atoms</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>orient x 1 0 0
+orient y 0 1 0
+orient z 0 0 1 
+</PRE>
+</HTML>

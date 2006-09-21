@@ -1,0 +1,124 @@
+"Previous Section"_Section_errors.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Manual.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+10. Future and history :h3
+
+This section lists features we are planning to add to LAMMPS, features
+of previous versions of LAMMPS, and features of other parallel
+molecular dynamics codes I've distributed.
+
+10.1 "Coming attractions"_#10_1
+10.2 "Past versions"_#10_2 :all(b)
+
+:line
+
+10.1 Coming attractions :h4,link(10_1)
+
+The current version of LAMMPS incorporates nearly all the features
+from previous parallel MD codes I developed.  These include earlier
+versions of LAMMPS itself, Warp and ParaDyn for metals, and GranFlow
+for granular materials.
+
+These are new features I'd like to eventually add to LAMMPS.  Some are
+being worked on; some haven't been implemented because of lack of time
+or interest; others are just a lot of work!
+
+Monte Carlo bond-swapping for polymers (was in Fortran LAMMPS)
+torsional shear boundary conditions and temperature calculation
+bond creation potentials
+point dipole force fields
+3-body force fields for materials like Si or silica
+modified EAM (MEAM) potentials for metals
+REAXX force field from Bill Goddard's group
+pressure and energy tail corrections for pairwise interactions
+Parinello-Rahman non-rectilinear simulation box :ul
+
+:line
+
+10.2 Past versions :h4,link(10_2)
+
+LAMMPS development began in the mid 1990s under a cooperative research
+& development agreement (CRADA) between two DOE labs (Sandia and LLNL)
+and 3 companies (Cray, Bristol Myers Squibb, and Dupont).  Soon after
+the CRADA ended, a final F77 version of the code, LAMMPS 99, was
+released.  As development of LAMMPS continued at Sandia, the memory
+management in the code was converted to F90; a final F90 version was
+released as LAMMPS 2001.
+
+The current LAMMPS is a rewrite in C++ and was first publicly released
+in 2004.  It includes many new features, including features from other
+parallel molecular dynamics codes written at Sandia, namely ParaDyn,
+Warp, and GranFlow.  ParaDyn is a parallel implementation of the
+popular serial DYNAMO code developed by Stephen Foiles and Murray Daw
+for their embedded atom method (EAM) metal potentials.  ParaDyn uses
+atom- and force-decomposition algorithms to run in parallel.  Warp is
+also a parallel implementation of the EAM potentials designed for
+large problems, with boundary conditions specific to shearing solids
+in varying geometries.  GranFlow is a granular materials code with
+potentials and boundary conditions peculiar to granular systems.  All
+of these codes (except ParaDyn) use spatial-decomposition techniques
+for their parallelism.
+
+These older codes are available for download from the "LAMMPS WWW
+site"_lws, except for Warp & GranFlow which were primarily used
+internally.  A brief listing of their features is given here.
+
+LAMMPS 2001
+    
+    F90 + MPI
+    dynamic memory
+    spatial-decomposition parallelism
+    NVE, NVT, NPT, NPH, rRESPA integrators
+    LJ and Coulombic pairwise force fields
+    all-atom, united-atom, bead-spring polymer force fields
+    CHARMM-compatible force fields
+    class 2 force fields
+    3d/2d Ewald & PPPM
+    various force and temperature constraints
+    SHAKE
+    Hessian-free truncated-Newton minimizer
+    user-defined diagnostics :ul
+
+LAMMPS 99
+    
+    F77 + MPI
+    static memory allocation
+    spatial-decomposition parallelism
+    most of the LAMMPS 2001 features with a few exceptions
+    no 2d Ewald & PPPM
+    molecular force fields are missing a few CHARMM terms
+    no SHAKE :ul
+
+Warp
+
+    F90 + MPI
+    spatial-decomposition parallelism
+    embedded atom method (EAM) metal potentials + LJ
+    lattice and grain-boundary atom creation
+    NVE, NVT integrators
+    boundary conditions for applying shear stresses
+    temperature controls for actively sheared systems
+    per-atom energy and centro-symmetry computation and output :ul
+
+ParaDyn
+
+    F77 + MPI
+    atom- and force-decomposition parallelism
+    embedded atom method (EAM) metal potentials
+    lattice atom creation
+    NVE, NVT, NPT integrators
+    all serial DYNAMO features for controls and constraints :ul
+
+GranFlow
+
+    F90 + MPI
+    spatial-decomposition parallelism
+    frictional granular potentials
+    NVE integrator
+    boundary conditions for granular flow and packing and walls
+    particle insertion :ul

@@ -1,0 +1,41 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>thermo command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>thermo N 
+</PRE>
+<UL><LI>N = output thermodynamics every N timesteps 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>thermo 100 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Compute and print thermodynamics (temperature, energy, pressure) on
+timesteps that are a multiple of N and at the beginning and end of a
+simulation.  A value of 0 will only print thermodynamics at the
+beginning and end.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "thermo_style.html">thermo_style</A>, <A HREF = "thermo_modify.html">thermo_modify</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>thermo 0 
+</PRE>
+</HTML>

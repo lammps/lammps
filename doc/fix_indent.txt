@@ -1,0 +1,112 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix indent command :h3
+
+[Syntax:]
+
+fix ID group-ID indent k keyword args ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+indent = style name of this fix command :l
+k = force constant for indenter surface (force/distance^2 units) :l
+one or more keyword/value pairs may be appended to the args :l
+keyword = {sphere} or {cylinder} or {vel} or {rstart} or {units} :l
+  {sphere} args = x y z R
+    x,y,z = initial position of center of indenter
+    R = sphere radius of indenter (distance units)
+  {cylinder} args = dim c1 c2 R
+    dim = x or y or z = axis of cylinder
+    c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+    R = cylinder radius of indenter (distance units)
+  {vel} args = vx vy vz
+    vx,vy,vz = velocity of center of indenter (velocity units)
+  {rstart} value = R0
+    R0 = sphere or cylinder radius at start of run
+    R is value at end of run, so indenter expands/contracts over time
+  {units} value = {lattice} or {box}
+    lattice = the geometry is defined in lattice units
+    box = the geometry is defined in simulation box units :pre
+:ule
+
+[Examples:]
+
+fix 1 all indent 10.0 sphere 0.0 0.0 15.0 3.0 vel 0.0 0.0 -1.0
+fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box :pre
+
+[Description:]
+
+Insert an indenter within a simulation box.  The indenter repels all
+atoms that touch it, so it can be used to push into a material or as
+an obstacle in a flow.
+
+The indenter can either be spherical or cylindrical.  You must set
+one of those 2 keywords.
+
+A spherical indenter exerts a force of magnitude
+
+F(r) = - k (r - R)^2 :pre
+
+on each atom where {k} is the specified force constant, {r} is the
+distance from the atom to the center of the indenter, and {R} is the
+radius of the indenter.  The force is repulsive and F(r) = 0 for {r} >
+{R}.
+
+A cylindrical indenter exerts the same force, except that {r} is the
+distance from the atom to the center axis of the cylinder.  The
+cylinder extends infinitely along its axis.
+
+If the {vel} keyword is specified, the center (or axis) of the
+spherical (or cylindrical) indenter will move during the simulation,
+based on its initial position (x,y,z) and the specified (vx,vy,vz).
+Note that if you do multiple runs, the initial position of the
+indenter (x,y,z) does not change, so it will continue to move at the
+specified velocity.
+
+If the {rstart} keyword is specified, then the radius of the indenter
+is a time-dependent quantity.  R0 is the value assigned at the start
+of the run; R is the value at the end.  At intermediate times, the
+radius is linearly interpolated between these two values.  The
+"run"_run.html command documents how to make the interpolation take
+place across multiple runs.  This option can be used, for example, to
+grow/shrink a void within the simulation box.  This option is not
+relevant during an energy minimization; the indenter always has radius
+R in that case.  Note that if you do multiple runs, you may need to
+re-specify the fix so that the indenter radius has the appropriate
+value.  If you do nothing, it will be reset to R0 at the beginning of
+each run.
+
+The {units} keyword determines the meaning of the distance units used
+to define the indenter.  A {box} value selects standard distance units
+as defined by the "units"_units.html command, e.g. Angstroms for units
+= real or metal.  A {lattice} value means the distance units are in
+cubic lattice spacings.  The "lattice"_lattice.html command must first
+be used to define a lattice.  Note that the units choice affects not
+only the indenter's physical geometry, but also its velocity and force
+constant since they are defined in terms of distance as well.
+
+This fix supports the "fix_modify"_fix_modify.html options for
+{thermo} and {energy}.  The former will print the contribution the fix
+makes to the energy of the system when thermodynamics is printed,
+where the energy of each particle interacting with the indenter is K/3
+(r - R)^3.  The latter will add this contribution to the total
+potential energy (PotEng).
+
+The forces due to this fix are also imposed during an energy
+minimization, invoked by the "minimize"_minimize.html command.  If you
+want that energy to be included in the total potential energy of the
+system (the quantity being minimized), you must enable the
+"fix_modify"_fix_modify.html {energy} option for this fix.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:]
+
+The option defaults are vel = 0,0,0 and units = lattice.

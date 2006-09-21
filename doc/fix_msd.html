@@ -1,0 +1,42 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix msd command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID msd N file 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>msd = style name of this fix command
+<LI>N = compute mean-squared displacement every this many timesteps
+<LI>file = filename to write mean-squared displacement info to 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all msd 100 diff.out 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Compute the mean-squared displacement of the group of atoms every N
+steps, including all effects due to atoms passing thru periodic
+boundaries.  The slope of the mean-squared displacement versus time is
+proportional to the diffusion coefficient of the diffusing atoms.  The
+"origin" of the displacement for each atom is its position at the time
+the fix command was issued.  Write the results to the specified file.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,289 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style eam command 
+</H3>
+<H3>pair_style eam/alloy command 
+</H3>
+<H3>pair_style eam/fs command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style 
+</PRE>
+<UL><LI>style = <I>eam</I> or <I>eam/alloy</I> or <I>eam/fs</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style eam
+pair_coeff * * cuu3
+pair_coeff 1*3 1*3 niu3 
+</PRE>
+<PRE>pair_style eam/alloy
+pair_coeff * * nialhjea 1 2 1 1 
+</PRE>
+<PRE>pair_style eam/fs
+pair_coeff * * nial.fs 1 2 1 1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>eam</I> computes pairwise interactions for metals and metal alloys
+using embedded-atom method (EAM) potentials <A HREF = "#Daw">(Daw)</A>.  The total
+energy Ei of an atom I is given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eam.jpg">
+</CENTER>
+<P>where F is the embedding energy which is a function of the atomic
+electron density rho, phi is a pair potential interaction, and alpha
+and beta are the element types of atoms I and J.  The multi-body
+nature of the EAM potential is a result of the embedding energy term.
+Both summations in the formula are over all neighbors J of atom I
+within the cutoff distance.
+</P>
+<P>The cutoff distance and the tabulated values of the functionals F,
+rho, and phi are listed in one or more files which are specified by
+the <A HREF = "pair_coeff.html">pair_coeff</A> command.  These are ASCII text files
+in a DYNAMO-style format which is described in the documentation for
+the <A HREF = "pair_coeff.html">pair_coeff</A> command.  DYNAMO is a serial MD code
+Several DYNAMO potential files for different metals are included in
+the "potentials" directory of the LAMMPS distribution.
+</P>
+<P>IMPORTANT NOTE: The <I>eam</I> style reads single-element EAM potentials in
+the DYNAMO <I>funcfl</I> format.  Single element or alloy systems can be
+modeled with <I>funcfl</I> files and style <I>eam</I>; for the alloy case LAMMPS
+mixes the single-element potentials to produce alloy potentials the
+same way that DYNAMO does.  Alternatively, DYNAMO <I>setfl</I> files can be
+used by LAMMPS to model alloy systems by invoking the <I>eam/alloy</I>
+style as described below.  <I>Setfl</I> files require no mixing as they
+specify alloy interactions explicitly.
+</P>
+<P>For style <I>eam</I>, potential values are read from a file that is in the
+DYNAMO single-element <I>funcfl</I> format.  If the DYNAMO file was created
+by a Fortran program, it cannot have "D" values in it for exponents.
+C only recognizes "e" or "E" for scientific notation.
+</P>
+<P>Note that unlike for other potentials, you do not set cutoffs for EAM
+potentials in the pair_style or pair_coeff command; they are specified
+in the EAM potential files.
+</P>
+<P>For style <I>eam</I> you must assign a potential file to each I,I pair of
+atom types by using a single pair_coeff argument:
+</P>
+<UL><LI>filename 
+</UL>
+<P>Thus the following command
+</P>
+<PRE>pair_coeff *2 1*2 cuu3 
+</PRE>
+<P>will read the cuu3 potential file and use the tabulated Cu values for
+F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
+1,2 and 2,1 are ignored).  In effect, this makes atom types 1 and 2 in
+LAMMPS be Cu atoms.  Different single-element files can be assigned to
+different atom types to model an alloy system.  The mixing to create
+alloy potentials for type pairs with I != J is done automatically the
+same way that the serial DYANMO code originally did it; you do not
+need to specify coefficients for these type pairs.
+</P>
+<P>There are several <I>funcl</I> files in the <I>potentials</I> directory of the
+LAMMPS distribution.  A DYNAMO single-element <I>funcfl</I> file is
+formatted as follows:
+</P>
+<UL><LI>line 1: comment (ignored)
+<LI>line 2: atomic number, mass, lattice constant, lattice type (e.g. FCC)
+<LI>line 3: Nrho, drho, Nr, dr, cutoff 
+</UL>
+<P>On line 2, all values but the mass are ignored by LAMMPS.  The mass is
+in atomic mass units which is converted by LAMMPS to the appropriate
+internal mass <A HREF = "units.html">units</A>.  On line 3, Nrho and Nr are the
+number of tabulated values in the subsequent arrays, drho and dr are
+the spacing in density and distance space for the values in those
+arrays, and the specified cutoff becomes the pairwise cutoff used by
+LAMMPS for the potential.  The units of dr are Angstroms; I'm not sure
+of the units for drho - some measure of electron density.
+</P>
+<P>Following the 3 header lines are 3 arrays of tabulated values:
+</P>
+<UL><LI>embedding function F (Nrho values)
+<LI>pair potential function phi (Nr values)
+<LI>density function rho (Nr values) 
+</UL>
+<P>The values for each array can be listed as multiple values per line,
+so long as each array starts on a new line.  The individual values are
+(for example) phi(r) for r = 0,dr,2*dr, ... (Nr-1)*dr.
+</P>
+<HR>
+
+<P>Style <I>eam/alloy</I> computes pairwise interactions using the same
+formula as style <I>eam</I>.  However the associated
+<A HREF = "pair_coeff.html">pair_coeff</A> command reads a DYNAMO <I>setfl</I> file
+instead of a <I>funcfl</I> file.  <I>Setfl</I> files can be used to model a
+single-element or alloy system.  In the alloy case, as explained
+above, <I>setfl</I> files contain explicit tabulated values for alloy
+interactions.  Thus they allow more generality than <I>funcfl</I> files for
+modeling alloys.
+</P>
+<P>For style <I>eam/alloy</I>, potential values are read from a file that is
+in the DYNAMO multi-element <I>setfl</I> format.  If the DYNAMO file was
+created by a Fortran program, it cannot have "D" values in it for
+exponents.  C only recognizes "e" or "E" for scientific notation.
+</P>
+<P>Only one pair_coeff command can be used (one file).  DYNAMO <I>setfl</I>
+files contain information for M elements.  These are mapped to LAMMPS
+atom types by specifying N additional arguments after the filename,
+where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>filename
+<LI>N values from 0 to M = mapping of <I>setfl</I> elements to atom types 
+</UL>
+<P>As an example, the nialhjea <I>setfl</I> file has tabulated EAM values for
+3 elements and their alloy interactions: Ni, Al, and H.  If your
+LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Ni,
+and the 4th to be Al, you would use the following pair_coeff command:
+</P>
+<PRE>pair_coeff * * nialhjea 1 1 1 2 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The first three "1" values map LAMMPS atom types 1,2,3 to the 1st
+element (Ni) in the <I>setfl</I> file.  The final "2" value maps LAMMPS atom
+type 4 to the 2nd element = Al.  If a mapping value is "0", the
+mapping is not performed.  This is useful when EAM potentials are part
+of the <I>hybrid</I> pair style, to represent non-EAM atom types.
+</P>
+<P>There is one <I>setfl</I> file (nialhjea) in the <I>potentials</I> directory of
+the LAMMPS distribution.  A DYNAMO multi-element <I>setfl</I> file is
+formatted as follows:
+</P>
+<UL><LI>lines 1,2,3 = comments (ignored)
+<LI>line 4: Nelements = # of elements in the file
+<LI>line 5: Nrho, drho, Nr, dr, cutoff 
+</UL>
+<P>The meaning of the values in line 5 is the same as for the <I>funcfl</I>
+file described above.  Note that the cutoff is a global value, valid
+for all pairwise interactions for all element pairings.
+</P>
+<P>Following the 5 header lines are Nelements sections, one for each
+element, each with the following format:
+</P>
+<UL><LI>line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
+<LI>embedding function F (Nrho values)
+<LI>density function rho (Nr values) 
+</UL>
+<P>As with the <I>funcfl</I> files, only the mass is used by LAMMPS from the 1st
+line.  The F and rho arrays are unique to a single element and are
+formatted the same as in a <I>funcfl</I> file.
+</P>
+<P>Following the Nelements sections, values for the pair potential phi
+arrays are listed for all i,j element pairs in the same format as
+other arrays.  Since these interactions are symmetric (i,j = j,i) only
+phi arrays with i >= j are listed, in the following order: i,j =
+(1,1), (2,1), (2,2), (3,1), (3,2), (3,3), (4,1), ..., (Nelements,
+Nelements).  The tabulated values for each phi function are listed in
+<I>setfl</I> files as r*phi, rather than as phi (in <I>funcfl</I> files).
+</P>
+<HR>
+
+<P>Style <I>eam/fs</I> computes pairwise interactions for metals and metal
+alloys using a generalized form of EAM potentials due to Finnis and
+Sinclair <A HREF = "#Finnis">(Finnis)</A>.  The total energy Ei of an atom I is
+given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eam_fs.jpg">
+</CENTER>
+<P>This has the same form as the EAM formula above, except that rho is
+now a functional specific to the atomic types of both atoms I and J,
+so that different elements can contribute differently to the total
+electron density at an atomic site depending on the identity of the
+element at that atomic site.
+</P>
+<P>The associated <A HREF = "pair_coeff.html">pair_coeff</A> command for style <I>eam/fs</I>
+reads a DYNAMO <I>setfl</I> file that has been extended to include
+additional rho_alpha_beta arrays of tabulated values.  The details are
+given in the <A HREF = "pair_coeff.html">pair_coeff</A> documentation.
+</P>
+<P>A discussion of how FS EAM differs from conventional EAM alloy
+potentials is given in <A HREF = "#Ackland1">(Ackland1)</A>.  An example of such a
+potential is the same author's Fe-P FS potential
+<A HREF = "#Ackland2">(Ackland2)</A>.  Note that while FS potentials always specify
+the embedding energy with a square root dependence on the total
+density, the implementation in LAMMPS does not require that; the user
+can tabulate any functional form he desires in the FS potential files.
+</P>
+<P>For style <I>eam/fs</I>, the form of the pair_coeff command is exactly the
+same as for style <I>eam/alloy</I>, e.g.
+</P>
+<PRE>pair_coeff * * filename 1 1 1 2 
+</PRE>
+<P>where there are N additional arguments after the filename, where N is
+the number of LAMMPS atom types.  The N values determine the mapping
+of LAMMPS atom types to EAM elements in the file, as described in
+style <I>eam/alloy</I>.
+</P>
+<P>The difference is that files read by <I>eam/fs</I> are in a more general
+format than the DYNAMO <I>setfl</I> format read by <I>eam/alloy</I>, so that the
+i,j density functionals for all pairs of elements are included as
+needed by the Finnis/Sinclair formulation of the EAM.
+</P>
+<P>There is one FS file (nialhjea_FS) in the <I>potentials</I> directory of
+the LAMMPS distribution.  It is formatted as follows:
+</P>
+<UL><LI>lines 1,2,3 = comments (ignored)
+<LI>line 4: Nelements = # of elements in the file
+<LI>line 5: Nrho, drho, Nr, dr, cutoff 
+</UL>
+<P>The 5-line header section is identical to an EAM <I>setfl</I> file.
+</P>
+<P>Following the header are Nelements sections, one for each element I,
+each with the following format:
+</P>
+<UL><LI>line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
+<LI>embedding function F (Nrho values)
+<LI>density function rho for element I at element 1 (Nr values)
+<LI>density function rho for element I at element 2
+<LI>...
+<LI>density function rho for element I at element Nelement 
+</UL>
+<P>Following the Nelements sections, values for the pair potential phi
+arrays are listed in the same manner (r*phi) as in EAM <I>setfl</I> files.
+Note that the rho arrays in Finnis/Sinclair can be asymmetric (i,j !=
+j,i) so there are Nelements^2 of them listed in the file.  But the phi
+arrays are still symmetric, so only phi arrays for i >= j are listed.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Ackland1"></A>
+
+<P><B>(Ackland1)</B> Ackland, Condensed Matter (2005).
+</P>
+<A NAME = "Ackland2"></A>
+
+<P><B>(Ackland2)</B> Ackland, Mendelev, Srolovitz, Han and Barashev, Journal 
+of Physics: Condensed Matter, 16, S2629 (2004).
+</P>
+<A NAME = "Daw"></A>
+
+<P><B>(Daw)</B> Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).  
+Daw, Baskes, Phys Rev B, 29, 6443 (1984).
+</P>
+<A NAME = "Finnis"></A>
+
+<P><B>(Finnis)</B> Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
+</P>
+</HTML>

@@ -1,0 +1,46 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>origin command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>origin x y z 
+</PRE>
+<UL><LI>x,y,z = origin of a lattice 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>origin 0.0 0.5 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the origin of the lattice defined by the <A HREF = "lattice.html">lattice</A>
+command.  The lattice is used by the <A HREF = "create_atoms.html">create_atoms</A>
+command to create new atoms and by other commands that use a lattice
+spacing as a distance measure.  This command offsets the origin of the
+lattice from the (0,0,0) coordinate of the simulation box by some
+fraction of a lattice spacing in each dimension.
+</P>
+<P>The specified values are in lattice coordinates from 0.0 to 1.0, so
+that a value of 0.5 means the lattice is displaced 1/2 a cubic cell.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P>Related commands:</B>
+</P>
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "orient.html">orient</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>origin 0 0 0 
+</PRE>
+</HTML>

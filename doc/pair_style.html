@@ -1,0 +1,153 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = one of the following 
+
+<UL><LI><I>none</I>
+<LI><I>hybrid</I>
+<LI><I>buck</I> or <I>buck/coul/cut</I> or <I>buck/coul/long</I>
+<LI><I>dipole/cut</I> or <I>dipole/long</I>
+<LI><I>dpd</I>
+<LI><I>eam</I> or <I>eam/alloy</I> or <I>eam/fs</I>
+<LI><I>gran/hertzian</I> or <I>gran/history</I> or <I>gran/no_history</I>
+<LI><I>lj/charmm/coul/charmm</I> or <I>lj/charmm/coul/charmm/implicit</I> or <I>lj/charmm/coul/long</I>
+<LI><I>lj/class2</I> or <I>lj/class2/coul/cut</I> or <I>lj/class2/coul/long</I>
+<LI><I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
+<LI><I>lj/expand</I>
+<LI><I>lj/smooth</I>
+<LI><I>morse</I>
+<LI><I>soft</I>
+<LI><I>table</I>
+<LI><I>yukawa</I> 
+</UL>
+<LI>args = arguments used by a particular style 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lj/cut 2.5
+pair_style eam/alloy
+pair_style hybrid lj/charmm/coul/long 10.0 eam
+pair_style table linear 1000
+pair_style none 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the formula(s) LAMMPS uses to compute pairwise interactions.  In
+LAMMPS, pair potentials are defined between pairs of atoms that are
+within a cutoff distance and the set of active interactions typically
+changes over time.  See the <A HREF = "bond_style.html">bond_style</A> command to
+define potentials between pairs of bonded atoms, which typically
+remain in place for the duration of a simulation.
+</P>
+<P>In LAMMPS, pairwise force fields encompass a variety of interactions,
+some of which include many-body effects, e.g. EAM, Stillinger-Weber,
+Tersoff, REBO potentials.  They are still classed as "pairwise"
+potential because a neighbor list is used to find nearby interacting
+atoms.
+</P>
+<P>Hybrid models where specified pairs of atom types interact via
+different pair potentials can be setup using the <I>hybrid</I> pair style.
+</P>
+<P>The coefficients associated with a pair style are typically set for
+each pair of atom types, and are specified by the
+<A HREF = "pair_coeff.html">pair_coeff</A> command or read from a file by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.  Mixing, shifting, and tail corrections for the potentials
+is discussed is the documentation for the
+<A HREF = "pair_modify.html">pair_modify</A> command.
+</P>
+<P>In the formulas listed for each pair style, <I>E</I> is the energy of a
+pairwise interaction between two atoms separated by a distance <I>r</I>.
+The force between the atoms is the negative derivative of this
+expression.
+</P>
+<P>If the pair_style command has a cutoff argument, it sets global
+cutoffs for all pairs of atom types.  The distance(s) can be smaller
+or larger than the dimensions of the simulation box.
+</P>
+<P>Typically, the global cutoff value can be overridden for a specific
+pair of atom types by the <A HREF = "pair_coeff.html">pair_coeff</A> command.  The
+pair style settings (including global cutoffs) can be changed by a
+subsequent pair_style command using the same style.  This will reset
+the cutoffs for all atom type pairs, including those previously set
+explicitly by a <A HREF = "pair_coeff.html">pair_coeff</A> command.  The exceptions
+to this are that pair_style <I>table</I> and <I>hybrid</I> settings cannot be
+reset.  A new pair_style command for these styles will wipe out all
+previously specified pair_coeff values.
+</P>
+<HR>
+
+<P>Here is an alphabetic list of pair styles defined in LAMMPS.  Click on
+the style to display the formula it computes, arguments specified in
+the pair_style command, and coefficients specified by the associated
+<A HREF = "pair_coeff.html">pair_coeff</A> command:
+</P>
+<UL><LI><A HREF = "pair_style_none.html">pair_style none</A> - turn off pairwise interactions
+<LI><A HREF = "pair_style_hybrid.html">pair_style hybrid</A> - define multiple styles of pairwise interactions 
+</UL>
+<UL><LI><A HREF = "pair_style_buck.html">pair_style buck</A> - Buckingham potential
+<LI><A HREF = "pair_style_buck.html">pair_style buck/coul/cut</A> - Buckinhham with cutoff Coulomb
+<LI><A HREF = "pair_style_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulomb
+<LI><A HREF = "pair_style_dipole.html">pair_style dipole/cut</A> - cutoff dipole and charge interactions
+<LI><A HREF = "pair_style_dpd.html">pair_style dpd</A> - dissipative particle dynamics (DPD)
+<LI><A HREF = "pair_style_eam.html">pair_style eam</A> - embedded atom method (EAM)
+<LI><A HREF = "pair_style_eam.html">pair_style eam/alloy</A> - alloy EAM
+<LI><A HREF = "pair_style_eam.html">pair_style eam/fs</A> - Finnis-Sinclair EAM
+<LI><A HREF = "pair_style_granular.html">pair_style gran/hertzian</A> - granular potential with Hertizain interactions
+<LI><A HREF = "pair_style_granular.html">pair_style gran/history</A> - granular potential with history effects
+<LI><A HREF = "pair_style_granular.html">pair_style gran/no_history</A> - granular potential without history effects
+<LI><A HREF = "pair_style_charmm.html">pair_style lj/charmm/coul/charmm</A> - CHARMM potential with cutoff Coulomb
+<LI><A HREF = "pair_style_charmm.html">pair_style lj/charmm/coul/charmm/implicit</A> - CHARMM for implicit solvent
+<LI><A HREF = "pair_style_charmm.html">pair_style lj/charmm/coul/long</A> - CHARMM with long-range Coulomb
+<LI><A HREF = "pair_style_class2.html">pair_style lj/class2</A> - COMPASS (class 2) force field with no Coulomb
+<LI><A HREF = "pair_style_class2.html">pair_style lj/class2/coul/cut</A> - COMPASS with cutoff Coulomb
+<LI><A HREF = "pair_style_class2.html">pair_style lj/class2/coul/long</A> - COMPASS with long-range Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut</A> - cutoff Lennard-Jones potential with no Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/cut</A> - LJ with cutoff Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/debye</A> - LJ with Debye damping added to Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/long</A> - LJ with long-range Coulomb
+<LI><A HREF = "pair_style_lj.html">pair_style lj/cut/coul/long/tip4p</A> - LJ with long-range Coulomb for TIP4P water
+<LI><A HREF = "pair_style_lj_expand.html">pair_style lj/expand</A> - Lennard-Jones for variable size particles
+<LI><A HREF = "pair_style_lj_smooth.html">pair_style lj/smooth</A> - smoothed Lennard-Jones potential
+<LI><A HREF = "pair_style_morse.html">pair_style morse</A> - Morse potential
+<LI><A HREF = "pair_style_soft.html">pair_style soft</A> - Soft (cosine) potential
+<LI><A HREF = "pair_style_table.html">pair_style table</A> - tabulated pair potential
+<LI><A HREF = "pair_style_yukawa.html">pair_style yukawa</A> - Yukawa potential 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command must be used before any coefficients are set by the
+<A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "read_data.html">read_data</A>, or
+<A HREF = "read_restart.html">read_restart</A> commands.
+</P>
+<P>Some pair styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "read_data.html">read_data</A>,
+<A HREF = "pair_modify.html">pair_modify</A>, <A HREF = "kspace_style.html">kspace_style</A>,
+<A HREF = "dielectric.html">dielectric</A>, <A HREF = "pair_write.html">pair_write</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>pair_style none 
+</PRE>
+</HTML>

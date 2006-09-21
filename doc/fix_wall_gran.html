@@ -1,0 +1,92 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix wall/gran command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID wall/gran wallstyle args keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>wall/gran = style name of this fix command 
+
+<LI>style = <I>xplane</I> or <I>yplane</I> or <I>zplane</I> or <I>zcylinder</I> 
+
+<LI>args = list of arguments for a particular style 
+
+<PRE>  <I>xplane</I> or <I>yplane</I> or <I>zplane</I> args = lo hi gamma xmu
+    lo, hi = position of lower and upper plane (either can be NULL)
+    gamman = damping coeff for normal direction collisions with wall
+    xmu = friction coeff for the wall
+  <I>zcylinder</I> args = radius gamma xmu
+    radius = cylinder radius (distance units)
+    gamman = damping coeff for normal direction collisions with wall
+    xmu = friction coeff for the wall 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<PRE>  keyword = <I>wiggle</I>
+    values = dim amplitude period
+      dim = <I>x</I> or <I>y</I> or <I>z</I>
+      amplitude = size of oscillation (distance units)
+      period = time of oscillation (time units) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all wall/gran xplane -10.0 10.0 50.0 0.5
+fix 2 all wall/gran zcylinder 15.0 50.0 0.5 wiggle z 3.0 2.0
+fix 1 all wall/gran zplane 0.0 NULL 100.0 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Bound the simulation domain of a granular system with a frictional
+wall.  All particles in the group interact with the wall when they are
+close enough to touch it.
+</P>
+<P>The <I>wallstyle</I> can be planar or cylindrical.  The 3 planar options
+specify a pair of walls in a dimension.  Wall positions are given by
+<I>lo</I> and <I>hi</I>.  Either of the values can be specified as NULL if a
+single wall is desired.  For a <I>zcylinder</I> wallstyle, the cylinder's
+axis is at x = y = 0.0, and the radius of the cylinder is specified.
+For all wallstyles, a damping and friction coefficient for
+particle-wall interactions are also specified.
+</P>
+<P>Optionally, a wall can be oscillated, similar to the oscillations of
+frozen particles specified by the <A HREF = "fix_wiggle.html">fix_wiggle</A>
+command.  This is useful in packing simulations of granular particles.
+If the keyword <I>wiggle</I> is appended to the argument list, then a
+dimension for the motion, as well as it's <I>amplitude</I> and <I>period</I> is
+specified.  Each timestep, the position of the wall in the appropriate
+<I>dim</I> is set according to this equation:
+</P>
+<PRE>position = pos0 + A - A cos (omega * delta) 
+</PRE>
+<P>where <I>pos0</I> is the position at the time the fix was specified, <I>A</I> is
+the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
+elapsed time since the fix was specified.  The velocity of the wall is
+also set to the derivative of this expression.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Can only be used if LAMMPS was built with the "granular" package.  A
+zcylinder wall can only be oscillated in the z dimension.  This fix
+can only be used with atom_style granular.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_wiggle.html">fix_wiggle</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

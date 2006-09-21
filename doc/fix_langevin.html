@@ -1,0 +1,133 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix langevin command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID langevin Tstart Tstop damp seed keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>langevin = style name of this fix command 
+
+<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
+
+<LI>damp = damping parameter (time units) 
+
+<LI>seed = random # seed to use for white noise (integer > 0 and < 900000000) 
+
+<LI>zero or more keyword/value pairs may be appended to the args 
+
+<PRE>keyword = <I>axes</I> or <I>scale</I> or <I>region</I>
+  <I>axes</I> values = xflag yflag zflag
+    xflag,yflag,zflag = 0/1 to exclude/include a dimension in the thermostat
+  <I>scale</I> values = type ratio
+    type = atom type (1-N)
+    ratio = factor to scale the damping coefficient by
+  <I>region</I> values = region-ID
+    region-ID = ID of region to apply thermostat to 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 boundary langevin 1.0 1.0 1000.0 699483
+fix 1 all langevin 1.0 1.1 100.0 48279 axes 0 1 1
+fix 3 boundary langevin 1.0 1.0 1000.0 699483 region boundary 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a Langevin thermostat to a group of atoms which models an
+interaction with a background implicit solvent.  Used with <A HREF = "fix_nve.html">fix
+nve</A>, this command performs Brownian dynamics (BD), since
+the total force on each atom will have the form:
+</P>
+<PRE>F = Fc + Ff + Fr 
+</PRE>
+<P>Fc is the conservative force computed via the usual inter-particle
+interactions (<A HREF = "pair_style.html">pair_style</A>,
+<A HREF = "bond_style.html">bond_style</A>, etc).
+</P>
+<P>The Ff and Fr terms are added by this fix.  Ff = - gamma v and is a
+frictional drag or viscous damping term proportional to the particle's
+velocity.  Gamma for each atom is computed as m/damp, where m is the
+mass of the particle and damp is the damping factor specified by the
+user.
+</P>
+<P>Fr is a force due to solvent atoms at a temperature T randomly bumping
+into the particle.  As derived from the fluctuation/dissipation
+theorum, its magnitude is proportional to sqrt(T m / dt damp), where T
+is the desired temperature, m is the mass of the particle, dt is the
+timestep size, and damp is the damping factor.  Random numbers are
+used to randomize the direction and magnitude of this force.
+</P>
+<P>The desired temperature at each timestep is a ramped value during the
+run from <I>Tstart</I> to <I>Tstop</I>.  The <A HREF = "run.html">run</A> command documents
+how to make the ramping take place across multiple runs.
+</P>
+<P>The <I>damp</I> parameter is specified in time units and determines how
+rapidly the temperature is relaxed.  For example, a value of 100.0
+means to relax the temperature in a timespan of (roughly) 100 time
+units (tau or fmsec or psec - see the <A HREF = "units.html">units</A> command).
+The damp factor can be thought of as inversely related to the
+viscosity of the solvent.  I.e. a small relaxation time implies a
+hi-viscosity solvent and vice versa.  See the discussion about gamma
+and viscosity in the documentation for the <A HREF = "fix_viscous.html">fix
+viscous</A> command for more details.
+</P>
+<P>The random # <I>seed</I> should be a non-zero integer with 1 to 8 digits.
+A Marsaglia random number generator is used.  Each processor uses the
+input seed to generate its own unique seed and its own stream of
+random numbers.  Thus the dynamics of the system will not be identical
+on two runs on different numbers of processors.  Also, the state of
+the random number generator is not saved in a restart file.  This
+means you cannot do exact restarts when a fix <I>langevin</I> command is
+used.
+</P>
+<P>The keyword <I>axes</I> can be used to specify which dimensions to add Ff
+and Fr to.  A flag of 0 means skip that dimension; a flag of 1 means
+include that dimension.  The default is 1 for all 3 dimensions.
+</P>
+<P>The keyword <I>scale</I> allows the damp factor to be scaled up or down by
+the specified factor for atoms of that type.  It can be used multiple
+times to adjust damp for several atom types.  Note that specifying a
+ratio of 2 increase the relaxation time which is equivalent to the the
+solvent's viscosity acting on particles with 1/2 the diameter.  This
+is the opposite effect of scale factors used by the <A HREF = "fix_viscous.html">fix
+viscous</A> command, since the damp factor in fix
+<I>langevin</I> is inversely related to the gamma factor in fix <I>viscous</I>.
+Also note that the damping factor in fix <I>langevin</I> includes the
+particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass and size of
+different atom types should be accounted for in the choice of ratio
+values.
+</P>
+<P>The keyword <I>region</I> applies the fix only to atoms that are in the
+specified geometric region (and in the fix group).  Since atoms can
+enter/leave a region, this test is performed each timestep.
+</P>
+<P>As noted above, fix <I>langevin</I> does not update the coordinates or
+velocities of its atoms, only the forces.  It is normally used with a
+<A HREF = "fix_nve.html">fix nve</A> that does the time integration.  Fix <I>langevin</I>
+should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. a <A HREF = "fix_nvt.html">nvt</A> or
+<A HREF = "fix_temp_rescale.html">temp/rescale</A> fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_viscous.html">fix
+viscous</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,89 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>atom_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>atom_style style args 
+</PRE>
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or <I>dpd</I> or         <I>full</I> or <I>granular</I> or <I>molecular</I> or <I>hybrid</I> 
+</UL>
+<PRE>  args = none for any style except <I>hybrid</I>
+  <I>hybrid</I> args = list of one or more styles 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>atom_style bond
+atom_style full
+atom_style hybrid charge bond 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define what style of atoms to use in a simulation.  This determines
+what attributes are associated with the atoms.  This command must be
+used before a simulation is setup via a <A HREF = "read_data.html">read_data</A>,
+<A HREF = "read_restart.html">read_restart</A>, or <A HREF = "create_box.html">create_box</A>
+command.
+</P>
+<P>Once a style is assigned, it cannot be changed, so use a style general
+enough to encompass all attributes.  E.g. with style <I>bond</I>, angular
+terms cannot be used or added later to the model.  It is OK to use a
+style more general than needed, though it may be slightly inefficient.
+</P>
+<P>The choice of style affects what quantities are stored by each atom,
+what quantities are communicated between processors to enable forces
+to be computed, and what quantities are listed in the data file read
+by the <A HREF = "read_data.html">read_data</A> command.
+</P>
+<P>These are the attributes of each style.  All styles store coordinates,
+velocities, atom IDs and types.
+</P>
+<UL><LI><I>angle</I> = bonds and angles - e.g. bead-spring polymers with stiffness
+<LI><I>atomic</I> = only the default values
+<LI><I>bond</I> = bonds - e.g. bead-spring polymers
+<LI><I>charge</I> = charge
+<LI><I>dipole</I> = charge + dipole moments
+<LI><I>dpd</I> = default values, also communicates velocities
+<LI><I>molecular</I> = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
+<LI><I>full</I> = molecular + charge - e.g. biomolecules, charged polymers
+<LI><I>granular</I> = granular material with rotational properties  
+</UL>
+<P>Typical simulations with a single pair potential will use only one of
+these styles.  For cases where multiple pair potentials will be used
+(see the <A HREF = "pair_style.html">pair_style</A> <I>hybrid</I> command), it may be
+necessary to use multiple atom styles.  Another example is doing a DPD
+simulations with bonds or angles.  In these cases the <I>hybrid</I> style
+can be used to list multiple atom styles.  Atoms will then store and
+communicate the union of all quantities implied by the individual
+styles.
+</P>
+<P>LAMMPS can be extended with new atom styles; see <A HREF = "Section_modify.html">this
+section</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
+"molecular" package.  The <I>granular</I> style is part of the "granular"
+package.  The <I>dpd</I> style is part of the "dpd" package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "pair_style.html">pair_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

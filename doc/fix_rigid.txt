@@ -1,0 +1,94 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix rigid :h3
+
+[Syntax:]
+
+fix ID group-ID rigid keyword values :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+rigid = style name of this fix command :l
+keyword = {single} or {molecule} or {group} :l
+  {single} values = none
+  {molecule} values = none
+  {group} values = list of group IDs :pre
+:ule
+
+[Examples:]
+
+fix 1 clump rigid single
+fix 1 polychains rigid molecule
+fix 2 fluid rigid group clump1 clump2 clump3 :pre
+
+[Description:]
+
+Treat one or more sets of atoms as an independent rigid body.  This
+means that each timestep the total force and torque on each rigid body
+is computed and the coordinates and velocities of the atoms in each
+body are updated so that they move as a rigid body.  This can be
+useful for freezing one or more portions of a large biomolecule, or
+for simulating a system of colloidal particles.
+
+This fix updates the positions and velocities of the rigid atoms with
+a constant-energy time integration, so you should not update the same
+atoms via other fixes (e.g. nve, nvt, npt, temp/rescale, langevin).
+
+Each body must have two or more atoms.  Which atoms are in which
+bodies can be defined via several options.
+
+For option {single} the entire group of atoms is treated as one rigid
+body.
+
+For option {molecule}, each set of atoms in the group with a different
+molecule ID is treated as a rigid body.
+
+For option {group}, each of the listed groups is treated as a separate
+rigid body.  Note that only atoms that are also in the fix group are
+included in each rigid body.
+
+For computational efficiency, you should also turn off pairwise and
+bond interactions within each rigid body, as they no longer contribute
+to the motion.  The "neigh_modify exclude"_neigh_modify.html and
+"delete_bonds"_delete_bonds.html commands are used to do this.
+
+For computational efficiency, you should define one fix rigid which
+includes all the desired rigid bodies.  LAMMPS will allow multiple
+rigid fixes to be defined, but it is more expensive.
+
+The degrees-of-freedom removed by rigid bodies are accounted for in
+temperature and pressure computations.  Similary, the rigid body
+contribution to the pressure virial is also accounted for.  The latter
+is only correct if forces within the bodies have been turned off, and
+there is only a single fix rigid defined.
+
+Note that this fix uses constant-energy integration, so you need to
+impose additional constraints to control the temperature of an
+ensemble of rigid bodies.  You can use "fix
+langevin"_fix_langevin.html for this purpose to treat the system as
+effectively immersed in an implicit solvent, i.e. a Brownian dynamics
+model.  Or you can thermostat the atoms of an explicit solvent
+directly.
+
+[Restrictions:]
+
+This fix performs an MPI_Allreduce each timestep that is proportional
+in length to the number of rigid bodies.  Hence it will not scale well
+in parallel if large numbers of rigid bodies are simulated.
+
+If the atoms in a single rigid body initially straddle a periodic
+boundary, the input data file must define the image flags for each
+atom correctly, so that LAMMPS can "unwrap" the atoms into a valid
+rigid body.
+
+[Related commands:]
+
+"delete_bonds"_delete_bonds.html, "neigh_modify"_neigh_modify.html
+exclude
+
+[Default:] none

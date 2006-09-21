@@ -1,0 +1,55 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style lj/expand command :h3
+
+[Syntax:]
+
+pair_style lj/expand cutoff :pre
+
+cutoff = global cutoff for lj/expand interactions (distance units) :ul
+
+[Examples:]
+
+pair_style lj/expand 2.5
+pair_coeff * * 1.0 1.0 0.5
+pair_coeff 1 1 1.0 1.0 -0.2 2.0 :pre
+
+[Description:]
+
+Style {lj/expand} computes a LJ interaction with a distance shifted by
+delta which can be useful when particles are of different sizes, since
+it is different that using different sigma values in a standard LJ
+formula:
+
+:c,image(Eqs/pair_lj_expand.jpg)
+
+Rc is the cutoff which does not include the delta distance.  I.e. the
+actual force cutoff is the sum of cutoff + delta.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+epsilon (energy units)
+sigma (distance units)
+delta (distance units)
+cutoff (distance units) :ul
+
+The delta values can be positive or negative.  The last coefficient is
+optional.  If not specified, the global LJ cutoff is used.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+LAMMPS</H2>
+<P>
+LAMMPS = Large-scale Atomic/Molecular Massively Parallel Simulator</P>
+<P>
+This is the documentation for the LAMMPS 99 version, written in F77,
+which has been superceded by more current versions.  See the <A
+HREF="http://www.cs.sandia.gov/~sjplimp/lammps.html">LAMMPS WWW
+Site</A> for more information.
+<P>
+LAMMPS is a classical molecular dynamics code designed for simulating 
+molecular and atomic systems on parallel computers using 
+spatial-decomposition techniques. It runs on any parallel platform that 
+supports the MPI message-passing library or on single-processor 
+workstations.</P>
+<P>
+LAMMPS 99 is copyrighted code that is distributed freely as
+open-source software under the GNU Public License (GPL).  See the
+LICENSE file or <A HREF="http://www.gnu.org">www.gnu.org</A> for more
+details.  Basically the GPL allows you as a user to use, modify, or
+distribute LAMMPS however you wish, so long as any software you
+distribute remains under the GPL.
+<P>
+Features of LAMMPS 99 include:</P>
+<UL>
+    <LI>
+    short-range pairwise Lennard-Jones and Coulombic interactions 
+    <LI>
+    long-range Coulombic interactions via Ewald or PPPM (particle-mesh 
+    Ewald) 
+    <LI>
+    short-range harmonic bond potentials (bond, angle, torsion, improper) 
+    <LI>
+    short-range class II (cross-term) molecular potentials 
+    <LI>
+    NVE, NVT, NPT dynamics 
+    <LI>
+    constraints on atoms or groups of atoms 
+    <LI>
+    rRESPA long-timescale integrator 
+    <LI>
+    energy minimizer (Hessian-free truncated Newton method) 
+</UL>
+<P>
+More details about the code can be found <A HREF="#_cch3_930958294">here</A>, 
+in the HTML-based documentation. There is also a conference paper 
+describing the parallel algorithms used in the code:</P>
+<P>
+S. J. Plimpton, R. Pollock, M. Stevens, &quot;Particle-Mesh Ewald and 
+rRESPA for Parallel Molecular Dynamics Simulations&quot;, in Proc of 
+the Eighth SIAM Conference on Parallel Processing for Scientific 
+Computing, Minneapolis, MN, March 1997.</P>
+<P>
+LAMMPS was originally developed as part of a 5-way CRADA collaboration 
+between 3 industrial partners (Cray Research, Bristol-Myers Squibb, and 
+Dupont) and 2 DoE laboratories (Sandia National Laboratories and 
+Lawrence Livermore National Laboratories).</P>
+<P>
+The primary author of LAMMPS is Steve Plimpton, but others have written 
+or worked on significant portions of the code:</P>
+<UL>
+    <LI>
+    Roy Pollock (LLNL): Ewald, PPPM solvers 
+    <LI>
+    Mark Stevens (Sandia): rRESPA, NPT integrators 
+    <LI>
+    Eric Simon (Cray Research): class II force fields 
+    <LI>
+    Todd Plantenga (Sandia): energy minimizer 
+    <LI>
+    Steve Lustig (Dupont): msi2lmp tool 
+    <LI>
+    Mike Peachey (Cray Research): msi2lmp tool 
+</UL>
+<P>
+Other CRADA partners involved in the design and testing of LAMMPS are </P>
+<UL>
+    <LI>
+    John Carpenter (Cray Research) 
+    <LI>
+    Terry Stouch (Bristol-Myers Squibb) 
+    <LI>
+    Jim Belak (LLNL) 
+</UL>
+<P>
+LAMMPS is copyrighted code that is distributed freely as open-source
+software under the GNU Public License (GPL).  See the LICENSE file or
+<A HREF="http://www.gnu.org">www.gnu.org</A> for more details.
+Basically the GPL allows you as a user to use, modify, or distribute
+LAMMPS however you wish, so long as any software you distribute
+remains under the GPL.
+<P>
+If you have questions about LAMMPS, please contact me:
+</P>
+<DL>
+    <DT>
+    Steve Plimpton
+    <DD>
+    sjplimp@sandia.gov 
+    <DD>
+    www.cs.sandia.gov/~sjplimp 
+    <DD>
+    Sandia National Labs 
+    <DD>
+    Albuquerque, NM 87185
+</DL>
+<HR>
+<H3>
+<A NAME="_cch3_930958294">More Information about LAMMPS</A></H3>
+<DIR>
+    <LI>
+    <A HREF="basics.html">Basics</A> 
+    <DIR>
+        <LI>
+        how to make, run, and test LAMMPS with the example problems 
+    </DIR>
+    <LI>
+    <A HREF="input_commands.html">Input Commands</A> 
+    <DIR>
+        <LI>
+        a complete listing of input commands used by LAMMPS 
+    </DIR>
+    <LI>
+    <A HREF="data_format.html">Data Format</A> 
+    <DIR>
+        <LI>
+        the data file format used by LAMMPS 
+    </DIR>
+    <LI>
+    <A HREF="force_fields.html">Force Fields</A> 
+    <DIR>
+        <LI>
+        the equations LAMMPS uses to compute force-fields 
+    </DIR>
+    <LI>
+    <A HREF="units.html">Units</A> 
+    <DIR>
+        <LI>
+        the input/output and internal units for LAMMPS variables 
+    </DIR>
+    <LI>
+    <A HREF="crib.html">Crib</A> 
+    <DIR>
+        <LI>
+        a one-line description of the variables used in LAMMPS 
+    </DIR>
+    <LI>
+    <A HREF="history.html">History</A> 
+    <DIR>
+        <LI>
+        a brief timeline of features added to LAMMPS 
+    </DIR>
+</DIR>
+</BODY>
+</HTML>

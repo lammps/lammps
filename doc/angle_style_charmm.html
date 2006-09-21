@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style charmm command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style charmm 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style charmm
+angle_coeff 1 300.0 107.0 50.0 3.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>charmm</I> angle style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/angle_charmm.jpg">
+</CENTER>
+<P>with an additional Urey_Bradley term based on the distance <I>r</I> between
+the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
+coefficients defined for each angle type.
+</P>
+<P>The following coefficients must be defined for each angle type via the
+<A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>K (energy/radian^2)
+<LI>theta0 (degrees)
+<LI>K_ub (energy/distance^2)
+<LI>r_ub (distance) 
+</UL>
+<P>Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Angle styles can only be set for atom styles that allow angles to be
+defined.
+</P>
+<P>This angle style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,586 @@
+"Previous Section"_Section_commands.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_example.html :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line 
+
+4. How-to discussions :h3
+
+The following sections describe what commands can be used to perform
+certain kinds of LAMMPS simulations.
+
+4.1 "Restarting a simulation"_#4_1
+4.2 "2d simulations"_#4_2
+4.3 "CHARMM and AMBER force fields"_#4_3
+4.4 "Running multiple simulations from one input script"_#4_4
+4.5 "Parallel tempering"_#4_5
+4.6 "Granular models"_#4_6
+4.7 "TIP3P water model"_#4_7
+4.8 "TIP4P water model"_#4_8
+4.9 "SPC water model"_#4_9
+4.10 "Coupling LAMMPS to other codes"_#4_10 :all(b)
+
+The example input scripts included in the LAMMPS distribution and
+highlighted in "this section"_Section_example.html also show how to
+setup and run various kinds of problems.
+
+:line
+
+4.1 Restarting a simulation :link(4_1),h4
+
+There are 3 ways to continue a long LAMMPS simulation.  Multiple
+"run"_run.html commands can be used in the same input script.  Each
+run will continue from where the previous run left off.  Or binary
+restart files can be saved to disk using the "restart"_restart.html
+command.  At a later time, these binary files can be read via a
+"read_restart"_read_restart.html command in a new script.  Or they can
+be converted to text data files and read by a
+"read_data"_read_data.html command in a new script.  "This
+section"_Section_tools.html discusses the {restart2data} tool that is
+used to perform the conversion.
+
+Here we give examples of 2 scripts that read either a binary restart
+file or a converted data file and then issue a new run command to
+continue where the previous run left off.  They illustrate what
+settings must be made in the new script.  Details are discussed in the
+documentation for the "read_restart"_read_restart.html and
+"read_data"_read_data.html commands.
+
+Look at the {in.chain} input script provided in the {bench} directory
+of the LAMMPS distribution to see the original script that these 2
+scripts are based on.  If that script had the line
+
+restart	        50 tmp.restart :pre
+
+added to it, it would produce 2 binary restart files (tmp.restart.50
+and tmp.restart.100) as it ran.
+
+This script could be used to read the 1st restart file and re-run the
+last 50 timesteps:
+
+read_restart	tmp.restart.50 :pre
+
+neighbor	0.4 bin
+neigh_modify	every 1 delay 1 :pre
+
+fix		1 all nve
+fix		2 all langevin 1.0 1.0 10.0 904297 :pre
+
+timestep	0.012 :pre
+
+run		50 :pre
+
+Note that the following commands do not need to be repeated because
+their settings are included in the restart file: {units, atom_style,
+special_bonds, pair_style, bond_style}.  However these commands do
+need to be used, since their settings are not in the restart file:
+{neighbor, fix, timestep}.
+
+If you actually use this script to perform a restarted run, you will
+notice that the thermodynamic data match at step 50 (if you also put a
+"thermo 50" command in the original script), but do not match at step
+100.  This is because the "fix langevin"_fix_langevin.html command
+uses random numbers in a way that does not allow for perfect restarts.
+
+As an alternate approach, the restart file could be converted to a data
+file using this tool:
+
+restart2data tmp.restart.50 tmp.restart.data :pre
+
+Then, this script could be used to re-run the last 50 steps:
+
+units		lj
+atom_style	bond
+pair_style	lj/cut 1.12
+pair_modify	shift yes
+bond_style	fene
+special_bonds   0.0 1.0 1.0 :pre
+
+read_data	tmp.restart.data :pre
+
+neighbor	0.4 bin
+neigh_modify	every 1 delay 1 :pre
+
+fix		1 all nve
+fix		2 all langevin 1.0 1.0 10.0 904297 :pre
+
+timestep	0.012 :pre
+
+reset_timestep	50
+run		50 :pre
+
+Note that nearly all the settings specified in the original {in.chain}
+script must be repeated, except the {pair_coeff} and {bond_coeff}
+commands since the new data file lists the force field coefficients.
+Also, the "reset_timestep"_reset_timestep.html command is used to tell
+LAMMPS the current timestep.  This value is stored in restart files,
+but not in data files.
+
+:line
+
+4.2 2d simulations :link(4_2),h4
+
+Use the "dimension"_dimension.html command to specify a 2d simulation.
+
+Make the simulation box periodic in z via the "boundary"_boundary.html
+command.  This is the default.
+
+If using the "create box"_create_box.html command to define a
+simulation box, set the z dimensions narrow, but finite, so that the
+create_atoms command will tile the 3d simulation box with a single z
+plane of atoms - e.g.
+
+"create box"_create_box.html 1 -10 10 -10 10 -0.25 0.25 :pre
+
+If using the "read data"_read_data.html command to read in a file of
+atom coordinates, set the "zlo zhi" values to be finite but narrow,
+similar to the create_box command settings just described.  For each
+atom in the file, assign a z coordinate so it falls inside the
+z-boundaries of the box - e.g. 0.0.
+
+Use the "fix enforce2d"_fix_enforce2d.html command as the last
+defined fix to insure that the z-components of velocities and forces
+are zeroed out every timestep.  The reason to make it the last fix is
+so that any forces induced by other fixes will be zeroed out.
+
+Many of the example input scripts included in the LAMMPS distribution
+are for 2d models.
+
+:line
+
+4.3 CHARMM and AMBER force fields :link(4_3),h4
+
+There are many different ways to compute forces in the "CHARMM"_charmm
+and "AMBER"_amber molecular dynamics codes, only some of which are
+available as options in LAMMPS.  A force field has 2 parts: the
+formulas that define it and the coefficients used for a particular
+system.  Here we only discuss formulas implemented in LAMMPS.  Setting
+coefficients is done in the input data file via the
+"read_data"_read_data.html command or in the input script with
+commands like "pair_coeff"_pair_coeff.html or
+"bond_coeff"_bond_coeff.html.  See "this section"_Section_tools.html for
+additional tools that can use CHARMM or AMBER to assign force field
+coefficients and convert their output into LAMMPS input.
+
+:link(charmm,http://www.scripps.edu/brooks)
+:link(amber,http://amber.scripps.edu)
+
+These style choices compute force field formulas that are consistent
+with common options in CHARMM or AMBER.  See each command's
+documentation for the formula it computes.
+
+"bond_style"_bond_style.html harmonic
+"angle_style"_angle_style.html charmm
+"dihedral_style"_dihedral_style.html charmm
+"pair_style"_pair_style.html lj/charmm/coul/charmm
+"pair_style"_pair_style.html lj/charmm/coul/charmm/implicit
+"pair_style"_pair_style.html lj/charmm/coul/long :ul
+
+"special_bonds"_special_bonds.html charmm
+"special_bonds"_special_bonds.html amber :ul
+
+:line
+
+4.4 Running multiple simulations from one input script :link(4_4),h4
+
+This can be done in several ways.  See the documentation for
+individual commands for more details on how these examples work.
+
+If "multiple simulations" means continue a previous simulation for
+more timesteps, then you simply use the "run"_run.html command
+multiple times.  For example, this script
+
+units lj
+atom_style atomic
+read_data data.lj
+run 10000
+run 10000
+run 10000
+run 10000
+run 10000 :pre
+
+would run 5 successive simulations of the same system for a total of
+50,000 timesteps.
+
+If you wish to run totally different simulations, one after the other,
+the "clear"_clear.html command can be used in between them to
+re-initialize LAMMPS.  For example, this script
+
+units lj
+atom_style atomic
+read_data data.lj
+run 10000
+clear
+units lj
+atom_style atomic
+read_data data.lj.new
+run 10000 :pre
+
+would run 2 independent simulations, one after the other.
+
+For large numbers of independent simulations, you can use
+"variables"_variable.html and the "next"_next.html and
+"jump"_jump.html commands to loop over the same input script
+multiple times with different settings.  For example, this
+script, named in.polymer
+
+variable d index run1 run2 run3 run4 run5 run6 run7 run8
+cd $d
+read_data data.polymer
+run 10000
+cd ..
+clear
+next d
+jump in.polymer :pre
+
+would run 8 simulations in different directories, using a data.polymer
+file in each directory.  The same concept could be used to run the
+same system at 8 different temperatures, using a temperature variable
+and storing the output in different log and dump files, for example
+
+variable a loop 8
+variable t index 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15
+log log.$a
+read data.polymer
+velocity all create $t 352839
+fix 1 all nvt $t $t 100.0
+dump 1 all atom 1000 dump.$a
+run 100000
+next t
+next a
+jump in.polymer :pre
+
+All of the above examples work whether you are running on 1 or
+multiple processors, but assumed you are running LAMMPS on a single
+partition of processors.  LAMMPS can be run on multiple partitions via
+the "-partition" command-line switch as described in "this
+section"_Section_start.html#2_4 of the manual.
+
+In the last 2 examples, if LAMMPS were run on 3 partitions, the same
+scripts could be used if the "index" and "loop" variables were
+replaced with {universe}-style variables, as described in the
+"variable"_variable.html command.  Also, the "next t" and "next a"
+commands would need to be replaced with a single "next a t" command.
+With these modifications, the 8 simulations of each script would run
+on the 3 partitions one after the other until all were finished.
+Initially, 3 simulations would be started simultaneously, one on each
+partition.  When one finished, that partition would then start
+the 4th simulation, and so forth, until all 8 were completed.
+
+:line
+
+4.5 Parallel tempering :link(4_5),h4
+
+The "temper"_temper.html command can be used to perform a parallel
+tempering or replica-exchange simulation where multiple copies of a
+simulation are run at different temperatures on different sets of
+processors, and Monte Carlo temperature swaps are performed between
+pairs of copies.
+
+Use the -procs and -in "command-line switches"_Section_start.html#2_4
+to launch LAMMPS on multiple partitions.
+
+In your input script, define a set of temperatures, one for each
+processor partition, using the "variable"_variable.html command:
+
+variable t proc 300.0 310.0 320.0 330.0 :pre
+
+Define a fix of style "nvt"_fix_nvt.html or "langevin"_fix_langevin.html
+to control the temperature of each simulation:
+
+fix myfix all nvt $t $t 100.0 :pre
+
+Use the "temper"_temper.html command in place of a "run"_run.html
+command to perform a simulation where tempering exchanges will take
+place:
+
+temper 100000 100 $t myfix 3847 58382 :pre
+
+:line
+
+4.6 Granular models :link(4_6),h4
+
+To run a simulation of a granular model, you will want to use
+the following commands:
+
+"atom_style"_atom_style.html granular
+"fix nve/gran"_fix_nve_gran.html
+"fix gravity"_fix_gravity.html
+"thermo_style"_thermo_style.html gran :ul
+
+Use one of these 3 pair potentials:
+
+"pair_style"_pair_style.html gran/history
+"pair_style"_pair_style.html gran/no_history
+"pair_style"_pair_style.html gran/hertzian :ul
+
+These commands implement fix options specific to granular systems:
+
+"fix freeze"_fix_freeze.html
+"fix gran/diag"_fix_gran_diag.html
+"fix insert"_fix_insert.html
+"fix viscous"_fix_viscous.html
+"fix wall/gran"_fix_wall_gran.html :ul
+
+The fix style {freeze} zeroes both the force and torque of frozen
+atoms, and should be used for granular system instead of the fix style
+{setforce}.
+
+For computational efficiency, you can eliminate needless pairwise
+computations between frozen atoms by using this command:
+
+"neigh_modify"_neigh_modify.html exclude :ul
+
+:line
+
+4.7 TIP3P water model :link(4_7),h4
+
+The TIP3P water model as implemented in CHARMM
+"(MacKerell)"_#MacKerell specifies a 3-site rigid water molecule with
+charges and Lennard-Jones parameters assigned to each of the 3 atoms.
+In LAMMPS the "fix shake"_fix_shake.html command can be used to hold
+the two O-H bonds and the H-O-H angle rigid.  A bond style of
+{harmonic} and an angle style of {harmonic} or {charmm} should also be
+used.
+
+These are the additional parameters (in real units) to set for O and H
+atoms and the water molecule to run a rigid TIP3P-CHARMM model with a
+cutoff.  The K values can be used if a flexible TIP3P model (without
+fix shake) is desired.  If the LJ epsilon and sigma for HH and OH are
+set to 0.0, it corresponds to the original 1983 TIP3P model
+"(Jorgensen)"_#Jorgensen.
+
+O mass = 15.9994
+H mass = 1.008 :all(b),p
+
+O charge = -0.834
+H charge = 0.417 :all(b),p
+
+LJ epsilon of OO = 0.1521
+LJ sigma of OO = 3.1507
+LJ epsilon of HH = 0.0460
+LJ sigma of HH = 0.4000
+LJ epsilon of OH = 0.0836
+LJ sigma of OH = 1.7753 :all(b),p
+
+K of OH bond = 450
+r0 of OH bond = 0.9572 :all(b),p
+
+K of HOH angle = 55
+theta of HOH angle = 104.52 :all(b),p
+
+These are the parameters to use for TIP3P with a long-range Coulombic
+solver (Ewald or PPPM in LAMMPS):
+
+O mass = 15.9994
+H mass = 1.008 :all(b),p
+
+O charge = -0.830
+H charge = 0.415 :all(b),p
+
+LJ epsilon of OO = 0.102
+LJ sigma of OO = 3.1507
+LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
+
+K of OH bond = 450
+r0 of OH bond = 0.9572 :all(b),p
+
+K of HOH angle = 55
+theta of HOH angle = 104.52 :all(b),p
+
+:line
+
+4.8 TIP4P water model :link(4_8),h4
+
+The four-point TIP4P rigid water model extends the traditional
+three-point TIP3P model by adding an additional site, usually
+massless, where the charge associated with the oxygen atom is placed.
+This site M is located at a fixed distance away from the oxygen along
+the bisector of the HOH bond angle.  A bond style of {harmonic} and an
+angle style of {harmonic} or {charmm} should also be used.
+
+Two different four-point models (cutoff and long-range Coulombics) can
+be implemented using LAMMPS pair styles with {tip4p} in their style
+name.  For both models, the bond lengths and bond angles should be
+held fixed using the "fix shake"_fix_shake.html command.
+
+These are the additional parameters (in real units) to set for O and H
+atoms and the water molecule to run a rigid TIP4P model with a cutoff
+"(Jorgensen)"_#Jorgensen.  Note that the OM distance is specified in
+the "pair_style"_pair_style.html command, not as part of the pair
+coefficients.
+
+O mass = 15.9994
+H mass = 1.008 :all(b),p
+
+O charge = -1.040
+H charge = 0.520 :all(b),p
+
+r0 of OH bond = 0.9572
+theta of HOH angle = 104.52 :all(b),p
+
+OM distance = 0.15 :all(b),p
+
+LJ epsilon of O-O = 0.1550
+LJ sigma of O-O = 3.1536
+LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
+
+These are the parameters to use for TIP4P with a long-range Coulombic
+solver (Ewald or PPPM in LAMMPS):
+
+O mass = 15.9994
+H mass = 1.008 :all(b),p
+
+O charge = -1.0484
+H charge = 0.5242 :all(b),p
+
+r0 of OH bond = 0.9572
+theta of HOH angle = 104.52 :all(b),p
+
+OM distance = 0.1250 :all(b),p
+
+LJ epsilon of O-O = 0.16275
+LJ sigma of O-O = 3.16435
+LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
+
+:line
+
+4.9 SPC water model :link(4_9),h4
+
+The SPC water model specifies a 3-site rigid water molecule with
+charges and Lennard-Jones parameters assigned to each of the 3 atoms.
+In LAMMPS the "fix shake"_fix_shake.html command can be used to hold
+the two O-H bonds and the H-O-H angle rigid.  A bond style of
+{harmonic} and an angle style of {harmonic} or {charmm} should also be
+used.
+
+These are the additional parameters (in real units) to set for O and H
+atoms and the water molecule to run a rigid SPC model with long-range
+Coulombics (Ewald or PPPM in LAMMPS).
+
+O mass = 15.9994
+H mass = 1.008 :all(b),p
+
+O charge = -0.820
+H charge = 0.410 :all(b),p
+
+LJ epsilon of OO = 0.1553
+LJ sigma of OO = 3.166
+LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
+
+r0 of OH bond = 1.0
+theta of HOH angle = 109.47 :all(b),p
+
+:line 
+
+4.10 Coupling LAMMPS to other codes :link(4_10),h4
+
+LAMMPS is designed to allow it to be coupled to other codes.  For
+example, a quantum mechanics code might compute forces on a subset of
+atoms and pass those forces to LAMMPS.  Or a continuum finite element
+(FE) simulation might use atom positions as boundary conditions on FE
+nodal points, compute a FE solution, and return interpolated forces on
+MD atoms.
+
+LAMMPS can be coupled to other codes in at least 3 ways.  Each has
+advantages and disadvantages, which you'll have to think about in the
+context of your application.
+
+(1) Define a new "fix"_fix.html command that calls the other code.  In
+this scenario, LAMMPS is the driver code.  During its timestepping,
+the fix is invoked, and can make library calls to the other code,
+which has been linked to LAMMPS as a library.  This is the way the
+"POEMS"_poems package that performs constrained rigid-body motion on
+groups of atoms is hooked to LAMMPS.  See the
+"fix_poems"_fix_poems.html command for more details.  See "this
+section"_Section_modify.html of the documention for info on how to add
+a new fix to LAMMPS.
+
+:link(poems,http://www.rpi.edu/~anderk5/lab)
+
+(2) Define a new LAMMPS command that calls the other code.  This is
+conceptually similar to method (1), but in this case LAMMPS and the
+the other code are on a more equal footing.  Note that now the other
+code is not called during the timesteps of a LAMMPS run, but between
+runs.  The LAMMPS input script can be used to alternate LAMMPS runs
+with calls to the other code, invoked via the new command.  The
+"run"_run.html command facilitates this with its {every} option, which
+makes it easy to run a few steps, invoke the command, run a few steps,
+invoke the command, etc.
+
+In this scenario, the other code can be a library, called by the
+command, or it could be a stand-alone code, invoked by a system() call
+made by the command (assuming your parallel machine allows one or more
+processors to start up another program).  In the latter case the
+stand-alone code could communicate with LAMMPS thru files that the
+command writes and reads.
+
+See "this section"_Section_modify.html of the documention for how to
+add a new command to LAMMPS.
+
+(3) Use LAMMPS as a library called by another code.  In this case the
+other code is the driver and calls LAMMPS as needed.  Or a wrapper
+code could link and call both LAMMPS and another code as libraries.
+Again, the "run"_run.html command has options that allow it to be
+invoked with minimal overhead (no setup or clean-up) if you wish to do
+multiple short runs, driven by another program.
+
+"This section"_Section_start.html#2_2 of the documention describes how
+to build LAMMPS as a library.  Once this is done, you can interface
+with LAMMPS either via C++, C, or Fortran (or any other language that
+supports a vanilla C-like interface, e.g. a scripting language).  For
+example, from C++ you could create an "instance" of LAMMPS, and
+initialize it, pass it an input script to process, or execute
+individual commands, all by invoking the correct class methods in
+LAMMPS.  From C or Fortran you would make function calls to do the
+same things.  Library.cpp and library.h contain such a C interface
+that illustrates this with the functions:
+
+void lammps_open(int, char **, MPI_Comm);
+void lammps_close();
+void lammps_file(char *);
+char *lammps_command(char *); :pre
+
+The functions contain the C++ code you would need to put in a C++
+application that was invoking LAMMPS directly.
+
+Two of the routines in library.cpp are of particular note.  The
+lammps_open() function initiates LAMMPS and takes an MPI communicator
+as an argument.  LAMMPS will run on the set of processors in the
+communicator.  This means the calling code can run LAMMPS on all or a
+subset of processors.  For example, a wrapper script might decide to
+alternate between LAMMPS and another code, allowing them both to run
+on all the processors.  Or it might allocate half the processors to
+LAMMPS and half to the other code and run both codes simultaneously
+before syncing them up periodically.
+
+Library.cpp also contains a lammps_command() function to which the
+caller passes a single LAMMPS command (a string).  Thus the calling
+code can read or generate a series of LAMMPS commands (e.g. an input
+script) one line at a time and pass it thru the library interface to
+setup a problem and then run it.
+
+A few other sample routines are included in library.cpp, but the key
+idea is that you can write any routines you wish to define an
+interface for how your code talks to LAMMPS and add them to
+library.cpp and library.h.  The routines you add can access any LAMMPS
+data.  The umbrella.cpp code in examples/couple is a simple example of
+how a stand-alone code can link LAMMPS as a library, run LAMMPS on a
+subset of processors, grab data from LAMMPS, change it, and put it
+back into LAMMPS.
+
+:line
+
+:link(Horn)
+[(Horn)] Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
+J Chem Phys, 120, 9665 (2004).
+
+:link(MacKerell)
+[(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+
+:link(Jorgensen)
+[(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
+Phys, 79, 926 (1983).

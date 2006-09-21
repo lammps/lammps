@@ -1,0 +1,44 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix addforce command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID addforce fx fy fz 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>addforce = style name of this fix command
+<LI>fx,fy,fz = force component values (force units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix kick flow addforce 1.0 0.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Add fx,fy,fz to the corresponding component of force for each atom in
+the group.  This command can be used to give an additional push to
+atoms in a simulation, such as for a simulation of Poiseuille flow in
+a channel.
+</P>
+<P>The forces due to this fix are also imposed during an energy
+minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_setforce.html">fix setforce</A>, <A HREF = "fix_aveforce.html">fix aveforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,122 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID style args 
+</PRE>
+<UL><LI>ID = user-assigned name for the fix
+<LI>group-ID = ID of the group of atoms to apply the fix to
+<LI>style = one of a long list of possible style names (see below)
+<LI>args = arguments used by a particular style 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all nve
+fix 3 all nvt 300.0 300.0 0.01
+fix mine top setforce 0.0 NULL 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set a fix that will be applied to a group of atoms.  In LAMMPS, a
+"fix" is any operation that is applied to the system during
+timestepping or minimization.  Examples include updating of atom
+positions and velocities due to time integration, controlling
+temperature, applying constraint forces to atoms, enforcing boundary
+conditions, computing diagnostics, etc.  There are dozens of fixes
+defined in LAMMPS and new ones can be added - see <A HREF = "Section_modify.html">this
+section</A> for a discussion.
+</P>
+<P>Each fix style has its own documentation page which describes its
+arguments and what it does.  For example, see the <A HREF = "fix_setforce.html">fix
+setforce</A> page for information on style <I>setforce</I>.
+</P>
+<P>Fixes perform their operations at different stages of the timestep.
+If 2 or more fixes both operate at the same stage of the timestep,
+they are invoked in the order they were specified in the input script.
+</P>
+<P>Specifying a new fix with the same ID as an existing fix effectively
+replaces the old fix (and its parameters) with the new fix.  This can
+only be done if the new fix has the same style as the existing fix.
+</P>
+<P>Fixes can be deleted with the <A HREF = "unfix.html">unfix</A> command.  Note that
+this is the only way to turn off a fix; simply specifying a new fix
+with a similar style will not turn off the first one.  For example,
+using a "fix nve" command for a second run after using a "fix nvt"
+command for the first run, will not cancel out the NVT time
+integration invoked by the "fix nvt" command.  Thus two time
+integrators would be in place!
+</P>
+<P>Here is an alphabetic list of fix styles defined in LAMMPS:
+</P>
+<UL><LI><A HREF = "fix_addforce.html">fix addforce</A> - add a force to each atom
+<LI><A HREF = "fix_aveforce.html">fix aveforce</A> - add an averaged force to each atom
+<LI><A HREF = "fix_com.html">fix com</A> - compute a center-of-mass
+<LI><A HREF = "fix_drag.html">fix drag</A> - drag atoms towards a defined coordinate
+<LI><A HREF = "fix_efield.html">fix efield</A> - impose electric field on system
+<LI><A HREF = "fix_enforce2d.html">fix enforce2d</A> - zero out z-dimension velocity and force
+<LI><A HREF = "fix_freeze.html">fix freeze</A> - freeze atoms in a granular simulation
+<LI><A HREF = "fix_gran_diag.html">fix gran/diag</A> - compute granular diagnostics
+<LI><A HREF = "fix_gravity.html">fix gravity</A> - add gravity to atoms in a granular simulation
+<LI><A HREF = "fix_gyration.html">fix gyration</A> - compute radius of gyration
+<LI><A HREF = "fix_indent.html">fix indent</A> - impose force due to an indenter
+<LI><A HREF = "fix_insert.html">fix insert</A> - add new atoms to a granular simulation
+<LI><A HREF = "fix_langevin.html">fix langevin</A> - Langevin temperature control
+<LI><A HREF = "fix_lineforce.html">fix lineforce</A> - constrain atoms to move in a line
+<LI><A HREF = "fix_msd.html">fix msd</A> - compute mean-squared displacement      (i.e. diffusion coefficient)
+<LI><A HREF = "fix_momentum.html">fix momentum</A> - zero the linear and/or angular momentum   of a group of atoms
+<LI><A HREF = "fix_nph.html">fix nph</A> - constant NPH time integration via Nose/Hoover
+<LI><A HREF = "fix_npt.html">fix npt</A> - constant NPT time integration via Nose/Hoover
+<LI><A HREF = "fix_nve.html">fix nve</A> - constant NVE time integration
+<LI><A HREF = "fix_nve_gran.html">fix nve/gran</A> - NVE time integration for      granular systems
+<LI><A HREF = "fix_nvt.html">fix nvt</A> - constant NVT time integration via Nose/Hoover
+<LI><A HREF = "fix_orient_fcc.html">fix orient/fcc</A> - add grain boundary migration force
+<LI><A HREF = "fix_planeforce.html">fix planeforce</A> - constrain atoms to move in a plane
+<LI><A HREF = "fix_poems.html">fix poems</A> - constrain clusters of atoms to move   as coupled rigid bodies
+<LI><A HREF = "fix_print.html">fix print</A> - print text and variables during a simulation
+<LI><A HREF = "fix_rdf.html">fix rdf</A> - compute radial distribution functions
+<LI><A HREF = "fix_recenter.html">fix recenter</A> - constrain the center-of-mass position   of a group of atoms
+<LI><A HREF = "fix_rigid.html">fix rigid</A> - constrain one or more clusters of atoms to      move as a rigid body
+<LI><A HREF = "fix_setforce.html">fix setforce</A> - set the force on each atom
+<LI><A HREF = "fix_shake.html">fix shake</A> - SHAKE constraints on bonds and/or angles
+<LI><A HREF = "fix_spring.html">fix spring</A> - apply harmonic spring force to group of atoms
+<LI><A HREF = "fix_spring_rg.html">fix spring/rg</A> - spring on radius of gyration of      group of atoms
+<LI><A HREF = "fix_spring_self.html">fix spring/self</A> - spring from each atom to its origin
+<LI><A HREF = "fix_temp_rescale.html">fix temp/rescale</A> - temperature control by      velocity rescaling
+<LI><A HREF = "fix_tmd.html">fix tmd</A> - guide a group of atoms to a new configuration
+<LI><A HREF = "fix_uniaxial.html">fix uniaxial</A> - uniaxial straining of system while      preserving total volume
+<LI><A HREF = "fix_viscous.html">fix viscous</A> - viscous damping for granular simulations
+<LI><A HREF = "fix_volume_rescale.html">fix volume/rescale</A> - density control by      volume rescaling
+<LI><A HREF = "fix_wall_gran.html">fix wall/gran</A> - frictional wall(s) for      granular simulations
+<LI><A HREF = "fix_wall_lj93.html">fix wall/lj93</A> - Lennard-Jones 9/3 wall
+<LI><A HREF = "fix_wall_reflect.html">fix wall/reflect</A> - reflecting wall(s)
+<LI><A HREF = "fix_wiggle.html">fix wiggle</A> - oscillate walls and frozen atoms 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>Some fix styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The <I>freeze</I>, <I>gran/diag</I>, <I>gravity</I>, <I>insert</I>, <I>nve/gran</I>, and
+<I>wall/gran</I> styles are part of the "granular" package.
+</P>
+<P>The <I>poems</I> style is part of the "poems" package.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "unfix.html">unfix</A>, <A HREF = "fix_modify.html">fix_modify</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

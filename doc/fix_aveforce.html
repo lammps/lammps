@@ -1,0 +1,55 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix aveforce command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID aveforce fx fy fz 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>aveforce = style name of this fix command
+<LI>fx,fy,fz = force component values (force units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix pressdown topwall aveforce 0.0 -1.0 0.0
+fix 2 bottomwall aveforce NULL -1.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply an additional external force to a group of atoms in such a way
+that every atom experiences the same force.  This is useful for
+pushing on wall or boundary atoms so that the structure of the wall
+does not change over time.
+</P>
+<P>The existing force is averaged for the group of atoms, component by
+component.  The actual force on each atom is then set to the average
+value plus the component specified in this command.  This means each
+atom in the group receives the same force.
+</P>
+<P>If any of the arguments is specified as NULL then the forces in that
+dimension are not changed.  Note that this is not the same as
+specifying a 0.0 value, since that sets all forces to the same average
+value without adding in any additional force.
+</P>
+<P>The forces due to this fix are also imposed during an energy
+minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_setforce.html">fix setforce</A>, <A HREF = "fix_addforce.html">fix addforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

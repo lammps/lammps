@@ -1,0 +1,100 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>minimize command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>minimize tolerance maxiter maxeval 
+</PRE>
+<UL><LI>tolerance = stopping tolerance
+<LI>maxiter = max iterations of minimizer
+<LI>maxeval = max number of total force/energy evaluations 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>minimize 1.0e-4 100 1000 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform an energy minimization of the system, by adjusting each atom's
+atomic coordinates.  The algorithm used is set by the
+<A HREF = "min_style.html">min_style</A> command.  Minimize commands can be
+interspersed with <A HREF = "run.html">run</A> commands to alternate between
+relaxation and dynamics.  The minimizers are implemented in a robust
+fashion that should allow for systems with highly overlapped atoms
+(large energies and forces) to still be minimized by pushing the atoms
+off of each other.
+</P>
+<P>A minimization involves an outer iteration loop which sets the search
+direction along which coordinates are changed.  An inner iteration is
+then performed using a line search algorithm.  The line search
+typically evaluates forces and energies several times to set new
+coordinates.  The minimization stops if any of several criteria are
+met:
+</P>
+<UL><LI>the change in energy between outer iterations is less than the tolerance
+<LI>the number of outer iterations exceeds maxiter
+<LI>the number of force evaluations exceeds maxeval
+<LI>the 3N dimensional force vector goes (nearly) to zero 
+</UL>
+<P>For the first criterion, the specified tolerance is unitless; it is
+met when the ratio of the energy delta to the energy magnitude is
+equal to the tolerance (e.g. one part in 10^4 in the example above).
+</P>
+<P>During a minimization, the outer iteration count is treated as a
+timestep.  Output is triggered by this timestep, e.g. thermodynamic
+output or dump and restart files.
+</P>
+<P>For optimal convergence, a <A HREF = "pair_style.html">pair style</A> that goes
+smoothly to 0.0 at the cutoff distance for both energy and force
+should typically be used though this is not required.  Examples
+include <I>pair/lj/charmm/coul/charmm</I> and <I>pair/lj/charmm/coul/long</I>.
+If a <I>soft</I> potential is used the Astop value is used for the
+prefactor (no time dependence).
+</P>
+<P>Only fixes that apply force constraints are invoked during
+minimization.  The list of the currently implemented ones include fix
+<I>addforce</I>, <I>aveforce</I>, <I>enforce2d</I>, <I>indent</I>, <I>lineforce</I>,
+<I>planeforce</I>, <I>setforce</I>, and <I>wall/lj93</I>.  Note that <I>indent</I>,
+<I>wall/lj93</I> have an associated potential energy.  If you want that
+energy to be included in the total potential energy of the system (the
+quantity being minimized), you must enable the
+<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for that fix.
+</P>
+<P>Following the minimization a statistical summary is printed that
+includes the energy change and convergence criteria information.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Two features that are not yet implemented listed here, in case someone
+knows how they could be coded:
+</P>
+<P>Two fixes not invoked by a minimization are <A HREF = "fix_shake.html">fix shake</A>
+and <A HREF = "fix_rigid.html">fix rigid</A>.  The effect of a fix shake can be
+approximated during a minimization by using stiff spring constants for
+the bonds and/or angles that would normally be constrained by the
+SHAKE algorithm.
+</P>
+<P>The volume of the simulation domain is not allowed to change during a
+minimzation.  Ideally we would allow a fix such as <I>npt</I> to impose an
+external pressure that would be included in the minimization
+(i.e. allow the box dimensions to change), but this has not yet been
+implemented.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "min_modify.html">min_modify</A>, <A HREF = "min_style.html">min_style</A>,
+<A HREF = "run_style.html">run_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

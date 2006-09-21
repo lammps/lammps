@@ -1,0 +1,67 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+lattice command :h3
+
+[Syntax:]
+
+lattice style value :pre
+
+style = {none} or {sc} or {bcc} or {fcc} or {sq} or {sq2} or {hex} or {diamond} :ulb,l
+  {none} value = none
+  for all other styles:
+    value = reduced density (for LJ units)
+    value = cubic lattice constant in Angstroms (for real or metal units) :pre
+:ule
+
+[Examples:]
+
+lattice fcc 3.52
+lattice hex 0.85
+lattice none :pre
+
+[Description:]
+
+Define a lattice type and lattice constant.  This is required before
+using a commands that (optionally) use the lattice, such as
+"create_atoms"_create_atoms.html or "region"_region.html.  The lattice
+type must be consistent with the dimension of the simulation - see the
+"dimension"_dimension.html command.  Styles {sc} or {bcc} or {fcc} or
+{diamond} are for 3d problems.  Styles {sq} or {sq2} or {hex} are for
+2d problems.  Lattices of style {fcc}, {bcc}, {hex}, or {diamond} are
+described in any solid-state physics text.  A {sc} lattice is simple
+cubic, with atoms at the corners of a cube.  A {sq} lattice is square
+with atoms at the corners of a square.  A {sq2} lattice is a {sq}
+lattice with an additional atom at the center of the square.
+
+For unit style {real} or {metal}, the specified value is the cubic
+lattice constant in Angstroms.  For unit style {lj}, the value is the
+reduced density (rho*) which LAMMPS converts into a cubic lattice
+constant.  For 3d problems, the relationship "rho* = rho sigma^3" is
+used for the conversion, where rho = N/V with V = the volume of the
+cubic cell and N = 4 for {fcc}, 2 for {bcc}, 1 for {sc}, and 8 for
+{diamond} lattices.  For 2d problems, the relationship "rho* = rho
+sigma^2" is used for the conversion, where N = 2 for {sq2} or {hex}
+and 1 for {sq}.  In the hex case, the unit cell is actually
+rectangular; it is extended by a factor of sqrt(3) in the y-dimension.
+
+The command "lattice none" can be used to turn off the lattice
+setting.  Any command that attempts to use a lattice constant will
+then generate an error.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dimension"_dimension.html, "orient"_orient.html,
+"origin"_origin.html, "create_atoms"_create_atoms.html,
+"region"_region.html
+
+[Default:]
+
+lattice none :pre

@@ -1,0 +1,129 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_coeff command :h3
+
+[Syntax:]
+
+pair_coeff I J args :pre
+
+I,J = atom types (see asterik form below)
+args = coefficients for one or more pairs of atom types :ul
+
+[Examples:]
+
+pair_coeff 1 2 1.0 1.0 2.5
+pair_coeff 2 * 1.0 1.0
+pair_coeff 3* 1*2 1.0 1.0 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff * * nialhjea 1 1 2
+pair_coeff * 3 morse.table ENTRY1
+pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid) :pre
+
+[Description:]
+
+Specify the pairwise force field coefficients for one or more pairs of
+atom types.  The number and meaning of the coefficients depends on the
+pair style.  Pair coefficients can also be set in the data file read
+by the "read_data"_read_data.html command or in a restart file.
+
+I and J can be specified in one of two ways.  Explicit numeric values
+can be used for each, as in the 1st example above.  I <= J is
+required.  LAMMPS sets the coefficients for the symmetric J,I
+interaction to the same values.
+
+A wild-card asterik can be used in place of in conjunction with the
+I,J arguments to set the coefficients for multiple pairs of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterik with no numeric values means all
+types from 1 to N.  A leading asterik means all types from 1 to n
+(inclusive).  A trailing asterik means all types from n to N
+(inclusive).  A middle asterik means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asteriks imply type pairs where J < I, they are ignored.
+
+Note that a pair_coeff command can override a previous setting for the
+same I,J pair.  For example, these commands set the coeffs for all I,J
+pairs, then overwrite the coeffs for just the I,J = 2,3 pair:
+
+pair_coeff * * 1.0 1.0 2.5
+pair_coeff 2 3 2.0 1.0 1.12 :pre
+
+A line in a data file that specifies pair coefficients uses the exact
+same format as the arguments of the pair_coeff command in an input
+script, with the exception of the I,J type arguments.  In each line of
+the "Pair Coeffs" section of a data file, only a single type I is
+specified, which sets the coefficients for type I interacting with
+type I.  This is because the section has exactly N lines, where N =
+the number of atom types.  For this reason, the wild-card asterik
+should also not be used as part of the I argument.  Thus in a data
+file, the line corresponding to the 1st example above would be listed
+as
+
+2 1.0 1.0 2.5 :pre
+
+If coefficients for type pairs with I not equal J are not set
+explicity by a pair_coeff command, they are inferred from the I,I and
+J,J settings by mixing rules; see the "pair_modify"_pair_modify.html
+command for a discussion.  Exceptions to the mixing rules of the
+pair_modify command are discussed with the individual pair styles.
+
+:line
+
+Here is an alphabetic list of pair styles defined in LAMMPS.  Click on
+the style to display the formula it computes, arguments specified in
+the pair_style command, and coefficients specified by the associated
+"pair_coeff"_pair_coeff.html command:
+
+"pair_style none"_pair_style_none.html - turn off pairwise interactions
+"pair_style hybrid"_pair_style_hybrid.html - define multiple styles of pairwise interactions :ul
+
+"pair_style buck"_pair_style_buck.html - Buckingham potential
+"pair_style buck/coul/cut"_pair_style_buck.html - Buckinhham with cutoff Coulomb
+"pair_style buck/coul/long"_pair_style_buck.html - Buckingham with long-range Coulomb
+"pair_style dipole/cut"_pair_style_dipole.html - cutoff dipole and charge interactions
+"pair_style dpd"_pair_style_dpd.html - dissipative particle dynamics (DPD)
+"pair_style eam"_pair_style_eam.html - embedded atom method (EAM)
+"pair_style eam/alloy"_pair_style_eam.html - alloy EAM
+"pair_style eam/fs"_pair_style_eam.html - Finnis-Sinclair EAM
+"pair_style gran/hertzian"_pair_style_granular.html - granular potential with Hertizain interactions
+"pair_style gran/history"_pair_style_granular.html - granular potential with history effects
+"pair_style gran/no_history"_pair_style_granular.html - granular potential without history effects
+"pair_style lj/charmm/coul/charmm"_pair_style_charmm.html - CHARMM potential with cutoff Coulomb
+"pair_style lj/charmm/coul/charmm/implicit"_pair_style_charmm.html - CHARMM for implicit solvent
+"pair_style lj/charmm/coul/long"_pair_style_charmm.html - CHARMM with long-range Coulomb
+"pair_style lj/class2"_pair_style_class2.html - COMPASS (class 2) force field with no Coulomb
+"pair_style lj/class2/coul/cut"_pair_style_class2.html - COMPASS with cutoff Coulomb
+"pair_style lj/class2/coul/long"_pair_style_class2.html - COMPASS with long-range Coulomb
+"pair_style lj/cut"_pair_style_lj.html - cutoff Lennard-Jones potential with no Coulomb
+"pair_style lj/cut/coul/cut"_pair_style_lj.html - LJ with cutoff Coulomb
+"pair_style lj/cut/coul/debye"_pair_style_lj.html - LJ with Debye damping added to Coulomb
+"pair_style lj/cut/coul/long"_pair_style_lj.html - LJ with long-range Coulomb
+"pair_style lj/cut/coul/long/tip4p"_pair_style_lj.html - LJ with long-range Coulomb for TIP4P water
+"pair_style lj/expand"_pair_style_lj_expand.html - Lennard-Jones for variable size particles
+"pair_style lj/smooth"_pair_style_lj_smooth.html - smoothed Lennard-Jones potential
+"pair_style morse"_pair_style_morse.html - Morse potential
+"pair_style soft"_pair_style_soft.html - Soft (cosine) potential
+"pair_style table"_pair_style_table.html - tabulated pair potential
+"pair_style yukawa"_pair_style_yukawa.html - Yukawa potential :ul
+
+:line
+
+[Restrictions:]
+
+This command must come after the simulation box is defined by a
+"read_data"_read_data.html, "read_restart"_read_restart.html, or
+"create_box"_create_box.html command.
+
+[Related commands:]
+
+"pair_style"_pair_style.html, "pair_modify"_pair_modify.html,
+"read_data"_read_data.html, "read_restart"_read_restart.html,
+"pair_write"_pair_write.html
+
+[Default:] none

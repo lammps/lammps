@@ -1,0 +1,70 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+shell command :h3
+
+[Syntax:]
+
+shell style args :pre
+
+style = {cd} or {mkdir} or {mv} or {rm} or {rmdir} :ulb,l
+  {cd} arg = dir
+    dir = directory to change to
+  {mkdir} args = dir1 dir2 ...
+    dir1,dir2 = one or more directories to create
+  {mv} args = old new
+    old = old filename
+    new = new filename
+  {rm} args = file1 file2 ...
+    file1,file2 = one or more filenames to delete
+  {rmdir} args = dir1 dir2 ...
+    dir1,dir2 = one or more directories to delete :pre
+:ule
+
+[Examples:]
+
+shell cd sub1
+shell cd ..
+shell mkdir tmp1 tmp2 tmp3
+shell rmdir tmp1
+shell mv log.lammps hold/log.1
+shell rm TMP/file1 TMP/file2 :pre
+
+[Description:]
+
+Execute a shell command.  Only a few simple file-based shell commands
+are supported, in Unix-style syntax.  With the exception of {cd}, all
+commands are executed by only a single processor, so that
+files/directories are not being manipulated by multiple processors.
+
+The {cd} style executes the Unix "cd" command to change the working
+directory.  All subsequent LAMMPS commands that read/write files will
+use the new directory.  All processors execute this command.
+
+The {mkdir} style executes the Unix "mkdir" command to create
+one or more directories.
+
+The {mv} style executes the Unix "mv" command to rename a file and/or
+move it to a new directory.
+
+The {rm} style executes the Unix "rm" command to remove one or more
+files.
+
+The {rmdir} style executes the Unix "rmdir" command to remove one or
+more directories.  A directory must be empty to be successfully
+removed.
+
+[Restrictions:]
+
+LAMMPS does not detect errors or print warnings when any of these Unix
+commands execute.  E.g. if the specified directory does not exist,
+executing the {cd} command will silently not do anything.
+
+[Related commands:] none
+
+[Default:] none

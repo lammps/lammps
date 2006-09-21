@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>processors command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>processors Px Py Pz 
+</PRE>
+<UL><LI>Px,Py,Pz = # of processors in each dimension of a 3d grid 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>processors 2 4 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify how processors are mapped as a 3d logical grid to the global
+simulation box.
+</P>
+<P>When this command has not been specified, LAMMPS will choose Px, Py,
+Pz based on the dimensions of the global simulation box so as to
+minimize the surface/volume ratio of each processor's sub-domain.
+</P>
+<P>Since LAMMPS does not load-balance by changing the grid of 3d
+processors on-the-fly, this command should be used to override the
+LAMMPS default if it is known to be sub-optimal for a particular
+problem.  For example, a problem where the atom's extent will change
+dramatically over the course of the simulation.
+</P>
+<P>The product of Px, Py, Pz must equal P, the total # of processors
+LAMMPS is running on.  If multiple partitions are being used then P is
+the number of processors in this partition; see <A HREF = "Section_start.html#2_4">this
+section</A> for an explanation of the -partition
+command-line switch.
+</P>
+<P>If P is large and prime, a grid such as 1 x P x 1 will be required,
+which may incur extra communication costs.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+It can be used before a restart file is read to change the 3d
+processor grid from what is specified in the restart file.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B>
+</P>
+<P>LAMMPS chooses Px, Py, Pz
+</P>
+</HTML>

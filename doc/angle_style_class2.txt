@@ -1,0 +1,75 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+angle_style class2 command :h3
+
+[Syntax:]
+
+angle_style class2 :pre
+
+[Examples:]
+
+angle_style class2
+angle_coeff * 75.0 :pre
+
+[Description:]
+
+The {class2} angle style uses the potential
+
+:c,image(Eqs/angle_class2.jpg)
+
+where Ea is the angle term, Ebb is a bond-bond term, and Eba is a
+bond-angle term.  Theta0 is the equilibrium angle and r1 and r2 are
+the equilibrium bond lengths.
+
+For this style, only coefficients for the Ea formula can be specified
+in the input script.  These are the 4 coefficients:
+
+theta0 (degrees)
+K2 (energy/radian^2)
+K3 (energy/radian^2)
+K4 (energy/radian^2) :ul
+
+Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+
+Coefficients for the Ebb and Eba formulas must be specified in the
+data file.
+
+For the Ebb formula, the coefficients are listed under a "BondBond
+Coeffs" heading and each line lists 3 coefficients:
+
+M (energy/distance^2)
+r1 (distance)
+r2 (distance) :ul
+
+For the Eba formula, the coefficients are listed under a "BondAngle
+Coeffs" heading and each line lists 4 coefficients:
+
+N1 (energy/distance^2)
+N2 (energy/distance^2)
+r1 (distance)
+r2 (distance) :ul
+
+The theta0 value in the Eba formula is not specified, since it is the
+same value from the Ea formula.
+
+[Restrictions:]
+
+Angle styles can only be set for atom styles that allow angles to be
+defined.
+
+This angle style is part of the "class2" package.  It is only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"angle_coeff"_angle_coeff.html
+
+[Default:] none

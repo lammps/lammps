@@ -1,0 +1,51 @@
+"LAMMPS WWW Page"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Chapter_commands.html#comm)
+:line
+
+min_style command :h3
+
+[Syntax:]
+
+min_style style :pre
+
+style = {cg} or {cg/fr} or {sd} :ul
+
+[Examples:]
+
+min_style cg
+min_style sd :pre
+
+[Description:]
+
+Choose a minimization algorithm to use when a "minimize"_minimize.html
+command is performed.
+
+Style {cg} is the Polak-Ribiere (PR) version of the conjugate gradient
+(CG) algorithm.  At each iteration the force gradient is combined with
+the previous iteration information to compute a new search direction
+perpendicular (conjugate) to previous search directions.  The PR
+variant affects how the direction is chosen and how the CG method is
+restarted when it ceases to make progress.  The PR variant is thought
+to be the most effective CG choice.
+
+Style {cg/fr} is the Fletcher-Reeves version of the conjugate gradient
+algorithm.
+
+Style {sd} is a steepest descent algorithm.  At each iteration, the
+downhill direction corresponding to the force vector (negative
+gradient of energy) is searched along by a 1d line search.  Typically,
+steepest descent will not converge as quickly as CG, but may be more
+robust in some situations.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"min_modify"_min_modify.html, "minimize"_minimize.html
+
+[Default:]
+
+min_style cg :pre

@@ -1,0 +1,80 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style class2 command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style class2 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style class2
+angle_coeff * 75.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>class2</I> angle style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/angle_class2.jpg">
+</CENTER>
+<P>where Ea is the angle term, Ebb is a bond-bond term, and Eba is a
+bond-angle term.  Theta0 is the equilibrium angle and r1 and r2 are
+the equilibrium bond lengths.
+</P>
+<P>For this style, only coefficients for the Ea formula can be specified
+in the input script.  These are the 4 coefficients:
+</P>
+<UL><LI>theta0 (degrees)
+<LI>K2 (energy/radian^2)
+<LI>K3 (energy/radian^2)
+<LI>K4 (energy/radian^2) 
+</UL>
+<P>Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+</P>
+<P>Coefficients for the Ebb and Eba formulas must be specified in the
+data file.
+</P>
+<P>For the Ebb formula, the coefficients are listed under a "BondBond
+Coeffs" heading and each line lists 3 coefficients:
+</P>
+<UL><LI>M (energy/distance^2)
+<LI>r1 (distance)
+<LI>r2 (distance) 
+</UL>
+<P>For the Eba formula, the coefficients are listed under a "BondAngle
+Coeffs" heading and each line lists 4 coefficients:
+</P>
+<UL><LI>N1 (energy/distance^2)
+<LI>N2 (energy/distance^2)
+<LI>r1 (distance)
+<LI>r2 (distance) 
+</UL>
+<P>The theta0 value in the Eba formula is not specified, since it is the
+same value from the Ea formula.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Angle styles can only be set for atom styles that allow angles to be
+defined.
+</P>
+<P>This angle style is part of the "class2" package.  It is only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

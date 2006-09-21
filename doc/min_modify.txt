@@ -1,0 +1,67 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+min_modify command :h3
+
+[Syntax:]
+
+min_modify keyword values ... :pre
+
+one or more keyword/value pairs may be listed :ulb,l
+keyword = {linestyle} or {dmin} or {dmax} or {lineiter}
+  {linestyle} value = {secant} or {scan}
+  {dmin} value = min
+    min = minimum distance for line search to move (distance units)
+  {dmax} value = max
+    max = maximum distance for line search to move (distance units)
+  {lineiter} value = N
+    N = max number of iterations in a line search :pre
+:ule
+
+[Examples:]
+
+min_modify linestyle scan dmin 0.001 dmax 0.2
+min_modify lineiter 5 :pre
+
+[Description:]
+
+This command sets parameters that affect the minimization algorithms.
+The various settings may effect the convergence rate and overall
+number of force evaulations required by a minimization, so users can
+experiment with these parameters to tune their minimizations.
+
+The {linestyle} sets the algorithm used for 1d line searches at each
+outer iteration of the minimizer.  The {secant} style uses two
+successive force/energy evaluations to create a parabola and pick its
+minimum as an estimate of the next iteration's 1d minimum.  The {scan}
+style starts its 1d search at {dmin} and doubles the distance along
+the line at which the energy is computed until the minimum is passed.
+It continues only as far as {dmax}.  Normally, the {secant} method
+should find more accurate 1d minimums in less iterations, but the
+{scan} method can be more robust.
+
+The {dmin} and {dmax} settings are both used by the {scan} line search
+as described above.  For the {secant} line search, only the {dmin}
+value is used to pick an initial point to begin the secant
+approximation.
+
+The {lineiter} setting is used by the {secant} algorithm to limit its
+iterations.  The smaller the setting, the more inaccurate the line
+search becomes.  Nonlinear conjugate gradient is not thought to
+require high-accuracy line searches in order to converge efficiently.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"min_style"_min_style.html, "minimize"_minimize.html
+
+[Default:]
+
+The option defaults are linestyle = secant, dmin = 1.0e-5, dmax = 0.1,
+and lineiter = 10.

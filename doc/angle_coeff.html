@@ -1,0 +1,91 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_coeff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_coeff N args 
+</PRE>
+<UL><LI>N = angle type (see asterik form below)
+<LI>args = coefficients for one or more angle types 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_coeff 1 300.0 107.0
+angle_coeff * 5.0
+angle_coeff 2*10 5.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify the angle force field coefficients for one or more angle types.
+The number and meaning of the coefficients depends on the angle style.
+Angle coefficients can also be set in the data file read by the
+<A HREF = "read_data.html">read_data</A> command or in a restart file.
+</P>
+<P>N can be specified in one of two ways.  An explicit numeric value can
+be used, as in the 1st example above.  Or a wild-card asterik can be
+used to set the coefficients for multiple angle types.  This takes the
+form "*" or "*n" or "n*" or "m*n".  If N = the number of angle types,
+then an asterik with no numeric values means all types from 1 to N.  A
+leading asterik means all types from 1 to n (inclusive).  A trailing
+asterik means all types from n to N (inclusive).  A middle asterik
+means all types from m to n (inclusive).
+</P>
+<P>Note that using a angle_coeff command can override a previous setting
+for the same angle type.  For example, these commands set the coeffs
+for all angle types, then overwrite the coeffs for just angle type 2:
+</P>
+<PRE>angle_coeff * 200.0 107.0 1.2
+angle_coeff 2 50.0 107.0 
+</PRE>
+<P>A line in a data file that specifies angle coefficients uses the exact
+same format as the arguments of the angle_coeff command in an input
+script, except that wild-card asteriks should not be used since
+coefficients for all N types must be listed in the file.  For example,
+under the "Angle Coeffs" section of a data file, the line that
+corresponds to the 1st example above would be listed as
+</P>
+<PRE>1 300.0 107.0 
+</PRE>
+<HR>
+
+<P>Here is an alphabetic list of angle styles defined in LAMMPS.  Click on
+the style to display the formula it computes and coefficients
+specified by the associated <A HREF = "angle_coeff.html">angle_coeff</A> command:
+</P>
+<UL><LI><A HREF = "angle_style_none.html">angle_style none</A> - turn off angle interactions
+<LI><A HREF = "angle_style_hybrid.html">angle_style hybrid</A> - define multiple styles of angle interactions 
+</UL>
+<UL><LI><A HREF = "angle_style_charmm.html">angle_style charmm</A> - CHARMM angle
+<LI><A HREF = "angle_style_class2.html">angle_style class2</A> - COMPASS (class 2) angle
+<LI><A HREF = "angle_style_cosine.html">angle_style cosine</A> - cosine angle potential
+<LI><A HREF = "angle_style_cosine_squared.html">angle_style cosine/squared</A> - cosine squared angle potential
+<LI><A HREF = "angle_style_harmonic.html">angle_style harmonic</A> - harmonic angle 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>An angle style must be defined before any angle coefficients are
+set, either in the input script or in a data file.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_style.html">angle_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

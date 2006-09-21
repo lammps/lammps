@@ -1,0 +1,55 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>temp_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>temp_modify temp-ID keyword value ... 
+</PRE>
+<UL><LI>temp-ID = ID of temperature to modify 
+
+<LI>one or more keyword/value pairs may be listed 
+
+<LI>keyword = <I>extra</I> 
+
+<PRE>  <I>extra</I> value = N
+    N = # of extra degrees of freedom to subtract 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>temp_modify mine extra 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Modify the parameters of a previously defined temperature method.
+This can either be the default temperature defined by LAMMPS (ID =
+<I>default</I>) or a user-defined temperature created by using the
+<A HREF = "temperature.html">temperature</A> command.
+</P>
+<P>The <I>extra</I> keyword refers to how many degrees-of-freedom are
+subtracted (typically from 3N) as a normalizing factor in the
+temperature computation.  The default is 3 which is a correction
+factor for an ensemble of velocities with zero total linear momentum.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "temperature.html">temperature</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are extra = 3.
+</P>
+</HTML>

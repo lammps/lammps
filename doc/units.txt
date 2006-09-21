@@ -1,0 +1,84 @@
+"LAMMPS WWW Site"_lws - "LAMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+units command :h3
+
+[Syntax:]
+
+units style :pre
+
+style = {lj} or {real} or {metal} :ul
+
+[Examples:]
+
+units metal
+units lj :pre
+
+[Description:]
+
+This command sets the style of units used for a simulation.  It
+detemines the units of all quantities specified in the input script
+and data file, as well as quantities output to the screen, log file,
+and dump files.  Typically, this command is used at the very beginning
+of an input script.
+
+For style {lj}, all quantities are unitless:
+
+distance = sigma
+time = tau
+mass = one
+energy = epsilon
+velocity = sigma/tau
+force = epsilon/sigma
+temperature = reduced LJ temperature
+pressure = reduced LJ pressure
+charge = reduced LJ charge
+electric field = force/charge :ul
+
+For style {real}, these are the units:
+
+distance = Angstroms
+time = femtoseconds
+mass = grams/mole
+energy = Kcal/mole 
+velocity = Angstroms/femtosecond 
+force = Kcal/mole-Angstrom
+temperature = degrees K
+pressure = atmospheres
+charge = multiple of electron charge (+1.0 is a proton)
+electric field = volts/Angstrom :ul
+
+For style {metal}, these are the units:
+
+distance = Angstroms
+time = picoseconds
+mass = grams/mole
+energy = eV
+velocity = Angstroms/picosecond 
+force = eV/Angstrom
+temperature = degrees K
+pressure = bars
+charge = multiple of electron charge (+1.0 is a proton)
+electric field = volts/Angstrom :ul
+
+This command also sets the timestep size and neighbor skin distance to
+default values for each style.  For style {lj} these are dt = 0.005
+tau and skin = 0.3 sigma.  For style {real} these are dt = 1.0 fmsec
+and skin = 2.0 Angstroms.  For style {metal} these are dt = 0.001 psec
+and skin = 2.0 Angstroms.
+
+[Restrictions:]
+
+This command cannot be used after the simulation box is defined by a
+"read_data"_read_data.html or "create_box"_create_box.html command.
+
+[Related commands:] none
+
+[Default:]
+
+units lj :pre

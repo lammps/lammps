@@ -1,0 +1,42 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix lineforce command :h3
+
+[Syntax:]
+
+fix ID group-ID lineforce x y z :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+lineforce = style name of this fix command
+x y z = direction of line as a 3-vector :ul
+
+[Examples:]
+
+fix hold boundary lineforce 0.0 1.0 1.0 :pre
+
+[Description:]
+
+Adjust the forces on each atom in the group so that it's motion will
+be along the linear direction specified by the vector (x,y,z).  This
+is done by subtracting out components of force perpendicular to the
+line.
+
+If the initial velocity of the atom is 0.0 (or along the line), then
+it should continue to move along the line thereafter.
+
+The forces due to this fix are also imposed during an energy
+minimization, invoked by the "minimize"_minimize.html command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix planeforce"_fix_planeforce.html
+
+[Default:] none 

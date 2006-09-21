@@ -1,0 +1,94 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+next command :h3
+
+[Syntax:]
+
+next variables :pre
+
+variables = one or more lower-case single-character variable names :ul
+
+[Examples:]
+
+next x
+next a t x :pre
+
+[Description:]
+
+This command is used with variables defined by the
+"variable"_variable.html command.  It assigns the next value to the
+variable from the variable's list, so that when $X is subsequently
+substituted for in an input script command, the new value is used.  X
+is a single lower-case character from "a" to "z".
+
+All variables in a single next command must be the same style:
+{index}, {loop}, or {universe}.  {Equal}- or {world}-style variables
+cannot be incremented by a next command.
+
+When any of the variables in the next command has no more values, a
+flag is set that causes the input script to skip the next
+"jump"_jump.html command encountered.  This enables a loop containing
+a next command to exit.
+
+When the next command is used with {index}- or {loop}-style variables,
+the next value is assigned to the variable for all processors.  When
+the next command is used with {universe}-style variables, the next
+value is assigned to whichever processor partition executes the
+command first.  All processors in the partition are assigned the same
+value.  Running LAMMPS on multiple partitions of processors via the
+"-partition" command-line switch is described in "this
+section"_Section_start.html#2_4 of the manual.  {Universe}-style
+variables are incremented using the files "tmp.lammps.variable" and
+"tmp.lammps.variable.lock" which you will see in your directory during
+such a LAMMPS run.
+
+Here is an example of running a series of simulations using the next
+command with an {index}-style variable.  If this input script is named
+in.polymer, 8 simulations would be run using data files from
+directories run1 thru run8.
+
+variable d index run1 run2 run3 run4 run5 run6 run7 run8
+shell cd $d
+read_data data.polymer
+run 10000
+shell cd ..
+clear
+next d
+jump in.polymer :pre
+
+If the variable "d" were of style {universe}, and the same in.polymer
+input script were run on 3 partitions of processors, then the first 3
+simulations would begin, one on each set of processors.  Whichever
+partition finished first, it would assign variable "d" the 4th value
+and run another simulation, and so forth until all 8 simulations were
+finished.
+
+Jump and next commands can also be nested to enable multi-level loops.
+For example, this script will run 15 simulations in a double loop.
+
+variable i loop 3
+variable j loop 5
+clear
+...
+read_data data.polymer.$i$j
+print Running simulation $i.$j
+run 10000
+next j
+jump in.script
+next i
+jump in.script
+
+[Restrictions:] none
+
+[Related commands:]
+
+"jump"_jump.html, "include"_include.html, "shell"_shell.html,
+"variable"_variable.html,
+
+[Default:] none

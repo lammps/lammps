@@ -1,0 +1,96 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style buck command :h3
+pair_style buck/coul/cut command :h3
+pair_style buck/coul/long command :h3
+
+[Syntax:]
+
+pair_style style args :pre
+
+style = {buck} or {buck/coul/cut} or {buck/coul/long}
+args = list of arguments for a particular style :ul
+  {buck} args = cutoff
+    cutoff = global cutoff for Buckingham interactions (distance units)
+  {buck/coul/cut} args = cutoff (cutoff2)
+    cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {buck/coul/long} args = cutoff (cutoff2)
+    cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
+
+[Examples:]
+
+pair_style buck 2.5
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff * * 100.0 1.5 200.0 3.0 :pre
+
+pair_style buck/coul/cut 10.0
+pair_style buck/coul/cut 10.0 8.0
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff 1 1 100.0 1.5 200.0 9.0
+pair_coeff 1 1 100.0 1.5 200.0 9.0 8.0 :pre
+
+pair_style buck/coul/long 10.0
+pair_style buck/coul/long 10.0 8.0
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff 1 1 100.0 1.5 200.0 9.0 :pre
+
+[Description:]
+
+The {buck} style computes a Buckingham potential (exp/6 instead of
+Lennard-Jones 12/6) given by
+
+:c,image(Eqs/pair_buck.jpg)
+
+Rc is the cutoff.
+
+The {buck/coul/cut} and {buck/coul/long} styles add a Coulombic term
+as described for the "lj/cut"_pair_style_lj.html pair styles.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+A (energy units)
+rho (distance units)
+C (energy-distance^6 units)
+cutoff (distance units)
+cutoff2 (distance units) :ul
+
+The latter 2 coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs are used.  If only one cutoff is specified,
+it is used as the cutoff for both LJ and Coulombic interactions for
+this type pair.  If both coefficients are specified, they are used as
+the LJ and Coulombic cutoffs for this type pair.  You cannot specify 2
+cutoffs for style {buck}, since it has no Coulombic terms.
+
+For {buck/coul/long} only the LJ cutoff can be specified since a
+Coulombic cutoff cannot be specified for an individual I,J type pair.
+All type pairs use the same global Coulombic cutoff specified in the
+pair_style command.
+
+[Restrictions:]
+
+The {buck/coul/long} style is part of the "kspace" package.  It is
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+On some 64-bit machines, compiling with -O3 appears to break the
+Coulombic tabling option used by the {buck/coul/long} style.  See
+the "Additional build tips" section of the Making LAMMPS documentation
+pages for workarounds on this issue.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

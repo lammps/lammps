@@ -1,0 +1,95 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix gravity command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group gravity style args 
+</PRE>
+<UL><LI>ID, group are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>gravity = style name of this fix command 
+
+<LI>style = <I>chute</I> or <I>spherical</I> or <I>gradient</I> or <I>vector</I> 
+
+<PRE>  <I>chute</I> args = angle
+    angle = angle in +x away from -z axis (in degrees)
+  <I>spherical</I> args = phi theta
+    phi = azimuthal angle from +x axis (in degrees)
+    theta = angle from +z axis (in degrees)
+  <I>gradient</I> args = phi theta phi_grad theta_grad
+    phi = azimuthal angle from +x axis (in degrees)
+    theta = angle from +z axis (in degrees)
+    phi_grad = rate of change of angle phi (full rotations per time unit)
+    theta_grad = rate of change of angle theta
+      (full rotations per time unit)
+  <I>vector</I> args = magnitude x y z
+    magnitude = size of acceleration (force/mass units)
+    x y z = vector direction to apply the acceleration 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all gravity chute 24.0
+fix 1 all gravity spherical 0.0 -180.0
+fix 1 all gravity gradient 0.0 -180.0 0.0 0.1
+fix 1 all gravity vector 100.0 1 1 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Impose an additional acceleration on each particle in the group.  For
+granular systems the magnitude is chosen so as to be due to gravity.
+For non-granular systems the magnitude of the acceleration is
+specified, so it can be any kind of driving field desired (e.g. a
+pressure gradient inducing a Poisselle flow).  Note that this is
+different from what the <A HREF = "fix_addforce.html">fix addforce</A> command does,
+since it adds the same force to each atom, independent of its mass.
+This command adds the same acceleration to each atom (force/mass).
+</P>
+<P>The first 3 styles apply to granular systems.  Style <I>chute</I> is
+typically used for simulations of chute flow where the specified angle
+is the chute angle, with flow occurring in the +x direction.  Style
+<I>spherical</I> allows an arbitrary 3d direction to be specified for the
+gravity vector.  Style <I>gradient</I> allows the direction of the gravity
+vector to be time dependent.  The units of the gradient arguments are
+in full rotations per time unit.  E.g. a timestep of 0.001 and a
+gradient of 0.1 means the gravity vector would rotate thru 360 degrees
+every 10,000 timesteps.  For the time-dependent case, the initial
+direction of the gravity vector is phi,theta at the time the fix is
+specified.
+</P>
+<P>Phi and theta are defined in the usual spherical coordinates.  Thus
+for gravity acting in the -z direction, theta would be specified as
+180.0 (or -180.0).  Theta = 90.0 and phi = -90.0 would mean gravity
+acts in the -y direction.
+</P>
+<P>Style <I>vector</I> is used for non-granular systems.  An acceleration of
+the specified magnitude is applied to each atom in the group in the
+vector direction given by (x,y,z).
+</P>
+<P>The strength of the acceleration due to gravity is 1.0 in LJ units,
+which are the only allowed units for granular systems.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Styles <I>chute</I>, <I>spherical</I>, and <I>gradient</I> can only be used with
+atom_style granular.  Style <I>vector</I> can only be used with
+non-granular systems.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "atom_style.html">atom_style granular</A>, <A HREF = "fix_addforce.html">fix addforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

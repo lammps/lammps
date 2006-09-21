@@ -1,0 +1,50 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style yukawa command :h3
+
+[Syntax:]
+
+pair_style yukawa kappa cutoff :pre
+
+kappa = screening length (inverse distance units)
+cutoff = global cutoff for Yukawa interactions (distance units) :ul
+
+[Examples:]
+
+pair_style yukawa 2.0 2.5
+pair_coeff 1 1 100.0 2.3
+pair_coeff * * 100.0 :pre
+
+[Description:]
+
+Style {yukawa} computes pairwise interactions with the formula
+
+:c,image(Eqs/pair_yukawa.jpg)
+
+Rc is the cutoff.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+A (energy units)
+cutoff (distance units) :ul
+
+The last coefficient is optional.  If not specified, the global yukawa
+cutoff is used.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

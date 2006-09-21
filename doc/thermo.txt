@@ -1,0 +1,36 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+thermo command :h3
+
+[Syntax:]
+
+thermo N :pre
+
+N = output thermodynamics every N timesteps :ul
+
+[Examples:]
+
+thermo 100 :pre
+
+[Description:]
+
+Compute and print thermodynamics (temperature, energy, pressure) on
+timesteps that are a multiple of N and at the beginning and end of a
+simulation.  A value of 0 will only print thermodynamics at the
+beginning and end.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"thermo_style"_thermo_style.html, "thermo_modify"_thermo_modify.html
+
+[Default:]
+
+thermo 0 :pre

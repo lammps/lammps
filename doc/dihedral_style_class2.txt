@@ -1,0 +1,112 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dihedral_style class2 command :h3
+
+[Syntax:]
+
+dihedral_style class2 :pre
+
+[Examples:]
+
+dihedral_style class2
+dihedral_coeff 1 100 75 100 70 80 60 :pre
+
+[Description:]
+
+The {class2} dihedral style uses the potential
+
+:c,image(Eqs/dihedral_class2.jpg)
+
+where Ed is the dihedral term, Embt is a middle-bond-torsion term,
+Eebt is an end-bond-torsion term, Eat is an angle-torsion term, Eaat
+is an angle-angle-torsion term, and Ebb13 is a bond-bond-13 term.
+
+Theta1 and theta2 are equilibrium angles and r1 r2 r3 are equilibrium
+bond lengths.
+
+For this style, only coefficients for the Ed formula can be specified
+in the input script.  These are the 6 coefficients:
+
+K1 (energy)
+phi1 (degrees)
+K2 (energy)
+phi2 (degrees)
+K3 (energy)
+phi3 (degrees) :ul
+
+Coefficients for all the other formulas must be specified in the data
+file.
+
+For the Embt formula, the coefficients are listed under a
+"MiddleBondTorsion Coeffs" heading and each line lists 4 coefficients:
+
+A1 (energy/distance)
+A2 (energy/distance)
+A3 (energy/distance)
+r2 (distance) :ul
+
+For the Eebt formula, the coefficients are listed under a
+"EndBondTorsion Coeffs" heading and each line lists 8 coefficients:
+
+B1 (energy/distance)
+B2 (energy/distance)
+B3 (energy/distance)
+C1 (energy/distance)
+C2 (energy/distance)
+C3 (energy/distance)
+r1 (distance)
+r3 (distance) :ul
+
+For the Eat formula, the coefficients are listed under a "AngleTorsion
+Coeffs" heading and each line lists 8 coefficients:
+
+D1 (energy/radian)
+D2 (energy/radian)
+D3 (energy/radian)
+E1 (energy/radian)
+E2 (energy/radian)
+E3 (energy/radian)
+theta1 (degrees)
+theta2 (degrees) :ul
+
+Theta1 and theta2 are specified in degrees, but LAMMPS converts them
+to radians internally; hence the units of D and E are in
+energy/radian.
+
+For the Eaat formula, the coefficients are listed under a
+"AngleAngleTorsion Coeffs" heading and each line lists 3 coefficients:
+
+M (energy/radian^2)
+theta1 (degrees)
+theta2 (degrees) :ul
+
+Theta1 and theta2 are specified in degrees, but LAMMPS converts them
+to radians internally; hence the units of M are in energy/radian^2.
+
+For the Ebb13 formula, the coefficients are listed under a "BondBond13
+Coeffs" heading and each line lists 3 coefficients:
+
+N (energy/distance^2)
+r1 (distance)
+r3 (distance) :ul
+
+[Restrictions:]
+
+Dihedral styles can only be set for atom styles that allow dihedrals to be
+defined.
+
+This dihedral style is part of the "class2" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"dihedral_coeff"_dihedral_coeff.html
+
+[Default:] none

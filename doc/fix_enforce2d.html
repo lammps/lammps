@@ -1,0 +1,40 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix enforce2d command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID enforce2d 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>enforce2d = style name of this fix command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 5 all enforce2d 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Zero out the z-dimension velocity and force on each atom in the group.
+This is useful when running a 2d simulation to insure that atoms do
+not move from their initial z coordinate.
+</P>
+<P>The forces due to this fix are also imposed during an energy
+minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

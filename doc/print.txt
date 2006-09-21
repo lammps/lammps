@@ -1,0 +1,40 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+print command :h3
+
+[Syntax:]
+
+print args :pre
+
+args = one or more text strings and variables names to print out :ul
+
+[Examples:]
+
+print The system volume is now $v :pre
+
+[Description:]
+
+Print the list of arguments as a line of text to the screen and/or
+logfile.  If variables are included in the arguments, they will be
+evaluated and their values printed.  Note that if variables are
+included, the print string should not be enclosed in double quotes,
+else it will prevent the variables from being evaluated.
+
+By using the print command in a section of the input script that is
+looped over (see the "jump"_jump.html command), and by including
+variables of the {equal} style (see the "variable"_variable.html
+command), a string with changing values can be printed.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix print"_fix_print.html, "variable"_variable.html
+
+[Default:] none

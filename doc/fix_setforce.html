@@ -1,0 +1,49 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix setforce command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID setforce fx fy fz 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>setforce = style name of this fix command
+<LI>fx,fy,fz = force component values 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix freeze indenter setforce 0.0 0.0 0.0
+fix 2 edge setforce NULL 0.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set each component of force on each atom in the group to the specified
+values fx,fy,fz.  This erases all previously computed forces on the
+atom, though additional fixes could add new forces.  This command can
+be used to freeze certain atoms in the simulation by zeroing their
+force, assuming their initial velocity zero.
+</P>
+<P>Any of the fx,fy,fz values can be specified as NULL which means do not
+alter the force component in that dimension.
+</P>
+<P>The forces due to this fix are also imposed during an energy
+minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_addforce.html">fix addforce</A>, <A HREF = "fix_aveforce.html">fix aveforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

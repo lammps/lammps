@@ -1,0 +1,157 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style table command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style table style N 
+</PRE>
+<UL><LI>style = <I>lookup</I> or <I>linear</I> or <I>spline</I> or <I>bitmap</I> = method of interpolation
+<LI>N = use N values in <I>lookup</I>, <I>linear</I>, <I>spline</I> tables
+<LI>N = use 2^N values in <I>bitmap</I> tables 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style table linear 1000
+pair_style table bitmap 12
+pair_coeff * 3 morse.table ENTRY1
+pair_coeff * 3 morse.table ENTRY1 7.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>table</I> creates interpolation tables of length <I>N</I> from pair
+potential and force values listed in a file(s) as a function of
+distance.  The files are read by the <A HREF = "pair_coeff.html">pair_coeff</A>
+command.
+</P>
+<P>The interpolation tables are created by fitting cubic splines to the
+file values and interpolating energy and force values at each of <I>N</I>
+distances.  During a simulation, these tables are used to interpolate
+energy and force values as needed.  The interpolation is done in one
+of 4 styles: <I>lookup</I>, <I>linear</I>, <I>spline</I>, or <I>bitmap</I>.
+</P>
+<P>For the <I>lookup</I> style, the distance between 2 atoms is used to find
+the nearest table entry, which is the energy or force.
+</P>
+<P>For the <I>linear</I> style, the distance is used to find 2 surrounding
+table values from which an energy or force is computed by linear
+interpolation.
+</P>
+<P>For the <I>spline</I> style, a cubic spline coefficients are computed and
+stored each of the <I>N</I> values in the table.  The pair distance is used
+to find the appropriate set of coefficients which are used to evaluate
+a cubic polynomial which computes the energy or force.
+</P>
+<P>For the <I>bitmap</I> style, the N means to create interpolation tables
+that are 2^N in length.  The pair distance is used to index into the
+table via a fast bit-mapping technique <A HREF = "#Wolff">(Wolff)</A> and a linear
+interpolation is performed between adjacent table values.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>filename
+<LI>keyword
+<LI>cutoff (distance units) 
+</UL>
+<P>The filename specifies a file containing tabulated energy and force
+values.  The keyword specifies a section of the file.  The cutoff is
+an optional coefficient.  If not specified, the outer cutoff in the
+table itself (see below) will be used to build an interpolation table
+that extend to the largest tablulated distance.  If specified, only
+file values up to the cutoff are used to create the interpolation
+table.
+</P>
+<P>The format of a tabulated file is as follows (without the
+parenthesized comments):
+</P>
+<PRE># Morse potential for Fe   (one or more comment or blank lines) 
+</PRE>
+<PRE>MORSE_FE                   (keyword is first text on line)
+N 500 R 1.0 10.0           (N, R, RSQ, BITMAP, FPRIME parameters)
+                           (blank)
+1 1.0 25.5 102.34          (index, r, energy, force)
+2 1.02 23.4 98.5
+...
+500 10.0 0.001 0.003 
+</PRE>
+<P>A section begins with a non-blank line whose 1st character is not a
+"#"; blank lines or lines starting with "#" can be used as comments
+between sections.  The first line begins with a keyword which
+identifies the section.  The line can contain additional text, but the
+initial text must match the argument specified in the pair_coeff
+command.  The next line lists (in any order) one or more parameters
+for the table.  Each parameter is a keyword followed by one or more
+numeric values.
+</P>
+<P>The parameter "N" is required; its value is the number of table
+entries that follow.  All other parameters are optional.  If "R" or
+"RSQ" or "BITMAP" does not appear, then the distances in each line of
+the table are used as-is to perform spline interpolation.  In this
+case, the table values can be spaced in <I>r</I> uniformly or however you
+wish to position table values in regions of large gradients.
+</P>
+<P>If used, the parameters "R" or "RSQ" are followed by 2 values <I>rlo</I>
+and <I>rhi</I>.  If specified, the distance associated with each energy and
+force value is computed from these 2 values (at high accuracy), rather
+than using the (low-accuracy) value listed in each line of the table.
+For "R", distances uniformly spaced between <I>rlo</I> and <I>rhi</I> are
+computed; for "RSQ", squared distances uniformly spaced between
+<I>rlo*rlo</I> and <I>rhi*rhi</I> are computed.
+</P>
+<P>If used, the parameter "BITMAP" is also followed by 2 values <I>rlo</I> and
+<I>rhi</I>.  These values, along with the "N" value determine the ordering
+of the N lines that follow and what distance is associated with each.
+This ordering is complex, so it is not documented here, since this
+file is typically produced by the <A HREF = "pair_write.html">pair_write</A> command
+with its <I>bitmap</I> option.  When the table is in BITMAP format, the "N"
+parameter in the file must be equal to 2^M where M is the value
+specified in the pair_style command.  Also, a cutoff parameter cannot
+be used as an optional 3rd argument in the pair_coeff command; the
+entire table extent as specified in the file must be used.
+</P>
+<P>If used, the parameter "FPRIME" is followed by 2 values <I>fplo</I> and
+<I>fphi</I> which are the derivative of the force at the innermost and
+outermost distances listed in the table.  These values are needed by
+the spline construction routines.  If not specified by the "FPRIME"
+parameter, they are estimated (less accurately) by the first 2 and
+last 2 force values in the table.  This parameter is not used by
+BITMAP tables.
+</P>
+<P>Following a blank line, the next N lines list the tabulated values.
+On each line, the 1st value is the index from 1 to N, the 2nd value is
+r (in distance units), the 3rd value is the energy (in energy units),
+and the 4th is the force (in force units).  The r values must increase
+from one line to the next (unless the BITMAP parameter is specified).
+</P>
+<P>Note that one file can contain many sections, each with a tabulated
+potential.  LAMMPS reads the file section by section until it finds
+one that matches the specified keyword.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Wolff"></A>
+
+<P><B>(Wolff)</B> Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
+</P>
+</HTML>

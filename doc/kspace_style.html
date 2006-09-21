@@ -1,0 +1,110 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>kspace_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>kspace_style style value 
+</PRE>
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> 
+
+<PRE>  <I>none</I> value = none
+  <I>ewald</I> value = precision
+    precision = desired accuracy
+  <I>pppm</I> value = precision
+    precision = desired accuracy
+  <I>pppm/tip4p</I> value = precision
+    precision = desired accuracy 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>kspace_style pppm 1.0e-4
+kspace_style none 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a K-space solver for LAMMPS to use each timestep to compute
+long-range Coulombic interactions.  When such a solver is used in
+conjunction with an appropriate pair style, the cutoff for Coulombic
+interactions is effectively infinite; each charge in the system
+interacts with charges in an infinite array of periodic images of the
+simulation domain.
+</P>
+<P>The <I>ewald</I> style performs a standard Ewald summation as described in
+any solid-state physics text.
+</P>
+<P>The <I>pppm</I> style invokes a particle-particle particle-mesh solver
+<A HREF = "#Hockney">(Hockney)</A> which maps atom charge to a 3d mesh, uses 3d FFTs
+to solve Poisson's equation on the mesh, then interpolates electric
+fields on the mesh points back to the atoms.  It is closely related to
+the particle-mesh Ewald technique (PME) <A HREF = "#Darden">(Darden)</A> used in
+AMBER and CHARMM.  The cost of traditional Ewald summation scales as
+N^(3/2) where N is the number of atoms in the system.  The PPPM solver
+scales as Nlog(N) due to the FFTs, so it is almost always a faster
+choice <A HREF = "#Pollock">(Pollock)</A>.
+</P>
+<P>The <I>pppm/tip4p</I> style is identical to the <I>pppm</I> style except that it
+adds a charge at the massless 4th site in each TIP4P water molecule.
+It should be used with <A HREF = "pair_style.html">pair styles</A> with a
+<I>long/tip4p</I> in their style name.
+</P>
+<P>When a kspace style is used, a pair style that includes the
+short-range correction to the pairwise Coulombic forces must also be
+selected.  These styles are ones that have a <I>coul/long</I> in their
+style name.
+</P>
+<P>A precision value of 1.0e-4 means one part in 10000.  This setting is
+used in conjunction with the pairwise cutoff to determine the number
+of K-space vectors for style <I>ewald</I> or the FFT grid size for style
+<I>pppm</I>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>A simulation must be 3d and periodic in all dimensions to use an Ewald
+or PPPM solver.  The only exception is if the slab option is set with
+<A HREF = "kspace_modify.html">kspace_modify</A>, in which case the xy dimensions
+must be periodic and the z dimension must be non-periodic.
+</P>
+<P>Kspace styles are part of the "kspace" package.  They are only enabled
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P>When using a long-range pairwise TIP4P potential, you must use kspace
+style <I>pppm/tip4p</I> and vice versa.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "kspace_modify.html">kspace_modify</A>, <A HREF = "pair_style.html">pair_style</A>
+lj/cut/coul/long, <A HREF = "pair_style.html">pair_style</A> lj/charmm/coul/long
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>kspace_style none 
+</PRE>
+<HR>
+
+<A NAME = "Darden"></A>
+
+<P><B>(Darden)</B> Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
+</P>
+<A NAME = "Hockney"></A>
+
+<P><B>(Hockney)</B> Hockney and Eastwood, Computer Simulation Using Particles,
+Adam Hilger, NY (1989).
+</P>
+<A NAME = "Pollock"></A>
+
+<P><B>(Pollock)</B> Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
+</P>
+</HTML>

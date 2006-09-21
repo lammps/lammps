@@ -1,0 +1,77 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>shell command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>shell style args 
+</PRE>
+<UL><LI>style = <I>cd</I> or <I>mkdir</I> or <I>mv</I> or <I>rm</I> or <I>rmdir</I> 
+
+<PRE>  <I>cd</I> arg = dir
+    dir = directory to change to
+  <I>mkdir</I> args = dir1 dir2 ...
+    dir1,dir2 = one or more directories to create
+  <I>mv</I> args = old new
+    old = old filename
+    new = new filename
+  <I>rm</I> args = file1 file2 ...
+    file1,file2 = one or more filenames to delete
+  <I>rmdir</I> args = dir1 dir2 ...
+    dir1,dir2 = one or more directories to delete 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>shell cd sub1
+shell cd ..
+shell mkdir tmp1 tmp2 tmp3
+shell rmdir tmp1
+shell mv log.lammps hold/log.1
+shell rm TMP/file1 TMP/file2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Execute a shell command.  Only a few simple file-based shell commands
+are supported, in Unix-style syntax.  With the exception of <I>cd</I>, all
+commands are executed by only a single processor, so that
+files/directories are not being manipulated by multiple processors.
+</P>
+<P>The <I>cd</I> style executes the Unix "cd" command to change the working
+directory.  All subsequent LAMMPS commands that read/write files will
+use the new directory.  All processors execute this command.
+</P>
+<P>The <I>mkdir</I> style executes the Unix "mkdir" command to create
+one or more directories.
+</P>
+<P>The <I>mv</I> style executes the Unix "mv" command to rename a file and/or
+move it to a new directory.
+</P>
+<P>The <I>rm</I> style executes the Unix "rm" command to remove one or more
+files.
+</P>
+<P>The <I>rmdir</I> style executes the Unix "rmdir" command to remove one or
+more directories.  A directory must be empty to be successfully
+removed.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>LAMMPS does not detect errors or print warnings when any of these Unix
+commands execute.  E.g. if the specified directory does not exist,
+executing the <I>cd</I> command will silently not do anything.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

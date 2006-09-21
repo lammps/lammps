@@ -1,0 +1,2138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+LAMMPS Input Commands</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation.</P>
+<P>
+This page contains a complete list of valid LAMMPS commands which are 
+read-in from an input script. It will be easiest to understand if you 
+read it while looking at sample input scripts in the examples 
+directory. </P>
+<P>
+The script of input commands is read by LAMMPS, one line at a time. 
+Each command causes LAMMPS to take some action. Usually it simply 
+causes some internal variable(s) to be set. Or it may cause a data file 
+to be read in or a simulation to be run. Note that most commands have 
+default settings, which means you only need use a particular command if 
+you do not want the default setting.</P>
+<P>
+Each LAMMPS input script contains exactly one &quot;read data&quot; (or 
+&quot;read restart&quot;) command which defines the problem to be 
+simulated. All other commands can be split into three categories: (a) 
+commands that (if used) must appear before the &quot;read data&quot; 
+command because they define settings needed to correctly read-in the 
+problem and allocate memory for it, (b) commands that must appear after 
+the &quot;read data&quot; command because they act on the specified 
+problem, and (c) commands that can appear either before or after the 
+&quot;read data&quot; command. Commands in category (c) are used before 
+the &quot;read data&quot; command if a default setting needs to be 
+changed before the problem description is read-in. They can be used 
+after the &quot;read data&quot; command if the user wishes to change a 
+setting before the next &quot;run&quot; or &quot;minimize&quot; command 
+is used. Other than these restrictions, commands can generally appear 
+in any order in the input script, although some commands require others 
+to have been previously specified.</P>
+<P>
+Each LAMMPS input script also contains one or more &quot;run&quot; or 
+&quot;minimize&quot; commands. These trigger an actual dynamics or 
+minimization computation to be done. Following a run, new commands from 
+categories (b) and (c) can be used to change various settings, and 
+additional &quot;run&quot; commands can then be used to continue the 
+previous simulation. LAMMPS continues to read successive lines from the 
+input script until the end-of-file is reached, which causes LAMMPS to 
+terminate.</P>
+<P>
+This page gives examples of each command, some of which can be 
+specified in multiple styles. Typically the commands take one or more 
+parameters. The keyword for each command should begin in the leftmost 
+column and all characters in the command and its parameters should be 
+in lower-case (except the word NULL or characters in filenames). 
+Parameters can be separated by arbitrary numbers of spaces and/or tabs, 
+so long as the command fits on one line. The remainder of the line 
+after the last parameter is ignored.</P>
+<P>
+The next section outlines the structure of a LAMMPS input script. The 
+final section gives a detailed description of the commands in 
+alphabetic order, each with its associated parameters and default 
+settings.</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_951156975">Structure of a LAMMPS input script</A> 
+    <LI>
+    <A HREF="#_cch3_931277455">Alphabetic Listing of Commands</A> 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_951156975">Structure of a LAMMPS input script</A></H3>
+<P>
+Any line starting with a # is a <A HREF="#_cch3_931276588">comment</A>. 
+Comments can appear anywhere in the input script.</P>
+<P>
+(1) <A HREF="#_cch3_930960479">Initialization settings</A> (must appear 
+before &quot;read data&quot; or &quot;read restart&quot;)</P>
+<P>
+(2) <A HREF="#_cch3_951435622">Optional Settings</A> (can appear before 
+and/or after &quot;read data&quot; or &quot;read restart&quot;)</P>
+<P>
+(3) <A HREF="#_cch3_951435906">Read in a Problem</A> via a &quot;<A
+ HREF="#_cch3_931277059">read data</A>&quot; or &quot;<A
+ HREF="#_cch3_931277070">read restart</A>&quot; command</P>
+<P>
+(4) <A HREF="#_cch3_951435622">Optional Settings</A> (same as (2))</P>
+<P>
+(5) Problem Settings (must appear after &quot;read data&quot; or 
+&quot;read restart&quot;)</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_930960510">Velocity Creation</A> 
+    <LI>
+    <A HREF="#_cch3_951435663">Force Field Parameters</A> 
+    <LI>
+    <A HREF="#_cch3_930960516">Constraints</A> 
+    <LI>
+    <A HREF="#_cch3_930960490">Ensemble Control</A> 
+    <LI>
+    <A HREF="#_cch3_930960485">Output Control</A> 
+    <LI>
+    <A HREF="#_cch3_951435640">Integrator Settings</A> 
+    <LI>
+    <A HREF="#_cch3_951435646">Minimizer Settings</A> 
+</UL>
+<P>
+(6) <A HREF="#_cch3_951435914">Perform a Simulation</A> via a &quot;<A
+ HREF="#_cch3_931277194">run</A>&quot; or &quot;<A
+ HREF="#_cch3_931277212">minimize</A>&quot; command</P>
+<P>
+Repeat (4), (5), and (6) as desired ...</P>
+<HR>
+<H3>
+<A NAME="_cch3_930960479">Initialization Settings</A></H3>
+<P>
+(if used, must appear before &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931276596">units</A>                  real
+
+<A HREF="#_cch3_951437269">extra memory</A>           2.0 1.5 2.0 2.5
+<A HREF="#_cch3_931276604">dimension</A>              3
+<A HREF="#_cch3_931276624">processor grid</A>         10 10 10
+<A HREF="#_cch3_999182956">periodicity</A>            0 0 0
+<A HREF="#_cch3_999182965">slab volume</A>            3.0
+<A HREF="#_cch3_931276632">newton flag</A>            3
+<A HREF="#_cch3_931276687">true flag</A>              0
+<A HREF="#_cch3_951437278">maximum cutoff</A>         10.0
+<A HREF="#_cch3_931276900">mixing style</A>           geometric
+<A HREF="#_cch3_951437286">restart version</A>        5
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951435622">Optional Settings</A></H3>
+<P>
+(if used, can appear before and/or after &quot;read data&quot; or 
+&quot;read restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931276654">neighbor</A>               2.0 1 1 10 1
+
+<A HREF="#_cch3_931276833">nonbond style</A>          none
+<A HREF="#_cch3_931276833">nonbond style</A>          lj/cutoff 10.0 0
+<A HREF="#_cch3_931276833">nonbond style</A>          lj/smooth 8.0 10.0
+<A HREF="#_cch3_931276833">nonbond style</A>          lj/shift 10.0 0
+<A HREF="#_cch3_931276833">nonbond style</A>          soft 2.5
+<A HREF="#_cch3_931276833">nonbond style</A>          class2/cutoff 10.0 0
+<A HREF="#_cch3_931276833">nonbond style</A>          lj/charmm 15.0 15.1
+
+<A HREF="#_cch3_931276910">coulomb style</A>          none
+<A HREF="#_cch3_931276910">coulomb style</A>          cutoff 10.0
+<A HREF="#_cch3_931276910">coulomb style</A>          smooth 8.0 10.0
+<A HREF="#_cch3_931276910">coulomb style</A>          ewald 10.0 1.0E-4
+<A HREF="#_cch3_931276910">coulomb style</A>          pppm 10.0 1.0E-4
+<A HREF="#_cch3_931276910">coulomb style</A>          charmm/switch 15.0 15.1
+<A HREF="#_cch3_931276910">coulomb style</A>          debye 10.0 0.5
+
+<A HREF="#_cch3_931276958">bond style</A>             none
+<A HREF="#_cch3_931276958">bond style</A>             harmonic
+<A HREF="#_cch3_931276958">bond style</A>             fene/standard
+<A HREF="#_cch3_931276958">bond style</A>             fene/shift
+<A HREF="#_cch3_931276958">bond style</A>             nonlinear
+<A HREF="#_cch3_931276958">bond style</A>             class2
+
+<A HREF="#_cch3_931277007">angle style</A>            none
+<A HREF="#_cch3_931277007">angle style</A>            harmonic
+<A HREF="#_cch3_931277007">angle style</A>            class2
+<A HREF="#_cch3_931277007">angle style</A>            charmm
+<A HREF="#_cch3_931277007">angle style</A>            cosine
+
+<A HREF="#_cch3_931277020">dihedral style</A>         none
+<A HREF="#_cch3_931277020">dihedral style</A>         harmonic
+<A HREF="#_cch3_931277020">dihedral style</A>         mutliharmonic
+<A HREF="#_cch3_931277020">dihedral style</A>         class2
+<A HREF="#_cch3_931277020">dihedral style</A>         charmm
+
+<A HREF="#_cch3_931277042">improper style</A>         none
+<A HREF="#_cch3_931277042">improper style</A>         harmonic
+<A HREF="#_cch3_931277042">improper style</A>         cvff
+<A HREF="#_cch3_931277042">improper style</A>         class2
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951435906">Read in a Problem</A></H3>
+<PRE>
+<A HREF="#_cch3_931277059">read data</A>              data.lj
+<A HREF="#_cch3_931277070">read restart</A>           restart.100000
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930960510">Velocity Creation</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931277080">create group</A>           types 1 3
+<A HREF="#_cch3_931277080">create group</A>           molecules 200 300
+<A HREF="#_cch3_931277080">create group</A>           region 0.0 1.0 0.0 1.0 INF 1.0
+<A HREF="#_cch3_931277080">create group</A>           remainder
+
+<A HREF="#_cch3_931299999">rotation zero</A>          1
+
+<A HREF="#_cch3_931277097">create temp</A>            uniform 300.0 12345678
+<A HREF="#_cch3_931277097">create temp</A>            gaussian 300.0 12345678
+<A HREF="#_cch3_931277097">create temp</A>            velocity 0.0 0.0 0.0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951435663">Force Field Parameters</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931276848">nonbond coeff</A>          1 2 1.0 3.45 10.0         (nonbond style lj/cutoff)
+<A HREF="#_cch3_931276848">nonbond coeff</A>          1 2 1.0 3.45 8.0 10.0     (nonbond style lj/smooth)
+<A HREF="#_cch3_931276848">nonbond coeff</A>          1 2 1.0 3.45 2.0 10.0     (nonbond style lj/shift)
+<A HREF="#_cch3_931276848">nonbond coeff</A>          1 2 1.0 30.0 2.5          (nonbond style soft)
+<A HREF="#_cch3_931276848">nonbond coeff</A>          1 2 1.0 3.45 10.0         (nonbond style class2/cutoff)
+<A HREF="#_cch3_931276848">nonbond coeff</A>          1 2 1.0 3.45 1.0 3.45     (nonbond style lj/charmm)
+
+<A HREF="#_cch3_931276666">special bonds</A>          amber
+<A HREF="#_cch3_931276666">special bonds</A>          0.0 0.0 0.5
+
+<A HREF="#_cch3_931276941">pppm mesh</A>              32 32 64
+<A HREF="#_cch3_931276947">pppm order</A>             5
+<A HREF="#_cch3_931276953">dielectric</A>             1.0
+
+<A HREF="#_cch3_931276970">bond coeff</A>             1 100.0 3.45              (bond style harmonic)
+<A HREF="#_cch3_931276970">bond coeff</A>             1 30.0 1.5 1.0 1.0        (bond style fene/standard )
+<A HREF="#_cch3_931276970">bond coeff</A>             1 30.0 1.5 1.0 1.0 0.2    (bond style fene/shift)
+<A HREF="#_cch3_931276970">bond coeff</A>             1 28.0 0.748308 0.166667  (bond style nonlinear)
+<A HREF="#_cch3_999724447">angle coeff</A>            1 30.0 108.0              (angle style harmonic)
+<A HREF="#_cch3_999724447">angle coeff</A>            1 30.0 108.0 30.0 2.5     (angle style charmm)
+<A HREF="#_cch3_999724447">angle coeff</A>            1 30.0                    (angle style cosine)
+<A HREF="#_cch3_999724456">dihedral coeff</A>         1 10.0 1 3                (dihedral style harmonic)
+<A HREF="#_cch3_999724456">dihedral coeff</A>         1 2.0 2.0 2.0 2.0 2.0     (dihedral style multiharmonic)
+<A HREF="#_cch3_999724456">dihedral coeff</A>         1 2.0 5 180.0 0.5         (dihedral style charmm)
+<A HREF="#_cch3_999724473">improper coeff</A>         1 20.0 0.0                (improper style harmonic)
+<A HREF="#_cch3_999724473">improper coeff</A>         1 20.0 10.0               (improper style cvff)
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930960516">Constraints</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931277114">fix style</A>              none
+<A HREF="#_cch3_931277114">fix style</A>              1 setforce 0.0 NULL 0.0
+<A HREF="#_cch3_931277114">fix style</A>              1 addforce 1.0 0.0 0.0
+<A HREF="#_cch3_931277114">fix style</A>              1 aveforce 1.0 0.0 0.0
+<A HREF="#_cch3_931277114">fix style</A>              1 rescale 300.0 300.0 100 20.0 0.5
+<A HREF="#_cch3_931277114">fix style</A>              1 hoover/drag 50.0 50.0 0.001
+<A HREF="#_cch3_931277114">fix style</A>              1 langevin 50.0 50.0 0.01 12345 1 1 1
+<A HREF="#_cch3_931277114">fix style</A>              1 springforce 10.0 NULL NULL 1.0
+<A HREF="#_cch3_931277114">fix style</A>              1 dragforce 10.0 -5.0 NULL 2.0 1.0
+<A HREF="#_cch3_931277114">fix style</A>              1 shake 3 0.001 100
+
+<A HREF="#_cch3_931277163">assign fix</A>             1 atom 200
+<A HREF="#_cch3_931277163">assign fix</A>             1 molecule 50
+<A HREF="#_cch3_931277163">assign fix</A>             1 type 2
+<A HREF="#_cch3_931277163">assign fix</A>             1 region 0.0 1.0 INF INF 0.0 1.0
+<A HREF="#_cch3_931277163">assign fix</A>             1 bondtype 4
+<A HREF="#_cch3_931277163">assign fix</A>             1 angletype 18 10
+<A HREF="#_cch3_931277163">assign fix</A>             1 remainder
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930960490">Ensemble Control</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931276742">temp control</A>           none
+<A HREF="#_cch3_931276742">temp control</A>           rescale 300.0 300.0 100 20.0 0.5
+<A HREF="#_cch3_931276742">temp control</A>           replace 300.0 300.0 50 12345678
+<A HREF="#_cch3_931276742">temp control</A>           langevin 50.0 50.0 0.01 123456
+<A HREF="#_cch3_931276742">temp control</A>           nose/hoover 300.0 300.0 0.01
+
+<A HREF="#_cch3_931276784">press control</A>          none
+<A HREF="#_cch3_931276784">press control</A>          nose/hoover xyz 0.0 0.0 0.001
+<A HREF="#_cch3_931276784">press control</A>          nose/hoover xz 0.0 10.0 5.0 5.0 0.0 10.0 0.001
+<A HREF="#_cch3_931276784">press control</A>          nose/hoover yz NULL NULL 5.0 5.0 0.0 10.0 0.001
+<A HREF="#_cch3_931276784">press control</A>          nose/hoover aniso 0.0 0.0 0.0 0.0 1.0 10.0 0.001
+<A HREF="#_cch3_931276784">press control</A>          nose/hoover aniso 0.0 0.0 0.0 0.0 NULL NULL 0.001
+
+<A HREF="#_cch3_999724492">volume control</A>         none
+<A HREF="#_cch3_999724492">volume control</A>         linear x 0.0 10.0
+<A HREF="#_cch3_999724492">volume control</A>         linear y -1.0 15.0
+<A HREF="#_cch3_999724492">volume control</A>         linear z -10.0 10.0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930960485">Output Control</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931276675">thermo flag</A>            50
+<A HREF="#_cch3_931276681">thermo style</A>           0
+
+<A HREF="#_cch3_931276696">dump atoms</A>             100 filename
+<A HREF="#_cch3_931276703">dump velocities</A>        100 filename
+<A HREF="#_cch3_931276712">dump forces</A>            100 filename
+
+<A HREF="#_cch3_931276719">restart</A>                1000 1 filename
+<A HREF="#_cch3_931276719">restart</A>                1000 2 file1 file2
+<A HREF="#_cch3_931276727">diagnostic</A>             diffusion 100 filename 3 1.0 -1.0 2.5
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951435640">Integrator Settings</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931276638">timestep</A>               1.0
+<A HREF="#_cch3_931276645">respa</A>                  2 2 4
+<A HREF="#_cch3_931277185">reset timestep</A>         0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951435646">Minimizer Settings</A></H3>
+<P>
+(if used, must appear after &quot;read data&quot; or &quot;read 
+restart&quot; command)</P>
+<PRE>
+<A HREF="#_cch3_931277200">min style</A>              hftn
+<A HREF="#_cch3_1001972012">min flag</A>               10
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951435914">Perform a Simulation</A></H3>
+<PRE>
+<A HREF="#_cch3_931277194">run</A>                    10000
+<A HREF="#_cch3_931277212">minimize</A>               0.0001 9999 50000
+</PRE>
+<HR>
+<HR>
+<H3>
+<A NAME="_cch3_931277455">Alphabetic Listing of Commands:</A></H3>
+<HR>
+<H3>
+<A NAME="_cch3_999724447">angle coeff </A></H3>
+<UL>
+    <LI>
+    1st parameter = angle type # 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+coeffs:   harmonic
+               (1) K (energy units)
+               (2) theta (degrees)
+          class2
+               currently not enabled for &quot;angle coeff&quot; command
+               must be specified in data file (see &quot;read data&quot; command)
+          charmm
+               (1) K (energy units)
+               (2) theta (degrees)
+               (3) K_UB (energy/distance^2)
+               (4) r_UB (distance)
+          cosine
+               (1) K (energy units)
+
+define (or override) angle coefficients for an individual angle type
+use appropriate number of coeffs for a particular style
+see force_fields.html for meaning of coefficients for each style
+these coefficients can also be set in data file 
+  by a &quot;Angle Coeffs&quot; entry, the most recently defined 
+  coefficients are used
+cannot use this command before a &quot;read data&quot; or &quot;read restart&quot; is performed,
+  because memory is not yet allocated for the necessary arrays
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277007">angle style </A></H3>
+<UL>
+    <LI>
+    none = compute no angles 
+    <LI>
+    harmonic = harmonic angles (class 1) 
+    <LI>
+    class2 = class 2 angles (and associated cross terms) 
+    <LI>
+    charmm = harmonic + Urey-Bradley 
+    <LI>
+    cosine = (1 + cos(theta))
+</UL>
+<PRE>
+define style of angle interactions to use for all 3-body terms
+must be used before the &quot;read data&quot; command (if not using the
+  default) to tell the program how to read the &quot;Angle Coeffs&quot; entry
+  in the data file
+can be used after the &quot;read data&quot; command to change the style to none
+coefficients for all angle types must be defined in the data (or restart)
+  file by a &quot;Angle Coeffs&quot; entry or by &quot;angle coeff&quot;
+  commands before a run is performed
+
+Default = harmonic
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277163">assign fix </A></H3>
+<UL>
+    <LI>
+    1st parameter = constraint # 
+    <LI>
+    2nd parameter = style of group of atoms or bondtype 
+    <LI>
+    3rd-Nth parameters = coeffs 1 to N-2 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    atom = single atom 
+    <LI>
+    molecule = all atoms in a particular molecule 
+    <LI>
+    type = single atom type 
+    <LI>
+    region = geometric region of atoms 
+    <LI>
+    bondtype = bondtype (only for assigning to fix style SHAKE) 
+    <LI>
+    angletype = angletype (only for assigning to fix style SHAKE) 
+    <LI>
+    remainder = rest of unconstrained atoms 
+</UL>
+<PRE>
+coeffs:  atom
+               (1) global atom #
+         molecule
+               (1) molecule #
+         type
+               (1) atom type
+         region
+               (1) lower x bound of region
+               (2) upper x bound of region
+               (3) lower y bound of region
+               (4) upper y bound of region
+               (5) lower z bound of region
+               (6) upper z bound of region
+         bondtype
+               (1) bond type
+         angletype
+               (1) angle type
+               (2) bond type used within that angle
+         remainder
+               no other parameters required
+
+assign a group of atoms or a bond type to a particular constraint
+use appropriate number of coeffs for a particular style
+the constraint itself must first be defined by a 
+  &quot;fix style&quot; command
+multiple groups of atoms or bond types can be assigned to the same constraint
+the bondtype option can only be assigned to a "fix style" of "shake",
+  multiple bondtypes can be SHAKEn, so long as the size of clusters of
+  atoms does not exceed the limit described in the "fix style" command
+the angletype option can only be assigned to a "fix style" of "shake",
+  only a single angletype can be SHAKEn, it is designed to be used
+  in conjunction with "fix style bondtype" to make clusters of size 3
+  entirely rigid (e.g. water)
+the angletype option enables an additional check when SHAKE constraints
+  are computed: if a cluster is of size 3 and both bonds in
+  the cluster are of a bondtype specified by the 2nd paramter of
+  angletype, then the cluster is SHAKEn with an additional angle
+  constraint that makes it rigid, using the equilibrium angle appropriate
+  to the specified angletype
+IMPORTANT NOTE: the angletype option has one additional affect, namely
+  that no angle forces for any angle of type angletype are computed
+  (since it is assumed those angles will be frozen by being SHAKEn), thus
+  it will likely cause unintended behavior if the bonds in some atom pairs
+  within angles of type angletype do not have the appropriate bondtype,
+  since they will not be SHAKEn but neither will the angle force by computed
+for style region, a coeff of INF means + or - infinity (all the way 
+  to the boundary)
+an atom can be assigned to multiple constraints, the contraints will be
+  applied in the reverse order they are assigned to that atom
+  (e.g. each timestep, the last fix assigned to an atom will be applied 
+  to it first, then the next-to-last applied second, etc)
+
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276970">bond coeff </A></H3>
+<UL>
+    <LI>
+    1st parameter = bond type # 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+coeffs:   harmonic
+               (1) K (energy units)
+               (2) r0 (distance units)
+          fene/standard
+               (1) k for FENE portion (energy/distance^2 units)
+               (2) r0 for FENE portion (distance units)
+               (3) epsilon for LJ portion (energy units)
+               (4) sigma for LJ portion (distance units)
+          fene/shift
+               (1) k for FENE (energy/distance^2 units)
+               (2) r0 for FENE after shift is performed (distance units)
+               (3) epsilon for LJ (energy units)
+               (4) sigma for LJ after shift is performed (distance units)
+               (5) delta shift distance (distance units)
+          nonlinear
+               (1) epsilon (energy units)
+               (2) r0 (distance units)
+               (3) lamda (distance units)
+          class2
+               currently not enabled for &quot;bond coeff&quot; command
+               must be specified in data file (see &quot;read data&quot; command)
+
+define (or override) bond coefficients for an individual bond type
+use appropriate number of coeffs for a particular style
+see force_fields.html for meaning of coefficients for each style
+these coefficients can also be set in data file 
+  by a &quot;Bond Coeffs&quot; entry, the most recently defined 
+  coefficients are used
+cannot use this command before a &quot;read data&quot; or &quot;read restart&quot; is performed,
+  because memory is not yet allocated for the necessary arrays
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276958">bond style </A></H3>
+<UL>
+    <LI>
+    none = compute no bonds 
+    <LI>
+    harmonic = harmonic springs 
+    <LI>
+    fene/standard = attractive logarithmic term, repulsive LJ 
+    <LI>
+    fene/shift = same as fene/standard with shift of bond distance 
+    <LI>
+    nonlinear = non-linear finite-extension spring (van Swol) 
+    <LI>
+    class2 = class 2 bonds 
+</UL>
+<PRE>
+define style of bond interactions to use between all bonded atoms
+must be used before the &quot;read data&quot; command (if not using the
+  default) to tell the program how to read the &quot;Bond
+  Coeffs&quot; entry in the data file (if one exists)
+can be used after the &quot;read data&quot; command to change the style,
+  in this case &quot;bond coeff&quot; commands must also be used to set new
+  coefficients for each bond type (unless the new style is &quot;none&quot;)
+coefficients for all bond types must be defined in the data (or restart)
+  file by a &quot;Bond Coeffs&quot; entry or by &quot;bond coeff&quot;
+  commands before a run is performed
+
+Default = harmonic
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276588">comments </A></H3>
+<PRE>
+blank lines are ignored
+lines starting with a # are echoed into the log file
+for commands, everything on a line after the last parameter is ignored
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276910">coulomb style </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of pairwise Coulomb interactions 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    none = no Coulomb interactions are computed 
+    <LI>
+    cutoff = use a simple cutoff 
+    <LI>
+    smooth = use a switch region that goes smoothly to zero 
+    <LI>
+    ewald = use Ewald summations for long-range effects 
+    <LI>
+    pppm = use particle-mesh Ewald for long-range effects 
+    <LI>
+    charmm/switch = use the charmm switch to go smoothly to zero 
+    <LI>
+    debye = add a Debye/Huckel screening exponential
+</UL>
+<PRE>
+coeffs:  none
+               no other parameters required
+         cutoff
+               (1) cutoff distance (distance units)
+         smooth
+               (1) inner cutoff (distance units)
+               (2) outer cutoff (distance units)
+         ewald
+               (1) cutoff distance for near-field portion (distance units)
+               (2) accuracy criterion
+         pppm
+               (1) cutoff distance for near-field portion (distance units)
+               (2) accuracy criterion
+         charmm/switch
+               (1) inner cutoff (distance units)
+               (2) outer cutoff (distance units)
+         debye
+               (1) cutoff distance (distance units)
+               (2) kappa (inverse distance units)
+
+use appropriate number of coeffs for a particular style
+normally this command should be used before &quot;read data&quot; or &quot;read restart&quot;
+  (if simulating a charged system) to tell LAMMPS how big a force cutoff
+  is being used, the &quot;maximum cutoff&quot; command can also serve this
+  purpose
+restart files do not store &quot;coulomb style&quot; choice or cutoff, so
+  this should be specified in the input script when running from a restart
+  file
+this command can also be used after &quot;read data&quot; or &quot;read restart&quot; to
+  change the style of Coulomb interactions or the cutoff
+if simulated system has no charges, should set &quot;coulomb style none&quot; to
+  prevent LAMMPS from doing useless nonbond work, LAMMPS will set
+  this for you and issue a warning
+cutoff distance can be smaller or larger than simulation box dimensions
+accuracy criterion means &quot;one part in value&quot; - e.g. 1.0E-4
+Ewald and PPPM accuracy criterion are used in conjunction with cutoff
+  to partition work between short-range and long-range routines
+accuracy criterion effectively determines how many k-space vectors are used
+  to approximate the energy and forces
+for PPPM, accuracy criterion determines mesh spacing (see &quot;particle mesh&quot;
+  command)
+3-d periodic boundary conditions are normally used in conjunction with
+  Ewald and PPPM, see &quot;slab volume&quot; command for 2-d Ewald/PPPM
+cannot use any Coulomb styles other than none with nonbond style = lj/shift or
+  nonbond style = soft
+Coulomb style = smooth should be used with nonbond style = lj/smooth,
+  and both should use same inner and outer cutoffs
+nonbond style = lj/charmm should be used with coulomb style = charmm/switch
+for smooth and charmm/switch styles, outer cutoff must be &gt; inner cutoff
+for smooth and charmm/switch styles, atom pairs less than the inner cutoff
+  distance use usual Coulomb, pairs between inner and outer are smoothed,
+  and the potential goes to 0.0 at the outer cutoff
+for smooth style, force is continuously differentiable everywhere
+for debye style, an exp(-kappa*r) screening is added to the Coulombic
+  interaction
+
+Default = cutoff 10.0   for real units
+          cutoff 2.5    for lj units
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277080">create group </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of group of atoms 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    types = range of atom types 
+    <LI>
+    molecules = range of molecule IDs 
+    <LI>
+    region = geometric region of atoms 
+    <LI>
+    remainder = rest of uninitialized atoms 
+</UL>
+<PRE>
+coeffs:  types
+               (1) lowest atom type
+               (2) highest atom type
+         molecules
+               (1) lowest molecule ID
+               (2) highest molecule ID
+         region
+               (1) lower x bound of region
+               (2) upper x bound of region
+               (3) lower y bound of region
+               (4) upper y bound of region
+               (5) lower z bound of region
+               (6) upper z bound of region
+         remainder
+               no other parameters required
+       
+used with &quot;create temp&quot; commmand to initialize velocities of atoms
+by default, the &quot;create temp&quot; command initializes the velocities of all atoms,
+  this command limits the initialization to a group of atoms
+this command is only in force for the next &quot;create temp&quot; command, any
+  subsequent &quot;create temp&quot; command is applied to all atoms (unless the
+  &quot;create group&quot; command is used again)
+for style types, only atoms with a type such that lo-type <= type <= hi-type
+  will be initialized by "create temp"
+for style types, lo-type can equal hi-type if just want to specify one type
+for style molecules, only atoms belonging to molecules with an ID # such 
+  that lo-ID <= type <= hi-ID will be initialized by "create temp"
+for style molecules, lo-ID can equal hi-ID if just want to specify one molecule
+for style region, only atoms within the specified spatial region
+  will be initialized by "create temp"
+for style region, a coeff of INF means + or - infinity (all the way 
+  to the boundary)
+for style remainder, only previously uninitialized atoms
+  will be initialized by "create temp"
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277097">create temp</A></H3>
+<UL>
+    <LI>
+    1st parameter = style of temperature creation 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+styles: 
+</PRE>
+<UL>
+    <LI>
+    uniform = uniform distribution of velocities 
+    <LI>
+    gaussian = gaussian distribution of velocities 
+    <LI>
+    velocity = assign specific initial velocity to each atom 
+</UL>
+<PRE>
+coeffs:  uniform
+               (1) target T (temperature units)
+               (2) random # seed (0 < seed <= 8 digits)
+         gaussian
+               (1) target T (temperature units)
+               (2) random # seed (0 < seed <= 8 digits)
+         velocity
+               (1) x velocity component (velocity units)
+               (2) y velocity component (velocity units)
+               (3) z velocity component (velocity units)
+
+initialize velocities of atoms to a specified temperature
+use appropriate number of coeffs for a particular style
+cannot be done before a data or restart file is read
+by default, velocities are created for all atoms - this can be overridden
+  by first using a "create group" command
+for uniform and Gaussian styles velocities are created in 
+  processor-independent fashion - is slower but gives the same initial 
+  state independent of # of processors
+for uniform and Gaussian styles the momentum of the initialized atoms is
+  also zeroed, but only if all atoms are being initialized 
+for uniform and Gaussian styles, RN are generated with Park/Miller RNG
+for velocity style in 2-d simulations, still specify z velocity component,
+  even though it is ignored
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276727">diagnostic</A></H3>
+<UL>
+    <LI>
+    1st parameter = nametag of a user routine added to diagnostic.f file 
+    <LI>
+    2nd parameter = call this user routine every this # of timesteps 
+    <LI>
+    3rd parameter = file name for this routine's diagnostic output 
+    <LI>
+    4th parameter = # of remaining parameters (0 to 5) 
+    <LI>
+    5th-9th parameters = optional parameters to pass to user routine
+</UL>
+<PRE>
+call a user-defined diagnostic routine every this many timesteps
+this command can be used multiple times to call different routines
+  at different frequencies, that use different parameters, and that
+  send output to different files
+value of 0 for 2nd parameter means never call this particular routine
+this command causes any previous file associated with this user routine
+  to be closed
+new filename can exist, will be overwritten
+if the file name specified is &quot;none&quot;, then no file is opened
+each routine that is added to diagnostic.f and enabled with a
+  &quot;diagnostic&quot; command will be called at the beginning and end of
+  each &quot;run&quot; and every so many timesteps during the run
+see *** comments in diagnostic.f for changes that must be made in 
+  that file to enable user diagnostics, LAMMPS must then be re-compiled
+  and re-linked
+see the diagnostic.f file for further information on how to create
+  routines that operate on internal LAMMPS data, do their own file output,
+  perform different operations (e.g. setup and clean-up) depending
+  on when they are called, etc
+the optional 5th-9th parameters are stored as internal LAMMPS variables
+  which can be accessed by the diagnostic routine
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276953">dielectric </A></H3>
+<PRE>
+set dielectric constant to this value
+
+Default = 1.0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_999724456">dihedral coeff </A></H3>
+<UL>
+    <LI>
+    1st parameter = dihedral type # 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+coeffs:   harmonic
+               (1) K (energy units)
+               (2) d (+1 or -1)
+               (3) n (1,2,3,4,6)
+          multiharmonic
+               (1) A_1 (energy units)
+               (2) A_2 (energy units)
+               (3) A_3 (energy units)
+               (4) A_4 (energy units)
+               (5) A_5 (energy units)
+          class2
+               currently not enabled for &quot;dihedral coeff&quot; command
+               must be specified in data file (see &quot;read data&quot; command)
+          charmm
+               (1) K (energy units)
+               (2) n (1,2,3,4,6)
+               (3) d (0 or 180 degrees) (converted to radians within LAMMPS)
+               (4) weighting factor to turn on/off 1-4 neighbor nonbond interactions
+
+define (or override) dihedral coefficients for an individual dihedral type
+use appropriate number of coeffs for a particular style
+see force_fields.html for meaning of coefficients for each style
+these coefficients can also be set in data file 
+  by a &quot;Dihedral Coeffs&quot; entry, the most recently defined 
+  coefficients are used
+cannot use this command before a &quot;read data&quot; or &quot;read restart&quot; is performed,
+  because memory is not yet allocated for the necessary arrays
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277020">dihedral style </A></H3>
+<UL>
+    <LI>
+    none = compute no dihedrals 
+    <LI>
+    harmonic = simple harmonic dihedrals (class 1) 
+    <LI>
+    multiharmonic = multiple simple harmonic dihedrals (class 1) 
+    <LI>
+    class2 = class 2 dihedrals (and associated cross terms) 
+    <LI>
+    charmm= simple harmonic dihedrals + charmm 1-4 interactions 
+</UL>
+<PRE>
+define style of dihedral interactions to use for all 4-body terms
+must be used before the &quot;read data&quot; command (if not using the
+  default) to tell the program how to read the &quot;Dihedral
+  Coeffs&quot; entry in the data file
+can be used after the &quot;read data&quot; command to change the style to none
+coefficients for all dihedral types must be defined in the data (or restart)
+  file by a &quot;Dihedral Coeffs&quot; entry or by &quot;dihedral coeff&quot;
+  commands before a run is performed
+
+Default = harmonic
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276604">dimension </A></H3>
+<UL>
+    <LI>
+    specify 3 for 3-d or 2 for 2-d run 
+</UL>
+<PRE>
+for a 2-d run, assumes all z-coords are set to 0.0 in &quot;read data&quot; or
+  &quot;read restart&quot; files and program creates no z velocities
+this command sets the processor grid to default values for 2-d or 3-d
+  so must be used before &quot;processor grid&quot; command
+must be set before data or restart file is read
+
+Default = 3
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276696">dump atoms </A></H3>
+<UL>
+    <LI>
+    1st parameter = # of timesteps 
+    <LI>
+    2nd parameter = file name 
+</UL>
+<PRE>
+dump all atom positions to a file every this many timesteps
+  (every this many iteration when the minimizer is invoked)
+when rRESPA is enabled, this is steps of outermost loop (longest timesteps)
+positions are also dumped at the start and end of each run
+when dumped during minimization, all dumps will have the same timestamp
+  since the timestep does not change during minimization
+value of 0 means never dump
+any previous file is closed
+new filename can exist, will be overwritten
+atom positions in dump file are in &quot;box&quot; units (0.0 to 1.0) in each dimension
+IMPORTANT NOTE: due to the way periodic boundary conditions are enforced 
+  (only when neighbor lists are rebuilt), atom coords appearing in the dump
+  file can be slightly outside the specified box
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276712">dump forces </A></H3>
+<UL>
+    <LI>
+    1st parameter = # of timesteps 
+    <LI>
+    2nd parameter = file name 
+</UL>
+<PRE>
+dump all atom forces to a file every this many timesteps
+  (every this many iteration when the minimizer is invoked)
+when rRESPA is enabled, this is steps of outermost loop (longest timesteps)
+forces are also dumped at the start and end of each run
+when dumped during minimization, all dumps will have the same timestamp
+  since the timestep does not change during minimization
+any previous file is closed
+new filename can exist, will be overwritten
+value of 0 means never dump
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276703">dump velocities </A></H3>
+<UL>
+    <LI>
+    1st parameter = # of timesteps 
+    <LI>
+    2nd parameter = file name 
+</UL>
+<PRE>
+dump all atom velocities to a file every this many timesteps
+when rRESPA is enabled, this is steps of outermost loop (longest timesteps)
+velocities are also dumped at the start and end of every run
+any previous file is closed
+new filename can exist, will be overwritten
+value of 0 means never dump
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951437269">extra memory</A></H3>
+<UL>
+    <LI>
+    1st parameter = extra_own = padding factor on allocation of owned atom 
+    arrays 
+    <LI>
+    2nd parameter = extra_ghost = padding factor on allocation of ghost 
+    atom arrays 
+    <LI>
+    3rd parameter = extra_neigh = padding factor on allocation of neighbor 
+    lists 
+    <LI>
+    4th parameter = extra_buf = padding factor on allocation of 
+    communication buffers 
+</UL>
+<PRE>
+
+factors that affect how much extra memory is allocated when a problem is setup
+factor of 1.0 means no padding (use exactly what LAMMPS estimates is
+  needed), factor of 2.0 means 2x longer arrays, etc
+typically don't need to change default settings unless LAMMPS tells you
+  to &quot;boost&quot; some factor at run-time
+final section of log file lists optimal settings for these parameters,
+  i.e. the job could have been run with those &quot;extra memory&quot; settings
+  and would have used minimal memory
+must be set before data or restart file is read
+
+Default = 1.5 for all 4 parameters
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277114">fix style </A></H3>
+<UL>
+    <LI>
+    1st parameter = constraint # (except for none) 
+    <LI>
+    2nd parameter = style of that constraint 
+    <LI>
+    3rd-Nth parameters = coeffs 1 to N-2 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    none = erase all constraints and all atom and bond assignments 
+    <LI>
+    setforce = set force on each atom in group 
+    <LI>
+    addforce = add a force to each atom in group 
+    <LI>
+    aveforce = apply an external force to group of atoms such that every 
+    atom is accelerated the same 
+    <LI>
+    rescale = thermostat a group of atoms by rescaling their velocities 
+    <LI>
+    hoover/drag = thermostat a group of atoms by the Hoover method 
+    <LI>
+    langevin = thermostat a group of atoms by the Langevin method 
+    <LI>
+    springforce = apply a spring force to each atom in group 
+    <LI>
+    dragforce = drag each atom in group to a specified position 
+    <LI>
+    shake = apply bond length constraints to certain bonds, enabling longer 
+    timesteps 
+</UL>
+<PRE>
+coeffs:  none
+               no other parameters required (use &quot;none&quot; as 1st parameter)
+         setforce
+                (1) x component of set force (in force units)
+                (2) y component of set force (in force units)
+                (3) z component of set force (in force units)
+         addforce
+                (1) x component of added force (in force units)
+                (2) y component of added force (in force units)
+                (3) z component of added force (in force units)
+         aveforce
+                (1) x comp of added average force per atom (in force units)
+                (2) y comp of added average force per atom (in force units)
+                (3) z comp of added average force per atom (in force units)
+         rescale
+                (1) desired T at beginning of run
+                (2) desired T at end of run
+                (3) check for rescaling every this many timesteps
+                (4) T window outside of which velocities will be rescaled
+                (5) fractional amount (0.0 to 1.0) of rescaling to perform
+         hoover/drag
+                (1) desired T at beginning of run
+                (2) desired T at end of run
+                (3) damping constant for drag (roughly inverse time units)
+         langevin
+                (1) desired T at beginning of run
+                (2) desired T at end of run
+                (3) Langevin damping parameter (inverse time units)
+                (4) random seed to use for white noise (0 < seed <= 8 digits)
+                (5) 0/1 = off/on x dimension
+                (6) 0/1 = off/on y dimension
+                (7) 0/1 = off/on z dimension
+         springforce
+                (1) x position of spring origin
+                (2) y position
+                (3) z position
+                (4) force constant k (so that k*distance = force units)
+         dragforce
+                (1) x position to drag atom towards
+                (2) y position
+                (3) z position
+                (4) force magnitude f (in force units)
+                (5) delta outside of which to apply force (in distance units)
+         shake
+                (1) max # of SHAKE iterations within each atom cluster
+                (2) SHAKE tolerance (accuracy of one part in tolerance)
+                (3) print bond statistics every this many steps (0 = never)
+
+define a constraint
+cannot skip a constraint number, all must be used before a run is performed
+use appropriate number of coeffs for a particular style
+which atoms or bonds the constraint will affect is set by the
+  "assign fix" command
+all of the constraints (except for rescale) are applied every timestep
+all specified temperatures are in temperature units
+for style setforce, a coeff of NULL means do not alter that force component
+for style aveforce, average force on the group of fixed atoms is computed,
+  then new average force is added in and actual force on each atom is set
+  to new total value -> has effect of applying same force to entire group
+  of atoms
+thermostatting constraints (rescale, hoover/drag, langevin) cannot be used in
+  conjuction with global &quot;temp control&quot;, since they conflict and will
+  cause atom velocities to be reset twice
+thermostatting constraints (rescale, hoover/drag, langevin) cannot be used
+  when performing a minimization
+if multiple Langevin constraints are specified the Marsaglia RNG will
+  only use the last RNG seed specified for initialization
+meaning of rescale and Langevin thermostatting coefficients is same as in 
+  &quot;temp control&quot; command
+for rescale style, it can be used as a coarse temperature rescaler,
+  for example &quot;rescale 200.0 300.0 100 10.0 1.0&quot; will ramp the temperature
+  up during the simulation, resetting it to the target temperatue as needed
+for rescale style, it can be used to create an instantaneous
+  drag force that slowly rescales the temperature without oscillation,
+  for example &quot;rescale 300.0 300.0 1 0.0 0.0001&quot; will force (or keep) 
+  the temperature to be 300.0, the time frame over which this occurs
+  will become longer as the last parameter is made smaller
+for hoover/drag style, the drag force accumulates over time so some
+  oscillation in temperature can occur, for example
+  &quot;rescale 300.0 300.0 1 0.0 0.0001&quot; will force (or keep)
+  the temperature to be 300.0, the time frame over which the oscillations
+  occur will become longer as the last parameter is made smaller
+style springforce is designed to be applied to an entire group of atoms
+  en masse (e.g. an umbrella force on an entire molecule)
+for springforce style, the center of mass r0 of the group of atoms is computed,
+  then a restoring force = -k*(r-r0)*mass/masstotal is applied to each 
+  atom in the group where mass = mass of the atom and masstotal = mass of
+  all the atoms in the group - thus &quot;k&quot; should represent the total
+  force on the group of atoms (not per atom)
+for springforce style, a xyz position of NULL means do not include that
+  dimension in the distance or force computation
+for dragforce style, apply a drag force of magnitude f to each atom in the
+  group in the direction (r-r0) where r0 = (x,y,z) - do not apply the force if
+  the atom is within a distance delta of r0
+for dragforce style, a xyz position of NULL means do not include that
+  dimension in the distance or force computation
+for shake style, certain bonds in the system are constrained every timestep
+  to be at their equilibrium length, this is done by applying a SHAKE-like
+  constraint to the forces on the atoms so that their position at the next
+  timestep will preserve the atom separations
+for shake style, only atoms in small clusters can be constrained -
+  e.g. water molecules, CH3 groups, but not the C backbone of a
+  long polymer chain - a cluster is defined as a central atom
+  connected to others in the cluster by constrained bonds connected
+  together by constrained bonds - the max size of such a cluster is
+  4 atoms to enable easier parallelization
+for shake style, the max iteration count need not be large (e.g. 3) since
+  iterations are only done within a cluster and converge quickly
+see the &quot;minimize&quot; command for what constraints are allowed for use
+  with the minimizer
+see the &quot;respa&quot; command for how constraints are applied when rRESPA
+  timestepping is enabled
+
+Default = none
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_999724473">improper coeff </A></H3>
+<UL>
+    <LI>
+    1st parameter = improper type # 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+coeffs:   harmonic
+               (1) K (energy units)
+               (2) chi (degrees)
+          cvff
+               (1) K (energy units)
+               (2) d (+1 or -1)
+               (3) n (0,1,2,3,4,6)
+          class2
+               currently not enabled for &quot;improper coeff&quot; command
+               must be specified in data file (see &quot;read data&quot; command)
+
+define (or override) improper coefficients for an individual improper type
+use appropriate number of coeffs for a particular style
+see force_fields.html for meaning of coefficients for each style
+these coefficients can also be set in data file 
+  by a &quot;Improper Coeffs&quot; entry, the most recently defined 
+  coefficients are used
+cannot use this command before a &quot;read data&quot; or &quot;read restart&quot; is performed,
+  because memory is not yet allocated for the necessary arrays
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277042">improper style </A></H3>
+<UL>
+    <LI>
+    none = compute no impropers 
+    <LI>
+    harmonic = harmonic impropers 
+    <LI>
+    cvff = cvff improper (class 1 variant) 
+    <LI>
+    class2 = class 2 Wilson out-of-plane 
+</UL>
+<PRE>
+define style of improper interactions to use for all trigonal centers
+in class2 case, dictates that angle-angle terms be included for all
+  trigonal and tetrahedral centers
+angle for harmonic is improper torsion, angle for class2 is Wilson out-of-plane
+must be used before the &quot;read data&quot; command (if not using the
+  default) to tell the program how to read the &quot;Improper
+  Coeffs&quot; entry in the data file
+can be used after the &quot;read data&quot; command to change the style to none
+coefficients for all improper types must be defined in the data (or restart)
+  file by a &quot;Improper Coeffs&quot; entry or by &quot;improper coeff&quot;
+  commands before a run is performed
+
+Default = harmonic
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951437278">maximum cutoff</A></H3>
+<PRE>
+specifies the longest force cutoff that will be used in any runs
+this value is used by LAMMPS to accurately allocate memory
+  for neighbor arrays
+if the value is inaccurate (e.g. the command is not used), it is not an
+  error, but LAMMPS may allocate insufficient memory for neighbor lists
+this command is not typically needed if the &quot;nonbond style&quot; and &quot;coulomb style&quot;
+  commands are used before the &quot;read data&quot; or &quot;read restart&quot; command, since
+  they specify the appropriate cutoffs
+an exception to this is if a short cutoff is used initially,
+  but a longer cutoff will be used for a subsequent run (in the same
+  input script), in this case the &quot;maximum cutoff&quot; command should be
+  used to insure enough memory is allocated for the later run
+note that a restart file contains nonbond cutoffs (so it is not necessary
+  to use a &quot;nonbond style&quot; command before &quot;read restart&quot;), but LAMMPS
+  still needs to know what the maximum cutoff will be before the
+  restart file is read
+must be set before data or restart file is read
+
+Default = cutoffs for nonbond and Coulomb styles
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_1001972012">min flag </A></H3>
+<PRE>
+write out minimization info every this many iterations
+value of 0 means never write
+
+Default = 1
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277200">min style </A></H3>
+<UL>
+    <LI>
+    hftn = Hessian-free truncated Newton method 
+</UL>
+<PRE>
+choose minimization algorithm to use when &quot;minimize&quot; command is performed
+currently, the hftn style is the only option available
+
+Default = hftn
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277212">minimize </A></H3>
+<UL>
+    <LI>
+    1st parameter = stopping tolerance (in force units) 
+    <LI>
+    2nd parameter = max iterations of minimizer 
+    <LI>
+    3rd parameter = max number of force or energy evaluations 
+</UL>
+<PRE>
+perform an energy minimization of the atomic coordinates of the system
+uses algorithm selected with &quot;min style&quot; command
+minimize commands can be interspersed with &quot;run&quot; commands
+  to alternate between dynamics and relaxation of the system
+minimization stops if any of 3 criteria are met:
+  (1) largest force component < stopping tolerance
+  (2) # of iterations > max iterations
+  (3) # of force and energy evaluations &gt; max evaluations
+output from the minimizer is specified by the &quot;dump atoms&quot;, &quot;dump forces&quot;,
+  and &quot;restart&quot; commands
+when using constraints with the minimizer, fixes are
+  applied when atoms move except for the following
+fixes associated with temperature control are not allowed
+  (rescale, hoover/drag, langevin)
+the minimizer does not invoke the &quot;fix style shake&quot; contraints on
+  bond lengths
+the minimizer does not invoke pressure control or volume control settings
+for good convergence, should specify use of smooth nonbond force fields 
+  that have continuous second derivatives, e.g. set &quot;coulomb style&quot; to
+  &quot;smooth&quot; or &quot;pppm&quot;, set &quot;nonbond style&quot; to &quot;lj/smooth&quot; or 
+  use a long cutoff
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276900">mixing style </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of mixing used to generate i-j nonbond 
+    interactions 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    geometric = sqrt(i*j) for both epsilon and sigma 
+    <LI>
+    arithmetic = sqrt(i*j) for epsilon, (i+j)/2 for sigma 
+    <LI>
+    sixthpower = see force_fields file for details 
+</UL>
+<PRE>
+determine the kind of mixing rule that is applied to generate nonbond
+  coefficients for interactions between type i and type j atoms
+mixing rules are applied only when nonbond coeffs are input in a &quot;read data&quot; file
+for nonbond style "soft", only epsilons (prefactor A) are input - they are
+  always mixed geometrically, regardless of mixing style setting
+for nonbond style "lj/charmm", mixing style is always arithmetic,
+  regardless of mixing style setting
+must be set before data file is read
+
+Default = geometric for all nonbond styles except
+          arithmetic for nonbond style lj/charmm
+          sixthpower for nonbond style class2/cutoff
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276654">neighbor </A></H3>
+<UL>
+    <LI>
+    1st parameter = skin distance in distance units 
+    <LI>
+    2nd parameter = neighboring style: 0 = N^2, 1 = binning 
+    <LI>
+    3rd parameter = build neighbor list every this many steps (see next 
+    param) 
+    <LI>
+    4th parameter = delay building until after this many steps since last 
+    build 
+    <LI>
+    5th parameter = build criteria: 0 = always build, 1 = only build if 
+    some atom has moved 1/2 or more of the skin thickness 
+</UL>
+<PRE>
+factors that affect how and when neighbor lists are constructed
+the binning style is almost always faster than the N^2 style
+skin must be large enough that all atoms needed for bond
+  interactions are also acquired by interprocessor communication
+last parameter incurs extra checking and communication to test against
+  skin thickness, but may mean neighbor list is created less often
+when rRESPA is run, the 3rd and 4th parameters refer to the
+  nonbond (short-range) timestepping
+normally this command should be used before the data or restart file is read,
+  since the skin distance is used to estimate memory needed for
+  neighbor lists
+this command can also be used after the &quot;read data&quot; or &quot;read restart&quot; command
+  to change the style of neighbor list construction, but if the
+  skin distance is changed it can cause LAMMPS to run out of neighbor
+  list memory, the &quot;maximum cutoff&quot; command can be used to avoid this
+  problem
+
+Default = 2.0 1 1 10 1   for real units
+          0.3 1 1 10 1   for lj units
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276632">newton flag </A></H3>
+<PRE>
+turn off or on Newton's 3rd law for bond and non-bond force computation
+</PRE>
+<UL>
+    <LI>
+    value = 0 = no Newton's 3rd law for either 
+    <LI>
+    value = 1 = Newton's 3rd law only for bonded computations 
+    <LI>
+    value = 2 = Newton's 3rd law only for non-bonded computations 
+    <LI>
+    value = 3 = Newton's 3rd law for both bonded and non-bonded 
+    computations 
+</UL>
+<PRE>
+no Newton's 3rd law means more force computation and less communication
+yes Newton's 3rd law means less force computation and more communication
+which choice is faster is problem dependent on N, # of processors, 
+  and cutoff length(s)
+expect for round-off errors, setting this flag should not affect answers, 
+  only run time
+must be set before data or restart file is read
+
+Default = 3
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276848">nonbond coeff</A></H3>
+<UL>
+    <LI>
+    1st parameter = 1st atom type 
+    <LI>
+    2nd parameter = 2nd atom type 
+    <LI>
+    3rd-Nth parameters = coeffs 1 to N-2 
+</UL>
+<PRE>
+coeffs: lj/cutoff
+               (1) epsilon (energy units)
+               (2) sigma (distance units)
+               (3) cutoff (distance units)
+        lj/smooth
+               (1) epsilon (energy units)
+               (2) sigma (distance units)
+               (3) inner cutoff (distance units)
+               (4) outer cutoff (distance units)
+        lj/shift
+               (1) epsilon (energy units)
+               (2) sigma (distance units)
+               (3) delta shift distance (distance units)
+               (4) cutoff (distance units)
+        soft
+               (1) prefactor A at start of run (energy units)
+               (2) prefactor A at end of run (energy units)
+               (3) cutoff (distance units)
+        class2/cutoff
+               (1) epsilon (energy units)
+               (2) sigma (distance units)
+               (3) cutoff (distance units)
+        lj/charmm
+               (1) epsilon (energy units)
+               (2) sigma (distance units)
+               (3) epsilon for 1-4 interactions (energy units)
+               (4) sigma for 1-4 interactions (distance units)
+
+define (or override) nonbond coefficients for an individual atom type pair
+use appropriate number of coeffs for a particular style
+1st atom type must be <= 2nd atom type
+all cutoffs are in global units, not local sigma units
+  (e.g. in reduced units a setting of "lj/cutoff 1.0 1.2 2.5" means a 
+  cutoff of 2.5, not 1.2*2.5)
+turn off a particular type pair interaction by setting the
+  cutoff to 0.0 (both cutoffs to zero for lj/smooth option)
+for soft style, prefactor A is ramped from starting value to
+  ending value during run
+these coefficients (except the cutoffs) can also be set in data file 
+  by a "Nonbond Coeffs" entry and associated mixing rules, the cutoffs can
+  be set (globally) via the "nonbond style" command, the most
+  recently defined coefficients/cutoffs are used
+cannot use this command before a "read data" or "read restart" is performed,
+  because memory is not yet allocated for the necessary arrays
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276833">nonbond style </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of pairwise nonbond interactions (other than 
+    Coulombic) 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+styles: 
+</PRE>
+<UL>
+    <LI>
+    none = no nonbond interactions are computed 
+    <LI>
+    lj/cutoff = LJ with a cutoff 
+    <LI>
+    lj/smooth = LJ with a switched region that goes smoothly to zero 
+    <LI>
+    lj/shift = same as lj/cutoff with shift of interparticle distance 
+    <LI>
+    soft = cosine potential with time-varying prefactor 
+    <LI>
+    class2/cutoff 
+    <LI>
+    lj/charmm = LJ with charmm switched region that goes smoothly to zero
+</UL>
+<PRE>
+coeffs:  none
+               no other parameters required
+         lj/cutoff
+               (1) cutoff (distance units)
+               (2) offset flag (0 or 1)
+         lj/smooth
+               (1) inner cutoff (distance units)
+               (2) outer cutoff (distance units)
+         lj/shift
+               (1) cutoff (distance units)
+               (2) offset flag (0 or 1)
+         soft
+               (1) cutoff (distance units)
+         class2/cutoff
+               (1) cutoff (distance units)
+               (2) offset flag (0 or 1)
+         lj/charmm
+               (1) inner cutoff (distance units)
+               (2) outer cutoff (distance units)
+
+define style of pairwise nonbond interactions to use between all atom types
+use appropriate number of coeffs for a particular style
+this is separate from charge interactions (see &quot;coulomb style&quot; command)
+normally this command should be used before &quot;read data&quot;
+  to tell LAMMPS how big a force cutoff is being used, the 
+  &quot;maximum cutoff&quot; command can also serve this purpose
+when running from a restart file, the restart file contains the nonbond
+  style and nonbond cutoffs (but not the offset flag), so it is often
+  not necessary to use a &quot;nonbond style&quot; command before &quot;read restart&quot;,
+  however LAMMPS still needs to know what the maximum cutoff will be
+  before the restart file is read, see &quot;maximum cutoff&quot; command
+  for more details
+this command can also be used after &quot;read data&quot; or &quot;read restart&quot; to
+  change the style of nonbond interactions and/or the cutoff
+cutoff distance can be smaller or larger than simulation box dimensions
+nonbond style determines how many nonbond coefficients the program expects to
+  find in a &quot;Nonbond Coeffs&quot; entry in the data file or when using the 
+  &quot;nonbond coeff&quot; command, thus the style must be set (if not using default)
+  before using the &quot;read data&quot; command (if the data file contains a 
+  &quot;Nonbond Coeffs&quot; entry) or a &quot;nonbond coeff&quot; command
+coefficients for all atom type pairs must be defined in data (or restart)
+  file by a &quot;Nonbond Coeffs&quot; entry or by &quot;nonbond coeffs&quot; commands before
+  a run is performed
+this command sets the cutoff(s) for all type pair interactions, thus
+  overriding any previous settings by a &quot;nonbond coeff&quot; command or
+  that were read in from a data or restart file
+for lj/cutoff, lj/shift, class2/cutoff styles, 
+  offset flag only affects printout of thermodynamic energy
+  (not forces or dynamics), determines whether offset energy 
+  is added in to LJ potential to make value at cutoff = 0.0,
+  flag = 0 -&gt; do not add in offset energy,
+  flag = 1 -&gt; add in offset energy 
+for lj/smooth and lj/charmm styles, outer cutoff must be &gt; inner cutoff
+for lj/smooth and lj/charmm styles, atom pairs less than the inner cutoff
+  distance use straight LJ, pairs between inner and outer use a smoothed LJ,
+   and the potential goes to 0.0 at the outer cutoff
+for lj/smooth and lj/charmm styles, energy and forces are continuous at inner
+   cutoff and go smoothly to zero at outer cutoff
+for lj/shift and soft styles, must set &quot;coulomb style&quot; to &quot;none&quot;
+for lj/charmm style, must set &quot;coulomb style&quot; to &quot;charmm/switch&quot;, &quot;pppm&quot;,
+   or &quot;ewald&quot;
+for lj/shift style, delta shift distances for each atom pair are set by
+  &quot;Nonbond Coeffs&quot; entry in data file or by &quot;nonbond coeffs&quot; command
+for soft style, values of the prefactor &quot;A&quot;, which is ramped from one
+  value to another during the run, are set by &quot;Nonbond Coeffs&quot; entry
+  in data file or by &quot;nonbond coeffs&quot; command
+
+Default = lj/cutoff 10.0 0   for real units
+          lj/cutoff 2.5 0    for lj units
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_999182956">periodicity </A></H3>
+<UL>
+    <LI>
+    1st parameter = periodic BC in x direction (0) yes, (1) no 
+    <LI>
+    2nd parameter = periodic BC in y direction (0) yes, (1) no 
+    <LI>
+    3rd parameter = periodic BC in z direction (0) yes, (1) no 
+</UL>
+<PRE>
+turn on/off periodicity in any of three dimensions
+used in inter-particle distance computation and when particles move
+  to map (or not map) them back into periodic box
+for a 2-d run (see &quot;dimension&quot; command), 3rd parameter must be 
+  specified, but doesn't matter if it is 0 or 1
+must be set before data or restart file is read
+
+Default = 0 0 0 (periodic in all dimensions)
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276941">pppm mesh </A></H3>
+<UL>
+    <LI>
+    1st parameter = # of mesh points in x direction 
+    <LI>
+    2nd parameter = # of mesh points in y direction 
+    <LI>
+    3rd parameter = # of mesh points in z direction 
+</UL>
+<PRE>
+specify the mesh size used by &quot;coulomb style pppm&quot;
+mesh dimensions that are power-of-two are fastest for FFTs, but any sizes
+  can be used that are supported by native machine libraries
+this command is optional - if not used, a default
+  mesh size will be chosen to satisfy accuracy criterion - if used, the
+  specifed mesh size will override the default
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276947">pppm order </A></H3>
+<PRE>
+specify the order of the interpolation function that is used by &quot;coulomb
+  style pppm&quot; to map particle charge to the particle mesh
+order is roughly equivalent to how many mesh points a point charge
+  overlaps onto in each dimension
+
+Default = 5
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276784">press control </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of pressure control 
+    <LI>
+    2nd parameter = pressure coupling 
+    <LI>
+    3rd-9th parameters = coeffs 1 to 7 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    none = no control (constant volume) 
+    <LI>
+    nose/hoover = Nose-Hoover constant P 
+</UL>
+<PRE>
+coupling:
+</PRE>
+<UL>
+    <LI>
+    xyz = couple all 3 dimensions together (isotropic) 
+    <LI>
+    xy or yz or xz = couple 2 dimensions together, other is independent 
+    <LI>
+    aniso = all 3 dimensions are independent (anisotropic) 
+</UL>
+<PRE>
+coeffs:   none
+               no other parameters required
+          nose/hoover xyz
+               (1) desired P at beginning of run
+               (2) desired P at end of run
+          nose/hoover xy or yz or xz or aniso
+               (1) desired Px at beginning of run (or NULL, see below)
+               (2) desired Px at end of run
+               (3) desired Py at beginning of run
+               (4) desired Py at end of run
+               (5) desired Pz at beginning of run
+               (6) desired Pz at end of run
+               (7) frequency constant for volume adjust (inverse time units)
+
+enable constant pressure simulations
+all specified pressures are in pressure units
+any dimension being varied by pressure control must be periodic
+for xyz coupling, all 3 dimensions expand/contract together uniformly
+  using total scalar pressure as the driving force
+for xy/yz/xz coupling, the 2 specified dimensions expand/contract together
+  uniformly using pressure components averaged over those 2 dimensions
+  as the driving force, the non-specified dimension will expand/contract
+  independently using its pressure component as the driving force
+for anisotropic, all 3 dimensions expand/contract independently using
+  individual pressure components as the 3 driving forces
+in all cases, the simulation box stays rectilinear (not Parinello-Rahman)
+for dimensions coupled together, their specified P values should be the same
+a non-coupled dimension (e.g. dimension z for xy option or any dimension
+  for aniso option) can have 2 NULL values as specified pressures,
+  which means apply no pressure control in that dimension (constant volume)
+target pressure at intermediate points during a run is a ramped value
+  between the beginning and ending pressure(s)
+for nose/hoover style, frequency constant is like an inverse &quot;piston&quot; 
+  mass which determines how rapidly the pressure fluctuates in response to a
+  restoring force, large frequency -&gt; small mass -&gt; rapid fluctations
+for nose/hoover style, units of frequency/damping constant are
+  inverse time, so a value of 0.001 means relax in a timespan on the 
+  order of 1000 fmsec (real units) or 1000 tau (LJ units)
+IMPORTANT NOTE: the computation of P in LAMMPS does not include
+  a long-range Van der Waals correction, this introduces a known
+  error when performing constant P simulations since the correction
+  factor changes as the box size varies
+
+Default = none
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276624">processor grid </A></H3>
+<UL>
+    <LI>
+    1st parameter = # of processors in x dimension 
+    <LI>
+    2nd parameter = # of processors in y dimension 
+    <LI>
+    3rd parameter = # of processors in z dimension 
+</UL>
+<PRE>
+specify 3-d grid of processors to map to physical simulation domain
+for 2-d problem, specify N by M by 1 grid
+program will choose these values to best map processor grid to physical
+  simulation box, only use this command if wish to override program choice
+product of 3 parameters must equal total # of processors
+must be set before data or restart file is read
+
+Default = none
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277059">read data </A></H3>
+<PRE>
+read the initial atom positions and bond info from the specified file
+the format for the data file is specified in the file data_format
+if a &quot;Velocities&quot; entry is not in data file, all atom velocities
+  are set to 0.0
+if a &quot;Coeffs&quot; entry is in data file, the appropriate &quot;style&quot; command
+  command must be used first (unless default setting is used) to tell 
+  LAMMPS how many coefficients to expect
+a &quot;Nonbond Coeffs&quot; entry only contains one set of coefficients for each
+  atom type, after being read-in mixing rules are applied to 
+  compute the cross-type coefficients, see the &quot;mixing style&quot; command
+  and data_format file for more information
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277070">read restart </A></H3>
+<PRE>
+read atom and force-field information from specified file
+allows continuation of a previous run
+file is binary to enable exact restarts
+do not have to restart on same # of processors, but can only do exact
+  restarts on same # of processors due to roundoff
+when restart file is read, warnings are issued if certain parameters
+  in the restart file do not match current settings (e.g. newton flag,
+  dimension, periodicity, units) - this usually indicates an error
+the restart file stores the &quot;nonbond style&quot; and many-body styles and
+  coefficients and cutoffs, so these do not have to be re-specified in the
+  input script, unless you want to change them
+the restart file does not store &quot;coulomb style&quot; choice or cutoff, so
+  this should be re-specified in the input script
+the restart file stores the constraint assignments for each atom generated
+  by using the "assign fix" command, it does NOT store the constraint
+  parameters themselves, so they must be re-specified with "fix style"
+  commands after the restart file is read - one exception to this is that
+  SHAKE constraints (bondtype or angletype) are not stored with the
+  atoms, so they must be re-specified when performing a restart with both
+  the "fix style" and "assign fix" commands
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277185">reset timestep </A></H3>
+<PRE>
+explicitly reset the timestep to this value
+the &quot;read data&quot; and &quot;read restart&quot; commands set the timestep to zero
+  and the file value respectively, so this should be done after those commands
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276645">respa</A></H3>
+<UL>
+    <LI>
+    1st parameter = compute bond forces this many times for every one 
+    3/4-body force call 
+    <LI>
+    2nd parameter = compute 3/4-body forces this many times for every one 
+    nonbond (short-range) force call 
+    <LI>
+    3rd parameter = compute nonbond (short-range) forces this many times 
+    for every one long-range force call 
+</UL>
+<PRE>
+factors that affect sub-cycling of force calculations within rRESPA hierarchy
+bonded intramolecular forces are calculated every innermost sub-timestep
+bonded 3- and 4-body forces are computed every 1st parameter sub-timesteps
+short-range nonbond pairwise forces (LJ, Coulombic) are computed every 
+  (2nd parameter * 1st parameter) sub-timesteps
+long-range (Ewald, PPPM) forces are computed every 
+  (3rd parameter * 2nd parameter * 1st parameter) sub-timesteps
+the timestepping for all 3 inner loops (bond, 3/4-body, nonbond) is performed
+  as sub-cycling within the long-range timestepping loop
+the fastest (innermost) timestep size is set by the &quot;timestep&quot; command
+when running rRESPA, all input commands that specify numbers of timesteps
+  (e.g. run, thermo flag, restart, etc) refer to the outermost loop
+  of long-range timestepping
+the only exception to this rule is the &quot;neighbor&quot; command, where the timestep
+  parameters refer to the short-range (nonbond) timestepping
+when using constraints (via the &quot;fix style&quot; and &quot;assign fix&quot; commands)
+  with rRESPA, the setforce and aveforce constraints are applied at every
+  level of the hierarchy (whenever forces are computed), the other
+  constraints are applied only at the short-range (nonbond) level
+when using &quot;temp control langevin&quot; with rRESPA, thermostatting is applied
+  at the short-range (nonbond) level
+rRESPA cannot be used with &quot;fix style shake&quot;
+setting all 3 parameters to 1 turns off rRESPA
+
+Default = 1 1 1 (no rRESPA)
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276719">restart </A></H3>
+<UL>
+    <LI>
+    1st parameter = # of timesteps 
+    <LI>
+    2nd parameter = 1 or 2 = naming convention for restart files
+    <LI>
+    3rd (and 4th) parameters = file name(s)
+</UL>
+<PRE>
+create a restart file every this many timesteps
+value of 0 means never create one
+if the style is 1, restart information will be written to files
+  named filename.timestep and no 4th parameter is needed
+if the style is 2, restart information will be written alternately to files
+  given by the 3rd and 4th parameters, so only 2 restart files ever exist
+when the minimizer is invoked this command means create a restart file
+  at the end of the minimization with the filename filename.timestep.min
+a restart file stores atom and force-field information in binary form
+allows program to restart from where it left off (see &quot;read restart&quot; commmand)
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_951437286">restart version</A></H3>
+<PRE>
+tell LAMMPS that a restart file from an older version of LAMMPS will be read-in
+  via a &quot;read restart&quot; command
+this command is necessary because older restart files have a different format
+valid settings are 2001 (LAMMPS 2001), 2000 (LAMMPS 2000),
+  6 (LAMMPS 99) or 5 (LAMMPS 5.0)
+restart files from earlier versions of LAMMPS are not readable without
+  some source code modifications
+restart files are always written out in the current-version format
+  regardless of this setting
+this must be set before the &quot;read restart&quot; command is executed
+
+Default = current version of code = 2001
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931299999">rotation zero </A></H3>
+<PRE>
+zero out angular momentum when creating velocities for a group of atoms
+value of 0 means don't zero out, value of 1 means zero it
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931277194">run </A></H3>
+<PRE>
+run or continue dynamics for specified # of timesteps
+when rRESPA is enabled, this is steps of outermost loop (longest timesteps)
+must have performed &quot;read data&quot; or &quot;read restart&quot;
+  command first
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_999182965">slab volume </A></H3>
+<PRE>
+invoke 2-d slab Ewald/PPPM and set extended slab volume via this ratio
+2-d slab Ewald/PPPM can be used for a system that is periodic in x-y,
+  but not in z
+this ratio dampens inter-slab interactions in the z dimension 
+  by providing empty volume between slabs and removing
+  dipole inter-slab interactions
+ratio value is the size of the extended dimension in z divided by
+  the actual dimension in z
+recommended ratio value is 3.0: larger is inefficient, smaller
+  risks unwanted inter-slab interactions
+when 2-d slab Ewald/PPPM is used, z-direction periodicity must be
+  turned off - e.g. periodicity 0 0 1
+when 2-d slab Ewald/PPPM is used, user must prevent particle migration
+  beyond initial z-bounds, typically by providing walls
+2-d slab Ewald/PPPM can only be used only with electrostatically
+  neutral systems
+2-d slab Ewald/PPPM can only be used (for the moment) with constant
+  volume simulations (no pressure control) - the pressure computation
+  (printed as thermodynamic data) does not include any slab correction
+  factor or a volume correction for the extended z direction
+must be set before data or restart file is read
+
+Default = none (normal 3-D Ewald/PPPM)
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276666">special bonds </A></H3>
+<UL>
+    <LI>
+    charmm (0.0 0.0 0.0) 
+    <LI>
+    amber (0.0 0.0 0.5/0.8333) 
+    <LI>
+    1st parameter = nonbond weight applied to 1-2 neighbors 
+    <LI>
+    2nd parameter = nonbond weight applied to 1-3 neighbors 
+    <LI>
+    3rd parameter = nonbond weight applied to 1-4 neighbors 
+</UL>
+<PRE>
+weighting factors to turn on/off nonbond interactions of atom pairs that
+  are &quot;close&quot; in the molecular topology
+1-2 neighbors are a pair of atoms connected by a bond
+1-3 neighbors are a pair of atoms 2 hops away, etc.
+weight values are from 0.0 to 1.0 and are used to multiply the
+  energy and force interaction (both Coulombic and LJ) between the 2 atoms
+weight of 0.0 means no interaction
+weight of 1.0 means full interaction
+can either specify a single keyword (charmm, amber) or can give
+  3 numeric values
+using the charmm keyword means use the CHARMM force field
+  settings of 0.0 0.0 0.0, requiring that pair-specific 1-4 interactions
+  be read in individually (see &quot;dihedral style charmm&quot; command)
+using the amber keyword means use the AMBER force field
+  settings of 0.0 0.0 N, where N = 0.5 for Van der Waals 1-4 interactions
+  and 1.0/1.2 for Coulombic 1-4 interactions
+
+Default = CHARMM force field values of 0.0 0.0 0.0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276742">temp control </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of temperature control 
+    <LI>
+    2nd-Nth parameters = coeffs 1 to N-1 
+</UL>
+<PRE>
+styles:  
+</PRE>
+<UL>
+    <LI>
+    none = no control 
+    <LI>
+    rescale = instantaneous rescaling 
+    <LI>
+    replace = Gaussian replacement 
+    <LI>
+    langevin = Langevin white noise 
+    <LI>
+    nose/hoover = Nose-Hoover constant T 
+</UL>
+<PRE>
+coeffs:  none
+               no other parameters required
+         rescale
+               (1) desired T at beginning of run
+               (2) desired T at end of run
+               (3) check for rescaling every this many timesteps
+               (4) T window outside of which velocities will be rescaled
+               (5) fractional amount (0.0 to 1.0) of rescaling to perform
+         replace
+               (1) desired T at beginning of run
+               (2) desired T at end of run
+               (3) do Gaussian replacement every this many timesteps
+               (4) random # seed to use for replacement (0 < seed <= 8 digits)
+         langevin
+               (1) desired T at beginning of run
+               (2) desired T at end of run
+               (3) Langevin damping parameter (inverse time units)
+               (4) random seed to use for white noise (0 < seed <= 8 digits)
+         nose/hoover
+               (1) desired T at beginning of run
+               (2) desired T at end of run
+               (3) frequency constant for friction force (inverse time units)
+
+enable constant temperature simulations
+use appropriate number of coeffs for a particular style
+all specified temperatures are in temperature units
+target temperature at intermediate points during run is a ramped value
+  between the beginning and ending temperatures
+for rescale style, temperature is controlled by explicitly rescaling
+  velocities towards the target temperature
+for rescale style, rescaling is only done if current temperature is
+  beyond the target temperature plus or minus the window value
+for rescale style, the amount of rescaling is contfolled by the fractional
+  amount (0.0 to 1.0), e.g. a value of 0.5 means set the velocities
+  to halfway between the current and target temperature
+for rescale style, it can be used as a coarse temperature rescaler,
+  for example "rescale 200.0 300.0 100 10.0 1.0" will ramp the temperature
+  up during the simulation, resetting it to the target temperatue as needed
+for rescale style, it can be used to create an instantaneous
+  drag force that slowly rescales the temperature without oscillation,
+  for example "rescale 300.0 300.0 1 0.0 0.0001" will force (or keep) 
+  the temperature to be 300.0, the time frame over which this occurs
+  will become longer as the last parameter is made smaller
+for replace style, Gaussian RNs from the Marsaglia RNG are used
+for langevin style, uniform RNs from the Marsaglia RNG are used
+for replace and langevin styles, the seed is used to initialize the
+  Marsaglia RNG, on successive runs the RNG will just continue on
+for replace and langevin styles, generated RNs depend on # of processors
+  so will not get same answers independent of # of processors
+for replace and langevin styles, RNG states are not saved in restart file,
+  so cannot do an exact restart
+for langevin style, damping parameter means small value -> less damping
+for nose/hoover style, frequency constant is like an inverse 
+  &quot;piston&quot; mass which determines how rapidly the temperature 
+  fluctuates in response to a restoring force, large frequency -&gt; 
+  small mass -&gt; rapid fluctations
+for nose/hoover style, cannot use a end-of-run T of 0.0, must be finite
+for langevin and nose/hoover styles, units of frequency/damping constant are
+  inverse time, so a value of 0.01 means relax in a timespan on the 
+  order of 100 fmsec (real units) or 100 tau (LJ units)
+
+Default = none
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276675">thermo flag </A></H3>
+<PRE>
+print thermodynamic info to screen and log file every this many timesteps
+value of 0 means never print
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276681">thermo style </A></H3>
+<PRE>
+determines format of thermodynamic output to screen and log file
+</PRE>
+<UL>
+    <LI>
+    style = 0 -&gt; standard output - about 5 lines per entry 
+    <LI>
+    style = 1 -&gt; reduced output - 1 line per entry 
+    <LI>
+    style = 2 -&gt; output with class 2 terms - about 8 lines per entry 
+</UL>
+<PRE>
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276638">timestep </A></H3>
+<PRE>
+timestep size for MD run (time units)
+when rRESPA is enabled, the timestep size is for the innermost (bond) loop
+
+Default = 1.0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276687">true flag </A></H3>
+<PRE>
+read atom positions (see &quot;read data&quot; command) and dump atom positions
+  (see &quot;dump atoms&quot; command) in one of 2 formats
+</PRE>
+<UL>
+    <LI>
+    flag = 0 -&gt; read/dump only atom positions (remapped to periodic box) 
+    <LI>
+    flag = 1 -&gt; dump atom positions plus integer box counts 
+    <LI>
+    flag = 2 -&gt; read atom positions plus integer box counts 
+    <LI>
+    flag = 3 -&gt; read/dump atom positions plus integer box counts 
+</UL>
+<PRE>
+for each dimension, box count of &quot;n&quot; means add that many box lengths
+  to get &quot;true&quot; un-remapped position, &quot;n&quot; can be positive, negative, or zero
+must be set before data or restart file is read
+
+Default = 0
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_931276596">units </A></H3>
+<UL>
+    <LI>
+    real or lj 
+</UL>
+<PRE>
+set units to one of two options for all subsequent input parameters
+
+option real = conventional units:
+</PRE>
+<UL>
+    <LI>
+    distance = Angstroms 
+    <LI>
+    time = femtoseconds 
+    <LI>
+    mass = grams/mole 
+    <LI>
+    temperature = degrees K 
+    <LI>
+    pressure = atmospheres 
+    <LI>
+    energy = Kcal/mole 
+    <LI>
+    velocity = Angstroms/femtosecond 
+    <LI>
+    force = grams/mole * Angstroms/femtosecond^2 
+</UL>
+<PRE>
+option lj = LJ reduced units:
+</PRE>
+<UL>
+    <LI>
+    distance = sigmas 
+    <LI>
+    time = reduced LJ tau 
+    <LI>
+    temperature = reduced LJ temp 
+    <LI>
+    pressure = reduced LJ pressure 
+    <LI>
+    energy = epsilons 
+    <LI>
+    velocity = sigmas/tau 
+    <LI>
+    force = reduced LJ force (sigmas/tau^2) 
+</UL>
+<PRE>
+for LJ units, LAMMPS sets global epsilon,sigma,mass all equal to 1.0
+subsequent input numbers in data and command file must be in these units
+output numbers to screen and log and dump files will be in these units
+this command (if it appears) must be the first command (aside from
+  comments) in the input script
+must be set before data or restart file is read
+
+Default = real
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_999724492">volume control </A></H3>
+<UL>
+    <LI>
+    1st parameter = style of volume control 
+    <LI>
+    2nd parameter = dimension to control (x,y,z) 
+    <LI>
+    3rd-4th parameters = lo/hi simulation box boundaries in this dimension 
+</UL>
+<PRE>
+styles:
+</PRE>
+<UL>
+    <LI>
+    none = no variation in any dimension (constant volume) 
+    <LI>
+    linear = uniform expansion or contraction 
+</UL>
+<PRE>
+enable volume changes (density changes) during a simulation
+specified box boundaries are in distance units
+each dimension is controlled separately
+dimensions not specified by a &quot;volume control&quot; command can be left
+  alone (constant volume or nonperiodic) or controlled by
+  a &quot;press control&quot; command
+any dimension being varied by volume control must be periodic
+the lo/hi values are the desired global simulation box boundaries at
+  the end of the simulation run
+at each timestep, the box is expanded/contracted uniformly from its initial
+  lo/hi values to the specified ending lo/hi values
+initial lo/hi values are specified in the data or restart file or 
+  inherited from the end of the previous run
+at each timestep, all atom coordinates are also scaled to the new box
+
+Default = none
+</PRE>
+</BODY>
+</HTML>

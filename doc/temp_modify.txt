@@ -1,0 +1,46 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+temp_modify command :h3
+
+[Syntax:]
+
+temp_modify temp-ID keyword value ... :pre
+
+temp-ID = ID of temperature to modify :ulb,l
+one or more keyword/value pairs may be listed :l
+keyword = {extra} :l
+  {extra} value = N
+    N = # of extra degrees of freedom to subtract :pre
+:ule
+
+[Examples:]
+
+temp_modify mine extra 0 :pre
+
+[Description:]
+
+Modify the parameters of a previously defined temperature method.
+This can either be the default temperature defined by LAMMPS (ID =
+{default}) or a user-defined temperature created by using the
+"temperature"_temperature.html command.
+
+The {extra} keyword refers to how many degrees-of-freedom are
+subtracted (typically from 3N) as a normalizing factor in the
+temperature computation.  The default is 3 which is a correction
+factor for an ensemble of velocities with zero total linear momentum.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"temperature"_temperature.html
+
+[Default:]
+
+The option defaults are extra = 3.

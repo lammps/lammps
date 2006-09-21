@@ -1,0 +1,45 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>print command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>print args 
+</PRE>
+<UL><LI>args = one or more text strings and variables names to print out 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>print The system volume is now $v 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Print the list of arguments as a line of text to the screen and/or
+logfile.  If variables are included in the arguments, they will be
+evaluated and their values printed.  Note that if variables are
+included, the print string should not be enclosed in double quotes,
+else it will prevent the variables from being evaluated.
+</P>
+<P>By using the print command in a section of the input script that is
+looped over (see the <A HREF = "jump.html">jump</A> command), and by including
+variables of the <I>equal</I> style (see the <A HREF = "variable.html">variable</A>
+command), a string with changing values can be printed.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_print.html">fix print</A>, <A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

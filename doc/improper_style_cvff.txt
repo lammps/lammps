@@ -1,0 +1,50 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+improper_style cvff command :h3
+
+[Syntax:]
+
+improper_style cvff :pre
+
+[Examples:]
+
+improper_style cvff
+improper_coeff 1 80.0 -1 4 :pre
+
+[Description:]
+
+The {cvff} improper style uses the potential
+
+:c,image(Eqs/improper_cvff.jpg)
+
+where phi is the Wilson out-of-plane angle.
+
+The following coefficients must be defined for each improper type via the
+"improper_coeff"_improper_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy)
+d (+1 or -1)
+n (0,1,2,3,4,6) :ul
+
+[Restrictions:]
+
+Improper styles can only be set for atom styles that allow impropers to be
+defined.
+
+This improper style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"improper_coeff"_improper_coeff.html
+
+[Default:] none

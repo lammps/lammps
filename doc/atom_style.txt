@@ -1,0 +1,84 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+atom_style command :h3
+
+[Syntax:]
+
+atom_style style args :pre
+
+style = {angle} or {atomic} or {bond} or {charge} or {dipole} or {dpd} or \
+        {full} or {granular} or {molecular} or {hybrid} :ul
+  args = none for any style except {hybrid}
+  {hybrid} args = list of one or more styles :pre
+
+[Examples:]
+
+atom_style bond
+atom_style full
+atom_style hybrid charge bond :pre
+
+[Description:]
+
+Define what style of atoms to use in a simulation.  This determines
+what attributes are associated with the atoms.  This command must be
+used before a simulation is setup via a "read_data"_read_data.html,
+"read_restart"_read_restart.html, or "create_box"_create_box.html
+command.
+
+Once a style is assigned, it cannot be changed, so use a style general
+enough to encompass all attributes.  E.g. with style {bond}, angular
+terms cannot be used or added later to the model.  It is OK to use a
+style more general than needed, though it may be slightly inefficient.
+
+The choice of style affects what quantities are stored by each atom,
+what quantities are communicated between processors to enable forces
+to be computed, and what quantities are listed in the data file read
+by the "read_data"_read_data.html command.
+
+These are the attributes of each style.  All styles store coordinates,
+velocities, atom IDs and types.
+
+{angle} = bonds and angles - e.g. bead-spring polymers with stiffness
+{atomic} = only the default values
+{bond} = bonds - e.g. bead-spring polymers
+{charge} = charge
+{dipole} = charge + dipole moments
+{dpd} = default values, also communicates velocities
+{molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
+{full} = molecular + charge - e.g. biomolecules, charged polymers
+{granular} = granular material with rotational properties  :ul
+
+Typical simulations with a single pair potential will use only one of
+these styles.  For cases where multiple pair potentials will be used
+(see the "pair_style"_pair_style.html {hybrid} command), it may be
+necessary to use multiple atom styles.  Another example is doing a DPD
+simulations with bonds or angles.  In these cases the {hybrid} style
+can be used to list multiple atom styles.  Atoms will then store and
+communicate the union of all quantities implied by the individual
+styles.
+
+LAMMPS can be extended with new atom styles; see "this
+section"_Section_modify.html.
+
+[Restrictions:]
+
+This command cannot be used after the simulation box is defined by a
+"read_data"_read_data.html or "create_box"_create_box.html command.
+
+The {angle}, {bond}, {full}, and {molecular} styles are part of the
+"molecular" package.  The {granular} style is part of the "granular"
+package.  The {dpd} style is part of the "dpd" package.  They are only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"read_data"_read_data.html, "pair_style"_pair_style.html
+
+[Default:] none

@@ -1,0 +1,151 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>thermo_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>thermo_style style args 
+</PRE>
+<UL><LI>style = <I>one</I> or <I>multi</I> or <I>granular</I> or <I>custom</I> 
+
+<LI>args = list of arguments for a particular style 
+
+<PRE>  <I>one</I> args = none
+  <I>multi</I> args = none
+  <I>granular</I> args = none
+  <I>custom</I> args = list of attributes
+    possible attributes = step, atoms, cpu, temp, press, pe, ke, eng,
+             evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail,
+             vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
+             gke, grot, tave, pave, eave, peave, t_ID
+      step = timestep
+      atoms = # of atoms
+      cpu = elapsed CPU time
+      temp = temperature
+      press = pressure
+      pe = total potential energy
+      ke = kinetic energy
+      eng = total energy (pe + ke)
+      evdwl = VanderWaal pairwise energy
+      ecoul = Coulombic pairwise energy
+      epair = pairwise (evdwl + ecoul)
+      ebond = bond energy
+      eangle = angle energy
+      edihed = dihedral energy
+      eimp = improper energy
+      emol = molecular energy (ebond + eangle + edihed + eimp)
+      elong = long-range kspace energy
+      etail = VanderWaal long-range tail correction
+      vol = volume
+      lx,ly,lz = box lengths in x,y,z
+      pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
+      gke = granular translational kinetic energy (without frozen atoms)
+      grot = granular rotational kinetic energy (without frozen atoms)
+      tave, pave, eave, peave = time-averaged temp, press, eng, pe
+      t_ID = termperature as computed by temperature ID 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>thermo_style multi
+thermo_style custom step temp pe eng press vol
+thermo_style custom step temp t_left t_right eng 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the style in which thermodynamic data is printed to the screen and
+log file.
+</P>
+<P>Style <I>one</I> prints a one-line summary of thermodynamic info that is
+the equivalent of "thermo_style custom step temp epair emol eng
+press".  The line contains only numeric values.
+</P>
+<P>Style <I>multi</I> prints a multiple-line listing of thermodynamic info
+that is the equivalent of "thermo_style custom eng ke temp pe ebond
+eangle edihed eimp evdwl ecoul elong press".  The listing contains
+numeric values and a string ID for each quantity.
+</P>
+<P>Style <I>granular</I> is used with <A HREF = "atom_style.html">atom style</A> granular
+and prints a one-line numeric summary that is the equivalent of
+"thermo_style custom step atoms gke grot".
+</P>
+<P>Style <I>custom</I> is the most general setting and allows you to specify
+which of the quantities listed above you want printed on each
+thermodynamic timestep.
+</P>
+<P>Also, all styles except <I>custom</I> have <I>vol</I> added to their list of
+outputs as a final printed quantity when the simulation box volume
+changes during the simulation.
+</P>
+<P>All thermodynamic quantities which require a temperature (<I>temp, press,
+ke, eng, tave, eave</I>) use the temperature with ID = <I>default</I> that is
+defined by LAMMPS (see the <A HREF = "temperature.html">temperature</A> command)
+that performs an average over all atoms.  This can be changed via the
+<A HREF = "thermo_modify.html">thermo_modify</A> command.  The exception is the
+<I>t_ID</I> quantity which directly specifies which temperature to compute
+and print out.
+</P>
+<P>A long-range tail correction <I>etail</I> for the VanderWaal pairwise
+energy will be non-zero only if the <A HREF = "pair_modify.html">pair_modify
+tail</A> option is turned on.  The <I>etail</I> contribution
+is included in <I>evdwl</I>, <I>pe</I>, and <I>eng</I>, and the corresponding tail
+correction to the pressure is included in <I>press</I> and <I>pxx</I>, <I>pyy</I>,
+etc.
+</P>
+<P>The time-averaged quantities <I>tave, pave, eave, peave</I> are averaged
+over the last N thermodynamic outputs to the screen (not the last N
+timesteps), where N is the value set by the <I>window</I> option of the
+<A HREF = "thermo_modify.html">thermo_modify</A> command (N = 10 by default).
+</P>
+<P>The <I>t_ID</I> quantity allows for user-defined temperatures to be printed
+with thermodynamic output.  For example, if either of the commands
+</P>
+<PRE>temperature mine all region sphere
+fix mine all temp/rescale 100 1.0 1.0 0.1 1.0 region sphere 
+</PRE>
+<P>were used to compute or thermostat the temperature of atoms inside a
+spherical geometric region, then the keyword <I>t_mine</I> will print that
+temperature as part of thermodynamic output.
+</P>
+<P>Some fixes also generate quantities that can be appended to these
+lists each time thermodyanmic info prints out, if enabled by the
+<A HREF = "fix_modify.html">fix_modify</A> command.  See invidividual fix commands
+for more details, e.g. the <A HREF = "fix_nvt.html">fix nvt</A> and <A HREF = "fix_npt.html">fix
+npt</A> commands.
+</P>
+<P>Options invoked by the <A HREF = "thermo_modify.html">thermo_modify</A> command can
+be used to set the one- or multi-line format of the print-out, the
+normalization of energy quantities (total or per-atom), and the
+numeric precision of each printed value.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P><A HREF = "atom_style.html">Atom style</A> granular cannot compute the usual
+temperature and pressure settings because it stores atom masses
+differently.  The gke and grot settings should be used instead (or use
+thermo style granular).
+</P>
+<P>This command must come after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
+<A HREF = "create_box.html">create_box</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "thermo.html">thermo</A>, <A HREF = "thermo_modify.html">thermo_modify</A>,
+<A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "temperature.html">temperature</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>thermo_style one 
+</PRE>
+</HTML>

@@ -1,0 +1,66 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style dpd command :h3
+
+[Syntax:]
+
+pair_style dpd T cutoff seed :pre
+
+T = temperature (temperature units)
+cutoff = global cutoff for DPD interactions (distance units)
+seed = random # seed (integer > 0 and < 900000000) :ul
+
+[Examples:]
+
+pair_style dpd 1.0 2.5 34387
+pair_coeff * * 3.0 1.0
+pair_coeff 1 1 3.0 1.0 1.0 :pre
+
+[Description:]
+
+Style {dpd} computes a force field for dissipative particle dynamics
+(DPD) following the exposition in "(Groot)"_#Groot.  The force
+on atom I due to atom J is given as a sum of 3 terms
+
+:c,image(Eqs/pair_dpd.jpg)
+
+where FC is a conservative force, FD is a dissipative force, and FR is
+a random force.  Rij is a unit vector in the direction Ri - Rj, Vij is
+the vector difference in velocities of the two atoms = Vi - Vj, alpha
+is a Gaussian random number with zero mean and unit variance, dt is
+the timestep size, and w(r) is a weighting factor that varies between
+0 and 1.  Rc is the cutoff.  Sigma is set equal to sqrt(2 T gamma),
+where T is a parameter in the pair_style command.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+A (force units)
+gamma (force/velocity units)
+cutoff (distance units) :ul
+
+The last coefficient is optional.  If not specified, the global DPD
+cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
+where T is the temperature set by the "pair_style"_pair_style.html
+command so it does not need to be specified.
+
+[Restrictions:] none
+
+This style is part of the "dpd" package.  It is only enabled if LAMMPS
+was built with those package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

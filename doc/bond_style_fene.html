@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>bond_style fene command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>bond_style fene 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>bond_style fene
+bond_coeff 1 30.0 1.5 1.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>fene</I> bond style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/bond_fene.jpg">
+</CENTER>
+<P>to define a finite extensible nonlinear elastic (FENE) potential
+<A HREF = "#Kremer">(Kremer)</A>, used for bead-spring polymer models.  The first
+term is attractive, the 2nd Lennard-Jones term is repulsive.  The
+first term extends to R0, the maximum extent of the bond.  The 2nd
+term is cutoff at 2^(1/6) sigma, the minimum of the LJ potential.
+</P>
+<P>The following coefficients must be defined for each bond type via the
+<A HREF = "bond_coeff.html">bond_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>K (energy/distance^2)
+<LI>R0 (distance)
+<LI>epsilon (energy)
+<LI>sigma (distance) 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>Bond styles can only be set for atom styles that allow bonds to be
+defined.
+</P>
+<P>This bond style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Kremer"></A>
+
+<P><B>(Kremer)</B> Kremer, Grest, J Chem Phys, 92, 5057 (1990).
+</P>
+</HTML>

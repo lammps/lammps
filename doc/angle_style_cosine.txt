@@ -1,0 +1,48 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+angle_style cosine command :h3
+
+[Syntax:]
+
+angle_style cosine :pre
+
+[Examples:]
+
+angle_style cosine
+angle_coeff * 75.0 :pre
+
+[Description:]
+
+The {cosine} angle style uses the potential
+
+:c,image(Eqs/angle_cosine.jpg)
+
+where K is defined for each angle type.
+
+The following coefficients must be defined for each angle type via the
+"angle_coeff"_angle_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy) :ul
+
+[Restrictions:]
+
+Angle styles can only be set for atom styles that allow angles to be
+defined.
+
+This angle style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"angle_coeff"_angle_coeff.html
+
+[Default:] none

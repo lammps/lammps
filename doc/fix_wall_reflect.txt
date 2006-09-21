@@ -1,0 +1,44 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix wall/reflect command :h3
+
+[Syntax:]
+
+fix ID group-ID wall/reflect keyword ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+wall/reflect = style name of this fix command
+one or more keyword/value pairs may be appended to the args
+keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :ul
+
+[Examples:]
+
+fix xwalls all wall/reflect xlo xhi
+fix walls all wall/reflect xlo ylo zlo xhi yhi zhi :pre
+
+[Description:]
+
+Bound the simulation with one or more walls which reflect particles
+when they attempt to move thru them.  Normally, the simulation domain
+should be set non-periodic via the "boundary"_boundary.html command in
+any dimension that has such a wall, but LAMMPS does not check for this
+condition.
+
+Reflection means that if an atom moves outside the box on a timestep
+by a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is
+put back inside the box by the same delta and the sign of the
+corresponding component of its velocity is flipped.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix wall/lj93"_fix_wall_lj93.html command
+
+[Default:] none

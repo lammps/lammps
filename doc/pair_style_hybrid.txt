@@ -1,0 +1,72 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style hybrid command :h3
+
+[Syntax:]
+
+pair_style hybrid style1 style2 ... :pre
+
+style1,style2 = list of one or more pair styles :ul
+
+[Examples:]
+
+pair_style hybrid lj/charmm/coul/long 10.0 eam
+pair_coeff 1*2 1*2 eam niu3
+pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
+pair_coeff 1*2 3 lj/cut 0.5 1.2 :pre
+
+[Description:]
+
+The {hybrid} style enables the use of multiple pair styles in one
+simulation.  A pair style can be assigned to each pair of atom types
+via the "pair_coeff"_pair_coeff.html command.
+
+For example, a metal on a LJ surface could be computed where the metal
+atoms interact with each other via a {eam} potential, the surface
+atoms interact with each other via a {lj/cut} potential, and the
+metal/surface interaction is also via a {lj/cut} potential.
+
+All pair styles that will be used must be listed in the pair_style
+hybrid command (in any order).  The name of each sub-style is followed
+by its arguments, as illustrated in the example above.
+
+In the pair_coeff command, the first coefficient sets the pair style
+and the remaining coefficients are those appropriate to that style.
+For example, consider a simulation with 3 atom types: types 1 and 2
+are Ni atoms, type 3 are LJ atoms with charges.  The following
+commands would set up the hybrid simulation:
+
+atom_style hybrid eam charge
+pair_style hybrid eam lj/cut/coul/cut 10.0 lj/cut 8.0
+pair_coeff 1*2 1*2 eam niu3
+pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
+pair_coeff 1*2 3 lj/cut 0.5 1.2 :pre
+
+The "atom_style"_atom_style.html hybrid command is needed because
+atoms in the simulation will have both EAM and charge attributes.
+
+[Restrictions:] none
+
+When using a long-range Coulomic solver (via the
+"kspace_style"_kspace_style command) with pair_style hybrid, one or
+more sub-styles will be of the "long" variety.
+E.g. {lj/cut/coul/long} or {buck/coul/long}.  It is OK to have more
+than one sub-style with a "long" component, but you must insure that
+the short-range Coulombic cutoff used by each of these pair styles is
+consistent.  Else the long-range Coulombic solve will be inconsistent.
+
+The hybrid style cannot include any of the {granular} styles in its
+list of styles to use.  Only one {coul/long} style can be used in the
+list of hybrid styles.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

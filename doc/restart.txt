@@ -1,0 +1,83 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+restart command :h3
+
+[Syntax:]
+
+restart 0
+restart N root
+restart N file1 file2 :pre
+
+N = write a restart file every this many timesteps
+root = filename to which timestep # is appended
+file1,file2 = two full filenames, toggle between them when writing file :ul
+
+[Examples:]
+
+restart 0
+restart 1000 poly.restart
+restart 1000 restart.*.equil
+restart 10000 poly.%.1 poly.%.2 :pre
+
+[Description:]
+
+Write out a binary restart file every so many timesteps as a run
+proceeds.  A value of 0 means do not write out restart files.  Using
+one filename as an argument will create a series of filenames which
+include the timestep in the filename.  Using two filenames will
+produce only 2 restart files.  LAMMPS will toggle between the 2 names
+as it writes successive restart files.
+
+Similar to "dump"_dump.html files, the restart filename(s) can contain
+two wild-card characters.  If a "*" appears in the filename, it is
+replaced with the current timestep value.  This is only recognized
+when a single filename is used (not when toggling back and forth).
+Thus, the 3rd example above creates restart files as follows:
+restart.1000.equil, restart.2000.equil, etc.  If a single filename is
+used with no "*", then the timestep value is appended.  E.g. the 2nd
+example above creates restart files as follows: poly.restart.1000,
+poly.restart.2000, etc.
+
+If a "%" character appears in the restart filename(s), then one file
+is written for each processor and the "%" character is replaced with
+the processor ID from 0 to P-1.  An additional file with the "%"
+replaced by "base" is also written, which contains global information.
+For example, the files written on step 1000 for filename restart.%
+would be restart.base.1000, restart.0.1000, restart.1.1000, ...,
+restart.P-1.1000.  This creates smaller files and can be a fast mode
+of output on parallel machines that support parallel I/O for output.
+
+Restart files are written on timesteps that are a multiple of N but
+not on the first timestep of a run or minimization.  A restart file is
+not written on the last timestep of a run unless it is a multiple of
+N.  A restart file is written on the last timestep of a minimization
+if N > 0 and the minimization converges.
+
+See the "read_restart"_read_restart.html command for information about
+what is stored in a restart file.
+
+Restart files can be read by a "read_restart"_read_restart.html
+command to restart a simulation from a particular state.  Because the
+file is binary (to enable exact restarts), it may not be readable on
+another machine.  In this case, the "restart2data
+program"_Section_tools.html#restart in the tools directory can be used
+to convert a restart file to an ASCII data file.  Both the
+read_restart commmand and restart2data tool can read in a restart file
+that was written with the "%" character so that multiple files were
+created.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"write_restart"_write_restart.html, "read_restart"_read_restart.html
+
+[Default:]
+
+restart 0 :pre

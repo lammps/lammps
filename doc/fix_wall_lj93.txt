@@ -1,0 +1,59 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix wall/lj93 command :h3
+
+[Syntax:]
+
+fix ID group-ID wall/lj93 style coord epsilon sigma cutoff :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+wall/lj93 = style name of this fix command
+style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi}
+coord = position of wall
+epsilon = Lennard-Jones epsilon for wall-particle interaction
+sigma = Lennard-Jones sigma for wall-particle interaction
+cutoff = distance from wall at which wall-particle interaction is cut off :ul
+
+[Examples:]
+
+fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 1.12 :pre
+
+[Description:]
+
+Bound the simulation domain with a Lennard-Jones wall that encloses
+the atoms.  The energy E of a wall-particle interactions is given by
+the 9-3 potential
+
+:c,image(Eqs/fix_wall_lj93.jpg)
+
+where {r} is the distance from the particle to the wall {coord}, and
+epsilon and sigma are the usual LJ parameters.  Rc is the cutoff value
+specified in the command.  This interaction is derived by integrating
+over a 3d half-lattice of Lennard-Jones 12-6 particles.
+
+This fix supports the "fix_modify"_fix_modify.html options for
+{thermo} and {energy}.  The former will print the contribution the fix
+makes to the energy of the system when thermodynamics is printed,
+where the energy of each particle comes from the integrated form of
+the equation above.  The latter will add this contribution to the
+total potential energy (PotEng).
+
+The forces due to this fix are also imposed during an energy
+minimization, invoked by the "minimize"_minimize.html command.  If you
+want that energy to be included in the total potential energy of the
+system (the quantity being minimized), you must enable the
+"fix_modify"_fix_modify.html {energy} option for this fix.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix wall/reflect"_fix_wall_reflect.html command
+
+[Default:] none

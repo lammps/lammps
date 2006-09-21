@@ -1,0 +1,49 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix wall/reflect command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID wall/reflect keyword ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>wall/reflect = style name of this fix command
+<LI>one or more keyword/value pairs may be appended to the args
+<LI>keyword = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix xwalls all wall/reflect xlo xhi
+fix walls all wall/reflect xlo ylo zlo xhi yhi zhi 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Bound the simulation with one or more walls which reflect particles
+when they attempt to move thru them.  Normally, the simulation domain
+should be set non-periodic via the <A HREF = "boundary.html">boundary</A> command in
+any dimension that has such a wall, but LAMMPS does not check for this
+condition.
+</P>
+<P>Reflection means that if an atom moves outside the box on a timestep
+by a distance delta (e.g. due to <A HREF = "fix_nve.html">fix nve</A>), then it is
+put back inside the box by the same delta and the sign of the
+corresponding component of its velocity is flipped.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_wall_lj93.html">fix wall/lj93</A> command
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

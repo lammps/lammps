@@ -1,0 +1,148 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style command :h3
+
+[Syntax:]
+
+pair_style style args :pre
+
+style = one of the following :ulb,l
+
+{none}
+{hybrid}
+{buck} or {buck/coul/cut} or {buck/coul/long}
+{dipole/cut} or {dipole/long}
+{dpd}
+{eam} or {eam/alloy} or {eam/fs}
+{gran/hertzian} or {gran/history} or {gran/no_history}
+{lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long}
+{lj/class2} or {lj/class2/coul/cut} or {lj/class2/coul/long}
+{lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
+{lj/expand}
+{lj/smooth}
+{morse}
+{soft}
+{table}
+{yukawa} :ul
+
+args = arguments used by a particular style :l,ule
+
+[Examples:]
+
+pair_style lj/cut 2.5
+pair_style eam/alloy
+pair_style hybrid lj/charmm/coul/long 10.0 eam
+pair_style table linear 1000
+pair_style none :pre
+
+[Description:]
+
+Set the formula(s) LAMMPS uses to compute pairwise interactions.  In
+LAMMPS, pair potentials are defined between pairs of atoms that are
+within a cutoff distance and the set of active interactions typically
+changes over time.  See the "bond_style"_bond_style.html command to
+define potentials between pairs of bonded atoms, which typically
+remain in place for the duration of a simulation.
+
+In LAMMPS, pairwise force fields encompass a variety of interactions,
+some of which include many-body effects, e.g. EAM, Stillinger-Weber,
+Tersoff, REBO potentials.  They are still classed as "pairwise"
+potential because a neighbor list is used to find nearby interacting
+atoms.
+
+Hybrid models where specified pairs of atom types interact via
+different pair potentials can be setup using the {hybrid} pair style.
+
+The coefficients associated with a pair style are typically set for
+each pair of atom types, and are specified by the
+"pair_coeff"_pair_coeff.html command or read from a file by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands.  Mixing, shifting, and tail corrections for the potentials
+is discussed is the documentation for the
+"pair_modify"_pair_modify.html command.
+
+In the formulas listed for each pair style, {E} is the energy of a
+pairwise interaction between two atoms separated by a distance {r}.
+The force between the atoms is the negative derivative of this
+expression.
+
+If the pair_style command has a cutoff argument, it sets global
+cutoffs for all pairs of atom types.  The distance(s) can be smaller
+or larger than the dimensions of the simulation box.
+
+Typically, the global cutoff value can be overridden for a specific
+pair of atom types by the "pair_coeff"_pair_coeff.html command.  The
+pair style settings (including global cutoffs) can be changed by a
+subsequent pair_style command using the same style.  This will reset
+the cutoffs for all atom type pairs, including those previously set
+explicitly by a "pair_coeff"_pair_coeff.html command.  The exceptions
+to this are that pair_style {table} and {hybrid} settings cannot be
+reset.  A new pair_style command for these styles will wipe out all
+previously specified pair_coeff values.
+
+:line
+
+Here is an alphabetic list of pair styles defined in LAMMPS.  Click on
+the style to display the formula it computes, arguments specified in
+the pair_style command, and coefficients specified by the associated
+"pair_coeff"_pair_coeff.html command:
+
+"pair_style none"_pair_style_none.html - turn off pairwise interactions
+"pair_style hybrid"_pair_style_hybrid.html - define multiple styles of pairwise interactions :ul
+
+"pair_style buck"_pair_style_buck.html - Buckingham potential
+"pair_style buck/coul/cut"_pair_style_buck.html - Buckinhham with cutoff Coulomb
+"pair_style buck/coul/long"_pair_style_buck.html - Buckingham with long-range Coulomb
+"pair_style dipole/cut"_pair_style_dipole.html - cutoff dipole and charge interactions
+"pair_style dpd"_pair_style_dpd.html - dissipative particle dynamics (DPD)
+"pair_style eam"_pair_style_eam.html - embedded atom method (EAM)
+"pair_style eam/alloy"_pair_style_eam.html - alloy EAM
+"pair_style eam/fs"_pair_style_eam.html - Finnis-Sinclair EAM
+"pair_style gran/hertzian"_pair_style_granular.html - granular potential with Hertizain interactions
+"pair_style gran/history"_pair_style_granular.html - granular potential with history effects
+"pair_style gran/no_history"_pair_style_granular.html - granular potential without history effects
+"pair_style lj/charmm/coul/charmm"_pair_style_charmm.html - CHARMM potential with cutoff Coulomb
+"pair_style lj/charmm/coul/charmm/implicit"_pair_style_charmm.html - CHARMM for implicit solvent
+"pair_style lj/charmm/coul/long"_pair_style_charmm.html - CHARMM with long-range Coulomb
+"pair_style lj/class2"_pair_style_class2.html - COMPASS (class 2) force field with no Coulomb
+"pair_style lj/class2/coul/cut"_pair_style_class2.html - COMPASS with cutoff Coulomb
+"pair_style lj/class2/coul/long"_pair_style_class2.html - COMPASS with long-range Coulomb
+"pair_style lj/cut"_pair_style_lj.html - cutoff Lennard-Jones potential with no Coulomb
+"pair_style lj/cut/coul/cut"_pair_style_lj.html - LJ with cutoff Coulomb
+"pair_style lj/cut/coul/debye"_pair_style_lj.html - LJ with Debye damping added to Coulomb
+"pair_style lj/cut/coul/long"_pair_style_lj.html - LJ with long-range Coulomb
+"pair_style lj/cut/coul/long/tip4p"_pair_style_lj.html - LJ with long-range Coulomb for TIP4P water
+"pair_style lj/expand"_pair_style_lj_expand.html - Lennard-Jones for variable size particles
+"pair_style lj/smooth"_pair_style_lj_smooth.html - smoothed Lennard-Jones potential
+"pair_style morse"_pair_style_morse.html - Morse potential
+"pair_style soft"_pair_style_soft.html - Soft (cosine) potential
+"pair_style table"_pair_style_table.html - tabulated pair potential
+"pair_style yukawa"_pair_style_yukawa.html - Yukawa potential :ul
+
+:line
+
+[Restrictions:]
+
+This command must be used before any coefficients are set by the
+"pair_coeff"_pair_coeff.html, "read_data"_read_data.html, or
+"read_restart"_read_restart.html commands.
+
+Some pair styles are part of specific packages.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "read_data"_read_data.html,
+"pair_modify"_pair_modify.html, "kspace_style"_kspace_style.html,
+"dielectric"_dielectric.html, "pair_write"_pair_write.html
+
+[Default:]
+
+pair_style none :pre

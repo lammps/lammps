@@ -1,0 +1,46 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix freeze command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID freeze 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>freeze = style name of this fix command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 2 bottom freeze 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Zero out the force and torque on a granular particle.  This is useful
+for preventing certain particles from moving in a simulation.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Can only be used if LAMMPS was built with the "granular" package.  Can
+only be used with atom_style granular.
+</P>
+<P>There can only be a single freeze fix defined.  This is because other
+parts of the code (pair potentials, thermodynamics, etc) treat frozen
+particles differently and need to be able to reference a single group
+to which this fix is applied.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><A HREF = "atom_style.html">atom_style granular</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

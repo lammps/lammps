@@ -1,0 +1,60 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+neighbor command :h3
+
+[Syntax:]
+
+neighbor skin style :pre
+
+skin = extra distance beyond force cutoff (distance units)
+style = {bin} or {nsq} :ul
+
+[Examples:]
+
+neighbor 0.3 bin
+neighbor 2.0 nsq :pre
+
+[Description: ]
+
+This command sets parameters that affect the building of the pairwise
+neighbor list.  All atom pairs within a cutoff distance equal to the
+their force cutoff plus the {skin} distance are stored in the list.
+Typically, the larger the skin distance, the less often neighbor lists
+need to be built, but more pairs must be checked for possible force
+interactions every timestep.
+
+The {style} value chooses what algorithm is used to build the list.
+{Binning} is an operation that scales linearly with N, the number of
+atoms on a processor.  It is almost always faster than the {nsq} style
+which scales as N^2.  For unsolvated small molecules in a non-periodic
+box, the {nsq} choice can sometimes be faster.  Either style should
+give the same answers.
+
+The default values for {skin} and {style} depend on the choice of
+units for the simulation.
+
+The "neigh_modify"_neigh_modify.html command has additional options
+that control how often neighbor lists are built and which pairs are
+stored in the list.
+
+When a run is finished, counts of the number of neighbors stored in
+the pairwise list and the number of times neighbor lists were built
+are printed to the screen and log file.  See "this
+section"_Section_start.html#2_5 for details.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"neigh_modify"_neigh_modify.html, "units"_units.html
+
+[Default:]
+
+0.3 bin      for lj units
+2.0 bin      for real or metal units :pre

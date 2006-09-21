@@ -1,0 +1,90 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix shake style :h3
+
+[Syntax:]
+
+fix ID group-ID shake tol iter N keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+shake = style name of this fix command :l
+tol = accuracy tolerance of SHAKE solution :l
+iter = max # of iterations in each SHAKE solution :l
+N = print SHAKE statistics every this many timesteps (0 = never) :l
+one or more keyword/value pairs are appended :l
+keyword = {b} or {a} or {t} or {m} :l
+  {b} values = one or more bond types
+  {a} values = one or more angle types
+  {t} values = one or more atom types
+  {m} value = one or more mass values :pre
+:ule
+
+[Examples:]
+
+fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
+fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 :pre
+
+[Description:]
+
+Apply bond and angle constraints to specified bonds and angles in the
+simulation.  This typically enables a longer timestep.
+
+Each timestep the specified bonds and angles are reset to their
+equilibrium lengths and angular values via the well-known SHAKE
+algorithm.  This is done by applying an additional constraint force so
+that the new positions preserve the desired atom separations.  The
+equations for the additional force are solved via an iterative method
+that typically converges to an accurate solution in a few iterations.
+The desired tolerance (e.g. 1.0e-4 = 1 part in 10000) and maximum # of
+iterations are specified as arguments.  Setting the N argument will
+print statistics to the screen and log file about regarding the
+lengths of bonds and angles that are being constrained.  Small delta
+values mean SHAKE is doing a good job.
+
+In LAMMPS, only small clusters of atoms can be constrained.  This is
+so the constraint calculation for a cluster can be performed by a
+single processor, to enable good parallel performance.  A cluster is
+defined as a central atom connected to others in the cluster by
+constrained bonds.  LAMMPS allows for the following kinds of clusters
+to be constrained: one central atom bonded to 1 or 2 or 3 atoms, or
+one central atom bonded to 2 others and the angle between the 3 atoms
+also constained.  This means water molecules or CH2 or CH3 groups may
+be constrained, but not all the C-C backbone bonds of a long polymer
+chain.
+
+The {b} keyword lists bond types that will be constrained.  The {t}
+keyword lists atom types.  All bonds connected to an atom of the
+specified type will be constrained.  The {m} keyword lists atom
+masses.  All bonds connected to atoms of the specified masses will be
+constrained (within a fudge factor of MASSDELTA specified in
+fix_shake.cpp).  The {a} keyword lists angle types.  If both bonds in
+the angle are constrained then the angle will also be constrained if
+its type is in the list.
+
+For all keywords, a particular bond is only constrained if both atoms
+in the bond are in the group specified with the SHAKE fix.
+
+The degrees-of-freedom removed by SHAKE bonds and angles are accounted
+for in temperature and pressure computations.  Similarly, the SHAKE
+contribution to the pressure virial is also accounted for.
+
+[Restrictions:]
+
+For computational efficiency, there can only be one shake fix defined
+in a simulation.
+
+If you use a tolerance that is too large or a max-iteration count that
+is too small, the constraints will not be enforced very strongly,
+which can lead to poor energy conservation.  You can test for this in
+your system by running a constant NVE simulation with a particular set
+of SHAKE parameters and monitoring the energy versus time.
+
+[Related commands:] none
+
+[Default:] none

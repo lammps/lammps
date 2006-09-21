@@ -1,0 +1,85 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>special_bonds command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>special_bonds style
+special_bonds c1 c2 c3
+special_bonds c1 c2 c3 c4 c5 c6 
+</PRE>
+<UL><LI>style = <I>charmm</I> or <I>amber</I>
+<LI>c1,c2,c3,c4,c5,c6 = numeric coefficients from 0.0 to 1.0 
+</UL>
+<P>Examples:
+</P>
+<PRE>special_bonds charmm
+special_bonds amber
+special_bonds 0.0 0.0 1.0
+special_bonds 0.0 0.0 1.0 0.0 0.0 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the weighting coefficients for the pairwise force and energy
+contributions from atom pairs that are also bonded to each other
+directly or indirectly.  The 1st coefficient is the weighting factor
+on 1-2 atom pairs, which are those directly bonded to each other.  The
+2nd coefficient is the weighting factor on 1-3 atom pairs which are
+those separated by 2 bonds (e.g. the 2 H atoms in a water molecule).
+The 3rd coefficient is the weighting factor on 1-4 atom pairs which
+are separated by 3 bonds (e.g. the 1st and 4th atoms in a dihedral
+interaction).
+</P>
+<P>Note that for purposes of computing weighted pairwise interactions,
+1-3 and 1-4 interactions are not defined from the list of angles or
+dihedrals used by the simulation.  Rather, they are inferred
+topologically by the set of bonds defined when atoms are read in from
+a file (<A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A>).  Thus the set of 1-2,1-3,1-4
+interactions is the same whether angle potentials are computed or not,
+and remains the same even if bonds are constrained, or turned off, or
+removed during a simulation.  The only exception is if the
+<A HREF = "delete_bonds.html">delete_bonds</A> command is used with the <I>special</I>
+option that recomputes the 1-2,1-3,1-4 topologies; see the command for
+more details.
+</P>
+<P>The <I>charmm</I> style sets all 3 coefficients to 0.0, which is the
+default for the CHARMM force field.  In pair styles
+<I>lj/charmm/coul/charmm</I> and <I>lj/charmm/coul/long</I> the 1-4 coefficients
+are defined explicitly, and these pair-wise contributions are computed
+in the charmm dihedral style - see the <A HREF = "pair_coeff.html">pair_coeff</A>
+and <A HREF = "dihedral_style.html">dihedral_style</A> commands for more
+information.
+</P>
+<P>The <I>amber</I> style sets the 3 coefficients to 0.0 0.0 0.5 for LJ
+interactions and to 0.0 0.0 0.833 for Coulombic interactions, which is
+the default for a particular version of the AMBER force field, where
+the last value is 5/6.
+</P>
+<P>A special_bonds command with 3 coefficients sets the 1-2, 1-3, and 1-4
+coefficients for both LJ and Coulombic terms to those values.
+</P>
+<P>A special_bonds command with 6 coefficients sets the 1-2, 1-3, and 1-4
+LJ coefficients to the first 3 values and the Coulombic coefficients
+to the last 3 values.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "delete_bonds.html">delete_bonds</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>special_bonds 0.0 0.0 0.0 
+</PRE>
+</HTML>

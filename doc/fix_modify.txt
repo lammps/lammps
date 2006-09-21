@@ -1,0 +1,68 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix_modify command :h3
+
+[Syntax:]
+
+fix_modify fix-ID keyword value ... :pre
+
+fix-ID = ID of the fix to modify :ulb,l
+one or more keyword/value pairs may be appended :l
+keyword = {temp} or {energy} or {thermo} :l
+  {temp} value = temperature ID
+  {energy} value = {yes} or {no}
+  {thermo} value = {yes} or {no} :pre
+:ule
+
+[Examples:]
+
+fix_modify 3 temp myTemp
+fix_modify 1 thermo yes energy no :pre
+
+[Description:]
+
+Modify one or more parameters of a previously defined fix.  Not all
+fix styles support all parameters.
+
+The {temp} keyword is used to determine how a fix computes
+temperature.  The specified temperature ID must have been previously
+defined by the user via the "temperature"_temperature.html command.
+The default setting for {temp} is temperature ID = {default}.  Fix
+styles that use the {temp} setting are
+"temp/rescale"_fix_temp_rescale.html, "nvt"_fix_nvt.html, and
+"npt"_fix_npt.html.
+
+The {energy} and {thermo} keywords enable a fix to compute and/or
+print quantities as part of the thermodynamic output to the screen and
+log file (if the fix defines such quantites).  When the {energy}
+keyword is set to {yes}, the fix computes a contribution to the total
+potential energy that is printed as PotEng during thermodynamic
+output.  When the {thermo} keyword is set to yes, the fix prints one
+or more values that are appended to the list of thermodynamic outputs.
+See the "thermo_style"_thermo_style.html command for how this printing
+is formatted.
+
+The fixes that support the {energy} and {thermo} options include: "fix
+indent"_fix_indent.html, "fix nvt"_fix_nvt.html, "fix
+nph"_fix_nph.html, "fix npt"_fix_npt.html, "fix
+orient/fcc"_fix_orient_fcc.html, "fix
+temp/rescale"_fix_temp_rescale.html, and "fix
+wall/lj93"_fix_wall_lj93.html.  See the individual fix commands for
+more info on what is computed and/or printed.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix"_fix.html, "temperature"_temperature.html,
+"thermo_style"_thermo_style.html
+
+[Default:]
+
+The option defaults are temp = default, energy = no, thermo = no.

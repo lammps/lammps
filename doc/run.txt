@@ -1,0 +1,148 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+run command :h3
+
+[Syntax:]
+
+run N keyword values ... :pre
+
+N = # of timesteps :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {upto} or {start} or {stop} or {pre} or {post} or {every} :l
+  {upto} value = none
+  {start} value = N1
+    N1 = timestep at which 1st run started
+  {stop} value = N2
+    N2 = timestep at which last run will end
+  {pre} value = {no} or {yes}
+  {post} value = {no} or {yes} 
+  {every} values = M command
+    M = break the run into M-timestep segments and invoke command between them
+    command = a single LAMMPS command (enclosed in double quotes if multiple words)
+              NULL means no command will be invoked :pre
+:ule
+
+[Examples:]
+
+run 10000
+run 1000000 upto
+run 100 start 0 stop 1000
+run 1000 pre no post yes
+run 100000 start 0 stop 1000000 every 1000 "print Protein Rg = $r"
+run 100000 every 1000 NULL :pre
+
+[Description:]
+
+Run or continue dynamics for a specified number of timesteps.
+
+When the "run style"_doc/run_style.html is {respa}, N refers to outer
+loop (largest) timesteps.
+
+A value of N = 0 is acceptable; only the thermodynamics of the system
+are computed and printed without taking a timestep.
+
+The {upto} keyword means to perform a run starting at the current
+timestep up to the specified timestep.  E.g. if the current timestep
+is 10,000 and "run 100000 upto" is used, then an additional 90,000
+timesteps will be run.  This can be useful for very long runs on a
+machine that allocates chunks of time and terminate your job when time
+is exceeded.  If you need to restart your script multiple times
+(reading in the last restart file), you can keep restarting your
+script with the same run command until the simulation finally
+completes.
+
+The {start} or {stop} keywords can be used if multiple runs are being
+performed and you want a "fix"_fix.html command that ramps some value
+(e.g. a temperature) over time to do its ramping across the entire set
+of runs and not just a single run.  Fixes in this category include
+"fix nvt"_fix_nvt.html, "fix npt"_fix_npt.html, "fix
+langevin"_fix_langevin.html, "fix temp/rescale"_fix_temp_rescale.html,
+"fix volume/rescale"_fix_volume_rescale.html, and "fix
+indent"_fix_indent.html.  The "pair_style soft"_pair_style.html
+potential also ramps its coefficients in a similar way.
+
+For example, consider this fix followed by 10 run commands:
+
+fix	     1 all nvt 200.0 300.0 1.0
+run	     1000 start 0 stop 10000
+run	     1000 start 0 stop 10000
+...
+run	     1000 start 0 stop 10000 :pre
+
+The NVT fix ramps the target temperature from 200.0 to 300.0 during a
+run.  If the run commands did not have the start/stop keywords (just
+"run 1000"), then the temperature would ramp from 200.0 to 300.0
+during the 1000 steps of each run.  With the start/stop keywords, the
+ramping takes place over the 10000 steps of all runs together.
+
+The {pre} and {post} keywords can be used to streamline the setup,
+clean-up, and associated output to the screen that happens before and
+after a run.  This can be useful if you wish to do many short runs in
+succession (e.g. LAMMPS is being called as a library which is doing
+other computations between successive short LAMMPS runs).
+
+By default (pre and post = yes), LAMMPS creates neighbor lists,
+computes forces, and imposes fix constraints before every run.  And
+after every run it gathers and prints timings statistics.  If a run is
+just a continuation of a previous run (and no parameters have
+changed), the initial computation is not necessary; the old neighbor
+list is still valid as are the forces.  So if {pre} is specified as
+"no" then the initial setup is skipped, except for printing
+thermodynamic info.  Likewise, if {post} is specified as "no", the
+full timing summary is skipped; only a one-line summary timing is
+printed.  Note that if {pre} is set to "no" for the 1st run LAMMPS
+performs, then it is overridden, since the initial setup computations
+must be done.
+
+The {every} option provides a means of interleaving LAMMPS runs with a
+command.  This can be a short-hand abbreviation to avoid listing a
+long series of runs in your input script.  Or it can be useful for
+invoking a command that wraps some other code (e.g. as a library) to
+perform a computation periodically during a long LAMMPS run.  See
+"this section"_Section_howto.html#4_10 of the documentation for ideas
+about how to couple LAMMPS to other codes.
+
+N total steps are simulated, in shorter runs of M steps each.  After
+each M-length run, the command is invoked.  If the command is
+specified as NULL, no command is invoked.  Thus these lines:
+
+variable q equal x[100]
+run 6000 every 2000 "print Coord = $q" :pre
+
+are the equivalent of:
+
+variable q equal x\[100\]
+run 2000
+print Coord = $q
+run 2000
+print Coord = $q
+run 2000
+print Coord = $q :pre
+
+which does 3 runs of 2000 steps and prints the x-coordinate of a
+particular atom between runs.  Note that the command can contain
+"variables"_variable.html of style {equal} which will be evaluated
+each time the command is invoked.
+
+If the {pre} and {post} options are set to "no" when {every} is used,
+then the 1st run will do the full setup and the last run will print
+the full timing summary, but these operations will be skipped for
+intermediate runs.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"minimize"_minimize.html, "run_style"_run_style.html,
+"temper"_temper.html
+
+[Default:]
+
+The option defaults are start = the current timestep, stop = current
+timestep + N, pre = yes, and post = yes.

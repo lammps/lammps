@@ -1,0 +1,59 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dihedral_style opls command :h3
+
+[Syntax:]
+
+dihedral_style opls :pre
+
+[Examples:]
+
+dihedral_style opls
+dihedral_coeff 1 90.0 90.0 90.0 70.0 :pre
+
+[Description:]
+
+The {opls} dihedral style uses the potential
+
+:c,image(Eqs/dihedral_opls.jpg)
+
+Note that the usual 1/2 factor is not included in the K values.
+
+This dihedral potential is used in the OPLS force field and is
+described in "(Watkins)"_#Watkins.
+
+The following coefficients must be defined for each dihedral type via the
+"dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K1 (energy)
+K2 (energy)
+K3 (energy)
+K4 (energy) :ul
+
+[Restrictions:]
+
+Dihedral styles can only be set for atom styles that allow dihedrals to be
+defined.
+
+This dihedral style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+[Related commands:]
+
+"dihedral_coeff"_dihedral_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Watkins)
+[(Watkins)] Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).

@@ -1,0 +1,58 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style cosine/squared command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style cosine/squared 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style cosine/squared
+angle_coeff 2*4 75.0 100.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>cosine/squared</I> angle style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/angle_cosine_squared.jpg">
+</CENTER>
+<P>where theta0 is the equilibrium value of the angle, and K is a
+prefactor.  Note that the usual 1/2 factor is included in K.
+</P>
+<P>The following coefficients must be defined for each angle type via the
+<A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>K (energy)
+<LI>theta0 (degrees) 
+</UL>
+<P>Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Angle styles can only be set for atom styles that allow angles to be
+defined.
+</P>
+<P>This angle style is part of the "molecular" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

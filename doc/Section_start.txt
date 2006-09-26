@@ -59,8 +59,9 @@ local expert.
 
 If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
-please send an email to the developers.  Note that doesn't include
-linking problems - that's a question for a local expert!
+please send an email to the
+"developers"_http://lammps.sandia.gov/authors.html.  Note that doesn't
+include linking problems - that's a question for a local expert!
 
 Also, if you succeed in building LAMMPS on a new kind of machine
 (which there isn't a similar Makefile for in the distribution), send
@@ -171,7 +172,8 @@ you'll need to set the appropriate -I and -L switches in Makefile.foo.
 If you examine fft3d.c and fft3d.h you'll see it's possible to add
 other vendor FFT libraries via #ifdef statements in the appropriate
 places.  If you successfully add a new FFT option, like -DFFT_IBM,
-please send the developers an email; we'd like to add it to LAMMPS.
+please send the "developers"_http://lammps.sandia.gov an email; we'd
+like to add it to LAMMPS.
 
 (6) If you don't plan to use PPPM, you don't need an FFT library.  Use
 a -DFFT_NONE switch in the CCFLAGS setting of Makefile.foo, or exclude

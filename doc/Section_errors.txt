@@ -44,7 +44,8 @@ you can fix the problem.  Of course LAMMPS cannot figure out your
 physics mistakes, like choosing too big a timestep, specifying invalid
 force field coefficients, or putting 2 atoms on top of each other!  If
 you find errors that LAMMPS doesn't catch that you think it should
-flag, please send an email to the developers.
+flag, please send an email to the
+"developers"_http://lammps.sandia.gov/authors.html.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by
@@ -88,8 +89,8 @@ buffering or boost the sizes of messages that can be buffered.
 
 9.2 Reporting bugs :link(9_2),h4
 
-If you are confident that you have found a bug in LAMMPS, we'd like to
-know about it via "email"_mail.
+If you are confident that you have found a bug in LAMMPS, please send
+an email to the "developers"_http://lammps.sandia.gov/authors.html.
 
 First, check the "New features and bug fixes" section of the "LAMMPS
 WWW site"_lws to see if the bug has already been reported or fixed.
@@ -98,8 +99,8 @@ If not, the most useful thing you can do for us is to isolate the
 problem.  Run it on the smallest number of atoms and fewest number of
 processors and with the simplest input script that reproduces the bug.
 
-Send an email that describes the problem and any ideas you have as to
-what is causing it or where in the code the problem might be.  We'll
+In your email, describe the problem and any ideas you have as to what
+is causing it or where in the code the problem might be.  We'll
 request your input script and data files if necessary.
 
 :line
@@ -1035,7 +1036,8 @@ specified file. :dd
 {Fix orient/fcc found self twice} :dt
 
 The neighbor lists used by fix orient/fcc are messed up.  If this
-error occurs, it is likely a bug, so send an email. :dd
+error occurs, it is likely a bug, so send an email to the
+"developers"_http://lammps.sandia.gov/authors.html. :dd
 
 {Fix rdf requires a pair style be defined} :dt
 

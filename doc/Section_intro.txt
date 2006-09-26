@@ -328,14 +328,16 @@ remain part of the code.
 
 In the spirit of an open-source code, these are various ways you can
 contribute to making LAMMPS better.  You can send email to the
-developers on any of these items.
+"developers"_http://lammps.sandia.gov/authors.html on any of these
+items.
 
 Point prospective users to the "LAMMPS WWW Site"_lws.  Mention it in
 talks or link to it from your WWW site. :ulb,l
 
 If you find an error or omission in this manual or on the "LAMMPS WWW
 Site"_lws, or have a suggestion for something to clarify or include,
-send an email. :l
+send an email to the
+"developers"_http://lammps.sandia.gov/authors.html. :l
 
 If you find a bug, "this section"_Section_errors.html#9_2 describes
 how to report it. :l
@@ -370,7 +372,7 @@ You can send feedback for the User Comments page of the "LAMMPS WWW
 Site"_lws.  It might be added to the page.  No promises. :l
 
 Cash.  Small denominations, unmarked bills preferred.  Paper sack OK.
-Leave on desk.  "VISA"_email also accepted.  Chocolate chip cookies
+Leave on desk.  VISA also accepted.  Chocolate chip cookies
 encouraged. :ule,l
 
 :line

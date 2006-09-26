@@ -57,22 +57,19 @@ makefile, there are compiler options, additional libraries can be used
 (MPI, FFT), etc.  Please read this section carefully.  If you are not
 comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
-you.  Many of the emails I get about build and run problems are not
+you.  Many of the emails we get about build and run problems are not
 really about LAMMPS - they are peculiar to the user's system,
 compilers, libraries, etc.  Such questions are better answered by a
 local expert.
 </P>
 <P>If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
-please send an <A HREF = "mailto:sjplimp@sandia.gov">email</A>.  Note that doesn't include linking
-problems - that's a question for a local expert!
+please send an email to the developers.  Note that doesn't include
+linking problems - that's a question for a local expert!
 </P>
-
-
 <P>Also, if you succeed in building LAMMPS on a new kind of machine
 (which there isn't a similar Makefile for in the distribution), send
-it to sjplimp@sandia.gov and we'll include it in future LAMMPS
-releases.
+it to the developers and we'll include it in future LAMMPS releases.
 </P>
 <P><B><I>Building a LAMMPS executable:</I></B>
 </P>
@@ -179,7 +176,7 @@ you'll need to set the appropriate -I and -L switches in Makefile.foo.
 <P>If you examine fft3d.c and fft3d.h you'll see it's possible to add
 other vendor FFT libraries via #ifdef statements in the appropriate
 places.  If you successfully add a new FFT option, like -DFFT_IBM,
-please send me an email; I'd like to add it to LAMMPS.
+please send the developers an email; we'd like to add it to LAMMPS.
 </P>
 <P>(6) If you don't plan to use PPPM, you don't need an FFT library.  Use
 a -DFFT_NONE switch in the CCFLAGS setting of Makefile.foo, or exclude

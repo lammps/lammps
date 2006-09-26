@@ -56,6 +56,18 @@ atoms in the simulation will have both EAM and charge attributes.
 </P>
 <P><B>Restrictions:</B> none
 </P>
+<P>When using a long-range Coulomic solver (via the
+<A HREF = "kspace_style">kspace_style</A> command) with pair_style hybrid, one or
+more sub-styles will be of the "long" variety.
+E.g. <I>lj/cut/coul/long</I> or <I>buck/coul/long</I>.  It is OK to have more
+than one sub-style with a "long" component, but you must insure that
+the short-range Coulombic cutoff used by each of these pair styles is
+consistent.  Else the long-range Coulombic solve will be inconsistent.
+</P>
+<P>The hybrid style cannot include any of the <I>granular</I> styles in its
+list of styles to use.  Only one <I>coul/long</I> style can be used in the
+list of hybrid styles.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>

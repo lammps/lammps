@@ -44,9 +44,7 @@ you can fix the problem.  Of course LAMMPS cannot figure out your
 physics mistakes, like choosing too big a timestep, specifying invalid
 force field coefficients, or putting 2 atoms on top of each other!  If
 you find errors that LAMMPS doesn't catch that you think it should
-flag, please send us an "email"_mail.
-
-:link(mail,mailto:sjplimp@sandia.gov)
+flag, please send an email to the developers.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by

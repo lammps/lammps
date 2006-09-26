@@ -118,10 +118,9 @@ follow the unit conventions discussed by the "units"_units.html
 command.
 
 If you add something you think is truly useful and doesn't impact
-LAMMPS performance when it isn't used, send me an "email"_mail.  We
-might be interested in adding it to the LAMMPS distribution.
-
-:link(mail,mailto:sjplimp@sandia.gov)
+LAMMPS performance when it isn't used, send an email to the
+developers.  We might be interested in adding it to the LAMMPS
+distribution.
 
 :line
 

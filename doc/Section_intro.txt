@@ -327,10 +327,8 @@ source file headers (including the copyright and GPL notices) should
 remain part of the code.
 
 In the spirit of an open-source code, these are various ways you can
-contribute to making LAMMPS better.  You can send "email"_email on any
-of these items.
-
-:link(email,mailto:sjplimp@sandia.gov)
+contribute to making LAMMPS better.  You can send email to the
+developers on any of these items.
 
 Point prospective users to the "LAMMPS WWW Site"_lws.  Mention it in
 talks or link to it from your WWW site. :ulb,l
@@ -407,17 +405,20 @@ Computing, Minneapolis, MN (March 1997).
 
 If you use LAMMPS results in your published work, please cite the J
 Comp Phys reference and include a pointer to the "LAMMPS WWW Site"_lws
-(www.cs.sandia.gov/~sjplimp/lammps.html).  A paper describing the
-latest version of LAMMPS is in the works; when it appears in print,
-you can check the "LAMMPS WWW Site"_lws for a more current citation.
+(http://lammps.sandia.gov).  A paper describing the latest version of
+LAMMPS is in the works; when it appears in print, you can check the
+"LAMMPS WWW Site"_lws for a more current citation.
 
 If you send me information about your publication, I'll be pleased to
 add it to the Publications page of the "LAMMPS WWW Site"_lws.  Ditto
 for a picture or movie for the Pictures or Movies pages.
 
-The primary author of LAMMPS is "Steve Plimpton"_sjp at Sandia
-National Labs.  Others have made significant contributions to the
-code:
+The core group of LAMMPS developers are at Sandia National Labs.  They
+include "Steve Plimpton"_sjp, Paul Crozier, and Aidan Thompson and can
+be contacted via email: sjplimp, pscrozi, athomps at sandia.gov.
+
+Here are various folks who have made significant contributions to
+features in LAMMPS:
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 

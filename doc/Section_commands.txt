@@ -110,7 +110,7 @@ line are arguments.
 (6) Text with spaces can be enclosed in double quotes so it will be
 treated as a single argument.  See the "dump modify"_dump_modify.html
 or "fix print"_fix_print.html commands for examples.  A '#' or '$'
-charater that in text between double quotes will not be treated as a
+character that in text between double quotes will not be treated as a
 comment or substituted for as a variable.
 
 :line
@@ -193,7 +193,7 @@ Output options are set by these commands: "thermo"_thermo.html,
 (4) Run a simulation
 
 A molecular dynamics simulation is run using the "run"_run.html
-command.  Energy minimizationn (molecular statics) is performed using
+command.  Energy minimization (molecular statics) is performed using
 the "minimize"_minimize.html command.  A parallel tempering
 (replica-exchange) simulation can be run using the
 "temper"_temper.html command.

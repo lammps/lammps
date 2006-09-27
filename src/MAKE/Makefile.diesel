@@ -1,0 +1,39 @@
+# diesel = SGI Origin 350, 64-bit, SGI MIPSpro CC, SGI MPT, SGI SCSL MP FFTs
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		CC
+CCFLAGS =	-64 -O -mp -DFFT_SCSL
+DEPFLAGS =	-M
+LINK =		CC
+LINKFLAGS =	-64
+USRLIB =	
+SYSLIB =	-lm -lscs_mp -lmpi -lmpi++
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

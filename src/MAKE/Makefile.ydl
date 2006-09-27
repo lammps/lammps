@@ -1,0 +1,42 @@
+# ydl = Yellow Dog Linux box, xlc -q64, MPICH, FFTW
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		xlc -q64
+CCFLAGS =	-g -O -I/opt/mpich/include  \
+		-I/usr/local/include -L/opt/mpich/lib64 \
+		-DFFT_FFTW -DGZIP
+DEPFLAGS =	-M
+LINK =		xlc -q64
+LINKFLAGS =	-g -O -L/opt/mpich/lib64 \
+		-L/usr/local/lib -lstdc++ -lc
+USRLIB =	-lfftw -lmpich
+SYSLIB =
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

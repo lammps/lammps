@@ -1,0 +1,36 @@
+# altix = SGI Altix, Intel icc, MPI, FFTs from SGI SCSL library
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		icc
+CCFLAGS =	-O2 -DFFT_SCSL -w
+DEPFLAGS =	-M
+# one user needed icpc to link
+LINK =		icc
+LINKFLAGS =	-O2
+USRLIB =	
+SYSLIB =	-lmpi -lscs_mp
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)
+

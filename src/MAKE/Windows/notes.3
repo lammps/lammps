@@ -1,0 +1,33 @@
+Using MPI and FFTW with LAMMPS under Windows
+from Timothy Lau <ttl@MIT.EDU>
+(the referenced step #'s refer to the notes.2 document)
+
+-------
+
+If the user would like to use FFT with LAMMPS, he can download the source code
+for FFTW 2.1.5 and dump all the files into the same directory as LAMMPS. Then
+he can add to the project all the .c and .h files of FFTW as though those were
+LAMMPS files.  Instead of following step 3 of the instructions, however, the
+following should be added to fft3d.h:
+
+#ifndef FFT_FFTW
+#define FFT_FFTW
+#endif
+
+The user must take care to check for a Visual Studio compile that the "WIN32"
+variable is defined although it is likely that Visual Studio would
+automatically define this. Refer to line 137 of fftw.h that comes with FFTW
+2.1.5.
+
+If the user would like to use MPI with his Microsoft Visual Studio compile for
+use on a multicore processor or for use on a Windows cluster, it has been
+observed that MPICH 2 (at least the IA32 version) is known to compile with
+LAMMPS in Visual Studio. Instead of following step 5 of the instructions, the
+user could add the MPICH2\include as an additional include directory for MSVS
+to find "mpi.h" and also add the MPICH2\lib as an additional link directory. He
+should add mpi.lib to be specifically linked to.
+
+-------
+
+To compile LAMMPS with MPI-2 (e.g. MPICH 2) on Windows, you need
+to use the MPICH_IGNORE_CXX_SEEK preprocessor definition.

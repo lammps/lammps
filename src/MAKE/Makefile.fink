@@ -1,0 +1,35 @@
+# fink = Mac OS-X w/ fink installed libraries, c++, no MPI, FFTW 2.1.5
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		c++
+CCFLAGS =	-O -I../STUBS -I/sw/include -DFFT_FFTW
+DEPFLAGS =	-M
+LINK =		c++
+LINKFLAGS =	-O -L../STUBS -L/sw/lib
+USRLIB =	-lfftw -lmpi
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)
+

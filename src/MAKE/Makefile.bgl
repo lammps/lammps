@@ -1,0 +1,42 @@
+# bgl = LLNL Blue Gene Light machine, xlC, native MPI, FFTW
+
+SHELL = /bin/sh
+.SUFFIXES: .cpp .u 
+.IGNORE:
+
+# System-specific settings
+
+CC =	        /opt/ibmcmp/vacpp/7.0/bin/blrts_xlC \
+               -I/bgl/BlueLight/ppcfloor/bglsys/include \
+               -I/bgl/local/bglfftwgel-2.1.5.pre5/include 
+CCFLAGS =       -O3 -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK
+DEPFLAGS =	-M
+LINK =	        /opt/ibmcmp/vacpp/7.0/bin/blrts_xlC
+LINKFLAGS =	-O3 -L/bgl/BlueLight/ppcfloor/bglsys/lib \
+                -L/opt/ibmcmp/xlf/9.1/blrts_lib \
+                -L/opt/ibmcmp/vacpp/7.0/blrts_lib \
+                -L/bgl/local/lib \
+                -L/bgl/local/bglfftwgel-2.1.5.pre5/lib
+USRLIB =	-lxlopt -lxlomp_ser -lxl -lxlfmath -lm -lfftw \
+                -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lmassv
+SYSLIB =
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.u:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) -c $< 
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.u)
+include $(DEPENDS)

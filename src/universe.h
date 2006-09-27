@@ -1,0 +1,42 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   www.cs.sandia.gov/~sjplimp/lammps.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifndef UNIVERSE_H
+#define UNIVERSE_H
+
+#include "mpi.h"
+#include "stdio.h"
+#include "lammps.h"
+
+class Universe : public LAMMPS {
+ public:
+  char *version;          // LAMMPS version string = date
+
+  MPI_Comm uworld;        // communicator for entire universe
+  int me,nprocs;          // my place in universe
+
+  FILE *uscreen;          // universe screen output
+  FILE *ulogfile;         // universe logfile
+
+  int nworlds;            // # of worlds in universe
+  int iworld;             // which world I am in
+  int *procs_per_world;   // # of procs in each world
+  int *root_proc;         // root proc in each world
+
+  Universe(MPI_Comm);
+  ~Universe();
+  void add_world(char *);
+  int consistent();
+};
+
+#endif

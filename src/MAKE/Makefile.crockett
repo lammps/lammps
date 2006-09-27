@@ -1,0 +1,30 @@
+# crockett = RedHat Linux box, mpiCC, LAM MPI, no FFTs
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		mpiCC
+CCFLAGS =	-g -O -DFFT_NONE -DGZIP
+DEPFLAGS =	-M
+LINK =		mpiCC
+LINKFLAGS =	-g -O
+USRLIB =
+SYSLIB =	
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+.cpp.o:
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+$(OBJ):	     $(INC)

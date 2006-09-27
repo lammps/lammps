@@ -1,0 +1,36 @@
+# liberty = HP cluster with dual 3.0 GHz Xeons, mpiCC, native MPI, FFTW
+
+SHELL = /bin/sh
+.IGNORE:
+
+# System-specific settings
+
+FFTW =		/apps/libraries/fftw/icc
+
+CC =		mpiCC
+CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw
+DEPFLAGS =	-M
+LINK =		mpiCC
+LINKFLAGS =	-O -L${FFTW}/fftw/.libs
+USRLIB =	-lfftw
+SYSLIB =	-lstdc++ -lm
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

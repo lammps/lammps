@@ -1,0 +1,35 @@
+# tesla = 16-proc SGI Onyx3, g++, no MPI, SGI FFTs
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-O -I../STUBS -DFFT_SGI
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-O -L../STUBS
+USRLIB =	-lmpi
+SYSLIB =	-lm -lcomplib.sgimath
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)
+

@@ -1,0 +1,36 @@
+# spirit = HP cluster with dual 3.4 GHz EM64T (64 bit), mpiCC, native MPI, FFTW
+
+SHELL = /bin/sh
+.IGNORE:
+
+# System-specific settings
+
+FFTW =		/apps/libraries/fftw/nwcc
+
+CC =		mpiCC
+CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/include
+DEPFLAGS =	-M
+LINK =		mpiCC
+LINKFLAGS =	-O -L${FFTW}/lib
+USRLIB =	-lfftw -lstdc++
+SYSLIB =	-lm
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

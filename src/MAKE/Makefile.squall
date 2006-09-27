@@ -1,0 +1,34 @@
+# squall = Red Squall (compile on reddish), pgCC, native MPI, FFTW
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		mpiCC
+CCFLAGS =	-fastsse -tp k8-64 -DGZIP -DFFT_FFTW \
+		-I/home/sjplimp/tools/fftw/include
+DEPFLAGS =	-M
+LINK =		mpiCC
+LINKFLAGS =	-O -L/home/sjplimp/tools/fftw/lib
+USRLIB =	-lfftw -lmpi
+SYSLIB =	
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

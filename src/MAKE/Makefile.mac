@@ -1,0 +1,34 @@
+# mac = Apple PowerBook G4 laptop, c++, no MPI, FFTW 2.1.5
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		c++
+CCFLAGS =	-O -I../STUBS -I/Users/sjplimp/tools/fftw/include -DFFT_FFTW
+DEPFLAGS =	-M
+LINK =		c++
+LINKFLAGS =	-O -L../STUBS -L/Users/sjplimp/tools/fftw/lib
+USRLIB =	-lfftw -lmpi
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

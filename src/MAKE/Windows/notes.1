@@ -1,0 +1,52 @@
+Compiling LAMMPS under MS Windows:
+
+Tips from Jin Ma at Oklahoma State Univerisity
+jin.ma@okstate.edu
+November 20, 2004
+
+compiled without MPI and FFT in Viusal C++ 6.0
+
+-------------------
+
+0. Create an empty workspace (Win32 console), add all .h and .cpp
+files into the project.
+
+1. At about 80 places in the code, variables are redefined.  Most of
+these variables are loop counters, which can be easily fixed.
+
+Code looks like this:
+
+   for (int i=0; i<5; i++) {
+	something;
+   }
+   for (int i=0; i<5; i++) {
+	something else;
+   }
+
+This is ok with g++ compiler. But VC thinks the i is redefined in the
+second loop. So the variable scope is different. This happens many times
+in the code. It can be fixed easily based on the compiling error.
+
+2. At the beginning of fft3d.h, added:
+#ifndef FFT_NONE
+#define FFT_NONE
+#endif
+
+3. In input.cpp, changed the two header files
+//#include "unistd.h"  
+#include "direct.h" 
+
+4. Added mpi.h and mpi.cpp (in STUBS folder) to the workspace
+In mpi.cpp, commented the time.h header file
+//#include <sys/time.h>	
+commented the original code in MPI_Wtime(), just make it return 0;
+
+5. In system.cpp, two changes due to difference in the input argument
+list
+Line 82: int iarg = 2;
+Line 171: 	inflag=1;	
+
+The number of input arguments (nargs) is different in g++ and VC when
+you give arguments to run a program. This might be related to MPI as
+well. The difference is one. Once the above changes are made, the
+program is taking the correct argument.

@@ -1,0 +1,48 @@
+# cheetah = ORNL IBM machine, mpCC, native MPI, FFTW
+
+SHELL = /bin/sh
+.SUFFIXES: .cpp .u
+.IGNORE:
+
+# System-specific settings
+
+CC =		mpCC_r
+CCFLAGS =	-O4 -qnoipa -I/usr/apps/include -DFFT_FFTW
+DEPFLAGS =	-M
+LINK =		mpCC_r
+LINKFLAGS =	-O -L/usr/apps/lib
+USRLIB =	-lfftw
+SYSLIB =	-lm
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# --------- old section -------------
+
+# Compilation rules
+
+#.cpp.o:
+#	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+#$(OBJ):	     $(INC)
+
+# --------- new section -------------
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.u:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.u)
+include $(DEPENDS)

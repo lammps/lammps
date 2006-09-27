@@ -1,0 +1,34 @@
+# ross = CPlant cluster (compile on taylor), c++, native MPI, DEC FFTs
+
+SHELL = /bin/sh
+.IGNORE:
+
+# System-specific settings
+
+CC =		/usr/local/cplant/ross/current/bin/c++
+CCFLAGS =	-O -DFFT_DEC
+DEPFLAGS =	-M
+LINK =		/usr/local/cplant/ross/current/bin/c++
+LINKFLAGS =	-O
+USRLIB =	-lmpi -lcxml
+SYSLIB =	-lm
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

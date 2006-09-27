@@ -1,0 +1,36 @@
+# tbird = Dell cluster with dual 3.6 GHz Xeons, Intel mpicxx, native MPI, FFTW
+
+SHELL = /bin/sh
+.IGNORE:
+
+# System-specific settings
+
+FFTW =		/apps/libraries/fftw/nwcc
+
+CC =		mpicxx
+CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/include
+DEPFLAGS =	-M
+LINK =		mpicxx
+LINKFLAGS =	-O -L${FFTW}/lib
+USRLIB =	-lfftw -lstdc++
+SYSLIB =	-lm
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

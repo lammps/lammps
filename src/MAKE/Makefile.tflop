@@ -1,0 +1,31 @@
+# tflop = Intel Tflops (compile on sasn100), ciCC, native MPI, Intel FFTs
+
+SHELL = /bin/sh
+.SUFFIXES: .cpp .d
+.IGNORE:
+
+# System-specific settings
+
+CC =		ciCC
+CCFLAGS =	-O4 -Knoieee -DFFT_INTEL
+DEPFLAGS =	-M
+LINK =		ciCC
+LINKFLAGS =	-Knoieee
+USRLIB =	-lmpi -lkmath
+SYSLIB =
+SIZE =		xsize
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+.cpp.o:
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+$(OBJ):	     $(INC)

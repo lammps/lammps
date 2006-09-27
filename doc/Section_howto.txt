@@ -499,14 +499,14 @@ which has been linked to LAMMPS as a library.  This is the way the
 "POEMS"_poems package that performs constrained rigid-body motion on
 groups of atoms is hooked to LAMMPS.  See the
 "fix_poems"_fix_poems.html command for more details.  See "this
-section"_Section_modify.html of the documention for info on how to add
+section"_Section_modify.html of the documentation for info on how to add
 a new fix to LAMMPS.
 
 :link(poems,http://www.rpi.edu/~anderk5/lab)
 
 (2) Define a new LAMMPS command that calls the other code.  This is
 conceptually similar to method (1), but in this case LAMMPS and the
-the other code are on a more equal footing.  Note that now the other
+other code are on a more equal footing.  Note that now the other
 code is not called during the timesteps of a LAMMPS run, but between
 runs.  The LAMMPS input script can be used to alternate LAMMPS runs
 with calls to the other code, invoked via the new command.  The
@@ -521,7 +521,7 @@ processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
 command writes and reads.
 
-See "this section"_Section_modify.html of the documention for how to
+See "this section"_Section_modify.html of the documentation for how to
 add a new command to LAMMPS.
 
 (3) Use LAMMPS as a library called by another code.  In this case the
@@ -531,8 +531,8 @@ Again, the "run"_run.html command has options that allow it to be
 invoked with minimal overhead (no setup or clean-up) if you wish to do
 multiple short runs, driven by another program.
 
-"This section"_Section_start.html#2_2 of the documention describes how
-to build LAMMPS as a library.  Once this is done, you can interface
+"This section"_Section_start.html#2_2 of the documentation describes 
+how to build LAMMPS as a library.  Once this is done, you can interface
 with LAMMPS either via C++, C, or Fortran (or any other language that
 supports a vanilla C-like interface, e.g. a scripting language).  For
 example, from C++ you could create an "instance" of LAMMPS, and
@@ -578,7 +578,7 @@ back into LAMMPS.
 :line
 
 :link(Cornell)
-[(Cornell)] Corenll, Cieplak, Bayly, Gould, Merz, Ferguson,
+[(Cornell)] Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 :link(Horn)

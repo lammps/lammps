@@ -38,14 +38,11 @@ potential with coefficients 120.0, 30 for K, X0.  Improper type 2
 would be computed with a {cvff} potential with coefficients 20.0, -1,
 2 for K, d, n.
 
-[Restrictions:]
+An improper style of {none} can be specified as an argument to
+improper_style hybrid and the corresponding improper_coeff commands,
+if you desire to turn off certain improper types.
 
-Improper styles can only be set for atom styles that allow impropers to be
-defined.
-
-This improper style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 

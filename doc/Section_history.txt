@@ -20,22 +20,21 @@ molecular dynamics codes I've distributed.
 10.1 Coming attractions :h4,link(10_1)
 
 The current version of LAMMPS incorporates nearly all the features
-from previous parallel MD codes I developed.  These include earlier
-versions of LAMMPS itself, Warp and ParaDyn for metals, and GranFlow
-for granular materials.
+from previous parallel MD codes developed at Sandia.  These include
+earlier versions of LAMMPS itself, Warp and ParaDyn for metals, and
+GranFlow for granular materials.
 
-These are new features I'd like to eventually add to LAMMPS.  Some are
-being worked on; some haven't been implemented because of lack of time
-or interest; others are just a lot of work!
+These are new features we'd like to eventually add to LAMMPS.  Some
+are being worked on; some haven't been implemented because of lack of
+time or interest; others are just a lot of work!
 
 Monte Carlo bond-swapping for polymers (was in Fortran LAMMPS)
 torsional shear boundary conditions and temperature calculation
 bond creation potentials
 point dipole force fields
-3-body force fields for materials like Si or silica
+many-body and bond-order potentials for materials like C, Si, or silica
 modified EAM (MEAM) potentials for metals
 REAXX force field from Bill Goddard's group
-pressure and energy tail corrections for pairwise interactions
 Parinello-Rahman non-rectilinear simulation box :ul
 
 :line

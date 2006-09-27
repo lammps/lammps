@@ -65,8 +65,9 @@ specified by the associated "angle_coeff"_angle_coeff.html command:
 Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
-Angle styles are part of the "molecular" package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
+Angle styles are part of the "molecular" package or other packages as
+noted in their documentation.  They are only enabled if LAMMPS was
+built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.
 
 [Related commands:]

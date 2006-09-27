@@ -52,13 +52,13 @@ Several DYNAMO potential files for different metals are included in
 the "potentials" directory of the LAMMPS distribution.
 
 IMPORTANT NOTE: The {eam} style reads single-element EAM potentials in
-the DYNAMO {funcfl} format.  Single element or alloy systems can be
-modeled with {funcfl} files and style {eam}; for the alloy case LAMMPS
-mixes the single-element potentials to produce alloy potentials the
-same way that DYNAMO does.  Alternatively, DYNAMO {setfl} files can be
-used by LAMMPS to model alloy systems by invoking the {eam/alloy}
-style as described below.  {Setfl} files require no mixing as they
-specify alloy interactions explicitly.
+the DYNAMO {funcfl} format.  Either single element or alloy systems
+can be modeled with {funcfl} files and style {eam}.  For the alloy
+case LAMMPS mixes the single-element potentials to produce alloy
+potentials the same way that DYNAMO does.  Alternatively, DYNAMO
+{setfl} files can be used by LAMMPS to model alloy systems by invoking
+the {eam/alloy} style as described below.  {Setfl} files require no
+mixing since they specify alloy interactions explicitly.
 
 For style {eam}, potential values are read from a file that is in the
 DYNAMO single-element {funcfl} format.  If the DYNAMO file was created
@@ -88,8 +88,8 @@ same way that the serial DYANMO code originally did it; you do not
 need to specify coefficients for these type pairs.
 
 There are several {funcl} files in the {potentials} directory of the
-LAMMPS distribution.  A DYNAMO single-element {funcfl} file is
-formatted as follows:
+LAMMPS distribution, with the suffix ".eam".  A DYNAMO single-element
+{funcfl} file is formatted as follows:
 
 line 1: comment (ignored)
 line 2: atomic number, mass, lattice constant, lattice type (e.g. FCC)
@@ -147,13 +147,15 @@ pair_coeff * * nialhjea 1 1 1 2 :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three "1" values map LAMMPS atom types 1,2,3 to the 1st
-element (Ni) in the {setfl} file.  The final "2" value maps LAMMPS atom
-type 4 to the 2nd element = Al.  If a mapping value is "0", the
-mapping is not performed.  This is useful when EAM potentials are part
-of the {hybrid} pair style, to represent non-EAM atom types.
+element (Ni) in the {setfl} file.  The final "2" value maps LAMMPS
+atom type 4 to the 2nd element = Al.  If a mapping value is "0", the
+mapping is not performed.  This can be used when an {eam/alloy}
+potential is used as part of the {hybrid} pair style.  The 0 values
+are used as placeholders for atom types that will be used with other
+potentials.
 
-There is one {setfl} file (nialhjea) in the {potentials} directory of
-the LAMMPS distribution.  A DYNAMO multi-element {setfl} file is
+{Setfl} files in the {potentials} directory of the LAMMPS distribution
+have a ".eam.alloy" suffix.  A DYNAMO multi-element {setfl} file is
 formatted as follows:
 
 lines 1,2,3 = comments (ignored)
@@ -218,16 +220,20 @@ pair_coeff * * filename 1 1 1 2 :pre
 
 where there are N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  The N values determine the mapping
-of LAMMPS atom types to EAM elements in the file, as described in
-style {eam/alloy}.
+of LAMMPS atom types to EAM elements in the file, as described above
+for style {eam/alloy}.  As with {eam/alloy}, if a mapping value is
+"0", the mapping is not performed.  This can be used when an {eam/fs}
+potential is used as part of the {hybrid} pair style.  The 0 values
+are used as placeholders for atom types that will be used with other
+potentials.
 
-The difference is that files read by {eam/fs} are in a more general
-format than the DYNAMO {setfl} format read by {eam/alloy}, so that the
-i,j density functionals for all pairs of elements are included as
-needed by the Finnis/Sinclair formulation of the EAM.
+FS EAM files include more information than the DYNAMO {setfl} format
+files read by {eam/alloy}, so that the i,j density functionals for all
+pairs of elements are included as needed by the Finnis/Sinclair
+formulation of the EAM.
 
-There is one FS file (nialhjea_FS) in the {potentials} directory of
-the LAMMPS distribution.  It is formatted as follows:
+FS EAM files in the {potentials} directory of the LAMMPS distribution
+have a ".eam.fs" suffix.  Ther are formatted as follows:
 
 lines 1,2,3 = comments (ignored)
 line 4: Nelements = # of elements in the file

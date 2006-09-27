@@ -245,8 +245,8 @@ quantity:
 <P>Any quantity that is used by the atom style appears in the order
 listed above.  Thus if the atom style is <I>atomic</I>, an atom line should
 have 5 quantities: atom-ID, type-ID, x, y, z.  If the atom style is
-<I>hybrid eam dipole molecular</I>, then an atom line should have 10
-quantites: atom-ID, molecule-ID, type-ID, q, x, y, z, mux, muy, muz.
+<I>hybrid dipole molecular</I>, then an atom line should have 10 quantites:
+atom-ID, molecule-ID, type-ID, q, x, y, z, mux, muy, muz.
 </P>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.
@@ -261,8 +261,8 @@ will cause extra memory to be allocated on each processor, if an atom
 map array is used (see the <A HREF = "atom_modify.html">atom_modify</A> command).
 If an atom map array is not used (e.g. an atomic system with no
 bonds), velocities are not assigned in the data file, and you don't
-care if unique atom IDs appear in dump files, then IDs can be set to
-non-unique values > 0.
+care if unique atom IDs appear in dump files, then the atom-IDs can all
+be set to 0.
 </P>
 <P>The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs

@@ -28,6 +28,8 @@ bond_coeff 1 1.0 100.0 80.0 80.0
 </CENTER>
 <P>where r0 is the equilibrium bond distance.
 </P>
+<P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
+</P>
 <P>The following coefficients must be defined for each bond type via the
 <A HREF = "bond_coeff.html">bond_coeff</A> command as in the example above, or in
 the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
@@ -40,9 +42,6 @@ or <A HREF = "read_restart.html">read_restart</A> commands:
 </UL>
 <P><B>Restrictions:</B>
 </P>
-<P>Bond styles can only be set for atom styles that allow bonds to be
-defined.
-</P>
 <P>This bond style is part of the "class2" package.  It is only enabled
 if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
 LAMMPS</A> section for more info.
@@ -52,5 +51,11 @@ LAMMPS</A> section for more info.
 <P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Sun"></A>
+
+<P><B>(Sun)</B> Sun, J Phys Chem B 102, 7338-7364 (1998).
 </P>
 </HTML>

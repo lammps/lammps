@@ -145,6 +145,9 @@ those interactions. :l,ule
 
 [Restrictions:] none
 
+Not all pair styles support mixing.  See the doc page for individual
+pair styles for details.
+
 You cannot use {shift} yes with {tail} yes, since those are
 conflicting options.
 

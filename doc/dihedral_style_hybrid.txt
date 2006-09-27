@@ -38,14 +38,11 @@ potential with coefficients 80.0, 1.2 for K, d, n.  Dihedral type 2
 would be computed with a {helix} potential with coefficients 10.0,
 10.0, 10.0 for A, B, C.
 
-[Restrictions:]
+A dihedral style of {none} can be specified as an argument to
+dihedral_style hybrid and the corresponding dihedral_coeff commands,
+if you desire to turn off certain dihedral types.
 
-Dihedral styles can only be set for atom styles that allow dihedrals to be
-defined.
-
-This dihedral style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 

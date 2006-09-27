@@ -37,14 +37,7 @@ theta0 (degrees) :ul
 Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 
-[Restrictions:]
-
-Angle styles can only be set for atom styles that allow angles to be
-defined.
-
-This angle style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 

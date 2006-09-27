@@ -25,6 +25,8 @@ The {class2} bond style uses the potential
 
 where r0 is the equilibrium bond distance.
 
+See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
+
 The following coefficients must be defined for each bond type via the
 "bond_coeff"_bond_coeff.html command as in the example above, or in
 the data file or restart files read by the "read_data"_read_data.html
@@ -37,9 +39,6 @@ K4 (energy/distance^2) :ul
 
 [Restrictions:]
 
-Bond styles can only be set for atom styles that allow bonds to be
-defined.
-
 This bond style is part of the "class2" package.  It is only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.
@@ -49,3 +48,8 @@ LAMMPS"_Section_start.html#2_2 section for more info.
 "bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html
 
 [Default:] none
+
+:line
+
+:link(Sun)
+[(Sun)] Sun, J Phys Chem B 102, 7338-7364 (1998).

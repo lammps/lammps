@@ -23,6 +23,9 @@ The {charmm} dihedral style uses the potential
 
 :c,image(Eqs/dihedral_charmm.jpg)
 
+See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+field.
+
 The following coefficients must be defined for each dihedral type via the
 "dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
 the data file or restart files read by the "read_data"_read_data.html
@@ -42,17 +45,16 @@ should typically be set to 0.0, else the 1-4 interactions in a
 dihedral will be computed twice (once by the pair potential, and once
 by the dihedral/charmm potential).
 
-[Restrictions:]
-
-Dihedral styles can only be set for atom styles that allow dihedrals to be
-defined.
-
-This dihedral style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 
 "dihedral_coeff"_dihedral_coeff.html
 
 [Default:] none
+
+:line
+
+:link(MacKerell)
+[(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).

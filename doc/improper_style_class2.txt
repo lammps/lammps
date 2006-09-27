@@ -29,6 +29,8 @@ subscripts on the various theta's refer to different combinations of
 atoms i,j,k,l used to form the angle; theta1, theta2, theta3 are the
 equilibrium positions of those angles.
 
+See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
+
 The following coefficients must be defined for each improper type via the
 "improper_coeff"_improper_coeff.html command as in the example above, or in
 the data file or restart files read by the "read_data"_read_data.html
@@ -59,9 +61,6 @@ radians internally; hence the units of M are in energy/radian^2.
 
 [Restrictions:]
 
-Improper styles can only be set for atom styles that allow impropers to be
-defined.
-
 This improper style is part of the "class2" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.
@@ -71,3 +70,8 @@ LAMMPS"_Section_start.html#2_2 section for more info.
 "improper_coeff"_improper_coeff.html
 
 [Default:] none
+
+:line
+
+:link(Sun)
+[(Sun)] Sun, J Phys Chem B 102, 7338-7364 (1998).

@@ -15,20 +15,22 @@
 </P>
 <PRE>next variables 
 </PRE>
-<UL><LI>variables = one or more lower-case single-character variable names 
+<UL><LI>variables = one or more variable names 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>next x
-next a t x 
+next a t x myTemp 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command is used with variables defined by the
 <A HREF = "variable.html">variable</A> command.  It assigns the next value to the
-variable from the variable's list, so that when $X is subsequently
-substituted for in an input script command, the new value is used.  X
-is a single lower-case character from "a" to "z".
+variable from the variable's list, so that when a variable is
+subsequently substituted for in an input script command, the new value
+is used.  If a variable name is a single lower-case character from "a"
+to "z", it can be used in an input script command as $a or $z.  If it
+is multiple letters, it can be used as $<I>myTemp</I>.
 </P>
 <P>All variables in a single next command must be the same style:
 <I>index</I>, <I>loop</I>, or <I>universe</I>.  <I>Equal</I>- or <I>world</I>-style variables

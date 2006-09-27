@@ -38,14 +38,11 @@ coefficients 80.0, 1.2 for K, r0.  All other bond types (2-N) would be
 computed with a {fene} potential with coefficients 30.0, 1.5, 1.0, 1.0
 for K, R0, epsilon, sigma.
 
-[Restrictions:]
+A bond style of {none} can be specified as an argument to bond_style
+hybrid and the corresponding bond_coeff commands, if you desire to
+turn off certain bond types.
 
-Bond styles can only be set for atom styles that allow bonds to be
-defined.
-
-This bond style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 

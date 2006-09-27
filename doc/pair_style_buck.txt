@@ -80,6 +80,10 @@ pair_style command.
 
 [Restrictions:]
 
+The {buck} potentials do not support the
+"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
+pairs must be specified explicitly.
+
 The {buck/coul/long} style is part of the "kspace" package.  It is
 only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.

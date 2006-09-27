@@ -42,7 +42,11 @@ cutoff (distance units) :ul
 The last coefficient is optional.  If not specified, the global morse
 cutoff is used.
 
-[Restrictions:] none
+[Restrictions:]
+
+The {morse} potential does not support the
+"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
+pairs must be specified explicitly.
 
 [Related commands:]
 

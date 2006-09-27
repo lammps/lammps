@@ -12,7 +12,7 @@ variable command :h3
 
 variable name style args ... :pre
 
-name = single lower-case character, 'a' thru 'z' :ulb,l
+name = name of variable to define :ulb,l
 style = {index} or {loop} or {equal} or {world} or {universe} :l
   {index} args = one or more strings
   {loop} args = N = integer size of loop

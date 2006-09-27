@@ -30,6 +30,9 @@ angle_coeff 1 300.0 107.0 50.0 3.0
 the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
 coefficients defined for each angle type.
 </P>
+<P>See <A HREF = "#MacKerell">(MacKerell)</A> for a description of the CHARMM force
+field.
+</P>
 <P>The following coefficients must be defined for each angle type via the
 <A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above, or in
 the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
@@ -43,19 +46,19 @@ or <A HREF = "read_restart.html">read_restart</A> commands:
 <P>Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>Angle styles can only be set for atom styles that allow angles to be
-defined.
-</P>
-<P>This angle style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "angle_coeff.html">angle_coeff</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "MacKerell"></A>
+
+<P><B>(MacKerell)</B> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 </P>
 </HTML>

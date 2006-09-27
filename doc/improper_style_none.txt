@@ -22,10 +22,7 @@ Using an improper style of none means improper forces are not
 computed, even if quadruplets of improper atoms were listed in the
 data file read by the "read_data"_read_data.html command.
 
-[Restrictions:]
-
-Improper styles can only be set for atom styles that allow impropers
-to be defined.
+[Restrictions:] none
 
 [Related commands:] none
 

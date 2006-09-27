@@ -12,20 +12,22 @@ next command :h3
 
 next variables :pre
 
-variables = one or more lower-case single-character variable names :ul
+variables = one or more variable names :ul
 
 [Examples:]
 
 next x
-next a t x :pre
+next a t x myTemp :pre
 
 [Description:]
 
 This command is used with variables defined by the
 "variable"_variable.html command.  It assigns the next value to the
-variable from the variable's list, so that when $X is subsequently
-substituted for in an input script command, the new value is used.  X
-is a single lower-case character from "a" to "z".
+variable from the variable's list, so that when a variable is
+subsequently substituted for in an input script command, the new value
+is used.  If a variable name is a single lower-case character from "a"
+to "z", it can be used in an input script command as $a or $z.  If it
+is multiple letters, it can be used as ${myTemp}.
 
 All variables in a single next command must be the same style:
 {index}, {loop}, or {universe}.  {Equal}- or {world}-style variables

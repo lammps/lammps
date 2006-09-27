@@ -164,6 +164,10 @@ commands like "pair_coeff"_pair_coeff.html or
 additional tools that can use CHARMM or AMBER to assign force field
 coefficients and convert their output into LAMMPS input.
 
+See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+field.  See "(Cornell)"_#Cornell for a description of the AMBER force
+field.
+
 :link(charmm,http://www.scripps.edu/brooks)
 :link(amber,http://amber.scripps.edu)
 
@@ -572,6 +576,10 @@ subset of processors, grab data from LAMMPS, change it, and put it
 back into LAMMPS.
 
 :line
+
+:link(Cornell)
+[(Cornell)] Corenll, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 :link(Horn)
 [(Horn)] Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,

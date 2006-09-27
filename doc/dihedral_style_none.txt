@@ -22,10 +22,7 @@ Using an dihedral style of none means dihedral forces are not
 computed, even if quadruplets of dihedral atoms were listed in the
 data file read by the "read_data"_read_data.html command.
 
-[Restrictions:]
-
-Dihedral styles can only be set for atom styles that allow dihedrals
-to be defined.
+[Restrictions:] none
 
 [Related commands:] none
 

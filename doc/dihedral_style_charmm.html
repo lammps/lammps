@@ -26,6 +26,9 @@ dihedral_coeff 1 120.0 1 60 0.5
 </P>
 <CENTER><IMG SRC = "Eqs/dihedral_charmm.jpg">
 </CENTER>
+<P>See <A HREF = "#MacKerell">(MacKerell)</A> for a description of the CHARMM force
+field.
+</P>
 <P>The following coefficients must be defined for each dihedral type via the
 <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above, or in
 the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
@@ -45,19 +48,19 @@ should typically be set to 0.0, else the 1-4 interactions in a
 dihedral will be computed twice (once by the pair potential, and once
 by the dihedral/charmm potential).
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>Dihedral styles can only be set for atom styles that allow dihedrals to be
-defined.
-</P>
-<P>This dihedral style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "MacKerell"></A>
+
+<P><B>(MacKerell)</B> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 </P>
 </HTML>

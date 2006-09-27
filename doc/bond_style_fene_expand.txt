@@ -44,14 +44,7 @@ epsilon (energy)
 sigma (distance)
 delta (distance) :ul
 
-[Restrictions:]
-
-Bond styles can only be set for atom styles that allow bonds to be
-defined.
-
-This bond style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 

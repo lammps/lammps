@@ -54,7 +54,9 @@ pair_coeff 1 1 100.0 2.0 150.0 3.5
 <P>The <I>lj/charmm</I> styles compute LJ and Coulombic interactions with an
 additional switching function S(r) that ramps the energy and force
 smoothly to zero between an inner and outer cuoff.  It is a widely
-used option in the CHARMM MD code.
+used potential in the <A HREF = "http://www.scripps.edu/brooks">CHARMM</A> MD code.
+See <A HREF = "#MacKerell">(MacKerell)</A> for a description of the CHARMM force
+field.
 </P>
 <CENTER><IMG SRC = "Eqs/pair_charmm.jpg">
 </CENTER>
@@ -121,5 +123,12 @@ pages for workarounds on this issue.
 <P><A HREF = "pair_coeff.html">pair_coeff</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "MacKerell"></A>
+
+<P><B>(MacKerell)</B> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 </P>
 </HTML>

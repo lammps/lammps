@@ -27,6 +27,8 @@ where Ea is the angle term, Ebb is a bond-bond term, and Eba is a
 bond-angle term.  Theta0 is the equilibrium angle and r1 and r2 are
 the equilibrium bond lengths.
 
+See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
+
 For this style, only coefficients for the Ea formula can be specified
 in the input script.  These are the 4 coefficients:
 
@@ -61,9 +63,6 @@ same value from the Ea formula.
 
 [Restrictions:]
 
-Angle styles can only be set for atom styles that allow angles to be
-defined.
-
 This angle style is part of the "class2" package.  It is only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.
@@ -73,3 +72,8 @@ LAMMPS"_Section_start.html#2_2 section for more info.
 "angle_coeff"_angle_coeff.html
 
 [Default:] none
+
+:line
+
+:link(Sun)
+[(Sun)] Sun, J Phys Chem B 102, 7338-7364 (1998).

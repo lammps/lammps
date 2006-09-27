@@ -247,6 +247,11 @@ definitions.
 
 <DD>Self-explanatory. 
 
+<DT><I>Another input script is already being processed</I> 
+
+<DD>Cannot attempt to open a 2nd input script, when the original file is
+still being processed. 
+
 <DT><I>Atom count is inconsistent, cannot write restart file</I> 
 
 <DD>Sum of atoms across processors does not equal initial total count.
@@ -283,11 +288,6 @@ been defined.
 <DT><I>Atom style granular and dpd cannot be used together</I> 
 
 <DD>Self-explanatory. 
-
-<DT><I>Atom style granular must perform 3d simulations</I> 
-
-<DD>Atom style granular cannot be used with 2d simulations, because
-the pairwise potentials are inherently 3d. 
 
 <DT><I>Atom style hybrid cannot have hybrid as an argument</I> 
 
@@ -456,6 +456,11 @@ factor that partitions the computation between real space and k-space.
 <DD>Must use the lattice command before using the create_atoms
 command. 
 
+<DT><I>Cannot create an atom map unless atoms have IDs</I> 
+
+<DD>The simulation requires a mapping from global atom IDs to local atoms,
+but the atoms that have been defined have no IDs. 
+
 <DT><I>Cannot create_box after simulation box is defined</I> 
 
 <DD>The create_box command cannot be used after a read_data, read_restart,
@@ -464,10 +469,6 @@ or create_box command.
 <DT><I>Cannot create_box until atom_style is defined</I> 
 
 <DD>Self-explanatory. 
-
-<DT><I>Cannot create vels with loop all for non-contiguous atom IDs</I> 
-
-<DD>You cannot use the loop all option if you atom IDs do not span 1 to natoms 
 
 <DT><I>Cannot evaluate variable equal command</I> 
 
@@ -499,12 +500,19 @@ recognized.
 <DD>Volume can only be rescaled uniaxially if system is periodic in all 3
 dimensions. 
 
-<DT><I>Cannot invoke single() with pairwise TIP4P potential</I> 
+<DT><I>Cannot have both pair_modify shift and tail set to yes</I> 
 
-<DD>Commands that invoke the single() function within pairwise potentials
-cannot be used with a TIP4P potential, due to the way it computes
-forces on other atoms besides the i,j pair.  This includes the eng and
-stress tensor components for the dump custom command. 
+<DD>These 2 options are contradictory. 
+
+<DT><I>Cannot open dir to search for restart file</I> 
+
+<DD>Using a "*" in the name of the restart file will open the current
+directory to search for matching file names. 
+
+<DT><I>Cannot open dump file</I> 
+
+<DD>The output file for the dump command cannot be opened.  Check that the
+path and name are correct. 
 
 <DT><I>Cannot open EAM potential file %s</I> 
 
@@ -525,6 +533,10 @@ the path and name are correct.
 
 <DD>The output file for the fix gran/diag command cannot be opened.  Check
 that the path and name are correct. 
+
+<DT><I>Cannot open fix gyration file %s</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot open fix msd file %s</I> 
 
@@ -551,6 +563,29 @@ the path and name are correct.
 <DD>LAMMPS is attempting to open a gzipped version of the specified file
 but was unsuccessful.  Check that the path and name are correct. 
 
+<DT><I>Cannot open input script %s</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open input script %s</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open logfile</I> 
+
+<DD>The LAMMPS log file named in a command-line argument cannot be opened.
+Check that the path and name are correct. 
+
+<DT><I>Cannot open logfile %s</I> 
+
+<DD>The LAMMPS log file specified in the input script cannot be opened.
+Check that the path and name are correct. 
+
+<DT><I>Cannot open log.lammps</I> 
+
+<DD>The default LAMMPS log file cannot be opened.  Check that the
+directory you are running in allows for files to be created. 
+
 <DT><I>Cannot open pair_write file</I> 
 
 <DD>The specified output file for pair energies and forces cannot be
@@ -558,8 +593,25 @@ opened.  Check that the path and name are correct.
 
 <DT><I>Cannot open restart file %s</I> 
 
-<DD>The output restart file cannot be opened.  Check that the path and
-name are correct and that disk space is available. 
+<DD>Self-explanatory. 
+
+<DT><I>Cannot open screen file</I> 
+
+<DD>The screen file specified as a command-line argument cannot be
+opened.  Check that the directory you are running in allows for files
+to be created. 
+
+<DT><I>Cannot open universe log file</I> 
+
+<DD>For a multi-partition run, the master log file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. 
+
+<DT><I>Cannot open universe screen file</I> 
+
+<DD>For a multi-partition run, the master screen file cannot be opened.
+Check that the directory you are running in allows for files to be
+created. 
 
 <DT><I>Cannot read_data after simulation box is defined</I> 
 
@@ -621,13 +673,18 @@ Instead they are defined on a per-atom basis in the data file.
 <DD>In the rRESPA integrator, you must define both a inner and outer
 setting in order to use a middle setting. 
 
-<DT><I>Cannot set these values with this atom style</I> 
+<DT><I>Cannot set this attribute for this atom style</I> 
 
-<DD>Choice of set style does not match attribute of atom style. 
+<DD>The attribute being set does not exist for the defined atom style. 
 
 <DT><I>Cannot use atom style granular with chosen thermo settings</I> 
 
 <DD>Cannot output temperature or pressure with atom style granular. 
+
+<DT><I>Cannot use delete_atoms unless atoms have IDs</I> 
+
+<DD>Your atoms do not have IDs, so the delete_atoms command cannot be
+used. 
 
 <DT><I>Cannot use delete_bonds with non-molecular system</I> 
 
@@ -646,6 +703,23 @@ setting in order to use a middle setting.
 
 <DD>Self-explanatory. 
 
+<DT><I>Cannot use fix nph with no per-type mass defined</I> 
+
+<DD>The defined atom style uses per-atom mass, not per-type mass. 
+
+<DT><I>Cannot use fix npt with no per-type mass defined</I> 
+
+<DD>The defined atom style uses per-atom mass, not per-type mass. 
+
+<DT><I>Cannot zero momentum of 0 atoms</I> 
+
+<DD>The collection of atoms for which momentum is being computed has no
+atoms. 
+
+<DT><I>Cannot use fix nvt with no per-type mass defined</I> 
+
+<DD>The defined atom style uses per-atom mass, not per-type mass. 
+
 <DT><I>Cannot use fix poems with atom style granular</I> 
 
 <DD>This fix is not yet enabled for this atom style. 
@@ -657,11 +731,6 @@ setting in order to use a middle setting.
 <DT><I>Cannot use fix shake with non-molecular system</I> 
 
 <DD>Your choice of atom style does not have bonds. 
-
-<DT><I>Cannot use multiple long-range potentials with pair hybrid</I> 
-
-<DD>Only one sub-style potential with a long-range component can be
-used with pair_style hybrid. 
 
 <DT><I>Cannot use nonperiodic boundaries with Ewald</I> 
 
@@ -675,6 +744,10 @@ non-periodic z dimension.
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. 
 
+<DT><I>Cannot use pair tail corrections with 2d simulations</I> 
+
+<DD>The correction factors are only currently defined for 3d systems. 
+
 <DT><I>Cannot use PPPM with 2d simulation</I> 
 
 <DD>The kspace style pppm cannot be used in 2d simulations.  You can use
@@ -685,15 +758,26 @@ non-periodic z dimension.
 <DD>Regions that extend to the box boundaries can only be used after the
 create_box command has been used. 
 
+<DT><I>Cannot use rRESPA with full neighbor lists</I> 
+
+<DD>Defined pair style uses full neighbor lists (as opposed to
+half neighbor lists), which are incompatible with the current
+implementation of rRESPA. 
+
 <DT><I>Cannot use vectors in variables unless atom map exists</I> 
 
 <DD>Vectors require an atom map to be able to lookup the vector index.
 Only atom styles with molecular information creat a global map. 
 
-<DT><I>Cannot zero momentum for less than 2 atoms</I> 
+<DT><I>Cannot use velocity create loop all unless atoms have IDs</I> 
 
-<DD>Velocity command is being used with momentum-zeroing options on a
-group with 0 or 1 atoms. 
+<DD>Atoms in the simulation to do not have IDs, so this style
+of velocity creation cannot be performed. 
+
+<DT><I>Cannot use velocity create loop all with non-contiguous atom IDs</I> 
+
+<DD>Atoms in the simulation to do not have consecutive IDs, so this style
+of velocity creation cannot be performed. 
 
 <DT><I>Command-line variable already exists</I> 
 
@@ -732,14 +816,6 @@ more than once.
 
 <DD>A group ID used in the fix command does not exist. 
 
-<DT><I>Could not find fix poems group ID</I> 
-
-<DD>A group ID used in the fix poems command does not exist. 
-
-<DT><I>Could not find fix rigid group ID</I> 
-
-<DD>A group ID used in the fix rigid command does not exist. 
-
 <DT><I>Could not find fix_modify ID</I> 
 
 <DD>A fix ID used in the fix_modify command does not exist. 
@@ -748,9 +824,21 @@ more than once.
 
 <DD>A temperature ID used in the fix_modify command does not exist. 
 
-<DT><I>Could not find fix spring vector group ID</I> 
+<DT><I>Could not find fix poems group ID</I> 
 
-<DD>Group ID used with fix spring command does not exist. 
+<DD>A group ID used in the fix poems command does not exist. 
+
+<DT><I>Could not find fix recenter group ID</I> 
+
+<DD>A group ID used in the fix recenter command does not exist. 
+
+<DT><I>Could not find fix rigid group ID</I> 
+
+<DD>A group ID used in the fix rigid command does not exist. 
+
+<DT><I>Could not find fix spring couple group ID</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Could not find temp_modify ID</I> 
 
@@ -783,54 +871,6 @@ more than once.
 <DT><I>Could not find velocity temperature ID</I> 
 
 <DD>A temperature ID used in the velocity command does not exist. 
-
-<DT><I>Could not open dump file</I> 
-
-<DD>The output file for the dump command cannot be opened.  Check that the
-path and name are correct. 
-
-<DT><I>Could not open input script</I> 
-
-<DD>The input script file named in a command-line argument could not be
-opened. 
-
-<DT><I>Could not open log.lammps</I> 
-
-<DD>The default LAMMPS log file cannot be opened.  Check that the
-directory you are running in allows for files to be created. 
-
-<DT><I>Could not open logfile</I> 
-
-<DD>The LAMMPS log file named in a command-line argument cannot be opened.
-Check that the path and name are correct. 
-
-<DT><I>Could not open logfile %s</I> 
-
-<DD>The LAMMPS log file specified in the input script cannot be opened.
-Check that the path and name are correct. 
-
-<DT><I>Could not open new input file %s</I> 
-
-<DD>The input script file named in an include or jump command could not be
-opened.  Check that the path and name are correct. 
-
-<DT><I>Could not open screen file</I> 
-
-<DD>The screen file specified as a command-line argument cannot be
-opened.  Check that the directory you are running in allows for files
-to be created. 
-
-<DT><I>Could not open universe log file</I> 
-
-<DD>For a multi-partition run, the master log file cannot be opened.
-Check that the directory you are running in allows for files to be
-created. 
-
-<DT><I>Could not open universe screen file</I> 
-
-<DD>For a multi-partition run, the master screen file cannot be opened.
-Check that the directory you are running in allows for files to be
-created. 
 
 <DT><I>Create_atoms command before simulation box is defined</I> 
 
@@ -1015,6 +1055,14 @@ create_box command.
 
 <DD>Self-explanatory. 
 
+<DT><I>Fix msd group has no atoms</I> 
+
+<DD>Cannot compute diffusion for no atoms. 
+
+<DT><I>Fix momentum group has no atoms</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix nph periods must be > 0.0</I> 
 
 <DD>The time window for pressure relaxation must be > 0 
@@ -1047,6 +1095,10 @@ error occurs, it is likely a bug, so send an email to the
 <DD>Cannot use the rdf fix unless a pair style with a cutoff has been
 defined. 
 
+<DT><I>Fix recenter group has no atoms</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix temp/rescale region ID does not exist</I> 
 
 <DD>Self-explanatory. 
@@ -1061,13 +1113,21 @@ details.
 
 <DD>Self-explanatory. 
 
+<DT><I>Found no restart file matching pattern</I> 
+
+<DD>When using a "*" in the restart file name, no matching file was found. 
+
 <DT><I>Granular pair styles do not use pair_coeff settings</I> 
 
 <DD>The pair_coeff command cannot be used with granular force fields. 
 
-<DT><I>Gravity must point in -z to use with fix insert</I> 
+<DT><I>Gravity must point in -y to use with fix insert in 2d</I> 
 
-<DD>The fix insert command assumes the theta angle for gravity is 180.0. 
+<DD>Gravity must be pointing "down" in a 2d box. 
+
+<DT><I>Gravity must point in -z to use with fix insert in 3d</I> 
+
+<DD>Gravity must be pointing "down" in a 3d box, i.e. theta = 180.0. 
 
 <DT><I>Group command before simulation box is defined</I> 
 
@@ -1085,7 +1145,9 @@ create_box command.
 <DT><I>Illegal ... command</I> 
 
 <DD>Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command. 
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see what is the offending
+line. 
 
 <DT><I>Improper atoms %d %d %d %d missing on proc %d at step %d</I> 
 
@@ -1217,11 +1279,6 @@ simulation box.
 <DT><I>Insufficient Jacobi rotations for rigid body</I> 
 
 <DD>Eigensolve for rigid body was not sufficiently accurate. 
-
-<DT><I>Invalid $ variable</I> 
-
-<DD>The character following a $ in the input script is not between "a" and
-"z". 
 
 <DT><I>Invalid angle style</I> 
 
@@ -1531,17 +1588,13 @@ types.
 <DD>Type used in set command must be from 1-N where N is the number
 of atom types (bond types, angle types, etc). 
 
-<DT><I>Invalid variable in command-line argument</I> 
-
-<DD>Command-line arg -var must set a variable from "a" to "z". 
-
 <DT><I>Invalid variable in next command</I> 
 
 <DD>Next command in input script must set variables from "a" to "z". 
 
-<DT><I>Invalid variable in variable command</I> 
+<DT><I>Invalid variable name</I> 
 
-<DD>Variable command in input script must set a variable from "a" to "z". 
+<DD>Variable name used in an input script line is invalid. 
 
 <DT><I>Invalid variable style with next command</I> 
 
@@ -1551,6 +1604,12 @@ command.
 <DT><I>Invalid vector in variable equal command</I> 
 
 <DD>One or more vector names are not recognized. 
+
+<DT><I>Invoked pair single on pair style none</I> 
+
+<DD>A command (e.g. a dump) attempted to invoke the single() function on a
+pair style none, which is illegal.  You are probably attempting to
+compute per-atom quantities with an undefined pair style.  
 
 <DT><I>KSpace style has not yet been set</I> 
 
@@ -1707,12 +1766,11 @@ other.
 
 <DD>Self-explanatory. 
 
-<DT><I>Must use -in switch with multiple partitions</I> 
-
-<DD>A multi-partition simulation cannot read the input script from stdin.
-The -in command-line option must be used to specify a file. 
-
 <DT><I>Must use a block or cylinder region with fix insert</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use a block region with fix insert for 2d simulations</I> 
 
 <DD>Self-explanatory. 
 
@@ -1724,9 +1782,10 @@ The -in command-line option must be used to specify a file.
 
 <DD>Self-explanatory. 
 
-<DT><I>Must use molecular atom style with neigh_modify exclude molecule</I> 
+<DT><I>Must use atom style dipole with chosen thermo settings</I> 
 
-<DD>Self-explanatory. 
+<DD>A thermo quantity being printed can only be computed if the atom
+style includes dipole quantities. 
 
 <DT><I>Must use a z-axis cylinder with fix insert</I> 
 
@@ -1734,10 +1793,6 @@ The -in command-line option must be used to specify a file.
 be oriented along the z dimension. 
 
 <DT><I>Must use atom style dpd with pair style dpd</I> 
-
-<DD>Self-explanatory. 
-
-<DT><I>Must use atom style granular with lj units</I> 
 
 <DD>Self-explanatory. 
 
@@ -1806,11 +1861,18 @@ gravity.
 
 <DD>Self-explanatory. 
 
-<DT><I>Must use newton pairwise on with TIP4P potential</I> 
+<DT><I>Must use -in switch with multiple partitions</I> 
 
-<DD>Use of a TIP4P pair potential requires the newton command setting for
-pairwise interactions be "on", because of the way forces are computed
-on other atoms due to TIP4P interactions. 
+<DD>A multi-partition simulation cannot read the input script from stdin.
+The -in command-line option must be used to specify a file. 
+
+<DT><I>Must use lj units with atom style granular</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Must use molecular atom style with neigh_modify exclude molecule</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Must use region with side = in with fix insert</I> 
 
@@ -1851,10 +1913,6 @@ after a read_data, read_restart, or create_box command.
 
 <DD>The header of the data file indicated that atoms would be included,
 but they were not present. 
-
-<DT><I>No atoms to compute diffusion for</I> 
-
-<DD>The fix msd command has no atoms to compute on. 
 
 <DT><I>No bonds allowed with this atom style</I> 
 
@@ -1915,10 +1973,6 @@ an atom has moved to far in a single timestep.
 
 <DD>Two atoms are further apart than the pairwise table allows. 
 
-<DT><I>Pair style must be defined to use bond style quartic</I> 
-
-<DD>Bond style quartic requires a pair style be defined. 
-
 <DT><I>Pair table parameters did not set N</I> 
 
 <DD>List of pair table parameters must include N setting. 
@@ -1948,15 +2002,6 @@ kspace_modify command will reduce the stencil distance.
 <DD>One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs. 
 
-<DT><I>Pair style hybrid cannot have hybrid as an argument</I> 
-
-<DD>Self-explanatory.  Check the input script. 
-
-<DT><I>Pair style hybrid cannot use same pair style twice</I> 
-
-<DD>The sub-style arguments of pair_style hybrid cannot be duplicated.
-Check the input script. 
-
 <DT><I>Pair inner cutoff < Respa interior cutoff</I> 
 
 <DD>One or more pairwise cutoffs are too short to use with the specified
@@ -1965,6 +2010,45 @@ rRESPA cutoffs.
 <DT><I>Pair inner cutoff >= Pair outer cutoff</I> 
 
 <DD>The specified cutoffs for the pair style are inconsistent. 
+
+<DT><I>Pair style does not support bond_style quartic</I> 
+
+<DD>The pair style does not have a single() function, so it can
+not be invoked by bond_style quartic. 
+
+<DT><I>Pair style does not support dumping per-atom energy</I> 
+
+<DD>The pair style does not have a single() function, so it can not be
+invoked by the dump command. 
+
+<DT><I>Pair style does not support dumping per-atom stress</I> 
+
+<DD>The pair style does not have a single() function, so it can not be
+invoked by the dump command. 
+
+<DT><I>Pair style does not support pair_write</I> 
+
+<DD>The pair style does not have a single() function, so it can
+not be invoked by the pair_write command. 
+
+<DT><I>Pair style does not support rRESPA inner/middle/outer</I> 
+
+<DD>You are attempting to use rRESPA options with a pair style that
+does not support them. 
+
+<DT><I>Pair style granular with history requires atoms have IDs</I> 
+
+<DD>Atoms in the simulation do not have IDs, so history effects
+cannot be tracked by the granular pair potential. 
+
+<DT><I>Pair style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory.  Check the input script. 
+
+<DT><I>Pair style hybrid cannot use same pair style twice</I> 
+
+<DD>The sub-style arguments of pair_style hybrid cannot be duplicated.
+Check the input script. 
 
 <DT><I>Pair style is incompatible with DihedralCharmm</I> 
 
@@ -1976,6 +2060,16 @@ specified.
 
 <DD>If a pair style with a long-range Coulombic component is selected,
 then a kspace style must also be used. 
+
+<DT><I>Pair style lj/cut/coul/long/tip4p requires atom IDs</I> 
+
+<DD>There are no atom IDs defined in the system and the TIP4P potential
+requires them to find O,H atoms with a water molecule. 
+
+<DT><I>Pair style lj/cut/coul/long/tip4p requires newton pair on</I> 
+
+<DD>This is because the computation of constraint forces within a water
+molecule adds forces to atoms owned by other processors. 
 
 <DT><I>Pair table cutoffs must all be equal to use with KSpace</I> 
 
@@ -1995,6 +2089,10 @@ read_restart, or create_box command.
 <DT><I>Pair_modify command before pair_style is defined</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Pair_style granular command before simulation box is defined</I> 
+
+<DD>This pair style cannot be used before a simulation box is defined. 
 
 <DT><I>Pair_write command before pair_style is defined</I> 
 
@@ -2071,11 +2169,6 @@ types in setfl potential file.
 
 <DD>The first cutoff must be <= the second cutoff. 
 
-<DT><I>Respa inner/middle/outer used with invalid pair style</I> 
-
-<DD>Only a few pair potentials support the use of respa inner, middle,
-outer options. 
-
 <DT><I>Respa levels must be >= 1</I> 
 
 <DD>Self-explanatory. 
@@ -2116,6 +2209,18 @@ incorrect.
 
 <DD>The run command cannot be used before a read_data, read_restart, or
 create_box command. 
+
+<DT><I>Run command upto value is before current timestep</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Run command start value is after start of run</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Run command stop value is before end of run</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Run_style command before simulation box is defined</I> 
 
@@ -2180,6 +2285,14 @@ SHAKE fix contribution to the pressure virial is incorrect.
 <DD>The variable specified with a $ symbol in an input script command has
 not been previously defined with a variable command. 
 
+<DT><I>Target T for fix nvt cannot be 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Target T for fix npt cannot be 0.0</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Temperature region ID does not exist</I> 
 
 <DD>The region ID specified in the temperature command does not exist. 
@@ -2232,9 +2345,11 @@ within a water molecule.
 <DD>The target file for the fix tmd command did not list all atoms in the
 fix group. 
 
-<DT><I>Too big a problem to run with a molecular atom style</I> 
+<DT><I>Too big a problem to replicate with molecular atom style</I> 
 
-<DD>Cannot run a problem with > 2^31 atoms with molecular attributes. 
+<DD>Molecular problems cannot become bigger than 2^31 atoms (or bonds,
+etc) when replicated, else the atom IDs and other quantities cannot be
+stored in 32 bit quantities. 
 
 <DT><I>Too few bits for lookup table</I> 
 
@@ -2245,20 +2360,6 @@ machine's floating point representation.
 
 <DD>The atoms to be created by the create_atoms command must have a valid
 type. 
-
-<DT><I>Too many atoms in data file</I> 
-
-<DD>A data file cannot contain more than 2^31 atoms. 
-
-<DT><I>Too many atoms to use delete atoms command</I> 
-
-<DD>Cannot use delete_atoms command if number of atoms is greater than
-2^31. 
-
-<DT><I>Too many atoms to use velocity create with loop all</I> 
-
-<DD>Cannot use velocity create command with loop all setting if number of
-atoms is greater than 2^31.  Switch to local or geom setting. 
 
 <DT><I>Too many exponent bits for lookup table</I> 
 
@@ -2372,6 +2473,10 @@ definition until the simulation box has been defined.
 <DD>Cannot use thermodynamic keywords in a equal style variable definition
 until a simulation run has been performed. 
 
+<DT><I>Variable equal group ID does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Velocity command before simulation box is defined</I> 
 
 <DD>The velocity command cannot be used before a read_data, read_restart,
@@ -2410,6 +2515,11 @@ will be truncated to attempt to prevent the bond from blowing up.
 
 <DD>A FENE bond has stretched dangerously far.  It's interaction strength
 will be truncated to attempt to prevent the bond from blowing up. 
+
+<DT><I>Fix recenter should come after all other integration fixes</I> 
+
+<DD>Other fixes may change the position of the center-of-mass, so 
+fix recenter should come last. 
 
 <DT><I>Group for fix_modify temp != fix group</I> 
 
@@ -2646,6 +2756,12 @@ could be inaccurate.
 style region.  Since thermo computes a global pressure, the kinetic
 energy contribution from the temperature is assumed to also be for all
 atoms.  Thus the pressure printed by thermo could be inaccurate. 
+
+<DT><I>Using pair tail corrections with nonperiodic system</I> 
+
+<DD>This is probably a bogus thing to do, since tail corrections are
+computed by integrating the density of a periodic system out to
+infinity. 
 
 <DT><I>Using variable equal keyword with non-current thermo</I> 
 

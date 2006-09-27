@@ -140,7 +140,11 @@ from one line to the next (unless the BITMAP parameter is specified).
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>table</I> potential does not support the
+<A HREF = "pair_modify.hmtl">pair_modify</A> <I>mix</I> option.  Coefficients for all i,j
+pairs must be specified explicitly.
 </P>
 <P><B>Related commands:</B>
 </P>

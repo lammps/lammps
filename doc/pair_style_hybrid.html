@@ -43,16 +43,31 @@ by its arguments, as illustrated in the example above.
 and the remaining coefficients are those appropriate to that style.
 For example, consider a simulation with 3 atom types: types 1 and 2
 are Ni atoms, type 3 are LJ atoms with charges.  The following
-commands would set up the hybrid simulation:
+commands would set up a hybrid simulation:
 </P>
-<PRE>atom_style hybrid eam charge
-pair_style hybrid eam lj/cut/coul/cut 10.0 lj/cut 8.0
-pair_coeff 1*2 1*2 eam niu3
+<PRE>pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
+pair_coeff * * eam/alloy nialhjea 1 1 0
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-pair_coeff 1*2 3 lj/cut 0.5 1.2 
+pair_coeff 1*2 3 lj/cut 0.8 1.1 
 </PRE>
-<P>The <A HREF = "atom_style.html">atom_style</A> hybrid command is needed because
-atoms in the simulation will have both EAM and charge attributes.
+<P>Note that as with any pair_style, coeffs must be defined for all I,J
+interactions.  If the sub-style allows for mixing (see the
+<A HREF = "pair_modify.html">pair_modify</A> command), then I,J interactions between
+atom types which both are assigned to that sub-style do not need to be
+specified.  I.e. if atom types 1 and 2 are both computed with <I>lj/cut</I>
+and coeffs for 1,1 and 2,2 interactions are specified, then coeffs for
+1,2 interactions will be generated automatically via mixing.
+</P>
+<P>If the pair_coeff command for a sub-style requires the use of * * as
+atom type arguments (e.g. the <I>eam/alloy</I> example above), then it will
+also include trailing arguments which map atom types to elements in
+the potential.  These mapping arguments should be specified as 0 if
+the sub-style is not being applied to certain atom types.
+</P>
+<P>Note that you may also need to use an <A HREF = "atom_style.html">atom_style</A>
+hybrid command in your input script, if atoms in the simulation will
+have attributes from several atom styles, due to using multiple pair
+potentials.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -64,9 +79,16 @@ than one sub-style with a "long" component, but you must insure that
 the short-range Coulombic cutoff used by each of these pair styles is
 consistent.  Else the long-range Coulombic solve will be inconsistent.
 </P>
+<P>A pair style of <I>none</I> can be specified as an argument to pair_style
+hybrid and the corresponding pair_coeff commands, if you desire to
+turn off pairwise interactions between certain pairs of atom types.
+</P>
 <P>The hybrid style cannot include any of the <I>granular</I> styles in its
-list of styles to use.  Only one <I>coul/long</I> style can be used in the
-list of hybrid styles.
+list of styles to use.
+</P>
+<P>If you use multiple <I>coul/long</I> pair styles along with a <A HREF = "kspace_style.html">kspace
+style</A>, then you should make sure the pairwise
+Coulombic cutoff is the same for all the pair styles.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -137,7 +137,11 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-[Restrictions:] none
+[Restrictions:]
+
+The {table} potential does not support the
+"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
+pairs must be specified explicitly.
 
 [Related commands:]
 

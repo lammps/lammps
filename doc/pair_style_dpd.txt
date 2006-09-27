@@ -59,6 +59,10 @@ This style is part of the "dpd" package.  It is only enabled if LAMMPS
 was built with those package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.
 
+The {dpd} potential does not support the
+"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
+pairs must be specified explicitly.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

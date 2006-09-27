@@ -218,15 +218,16 @@ class2 : class 2 force fields
 dpd : dissipative particle dynamics (DPD) force field
 granular : force fields and boundary conditions for granular systems
 kspace : long-range Ewald and particle-mesh (PPPM) solvers
+manybody : metal, 3-body, bond-order potentials
 molecule : force fields for molecular systems
 poems : coupled rigid body motion
 xtc : dump atom snapshots in XTC format :tb(s=:)
 
 Any or all of these packages can be included or excluded when LAMMPS
-is built.  The default is to include only the kspace and molecule
-packages.  You may wish to exclude certain packages if you will never
-run certain kinds of simulations.  This will produce a smaller
-executable which in some cases will also run a bit faster.
+is built.  The default is to include only the kspace, manybody, and
+molecule packages.  You may wish to exclude certain packages if you
+will never run certain kinds of simulations.  This will produce a
+smaller executable which in some cases will also run a bit faster.
 
 Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package.  You can also type

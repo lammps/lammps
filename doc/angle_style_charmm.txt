@@ -27,6 +27,9 @@ with an additional Urey_Bradley term based on the distance {r} between
 the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
 coefficients defined for each angle type.
 
+See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+field.
+
 The following coefficients must be defined for each angle type via the
 "angle_coeff"_angle_coeff.html command as in the example above, or in
 the data file or restart files read by the "read_data"_read_data.html
@@ -40,17 +43,16 @@ r_ub (distance) :ul
 Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 
-[Restrictions:]
-
-Angle styles can only be set for atom styles that allow angles to be
-defined.
-
-This angle style is part of the "molecular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+[Restrictions:] none
 
 [Related commands:]
 
 "angle_coeff"_angle_coeff.html
 
 [Default:] none
+
+:line
+
+:link(MacKerell)
+[(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).

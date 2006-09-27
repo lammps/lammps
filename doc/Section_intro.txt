@@ -125,7 +125,7 @@ commands)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   long-range Coulombics: Ewald, PPPM (similar to particle-mesh Ewald)
-  CHARMM, AMBER, OPLS force-field compatability :ul
+  CHARMM, AMBER, OPLS force-field compatibility :ul
 
 Creation of atoms: :h4
 ("read_data"_read_data.html, "lattice"_lattice.html,
@@ -415,7 +415,7 @@ If you send me information about your publication, I'll be pleased to
 add it to the Publications page of the "LAMMPS WWW Site"_lws.  Ditto
 for a picture or movie for the Pictures or Movies pages.
 
-The core group of LAMMPS developers are at Sandia National Labs.  They
+The core group of LAMMPS developers is at Sandia National Labs.  They
 include "Steve Plimpton"_sjp, Paul Crozier, and Aidan Thompson and can
 be contacted via email: sjplimp, pscrozi, athomps at sandia.gov.
 
@@ -438,7 +438,7 @@ EAM potentials: Stephen Foiles (Sandia)
 parallel tempering: Mark Sears (Sandia)
 lmp2cfg and lmp2traj tools: Ara Kooser, Jeff Greathouse, Andrey Kalinichev (Sandia)
 FFT support for SGI SCLS (Altix): Jim Shepherd (Ga Tech)
-targeted molecular dynamics (TMD): Paul Crozier (Sandia), Christian Burisch (Bochum Univeristy, Germany)
+targeted molecular dynamics (TMD): Paul Crozier (Sandia), Christian Burisch (Bochum University, Germany)
 force tables for long-range Coulombics: Paul Crozier (Sandia)
 radial distribution functions: Paul Crozier & Jeff Greathouse (Sandia)
 Morse bond potential: Jeff Greathouse (Sandia)

@@ -1,0 +1,58 @@
+LAMMPS (1 Oct 2006)
+# LAMMPS benchmark of granular flow
+# chute flow of 32000 atoms with frozen base at 26 degrees
+
+units		lj
+atom_style	granular
+boundary	p p fs
+newton		off
+
+read_data	data.chute
+  2 by 2 by 2 processor grid
+  32000 atoms
+  32000 velocities
+
+pair_style	gran/history 200000.0 50.0 0.5 0
+
+neighbor	0.1 bin
+neigh_modify	every 1 delay 0
+
+timestep	0.0001
+
+group		bottom type 2
+912 atoms in group bottom
+group		active subtract all bottom
+31088 atoms in group active
+neigh_modify	exclude group bottom bottom
+
+fix		1 all gravity chute 26.0
+fix		2 bottom freeze
+fix		3 active nve/gran
+
+thermo_style	granular
+thermo		100
+
+run		100
+Memory usage per processor = 9.31091 Mbytes
+Step Atoms Trans-KE Rot-KE Volume 
+       0    32000    784139.13    1601.1263     29830.88 
+     100    32000    784289.99    1571.0137    29831.804 
+Loop time of 0.696548 on 8 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 0.306387 (43.9864)
+Neigh time (%) = 0.0181609 (2.60727)
+Comm  time (%) = 0.160018 (22.9731)
+Outpt time (%) = 0.000968486 (0.139041)
+Other time (%) = 0.211014 (30.2942)
+
+Nlocal:    4000 ave 4005 max 3995 min
+Histogram: 4 0 0 0 0 0 0 0 0 4
+Nghost:    1736.5 ave 1739 max 1734 min
+Histogram: 4 0 0 0 0 0 0 0 0 4
+Neighs:    15093 ave 15610 max 14576 min
+Histogram: 4 0 0 0 0 0 0 0 0 4
+
+Total # of neighbors = 120744
+Ave neighs/atom = 3.77325
+Neighbor list builds = 2
+Dangerous builds = 0

@@ -1,0 +1,12 @@
+The charmm2lmp sub-directory contains tools for converting files back-and-forth between
+the CHARMM MD code and LAMMPS.
+
+The charmm2lammps.pl perl script converts CHARMM input files into LAMMPS input.
+The lammps2pdb.pl perl script converts LAMMPS dump files into a pdb series file.
+The mkpdb.f fortran 90 code also converts LAMMPS dump files into PDB files, and the 
+mkdcd.f tool converts LAMMPS dump files into CHARMM *.dcd trajectory files that can
+be read-in to CHARMM for analysis. See the README file in the charmm2lmp sub-directory
+for more information.
+
+These tools were written by Pieter J. in 't Veld (pjintve@sandia.gov) and Paul Crozier
+(pscrozi@sandia.gov) at Sandia.

@@ -1,0 +1,51 @@
+Xmovie is an X-based visualization package that can reads particle
+data in a simple text format.  LAMMPS output files are in this format
+(by default).  Xmovie displays 2d projections of 3d (or 2d) data sets.
+While simple, it is extremely fast, and often useful for debugging.
+
+Xmovie was written by Mike Uttormark, while visiting Sandia, in the
+summer of 1994.  Subsequent small changes have been made by Steve
+Plimpton.
+
+To make xmovie for your platform, edit the top section of the Makefile
+appropriately for your machine.  You will need to point at the correct
+X libraries for xmovie to compile and link properly.
+
+Once you have an xmovie executable you can test it by typing:
+
+xmovie dummy.dat
+
+A control window and a display window should pop open.  Move the
+"thickness" slider all the way to the right and click "Start".  You
+should see a small white ball oscillate back and forth in the display.
+
+The examples directory in the LAMMPS distribution has several
+simulations that can be run with LAMMPS to produce dump.* files that
+you can use xmovie to visualize.  The Movies page of the LAMMPS WWW
+Site has animations of these simulations that were produced by
+converting saved xmovie snapshots to MPEG files (via ImageMagick's
+convert program).  Note that LAMMPS output is scaled by default (so
+all coordinates are from 0 to 1).  Thus you need to run xmovie like
+this:
+
+xmovie -scale dump.*
+
+to see the snapshot you expect.
+
+The xmovie control window options should be self-explanatory.  You are
+always viewing a 2d projection of your 2d or 3d snapshot; the
+"position" and "thickness" sliders control the range of the slab of
+atoms being projected.  You will not always see a snapshot when xmovie
+begins, unless you push the "thickness" slider to the right.
+
+Type xmovie to see a list of command-line options and info on file
+formats.
+
+---------------------------------------------------------------
+
+If the xpm.h file is not on a system, it must be downloaded from
+somewhere
+
+Needed to build on IBM cheetah at ORNL:
+#include </apps/xpm/3.4k/rs_aix51/include/X11/xpm.h>
+

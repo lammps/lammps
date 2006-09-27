@@ -1,0 +1,95 @@
+These Python scripts were written originally by Keir Novik, but he can
+no longer support them.  See some documentation at the top of the
+files - they are supposed to be fairly self-explanatory.
+
+amber2lammps.py		converts AMBER files into LAMMPS input format
+dump2trj.py		converts LAMMPS dump files into AMBER format
+dump2try99.py		same as dump2trj for LAMMPS 99 format
+
+-------------------------
+
+Modifications in file amber2lammps.py, by Vikas Varshney
+Dated July 5, 2005
+Email address : vv5@uakron.edu
+
+Lines 222-226: Undid the shifting of the atoms in the periodic
+box. LAMMPS is going to take care of it by image atoms. Make sure that
+when you dump the coordinates by LAMMPS to view in VMD, print them in
+the format mentioned in the dump2ptraj.py section later.
+
+Lines 378-391: Added an if statement to see whether .crd or .top file
+is being read. This if statement helps in assigning the title if the
+title is not present in the files.
+
+Line 394: Added an if statement, not to read lines which start with
+% in the topology file.
+
+Lines 430-432: Changed if statement condition to read the current
+simulation time from .crd file. I put the remainder condition
+instead of equal to condition. The simulation time adds one value to
+the length of the Item_list, so remainder condition can be applied
+easily to see if simulation time data is present in the .crd file or
+not.
+
+In general, the initial .crd files dont have simulation time
+information while restart files do have them.
+
+Some other minor additions: 
+
+I added few lines to print the names which are being read
+currently. This helps in seeing current state of the programs which
+are listed below
+
+Lines 382, 389, 420, 428, 436, 490, 498, 550, 555, 560, 565, 570, 575,
+580, 595, 600, 610, 615, 620, 631, 636, 648, 657, 666, 677, 688, 701,
+720, 725, 730, 735, 740, 745, 750, 755, 767, 769, 771, 778, 785, 806,
+821, 897.
+
+---------------------------
+
+Modifications in file dump2trj.py, by Vikas Varshney
+Dated July 5, 2005
+Email address: vv5@uakron.edu
+
+First, the atoms should be dumped in the following format.
+
+dump group-ID custom N tag type xs ys zs ix iy iz
+
+Modifications:
+
+Lines 117-119: I modified the lines to get the actual co-ordinates
+instead of box coordinates. If we dont do that and try to see the
+file in vmd, we observe long bond lengths of the molecules whose one
+part is on one side of periodic box and the other part is on other
+side of periodic box.
+
+Lines 239 & 244: Changed x to mdcrd.
+
+Once you do that. Open the original topology file in VMD (with parm7)
+and then mdcrd file (crdbox) to see the time evaluation of the
+problem.
+
+----------------------------
+
+Example input script, by Paul Crozier
+1 Sept 2005
+
+Here is an example of a typical LAMMPS input script for use with 
+a data file built by amber2lammps.py:
+
+units			real
+neigh_modify    delay 5 every 1
+atom_style		full
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  harmonic
+pair_style      lj/cut/coul/long 10.0
+pair_modify     mix arithmetic
+kspace_style    pppm 1e-4
+read_data       data.yourdata
+fix             1 all nve
+special_bonds   amber                               
+thermo          1
+thermo_style    multi
+timestep        0.5
+run             2

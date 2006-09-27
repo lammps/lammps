@@ -1,0 +1,51 @@
+! Resources that users may want to change. 
+! Add these lines to your .Xdefaults file or
+! merge them using xrdb -merge
+!
+
+!
+! colors used for drawing atoms 
+!
+
+#ifdef COLOR
+
+XMovie.*.scene.*.foreground:		red
+XMovie.*.scene.*.background:		black
+XMovie.*.scene.width:			600
+XMovie.*.scene.height:			600
+
+#else
+
+XMovie.*.scene.*.foreground:		black
+XMovie.*.scene.*.background:		white
+
+#endif
+
+!
+! Default slider positions (0.0 -> 1.0)
+!
+
+XMovie.*.speedbar.topOfThumb:		1.0
+XMovie.*.positionbar.topOfThumb:	0.50
+XMovie.*.thicknessbar.topOfThumb:	1.0
+
+!
+! Default viewing axis
+! set only one, or chaos will surely ensue.
+! need to turn z off before turning others on
+!
+
+! XMovie.*.z.state:			False
+! XMovie.*.y.state:			True
+
+! XMovie.*.x.state:			True
+! XMovie.*.z.state:			True
+
+!
+! Default viewing direction
+! again, set only one.
+! turn vminus off before turning vplus on
+!
+
+! XMovie.*.vminus.state:		False
+! XMovie.*.vplus.state:			True

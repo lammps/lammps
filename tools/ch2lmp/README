@@ -1,0 +1,130 @@
+These tools were created by Pieter J. in 't Veld (pjintve@sandia.gov)
+and Paul Crozier (pscrozi@sandia.gov), Sandia National Laboratories,
+2005. They are intended to make it easy to use CHARMM as a builder and
+as a post-processor for LAMMPS. Using charmm2lammps.pl, you can
+convert an ensemble built in CHARMM into its LAMMPS equivalent.  Using
+lammps2pdb.pl you can convert LAMMPS atom dumps into pdb files.
+
+In this directory, you should find:
+1) A perl script called "charmm2lammps.pl"
+2) A perl script called "lammps2pdb.pl"
+3) An "example" folder containing an example of how to use these tools.
+4) An "other" folder containing other potentially useful tools.
+
+In addition, you will need to provide the following input for 
+charmm2lammps.pl:
+1) a CHARMM parameter file (par_<forcefield>.prm)
+2) a CHARMM topology file (top_<forcefield>.rtf)
+3) a CHARMM coordinates file or pdb file (<project>.crd or <project>.pdb)
+4) a CHARMM psf file (<project>.psf)
+
+To use the charmm2lammps.pl script, type: "perl charmm2lammps.pl
+[-option[=#]] <forcefield> <project>" where <forcefield> is the name
+of the CHARMM FF you are using, (i.e. all22_prot), and <project> is
+the common name of your *.crd and *.psf files. The options for the
+script are listed below. If the option requires a parameter, the
+syntax must be [-option[=#]], (i.e. -border=5).
+
+-help        "display available options",                                    
+-charmm      "add charmm types to LAMMPS data file",                    
+-water       "add TIP3P water [default: 1 g/cc]",                       
+-ions        "add (counter)ions using Na+ and Cl- [default: 0 mol/l]",  
+-center      "recenter atoms",                                          
+-quiet       "do not print info",                                       
+-pdb_ctrl    "output project_ctrl.pdb",                                 
+-l           "set x-, y-, and z-dimensions simultaneously",             
+-lx          "x-dimension of simulation box",                           
+-ly          "y-dimension of simulation box",                           
+-lz          "z-dimension of simulation box",                           
+-border      "add border to all sides of simulation box [default: 0 A]",
+-ax          "rotation around x-axis",                                  
+-ay          "rotation around y-axis",                                  
+-az          "rotation around z-axis"                                   
+
+In the "example" folder, you will find example files that were created
+by following the steps below. These steps describe how to take a
+biomolecule and convert it into LAMMPS input, and then create a *.pdb
+trajectory from the LAMMPS output.
+
+1) Get the pdb file you want to model. http://www.rcsb.org/pdb/ For
+this example, we will use 1ac7.pdb
+
+2) If there are multiple models in the pdb file, choose the one you
+want and delete the others. Save the pared-down file as 1ac7_pared.pdb
+
+3) Download the charmm FF files and choose the one you want from the
+tarball.  We will use all27_na for this example.
+http://www.pharmacy.umaryland.edu/faculty/amackere/force_fields.htm
+toppar_c31b1.tar.gz
+
+4) Create a *.pgn file for use with psfgen (you will need to have VMD
+installed, http://www.ks.uiuc.edu/Research/vmd/ ). This is the hardest
+step because you have to change the residue names from what the *.pdb
+file has to the corresponding names in the charmm FF files. You'll
+need to add a "pdbalias residue x xnew" line for each change that
+needs to be made.  The *.pgn should contain something like this:
+
+package require psfgen   
+topology top_all27_na.rtf
+pdbalias residue A ADE 
+pdbalias residue T THY 
+pdbalias residue G GUA 
+pdbalias residue C CYT 
+.
+.
+.
+segment A {pdb 1ac7_pared.pdb}   
+coordpdb 1ac7_pared.pdb A   
+guesscoord   
+writepdb 1ac7.pdb   
+writepsf charmm 1ac7.psf  
+exit 
+
+5) Type "vmd -e 1ac7.pgn" to build the 1ac7.psf file, and the new
+   1ac7.pdb file.
+
+6) Run charmm2lammps.pl by typing: 
+"perl charmm2lammps.pl all27_na 1ac7 -charmm -border=1 -pdb_ctrl -water -ions"
+
+7) Run lammps by typing: "lmp < 1ac7.in"
+
+8) Run lammps2pdb.pl by typing: "perl lammps2pdb.pl 1ac7"
+
+** Additional notes:
+
+The charmm2lammps.pl script takes the pdb and psf files for the 1ac7
+molecule and converts them into LAMMPS format. The -water option
+embeds the molecule in water on a crystal lattice. The -border option
+includes a layer of water surrounding the minimum dimensions of the
+molecule. The -pdb_ctrl option produces the 1ac7_ctrl.pdb file that
+can be visualized in a standard visualization package such as VMD. The
+-charmm option put comments into the LAMMPS data file (everything
+after the # sign is a comment) for user convenience in tracking atom
+types etc. according to CHARMM nomenclature.
+
+The default timestep in the LAMMPS *.in file is set to 0.5 fs, which
+can typically be increased to 2 fs after equilibration if the bonds
+involving H are constrained via shake. Also, after equilibration, the
+delay on neigh_modify can probably increased to 5 or so to improve
+speed.
+
+The -ions option allows the user to neutralize the simulation cell
+with Na+ or Cl- counterions if the molecule has a net
+charge. Additional salt can be added by increasing the default
+concentration (i.e. -ions=0.5).
+
+** In the "other" file folder, you will find:
+
+1) A FORTRAN 90 code called "mkpdb.f". Requires "in_mkpdb".  This is a
+   fortran code that is an alternative way to convert LAMMPS dump
+   files into pdb format.
+
+2) A FORTRAN 90 code called "mkdcd.f" (and a FORTRAN 77 version called
+   mkdcd_f77.f).  Requires "in_mkdcd". Creates CHARMM format
+   trajectories from LAMMPS dump files.
+
+3) A 3rd party perl script called "crd2pdb.pl"
+
+4) A 3rd party fortran code called "pdb_to_crd.f"
+
+

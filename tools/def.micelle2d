@@ -1,0 +1,9 @@
+2-d micelle definition
+
+0.7             rhostar
+53616456        random # seed (8 digits or less)
+30 30           initial solvent square lattice (nx by ny)
+150             # of solvent to turn into surfactants
+0.75            bond-length of surfactants (units of sigma)
+2               # of tails to add to each head (length of surfactant - 1)
+0               flag for 2nd nearest neighbor bonds (0=no, 1=yes)

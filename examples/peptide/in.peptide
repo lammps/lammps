@@ -1,0 +1,31 @@
+# Solvated 5-mer peptide
+
+units		real
+atom_style	full
+
+pair_style	lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style	pppm 0.0001
+
+read_data	data.peptide
+
+neighbor	2.0 bin
+neigh_modify	delay 5
+
+timestep	2.0
+
+thermo_style	multi
+thermo		50
+
+fix		1 all nvt 275.0 275.0 100.0
+fix		2 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+
+group		peptide type <= 12
+dump		1 peptide atom 10 dump.peptide
+dump		2 peptide bond 300 dump.bond
+
+run		300
+

@@ -1,0 +1,43 @@
+This directory has a code that shows how LAMMPS can be linked to a
+driver application as a library.  The purpose is to illustrate how
+another code could perform computations while using LAMMPS to perform
+MD, or how an umbrella code or script could call both LAMMPS and some
+other code to perform a coupled calculation.
+
+Umbrella.cpp is the simple driving code that will call LAMMPS.
+
+LAMMPS must first be built as a library.  See the "Making LAMMPS"
+section of Section_start.html in the documentation for info on how to
+do this.  Basically, you type something like
+
+make makelib
+make -f Makefile.lib g++
+
+in the LAMMPS src directory to create liblmp_g++.a
+
+You can then build the umbrella code with a compile line something
+like this, which includes paths to the LAMMPS library interface, MPI,
+and FFTW.
+
+g++ -I/home/sjplimp/tools/mpich/include -I/home/sjplimp/lammps/src
+    -L/home/sjplimp/lammps/src -L/home/sjplimp/tools/mpich/lib
+    -L/home/sjplimp/tools/fftw/lib umbrella.cpp
+    -llmp_g++ -lfftw -lmpich -o umbrella
+
+You then run umbrella on a parallel machine on some number
+of processors Q with 2 arguments:
+
+mpirun -np Q umbrella P in.lj
+
+P is the number of procs you want LAMMPS to run on (must be <= Q).
+In.lj is a LAMMPS input script.
+
+Umbrella will launch LAMMPS on P procs, read the input
+script a line at a time, and pass each command line to LAMMPS.  The
+final line of the script is a "run" command, so LAMMPS will run
+the problem.
+
+Umbrella then requests all the atom coordinates from LAMMPS, moves one
+of the atoms a small amount "epsilon", passes the coordinates back to
+LAMMPS, and runs LAMMPS again.  If you look at the output, you should
+see a small energy change between runs, due to the moved atom.

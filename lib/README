@@ -1,0 +1,12 @@
+This directory contains libraries that can be linked with when
+building LAMMPS.  The library itself must be built first, so that a
+lib*.a file exists for LAMMPS to link against.
+
+Each library directory contains a README with additional info.  You
+will need to copy one of the Makefile.* files to Makefile before
+building a library.  If a Makefile.* suitable for your machine does
+not exist, you will need to edit one of the existing Makefiles.
+
+The libraries included with LAMMPS are the following:
+
+poems	      POEMS rigid-body integration package from RPI

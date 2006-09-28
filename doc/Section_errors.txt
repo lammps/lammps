@@ -764,7 +764,7 @@ implementation of rRESPA. :dd
 {Cannot use vectors in variables unless atom map exists} :dt
 
 Vectors require an atom map to be able to lookup the vector index.
-Only atom styles with molecular information creat a global map. :dd
+Only atom styles with molecular information create a global map. :dd
 
 {Cannot use velocity create loop all unless atoms have IDs} :dt
 
@@ -801,7 +801,7 @@ Region ID used in the delete_atoms command does not exist. :dd
 
 A group ID used in the displace_atoms command does not exist. :dd
 
-{Cound not find dump_modify ID} :dt
+{Could not find dump_modify ID} :dt
 
 A dump ID used in the dump_modify command does not exist. :dd
 
@@ -1756,7 +1756,7 @@ section. :dd
 
 {Must set both respa inner and outer} :dt
 
-Cannot use just the inner or outer option with repsa without using the
+Cannot use just the inner or outer option with respa without using the
 other. :dd
 
 {Must specify a region in fix insert} :dt

@@ -15,7 +15,7 @@
 </P>
 <PRE>bond_coeff N args 
 </PRE>
-<UL><LI>N = bond type (see asterik form below)
+<UL><LI>N = bond type (see asterisk form below)
 <LI>args = coefficients for one or more bond types 
 </UL>
 <P><B>Examples:</B>
@@ -33,12 +33,12 @@ Bond coefficients can also be set in the data file read by the
 <A HREF = "read_data.html">read_data</A> command or in a restart file.
 </P>
 <P>N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 1st example above.  Or a wild-card asterik can be
+be used, as in the 1st example above.  Or a wild-card asterisk can be
 used to set the coefficients for multiple bond types.  This takes the
 form "*" or "*n" or "n*" or "m*n".  If N = the number of bond types,
-then an asterik with no numeric values means all types from 1 to N.  A
-leading asterik means all types from 1 to n (inclusive).  A trailing
-asterik means all types from n to N (inclusive).  A middle asterik
+then an asterisk with no numeric values means all types from 1 to N.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).
 </P>
 <P>Note that using a bond_coeff command can override a previous setting
@@ -50,7 +50,7 @@ bond_coeff 2 200.0 1.2
 </PRE>
 <P>A line in a data file that specifies bond coefficients uses the exact
 same format as the arguments of the bond_coeff command in an input
-script, except that wild-card asteriks should not be used since
+script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Bond Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as

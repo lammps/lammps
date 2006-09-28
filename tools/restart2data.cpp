@@ -117,6 +117,8 @@ class Data {
   double *dihedral_helix_aphi,*dihedral_helix_bphi,*dihedral_helix_cphi;
   double *dihedral_multi_a1,*dihedral_multi_a2,*dihedral_multi_a3;
   double *dihedral_multi_a4,*dihedral_multi_a5;
+  double *dihedral_opls_k1,*dihedral_opls_k2;
+  double *dihedral_opls_k3,*dihedral_opls_k4;
 
   double *improper_class2_k0,*improper_class2_chi0;
   double *improper_class2_aa_k1,*improper_class2_aa_k2,*improper_class2_aa_k3;
@@ -1452,6 +1454,17 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_multi_a4[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_multi_a5[1],sizeof(double),data.ndihedraltypes,fp);
 
+  } else if (strcmp(data.dihedral_style,"opls") == 0) {
+
+    data.dihedral_opls_k1 = new double[data.ndihedraltypes+1];
+    data.dihedral_opls_k2 = new double[data.ndihedraltypes+1];
+    data.dihedral_opls_k3 = new double[data.ndihedraltypes+1];
+    data.dihedral_opls_k4 = new double[data.ndihedraltypes+1];
+    fread(&data.dihedral_opls_k1[1],sizeof(double),data.ndihedraltypes,fp);
+    fread(&data.dihedral_opls_k2[1],sizeof(double),data.ndihedraltypes,fp);
+    fread(&data.dihedral_opls_k3[1],sizeof(double),data.ndihedraltypes,fp);
+    fread(&data.dihedral_opls_k4[1],sizeof(double),data.ndihedraltypes,fp);
+
   } else {
     printf("ERROR: Unknown dihedral style %s\n",data.dihedral_style);
     exit(1);
@@ -1819,6 +1832,12 @@ void Data::write(FILE *fp)
 		dihedral_multi_a1[i],dihedral_multi_a2[i],
 		dihedral_multi_a3[i],dihedral_multi_a4[i],
 		dihedral_multi_a5[i]);
+
+    } else if (strcmp(dihedral_style,"opls") == 0) {
+      for (int i = 1; i <= ndihedraltypes; i++)
+	fprintf(fp,"%d %g %g %g %g\n",i,
+		dihedral_opls_k1[i],dihedral_opls_k2[i],
+		dihedral_opls_k3[i],dihedral_opls_k4[i]);
     }
   }
 

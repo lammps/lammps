@@ -37,7 +37,7 @@ more complex or cause side-effect bugs.
 
 Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
 and pair_foo.h that define a new class PairFoo that computes pairwise
-potentials described in the classic 1997 "paper"_#Foo by Foo, et. al.
+potentials described in the classic 1997 "paper"_#Foo by Foo, et al.
 If you wish to invoke those potentials in a LAMMPS input script with a
 command like
 
@@ -355,9 +355,9 @@ If the fix needs to store information for each atom that persists from
 timestep to timestep, it can manage that memory and migrate it with
 the atoms as they move from processors to processor by implementing
 the grow_arrays, copy_arrays, pack_exchange, and unpack_exchange
-methods.  Similary, the pack_restart and unpack_restart methods can be
+methods.  Similarly, the pack_restart and unpack_restart methods can be
 implemented to store information about the fix in restart files.  If
-you wish a integrator or force constraint fix to work with rRESPA (see
+you wish an integrator or force constraint fix to work with rRESPA (see
 the "run_style"_run_style.html command), the initial_integrate,
 post_force_integrate, and final_integrate_respa methods can be
 implemented.  The thermo_fields and thermo_compute methods enable a
@@ -417,7 +417,7 @@ Variable options :link(variable),h4
 
 The variable class stores and evaluates input script variables $a, $b,
 ... $z, as described in "this section"_Section_commands.html#3_2.
-{Equal}-style variables are defined by an equation that is evaulated
+{Equal}-style variables are defined by an equation that is evaluated
 each time the variable is used.  The equation can include functions,
 vectors, keywords, and numbers as described in the
 "variable"_variable.html command.  The list of valid functions,

@@ -40,7 +40,7 @@ more complex or cause side-effect bugs.
 </P>
 <P>Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
 and pair_foo.h that define a new class PairFoo that computes pairwise
-potentials described in the classic 1997 <A HREF = "#Foo">paper</A> by Foo, et. al.
+potentials described in the classic 1997 <A HREF = "#Foo">paper</A> by Foo, et al.
 If you wish to invoke those potentials in a LAMMPS input script with a
 command like
 </P>
@@ -366,9 +366,9 @@ fix defines (after the ID, group-ID, style).
 timestep to timestep, it can manage that memory and migrate it with
 the atoms as they move from processors to processor by implementing
 the grow_arrays, copy_arrays, pack_exchange, and unpack_exchange
-methods.  Similary, the pack_restart and unpack_restart methods can be
+methods.  Similarly, the pack_restart and unpack_restart methods can be
 implemented to store information about the fix in restart files.  If
-you wish a integrator or force constraint fix to work with rRESPA (see
+you wish an integrator or force constraint fix to work with rRESPA (see
 the <A HREF = "run_style.html">run_style</A> command), the initial_integrate,
 post_force_integrate, and final_integrate_respa methods can be
 implemented.  The thermo_fields and thermo_compute methods enable a
@@ -432,7 +432,7 @@ that it was simpler to just have one master routine for all classes.
 </H4>
 <P>The variable class stores and evaluates input script variables $a, $b,
 ... $z, as described in <A HREF = "Section_commands.html#3_2">this section</A>.
-<I>Equal</I>-style variables are defined by an equation that is evaulated
+<I>Equal</I>-style variables are defined by an equation that is evaluated
 each time the variable is used.  The equation can include functions,
 vectors, keywords, and numbers as described in the
 <A HREF = "variable.html">variable</A> command.  The list of valid functions,

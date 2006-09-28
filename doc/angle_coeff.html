@@ -37,10 +37,10 @@ used to set the coefficients for multiple angle types.  This takes the
 form "*" or "*n" or "n*" or "m*n".  If N = the number of angle types,
 then an asterik with no numeric values means all types from 1 to N.  A
 leading asterik means all types from 1 to n (inclusive).  A trailing
-asterik means all types from n to N (inclusive).  A middle asterik
+asterik means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).
 </P>
-<P>Note that using a angle_coeff command can override a previous setting
+<P>Note that using an angle_coeff command can override a previous setting
 for the same angle type.  For example, these commands set the coeffs
 for all angle types, then overwrite the coeffs for just angle type 2:
 </P>
@@ -49,7 +49,7 @@ angle_coeff 2 50.0 107.0
 </PRE>
 <P>A line in a data file that specifies angle coefficients uses the exact
 same format as the arguments of the angle_coeff command in an input
-script, except that wild-card asteriks should not be used since
+script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Angle Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as

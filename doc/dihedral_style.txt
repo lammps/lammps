@@ -38,7 +38,7 @@ data or restart file or via the "dihedral_coeff"_dihedral_coeff.html command.
 In the formulas listed for each dihedral style, {phi} is the torsional
 angle defined by the quadruplet of atoms.
 
-Note that when both an dihedral and pair style is defined, the
+Note that when both a dihedral and pair style is defined, the
 "special_bond"_special_bond.html command often needs to be used to
 turn off (or weight) the pairwise interactions that would otherwise
 exist between the 4 bonded atoms.

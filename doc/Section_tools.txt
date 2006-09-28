@@ -108,7 +108,7 @@ since binary files are not compatible across all platforms.
 data2xmovie tool :h4,link(data)
 
 The file data2xmovie.c converts a LAMMPS data file into a snapshot
-suitable for visualizing with the "xmovie"_#xmovie tool, as it it had
+suitable for visualizing with the "xmovie"_#xmovie tool, as if it had
 been output with a dump command from LAMMPS itself.  The syntax for
 running the tool is
 

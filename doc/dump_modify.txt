@@ -90,7 +90,7 @@ same as those that can be specified in the "dump custom"_dump.html
 command.  Note that different attributes can be output by the dump
 custom command than are used as threshhold criteria by the dump_modify
 command.  E.g. you can output the coordinates and stress of atoms
-whose energy is above some thresshold.
+whose energy is above some threshhold.
 
 [Restrictions:] none
 

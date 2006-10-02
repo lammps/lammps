@@ -25,7 +25,7 @@ keyword = {shift} or {units} :l
 
 [Examples:]
 
-fix 1 all recenter 0.0 0.5 0.0 :pre
+fix 1 all recenter 0.0 0.5 0.0
 fix 1 all recenter INIT INIT NULL
 fix 1 all recenter INIT 0.0 0.0 units box :pre
 

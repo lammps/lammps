@@ -40,7 +40,7 @@ styles that use the {temp} setting are
 
 The {energy} and {thermo} keywords enable a fix to compute and/or
 print quantities as part of the thermodynamic output to the screen and
-log file (if the fix defines such quantites).  When the {energy}
+log file (if the fix defines such quantities).  When the {energy}
 keyword is set to {yes}, the fix computes a contribution to the total
 potential energy that is printed as PotEng during thermodynamic
 output.  When the {thermo} keyword is set to yes, the fix prints one

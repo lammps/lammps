@@ -27,7 +27,7 @@
 
 FixMomentum::FixMomentum(int narg, char **arg) : Fix(narg, arg)
 {
-  if (narg != 7) error->all("Illegal fix momentum command");
+  if (narg < 4) error->all("Illegal fix momentum command");
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix momentum command");
 

@@ -699,7 +699,7 @@ void Group::angmom(int igroup, double *cm, double *lmom)
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
       if (mass_require) massone = mass[type[i]];
-      massone = rmass[i];
+      else massone = rmass[i];
       p[0] += massone * (dy*v[i][2] - dz*v[i][1]);
       p[1] += massone * (dz*v[i][0] - dx*v[i][2]);
       p[2] += massone * (dx*v[i][1] - dy*v[i][0]);

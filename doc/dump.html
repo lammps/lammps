@@ -40,7 +40,7 @@
       x,y,z = unscaled atom coordinates
       xs,ys,zs = scaled atom coordinates
       xu,yu,zu = unwrapped atom coordinates
-      ix,iy,iz = box image that the atom is in in
+      ix,iy,iz = box image that the atom is in
       vx,vy,vz = atom velocities
       fx,fy,fz = forces on atoms
       q = atom charge
@@ -168,7 +168,7 @@ dump command is invoked and closed when an <A HREF = "undump.html">undump</A>
 command is used or when LAMMPS exits.  For the <I>dcd</I> and <I>xtc</I> styles,
 this is a single large binary file.
 </P>
-<P>Dump filenames can contian two wild-card characters.  If a "*"
+<P>Dump filenames can contain two wild-card characters.  If a "*"
 character appears in the filename, then one file per snapshot is
 written and the "*" character is replaced with the timestep value.
 For example, tmp.dump.* becomes tmp.dump.0, tmp.dump.10000,

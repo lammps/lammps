@@ -15,7 +15,7 @@
 </P>
 <PRE>improper_coeff N args 
 </PRE>
-<UL><LI>N = improper type (see asterik form below)
+<UL><LI>N = improper type (see asterisk form below)
 <LI>args = coefficients for one or more improper types 
 </UL>
 <P><B>Examples:</B>
@@ -33,15 +33,15 @@ file read by the <A HREF = "read_data.html">read_data</A> command or in a restar
 file.
 </P>
 <P>N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 1st example above.  Or a wild-card asterik can be
+be used, as in the 1st example above.  Or a wild-card asterisk can be
 used to set the coefficients for multiple improper types.  This takes
 the form "*" or "*n" or "n*" or "m*n".  If N = the number of improper
-types, then an asterik with no numeric values means all types from 1
-to N.  A leading asterik means all types from 1 to n (inclusive).  A
-trailing asterik means all types from n to N (inclusive).  A middle
-asterik means all types from m to n (inclusive).
+types, then an asterisk with no numeric values means all types from 1
+to N.  A leading asterisk means all types from 1 to n (inclusive).  A
+trailing asterisk means all types from n to N (inclusive).  A middle
+asterisk means all types from m to n (inclusive).
 </P>
-<P>Note that using a improper_coeff command can override a previous
+<P>Note that using an improper_coeff command can override a previous
 setting for the same improper type.  For example, these commands set
 the coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:
@@ -51,7 +51,7 @@ improper_coeff 2 50.0 0.0
 </PRE>
 <P>A line in a data file that specifies improper coefficients uses the
 exact same format as the arguments of the improper_coeff command in an
-input script, except that wild-card asteriks should not be used since
+input script, except that wild-card asterisks should not be used since
 coefficients for all N types must be listed in the file.  For example,
 under the "Improper Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as

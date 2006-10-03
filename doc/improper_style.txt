@@ -31,7 +31,7 @@ from a data or restart file.
 Hybrid models where impropers are computed using different improper
 potentials can be setup using the {hybrid} improper style.
 
-The coefficients associated with a improper style can be specified in a
+The coefficients associated with an improper style can be specified in a
 data or restart file or via the "improper_coeff"_improper_coeff.html command.
 
 Note that when both an improper and pair style is defined, the

@@ -257,7 +257,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
     
     for (k = 0; k < numneigh; k++) {
       j = neighs[k];
-      list[i] = 1;
       if (j >= nall) {
 	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0) continue;
 	j %= nall;

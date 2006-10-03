@@ -156,6 +156,14 @@ void Input::file()
 
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
+    // if n = MAXLINE, line is too long
+
+    if (n == MAXLINE) {
+      char str[MAXLINE+32];
+      sprintf(str,"Input line too long: %s",line);
+      error->all(str);
+    }
+
     // echo the command unless scanning for label
 
     if (me == 0 && label_active == 0) {

@@ -58,7 +58,7 @@ The {type}, {id}, and {molecule} styles put all atoms with the
 specified atom types, atom IDs, or molecule IDs into the group.  These
 3 styles can have their arguments specified in one of two formats.
 The 1st format is a list of values (types or IDs).  For example, the
-2nd command in the examples above, puts all atoms of type 3 or 4 into
+2nd command in the examples above puts all atoms of type 3 or 4 into
 the group named {water}.  The 2nd format is a {logical} followed by
 one or two values (type or ID).  The 5 valid logicals are listed
 above.  All the logicals except <> take a single argument.  The 3rd

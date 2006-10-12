@@ -17,6 +17,7 @@
 #include "string.h"
 #include "input.h"
 #include "system.h"
+#include "universe.h"
 #include "atom.h"
 #include "comm.h"
 #include "group.h"
@@ -786,13 +787,17 @@ void Input::log()
     if (logfile) fclose(logfile);
     if (strcmp(arg[0],"none") == 0) logfile = NULL;
     else {
-      logfile = fopen(arg[0],"w");
+      char fname[128];
+      if (universe->nworlds == 1) strcpy(fname,arg[0]);
+      else sprintf(fname,"%s.%d",arg[0],universe->iworld);
+      logfile = fopen(fname,"w");
       if (logfile == NULL) {
 	char str[128];
-	sprintf(str,"Cannot open logfile %s",arg[0]);
+	sprintf(str,"Cannot open logfile %s",fname);
 	error->one(str);
       }
     }
+    if (universe->nworlds == 1) universe->ulogfile = logfile;
   }
 }
 

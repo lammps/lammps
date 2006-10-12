@@ -174,7 +174,7 @@ void System::open(int narg, char **arg, MPI_Comm communicator)
       } else if (strcmp(arg[screenflag],"none") == 0)
 	screen = NULL;
       else {
-	char str[32];
+	char str[128];
 	sprintf(str,"%s.%d",arg[screenflag],universe->iworld);
 	screen = fopen(str,"w");
 	if (screen == NULL) error->one("Cannot open screen file");
@@ -190,7 +190,7 @@ void System::open(int narg, char **arg, MPI_Comm communicator)
       } else if (strcmp(arg[logflag],"none") == 0)
 	logfile = NULL;
       else {
-	char str[32];
+	char str[128];
 	sprintf(str,"%s.%d",arg[logflag],universe->iworld);
 	logfile = fopen(str,"w");
 	if (logfile == NULL) error->one("Cannot open logfile");
@@ -307,11 +307,13 @@ void System::destroy()
 
 void System::close()
 {
-  if (universe->nworlds > 1) {
+  if (universe->nworlds == 1) {
+    if (logfile) fclose(logfile);
+  } else {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
+    if (universe->ulogfile) fclose(universe->ulogfile);
   }
-  if (universe->ulogfile) fclose(universe->ulogfile);
 
   if (world != universe->uworld) MPI_Comm_free(&world);
 

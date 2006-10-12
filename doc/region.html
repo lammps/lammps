@@ -17,14 +17,11 @@
 </PRE>
 <UL><LI>ID = user-assigned name for the region 
 
-<LI>style = <I>block</I> or <I>sphere</I> or <I>cylinder</I> or <I>prism</I> or <I>union</I> or <I>intersect</I> 
+<LI>style = <I>block</I> or <I>cylinder</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
 
 <PRE>  <I>block</I> args = xlo xhi ylo yhi zlo zhi
       xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all
         dimensions (distance units)
-  <I>sphere</I> args = x y z radius
-      x,y,z = center of sphere (distance units)
-      radius = radius of sphere (distance units)
   <I>cylinder</I> args = dim c1 c2 radius lo hi
     dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
@@ -36,6 +33,9 @@
       yxtilt = distance to shift upper y in x direction (distance units)
       zxtilt = distance to shift upper z in x direction (distance units)
       zytilt = distance to shift upper z in y direction (distance units)
+  <I>sphere</I> args = x y z radius
+      x,y,z = center of sphere (distance units)
+      radius = radius of sphere (distance units)
   <I>union</I> args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together

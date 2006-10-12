@@ -13,13 +13,10 @@ region command :h3
 region ID style args keyword value ... :pre
 
 ID = user-assigned name for the region :ulb,l
-style = {block} or {sphere} or {cylinder} or {prism} or {union} or {intersect} :l
+style = {block} or {cylinder} or {prism} or {sphere} or {union} or {intersect} :l
   {block} args = xlo xhi ylo yhi zlo zhi
       xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all
         dimensions (distance units)
-  {sphere} args = x y z radius
-      x,y,z = center of sphere (distance units)
-      radius = radius of sphere (distance units)
   {cylinder} args = dim c1 c2 radius lo hi
     dim = {x} or {y} or {z} = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
@@ -31,6 +28,9 @@ style = {block} or {sphere} or {cylinder} or {prism} or {union} or {intersect} :
       yxtilt = distance to shift upper y in x direction (distance units)
       zxtilt = distance to shift upper z in x direction (distance units)
       zytilt = distance to shift upper z in y direction (distance units)
+  {sphere} args = x y z radius
+      x,y,z = center of sphere (distance units)
+      radius = radius of sphere (distance units)
   {union} args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together

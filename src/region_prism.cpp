@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Pieter in't Veld (SNL)
+------------------------------------------------------------------------- */
+
 #include "stdlib.h"
 #include "string.h"
 #include "region_prism.h"

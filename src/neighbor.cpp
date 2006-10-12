@@ -87,7 +87,7 @@ Neighbor::Neighbor()
 
   // half neighbor list info
 
-  half = 0;
+  half = half_command = 0;
   maxpage = 0;
   numneigh = NULL;
   firstneigh = NULL;
@@ -385,8 +385,9 @@ void Neighbor::init()
   }
 
   half = full = 0;
-  if (half_every || half_once) half = 1;
+  if (half_every || half_once || half_command) half = 1;
   if (full_every || full_once) full = 1;
+  half = 1;
 
   // setup/delete memory for half and full lists
 
@@ -720,7 +721,7 @@ void Neighbor::build()
 
   // extend atom arrays if necessary
   // check half/full instead of half_every/full_every so memory will be
-  //   allocated correctly when build_half() and build_full() are called
+  //   allocated correctly whenever build_half() and build_full() are called
 
   if (atom->nlocal > maxlocal) {
     maxlocal = atom->nmax;
@@ -793,27 +794,6 @@ void Neighbor::build()
 }
 
 /* ----------------------------------------------------------------------
-   prepare for one-time call to build a half neighbor list
-   only needs to be called if Neighbor::init() set half = 0
-------------------------------------------------------------------------- */
-
-void Neighbor::build_half_setup()
-{
-  numneigh = (int *) memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh");
-  firstneigh =
-    (int **) memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh");
-  add_pages(0);
-
-  if (style == 0) {
-    if (force->newton_pair == 0) half_build = &Neighbor::half_nsq_no_newton;
-    else half_build = &Neighbor::half_nsq_newton;
-  } else if (style == 1) {
-    if (force->newton_pair == 0) half_build = &Neighbor::half_bin_no_newton;
-    else half_build = &Neighbor::half_bin_newton;
-  }
-}
-
-/* ----------------------------------------------------------------------
    one-time call to build a half neighbor list made by other classes
 ------------------------------------------------------------------------- */
 
@@ -823,23 +803,7 @@ void Neighbor::build_half()
 }
 
 /* ----------------------------------------------------------------------
-   clean-up from one-time call to build a half neighbor list
-   only needs to be called if Neighbor::init() set half = 0
-------------------------------------------------------------------------- */
-
-void Neighbor::build_half_cleanup()
-{
-  memory->sfree(numneigh);
-  memory->sfree(firstneigh);
-  for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
-  memory->sfree(pages);
-  pages = NULL;
-  maxpage = 0;
-  half_build = NULL;
-}
-
-/* ----------------------------------------------------------------------
-   build a full neighbor list, called occasionally by a fix
+   one-time call to build a full neighbor list made by other classes
 ------------------------------------------------------------------------- */
 
 void Neighbor::build_full()

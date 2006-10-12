@@ -150,7 +150,7 @@ void Pressure::compute(Temperature *temperature)
 
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
 
-  if (force->pair->tail_flag)
+  if (force->pair && force->pair->tail_flag)
     for (i = 0; i < n; i++) virial[i] += force->pair->ptail * inv_volume;
 
   // compute just total average pressure or entire pressure tensor

@@ -43,7 +43,6 @@ void DeleteAtoms::command(int narg, char **arg)
     error->all("Cannot use delete_atoms unless atoms have IDs");
 
   int natoms_previous = static_cast<int> (atom->natoms);
-  int tag_lowest = natoms_previous + 1;
 
   // allocate and initialize deletion list
   
@@ -53,7 +52,6 @@ void DeleteAtoms::command(int narg, char **arg)
   for (int i = 0; i < nlocal; i++) list[i] = 0;
 
   // delete the atoms
-  // return tag_lowest = min tag of each proc's deleted atoms
 
   if (strcmp(arg[0],"group") == 0) delete_group(narg,arg,list);
   else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg,list);
@@ -62,14 +60,12 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // delete local atoms in list
   // reset nlocal
-  // tag_lowest_all = smallest deleted atom tag on any proc
 
   int *tag = atom->tag;
 
   int i = 0;
   while (i < nlocal) {
     if (list[i]) {
-      tag_lowest = MIN(tag_lowest,tag[i]);
       atom->copy(nlocal-1,i);
       list[i] = list[nlocal-1];
       nlocal--;
@@ -78,19 +74,14 @@ void DeleteAtoms::command(int narg, char **arg)
   atom->nlocal = nlocal;
   delete [] list;
 
-  int tag_lowest_all;
-  MPI_Allreduce(&tag_lowest,&tag_lowest_all,1,MPI_INT,MPI_MIN,world);
-
   // if non-molecular system, reset atom tags to be contiguous
-  // set all atom IDs >= tag_lowest_all to 0
-  // tag_extend() will reset tags for those atoms
+  // set all atom IDs to 0, call tag_extend()
 
   if (atom->molecular == 0) {
     int *tag = atom->tag;
     int nlocal = atom->nlocal;
  
-    for (i = 0; i < nlocal; i++)
-      if (tag[i] >= tag_lowest_all) tag[i] = 0;
+    for (i = 0; i < nlocal; i++) tag[i] = 0;
     atom->tag_extend();
   }
 
@@ -188,14 +179,17 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+  // set half_command since will require half neigh list even if
+  //   neighbor would otherwise not create one, then unset it
 
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for delete_atoms ...\n");
+  neighbor->half_command = 1;
   sys->init();
+  neighbor->half_command = 0;
 
   // setup domain, communication and neighboring
   // acquire ghosts
-  // build half neighbor list via explicit call
     
   domain->pbc();
   domain->reset_box();
@@ -204,8 +198,11 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
   comm->exchange();
   comm->borders();
 
-  if (!neighbor->half) neighbor->build_half_setup();
-  neighbor->build_half();
+  // call to build() forces memory allocation for neighbor lists
+  // build half list explicitly if build() doesn't do it
+
+  neighbor->build();
+  if (!neighbor->half_every) neighbor->build_half();
 
   // error check on cutoff
 
@@ -288,10 +285,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
       break;
     }
   }
-
-  // cleanup after neighbor list
-
-  if (!neighbor->half) neighbor->build_half_cleanup();
 
   // delete temporary atom map
 

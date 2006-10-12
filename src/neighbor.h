@@ -39,6 +39,7 @@ class Neighbor : public LAMMPS {
   int full_every;                  // 0/1 if full list built every step
   int half_once;                   // 0/1 if half pair list built occasionally
   int full_once;                   // 0/1 if full pair list built occasionally
+  int half_command;                // 0/1 if command requires half list
 
   int *numneigh;                   // # of half neighbors for each atom
   int **firstneigh;                // ptr to 1st half neighbor of each atom
@@ -74,9 +75,7 @@ class Neighbor : public LAMMPS {
   int check_distance();       // check max distance moved since last build
   void setup_bins();          // setup bins based on box and cutoff
   void build();               // create all neighbor lists (half,full,bond)
-  void build_half_setup();    // setup for one-time creation of half list
   void build_half();          // one-time creation of half neighbor list
-  void build_half_cleanup();  // cleanup of one-time creation of half list
   void build_full();          // one-time creation of full neighbor list
   void modify_params(int, char**);  // modify parameters of neighbor build
   int memory_usage();         // tally memory usage

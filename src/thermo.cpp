@@ -837,7 +837,7 @@ void Thermo::compute_pe()
   MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (force->kspace) dvalue += force->kspace->energy;
-  if (force->pair->tail_flag) {
+  if (force->pair && force->pair->tail_flag) {
     double volume = domain->xprd * domain->yprd * domain->zprd;
     dvalue += force->pair->etail / volume;
   }
@@ -881,7 +881,7 @@ void Thermo::compute_evdwl()
 
   MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (force->pair->tail_flag) {
+  if (force->pair && force->pair->tail_flag) {
     double volume = domain->xprd * domain->yprd * domain->zprd;
     dvalue += force->pair->etail / volume;
   }
@@ -912,7 +912,7 @@ void Thermo::compute_epair()
   MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (force->kspace) dvalue += force->kspace->energy;
-  if (force->pair->tail_flag) {
+  if (force->pair && force->pair->tail_flag) {
     double volume = domain->xprd * domain->yprd * domain->zprd;
     dvalue += force->pair->etail / volume;
   }
@@ -993,7 +993,7 @@ void Thermo::compute_elong()
 
 void Thermo::compute_etail()
 {
-  if (force->pair->tail_flag) {
+  if (force->pair && force->pair->tail_flag) {
     double volume = domain->xprd * domain->yprd * domain->zprd;
     dvalue = force->pair->etail / volume;
     if (normflag) dvalue /= natoms;

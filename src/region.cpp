@@ -41,6 +41,7 @@ Region::Region(int narg, char **arg)
   if (strcmp(style,"block") == 0) options(narg-8,&arg[8]);
   else if (strcmp(style,"sphere") == 0) options(narg-6,&arg[6]);
   else if (strcmp(arg[1],"cylinder") == 0) options(narg-8,&arg[8]);
+  else if (strcmp(style,"prism") == 0) options(narg-11,&arg[11]);
   else if (strcmp(arg[1],"union") == 0) {
     if (narg < 5) error->all("Illegal region command");
     n = atoi(arg[2]);

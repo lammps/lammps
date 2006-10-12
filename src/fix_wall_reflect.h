@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifndef FIX_WALL_REFLECT_H
-#define FIX_WALL_REFELCT_H
+#define FIX_WALL_REFLECT_H
 
 #include "fix.h"
 

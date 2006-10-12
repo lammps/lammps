@@ -247,6 +247,7 @@ PairStyle(yukawa,PairYukawa)
 #include "region_block.h"
 #include "region_cylinder.h"
 #include "region_intersect.h"
+#include "region_prism.h"
 #include "region_sphere.h"
 #include "region_union.h"
 #endif
@@ -255,6 +256,7 @@ PairStyle(yukawa,PairYukawa)
 RegionStyle(block,RegBlock)
 RegionStyle(cylinder,RegCylinder)
 RegionStyle(intersect,RegIntersect)
+RegionStyle(prism,RegPrism)
 RegionStyle(sphere,RegSphere)
 RegionStyle(union,RegUnion)
 #endif

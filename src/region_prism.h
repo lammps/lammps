@@ -11,18 +11,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef AtomInclude
-#include "atom_dpd.h"
-#endif
+#ifndef REGION_PRISM_H
+#define REGION_PRISM_H
 
-#ifdef AtomClass
-AtomStyle(dpd,AtomDPD)
-#endif
+#include "region.h"
 
-#ifdef PairInclude
-#include "pair_dpd.h"
-#endif
+class RegPrism : public Region {
+  friend class FixInsert;
 
-#ifdef PairClass
-PairStyle(dpd,PairDPD)
+ public:
+  RegPrism(int, char **);
+  ~RegPrism() {}
+  int match(double, double, double);
+
+ private:
+  double xlo,xhi,ylo,yhi,zlo,zhi;
+  double yxshift,zxshift,zyshift;
+  double h[3][3],hinv[3][3];
+};
+
 #endif

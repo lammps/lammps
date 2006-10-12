@@ -13,7 +13,7 @@ region command :h3
 region ID style args keyword value ... :pre
 
 ID = user-assigned name for the region :ulb,l
-style = {block} or {sphere} or {cylinder} or {union} or {intersect} :l
+style = {block} or {sphere} or {cylinder} or {prism} or {union} or {intersect} :l
   {block} args = xlo xhi ylo yhi zlo zhi
       xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all
         dimensions (distance units)
@@ -25,6 +25,12 @@ style = {block} or {sphere} or {cylinder} or {union} or {intersect} :l
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
     lo,hi = bounds of cylinder in dim (distance units)
+  {prism} args = xlo xhi ylo yhi zlo zhi yxtilt zxtilt zytilt
+      xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism in all
+        dimensions (distance units)
+      yxtilt = distance to shift upper y in x direction (distance units)
+      zxtilt = distance to shift upper z in x direction (distance units)
+      zytilt = distance to shift upper z in y direction (distance units)
   {union} args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together
@@ -46,6 +52,7 @@ keyword = {side} or {units} :l
 region 1 block -3.0 5.0 INF 10.0 INF INF
 region 2 sphere 0.0 0.0 0.0 5 side out
 region void cylinder y 2 3 5 -5.0 INF units box
+region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4 :pre
 
 [Description:]
@@ -56,10 +63,10 @@ atoms via the "create_atoms"_create_atoms.html command.  Or the atoms
 in the region can be identified as a group via the "group"_group.html
 command, or deleted via the "delete_atoms"_delete_atoms.html command.
 
-The lo/hi values for {block} or {cylinder} styles can be specified
-as INF which means they extend all the way to the global simulation
-box boundary.  If a region is defined before the simulation box has
-been created (via "create_box"_create_box.html or
+The lo/hi values for {block} or {cylinder} or {prism} styles can be
+specified as INF which means they extend all the way to the global
+simulation box boundary.  If a region is defined before the simulation
+box has been created (via "create_box"_create_box.html or
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands), then an INF parameter cannot be used.
 
@@ -69,6 +76,19 @@ y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.  Thus the
 third example above specifes a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
+
+For style {prism}, a tilted block is defined.  The bounds of the
+untilted axis-aligned block are specified in the same way as for the
+{block} style.  A tilt factor for each dimension with respect to
+another dimension is also specified.  If the lower xy face of the
+prism is initially a rectangle (untilted), then the yxtilt factor
+specifies how far the upper y edge of that face is shifted in the x
+direction (skewing that face, keeping the xy face a parallelogram).  A
+plus or minus value can be chosen; 0.0 would be no tilt.  Similarly,
+zxtilt and zytilt describe how far the upper xy face of the prism is
+translated in the x and y directions to further tilt the prism.  The
+final prism shape remains a parallelipiped, with opposing pairs of the
+6 faces remaining parallel to each other.
 
 The {union} style creates a region consisting of the volume of all the
 listed regions combined.  The {intesect} style creates a region
@@ -87,10 +107,14 @@ The {units} keyword determines the meaning of the distance units used
 to define the region.  A {box} value selects standard distance units
 as defined by the "units"_units.html command, e.g. Angstroms for units
 = real or metal.  A {lattice} value means the distance units are in
-cubic lattice spacings.  The "lattice"_lattice.html command must first
-be used to define a lattice.
+lattice spacings.  The "lattice"_lattice.html command must have been
+previously used to define the lattice spacing.
 
 [Restrictions:] none
+
+A prism cannot be of 0.0 thickness in any dimension; use a small z
+thickness for 2d simulations.  For 2d simulations, the zxtilt and
+zytilt parameters must be 0.0.
 
 [Related commands:]
 

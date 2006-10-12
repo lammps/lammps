@@ -5,7 +5,7 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-FFTW =		/apps/libraries/fftw/nwcc
+FFTW =		/apps/libraries/fftw
 
 CC =		mpicxx
 CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/include

@@ -50,7 +50,7 @@ FILE *LAMMPS::logfile = NULL;
 void LAMMPS::open(int narg, char **arg, MPI_Comm communicator)
 {
   sys = new System();
-  sys->open(narg,arg,MPI_COMM_WORLD);
+  sys->open(narg,arg,communicator);
   sys->create();
 }
 

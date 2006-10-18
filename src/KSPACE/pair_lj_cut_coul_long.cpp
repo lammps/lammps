@@ -550,7 +550,7 @@ void PairLJCutCoulLong::compute_outer(int eflag, int vflag)
 	      if (factor_coul < 1.0) {
 		table = ptable[itable] + fraction*dptable[itable];
 		prefactor = qtmp*q[j] * table;
-		phicoul -= (1.0-factor_coul)*prefactor;
+		forcecoul -= (1.0-factor_coul)*prefactor;
 	      }
 	    }
 	  } else forcecoul = 0.0;

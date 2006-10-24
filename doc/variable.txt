@@ -20,7 +20,7 @@ style = {index} or {loop} or {equal} or {world} or {universe} :l
     math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
                      neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
     group functions = mass(group), charge(group), xcm(group,dim),
-                      vcm(group,dim), bounds(group,xmin), gyration(group)
+                      vcm(group,dim), bound(group,xmin), gyration(group)
     vectors = x\[5\], y\[12\], z\[17\], vx\[88\], vy\[19\], vz\[2\],
               fx\[1\], fy\[2005\], fz\[1\]
     keywords = same keywords (mostly) as in "thermo_style custom"_thermo_style.html command

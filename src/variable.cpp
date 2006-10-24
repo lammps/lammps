@@ -569,9 +569,9 @@ char *Variable::evaluate(char *str)
       group->bounds(igroup,minmax);
       if (strcmp(arg2,"xmin") == 0) answer = minmax[0];
       else if (strcmp(arg2,"xmax") == 0) answer = minmax[1];
-      if (strcmp(arg2,"ymin") == 0) answer = minmax[2];
+      else if (strcmp(arg2,"ymin") == 0) answer = minmax[2];
       else if (strcmp(arg2,"ymax") == 0) answer = minmax[3];
-      if (strcmp(arg2,"zmin") == 0) answer = minmax[4];
+      else if (strcmp(arg2,"zmin") == 0) answer = minmax[4];
       else if (strcmp(arg2,"zmax") == 0) answer = minmax[5];
       else error->all("Cannot evaluate variable equal command");
 

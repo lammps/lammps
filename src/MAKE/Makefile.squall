@@ -1,15 +1,22 @@
-# squall = Red Squall (compile on reddish), pgCC, native MPI, FFTW
+# squall = Red Squall (compile on srnsquall), pgiCC, MPI, FFTW
+#
+# To use this, first do:
+#
+# module unload compilers/gnu
+# module load compilers/pgi-6.0
+# module unload mpich/mpich-gnu
+# module load mpich/mpich-pgi-6.0
+#
 
 SHELL = /bin/sh
 
 # System-specific settings
 
 CC =		mpiCC
-CCFLAGS =	-fastsse -tp k8-64 -DGZIP -DFFT_FFTW \
-		-I/home/sjplimp/tools/fftw/include
-DEPFLAGS =	-M
+CCFLAGS =       -DFFT_FFTW -I/home/athomps/tools/fftw-2.1.5/fftw
+DEPFLAGS =	-O2 -M
 LINK =		mpiCC
-LINKFLAGS =	-O -L/home/sjplimp/tools/fftw/lib
+LINKFLAGS =	-O2 -L/home/athomps/tools/fftw-2.1.5/fftw/.libs 
 USRLIB =	-lfftw -lmpi
 SYSLIB =	
 SIZE =		size

@@ -22,6 +22,8 @@
 
 RegCylinder::RegCylinder(int narg, char **arg) : Region(narg, arg)
 {
+  options(narg-8,&arg[8]);
+
   if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z")) 
     error->all("Illegal region cylinder command");
   axis = arg[2][0];

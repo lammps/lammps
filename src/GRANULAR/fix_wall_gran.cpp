@@ -400,7 +400,7 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,xmeff,damp,ccel,vtr1,vtr2,vtr3,vrel;
   double fn,fs,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3;
-  double shrmag,rsht;
+  double shrmag,rsht,rinv;
 
   r = sqrt(rsq);
 
@@ -507,9 +507,10 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
 
   // torques
 
-  tor1 = dy*fs3 - dz*fs2;
-  tor2 = dz*fs1 - dx*fs3;
-  tor3 = dx*fs2 - dy*fs1;
+  rinv = 1/r;
+  tor1 = rinv * (dy*fs3 - dz*fs2);
+  tor2 = rinv * (dz*fs1 - dx*fs3);
+  tor3 = rinv * (dx*fs2 - dy*fs1);
   phia[0] -= radius*tor1;
   phia[1] -= radius*tor2;
   phia[2] -= radius*tor3;

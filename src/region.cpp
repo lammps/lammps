@@ -21,48 +21,13 @@
 
 Region::Region(int narg, char **arg)
 {
-  // region ID
-
   int n = strlen(arg[0]) + 1;
   id = new char[n];
   strcpy(id,arg[0]);
 
-  // set option defaults
-
-  interior = 1;
-  scaleflag = 1;
-
-  // read style and options from end of input line
-
   n = strlen(arg[1]) + 1;
   style = new char[n];
   strcpy(style,arg[1]);
-
-  if (strcmp(style,"block") == 0) options(narg-8,&arg[8]);
-  else if (strcmp(style,"sphere") == 0) options(narg-6,&arg[6]);
-  else if (strcmp(arg[1],"cylinder") == 0) options(narg-8,&arg[8]);
-  else if (strcmp(style,"prism") == 0) options(narg-11,&arg[11]);
-  else if (strcmp(arg[1],"union") == 0) {
-    if (narg < 5) error->all("Illegal region command");
-    n = atoi(arg[2]);
-    options(narg-(n+3),&arg[n+3]);
-  } else if (strcmp(arg[1],"intersect") == 0) {
-    if (narg < 5) error->all("Illegal region command");
-    n = atoi(arg[2]);
-    options(narg-(n+3),&arg[n+3]);
-  } else error->all("Illegal region command");
-
-  // setup scaling
-
-  if (scaleflag && strcmp(domain->lattice_style,"none") == 0)
-    error->all("Use of region with undefined lattice");
-
-  if (scaleflag) {
-    xscale = domain->xlattice;
-    yscale = domain->ylattice;
-    zscale = domain->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,6 +46,11 @@ void Region::options(int narg, char **arg)
 {
   if (narg < 0) error->all("Illegal region command");
 
+  // option defaults
+
+  interior = 1;
+  scaleflag = 1;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
@@ -97,4 +67,16 @@ void Region::options(int narg, char **arg)
       iarg += 2;
     } else error->all("Illegal region command");
   }
+
+  // setup scaling
+
+  if (scaleflag && strcmp(domain->lattice_style,"none") == 0)
+    error->all("Use of region with undefined lattice");
+
+  if (scaleflag) {
+    xscale = domain->xlattice;
+    yscale = domain->ylattice;
+    zscale = domain->zlattice;
+  }
+  else xscale = yscale = zscale = 1.0;
 }

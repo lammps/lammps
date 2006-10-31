@@ -29,6 +29,8 @@
 
 RegPrism::RegPrism(int narg, char **arg) : Region(narg, arg)
 {
+  options(narg-11,&arg[11]);
+
   if (strcmp(arg[2],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");

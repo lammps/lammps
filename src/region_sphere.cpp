@@ -21,6 +21,8 @@
 
 RegSphere::RegSphere(int narg, char **arg) : Region(narg, arg)
 {
+  options(narg-6,&arg[6]);
+
   xc = xscale*atof(arg[2]);
   yc = yscale*atof(arg[3]);
   zc = zscale*atof(arg[4]);

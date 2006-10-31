@@ -65,6 +65,8 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
       pack_choice[i] = &DumpCustom::pack_tag;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
+      if (atom->molecule == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_molecule;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"type") == 0) {
@@ -125,24 +127,38 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
       pack_choice[i] = &DumpCustom::pack_fz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"q") == 0) {
+      if (atom->q == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_q;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"mux") == 0) {
+      if (atom->mu == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mux;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muy") == 0) {
+      if (atom->mu == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muz") == 0) {
+      if (atom->mu == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
+      if (atom->torque == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqx;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
+      if (atom->torque == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
+      if (atom->torque == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"centro") == 0) {

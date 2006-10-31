@@ -27,7 +27,7 @@ class FixNVE : public Fix {
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
 
- protected:
+ private:
   double dtv,dtf;
   double *step_respa;
   int mass_require;

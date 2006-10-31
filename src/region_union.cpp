@@ -26,9 +26,13 @@
 
 RegUnion::RegUnion(int narg, char **arg) : Region(narg, arg)
 {
+  if (narg < 5) error->all("Illegal region command");
+  int n = atoi(arg[2]);
+  if (n < 2) error->all("Illegal region command");
+  options(narg-(n+3),&arg[n+3]);
+
   // build list of regions to union
 
-  int n = atoi(arg[2]);
   list = new int[n];
   nregion = 0;
 

@@ -93,7 +93,7 @@ void lammps_get_coords(double *coords)
 
 /* ---------------------------------------------------------------------- */
 
-void lammps_put_coords(const double *coords)
+void lammps_put_coords(double *coords)
 {
   int natoms = static_cast<int> (lammps->atom->natoms);
 

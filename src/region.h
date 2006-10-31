@@ -30,7 +30,7 @@ class Region : public LAMMPS {
   virtual ~Region();
   virtual int match(double, double, double) = 0;
 
- private:
+ protected:
   void options(int, char **);
 };
 

@@ -21,6 +21,8 @@
 
 RegBlock::RegBlock(int narg, char **arg) : Region(narg, arg)
 {
+  options(narg-8,&arg[8]);
+
   if (strcmp(arg[2],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");

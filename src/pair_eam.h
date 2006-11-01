@@ -25,12 +25,12 @@ class PairEAM : public Pair {
 
   PairEAM();
   virtual ~PairEAM();
-  virtual void compute(int, int);
+  void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
-  virtual void single(int, int, int, int, double, double, double, int, One &);
+  double init_one(int, int);
+  void init_style();
+  void single(int, int, int, int, double, double, double, int, One &);
 
   int pack_comm(int, int *, double *, int *);
   void unpack_comm(int, int, double *);
@@ -40,45 +40,59 @@ class PairEAM : public Pair {
 
  protected:
   double cutforcesq,cutmax;
-  int **tabindex;
 
-  // potential as read in from file
+  // potentials as file data
 
-  struct Table {
-    char *filename;           // file it was read from
-    int ith,jth;              // for setfl, which i,j entry in file
-    int nrho,nr;              // array lengths
-    double drho,dr,cut,mass;  // array spacings and cutoff, mass
-    double *frho,*rhor;       // array values
-    double *zr,*z2r;          // zr set for funcfl, z2r set for setfl
+  int *map;                   // which element each atom type maps to
+
+  struct Funcfl {
+    char *file;
+    int nrho,nr;
+    double drho,dr,cut,mass;
+    double *frho,*rhor,*zr;
   };
-  int ntables;
-  Table *tables;
+  Funcfl *funcfl;
+  int nfuncfl;
 
-  // potential stored in multi-type setfl format
-  // created from read-in tables
+  struct Setfl {
+    char **elements;
+    int nelements,nrho,nr;
+    double drho,dr,cut;
+    double *mass;
+    double **frho,**rhor,***z2r;
+  };
+  Setfl *setfl;
+
+  struct Fs {
+    char **elements;
+    int nelements,nrho,nr;
+    double drho,dr,cut;
+    double *mass;
+    double **frho,***rhor,***z2r;
+  };
+  Fs *fs;
+
+  // potentials as array data
 
   int nrho,nr;
-  double drho,dr;
-  double **frho,**rhor,**zrtmp;
-  double ***z2r;
+  int nfrho,nrhor,nz2r;
+  double **frho,**rhor,**z2r;
+  int *type2frho,**type2rhor,**type2z2r;
+  
+  // potentials in spline form used for force computation
 
-  // potential in spline form used for force computation
-  // created from multi-type setfl format by interpolate()
-
-  double rdr,rdrho;
-  double **rhor_0,**rhor_1,**rhor_2,**rhor_3,**rhor_4,**rhor_5,**rhor_6;
-  double **frho_0,**frho_1,**frho_2,**frho_3,**frho_4,**frho_5,**frho_6;
-  double ***z2r_0,***z2r_1,***z2r_2,***z2r_3,***z2r_4,***z2r_5,***z2r_6;
+  double dr,rdr,drho,rdrho;
+  double ***rhor_spline,***frho_spline,***z2r_spline;
 
   void allocate();
-  int read_funcfl(char *);
-  void convert_funcfl();
-  virtual void interpolate();
-  virtual void interpolate_deallocate();
+  void array2spline();
+  void interpolate(int, double, double *, double **);
   void grab(FILE *, int, double *);
-  void skip(FILE *, int);
+  void single_rho(int, int, double, double &, double &);
   void single_embed(int, int, double &, int, double &);
+
+  virtual void read_file(char *);
+  virtual void file2array();
 };
 
 #endif

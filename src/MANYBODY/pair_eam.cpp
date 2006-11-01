@@ -24,8 +24,8 @@
 #include "force.h"
 #include "update.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
+#include "memory.h"
 #include "error.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -40,16 +40,20 @@ PairEAM::PairEAM()
   nmax = 0;
   rho = NULL;
   fp = NULL;
-  
-  ntables = 0;
-  tables = NULL;
+
+  nfuncfl = 0;
+  funcfl = NULL;
+
+  setfl = NULL;
+  fs = NULL;
+
   frho = NULL;
-  frho_0 = NULL;
-
-  // set rhor to NULL so memory deallocation will work
-  // even from derived classes that don't use rhor
-
   rhor = NULL;
+  z2r = NULL;
+
+  frho_spline = NULL;
+  rhor_spline = NULL;
+  z2r_spline = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -65,26 +69,49 @@ PairEAM::~PairEAM()
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_int_array(tabindex);
+    delete [] map;
+    delete [] type2frho;
+    memory->destroy_2d_int_array(type2rhor);
+    memory->destroy_2d_int_array(type2z2r);
   }
 
-  for (int m = 0; m < ntables; m++) {
-    delete [] tables[m].filename;
-    delete [] tables[m].frho;
-    delete [] tables[m].rhor;
-    delete [] tables[m].zr;
-    delete [] tables[m].z2r;
-  }
-  memory->sfree(tables);
-
-  if (frho) {
-    memory->destroy_2d_double_array(frho);
-    memory->destroy_2d_double_array(rhor);
-    memory->destroy_2d_double_array(zrtmp);
-    memory->destroy_3d_double_array(z2r);
+  if (funcfl) {
+    for (int i = 0; i < nfuncfl; i++) {
+      delete [] funcfl[i].file;
+      memory->sfree(funcfl[i].frho);
+      memory->sfree(funcfl[i].rhor);
+      memory->sfree(funcfl[i].zr);
+    }
+    memory->sfree(funcfl);
   }
 
-  if (frho_0) interpolate_deallocate();
+  if (setfl) {
+    for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
+    delete [] setfl->elements;
+    delete [] setfl->mass;
+    memory->destroy_2d_double_array(setfl->frho);
+    memory->destroy_2d_double_array(setfl->rhor);
+    memory->destroy_3d_double_array(setfl->z2r);
+    delete setfl;
+  }
+
+  if (fs) {
+    for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
+    delete [] fs->elements;
+    delete [] fs->mass;
+    memory->destroy_2d_double_array(fs->frho);
+    memory->destroy_3d_double_array(fs->rhor);
+    memory->destroy_3d_double_array(fs->z2r);
+    delete fs;
+  }
+
+  memory->destroy_2d_double_array(frho);
+  memory->destroy_2d_double_array(rhor);
+  memory->destroy_2d_double_array(z2r);
+
+  memory->destroy_3d_double_array(frho_spline);
+  memory->destroy_3d_double_array(rhor_spline);
+  memory->destroy_3d_double_array(z2r_spline);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,6 +121,7 @@ void PairEAM::compute(int eflag, int vflag)
   int i,j,k,m,numneigh,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r,p,fforce,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
+  double *coeff;
   int *neighs;
   double **f;
 
@@ -103,8 +131,8 @@ void PairEAM::compute(int eflag, int vflag)
     memory->sfree(rho);
     memory->sfree(fp);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"eam:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"eam:fp");
+    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
+    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
   }
 
   eng_vdwl = 0.0;
@@ -150,11 +178,12 @@ void PairEAM::compute(int eflag, int vflag)
 	m = MIN(m,nr-1);
 	p -= m;
 	p = MIN(p,1.0);
-	rho[i] += ((rhor_3[jtype][m]*p + rhor_2[jtype][m])*p + 
-		   rhor_1[jtype][m])*p + rhor_0[jtype][m];
-	if (newton_pair || j < nlocal)
-	  rho[j] += ((rhor_3[itype][m]*p + rhor_2[itype][m])*p + 
-		     rhor_1[itype][m])*p + rhor_0[itype][m];
+	coeff = rhor_spline[type2rhor[jtype][itype]][m];
+	rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+	if (newton_pair || j < nlocal) {
+	  coeff = rhor_spline[type2rhor[itype][jtype]][m];
+	  rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+	}
       }
     }
   }
@@ -167,18 +196,14 @@ void PairEAM::compute(int eflag, int vflag)
   // phi = embedding energy at each atom
 
   for (i = 0; i < nlocal; i++) {
-    itype = type[i];
     p = rho[i]*rdrho + 1.0;
     m = static_cast<int> (p);
     m = MAX(1,MIN(m,nrho-1));
     p -= m;
     p = MIN(p,1.0);
-    fp[i] = (frho_6[itype][m]*p + frho_5[itype][m])*p + frho_4[itype][m];
-    if (eflag) {
-      phi = ((frho_3[itype][m]*p + frho_2[itype][m])*p + 
-	     frho_1[itype][m])*p + frho_0[itype][m];
-      eng_vdwl += phi;
-    }
+    coeff = frho_spline[type2frho[type[i]]][m];
+    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    if (eflag) eng_vdwl += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
   }
 
   // communicate derivative of embedding function
@@ -223,20 +248,20 @@ void PairEAM::compute(int eflag, int vflag)
 	//   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
 	//   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
 
-	rhoip = (rhor_6[itype][m]*p + rhor_5[itype][m])*p + 
-	  rhor_4[itype][m];
-	rhojp = (rhor_6[jtype][m]*p + rhor_5[jtype][m])*p + 
-	  rhor_4[jtype][m];
-	z2 = ((z2r_3[itype][jtype][m]*p + z2r_2[itype][jtype][m])*p + 
-	      z2r_1[itype][jtype][m])*p + z2r_0[itype][jtype][m];
-	z2p = (z2r_6[itype][jtype][m]*p + z2r_5[itype][jtype][m])*p + 
-	  z2r_4[itype][jtype][m];
-
+	coeff = rhor_spline[type2rhor[itype][jtype]][m];
+	rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+	coeff = rhor_spline[type2rhor[jtype][itype]][m];
+	rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+	coeff = z2r_spline[type2z2r[itype][jtype]][m];
+	z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+	z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+	
 	recip = 1.0/r;
 	phi = z2*recip;
 	phip = z2p*recip - phi*recip;
 	psip = fp[i]*rhojp + fp[j]*rhoip + phip;
 	fforce = psip*recip;
+
 	f[i][0] -= delx*fforce;
 	f[i][1] -= dely*fforce;
 	f[i][2] -= delz*fforce;
@@ -289,7 +314,13 @@ void PairEAM::allocate()
       setflag[i][j] = 0;
 
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  tabindex = memory->create_2d_int_array(n+1,n+1,"pair:tabindex");
+
+  map = new int[n+1];
+  for (int i = 1; i <= n; i++) map[n] = -1;
+
+  type2frho = new int[n+1];
+  type2rhor = memory->create_2d_int_array(n+1,n+1,"pair:type2rhor");
+  type2z2r = memory->create_2d_int_array(n+1,n+1,"pair:type2z2r");
 }
 
 /* ----------------------------------------------------------------------
@@ -303,7 +334,7 @@ void PairEAM::settings(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
-   reading multiple funcfl files defines a funcfl alloy simulation
+   read DYNAMO funcfl file
 ------------------------------------------------------------------------- */
 
 void PairEAM::coeff(int narg, char **arg)
@@ -318,20 +349,33 @@ void PairEAM::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  // read funcfl file only for i,i pairs
-  // only setflag i,i will be set
-  // set mass of each atom type
+  // read funcfl file if hasn't already been read
+  // store filename in Funcfl data struct
 
-  int itable;
+  int ifuncfl;
+  for (ifuncfl = 0; ifuncfl < nfuncfl; ifuncfl++)
+    if (strcmp(arg[2],funcfl[ifuncfl].file) == 0) break;
+
+  if (ifuncfl == nfuncfl) {
+    nfuncfl++;
+    funcfl = (Funcfl *) 
+      memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
+    read_file(arg[2]);
+    int n = strlen(arg[2]) + 1;
+    funcfl[ifuncfl].file = new char[n];
+    strcpy(funcfl[ifuncfl].file,arg[2]);
+  }
+
+  // set setflag and map only for i,i type pairs
+  // set mass of atom type if i = j
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       if (i == j) {
-	itable = read_funcfl(arg[2]);
-	atom->set_mass(i,tables[itable].mass);
-	tabindex[i][i] = itable;
 	setflag[i][i] = 1;
+	map[i] = ifuncfl;
+	atom->set_mass(i,funcfl[ifuncfl].mass);
 	count++;
       }
     }
@@ -346,23 +390,16 @@ void PairEAM::coeff(int narg, char **arg)
 
 double PairEAM::init_one(int i, int j)
 {
-  // only setflag I,I was set by coeff
-  // mixing will occur in init_style if both I,I and J,J were set
+  // single global cutoff = max of cut from all files read in
+  // for funcfl could be multiple files
+  // for setfl or fs, just one file
 
-  if (setflag[i][i] == 0 || setflag[j][j] == 0)
-    error->all("All EAM pair coeffs are not set");
-
-  // EAM has only one cutoff = max of all pairwise cutoffs
-  // determine max by checking table assigned to all type pairs
-  // only setflag[i][j] = 1 is relevant (if hybrid, some may not be set)
-
-  cutmax = 0.0;
-  for (int ii = 1; ii <= atom->ntypes; ii++) {
-    for (int jj = ii; jj <= atom->ntypes; jj++) {
-      if (setflag[ii][jj] == 0) continue;
-      cutmax = MAX(cutmax,tables[tabindex[ii][jj]].cut);
-    }
-  }
+  if (funcfl) {
+    cutmax = 0.0;
+    for (int m = 0; m < nfuncfl; m++)
+      cutmax = MAX(cutmax,funcfl[m].cut);
+  } else if (setfl) cutmax = setfl->cut;
+  else if (fs) cutmax = fs->cut;
 
   return cutmax;
 }
@@ -378,120 +415,98 @@ void PairEAM::init_style()
   comm->maxforward_pair = MAX(comm->maxforward_pair,1);
   comm->maxreverse_pair = MAX(comm->maxreverse_pair,1);
 
-  // convert read-in funcfl tables to multi-type setfl format and mix I,J
-  // interpolate final spline coeffs
-  
-  convert_funcfl();
-  interpolate();
-  
+  // convert read-in file(s) to arrays and spline them
+
+  file2array();
+  array2spline();
+
   cutforcesq = cutmax*cutmax;
 }
 
 /* ----------------------------------------------------------------------
-   read potential values from a single element EAM file
-   read values into table and bcast values
+   read potential values from a DYNAMO single element funcfl file
 ------------------------------------------------------------------------- */
 
-int PairEAM::read_funcfl(char *file)
+void PairEAM::read_file(char *filename)
 {
-  // check if same file has already been read
-  // if yes, return index of table entry
-  // if no, extend table list
-
-  for (int i = 0; i < ntables; i++)
-    if (strcmp(file,tables->filename) == 0) return i;
-
-  tables = (Table *) 
-    memory->srealloc(tables,(ntables+1)*sizeof(Table),"pair:tables");
-
-  Table *tb = &tables[ntables];
-  int n = strlen(file) + 1;
-  tb->filename = new char[n];
-  strcpy(tb->filename,file);
-  tb->ith = tb->jth = 0;
-
-  // open potential file
+  Funcfl *file = &funcfl[nfuncfl-1];
 
   int me = comm->me;
   FILE *fp;
   char line[MAXLINE];
 
   if (me == 0) {
-    fp = fopen(file,"r");
+    fp = fopen(filename,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EAM potential file %s",file);
+      sprintf(str,"Cannot open EAM potential file %s",filename);
       error->one(str);
     }
   }
-
-  // read and broadcast header
 
   int tmp;
   if (me == 0) {
     fgets(line,MAXLINE,fp);
     fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg",&tmp,&tb->mass);
+    sscanf(line,"%d %lg",&tmp,&file->mass);
     fgets(line,MAXLINE,fp);
     sscanf(line,"%d %lg %d %lg %lg",
-	   &tb->nrho,&tb->drho,&tb->nr,&tb->dr,&tb->cut);
+	   &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
 
-  MPI_Bcast(&tb->mass,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&tb->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&tb->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&tb->cut,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&file->mass,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
+  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
+  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
-  // allocate potential arrays and read/bcast them
-  // set z2r to NULL (setfl array) so it can be deallocated
+  file->frho = (double *) memory->smalloc((file->nrho+1)*sizeof(double),
+					  "pair:frho");
+  file->rhor = (double *) memory->smalloc((file->nr+1)*sizeof(double),
+					  "pair:rhor");
+  file->zr = (double *) memory->smalloc((file->nr+1)*sizeof(double),
+					"pair:zr");
 
-  tb->frho = new double[tb->nrho+1];
-  tb->zr = new double[tb->nr+1];
-  tb->rhor = new double[tb->nr+1];
-  tb->z2r = NULL;
+  if (me == 0) grab(fp,file->nrho,&file->frho[1]);
+  MPI_Bcast(&file->frho[1],file->nrho,MPI_DOUBLE,0,world);
 
-  if (me == 0) grab(fp,tb->nrho,&tb->frho[1]);
-  MPI_Bcast(&tb->frho[1],tb->nrho,MPI_DOUBLE,0,world);
+  if (me == 0) grab(fp,file->nr,&file->zr[1]);
+  MPI_Bcast(&file->zr[1],file->nr,MPI_DOUBLE,0,world);
 
-  if (me == 0) grab(fp,tb->nr,&tb->zr[1]);
-  MPI_Bcast(&tb->zr[1],tb->nr,MPI_DOUBLE,0,world);
-
-  if (me == 0) grab(fp,tb->nr,&tb->rhor[1]);
-  MPI_Bcast(&tb->rhor[1],tb->nr,MPI_DOUBLE,0,world);
-
-  // close the potential file
+  if (me == 0) grab(fp,file->nr,&file->rhor[1]);
+  MPI_Bcast(&file->rhor[1],file->nr,MPI_DOUBLE,0,world);
 
   if (me == 0) fclose(fp);
-
-  ntables++;
-  return ntables-1;
 }
 
 /* ----------------------------------------------------------------------
-   convert read-in funcfl potentials to multi-type setfl format
+   convert read-in funcfl potential(s) to standard array format
+   interpolate all file values to a single grid and cutoff
 ------------------------------------------------------------------------- */
 
-void PairEAM::convert_funcfl()
+void PairEAM::file2array()
 {
-  int i,j,k,m;
-
+  int i,j,k,m,n;
   int ntypes = atom->ntypes;
 
-  // determine max values for all i,i type pairs
-  // skip if setflag = 0 (if hybrid, some may not be set)
+  // determine max function params from all active funcfl files
+  // active means some element is pointing at it via map
 
+  int active;
   double rmax,rhomax;
   dr = drho = rmax = rhomax = 0.0;
 
-  for (int i = 1; i <= ntypes; i++) {
-    if (setflag[i][i] == 0) continue;
-    Table *tb = &tables[tabindex[i][i]];
-    dr = MAX(dr,tb->dr);
-    drho = MAX(drho,tb->drho);
-    rmax = MAX(rmax,(tb->nr-1) * tb->dr);
-    rhomax = MAX(rhomax,(tb->nrho-1) * tb->drho);
+  for (int i = 0; i < nfuncfl; i++) {
+    active = 0;
+    for (j = 1; j <= ntypes; j++)
+      if (map[j] == i) active = 1;
+    if (active == 0) continue;
+    Funcfl *file = &funcfl[i];
+    dr = MAX(dr,file->dr);
+    drho = MAX(drho,file->drho);
+    rmax = MAX(rmax,(file->nr-1) * file->dr);
+    rhomax = MAX(rhomax,(file->nrho-1) * file->drho);
   }
 
   // set nr,nrho from cutoff and spacings
@@ -500,38 +515,29 @@ void PairEAM::convert_funcfl()
   nr = static_cast<int> (rmax/dr + 0.5);
   nrho = static_cast<int> (rhomax/drho + 0.5);
 
-  // allocate multi-type setfl arrays
+  // ------------------------------------------------------------------
+  // setup frho arrays
+  // ------------------------------------------------------------------
 
-  if (frho) {
-    memory->destroy_2d_double_array(frho);
-    memory->destroy_2d_double_array(rhor);
-    memory->destroy_2d_double_array(zrtmp);
-    memory->destroy_3d_double_array(z2r);
-  }
+  // allocate frho arrays
+  // nfrho = # of funcfl files + 1 for zero array
+  
+  nfrho = nfuncfl + 1;
+  memory->destroy_2d_double_array(frho);
+  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
 
-  frho = (double **) 
-    memory->create_2d_double_array(ntypes+1,nrho+1,"eam:frho");
-  rhor = (double **)
-    memory->create_2d_double_array(ntypes+1,nr+1,"eam:rhor");
-  zrtmp = (double **)
-    memory->create_2d_double_array(ntypes+1,nr+1,"eam:zrtmp");
-  z2r = (double ***)
-    memory->create_3d_double_array(ntypes+1,ntypes+1,nr+1,"eam:frho");
-
-  // interpolate all potentials to a single grid and cutoff for all atom types
-  // frho,rhor are 1:ntypes, z2r is 1:ntypes,1:ntypes
-  // skip if setflag i,i or j,j = 0 (if hybrid, some may not be set)
+  // interpolate each file's frho to a single grid and cutoff
 
   double r,p,cof1,cof2,cof3,cof4;
   
-  for (i = 1; i <= ntypes; i++) {
-    if (setflag[i][i] == 0) continue;
-    Table *tb = &tables[tabindex[i][i]];
+  n = 0;
+  for (i = 0; i < nfuncfl; i++) {
+    Funcfl *file = &funcfl[i];
     for (m = 1; m <= nrho; m++) {
       r = (m-1)*drho;
-      p = r/tb->drho + 1.0;
+      p = r/file->drho + 1.0;
       k = static_cast<int> (p);
-      k = MIN(k,tb->nrho-2);
+      k = MIN(k,file->nrho-2);
       k = MAX(k,2);
       p -= k;
       p = MIN(p,2.0);
@@ -539,207 +545,203 @@ void PairEAM::convert_funcfl()
       cof2 = 0.5*(p*p-1.0)*(p-2.0);
       cof3 = -0.5*p*(p+1.0)*(p-2.0);
       cof4 = 0.166666667*p*(p*p-1.0);
-      frho[i][m] = cof1*tb->frho[k-1] + cof2*tb->frho[k] + 
-	cof3*tb->frho[k+1] + cof4*tb->frho[k+2];
+      frho[n][m] = cof1*file->frho[k-1] + cof2*file->frho[k] + 
+	cof3*file->frho[k+1] + cof4*file->frho[k+2];
     }
+    n++;
   }
 
-  for (i = 1; i <= ntypes; i++) {
-    if (setflag[i][i] == 0) continue;
-    Table *tb = &tables[tabindex[i][i]];
-    for (m = 1; m <= nr; m++) {
-      r = (m-1)*dr;
-      p = r/tb->dr + 1.0;
-      k = static_cast<int> (p);
-      k = MIN(k,tb->nr-2);
-      k = MAX(k,2);
-      p -= k;
-      p = MIN(p,2.0);
-      cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
-      cof2 = 0.5*(p*p-1.0)*(p-2.0);
-      cof3 = -0.5*p*(p+1.0)*(p-2.0);
-      cof4 = 0.166666667*p*(p*p-1.0);
-      rhor[i][m] = cof1*tb->rhor[k-1] + cof2*tb->rhor[k] +
-	cof3*tb->rhor[k+1] + cof4*tb->rhor[k+2];
-      zrtmp[i][m] = cof1*tb->zr[k-1] + cof2*tb->zr[k] +
-	cof3*tb->zr[k+1] + cof4*tb->zr[k+2];
-    }
-  }
+  // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
+  // this is necessary b/c fp is still computed for non-EAM atoms
+
+  for (m = 1; m <= nrho; m++) frho[nfrho-1][m] = 0.0;
+
+  // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
+  // if atom type doesn't point to file (non-EAM atom in pair hybrid)
+  // then map it to last frho array of zeroes
 
   for (i = 1; i <= ntypes; i++)
-    for (j = i; j <= ntypes; j++) {
-      if (setflag[i][i] == 0 || setflag[j][j] == 0) continue;
-      for (m = 1; m <= nr; m++)
-	z2r[i][j][m] = 27.2*0.529 * zrtmp[i][m]*zrtmp[j][m];
+    if (map[i] >= 0) type2frho[i] = map[i];
+    else type2frho[i] = nfrho-1;
+
+  // ------------------------------------------------------------------
+  // setup rhor arrays
+  // ------------------------------------------------------------------
+
+  // allocate rhor arrays
+  // nrhor = # of funcfl files
+
+  nrhor = nfuncfl;
+  memory->destroy_2d_double_array(rhor);
+  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+
+  // interpolate each file's rhor to a single grid and cutoff
+
+  n = 0;
+  for (i = 0; i < nfuncfl; i++) {
+    Funcfl *file = &funcfl[i];
+    for (m = 1; m <= nr; m++) {
+      r = (m-1)*dr;
+      p = r/file->dr + 1.0;
+      k = static_cast<int> (p);
+      k = MIN(k,file->nr-2);
+      k = MAX(k,2);
+      p -= k;
+      p = MIN(p,2.0);
+      cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+      cof2 = 0.5*(p*p-1.0)*(p-2.0);
+      cof3 = -0.5*p*(p+1.0)*(p-2.0);
+      cof4 = 0.166666667*p*(p*p-1.0);
+      rhor[n][m] = cof1*file->rhor[k-1] + cof2*file->rhor[k] +
+	cof3*file->rhor[k+1] + cof4*file->rhor[k+2];
     }
+    n++;
+  }
+
+  // type2rhor[i][j] = which rhor array (0 to nrhor-1) each type pair maps to
+  // for funcfl files, I,J mapping only depends on I
+  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
+
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++)
+      type2rhor[i][j] = map[i];
+
+  // ------------------------------------------------------------------
+  // setup z2r arrays
+  // ------------------------------------------------------------------
+
+  // allocate z2r arrays
+  // nz2r = N*(N+1)/2 where N = # of funcfl files
+
+  nz2r = nfuncfl*(nfuncfl+1)/2;
+  memory->destroy_2d_double_array(z2r);
+  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+
+  // create a z2r array for each file against other files, only for I >= J
+  // interpolate zri and zrj to a single grid and cutoff
+
+  double zri,zrj;
+
+  n = 0;
+  for (i = 0; i < nfuncfl; i++) {
+    Funcfl *ifile = &funcfl[i];
+    for (j = 0; j <= i; j++) {
+      Funcfl *jfile = &funcfl[j];
+
+      for (m = 1; m <= nr; m++) {
+	r = (m-1)*dr;
+
+	p = r/ifile->dr + 1.0;
+	k = static_cast<int> (p);
+	k = MIN(k,ifile->nr-2);
+	k = MAX(k,2);
+	p -= k;
+	p = MIN(p,2.0);
+	cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+	cof2 = 0.5*(p*p-1.0)*(p-2.0);
+	cof3 = -0.5*p*(p+1.0)*(p-2.0);
+	cof4 = 0.166666667*p*(p*p-1.0);
+	zri = cof1*ifile->zr[k-1] + cof2*ifile->zr[k] +
+	  cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
+
+	p = r/jfile->dr + 1.0;
+	k = static_cast<int> (p);
+	k = MIN(k,jfile->nr-2);
+	k = MAX(k,2);
+	p -= k;
+	p = MIN(p,2.0);
+	cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+	cof2 = 0.5*(p*p-1.0)*(p-2.0);
+	cof3 = -0.5*p*(p+1.0)*(p-2.0);
+	cof4 = 0.166666667*p*(p*p-1.0);
+	zrj = cof1*jfile->zr[k-1] + cof2*jfile->zr[k] +
+	  cof3*jfile->zr[k+1] + cof4*jfile->zr[k+2];
+
+	z2r[n][m] = 27.2*0.529 * zri*zrj;
+      }
+      n++;
+    }
+  }
+
+  // type2z2r[i][j] = which z2r array (0 to nz2r-1) each type pair maps to
+  // set of z2r arrays only fill lower triangular Nelement matrix
+  // value = n = sum over rows of lower-triangular matrix until reach irow,icol
+  // swap indices when irow < icol to stay lower triangular
+  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2z2r not used
+
+  int irow,icol;
+  for (i = 1; i <= ntypes; i++) {
+    irow = map[i];
+    if (irow == -1) continue;
+    for (j = 1; j <= ntypes; j++) {
+      icol = map[j];
+      if (icol == -1) continue;
+      if (irow < icol) {
+	irow = map[j];
+	icol = map[i];
+      }
+      n = 0;
+      for (m = 0; m < irow; m++) n += m + 1;
+      n += icol;
+      type2z2r[i][j] = n;
+    }
+  }
 }
 
-/* ----------------------------------------------------------------------
-   interpolate EAM potentials
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void PairEAM::interpolate()
+void PairEAM::array2spline()
 {
-  // free memory from previous interpolation
-
-  if (frho_0) interpolate_deallocate();
-
-  // interpolation spacings
-
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
-  // allocate coeff arrays
+  memory->destroy_3d_double_array(frho_spline);
+  memory->destroy_3d_double_array(rhor_spline);
+  memory->destroy_3d_double_array(z2r_spline);
 
-  int n = atom->ntypes;
+  frho_spline = memory->create_3d_double_array(nfrho,nrho+1,7,"pair:frho");
+  rhor_spline = memory->create_3d_double_array(nrhor,nr+1,7,"pair:rhor");
+  z2r_spline = memory->create_3d_double_array(nz2r,nr+1,7,"pair:z2r");
 
-  frho_0 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_0");
-  frho_1 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_1");
-  frho_2 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_2");
-  frho_3 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_3");
-  frho_4 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_4");
-  frho_5 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_5");
-  frho_6 = memory->create_2d_double_array(n+1,nrho+1,"eam:frho_6");
+  for (int i = 0; i < nfrho; i++)
+    interpolate(nrho,drho,frho[i],frho_spline[i]);
 
-  rhor_0 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_0");
-  rhor_1 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_1");
-  rhor_2 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_2");
-  rhor_3 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_3");
-  rhor_4 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_4");
-  rhor_5 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_5");
-  rhor_6 = memory->create_2d_double_array(n+1,nr+1,"eam:rhor_6");
+  for (int i = 0; i < nrhor; i++)
+    interpolate(nr,dr,rhor[i],rhor_spline[i]);
 
-  z2r_0 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_0");
-  z2r_1 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_1");
-  z2r_2 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_2");
-  z2r_3 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_3");
-  z2r_4 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_4");
-  z2r_5 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_5");
-  z2r_6 = memory->create_3d_double_array(n+1,n+1,nr+1,"eam:z2r_6");
+  for (int i = 0; i < nz2r; i++)
+    interpolate(nr,dr,z2r[i],z2r_spline[i]);
+}
 
-  // frho interpolation for 1:ntypes
-  // skip if setflag = 0 (if hybrid, some may not be set)
-  // if skip, set frho arrays to 0.0, since they will still be accessed
-  //   for non-EAM atoms when compute() calculates embedding function
+/* ---------------------------------------------------------------------- */
 
-  int i,j,m;
+void PairEAM::interpolate(int n, double delta, double *f, double **spline)
+{
+  for (int m = 1; m <= n; m++) spline[m][6] = f[m];
 
-  for (i = 1; i <= atom->ntypes; i++) {
-    if (setflag[i][i] == 0) {
-      for (j = 1; j <= n; j++)
-      	for (m = 1; m <= nrho; m++)
-      	  frho_0[j][m] = frho_1[j][m] = frho_2[j][m] =  frho_3[j][m] =
-      	    frho_4[j][m] = frho_5[j][m] = frho_6[j][m] = 0.0;
-      continue;
-    }
-
-    for (m = 1; m <= nrho; m++) frho_0[i][m] = frho[i][m];
-
-    frho_1[i][1] = frho_0[i][2]-frho_0[i][1];
-    frho_1[i][2] = 0.5*(frho_0[i][3]-frho_0[i][1]);
-    frho_1[i][nrho-1] = 0.5*(frho_0[i][nrho]-frho_0[i][nrho-2]);
-    frho_1[i][nrho] = frho_0[i][nrho]-frho_0[i][nrho-1];
-
-    for (m = 3; m <= nrho-2; m++)
-      frho_1[i][m] = ((frho_0[i][m-2]-frho_0[i][m+2]) + 
-		       8.0*(frho_0[i][m+1]-frho_0[i][m-1]))/12.0;
-
-    for (m = 1; m <= nrho-1; m++) {
-      frho_2[i][m] = 3.*(frho_0[i][m+1]-frho_0[i][m]) - 
-	2.0*frho_1[i][m] - frho_1[i][m+1];
-      frho_3[i][m] = frho_1[i][m] + frho_1[i][m+1] - 
-	2.0*(frho_0[i][m+1]-frho_0[i][m]);
-    }
-
-    frho_2[i][nrho] = 0.0;
-    frho_3[i][nrho] = 0.0;
-
-    for (m = 1; m <= nrho; m++) {
-      frho_4[i][m] = frho_1[i][m]/drho;
-      frho_5[i][m] = 2.0*frho_2[i][m]/drho;
-      frho_6[i][m] = 3.0*frho_3[i][m]/drho;
-    }
+  spline[1][5] = spline[2][6] - spline[1][6];
+  spline[2][5] = 0.5 * (spline[3][6]-spline[1][6]);
+  spline[n-1][5] = 0.5 * (spline[n][6]-spline[n-2][6]);
+  spline[n][5] = spline[n][6] - spline[n-1][6];
+  
+  for (int m = 3; m <= n-2; m++)
+    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) + 
+		    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
+  
+  for (int m = 1; m <= n-1; m++) {
+    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) - 
+      2.0*spline[m][5] - spline[m+1][5];
+    spline[m][3] = spline[m][5] + spline[m+1][5] - 
+      2.0*(spline[m+1][6]-spline[m][6]);
   }
-
-  // rhor interpolation for 1:ntypes
-  // skip if setflag = 0 (if hybrid, some may not be set)
-
-  for (i = 1; i <= atom->ntypes; i++) {
-    if (setflag[i][i] == 0) continue;
-
-    for (m = 1; m <= nr; m++) rhor_0[i][m] = rhor[i][m];
-
-    rhor_1[i][1] = rhor_0[i][2]-rhor_0[i][1];
-    rhor_1[i][2] = 0.5*(rhor_0[i][3]-rhor_0[i][1]);
-    rhor_1[i][nr-1] = 0.5*(rhor_0[i][nr]-rhor_0[i][nr-2]);
-    rhor_1[i][nr] = 0.0;
-
-    for (m = 3; m <= nr-2; m++)
-      rhor_1[i][m] = ((rhor_0[i][m-2]-rhor_0[i][m+2]) + 
-		       8.0*(rhor_0[i][m+1]-rhor_0[i][m-1]))/12.;
-
-    for (m = 1; m <= nr-1; m++) {
-      rhor_2[i][m] = 3.0*(rhor_0[i][m+1]-rhor_0[i][m]) - 
-	2.0*rhor_1[i][m] - rhor_1[i][m+1];
-      rhor_3[i][m] = rhor_1[i][m] + rhor_1[i][m+1] - 
-	2.0*(rhor_0[i][m+1]-rhor_0[i][m]);
-    }
-
-    rhor_2[i][nr] = 0.0;
-    rhor_3[i][nr] = 0.0;
-
-    for (m = 1; m <= nr; m++) {
-      rhor_4[i][m] = rhor_1[i][m]/dr;
-      rhor_5[i][m] = 2.0*rhor_2[i][m]/dr;
-      rhor_6[i][m] = 3.0*rhor_3[i][m]/dr;
-    }
-  }
-
-  // z2r interpolation for 1:ntypes,1:ntypes
-  // skip if setflag i,i or j,j = 0 (if hybrid, some may not be set)
-  // set j,i coeffs = i,j coeffs
-
-  for (i = 1; i <= atom->ntypes; i++) {
-    for (j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][i] == 0 || setflag[j][j] == 0) continue;
-
-      for (m = 1; m <= nr; m++) z2r_0[i][j][m] = z2r[i][j][m];
-
-      z2r_1[i][j][1] = z2r_0[i][j][2]-z2r_0[i][j][1];
-      z2r_1[i][j][2] = 0.5*(z2r_0[i][j][3]-z2r_0[i][j][1]);
-      z2r_1[i][j][nr-1] = 0.5*(z2r_0[i][j][nr]-z2r_0[i][j][nr-2]);
-      z2r_1[i][j][nr] = 0.0;
-
-      for (m = 3; m <= nr-2; m++) 
-	z2r_1[i][j][m] = ((z2r_0[i][j][m-2]-z2r_0[i][j][m+2]) + 
-			   8.0*(z2r_0[i][j][m+1]-z2r_0[i][j][m-1]))/12.;
-
-      for (m = 1; m <= nr-1; m++) {
-	z2r_2[i][j][m] = 3.0*(z2r_0[i][j][m+1]-z2r_0[i][j][m]) - 
-	  2.0*z2r_1[i][j][m] - z2r_1[i][j][m+1];
-	z2r_3[i][j][m] = z2r_1[i][j][m] + z2r_1[i][j][m+1] - 
-	  2.0*(z2r_0[i][j][m+1]-z2r_0[i][j][m]);
-      }
-
-      z2r_2[i][j][nr] = 0.0;
-      z2r_3[i][j][nr] = 0.0;
-
-      for (m = 1; m <= nr; m++) {
-	z2r_4[i][j][m] = z2r_1[i][j][m]/dr;
-	z2r_5[i][j][m] = 2.0*z2r_2[i][j][m]/dr;
-	z2r_6[i][j][m] = 3.0*z2r_3[i][j][m]/dr;
-      }
-
-      for (m = 1; m <= nr; m++) {
-	z2r_0[j][i][m] = z2r_0[i][j][m];
-	z2r_1[j][i][m] = z2r_1[i][j][m];
-	z2r_2[j][i][m] = z2r_2[i][j][m];
-	z2r_3[j][i][m] = z2r_3[i][j][m];
-	z2r_4[j][i][m] = z2r_4[i][j][m];
-	z2r_5[j][i][m] = z2r_5[i][j][m];
-	z2r_6[j][i][m] = z2r_6[i][j][m];
-      }
-    }
+  
+  spline[n][4] = 0.0;
+  spline[n][3] = 0.0;
+  
+  for (int m = 1; m <= n; m++) {
+    spline[m][2] = spline[m][5]/delta;
+    spline[m][1] = 2.0*spline[m][4]/delta;
+    spline[m][0] = 3.0*spline[m][3]/delta;
   }
 }
 
@@ -763,64 +765,15 @@ void PairEAM::grab(FILE *fp, int n, double *list)
   }
 }
 
-/* ----------------------------------------------------------------------
-   skip n values from file fp
-   values can be several to a line
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void PairEAM::skip(FILE *fp, int n)
-{
-  char line[MAXLINE];
-
-  int i = 0;
-  while (i < n) {
-    fgets(line,MAXLINE,fp);
-    strtok(line," \t\n\r\f");
-    i++;
-    while (strtok(NULL," \t\n\r\f")) i++;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   deallocate spline interpolation arrays
-------------------------------------------------------------------------- */
-
-void PairEAM::interpolate_deallocate()
-{
-  memory->destroy_2d_double_array(frho_0);
-  memory->destroy_2d_double_array(frho_1);
-  memory->destroy_2d_double_array(frho_2);
-  memory->destroy_2d_double_array(frho_3);
-  memory->destroy_2d_double_array(frho_4);
-  memory->destroy_2d_double_array(frho_5);
-  memory->destroy_2d_double_array(frho_6);
-
-  memory->destroy_2d_double_array(rhor_0);
-  memory->destroy_2d_double_array(rhor_1);
-  memory->destroy_2d_double_array(rhor_2);
-  memory->destroy_2d_double_array(rhor_3);
-  memory->destroy_2d_double_array(rhor_4);
-  memory->destroy_2d_double_array(rhor_5);
-  memory->destroy_2d_double_array(rhor_6);
-
-  memory->destroy_3d_double_array(z2r_0);
-  memory->destroy_3d_double_array(z2r_1);
-  memory->destroy_3d_double_array(z2r_2);
-  memory->destroy_3d_double_array(z2r_3);
-  memory->destroy_3d_double_array(z2r_4);
-  memory->destroy_3d_double_array(z2r_5);
-  memory->destroy_3d_double_array(z2r_6);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void PairEAM::single(int i, int j, int itype, int jtype,
-		     double rsq, double factor_coul, double factor_lj,
-		     int eflag, One &one)
+		      double rsq, double factor_coul, double factor_lj,
+		      int eflag, One &one)
 {
-  double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   int m;
+  double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
+  double *coeff;
 
   r = sqrt(rsq);
   p = r*rdr + 1.0;
@@ -828,15 +781,14 @@ void PairEAM::single(int i, int j, int itype, int jtype,
   m = MIN(m,nr-1);
   p -= m;
   p = MIN(p,1.0);
-
-  rhoip = (rhor_6[itype][m]*p + rhor_5[itype][m])*p + 
-    rhor_4[itype][m];
-  rhojp = (rhor_6[jtype][m]*p + rhor_5[jtype][m])*p + 
-    rhor_4[jtype][m];
-  z2 = ((z2r_3[itype][jtype][m]*p + z2r_2[itype][jtype][m])*p + 
-	z2r_1[itype][jtype][m])*p + z2r_0[itype][jtype][m];
-  z2p = (z2r_6[itype][jtype][m]*p + z2r_5[itype][jtype][m])*p + 
-    z2r_4[itype][jtype][m];
+  
+  coeff = rhor_spline[type2rhor[itype][jtype]][m];
+  rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+  coeff = rhor_spline[type2rhor[jtype][itype]][m];
+  rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+  coeff = z2r_spline[type2z2r[itype][jtype]][m];
+  z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+  z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
   recip = 1.0/r;
   phi = z2*recip;
@@ -859,11 +811,10 @@ void PairEAM::single_embed(int i, int itype, double &fpi,
   int m = static_cast<int> (p);
   m = MAX(1,MIN(m,nrho-1));
   p -= m;
-
-  fpi = (frho_6[itype][m]*p + frho_5[itype][m])*p + frho_4[itype][m];
-  if (eflag)
-    phi = ((frho_3[itype][m]*p + frho_2[itype][m])*p + 
-	   frho_1[itype][m])*p + frho_0[itype][m];
+  
+  double *coeff = frho_spline[type2frho[itype]][m];
+  fpi = (coeff[0]*p + coeff[1])*p + coeff[2];
+  if (eflag) phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 }
 
 /* ---------------------------------------------------------------------- */

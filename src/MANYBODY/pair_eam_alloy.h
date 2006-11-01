@@ -18,15 +18,11 @@
 
 class PairEAMAlloy : public PairEAM {
  public:
-  PairEAMAlloy();
   void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
 
  private:
-  int read_setfl(char *, int, int);
-  void store_setfl();
-  void interpolate();
+  void read_file(char *);
+  void file2array();
 };
 
 #endif

@@ -18,23 +18,11 @@
 
 class PairEAMFS : public PairEAM {
  public:
-  PairEAMFS();
-  ~PairEAMFS();
-  void compute(int, int);
   void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void single(int, int, int, int, double, double, double, int, One &);
 
  private:
-  double ***rhor_fs;
-  double ***rhor_fs_0,***rhor_fs_1,***rhor_fs_2,***rhor_fs_3;
-  double ***rhor_fs_4,***rhor_fs_5,***rhor_fs_6;
-
-  int read_setfl(char *, int, int);
-  void store_setfl();
-  void interpolate();
-  void interpolate_deallocate();
+  void read_file(char *);
+  void file2array();
 };
 
 #endif

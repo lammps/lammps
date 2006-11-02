@@ -247,6 +247,11 @@ void FixNPT::init()
 
 void FixNPT::setup()
 {
+  t_target = t_start;                      // used by thermo_compute()
+  p_target[0] = p_start[0];
+  p_target[1] = p_start[1];
+  p_target[2] = p_start[2];
+
   t_current = temperature->compute();
   pressure->compute(temperature);
   couple();

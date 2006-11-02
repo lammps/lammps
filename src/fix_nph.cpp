@@ -241,11 +241,15 @@ void FixNPH::init()
 }
 
 /* ----------------------------------------------------------------------
-   compute temp and press before integrator starts 
+   compute T,P before integrator starts 
 ------------------------------------------------------------------------- */
 
 void FixNPH::setup()
 {
+  p_target[0] = p_start[0];                 // used by thermo_compute()
+  p_target[1] = p_start[1];
+  p_target[2] = p_start[2];
+
   double t_current = temperature->compute();
   pressure->compute(temperature);
   couple();

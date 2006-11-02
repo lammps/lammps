@@ -102,6 +102,7 @@ void FixNVT::init()
 
 void FixNVT::setup()
 {
+  t_target = t_start;                      // used by thermo_compute()
   t_current = temperature->compute();
 }
 

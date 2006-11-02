@@ -15,6 +15,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
+#include "limits.h"
 #include "neighbor.h"
 #include "atom.h"
 #include "force.h"
@@ -831,13 +832,22 @@ void Neighbor::build_full()
 
 void Neighbor::setup_bins()
 {
+  double cutneighinv = 1.0/cutneigh;
+
+  // test for too many global bins in any dimension due to huge domain
+
+  if (2.0*domain->xprd*cutneighinv > INT_MAX ||
+      2.0*domain->yprd*cutneighinv > INT_MAX ||
+      2.0*domain->zprd*cutneighinv > INT_MAX)
+    error->all("Domain too large for neighbor bins");
+
   // divide box into bins
   // optimal size is roughly 1/2 the cutoff
 
-  nbinx = static_cast<int> (2.0 * domain->xprd / cutneigh);
-  nbiny = static_cast<int> (2.0 * domain->yprd / cutneigh);
+  nbinx = static_cast<int> (2.0*domain->xprd*cutneighinv);
+  nbiny = static_cast<int> (2.0*domain->yprd*cutneighinv);
   if (force->dimension == 3)
-    nbinz = static_cast<int> (2.0 * domain->zprd / cutneigh);
+    nbinz = static_cast<int> (2.0*domain->zprd*cutneighinv);
   else nbinz = 1;
 
   if (nbinx == 0) nbinx = 1;
@@ -890,6 +900,11 @@ void Neighbor::setup_bins()
   mbinzlo = mbinzlo - 1;
   mbinzhi = mbinzhi + 1;
   mbinz = mbinzhi - mbinzlo + 1;
+
+  // test for too many total local bins due to huge domain
+
+  if (1.0*mbinx*mbiny*mbinz > INT_MAX)
+    error->all("Domain too large for neighbor bins");
 
   // memory for bin ptrs
 

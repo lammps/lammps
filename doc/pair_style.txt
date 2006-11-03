@@ -123,8 +123,8 @@ the pair_style command, and coefficients specified by the associated
 "pair_style morse"_pair_style_morse.html - Morse potential
 "pair_style soft"_pair_style_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_style_sw.html - Stillinger-Weber 3-body potential
-"pair_style tersoff"_pair_style_tersoff.html - Tersoff 3-body potential
 "pair_style table"_pair_style_table.html - tabulated pair potential
+"pair_style tersoff"_pair_style_tersoff.html - Tersoff 3-body potential
 "pair_style yukawa"_pair_style_yukawa.html - Yukawa potential :ul
 
 :line

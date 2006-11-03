@@ -49,7 +49,8 @@ the "pair_coeff"_pair_coeff.html command.  These are ASCII text files
 in a DYNAMO-style format which is described in the documentation for
 the "pair_coeff"_pair_coeff.html command.  DYNAMO is a serial MD code
 Several DYNAMO potential files for different metals are included in
-the "potentials" directory of the LAMMPS distribution.
+the "potentials" directory of the LAMMPS distribution.  All of these
+are paremeterized in terms of LAMMPS "metal units"_units.html.
 
 IMPORTANT NOTE: The {eam} style reads single-element EAM potentials in
 the DYNAMO {funcfl} format.  Either single element or alloy systems
@@ -89,9 +90,9 @@ alloy potentials for type pairs with I != J is done automatically the
 same way that the serial DYANMO code originally did it; you do not
 need to specify coefficients for these type pairs.
 
-There are several {funcl} files in the {potentials} directory of the
-LAMMPS distribution, with the suffix ".eam".  A DYNAMO single-element
-{funcfl} file is formatted as follows:
+{Funcfl} files in the {potentials} directory of the LAMMPS
+distribution have an ".eam" suffix.  A DYNAMO single-element {funcfl}
+file is formatted as follows:
 
 line 1: comment (ignored)
 line 2: atomic number, mass, lattice constant, lattice type (e.g. FCC)
@@ -176,7 +177,7 @@ This can be used when an {eam/alloy} potential is used as part of the
 that will be used with other potentials.
 
 {Setfl} files in the {potentials} directory of the LAMMPS distribution
-have a ".eam.alloy" suffix.  A DYNAMO multi-element {setfl} file is
+have an ".eam.alloy" suffix.  A DYNAMO multi-element {setfl} file is
 formatted as follows:
 
 lines 1,2,3 = comments (ignored)
@@ -232,16 +233,14 @@ element at that atomic site.
 
 The associated "pair_coeff"_pair_coeff.html command for style {eam/fs}
 reads a DYNAMO {setfl} file that has been extended to include
-additional rho_alpha_beta arrays of tabulated values.  The details are
-given in the "pair_coeff"_pair_coeff.html documentation.
-
-A discussion of how FS EAM differs from conventional EAM alloy
-potentials is given in "(Ackland1)"_#Ackland1.  An example of such a
-potential is the same author's Fe-P FS potential
-"(Ackland2)"_#Ackland2.  Note that while FS potentials always specify
-the embedding energy with a square root dependence on the total
-density, the implementation in LAMMPS does not require that; the user
-can tabulate any functional form desired in the FS potential files.
+additional rho_alpha_beta arrays of tabulated values.  A discussion of
+how FS EAM differs from conventional EAM alloy potentials is given in
+"(Ackland1)"_#Ackland1.  An example of such a potential is the same
+author's Fe-P FS potential "(Ackland2)"_#Ackland2.  Note that while FS
+potentials always specify the embedding energy with a square root
+dependence on the total density, the implementation in LAMMPS does not
+require that; the user can tabulate any functional form desired in the
+FS potential files.
 
 For style {eam/fs}, the form of the pair_coeff command is exactly the
 same as for style {eam/alloy}, e.g.

@@ -1,0 +1,106 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style sw command :h3
+
+[Syntax:]
+
+pair_style sw :pre
+
+[Examples:]
+
+pair_style sw
+pair_coeff * * si.sw Si
+pair_coeff * * SiC.sw Si C Si :pre
+
+[Description:]
+
+The {sw} style computes a 3-body "Stillinger-Weber"_#Stillinger
+potential for the energy E of a system of atoms as
+
+:c,image(Eqs/pair_sw.jpg)
+
+where phi2 is a two-body term and phi3 is a three-body term.  The
+summations in the formula are over all neighbors J and K of atom I
+within a cutoff distance = a*sigma.
+
+Only a single pair_coeff command is used with the {sw} style which
+specifies a Stillinger-Weber potential file with parameters for all
+needed elements.  These are mapped to LAMMPS atom types by specifying
+N additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+
+filename
+N element names = mapping of SW elements to atom types :ul
+
+As an example, imagine the SiC.sw file has Stillinger-Weber values for
+Si and C.  If your LAMMPS simulation has 4 atoms types and you want
+the 1st 3 to be Si, and the 4th to be C, you would use the following
+pair_coeff command:
+
+pair_coeff * * SiC.sw Si Si Si C :pre
+
+The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
+element in the SW file.  The final C argument maps LAMMPS atom type 4
+to the C element in the SW file.  If a mapping value is specified as
+NULL, the mapping is not performed.  This can be used when a {sw}
+potential is used as part of the {hybrid} pair style.  The NULL values
+are placeholders for atom types that will be used with other
+potentials.
+
+Stillinger-Weber files in the {potentials} directory of the LAMMPS
+distribution have a ".sw" suffix.  Lines that are not blank or
+comments (starting with #) define parameters for a triplet of
+elements.  The parameters in a single entry correspond to coefficients
+in the formula above:
+
+element 1 (the center atom in a 3-body interaction)
+element 2
+element 3
+epsilon (energy units)
+sigma (distnace units)
+a
+lambda
+gamma
+costheta0
+A
+B
+p
+q :ul
+
+The non-annotated parameters are unitless.
+
+The Stillinger-Weber potential file must contain entries for all the
+elements listed in the pair_coeff command.  It can also contain
+entries for additional elements not being used in a particular
+simulation; LAMMPS ignores those entries.
+
+For a single-element simulation, only a single entry is required
+(e.g. SiSiSi).  For a two-element simulation, the file must contain 8
+entries (for SiSiSi, SiSiC, SiCSi, SiCC, CSiSi, CSiC, CCSi, CCC), that
+specify SW parameters for all permutations of the two elements
+interacting in three-body configurations.  Thus for 3 elements, 27
+entries would be required, etc.  Note that due to symmetries, some
+parameters will typically be the same in multiple entries.
+
+[Restrictions:]
+
+This pair potential requires the "newton"_newton.html setting to be
+"on" for pair interactions.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Stillinger)
+[(Stillinger)] Stillinger and Weber, Phys Rev B, 31, 5262 (1985).

@@ -4,7 +4,7 @@ description of the "pair_style" and "pair_coeff" commands for details
 of the file formats and the various styles in LAMMPS that read these
 files.
 
-The suffix of each file tells what pair style it is used with:
+The suffix of each file indicates the pair style it is used with:
 
 eam	      embedded atom method (EAM) single element, DYNAMO funcfl format
 eam.alloy     EAM multi-element alloy, DYNAMO setfl format

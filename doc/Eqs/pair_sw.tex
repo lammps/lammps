@@ -1,0 +1,18 @@
+\documentclass[12pt]{article}
+
+\begin{document}
+
+\begin{eqnarray*}
+  E & = & \sum_i \sum_{j > i} \phi_2 (r_{ij}) + 
+          \sum_i \sum_{j \neq i} \sum_{k > j} 
+          \phi_3 (r_{ij}, r_{ik}, \theta_{ijk}) \\
+  \phi_2(r) & = & A \epsilon \left[ B (\frac{\sigma}{r})^p - 
+                    (\frac{\sigma}{r})^q \right] 
+                    \exp \left( \frac{\sigma}{r - a \sigma} \right) \\
+  \phi_3(r,s,\theta) & = & \lambda \epsilon \left[ \cos \theta - 
+                    \cos \theta_0 \right]^2
+                    \exp \left( \frac{\gamma \sigma}{r - a \sigma} \right)
+                    \exp \left( \frac{\gamma \sigma}{s - a \sigma} \right)
+\end{eqnarray*}                           
+
+\end{document}

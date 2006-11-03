@@ -15,10 +15,14 @@
 #include "pair_eam.h"
 #include "pair_eam_alloy.h"
 #include "pair_eam_fs.h"
+#include "pair_sw.h"
+#include "pair_tersoff.h"
 #endif
 
 #ifdef PairClass
 PairStyle(eam,PairEAM)
 PairStyle(eam/alloy,PairEAMAlloy)
 PairStyle(eam/fs,PairEAMFS)
+PairStyle(sw,PairSW)
+PairStyle(tersoff,PairTersoff)
 #endif

@@ -146,30 +146,34 @@ DYNAMO file was created by a Fortran program, it cannot have "D"
 values in it for exponents.  C only recognizes "e" or "E" for
 scientific notation.
 
-Only one pair_coeff command can be used which specifies a single
-{setfl} file.  DYNAMO {setfl} files contain information for M
-elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the filename, where N is the number of
-LAMMPS atom types:
+Only a single pair_coeff command is used with the {eam/alloy} style
+which specifies a DYNAMO {setfl} file, which contains information for
+M elements.  These are mapped to LAMMPS atom types by specifying N
+additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
 
 filename
 N element names = mapping of {setfl} elements to atom types :ul
 
-As an example, the nialhjea {setfl} file has tabulated EAM values for
-3 elements and their alloy interactions: Ni, Al, and H.  If your
-LAMMPS simulation had 4 atoms types and you wanted the 1st 3 to be Ni,
-and the 4th to be Al, you would use the following pair_coeff command:
+As an example, the potentials/nialhjea {setfl} file has tabulated EAM
+values for 3 elements and their alloy interactions: Ni, Al, and H.  If
+your LAMMPS simulation has 4 atoms types and you want the 1st 3 to be
+Ni, and the 4th to be Al, you would use the following pair_coeff
+command:
 
 pair_coeff * * nialhjea.eam.alloy Ni Ni Ni Al :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
 element in the {setfl} file.  The final Al argument maps LAMMPS atom
-type 4 to the Al element in the {setfl} file.  If a mapping value is
-specified as NULL, the mapping is not performed.  This can be used
-when an {eam/alloy} potential is used as part of the {hybrid} pair
-style.  The NULL values are placeholders for atom types that will be
-used with other potentials.
+type 4 to the Al element in the {setfl} file.  Note that there is no
+requirement that your simulation use all the elements specified by the
+{setfl} file.
+
+If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when an {eam/alloy} potential is used as part of the
+{hybrid} pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
 
 {Setfl} files in the {potentials} directory of the LAMMPS distribution
 have a ".eam.alloy" suffix.  A DYNAMO multi-element {setfl} file is

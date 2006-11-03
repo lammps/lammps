@@ -54,7 +54,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     memory->destroy_2d_double_array(setfl->frho);
     memory->destroy_2d_double_array(setfl->rhor);
     memory->destroy_3d_double_array(setfl->z2r);
-    memory->sfree(setfl);
+    delete setfl;
   }
   setfl = new Setfl();
   read_file(arg[2]);
@@ -139,7 +139,7 @@ void PairEAMAlloy::read_file(char *filename)
   if (nwords != file->nelements + 1)
     error->all("Incorrect element names in EAM potential file");
   
-  char *words[file->nelements];
+  char **words = new char*[file->nelements+1];
   nwords = 0;
   char *first = strtok(line," \t\n\r\f");
   while (words[nwords++] = strtok(NULL," \t\n\r\f")) continue;
@@ -150,6 +150,7 @@ void PairEAMAlloy::read_file(char *filename)
     file->elements[i] = new char[n];
     strcpy(file->elements[i],words[i]);
   }
+  delete [] words;
 
   if (me == 0) {
     fgets(line,MAXLINE,fp);

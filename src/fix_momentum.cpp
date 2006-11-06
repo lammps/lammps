@@ -49,7 +49,7 @@ FixMomentum::FixMomentum(int narg, char **arg) : Fix(narg, arg)
   }
 
   if (linear == 0 && angular == 0)
-    error->all("Illegal run_style respa command");
+    error->all("Illegal fix momentum command");
 
   if (linear)
     if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 || 
@@ -132,7 +132,7 @@ void FixMomentum::end_of_step()
 	dy = (x[i][1] + ybox*yprd) - xcm[1];
 	dz = (x[i][2] + zbox*zprd) - xcm[2];
 	v[i][0] -= omega[1]*dz - omega[2]*dy;
-	v[i][1] -= omega[2]*dx - omega[0]*dy;
+	v[i][1] -= omega[2]*dx - omega[0]*dz;
 	v[i][2] -= omega[0]*dy - omega[1]*dx;
       }
   }

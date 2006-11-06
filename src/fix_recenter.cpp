@@ -61,7 +61,7 @@ FixRecenter::FixRecenter(int narg, char **arg) : Fix(narg, arg)
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else if (strcmp(arg[iarg+1],"fraction") == 0) scaleflag = 2;
-      else error->all("Illegal fix indent command");
+      else error->all("Illegal fix recenter command");
       iarg += 2;
     } else error->all("Illegal fix recenter command");
   }

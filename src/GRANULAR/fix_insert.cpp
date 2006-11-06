@@ -292,7 +292,7 @@ void FixInsert::pre_exchange()
   int nnew = nper;
   if (ninserted + nnew > ninsert) nnew = ninsert - ninserted;
 
-  // lo/hi current = z bounds of insertion region this timestep
+  // lo/hi current = z (or y) bounds of insertion region this timestep
 
   if (force->dimension == 3) {
     lo_current = zlo + (update->ntimestep - nfirst) * update->dt * rate;

@@ -303,6 +303,7 @@ void PairSW::init_style()
 void PairSW::read_file(char *file)
 {
   int params_per_line = 13;
+  char **words = new char*[params_per_line];
 
   if (params) delete [] params;
   params = NULL;
@@ -325,7 +326,6 @@ void PairSW::read_file(char *file)
   // store params if all 3 element tags are in element list
 
   int i,n,nwords,ielement,jelement,kelement;
-  char *words[params_per_line];
   char line[MAXLINE],*ptr;
   int eof = 0;
 
@@ -422,6 +422,8 @@ void PairSW::read_file(char *file)
 
     nparams++;
   }
+
+  delete [] words;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -34,19 +34,30 @@ class DumpCustom : public Dump {
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element
 
-  int maxchoose;             // size of choose arrays
+  int maxlocal;              // size of choose and local-compute arrays
   int *choose;               // 1 if output this atom, 0 if no
   double *dchoose;           // value for each atom to threshhold against
 
   int nevery;
 
   int fixflag;               // 1 if this dump invokes any fixes, 0 if not
-  int fixflag_centro;        // 1 if this fix is invoked, 0 if not
-  int fixflag_energy;
+  int fixflag_epair;         // 1 if this fix is invoked, 0 if not
+  int fixflag_centro;
   int fixflag_stress;
-  int ifix_centro;           // which fix it is (0 to nfixes-1)
-  int ifix_energy;
+  int ifix_epair;            // which fix it is (0 to nfixes-1)
+  int ifix_centro;
   int ifix_stress;
+
+  int computeflag;           // 1 if this dump invokes any local comp, 0 if not
+  int computeflag_etotal;    // 1 if this local comp is invoked, 0 if not
+  int computeflag_ke;
+
+  // local computation arrays
+
+  double *etotal;
+  double *ke;
+
+  // private methods
 
   int modify_param(int, char **);
   void write_header(int);
@@ -62,6 +73,11 @@ class DumpCustom : public Dump {
   FnPtrHeader header_choice;           // ptr to write header functions
   void header_binary(int);
   void header_item(int);
+
+  typedef void (DumpCustom::*FnPtrData)(int, double *);
+  FnPtrData write_choice;              // ptr to write data functions
+  void write_binary(int, double *);
+  void write_text(int, double *);
 
   // customize by adding a method prototype
 
@@ -95,8 +111,10 @@ class DumpCustom : public Dump {
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
+  void pack_etotal(int);
+  void pack_ke(int);
+  void pack_epair(int);
   void pack_centro(int);
-  void pack_energy(int);
   void pack_sxx(int);
   void pack_syy(int);
   void pack_szz(int);
@@ -104,10 +122,10 @@ class DumpCustom : public Dump {
   void pack_sxz(int);
   void pack_syz(int);
 
-  typedef void (DumpCustom::*FnPtrData)(int, double *);
-  FnPtrData write_choice;              // ptr to write data functions
-  void write_binary(int, double *);
-  void write_text(int, double *);
+  // local computation methods
+
+  void compute_etotal();
+  void compute_ke();
 };
 
 #endif

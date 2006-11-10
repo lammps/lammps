@@ -39,7 +39,7 @@
 
 // customize by adding a keyword to this list:
 
-// step, atoms, cpu, temp, press, pe, ke, eng,
+// step, atoms, cpu, temp, press, pe, ke, etotal,
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail, erot
 // vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
 // gke, grot (granular trans-ke and rotational-ke)
@@ -48,10 +48,10 @@
 
 // customize by adding a DEFINE to this list
 
-#define ONE "step temp epair emol eng press"
-#define MULTI "eng ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
+#define ONE "step temp epair emol etotal press"
+#define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
 #define GRANULAR "step atoms gke grot"
-#define DIPOLE "step temp epair erot eng press"
+#define DIPOLE "step temp epair erot etotal press"
 
 enum {IGNORE,WARN,ERROR};           // same as write_restart.cpp
 enum {ONELINE,MULTILINE};
@@ -596,8 +596,8 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"ke") == 0) {
       addfield("KinEng",&Thermo::compute_ke,FLOAT);
       tempflag = 1;
-    } else if (strcmp(word,"eng") == 0) {
-      addfield("TotEng",&Thermo::compute_eng,FLOAT);
+    } else if (strcmp(word,"etotal") == 0) {
+      addfield("TotEng",&Thermo::compute_etotal,FLOAT);
       tempflag = 1;
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
@@ -737,10 +737,10 @@ int Thermo::compute_value(char *word, double *answer)
   } else if (strcmp(word,"ke") == 0) {
     tempvalue = temperature->compute();
     compute_ke();
-  } else if (strcmp(word,"eng") == 0) {
+  } else if (strcmp(word,"etotal") == 0) {
     tempvalue = temperature->compute();
     fix_compute_pe();
-    compute_eng();
+    compute_etotal();
   } else if (strcmp(word,"evdwl") == 0) compute_evdwl();
   else if (strcmp(word,"ecoul") == 0) compute_ecoul();
   else if (strcmp(word,"epair") == 0) compute_epair();
@@ -862,7 +862,7 @@ void Thermo::compute_ke()
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_eng()
+void Thermo::compute_etotal()
 {
   compute_pe();
   double ke = 0.5 * temperature->dof * force->boltz * tempvalue;
@@ -1195,7 +1195,7 @@ void Thermo::compute_pave()
 
 void Thermo::compute_eave()
 {
-  compute_eng();
+  compute_etotal();
 
   if (firststep == 0) {
     if (npartial_e == 0) {

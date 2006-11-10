@@ -98,7 +98,7 @@ class Thermo : public LAMMPS {
   void compute_press();
   void compute_pe();
   void compute_ke();
-  void compute_eng();
+  void compute_etotal();
   void compute_evdwl();
   void compute_ecoul();
   void compute_epair();

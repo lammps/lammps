@@ -15,6 +15,7 @@
 #include "string.h"
 #include "dump_custom.h"
 #include "atom.h"
+#include "force.h"
 #include "domain.h"
 #include "region.h"
 #include "group.h"
@@ -30,7 +31,8 @@
 // customize by adding to 1st enum
 
 enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,VX,VY,VZ,FX,FY,FZ,
-       Q,MUX,MUY,MUZ,TQX,TQY,TQZ,CENTRO,ENG,SXX,SYY,SZZ,SXY,SXZ,SYZ};
+       Q,MUX,MUY,MUZ,TQX,TQY,TQZ,
+       ETOTAL,KE,EPAIR,CENTRO,SXX,SYY,SZZ,SXY,SXZ,SYZ};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
@@ -38,6 +40,8 @@ enum{INT,DOUBLE};
 
 DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
 {
+  int i;
+
   if (narg == 5) error->all("No dump custom arguments specified");
 
   nevery = atoi(arg[3]);
@@ -52,13 +56,16 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
   thresh_op = NULL;
   thresh_value = NULL;
 
+  fixflag_epair = 0;
   fixflag_centro = 0;
-  fixflag_energy = 0;
   fixflag_stress = 0;
 
+  computeflag_etotal = 0;
+  computeflag_ke = 0;
+
+  // process command args
   // customize by adding to if statement
 
-  int i;
   for (int iarg = 5; iarg < narg; iarg++) {
     i = iarg-5;
     if (strcmp(arg[iarg],"tag") == 0) {
@@ -161,14 +168,24 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"etotal") == 0) {
+      pack_choice[i] = &DumpCustom::pack_etotal;
+      vtype[i] = DOUBLE;
+      computeflag_etotal = 1;
+      computeflag_ke = 1;
+      fixflag_epair = 1;
+    } else if (strcmp(arg[iarg],"ke") == 0) {
+      pack_choice[i] = &DumpCustom::pack_ke;
+      vtype[i] = DOUBLE;
+      computeflag_ke = 1;
+    } else if (strcmp(arg[iarg],"epair") == 0) {
+      pack_choice[i] = &DumpCustom::pack_epair;
+      vtype[i] = DOUBLE;
+      fixflag_epair = 1;
     } else if (strcmp(arg[iarg],"centro") == 0) {
       pack_choice[i] = &DumpCustom::pack_centro;
       vtype[i] = DOUBLE;
       fixflag_centro = 1;
-    } else if (strcmp(arg[iarg],"eng") == 0) {
-      pack_choice[i] = &DumpCustom::pack_energy;
-      vtype[i] = DOUBLE;
-      fixflag_energy = 1;
     } else if (strcmp(arg[iarg],"sxx") == 0) {
       pack_choice[i] = &DumpCustom::pack_sxx;
       vtype[i] = DOUBLE;
@@ -196,9 +213,18 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
     } else error->all("Invalid keyword in dump custom command");
   }
 
+  if (fixflag_epair) fix_create("ENERGY");
   if (fixflag_centro) fix_create("CENTRO");
-  if (fixflag_energy) fix_create("ENERGY");
   if (fixflag_stress) fix_create("STRESS");
+
+  maxlocal = 0;
+  choose = NULL;
+  dchoose = NULL;
+
+  if (computeflag_etotal) etotal = NULL;
+  if (computeflag_ke) ke = NULL;
+
+  // setup format strings
 
   vformat = new char*[size_one];
 
@@ -211,10 +237,6 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
     vformat[i] = NULL;
   }
 
-  maxchoose = 0;
-  choose = NULL;
-  dchoose = NULL;
-
   // one-time file open
 
   if (multifile == 0) openfile();
@@ -226,10 +248,10 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
 
 DumpCustom::~DumpCustom()
 {
+  delete [] pack_choice;
   delete [] vtype;
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
-  delete [] pack_choice;
 
   if (nthresh) {
     memory->sfree(thresh_array);
@@ -239,14 +261,17 @@ DumpCustom::~DumpCustom()
 
   // delete fixes for computing per-atom custom quantities if they exist
 
+  if (fixflag_epair) fix_delete("ENERGY");
   if (fixflag_centro) fix_delete("CENTRO");
-  if (fixflag_energy) fix_delete("ENERGY");
   if (fixflag_stress) fix_delete("STRESS");
 
-  if (maxchoose) {
-    delete [] choose;
-    delete [] dchoose;
-  }
+  // delete choose arrays and local compute arrys if they exist
+
+  delete [] choose;
+  delete [] dchoose;
+
+  if (computeflag_etotal) delete [] etotal;
+  if (computeflag_ke) delete [] ke;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -285,33 +310,32 @@ void DumpCustom::init()
   // set fixflag if dump invokes any fixes
 
   fixflag = 0;
-  if (fixflag_centro || fixflag_energy || fixflag_stress) fixflag = 1;
+  if (fixflag_epair || fixflag_centro || fixflag_stress) fixflag = 1;
 
   // find associated fixes that must exist
   // could have changed locations in fix list since created
 
+  if (fixflag_epair) ifix_epair = fix_match("ENERGY");
   if (fixflag_centro) ifix_centro = fix_match("CENTRO");
-  if (fixflag_energy) ifix_energy = fix_match("ENERGY");
   if (fixflag_stress) ifix_stress = fix_match("STRESS");
 
-  // allocate choose arrays if first time
+  // set computeflag if dump invokes any local computation
 
-  if (maxchoose == 0) {
-    maxchoose = atom->nmax;
-    choose = new int[maxchoose];
-    dchoose = new double[maxchoose];
-  }
+  computeflag = 0;
+  if (computeflag_etotal || computeflag_ke) computeflag = 1;
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf and choose arrays
+   return # of bytes of allocated memory in buf and choose and local arrays
 ------------------------------------------------------------------------- */
 
 int DumpCustom::memory_usage()
 {
   int bytes = maxbuf * sizeof(double);
-  bytes += maxchoose * sizeof(int);
-  bytes += maxchoose * sizeof(double);
+  bytes += maxlocal * sizeof(int);
+  bytes += maxlocal * sizeof(double);
+  if (computeflag_etotal) bytes += maxlocal * sizeof(double);
+  if (computeflag_ke) bytes += maxlocal * sizeof(double);
   return bytes;
 }
 
@@ -386,8 +410,10 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
+    else if (strcmp(arg[1],"etotal") == 0) thresh_array[nthresh] = ETOTAL;
+    else if (strcmp(arg[1],"ke") == 0) thresh_array[nthresh] = KE;
+    else if (strcmp(arg[1],"epair") == 0) thresh_array[nthresh] = EPAIR;
     else if (strcmp(arg[1],"centro") == 0) thresh_array[nthresh] = CENTRO;
-    else if (strcmp(arg[1],"eng") == 0) thresh_array[nthresh] = ENG;
     else if (strcmp(arg[1],"sxx") == 0) thresh_array[nthresh] = SXX;
     else if (strcmp(arg[1],"syy") == 0) thresh_array[nthresh] = SYY;
     else if (strcmp(arg[1],"szz") == 0) thresh_array[nthresh] = SZZ;
@@ -408,13 +434,13 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     // add new fix if necessary
 
+    if (thresh_array[nthresh] == EPAIR && fixflag_epair == 0) {
+      fix_create("ENERGY");
+      fixflag_epair = 1;
+    }
     if (thresh_array[nthresh] == CENTRO && fixflag_centro == 0) {
       fix_create("CENTRO");
       fixflag_centro = 1;
-    }
-    if (thresh_array[nthresh] == ENG && fixflag_energy == 0) {
-      fix_create("ENERGY");
-      fixflag_energy = 1;
     }
     if ((thresh_array[nthresh] == SXX || thresh_array[nthresh] == SYY ||
 	thresh_array[nthresh] == SZZ || thresh_array[nthresh] == SXY ||
@@ -443,23 +469,35 @@ int DumpCustom::count()
 {
   int i;
 
+  // grow choose and local-computation arrays if needed
+
+  int nlocal = atom->nlocal;
+  if (nlocal > maxlocal) {
+    delete [] choose;
+    delete [] dchoose;
+    if (computeflag_etotal) delete [] etotal;
+    if (computeflag_ke) delete [] ke;
+    maxlocal = atom->nmax;
+    choose = new int[maxlocal];
+    dchoose = new double[maxlocal];
+    if (computeflag_etotal) etotal = new double[maxlocal];
+    if (computeflag_ke) ke = new double[maxlocal];
+  }
+
   // invoke any fixes that compute dump quantities
 
   if (fixflag) {
+    if (fixflag_epair) modify->fix[ifix_epair]->dump();
     if (fixflag_centro) modify->fix[ifix_centro]->dump();
-    if (fixflag_energy) modify->fix[ifix_energy]->dump();
     if (fixflag_stress) modify->fix[ifix_stress]->dump();
   }
 
-  // grow choose and dchoose arrays if needed
+  // invoke any local computation of dump quantities
+  // etotal must come after ke and fix_epair since uses their results
 
-  int nlocal = atom->nlocal;
-  if (nlocal > maxchoose) {
-    delete [] choose;
-    delete [] dchoose;
-    maxchoose = atom->nmax;
-    choose = new int[maxchoose];
-    dchoose = new double[maxchoose];
+  if (computeflag) {
+    if (computeflag_ke) compute_ke();
+    if (computeflag_etotal) compute_etotal();
   }
 
   // choose all local atoms for output
@@ -631,11 +669,17 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == TQZ) {
 	ptr = &atom->torque[0][2];
 	nstride = 3;
+      } else if (thresh_array[ithresh] == ETOTAL) {
+	ptr = etotal;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == KE) {
+	ptr = ke;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == EPAIR) {
+	ptr = ((FixEnergy *) modify->fix[ifix_epair])->energy;
+	nstride = 3;
       } else if (thresh_array[ithresh] == CENTRO) {
 	ptr = ((FixCentro *) modify->fix[ifix_centro])->centro;
-	nstride = 3;
-      } else if (thresh_array[ithresh] == ENG) {
-	ptr = ((FixEnergy *) modify->fix[ifix_energy])->energy;
 	nstride = 3;
       } else if (thresh_array[ithresh] == SXX) {
 	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][0];
@@ -839,7 +883,7 @@ int DumpCustom::fix_match(char *keyword)
 }
 
 // ----------------------------------------------------------------------
-// one routine for every kind of quantity dump custom can output
+// one method for every kind of quantity dump custom can output
 // the atom quantity is packed into buf starting at n with stride size_one
 // customize by adding a method
 // ----------------------------------------------------------------------
@@ -1253,6 +1297,47 @@ void DumpCustom::pack_tqz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::pack_etotal(int n)
+{
+  double *epair = ((FixEnergy *) modify->fix[ifix_epair])->energy;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = ke[i] + epair[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_ke(int n)
+{
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = ke[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_epair(int n)
+{
+  double *epair = ((FixEnergy *) modify->fix[ifix_epair])->energy;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = epair[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::pack_centro(int n)
 {
   double *centro = ((FixCentro *) modify->fix[ifix_centro])->centro;
@@ -1261,20 +1346,6 @@ void DumpCustom::pack_centro(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = centro[i];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_energy(int n)
-{
-  double *energy = ((FixEnergy *) modify->fix[ifix_energy])->energy;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = energy[i];
       n += size_one;
     }
 }
@@ -1361,4 +1432,40 @@ void DumpCustom::pack_syz(int n)
       buf[n] = stress[i][5];
       n += size_one;
     }
+}
+
+// ----------------------------------------------------------------------
+// one method for each locally-computed dump quantity
+// ----------------------------------------------------------------------
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::compute_etotal()
+{
+  double *epair = ((FixEnergy *) modify->fix[ifix_epair])->energy;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    etotal[i] = ke[i] + epair[i];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::compute_ke()
+{
+  double mvv2e = force->mvv2e;
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  if (atom->mass_require)
+    for (int i = 0; i < nlocal; i++)
+      ke[i] = 0.5 * mvv2e * mass[type[i]] *
+	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+  else
+    for (int i = 0; i < nlocal; i++)
+      ke[i] = 0.5 * mvv2e * rmass[i] *
+	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
 }

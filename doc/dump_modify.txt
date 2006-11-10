@@ -23,7 +23,7 @@ keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {
     N = dump every this many timesteps
   {region} arg = region-ID or "none"
   {thresh} args = attribute operation value
-    attribute = same attributes (x,fy,eng,sxx,etc) used by dump custom style
+    attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
     operation = < or <= or > or >= or = or <>
     value = numeric value to compare to
     these 3 args can be replaced by the word "none" to turn off threshholding
@@ -34,7 +34,7 @@ keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {
 
 dump_modify 1 format "%d %d %20.15g %g %g" scale yes
 dump_modify myDump image yes scale no flush yes
-dump_modify 1 region mySphere thresh x < 0.0 thresh energy >= 3.2 :pre
+dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2 :pre
 
 [Description:]
 

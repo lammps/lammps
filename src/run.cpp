@@ -24,10 +24,6 @@
 #include "timer.h"
 #include "error.h"
 
-#define CommandInclude
-#include "style.h"
-#undef CommandInclude
-
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -182,21 +178,7 @@ void Run::command(int narg, char **arg)
       if (postflag || nleft == 0) finish.end(1);
       else finish.end(0);
 
-      if (commandstr) {
-	command = input->one(commandstr);
-	if (command) {
-	  if (0) return;
-
-#define CommandClass
-#define CommandStyle(key,Class) \
-	  else if (strcmp(command,#key) == 0) {	 \
-	    Class key;				 \
-	    key.command(input->narg,input->arg); \
-	  }
-#include "style.h"
-#undef CommandClass
-	}
-      }
+      if (commandstr) command = input->one(commandstr);
 
       nleft -= nsteps;
       iter++;

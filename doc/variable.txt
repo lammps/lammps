@@ -108,12 +108,10 @@ Example function usage = div(1.0e20,3.0), neg(x\[34\]), pow(lx,3.0), \
 Vector = a keyword followed by square brackets containing an atom ID
 Supported vectors = x, y, z, vx, vy, vz, fx, fy, fz
 Example vector usage = x\[123\], fz\[1000\]
-Keyword = keywords supported by the \
+Keyword = any keyword supported by the \
   "thermo_style custom"_thermo_style.html \
-  command except cpu and pressure tensor components (pxx, pyy, etc)
-Supported keywords = step, atoms, temp, press, pe, ke, eng, evdwl, \
-  ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, vol, lx, ly, lz, \
-  gke, grot, t_ID
+  command except cpu, pressure tensor components (pxx, pyy, etc), \
+  time-averaged quantities (tave, pave, etc)
 Example keyword usage = atoms, pow(vol,0.333), mult(elong,0.5)
 Number = 0.2, 1.0e20, -15.4, etc :ul
 

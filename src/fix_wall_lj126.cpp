@@ -11,10 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Mark Stevens (SNL)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
-#include "fix_wall_lj93.h"
+#include "fix_wall_lj126.h"
 #include "atom.h"
 #include "update.h"
 #include "output.h"
@@ -23,9 +27,9 @@
 
 /* ---------------------------------------------------------------------- */
 
-FixWallLJ93::FixWallLJ93(int narg, char **arg) : Fix(narg, arg)
+FixWallLJ126::FixWallLJ126(int narg, char **arg) : Fix(narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix wall/lj93 command");
+  if (narg != 8) error->all("Illegal fix wall/lj126 command");
 
   if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
@@ -45,28 +49,26 @@ FixWallLJ93::FixWallLJ93(int narg, char **arg) : Fix(narg, arg)
   } else if (strcmp(arg[3],"zhi") == 0) {
     dim = 2;
     side = 1;
-  } else error->all("Illegal fix wall/lj93 command");
+  } else error->all("Illegal fix wall/lj126 command");
 
   coord = atof(arg[4]);
   epsilon = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
 
-  coeff1 = 6.0/5.0 * epsilon * pow(sigma,9.0);
-  coeff2 = 3.0 * epsilon * pow(sigma,3.0);
-  coeff3 = 2.0/15.0 * epsilon * pow(sigma,9.0);
-  coeff4 = epsilon * pow(sigma,3.0);
+  coeff1 = 48.0 * epsilon * pow(sigma,12.0);
+  coeff2 = 24.0 * epsilon * pow(sigma,6.0);
+  coeff3 = 4.0 * epsilon * pow(sigma,12.0);
+  coeff4 = 4.0 * epsilon * pow(sigma,6.0);
 
-  double rinv = 1.0/cutoff;
-  double r2inv = rinv*rinv;
-  double r4inv = r2inv*r2inv;
-  double r10inv = r4inv*r4inv*r2inv;
-  offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
+  double r2inv = 1.0/(cutoff*cutoff);
+  double r6inv = r2inv*r2inv*r2inv;
+  offset = r6inv*(coeff3*r6inv - coeff4);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixWallLJ93::setmask()
+int FixWallLJ126::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -78,7 +80,7 @@ int FixWallLJ93::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallLJ93::init()
+void FixWallLJ126::init()
 {
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -89,7 +91,7 @@ void FixWallLJ93::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallLJ93::setup()
+void FixWallLJ126::setup()
 {
   eflag_on = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
@@ -104,7 +106,7 @@ void FixWallLJ93::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallLJ93::min_setup()
+void FixWallLJ126::min_setup()
 {
   eflag_on = 1;
   post_force(1);
@@ -112,7 +114,7 @@ void FixWallLJ93::min_setup()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallLJ93::post_force(int vflag)
+void FixWallLJ126::post_force(int vflag)
 {
   bool eflag = false;
   if (thermo_flag) {
@@ -125,7 +127,7 @@ void FixWallLJ93::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double delta,rinv,r2inv,r4inv,r10inv;
+  double delta,rinv,r2inv,r6inv;
   if (eflag) eng = 0.0;
 
   for (int i = 0; i < nlocal; i++)
@@ -136,10 +138,9 @@ void FixWallLJ93::post_force(int vflag)
       if (delta > cutoff) continue;
       rinv = 1.0/delta;
       r2inv = rinv*rinv;
-      r4inv = r2inv*r2inv;
-      r10inv = r4inv*r4inv*r2inv;
-      f[i][dim] -= (coeff1*r10inv - coeff2*r4inv) * side;
-      if (eflag) eng += coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv - offset;
+      r6inv = r2inv*r2inv*r2inv;
+      f[i][dim] -= r6inv*(coeff1*r6inv - coeff2) * side;
+      if (eflag) eng += r6inv*(coeff3*r6inv - coeff4) - offset;
     }
 
   if (eflag) MPI_Allreduce(&eng,&etotal,1,MPI_DOUBLE,MPI_SUM,world);
@@ -147,21 +148,21 @@ void FixWallLJ93::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallLJ93::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWallLJ126::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallLJ93::min_post_force(int vflag)
+void FixWallLJ126::min_post_force(int vflag)
 {
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixWallLJ93::thermo_fields(int n, int *flags, char **keywords)
+int FixWallLJ126::thermo_fields(int n, int *flags, char **keywords)
 {
   if (n == 0) return 1;
   flags[0] = 3;
@@ -171,7 +172,7 @@ int FixWallLJ93::thermo_fields(int n, int *flags, char **keywords)
 
 /* ---------------------------------------------------------------------- */
 
-int FixWallLJ93::thermo_compute(double *values)
+int FixWallLJ126::thermo_compute(double *values)
 {
   values[0] = etotal;
   return 1;

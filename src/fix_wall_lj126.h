@@ -11,15 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_LJ93_H
-#define FIX_WALL_LJ93_H
+#ifndef FIX_WALL_LJ126_H
+#define FIX_WALL_LJ126_H
 
 #include "fix.h"
 
-class FixWallLJ93 : public Fix {
+class FixWallLJ126 : public Fix {
  public:
-  FixWallLJ93(int, char **);
-  ~FixWallLJ93() {}
+  FixWallLJ126(int, char **);
+  ~FixWallLJ126() {}
   int setmask();
   void init();
   void setup();
@@ -27,6 +27,7 @@ class FixWallLJ93 : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+
   int thermo_fields(int, int *, char **);
   int thermo_compute(double *);
 
@@ -39,3 +40,4 @@ class FixWallLJ93 : public Fix {
 };
 
 #endif
+

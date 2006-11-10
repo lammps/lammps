@@ -130,6 +130,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_uniaxial.h"
 #include "fix_viscous.h"
 #include "fix_volume_rescale.h"
+#include "fix_wall_lj126.h"
 #include "fix_wall_lj93.h"
 #include "fix_wall_reflect.h"
 #include "fix_wiggle.h"
@@ -174,6 +175,7 @@ FixStyle(tmd,FixTMD)
 FixStyle(uniaxial,FixUniaxial)
 FixStyle(viscous,FixViscous)
 FixStyle(volume/rescale,FixVolRescale)
+FixStyle(wall/lj126,FixWallLJ126)
 FixStyle(wall/lj93,FixWallLJ93)
 FixStyle(wall/reflect,FixWallReflect)
 FixStyle(wiggle,FixWiggle)

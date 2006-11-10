@@ -18,7 +18,7 @@ args = list of arguments for a particular style :l
   {multi} args = none
   {granular} args = none
   {custom} args = list of attributes
-    possible attributes = step, atoms, cpu, temp, press, pe, ke, eng,
+    possible attributes = step, atoms, cpu, temp, press, pe, ke, etotal,
              evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail,
              vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
              gke, grot, tave, pave, eave, peave, t_ID
@@ -29,7 +29,7 @@ args = list of arguments for a particular style :l
       press = pressure
       pe = total potential energy
       ke = kinetic energy
-      eng = total energy (pe + ke)
+      etotal = total energy (pe + ke)
       evdwl = VanderWaal pairwise energy
       ecoul = Coulombic pairwise energy
       epair = pairwise (evdwl + ecoul)
@@ -52,8 +52,8 @@ args = list of arguments for a particular style :l
 [Examples:]
 
 thermo_style multi
-thermo_style custom step temp pe eng press vol
-thermo_style custom step temp t_left t_right eng :pre
+thermo_style custom step temp pe etotal press vol
+thermo_style custom step temp t_left t_right etotal :pre
 
 [Description:]
 
@@ -61,11 +61,11 @@ Set the style in which thermodynamic data is printed to the screen and
 log file.
 
 Style {one} prints a one-line summary of thermodynamic info that is
-the equivalent of "thermo_style custom step temp epair emol eng
+the equivalent of "thermo_style custom step temp epair emol etotal
 press".  The line contains only numeric values.
 
 Style {multi} prints a multiple-line listing of thermodynamic info
-that is the equivalent of "thermo_style custom eng ke temp pe ebond
+that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
 
@@ -82,7 +82,7 @@ outputs as a final printed quantity when the simulation box volume
 changes during the simulation.
 
 All thermodynamic quantities which require a temperature ({temp, press,
-ke, eng, tave, eave}) use the temperature with ID = {default} that is
+ke, etotal, tave, eave}) use the temperature with ID = {default} that is
 defined by LAMMPS (see the "temperature"_temperature.html command)
 that performs an average over all atoms.  This can be changed via the
 "thermo_modify"_thermo_modify.html command.  The exception is the
@@ -92,7 +92,7 @@ and print out.
 A long-range tail correction {etail} for the VanderWaal pairwise
 energy will be non-zero only if the "pair_modify
 tail"_pair_modify.html option is turned on.  The {etail} contribution
-is included in {evdwl}, {pe}, and {eng}, and the corresponding tail
+is included in {evdwl}, {pe}, and {etotal}, and the corresponding tail
 correction to the pressure is included in {press} and {pxx}, {pyy},
 etc.
 

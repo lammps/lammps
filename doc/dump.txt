@@ -24,7 +24,7 @@ args = list of arguments for a particular style :l
     possible attributes = tag, mol, type, x, y, z, xs, ys, zs, xu, yu, zu,
                  ix, iy, iz, vx, vy, vz, fx, fy, fz,
                  q, mux, muy, muz, tqx, tqy, tqz,
-		 centro, eng, sxx, syy, szz, sxy, sxz, syz 
+		 etotal, ke, epair, centro, sxx, syy, szz, sxy, sxz, syz 
       tag = atom ID
       mol = molecule ID
       type = atom type
@@ -37,8 +37,10 @@ args = list of arguments for a particular style :l
       q = atom charge
       mux,muy,muz = orientation of dipolar atom
       tqx,tqy,tqz = torque on dipolar atoms
+      etotal = per-atom total energy (ke + epair)
+      ke = per-atom kinetic energy
+      epair = per-atom pairwise energy
       centro = per-atom centro-symmetry parameter
-      eng = per-atom pairwise energy
       sxx, syy, szz, sxy, sxz, syz = per-atom stress tensor components
   {dcd} args = none
   {xtc} args = precision (optional)
@@ -51,7 +53,7 @@ args = list of arguments for a particular style :l
 dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* tag type x y vx fx
-dump 4b flow custom 100 dump.%.myforce tag type eng sxx syy szz
+dump 4b flow custom 100 dump.%.myforce tag type epair sxx syy szz
 dump 1 all xtc 1000 file.xtc 100.0 :pre
 
 [Description:]
@@ -217,6 +219,25 @@ what is meant by scaled vs unscaled coordinates and the image flags.
 The {mux}, {muy}, {muz}, {tqy}, {tqx}, {tqy} attributes are specific
 to dipolar systems defined with an atom style of {dipole}.
 
+The {etotal} attribute computes the total energy of each atom, which
+is the {ke} plus {epair} values.  Note that it does not include
+contributions due to bonds, angles, etc that the atom is part of.
+
+The {ke} attribute computes the kinetic energy of each atom
+which is simply 0.5 m v^2.
+
+The {epair} attribute computes the pairwise energy for each atom.
+This is its pairwise interaction with all of its neighbors (divided by
+2).  Summed over all atoms, this should equal the pairwise energy of
+the entire system (Van der Waals + Coulombic).  However, for force
+fields that include a contribution to the pairwise energy that is
+computed as part of dihedral terms (i.e. 1-4 interactions), this
+contribution is not included in the per-atom pairwise energy.
+Computation of the per-atom energy requires a loop thru the neighbor
+list and inter-processor communication, so it can be inefficient to
+dump this quantity too frequently or to have multiple dump commands,
+each with a {epair} attribute.
+
 The {centro} attribute causes the centro-symmetry parameter to be
 computed for each atom in the dump group using the following formula
 from "(Kelchner)"_#Kelchner
@@ -233,18 +254,6 @@ needed to compute this quantity is constructed each time the dump is
 performed.  Thus it can be inefficient to dump this quantity too
 frequently or to have multiple dump commands, each with a {centro}
 attribute.
-
-The {eng} attribute computes the pairwise energy for each atom.  This
-is its pairwise interaction with all of its neighbors (divided by 2).
-Summed over all atoms, this should equal the pairwise energy of the
-entire system (Van der Waals + Coulombic).  However, for force fields
-that include a contribution to the pairwise energy that is computed as
-part of dihedral terms (i.e. 1-4 interactions), this contribution is
-not included in the per-atom pairwise energy.  Computation of the
-per-atom energy requires a loop thru the neighbor list and
-inter-processor communication, so it can be inefficient to dump this
-quantity too frequently or to have multiple dump commands, each with a
-{eng} attribute.
 
 The {sxx}, {syy}, {szz}, {sxy}, {sxz}, {syz} attributes compute the
 pairwise stress tensor for each atom where the {ab} component of the

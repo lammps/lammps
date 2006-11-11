@@ -6,14 +6,14 @@
 
 :line
 
-fix wall/lj93 command :h3
+fix wall/lj126 command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/lj93 style coord epsilon sigma cutoff :pre
+fix ID group-ID wall/lj126 style coord epsilon sigma cutoff :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-wall/lj93 = style name of this fix command
+wall/lj126 = style name of this fix command
 style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi}
 coord = position of wall
 epsilon = Lennard-Jones epsilon for wall-particle interaction
@@ -22,22 +22,21 @@ cutoff = distance from wall at which wall-particle interaction is cut off :ul
 
 [Examples:]
 
-fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5 :pre
+fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 1.12 :pre
 
 [Description:]
 
 Bound the simulation domain with a Lennard-Jones wall that encloses
 the atoms.  The energy E of a wall-particle interactions is given by
-the 9-3 potential
+the 12-6 potential
 
-:c,image(Eqs/fix_wall_lj93.jpg)
+:c,image(Eqs/pair_lj.jpg)
 
 where {r} is the distance from the particle to the wall {coord}, and
 epsilon and sigma are the usual LJ parameters.  Rc is the cutoff value
-specified in the command.  This interaction is derived by integrating
-over a 3d half-lattice of Lennard-Jones 12-6 particles.  A harder,
-more repulsive wall interaction can be computed by using the "fix
-wall/lj126"_fix_wall_lj126.html command.
+specified in the command.  This interaction provides a harder, more
+repulsive interaction with the wall than the softer 9-3 potential
+provided by the "fix wall/lj93"_fix_wall_lj93.html command.
 
 The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
@@ -60,6 +59,6 @@ system (the quantity being minimized), you must enable the
 [Related commands:]
 
 "fix wall/reflect"_fix_wall_reflect.html, "fix
-wall/lj126"_fix_wall_lj126.html
+wall/lj93"_fix_wall_lj93.html
 
 [Default:] none

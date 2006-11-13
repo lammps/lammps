@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
+#include "lattice.h"
 #include "force.h"
 #include "temperature.h"
 #include "temp_full.h"
@@ -96,13 +97,13 @@ void Velocity::command(int narg, char **arg)
   // set scaling for SET and RAMP styles
 
   if (style == SET || style == RAMP) {
-    if (scale_flag && strcmp(domain->lattice_style,"none") == 0)
+    if (scale_flag && domain->lattice == NULL)
       error->all("Use of velocity with undefined lattice");
 
     if (scale_flag) {
-      xscale = domain->xlattice;
-      yscale = domain->ylattice;
-      zscale = domain->zlattice;
+      xscale = domain->lattice->xlattice;
+      yscale = domain->lattice->ylattice;
+      zscale = domain->lattice->zlattice;
     }
     else xscale = yscale = zscale = 1.0;
   }
@@ -582,7 +583,7 @@ void Velocity::zero_rotation()
       dy = (x[i][1] + ybox*yprd) - xcm[1];
       dz = (x[i][2] + zbox*zprd) - xcm[2];
       v[i][0] -= omega[1]*dz - omega[2]*dy;
-      v[i][1] -= omega[2]*dx - omega[0]*dz;
+      v[i][1] -= omega[2]*dx - omega[0]*dy;
       v[i][2] -= omega[0]*dy - omega[1]*dx;
     }
 }

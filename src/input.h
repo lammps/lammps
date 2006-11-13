@@ -84,8 +84,6 @@ class Input : public LAMMPS {
   void neighbor_command();
   void newton();
   void next_command();
-  void orient();
-  void origin();
   void pair_coeff();
   void pair_modify();
   void pair_style();

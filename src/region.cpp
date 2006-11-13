@@ -15,6 +15,7 @@
 #include "string.h"
 #include "region.h"
 #include "domain.h"
+#include "lattice.h"
 #include "error.h"
 
 /* ---------------------------------------------------------------------- */
@@ -70,13 +71,13 @@ void Region::options(int narg, char **arg)
 
   // setup scaling
 
-  if (scaleflag && strcmp(domain->lattice_style,"none") == 0)
+  if (scaleflag && domain->lattice == NULL)
     error->all("Use of region with undefined lattice");
 
   if (scaleflag) {
-    xscale = domain->xlattice;
-    yscale = domain->ylattice;
-    zscale = domain->zlattice;
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
   }
   else xscale = yscale = zscale = 1.0;
 }

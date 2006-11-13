@@ -23,16 +23,11 @@ class CreateAtoms : public LAMMPS {
   void command(int, char **);
 
  private:
-  int create_type;
-  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;
+  int regionflag;
   double boxxhi,boxyhi,boxzhi;
-  int iregion;
+  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;
 
-  void add_atom(double, double, double);
-  void loop_bounds(int, int *, int *);
-  int same_side(int *, int *);
-  double dot(double *, double *);
-  void points2vec(double, double, double, double, double, double, double *);
+  void add_atom(int, double, double, double);
 };
 
 #endif

@@ -420,8 +420,6 @@ int Input::execute_command()
   else if (!strcmp(command,"neighbor")) neighbor_command();
   else if (!strcmp(command,"newton")) newton();
   else if (!strcmp(command,"next")) next_command();
-  else if (!strcmp(command,"orient")) orient();
-  else if (!strcmp(command,"origin")) origin();
   else if (!strcmp(command,"pair_coeff")) pair_coeff();
   else if (!strcmp(command,"pair_modify")) pair_modify();
   else if (!strcmp(command,"pair_style")) pair_style();
@@ -886,43 +884,6 @@ void Input::newton()
 void Input::next_command()
 {
   if (variable->next(narg,arg)) jump_skip = 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::orient()
-{
-  if (narg != 4) error->all("Illegal orient command");
-
-  if (strcmp(arg[0],"x") == 0) {
-    domain->orient_x[0] = atoi(arg[1]);
-    domain->orient_x[1] = atoi(arg[2]);
-    domain->orient_x[2] = atoi(arg[3]);
-  } else if (strcmp(arg[0],"y") == 0) {
-    domain->orient_y[0] = atoi(arg[1]);
-    domain->orient_y[1] = atoi(arg[2]);
-    domain->orient_y[2] = atoi(arg[3]);
-  } else if (strcmp(arg[0],"z") == 0) {
-    domain->orient_z[0] = atoi(arg[1]);
-    domain->orient_z[1] = atoi(arg[2]);
-    domain->orient_z[2] = atoi(arg[3]);
-  } else error->all("Illegal orient command");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::origin()
-{
-  if (narg != 3) error->all("Illegal origin command");
-
-  domain->origin_x = atof(arg[0]);
-  domain->origin_y = atof(arg[1]);
-  domain->origin_z = atof(arg[2]);
-
-  if (domain->origin_x < 0.0 || domain->origin_x > 1.0 ||
-      domain->origin_y < 0.0 || domain->origin_y > 1.0 ||
-      domain->origin_x < 0.0 || domain->origin_z > 1.0)
-    error->all("Illegal origin command");
 }
 
 /* ---------------------------------------------------------------------- */

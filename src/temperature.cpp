@@ -19,6 +19,7 @@
 #include "group.h"
 #include "modify.h"
 #include "domain.h"
+#include "lattice.h"
 #include "fix.h"
 #include "error.h"
 
@@ -60,13 +61,13 @@ Temperature::Temperature(int narg, char **arg)
 
   if (strcmp(style,"ramp") == 0) {
 
-    if (scaleflag && strcmp(domain->lattice_style,"none") == 0)
+    if (scaleflag && domain->lattice == NULL)
       error->all("Use of temperature ramp with undefined lattice");
 
     if (scaleflag) {
-      xscale = domain->xlattice;
-      yscale = domain->ylattice;
-      zscale = domain->zlattice;
+      xscale = domain->lattice->xlattice;
+      yscale = domain->lattice->ylattice;
+      zscale = domain->lattice->zlattice;
     }
     else xscale = yscale = zscale = 1.0;
   }

@@ -21,6 +21,7 @@
 #include "fix_indent.h"
 #include "atom.h"
 #include "domain.h"
+#include "lattice.h"
 #include "update.h"
 #include "output.h"
 #include "respa.h"
@@ -51,14 +52,14 @@ FixIndent::FixIndent(int narg, char **arg) : Fix(narg, arg)
 
   // setup scaling
 
-  if (scaleflag && strcmp(domain->lattice_style,"none") == 0)
+  if (scaleflag && domain->lattice == NULL)
     error->all("Use of fix indent with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {
-    xscale = domain->xlattice;
-    yscale = domain->ylattice;
-    zscale = domain->zlattice;
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
   }
   else xscale = yscale = zscale = 1.0;
 

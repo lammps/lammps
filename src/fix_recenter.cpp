@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "group.h"
 #include "domain.h"
+#include "lattice.h"
 #include "modify.h"
 #include "comm.h"
 #include "error.h"
@@ -68,11 +69,14 @@ FixRecenter::FixRecenter(int narg, char **arg) : Fix(narg, arg)
 
   // scale xcom,ycom,zcom
 
+  if (scaleflag == 1 && domain->lattice == NULL)
+    error->all("Use of fix recenter with undefined lattice");
+
   double xscale,yscale,zscale;
   if (scaleflag == 1) {
-    xscale = domain->xlattice;
-    yscale = domain->ylattice;
-    zscale = domain->zlattice;
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
   }
   else xscale = yscale = zscale = 1.0;
 

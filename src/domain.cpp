@@ -23,6 +23,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "region.h"
+#include "lattice.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -47,6 +48,10 @@ Domain::Domain()
 
   nonperiodic = 0;
   xperiodic = yperiodic = zperiodic = 1;
+  periodicity[0] = xperiodic;
+  periodicity[1] = yperiodic;
+  periodicity[2] = zperiodic;
+
   boundary[0][0] = boundary[0][1] = 0;
   boundary[1][0] = boundary[1][1] = 0;
   boundary[2][0] = boundary[2][1] = 0;
@@ -54,16 +59,7 @@ Domain::Domain()
   boxxlo = boxylo = boxzlo = -0.5;
   boxxhi = boxyhi = boxzhi = 0.5;
 
-  char *str = "none";
-  int n = strlen(str) + 1;
-  lattice_style = new char[n];
-  strcpy(lattice_style,str);
-
-  origin_x = origin_y = origin_z = 0.0;
-  orient_x[0] = 1; orient_x[1] = 0; orient_x[2] = 0;
-  orient_y[0] = 0; orient_y[1] = 1; orient_y[2] = 0;
-  orient_z[0] = 0; orient_z[1] = 0; orient_z[2] = 1;
-
+  lattice = NULL;
   nregion = maxregion = 0;
   regions = NULL;
 }
@@ -72,7 +68,7 @@ Domain::Domain()
 
 Domain::~Domain()
 {
-  delete [] lattice_style;
+  delete lattice;
   for (int i = 0; i < nregion; i++) delete regions[i];
   memory->sfree(regions);
 }
@@ -95,9 +91,8 @@ void Domain::init()
 }
 
 /* ----------------------------------------------------------------------
-   setup initial global box, boxxlo-boxzhi are already set
-   adjust for any shrink-wrapped boundaries
-   store min values if boundary type = 3 = "m"
+   set initial global box from boxlo/hi (already set by caller)
+   adjust for shrink-wrapped dims
 ------------------------------------------------------------------------- */
 
 void Domain::set_initial_box()
@@ -119,8 +114,7 @@ void Domain::set_initial_box()
 }
 
 /* ----------------------------------------------------------------------
-   setup global box parameters
-   set prd, prd_half, prd[], boxlo/hi[], periodicity[]
+   set global prd, prd_half, prd[], boxlo/hi[] from boxlo/hi
 ------------------------------------------------------------------------- */
 
 void Domain::set_global_box()
@@ -136,14 +130,10 @@ void Domain::set_global_box()
   prd[0]   = xprd;    prd[1]   = yprd;    prd[2]   = zprd;
   boxlo[0] = boxxlo;  boxlo[1] = boxylo;  boxlo[2] = boxzlo;
   boxhi[0] = boxxhi;  boxhi[1] = boxyhi;  boxhi[2] = boxzhi;
-  periodicity[0] = xperiodic;
-  periodicity[1] = yperiodic;
-  periodicity[2] = zperiodic;
 }
 
 /* ----------------------------------------------------------------------
-   set local subbox from global boxxlo-boxzhi and proc grid
-   set subxlo-subzhi, sublo/hi[] 
+   set local subxlo-subzhi, sublo/hi[] from global boxxlo-boxzhi and proc grid
    for uppermost proc, insure subhi = boxhi (in case round-off occurs)
 ------------------------------------------------------------------------- */
 
@@ -170,8 +160,8 @@ void Domain::set_local_box()
 
 /* ----------------------------------------------------------------------
    reset global & local boxes due to global box boundary changes
-   if shrink-wrapped, determine atom extent and reset boxxlo thru boxzhi
-   call set_global_box and set_local_box 
+   if shrink-wrapped, determine atom extent and reset boxlo/hi
+   set global & local boxes from new boxlo/hi values
 ------------------------------------------------------------------------- */
 
 void Domain::reset_box()
@@ -199,7 +189,6 @@ void Domain::reset_box()
 
     // compute extent across all procs
     // flip sign of MIN to do it in one Allreduce MAX
-    // set box by extent in shrink-wrapped dims
 
     extent[0][0] = -extent[0][0];
     extent[1][0] = -extent[1][0];
@@ -207,8 +196,7 @@ void Domain::reset_box()
 
     MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
 
-    // if any of 6 dims is shrink-wrapped, set it to extent of atoms +/- SMALL
-    // enforce min extent for boundary type = 3 = "m"
+    // in shrink-wrapped dims, set box by atom extent
     
     if (xperiodic == 0) {
       if (boundary[0][0] == 2) boxxlo = -all[0][0] - SMALL;
@@ -460,151 +448,18 @@ void Domain::unmap(double &x, double &y, double &z, int image)
 }
 
 /* ----------------------------------------------------------------------
-   set lattice constant 
+   create a lattice
+   delete it if style = none
 ------------------------------------------------------------------------- */
 
 void Domain::set_lattice(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal lattice command");
-
-  delete [] lattice_style;
-  int n = strlen(arg[0]) + 1;
-  lattice_style = new char[n];
-  strcpy(lattice_style,arg[0]);
-
-  if (strcmp(arg[0],"none") == 0) return;
-
-  if (narg != 2) error->all("Illegal lattice command");
-
-  if (strcmp(arg[0],"sc") && strcmp(arg[0],"bcc") && strcmp(arg[0],"fcc") &&
-      strcmp(arg[0],"sq") && strcmp(arg[0],"sq2") && strcmp(arg[0],"hex") &&
-      strcmp(arg[0],"diamond"))
-    error->all("Illegal lattice command");
-
-  // check that lattice matches dimension
-
-  int dim = force->dimension;
-
-  if (dim == 2) {
-    if (strcmp(arg[0],"sq") && strcmp(arg[0],"sq2") && strcmp(arg[0],"hex"))
-      error->all("Lattice style incompatible with dimension");
+  delete lattice;
+  lattice = new Lattice(narg,arg);
+  if (lattice->style == 0) {
+    delete lattice;
+    lattice = NULL;
   }
-
-  if (dim == 3) {
-    if (strcmp(arg[0],"sc") && strcmp(arg[0],"bcc") &&
-	strcmp(arg[0],"fcc") && strcmp(arg[0],"diamond"))
-      error->all("Lattice style incompatible with dimension");
-  }
-
-  // set lattice constants depending on # of atoms per unit cell
-  // hex is only case where xlattice = ylattice = zlattice is not true
-
-  double value = atof(arg[1]);
-
-  if (!strcmp(arg[0],"sc") || !strcmp(arg[0],"sq")) {
-    if (strcmp(update->unit_style,"lj") == 0)
-      xlattice = ylattice = zlattice = pow(1.0/value,1.0/dim);
-    else xlattice = ylattice = zlattice = value;
-  }
-
-  if (!strcmp(arg[0],"bcc") || !strcmp(arg[0],"sq2")) {
-    if (strcmp(update->unit_style,"lj") == 0)
-      xlattice = ylattice = zlattice = pow(2.0/value,1.0/dim);
-    else xlattice = ylattice = zlattice = value;
-  }
-
-  if (strcmp(arg[0],"fcc") == 0) {
-    if (strcmp(update->unit_style,"lj") == 0)
-      xlattice = ylattice = zlattice = pow(4.0/value,1.0/dim);
-    else xlattice = ylattice = zlattice = value;
-  }
-
-  if (strcmp(arg[0],"hex") == 0) {
-    if (strcmp(update->unit_style,"lj") == 0)
-      xlattice = zlattice = pow(2.0/sqrt(3.0)/value,1.0/dim);
-    else xlattice = zlattice = value;
-    ylattice = xlattice * sqrt(3.0);
-  }
-
-  if (strcmp(arg[0],"diamond") == 0) {
-    if (strcmp(update->unit_style,"lj") == 0)
-      xlattice = ylattice = zlattice = pow(8.0/value,1.0/dim);
-    else xlattice = ylattice = zlattice = value;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check if orientation vectors are mutually orthogonal 
-------------------------------------------------------------------------- */
-
-int Domain::orthogonality()
-{
-  if (orient_x[0]*orient_y[0] + orient_x[1]*orient_y[1] + 
-      orient_x[2]*orient_y[2]) return 0;
-
-  if (orient_y[0]*orient_z[0] + orient_y[1]*orient_z[1] + 
-      orient_y[2]*orient_z[2]) return 0;
-
-  if (orient_x[0]*orient_z[0] + orient_x[1]*orient_z[1] + 
-      orient_x[2]*orient_z[2]) return 0;
-
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   check righthandedness of orientation vectors
-   x cross y must be in same direction as z 
-------------------------------------------------------------------------- */
-
-int Domain::right_handed()
-{
-  int xy0 = orient_x[1]*orient_y[2] - orient_x[2]*orient_y[1];
-  int xy1 = orient_x[2]*orient_y[0] - orient_x[0]*orient_y[2];
-  int xy2 = orient_x[0]*orient_y[1] - orient_x[1]*orient_y[0];
-  if (xy0*orient_z[0] + xy1*orient_z[1] + xy2*orient_z[2] <= 0) return 0;
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   convert lattice coords into box coords
-   x,y,z = point in lattice coords
-   orient_xyz = lattice vectors that point in positive x,y,z box directions
-   origin_xyz = origin of lattice in lattice units
-   return xnew,ynew,znew = point in box coords
-   method:
-     compute projection of vector from (0,0,0) to lattice onto each
-       orient vector via dot product scaled by length of
-       orient vector in lattice coords
-     this projection (offset by origin and scaled by lattice constant)
-       gives x,y,z box coords 
-------------------------------------------------------------------------- */
-
-void Domain::lattice2box(double *x, double *y, double *z)
-{
-  double length;
-  double dotprod;
-
-  length = orient_x[0]*orient_x[0] + orient_x[1]*orient_x[1] +
-    orient_x[2]*orient_x[2];
-  length = sqrt(length);
-  dotprod = *x * orient_x[0] + *y * orient_x[1] + *z * orient_x[2];
-  double xnew = (dotprod/length + origin_x) * xlattice;
-
-  length = orient_y[0]*orient_y[0] + orient_y[1]*orient_y[1] +
-    orient_y[2]*orient_y[2];
-  length = sqrt(length);
-  dotprod = *x * orient_y[0] + *y * orient_y[1] + *z * orient_y[2];
-  double ynew = (dotprod/length + origin_y) * ylattice;
-
-  length = orient_z[0]*orient_z[0] + orient_z[1]*orient_z[1] +
-     orient_z[2]*orient_z[2];
-  length = sqrt(length);
-  dotprod = *x * orient_z[0] + *y * orient_z[1] + *z * orient_z[2];
-  double znew = (dotprod/length + origin_z) * zlattice;
-
-  *x = xnew;
-  *y = ynew;
-  *z = znew;
 }
 
 /* ----------------------------------------------------------------------
@@ -677,6 +532,10 @@ void Domain::set_boundary(int narg, char **arg)
   else yperiodic = 0;
   if (boundary[2][0] == 0) zperiodic = 1;
   else zperiodic = 0;
+
+  periodicity[0] = xperiodic;
+  periodicity[1] = yperiodic;
+  periodicity[2] = zperiodic;
 
   nonperiodic = 0;
   if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) {

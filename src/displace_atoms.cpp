@@ -18,6 +18,7 @@
 #include "system.h"
 #include "atom.h"
 #include "domain.h"
+#include "lattice.h"
 #include "comm.h"
 #include "group.h"
 #include "error.h"
@@ -67,14 +68,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // setup scaling
 
-  if (scaleflag && strcmp(domain->lattice_style,"none") == 0)
+  if (scaleflag && domain->lattice == NULL)
     error->all("Use of displace_atoms with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {
-    xscale = domain->xlattice;
-    yscale = domain->ylattice;
-    zscale = domain->zlattice;
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
   }
   else xscale = yscale = zscale = 1.0;
 

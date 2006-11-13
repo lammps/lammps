@@ -15,6 +15,7 @@
 #define DOMAIN_H
 
 #include "lammps.h"
+class Lattice;
 class Region;
 
 class Domain : public LAMMPS {
@@ -32,7 +33,7 @@ class Domain : public LAMMPS {
                                             // 3 = shrink-wrap non-per w/ min
 
   double minxlo,minxhi;                     // minimum size of global box
-  double minylo,minyhi;                     //   when shrink-wrapping
+  double minylo,minyhi;                     // when shrink-wrapping
   double minzlo,minzhi;
 
   double boxxlo,boxxhi;                     // global box boundaries 
@@ -40,6 +41,7 @@ class Domain : public LAMMPS {
   double boxzlo,boxzhi;
 
   double xprd,yprd,zprd;                    // global box size
+  double xprd_half,yprd_half,zprd_half;
 
   double subxlo,subxhi;                     // sub-box boudaries on this proc
   double subylo,subyhi;
@@ -50,19 +52,9 @@ class Domain : public LAMMPS {
   double sublo[3],subhi[3];                 // sub-box bounds as arrays
   int periodicity[3];                       // xyz periodic as array
 
-  double xprd_half,yprd_half,zprd_half;
-
   int box_change;            // 1 if box bounds ever change, 0 if fixed
 
-                                       // params for create_atoms command
-  char *lattice_style;                 // lattice: none
-                                       // 3d = fcc, bcc, sc
-                                       // 2d = sq, sq2, hex
-  double xlattice,ylattice,zlattice;   // lattice const in 3 directions
-  double origin_x,origin_y,origin_z;   // lattice origin
-  int orient_x[3];                     // lattice vectors
-  int orient_y[3];
-  int orient_z[3];
+  Lattice *lattice;              // user-defined lattice
 
   int nregion;                   // # of defined Regions
   int maxregion;                 // max # list can hold
@@ -81,9 +73,6 @@ class Domain : public LAMMPS {
   void minimum_image(double *, double *, double *);
   void minimum_image(double *);
   void set_lattice(int, char **);
-  int orthogonality();
-  int right_handed();
-  void lattice2box(double *, double *, double *);
   void add_region(int, char **);
   void set_boundary(int, char **);
 };

@@ -102,8 +102,7 @@ void Output::setup(int flag)
 {
   int ntimestep = update->ntimestep;
 
-  // perform dump at start of run if multiple of every
-  //   and last dump was not on this timestep
+  // perform dump at start of run if last dump was not on this timestep
   // set next_dump to multiple of every
   // will not write on last step of run unless multiple of every
   // set next_dump_any to smallest next_dump
@@ -111,8 +110,7 @@ void Output::setup(int flag)
 
   if (ndump) {
     for (int idump = 0; idump < ndump; idump++) {
-      if (ntimestep % dump_every[idump] == 0 && 
-	  last_dump[idump] != ntimestep) {
+      if (last_dump[idump] != ntimestep) {
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }
@@ -158,25 +156,26 @@ void Output::setup(int flag)
 /* ----------------------------------------------------------------------
    perform all output for this timestep
    only perform output if next matches current step and last doesn't
-   insure next values force output on last step of run
    do dump/restart before thermo so thermo CPU time will include them
 ------------------------------------------------------------------------- */
 
 void Output::write(int ntimestep)
 {
+  // next_dump does not force output on last step of run
+
   if (next_dump_any == ntimestep) {
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep && last_dump[idump] != ntimestep) {
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
 	next_dump[idump] += dump_every[idump];
-	next_dump[idump] = MYMIN(next_dump[idump],update->laststep);
       }
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
     }
   }
 
+  // next_restart does not force output on last step of run
   // for toggle = 0, replace "*" with current timestep in restart filename
 
   if (next_restart == ntimestep && last_restart != ntimestep) {
@@ -197,8 +196,9 @@ void Output::write(int ntimestep)
     }
     last_restart = ntimestep;
     next_restart += restart_every;
-    next_restart = MYMIN(next_restart,update->laststep);
   }
+
+  // insure next_thermo forces output on last step of run
 
   if (next_thermo == ntimestep && last_thermo != ntimestep) {
     thermo->compute(1);

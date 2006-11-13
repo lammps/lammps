@@ -8,10 +8,8 @@ lattice		fcc 3.52
 region		box block 0 16.0 0 10.0 0 2.828427
 create_box	3 box
 
-orient		x 1 0 0 
-orient		y 0 1 1
-orient		z 0 -1 1
-origin		0.5 0 0 
+lattice		fcc 3.52 orient	x 1 0 0 orient y 0 1 1 orient z 0 -1 1 &
+		origin 0.5 0 0 
 create_atoms	1
 
 pair_style	eam
@@ -20,8 +18,8 @@ pair_coeff	* * niu3.eam
 neighbor	0.3 bin
 neigh_modify	delay 5
 
-region		lower block INF INF INF 1.4 INF INF
-region		upper block INF INF 8.6 INF INF INF
+region		lower block INF INF INF 0.9 INF INF
+region		upper block INF INF 6.1 INF INF INF
 group		lower region lower
 group		upper region upper
 group		boundary union lower upper
@@ -32,7 +30,7 @@ set		upper atom 3
 
 # void
 
-region		void cylinder z 8 5 2.5 INF INF
+region		void cylinder z 8 3.535534 2.5 INF INF
 delete_atoms	region void
 
 # temp controllers

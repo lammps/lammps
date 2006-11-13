@@ -33,10 +33,10 @@ region		hi-half-sphere intersect 2 hi-asperity below-hi
 
 # create 2 surfaces with asperities
 
-create_atoms	1 lo-slab
-create_atoms	1 hi-slab
-create_atoms	2 lo-half-sphere
-create_atoms	3 hi-half-sphere
+create_atoms	1 region lo-slab
+create_atoms	1 region hi-slab
+create_atoms	2 region lo-half-sphere
+create_atoms	3 region hi-half-sphere
 
 # LJ potentials
 

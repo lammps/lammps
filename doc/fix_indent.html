@@ -94,10 +94,11 @@ each run.
 to define the indenter.  A <I>box</I> value selects standard distance units
 as defined by the <A HREF = "units.html">units</A> command, e.g. Angstroms for units
 = real or metal.  A <I>lattice</I> value means the distance units are in
-cubic lattice spacings.  The <A HREF = "lattice.html">lattice</A> command must first
-be used to define a lattice.  Note that the units choice affects not
-only the indenter's physical geometry, but also its velocity and force
-constant since they are defined in terms of distance as well.
+lattice spacings.  The <A HREF = "lattice.html">lattice</A> command must have been
+previously used to define the lattice spacing.  Note that the units
+choice affects not only the indenter's physical geometry, but also its
+velocity and force constant since they are defined in terms of
+distance as well.
 </P>
 <P>This fix supports the <A HREF = "fix_modify.html">fix_modify</A> options for
 <I>thermo</I> and <I>energy</I>.  The former will print the contribution the fix

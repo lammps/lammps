@@ -87,8 +87,9 @@ for coordinates (c1,c2) and velocities (vlo,vhi) defined for the
 {ramp} style.  A {box} value selects standard distance units as
 defined by the "units"_units.html command, e.g. Angstroms for units =
 real or metal.  A {lattice} value means the distance units are in
-cubic lattice spacings; e.g. lattice spacings / tau.  The
-"lattice"_lattice.html command must first be used to define a lattice.
+lattice spacings; e.g. velocity = lattice spacings / tau.  The
+"lattice"_lattice.html command must have been previously used to
+define the lattice spacing.
 
 LAMMPS defines a temperature with ID = {default} which computes a
 {full} style on the {all} group of atoms.  This is the temperature

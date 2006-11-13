@@ -10,41 +10,58 @@ create_atoms command :h3
 
 [Syntax:]
 
-create_atoms type region-ID :pre
+create_atoms type keyword values ... :pre
 
-type = atom type (1-N) of atoms to create on a lattice
-region-ID = ID of region each atom will belong to (optional) :ul
+type = atom type (1-N) of atoms to create on a lattice :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {region} or {basis} :l
+  {region} value = region-ID
+    region-ID = atoms will only be created if contained in the region
+  {basis} values = M itype
+    M = which basis atom
+    itype = atom type (1-N) to assign to the basis atom :pre
+:ule
 
 [Examples:]
 
-create_atoms 1 regsphere
-create_atoms 3 :pre
+create_atoms 1
+create_atoms 3 region regsphere
+create_atoms 1 basis 2 5 :pre
 
 [Description:]
 
 This command creates atoms on a lattice as an alternative to reading
 in their coordinates via a "read_data"_read_data.html or
 "read_restart"_read_restart.html command.  A simulation box must
-already exist, which is created with the "create_box"_create_box.html
-command.
+already exist, which is typically created via the
+"create_box"_create_box.html command.
 
 Before using this command, a lattice must be defined using the
 "lattice"_lattice.html command.  If a region is not specified, the
 create_atoms command fills the entire simulation box with atoms on the
-lattice.  If a region is specified, then the geometric volume is
-filled that is inside the simulation box and is also consistent with
-the region volume.
+lattice.  If a region is specified (see the "region"_region.html
+command), then the geometric volume is filled that is inside the
+simulation box and is also consistent with the region volume.  Note
+that a region can be specified so that its "volume" is either inside
+or outside a geometric boundary.
 
-The {create_atoms} command can be used multiple times with different
-lattice orientations to create grain boundaries.  Used in conjunction
-with the "delete_atoms"_delete_atoms.html command, reasonably complex
-geometries can be created.  The {create_atoms} command can also be
-used to add atoms to a system previously read in from a data or
-restart file.  In all these cases, care should be taken to insure that
-new atoms do not overlap existing atoms inappropriately.
+The "lattice"_lattice.html command specifies one or more basis atoms
+in each unit cell.  By default, when created, all basis atoms are
+assigned the argument {type} as their atom type.  The keyword {basis}
+can be used to override the default for one or more basis atoms and
+assign them a different atom type.
 
-Created atoms are assigned the specified atom type and a velocity of
-0.0.
+By using the create_atoms command multiple times (interleaved with
+"lattice"_lattice.html commands specifying different orientations),
+grain boundaries can be created.  Using the create_atoms command in
+conjunction with the "delete_atoms"_delete_atoms.html command,
+reasonably complex geometries can be created.  The create_atoms
+command can also be used to add atoms to a system previously read in
+from a data or restart file.  In all these cases, care should be taken
+to insure that new atoms do not overlap existing atoms
+inappropriately.
+
+Created atoms are assigned a velocity of 0.0.
 
 [Restrictions:]
 
@@ -53,8 +70,7 @@ previously defined to use this command.
 
 [Related commands:]
 
-"lattice"_lattice.html, "orient"_orient.html, "origin"_origin.html,
-"region"_region.html, "create_box"_create_box.html,
+"lattice"_lattice.html, "region"_region.html, "create_box"_create_box.html,
 "read_data"_read_data.html, "read_restart"_read_restart.html
 
 [Default:] none

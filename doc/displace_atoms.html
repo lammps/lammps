@@ -58,9 +58,9 @@ those bounds will be moved the minimum (0.0) or maximum (5.0) amount.
 <P>Distance units for the displacement are determined by the setting of
 <I>box</I> or <I>lattice</I> for the <I>units</I> keyword.  <I>Box</I> means distance
 units as defined by the <A HREF = "units.html">units</A> command - e.g. Angstroms
-for <I>real</I> units.  <I>Lattice</I> means to use lattice spacings as defined
-by the <A HREF = "lattice.html">lattice</A> command.  The default is to use lattice
-units.
+for <I>real</I> units.  <I>Lattice</I> means distance units are in lattice
+spacings.  The <A HREF = "lattice.html">lattice</A> command must have been
+previously used to define the lattice spacing.
 </P>
 <P>Care should be taken not to move atoms on top of other atoms.  After
 the move, atoms are remapped to the periodic simulation box.  In
@@ -76,7 +76,9 @@ once they have been displaced.  This means that your system must be
 ready to perform a simulation before using this command (force fields
 setup, atom masses set, etc).
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "lattice.html">lattice</A>
 </P>
 <P><B>Default:</B>
 </P>

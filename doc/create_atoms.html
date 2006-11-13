@@ -13,41 +13,62 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>create_atoms type region-ID 
+<PRE>create_atoms type keyword values ... 
 </PRE>
-<UL><LI>type = atom type (1-N) of atoms to create on a lattice
-<LI>region-ID = ID of region each atom will belong to (optional) 
+<UL><LI>type = atom type (1-N) of atoms to create on a lattice 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>region</I> or <I>basis</I> 
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = atoms will only be created if contained in the region
+  <I>basis</I> values = M itype
+    M = which basis atom
+    itype = atom type (1-N) to assign to the basis atom 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>create_atoms 1 regsphere
-create_atoms 3 
+<PRE>create_atoms 1
+create_atoms 3 region regsphere
+create_atoms 1 basis 2 5 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command creates atoms on a lattice as an alternative to reading
 in their coordinates via a <A HREF = "read_data.html">read_data</A> or
 <A HREF = "read_restart.html">read_restart</A> command.  A simulation box must
-already exist, which is created with the <A HREF = "create_box.html">create_box</A>
-command.
+already exist, which is typically created via the
+<A HREF = "create_box.html">create_box</A> command.
 </P>
 <P>Before using this command, a lattice must be defined using the
 <A HREF = "lattice.html">lattice</A> command.  If a region is not specified, the
 create_atoms command fills the entire simulation box with atoms on the
-lattice.  If a region is specified, then the geometric volume is
-filled that is inside the simulation box and is also consistent with
-the region volume.
+lattice.  If a region is specified (see the <A HREF = "region.html">region</A>
+command), then the geometric volume is filled that is inside the
+simulation box and is also consistent with the region volume.  Note
+that a region can be specified so that its "volume" is either inside
+or outside a geometric boundary.
 </P>
-<P>The <I>create_atoms</I> command can be used multiple times with different
-lattice orientations to create grain boundaries.  Used in conjunction
-with the <A HREF = "delete_atoms.html">delete_atoms</A> command, reasonably complex
-geometries can be created.  The <I>create_atoms</I> command can also be
-used to add atoms to a system previously read in from a data or
-restart file.  In all these cases, care should be taken to insure that
-new atoms do not overlap existing atoms inappropriately.
+<P>The <A HREF = "lattice.html">lattice</A> command specifies one or more basis atoms
+in each unit cell.  By default, when created, all basis atoms are
+assigned the argument <I>type</I> as their atom type.  The keyword <I>basis</I>
+can be used to override the default for one or more basis atoms and
+assign them a different atom type.
 </P>
-<P>Created atoms are assigned the specified atom type and a velocity of
-0.0.
+<P>By using the create_atoms command multiple times (interleaved with
+<A HREF = "lattice.html">lattice</A> commands specifying different orientations),
+grain boundaries can be created.  Using the create_atoms command in
+conjunction with the <A HREF = "delete_atoms.html">delete_atoms</A> command,
+reasonably complex geometries can be created.  The create_atoms
+command can also be used to add atoms to a system previously read in
+from a data or restart file.  In all these cases, care should be taken
+to insure that new atoms do not overlap existing atoms
+inappropriately.
+</P>
+<P>Created atoms are assigned a velocity of 0.0.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -56,8 +77,7 @@ previously defined to use this command.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "lattice.html">lattice</A>, <A HREF = "orient.html">orient</A>, <A HREF = "origin.html">origin</A>,
-<A HREF = "region.html">region</A>, <A HREF = "create_box.html">create_box</A>,
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "region.html">region</A>, <A HREF = "create_box.html">create_box</A>,
 <A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>
 </P>
 <P><B>Default:</B> none

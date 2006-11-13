@@ -85,10 +85,11 @@ The {units} keyword determines the meaning of the distance units used
 to define the indenter.  A {box} value selects standard distance units
 as defined by the "units"_units.html command, e.g. Angstroms for units
 = real or metal.  A {lattice} value means the distance units are in
-cubic lattice spacings.  The "lattice"_lattice.html command must first
-be used to define a lattice.  Note that the units choice affects not
-only the indenter's physical geometry, but also its velocity and force
-constant since they are defined in terms of distance as well.
+lattice spacings.  The "lattice"_lattice.html command must have been
+previously used to define the lattice spacing.  Note that the units
+choice affects not only the indenter's physical geometry, but also its
+velocity and force constant since they are defined in terms of
+distance as well.
 
 This fix supports the "fix_modify"_fix_modify.html options for
 {thermo} and {energy}.  The former will print the contribution the fix

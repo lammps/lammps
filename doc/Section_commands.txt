@@ -158,10 +158,10 @@ or restart file via the "read_data"_read_data.html or
 "read_restart"_read_restart.html commands.  These files can contain
 molecular topology information.  Or create atoms on a lattice (with no
 molecular topology), using these commands: "lattice"_lattice.html,
-"orient"_orient.html, "origin"_origin.html, "region"_region.html,
-"create_box"_create_box.html, "create_atoms"_create_atoms.html.  The
-entire set of atoms can be duplicated to make a larger simulation
-using the "replicate"_replicate.html command.
+"region"_region.html, "create_box"_create_box.html,
+"create_atoms"_create_atoms.html.  The entire set of atoms can be
+duplicated to make a larger simulation using the
+"replicate"_replicate.html command.
 
 (3) Settings
 
@@ -219,9 +219,9 @@ Initialization:
 Atom definition:
 
 "create_atoms"_create_atoms.html, "create_box"_create_box.html,
-"lattice"_lattice.html, "orient"_orient.html, "origin"_origin.html,
-"read_data"_read_data.html, "read_restart"_read_restart.html,
-"region"_region.html, "replicate"_replicate.html
+"lattice"_lattice.html, "read_data"_read_data.html,
+"read_restart"_read_restart.html, "region"_region.html,
+"replicate"_replicate.html
 
 Force fields:
 
@@ -324,8 +324,6 @@ in the command's documentation.
 "neighbor"_neighbor.html,
 "newton"_newton.html,
 "next"_next.html,
-"orient"_orient.html,
-"origin"_origin.html,
 "pair_coeff"_pair_coeff.html,
 "pair_modify"_pair_modify.html,
 "pair_style"_pair_style.html,
@@ -401,6 +399,7 @@ or click on the command itself for a full description:
 "fix volume/rescale"_fix_volume_rescale.html,
 "fix wall/gran"_fix_wall_gran.html,
 "fix wall/lj93"_fix_wall_lj93.html,
+"fix wall/lj126"_fix_wall_lj126.html,
 "fix wall/reflect"_fix_wall_reflect.html,
 "fix wiggle"_fix_wiggle.html :tb(c=6,ea=c)
 

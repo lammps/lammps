@@ -10,58 +10,201 @@ lattice command :h3
 
 [Syntax:]
 
-lattice style value :pre
+lattice style scale keyword values ... :pre
 
-style = {none} or {sc} or {bcc} or {fcc} or {sq} or {sq2} or {hex} or {diamond} :ulb,l
-  {none} value = none
+style = {none} or {sc} or {bcc} or {fcc} or {diamond} or \
+        {sq} or {sq2} or {hex} or {user} :ulb,l
+scale = scale factor between lattice and simulation box :l
+  for style {none}:
+    scale is not specified (nor any optional args)
   for all other styles:
-    value = reduced density (for LJ units)
-    value = cubic lattice constant in Angstroms (for real or metal units) :pre
+    scale = reduced density rho* (for LJ units)
+    scale = lattice constant in Angstroms (for real or metal units) :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {origin} or {orient} or {a1} or {a2} or {a3} or {basis} :l
+  {origin} values = x y z
+    x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
+  {orient} values = dim i j k
+    dim = {x} or {y} or {z}
+    i,j,k = integer lattice directions
+  {a1},{a2},{a3} values = x y z
+    x,y,z = primitive vector components that define unit cell
+  {basis} values = x y z
+    x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1) :pre
 :ule
 
 [Examples:]
 
 lattice fcc 3.52
 lattice hex 0.85
+lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
+lattice user 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
+                  basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
 lattice none :pre
 
 [Description:]
 
-Define a lattice type and lattice constant.  This is required before
-using a commands that (optionally) use the lattice, such as
-"create_atoms"_create_atoms.html or "region"_region.html.  The lattice
-type must be consistent with the dimension of the simulation - see the
-"dimension"_dimension.html command.  Styles {sc} or {bcc} or {fcc} or
-{diamond} are for 3d problems.  Styles {sq} or {sq2} or {hex} are for
-2d problems.  Lattices of style {fcc}, {bcc}, {hex}, or {diamond} are
-described in any solid-state physics text.  A {sc} lattice is simple
-cubic, with atoms at the corners of a cube.  A {sq} lattice is square
-with atoms at the corners of a square.  A {sq2} lattice is a {sq}
-lattice with an additional atom at the center of the square.
+Define a lattice for use by other commands.  In LAMMPS, a lattice is
+simply a set of points in space, determined by a unit cell with basis
+atoms, that is replicated infinitely in all dimensions.  The arguments
+of the lattice command can be used to define a wide variety of
+crystallographic lattices.
 
-For unit style {real} or {metal}, the specified value is the cubic
-lattice constant in Angstroms.  For unit style {lj}, the value is the
-reduced density (rho*) which LAMMPS converts into a cubic lattice
-constant.  For 3d problems, the relationship "rho* = rho sigma^3" is
-used for the conversion, where rho = N/V with V = the volume of the
-cubic cell and N = 4 for {fcc}, 2 for {bcc}, 1 for {sc}, and 8 for
-{diamond} lattices.  For 2d problems, the relationship "rho* = rho
-sigma^2" is used for the conversion, where N = 2 for {sq2} or {hex}
-and 1 for {sq}.  In the hex case, the unit cell is actually
-rectangular; it is extended by a factor of sqrt(3) in the y-dimension.
+A lattice is used by LAMMPS in two ways.  First, the
+"create_atoms"_create_atoms.hmtl command creates atoms on the lattice
+points inside the simulation box.  Note that the
+"create_atoms"_create_atoms.html command allows different atom types
+to be assigned to different basis atoms of the lattice.  Second, the
+lattice spacing in the x,y,z dimensions implied by the lattice, can be
+used by other commands as distance units (e.g. "region"_region.html
+and "velocity"_velocity.html), which are often convenient when the
+underlying problem geometry is atoms on a lattice.
 
-The command "lattice none" can be used to turn off the lattice
-setting.  Any command that attempts to use a lattice constant will
-then generate an error.
+The lattice style must be consistent with the dimension of the
+simulation - see the "dimension"_dimension.html command.  Styles {sc}
+or {bcc} or {fcc} or {diamond} are for 3d problems.  Styles {sq} or
+{sq2} or {hex} are for 2d problems.  Style {user} can be used for
+either 2d or 3d problems.
 
-[Restrictions:] none
+A lattice consists of a unit cell, a set of basis atoms within that
+cell, and a set of transformation parameters (scale, origin, orient)
+that map the unit cell into the simulation box.  The vectors a1,a2,a3
+are the edge vectors of the unit cell.  This is the nomenclature for
+"primitive" vectors in solid-state crytallography, but in LAMMPS the
+unit cell they determine does not have to be a "primitive cell" of
+minimum volume.
+
+:line
+
+Lattices of style {sc}, {fcc}, {bcc}, and {diamond} are 3d lattices
+that define a cubic unit cell with edge length = 1.0.  This means a1 =
+1.0 0.0 0.0, a2 = 0.0 1.0 0.0, and a3 = 0.0 0.0 1.0.  The placement of
+the basis atoms within the unit cell are described in any solid-state
+physics text.  A {sc} lattice has 1 basis atom at the
+lower-left-bottom corner of the cube.  A {bcc} lattice has 2 basis
+atoms, one at the corner and one at the center of the cube.  A {fcc}
+lattice has 4 basis atoms, one at the corner and 3 at the cube face
+centers.  A {diamond} lattice has 8 basis atoms.
+
+Lattices of style {sq} and {sq2} are 2d lattices that define a square
+unit cell with edge length = 1.0.  This means a1 = 1.0 0.0 0.0 and a2
+= 0.0 1.0 0.0.  A {sq} lattice has 1 basis atom at the lower-left
+corner of the square.  A {sq2} lattice has 2 basis atoms, one at the
+corner and one at the center of the square.  A {hex} style is also a
+2d lattice, but the unit cell is rectangular, with a1 = 1.0 0.0 0.0
+and a2 = 0.0 sqrt(3.0) 0.0.  It has 2 basis atoms, one at the corner
+and one at the center of the rectangle.
+
+A lattice of style {user} allows you to specify a1, a2, a3, and a list
+of basis atoms to put in the unit cell.  By default, a1,a2,a3 are 3
+orthogonal unit vectors (edges of a unit cube).  But you can specify
+them to be of any length and non-orthogonal to each other, so that
+they describe a tilted parallelepiped.  Via the {basis} keyword you
+add atoms, one at a time, to the unit cell.  Its arguments are
+fractional coordinates (0.0 <= x,y,z < 1.0), so that a value of 0.5
+means a position half-way across the unit cell in that dimension.
+
+:line
+
+This sub-section discusses the arguments that determine how the
+idealized unit cell is transformed into a lattice of points within the
+simulation box with desired spacings.
+
+The {scale} argument determines how the size of the unit cell will be
+scaled when mapping it into the simulation box.  I.e. it determines a
+multiplicative factor to apply to the unit cell, to convert it to a
+lattice of the desired size and distance units in the simulation box.
+The meaning of the {scale} argument depends on the "units"_unit.html
+being used in your simulation.
+
+For unit style {real} or {metal}, the scale argument is in Angstroms.
+For example, if the unit cell is a unit cube with edge length 1.0,
+setting scale = 3.52 would create a cubic lattice with a spacing of
+3.52 Angstroms.
+
+For unit style {lj}, the scale argument is the Lennard-Jones reduced
+density, typically written as rho*.  LAMMPS converts this value into
+the multiplicative factor via the formula "factor^dim = rho/rho*",
+where rho = N/V with V = the volume of the lattice unit cell and N =
+the number of basis atoms in the unit cell (described below), and dim
+= 2 or 3 for the dimensionality of the simulation.  Effectively, this
+means that if LJ particles of size sigma = 1.0 are used in the
+simulation, the lattice of particles will be at the desired reduced
+density.
+
+The {origin} option specifies how the unit cell will be shifted or
+translated when mapping it into the simulation box.  The x,y,z values
+are fractional values (0.0 <= x,y,z < 1.0) meaning shift the lattice
+by a fraction of the lattice spacing in each dimension.  The meaning
+of "lattice spacing" is discussed below.
+
+The {orient} option specifies how the unit cell will be rotated when
+mapping it into the simulation box.  The {dim} argument is one of the
+3 coordinate axes in the simulation box.  The other 3 arguments are
+the crystallographic direction in the lattice that you want to orient
+along that axis, specified as integers.  E.g. "orient x 2 1 0" means
+the x-axis in the simulation box will be the \[210\] lattice
+direction.  The 3 lattice directions you specify must be mutually
+orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
+the Z direction.
+
+:line
+
+Several LAMMPS commands have the option to use distance units that are
+inferred from "lattice spacings" in the x,y,z directions.  E.g. the
+"region"_region.html command can create a block of size 10x20x20,
+where 10 means 10 lattice spacings in the x direction.
+
+These lattice spacings are computed by LAMMPS in the following way.  A
+unit cell of the lattice is mapped into the simulation box (scaled,
+shifted, rotated), so that it now has (perhaps) a modified shape and
+orientation.  The lattice spacing in X is defined as the difference
+between the min/max extent of the x coordinates of the 8 corner points
+of the modified unit cell.  Similarly, the Y and Z lattice spacings
+are defined as the min/max of the y and z coordinates.
+
+Note that if the unit cell has axis-aligned edges (a1,a2,a3) and is
+not rotated (via the {orient} keyword), then the lattice spacings in
+each dimension are simply the scale factor (descibed above) multiplied
+by the length of a1,a2,a3.  Thus a {hex} style lattice with a scale
+factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
+3*sqrt(3.0) in y.
+
+For unit cells with a more general shape or when a rotation is
+applied, the lattice spacing is less intuitive.  But regardless, the
+values of the computed lattice spacings are printed by LAMMPS, so
+their effect in commands that use the spacings should be decipherable.
+
+:line
+
+The command "lattice none" can be used to turn off a previous lattice
+definition.  Any command that attempts to use the lattice directly
+("create_atoms"_create_atoms.html) or associated lattice spacings will
+then generate an error.  No additional arguments need be used with
+"lattice none".
+
+:line
+
+[Restrictions:]
+
+The {a1,a2,a3,basis} keywords can only be used with style {user}.
+
+For lattices oriented at an angle or with a non-orthognal unit cell,
+care must be taken when using the "region"_region.html and
+"create_atoms"_create_atoms.html commands to create a periodic system.
+If the box size is not chosen appropriately, the system may not
+actually be periodic, and atoms may overlap incorretly at the faces of
+the simulation box.
 
 [Related commands:]
 
-"dimension"_dimension.html, "orient"_orient.html,
-"origin"_origin.html, "create_atoms"_create_atoms.html,
+"dimension"_dimension.html, "create_atoms"_create_atoms.html,
 "region"_region.html
 
 [Default:]
 
 lattice none :pre
+
+For other lattice styles, the option defaults are origin = 0.0 0.0
+0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1.0
+0.0 0.0, a2 = 0.0 1.0 0.0, and a3 = 0.0 0.0 1.0.

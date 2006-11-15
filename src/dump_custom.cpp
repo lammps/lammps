@@ -677,10 +677,10 @@ int DumpCustom::count()
 	nstride = 1;
       } else if (thresh_array[ithresh] == EPAIR) {
 	ptr = ((FixEnergy *) modify->fix[ifix_epair])->energy;
-	nstride = 3;
+	nstride = 1;
       } else if (thresh_array[ithresh] == CENTRO) {
 	ptr = ((FixCentro *) modify->fix[ifix_centro])->centro;
-	nstride = 3;
+	nstride = 1;
       } else if (thresh_array[ithresh] == SXX) {
 	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][0];
 	nstride = 6;

@@ -405,6 +405,13 @@ void Neighbor::init()
     firstneigh =
       (int **) memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh");
     add_pages(0);
+  } else if (half && half_previous) {
+    memory->sfree(numneigh);
+    memory->sfree(firstneigh);
+    numneigh =
+      (int *) memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh");
+    firstneigh =
+      (int **) memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh");
   }
 
   if (full == 0 && full_previous) {
@@ -420,6 +427,13 @@ void Neighbor::init()
     firstneigh_full =
       (int **) memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_full");
     add_pages_full(0);
+  } else if (full && full_previous) {
+    memory->sfree(numneigh_full);
+    memory->sfree(firstneigh_full);
+    numneigh_full =
+      (int *) memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh_full");
+    firstneigh_full =
+      (int **) memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_full");
   }
 
   // setup/delete memory for shear history neighbor lists
@@ -445,6 +459,12 @@ void Neighbor::init()
     firstshear = (double **)
       memory->smalloc(maxlocal*sizeof(double *),"firstshear");
     add_pages_history(0);
+  } else if (history >= 0 && history_previous >= 0) {
+    memory->sfree(firsttouch);
+    memory->sfree(firstshear);
+    firsttouch = (int **) memory->smalloc(maxlocal*sizeof(int *),"firsttouch");
+    firstshear = (double **)
+      memory->smalloc(maxlocal*sizeof(double *),"firstshear");
   }
 
   // setup/delete memory for rRESPA neighbor lists
@@ -488,6 +508,21 @@ void Neighbor::init()
       firstneigh_middle = (int **) 
 	memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_middle");
       add_pages_middle(0);
+    }
+  } else if (respa && respa_previous) {
+    memory->sfree(numneigh_inner);
+    memory->sfree(firstneigh_inner);
+    numneigh_inner = (int *) 
+      memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh_inner");
+    firstneigh_inner = (int **) 
+      memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_inner");
+    if (respa == 2) {
+      memory->sfree(numneigh_middle);
+      memory->sfree(firstneigh_middle);
+      numneigh_middle = (int *) 
+	memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh_middle");
+      firstneigh_middle = (int **) 
+	memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_middle");
     }
   }
 

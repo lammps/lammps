@@ -12,7 +12,7 @@ pair_style gran/no_history command :h3
 
 [Syntax:]
 
-pair_style style Kn, gamma_n xmu dampflag :pre
+pair_style style Kn gamma_n xmu dampflag :pre
 
 style = {gran/hertzian} or {gran/history} or {gran/no_history} :ulb,l
 Kn = spring constant for particle repulsion :l

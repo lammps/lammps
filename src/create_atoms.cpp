@@ -38,7 +38,7 @@ void CreateAtoms::command(int narg, char **arg)
   // parse arguments
 
   int nbasis = domain->lattice->nbasis;
-  int basistype[nbasis];
+  int *basistype = new int[nbasis];
 
   if (narg < 1) error->all("Illegal create_atoms command");
   int itype = atoi(arg[0]);
@@ -132,6 +132,8 @@ void CreateAtoms::command(int narg, char **arg)
       for (i = ilo; i <= ihi; i++)
 	for (m = 0; m < nbasis; m++)
 	  add_atom(basistype[m],i+basis[m][0],j+basis[m][1],k+basis[m][2]);
+
+  delete [] basistype;
 
   // new total # of atoms
 

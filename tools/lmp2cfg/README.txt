@@ -61,6 +61,27 @@ You should get several .cfg files. For reading into AtomEye and making
 movies see the AtomEye homepage.
 
 
+If you get an error like:
+
+open: 'new' file exists
+apparent state: unit 21 named 00001.cfg
+lately writing sequential formatted external IO
+Abort
+
+you need to first remove old copies of the cfg files.
+
+If you get an error like:
+
+open: No such file or directory
+apparent state: unit 9 named dump.atom
+last format: list io
+lately reading direct formatted external IO
+Abort
+
+you need to check that the name of the dump file matches the name
+in the input file, and that you enclosed it in single quotes.
+
+
 
 
 

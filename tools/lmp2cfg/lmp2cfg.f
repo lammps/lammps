@@ -44,7 +44,7 @@ c          write(*,*) fftype(i)
 c-------Lammps output file is 9, reads in lmps header--------------         
 
          name=inhist(1:4)
-         open(9,file=inhist,status='old',form='formatted',err=999)
+         open(9,file=inhist,status='old',form='formatted')
 c         open(2,status='new',form='formatted')
 
 
@@ -110,12 +110,12 @@ c         write(*,*)ciframe
          write(snapshot,'(i5.5,a4)')iframe,ciframe
 c         write(*,*)snapshot
          open(unit=iframe+20,file=snapshot,status='new',
-     *   form='formatted',err=999)
+     *   form='formatted')
 
           write((iframe+20),'(a22,i7)')'Number of particles = ',natom
           write((iframe+20),'(a1)')'#'
           write((iframe+20),*)
-          write((iframe+20),'(a16)')'A = 1.5 Angstrom'
+          write((iframe+20),'(a16)')'A = 1.0 Angstrom'
           write((iframe+20),'(a1)')'#'
           write((iframe+20),*)
           write((iframe+20),435)'H0(1,1) = ',xcell,' A'
@@ -175,11 +175,7 @@ c---445 is the format for writing atom data to .cfg file------------
           go to 9999
 
  999      continue
-            close(9)      
+          close(9)      
 
 
-
- 200     continue   
-
-         stop
-           end
+          end

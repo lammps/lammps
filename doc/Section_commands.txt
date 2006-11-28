@@ -434,7 +434,9 @@ description:
 "lj/smooth"_pair_style_lj_smooth.html,
 "morse"_pair_style_morse.html,
 "soft"_pair_style_soft.html,
+"sw"_pair_style_sw.html,
 "table"_pair_style_table.html,
+"tersoff"_pair_style_tersoff.html,
 "yukawa"_pair_style_yukawa.html :tb(c=4,ea=c)
 
 Bond styles.  See the "bond_style"_bond_style.html command for an

@@ -31,7 +31,9 @@
 <LI><I>lj/smooth</I>
 <LI><I>morse</I>
 <LI><I>soft</I>
+<LI><I>sw</I>
 <LI><I>table</I>
+<LI><I>tersoff</I>
 <LI><I>yukawa</I> 
 </UL>
 <LI>args = arguments used by a particular style 
@@ -56,8 +58,9 @@ remain in place for the duration of a simulation.
 <P>In LAMMPS, pairwise force fields encompass a variety of interactions,
 some of which include many-body effects, e.g. EAM, Stillinger-Weber,
 Tersoff, REBO potentials.  They are still classed as "pairwise"
-potential because a neighbor list is used to find nearby interacting
-atoms.
+potential because the set of interacting atoms changes with time
+(unlike a bonded system) and thus a neighbor list is used to find
+nearby interacting atoms.
 </P>
 <P>Hybrid models where specified pairs of atom types interact via
 different pair potentials can be setup using the <I>hybrid</I> pair style.

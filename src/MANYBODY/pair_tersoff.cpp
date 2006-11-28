@@ -451,8 +451,7 @@ void PairTersoff::read_file(char *file)
     params[nparams].biga = atof(words[14]);
 
     if (params[nparams].lam3 < 0.0 || params[nparams].c <= 0.0 || 
-	params[nparams].d <= 0.0 || params[nparams].h > 1.0 ||
-	params[nparams].h < -1.0 || params[nparams].powern <= 0.0 || 
+	params[nparams].d <= 0.0 || params[nparams].powern <= 0.0 || 
 	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 || 
 	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
 	params[nparams].bigd < 0.0 ||

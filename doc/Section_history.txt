@@ -34,7 +34,7 @@ bond creation potentials
 point dipole force fields
 many-body and bond-order potentials for materials like C, Si, or silica
 modified EAM (MEAM) potentials for metals
-REAXX force field from Bill Goddard's group
+ReaxFF force field from Bill Goddard's group
 Parinello-Rahman non-rectilinear simulation box :ul
 
 :line

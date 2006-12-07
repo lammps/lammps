@@ -80,8 +80,3 @@ Abort
 
 you need to check that the name of the dump file matches the name
 in the input file, and that you enclosed it in single quotes.
-
-
-
-
-

@@ -84,14 +84,14 @@ Input::Input(int argc, char **argv)
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0) {
       variable->set(argv[iarg+1],argv[iarg+2]);
-      iarg += 2;
+      iarg += 3;
     } else if (strcmp(argv[iarg],"-echo") == 0) {
       narg = 1;
       char **tmp = arg;        // trick echo() into using argv instead of arg
       arg = &argv[iarg+1];
       echo();
       arg = tmp;
-      iarg += 3;
+      iarg += 2;
     } else iarg++;
   }
 }

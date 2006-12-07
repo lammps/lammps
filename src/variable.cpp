@@ -192,7 +192,7 @@ void Variable::set(char *name, char *value)
   if (nvar == maxvar) {
     maxvar += VARDELTA;
     names = (char **)
-      memory->srealloc(style,maxvar*sizeof(char *),"var:names");
+      memory->srealloc(names,maxvar*sizeof(char *),"var:names");
     style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
     num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
     index = (int *) memory->srealloc(index,maxvar*sizeof(int),"var:index");

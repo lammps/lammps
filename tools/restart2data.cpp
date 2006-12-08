@@ -1879,9 +1879,9 @@ void Data::write(FILE *fp)
 
     int ix,iy,iz;
     for (int i = 0; i < natoms; i++) {
-      ix = image[i]%1000 - 500;
-      iy = (image[i]/1000)%1000 - 500;
-      iz = image[i]/1000000 - 500;
+      ix = (image[i] & 1023) - 512;
+      iy = (image[i] >> 10 & 1023) - 512;
+      iz = (image[i] >> 20) - 512;
 
       fprintf(fp,"%d",tag[i]);
       if (molecular) fprintf(fp," %d",molecule[i]);

@@ -203,18 +203,21 @@ void Domain::reset_box()
       else if (boundary[0][0] == 3) boxxlo = MIN(-all[0][0]-SMALL,minxlo);
       if (boundary[0][1] == 2) boxxhi = all[0][1] + SMALL;
       else if (boundary[0][1] == 3) boxxhi = MAX(all[0][1]+SMALL,minxhi);
+      if (boxxlo > boxxhi) error->all("Illegal simulation box");
     }
     if (yperiodic == 0) {
       if (boundary[1][0] == 2) boxylo = -all[1][0] - SMALL;
       else if (boundary[1][0] == 3) boxylo = MIN(-all[1][0]-SMALL,minylo);
       if (boundary[1][1] == 2) boxyhi = all[1][1] + SMALL;
       else if (boundary[1][1] == 3) boxyhi = MAX(all[1][1]+SMALL,minyhi);
+      if (boxylo > boxyhi) error->all("Illegal simulation box");
     }
     if (zperiodic == 0) {
       if (boundary[2][0] == 2) boxzlo = -all[2][0] - SMALL;
       else if (boundary[2][0] == 3) boxzlo = MIN(-all[2][0]-SMALL,minzlo);
       if (boundary[2][1] == 2) boxzhi = all[2][1] + SMALL;
       else if (boundary[2][1] == 3) boxzhi = MAX(all[2][1]+SMALL,minzhi);
+      if (boxzlo > boxzhi) error->all("Illegal simulation box");
     }
   }
 
@@ -423,7 +426,7 @@ void Domain::remap(double &x, double &y, double &z, int &image)
       z -= zprd;
       int idim = image >> 20;
       int otherdims = image ^ (idim << 20);
-      idim--;
+      idim++;
       idim &= 1023;
       image = otherdims | (idim << 20);
     }

@@ -1,4 +1,4 @@
-# Makefile for Cygwin build under Windows
+# cygwin = Windows Cygwin, mpicxx, FFTW
 
 SHELL = /bin/sh
 #.IGNORE:

@@ -1,30 +1,25 @@
-# cygwin = RedHat Linux box, g++, no MPI, no FFTs
+# Makefile for Cygwin build under Windows
 
 SHELL = /bin/sh
+#.IGNORE:
 
 # System-specific settings
 
-CC =		g++
-CCFLAGS =	-O -I../STUBS -DFFT_NONE
-DEPFLAGS =	-M
-LINK =		g++
-LINKFLAGS =	-O -L../STUBS
-USRLIB =	-lmpi
-SYSLIB = 
-ARCHIVE =	ar
-ARFLAGS =	-rc
-SIZE =		size
+CC = mpicxx 
+CCFLAGS = -O -g -I/cygdrive/c/cygwin/fftw/include -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK
+DEPFLAGS = -M
+LINK = mpicxx 
+LINKFLAGS = -O -g -L/cygdrive/c/cygwin/fftw/lib -L/cygdrive/c/cygwin/mpich2-1.0.4p1/lib
+USRLIB = -lfftw -lmpich 
+SYSLIB = -lm 
+SIZE = size
 
-# Link target
+# Link rule
 
 $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
 	$(SIZE) $(EXE).exe
-
-# Library target
-
-lib:	$(OBJ)
-	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+	mv $(EXE).exe ../lmp
 
 # Compilation rules
 

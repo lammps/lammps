@@ -62,6 +62,7 @@ integrators would be in place!
 <UL><LI><A HREF = "fix_addforce.html">fix addforce</A> - add a force to each atom
 <LI><A HREF = "fix_aveforce.html">fix aveforce</A> - add an averaged force to each atom
 <LI><A HREF = "fix_com.html">fix com</A> - compute a center-of-mass
+<LI><A HREF = "fix_desosit.html">fix deposit</A> - add new atoms above a surface
 <LI><A HREF = "fix_drag.html">fix drag</A> - drag atoms towards a defined coordinate
 <LI><A HREF = "fix_efield.html">fix efield</A> - impose electric field on system
 <LI><A HREF = "fix_enforce2d.html">fix enforce2d</A> - zero out z-dimension velocity and force
@@ -70,7 +71,6 @@ integrators would be in place!
 <LI><A HREF = "fix_gravity.html">fix gravity</A> - add gravity to atoms in a granular simulation
 <LI><A HREF = "fix_gyration.html">fix gyration</A> - compute radius of gyration
 <LI><A HREF = "fix_indent.html">fix indent</A> - impose force due to an indenter
-<LI><A HREF = "fix_insert.html">fix insert</A> - add new atoms to a granular simulation
 <LI><A HREF = "fix_langevin.html">fix langevin</A> - Langevin temperature control
 <LI><A HREF = "fix_lineforce.html">fix lineforce</A> - constrain atoms to move in a line
 <LI><A HREF = "fix_msd.html">fix msd</A> - compute mean-squared displacement      (i.e. diffusion coefficient)
@@ -83,6 +83,7 @@ integrators would be in place!
 <LI><A HREF = "fix_orient_fcc.html">fix orient/fcc</A> - add grain boundary migration force
 <LI><A HREF = "fix_planeforce.html">fix planeforce</A> - constrain atoms to move in a plane
 <LI><A HREF = "fix_poems.html">fix poems</A> - constrain clusters of atoms to move   as coupled rigid bodies
+<LI><A HREF = "fix_pour.html">fix pour</A> - pour new atoms into a granular simulation domain
 <LI><A HREF = "fix_print.html">fix print</A> - print text and variables during a simulation
 <LI><A HREF = "fix_rdf.html">fix rdf</A> - compute radial distribution functions
 <LI><A HREF = "fix_recenter.html">fix recenter</A> - constrain the center-of-mass position   of a group of atoms
@@ -109,7 +110,7 @@ integrators would be in place!
 if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
 LAMMPS</A> section for more info.
 </P>
-<P>The <I>freeze</I>, <I>gran/diag</I>, <I>gravity</I>, <I>insert</I>, <I>nve/gran</I>, and
+<P>The <I>freeze</I>, <I>gran/diag</I>, <I>gravity</I>, <I>nve/gran</I>, <I>pour</I>, and
 <I>wall/gran</I> styles are part of the "granular" package.
 </P>
 <P>The <I>poems</I> style is part of the "poems" package.

@@ -19,16 +19,19 @@
 
 <LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>extra</I> 
+<LI>keyword = <I>extra</I> or <I>dynamic</I> 
 
 <PRE>  <I>extra</I> value = N
-    N = # of extra degrees of freedom to subtract 
+    N = # of extra degrees of freedom to subtract
+  <I>dynamic</I> value = <I>yes</I> or <I>no</I>
+    yes/no = do or do not recompute the number of atoms contributing to the temperature 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>temp_modify mine extra 0 
+<PRE>temp_modify mine extra 0
+temp_modify mine dynamic yes 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -42,6 +45,14 @@ subtracted (typically from 3N) as a normalizing factor in the
 temperature computation.  The default is 3 which is a correction
 factor for an ensemble of velocities with zero total linear momentum.
 </P>
+<P>The <I>dynamic</I> keyword determines whether the number of atoms N in the
+temperature group is re-computed each time the temperature is
+computed.  By default, N is assumed to be constant.  If you are adding
+atoms to the system (see the <A HREF = "fix_pour.html">fix pour</A> or <A HREF = "fix_deposit.html">fix
+deposit</A> commands) or expect atoms to be lost
+(e.g. due to evaporation), then this option can be used to insure the
+temperature is correctly normalized.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -50,6 +61,6 @@ factor for an ensemble of velocities with zero total linear momentum.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are extra = 3.
+<P>The option defaults are extra = 3 and dynamic = no.
 </P>
 </HTML>

@@ -23,7 +23,7 @@ fix		2 all gravity spherical 0.0 -180.0
 fix		zlower all wall/gran zplane 0.0 2000.0 50.0 0.5
 
 region		slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box
-fix		ins all insert 3000 1 300719 vol 0.13 50 region slab
+fix		ins all pour 3000 1 300719 vol 0.13 50 region slab
 
 thermo_style	granular
 thermo		1000

@@ -25,7 +25,7 @@ fix		xwalls all wall/gran xplane 0 100 50 0
 fix		ywalls all wall/gran yplane 0 NULL 50 0
  
 region          slab block 1.0 99.0 30 34.5 -0.5 0.5 units box
-fix             ins all insert 1000 1 4767548 vol 0.4 10 &
+fix             ins all pour 1000 1 4767548 vol 0.4 10 &
 	        diam 0.5 1.0 region slab
 
 fix             3 all enforce2d

@@ -6,14 +6,14 @@
 
 :line
 
-fix insert command :h3
+fix pour command :h3
 
 [Syntax:]
 
-fix ID group-ID insert N type seed keyword values ... :pre
+fix ID group-ID pour N type seed keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-insert = style name of this fix command :l
+pour = style name of this fix command :l
 N = # of atoms to insert :l
 type = atom type to assign to inserted atoms :l
 seed = random # seed :l
@@ -41,18 +41,19 @@ keyword = {region} or {diam} or {dens} or {vol} or {rate} or {vel} :l
 
 [Examples:]
 
-fix 3 all insert 1000 2 29494 region myblock
-fix 2 all insert 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam 0.9 1.1 :pre
+fix 3 all pour 1000 2 29494 region myblock
+fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam 0.9 1.1 :pre
 
 [Description:]
 
 Insert particles into a granular run every few timesteps within a
 specified region until N particles have been inserted.  This is useful
-for simulating the pouring of particles into a container.
+for simulating the pouring of particles into a container under the
+influence of gravity.
 
 Inserted particles are assigned the specified atom type and are
 assigned to two groups: the default group "all" and the group
-specified in the fix insert command (which can also be "all").
+specified in the fix pour command (which can also be "all").
 
 This command must use the {region} keyword to define an insertion
 volume.  The specified region must have been previously defined with a
@@ -85,9 +86,9 @@ total of M tries to insert the new particles without overlaps, where M
 = # of inserted particles * Nattempt.  If LAMMPS is unsuccessful at
 completing all insertions, it prints a warning.
 
-The {rate} option allows the insertion volume to move in the z
-direction (3d) or y direction (2d).  This enables pouring particles
-from a successively higher height over time.
+The {rate} option moves the insertion volume in the z direction (3d)
+or y direction (2d).  This enables pouring particles from a
+successively higher height over time.
 
 [Restrictions:]
 
@@ -100,7 +101,8 @@ must be defined in the -y direction.
 
 [Related commands:]
 
-"fix_gravity"_fix_gravity.html, "region"_region.html
+"fix_deposit"_fix_deposit.html, "fix_gravity"_fix_gravity.html,
+"region"_region.html
 
 [Default:]
 

@@ -14,14 +14,17 @@ temp_modify temp-ID keyword value ... :pre
 
 temp-ID = ID of temperature to modify :ulb,l
 one or more keyword/value pairs may be listed :l
-keyword = {extra} :l
+keyword = {extra} or {dynamic} :l
   {extra} value = N
-    N = # of extra degrees of freedom to subtract :pre
+    N = # of extra degrees of freedom to subtract
+  {dynamic} value = {yes} or {no}
+    yes/no = do or do not recompute the number of atoms contributing to the temperature :pre
 :ule
 
 [Examples:]
 
-temp_modify mine extra 0 :pre
+temp_modify mine extra 0
+temp_modify mine dynamic yes :pre
 
 [Description:]
 
@@ -35,6 +38,14 @@ subtracted (typically from 3N) as a normalizing factor in the
 temperature computation.  The default is 3 which is a correction
 factor for an ensemble of velocities with zero total linear momentum.
 
+The {dynamic} keyword determines whether the number of atoms N in the
+temperature group is re-computed each time the temperature is
+computed.  By default, N is assumed to be constant.  If you are adding
+atoms to the system (see the "fix pour"_fix_pour.html or "fix
+deposit"_fix_deposit.html commands) or expect atoms to be lost
+(e.g. due to evaporation), then this option can be used to insure the
+temperature is correctly normalized.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -43,4 +54,4 @@ factor for an ensemble of velocities with zero total linear momentum.
 
 [Default:]
 
-The option defaults are extra = 3.
+The option defaults are extra = 3 and dynamic = no.

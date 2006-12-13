@@ -59,6 +59,7 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix addforce"_fix_addforce.html - add a force to each atom
 "fix aveforce"_fix_aveforce.html - add an averaged force to each atom
 "fix com"_fix_com.html - compute a center-of-mass
+"fix deposit"_fix_desosit.html - add new atoms above a surface
 "fix drag"_fix_drag.html - drag atoms towards a defined coordinate
 "fix efield"_fix_efield.html - impose electric field on system
 "fix enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
@@ -67,7 +68,6 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "fix gyration"_fix_gyration.html - compute radius of gyration
 "fix indent"_fix_indent.html - impose force due to an indenter
-"fix insert"_fix_insert.html - add new atoms to a granular simulation
 "fix langevin"_fix_langevin.html - Langevin temperature control
 "fix lineforce"_fix_lineforce.html - constrain atoms to move in a line
 "fix msd"_fix_msd.html - compute mean-squared displacement \
@@ -84,6 +84,7 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "fix poems"_fix_poems.html - constrain clusters of atoms to move \
   as coupled rigid bodies
+"fix pour"_fix_pour.html - pour new atoms into a granular simulation domain
 "fix print"_fix_print.html - print text and variables during a simulation
 "fix rdf"_fix_rdf.html - compute radial distribution functions
 "fix recenter"_fix_recenter.html - constrain the center-of-mass position \
@@ -117,7 +118,7 @@ Some fix styles are part of specific packages.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_2 section for more info.
 
-The {freeze}, {gran/diag}, {gravity}, {insert}, {nve/gran}, and
+The {freeze}, {gran/diag}, {gravity}, {nve/gran}, {pour}, and
 {wall/gran} styles are part of the "granular" package.
 
 The {poems} style is part of the "poems" package.

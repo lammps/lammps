@@ -324,7 +324,7 @@ These commands implement fix options specific to granular systems:
 
 "fix freeze"_fix_freeze.html
 "fix gran/diag"_fix_gran_diag.html
-"fix insert"_fix_insert.html
+"fix pour"_fix_pour.html
 "fix viscous"_fix_viscous.html
 "fix wall/gran"_fix_wall_gran.html :ul
 

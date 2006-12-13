@@ -53,7 +53,10 @@ The style determines how the temperature is computed.  The {full}
 style means KE = dim/2 N k T, where KE = total kinetic energy of the
 group of atoms (sum of 1/2 m v^2), dim = 2 or 3 = dimensionality of
 the simulation, N = number of atoms in the group, k = Boltzmann
-constant, and T = temperature.
+constant, and T = temperature.  The number of atoms contributing to
+the temperature is assumed to be constant for the duration of the run;
+use the {dynamic} option of the "temp_modify"_temp_modify.html command
+if this is not the case.
 
 The {partial} style uses the same formula as {full}, except entire
 dimensions can be eliminated from the kinetic energy computation.

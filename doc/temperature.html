@@ -63,7 +63,10 @@ nvt</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
 style means KE = dim/2 N k T, where KE = total kinetic energy of the
 group of atoms (sum of 1/2 m v^2), dim = 2 or 3 = dimensionality of
 the simulation, N = number of atoms in the group, k = Boltzmann
-constant, and T = temperature.
+constant, and T = temperature.  The number of atoms contributing to
+the temperature is assumed to be constant for the duration of the run;
+use the <I>dynamic</I> option of the <A HREF = "temp_modify.html">temp_modify</A> command
+if this is not the case.
 </P>
 <P>The <I>partial</I> style uses the same formula as <I>full</I>, except entire
 dimensions can be eliminated from the kinetic energy computation.

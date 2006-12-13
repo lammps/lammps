@@ -27,7 +27,7 @@ keyword = {sphere} or {cylinder} or {vel} or {rstart} or {units} :l
   {vel} args = vx vy vz
     vx,vy,vz = velocity of center of indenter (velocity units)
   {rstart} value = R0
-    R0 = sphere or cylinder radius at start of run
+    R0 = sphere or cylinder radius at start of run (distance units)
     R is value at end of run, so indenter expands/contracts over time
   {units} value = {lattice} or {box}
     lattice = the geometry is defined in lattice units

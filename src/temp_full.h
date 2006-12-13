@@ -23,6 +23,9 @@ class TempFull : public Temperature {
   void init();
   double compute();
   void tensor();
+
+ private:
+  void recount();
 };
 
 #endif

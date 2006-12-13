@@ -17,7 +17,7 @@
 #include "region.h"
 
 class RegBlock : public Region {
-  friend class FixInsert;
+  friend class FixPour;
 
  public:
   RegBlock(int, char **);

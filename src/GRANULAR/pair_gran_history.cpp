@@ -26,7 +26,7 @@
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_insert.h"
+#include "fix_pour.h"
 #include "comm.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -390,10 +390,10 @@ void PairGranHistory::init_style()
   MPI_Allreduce(&mine,&maxrad_dynamic,1,MPI_DOUBLE,MPI_MAX,world);
 
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"insert") == 0)
+    if (strcmp(modify->fix[i]->style,"pour") == 0)
       maxrad_dynamic =
-	MAX(maxrad_dynamic,((FixInsert *) modify->fix[i])->radius_hi);
-  
+	MAX(maxrad_dynamic,((FixPour *) modify->fix[i])->radius_hi);
+
   double maxrad_frozen = 0.0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & freeze_group_bit)

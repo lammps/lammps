@@ -17,6 +17,7 @@
 #include "temp_ramp.h"
 #include "atom.h"
 #include "force.h"
+#include "group.h"
 #include "error.h"
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
@@ -26,6 +27,8 @@
 
 TempRamp::TempRamp(int narg, char **arg) : Temperature(narg, arg)
 {
+  options(narg-9,&arg[9]);
+
   if (strcmp(arg[3],"vx") == 0) v_dim = 0;
   else if (strcmp(arg[3],"vy") == 0) v_dim = 1;
   else if (strcmp(arg[3],"vz") == 0) v_dim = 2;
@@ -63,11 +66,18 @@ TempRamp::TempRamp(int narg, char **arg) : Temperature(narg, arg)
 
 void TempRamp::init()
 {
-  count_atoms();
   count_fix();
-  dof = force->dimension * ncount;
+  recount();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void TempRamp::recount()
+{
+  double natoms = group->count(igroup);
+  dof = force->dimension * natoms;
   dof -= extra_dof + fix_dof;
-  if (ncount > 0) tfactor = force->mvv2e / (dof * force->boltz);
+  if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
 
@@ -80,9 +90,11 @@ double TempRamp::compute()
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int mass_require = atom->mass_require;
 
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
@@ -95,11 +107,15 @@ double TempRamp::compute()
       vtmp[1] = v[i][1];
       vtmp[2] = v[i][2];
       vtmp[v_dim] -= vramp;
-      t += (vtmp[0]*vtmp[0] + vtmp[1]*vtmp[1] + vtmp[2]*vtmp[2]) * 
-	mass[type[i]];
+      if (mass_require)
+	t += (vtmp[0]*vtmp[0] + vtmp[1]*vtmp[1] + vtmp[2]*vtmp[2]) * 
+	  mass[type[i]];
+      else
+	t += (vtmp[0]*vtmp[0] + vtmp[1]*vtmp[1] + vtmp[2]*vtmp[2]) * rmass[i];
     }
 
   MPI_Allreduce(&t,&t_total,1,MPI_DOUBLE,MPI_SUM,world);
+  if (dynamic) recount();
   t_total *= tfactor;
   return t_total;
 }
@@ -114,11 +130,13 @@ void TempRamp::tensor()
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int mass_require = atom->mass_require;
 
-  double rmass,t[6];
+  double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
@@ -132,13 +150,14 @@ void TempRamp::tensor()
       vtmp[2] = v[i][2];
       vtmp[v_dim] -= vramp;
 
-      rmass = mass[type[i]];
-      t[0] += rmass * vtmp[0]*vtmp[0];
-      t[1] += rmass * vtmp[1]*vtmp[1];
-      t[2] += rmass * vtmp[2]*vtmp[2];
-      t[3] += rmass * vtmp[0]*vtmp[1];
-      t[4] += rmass * vtmp[0]*vtmp[2];
-      t[5] += rmass * vtmp[1]*vtmp[2];
+      if (mass_require) massone = mass[type[i]];
+      else massone = rmass[i];
+      t[0] += massone * vtmp[0]*vtmp[0];
+      t[1] += massone * vtmp[1]*vtmp[1];
+      t[2] += massone * vtmp[2]*vtmp[2];
+      t[3] += massone * vtmp[0]*vtmp[1];
+      t[4] += massone * vtmp[0]*vtmp[2];
+      t[5] += massone * vtmp[1]*vtmp[2];
     }
 
   MPI_Allreduce(&t,&ke_tensor,6,MPI_DOUBLE,MPI_SUM,world);

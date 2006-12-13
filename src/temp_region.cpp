@@ -24,6 +24,8 @@
 
 TempRegion::TempRegion(int narg, char **arg) : Temperature(narg, arg)
 {
+  options(narg-4,&arg[4]);
+
   for (iregion = 0; iregion < domain->nregion; iregion++)
     if (strcmp(arg[3],domain->regions[iregion]->id) == 0) break;
   if (iregion == domain->nregion)
@@ -44,19 +46,30 @@ double TempRegion::compute()
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int count = 0;
   double t = 0.0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit &&
-	domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
-      count++;
-      t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	mass[type[i]];
-    }
+
+  if (atom->mass_require) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit &&
+	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
+	count++;
+	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+	  mass[type[i]];
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit &&
+	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
+	count++;
+	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+      }
+  }
   
   double tarray[2],tarray_all[2];
   tarray[0] = count;
@@ -77,23 +90,26 @@ void TempRegion::tensor()
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int mass_require = atom->mass_require;
 
-  double rmass,t[6];
+  double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && 
 	domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
-      rmass = mass[type[i]];
-      t[0] += rmass * v[i][0]*v[i][0];
-      t[1] += rmass * v[i][1]*v[i][1];
-      t[2] += rmass * v[i][2]*v[i][2];
-      t[3] += rmass * v[i][0]*v[i][1];
-      t[4] += rmass * v[i][0]*v[i][2];
-      t[5] += rmass * v[i][1]*v[i][2];
+      if (mass_require) massone = mass[type[i]];
+      else massone = rmass[i];
+      t[0] += massone * v[i][0]*v[i][0];
+      t[1] += massone * v[i][1]*v[i][1];
+      t[2] += massone * v[i][2]*v[i][2];
+      t[3] += massone * v[i][0]*v[i][1];
+      t[4] += massone * v[i][0]*v[i][2];
+      t[5] += massone * v[i][1]*v[i][2];
     }
 
   MPI_Allreduce(&t,&ke_tensor,6,MPI_DOUBLE,MPI_SUM,world);

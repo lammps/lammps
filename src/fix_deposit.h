@@ -11,24 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_CYLINDER_H
-#define REGION_CYLINDER_H
+#ifndef FIX_DEPOSIT_H
+#define FIX_DEPOSIT_H
 
-#include "region.h"
+#include "fix.h"
 
-class RegCylinder : public Region {
-  friend class FixPour;
+class RanPark;
 
+class FixDeposit : public Fix {
  public:
-  RegCylinder(int, char **);
-  ~RegCylinder() {}
-  int match(double, double, double);
+  FixDeposit(int, char **);
+  ~FixDeposit();
+  int setmask();
+  void pre_exchange();
 
  private:
-  char axis;
-  double c1,c2;
-  double radius;
-  double lo,hi;
+  int ninsert,ntype,nfreq,seed;
+  int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag;
+  double lo,hi,deltasq,nearsq,rate;
+  double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
+  double xlo,xhi,ylo,yhi,zlo,zhi;
+  int nfirst,ninserted;
+  RanPark *random;
+
+  void options(int, char **);
 };
 
 #endif

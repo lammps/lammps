@@ -23,6 +23,8 @@
 
 TempPartial::TempPartial(int narg, char **arg) : Temperature(narg, arg)
 {
+  options(narg-6,&arg[6]);
+
   xflag = atoi(arg[3]);
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
@@ -32,11 +34,18 @@ TempPartial::TempPartial(int narg, char **arg) : Temperature(narg, arg)
 
 void TempPartial::init()
 {
-  count_atoms();
   count_fix();
-  dof = (xflag+yflag+zflag) * ncount;
+  recount();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void TempPartial::recount()
+{
+  double natoms = group->count(igroup);
+  dof = (xflag+yflag+zflag) * natoms;
   dof -= extra_dof + fix_dof;
-  if (ncount > 0) tfactor = force->mvv2e / (dof * force->boltz);
+  if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
 
@@ -46,17 +55,27 @@ double TempPartial::compute()
 {
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double t = 0.0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
-      t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
-	    zflag*v[i][2]*v[i][2]) * mass[type[i]];
 
+  if (atom->mass_require) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
+	      zflag*v[i][2]*v[i][2]) * mass[type[i]];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
+	      zflag*v[i][2]*v[i][2]) * rmass[i];
+  }
+    
   MPI_Allreduce(&t,&t_total,1,MPI_DOUBLE,MPI_SUM,world);
+  if (dynamic) recount();
   t_total *= tfactor;
   return t_total;
 }
@@ -69,22 +88,25 @@ void TempPartial::tensor()
 
   double **v = atom->v;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int mass_require = atom->mass_require;
 
-  double rmass,t[6];
+  double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      rmass = mass[type[i]];
-      t[0] += rmass * xflag*v[i][0]*v[i][0];
-      t[1] += rmass * yflag*v[i][1]*v[i][1];
-      t[2] += rmass * zflag*v[i][2]*v[i][2];
-      t[3] += rmass * xflag*yflag*v[i][0]*v[i][1];
-      t[4] += rmass * xflag*zflag*v[i][0]*v[i][2];
-      t[5] += rmass * yflag*zflag*v[i][1]*v[i][2];
+      if (mass_require) massone = mass[type[i]];
+      else massone = rmass[i];
+      t[0] += massone * xflag*v[i][0]*v[i][0];
+      t[1] += massone * yflag*v[i][1]*v[i][1];
+      t[2] += massone * zflag*v[i][2]*v[i][2];
+      t[3] += massone * xflag*yflag*v[i][0]*v[i][1];
+      t[4] += massone * xflag*zflag*v[i][0]*v[i][2];
+      t[5] += massone * yflag*zflag*v[i][1]*v[i][2];
     }
 
   MPI_Allreduce(&t,&ke_tensor,6,MPI_DOUBLE,MPI_SUM,world);

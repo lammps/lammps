@@ -22,21 +22,21 @@ class Temperature : public LAMMPS {
   int igroup,groupbit;
   double t_total,dof;
   double ke_tensor[6];
-  double tfactor,ncount;
-  int extra_dof,fix_dof;
-  int scaleflag;
-  double xscale,yscale,zscale;
 
   Temperature(int, char **);
   virtual ~Temperature();
   void modify_params(int, char **);
-  void count_atoms();
   void count_fix();
   virtual void init() = 0;
   virtual double compute() = 0;
   virtual void tensor() = 0;
 
- private:
+ protected:
+  double tfactor;
+  int extra_dof,fix_dof;
+  int scaleflag,dynamic;
+  double xscale,yscale,zscale;
+
   void options(int, char **);
 };
 

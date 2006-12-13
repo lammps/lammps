@@ -11,21 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_INSERT_H
-#define FIX_INSERT_H
+#ifndef FIX_POUR_H
+#define FIX_POUR_H
 
 #include "fix.h"
 
 class RanPark;
 
-class FixInsert : public Fix {
+class FixPour : public Fix {
   friend class PairGranHistory;
   friend class PairGranHertzian;
   friend class PairGranNoHistory;
 
  public:
-  FixInsert(int, char **);
-  ~FixInsert();
+  FixPour(int, char **);
+  ~FixPour();
   int setmask();
   void init();
   void pre_exchange();

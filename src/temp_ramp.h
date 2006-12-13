@@ -29,6 +29,8 @@ class TempRamp : public Temperature {
   double coord_lo,coord_hi;
   int v_dim;
   double v_lo,v_hi;
+
+  void recount();
 };
 
 #endif

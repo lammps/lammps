@@ -18,7 +18,7 @@
 
 class FixShearHistory : public Fix {
   friend class Neighbor;
-  friend class FixInsert;
+  friend class FixPour;
 
  public:
   FixShearHistory(int, char **);

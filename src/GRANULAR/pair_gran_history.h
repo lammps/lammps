@@ -20,7 +20,6 @@ class PairGranHistory : public Pair {
   friend class Neighbor;
   friend class FixWallGran;
   friend class FixGranDiag;
-  friend class FixInsert;
 
  public:
   PairGranHistory();

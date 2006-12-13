@@ -38,13 +38,13 @@ FixIndent::FixIndent(int narg, char **arg) : Fix(narg, arg)
   if (narg < 4) error->all("Illegal fix indent command");
   k = atof(arg[3]);
 
-  // set input line defaults
+  // set defaults
 
   istyle = NONE;
   vx = vy = vz = 0.0;
-  scaleflag = 1;
   radflag = 0;
   r0_start = 0.0;
+  scaleflag = 1;
 
   // read options from end of input line
 
@@ -63,7 +63,7 @@ FixIndent::FixIndent(int narg, char **arg) : Fix(narg, arg)
   }
   else xscale = yscale = zscale = 1.0;
 
-  // apply scaling to indenter force constant, geometry, and velocity
+  // apply scaling to force constant, velocity, and geometry
 
   k /= xscale;
   k3 = k/3.0;
@@ -290,7 +290,7 @@ int FixIndent::thermo_compute(double *values)
 }
 
 /* ----------------------------------------------------------------------
-   parse optional parameters at end of fix indent input line 
+   parse optional parameters at end of input line 
 ------------------------------------------------------------------------- */
 
 void FixIndent::options(int narg, char **arg)

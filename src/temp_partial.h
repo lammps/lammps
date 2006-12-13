@@ -26,6 +26,8 @@ class TempPartial : public Temperature {
 
  private:
   int xflag,yflag,zflag;
+
+  void recount();
 };
 
 #endif

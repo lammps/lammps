@@ -97,6 +97,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_centro.h"
 #include "fix_com.h"
 #include "fix_drag.h"
+#include "fix_deposit.h"
 #include "fix_efield.h"
 #include "fix_energy.h"
 #include "fix_enforce2d.h"
@@ -142,6 +143,7 @@ FixStyle(aveforce,FixAveForce)
 FixStyle(CENTRO,FixCentro)
 FixStyle(com,FixCOM)
 FixStyle(drag,FixDrag)
+FixStyle(deposit,FixDeposit)
 FixStyle(efield,FixEfield)
 FixStyle(ENERGY,FixEnergy)
 FixStyle(enforce2d,FixEnforce2D)

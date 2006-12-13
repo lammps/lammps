@@ -45,32 +45,7 @@ Temperature::Temperature(int narg, char **arg)
   // set modify defaults
 
   extra_dof = 3;
-
-  // set input line defaults
-
-  scaleflag = 1;
-
-  // read options from end of input line
-
-  if (strcmp(style,"full") == 0) options(narg-3,&arg[3]);
-  else if (strcmp(style,"partial") == 0) options(narg-6,&arg[6]);
-  else if (strcmp(style,"ramp") == 0) options(narg-9,&arg[9]);
-  else if (strcmp(style,"region") == 0) options(narg-4,&arg[4]);
-
-  // set scaling for RAMP style
-
-  if (strcmp(style,"ramp") == 0) {
-
-    if (scaleflag && domain->lattice == NULL)
-      error->all("Use of temperature ramp with undefined lattice");
-
-    if (scaleflag) {
-      xscale = domain->lattice->xlattice;
-      yscale = domain->lattice->ylattice;
-      zscale = domain->lattice->zlattice;
-    }
-    else xscale = yscale = zscale = 1.0;
-  }
+  dynamic = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,23 +68,14 @@ void Temperature::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal temp_modify command");
       extra_dof = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"dynamic") == 0) {
+      if (iarg+2 > narg) error->all("Illegal temp_modify command");
+      if (strcmp(arg[iarg+1],"no") == 0) dynamic = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic = 1;
+      else error->all("Illegal temp_modify command");
+      iarg += 2;
     } else error->all("Illegal temp_modify command");
   }
-}
-
-/* ----------------------------------------------------------------------
-   ncount = atoms in Temperature group 
-------------------------------------------------------------------------- */
-
-void Temperature::count_atoms()
-{
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int icount = 0;
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) icount++;
-  double rcount = icount;
-  MPI_Allreduce(&rcount,&ncount,1,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -131,6 +97,10 @@ void Temperature::options(int narg, char **arg)
 {
   if (narg < 0) error->all("Illegal temperature command");
 
+  // option defaults
+
+  scaleflag = 1;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
@@ -140,5 +110,20 @@ void Temperature::options(int narg, char **arg)
       else error->all("Illegal temperature command");
       iarg += 2;
     } else error->all("Illegal temperature command");
+  }
+
+  // set scaling for RAMP style
+
+  if (strcmp(style,"ramp") == 0) {
+
+    if (scaleflag && domain->lattice == NULL)
+      error->all("Use of temperature ramp with undefined lattice");
+
+    if (scaleflag) {
+      xscale = domain->lattice->xlattice;
+      yscale = domain->lattice->ylattice;
+      zscale = domain->lattice->zlattice;
+    }
+    else xscale = yscale = zscale = 1.0;
   }
 }

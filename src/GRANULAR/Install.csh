@@ -9,8 +9,8 @@ if ($1 == 1) then
   cp atom_granular.cpp ..
   cp fix_freeze.cpp ..
   cp fix_gran_diag.cpp ..
-  cp fix_insert.cpp ..
   cp fix_nve_gran.cpp ..
+  cp fix_pour.cpp ..
   cp fix_shear_history.cpp ..
   cp fix_wall_gran.cpp ..
   cp pair_gran_hertzian.cpp ..
@@ -20,8 +20,8 @@ if ($1 == 1) then
   cp atom_granular.h ..
   cp fix_freeze.h ..
   cp fix_gran_diag.h ..
-  cp fix_insert.h ..
   cp fix_nve_gran.h ..
+  cp fix_pour.h ..
 #  cp fix_shear_history.h ..
   cp fix_wall_gran.h ..
   cp pair_gran_hertzian.h ..
@@ -36,8 +36,8 @@ else if ($1 == 0) then
   rm ../atom_granular.cpp
   rm ../fix_freeze.cpp
   rm ../fix_gran_diag.cpp
-  rm ../fix_insert.cpp
   rm ../fix_nve_gran.cpp
+  rm ../fix_pour.cpp
   rm ../fix_shear_history.cpp
   rm ../fix_wall_gran.cpp
   rm ../pair_gran_hertzian.cpp
@@ -47,8 +47,8 @@ else if ($1 == 0) then
   rm ../atom_granular.h
   rm ../fix_freeze.h
   rm ../fix_gran_diag.h
-  rm ../fix_insert.h
   rm ../fix_nve_gran.h
+  rm ../fix_pour.h
 #  rm ../fix_shear_history.h
   rm ../fix_wall_gran.h
   rm ../pair_gran_hertzian.h

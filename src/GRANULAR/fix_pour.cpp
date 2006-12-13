@@ -14,14 +14,14 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
-#include "fix_insert.h"
+#include "fix_pour.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
+#include "comm.h"
 #include "modify.h"
 #include "fix_gravity.h"
 #include "fix_shear_history.h"
-#include "neighbor.h"
 #include "domain.h"
 #include "region.h"
 #include "region_block.h"
@@ -34,12 +34,12 @@
 
 /* ---------------------------------------------------------------------- */
 
-FixInsert::FixInsert(int narg, char **arg) : Fix(narg, arg)
+FixPour::FixPour(int narg, char **arg) : Fix(narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix insert command");
+  if (narg < 6) error->all("Illegal fix pour command");
 
   if (atom->check_style("granular") == 0)
-    error->all("Must use fix insert with atom style granular");
+    error->all("Must use fix pour with atom style granular");
 
   // required args
 
@@ -64,34 +64,34 @@ FixInsert::FixInsert(int narg, char **arg) : Fix(narg, arg)
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix insert command");
+      if (iarg+2 > narg) error->all("Illegal fix pour command");
       for (iregion = 0; iregion < domain->nregion; iregion++)
 	if (strcmp(arg[iarg+1],domain->regions[iregion]->id) == 0) break;
       if (iregion == domain->nregion) 
-	error->all("Fix insert region ID does not exist");
+	error->all("Fix pour region ID does not exist");
       iarg += 2;
     } else if (strcmp(arg[iarg],"diam") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix insert command");
+      if (iarg+3 > narg) error->all("Illegal fix pour command");
       radius_lo = 0.5 * atof(arg[iarg+1]);
       radius_hi = 0.5 * atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"dens") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix insert command");
+      if (iarg+3 > narg) error->all("Illegal fix pour command");
       density_lo = atof(arg[iarg+1]);
       density_hi = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vol") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix insert command");
+      if (iarg+3 > narg) error->all("Illegal fix pour command");
       volfrac = atof(arg[iarg+1]);
       maxattempt = atoi(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"rate") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix insert command");
+      if (iarg+2 > narg) error->all("Illegal fix pour command");
       rate = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (force->dimension == 3) {
-	if (iarg+6 > narg) error->all("Illegal fix insert command");
+	if (iarg+6 > narg) error->all("Illegal fix pour command");
 	vxlo = atof(arg[iarg+1]);
 	vxhi = atof(arg[iarg+2]);
 	vylo = atof(arg[iarg+3]);
@@ -99,24 +99,24 @@ FixInsert::FixInsert(int narg, char **arg) : Fix(narg, arg)
 	vz = atof(arg[iarg+5]);
 	iarg += 6;
       } else {
-	if (iarg+4 > narg) error->all("Illegal fix insert command");
+	if (iarg+4 > narg) error->all("Illegal fix pour command");
 	vxlo = atof(arg[iarg+1]);
 	vxhi = atof(arg[iarg+2]);
 	vy = atof(arg[iarg+3]);
 	vz = 0.0;
 	iarg += 4;
       }
-    } else error->all("Illegal fix insert command");
+    } else error->all("Illegal fix pour command");
   }
 
   // error check that a valid region was specified
 
-  if (iregion == -1) error->all("Must specify a region in fix insert");
+  if (iregion == -1) error->all("Must specify a region in fix pour");
 
   // error checks on region
 
   if (domain->regions[iregion]->interior == 0)
-    error->all("Must use region with side = in with fix insert");
+    error->all("Must use region with side = in with fix pour");
 
   if (strcmp(domain->regions[iregion]->style,"block") == 0) {
     region_style = 1;
@@ -139,15 +139,15 @@ FixInsert::FixInsert(int narg, char **arg) : Fix(narg, arg)
     zlo = ((RegCylinder *) domain->regions[iregion])->lo;
     zhi = ((RegCylinder *) domain->regions[iregion])->hi;
     if (axis != 'z')
-      error->all("Must use a z-axis cylinder with fix insert");
+      error->all("Must use a z-axis cylinder with fix pour");
     if (xc-rc < domain->boxxlo || xc+rc > domain->boxxhi || 
 	yc-rc < domain->boxylo || yc+rc > domain->boxyhi || 
 	zlo < domain->boxzlo || zhi > domain->boxzhi)
       error->all("Insertion region extends outside simulation box");
-  } else error->all("Must use a block or cylinder region with fix insert");
+  } else error->all("Must use a block or cylinder region with fix pour");
 
   if (region_style == 2 && force->dimension == 2)
-    error->all("Must use a block region with fix insert for 2d simulations");
+    error->all("Must use a block region with fix pour for 2d simulations");
 
   // random number generator, same for all procs
 
@@ -219,7 +219,7 @@ FixInsert::FixInsert(int narg, char **arg) : Fix(narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-FixInsert::~FixInsert()
+FixPour::~FixPour()
 {
   delete random;
   delete [] recvcounts;
@@ -228,7 +228,7 @@ FixInsert::~FixInsert()
 
 /* ---------------------------------------------------------------------- */
 
-int FixInsert::setmask()
+int FixPour::setmask()
 {
   int mask = 0;
   mask |= PRE_EXCHANGE;
@@ -237,7 +237,7 @@ int FixInsert::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixInsert::init()
+void FixPour::init()
 {
   // insure gravity fix exists
   // for 3d must point in -z, for 2d must point in -y
@@ -247,7 +247,7 @@ void FixInsert::init()
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
   if (ifix == modify->nfix) 
-    error->all("Must use fix gravity with fix insert");
+    error->all("Must use fix gravity with fix pour");
 
   double phi = ((FixGravity *) modify->fix[ifix])->phi;
   double theta = ((FixGravity *) modify->fix[ifix])->theta;
@@ -260,11 +260,11 @@ void FixInsert::init()
   if (force->dimension == 3) {
     if (fabs(xgrav) > EPSILON || fabs(ygrav) > EPSILON ||
 	fabs(zgrav+1.0) > EPSILON)
-      error->all("Gravity must point in -z to use with fix insert in 3d");
+      error->all("Gravity must point in -z to use with fix pour in 3d");
   } else {
     if (fabs(xgrav) > EPSILON || fabs(ygrav+1.0) > EPSILON ||
 	fabs(zgrav) > EPSILON)
-      error->all("Gravity must point in -y to use with fix insert in 2d");
+      error->all("Gravity must point in -y to use with fix pour in 2d");
   }
 
   // check if a shear history fix exists
@@ -279,7 +279,7 @@ void FixInsert::init()
    perform particle insertion
 ------------------------------------------------------------------------- */
 
-void FixInsert::pre_exchange()
+void FixPour::pre_exchange()
 {
   int i;
 
@@ -316,9 +316,9 @@ void FixInsert::pre_exchange()
   // xnear is for atoms from all procs + atoms to be inserted
 
   double **xmine = 
-    memory->create_2d_double_array(ncount,4,"fix_insert:xmine");
+    memory->create_2d_double_array(ncount,4,"fix_pour:xmine");
   double **xnear = 
-    memory->create_2d_double_array(nprevious+nnew,4,"fix_insert:xnear");
+    memory->create_2d_double_array(nprevious+nnew,4,"fix_pour:xnear");
   int nnear = nprevious;
 
   // setup for allgatherv
@@ -402,16 +402,17 @@ void FixInsert::pre_exchange()
   if (nnear - nprevious < nnew && me == 0)
     error->warning("Less insertions than requested");
 
-  // add new atoms in my sub-box to my arrays
-  // initialize info about the atoms
+  // check if new atom is in my sub-box or above it if I'm highest proc
+  // if so, add to my list via create_one()
+  // initialize info about the atom
   // type, diameter, density set from fix parameters
   // group mask set to "all" plus fix group
   // z velocity set to what velocity would be if particle
   //   had fallen from top of insertion region
   // this gives continuous stream of atoms
-  // set npartner for new atoms to 0 (assume not touching any others)
+  // set npartner for new atom to 0 (assume not touching any others)
 
-  int m;
+  int m,flag;
   double denstmp,vxtmp,vytmp,vztmp;
   double g = 1.0;
 
@@ -431,9 +432,19 @@ void FixInsert::pre_exchange()
       vztmp = 0.0;
     }
 
+    flag = 0;
     if (xtmp >= domain->subxlo && xtmp < domain->subxhi &&
 	ytmp >= domain->subylo && ytmp < domain->subyhi &&
-	ztmp >= domain->subzlo && ztmp < domain->subzhi) {
+	ztmp >= domain->subzlo && ztmp < domain->subzhi) flag = 1;
+    else if (force->dimension == 3 && ztmp >= domain->boxzhi &&
+	     comm->myloc[2] == comm->procgrid[2]-1 &&
+	     xtmp >= domain->subxlo && xtmp < domain->subxhi &&
+	     ytmp >= domain->subylo && ytmp < domain->subyhi) flag = 1;
+    else if (force->dimension == 2 && ytmp >= domain->boxyhi &&
+	     comm->myloc[1] == comm->procgrid[1]-1 &&
+	     xtmp >= domain->subxlo && xtmp < domain->subxhi) flag = 1;
+
+    if (flag) {
       atom->create_one(ntype,xtmp,ytmp,ztmp);
       m = atom->nlocal - 1;
       atom->type[m] = ntype;
@@ -452,15 +463,17 @@ void FixInsert::pre_exchange()
     }
   }
 
-  // tag # of new particles grow beyond all previous atoms
+  // set tag # of new particles beyond all previous atoms
   // reset global natoms
   // if global map exists, reset it
 
-  atom->tag_extend();
-  atom->natoms += nnear - nprevious;
-  if (atom->map_style) {
-    atom->map_init();
-    atom->map_set();
+  if (atom->tag_enable) {
+    atom->tag_extend();
+    atom->natoms += nnear - nprevious;
+    if (atom->map_style) {
+      atom->map_init();
+      atom->map_set();
+    }
   }
 
   // free local memory
@@ -480,7 +493,7 @@ void FixInsert::pre_exchange()
    use maximum diameter for inserted particle
 ------------------------------------------------------------------------- */
 
-int FixInsert::overlap(int i)
+int FixPour::overlap(int i)
 {
   double delta = radius_hi + atom->radius[i];
   double **x = atom->x;
@@ -508,7 +521,7 @@ int FixInsert::overlap(int i)
 
 /* ---------------------------------------------------------------------- */
 
-void FixInsert::xyz_random(double h, double &x, double &y, double &z)
+void FixPour::xyz_random(double h, double &x, double &y, double &z)
 {
   if (force->dimension == 3) {
     if (region_style == 1) {

@@ -17,8 +17,6 @@
 #include "region.h"
 
 class RegPrism : public Region {
-  friend class FixInsert;
-
  public:
   RegPrism(int, char **);
   ~RegPrism() {}

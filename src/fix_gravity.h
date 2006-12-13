@@ -17,7 +17,7 @@
 #include "fix.h"
 
 class FixGravity : public Fix {
-  friend class FixInsert;
+  friend class FixPour;
 
  public:
   FixGravity(int, char **);

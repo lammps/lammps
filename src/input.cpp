@@ -46,7 +46,7 @@
 #undef AtomInclude
 #undef CommandInclude
 
-#define MAXLINE 1024
+#define MAXLINE 2048
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -358,7 +358,15 @@ void Input::substitute(char *str, int flag)
 
       *ptr = '\0';
       strcpy(work,str);
+      if (strlen(work)+strlen(value) >= MAXLINE) {
+	sprintf(str,"Input line too long after variable substitution: %s %s",work,value);
+	error->one(str);
+      }
       strcat(work,value);
+      if (strlen(work)+strlen(beyond) >= MAXLINE) {
+	sprintf(str,"Input line too long after variable substitution: %s %s",work,beyond);
+	error->one(str);
+      }
       strcat(work,beyond);
       strcpy(str,work);
       ptr += strlen(value);

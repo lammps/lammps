@@ -102,7 +102,8 @@ void Output::setup(int flag)
 {
   int ntimestep = update->ntimestep;
 
-  // perform dump at start of run if last dump was not on this timestep
+  // perform dump at start of run if current timestep is multiple of every
+  //   and last dump was not on this timestep
   // set next_dump to multiple of every
   // will not write on last step of run unless multiple of every
   // set next_dump_any to smallest next_dump
@@ -110,7 +111,8 @@ void Output::setup(int flag)
 
   if (ndump) {
     for (int idump = 0; idump < ndump; idump++) {
-      if (last_dump[idump] != ntimestep) {
+      if (ntimestep % dump_every[idump] == 0 && 
+	  last_dump[idump] != ntimestep) {
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }

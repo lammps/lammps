@@ -594,7 +594,7 @@ char *Variable::evaluate(char *str)
       delete [] arg2;
       delete [] strarg2;
     }
-    sprintf(result,"%g",answer);
+    sprintf(result,"%.10g",answer);
 
   // if string is "vector", find which proc owns atom, grab vector value
 
@@ -642,7 +642,7 @@ char *Variable::evaluate(char *str)
 
     delete [] vector;
     delete [] arg;
-    sprintf(result,"%g",answer);
+    sprintf(result,"%.10g",answer);
 
   // if string is "keyword", compute appropriate value via thermo
 
@@ -683,7 +683,7 @@ char *Variable::evaluate(char *str)
       if (flag) error->all("Invalid keyword in variable equal command");
     }
     
-    sprintf(result,"%g",answer);
+    sprintf(result,"%.10g",answer);
 
   // string is a number, just copy to result
 

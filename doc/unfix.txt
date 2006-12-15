@@ -21,8 +21,9 @@ unfix lower-boundary :pre
 
 [Description:]
 
-Turn off a fix that was previously defined with a "fix"_fix.html
-command.
+Delete a fix that was previously defined with a "fix"_fix.html
+command.  This also wipes out any additional changes made to the fix
+via the "fix_modify"_fix_modify.html command.
 
 [Restrictions:] none
 

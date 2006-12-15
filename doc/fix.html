@@ -45,10 +45,6 @@ setforce</A> page for information on style <I>setforce</I>.
 If 2 or more fixes both operate at the same stage of the timestep,
 they are invoked in the order they were specified in the input script.
 </P>
-<P>Specifying a new fix with the same ID as an existing fix effectively
-replaces the old fix (and its parameters) with the new fix.  This can
-only be done if the new fix has the same style as the existing fix.
-</P>
 <P>Fixes can be deleted with the <A HREF = "unfix.html">unfix</A> command.  Note that
 this is the only way to turn off a fix; simply specifying a new fix
 with a similar style will not turn off the first one.  For example,
@@ -56,6 +52,14 @@ using a "fix nve" command for a second run after using a "fix nvt"
 command for the first run, will not cancel out the NVT time
 integration invoked by the "fix nvt" command.  Thus two time
 integrators would be in place!
+</P>
+<P>If you specify a new fix with the same ID and style as an existing
+fix, the old fix is deleted and the new one is created (presumably
+with new settings).  This is the same as if an "unfix" command were
+first performed on the old fix, except that the new fix is kept in the
+same order relative to the existing fixes as the old one originally
+was.  Note that this operation also wipes out any additional changes
+made to the old fix via the <A HREF = "fix_modify.html">fix_modify</A> command.
 </P>
 <P>Here is an alphabetic list of fix styles defined in LAMMPS:
 </P>

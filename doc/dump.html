@@ -156,13 +156,10 @@ initial snapshot from an XYZ formatted file to get started.
 </P>
 <HR>
 
-<P>Dumps are performed on timesteps that are a multiple of N and on the
-first step of a run or minimization, excluding duplicate timesteps.  A
-dump is not performed on the last timestep of a run unless it is a
-multiple of N.  A dump is performed on the last timestep of a
-minimization if the minimization converges.  N can be changed between
-runs by using the <A HREF = "dump_modify.html">dump_modify</A> command (not allowed
-for <I>dcd</I> style).
+<P>Dumps are performed on timesteps that are a multiple of N (including
+timestep 0) and on the last timestep of a minimization if the
+minimization converges.  N can be changed between runs by using the
+<A HREF = "dump_modify.html">dump_modify</A> command (not allowed for <I>dcd</I> style).
 </P>
 <P>The specified filename determines how the dump file(s) is written.
 The default is to write one large text file, which is opened when the

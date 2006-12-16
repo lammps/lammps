@@ -45,6 +45,7 @@
 // gke, grot (granular trans-ke and rotational-ke)
 // tave, pave, eave, peave (time-averaged quantities)
 // t_ID (user-defined temperatures)
+// enthalpy
 
 // customize by adding a DEFINE to this list
 
@@ -664,6 +665,8 @@ void Thermo::parse_fields(char *str)
       addfield("E_ave",&Thermo::compute_eave,FLOAT);
     } else if (strcmp(word,"peave") == 0) {
       addfield("PE_ave",&Thermo::compute_peave,FLOAT);
+    } else if (strcmp(word,"enthalpy") == 0) {
+      addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
 
     // user-defined temperature (t_ID)
     // only 1st 8 chars of ID are passed to addfield
@@ -754,6 +757,7 @@ int Thermo::compute_value(char *word, double *answer)
   else if (strcmp(word,"erot") == 0) compute_erot();
   else if (strcmp(word,"gke") == 0) compute_gke();
   else if (strcmp(word,"grot") == 0) compute_grot();
+  else if (strcmp(word,"enthalpy") == 0) compute_enthalpy();
   else if (strncmp(word,"t_",2) == 0) {
     int tempwhich;
     for (tempwhich = 0; tempwhich < force->ntemp; tempwhich++)
@@ -1253,3 +1257,19 @@ void Thermo::compute_fix()
   dvalue = fixvalues[fixprint[ifix_print++]];
   if (normflag) dvalue /= natoms;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_enthalpy()
+{
+  double etmp,vtmp,ptmp;
+  compute_etotal();
+  etmp = dvalue;
+  compute_vol();
+  vtmp = dvalue;
+  if (normflag) vtmp /= natoms;
+  compute_press();
+  ptmp = dvalue;
+  dvalue = etmp+ptmp*vtmp/(force->nktv2p);
+}
+

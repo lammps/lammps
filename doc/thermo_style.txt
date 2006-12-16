@@ -18,7 +18,7 @@ args = list of arguments for a particular style :l
   {multi} args = none
   {granular} args = none
   {custom} args = list of attributes
-    possible attributes = step, atoms, cpu, temp, press, pe, ke, etotal,
+    possible attributes = step, atoms, cpu, temp, press, pe, ke, etotal, enthalpy
              evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail,
              vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
              gke, grot, tave, pave, eave, peave, t_ID
@@ -29,6 +29,7 @@ args = list of arguments for a particular style :l
       press = pressure
       pe = total potential energy
       ke = kinetic energy
+      enthalpy = enthalpy, pe + press*vol
       etotal = total energy (pe + ke)
       evdwl = VanderWaal pairwise energy
       ecoul = Coulombic pairwise energy

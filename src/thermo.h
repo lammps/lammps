@@ -128,6 +128,7 @@ class Thermo : public LAMMPS {
   void compute_eave();
   void compute_peave();
   void compute_t_id();
+  void compute_enthalpy();
 };
 
 #endif

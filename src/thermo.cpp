@@ -601,7 +601,7 @@ void Thermo::parse_fields(char *str)
       tempflag = 1;
     } else if (strcmp(word,"enthalpy") == 0) {
       addfield("Enthal",&Thermo::compute_enthalpy,FLOAT);
-      pressflag = 1;
+      tempflag = pressflag = 1;
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
     } else if (strcmp(word,"ecoul") == 0) {

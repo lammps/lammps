@@ -832,8 +832,8 @@ int FixRigid::dof(int igroup)
   int *nall = new int[nbody];
   MPI_Allreduce(ncount,nall,nbody,MPI_INT,MPI_SUM,world);
 
-  // remove 3N - 6 dof for each rigid body if more than 2 atoms are in igroup
-  // remove 3N - 5 dof for each diatomic rigid body
+  // remove 3N - 6 dof for each rigid body if more than 2 atoms in igroup
+  // remove 3N - 5 dof for each diatomic rigid body in igroup
 
   int n = 0;
   for (int ibody = 0; ibody < nbody; ibody++) {

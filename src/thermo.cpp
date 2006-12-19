@@ -39,13 +39,12 @@
 
 // customize by adding a keyword to this list:
 
-// step, atoms, cpu, temp, press, pe, ke, etotal,
+// step, atoms, cpu, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail, erot
 // vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
 // gke, grot (granular trans-ke and rotational-ke)
 // tave, pave, eave, peave (time-averaged quantities)
 // t_ID (user-defined temperatures)
-// enthalpy
 
 // customize by adding a DEFINE to this list
 
@@ -600,6 +599,9 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"etotal") == 0) {
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
       tempflag = 1;
+    } else if (strcmp(word,"enthalpy") == 0) {
+      addfield("Enthal",&Thermo::compute_enthalpy,FLOAT);
+      pressflag = 1;
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
     } else if (strcmp(word,"ecoul") == 0) {
@@ -665,8 +667,6 @@ void Thermo::parse_fields(char *str)
       addfield("E_ave",&Thermo::compute_eave,FLOAT);
     } else if (strcmp(word,"peave") == 0) {
       addfield("PE_ave",&Thermo::compute_peave,FLOAT);
-    } else if (strcmp(word,"enthalpy") == 0) {
-      addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
 
     // user-defined temperature (t_ID)
     // only 1st 8 chars of ID are passed to addfield
@@ -744,7 +744,8 @@ int Thermo::compute_value(char *word, double *answer)
     tempvalue = temperature->compute();
     fix_compute_pe();
     compute_etotal();
-  } else if (strcmp(word,"evdwl") == 0) compute_evdwl();
+  } else if (strcmp(word,"enthalpy") == 0) compute_enthalpy();
+  else if (strcmp(word,"evdwl") == 0) compute_evdwl();
   else if (strcmp(word,"ecoul") == 0) compute_ecoul();
   else if (strcmp(word,"epair") == 0) compute_epair();
   else if (strcmp(word,"ebond") == 0) compute_ebond();
@@ -757,7 +758,6 @@ int Thermo::compute_value(char *word, double *answer)
   else if (strcmp(word,"erot") == 0) compute_erot();
   else if (strcmp(word,"gke") == 0) compute_gke();
   else if (strcmp(word,"grot") == 0) compute_grot();
-  else if (strcmp(word,"enthalpy") == 0) compute_enthalpy();
   else if (strncmp(word,"t_",2) == 0) {
     int tempwhich;
     for (tempwhich = 0; tempwhich < force->ntemp; tempwhich++)
@@ -872,6 +872,24 @@ void Thermo::compute_etotal()
   double ke = 0.5 * temperature->dof * force->boltz * tempvalue;
   if (normflag) ke /= natoms;
   dvalue += ke;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_enthalpy()
+{
+  compute_etotal();
+  double etmp = dvalue;
+
+  compute_vol();
+  double vtmp = dvalue;
+  if (normflag) vtmp /= natoms;
+
+  compute_press();
+  double ptmp = dvalue;
+
+  dvalue = etmp + ptmp*vtmp/(force->nktv2p);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1257,19 +1275,3 @@ void Thermo::compute_fix()
   dvalue = fixvalues[fixprint[ifix_print++]];
   if (normflag) dvalue /= natoms;
 }
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_enthalpy()
-{
-  double etmp,vtmp,ptmp;
-  compute_etotal();
-  etmp = dvalue;
-  compute_vol();
-  vtmp = dvalue;
-  if (normflag) vtmp /= natoms;
-  compute_press();
-  ptmp = dvalue;
-  dvalue = etmp+ptmp*vtmp/(force->nktv2p);
-}
-

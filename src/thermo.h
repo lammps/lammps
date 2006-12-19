@@ -99,6 +99,7 @@ class Thermo : public LAMMPS {
   void compute_pe();
   void compute_ke();
   void compute_etotal();
+  void compute_enthalpy();
   void compute_evdwl();
   void compute_ecoul();
   void compute_epair();
@@ -128,7 +129,6 @@ class Thermo : public LAMMPS {
   void compute_eave();
   void compute_peave();
   void compute_t_id();
-  void compute_enthalpy();
 };
 
 #endif

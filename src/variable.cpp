@@ -28,7 +28,7 @@
 
 #define VARDELTA 4
 
-enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE};
+enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP};
 
 /* ---------------------------------------------------------------------- */
 
@@ -136,19 +136,29 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(num[nvar],&arg[2],data[nvar]);
 
-  // UNIVERSE
-  // num = listed args, index = partition this proc is in, data = copied args
+  // UNIVERSE and ULOOP
+  // for UNIVERSE: num = listed args, data = copied args
+  // for ULOOP: num = N, data = list of NULLS since never used
+  // index = partition this proc is in
   // universe proc 0 creates lock file
-  // error check that all other universe variables are same length
+  // error check that all other universe/uloop variables are same length
 
-  } else if (strcmp(arg[1],"universe") == 0) {
-    style[nvar] = UNIVERSE;
-    num[nvar] = narg - 2;
+  } else if (strcmp(arg[1],"universe") == 0 || strcmp(arg[1],"uloop") == 0) {
+    if (strcmp(arg[1],"universe") == 0) {
+      style[nvar] = UNIVERSE;
+      num[nvar] = narg - 2;
+      data[nvar] = new char*[num[nvar]];
+      copy(num[nvar],&arg[2],data[nvar]);
+    } else {
+      style[nvar] = ULOOP;
+      num[nvar] = atoi(arg[2]);
+      data[nvar] = new char*[num[nvar]];
+      for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
+    }
+
     if (num[nvar] < universe->nworlds)
-      error->all("Universe variable count < # of partitions");
+      error->all("Universe/uloop variable count < # of partitions");
     index[nvar] = universe->iworld;
-    data[nvar] = new char*[num[nvar]];
-    copy(num[nvar],&arg[2],data[nvar]);
 
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
@@ -157,8 +167,9 @@ void Variable::set(int narg, char **arg)
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
-      if (num[jvar] && style[jvar] == UNIVERSE && num[nvar] != num[jvar])
-	error->all("All universe variables must have same # of values");
+      if (num[jvar] && (style[jvar] == UNIVERSE || style[jvar] == ULOOP) && 
+	  num[nvar] != num[jvar])
+	error->all("All universe/uloop variables must have same # of values");
 
     if (me == 0) {
       if (universe->uscreen)
@@ -252,7 +263,7 @@ int Variable::next(int narg, char **arg)
       }
     }
 
-  } else if (istyle == UNIVERSE) {
+  } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
     // wait until lock file can be created and owned by proc 0 of this world
     // read next available index and Bcast it within my world
@@ -307,9 +318,10 @@ char *Variable::retrieve(char *name)
   if (index[ivar] >= num[ivar]) return NULL;
 
   char *str;
-  if (style[ivar] == INDEX) {
+  if (style[ivar] == INDEX || style[ivar] == WORLD || 
+      style[ivar] == UNIVERSE) {
     str = data[ivar][index[ivar]];
-  } else if (style[ivar] == LOOP) {
+  } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
     char *value = new char[16];
     sprintf(value,"%d",index[ivar]+1);
     int n = strlen(value) + 1;
@@ -326,10 +338,6 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][1],value);
     delete [] value;
     str = data[ivar][1];
-  } else if (style[ivar] == WORLD) {
-    str = data[ivar][index[ivar]];
-  } else if (style[ivar] == UNIVERSE) {
-    str = data[ivar][index[ivar]];
   }
   return str;
 }

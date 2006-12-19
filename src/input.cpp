@@ -789,13 +789,13 @@ void Input::log()
     if (logfile) fclose(logfile);
     if (strcmp(arg[0],"none") == 0) logfile = NULL;
     else {
-      char fname[128];
-      if (universe->nworlds == 1) strcpy(fname,arg[0]);
-      else sprintf(fname,"%s.%d",arg[0],universe->iworld);
-      logfile = fopen(fname,"w");
+      // char fname[128];
+      // if (universe->nworlds == 1) strcpy(fname,arg[0]);
+      // else sprintf(fname,"%s.%d",arg[0],universe->iworld);
+      logfile = fopen(arg[0],"w");
       if (logfile == NULL) {
 	char str[128];
-	sprintf(str,"Cannot open logfile %s",fname);
+	sprintf(str,"Cannot open logfile %s",arg[0]);
 	error->one(str);
       }
     }

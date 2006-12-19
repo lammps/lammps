@@ -30,7 +30,8 @@
               fx[1], fy[2005], fz[1]
     keywords = same keywords (mostly) as in <A HREF = "thermo_style.html">thermo_style custom</A> command
   <I>world</I> args = one string for each partition of processors
-  <I>universe</I> args = one or more strings 
+  <I>universe</I> args = one or more strings
+  <I>uloop</I> args = N = integer size of loop 
 </PRE>
 
 </UL>
@@ -42,7 +43,8 @@ variable beta equal div(temp,3.0)
 variable b1 equal add(x[234],mult(0.5,lx))
 variable b equal xcm(mol1,x)
 variable temp world 300.0 310.0 320.0 330.0
-variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 
+variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+variable x uloop 15 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -56,8 +58,8 @@ variable's value.  The variable name can be referenced in the input
 script as $x if the name "x" is a single character, or as ${LoopVar}
 if the name "LoopVar" is one or more characters.
 </P>
-<P>As described below, for variable styles <I>index</I>, <I>loop</I>, and
-<I>universe</I>, the value assigned to a variable can be incremented via
+<P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>universe</I>,
+and <I>uloop</I>, the value assigned to a variable can be incremented via
 the <A HREF = "next.html">next</A> command.  When there are no more values to
 assign, the variable is "exhausted" and a flag is set that causes the
 next <A HREF = "jump.html">jump</A> command encountered in the input script to be
@@ -65,13 +67,17 @@ skipped.  This enables the construction of simple loops in the input
 script that are iterated over and exited from.
 </P>
 <P>When a variable command is encountered for a variable that has already
-been specified, the command is skipped.  This is the case for all
-variable styles except <I>equal</I>, so that <I>equal</I>-style variable names
-can be re-used and re-defined anytime.  Skipping allows you to loop
-over the same input script many times without re-defining your
-variables.  When a variable is exhausted via the <A HREF = "next.html">next</A>
-command, it is then available to be re-defined in a subsequent
-variable command.
+been specified, the command is ignored.  This allows an input script
+with a variable command to be processed multiple times; see the
+<A HREF = "jump.html">jump</A> or <A HREF = "include.html">include</A> commands.  It also means
+that the use of the command-line switch -var will override a
+corresponding variable setting in the input script.
+</P>
+<P>There are two exceptions to this rule. The first is for <I>equal</I> style
+variables.  They are re-defined each time a variable command using an
+equal-style variable is encountered.  Also, if a variable is iterated
+on to the end of its list via the <A HREF = "next.html">next</A> command, it is
+available to be re-defined in a subsequent variable command.
 </P>
 <P>For the <I>index</I> style, one or more strings are specified.  Initially,
 the 1st string is assigned to the variable.  Each time a
@@ -82,10 +88,12 @@ value) by using the command-line switch -var; see <A HREF = "Section_start.html#
 section</A> for details.
 </P>
 <P>The <I>loop</I> style is identical to the <I>index</I> style except that the
-strings are the integers from 1 to N.  Initially, the string "1" is
-assigned to the variable.  Each time a <A HREF = "next.html">next</A> command is
-used with the variable name, the next string ("2", "3", etc) is
-assigned.  All processors assign the same string to the variable.
+strings are the integers from 1 to N.  This allows you to generate a
+long list of runs (e.g. 1000) without having to list N values in your
+input script.  Initially, the string "1" is assigned to the variable.
+Each time a <A HREF = "next.html">next</A> command is used with the variable name,
+the next string ("2", "3", etc) is assigned.  All processors assign
+the same string to the variable.
 </P>
 <P>For the <I>equal</I> style, a single string is specified which represents
 an equation that will be evaluated afresh each time the variable is
@@ -166,12 +174,10 @@ they are all finished.  <I>Universe</I>-style variables are incremented
 using the files "tmp.lammps.variable" and "tmp.lammps.variable.lock"
 which you will see in your directory during such a LAMMPS run.
 </P>
-<P>If a variable command is encountered when the variable has already
-been defined, the command is ignored.  Thss allows an input script
-with a variable command to be processed multiple times; see the
-<A HREF = "jump.html">jump</A> or <A HREF = "include.html">include</A> commands.  It also means
-that the use of the command-line switch -var will override a
-corresponding variable setting in the input script.
+<P>The <I>uloop</I> style is identical to the <I>universe</I> style except that the
+strings are the integers from 1 to N.  This allows you to generate a
+long list of runs (e.g. 1000) without having to list N values in your
+input script.
 </P>
 <P><B>Restrictions:</B>
 </P>

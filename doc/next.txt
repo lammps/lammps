@@ -30,8 +30,8 @@ to "z", it can be used in an input script command as $a or $z.  If it
 is multiple letters, it can be used as ${myTemp}.
 
 All variables in a single next command must be the same style:
-{index}, {loop}, or {universe}.  {Equal}- or {world}-style variables
-cannot be incremented by a next command.
+{index}, {loop}, {universe}, or {uloop}.  {Equal}- or {world}-style
+variables cannot be incremented by a next command.
 
 When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next
@@ -40,15 +40,15 @@ a next command to exit.
 
 When the next command is used with {index}- or {loop}-style variables,
 the next value is assigned to the variable for all processors.  When
-the next command is used with {universe}-style variables, the next
-value is assigned to whichever processor partition executes the
-command first.  All processors in the partition are assigned the same
-value.  Running LAMMPS on multiple partitions of processors via the
-"-partition" command-line switch is described in "this
-section"_Section_start.html#2_4 of the manual.  {Universe}-style
-variables are incremented using the files "tmp.lammps.variable" and
-"tmp.lammps.variable.lock" which you will see in your directory during
-such a LAMMPS run.
+the next command is used with {universe}- or {uloop}-style variables,
+the next value is assigned to whichever processor partition executes
+the command first.  All processors in the partition are assigned the
+same value.  Running LAMMPS on multiple partitions of processors via
+the "-partition" command-line switch is described in "this
+section"_Section_start.html#2_4 of the manual.  {Universe}- and
+{uloop}-style variables are incremented using the files
+"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
+see in your directory during such a LAMMPS run.
 
 Here is an example of running a series of simulations using the next
 command with an {index}-style variable.  If this input script is named

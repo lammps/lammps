@@ -33,8 +33,8 @@ to "z", it can be used in an input script command as $a or $z.  If it
 is multiple letters, it can be used as $<I>myTemp</I>.
 </P>
 <P>All variables in a single next command must be the same style:
-<I>index</I>, <I>loop</I>, or <I>universe</I>.  <I>Equal</I>- or <I>world</I>-style variables
-cannot be incremented by a next command.
+<I>index</I>, <I>loop</I>, <I>universe</I>, or <I>uloop</I>.  <I>Equal</I>- or <I>world</I>-style
+variables cannot be incremented by a next command.
 </P>
 <P>When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next
@@ -43,15 +43,15 @@ a next command to exit.
 </P>
 <P>When the next command is used with <I>index</I>- or <I>loop</I>-style variables,
 the next value is assigned to the variable for all processors.  When
-the next command is used with <I>universe</I>-style variables, the next
-value is assigned to whichever processor partition executes the
-command first.  All processors in the partition are assigned the same
-value.  Running LAMMPS on multiple partitions of processors via the
-"-partition" command-line switch is described in <A HREF = "Section_start.html#2_4">this
-section</A> of the manual.  <I>Universe</I>-style
-variables are incremented using the files "tmp.lammps.variable" and
-"tmp.lammps.variable.lock" which you will see in your directory during
-such a LAMMPS run.
+the next command is used with <I>universe</I>- or <I>uloop</I>-style variables,
+the next value is assigned to whichever processor partition executes
+the command first.  All processors in the partition are assigned the
+same value.  Running LAMMPS on multiple partitions of processors via
+the "-partition" command-line switch is described in <A HREF = "Section_start.html#2_4">this
+section</A> of the manual.  <I>Universe</I>- and
+<I>uloop</I>-style variables are incremented using the files
+"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
+see in your directory during such a LAMMPS run.
 </P>
 <P>Here is an example of running a series of simulations using the next
 command with an <I>index</I>-style variable.  If this input script is named

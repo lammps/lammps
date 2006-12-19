@@ -25,7 +25,8 @@ style = {index} or {loop} or {equal} or {world} or {universe} :l
               fx\[1\], fy\[2005\], fz\[1\]
     keywords = same keywords (mostly) as in "thermo_style custom"_thermo_style.html command
   {world} args = one string for each partition of processors
-  {universe} args = one or more strings :pre
+  {universe} args = one or more strings
+  {uloop} args = N = integer size of loop :pre
 :ule
 
 [Examples:]
@@ -36,7 +37,8 @@ variable beta equal div(temp,3.0)
 variable b1 equal add(x\[234\],mult(0.5,lx))
 variable b equal xcm(mol1,x)
 variable temp world 300.0 310.0 320.0 330.0
-variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 :pre
+variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+variable x uloop 15 :pre
 
 [Description:]
 
@@ -50,8 +52,8 @@ variable's value.  The variable name can be referenced in the input
 script as $x if the name "x" is a single character, or as $\{LoopVar\}
 if the name "LoopVar" is one or more characters.
 
-As described below, for variable styles {index}, {loop}, and
-{universe}, the value assigned to a variable can be incremented via
+As described below, for variable styles {index}, {loop}, {universe},
+and {uloop}, the value assigned to a variable can be incremented via
 the "next"_next.html command.  When there are no more values to
 assign, the variable is "exhausted" and a flag is set that causes the
 next "jump"_jump.html command encountered in the input script to be
@@ -59,13 +61,17 @@ skipped.  This enables the construction of simple loops in the input
 script that are iterated over and exited from.
 
 When a variable command is encountered for a variable that has already
-been specified, the command is skipped.  This is the case for all
-variable styles except {equal}, so that {equal}-style variable names
-can be re-used and re-defined anytime.  Skipping allows you to loop
-over the same input script many times without re-defining your
-variables.  When a variable is exhausted via the "next"_next.html
-command, it is then available to be re-defined in a subsequent
-variable command.
+been specified, the command is ignored.  This allows an input script
+with a variable command to be processed multiple times; see the
+"jump"_jump.html or "include"_include.html commands.  It also means
+that the use of the command-line switch -var will override a
+corresponding variable setting in the input script.
+
+There are two exceptions to this rule. The first is for {equal} style
+variables.  They are re-defined each time a variable command using an
+equal-style variable is encountered.  Also, if a variable is iterated
+on to the end of its list via the "next"_next.html command, it is
+available to be re-defined in a subsequent variable command.
 
 For the {index} style, one or more strings are specified.  Initially,
 the 1st string is assigned to the variable.  Each time a
@@ -76,10 +82,12 @@ value) by using the command-line switch -var; see "this
 section"_Section_start.html#2_4 for details.
 
 The {loop} style is identical to the {index} style except that the
-strings are the integers from 1 to N.  Initially, the string "1" is
-assigned to the variable.  Each time a "next"_next.html command is
-used with the variable name, the next string ("2", "3", etc) is
-assigned.  All processors assign the same string to the variable.
+strings are the integers from 1 to N.  This allows you to generate a
+long list of runs (e.g. 1000) without having to list N values in your
+input script.  Initially, the string "1" is assigned to the variable.
+Each time a "next"_next.html command is used with the variable name,
+the next string ("2", "3", etc) is assigned.  All processors assign
+the same string to the variable.
 
 For the {equal} style, a single string is specified which represents
 an equation that will be evaluated afresh each time the variable is
@@ -166,12 +174,10 @@ they are all finished.  {Universe}-style variables are incremented
 using the files "tmp.lammps.variable" and "tmp.lammps.variable.lock"
 which you will see in your directory during such a LAMMPS run.
 
-If a variable command is encountered when the variable has already
-been defined, the command is ignored.  Thss allows an input script
-with a variable command to be processed multiple times; see the
-"jump"_jump.html or "include"_include.html commands.  It also means
-that the use of the command-line switch -var will override a
-corresponding variable setting in the input script.
+The {uloop} style is identical to the {universe} style except that the
+strings are the integers from 1 to N.  This allows you to generate a
+long list of runs (e.g. 1000) without having to list N values in your
+input script.
 
 [Restrictions:]
 

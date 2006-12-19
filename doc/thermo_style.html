@@ -23,10 +23,12 @@
   <I>multi</I> args = none
   <I>granular</I> args = none
   <I>custom</I> args = list of attributes
-    possible attributes = step, atoms, cpu, temp, press, pe, ke, etotal,
-             evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail,
-             vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
-             gke, grot, tave, pave, eave, peave, t_ID
+    possible attributes = step, atoms, cpu, temp, press,
+                          pe, ke, etotal, enthalpy,
+                          evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
+                          emol, elong, etail,
+                          vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
+                          gke, grot, tave, pave, eave, peave, t_ID
       step = timestep
       atoms = # of atoms
       cpu = elapsed CPU time
@@ -35,16 +37,17 @@
       pe = total potential energy
       ke = kinetic energy
       etotal = total energy (pe + ke)
+      enthalpy = enthalpy (pe + press*vol)
       evdwl = VanderWaal pairwise energy
       ecoul = Coulombic pairwise energy
-      epair = pairwise (evdwl + ecoul)
+      epair = pairwise energy (evdwl + ecoul)
       ebond = bond energy
       eangle = angle energy
       edihed = dihedral energy
       eimp = improper energy
       emol = molecular energy (ebond + eangle + edihed + eimp)
       elong = long-range kspace energy
-      etail = VanderWaal long-range tail correction
+      etail = VanderWaal energy long-range tail correction
       vol = volume
       lx,ly,lz = box lengths in x,y,z
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor

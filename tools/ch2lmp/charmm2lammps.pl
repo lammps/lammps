@@ -27,6 +27,7 @@
 #    20050603	Fixed centering issues
 #    20050630	Fixed symbol issues arising from salt addition
 #    20060818	Changed reading of pdb format to read exact columns
+#    20070109	Changed AddMass() to use $max_id correctly
 #    
 #    General	Many thanks to Paul S. Crozier for checking script validity
 #    		against his projects.
@@ -68,8 +69,8 @@
     my $notes;
     
     $program		= "charmm2lammps";
-    $version		= "1.8.0";
-    $year		= "2006";
+    $version		= "1.8.1";
+    $year		= "2007";
     $add		= 0;
     $water_dens		= 0;
     $ions		= 0;
@@ -741,9 +742,9 @@
     my $mass		= shift(@_);
     
     return if ($symbols{$symbol} ne "");
-    $ids{$max_id}	= $symbol;
+    $ids{++$max_id}	= $symbol;
     $masses{$max_id}	= $mass;
-    $symbols{$symbol}	= $max_id++;
+    $symbols{$symbol}	= $max_id;
   }
 
   

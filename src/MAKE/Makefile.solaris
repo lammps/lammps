@@ -1,0 +1,41 @@
+# solaris = Sun box, c++, no MPI, no FFTs
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =            c++
+CCFLAGS =       -O -I../STUBS -DFFT_NONE
+DEPFLAGS =      -M
+LINK =          c++
+LINKFLAGS =     -O -L../STUBS
+USRLIB =        -lmpi
+SYSLIB =
+ARCHIVE =       ar
+ARFLAGS =       -rc
+SIZE =          size
+
+# Link target
+
+$(EXE): $(OBJ)
+       $(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+       $(SIZE) $(EXE)
+
+# Library target
+
+lib:    $(OBJ)
+       $(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+       $(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+       $(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+$(OBJ):         $(INC)
+#DEPENDS = $(OBJ:.o=.d)
+#include $(DEPENDS)

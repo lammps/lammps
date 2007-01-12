@@ -337,8 +337,10 @@ void MinCG::iterate(int n)
 void MinCG::setup_vectors()
 {
   ndof = 3 * atom->nlocal;
-  g = ((FixMinimize *) modify->fix[ifix_minimize])->gradient[0];
-  h = ((FixMinimize *) modify->fix[ifix_minimize])->searchdir[0];
+  if (ndof) g = ((FixMinimize *) modify->fix[ifix_minimize])->gradient[0];
+  else g = NULL;
+  if (ndof) h = ((FixMinimize *) modify->fix[ifix_minimize])->searchdir[0];
+  else h = NULL;
 }
 
 /* ----------------------------------------------------------------------

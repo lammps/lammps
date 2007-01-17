@@ -412,10 +412,9 @@ void PairSW::read_file(char *file)
     params[nparams].powerp = atof(words[11]);
     params[nparams].powerq = atof(words[12]);
 
-    if (params[nparams].epsilon < 0.0 || params[nparams].sigma <= 0.0 || 
-	params[nparams].littlea <= 0.0 || params[nparams].lambda < 0.0 ||
-	params[nparams].gamma < 0.0 || params[nparams].costheta > 1.0 || 
-	params[nparams].costheta < -1.0 || params[nparams].biga < 0.0 || 
+    if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 || 
+	params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
+	params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 || 
 	params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
 	params[nparams].powerq < 0.0)
       error->all("Illegal Stillinger-Weber parameter");

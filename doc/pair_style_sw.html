@@ -60,8 +60,8 @@ potentials.
 <P>Stillinger-Weber files in the <I>potentials</I> directory of the LAMMPS
 distribution have a ".sw" suffix.  Lines that are not blank or
 comments (starting with #) define parameters for a triplet of
-elements.  The parameters in a single entry correspond to coefficients
-in the formula above:
+elements.  The parameters in a single entry correspond to the two-body
+and three-body coefficients in the formula above:
 </P>
 <UL><LI>element 1 (the center atom in a 3-body interaction)
 <LI>element 2
@@ -89,8 +89,18 @@ simulation; LAMMPS ignores those entries.
 entries (for SiSiSi, SiSiC, SiCSi, SiCC, CSiSi, CSiC, CCSi, CCC), that
 specify SW parameters for all permutations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 27
-entries would be required, etc.  Note that due to symmetries, some
-parameters will typically be the same in multiple entries.
+entries would be required, etc.
+</P>
+<P>As annotated above, the first element in the entry is the center atom
+in a three-body interaction.  Thus an entry for SiCC means a Si atom
+with 2 C atoms as neighbors.  By symmetry, three-body parameters for
+SiCSi and SiSiC entries should be the same.  Two-body parameters for
+an interaction come from the entry where the 2nd element is repeated.
+Thus the two-body parameters for Si interacting with C, comes from the
+SiCC entry.  Again by symmetry, the two-body parameters in the SiCC
+and CSiSi entries should thus be the same.  Two-body parameters in
+entries whose 2nd and 3rd element are different (e.g. SiCSi) are
+ignored.
 </P>
 <P><B>Restrictions:</B>
 </P>

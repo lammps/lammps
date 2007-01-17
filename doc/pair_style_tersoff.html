@@ -64,8 +64,8 @@ parameters in a single entry correspond to coefficients in the formula
 above:
 </P>
 <UL><LI>element 1 (the center atom in a 3-body interaction)
-<LI>element 2
-<LI>element 3
+<LI>element 2 (the atom bonded to the center atom)
+<LI>element 3 (the atom influencing the 1-2 bond in a bond-order sense)
 <LI>lambda3 (1/distance units)
 <LI>c
 <LI>d
@@ -91,8 +91,19 @@ ignores those entries.
 entries (for SiSiSi, SiSiC, SiCSi, SiCC, CSiSi, CSiC, CCSi, CCC), that
 specify Tersoff parameters for all permutations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 27
-entries would be required, etc.  Note that due to symmetries, some
-parameters will typically be the same in multiple entries.
+entries would be required, etc.
+</P>
+<P>As annotated above, the first element in the entry is the center atom
+in a three-body interaction and it is bonded to the 2nd atom and the
+bond is influenced by the 3rd atom.  Thus an entry for SiCC means Si
+bonded to a C with another C atom influencing the bond.  Thus
+three-body parameters for SiCSi and SiSiC entries will not, in
+general, be the same.  Two-body parameters for an interaction come
+from the entry where the 2nd element is repeated.  Thus the two-body
+parameters for Si interacting with C, comes from the SiCC entry.  By
+symmetry, the two-body parameters in the SiCC and CSiSi entries should
+thus be the same.  Two-body parameters in entries whose 2nd and 3rd
+element are different (e.g. SiCSi) are ignored.
 </P>
 <P><B>Restrictions:</B>
 </P>

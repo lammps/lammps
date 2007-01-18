@@ -8,5 +8,10 @@
 #   element 1, element 2, element 3, 
 #   epsilon, sigma, a, lambda, gamma, costheta0, A, B, p, q
 
+# Here are the original parameters in metal units, for Silicon from:
+#
+# Stillinger and Weber,  Phys. Rev. B, v. 31, p. 5262, (1985)
+#
+
 Si Si Si 2.1683  2.0951  1.80  21.0  1.20  -0.333333333333
          7.049556277  0.6022245584  4.0  0.0 

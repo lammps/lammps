@@ -363,7 +363,7 @@ O charge = -0.834
 H charge = 0.417 :all(b),p
 
 LJ epsilon of OO = 0.1521
-LJ sigma of OO = 3.1507
+LJ sigma of OO = 3.188
 LJ epsilon of HH = 0.0460
 LJ sigma of HH = 0.4000
 LJ epsilon of OH = 0.0836

@@ -1085,10 +1085,14 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"sw") == 0) {
+
   } else if (strcmp(style,"table") == 0) {
 
     int tabstyle = read_int(fp);
     int n = read_int(fp);
+
+  } else if (strcmp(style,"tersoff") == 0) {
 
   } else if (strcmp(style,"yukawa") == 0) {
 

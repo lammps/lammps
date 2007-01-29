@@ -23,7 +23,12 @@
 #include "stdlib.h"
 #include "string.h"
 #include "mpi.h"
+#include "lammps.h"         // these are LAMMPS include files
+#include "input.h"
+#include "atom.h"
 #include "library.h"
+
+using namespace LAMMPS_NS;
 
 int main(int narg, char **arg)
 {
@@ -69,9 +74,10 @@ int main(int narg, char **arg)
   // run the input script thru LAMMPS one line at a time until end-of-file
   // umbrella proc 0 reads a line, Bcasts it to all procs
   // (could just send it to proc 0 of comm_lammps and let it Bcast)
-  // all LAMMPS procs call lammps_command() on the line
-
-  if (lammps == 1) lammps_open(0,NULL,comm_lammps);
+  // all LAMMPS procs call input->one() on the line
+  
+  LAMMPS *lmp;
+  if (lammps == 1) lmp = new LAMMPS(0,NULL,comm_lammps);
 
   int n;
   char line[1024];
@@ -84,30 +90,30 @@ int main(int narg, char **arg)
     MPI_Bcast(&n,1,MPI_INT,0,MPI_COMM_WORLD);
     if (n == 0) break;
     MPI_Bcast(line,n,MPI_CHAR,0,MPI_COMM_WORLD);
-    if (lammps == 1) lammps_command(line);
+    if (lammps == 1) lmp->input->one(line);
   }
 
-  // run 10 steps
+  // run 10 more steps
   // get coords from LAMMPS
   // change coords of 1st atom
   // put coords back into LAMMPS
   // run a single step with changed coords
 
   if (lammps == 1) {
-    lammps_command("run 10");
+    lmp->input->one("run 10");
 
-    int natoms = lammps_get_natoms();
+    int natoms = static_cast<int> (lmp->atom->natoms);
     double *x = new double[3*natoms];
-    lammps_get_coords(x);
+    lammps_get_coords(lmp,x);          // no LAMMPS class function for this
     double epsilon = 0.1;
     x[0] += epsilon;
-    lammps_put_coords(x);
+    lammps_put_coords(lmp,x);          // no LAMMPS class function for this
     delete [] x;
 
-    lammps_command("run 1");
+    lmp->input->one("run 1");
   }
 
-  if (lammps == 1) lammps_close();
+  if (lammps == 1) delete lmp;
 
   // close down MPI
 

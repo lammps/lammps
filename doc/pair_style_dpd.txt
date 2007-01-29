@@ -68,3 +68,8 @@ pairs must be specified explicitly.
 "pair_coeff"_pair_coeff.html
 
 [Default:] none
+
+:line
+
+:link(Groot)
+[(Groot)] Groot and Warren, J Chem Phys, 107, 4423-35 (1997).

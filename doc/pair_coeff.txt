@@ -107,6 +107,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/cut/coul/long/tip4p"_pair_style_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_style_lj_expand.html - Lennard-Jones for variable size particles
 "pair_style lj/smooth"_pair_style_lj_smooth.html - smoothed Lennard-Jones potential
+"pair_style meam"_pair_style_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_style_morse.html - Morse potential
 "pair_style soft"_pair_style_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_style_sw.html - Stillinger-Weber 3-body potential

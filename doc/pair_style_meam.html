@@ -1,0 +1,207 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style meam command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style mean 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style meam
+pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
+pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>meam</I> computes pairwise interactions for a variety of materials
+using modified embedded-atom method (MEAM) potentials
+<A HREF = "#Baskes">(Baskes)</A>.  Conceptually, it is an extension to the original
+<A HREF = "pair_style_eam.html">EAM potentials</A> which adds angular forces.  It is
+thus suitable for modeling metals and alloys with fcc, bcc, hcp and
+diamond cubic structures, as well as covalently bonded materials like
+silicon and carbon.
+</P>
+<P>In the MEAM formulation, the total energy E of a system of atoms is
+given by:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_meam.jpg">
+</CENTER>
+<P>where F is the embedding energy which is a function of the atomic
+electron density rho, and phi is a pair potential interaction.  The
+pair interaction is summed over all neighbors J of atom I within the
+cutoff distance.  As with EAM, the multi-body nature of the MEAM
+potential is a result of the embedding energy term.  Details of the
+computation of the embedding and pair energies, as implemented in
+LAMMPS, are given in <A HREF = "#Gullet">(Gullet)</A> and references therein.
+</P>
+<P>The various parameters in the MEAM formulas are listed in two files
+which are specified by the <A HREF = "pair_coeff.html">pair_coeff</A> command.
+These are ASCII text files in a format consistent with other MD codes
+that implement MEAM potentials, such as the serial DYNAMO code and
+Warp.  Several MEAM potential files with parameters for different
+materials are included in the "potentials" directory of the LAMMPS
+distribution with a ",meam" suffix.  All of these are parameterized in
+terms of LAMMPS <A HREF = "units.html">metal units</A>.
+</P>
+<P>Note that unlike for other potentials, cutoffs for MEAM potentials are
+not set in the pair_style or pair_coeff command; they are specified in
+the MEAM potential files themselves.
+</P>
+<P>Only a single pair_coeff command is used with the <I>meam</I> style which
+specifies two MEAM files and the element(s) to extract information
+for.  The MEAM elements are mapped to LAMMPS atom types by specifying
+N additional arguments after the 2nd filename in the pair_coeff
+command, where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>MEAM library file
+<LI>Elem1, Elem2, ...
+<LI>MEAM parameter file
+<LI>N element names = mapping of MEAM elements to atom types 
+</UL>
+<P>As an example, the potentials/library.meam file has generic MEAM
+settings for a variety of elements.  The potentials/sic.meam file has
+specific parameter settings for a Si and C alloy system.  If your
+LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
+and the 4th to be C, you would use the following pair_coeff command:
+</P>
+<PRE>pair_coeff * * library.meam Si C sic.meam Si Si Si C 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The two filenames are for the library and parameter file respectively.
+The Si and C arguments (between the file names) are the two elements
+for which info will be extracted from the library file.  The first
+three trailing Si arguments map LAMMPS atom types 1,2,3 to the MEAM Si
+element.  The final C argument maps LAMMPS atom type 4 to the MEAM C
+element.
+</P>
+<P>If the 2nd filename is specified as NULL, no parameter file is read,
+which simply means the generic parameters in the library file are
+used.  Use of the NULL specification for the parameter file is
+discouraged for systems with more than a single element type
+(e.g. alloys), since the parameter file is expected to set element
+interaction terms that are not captured by the information in the
+library file.
+</P>
+<P>If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when a <I>meam</I> potential is used as part of the
+<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
+</P>
+<P>The MEAM library file provided with LAMMPS has the name
+potentials/library.meam.  It is the "meamf" file used by other MD
+codes.  Aside from blank and comment lines (start with #) which can
+appear anywhere, it is formatted as a series of entries, each of which
+has 19 parameters and can span multiple lines:
+</P>
+<P>elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, alat, esub, asub,
+t0, t1, t2, t3, rozero, ibar
+</P>
+<P>The "elt" and "lat" parameters are text strings, such as elt = Si or
+Cu and lat = dia or fcc.  Because the library file is used by Fortran
+MD codes, these strings may be enclosed in single quotes, but this is
+not required.  The other numeric parameters match values in the
+formulas above.  The value of the "elt" string is what is used in the
+pair_coeff command to identify which settings from the library file
+you wish to read in.  There can be multiple entries in the library
+file with the same "elt" value; LAMMPS reads the 1st matching entry it
+finds and ignores the rest.
+</P>
+<P>If used, the MEAM parameter file contains settings that override or
+complement the library file settings.  Examples of such parameter
+files are in the potentials directory with a ".meam" suffix.  Their
+format is the same as is read by other Fortran MD codes.  Aside from
+blank and comment lines (start with #) which can appear anywhere, each
+line has one of the following forms.  Each line can also have a
+trailing comment (starting with #) which is ignored.
+</P>
+<PRE>keyword = value
+keyword(I) = value
+keyword(I,J) = value
+keyword(I,J,K) = value 
+</PRE>
+<P>The recognized keywords are as follows:
+</P>
+<P>Ec, alpha, rho0, delta, lattce, attrac, repuls, nn2, Cmin, Cmax, rc, delr,
+augt1, gsmooth_factor, re
+</P>
+<P>where
+</P>
+<PRE>rc          = cutoff radius for cutoff function; default = 4.0
+delr        = length of smoothing distance for cutoff function; default = 0.1
+rho0(I)     = relative density for element I (overwrites value
+              read from meamf file)
+Ec(I,J)     = cohesive energy of reference structure for I-J mixture
+delta(I,J)  = heat of formation for I-J alloy; if Ec_IJ is input as
+              zero, then WARP sets Ec_IJ = (Ec_II + Ec_JJ)/2 - delta_IJ
+alpha(I,J)  = alpha parameter for pair potential between I and J (can
+              be computed from bulk modulus of reference structure
+re(I,J)     = equilibrium distance between I and J in the reference
+              structure
+Cmax(I,J,K) = Cmax screening parameter when I-J pair is screened 
+              by K (I<=J); default = 2.8
+Cmin(I,J,K) = Cmin screening parameter when I-J pair is screened 
+              by K (I<=J); default = 2.0
+lattce(I,J) = lattice structure of I-J reference structure:
+                dia = diamond (interlaced fcc for alloy)
+                fcc = face centered cubic
+                bcc = body centered cubic
+                dim = dimer 
+                B1  = rock salt (NaCl structure)
+gsmooth_factor  = factor determining the length of the G-function smoothing
+                  region; only significant for ibar=0 or ibar=4.
+                      99.0 = short smoothing region, sharp step
+                      0.5  = long smoothing region, smooth step
+                      default = 99.0
+augt1           = integer flag for whether to augment t1 parameter by
+                  3/5*t3 to account for old vs. new meam formulations;
+                    0 = don't augment t1
+                    1 = augment t1
+                    default = 1 
+</PRE>
+<P>Each keyword represents a quantity which is either a scalar, vector,
+2d array, or 3d array and must be specified with the correct
+corresponding array syntax.  The indices I,J,K each run from 1 to N
+where N is the number of MEAM elements being used.
+</P>
+<P>Thus these lines
+</P>
+<PRE>rho0(2) = 2.25
+alpha(1,2) = 4.37 
+</PRE>
+<P>mean set rho0 for the 2nd element to the value 2.25 and set alpha for
+the alloy interaction between elements 1 and 2 to 4.37.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_style_eam.html">pair_style eam</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Baskes"></A>
+
+<P><B>(Baskes)</B> Baskes, Phys Rev B, 46, 2727-2742 (1992).
+</P>
+<A NAME = "Gullet"></A>
+
+<P><B>(Gullet)</B> Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
+This report may be accessed on-line via <A HREF = "http://www.prod.sandia.gov/cgi-bin/techlib/access-control.pl/2003/038782.pdf">this link</A>.
+</P>
+
+
+</HTML>

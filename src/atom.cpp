@@ -1813,7 +1813,7 @@ int Atom::memory_usage()
 
   if (charge_allow) bytes += 1 * nmax * sizeof(double);     // q
   if (mass_allow) bytes += 1 * nmax * sizeof(double);       // rmass
-  if (style_dipole) bytes += 3 * nmax*3 * sizeof(double);   // mu
+  if (style_dipole) bytes += 3 * nmax*3 * sizeof(double);   // mu,omega,torque
   if (style_granular) {
     bytes += 3 * nmax*3 * sizeof(double);                   // phix,phiv,phia
     bytes += 2 * nmax * sizeof(double);                     // radius,density

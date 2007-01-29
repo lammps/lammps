@@ -286,6 +286,7 @@ TempStyle(region,TempRegion)
 #include "style_granular.h"
 #include "style_kspace.h"
 #include "style_manybody.h"
+#include "style_meam.h"
 #include "style_molecule.h"
 #include "style_poems.h"
 #include "style_xtc.h"

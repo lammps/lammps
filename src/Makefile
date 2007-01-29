@@ -43,18 +43,15 @@ makelist:
 
 package:
 	@echo 'Available packages: class2, dpd, granular, kspace'
-#	@echo '                    manybody meam molecule, poems, xtc'
-	@echo '                    manybody molecule, poems, xtc'
+	@echo '                    manybody, meam, molecule, poems, xtc'
 	@echo '  "make yes-name"   include a package'
 	@echo '  "make no-name"    exclude a package'
 	@echo '  "make yes-all"    include all packages'
 	@echo '  "make no-all"     exclude all packages'
 
 yes-all:
-#	make yes-class2 yes-dpd yes-granular yes-kspace \
-#	yes-manybody yes-meam yes-molecule yes-poems yes-xtc
 	make yes-class2 yes-dpd yes-granular yes-kspace \
-	yes-manybody yes-molecule yes-poems yes-xtc
+	yes-manybody yes-meam yes-molecule yes-poems yes-xtc
 
 no-all:
 	@echo 'Removing files, ignore any rm errors ...'
@@ -63,7 +60,7 @@ no-all:
 	@cd GRANULAR; csh -f Install.csh 0
 	@cd KSPACE; csh -f Install.csh 0
 	@cd MANYBODY; csh -f Install.csh 0
-#	@cd MEAM; csh -f Install.csh 0
+	@cd MEAM; csh -f Install.csh 0
 	@cd MOLECULE; csh -f Install.csh 0
 	@cd POEMS; csh -f Install.csh 0
 	@cd XTC; csh -f Install.csh 0
@@ -104,12 +101,12 @@ no-manybody:
 	@cd MANYBODY; csh -f Install.csh 0
 	@make clean
 
-#yes-meam:
-#	@cd MEAM; csh -f Install.csh 1
-#no-meam:
-#	@echo 'Removing files, ignore any rm errors ...'
-#	@cd MEAM; csh -f Install.csh 0
-#	@make clean
+yes-meam:
+	@cd MEAM; csh -f Install.csh 1
+no-meam:
+	@echo 'Removing files, ignore any rm errors ...'
+	@cd MEAM; csh -f Install.csh 0
+	@make clean
 
 yes-molecule:
 	@cd MOLECULE; csh -f Install.csh 1
@@ -140,7 +137,7 @@ package-update:
 	@csh -f Package.csh GRANULAR update
 	@csh -f Package.csh KSPACE update
 	@csh -f Package.csh MANYBODY update
-#	@csh -f Package.csh MEAM update
+	@csh -f Package.csh MEAM update
 	@csh -f Package.csh MOLECULE update
 	@csh -f Package.csh POEMS update
 	@csh -f Package.csh XTC update
@@ -153,7 +150,7 @@ package-overwrite:
 	@csh -f Package.csh GRANULAR overwrite
 	@csh -f Package.csh KSPACE overwrite
 	@csh -f Package.csh MANYBODY overwrite
-#	@csh -f Package.csh MEAM overwrite
+	@csh -f Package.csh MEAM overwrite
 	@csh -f Package.csh MOLECULE overwrite
 	@csh -f Package.csh POEMS overwrite
 	@csh -f Package.csh XTC overwrite
@@ -166,7 +163,7 @@ package-check:
 	@csh -f Package.csh GRANULAR check
 	@csh -f Package.csh KSPACE check
 	@csh -f Package.csh MANYBODY check
-#	@csh -f Package.csh MEAM check
+	@csh -f Package.csh MEAM check
 	@csh -f Package.csh MOLECULE check
 	@csh -f Package.csh POEMS check
 	@csh -f Package.csh XTC check

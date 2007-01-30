@@ -16,16 +16,8 @@
 
 #include "pointers.h"
 
-#define TIME_N           8
-
-#define TIME_TOTAL       0
-#define TIME_LOOP        1
-#define TIME_PAIR        2
-#define TIME_BOND        3
-#define TIME_KSPACE      4
-#define TIME_NEIGHBOR    5
-#define TIME_COMM        6
-#define TIME_OUTPUT      7
+enum{TIME_LOOP,TIME_PAIR,TIME_BOND,TIME_KSPACE,TIME_NEIGHBOR,
+     TIME_COMM,TIME_OUTPUT,TIME_N};
 
 namespace LAMMPS_NS {
 

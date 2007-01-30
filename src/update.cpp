@@ -92,9 +92,8 @@ void Update::init()
 
 void Update::set_units(char *style)
 {
-
   // physical constants from:
-  //   http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+  // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
   // using thermochemical calorie = 4.184 J
   
   if (strcmp(style,"lj") == 0) {

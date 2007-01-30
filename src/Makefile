@@ -42,7 +42,7 @@ makelist:
 # Packages
 
 package:
-	@echo 'Available packages: class2, dpd, granular, kspace, manybody,"
+	@echo 'Available packages: class2, dpd, granular, kspace, manybody,'
 	@echo '                    meam, molecule, opt, poems, xtc'
 	@echo '  "make yes-name"   include a package'
 	@echo '  "make no-name"    exclude a package'

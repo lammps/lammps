@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,11 @@
 
 #include "min.h"
 
+namespace LAMMPS_NS {
+
 class MinCG : public Min {
  public:
-  MinCG() {}
-  virtual ~MinCG() {}
+  MinCG(class LAMMPS *);
   void init();
   void run();
 
@@ -33,9 +34,9 @@ class MinCG : public Min {
   int maxpair;            // copies of Update quantities
   double **f_pair;
 
-  int ifix_minimize;      // fix that stores gradient vecs
-  double ecurrent;        // current potential energy
-  double mindist,maxdist; // min/max dist for any coord delta in line search
+  class FixMinimize *fix_minimize;  // fix that stores gradient vecs
+  double ecurrent;            // current potential energy
+  double mindist,maxdist;     // min/max dist for coord delta in line search
 
   int ndof;               // # of degrees-of-freedom on this proc
   double *g,*h;           // local portion of gradient, searchdir vectors
@@ -54,5 +55,7 @@ class MinCG : public Min {
   void eng_force(int *, double **, double **, double *);
   void force_clear(int);
 };
+
+}
 
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,15 +16,23 @@
 #include "string.h"
 #include "create_atoms.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "atom_vec_hybrid.h"
 #include "comm.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MAXATOMS 0x7FFFFFFF
 #define BIG      1.0e30
 #define EPSILON  1.0e-6
+
+/* ---------------------------------------------------------------------- */
+
+CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,6 +55,7 @@ void CreateAtoms::command(int narg, char **arg)
   for (int i = 0; i < nbasis; i++) basistype[i] = itype;
 
   regionflag = -1;
+  nhybrid = 0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -67,6 +76,16 @@ void CreateAtoms::command(int narg, char **arg)
 	  itype <= 0 || itype > atom->ntypes) 
 	error->all("Illegal create_atoms command");
       basistype[ibasis-1] = itype;
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"hybrid") == 0) {
+      if (iarg+3 > narg) error->all("Illegal create_atoms command");
+      AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
+      int ihybrid;
+      for (ihybrid = 0; ihybrid < avec_hybrid->nstyles; ihybrid++)
+	if (strcmp(avec_hybrid->keywords[ihybrid],arg[iarg+1]) == 0) break;
+      if (ihybrid == avec_hybrid->nstyles)
+	error->all("Create atoms hybrid sub-style does not exist");
+      nhybrid = ihybrid;
       iarg += 3;
     } else error->all("Illegal create_atoms command");
   }
@@ -175,7 +194,7 @@ void CreateAtoms::command(int narg, char **arg)
    add an atom of type at lattice coords x,y,z if it meets all criteria 
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_atom(int type, double x, double y, double z)
+void CreateAtoms::add_atom(int ntype, double x, double y, double z)
 {
   // convert from lattice coords to box coords
 
@@ -201,5 +220,5 @@ void CreateAtoms::add_atom(int type, double x, double y, double z)
 
   // add the atom to my list of atoms
 
-  atom->create_one(type,x,y,z);
+  atom->avec->create_atom(ntype,x,y,z,nhybrid);
 }

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,12 +25,7 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "force.h"
-#include "pair_buck_coul_long.h"
-#include "pair_lj_cut_coul_long.h"
-#include "pair_lj_charmm_coul_long.h"
-#include "pair_lj_class2_coul_long.h"
-#include "pair_lj_cut_coul_long_tip4p.h"
-#include "pair_table.h"
+#include "pair.h"
 #include "bond.h"
 #include "angle.h"
 #include "domain.h"
@@ -38,6 +33,8 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -50,7 +47,7 @@
 
 /* ---------------------------------------------------------------------- */
 
-PPPM::PPPM(int narg, char **arg) : KSpace(narg, arg)
+PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg != 1) error->all("Illegal kspace_style pppm command");
 
@@ -128,41 +125,35 @@ void PPPM::init()
 
   deallocate();
 
-  // insure use of valid pair_style with long-range Coulombics
-  // set cutoff to short-range Coulombic cutoff
+  // insure use of long (or table) pair_style with long-range Coulombics
+  // set cutoff to Pair's short-range Coulombic cutoff
 
   qqrd2e = force->qqrd2e;
+
+  Pair *pair = force->pair_match("long");
+  if (pair == NULL) pair = force->pair_match("table");
+  if (pair == NULL) error->all("KSpace style is incompatible with Pair style");
+  pair->extract_long(&cutoff);
+
+  // insure use of TIP4P pair_style with TIP4P long-range Coulombics
+  // set TIP4P params from Pair's params
+
   qdist = 0.0;
 
-  Pair *anypair;
-  if (force->pair == NULL) 
-    error->all("Pair style is incompatible with KSpace style");
-  else if (anypair = force->pair_match("buck/coul/long"))
-    cutoff = ((PairBuckCoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/cut/coul/long"))
-    cutoff = ((PairLJCutCoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/charmm/coul/long"))
-    cutoff = ((PairLJCharmmCoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/class2/coul/long"))
-    cutoff = ((PairLJClass2CoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/cut/coul/long/tip4p")) {
-    if (strcmp(force->kspace_style,"pppm/tip4p") != 0)
-      error->all("Pair style is incompatible with KSpace style");
-    cutoff = ((PairLJCutCoulLongTIP4P *) anypair)->cut_coul;
-    qdist = ((PairLJCutCoulLongTIP4P *) anypair)->qdist;
-    typeO = ((PairLJCutCoulLongTIP4P *) anypair)->typeO;
-    typeH = ((PairLJCutCoulLongTIP4P *) anypair)->typeH;
-    int typeA = ((PairLJCutCoulLongTIP4P *) anypair)->typeA;
-    int typeB = ((PairLJCutCoulLongTIP4P *) anypair)->typeB;
+  pair = force->pair_match("tip4p");
+  if (strcmp(force->kspace_style,"pppm/tip4p") != 0 && pair != NULL)
+    error->all("KSpace style is incompatible with Pair style");
+  if (strcmp(force->kspace_style,"pppm/tip4p") == 0 && pair == NULL)
+    error->all("KSpace style is incompatible with Pair style");
+  if (pair) {
+    int typeA,typeB;
+    pair->extract_tip4p(&qdist,&typeO,&typeH,&typeA,&typeB);
     if (force->angle == NULL || force->bond == NULL)
       error->all("Bond and angle potentials must be defined for TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (2.0 * cos(0.5*theta) * blen);
-  } 
-  else if (anypair = force->pair_match("table"))
-    cutoff = ((PairTable *) anypair)->cut_coul();
-  else error->all("Pair style is incompatible with KSpace style");
+  }
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -698,17 +689,17 @@ void PPPM::allocate()
 
   int tmp;
 
-  fft1 = new FFT3d(world,nx_pppm,ny_pppm,nz_pppm,
+  fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
 		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
 		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
 		   0,0,&tmp);
 
-  fft2 = new FFT3d(world,nx_pppm,ny_pppm,nz_pppm,
+  fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
 		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
 		   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
 		   0,0,&tmp);
 
-  remap = new Remap(world,
+  remap = new Remap(lmp,world,
 		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
 		    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
 		    1,0,0,2);

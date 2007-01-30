@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,14 +15,12 @@
 #define FIX_NPH_H
 
 #include "fix.h"
-class Temperature;
-class Pressure;
+
+namespace LAMMPS_NS {
 
 class FixNPH : public Fix {
-  friend class Pressure;              // accesses press_couple
-
  public:
-  FixNPH(int, char **);
+  FixNPH(class LAMMPS *, int, char **);
   ~FixNPH();
   int setmask();
   void init();
@@ -31,16 +29,12 @@ class FixNPH : public Fix {
   void final_integrate();
   void initial_integrate_respa(int,int);
   void final_integrate_respa(int);
+  double thermo(int);
   void write_restart(FILE *);
   void restart(char *);
   int modify_param(int, char **);
-  int thermo_fields(int, int *, char **);
-  int thermo_compute(double *);
 
  private:
-  Temperature *temperature;
-  Pressure *pressure;
-
   double dtv,dtf,dthalf;
   double boltz,nktv2p;
   double total_mass,vol0,nkt;
@@ -60,8 +54,14 @@ class FixNPH : public Fix {
   int nlevels_respa;
   double *step_respa;
 
+  char *id_temp,*id_press;
+  class Compute *temperature,*pressure,*ptemperature;
+  int tflag,pflag;
+
   void couple();
   void box_dilate(int);
 };
+
+}
 
 #endif

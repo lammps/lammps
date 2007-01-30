@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,7 +19,13 @@
 #include "output.h"
 #include "timer.h"
 
+using namespace LAMMPS_NS;
+
 #define EPS       1.0e-6
+
+/* ---------------------------------------------------------------------- */
+
+MinSD::MinSD(LAMMPS *lmp) : MinCG(lmp) {}
 
 /* ----------------------------------------------------------------------
    minimization via steepest descent

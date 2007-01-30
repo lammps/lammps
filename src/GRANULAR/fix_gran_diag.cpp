@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,28 +17,29 @@
 
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "fix_gran_diag.h"
 #include "update.h"
 #include "force.h"
-#include "pair_gran_no_history.h"
-#include "pair_gran_history.h"
-#include "pair_gran_hertzian.h"
+#include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "modify.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define NO_HISTORY 1
-#define HISTORY    2
-#define HERTZIAN   3
+enum{NO_HISTORY,HISTORY,HERTZIAN};
 
 /* ---------------------------------------------------------------------- */
 
-FixGranDiag::FixGranDiag(int narg, char **arg) : Fix(narg, arg)
+FixGranDiag::FixGranDiag(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg != 6) error->all("Illegal fix gran/diag command");
   nevery = atoi(arg[3]);
@@ -112,37 +113,38 @@ int FixGranDiag::setmask()
 
 void FixGranDiag::init()
 {
+  // insure use of granular pair_style
+  // set local values from Pair values
+
+  Pair *pair = force->pair_match("gran");
+  if (pair == NULL)
+    error->all("Fix gran/diag is incompatible with Pair style");
+  int dampflag;
+  double gamman;
+  pair->extract_gran(&xkk,&gamman,&xmu,&dampflag);
+
+  // same initialization as in pair_gran_history::init_style()
+
+  xkkt = xkk * 2.0/7.0;
   dt = update->dt;
+  double gammas = 0.5*gamman;
+  if (dampflag == 0) gammas = 0.0;
+  gamman_dl = gamman/dt;
+  gammas_dl = gammas/dt;
 
-  // set constants from pair style
+  // set pairstyle from granular pair style
 
-  Pair *anypair;
-  if (anypair = force->pair_match("gran/no_history")) {
-    pairstyle = NO_HISTORY;
-    xkk = ((PairGranNoHistory *) anypair)->xkk;
-    xkkt = ((PairGranNoHistory *) anypair)->xkkt;
-    xmu = ((PairGranNoHistory *) anypair)->xmu;
-    gamman_dl = ((PairGranNoHistory *) anypair)->gamman_dl;
-    gammas_dl = ((PairGranNoHistory *) anypair)->gammas_dl;
-    freeze_group_bit = ((PairGranNoHistory *) anypair)->freeze_group_bit;
-  } else if (anypair = force->pair_match("gran/history")) {
-    pairstyle = HISTORY;
-    xkk = ((PairGranHistory *) anypair)->xkk;
-    xkkt = ((PairGranHistory *) anypair)->xkkt;
-    xmu = ((PairGranHistory *) anypair)->xmu;
-    gamman_dl = ((PairGranHistory *) anypair)->gamman_dl;
-    gammas_dl = ((PairGranHistory *) anypair)->gammas_dl;
-    freeze_group_bit = ((PairGranNoHistory *) anypair)->freeze_group_bit;
-  } else if (anypair = force->pair_match("gran/hertzian")) {
-    pairstyle = HERTZIAN;
-    xkk = ((PairGranHertzian *) anypair)->xkk;
-    xkkt = ((PairGranHertzian *) anypair)->xkkt;
-    xmu = ((PairGranHertzian *) anypair)->xmu;
-    gamman_dl = ((PairGranHertzian *) anypair)->gamman_dl;
-    gammas_dl = ((PairGranHertzian *) anypair)->gammas_dl;
-    freeze_group_bit = ((PairGranNoHistory *) anypair)->freeze_group_bit;
-  } else
-    error->all("Must use fix gran/diag with granular pair style");
+  if (force->pair_match("gran/no_history")) pairstyle = NO_HISTORY;
+  else if (force->pair_match("gran/history")) pairstyle = HISTORY;
+  else if (force->pair_match("gran/hertzian")) pairstyle = HERTZIAN;
+
+  // check for freeze Fix and set freeze_group_bit
+
+  int i;
+  for (i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
+  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
+  else freeze_group_bit = 0;
 }
 
 /* ---------------------------------------------------------------------- */

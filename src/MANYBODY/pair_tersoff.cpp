@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,12 +29,14 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
 
-PairTersoff::PairTersoff()
+PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
 {
   neigh_half_every = 0;
   neigh_full_every = 1;
@@ -53,7 +55,6 @@ PairTersoff::PairTersoff()
 }
 
 /* ----------------------------------------------------------------------
-   free all arrays
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
@@ -248,7 +249,7 @@ void PairTersoff::settings(int narg, char **arg)
 
 void PairTersoff::coeff(int narg, char **arg)
 {
-  int i,j,m,n;
+  int i,j,n;
 
   if (!allocated) allocate();
 
@@ -361,7 +362,7 @@ void PairTersoff::read_file(char *file)
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
 
-  int i,n,nwords,ielement,jelement,kelement;
+  int n,nwords,ielement,jelement,kelement;
   char line[MAXLINE],*ptr;
   int eof = 0;
 

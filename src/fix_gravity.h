@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,12 +16,13 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixGravity : public Fix {
   friend class FixPour;
 
  public:
-  FixGravity(int, char **);
-  ~FixGravity() {}
+FixGravity(class LAMMPS *, int, char **);
   int setmask();
   void init();
   void setup();
@@ -36,5 +37,7 @@ class FixGravity : public Fix {
   double xgrav,ygrav,zgrav;
   double degree2rad;
 };
+
+}
 
 #endif

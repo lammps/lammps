@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,7 +14,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "run.h"
-#include "system.h"
 #include "domain.h"
 #include "update.h"
 #include "integrate.h"
@@ -24,8 +23,14 @@
 #include "timer.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+/* ---------------------------------------------------------------------- */
+
+Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -123,7 +128,7 @@ void Run::command(int narg, char **arg)
     else update->endstep = update->laststep;
 
     if (preflag || update->first_update == 0) {
-      sys->init();
+      lmp->init();
       update->integrate->setup();
     } else {
       timer->init();
@@ -136,7 +141,7 @@ void Run::command(int narg, char **arg)
 
     update->integrate->cleanup();
 
-    Finish finish;
+    Finish finish(lmp);
     finish.end(postflag);
 
   // perform multiple runs interleaved with invocation of a command
@@ -161,7 +166,7 @@ void Run::command(int narg, char **arg)
       else update->endstep = update->laststep;
 
       if (preflag || iter == 0) {
-	sys->init();
+	lmp->init();
 	update->integrate->setup();
       } else {
 	timer->init();
@@ -174,7 +179,7 @@ void Run::command(int narg, char **arg)
 
       update->integrate->cleanup();
 
-      Finish finish;
+      Finish finish(lmp);
       if (postflag || nleft == 0) finish.end(1);
       else finish.end(0);
 

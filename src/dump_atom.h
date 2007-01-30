@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,11 @@
 
 #include "dump.h"
 
+namespace LAMMPS_NS {
+
 class DumpAtom : public Dump {
  public:
-  DumpAtom(int, char**);
-  ~DumpAtom() {}
+  DumpAtom(LAMMPS *, int, char**);
   void init();
 
  private:
@@ -50,5 +51,7 @@ class DumpAtom : public Dump {
   void write_image(int, double *);
   void write_noimage(int, double *);
 };
+
+}
 
 #endif

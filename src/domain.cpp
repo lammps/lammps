@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,6 +32,8 @@
 #include "style.h"
 #undef RegionInclude
 
+using namespace LAMMPS_NS;
+
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTA 1
@@ -42,7 +44,7 @@
    default is periodic 
 ------------------------------------------------------------------------- */
 
-Domain::Domain()
+Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
 
@@ -458,7 +460,7 @@ void Domain::unmap(double &x, double &y, double &z, int image)
 void Domain::set_lattice(int narg, char **arg)
 {
   delete lattice;
-  lattice = new Lattice(narg,arg);
+  lattice = new Lattice(lmp,narg,arg);
   if (lattice->style == 0) {
     delete lattice;
     lattice = NULL;
@@ -493,7 +495,8 @@ void Domain::add_region(int narg, char **arg)
 
 #define RegionClass
 #define RegionStyle(key,Class) \
-  else if (strcmp(arg[1],#key) == 0) regions[nregion] = new Class(narg,arg);
+  else if (strcmp(arg[1],#key) == 0) \
+    regions[nregion] = new Class(lmp,narg,arg);
 #include "style.h"
 #undef RegionClass
 

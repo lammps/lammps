@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,12 +16,11 @@
 
 #include "kspace.h"
 
-class FFT3d;
-class Remap;
+namespace LAMMPS_NS {
 
 class PPPM : public KSpace {
  public:
-  PPPM(int, char **);
+  PPPM(class LAMMPS *, int, char **);
   ~PPPM();
   void init();
   void setup();
@@ -61,8 +60,8 @@ class PPPM : public KSpace {
   double *gf_b;
   double **rho1d,**rho_coeff;
 
-  FFT3d *fft1,*fft2;
-  Remap *remap;
+  class FFT3d *fft1,*fft2;
+  class Remap *remap;
 
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
@@ -90,5 +89,7 @@ class PPPM : public KSpace {
   void compute_rho_coeff();
   void slabcorr(int);
 };
+
+}
 
 #endif

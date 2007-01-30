@@ -1,7 +1,5 @@
 # Install/unInstall package classes in LAMMPS
 
-# pair_lj_charmm_coul_long.h must always be in src
-
 if ($1 == 1) then
 
   cp style_kspace.h ..
@@ -24,7 +22,7 @@ if ($1 == 1) then
   cp pair_buck_coul_long.h ..
   cp pair_lj_cut_coul_long.h ..
   cp pair_lj_cut_coul_long_tip4p.h ..
-#  cp pair_lj_charmm_coul_long.h ..
+  cp pair_lj_charmm_coul_long.h ..
   cp fft3d.h ..
   cp fft3d_wrap.h ..
   cp remap.h ..
@@ -53,7 +51,7 @@ else if ($1 == 0) then
   rm ../pair_buck_coul_long.h
   rm ../pair_lj_cut_coul_long.h
   rm ../pair_lj_cut_coul_long_tip4p.h
-#  rm ../pair_lj_charmm_coul_long.h
+  rm ../pair_lj_charmm_coul_long.h
   rm ../fft3d.h
   rm ../fft3d_wrap.h
   rm ../remap.h

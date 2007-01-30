@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,11 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixWallLJ126 : public Fix {
  public:
-  FixWallLJ126(int, char **);
-  ~FixWallLJ126() {}
+  FixWallLJ126(class LAMMPS *, int, char **);
   int setmask();
   void init();
   void setup();
@@ -27,17 +28,17 @@ class FixWallLJ126 : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
-
-  int thermo_fields(int, int *, char **);
-  int thermo_compute(double *);
+  double thermo(int);
 
  private:
-  int dim,side,thermo_flag,eflag_on;
+  int dim,side,thermo_flag,eflag_enable;
   double coord,epsilon,sigma,cutoff;
   double coeff1,coeff2,coeff3,coeff4,offset;
-  double eng,etotal;
+  double etotal;
   int nlevels_respa;
 };
 
 #endif
+}
+
 

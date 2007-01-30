@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,16 +17,19 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-FixRespa::FixRespa(int narg, char **arg) : Fix(narg, arg)
+FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   // nlevels = # of rRESPA levels
 
   nlevels = atoi(arg[3]);
 
   // perform initial allocation of atom-based arrays
-  // register with atom class
+  // register with Atom class
 
   f_level = NULL;
   grow_arrays(atom->nmax);
@@ -37,10 +40,9 @@ FixRespa::FixRespa(int narg, char **arg) : Fix(narg, arg)
 
 FixRespa::~FixRespa()
 {
-  // if atom class still exists:
-  // unregister this fix so atom class doesn't invoke it any more
+  // unregister callbacks to this fix from Atom class
 
-  if (atom) atom->delete_callback(id,0);
+  atom->delete_callback(id,0);
 
   // delete locally stored arrays
 

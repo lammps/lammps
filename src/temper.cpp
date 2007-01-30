@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,7 +19,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "temper.h"
-#include "system.h"
 #include "universe.h"
 #include "domain.h"
 #include "update.h"
@@ -37,13 +36,16 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define NVT      1
 #define LANGEVIN 2
 // #define TEMPER_DEBUG 1
+/* ---------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   free all tempering memory
-------------------------------------------------------------------------- */
+Temper::Temper(LAMMPS *lmp) : Pointers(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 Temper::~Temper()
 {
@@ -71,13 +73,11 @@ void Temper::command(int narg, char **arg)
     error->all("Temper command before simulation box is defined");
 
   update->nsteps = atoi(arg[0]);
-
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
-
   update->whichflag = 0;
 
-  sys->init();
+  lmp->init();
   
   // grab temper command args
 
@@ -136,9 +136,9 @@ void Temper::command(int narg, char **arg)
   // RNGs for swaps and Boltzmann test
   // warm up Boltzmann RNG
 
-  if (seed_swap) ranswap = new RanPark(seed_swap);
+  if (seed_swap) ranswap = new RanPark(lmp,seed_swap);
   else ranswap = NULL;
-  ranboltz = new RanPark(seed_boltz + me_universe);
+  ranboltz = new RanPark(lmp,seed_boltz + me_universe);
   for (int i = 0; i < 100; i++) ranboltz->uniform();
 
   // world2root[i] = global proc that is root proc of world i
@@ -296,7 +296,7 @@ void Temper::command(int narg, char **arg)
 
   timer->barrier_stop(TIME_LOOP);
 
-  Finish finish;
+  Finish finish(lmp);
   finish.end(1);
   update->whichflag = -1;
 }

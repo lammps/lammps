@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,9 +14,11 @@
 #ifndef NEIGHBOR_H
 #define NEIGHBOR_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Neighbor : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Neighbor : protected Pointers {
  public:
   int style;                       // 0 = nsq, 1 = binned
   int every;                       // build every this many steps
@@ -68,7 +70,7 @@ class Neighbor : public LAMMPS {
   int *numneigh_middle;            // # of middle pair neighbors for each atom
   int **firstneigh_middle;         // ptr to middle 1st neigh of each atom
 
-  Neighbor();
+  Neighbor(class LAMMPS *);
   ~Neighbor();
   void init();
   int decide();               // decide whether to build or not
@@ -125,9 +127,9 @@ class Neighbor : public LAMMPS {
   int *stencil_full;               // full neighbor stencil list of bin offsets
   int maxstencil_full;             // size of full neighbor stencil
 
-                                   // granular neighbor list
-  int history;                     // -1 if history not needed
-                                   // else stores fix shear history index
+                                         // granular neighbor list
+  class FixShearHistory *fix_history;    // NULL if history not needed
+                                         // else is ptr to fix shear history
   int **pages_touch;               // pages of touch flags
   double **pages_shear;            // pages of shear values
 
@@ -216,5 +218,7 @@ class Neighbor : public LAMMPS {
   int find_special(int, int);           // look for special neighbor
   int exclusion(int, int, int *, int *, int *);  // test for pair exclusion
 };
+
+}
 
 #endif

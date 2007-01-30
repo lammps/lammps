@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,9 +32,12 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-Verlet::Verlet(int narg, char **arg) : Integrate(narg, arg) {}
+Verlet::Verlet(LAMMPS *lmp, int narg, char **arg) :
+  Integrate(lmp, narg, arg) {}
 
 /* ----------------------------------------------------------------------
    initialization before run
@@ -78,7 +81,7 @@ void Verlet::init()
   granflag = 0;
   if (atom->check_style("granular")) granflag = 1;
   pairflag = 1;
-  if (strcmp(atom->style,"granular") == 0) pairflag = 0;
+  if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
   // local versions of Update quantities
 

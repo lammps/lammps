@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,13 +27,16 @@
 #include "respa.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define NONE     0
 #define SPHERE   1
 #define CYLINDER 2
 
 /* ---------------------------------------------------------------------- */
 
-FixIndent::FixIndent(int narg, char **arg) : Fix(narg, arg)
+FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all("Illegal fix indent command");
   k = atof(arg[3]);
@@ -107,7 +110,7 @@ int FixIndent::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -119,16 +122,13 @@ void FixIndent::init()
 {
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  if (thermo_print || thermo_energy) thermo_flag = 1;
-  else thermo_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixIndent::setup()
 {
-  eflag_on = 1;
+  eflag_enable = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(1);
   else {
@@ -136,14 +136,14 @@ void FixIndent::setup()
     post_force_respa(1,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  eflag_on = 0;
+  eflag_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixIndent::min_setup()
 {
-  eflag_on = 1;
+  eflag_enable = 1;
   post_force(1);
 }
 
@@ -152,11 +152,8 @@ void FixIndent::min_setup()
 void FixIndent::post_force(int vflag)
 {
   bool eflag = false;
-  if (thermo_flag) {
-    if (eflag_on) eflag = true;
-    else if (output->next_thermo == update->ntimestep) eflag = true;
-  }
-  if (eflag) eng = 0.0;
+  if (eflag_enable) eflag = true;
+  else if (output->next_thermo == update->ntimestep) eflag = true;
 
   // set current r0
   // for minimization, always set to r0_stop
@@ -168,6 +165,9 @@ void FixIndent::post_force(int vflag)
     delta /= update->endstep - update->beginstep;
     r0 = r0_start + delta * (r0_stop-r0_start);
   }
+
+  double eng;
+  if (eflag) eng = 0.0;
 
   // spherical indenter
 
@@ -273,20 +273,10 @@ void FixIndent::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-int FixIndent::thermo_fields(int n, int *flags, char **keywords)
+double FixIndent::thermo(int n)
 {
-  if (n == 0) return 1;
-  flags[0] = 3;
-  strcpy(keywords[0],"Indent");
-  return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixIndent::thermo_compute(double *values)
-{
-  values[0] = etotal;
-  return 1;
+  if (n == 0) return etotal;
+  else return 0.0;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,34 +21,32 @@
 #include "group.h"
 #include "update.h"
 #include "modify.h"
-#include "fix.h"
-#include "fix_centro.h"
-#include "fix_energy.h"
-#include "fix_stress.h"
+#include "compute.h"
 #include "memory.h"
 #include "error.h"
 
-// customize by adding to 1st enum
+using namespace LAMMPS_NS;
 
-enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,VX,VY,VZ,FX,FY,FZ,
-       Q,MUX,MUY,MUZ,TQX,TQY,TQZ,
-       ETOTAL,KE,EPAIR,CENTRO,SXX,SYY,SZZ,SXY,SXZ,SYZ};
+// customize by adding keyword to 1st enum
+
+enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
+     VX,VY,VZ,FX,FY,FZ,
+     Q,MUX,MUY,MUZ,TQX,TQY,TQZ,
+     EPAIR,KE,ETOTAL,CENTRO,SXX,SYY,SZZ,SXY,SXZ,SYZ,
+     COMPUTE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
 /* ---------------------------------------------------------------------- */
 
-DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
+DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
+  Dump(lmp, narg, arg)
 {
-  int i;
-
   if (narg == 5) error->all("No dump custom arguments specified");
 
-  nevery = atoi(arg[3]);
-
-  size_one = narg-5;
-  pack_choice = new FnPtrPack[size_one];
-  vtype = new int[size_one];
+  size_one = nfield = narg-5;
+  pack_choice = new FnPtrPack[nfield];
+  vtype = new int[nfield];
 
   iregion = -1;
   nthresh = 0;
@@ -56,173 +54,40 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
   thresh_op = NULL;
   thresh_value = NULL;
 
-  fixflag_epair = 0;
-  fixflag_centro = 0;
-  fixflag_stress = 0;
+  // flags, IDs, and memory for compute objects dump may create
 
-  computeflag_etotal = 0;
-  computeflag_ke = 0;
+  index_epair = index_ke = index_etotal = index_centro = index_stress = -1;
 
-  // process command args
-  // customize by adding to if statement
+  style_epair = "epair/atom";
+  style_ke = "ke/atom";
+  style_etotal = "etotal/atom";
+  style_centro = "centro/atom";
+  style_stress = "stress/atom";
 
-  for (int iarg = 5; iarg < narg; iarg++) {
-    i = iarg-5;
-    if (strcmp(arg[iarg],"tag") == 0) {
-      pack_choice[i] = &DumpCustom::pack_tag;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"mol") == 0) {
-      if (atom->molecule == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_molecule;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"type") == 0) {
-      pack_choice[i] = &DumpCustom::pack_type;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"x") == 0) {
-      pack_choice[i] = &DumpCustom::pack_x;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      pack_choice[i] = &DumpCustom::pack_y;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      pack_choice[i] = &DumpCustom::pack_z;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"xs") == 0) {
-      pack_choice[i] = &DumpCustom::pack_xs;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"ys") == 0) {
-      pack_choice[i] = &DumpCustom::pack_ys;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"zs") == 0) {
-      pack_choice[i] = &DumpCustom::pack_zs;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"xu") == 0) {
-      pack_choice[i] = &DumpCustom::pack_xu;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"yu") == 0) {
-      pack_choice[i] = &DumpCustom::pack_yu;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"zu") == 0) {
-      pack_choice[i] = &DumpCustom::pack_zu;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"ix") == 0) {
-      pack_choice[i] = &DumpCustom::pack_ix;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"iy") == 0) {
-      pack_choice[i] = &DumpCustom::pack_iy;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"iz") == 0) {
-      pack_choice[i] = &DumpCustom::pack_iz;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"vx") == 0) {
-      pack_choice[i] = &DumpCustom::pack_vx;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"vy") == 0) {
-      pack_choice[i] = &DumpCustom::pack_vy;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"vz") == 0) {
-      pack_choice[i] = &DumpCustom::pack_vz;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"fx") == 0) {
-      pack_choice[i] = &DumpCustom::pack_fx;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"fy") == 0) {
-      pack_choice[i] = &DumpCustom::pack_fy;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"fz") == 0) {
-      pack_choice[i] = &DumpCustom::pack_fz;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"q") == 0) {
-      if (atom->q == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_q;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"mux") == 0) {
-      if (atom->mu == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_mux;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"muy") == 0) {
-      if (atom->mu == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_muy;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"muz") == 0) {
-      if (atom->mu == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_muz;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"tqx") == 0) {
-      if (atom->torque == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_tqx;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"tqy") == 0) {
-      if (atom->torque == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_tqy;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"tqz") == 0) {
-      if (atom->torque == NULL)
-	error->all("Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_tqz;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"etotal") == 0) {
-      pack_choice[i] = &DumpCustom::pack_etotal;
-      vtype[i] = DOUBLE;
-      computeflag_etotal = 1;
-      computeflag_ke = 1;
-      fixflag_epair = 1;
-    } else if (strcmp(arg[iarg],"ke") == 0) {
-      pack_choice[i] = &DumpCustom::pack_ke;
-      vtype[i] = DOUBLE;
-      computeflag_ke = 1;
-    } else if (strcmp(arg[iarg],"epair") == 0) {
-      pack_choice[i] = &DumpCustom::pack_epair;
-      vtype[i] = DOUBLE;
-      fixflag_epair = 1;
-    } else if (strcmp(arg[iarg],"centro") == 0) {
-      pack_choice[i] = &DumpCustom::pack_centro;
-      vtype[i] = DOUBLE;
-      fixflag_centro = 1;
-    } else if (strcmp(arg[iarg],"sxx") == 0) {
-      pack_choice[i] = &DumpCustom::pack_sxx;
-      vtype[i] = DOUBLE;
-      fixflag_stress = 1;
-    } else if (strcmp(arg[iarg],"syy") == 0) {
-      pack_choice[i] = &DumpCustom::pack_syy;
-      vtype[i] = DOUBLE;
-      fixflag_stress = 1;
-    } else if (strcmp(arg[iarg],"szz") == 0) {
-      pack_choice[i] = &DumpCustom::pack_szz;
-      vtype[i] = DOUBLE;
-      fixflag_stress = 1;
-    } else if (strcmp(arg[iarg],"sxy") == 0) {
-      pack_choice[i] = &DumpCustom::pack_sxy;
-      vtype[i] = DOUBLE;
-      fixflag_stress = 1;
-    } else if (strcmp(arg[iarg],"sxz") == 0) {
-      pack_choice[i] = &DumpCustom::pack_sxz;
-      vtype[i] = DOUBLE;
-      fixflag_stress = 1;
-    } else if (strcmp(arg[iarg],"syz") == 0) {
-      pack_choice[i] = &DumpCustom::pack_syz;
-      vtype[i] = DOUBLE;
-      fixflag_stress = 1;
-    } else error->all("Invalid keyword in dump custom command");
-  }
+  ncompute = 0;
+  id_compute = NULL;
+  compute = NULL;
+  field2compute = (int *) memory->smalloc(nfield*sizeof(int),
+					  "dump:field2compute");
+  arg_compute = (int *) memory->smalloc(nfield*sizeof(int),"dump:arg_compute");
 
-  if (fixflag_epair) fix_create("ENERGY");
-  if (fixflag_centro) fix_create("CENTRO");
-  if (fixflag_stress) fix_create("STRESS");
+  // process keywords
+
+  parse_fields(narg,arg);
+
+  // create the requested Computes
+
+  if (index_epair >= 0) create_compute(style_epair,NULL);
+  if (index_ke >= 0) create_compute(style_ke,NULL);
+  if (index_etotal >= 0) create_compute(style_etotal,style_epair);
+  if (index_centro >= 0) create_compute(style_centro,NULL);
+  if (index_stress >= 0) create_compute(style_stress,NULL);
+
+  // atom selection arrays
 
   maxlocal = 0;
   choose = NULL;
   dchoose = NULL;
-
-  if (computeflag_etotal) etotal = NULL;
-  if (computeflag_ke) ke = NULL;
 
   // setup format strings
 
@@ -231,7 +96,7 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
   format_default = new char[3*size_one+1];
   format_default[0] = '\0';
 
-  for (i = 0; i < size_one; i++) {
+  for (int i = 0; i < size_one; i++) {
     if (vtype[i] == INT) format_default = strcat(format_default,"%d ");
     else format_default = strcat(format_default,"%g ");
     vformat[i] = NULL;
@@ -242,36 +107,36 @@ DumpCustom::DumpCustom(int narg, char **arg) : Dump(narg, arg)
   if (multifile == 0) openfile();
 }
 
-/* ----------------------------------------------------------------------
-   free memory
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 DumpCustom::~DumpCustom()
 {
   delete [] pack_choice;
   delete [] vtype;
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
 
-  if (nthresh) {
-    memory->sfree(thresh_array);
-    memory->sfree(thresh_op);
-    memory->sfree(thresh_value);
-  }
+  memory->sfree(thresh_array);
+  memory->sfree(thresh_op);
+  memory->sfree(thresh_value);
 
-  // delete fixes for computing per-atom custom quantities if they exist
+  // delete Compute classes if dump custom created them
 
-  if (fixflag_epair) fix_delete("ENERGY");
-  if (fixflag_centro) fix_delete("CENTRO");
-  if (fixflag_stress) fix_delete("STRESS");
+  if (index_epair >= 0)  modify->delete_compute(id_compute[index_epair]);
+  if (index_ke >= 0)  modify->delete_compute(id_compute[index_ke]);
+  if (index_etotal >= 0)  modify->delete_compute(id_compute[index_etotal]);
+  if (index_centro >= 0)  modify->delete_compute(id_compute[index_centro]);
+  if (index_stress >= 0)  modify->delete_compute(id_compute[index_stress]);
 
-  // delete choose arrays and local compute arrys if they exist
+  for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
+  memory->sfree(id_compute);
+  memory->sfree(compute);
+  memory->sfree(field2compute);
+  memory->sfree(arg_compute);
 
   delete [] choose;
   delete [] dchoose;
 
-  if (computeflag_etotal) delete [] etotal;
-  if (computeflag_ke) delete [] ke;
+  for (int i = 0; i < size_one; i++) delete [] vformat[i];
+  delete [] vformat;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -307,153 +172,14 @@ void DumpCustom::init()
   if (binary) write_choice = &DumpCustom::write_binary;
   else write_choice = &DumpCustom::write_text;
 
-  // set fixflag if dump invokes any fixes
+  // find current ptr for each Compute ID
 
-  fixflag = 0;
-  if (fixflag_epair || fixflag_centro || fixflag_stress) fixflag = 1;
-
-  // find associated fixes that must exist
-  // could have changed locations in fix list since created
-
-  if (fixflag_epair) ifix_epair = fix_match("ENERGY");
-  if (fixflag_centro) ifix_centro = fix_match("CENTRO");
-  if (fixflag_stress) ifix_stress = fix_match("STRESS");
-
-  // set computeflag if dump invokes any local computation
-
-  computeflag = 0;
-  if (computeflag_etotal || computeflag_ke) computeflag = 1;
-}
-
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf and choose and local arrays
-------------------------------------------------------------------------- */
-
-int DumpCustom::memory_usage()
-{
-  int bytes = maxbuf * sizeof(double);
-  bytes += maxlocal * sizeof(int);
-  bytes += maxlocal * sizeof(double);
-  if (computeflag_etotal) bytes += maxlocal * sizeof(double);
-  if (computeflag_ke) bytes += maxlocal * sizeof(double);
-  return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int DumpCustom::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0],"region") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
-    if (strcmp(arg[1],"none") == 0) iregion = -1;
-    else {
-      for (iregion = 0; iregion < domain->nregion; iregion++)
-	if (strcmp(arg[1],domain->regions[iregion]->id) == 0) break;
-      if (iregion == domain->nregion)
-	error->all("Dump_modify region ID does not exist");
-    }
-    return 2;
-
-  } else if (strcmp(arg[0],"thresh") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
-    if (strcmp(arg[1],"none") == 0) {
-      if (nthresh) {
-	memory->sfree(thresh_array);
-	memory->sfree(thresh_op);
-	memory->sfree(thresh_value);
-	thresh_array = NULL;
-	thresh_op = NULL;
-	thresh_value = NULL;
-      }
-      nthresh = 0;
-      return 2;
-    }
-    
-    if (narg < 4) error->all("Illegal dump_modify command");
-    thresh_array = (int *)
-      memory->srealloc(thresh_array,(nthresh+1)*sizeof(int),
-		       "dump:thresh_array");
-    thresh_op = (int *)
-      memory->srealloc(thresh_op,(nthresh+1)*sizeof(int),
-		       "dump:thresh_op");
-    thresh_value = (double *)
-      memory->srealloc(thresh_value,(nthresh+1)*sizeof(double),
-		       "dump:thresh_value");
-
-    // customize by adding to if statement
-
-    if (strcmp(arg[1],"tag") == 0) thresh_array[nthresh] = TAG;
-    else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
-    else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
-    else if (strcmp(arg[1],"x") == 0) thresh_array[nthresh] = X;
-    else if (strcmp(arg[1],"y") == 0) thresh_array[nthresh] = Y;
-    else if (strcmp(arg[1],"z") == 0) thresh_array[nthresh] = Z;
-    else if (strcmp(arg[1],"xs") == 0) thresh_array[nthresh] = XS;
-    else if (strcmp(arg[1],"ys") == 0) thresh_array[nthresh] = YS;
-    else if (strcmp(arg[1],"zs") == 0) thresh_array[nthresh] = ZS;
-    else if (strcmp(arg[1],"xu") == 0) thresh_array[nthresh] = XU;
-    else if (strcmp(arg[1],"yu") == 0) thresh_array[nthresh] = YU;
-    else if (strcmp(arg[1],"zu") == 0) thresh_array[nthresh] = ZU;
-    else if (strcmp(arg[1],"ix") == 0) thresh_array[nthresh] = IX;
-    else if (strcmp(arg[1],"iy") == 0) thresh_array[nthresh] = IY;
-    else if (strcmp(arg[1],"iz") == 0) thresh_array[nthresh] = IZ;
-    else if (strcmp(arg[1],"vx") == 0) thresh_array[nthresh] = VX;
-    else if (strcmp(arg[1],"vy") == 0) thresh_array[nthresh] = VY;
-    else if (strcmp(arg[1],"vz") == 0) thresh_array[nthresh] = VZ;
-    else if (strcmp(arg[1],"fx") == 0) thresh_array[nthresh] = FX;
-    else if (strcmp(arg[1],"fy") == 0) thresh_array[nthresh] = FY;
-    else if (strcmp(arg[1],"fz") == 0) thresh_array[nthresh] = FZ;
-    else if (strcmp(arg[1],"q") == 0) thresh_array[nthresh] = Q;
-    else if (strcmp(arg[1],"mux") == 0) thresh_array[nthresh] = MUX;
-    else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
-    else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
-    else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
-    else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
-    else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
-    else if (strcmp(arg[1],"etotal") == 0) thresh_array[nthresh] = ETOTAL;
-    else if (strcmp(arg[1],"ke") == 0) thresh_array[nthresh] = KE;
-    else if (strcmp(arg[1],"epair") == 0) thresh_array[nthresh] = EPAIR;
-    else if (strcmp(arg[1],"centro") == 0) thresh_array[nthresh] = CENTRO;
-    else if (strcmp(arg[1],"sxx") == 0) thresh_array[nthresh] = SXX;
-    else if (strcmp(arg[1],"syy") == 0) thresh_array[nthresh] = SYY;
-    else if (strcmp(arg[1],"szz") == 0) thresh_array[nthresh] = SZZ;
-    else if (strcmp(arg[1],"sxy") == 0) thresh_array[nthresh] = SXY;
-    else if (strcmp(arg[1],"sxz") == 0) thresh_array[nthresh] = SXZ;
-    else if (strcmp(arg[1],"syz") == 0) thresh_array[nthresh] = SYZ;
-    else error->all("Invalid dump_modify threshhold operator");
-
-    if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = LT;
-    else if (strcmp(arg[2],">") == 0) thresh_op[nthresh] = LE;
-    else if (strcmp(arg[2],"<=") == 0) thresh_op[nthresh] = GT;
-    else if (strcmp(arg[2],"<") == 0) thresh_op[nthresh] = GE;
-    else if (strcmp(arg[2],"=") == 0) thresh_op[nthresh] = NEQ;
-    else if (strcmp(arg[2],"<>") == 0) thresh_op[nthresh] = EQ;
-    else error->all("Invalid dump_modify threshhold operator");
-
-    thresh_value[nthresh] = atof(arg[3]);
-
-    // add new fix if necessary
-
-    if (thresh_array[nthresh] == EPAIR && fixflag_epair == 0) {
-      fix_create("ENERGY");
-      fixflag_epair = 1;
-    }
-    if (thresh_array[nthresh] == CENTRO && fixflag_centro == 0) {
-      fix_create("CENTRO");
-      fixflag_centro = 1;
-    }
-    if ((thresh_array[nthresh] == SXX || thresh_array[nthresh] == SYY ||
-	thresh_array[nthresh] == SZZ || thresh_array[nthresh] == SXY ||
-	thresh_array[nthresh] == SXZ || thresh_array[nthresh] == SYZ) &&
-	fixflag_stress == 0) {
-      fix_create("STRESS");
-      fixflag_stress = 1;
-    }
-
-    nthresh++;
-    return 4;
+  int icompute;
+  for (int i = 0; i < ncompute; i++) {
+    icompute = modify->find_compute(id_compute[i]);
+    if (icompute < 0) error->all("Could not find dump custom compute ID");
+    compute[i] = modify->compute[icompute];
   }
-  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -465,40 +191,59 @@ void DumpCustom::write_header(int ndump)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::header_binary(int ndump)
+{
+  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&domain->boxxlo,sizeof(double),1,fp);
+  fwrite(&domain->boxxhi,sizeof(double),1,fp);
+  fwrite(&domain->boxylo,sizeof(double),1,fp);
+  fwrite(&domain->boxyhi,sizeof(double),1,fp);
+  fwrite(&domain->boxzlo,sizeof(double),1,fp);
+  fwrite(&domain->boxzhi,sizeof(double),1,fp);
+  fwrite(&size_one,sizeof(int),1,fp);
+  if (multiproc) {
+    int one = 1;
+    fwrite(&one,sizeof(int),1,fp);
+  } else fwrite(&nprocs,sizeof(int),1,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_item(int ndump)
+{
+  fprintf(fp,"ITEM: TIMESTEP\n");
+  fprintf(fp,"%d\n",update->ntimestep);
+  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
+  fprintf(fp,"%d\n",ndump);
+  fprintf(fp,"ITEM: BOX BOUNDS\n");
+  fprintf(fp,"%g %g\n",domain->boxxlo,domain->boxxhi);
+  fprintf(fp,"%g %g\n",domain->boxylo,domain->boxyhi);
+  fprintf(fp,"%g %g\n",domain->boxzlo,domain->boxzhi);
+  fprintf(fp,"ITEM: ATOMS\n");
+}
+
+/* ---------------------------------------------------------------------- */
+
 int DumpCustom::count()
 {
   int i;
 
-  // grow choose and local-computation arrays if needed
+  // grow choose arrays if needed
 
   int nlocal = atom->nlocal;
   if (nlocal > maxlocal) {
     delete [] choose;
     delete [] dchoose;
-    if (computeflag_etotal) delete [] etotal;
-    if (computeflag_ke) delete [] ke;
     maxlocal = atom->nmax;
     choose = new int[maxlocal];
     dchoose = new double[maxlocal];
-    if (computeflag_etotal) etotal = new double[maxlocal];
-    if (computeflag_ke) ke = new double[maxlocal];
   }
 
-  // invoke any fixes that compute dump quantities
+  // invoke Computes for per-atom dump quantities
 
-  if (fixflag) {
-    if (fixflag_epair) modify->fix[ifix_epair]->dump();
-    if (fixflag_centro) modify->fix[ifix_centro]->dump();
-    if (fixflag_stress) modify->fix[ifix_stress]->dump();
-  }
-
-  // invoke any local computation of dump quantities
-  // etotal must come after ke and fix_epair since uses their results
-
-  if (computeflag) {
-    if (computeflag_ke) compute_ke();
-    if (computeflag_etotal) compute_etotal();
-  }
+  if (ncompute)
+    for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
 
   // choose all local atoms for output
 
@@ -669,36 +414,45 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == TQZ) {
 	ptr = &atom->torque[0][2];
 	nstride = 3;
-      } else if (thresh_array[ithresh] == ETOTAL) {
-	ptr = etotal;
+      } else if (thresh_array[ithresh] == EPAIR) {
+	ptr = compute[index_epair]->scalar_atom;
 	nstride = 1;
       } else if (thresh_array[ithresh] == KE) {
-	ptr = ke;
+	ptr = compute[index_ke]->scalar_atom;
 	nstride = 1;
-      } else if (thresh_array[ithresh] == EPAIR) {
-	ptr = ((FixEnergy *) modify->fix[ifix_epair])->energy;
+      } else if (thresh_array[ithresh] == ETOTAL) {
+	ptr = compute[index_etotal]->scalar_atom;
 	nstride = 1;
       } else if (thresh_array[ithresh] == CENTRO) {
-	ptr = ((FixCentro *) modify->fix[ifix_centro])->centro;
+	ptr = compute[index_centro]->scalar_atom;
 	nstride = 1;
       } else if (thresh_array[ithresh] == SXX) {
-	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][0];
+	ptr = &compute[index_stress]->vector_atom[0][0];
 	nstride = 6;
       } else if (thresh_array[ithresh] == SYY) {
-	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][1];
+	ptr = &compute[index_stress]->vector_atom[0][1];
 	nstride = 6;
       } else if (thresh_array[ithresh] == SZZ) {
-	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][2];
+	ptr = &compute[index_stress]->vector_atom[0][2];
 	nstride = 6;
       } else if (thresh_array[ithresh] == SXY) {
-	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][3];
+	ptr = &compute[index_stress]->vector_atom[0][3];
 	nstride = 6;
       } else if (thresh_array[ithresh] == SXZ) {
-	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][4];
+	ptr = &compute[index_stress]->vector_atom[0][4];
 	nstride = 6;
       } else if (thresh_array[ithresh] == SYZ) {
-	ptr = &((FixStress *) modify->fix[ifix_stress])->stress[0][5];
+	ptr = &compute[index_stress]->vector_atom[0][5];
 	nstride = 6;
+      } else if (thresh_array[ithresh] == COMPUTE) {
+	i = nfield + ithresh;
+	if (arg_compute[i] == 0) {
+	  ptr = compute[field2compute[i]]->scalar_atom;
+	  nstride = 1;
+	} else {
+	  ptr = &compute[field2compute[i]]->vector_atom[0][arg_compute[i]-1];
+	  nstride = compute[field2compute[i]]->size_peratom;
+	}
       }
 
       value = thresh_value[ithresh];
@@ -763,40 +517,6 @@ void DumpCustom::write_data(int n, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::header_binary(int ndump)
-{
-  fwrite(&update->ntimestep,sizeof(int),1,fp);
-  fwrite(&ndump,sizeof(int),1,fp);
-  fwrite(&domain->boxxlo,sizeof(double),1,fp);
-  fwrite(&domain->boxxhi,sizeof(double),1,fp);
-  fwrite(&domain->boxylo,sizeof(double),1,fp);
-  fwrite(&domain->boxyhi,sizeof(double),1,fp);
-  fwrite(&domain->boxzlo,sizeof(double),1,fp);
-  fwrite(&domain->boxzhi,sizeof(double),1,fp);
-  fwrite(&size_one,sizeof(int),1,fp);
-  if (multiproc) {
-    int one = 1;
-    fwrite(&one,sizeof(int),1,fp);
-  } else fwrite(&nprocs,sizeof(int),1,fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::header_item(int ndump)
-{
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,"%d\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS\n");
-  fprintf(fp,"%g %g\n",domain->boxxlo,domain->boxxhi);
-  fprintf(fp,"%g %g\n",domain->boxylo,domain->boxyhi);
-  fprintf(fp,"%g %g\n",domain->boxzlo,domain->boxzhi);
-  fprintf(fp,"ITEM: ATOMS\n");
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpCustom::write_binary(int n, double *buf)
 {
   n *= size_one;
@@ -821,72 +541,509 @@ void DumpCustom::write_text(int n, double *buf)
   }
 }
 
-/* ----------------------------------------------------------------------
-   create a fix of style keyword for computing a per-atom custom quantity
-   fix-ID = dump-ID + keyword
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void DumpCustom::fix_create(char *keyword)
+void DumpCustom::parse_fields(int narg, char **arg)
 {
-  char **fixarg = new char*[3];
-
-  int n = strlen(id) + strlen(keyword) + 1;
-  fixarg[0] = new char[n];
-  strcpy(fixarg[0],id);
-  strcat(fixarg[0],keyword);
-
-  n = strlen(group->names[igroup]) + 1;
-  fixarg[1] = new char[n];
-  strcpy(fixarg[1],group->names[igroup]);
-
-  n = strlen(keyword) + 1;
-  fixarg[2] = new char[n];
-  strcpy(fixarg[2],keyword);
-
-  modify->add_fix(3,fixarg);
-  for (int i = 0; i < 3; i++) delete [] fixarg[i];
-  delete [] fixarg;
-}
-
-/* ----------------------------------------------------------------------
-   delete a fix of style keyword for computing a per-atom custom quantity 
-------------------------------------------------------------------------- */
-
-void DumpCustom::fix_delete(char *keyword)
-{
-  int n = strlen(id) + strlen(keyword) + 1;
-  char *name = new char[n];
-  strcpy(name,id);
-  strcat(name,keyword);
-  modify->delete_fix(name);
-  delete [] name;
-}
-
-/* ----------------------------------------------------------------------
-   find which fix matches keyword
-   fix was created by dump custom, so must exist
-------------------------------------------------------------------------- */
-
-int DumpCustom::fix_match(char *keyword)
-{
-  int n = strlen(id) + strlen(keyword) + 1;
-  char *name = new char[n];
-  strcpy(name,id);
-  strcat(name,keyword);
+  // customize by adding to if statement
 
   int i;
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(name,modify->fix[i]->id) == 0) break;
+  for (int iarg = 5; iarg < narg; iarg++) {
+    i = iarg-5;
+    if (strcmp(arg[iarg],"tag") == 0) {
+      pack_choice[i] = &DumpCustom::pack_tag;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"mol") == 0) {
+      if (atom->molecule == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_molecule;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"type") == 0) {
+      pack_choice[i] = &DumpCustom::pack_type;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"x") == 0) {
+      pack_choice[i] = &DumpCustom::pack_x;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      pack_choice[i] = &DumpCustom::pack_y;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      pack_choice[i] = &DumpCustom::pack_z;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"xs") == 0) {
+      pack_choice[i] = &DumpCustom::pack_xs;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"ys") == 0) {
+      pack_choice[i] = &DumpCustom::pack_ys;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"zs") == 0) {
+      pack_choice[i] = &DumpCustom::pack_zs;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"xu") == 0) {
+      pack_choice[i] = &DumpCustom::pack_xu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"yu") == 0) {
+      pack_choice[i] = &DumpCustom::pack_yu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"zu") == 0) {
+      pack_choice[i] = &DumpCustom::pack_zu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"ix") == 0) {
+      pack_choice[i] = &DumpCustom::pack_ix;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"iy") == 0) {
+      pack_choice[i] = &DumpCustom::pack_iy;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"iz") == 0) {
+      pack_choice[i] = &DumpCustom::pack_iz;
+      vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      pack_choice[i] = &DumpCustom::pack_vx;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      pack_choice[i] = &DumpCustom::pack_vy;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      pack_choice[i] = &DumpCustom::pack_vz;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"fx") == 0) {
+      pack_choice[i] = &DumpCustom::pack_fx;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"fy") == 0) {
+      pack_choice[i] = &DumpCustom::pack_fy;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"fz") == 0) {
+      pack_choice[i] = &DumpCustom::pack_fz;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"q") == 0) {
+      if (atom->q == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_q;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"mux") == 0) {
+      if (atom->mu == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_mux;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"muy") == 0) {
+      if (atom->mu == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_muy;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"muz") == 0) {
+      if (atom->mu == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_muz;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"tqx") == 0) {
+      if (atom->torque == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_tqx;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"tqy") == 0) {
+      if (atom->torque == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_tqy;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"tqz") == 0) {
+      if (atom->torque == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_tqz;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"epair") == 0) {
+      pack_choice[i] = &DumpCustom::pack_epair;
+      vtype[i] = DOUBLE;
+      index_epair = add_compute(style_epair,1);
+    } else if (strcmp(arg[iarg],"ke") == 0) {
+      pack_choice[i] = &DumpCustom::pack_ke;
+      vtype[i] = DOUBLE;
+      index_ke = add_compute(style_ke,1);
+    } else if (strcmp(arg[iarg],"etotal") == 0) {
+      pack_choice[i] = &DumpCustom::pack_etotal;
+      vtype[i] = DOUBLE;
+      index_epair = add_compute(style_epair,1);
+      index_etotal = add_compute(style_etotal,1);
+    } else if (strcmp(arg[iarg],"centro") == 0) {
+      pack_choice[i] = &DumpCustom::pack_centro;
+      vtype[i] = DOUBLE;
+      index_centro = add_compute(style_centro,1);
+    } else if (strcmp(arg[iarg],"sxx") == 0) {
+      pack_choice[i] = &DumpCustom::pack_sxx;
+      vtype[i] = DOUBLE;
+      index_stress = add_compute(style_stress,1);
+    } else if (strcmp(arg[iarg],"syy") == 0) {
+      pack_choice[i] = &DumpCustom::pack_syy;
+      vtype[i] = DOUBLE;
+      index_stress = add_compute(style_stress,1);
+    } else if (strcmp(arg[iarg],"szz") == 0) {
+      pack_choice[i] = &DumpCustom::pack_szz;
+      vtype[i] = DOUBLE;
+      index_stress = add_compute(style_stress,1);
+    } else if (strcmp(arg[iarg],"sxy") == 0) {
+      pack_choice[i] = &DumpCustom::pack_sxy;
+      vtype[i] = DOUBLE;
+      index_stress = add_compute(style_stress,1);
+    } else if (strcmp(arg[iarg],"sxz") == 0) {
+      pack_choice[i] = &DumpCustom::pack_sxz;
+      vtype[i] = DOUBLE;
+      index_stress = add_compute(style_stress,1);
+    } else if (strcmp(arg[iarg],"syz") == 0) {
+      pack_choice[i] = &DumpCustom::pack_syz;
+      vtype[i] = DOUBLE;
+      index_stress = add_compute(style_stress,1);
 
+    // compute value = c_ID
+    // if no trailing [], then arg is set to 0, else arg is between []
+    // if Compute has pre-compute, first add it to list
+
+    } else if (strncmp(arg[iarg],"c_",2) == 0) {
+      pack_choice[i] = &DumpCustom::pack_compute;
+      vtype[i] = DOUBLE;
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][2]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+	if (suffix[strlen(suffix)-1] != ']')
+	  error->all("Invalid keyword in dump custom command");
+	arg_compute[i] = atoi(ptr+1);
+	*ptr = '\0';
+      } else arg_compute[i] = 0;
+
+      n = modify->find_compute(suffix);
+      if (n < 0) error->all("Could not find dump custom compute ID");
+      if (modify->compute[n]->peratom_flag == 0)
+	error->all("Dump custom compute ID does not compute peratom info");
+      if (arg_compute[i] == 0 && modify->compute[n]->size_peratom > 0)
+	error->all("Dump custom compute ID does not compute scalar per atom");
+      if (arg_compute[i] > 0 && modify->compute[n]->size_peratom == 0)
+	error->all("Dump custom compute ID does not compute vector per atom");
+      if (arg_compute[i] > 0 && 
+	  arg_compute[i] > modify->compute[n]->size_peratom)
+	error->all("Dump custom compute ID vector is not large enough");
+      if (modify->compute[n]->id_pre)
+	int tmp = add_compute(modify->compute[n]->id_pre,0);
+      field2compute[i] = add_compute(suffix,0);
+      delete [] suffix;
+
+    } else error->all("Invalid keyword in dump custom command");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   add Compute to list of Compute objects to call
+   return index of where this Compute is in call list
+   compute ID = dump-ID + "_" + keyword if appendflag is set, else just keyword
+   if already in call list, do not add, just return index, else add to list
+------------------------------------------------------------------------- */
+
+int DumpCustom::add_compute(char *keyword, int appendflag)
+{
+  int n = strlen(id) + strlen(keyword) + 2;
+  char *name = new char[n];
+  if (appendflag) {
+    strcpy(name,id);
+    strcat(name,"_");
+    strcat(name,keyword);
+  } else strcpy(name,keyword);
+
+  int icompute;
+  for (icompute = 0; icompute < ncompute; icompute++)
+    if (strcmp(name,id_compute[icompute]) == 0) break;
+  if (icompute < ncompute) {
+    delete [] name;
+    return icompute;
+  }
+  
+  id_compute = (char **)
+    memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
+  compute = (Compute **) 
+    memory->srealloc(compute,(ncompute+1)*sizeof(Compute *),"dump:compute");
+
+  n = strlen(name) + 1;
+  id_compute[ncompute] = new char[n];
+  strcpy(id_compute[ncompute],name);
   delete [] name;
-  return i;
+  ncompute++;
+  return ncompute-1;
+}
+
+/* ----------------------------------------------------------------------
+   create a compute
+   compute ID = dump-ID + "_" + keyword, compute style = keyword
+   pass additional extra args to Modify::add_compute() if defined
+------------------------------------------------------------------------- */
+
+void DumpCustom::create_compute(char *keyword, char *extra)
+{
+  int n = strlen(id) + strlen(keyword) + 2;
+  char *name = new char[n];
+  strcpy(name,id);
+  strcat(name,"_");
+  strcat(name,keyword);
+
+  char **newarg = new char*[4];
+  newarg[0] = name;
+  newarg[1] = group->names[igroup];
+  newarg[2] = keyword;
+  if (extra) newarg[3] = extra;
+  if (extra) modify->add_compute(4,newarg);
+  else modify->add_compute(3,newarg);
+  delete [] name;
+  delete [] newarg;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpCustom::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"region") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    if (strcmp(arg[1],"none") == 0) iregion = -1;
+    else {
+      for (iregion = 0; iregion < domain->nregion; iregion++)
+	if (strcmp(arg[1],domain->regions[iregion]->id) == 0) break;
+      if (iregion == domain->nregion)
+	error->all("Dump_modify region ID does not exist");
+    }
+    return 2;
+    
+  } else if (strcmp(arg[0],"thresh") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    if (strcmp(arg[1],"none") == 0) {
+      if (nthresh) {
+	memory->sfree(thresh_array);
+	memory->sfree(thresh_op);
+	memory->sfree(thresh_value);
+	thresh_array = NULL;
+	thresh_op = NULL;
+	thresh_value = NULL;
+      }
+      nthresh = 0;
+      return 2;
+    }
+    
+    if (narg < 4) error->all("Illegal dump_modify command");
+    
+    // grow threshhold arrays
+    
+    thresh_array = (int *)
+      memory->srealloc(thresh_array,(nthresh+1)*sizeof(int),
+		       "dump:thresh_array");
+    thresh_op = (int *)
+      memory->srealloc(thresh_op,(nthresh+1)*sizeof(int),
+		       "dump:thresh_op");
+    thresh_value = (double *)
+      memory->srealloc(thresh_value,(nthresh+1)*sizeof(double),
+		       "dump:thresh_value");
+
+    // set keyword type of threshhold
+    // customize by adding to if statement
+    
+    if (strcmp(arg[1],"tag") == 0) thresh_array[nthresh] = TAG;
+    else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
+    else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
+    else if (strcmp(arg[1],"x") == 0) thresh_array[nthresh] = X;
+    else if (strcmp(arg[1],"y") == 0) thresh_array[nthresh] = Y;
+    else if (strcmp(arg[1],"z") == 0) thresh_array[nthresh] = Z;
+    else if (strcmp(arg[1],"xs") == 0) thresh_array[nthresh] = XS;
+    else if (strcmp(arg[1],"ys") == 0) thresh_array[nthresh] = YS;
+    else if (strcmp(arg[1],"zs") == 0) thresh_array[nthresh] = ZS;
+    else if (strcmp(arg[1],"xu") == 0) thresh_array[nthresh] = XU;
+    else if (strcmp(arg[1],"yu") == 0) thresh_array[nthresh] = YU;
+    else if (strcmp(arg[1],"zu") == 0) thresh_array[nthresh] = ZU;
+    else if (strcmp(arg[1],"ix") == 0) thresh_array[nthresh] = IX;
+    else if (strcmp(arg[1],"iy") == 0) thresh_array[nthresh] = IY;
+    else if (strcmp(arg[1],"iz") == 0) thresh_array[nthresh] = IZ;
+    else if (strcmp(arg[1],"vx") == 0) thresh_array[nthresh] = VX;
+    else if (strcmp(arg[1],"vy") == 0) thresh_array[nthresh] = VY;
+    else if (strcmp(arg[1],"vz") == 0) thresh_array[nthresh] = VZ;
+    else if (strcmp(arg[1],"fx") == 0) thresh_array[nthresh] = FX;
+    else if (strcmp(arg[1],"fy") == 0) thresh_array[nthresh] = FY;
+    else if (strcmp(arg[1],"fz") == 0) thresh_array[nthresh] = FZ;
+    else if (strcmp(arg[1],"q") == 0) thresh_array[nthresh] = Q;
+    else if (strcmp(arg[1],"mux") == 0) thresh_array[nthresh] = MUX;
+    else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
+    else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
+    else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
+    else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
+    else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
+    else if (strcmp(arg[1],"epair") == 0) {
+      thresh_array[nthresh] = EPAIR;
+      if (index_epair < 0) {
+	index_epair = add_compute(style_epair,1);
+	create_compute(style_epair,NULL);
+      }
+    } else if (strcmp(arg[1],"ke") == 0) {
+      thresh_array[nthresh] = KE;
+      if (index_ke < 0) {
+	index_ke = add_compute(style_ke,1);
+	create_compute(style_ke,NULL);
+      }
+    } else if (strcmp(arg[1],"etotal") == 0) {
+      thresh_array[nthresh] = ETOTAL;
+      if (index_etotal < 0) {
+	if (index_epair < 0) {
+	  index_epair = add_compute(style_epair,1);
+	  create_compute(style_epair,NULL);
+	}
+	index_etotal = add_compute(style_etotal,1);
+	create_compute(style_etotal,style_epair);
+      }
+    } else if (strcmp(arg[1],"centro") == 0) {
+      thresh_array[nthresh] = CENTRO;
+      if (index_centro < 0) {
+	index_centro = add_compute(style_centro,1);
+	create_compute(style_stress,NULL);
+      }
+    } else if (strcmp(arg[1],"sxx") == 0) {
+      thresh_array[nthresh] = SXX;
+      if (index_stress < 0) {
+	index_stress = add_compute(style_stress,1);
+	create_compute(style_stress,NULL);
+      }
+    } else if (strcmp(arg[1],"syy") == 0) {
+      thresh_array[nthresh] = SYY;
+      if (index_stress < 0) {
+	index_stress = add_compute(style_stress,1);
+	create_compute(style_stress,NULL);
+      }
+    } else if (strcmp(arg[1],"szz") == 0) {
+      thresh_array[nthresh] = SZZ;
+      if (index_stress < 0) {
+	index_stress = add_compute(style_stress,1);
+	create_compute(style_stress,NULL);
+      }
+    } else if (strcmp(arg[1],"sxy") == 0) {
+      thresh_array[nthresh] = SXY;
+      if (index_stress < 0) {
+	index_stress = add_compute(style_stress,1);
+	create_compute(style_stress,NULL);
+      }
+    } else if (strcmp(arg[1],"sxz") == 0) {
+      thresh_array[nthresh] = SXZ;
+      if (index_stress < 0) {
+	index_stress = add_compute(style_stress,1);
+	create_compute(style_stress,NULL);
+      }
+    } else if (strcmp(arg[1],"syz") == 0) {
+      thresh_array[nthresh] = SYZ;
+      if (index_stress < 0) {
+	index_stress = add_compute(style_stress,1);
+	create_compute(style_stress,NULL);
+      }
+    
+    // compute value = c_ID
+    // if no trailing [], then arg is set to 0, else arg is between []
+    // must grow field2compute and arg_compute arrays,
+    //   since access is beyond nfield
+    // if Compute has pre-compute, first add it to list
+
+    } else if (strncmp(arg[1],"c_",2) == 0) {
+      thresh_array[nthresh] = COMPUTE;
+      field2compute = (int *) memory->srealloc(field2compute,
+					       (nfield+nthresh+1)*sizeof(int),
+					       "dump:field2compute");
+      arg_compute = (int *) memory->srealloc(arg_compute,
+					     (nfield+nthresh+1)*sizeof(int),
+					     "dump:arg_compute");
+      int n = strlen(arg[1]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[1][2]);
+    
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+	if (suffix[strlen(suffix)-1] != ']')
+	  error->all("Invalid keyword in dump custom command");
+	arg_compute[nfield+nthresh] = atoi(ptr+1);
+	*ptr = '\0';
+      } else arg_compute[nfield+nthresh] = 0;
+      
+      n = modify->find_compute(suffix);
+      if (n < 0) error->all("Could not find dump custom compute ID");
+
+      if (modify->compute[n]->peratom_flag == 0)
+	error->all("Dump custom compute ID does not compute peratom info");
+      if (arg_compute[nfield+nthresh] == 0 && 
+	  modify->compute[n]->size_peratom > 0)
+	error->all("Dump custom compute ID does not compute scalar per atom");
+      if (arg_compute[nfield+nthresh] > 0 && 
+	  modify->compute[n]->size_peratom == 0)
+	error->all("Dump custom compute ID does not compute vector per atom");
+      if (arg_compute[nfield+nthresh] > 0 && 
+	  arg_compute[nfield+nthresh] > modify->compute[n]->size_peratom)
+	error->all("Dump custom compute ID vector is not large enough");
+      if (modify->compute[n]->id_pre)
+	int tmp = add_compute(modify->compute[n]->id_pre,0);
+      field2compute[nfield+nthresh] = add_compute(suffix,0);
+      delete [] suffix;
+
+    } else error->all("Invalid dump_modify threshhold operator");
+
+    // set operation type of threshhold
+
+    if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = LT;
+    else if (strcmp(arg[2],">") == 0) thresh_op[nthresh] = LE;
+    else if (strcmp(arg[2],"<=") == 0) thresh_op[nthresh] = GT;
+    else if (strcmp(arg[2],"<") == 0) thresh_op[nthresh] = GE;
+    else if (strcmp(arg[2],"=") == 0) thresh_op[nthresh] = NEQ;
+    else if (strcmp(arg[2],"<>") == 0) thresh_op[nthresh] = EQ;
+    else error->all("Invalid dump_modify threshhold operator");
+
+    // set threshhold value
+
+    thresh_value[nthresh] = atof(arg[3]);
+
+    nthresh++;
+    return 4;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory in buf and choose and local arrays
+------------------------------------------------------------------------- */
+
+int DumpCustom::memory_usage()
+{
+  int bytes = maxbuf * sizeof(double);
+  bytes += maxlocal * sizeof(int);
+  bytes += maxlocal * sizeof(double);
+  return bytes;
 }
 
 // ----------------------------------------------------------------------
-// one method for every kind of quantity dump custom can output
+// one method for every keyword dump custom can output
 // the atom quantity is packed into buf starting at n with stride size_one
 // customize by adding a method
 // ----------------------------------------------------------------------
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_compute(int n)
+{
+  double *vector = compute[field2compute[n]]->scalar_atom;
+  double **array = compute[field2compute[n]]->vector_atom;
+  int index = arg_compute[n];
+  int nlocal = atom->nlocal;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = vector[i];
+	n += size_one;
+      }
+  } else {
+    index--;
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = array[i][index];
+	n += size_one;
+      }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1297,36 +1454,9 @@ void DumpCustom::pack_tqz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack_etotal(int n)
-{
-  double *epair = ((FixEnergy *) modify->fix[ifix_epair])->energy;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = ke[i] + epair[i];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_ke(int n)
-{
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = ke[i];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpCustom::pack_epair(int n)
 {
-  double *epair = ((FixEnergy *) modify->fix[ifix_epair])->energy;
+  double *epair = compute[index_epair]->scalar_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1338,9 +1468,37 @@ void DumpCustom::pack_epair(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::pack_ke(int n)
+{
+  double *ke = compute[index_ke]->scalar_atom;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = ke[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_etotal(int n)
+{
+  double *etotal = compute[index_etotal]->scalar_atom;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = etotal[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::pack_centro(int n)
 {
-  double *centro = ((FixCentro *) modify->fix[ifix_centro])->centro;
+  double *centro = compute[index_centro]->scalar_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1354,7 +1512,7 @@ void DumpCustom::pack_centro(int n)
 
 void DumpCustom::pack_sxx(int n)
 {
-  double **stress = ((FixStress *) modify->fix[ifix_stress])->stress;
+  double **stress = compute[index_stress]->vector_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1368,7 +1526,7 @@ void DumpCustom::pack_sxx(int n)
 
 void DumpCustom::pack_syy(int n)
 {
-  double **stress = ((FixStress *) modify->fix[ifix_stress])->stress;
+  double **stress = compute[index_stress]->vector_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1382,7 +1540,7 @@ void DumpCustom::pack_syy(int n)
 
 void DumpCustom::pack_szz(int n)
 {
-  double **stress = ((FixStress *) modify->fix[ifix_stress])->stress;
+  double **stress = compute[index_stress]->vector_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1396,7 +1554,7 @@ void DumpCustom::pack_szz(int n)
 
 void DumpCustom::pack_sxy(int n)
 {
-  double **stress = ((FixStress *) modify->fix[ifix_stress])->stress;
+  double **stress = compute[index_stress]->vector_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1410,7 +1568,7 @@ void DumpCustom::pack_sxy(int n)
 
 void DumpCustom::pack_sxz(int n)
 {
-  double **stress = ((FixStress *) modify->fix[ifix_stress])->stress;
+  double **stress = compute[index_stress]->vector_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1424,7 +1582,7 @@ void DumpCustom::pack_sxz(int n)
 
 void DumpCustom::pack_syz(int n)
 {
-  double **stress = ((FixStress *) modify->fix[ifix_stress])->stress;
+  double **stress = compute[index_stress]->vector_atom;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -1432,40 +1590,4 @@ void DumpCustom::pack_syz(int n)
       buf[n] = stress[i][5];
       n += size_one;
     }
-}
-
-// ----------------------------------------------------------------------
-// one method for each locally-computed dump quantity
-// ----------------------------------------------------------------------
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::compute_etotal()
-{
-  double *epair = ((FixEnergy *) modify->fix[ifix_epair])->energy;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    etotal[i] = ke[i] + epair[i];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::compute_ke()
-{
-  double mvv2e = force->mvv2e;
-  double **v = atom->v;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  if (atom->mass_require)
-    for (int i = 0; i < nlocal; i++)
-      ke[i] = 0.5 * mvv2e * mass[type[i]] *
-	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-  else
-    for (int i = 0; i < nlocal; i++)
-      ke[i] = 0.5 * mvv2e * rmass[i] *
-	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
 }

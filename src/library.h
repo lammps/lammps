@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,20 +11,29 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// library interface to LAMMPS
-// new application-specific functions can be added
+/* 
+   C or Fortran style library interface to LAMMPS
+   new LAMMPS-specific functions can be added
+*/
 
 #include "mpi.h"
 
+/* ifdef allow this file to be included in a C program */
+
+#ifdef __cplusplus
 extern "C" {
+#endif
 
-void lammps_open(int, char **, MPI_Comm); // start LAMMPS w/ command-line args
-void lammps_close();                      // shut-down LAMMPS
-void lammps_file(char *);                 // execute an input script
-char *lammps_command(char *);             // execute a single LAMMPS command
+void lammps_open(int, char **, MPI_Comm, void **);  /* start-up LAMMPS */
+void lammps_close(void *);                          /* shut-down LAMMPS */
+void lammps_file(void *, char *);                   /* run an input script */
+char *lammps_command(void *, char *);               /* execute a command */
 
-int lammps_get_natoms();               // return # of atoms
-void lammps_get_coords(double *);      // retrieve atom coords from all procs
-void lammps_put_coords(double *);      // overwrite atom coords on all procs
+int lammps_get_natoms(void *);              /* return # of atoms */
+void lammps_get_coords(void *, double *);   /* get atom x from all procs */
+void lammps_put_coords(void *, double *);   /* put atom x on all procs */
 
+#ifdef __cplusplus
 }
+#endif
+

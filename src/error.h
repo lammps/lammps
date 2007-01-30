@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,13 +14,13 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class Error : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Error : protected Pointers {
  public:
-  Error() {}
-  ~Error() {}
+  Error(class LAMMPS *);
 
   void universe_all(char *);
   void universe_one(char *);
@@ -29,5 +29,7 @@ class Error : public LAMMPS {
   void one(char *);
   void warning(char *);
 };
+
+}
 
 #endif

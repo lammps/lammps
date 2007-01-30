@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,6 +16,8 @@
 #include "modify.h"
 #include "fix_shear_history.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
    granular particles
@@ -36,11 +38,10 @@ void Neighbor::granular_nsq_no_newton()
   int **partner;
   double ***shearpartner;
 
-  if (history >= 0) {
-    npartner = ((FixShearHistory *) modify->fix[history])->npartner;
-    partner = ((FixShearHistory *) modify->fix[history])->partner;
-    shearpartner = 
-      ((FixShearHistory *) modify->fix[history])->shearpartner;
+  if (fix_history) {
+    npartner = fix_history->npartner;
+    partner = fix_history->partner;
+    shearpartner = fix_history->shearpartner;
   }
 
   double **x = atom->x;
@@ -62,13 +63,13 @@ void Neighbor::granular_nsq_no_newton()
       npage++;
       if (npage == maxpage) {
 	add_pages(npage);
-	if (history >= 0) add_pages_history(npage);
+	if (fix_history) add_pages_history(npage);
       }
     }
 
     n = 0;
     neighptr = &pages[npage][npnt];
-    if (history >= 0) {
+    if (fix_history) {
       nn = 0;
       touchptr = &pages_touch[npage][npnt];
       shearptr = &pages_shear[npage][3*npnt];
@@ -94,7 +95,7 @@ void Neighbor::granular_nsq_no_newton()
       if (rsq <= cutsq) {
 	neighptr[n] = j;
 
-	if (history >= 0) {
+	if (fix_history) {
 	  if (rsq < radsum*radsum) {
 	    for (m = 0; m < npartner[i]; m++)
 	      if (partner[i][m] == tag[j]) break;
@@ -121,7 +122,7 @@ void Neighbor::granular_nsq_no_newton()
       }
     }	       
 
-    if (history >= 0) {
+    if (fix_history) {
       firsttouch[i] = touchptr;
       firstshear[i] = shearptr;
     }
@@ -235,11 +236,10 @@ void Neighbor::granular_bin_no_newton()
   int **partner;
   double ***shearpartner;
 
-  if (history >= 0) {
-    npartner = ((FixShearHistory *) modify->fix[history])->npartner;
-    partner = ((FixShearHistory *) modify->fix[history])->partner;
-    shearpartner = 
-      ((FixShearHistory *) modify->fix[history])->shearpartner;
+  if (fix_history) {
+    npartner = fix_history->npartner;
+    partner = fix_history->partner;
+    shearpartner = fix_history->shearpartner;
   }
 
   // bin local & ghost atoms
@@ -266,13 +266,13 @@ void Neighbor::granular_bin_no_newton()
       npage++;
       if (npage == maxpage) {
 	add_pages(npage);
-	if (history >= 0) add_pages_history(npage);
+	if (fix_history) add_pages_history(npage);
       }
     }
 
     n = 0;
     neighptr = &pages[npage][npnt];
-    if (history >= 0) {
+    if (fix_history) {
       nn = 0;
       touchptr = &pages_touch[npage][npnt];
       shearptr = &pages_shear[npage][3*npnt];
@@ -312,7 +312,7 @@ void Neighbor::granular_bin_no_newton()
 	if (rsq <= cutsq) {
 	  neighptr[n] = j;
 
-	  if (history >= 0) {
+	  if (fix_history) {
 	    if (rsq < radsum*radsum) {
 	      for (m = 0; m < npartner[i]; m++)
 		if (partner[i][m] == tag[j]) break;
@@ -342,7 +342,7 @@ void Neighbor::granular_bin_no_newton()
       }
     }
 
-    if (history >= 0) {
+    if (fix_history) {
       firsttouch[i] = touchptr;
       firstshear[i] = shearptr;
     }

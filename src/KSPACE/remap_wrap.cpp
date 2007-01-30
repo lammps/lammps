@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,14 +15,16 @@
 #include "remap_wrap.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-Remap::Remap(MPI_Comm comm,
+Remap::Remap(LAMMPS *lmp, MPI_Comm comm,
 	     int in_ilo, int in_ihi, int in_jlo, int in_jhi,
 	     int in_klo, int in_khi,
 	     int out_ilo, int out_ihi, int out_jlo, int out_jhi,
 	     int out_klo, int out_khi,
-	     int nqty, int permute, int memory, int precision)
+	     int nqty, int permute, int memory, int precision) : Pointers(lmp)
 {
   plan = remap_3d_create_plan(comm,
 			      in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,

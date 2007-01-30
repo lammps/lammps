@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,11 +16,11 @@
 
 #include "pair.h"
 
+namespace LAMMPS_NS {
+
 class PairLJCutCoulLong : public Pair {
  public:
-  double cut_coul;
-
-  PairLJCutCoulLong();
+  PairLJCutCoulLong(class LAMMPS *);
   ~PairLJCutCoulLong();
   virtual void compute(int, int);
   virtual void settings(int, char **);
@@ -36,11 +36,12 @@ class PairLJCutCoulLong : public Pair {
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
+  void extract_long(double *);
 
  protected:
   double cut_lj_global;
   double **cut_lj,**cut_ljsq;
-  double cut_coulsq;
+  double cut_coul,cut_coulsq;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
   double *cut_respa;
@@ -55,5 +56,7 @@ class PairLJCutCoulLong : public Pair {
   void init_tables();
   void free_tables();
 };
+
+}
 
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,6 +33,8 @@
 #include "neighbor.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -46,7 +48,8 @@
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P()
+PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) : 
+  PairLJCutCoulLong(lmp)
 {
   single_enable = 0;
 }
@@ -407,7 +410,7 @@ void PairLJCutCoulLongTIP4P::init_style()
     error->all("Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair) 
     error->all("Pair style lj/cut/coul/long/tip4p requires newton pair on");
-  if (atom->charge_allow == 0)
+  if (atom->q == NULL)
     error->all("Must use charged atom style with this pair style");
 
   cut_coulsq = cut_coul * cut_coul;
@@ -525,4 +528,17 @@ void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   xM[0] = x[i][0] + alpha * (delx1 + delx2);
   xM[1] = x[i][1] + alpha * (dely1 + dely2);
   xM[2] = x[i][2] + alpha * (delz1 + delz2);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulLongTIP4P::extract_tip4p(double *p_qdist, 
+					   int *p_typeO, int *p_typeH,
+					   int *p_typeA, int *p_typeB)
+{
+  *p_qdist = qdist;
+  *p_typeO = typeO;
+  *p_typeH = typeH;
+  *p_typeA = typeA;
+  *p_typeB = typeB;
 }

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,7 +14,9 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "lammps.h"
+#include "pointers.h"
+
+#define TIME_N           8
 
 #define TIME_TOTAL       0
 #define TIME_LOOP        1
@@ -25,13 +27,13 @@
 #define TIME_COMM        6
 #define TIME_OUTPUT      7
 
-#define TIME_N           8
+namespace LAMMPS_NS {
 
-class Timer : public LAMMPS {
+class Timer : protected Pointers {
  public:
   double *array;
 
-  Timer();
+  Timer(class LAMMPS *);
   ~Timer();
   void init();
   void stamp();
@@ -43,5 +45,7 @@ class Timer : public LAMMPS {
  private:
   double previous_time;
 };
+
+}
 
 #endif

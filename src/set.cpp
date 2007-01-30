@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,8 +16,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "set.h"
-#include "system.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "group.h"
 #include "comm.h"
@@ -26,6 +26,8 @@
 #include "pair.h"
 #include "random_park.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define ONEATOM  0
 #define ATOM     1
@@ -37,6 +39,10 @@
 #define DIPOLE   7
 
 #define WARMUP 100
+
+/* ---------------------------------------------------------------------- */
+
+Set::Set(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,15 +78,15 @@ void Set::command(int narg, char **arg)
   
   // consistency checks
 
-  if ((style == BOND && atom->bonds_allow == 0) ||
-      (style == ANGLE && atom->angles_allow == 0) ||
-      (style == DIHEDRAL && atom->dihedrals_allow == 0) ||
-      (style == IMPROPER && atom->impropers_allow == 0) ||
-      (style == CHARGE && atom->charge_allow == 0) ||
-      (style == DIPOLE && atom->dipole_require == 0))
+  if ((style == BOND && atom->avec->bonds_allow == 0) ||
+      (style == ANGLE && atom->avec->angles_allow == 0) ||
+      (style == DIHEDRAL && atom->avec->dihedrals_allow == 0) ||
+      (style == IMPROPER && atom->avec->impropers_allow == 0) ||
+      (style == CHARGE && atom->q == NULL) ||
+      (style == DIPOLE && atom->dipole == NULL))
     error->all("Cannot set this attribute for this atom style");
 
-  if (style == ONEATOM && strcmp(arg[1],"q") == 0 && atom->charge_allow == 0)
+  if (style == ONEATOM && strcmp(arg[1],"q") == 0 && atom->q == NULL)
     error->all("Cannot set this attribute for this atom style");
 
   if (style == ONEATOM && strcmp(arg[1],"mol") == 0 && atom->molecular == 0)
@@ -95,7 +101,7 @@ void Set::command(int narg, char **arg)
   if (style == BOND || style == ANGLE || 
       style == DIHEDRAL || style == IMPROPER) {
     if (comm->me == 0 && screen) fprintf(screen,"System init for set ...\n");
-    sys->init();
+    lmp->init();
 
     domain->pbc();
     domain->reset_box();
@@ -229,7 +235,7 @@ void Set::command(int narg, char **arg)
     int ivalue = atoi(arg[2]);
     if (ivalue <= 0) error->all("Invalid random number seed in set command");
     double msq,scale;
-    RanPark *random = new RanPark(ivalue + comm->me);
+    RanPark *random = new RanPark(lmp,ivalue + comm->me);
     for (int i = 0; i < WARMUP; i++) random->uniform();
     int *type = atom->type;
     double *dipole = atom->dipole;

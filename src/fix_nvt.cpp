@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,12 +25,16 @@
 #include "group.h"
 #include "update.h"
 #include "respa.h"
-#include "temperature.h"
+#include "modify.h"
+#include "compute.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVT::FixNVT(int narg, char **arg) : Fix(narg, arg)
+FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 6) error->all("Illegal fix nvt command");
 
@@ -52,18 +56,33 @@ FixNVT::FixNVT(int narg, char **arg) : Fix(narg, arg)
   if (t_period <= 0.0) error->all("Fix nvt period must be > 0.0");
   t_freq = 1.0 / t_period;
 
-  // create a new temperature full style with fix ID and fix group
-
   eta = eta_dot = 0.0;
 
-  char **newarg = new char*[3];
-  newarg[0] = id;
-  newarg[1] = group->names[igroup];
-  newarg[2] = "full";
-  force->add_temp(3,newarg,1);
-  delete [] newarg;
+  // create a new compute temp style
+  // id = fix-ID + temp, compute group = fix group
 
-  temperature = force->find_temp(id);
+  int n = strlen(id) + 6;
+  id_temp = new char[n];
+  strcpy(id_temp,id);
+  strcat(id_temp,"_temp");
+
+  char **newarg = new char*[3];
+  newarg[0] = id_temp;
+  newarg[1] = group->names[igroup];
+  newarg[2] = "temp";
+  modify->add_compute(3,newarg);
+  delete [] newarg;
+  tflag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixNVT::~FixNVT()
+{
+  // delete temperature if fix created it
+
+  if (tflag) modify->delete_compute(id_temp);
+  delete [] id_temp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,7 +92,7 @@ int FixNVT::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO;
+  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   return mask;
@@ -83,8 +102,14 @@ int FixNVT::setmask()
 
 void FixNVT::init()
 {
-  if (atom->mass_require == 0)
-    error->all("Cannot use fix nvt with no per-type mass defined");
+  if (atom->mass == NULL)
+    error->all("Cannot use fix nvt without per-type mass defined");
+
+  int icompute = modify->find_compute(id_temp);
+  if (icompute < 0) error->all("Temp ID for fix nvt does not exist");
+  temperature = modify->compute[icompute];
+
+  // set timesteps and frequencies
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -102,8 +127,8 @@ void FixNVT::init()
 
 void FixNVT::setup()
 {
-  t_target = t_start;                      // used by thermo_compute()
-  t_current = temperature->compute();
+  t_target = t_start;                         // used by thermo()
+  t_current = temperature->compute_scalar();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,7 +198,7 @@ void FixNVT::final_integrate()
 
   // compute current T
 
-  t_current = temperature->compute();
+  t_current = temperature->compute_scalar();
 
   // update eta_dot
 
@@ -332,13 +357,23 @@ int FixNVT::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all("Illegal fix_modify command");
-    temperature = force->find_temp(arg[1]);
-    if (temperature == NULL)
-      error->all("Could not find fix_modify temperature ID");
+    if (tflag) {
+      modify->delete_compute(id_temp);
+      tflag = 0;
+    }
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temp ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning("Group for fix_modify temp != fix group");
-    if (strcmp(temperature->style,"region") == 0 && comm->me == 0)
-      error->warning("Temperature for NVT is style region");
     return 2;
   }
   return 0;
@@ -353,19 +388,11 @@ void FixNVT::reset_target(double t_new)
 
 /* ---------------------------------------------------------------------- */
 
-int FixNVT::thermo_fields(int n, int *flags, char **keywords)
-{
-  if (n == 0) return 1;
-  flags[0] = 3;
-  strcpy(keywords[0],"EngNVT");
-  return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixNVT::thermo_compute(double *values)
+double FixNVT::thermo(int n)
 {
   double ke = temperature->dof * force->boltz * t_target;
-  values[0] = ke * (eta + 0.5*eta_dot*eta_dot/(t_freq*t_freq));
-  return 1;
+  double energy = ke * (eta + 0.5*eta_dot*eta_dot/(t_freq*t_freq));
+
+  if (n == 0) return energy;
+  else return 0.0;
 }

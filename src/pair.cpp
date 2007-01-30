@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +24,6 @@
 #include "string.h"
 #include "pair.h"
 #include "pair_soft.h"
-#include "pair_eam.h"
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -32,34 +31,38 @@
 #include "update.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define GEOMETRIC  0
-#define ARITHMETIC 1
-#define SIXTHPOWER 2
-
-#define R   1
-#define RSQ 2
-#define BMP 3
+enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
+enum{R,RSQ,BMP};
 
 /* ---------------------------------------------------------------------- */
 
-Pair::Pair()
+Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 {
   eng_vdwl = eng_coul = 0.0;
-  allocated = 0;
-  offset_flag = 0;
-  mix_flag = GEOMETRIC;
-  ncoultablebits = 12;
-  tabinner = sqrt(2.0);
-  tail_flag = 0;
-  etail = ptail = etail_ij = ptail_ij = 0.0;
+
+  comm_forward = comm_reverse = 0;
   neigh_half_every = 1;
   neigh_full_every = 0;
+
   single_enable = 1;
   respa_enable = 0;
   one_coeff = 0;
+
+  // pair_modify settings
+
+  offset_flag = 0;
+  mix_flag = GEOMETRIC;
+  tail_flag = 0;
+  etail = ptail = etail_ij = ptail_ij = 0.0;
+  ncoultablebits = 12;
+  tabinner = sqrt(2.0);
+
+  allocated = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -256,52 +259,43 @@ void Pair::write_file(int narg, char **arg)
       fprintf(fp,"\n%s\nN %d RSQ %g %g\n\n",arg[7],n,inner,outer);
   }
 
-  // setup dummy atom vecs for use by single()
-  
+  // initialize potentials before evaluating pair potential
+  // insures all pair coeffs are set and force constants
+
+  force->init();
+
+  // if pair style = soft, set prefactor to final value
+
+  Pair *spair = force->pair_match("soft");
+  if (spair)
+    ((PairSoft *) spair)->prefactor[itype][jtype] =
+      ((PairSoft *) spair)->prestop[itype][jtype];
+
+  // if pair style = EAM, swap in dummy fp vector
+
+  double eamfp[2];
+  eamfp[0] = eamfp[1] = 0.0;
+  double *eamfp_hold;
+
+  Pair *epair = force->pair_match("eam");
+  if (epair) epair->extract_eam(eamfp,&eamfp_hold);
+
+  // if atom style defines charge, swap in dummy q vec
+
   double q[2];
   q[0] = q[1] = 1.0;
   if (narg == 10) {
     q[0] = atof(arg[8]);
     q[1] = atof(arg[9]);
   }
-  double *qhold;
+  double *q_hold;
 
-  double eamfp[2];
-  eamfp[0] = eamfp[1] = 0.0;
-  double *eamfphold;
-
-  // atom and pair styles that need dummy atom vectors
-
-  int qflag = atom->charge_allow;
-  PairEAM *eampair = NULL;
-  if (eampair = (PairEAM *) force->pair_match("eam"));
-  else if (eampair = (PairEAM *) force->pair_match("eam/alloy"));
-  else if (eampair = (PairEAM *) force->pair_match("eam/fs"));
-
-  // initialize potentials before evaluating pair potential
-  // insures all pair coeffs are set and force constants
-
-  force->init();
-
-  // if pair style = soft, set prefactor used by single()
-
-  Pair *anypair;
-  if (anypair = force->pair_match("soft")) {
-    ((PairSoft *) anypair)->prefactor[itype][jtype] =
-      ((PairSoft *) anypair)->prestop[itype][jtype];
+  if (atom->q) {
+    q_hold = atom->q;
+    atom->q = q;
   }
 
   // evaluate energy and force at each of N distances
-  // swap in dummy vecs before, swap them out after
-
-  if (qflag) {
-    qhold = atom->q;
-    atom->q = q;
-  }
-  if (eampair) {
-    eamfphold = eampair->fp;
-    eampair->fp = eamfp;
-  }
 
   int masklo,maskhi,nmask,nshiftbits;
   if (style == BMP) {
@@ -343,8 +337,11 @@ void Pair::write_file(int narg, char **arg)
     if (me == 0) fprintf(fp,"%d %g %g %g\n",i+1,r,e,f);
   }
 
-  if (qflag) atom->q = qhold;
-  if (eampair) eampair->fp = eamfphold;
+  // restore original vecs that were swapped in for
+
+  double *tmp;
+  if (epair) epair->extract_eam(eamfp_hold,&tmp);
+  if (atom->q) atom->q = q_hold;
   
   if (me == 0) fclose(fp);
 }

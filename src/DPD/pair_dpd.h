@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,11 +16,11 @@
 
 #include "pair.h"
 
-class RanMars;
+namespace LAMMPS_NS {
 
 class PairDPD : public Pair {
  public:
-  PairDPD();
+  PairDPD(class LAMMPS *);
   ~PairDPD();
   void compute(int, int);
   void settings(int, char **);
@@ -39,9 +39,11 @@ class PairDPD : public Pair {
   double **cut;
   double **a0,**gamma;
   double **sigma;
-  RanMars *random;
+  class RanMars *random;
 
   void allocate();
 };
+
+}
 
 #endif

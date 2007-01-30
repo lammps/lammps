@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,8 +24,6 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "temperature.h"
-#include "pressure.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"
@@ -36,7 +34,6 @@
 #define ImproperInclude
 #define PairInclude
 #define KSpaceInclude
-#define TempInclude
 #include "style.h"
 #undef BondInclude
 #undef AngleInclude
@@ -44,16 +41,15 @@
 #undef ImproperInclude
 #undef PairInclude
 #undef KSpaceInclude
-#undef TempInclude
+
+using namespace LAMMPS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define DELTA 1
-
 /* ---------------------------------------------------------------------- */
 
-Force::Force()
+Force::Force(LAMMPS *lmp) : Pointers(lmp)
 {
   dimension = 3;
   newton = newton_pair = newton_bond = 1;
@@ -84,20 +80,6 @@ Force::Force()
   strcpy(improper_style,str);
   kspace_style = new char[n];
   strcpy(kspace_style,str);
-
-  // default temperature = group all and style full
-
-  ntemp = maxtemp = 0;
-  templist = NULL;
-
-  char **arg = new char*[3];
-  arg[0] = "default";
-  arg[1] = "all";
-  arg[2] = "full";
-  add_temp(3,arg,0);
-  delete [] arg;
-
-  pressure = new Pressure;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,10 +99,6 @@ Force::~Force()
   if (dihedral) delete dihedral;
   if (improper) delete improper;
   if (kspace) delete kspace;
-
-  for (int i = 0; i < ntemp; i++) delete templist[i];
-  memory->sfree(templist);
-  delete pressure;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,9 +115,6 @@ void Force::init()
   if (angle) angle->init();
   if (dihedral) dihedral->init();
   if (improper) improper->init();
-
-  for (int itemp = 0; itemp < ntemp; itemp++) templist[itemp]->init();
-  pressure->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -167,7 +142,7 @@ Pair *Force::new_pair(char *style)
 
 #define PairClass
 #define PairStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class();
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style.h"
 #undef PairClass
 
@@ -176,16 +151,18 @@ Pair *Force::new_pair(char *style)
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to current pair class or hybrid sub-class if matches style
+   return ptr to current pair class or hybrid sub-class if it contains word
+   else return NULL
 ------------------------------------------------------------------------- */
 
-Pair *Force::pair_match(char *style)
+Pair *Force::pair_match(char *word)
 {
-  if (strcmp(pair_style,style) == 0) return pair;
+  if (strstr(pair_style,word) == 0) return pair;
   else if (strcmp(pair_style,"hybrid") == 0) {
-    PairHybrid *hpair = (PairHybrid *) pair;
-    for (int i = 0; i < hpair->nstyles; i++)
-      if (strcmp(hpair->keywords[i],style) == 0) return hpair->styles[i];
+    PairHybrid *pair_hybrid = (PairHybrid *) pair;
+    for (int i = 0; i < pair_hybrid->nstyles; i++)
+      if (strstr(pair_hybrid->keywords[i],word) == 0)
+	return pair_hybrid->styles[i];
   }
   return NULL;
 }
@@ -215,7 +192,7 @@ Bond *Force::new_bond(char *style)
 
 #define BondClass
 #define BondStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class();
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style.h"
 #undef BondClass
 
@@ -263,7 +240,7 @@ Angle *Force::new_angle(char *style)
 
 #define AngleClass
 #define AngleStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class();
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style.h"
 #undef AngleClass
 
@@ -296,7 +273,7 @@ Dihedral *Force::new_dihedral(char *style)
 
 #define DihedralClass
 #define DihedralStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class();
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style.h"
 #undef DihedralClass
 
@@ -329,7 +306,7 @@ Improper *Force::new_improper(char *style)
 
 #define ImproperClass
 #define ImproperStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class();
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style.h"
 #undef ImproperClass
 
@@ -350,7 +327,7 @@ void Force::create_kspace(int narg, char **arg)
 
 #define KSpaceClass
 #define KSpaceStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) kspace = new Class(narg-1,&arg[1]);
+  else if (strcmp(arg[0],#key) == 0) kspace = new Class(lmp,narg-1,&arg[1]);
 #include "style.h"
 #undef KSpaceClass
 
@@ -395,88 +372,6 @@ void Force::set_special(int narg, char **arg)
     special_coul[2] = atof(arg[4]);
     special_coul[3] = atof(arg[5]);
   } else error->all("Illegal special_bonds command");
-}
-
-/* ----------------------------------------------------------------------
-   create a new temperature
-   called from input script or fixes that create temperature
-   if flag, then allow overwrite of existing temperature with same ID
-------------------------------------------------------------------------- */
-
-void Force::add_temp(int narg, char **arg, int flag)
-{
-  if (narg < 3) error->all("Illegal temperature command");
-
-  // error checks
-
-  int itemp;
-  for (itemp = 0; itemp < ntemp; itemp++)
-    if (strcmp(arg[0],templist[itemp]->id) == 0) break;
-  if (flag == 0 && itemp < ntemp) error->all("Reuse of temperature ID");
-
-  int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find temperature group ID");
-
-  // if resetting existing temperature, delete it first
-
-  int newflag = 1;
-  if (itemp < ntemp) {
-    newflag = 0;
-    delete templist[itemp];
-  }
-
-  // extend Temperature list if necessary
-
-  if (itemp == maxtemp) {
-    maxtemp += DELTA;
-    templist = (Temperature **) 
-      memory->srealloc(templist,maxtemp*sizeof(Temperature *),
-		       "modify:templist");
-  }
-
-  // create the Temperature class
-
-  if (0) return;         // dummy line to enable else-if macro expansion
-
-#define TempClass
-#define TempStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) templist[itemp] = new Class(narg,arg);
-#include "style.h"
-#undef TempClass
-
-  else error->all("Invalid temperature style");
-
-  if (newflag) ntemp++;
-}
-
-/* ----------------------------------------------------------------------
-   return ptr to temperature that matches ID
-   else return NULL
-------------------------------------------------------------------------- */
-
-Temperature *Force::find_temp(char *id)
-{
-  for (int itemp = 0; itemp < ntemp; itemp++)
-    if (strcmp(id,templist[itemp]->id) == 0) return templist[itemp];
-  return NULL;
-}
-
-/* ----------------------------------------------------------------------
-   modify temperature parameters
-------------------------------------------------------------------------- */
-
-void Force::modify_temp(int narg, char **arg)
-{
-  if (narg < 2) error->all("Illegal temperature_modify command");
-
-  // lookup Temperature ID
-
-  int itemp;
-  for (itemp = 0; itemp < ntemp; itemp++)
-    if (strcmp(arg[0],templist[itemp]->id) == 0) break;
-  if (itemp == ntemp) error->all("Could not find temp_modify ID");
-  
-  templist[itemp]->modify_params(narg-1,&arg[1]);
 }
 
 /* ----------------------------------------------------------------------

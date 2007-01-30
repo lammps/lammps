@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,11 +15,13 @@
 #define READ_DATA_H
 
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class ReadData : public LAMMPS {
+namespace LAMMPS_NS {
+
+class ReadData : protected Pointers {
  public:
-  ReadData();
+  ReadData(class LAMMPS *);
   ~ReadData();
   void command(int, char **);
 
@@ -38,8 +40,8 @@ class ReadData : public LAMMPS {
   void skip_lines(int);
   void parse_coeffs(int, char *);
 
-  void atoms();
-  void velocities();
+  void atoms(int);
+  void velocities(int);
   void bonds();
   void angles();
   void dihedrals();
@@ -54,5 +56,7 @@ class ReadData : public LAMMPS {
   void dihedralcoeffs(int);
   void impropercoeffs(int);
 };
+
+}
 
 #endif

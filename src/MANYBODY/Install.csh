@@ -1,7 +1,5 @@
 # Install/unInstall package classes in LAMMPS
 
-# pair_eam.h must always be in src
-
 if ($1 == 1) then
 
   cp style_manybody.h ..
@@ -12,7 +10,7 @@ if ($1 == 1) then
   cp pair_sw.cpp ..
   cp pair_tersoff.cpp ..
 
-#  cp pair_eam.h ..
+  cp pair_eam.h ..
   cp pair_eam_alloy.h ..
   cp pair_eam_fs.h ..
   cp pair_sw.h ..
@@ -29,7 +27,7 @@ else if ($1 == 0) then
   rm ../pair_sw.cpp
   rm ../pair_tersoff.cpp
 
-#  rm ../pair_eam.h
+  rm ../pair_eam.h
   rm ../pair_eam_alloy.h
   rm ../pair_eam_fs.h
   rm ../pair_sw.h

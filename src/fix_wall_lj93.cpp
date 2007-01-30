@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,9 +21,12 @@
 #include "respa.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-FixWallLJ93::FixWallLJ93(int narg, char **arg) : Fix(narg, arg)
+FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg != 8) error->all("Illegal fix wall/lj93 command");
 
@@ -60,7 +63,6 @@ FixWallLJ93::FixWallLJ93(int narg, char **arg) : Fix(narg, arg)
   double rinv = 1.0/cutoff;
   double r2inv = rinv*rinv;
   double r4inv = r2inv*r2inv;
-  double r10inv = r4inv*r4inv*r2inv;
   offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
 }
 
@@ -70,7 +72,7 @@ int FixWallLJ93::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -82,16 +84,13 @@ void FixWallLJ93::init()
 {
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  if (thermo_print || thermo_energy) thermo_flag = 1;
-  else thermo_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallLJ93::setup()
 {
-  eflag_on = 1;
+  eflag_enable = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(1);
   else {
@@ -99,14 +98,14 @@ void FixWallLJ93::setup()
     post_force_respa(1,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  eflag_on = 0;
+  eflag_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallLJ93::min_setup()
 {
-  eflag_on = 1;
+  eflag_enable = 1;
   post_force(1);
 }
 
@@ -115,17 +114,15 @@ void FixWallLJ93::min_setup()
 void FixWallLJ93::post_force(int vflag)
 {
   bool eflag = false;
-  if (thermo_flag) {
-    if (eflag_on) eflag = true;
-    else if (output->next_thermo == update->ntimestep) eflag = true;
-  }
+  if (eflag_enable) eflag = true;
+  else if (output->next_thermo == update->ntimestep) eflag = true;
 
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double delta,rinv,r2inv,r4inv,r10inv;
+  double delta,rinv,r2inv,r4inv,r10inv,eng;
   if (eflag) eng = 0.0;
 
   for (int i = 0; i < nlocal; i++)
@@ -161,18 +158,8 @@ void FixWallLJ93::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-int FixWallLJ93::thermo_fields(int n, int *flags, char **keywords)
+double FixWallLJ93::thermo(int n)
 {
-  if (n == 0) return 1;
-  flags[0] = 3;
-  strcpy(keywords[0],"Wall");
-  return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixWallLJ93::thermo_compute(double *values)
-{
-  values[0] = etotal;
-  return 1;
+  if (n == 0) return etotal;
+  else return 0.0;
 }

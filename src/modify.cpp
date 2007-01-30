@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,19 +17,24 @@
 #include "atom.h"
 #include "comm.h"
 #include "fix.h"
+#include "compute.h"
 #include "group.h"
 #include "update.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
 
+#define ComputeInclude
 #define FixInclude
 #include "style.h"
+#undef ComputeInclude
 #undef FixInclude
 
-#define DELTA 1
+using namespace LAMMPS_NS;
 
-// mask settings - same as mask settings in fix.cpp
+#define DELTA 4
+
+// mask settings - same as in fix.cpp
 
 #define INITIAL_INTEGRATE  1
 #define PRE_EXCHANGE       2
@@ -37,22 +42,20 @@
 #define POST_FORCE         8
 #define FINAL_INTEGRATE   16
 #define END_OF_STEP       32
-#define THERMO            64
+#define THERMO_ENERGY     64
 #define INITIAL_INTEGRATE_RESPA 128
 #define POST_FORCE_RESPA        256
 #define FINAL_INTEGRATE_RESPA   512
 #define MIN_POST_FORCE         1024
 
-enum {NEITHER,PRINT,ENERGY,BOTH};   // same as thermo.cpp
-
 /* ---------------------------------------------------------------------- */
 
-Modify::Modify()
+Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 {
   nfix = maxfix = 0;
   n_initial_integrate = 0;
   n_pre_exchange = n_pre_neighbor = 0;
-  n_post_force = n_final_integrate = n_end_of_step = n_thermo = 0;
+  n_post_force = n_final_integrate = n_end_of_step = n_thermo_energy = 0;
   n_initial_integrate_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_post_force = 0;
 
@@ -61,7 +64,7 @@ Modify::Modify()
   list_initial_integrate = NULL;
   list_pre_exchange = list_pre_neighbor = NULL;
   list_post_force = list_final_integrate = list_end_of_step = NULL;
-  list_thermo = NULL;
+  list_thermo_energy = NULL;
   list_initial_integrate_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
   list_min_post_force = NULL;
@@ -73,6 +76,9 @@ Modify::Modify()
   nfix_restart_peratom = 0;
   id_restart_peratom = style_restart_peratom = NULL;
   index_restart_peratom = NULL;
+
+  ncompute = maxcompute = 0;
+  compute = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,9 +86,9 @@ Modify::Modify()
 Modify::~Modify()
 {
   // delete all fixes
-  // don't invoke atom->update_callback() since atom has already been deleted
+  // do it via delete_fix() so callbacks in Atom are also updated correctly
 
-  for (int i = 0; i < nfix; i++) delete fix[i];
+  while (nfix) delete_fix(fix[0]->id);
   memory->sfree(fix);
   memory->sfree(fmask);
 
@@ -92,7 +98,7 @@ Modify::~Modify()
   delete [] list_post_force;
   delete [] list_final_integrate;
   delete [] list_end_of_step;
-  delete [] list_thermo;
+  delete [] list_thermo_energy;
   delete [] list_initial_integrate_respa;
   delete [] list_post_force_respa;
   delete [] list_final_integrate_respa;
@@ -101,10 +107,15 @@ Modify::~Modify()
   delete [] end_of_step_every;
 
   restart_deallocate();
+
+  // delete all computes
+
+  for (int i = 0; i < ncompute; i++) delete compute[i];
+  memory->sfree(compute);
 }
 
 /* ----------------------------------------------------------------------
-   initialize all fixes and lists of fixes
+   initialize all fixes and computes
 ------------------------------------------------------------------------- */
 
 void Modify::init()
@@ -128,7 +139,7 @@ void Modify::init()
   list_init(POST_FORCE,n_post_force,list_post_force);
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
-  list_init_thermo(THERMO,n_thermo,list_thermo);
+  list_init_thermo_energy(THERMO_ENERGY,n_thermo_energy,list_thermo_energy);
 
   list_init(INITIAL_INTEGRATE_RESPA,
 	    n_initial_integrate_respa,list_initial_integrate_respa);
@@ -138,6 +149,10 @@ void Modify::init()
 	    n_final_integrate_respa,list_final_integrate_respa);
 
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
+
+  // init each compute
+
+  for (i = 0; i < ncompute; i++) compute[i]->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -215,45 +230,17 @@ void Modify::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   thermo_fields call only for relevant fixes
-   called with n = 0, just query how many fields each fix returns
-   called with n > 0, get the field names
+   thermo energy call only for relevant fixes
+   called by Thermo clas
+   arg to Fix thermo() is 0, so fix will return its energy contribution
 ------------------------------------------------------------------------- */
 
-int Modify::thermo_fields(int n, int *flags, char **keywords)
+double Modify::thermo_energy()
 {
-  int i,j,nfirst,flag_print,flag_energy;
-
-  int m = 0;
-  if (n == 0)
-    for (i = 0; i < n_thermo; i++)
-      m += fix[list_thermo[i]]->thermo_fields(0,NULL,NULL);
-  else
-    for (i = 0; i < n_thermo; i++) {
-      nfirst = m;
-      m += fix[list_thermo[i]]->thermo_fields(n,&flags[m],&keywords[m]);
-      for (j = nfirst; j < m; j++) {
-	if (fix[list_thermo[i]]->thermo_print && 
-	    (flags[j] == PRINT || flags[j] == BOTH)) flag_print = PRINT;
-	else flag_print = NEITHER;
-	if (fix[list_thermo[i]]->thermo_energy && 
-	    (flags[j] == ENERGY || flags[j] == BOTH)) flag_energy = ENERGY;
-	else flag_energy = NEITHER;
-	flags[j] = flag_print + flag_energy;
-      }
-    }
-  return m;
-}
-
-/* ----------------------------------------------------------------------
-   thermo_compute call only for relevant fixes
-------------------------------------------------------------------------- */
-
-void Modify::thermo_compute(double *values)
-{
-  int m = 0;
-  for (int i = 0; i < n_thermo; i++)
-    m += fix[list_thermo[i]]->thermo_compute(&values[m]);
+  double energy = 0.0;
+  for (int i = 0; i < n_thermo_energy; i++)
+    energy += fix[list_thermo_energy[i]]->thermo(0);
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -351,7 +338,7 @@ void Modify::add_fix(int narg, char **arg)
 
 #define FixClass
 #define FixStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(narg,arg);
+  else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
 #include "style.h"
 #undef FixClass
 
@@ -416,26 +403,122 @@ void Modify::modify_fix(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    delete a Fix from list of Fixes
+   Atom class must update indices in its list of callbacks to fixes
 ------------------------------------------------------------------------- */
 
 void Modify::delete_fix(char *id)
 {
-  int ifix;
-
-  // find which fix it is and delete it
-
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(id,fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all("Could not find unfix ID");
-
+  int ifix = find_fix(id);
+  if (ifix < 0) error->all("Could not find fix ID to delete");
   delete fix[ifix];
-  if (atom) atom->update_callback(ifix);
+  atom->update_callback(ifix);
 
   // move other Fixes and fmask down in list one slot
 
   for (int i = ifix+1; i < nfix; i++) fix[i-1] = fix[i];
   for (int i = ifix+1; i < nfix; i++) fmask[i-1] = fmask[i];
   nfix--;
+}
+
+/* ----------------------------------------------------------------------
+   find a fix by ID
+   return index of fix or -1 if not found
+------------------------------------------------------------------------- */
+
+int Modify::find_fix(char *id)
+{
+  int ifix;
+  for (ifix = 0; ifix < nfix; ifix++)
+    if (strcmp(id,fix[ifix]->id) == 0) break;
+  if (ifix == nfix) return -1;
+  return ifix;
+}
+
+/* ----------------------------------------------------------------------
+   add a new compute
+------------------------------------------------------------------------- */
+
+void Modify::add_compute(int narg, char **arg)
+{
+  if (narg < 3) error->all("Illegal compute command");
+
+  // error checks
+
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (strcmp(arg[0],compute[icompute]->id) == 0)
+      error->all("Reuse of compute ID");
+  int igroup = group->find(arg[1]);
+  if (igroup == -1) error->all("Could not find compute group ID");
+
+  // extend Compute list if necessary
+
+  if (ncompute == maxcompute) {
+    maxcompute += DELTA;
+    compute = (Compute **)
+      memory->srealloc(compute,maxcompute*sizeof(Compute *),"modify:compute");
+  }
+
+  // create the Compute
+
+  if (0) return;         // dummy line to enable else-if macro expansion
+
+#define ComputeClass
+#define ComputeStyle(key,Class) \
+  else if (strcmp(arg[2],#key) == 0) \
+    compute[ncompute] = new Class(lmp,narg,arg);
+#include "style.h"
+
+  else error->all("Invalid compute style");
+
+  ncompute++;
+}
+
+/* ----------------------------------------------------------------------
+   modify a Compute's parameters
+------------------------------------------------------------------------- */
+
+void Modify::modify_compute(int narg, char **arg)
+{
+  if (narg < 2) error->all("Illegal compute_modify command");
+
+  // lookup Compute ID
+
+  int icompute;
+  for (icompute = 0; icompute < ncompute; icompute++)
+    if (strcmp(arg[0],compute[icompute]->id) == 0) break;
+  if (icompute == ncompute) error->all("Could not find compute_modify ID");
+  
+  compute[icompute]->modify_params(narg-1,&arg[1]);
+}
+
+/* ----------------------------------------------------------------------
+   delete a Compute from list of Computes
+------------------------------------------------------------------------- */
+
+void Modify::delete_compute(char *id)
+{
+  int icompute = find_compute(id);
+  if (icompute < 0) error->all("Could not find compute ID to delete");
+  delete compute[icompute];
+
+  // move other Computes down in list one slot
+
+  for (int i = icompute+1; i < ncompute; i++) compute[i-1] = compute[i];
+  ncompute--;
+}
+
+/* ----------------------------------------------------------------------
+   find a compute by ID
+   return index of compute or -1 if not found
+------------------------------------------------------------------------- */
+
+int Modify::find_compute(char *id)
+{
+  int icompute;
+  for (icompute = 0; icompute < ncompute; icompute++)
+    if (strcmp(id,compute[icompute]->id) == 0) break;
+  if (icompute == ncompute) return -1;
+  return icompute;
 }
 
 /* ----------------------------------------------------------------------
@@ -648,22 +731,22 @@ void Modify::list_init_end_of_step(int mask, int &n, int *&list)
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for thermo fixes
-   also must have thermo print/energy flag set via fix_modify
+   create list of fix indices for thermo energy fixes
+   only added to list if its thermo_energy flag was set via fix_modify
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo(int mask, int &n, int *&list)
+void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
 {
   delete [] list;
+
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && (fix[i]->thermo_print || fix[i]->thermo_energy))
-      n++;
+    if (fmask[i] & mask && fix[i]->thermo_energy) n++;
   list = new int[n];
+
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && (fix[i]->thermo_print || fix[i]->thermo_energy))
-      list[n++] = i;
+    if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------
@@ -674,5 +757,6 @@ int Modify::memory_usage()
 {
   int bytes = 0;
   for (int i = 0; i < nfix; i++) bytes += fix[i]->memory_usage();
+  for (int i = 0; i < ncompute; i++) bytes += compute[i]->memory_usage();
   return bytes;
 }

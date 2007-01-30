@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,47 +14,40 @@
 #ifndef THERMO_H
 #define THERMO_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Temperature;
-class Pressure;
+namespace LAMMPS_NS {
 
-class Thermo : public LAMMPS {
+class Thermo : protected Pointers {
   friend class WriteRestart;           // accesses lostflag
-  friend class Pressure;               // accesses temperature,tensorflag
-  friend class Temper;                 // accesses peflag,potential_energy
-  friend class MinCG;                  // accesses compute_pe,potential_energy
+  friend class MinCG;                  // accesses compute_pe
 
  public:
   char *style;
+  int peflag;
+  double potential_energy;
 
-  Thermo(int, char **);
+  Thermo(class LAMMPS *, int, char **);
   ~Thermo();
   void init();
   double lost_check();
   void modify_params(int, char **);
   void header();
   void compute(int);
-  int compute_value(char *, double *);
-  void fix_compute_pe();
+  int evaluate_keyword(char *, double *);
 
  private:
   int me;
+
   char *line;
   int nfield,nfield_initial;
   char **keyword;
   int *vtype;
-  int freeze_group_bit;
-  int tensorflag,granflag,dipoleflag;
-  double *inertia;
 
-  char *format_int_def,*format_g_def,*format_f_def,*format_multi;
-  int format_iflag,format_fflag;
+  char *format_multi,*format_int_one_def,*format_int_multi_def;
+  char *format_g_def,*format_f_def;
   char *format_int_user,*format_float_user;
-  int nformat;
-  char **format_user;
-  int *format_index;
-  char **format;
+  char **format,**format_user;
 
   int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   int normvalue;         // use this for normflag unless natoms = 0
@@ -65,33 +58,65 @@ class Thermo : public LAMMPS {
   int lostflag,lostbefore;
   int flushflag,lineflag;
 
-  Pressure *pressure;
-  Temperature *temperature;
+                         // data used by routines that compute single values
+  int ivalue;            // integer value to print
+  double dvalue,natoms;  // dvalue = double value to print
+  int ifield;            // which field in thermo output is being computed
+  int thermoflag;        // 1 when called by compute(), 0 from variable eval
+  int *field2object;     // which object (C,F,v) computes this field
+  int *arg_object;       // integer arg to pass to routine that computes it
 
-  int ivalue,tempflag,pressflag,peflag;
-  double dvalue,natoms,tempvalue,potential_energy;
+                         // data for keyword-specific Compute objects
+                         // index = where they are in computes list
+                         // internal = 1/0 if Thermo created them or not
+                         // id = ID of Compute objects
+                         // Compute * = ptrs to the Compute objects
+  int index_temp,index_press,index_drot,index_grot;
+  int internal_temp,internal_press,internal_drot,internal_grot;
+  char *id_temp,*id_press,*id_drot,*id_grot;
+  class Compute *temperature,*pressure,*rotate_dipole,*rotate_gran;
 
-  int ntemp,itemp_print;
-  int *tempindices;
-  int nfix,ifix_print,nfix_print,nfix_energy;
-  double *fixvalues;
-  int *fixflags,*fixenergy,*fixprint;
-  int nextra;
+  int ncompute;          // # of Compute objects called by thermo
+  char **id_compute;     // their IDs
+  int *compute_which;    // 0/1/2 if should call scalar() or vector() or both
+  class Compute **computes;    // list of ptrs to the Compute objects
 
-  int nwindow;
+  int nfix;              // # of Fix objects called by thermo
+  char **id_fix;         // their IDs
+  class Fix **fixes;     // list of ptrs to the Fix objects
+
+  int nvariable;         // # of variables evaulated by thermo
+  char **id_variable;    // list of variable names
+
+  int nwindow;            // time averaged values
   int npartial_t,ncurrent_t,npartial_p,ncurrent_p;
   int npartial_e,ncurrent_e,npartial_pe,ncurrent_pe;
   double tsum,psum,esum,pesum;
   double *tpast,*ppast,*epast,*pepast;
 
-  typedef void (Thermo::*FnPtr)();
+  // private methods
+
+  void allocate();
+  void deallocate();
+
   void parse_fields(char *);
+  int add_compute(char *, int);
+  int add_fix(char *);
+  int add_variable(char *);
+  void create_compute(char *, char *, char *);
+
+  typedef void (Thermo::*FnPtr)();
   void addfield(char *, FnPtr, int);
-  FnPtr *vfunc;                      // list of ptrs to functions
+  FnPtr *vfunc;                // list of ptrs to functions
 
-  // customize by adding a method prototype
+  void compute_compute();      // functions that compute a single value
+  void compute_fix();          // via calls to  Compute,Fix,Variable classes
+  void compute_variable();
 
-  void compute_step();      // functions that each compute one value to print
+  // functions that compute a single value
+  // customize a new keyword by adding a method prototype
+
+  void compute_step();    
   void compute_atoms();
   void compute_cpu();
   void compute_temp();
@@ -110,7 +135,6 @@ class Thermo : public LAMMPS {
   void compute_emol();
   void compute_elong();
   void compute_etail();
-  void compute_erot();
   void compute_vol();
   void compute_lx();
   void compute_ly();
@@ -121,14 +145,14 @@ class Thermo : public LAMMPS {
   void compute_pxy();
   void compute_pyz();
   void compute_pxz();
-  void compute_gke();
+  void compute_drot();
   void compute_grot();
-  void compute_fix();
   void compute_tave();
   void compute_pave();
   void compute_eave();
   void compute_peave();
-  void compute_t_id();
 };
+
+}
 
 #endif

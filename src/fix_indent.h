@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,11 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixIndent : public Fix {
  public:
-  FixIndent(int, char **);
-  ~FixIndent() {}
+  FixIndent(class LAMMPS *, int, char **);
   int setmask();
   void init();
   void setup();
@@ -27,11 +28,10 @@ class FixIndent : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
-  int thermo_fields(int, int *, char **);
-  int thermo_compute(double *);
+  double thermo(int);
 
  private:
-  int ntimestep_initial,istyle,scaleflag,radflag,thermo_flag,eflag_on;
+  int ntimestep_initial,istyle,scaleflag,radflag,thermo_flag,eflag_enable;
   double k,k3,eng,etotal;
   double x0,y0,z0,r0_stop,r0_start;
   int cdim;
@@ -41,5 +41,7 @@ class FixIndent : public Fix {
 
   void options(int, char **);
 };
+
+}
 
 #endif

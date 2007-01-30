@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,6 +28,8 @@
 #include "neighbor.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -35,14 +37,12 @@
 
 /* ---------------------------------------------------------------------- */
 
-PairDPD::PairDPD()
+PairDPD::PairDPD(LAMMPS *lmp) : Pair(lmp)
 {
   random = NULL;
 }
 
-/* ----------------------------------------------------------------------
-   free all arrays 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 PairDPD::~PairDPD()
 {
@@ -208,7 +208,7 @@ void PairDPD::settings(int narg, char **arg)
   if (seed <= 0 || seed > 900000000)
     error->all("Illegal fix pair_style command");
   if (random) delete random;
-  random = new RanMars(seed + comm->me);
+  random = new RanMars(lmp,seed + comm->me);
 
   // reset cutoffs that have been explicitly set
 
@@ -372,7 +372,7 @@ void PairDPD::read_restart_settings(FILE *fp)
   // same seed that pair_style command initially specified
 
   if (random) delete random;
-  random = new RanMars(seed + comm->me);
+  random = new RanMars(lmp,seed + comm->me);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -381,15 +381,7 @@ void PairDPD::single(int i, int j, int itype, int jtype, double rsq,
 		     double factor_coul, double factor_dpd, int eflag,
 		     One &one)
 {
-  double r,rinv,dot,wd,randnum,phi;
-
-  double delx = atom->x[i][0] - atom->x[j][0];
-  double dely = atom->x[i][1] - atom->x[j][1];
-  double delz = atom->x[i][2] - atom->x[j][2];
-  double delvx = atom->v[i][0] - atom->v[j][0];
-  double delvy = atom->v[i][1] - atom->v[j][1];
-  double delvz = atom->v[i][2] - atom->v[j][2];
-  double dtinvsqrt = 1.0/sqrt(update->dt);
+  double r,rinv,wd,phi;
 
   r = sqrt(rsq);
   if (r < EPSILON) {
@@ -399,9 +391,7 @@ void PairDPD::single(int i, int j, int itype, int jtype, double rsq,
   }
 
   rinv = 1.0/r;
-  dot = delx*delvx + dely*delvy + delz*delvz;
   wd = 1.0 - r/cut[itype][jtype];
-  randnum = random->gaussian();
 
   one.fforce = a0[itype][jtype]*wd * factor_dpd*rinv;
   

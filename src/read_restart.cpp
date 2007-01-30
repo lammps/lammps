@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,6 +18,7 @@
 #include "dirent.h"
 #include "read_restart.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
 #include "update.h"
@@ -34,20 +35,22 @@
 #include "memory.h"
 #include "error.h"
 
-#define AtomInclude
-#include "style.h"
-#undef AtomInclude
+using namespace LAMMPS_NS;
 
 #define LB_FACTOR 1.1
 
 /* ---------------------------------------------------------------------- */
 
+ReadRestart::ReadRestart(LAMMPS *lmp) : Pointers(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
 void ReadRestart::command(int narg, char **arg)
 {
+  if (narg != 1) error->all("Illegal read_restart command");
+
   if (domain->box_exist) 
     error->all("Cannot read_restart after simulation box is defined");
-
-  if (narg != 1) error->all("Illegal read_restart command");
 
   MPI_Comm_rank(world,&me);
 
@@ -96,7 +99,7 @@ void ReadRestart::command(int narg, char **arg)
   else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
 
   atom->allocate_type_arrays();
-  atom->grow(n);
+  atom->avec->grow(n);
 
   domain->set_initial_box();
   domain->set_global_box();
@@ -107,8 +110,8 @@ void ReadRestart::command(int narg, char **arg)
   // nextra = max # of extra quantities stored with each atom
 
   group->read_restart(fp);
-  if (atom->mass_require) mass();
-  if (atom->dipole_require) dipole();
+  if (atom->mass) mass();
+  if (atom->dipole) dipole();
   force_fields();
 
   int nextra = modify->read_restart(fp);
@@ -121,6 +124,8 @@ void ReadRestart::command(int narg, char **arg)
   //   proc 0 reads chunks from series of files (nprocs_file)
   // proc 0 bcasts each chunk to other procs
   // each proc unpacks the atoms, saving ones in it's sub-domain
+
+  AtomVec *avec = atom->avec;
 
   int maxbuf = 0;
   double *buf = NULL;
@@ -172,7 +177,7 @@ void ReadRestart::command(int narg, char **arg)
       if (xtmp >= subxlo && xtmp < subxhi &&
 	  ytmp >= subylo && ytmp < subyhi &&
 	  ztmp >= subzlo && ztmp < subzhi)
-	m += atom->unpack_restart(&buf[m]);
+	m += avec->unpack_restart(&buf[m]);
       else m += static_cast<int> (buf[m]);
     }
   }
@@ -231,7 +236,7 @@ void ReadRestart::command(int narg, char **arg)
     atom->map_set();
   }
   if (atom->molecular) {
-    Special special;
+    Special special(lmp);
     special.build();
   }
 }
@@ -246,19 +251,14 @@ void ReadRestart::file_search(char *infile, char *outfile)
 {
   // if filename contains "%" replace "%" with "base"
 
-  int multiproc;
   char *pattern = new char[strlen(infile) + 16];
   char *ptr;
 
   if (ptr = strchr(infile,'%')) {
-    multiproc = 1;
     *ptr = '\0';
     sprintf(pattern,"%s%s%s",infile,"base",ptr+1);
     *ptr = '%';
-  } else {
-    multiproc = 0;
-    strcpy(pattern,infile);
-  }
+  } else strcpy(pattern,infile);
 
   // scan all files in directory, searching for files that match pattern
   // maxnum = largest int that matches "*"
@@ -444,53 +444,25 @@ void ReadRestart::header()
 	  domain->nonperiodic = 2;
       }
 
-      // create atom class
+      // create new AtomVec class
       // if style = hybrid, read additional sub-class arguments
 
     } else if (flag == 19) {
       char *style = read_char();
 
-      int nwords,n;
-      char **words;
+      int nwords = 0;
+      char **words = NULL;
 
-      if (strcmp(style,"hybrid") != 0) {
-	nwords = 1;
+      if (strcmp(style,"hybrid") == 0) {
+	nwords = read_int();
 	words = new char*[nwords];
-	words[0] = style;
-      } else {
-	if (me == 0) fread(&nwords,sizeof(int),1,fp);
-	MPI_Bcast(&nwords,1,MPI_INT,0,world);
-	nwords++;
-	words = new char*[nwords];
-	words[0] = style;
-	for (int i = 1; i < nwords; i++) {
-	  if (me == 0) fread(&n,sizeof(int),1,fp);
-	  MPI_Bcast(&n,1,MPI_INT,0,world);
-	  words[i] = new char[n];
-	  if (me == 0) fread(words[i],sizeof(char),n,fp);
-	  MPI_Bcast(words[i],n,MPI_CHAR,0,world);
-	}
+	for (int i = 0; i < nwords; i++) words[i] = read_char();
       }
 
-      Atom *old = atom;
-	
-      if (0) return;         // dummy line to enable else-if macro expansion
-
-#define AtomClass
-#define AtomStyle(key,Class) \
-      else if (strcmp(style,#key) == 0) atom = new Class(nwords,words);
-#include "style.h"
-#undef AtomClass
-
-      else error->all("Unknown atom style in restart file");
-
-      if (old) {
-	atom->settings(old);
-	delete old;
-      }
-
+      atom->create_avec(style,nwords,words);
       for (int i = 0; i < nwords; i++) delete [] words[i];
       delete [] words;
+      delete [] style;
 
     } else if (flag == 20) {
       atom->natoms = read_double();
@@ -602,7 +574,7 @@ void ReadRestart::force_fields()
     force->pair->read_restart(fp);
   } else force->create_pair("none");
 
-  if (atom->bonds_allow) {
+  if (atom->avec->bonds_allow) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
@@ -624,7 +596,7 @@ void ReadRestart::force_fields()
     } else force->create_bond("none");
   }
 
-  if (atom->angles_allow) {
+  if (atom->avec->angles_allow) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
@@ -646,7 +618,7 @@ void ReadRestart::force_fields()
     } else force->create_angle("none");
   }
 
-  if (atom->dihedrals_allow) {
+  if (atom->avec->dihedrals_allow) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
@@ -668,7 +640,7 @@ void ReadRestart::force_fields()
     } else force->create_dihedral("none");
   }
 
-  if (atom->impropers_allow) {
+  if (atom->avec->impropers_allow) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
@@ -692,7 +664,7 @@ void ReadRestart::force_fields()
 }
 
 /* ----------------------------------------------------------------------
-   read an int from restart file 
+   read an int from restart file and bcast it
 ------------------------------------------------------------------------- */
 
 int ReadRestart::read_int()
@@ -704,7 +676,7 @@ int ReadRestart::read_int()
 }
 
 /* ----------------------------------------------------------------------
-   read a double from restart file 
+   read a double from restart file and bcast it
 ------------------------------------------------------------------------- */
 
 double ReadRestart::read_double()
@@ -716,7 +688,8 @@ double ReadRestart::read_double()
 }
 
 /* ----------------------------------------------------------------------
-   read a char str from restart file 
+   read a char str from restart file and bcast it
+   str is allocated here, ptr is returned, caller must deallocate
 ------------------------------------------------------------------------- */
 
 char *ReadRestart::read_char()

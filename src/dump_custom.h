@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,9 +16,11 @@
 
 #include "dump.h"
 
+namespace LAMMPS_NS {
+
 class DumpCustom : public Dump {
  public:
-  DumpCustom(int, char **);
+  DumpCustom(class LAMMPS *, int, char **);
   ~DumpCustom();
   void init();
   int memory_usage();
@@ -38,36 +40,30 @@ class DumpCustom : public Dump {
   int *choose;               // 1 if output this atom, 0 if no
   double *dchoose;           // value for each atom to threshhold against
 
-  int nevery;
+  int nfield;                // # of keywords listed by user
+  int ncompute;              // # of Compute objects called by dump
+  char **id_compute;         // their IDs
+  class Compute **compute;   // list of ptrs to the Compute objects
+  int *field2compute;        // which Compute computes this field
+  int *arg_compute;          // index into Compute scalar_atom,vector_atom
+                             // 0 for scalar_atom, 1-N for vector_atom values
 
-  int fixflag;               // 1 if this dump invokes any fixes, 0 if not
-  int fixflag_epair;         // 1 if this fix is invoked, 0 if not
-  int fixflag_centro;
-  int fixflag_stress;
-  int ifix_epair;            // which fix it is (0 to nfixes-1)
-  int ifix_centro;
-  int ifix_stress;
-
-  int computeflag;           // 1 if this dump invokes any local comp, 0 if not
-  int computeflag_etotal;    // 1 if this local comp is invoked, 0 if not
-  int computeflag_ke;
-
-  // local computation arrays
-
-  double *etotal;
-  double *ke;
+                             // index = where keyword's Compute is in list
+                             // style = style of Compute object
+  int index_epair,index_ke,index_etotal,index_centro,index_stress;
+  char *style_epair,*style_ke,*style_etotal,*style_centro,*style_stress;
 
   // private methods
 
-  int modify_param(int, char **);
   void write_header(int);
   int count();
   int pack();
   void write_data(int, double *);
 
-  void fix_create(char *);
-  void fix_delete(char *);
-  int fix_match(char *);
+  void parse_fields(int, char **);
+  int add_compute(char *, int);
+  void create_compute(char *, char *);
+  int modify_param(int, char **);
 
   typedef void (DumpCustom::*FnPtrHeader)(int);
   FnPtrHeader header_choice;           // ptr to write header functions
@@ -83,6 +79,9 @@ class DumpCustom : public Dump {
 
   typedef void (DumpCustom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
+
+  void pack_compute(int);
+
   void pack_tag(int);
   void pack_molecule(int);
   void pack_type(int);
@@ -121,11 +120,8 @@ class DumpCustom : public Dump {
   void pack_sxy(int);
   void pack_sxz(int);
   void pack_syz(int);
-
-  // local computation methods
-
-  void compute_etotal();
-  void compute_ke();
 };
+
+}
 
 #endif

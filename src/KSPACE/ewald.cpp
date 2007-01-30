@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,21 +23,19 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "pair_buck_coul_long.h"
-#include "pair_lj_cut_coul_long.h"
-#include "pair_lj_charmm_coul_long.h"
-#include "pair_lj_class2_coul_long.h"
-#include "pair_table.h"
+#include "pair.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-Ewald::Ewald(int narg, char **arg) : KSpace(narg, arg)
+Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg != 1) error->all("Illegal kspace_style ewald command");
 
@@ -90,27 +88,16 @@ void Ewald::init()
       error->all("Incorrect boundaries with slab Ewald");
   }
 
-  // insure use of pair_style with long-range Coulombics
-  // set cutoff to short-range Coulombic cutoff
+  // insure use of long (or table) pair_style with long-range Coulombics
+  // set cutoff to Pair's short-range Coulombic cutoff
 
   qqrd2e = force->qqrd2e;
 
+  Pair *pair = force->pair_match("long");
+  if (pair == NULL) pair = force->pair_match("table");
+  if (pair == NULL) error->all("KSpace style is incompatible with Pair style");
   double cutoff;
-
-  Pair *anypair;
-  if (force->pair == NULL) 
-    error->all("KSpace style is incompatible with Pair style");
-  else if (anypair = force->pair_match("buck/coul/long"))
-    cutoff = ((PairBuckCoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/cut/coul/long"))
-    cutoff = ((PairLJCutCoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/charmm/coul/long"))
-    cutoff = ((PairLJCharmmCoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("lj/class2/coul/long"))
-    cutoff = ((PairLJClass2CoulLong *) anypair)->cut_coul;
-  else if (anypair = force->pair_match("table"))
-    cutoff = ((PairTable *) anypair)->cut_coul();
-  else error->all("KSpace style is incompatible with Pair style");
+  pair->extract_long(&cutoff);
 
   // compute qsum & qsqsum
 

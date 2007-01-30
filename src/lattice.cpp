@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,15 +21,17 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 #define BIG 1.0e30
 
-enum {NONE,SC,BCC,FCC,DIAMOND,SQ,SQ2,HEX,USER};
+enum{NONE,SC,BCC,FCC,DIAMOND,SQ,SQ2,HEX,USER};
 
 /* ---------------------------------------------------------------------- */
 
-Lattice::Lattice(int narg, char **arg)
+Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   // parse style arg
 

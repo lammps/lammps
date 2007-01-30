@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,16 +18,16 @@
 #endif
 
 #ifdef AtomInclude
-#include "atom_atomic.h"
-#include "atom_charge.h"
-#include "atom_hybrid.h"
+#include "atom_vec_atomic.h"
+#include "atom_vec_charge.h"
+#include "atom_vec_hybrid.h"
 #endif
 
 #ifdef AtomClass
-AtomStyle(atomic,AtomAtomic)
-AtomStyle(charge,AtomCharge)
-AtomStyle(hybrid,AtomHybrid)
-# endif
+AtomStyle(atomic,AtomVecAtomic)
+AtomStyle(charge,AtomVecCharge)
+AtomStyle(hybrid,AtomVecHybrid)
+#endif
 
 #ifdef BondInclude
 #endif
@@ -71,6 +71,36 @@ CommandStyle(velocity,Velocity)
 CommandStyle(write_restart,WriteRestart)
 #endif
 
+#ifdef ComputeInclude
+#include "compute_centro_atom.h"
+#include "compute_epair_atom.h"
+#include "compute_etotal_atom.h"
+#include "compute_ke_atom.h"
+#include "compute_pressure.h"
+#include "compute_rotate_dipole.h"
+#include "compute_rotate_gran.h"
+#include "compute_stress_atom.h"
+#include "compute_temp.h"
+#include "compute_temp_partial.h"
+#include "compute_temp_ramp.h"
+#include "compute_temp_region.h"
+#endif
+
+#ifdef ComputeClass
+ComputeStyle(centro/atom,ComputeCentroAtom)
+ComputeStyle(epair/atom,ComputeEpairAtom)
+ComputeStyle(etotal/atom,ComputeEtotalAtom)
+ComputeStyle(ke/atom,ComputeKEAtom)
+ComputeStyle(pressure,ComputePressure)
+ComputeStyle(rotate/dipole,ComputeRotateDipole)
+ComputeStyle(rotate/gran,ComputeRotateGran)
+ComputeStyle(stress/atom,ComputeStressAtom)
+ComputeStyle(temp,ComputeTemp)
+ComputeStyle(temp/partial,ComputeTempPartial)
+ComputeStyle(temp/ramp,ComputeTempRamp)
+ComputeStyle(temp/region,ComputeTempRegion)
+#endif
+
 #ifdef DihedralInclude
 #endif
 
@@ -94,12 +124,10 @@ DumpStyle(xyz,DumpXYZ)
 #ifdef FixInclude
 #include "fix_add_force.h"
 #include "fix_ave_force.h"
-#include "fix_centro.h"
 #include "fix_com.h"
 #include "fix_drag.h"
 #include "fix_deposit.h"
 #include "fix_efield.h"
-#include "fix_energy.h"
 #include "fix_enforce2d.h"
 #include "fix_gravity.h"
 #include "fix_gyration.h"
@@ -122,10 +150,10 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_rigid.h"
 #include "fix_set_force.h"
 #include "fix_shake.h"
+#include "fix_shear_history.h"
 #include "fix_spring.h"
 #include "fix_spring_rg.h"
 #include "fix_spring_self.h"
-#include "fix_stress.h"
 #include "fix_temp_rescale.h"
 #include "fix_tmd.h"
 #include "fix_uniaxial.h"
@@ -140,12 +168,10 @@ DumpStyle(xyz,DumpXYZ)
 #ifdef FixClass
 FixStyle(addforce,FixAddForce)
 FixStyle(aveforce,FixAveForce)
-FixStyle(CENTRO,FixCentro)
 FixStyle(com,FixCOM)
 FixStyle(drag,FixDrag)
 FixStyle(deposit,FixDeposit)
 FixStyle(efield,FixEfield)
-FixStyle(ENERGY,FixEnergy)
 FixStyle(enforce2d,FixEnforce2D)
 FixStyle(gravity,FixGravity)
 FixStyle(gyration,FixGyration)
@@ -168,10 +194,10 @@ FixStyle(RESPA,FixRespa)
 FixStyle(rigid,FixRigid)
 FixStyle(setforce,FixSetForce)
 FixStyle(shake,FixShake)
+FixStyle(SHEAR_HISTORY,FixShearHistory)
 FixStyle(spring,FixSpring)
 FixStyle(spring/rg,FixSpringRG)
 FixStyle(spring/self,FixSpringSelf)
-FixStyle(STRESS,FixStress)
 FixStyle(temp/rescale,FixTempRescale)
 FixStyle(tmd,FixTMD)
 FixStyle(uniaxial,FixUniaxial)
@@ -265,20 +291,6 @@ RegionStyle(sphere,RegSphere)
 RegionStyle(union,RegUnion)
 #endif
 
-#ifdef TempInclude
-#include "temp_full.h"
-#include "temp_partial.h"
-#include "temp_ramp.h"
-#include "temp_region.h"
-#endif
-
-#ifdef TempClass
-TempStyle(full,TempFull)
-TempStyle(partial,TempPartial)
-TempStyle(ramp,TempRamp)
-TempStyle(region,TempRegion)
-#endif
-
 // style files for optional packages
 
 #include "style_class2.h"
@@ -288,6 +300,7 @@ TempStyle(region,TempRegion)
 #include "style_manybody.h"
 #include "style_meam.h"
 #include "style_molecule.h"
+#include "style_opt.h"
 #include "style_poems.h"
 #include "style_xtc.h"
 

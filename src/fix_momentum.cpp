@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,13 +19,16 @@
 #include "group.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ----------------------------------------------------------------------
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
-FixMomentum::FixMomentum(int narg, char **arg) : Fix(narg, arg)
+FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all("Illegal fix momentum command");
   nevery = atoi(arg[3]);
@@ -105,7 +108,7 @@ void FixMomentum::end_of_step()
     group->xcm(igroup,masstotal,xcm);
     group->angmom(igroup,xcm,angmom);
     group->inertia(igroup,xcm,inertia);
-    group->omega(igroup,angmom,inertia,omega);
+    group->omega(angmom,inertia,omega);
     
     // adjust velocities to zero omega
     // vnew_i = v_i - w x r_i

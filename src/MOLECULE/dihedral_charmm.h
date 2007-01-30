@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,9 +17,11 @@
 #include "stdio.h"
 #include "dihedral.h"
 
+namespace LAMMPS_NS {
+
 class DihedralCharmm : public Dihedral {
  public:
-  DihedralCharmm() {}
+  DihedralCharmm(class LAMMPS *);
   ~DihedralCharmm();
   void compute(int, int);
   void coeff(int, int, char **);
@@ -31,9 +33,11 @@ class DihedralCharmm : public Dihedral {
   double *k,*weight,*cos_shift,*sin_shift;
   int *multiplicity,*shift;
   double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
-  int implicitflag;
+  int implicit_flag;
 
   void allocate();
 };
+
+}
 
 #endif

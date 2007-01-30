@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,16 +15,19 @@
 #include "stdio.h"
 #include "special.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-Special::Special()
+Special::Special(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -617,6 +620,7 @@ void Special::combine()
   // compute global maxspecial, must be at least 1
   // allocate correct special array with same nmax, new maxspecial
   // previously allocated one must be destroyed
+  // must force AtomVec class to update its ptr to special
 
   MPI_Allreduce(&maxspecial,&atom->maxspecial,1,MPI_INT,MPI_MAX,world);
   atom->maxspecial = MAX(atom->maxspecial,1);
@@ -632,6 +636,7 @@ void Special::combine()
 
   atom->special = 
     memory->create_2d_int_array(atom->nmax,atom->maxspecial,"atom:special");
+  atom->avec->reset_ptrs();
   int **special = atom->special;
 
   // ----------------------------------------------------

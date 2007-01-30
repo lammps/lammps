@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,6 +28,8 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -35,7 +37,7 @@
 
 /* ---------------------------------------------------------------------- */
 
-PairEAM::PairEAM()
+PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
   nmax = 0;
   rho = NULL;
@@ -54,10 +56,14 @@ PairEAM::PairEAM()
   frho_spline = NULL;
   rhor_spline = NULL;
   z2r_spline = NULL;
+
+  // set comm size needed by this Pair
+
+  comm_forward = 1;
+  comm_reverse = 1;
 }
 
 /* ----------------------------------------------------------------------
-   free all arrays
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
@@ -410,11 +416,6 @@ double PairEAM::init_one(int i, int j)
 
 void PairEAM::init_style()
 {
-  // set communication sizes in comm class
-
-  comm->maxforward_pair = MAX(comm->maxforward_pair,1);
-  comm->maxreverse_pair = MAX(comm->maxreverse_pair,1);
-
   // convert read-in file(s) to arrays and spline them
 
   file2array();
@@ -804,17 +805,16 @@ void PairEAM::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairEAM::single_embed(int i, int itype, double &fpi,
-			   int eflag, double &phi)
+void PairEAM::single_embed(int i, int itype, double &phi)
 {
+  printf("AAA %d\n",i);
   double p = rho[i]*rdrho + 1.0;
   int m = static_cast<int> (p);
   m = MAX(1,MIN(m,nrho-1));
   p -= m;
   
   double *coeff = frho_spline[type2frho[itype]][m];
-  fpi = (coeff[0]*p + coeff[1])*p + coeff[2];
-  if (eflag) phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+  phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -875,4 +875,15 @@ int PairEAM::memory_usage()
 {
   int bytes = 2 * nmax * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   swap fp array with one passed in by caller
+------------------------------------------------------------------------- */
+
+void PairEAM::extract_eam(double *fp_caller, double **fp_caller_hold)
+{
+  double *tmp = fp;
+  fp = fp_caller;
+  *fp_caller_hold = tmp;
 }

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,11 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixNVEGran : public Fix {
  public:
-  FixNVEGran(int, char **);
-  ~FixNVEGran() {}
+  FixNVEGran(class LAMMPS *, int, char **);
   int setmask();
   void init();
   void initial_integrate();
@@ -28,5 +29,7 @@ class FixNVEGran : public Fix {
  private:
   double dtv,dtf,dtfphi;
 };
+
+}
 
 #endif

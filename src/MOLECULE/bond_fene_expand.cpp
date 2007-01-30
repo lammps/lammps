@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -10,8 +10,6 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
-// FENE bond potential, with repulsive LJ, with shift
 
 #include "math.h"
 #include "stdlib.h"
@@ -25,18 +23,16 @@
 #include "memory.h"
 #include "error.h"
 
-/* ----------------------------------------------------------------------
-   set all global defaults 
-------------------------------------------------------------------------- */
+using namespace LAMMPS_NS;
 
-BondFENEExpand::BondFENEExpand()
+/* ---------------------------------------------------------------------- */
+
+BondFENEExpand::BondFENEExpand(LAMMPS *lmp) : Bond(lmp)
 {
   TWO_1_3 = pow(2.0,(1.0/3.0));
 }
 
-/* ----------------------------------------------------------------------
-   free all arrays 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 BondFENEExpand::~BondFENEExpand()
 {

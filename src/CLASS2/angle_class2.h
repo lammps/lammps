@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,9 +17,11 @@
 #include "stdio.h"
 #include "angle.h"
 
+namespace LAMMPS_NS {
+
 class AngleClass2 : public Angle {
  public:
-  AngleClass2() {}
+  AngleClass2(class LAMMPS *);
   ~AngleClass2();
   void compute(int, int);
   void coeff(int, int, char **);
@@ -35,5 +37,7 @@ class AngleClass2 : public Angle {
 
   void allocate();
 };
+
+}
 
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,9 +16,11 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixShake : public Fix {
  public:
-  FixShake(int, char **);
+  FixShake(class LAMMPS *, int, char **);
   ~FixShake();
   int setmask();
   void init();
@@ -99,5 +101,7 @@ class FixShake : public Fix {
   int bondfind(int, int, int);
   int anglefind(int, int, int);
 };
+
+}
 
 #endif

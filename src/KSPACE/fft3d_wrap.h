@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,12 +14,14 @@
 #ifndef FFT3D_WRAP_H
 #define FFT3D_WRAP_H
 
-#include "lammps.h"
+#include "pointers.h"
 #include "fft3d.h"
 
-class FFT3d : public LAMMPS {
+namespace LAMMPS_NS {
+
+class FFT3d : protected Pointers {
  public:
-  FFT3d(MPI_Comm,int,int,int,int,int,int,int,int,int,
+  FFT3d(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,int,int,int,
 	int,int,int,int,int,int,int,int,int *);
   ~FFT3d();
   void compute(double *, double *, int);
@@ -28,5 +30,7 @@ class FFT3d : public LAMMPS {
  private:
   struct fft_plan_3d *plan;
 };
+
+}
 
 #endif

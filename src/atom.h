@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,70 +14,38 @@
 #ifndef ATOM_H
 #define ATOM_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Atom : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Atom : protected Pointers {
  public:
-  char *style;
-  double PI;
+  char *atom_style;
+  class AtomVec *avec;
 
   // atom counts
 
   double natoms;                // total # of atoms in system, could be 0
   int nlocal,nghost;            // # of owned and ghost atoms on this proc
   int nmax;                     // max # of owned+ghost in arrays on this proc
-
-  // # of atom and topology types
+  int tag_enable;               // 0/1 if atom ID tags are defined
+  int molecular;                // 0 = atomic, 1 = molecular system
 
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
-
-  // molecular counts
-
   int nbonds,nangles,ndihedrals,nimpropers;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
 
-  // atom styles
-
-  int style_angle,style_atomic,style_bond,style_charge,style_dipole,style_dpd;
-  int style_eam,style_full,style_granular,style_molecular,style_peri;
-  int style_hybrid;
-
-  // flags set by atom styles
-
-  int molecular;                       // 0 = atomic, 1 = molecular system
-  int bonds_allow,angles_allow;        // 0/1 if bonds, angles are used
-  int dihedrals_allow,impropers_allow; // 0/1 if dihedrals, impropers used
-  int charge_allow;                    // 0/1 if charges used
-  int mass_allow;                      // 0/1 if per-atom rmass array
-  int mass_require;                    // 0/1 if per-type masses
-  int dipole_require;                  // 0/1 if per-type dipole moments
-  int tag_enable;                      // 0/1 if atom ID tags are defined
-
-  // communication sizes - set by each atom style
-
-  int size_comm,size_reverse,size_border;
-  int size_atom_valid,size_atom_actual;
-
-  // arrays of length ntypes and flags if set
-
-  double *mass;
-  int *mass_setflag;
-  double *dipole;
-  int *dipole_setflag;
-
-  // arrays common to all atom classes
+  // per-atom arrays
+  // customize by adding new array
 
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
 
-  // arrays specific to some atom classes
-
+  int *molecule;
   double *q,**mu;
   double **omega,**torque;
   double *radius,*density,*rmass,*vfrac;
   double **phix,**phiv,**phia;
-
-  int *molecule;
 
   int maxspecial;
   int **nspecial,**special;
@@ -97,10 +65,19 @@ class Atom : public LAMMPS {
   int *num_improper;
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
- 
-  // array for extra peratom info in restart file destined for fix & diag 
+
+  int *hybrid;
+
+  // extra peratom info in restart file destined for fix & diag 
 
   double **extra;
+
+  // per-type arrays
+
+  double *mass;
+  int *mass_setflag;
+  double *dipole;
+  int *dipole_setflag;
 
   // callback ptrs for atom arrays managed by fix classes
 
@@ -109,10 +86,71 @@ class Atom : public LAMMPS {
   int nextra_grow_max,nextra_restart_max;     // size of callback lists
   int nextra_store;
 
-  // data for global to local ID mapping
-
   int map_style;                  // default or user-specified style of map
                                   // 0 = none, 1 = array, 2 = hash
+
+  // functions
+
+  Atom(class LAMMPS *);
+  ~Atom();
+
+  void create_avec(char *, int, char **);
+  class AtomVec *new_avec(char *, int, char **);
+  void init();
+
+  int check_style(char *);
+  int style2arg(char **);
+  void modify_params(int, char **);
+  void tag_extend();
+  int tag_consecutive();
+
+  int parse_data(char *);
+  int count_words(char *);
+
+  void data_atoms(int, char *, int);
+  void data_vels(int, char *, int);
+  void data_bonds(int, char *);
+  void data_angles(int, char *);
+  void data_dihedrals(int, char *);
+  void data_impropers(int, char *);
+
+  void allocate_type_arrays();
+  void set_mass(char *);
+  void set_mass(int, double);
+  void set_mass(int, char **);
+  void set_mass(double *);
+  void check_mass();
+  void set_dipole(char *);
+  void set_dipole(int, char **);
+  void set_dipole(double *);
+  void check_dipole();
+
+  void add_callback(int);
+  void delete_callback(char *, int);
+  void update_callback(int);
+
+  int memory_usage();
+  int memcheck(const char *);
+
+  // functions for global to local ID mapping
+  // map lookup function inlined for efficiency
+  
+  inline int map(int global) {
+    if (map_style == 1) return map_array[global];
+    else return map_find_hash(global);
+  };
+
+  void map_init();
+  void map_clear();
+  void map_set();
+  void map_one(int, int);
+  void map_delete();
+  int map_find_hash(int);
+
+ private:
+
+  // data for global to local ID mapping
+
   int map_tag_max;
   int *map_array;
 
@@ -130,83 +168,10 @@ class Atom : public LAMMPS {
   int *primes;                    // table of prime #s for hashing
   int nprimes;                    // # of primes
 
-  // functions common to all atom styles
-
-  Atom(int, char **);
-  virtual ~Atom();
-  void set_style(char *);
-  int check_style(char *);
-  int style2arg(char **&);
-  char *style2word(char *);
-  void settings(Atom *);
-
-  void init();
-  void grow(int);
-
-  void modify_params(int, char **);
-  void tag_extend();
-  int tag_consecutive();
-
-  int parse_data(char *);
-  int count_words(char *);
-
-  void unpack_data(int, char *);
-  void create_one(int, double, double, double);
-  virtual void unpack_vels(int, char *);     // can be overwritten by child
-  void unpack_bonds(int, char *);
-  void unpack_angles(int, char *);
-  void unpack_dihedrals(int, char *);
-  void unpack_impropers(int, char *);
-
-  void allocate_type_arrays();
-  void set_mass(char *);
-  void set_mass(int, double);
-  void set_mass(int, char **);
-  void set_mass(double *);
-  void check_mass();
-  void set_dipole(char *);
-  void set_dipole(int, char **);
-  void set_dipole(double *);
-  void check_dipole();
-
-  void add_callback(int);
-  void delete_callback(char *, int);
-  void update_callback(int);
-
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-
-  int memory_usage();
-
-  // functions for global ID to local index atom mapping
-  // map lookup function is inlined right here for efficiency
-  
-  inline int map(int global) {
-    if (map_style == 1) return map_array[global];
-    else return map_find_hash(global);
-  };
-
-  void map_init();
-  void map_clear();
-  void map_set();
-  void map_one(int, int);
-  void map_delete();
-  int map_find_hash(int);
-
-  // pure virtual functions, must be defined in child class
-
-  virtual void copy(int, int) = 0;
-
-  virtual void pack_comm(int, int *, double *, int *) = 0;
-  virtual void unpack_comm(int, int, double *) = 0;
-  virtual void pack_reverse(int, int, double *) = 0;
-  virtual void unpack_reverse(int, int *, double *) = 0;
-
-  virtual void pack_border(int, int *, double *, int *) = 0;
-  virtual void unpack_border(int, int, double *) = 0;
-  virtual int pack_exchange(int, double *) = 0;
-  virtual int unpack_exchange(double *) = 0;
+  int memlength;                  // allocated size of memstr
+  char *memstr;                   // string of array names already counted
 };
+
+}
 
 #endif

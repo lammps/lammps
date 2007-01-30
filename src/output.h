@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,20 +14,18 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Thermo;
-class Dump;
-class WriteRestart;
+namespace LAMMPS_NS {
 
-class Output : public LAMMPS {
+class Output : protected Pointers {
  public:
   int next;                    // next timestep for any kind of output
 
   int next_thermo;             // next timestep for thermo output
   int thermo_every;            // thermo output every this many steps
   int last_thermo;             // last timestep thermo was output
-  Thermo *thermo;              // Thermodynamic computations
+  class Thermo *thermo;        // Thermodynamic computations
 
   int ndump;                   // # of Dumps defined
   int max_dump;                // max size of Dump list
@@ -35,7 +33,7 @@ class Output : public LAMMPS {
   int *next_dump;              // next timestep to do each Dump
   int *dump_every;             // output of each Dump every this many steps
   int *last_dump;              // last timestep each a snapshot was output
-  Dump **dump;                 // list of defined Dumps
+  class Dump **dump;           // list of defined Dumps
 
   int next_restart;            // next timestep to write a restart file
   int restart_every;           // write a restart file every this many steps
@@ -43,9 +41,9 @@ class Output : public LAMMPS {
   int restart_toggle;          // 0 if use restart1 as prefix
                                // 1 if use restart1 as file, 2 for restart2
   char *restart1,*restart2;    // names for restart files
-  WriteRestart *restart;       // Restart output
+  class WriteRestart *restart; // Restart output
 
-  Output();
+  Output(class LAMMPS *);
   ~Output();
   void init();
   void setup(int);                   // initial output before run/min
@@ -58,7 +56,9 @@ class Output : public LAMMPS {
   void create_thermo(int, char **);  // create a thermo style
   void create_restart(int, char **); // create Restart and restart files
 
-  void print_memory_usage();         // print out memory usage
+  void memory_usage();               // print out memory usage
 };
+
+}
 
 #endif

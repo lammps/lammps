@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,12 +16,14 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixShearHistory : public Fix {
   friend class Neighbor;
   friend class FixPour;
 
  public:
-  FixShearHistory(int, char **);
+  FixShearHistory(class LAMMPS *, int, char **);
   ~FixShearHistory();
   int setmask();
   void init();
@@ -42,5 +44,7 @@ class FixShearHistory : public Fix {
   int **partner;                // tags for the partners
   double ***shearpartner;       // 3 shear values with the partner
 };
+
+}
 
 #endif

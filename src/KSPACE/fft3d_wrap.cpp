@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,14 +15,16 @@
 #include "fft3d_wrap.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-FFT3d::FFT3d(MPI_Comm comm, int nfast, int nmid, int nslow,
+FFT3d::FFT3d(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid, int nslow,
 	     int in_ilo, int in_ihi, int in_jlo, int in_jhi,
 	     int in_klo, int in_khi,
 	     int out_ilo, int out_ihi, int out_jlo, int out_jhi,
 	     int out_klo, int out_khi,
-	     int scaled, int permute, int *nbuf)
+	     int scaled, int permute, int *nbuf) : Pointers(lmp)
 {
   plan = fft_3d_create_plan(comm,nfast,nmid,nslow,
 			    in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,

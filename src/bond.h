@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,9 +15,11 @@
 #define BOND_H
 
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class Bond : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Bond : protected Pointers {
  public:
   int allocated;
   int *setflag;
@@ -25,7 +27,7 @@ class Bond : public LAMMPS {
   double eng_vdwl;
   double virial[6];
 
-  Bond();
+  Bond(class LAMMPS *);
   virtual ~Bond() {}
   virtual void init();
   virtual void init_style() {}
@@ -40,5 +42,7 @@ class Bond : public LAMMPS {
 		      double, int, double &, double &) = 0;
   virtual int memory_usage() {return 0;}
 };
+
+}
 
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// LAMMPS as a library that can be called from another program
-// C-style interface
+// C or Fortran style library interface to LAMMPS
+// new LAMMPS-specific functions can be added
 
 #include "mpi.h"
 #include "library.h"
@@ -20,58 +20,68 @@
 #include "input.h"
 #include "atom.h"
 
-// variable visible to all library functions
-
-LAMMPS *lammps;
+using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
-   minimal library interface functions
+   create an instance of LAMMPS and return pointer to it
+   pass in command-line args and MPI communicator to run on
 ------------------------------------------------------------------------- */
 
-void lammps_open(int argc, char **argv, MPI_Comm communicator)
+void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 {
-  lammps = new LAMMPS();
-  lammps->open(argc,argv,communicator);
+  LAMMPS *lammps = new LAMMPS(argc,argv,communicator);
+  *ptr = (void *) lammps;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   destruct an instance of LAMMPS
+------------------------------------------------------------------------- */
 
-void lammps_close()
+void lammps_close(void *ptr)
 {
-  lammps->close();
+  LAMMPS *lammps = (LAMMPS *) ptr;
   delete lammps;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   process an input script in filename str
+------------------------------------------------------------------------- */
 
-void lammps_file(char *str)
+void lammps_file(void *ptr, char *str)
 {
+  LAMMPS *lammps = (LAMMPS *) ptr;
   lammps->input->file(str);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   process a single input command in str
+------------------------------------------------------------------------- */
 
-char *lammps_command(char *str)
+char *lammps_command(void *ptr, char *str)
 {
+  LAMMPS *lammps = (LAMMPS *) ptr;
   return lammps->input->one(str);
 }
 
 /* ----------------------------------------------------------------------
-   add application-specific library functions here
+   add LAMMPS-specific library functions
+   all must receive LAMMPS pointer as argument
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
-int lammps_get_natoms()
+int lammps_get_natoms(void *ptr)
 {
+  LAMMPS *lammps = (LAMMPS *) ptr;
   int natoms = static_cast<int> (lammps->atom->natoms);
   return natoms;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void lammps_get_coords(double *coords)
+void lammps_get_coords(void *ptr, double *coords)
 {
+  LAMMPS *lammps = (LAMMPS *) ptr;
   int natoms = static_cast<int> (lammps->atom->natoms);
   double *copy = new double[3*natoms];
   for (int i = 0; i < 3*natoms; i++) copy[i] = 0.0;
@@ -95,12 +105,12 @@ void lammps_get_coords(double *coords)
 
 /* ---------------------------------------------------------------------- */
 
-void lammps_put_coords(double *coords)
+void lammps_put_coords(void *ptr, double *coords)
 {
+  LAMMPS *lammps = (LAMMPS *) ptr;
   int natoms = static_cast<int> (lammps->atom->natoms);
 
   double **x = lammps->atom->x;
-  int nlocal = lammps->atom->nlocal;
 
   int m,offset;
   for (int i = 0; i < natoms; i++) {

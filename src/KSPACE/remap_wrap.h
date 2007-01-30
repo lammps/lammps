@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,12 +14,14 @@
 #ifndef REMAP_WRAP_H
 #define REMAP_WRAP_H
 
-#include "lammps.h"
+#include "pointers.h"
 #include "remap.h"
 
-class Remap : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Remap : protected Pointers {
  public:
-  Remap(MPI_Comm,int,int,int,int,int,int,
+  Remap(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
 	int,int,int,int,int,int,int,int,int,int);
   ~Remap();
   void perform(double *, double *, double *);
@@ -27,5 +29,7 @@ class Remap : public LAMMPS {
  private:
   struct remap_plan_3d *plan;
 };
+
+}
 
 #endif

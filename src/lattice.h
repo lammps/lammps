@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,16 +14,18 @@
 #ifndef LATTICE_H
 #define LATTICE_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Lattice : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Lattice : protected Pointers {
  public:
   int style;                           // enum list of NONE,SC,FCC,etc
   double xlattice,ylattice,zlattice;   // lattice scale factors in 3 dims
   int nbasis;                          // # of atoms in basis of unit cell
   double **basis;                      // fractional coords of each basis atom
                                        // within unit cell (0 <= coord < 1)
-  Lattice(int, char **);
+  Lattice(class LAMMPS *, int, char **);
   ~Lattice();
   void lattice2box(double &, double &, double &);
   void box2lattice(double &, double &, double &);
@@ -51,5 +53,7 @@ private:
   double dot(double *, double *);
   void cross(double *, double *, double *);
 };
+
+}
 
 #endif

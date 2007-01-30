@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,9 +25,11 @@
 #undef IntegrateInclude
 #undef MinimizeInclude
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-Update::Update()
+Update::Update(LAMMPS *lmp) : Pointers(lmp)
 {
   int n;
   char *str;
@@ -46,13 +48,13 @@ Update::Update()
   n = strlen(str) + 1;
   integrate_style = new char[n];
   strcpy(integrate_style,str);
-  integrate = new Verlet(0,NULL);
+  integrate = new Verlet(lmp,0,NULL);
 
   str = "cg";
   n = strlen(str) + 1;
   minimize_style = new char[n];
   strcpy(minimize_style,str);
-  minimize = new MinCG();
+  minimize = new MinCG(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,7 +142,7 @@ void Update::create_integrate(int narg, char **arg)
 
 #define IntegrateClass
 #define IntegrateStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) integrate = new Class(narg-1,&arg[1]);
+  else if (strcmp(arg[0],#key) == 0) integrate = new Class(lmp,narg-1,&arg[1]);
 #include "style.h"
 #undef IntegrateClass
 
@@ -164,7 +166,7 @@ void Update::create_minimize(int narg, char **arg)
 
 #define MinimizeClass
 #define MinimizeStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) minimize = new Class();
+  else if (strcmp(arg[0],#key) == 0) minimize = new Class(lmp);
 #include "style.h"
 #undef MinimizeClass
 

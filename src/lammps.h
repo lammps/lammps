@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,52 +14,42 @@
 #ifndef LAMMPS_H
 #define LAMMPS_H
 
-#include "mpi.h"
 #include "stdio.h"
+#include "mpi.h"
 
-class System;
-class Universe;
-class Input;
-class Memory;
-class Error;
-
-class Atom;
-class Update;
-class Neighbor;
-class Comm;
-class Domain;
-class Force;
-class Modify;
-class Group;
-class Output;
-class Timer;
+namespace LAMMPS_NS {
 
 class LAMMPS {
  public:
-  static System *sys;             // simulation system
-  static Universe *universe;      // universe of processors
-  static Input *input;            // input script processing
-  static Memory *memory;          // memory allocation functions
-  static Error *error;            // error handling
+                                 // ptrs to fundamental LAMMPS classes
+  class Memory *memory;             // memory allocation functions
+  class Error *error;               // error handling
+  class Universe *universe;         // universe of processors
+  class Input *input;               // input script processing
+                                 // ptrs to top-level LAMMPS-specific classes
+  class Atom *atom;                 // atom-based quantities
+  class Update *update;             // integrators/minimizers
+  class Neighbor *neighbor;         // neighbor lists
+  class Comm *comm;                 // inter-processor communication
+  class Domain *domain;             // simulation box
+  class Force *force;               // inter-particle forces
+  class Modify *modify;             // fixes and computes
+  class Group *group;               // groups of atoms
+  class Output *output;             // thermo/dump/restart
+  class Timer *timer;               // CPU timing info
 
-  static Atom *atom;              // atom-based quantities
-  static Update *update;          // integrators/minimizers
-  static Neighbor *neighbor;      // neighbor lists
-  static Comm *comm;              // inter-processor communication
-  static Domain *domain;          // simulation box
-  static Force *force;            // inter-particle forces
-  static Modify *modify;          // fixes
-  static Group *group;            // groups of atoms
-  static Output *output;          // thermo/dump/restart
-  static Timer *timer;            // CPU timing info
+  MPI_Comm world;                // MPI communicator
+  FILE *infile;                  // infile
+  FILE *screen;                  // screen output
+  FILE *logfile;                 // logfile
 
-  static MPI_Comm world;          // communicator for my world of procs
-  static FILE *infile;            // infile for my world
-  static FILE *screen;            // screen output for my world
-  static FILE *logfile;           // logfile for my world
-
-  void open(int, char **, MPI_Comm);
-  void close();
+  LAMMPS(int, char **, MPI_Comm);
+  ~LAMMPS();
+  void create();
+  void init();
+  void destroy();
 };
+
+}
 
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,16 +16,18 @@
 
 #include "pair_lj_cut_coul_long.h"
 
+namespace LAMMPS_NS {
+
 class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
-  friend class PPPM; 
-  
  public:
-  PairLJCutCoulLongTIP4P();
+  PairLJCutCoulLongTIP4P(class LAMMPS *);
   void compute(int, int);
   void settings(int, char **);
   void init_style();
   void write_restart_settings(FILE *fp);
   void read_restart_settings(FILE *fp);
+
+  void extract_tip4p(double *, int *, int *, int *, int *);
 
  private:
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
@@ -37,5 +39,7 @@ class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
 
   void find_M(int, int &, int &, double *);
 };
+
+}
 
 #endif

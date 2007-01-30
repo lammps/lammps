@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,9 +17,11 @@
 #include "stdio.h"
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixRDF : public Fix {
  public:
-  FixRDF(int, char **);
+  FixRDF(class LAMMPS *, int, char **);
   ~FixRDF();
   int setmask();
   void init();
@@ -38,5 +40,7 @@ class FixRDF : public Fix {
   int *nrdfatoms;             	 // # of atoms of each type in the group
   double **gr_ave,**ncoord_ave;  // accumulators for average rdf statistics
 };
+
+}
 
 #endif

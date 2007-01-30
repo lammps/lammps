@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,6 +15,8 @@
 #define FIX_ORIENT_FCC_H
 
 #include "fix.h"
+
+namespace LAMMPS_NS {
 
 class FixOrientFCC : public Fix {
  public:
@@ -35,17 +37,16 @@ class FixOrientFCC : public Fix {
     double xismooth;        // distance weighting factor
   };
 
-  FixOrientFCC(int, char **);
+  FixOrientFCC(class LAMMPS *, int, char **);
   ~FixOrientFCC();
   int setmask();
   void init();
   void setup();
   void post_force(int);
   void post_force_respa(int, int, int);
+  double thermo(int);
   int pack_comm(int, int *, double *, int *);
   void unpack_comm(int, int, double *);
-  int thermo_fields(int, int *, char **);
-  int thermo_compute(double *);
   int memory_usage();
 
  private:
@@ -62,7 +63,7 @@ class FixOrientFCC : public Fix {
   char *xifilename, *chifilename;  // file names for 2 crystal orientations
 
   bool use_xismooth;
-  int thermo_flag,eflag_on;
+  int eflag_enable;
   double Rxi[12][3],Rchi[12][3],half_xi_chi_vec[2][6][3];
   double xiid,xi0,xi1,xicutoffsq,cutsq,total_added_e;
   int half_fcc_nn,nmax;
@@ -73,5 +74,7 @@ class FixOrientFCC : public Fix {
   void find_best_ref(double *, int, double &, double *);
   static int compare(const void *, const void *);
 };
+
+}
 
 #endif

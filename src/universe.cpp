@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,11 +18,13 @@
 #include "universe.h"
 #include "memory.h"
 
+using namespace LAMMPS_NS;
+
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
 ------------------------------------------------------------------------- */
 
-Universe::Universe(MPI_Comm communicator)
+Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
   version = "1 Oct 2006";
 

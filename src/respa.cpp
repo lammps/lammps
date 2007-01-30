@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,15 +32,17 @@
 #include "kspace.h"
 #include "output.h"
 #include "update.h"
-#include "fix_respa.h"
 #include "modify.h"
+#include "fix_respa.h"
 #include "memory.h"
 #include "timer.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-Respa::Respa(int narg, char **arg) : Integrate(narg, arg)
+Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
 {
   if (narg < 1) error->all("Illegal run_style respa command");
 
@@ -263,9 +265,7 @@ void Respa::init()
   modify->add_fix(4,fixarg);
   delete [] fixarg[3];
   delete [] fixarg;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
+  fix_respa = (FixRespa *) modify->fix[modify->nfix-1];
 
   // insure respa inner/middle/outer is using Pair class that supports it
 
@@ -534,7 +534,7 @@ void Respa::force_clear(int newtonflag)
 
 void Respa::copy_f_flevel(int ilevel)
 {
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   double **f = atom->f;
   int n = atom->nlocal;
 
@@ -551,7 +551,7 @@ void Respa::copy_f_flevel(int ilevel)
 
 void Respa::copy_flevel_f(int ilevel)
 {
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   double **f = atom->f;
   int n = atom->nlocal;
 
@@ -570,7 +570,7 @@ void Respa::sum_flevel_f()
 {
   copy_flevel_f(0);
 
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   double **f = atom->f;
   int n = atom->nlocal;
 

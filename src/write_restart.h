@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,12 +16,13 @@
 #define WRITE_RESTART_H
 
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class WriteRestart : public LAMMPS {
+namespace LAMMPS_NS {
+
+class WriteRestart : protected Pointers {
  public:
-  WriteRestart();
-  ~WriteRestart() {}
+  WriteRestart(class LAMMPS *);
   void command(int, char **);
   void write(char *);
 
@@ -39,5 +40,7 @@ class WriteRestart : public LAMMPS {
   void write_double(int, double);
   void write_char(int, char *);
 };
+
+}
 
 #endif

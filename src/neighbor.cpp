@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,17 +18,21 @@
 #include "limits.h"
 #include "neighbor.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
 #include "group.h"
 #include "modify.h"
 #include "fix.h"
+#include "compute.h"
 #include "update.h"
 #include "respa.h"
 #include "output.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define PGDELTA 1
 #define LB_FACTOR 1.5
@@ -40,7 +44,7 @@
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor()
+Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -104,7 +108,7 @@ Neighbor::Neighbor()
 
   // shear history neighbor list info
 
-  history = -1;
+  fix_history = NULL;
   firsttouch = NULL;
   firstshear = NULL;
   pages_touch = NULL;
@@ -174,7 +178,7 @@ Neighbor::~Neighbor()
   for (int i = 0; i < maxpage_full; i++) memory->sfree(pages_full[i]);
   memory->sfree(pages_full);
 
-  if (history >= 0) {
+  if (fix_history) {
     memory->sfree(firsttouch);
     memory->sfree(firstshear);
     for (int i = 0; i < maxpage; i++) memory->sfree(pages_touch[i]);
@@ -264,7 +268,7 @@ void Neighbor::init()
   // flag = 0 if both LJ/Coulomb special values are 0.0
   // flag = 1 if both LJ/Coulomb special values are 1.0
   // flag = 2 otherwise or if KSpace solver is enabled
-  // (pairwise portion of KSpace solver uses all 1-2,1-3,1-4 neighbors)
+  // pairwise portion of KSpace solver uses all 1-2,1-3,1-4 neighbors
 
   if (force->special_lj[1] == 0.0 && force->special_coul[1] == 0.0) 
     special_flag[1] = 0;
@@ -368,6 +372,7 @@ void Neighbor::init()
   // half and full pairwise neighbor lists
 
   // determine whether to build half and full lists
+  // query pair,fix,compute for their requirements
 
   maxlocal = atom->nmax;
   int half_previous = half;
@@ -383,6 +388,11 @@ void Neighbor::init()
     if (modify->fix[i]->neigh_full_every) full_every = 1;
     if (modify->fix[i]->neigh_half_once) half_once = 1;
     if (modify->fix[i]->neigh_full_once) full_once = 1;
+  }
+
+  for (i = 0; i < modify->ncompute; i++) {
+    if (modify->compute[i]->neigh_half_once) half_once = 1;
+    if (modify->compute[i]->neigh_full_once) full_once = 1;
   }
 
   half = full = 0;
@@ -437,15 +447,16 @@ void Neighbor::init()
   }
 
   // setup/delete memory for shear history neighbor lists
-  // history = index of granular shear history fix if it exists
+  // fix_history = granular shear history fix if it exists
   
-  int history_previous = history;
-  history = -1;
+  FixShearHistory *fix_previous = fix_history;
+  fix_history = NULL;
   if (force->pair_match("gran/history") || force->pair_match("gran/hertzian"))
     for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0) history = i;
+      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0) 
+	fix_history = (FixShearHistory *) modify->fix[i];
 
-  if (history == -1 && history_previous >= 0) {
+  if (fix_history == NULL && fix_previous) {
     memory->sfree(firsttouch);
     memory->sfree(firstshear);
     for (i = 0; i < maxpage; i++) memory->sfree(pages_touch[i]);
@@ -454,12 +465,12 @@ void Neighbor::init()
     memory->sfree(pages_shear);
     pages_touch = NULL;
     pages_shear = NULL;
-  } else if (history >= 0 && history_previous == -1) {
+  } else if (fix_history && fix_previous == NULL) {
     firsttouch = (int **) memory->smalloc(maxlocal*sizeof(int *),"firsttouch");
     firstshear = (double **)
       memory->smalloc(maxlocal*sizeof(double *),"firstshear");
     add_pages_history(0);
-  } else if (history >= 0 && history_previous >= 0) {
+  } else if (fix_history && fix_previous >= 0) {
     memory->sfree(firsttouch);
     memory->sfree(firstshear);
     firsttouch = (int **) memory->smalloc(maxlocal*sizeof(int *),"firsttouch");
@@ -537,7 +548,7 @@ void Neighbor::init()
   // cannot combine granular and rRESPA
 
   if (half) {
-    if (strcmp(atom->style,"granular") == 0) {
+    if (atom->check_style("granular")) {
       if (style == 0) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::granular_nsq_no_newton;
@@ -629,7 +640,7 @@ void Neighbor::init()
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
-  if (atom->bonds_allow) {
+  if (atom->avec->bonds_allow) {
     for (i = 0; i < atom->nlocal; i++) {
       if (bond_off) break;
       for (m = 0; m < atom->num_bond[i]; m++)
@@ -637,7 +648,7 @@ void Neighbor::init()
     }
   }
 
-  if (atom->angles_allow) {
+  if (atom->avec->angles_allow) {
     for (i = 0; i < atom->nlocal; i++) {
       if (angle_off) break;
       for (m = 0; m < atom->num_angle[i]; m++)
@@ -646,7 +657,7 @@ void Neighbor::init()
   }
 
   int dihedral_off = 0;
-  if (atom->dihedrals_allow) {
+  if (atom->avec->dihedrals_allow) {
     for (i = 0; i < atom->nlocal; i++) {
       if (dihedral_off) break;
       for (m = 0; m < atom->num_dihedral[i]; m++)
@@ -655,7 +666,7 @@ void Neighbor::init()
   }
 
   int improper_off = 0;
-  if (atom->impropers_allow) {
+  if (atom->avec->impropers_allow) {
     for (i = 0; i < atom->nlocal; i++) {
       if (improper_off) break;
       for (m = 0; m < atom->num_improper[i]; m++)
@@ -780,7 +791,7 @@ void Neighbor::build()
       memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_full");
     }
 
-    if (history >= 0) {
+    if (fix_history) {
       memory->sfree(firsttouch);
       memory->sfree(firstshear);
       firsttouch = (int **) 
@@ -1136,7 +1147,8 @@ void Neighbor::modify_params(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"molecule") == 0) {
 	if (iarg+3 > narg) error->all("Illegal neigh_modify command");
 	if (atom->molecular == 0) {
-	  char *str = "Must use molecular atom style with neigh_modify exclude molecule";
+	  char *str = "Must use molecular atom style with"
+	              " neigh_modify exclude molecule";
 	  error->all(str);
 	}
 	if (nex_mol == maxex_mol) {
@@ -1189,7 +1201,7 @@ int Neighbor::memory_usage()
     bytes += maxpage_full*pgsize * sizeof(int);
   }
 
-  if (history >= 0) {
+  if (fix_history) {
     bytes += maxlocal * sizeof(int *);
     bytes += maxlocal * sizeof(double *);
     bytes += maxpage*pgsize * sizeof(int);

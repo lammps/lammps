@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,20 +22,18 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define EXTRA 1000
 
-/* ----------------------------------------------------------------------
-   set all global defaults 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-BondHybrid::BondHybrid()
+BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
 {
   nstyles = 0;
 }
 
-/* ----------------------------------------------------------------------
-   free all arrays
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 BondHybrid::~BondHybrid()
 {

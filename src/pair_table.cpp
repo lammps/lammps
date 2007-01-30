@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,6 +28,8 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -44,15 +46,13 @@
 
 /* ---------------------------------------------------------------------- */
 
-PairTable::PairTable()
+PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 {
   ntables = 0;
   tables = NULL;
 }
 
-/* ----------------------------------------------------------------------
-   free all arrays 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 PairTable::~PairTable()
 {
@@ -972,20 +972,20 @@ void PairTable::single(int i, int j, int itype, int jtype, double rsq,
 }
 
 /* ----------------------------------------------------------------------
-   return the cutoff for tabled potentials
-   called only by KSpace solvers to determine pairwise Coulombic cutoff
-   KSpace requires that all pairwise cutoffs be the same
-   loop over all tables not just those indexed by tabindex[i][j]
+   return the Coulomb cutoff for tabled potentials
+   called by KSpace solvers which require that all pairwise cutoffs be the same
+   loop over all tables not just those indexed by tabindex[i][j] since
      no way to know which tables are active since pair::init() not yet called
 ------------------------------------------------------------------------- */
 
-double PairTable::cut_coul()
+void PairTable::extract_long(double *p_cut_coul)
 {
   if (ntables == 0) error->all("All pair coeffs are not set");
 
-  double cut = tables[0].cut;
+  double cut_coul = tables[0].cut;
   for (int m = 1; m < ntables; m++)
-    if (tables[m].cut != cut)
+    if (tables[m].cut != cut_coul)
       error->all("Pair table cutoffs must all be equal to use with KSpace");
-  return cut;
+
+  *p_cut_coul = cut_coul;
 }

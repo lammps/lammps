@@ -13,10 +13,9 @@ if ($1 == 1) then
   cp angle_cosine_squared.cpp ..
   cp angle_harmonic.cpp ..
   cp angle_hybrid.cpp ..
-  cp atom_angle.cpp ..
-  cp atom_bond.cpp ..
-  cp atom_full.cpp ..
-  cp atom_molecular.cpp ..
+  cp atom_vec_angle.cpp ..
+  cp atom_vec_bond.cpp ..
+  cp atom_vec_molecular.cpp ..
   cp bond.cpp ..
   cp bond_fene.cpp ..
   cp bond_fene_expand.cpp ..
@@ -46,10 +45,9 @@ if ($1 == 1) then
   cp angle_cosine_squared.h ..
   cp angle_harmonic.h ..
   cp angle_hybrid.h ..
-  cp atom_angle.h ..
-  cp atom_bond.h ..
-  cp atom_full.h ..
-  cp atom_molecular.h ..
+  cp atom_vec_angle.h ..
+  cp atom_vec_bond.h ..
+  cp atom_vec_molecular.h ..
 #  cp bond.h ..
   cp bond_fene.h ..
   cp bond_fene_expand.h ..
@@ -84,10 +82,9 @@ else if ($1 == 0) then
   rm ../angle_cosine_squared.cpp
   rm ../angle_harmonic.cpp
   rm ../angle_hybrid.cpp
-  rm ../atom_angle.cpp
-  rm ../atom_bond.cpp
-  rm ../atom_full.cpp
-  rm ../atom_molecular.cpp
+  rm ../atom_vec_angle.cpp
+  rm ../atom_vec_bond.cpp
+  rm ../atom_vec_molecular.cpp
   rm ../bond.cpp
   rm ../bond_fene.cpp
   rm ../bond_fene_expand.cpp
@@ -117,10 +114,9 @@ else if ($1 == 0) then
   rm ../angle_cosine_squared.h
   rm ../angle_harmonic.h
   rm ../angle_hybrid.h
-  rm ../atom_angle.h
-  rm ../atom_bond.h
-  rm ../atom_full.h
-  rm ../atom_molecular.h
+  rm ../atom_vec_angle.h
+  rm ../atom_vec_bond.h
+  rm ../atom_vec_molecular.h
 #  rm ../bond.h
   rm ../bond_fene.h
   rm ../bond_fene_expand.h

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,6 +17,12 @@
 #include "string.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
+
+Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
    safe malloc 
@@ -428,5 +434,3 @@ void Memory::destroy_4d_double_array(double ****array)
   sfree(array[0]);
   sfree(array);
 }
-
-

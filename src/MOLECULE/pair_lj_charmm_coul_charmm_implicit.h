@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,17 @@
 
 #include "pair_lj_charmm_coul_charmm.h"
 
+namespace LAMMPS_NS {
+
 class PairLJCharmmCoulCharmmImplicit : public PairLJCharmmCoulCharmm {
  public:
+  PairLJCharmmCoulCharmmImplicit(class LAMMPS *);
   void compute(int, int);
   void single(int, int, int, int, double, double, double, int, One &);
+
+  void extract_charmm(double ***, double ***, double ***, double ***, int *);
 };
+
+}
 
 #endif

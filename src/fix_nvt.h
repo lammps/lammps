@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,12 +15,13 @@
 #define FIX_NVT_H
 
 #include "fix.h"
-class Temperature;
+
+namespace LAMMPS_NS {
 
 class FixNVT : public Fix {
  public:
-  FixNVT(int, char **);
-  ~FixNVT() {}
+  FixNVT(class LAMMPS *, int, char **);
+  ~FixNVT();
   int setmask();
   void init();
   void setup();
@@ -28,12 +29,11 @@ class FixNVT : public Fix {
   void final_integrate();
   void initial_integrate_respa(int,int);
   void final_integrate_respa(int);
+  double thermo(int);
   void write_restart(FILE *);
   void restart(char *);
   int modify_param(int, char **);
   void reset_target(double);
-  int thermo_fields(int, int *, char **);
-  int thermo_compute(double *);
 
  private:
   double t_start,t_stop;
@@ -41,10 +41,15 @@ class FixNVT : public Fix {
   double t_freq,drag,drag_factor;
   double f_eta,eta_dot,eta,factor;
   double dtv,dtf,dthalf;
-  Temperature *temperature;
 
   int nlevels_respa;
   double *step_respa;
+
+  char *id_temp;
+  class Compute *temperature;
+  int tflag;
 };
+
+}
 
 #endif

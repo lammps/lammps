@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,7 +15,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "displace_atoms.h"
-#include "system.h"
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -23,11 +22,17 @@
 #include "group.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MOVE 1
 #define RAMP 2
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+/* ---------------------------------------------------------------------- */
+
+DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,7 +47,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for displace_atoms ...\n");
-  sys->init();
+  lmp->init();
 
   if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,12 +16,11 @@
 
 #include "pair.h"
 
+namespace LAMMPS_NS {
+
 class PairLJCharmmCoulCharmm : public Pair {
  public:
-  // these variables are public so DihedralCharmm can see them
-  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
-
-  PairLJCharmmCoulCharmm() {}
+  PairLJCharmmCoulCharmm(class LAMMPS *);
   ~PairLJCharmmCoulCharmm();
   virtual void compute(int, int);
   void settings(int, char **);
@@ -34,14 +33,20 @@ class PairLJCharmmCoulCharmm : public Pair {
   void read_restart_settings(FILE *);
   virtual void single(int, int, int, int, double, double, double, int, One &);
 
+  virtual void extract_charmm(double ***, double ***,
+			      double ***, double ***, int *);
+
  protected:
   double cut_lj_inner,cut_lj,cut_coul_inner,cut_coul;
   double cut_lj_innersq,cut_ljsq,cut_coul_innersq,cut_coulsq,cut_bothsq;
   double denom_lj,denom_coul;
   double **epsilon,**sigma,**eps14,**sigma14;
   double **lj1,**lj2,**lj3,**lj4;
+  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
 
   void allocate();
 };
+
+}
 
 #endif

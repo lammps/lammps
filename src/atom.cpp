@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
-#include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "modify.h"
@@ -29,110 +29,41 @@
 #include "memory.h"
 #include "error.h"
 
+#define AtomInclude
+#include "style.h"
+#undef AtomInclude
+
+using namespace LAMMPS_NS;
+
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
-#define DELTA 10000
-#define DELTA_CALLBACK 1
+#define DELTA 1
+#define DELTA_MEMSTR 1024
 
 /* ---------------------------------------------------------------------- */
 
-Atom::Atom(int narg, char **arg)
+Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
-  int n = strlen(arg[0]) + 1;
-  style = new char[n];
-  strcpy(style,arg[0]);
-  
-  // arg[0] sets one style flag to 1
-  
-  style_angle = style_atomic = style_bond = style_charge = style_dipole =
-    style_dpd = style_full = style_granular = style_molecular = 
-    style_peri = style_hybrid = 0;
-  
-  set_style(arg[0]);
+  // no atoms
 
-  // if hybrid style, set additional style for each additional arg
-  
-  if (style_hybrid) {
-    if (narg < 2) error->all("Illegal atom style hybrid command");
-    for (int i = 1; i < narg; i++) {
-      if (strcmp(arg[i],"hybrid") == 0) 
-	error->all("Atom style hybrid cannot have hybrid as an argument");
-      set_style(arg[i]);
-    }
-  }
+  natoms = nlocal = nghost = nmax = 0;
+  ntypes = 0;
+  nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+  nbonds = nangles = ndihedrals = nimpropers = 0;
+  bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
 
-  // set low-level flags from style flags
-
-  mass_require = 0;
-  if (style_angle || style_atomic || style_bond || style_charge ||
-      style_dipole || style_dpd || style_full ||
-      style_molecular || style_hybrid) mass_require = 1;
-
-  mass_allow = 0;
-  if (style_granular || style_peri) mass_allow = 1;
-
-  charge_allow = 0;
-  if (style_charge || style_full || style_dipole) charge_allow = 1;
-
-  dipole_require = 0;
-  if (style_dipole) dipole_require = 1;
-
-  molecular = 0;
-  if (style_angle || style_bond || style_full || style_molecular)
-    molecular = 1;
-
-  bonds_allow = 0;
-  if (style_angle || style_bond || style_full || style_molecular)
-    bonds_allow = 1;
-
-  angles_allow = 0;
-  if (style_angle || style_full || style_molecular) angles_allow = 1;
-
-  dihedrals_allow = 0;
-  if (style_full || style_molecular) dihedrals_allow = 1;
-
-  impropers_allow = 0;
-  if (style_full || style_molecular) impropers_allow = 1;
-
-  // set size variables from styles
-  // if size_comm and size_reverse are changed,
-  //   must also change direct_flag in comm::init()
-
-  size_comm = 3;
-  if (style_dpd) size_comm += 3;                  // v
-  if (style_dipole) size_comm += 3;               // mu
-  if (style_granular) size_comm += 6;             // v,phiv
-
-  size_reverse = 3;
-  if (style_dipole) size_reverse += 3;            // torque
-  if (style_granular) size_reverse += 3;          // phia
-
-  size_border = 6;
-  if (charge_allow) size_border += 1;             // q
-  if (style_dpd) size_border += 3;                // v
-  if (style_dipole) size_border += 3;             // mu
-  if (style_granular) size_border += 8;           // v,phiv,radius,rmass
-  if (molecular) size_border += 1;                // molecule
-
-  size_atom_valid = 5;
-  if (molecular) size_atom_valid += 1;            // molecule
-  if (charge_allow) size_atom_valid += 1;         // q
-  if (style_granular) size_atom_valid += 2;       // radius,density
-  if (style_peri) size_atom_valid += 2;           // vfrac,rmass
-  if (style_dipole) size_atom_valid += 3;         // mu
-
-  // initialize atom arrays to empty
+  // atom arrays
+  // customize by adding new array
 
   tag = type = mask = image = NULL;
   x = v = f = NULL;
 
+  molecule = NULL;
   q = NULL;
   mu = omega = torque = NULL;
   phix = phiv = phia = NULL;
   radius = density = rmass = vfrac = NULL;
-
-  molecule = NULL;
 
   maxspecial = 1;
   nspecial = NULL;
@@ -152,21 +83,9 @@ Atom::Atom(int narg, char **arg)
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
 
-  // set data and restart file header values to defaults
+  hybrid = NULL;
 
-  natoms = 0;
-  nbonds = nangles = ndihedrals = nimpropers = 0;
-  ntypes = 0;
-  nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
-  bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
-
-  // no atoms initially
-
-  nlocal = 0;
-  nghost = 0;
-  nmax = 0;
-
-  // ntype length arrays
+  // ntype-length arrays
 
   mass = NULL;
   mass_setflag = NULL;
@@ -181,11 +100,10 @@ Atom::Atom(int narg, char **arg)
   nextra_store = 0;
   extra = NULL;
 
-  // set default mapping values and hash table primes
+  // default mapping values and hash table primes
 
   tag_enable = 1;
-  if (molecular) map_style = 1;
-  else map_style = 0;
+  map_style = 0;
   map_tag_max = 0;
   map_nhash = 0;
   
@@ -198,16 +116,22 @@ Atom::Atom(int narg, char **arg)
 		 330017,340007,350003,362881,3628801};
   for (int i = 0; i < nprimes; i++) primes[i] = plist[i];
 
-  // constant
+  // default atom style = atomic
 
-  PI = 4.0*atan(1.0);
+  atom_style = NULL;
+  avec = NULL;
+  create_avec("atomic",0,NULL);
 }
 
 /* ---------------------------------------------------------------------- */
 
 Atom::~Atom()
 {
+  delete [] atom_style;
+  delete avec;
+
   // delete atom arrays
+  // customize by adding new array
 
   memory->sfree(tag);
   memory->sfree(type);
@@ -258,9 +182,9 @@ Atom::~Atom()
   memory->destroy_2d_int_array(improper_atom3);
   memory->destroy_2d_int_array(improper_atom4);
 
-  // delete auxiliary arrays
+  memory->sfree(hybrid);
 
-  delete [] style;
+  // delete per-type arrays
 
   delete [] mass;
   delete [] mass_setflag;
@@ -275,94 +199,43 @@ Atom::~Atom()
   delete [] primes;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   create an AtomVec style
+   called from input script, restart file, replicate
+------------------------------------------------------------------------- */
 
-void Atom::set_style(char *name)
+void Atom::create_avec(char *style, int narg, char **arg)
 {
-  if (strcmp(name,"angle") == 0) style_angle = 1;
-  else if (strcmp(name,"atomic") == 0) style_atomic = 1;
-  else if (strcmp(name,"bond") == 0) style_bond = 1;
-  else if (strcmp(name,"charge") == 0) style_charge = 1;
-  else if (strcmp(name,"dipole") == 0) style_dipole = 1;
-  else if (strcmp(name,"dpd") == 0) style_dpd = 1;
-  else if (strcmp(name,"full") == 0) style_full = 1;
-  else if (strcmp(name,"granular") == 0) style_granular = 1;
-  else if (strcmp(name,"molecular") == 0) style_molecular = 1;
-  else if (strcmp(name,"peri") == 0) style_peri = 1;
-  else if (strcmp(name,"hybrid") == 0) style_hybrid = 1;
-  else error->all("Illegal atom_style command");
+  delete [] atom_style;
+  if (avec) delete avec;
+
+  avec = new_avec(style,narg,arg);
+  int n = strlen(style) + 1;
+  atom_style = new char[n];
+  strcpy(atom_style,style);
+
+  // if molecular system, default is to have array map
+
+  molecular = avec->molecular;
+  if (map_style == 0 && molecular) map_style = 1;
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if named atom style is set as pure style or sub-class of hybrid
-   else return 0
+   generate an AtomVec class
 ------------------------------------------------------------------------- */
 
-int Atom::check_style(char *name)
+AtomVec *Atom::new_avec(char *style, int narg, char **arg)
 {
-  if (!strcmp(name,"angle") && style_angle) return 1;
-  else if (!strcmp(name,"atomic") && style_atomic) return 1;
-  else if (!strcmp(name,"bond") && style_bond) return 1;
-  else if (!strcmp(name,"charge") && style_charge) return 1;
-  else if (!strcmp(name,"dipole") && style_dipole) return 1;
-  else if (!strcmp(name,"dpd") && style_dpd) return 1;
-  else if (!strcmp(name,"full") && style_full) return 1;
-  else if (!strcmp(name,"granular") && style_granular) return 1;
-  else if (!strcmp(name,"molecular") && style_molecular) return 1;
-  else if (!strcmp(name,"peri") && style_peri) return 1;
-  else if (!strcmp(name,"hybrid") && style_hybrid) return 1;
-  return 0;
-}
+  if (0) return NULL;
 
-/* ----------------------------------------------------------------------
-   convert style settings to list of keywords
-   put "hybrid" first if it is set
-   return list and number of words in list
-------------------------------------------------------------------------- */
+#define AtomClass
+#define AtomStyle(key,Class) \
+  else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
+#include "style.h"
+#undef AtomClass
 
-int Atom::style2arg(char **&name)
-{
-  int n = style_angle + style_atomic + style_bond + style_charge +
-    style_dipole + style_dpd + style_full + 
-    style_granular + style_molecular + style_peri + style_hybrid;
-
-  name = new char*[n];
-
-  n = 0;
-  if (style_hybrid) name[n++] = style2word("hybrid");
-  if (style_angle) name[n++] = style2word("angle");
-  if (style_atomic) name[n++] = style2word("atomic");
-  if (style_bond) name[n++] = style2word("bond");
-  if (style_charge) name[n++] = style2word("charge");
-  if (style_dipole) name[n++] = style2word("dipole");
-  if (style_dpd) name[n++] = style2word("dpd");
-  if (style_full) name[n++] = style2word("full");
-  if (style_granular) name[n++] = style2word("granular");
-  if (style_molecular) name[n++] = style2word("molecular");
-  if (style_peri) name[n++] = style2word("peri");
-
-  return n;
-}
-
-/* ----------------------------------------------------------------------
-   copy modify settings from old Atom class to current Atom class
-------------------------------------------------------------------------- */
-
-void Atom::settings(Atom *old)
-{
-  map_style = old->map_style;
-}
-
-/* ----------------------------------------------------------------------
-   copy name into new word string
-------------------------------------------------------------------------- */
-
-char *Atom::style2word(char *name)
-{
-  int n = strlen(name) + 1;
-  char *word = new char[n];
-  strcpy(word,name);
-  return word;
+  else error->all("Invalid atom style");
+  return NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -382,167 +255,25 @@ void Atom::init()
   check_mass();
   check_dipole();
 
-  // for dipole style:
-  // for dipole type atoms, check that dipole moment is set, normalize it
-  // for non-dipole type atoms, check that dipole moment is 0.0
+  // init sub-style
 
-  if (style_dipole) {
-    double msq,scale;
-    int flag = 0;
-    for (int i = 0; i < nlocal; i++) {
-      msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
-      if (dipole[type[i]] > 0.0 && msq == 0.0) flag++;
-      else if (dipole[type[i]] > 0.0) {
-	scale = dipole[type[i]]/sqrt(msq);
-	mu[i][0] *= scale;
-	mu[i][1] *= scale;
-	mu[i][2] *= scale;
-      }
-      else if (dipole[type[i]] == 0.0 && msq > 0.0) flag++;
-    }
-    int flag_all;
-    MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-    if (flag) error->all("Inconsistent dipole settings for some atoms");
-  }
-
-  // for granular style:
-  // insure LJ units and thermo style granular or custom is used
-
-  if (style_granular) {
-    if (strcmp(update->unit_style,"lj") != 0)
-      error->all("Must use lj units with atom style granular");
-    if ((strcmp(output->thermo->style,"granular") != 0) &&
-	(strcmp(output->thermo->style,"custom") != 0))
-      error->all("Must use atom style granular with granular thermo output");
-  }
-
-  // don't allow granular and dpd styles together
-  // only reason is that they both communicate v in pack_comm
-  // ok if use better logic for setting size_comm and atom_hybrid::pack_comm
-
-  if (style_granular && style_dpd)
-    error->all("Atom style granular and dpd cannot be used together");
+  avec->init();
 }
 
 /* ----------------------------------------------------------------------
-   grow atom arrays
-   n = 0 grows arrays by DELTA
-   n > 0 allocates arrays to size n 
+   check if atom style matches style
+   if hybrid, any sub-style can be a match
 ------------------------------------------------------------------------- */
 
-void Atom::grow(int n)
+int Atom::check_style(char *style)
 {
-  if (n == 0) nmax += DELTA;
-  else nmax = n;
-
-  tag = (int *) memory->srealloc(tag,nmax*sizeof(int),"atom:tag");
-  type = (int *) memory->srealloc(type,nmax*sizeof(int),"atom:type");
-  mask = (int *) memory->srealloc(mask,nmax*sizeof(int),"atom:mask");
-  image = (int *) memory->srealloc(image,nmax*sizeof(int),"atom:image");
-  x = memory->grow_2d_double_array(x,nmax,3,"atom:x");
-  v = memory->grow_2d_double_array(v,nmax,3,"atom:v");
-  f = memory->grow_2d_double_array(f,nmax,3,"atom:f");
-
-  if (charge_allow)
-    q = (double *) memory->srealloc(q,nmax*sizeof(double),"atom:q");
-  if (mass_allow)
-    rmass = (double *) memory->srealloc(rmass,nmax*sizeof(double),
-					"atom:rmass");
-
-  if (style_dipole) {
-    mu = memory->grow_2d_double_array(mu,nmax,3,"atom:mu");
-    omega = memory->grow_2d_double_array(omega,nmax,3,"atom:omega");
-    torque = memory->grow_2d_double_array(torque,nmax,3,"atom:torque");
+  if (strcmp(atom_style,style) == 0) return 1;
+  else if (strcmp(atom_style,"hybrid") == 0) {
+    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) avec;
+    for (int i = 0; i < avec_hybrid->nstyles; i++)
+      if (strcmp(avec_hybrid->keywords[i],style) == 0) return 1;
   }
-
-  if (style_granular) {
-    phix = memory->grow_2d_double_array(phix,nmax,3,"atom:phix");
-    phiv = memory->grow_2d_double_array(phiv,nmax,3,"atom:phiv");
-    phia = memory->grow_2d_double_array(phia,nmax,3,"atom:phia");
-    radius = (double *) memory->srealloc(radius,nmax*sizeof(double),
-					 "atom:radius");
-    density = (double *) memory->srealloc(density,nmax*sizeof(double),
-					  "atom:density");
-  }
-
-  if (style_peri)
-    vfrac = (double *) memory->srealloc(vfrac,nmax*sizeof(double),
-					"atom:vfrac");
-
-  if (molecular) {
-    molecule = (int *) 
-      memory->srealloc(molecule,nmax*sizeof(int),"atom:molecule");
-
-    nspecial = memory->grow_2d_int_array(nspecial,nmax,3,"atom:nspecial");
-    special = 
-      memory->grow_2d_int_array(special,nmax,maxspecial,"atom:special");
-
-    if (bonds_allow) {
-      num_bond = (int *) 
-	memory->srealloc(num_bond,nmax*sizeof(int),"atom:num_bond");
-      bond_type = memory->grow_2d_int_array(bond_type,nmax,bond_per_atom,
-					    "atom:bond_type");
-      bond_atom = memory->grow_2d_int_array(bond_atom,nmax,bond_per_atom,
-					    "atom:bond_atom");
-    }
-
-    if (angles_allow) {
-      num_angle = (int *) 
-	memory->srealloc(num_angle,nmax*sizeof(int),"atom:num_angle");
-      angle_type = memory->grow_2d_int_array(angle_type,nmax,angle_per_atom,
-					     "atom:angle_type");
-      angle_atom1 = memory->grow_2d_int_array(angle_atom1,nmax,angle_per_atom,
-					      "atom:angle_atom1");
-      angle_atom2 = memory->grow_2d_int_array(angle_atom2,nmax,angle_per_atom,
-					      "atom:angle_atom2");
-      angle_atom3 = memory->grow_2d_int_array(angle_atom3,nmax,angle_per_atom,
-					      "atom:angle_atom3");
-    }
-
-    if (dihedrals_allow) {
-      num_dihedral = (int *) 
-	memory->srealloc(num_dihedral,nmax*sizeof(int),"atom:num_dihedral");
-      dihedral_type = 
-	memory->grow_2d_int_array(dihedral_type,nmax,dihedral_per_atom,
-				  "atom:dihedral_type");
-      dihedral_atom1 = 
-	memory->grow_2d_int_array(dihedral_atom1,nmax,dihedral_per_atom,
-				  "atom:dihedral_atom1");
-      dihedral_atom2 = 
-	memory->grow_2d_int_array(dihedral_atom2,nmax,dihedral_per_atom,
-				  "atom:dihedral_atom2");
-      dihedral_atom3 = 
-	memory->grow_2d_int_array(dihedral_atom3,nmax,dihedral_per_atom,
-				  "atom:dihedral_atom3");
-      dihedral_atom4 = 
-	memory->grow_2d_int_array(dihedral_atom4,nmax,dihedral_per_atom,
-				  "atom:dihedral_atom4");
-    }
-    
-    if (impropers_allow) {
-      num_improper = (int *) 
-	memory->srealloc(num_improper,nmax*sizeof(int),"atom:num_improper");
-      improper_type = 
-	memory->grow_2d_int_array(improper_type,nmax,improper_per_atom,
-				  "atom:improper_type");
-      improper_atom1 = 
-	memory->grow_2d_int_array(improper_atom1,nmax,improper_per_atom,
-				  "atom:improper_atom1");
-      improper_atom2 = 
-	memory->grow_2d_int_array(improper_atom2,nmax,improper_per_atom,
-				  "atom:improper_atom2");
-      improper_atom3 = 
-	memory->grow_2d_int_array(improper_atom3,nmax,improper_per_atom,
-				  "atom:improper_atom3");
-      improper_atom4 = 
-	memory->grow_2d_int_array(improper_atom4,nmax,improper_per_atom,
-				  "atom:improper_atom4");
-    }
-  }
-
-  if (nextra_grow)
-    for (int iextra = 0; iextra < nextra_grow; iextra++) 
-      modify->fix[extra_grow[iextra]]->grow_arrays(nmax);
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -857,18 +588,6 @@ int Atom::tag_consecutive()
 }
 
 /* ----------------------------------------------------------------------
-   parse one atom line from data file, check if valid for atom style 
-------------------------------------------------------------------------- */
-
-int Atom::parse_data(char *line)
-{
-  size_atom_actual = count_words(line);
-  if (size_atom_actual == size_atom_valid || 
-      size_atom_actual == size_atom_valid + 3) return 0;
-  else return 1;
-}
-
-/* ----------------------------------------------------------------------
    count and return words in a single line
    make copy of line before using strtok so as not to change line
    trim anything from '#' onward
@@ -895,26 +614,102 @@ int Atom::count_words(char *line)
 }
 
 /* ----------------------------------------------------------------------
-   check that atom IDs are > 0 and <= map_tag_max
+   unpack n lines from Atom section of data file
+   set all atom values and defaults
 ------------------------------------------------------------------------- */
 
-void Atom::unpack_vels(int n, char *buf)
+void Atom::data_atoms(int n, char *buf, int ihybrid)
+{
+  int m,imagetmp,xptr,iptr;
+  double xtmp,ytmp,ztmp;
+  char *next;
+
+  next = strchr(buf,'\n');
+  *next = '\0';
+  int nwords = count_words(buf);
+  *next = '\n';
+
+  avec->data_params(ihybrid);
+  if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
+    error->all("Incorrect atom format in data file");
+
+  char **values = new char*[nwords];
+
+  double subxlo = domain->subxlo;
+  double subxhi = domain->subxhi;
+  double subylo = domain->subylo;
+  double subyhi = domain->subyhi;
+  double subzlo = domain->subzlo;
+  double subzhi = domain->subzhi;
+
+  // xptr = which word in line starts xyz coords
+  // iptr = which word in line starts ix,iy,iz image flags
+
+  xptr = avec->xcol_data - 1;
+  int imageflag = 0;
+  if (nwords > avec->size_data_atom) imageflag = 1;
+  if (imageflag) iptr = nwords - 3;
+
+  // loop over lines of atom data
+  // tokenize the line into values
+  // extract xyz coords and image flags, remap them
+  // if atom is in my sub-domain, unpack its values
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+
+    values[0] = strtok(buf," \t\n\r\f");
+    for (m = 1; m < nwords; m++)
+      values[m] = strtok(NULL," \t\n\r\f");
+
+    xtmp = atof(values[xptr]);
+    ytmp = atof(values[xptr+1]);
+    ztmp = atof(values[xptr+2]);
+    if (imageflag)
+      imagetmp = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |
+	((atoi(values[iptr+1]) + 512 & 1023) << 10) |
+	(atoi(values[iptr]) + 512 & 1023);
+    else imagetmp = (512 << 20) | (512 << 10) | 512;
+
+    domain->remap(xtmp,ytmp,ztmp,imagetmp);
+    if (xtmp >= subxlo && xtmp < subxhi &&
+	ytmp >= subylo && ytmp < subyhi &&
+	ztmp >= subzlo && ztmp < subzhi)
+      avec->data_atom(xtmp,ytmp,ztmp,imagetmp,values,ihybrid);
+
+    buf = next + 1;
+  }
+
+  delete [] values;
+}
+
+/* ----------------------------------------------------------------------
+   unpack n lines from Velocity section of data file
+   check that atom IDs are > 0 and <= map_tag_max
+   call style-specific routine to parse line
+------------------------------------------------------------------------- */
+
+void Atom::data_vels(int n, char *buf, int ihybrid)
 {
   int m,tagtmp;
-  double vxtmp,vytmp,vztmp;
   char *next;
+
+  next = strchr(buf,'\n');
+  *next = '\0';
+  int nwords = count_words(buf);
+  *next = '\n';
+
+  avec->data_params(ihybrid);
+  if (nwords != avec->size_data_vel)
+    error->all("Incorrect velocity format in data file");
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %lg %lg %lg",&tagtmp,&vxtmp,&vytmp,&vztmp);
+    sscanf(buf,"%d",&tagtmp);
     if (tagtmp <= 0 || tagtmp > map_tag_max)
       error->one("Invalid atom ID in Velocities section of data file");
-    if ((m = map(tagtmp)) >= 0) {
-      v[m][0] = vxtmp;
-      v[m][1] = vytmp;
-      v[m][2] = vztmp;
-    }
+    if ((m = map(tagtmp)) >= 0) avec->data_vel(m,buf,ihybrid);
     buf = next + 1;
   }
 }
@@ -923,7 +718,7 @@ void Atom::unpack_vels(int n, char *buf)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::unpack_bonds(int n, char *buf)
+void Atom::data_bonds(int n, char *buf)
 {
   int m,tmp,itype,atom1,atom2;
   char *next;
@@ -958,7 +753,7 @@ void Atom::unpack_bonds(int n, char *buf)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::unpack_angles(int n, char *buf)
+void Atom::data_angles(int n, char *buf)
 {
   int m,tmp,itype,atom1,atom2,atom3;
   char *next;
@@ -1005,7 +800,7 @@ void Atom::unpack_angles(int n, char *buf)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::unpack_dihedrals(int n, char *buf)
+void Atom::data_dihedrals(int n, char *buf)
 {
   int m,tmp,itype,atom1,atom2,atom3,atom4;
   char *next;
@@ -1064,7 +859,7 @@ void Atom::unpack_dihedrals(int n, char *buf)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::unpack_impropers(int n, char *buf)
+void Atom::data_impropers(int n, char *buf)
 {
   int m,tmp,itype,atom1,atom2,atom3,atom4;
   char *next;
@@ -1126,12 +921,12 @@ void Atom::unpack_impropers(int n, char *buf)
 
 void Atom::allocate_type_arrays()
 {
-  if (mass_require) {
+  if (avec->mass_type) {
     mass = new double[ntypes+1];
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
   }
-  if (dipole_require) {
+  if (avec->dipole_type) {
     dipole = new double[ntypes+1];
     dipole_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) dipole_setflag[itype] = 0;
@@ -1145,7 +940,7 @@ void Atom::allocate_type_arrays()
 
 void Atom::set_mass(char *str)
 {
-  if (mass_require == 0) error->all("Cannot set mass for this atom style");
+  if (mass == NULL) error->all("Cannot set mass for this atom style");
 
   int itype;
   double mass_one;
@@ -1164,7 +959,7 @@ void Atom::set_mass(char *str)
 
 void Atom::set_mass(int itype, double value)
 {
-  if (mass_require == 0) error->all("Cannot set mass for this atom style");
+  if (mass == NULL) error->all("Cannot set mass for this atom style");
   if (itype < 1 || itype > ntypes) error->all("Invalid type for mass set");
 
   mass[itype] = value;
@@ -1178,7 +973,7 @@ void Atom::set_mass(int itype, double value)
 
 void Atom::set_mass(int narg, char **arg)
 {
-  if (mass_require == 0) error->all("Cannot set mass for this atom style");
+  if (mass == NULL) error->all("Cannot set mass for this atom style");
 
   int lo,hi;
   force->bounds(arg[0],ntypes,lo,hi);
@@ -1208,7 +1003,7 @@ void Atom::set_mass(double *values)
 
 void Atom::check_mass()
 {
-  if (!mass_require) return;
+  if (mass == NULL) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (mass_setflag[itype] == 0) error->all("All masses are not set");
 }
@@ -1220,8 +1015,7 @@ void Atom::check_mass()
 
 void Atom::set_dipole(char *str)
 {
-  if (dipole_require == 0) 
-    error->all("Cannot set dipole for this atom style");
+  if (dipole == NULL) error->all("Cannot set dipole for this atom style");
 
   int i;
   double dipole_one;
@@ -1238,8 +1032,7 @@ void Atom::set_dipole(char *str)
 
 void Atom::set_dipole(int narg, char **arg)
 {
-  if (dipole_require == 0) 
-    error->all("Cannot set dipole for this atom style");
+  if (dipole == NULL) error->all("Cannot set dipole for this atom style");
 
   int lo,hi;
   force->bounds(arg[0],ntypes,lo,hi);
@@ -1269,7 +1062,7 @@ void Atom::set_dipole(double *values)
 
 void Atom::check_dipole()
 {
-  if (!dipole_require) return;
+  if (dipole == NULL) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (dipole_setflag[itype] == 0)
       error->all("All dipole moments are not set");
@@ -1298,7 +1091,7 @@ void Atom::add_callback(int flag)
 
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
-      nextra_grow_max += DELTA_CALLBACK;
+      nextra_grow_max += DELTA;
       extra_grow = (int *) 
 	memory->srealloc(extra_grow,nextra_grow_max*sizeof(int),
 			 "atom:extra_grow");
@@ -1307,7 +1100,7 @@ void Atom::add_callback(int flag)
     nextra_grow++;
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
-      nextra_restart_max += DELTA_CALLBACK;
+      nextra_restart_max += DELTA;
       extra_restart = (int *) 
 	memory->srealloc(extra_restart,nextra_restart_max*sizeof(int),
 			 "atom:extra_restart");
@@ -1326,7 +1119,6 @@ void Atom::add_callback(int flag)
 void Atom::delete_callback(char *id, int flag)
 {
   int ifix;
-
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(id,modify->fix[ifix]->id) == 0) break;
 
@@ -1357,469 +1149,18 @@ void Atom::update_callback(int ifix)
 }
 
 /* ----------------------------------------------------------------------
-   unpack n lines of atoms from buf
-   set all atom values and defaults
-------------------------------------------------------------------------- */
-
-void Atom::unpack_data(int n, char *buf)
-{
-  int m,imagetmp,xptr,iptr;
-  double xtmp,ytmp,ztmp;
-  char *next;
-
-  double subxlo = domain->subxlo;
-  double subxhi = domain->subxhi;
-  double subylo = domain->subylo;
-  double subyhi = domain->subyhi;
-  double subzlo = domain->subzlo;
-  double subzhi = domain->subzhi;
-
-  char **values = new char*[size_atom_actual];
-
-  // xptr = which word in line is start of xyz coords
-  // iptr = which word in line is start of ix,iy,iz image flags
-
-  xptr = 2;
-  if (molecular) xptr++;
-  if (charge_allow) xptr++;
-  if (style_granular) xptr += 2;
-  if (style_peri) xptr += 2;
-
-  int imageflag = 0;
-  if (size_atom_actual > size_atom_valid) imageflag = 1;
-  if (imageflag) iptr = size_atom_actual - 3;
-
-  // loop over lines of atom data
-  // tokenize the line into values
-  // extract xyz coords and image flags
-  // if atom is in my sub-domain, set its values
-  // scan thru values in ascending order, storing ones appropriate to style
-
-  for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
-
-    values[0] = strtok(buf," \t\n\r\f");
-    for (m = 1; m < size_atom_actual; m++)
-      values[m] = strtok(NULL," \t\n\r\f");
-
-    xtmp = atof(values[xptr]);
-    ytmp = atof(values[xptr+1]);
-    ztmp = atof(values[xptr+2]);
-    if (imageflag)
-      imagetmp = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |
-	((atoi(values[iptr+1]) + 512 & 1023) << 10) |
-	(atoi(values[iptr]) + 512 & 1023);
-    else imagetmp = (512 << 20) | (512 << 10) | 512;
-
-    domain->remap(xtmp,ytmp,ztmp,imagetmp);
-    if (xtmp >= subxlo && xtmp < subxhi &&
-	ytmp >= subylo && ytmp < subyhi &&
-	ztmp >= subzlo && ztmp < subzhi) {
-
-      if (nlocal == nmax) grow(0);
-
-      // parse quantities in prescribed order depending on atom style(s)
-
-      m = 0;
-      tag[nlocal] = atoi(values[m++]);
-      if (tag[nlocal] <= 0)
-	error->one("Invalid atom ID in Atoms section of data file");
-
-      if (molecular) molecule[nlocal] = atoi(values[m++]);
-
-      type[nlocal] = atoi(values[m++]);
-      if (type[nlocal] <= 0 || type[nlocal] > ntypes)
-	error->one("Invalid atom type in Atoms section of data file");
-
-      if (charge_allow) q[nlocal] = atof(values[m++]);
-      if (style_granular) {
-	radius[nlocal] = 0.5 * atof(values[m++]);
-	density[nlocal] = atof(values[m++]);
-	if (force->dimension == 3)
-	  rmass[nlocal] = 4.0*PI/3.0 *
-	    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-	else
-	  rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
-      }
-      if (style_peri) {
-	vfrac[nlocal] = atof(values[m++]);
-	rmass[nlocal] = atof(values[m++]);
-      }
-
-      x[nlocal][0] = xtmp;
-      x[nlocal][1] = ytmp;
-      x[nlocal][2] = ztmp;
-      m += 3;
-
-      if (style_dipole) {
-	mu[nlocal][0] = atof(values[m++]);
-	mu[nlocal][1] = atof(values[m++]);
-	mu[nlocal][2] = atof(values[m++]);
-      }
-      image[nlocal] = imagetmp;
-
-      // initialize quantities not included in Atom section of data file
-
-      mask[nlocal] = 1;
-      v[nlocal][0] = 0.0;
-      v[nlocal][1] = 0.0;
-      v[nlocal][2] = 0.0;
-
-      if (style_dipole) {
-	omega[nlocal][0] = 0.0;
-	omega[nlocal][1] = 0.0;
-	omega[nlocal][2] = 0.0;
-      }
-
-      if (style_granular) {
-	phix[nlocal][0] = 0.0;
-	phix[nlocal][1] = 0.0;
-	phix[nlocal][2] = 0.0;
-	phiv[nlocal][0] = 0.0;
-	phiv[nlocal][1] = 0.0;
-	phiv[nlocal][2] = 0.0;
-      }
-
-      if (bonds_allow) num_bond[nlocal] = 0;
-      if (angles_allow) num_angle[nlocal] = 0;
-      if (dihedrals_allow) num_dihedral[nlocal] = 0;
-      if (impropers_allow) num_improper[nlocal] = 0;
-      
-      nlocal++;
-    }
-
-    buf = next + 1;
-  }
-
-  delete [] values;
-}
-
-/* ----------------------------------------------------------------------
-   create one atom of type itype at x0,y0,z0
-   set all other values to defaults
-------------------------------------------------------------------------- */
-
-void Atom::create_one(int itype, double x0, double y0, double z0)
-{
-  if (nlocal == nmax) grow(0);
-
-  tag[nlocal] = 0;
-  type[nlocal] = itype;
-  x[nlocal][0] = x0;
-  x[nlocal][1] = y0;
-  x[nlocal][2] = z0;
-  mask[nlocal] = 1;
-  image[nlocal] = (512 << 20) | (512 << 10) | 512;
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-
-  if (charge_allow) q[nlocal] = 0.0;
-
-  if (style_dipole) {
-    mu[nlocal][0] = 0.0;
-    mu[nlocal][1] = 0.0;
-    mu[nlocal][2] = 0.0;
-    omega[nlocal][0] = 0.0;
-    omega[nlocal][1] = 0.0;
-    omega[nlocal][2] = 0.0;
-  }
-
-  if (style_granular) {
-    radius[nlocal] = 0.5;
-    density[nlocal] = 1.0;
-    if (force->dimension == 3)
-      rmass[nlocal] = 4.0*PI/3.0 *
-	radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-    else
-      rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
-    phix[nlocal][0] = 0.0;
-    phix[nlocal][1] = 0.0;
-    phix[nlocal][2] = 0.0;
-    phiv[nlocal][0] = 0.0;
-    phiv[nlocal][1] = 0.0;
-    phiv[nlocal][2] = 0.0;
-  }
-
-  if (style_peri) {
-    vfrac[nlocal] = 1.0;
-    rmass[nlocal] = 1.0;
-  }
-
-  if (molecular) {
-    molecule[nlocal] = 0;
-    if (bonds_allow) num_bond[nlocal] = 0;
-    if (angles_allow) num_angle[nlocal] = 0;
-    if (dihedrals_allow) num_dihedral[nlocal] = 0;
-    if (impropers_allow) num_improper[nlocal] = 0;
-  }
-
-  nlocal++;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int Atom::size_restart()
-{
-  int i;
-
-  int n = 0;
-  for (i = 0; i < nlocal; i++) {
-    n += 11;
-    if (charge_allow) n++;
-    if (style_dipole) n += 6;
-    if (style_granular) n += 8;
-    if (style_peri) n += 5;
-    if (molecular) {
-      n++;
-      if (bonds_allow) n += 1 + 2*num_bond[i];
-      if (angles_allow) n += 1 + 4*num_angle[i];
-      if (dihedrals_allow) n += 1 + 5*num_dihedral[i];
-      if (impropers_allow) n += 1 + 5*num_improper[i];
-    }
-  }
-
-  if (nextra_restart)
-    for (int iextra = 0; iextra < nextra_restart; iextra++) 
-      for (i = 0; i < nlocal; i++)
-	n += modify->fix[extra_restart[iextra]]->size_restart(i);
-
-  return n;
-}
-
-/* ----------------------------------------------------------------------
-   pack all atom quantities for restart file including extra quantities
-   xyz must be 1st 3 values, so that read_restart can test on them
-   interaction types may be negative, but write as positive   
-------------------------------------------------------------------------- */
-
-int Atom::pack_restart(int i, double *buf)
-{
-  int k;
-
-  int m = 1;
-  buf[m++] = x[i][0];
-  buf[m++] = x[i][1];
-  buf[m++] = x[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  buf[m++] = image[i];
-  buf[m++] = v[i][0];
-  buf[m++] = v[i][1];
-  buf[m++] = v[i][2];
-
-  if (charge_allow) buf[m++] = q[i];
-
-  if (style_dipole) {
-    buf[m++] = mu[i][0];
-    buf[m++] = mu[i][1];
-    buf[m++] = mu[i][2];
-    buf[m++] = omega[i][0];
-    buf[m++] = omega[i][1];
-    buf[m++] = omega[i][2];
-  }
-
-  if (style_granular) {
-    buf[m++] = phix[i][0];
-    buf[m++] = phix[i][1];
-    buf[m++] = phix[i][2];
-    buf[m++] = phiv[i][0];
-    buf[m++] = phiv[i][1];
-    buf[m++] = phiv[i][2];
-    buf[m++] = radius[i];
-    buf[m++] = density[i];
-  }
-
-  if (style_peri) {
-    buf[m++] = vfrac[i];
-    buf[m++] = rmass[i];
-  }
-
-  if (molecular) {
-    buf[m++] = molecule[i];
-
-    if (bonds_allow) {
-      buf[m++] = num_bond[i];
-      for (k = 0; k < num_bond[i]; k++) {
-	buf[m++] = MAX(bond_type[i][k],-bond_type[i][k]);
-	buf[m++] = bond_atom[i][k];
-      }
-    }
-
-    if (angles_allow) {
-      buf[m++] = num_angle[i];
-      for (k = 0; k < num_angle[i]; k++) {
-	buf[m++] = MAX(angle_type[i][k],-angle_type[i][k]);
-	buf[m++] = angle_atom1[i][k];
-	buf[m++] = angle_atom2[i][k];
-	buf[m++] = angle_atom3[i][k];
-      }
-    }
-
-    if (dihedrals_allow) {
-      buf[m++] = num_dihedral[i];
-      for (k = 0; k < num_dihedral[i]; k++) {
-	buf[m++] = MAX(dihedral_type[i][k],-dihedral_type[i][k]);
-	buf[m++] = dihedral_atom1[i][k];
-	buf[m++] = dihedral_atom2[i][k];
-	buf[m++] = dihedral_atom3[i][k];
-	buf[m++] = dihedral_atom4[i][k];
-      }
-    }
-
-    if (impropers_allow) {
-      buf[m++] = num_improper[i];
-      for (k = 0; k < num_improper[i]; k++) {
-	buf[m++] = MAX(improper_type[i][k],-improper_type[i][k]);
-	buf[m++] = improper_atom1[i][k];
-	buf[m++] = improper_atom2[i][k];
-	buf[m++] = improper_atom3[i][k];
-	buf[m++] = improper_atom4[i][k];
-      }
-    }
-  }
-
-  if (nextra_restart)
-    for (int iextra = 0; iextra < nextra_restart; iextra++) 
-      m += modify->fix[extra_restart[iextra]]->pack_restart(i,&buf[m]);
-
-  buf[0] = m;
-  return m;
-}
-
-/* ----------------------------------------------------------------------
-   unpack all atom quantities from restart file including extra quantities
-------------------------------------------------------------------------- */
-
-int Atom::unpack_restart(double *buf)
-{
-  int k;
-
-  if (nlocal == nmax) {
-    grow(0);
-    if (nextra_store)
-      extra = memory->grow_2d_double_array(extra,nmax,nextra_store,
-					   "atom:extra");
-  }
-
-  int m = 1;
-  x[nlocal][0] = buf[m++];
-  x[nlocal][1] = buf[m++];
-  x[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = static_cast<int> (buf[m++]);
-  v[nlocal][0] = buf[m++];
-  v[nlocal][1] = buf[m++];
-  v[nlocal][2] = buf[m++];
-
-  if (charge_allow) q[nlocal] = buf[m++];
-
-  if (style_dipole) {
-    mu[nlocal][0] = buf[m++];
-    mu[nlocal][1] = buf[m++];
-    mu[nlocal][2] = buf[m++];
-    omega[nlocal][0] = buf[m++];
-    omega[nlocal][1] = buf[m++];
-    omega[nlocal][2] = buf[m++];
-  }
-
-  if (style_granular) {
-    phix[nlocal][0] = buf[m++];
-    phix[nlocal][1] = buf[m++];
-    phix[nlocal][2] = buf[m++];
-    phiv[nlocal][0] = buf[m++];
-    phiv[nlocal][1] = buf[m++];
-    phiv[nlocal][2] = buf[m++];
-    radius[nlocal] = buf[m++];
-    density[nlocal] = buf[m++];
-    if (force->dimension == 3) 
-      rmass[nlocal] = 4.0*PI/3.0 * 
-	radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-    else
-      rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
-  }
-
-  if (style_peri) {
-    vfrac[nlocal] = buf[m++];
-    rmass[nlocal] = buf[m++];
-  }
-
-  if (molecular) {
-    molecule[nlocal] = static_cast<int> (buf[m++]);
-
-    if (bonds_allow) {
-      num_bond[nlocal] = static_cast<int> (buf[m++]);
-      for (k = 0; k < num_bond[nlocal]; k++) {
-	bond_type[nlocal][k] = static_cast<int> (buf[m++]);
-	bond_atom[nlocal][k] = static_cast<int> (buf[m++]);
-      }
-    }
-
-    if (angles_allow) {
-      num_angle[nlocal] = static_cast<int> (buf[m++]);
-      for (k = 0; k < num_angle[nlocal]; k++) {
-	angle_type[nlocal][k] = static_cast<int> (buf[m++]);
-	angle_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-	angle_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-	angle_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-      }
-    }
-
-    if (dihedrals_allow) {
-      num_dihedral[nlocal] = static_cast<int> (buf[m++]);
-      for (k = 0; k < num_dihedral[nlocal]; k++) {
-	dihedral_type[nlocal][k] = static_cast<int> (buf[m++]);
-	dihedral_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-	dihedral_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-	dihedral_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-	dihedral_atom4[nlocal][k] = static_cast<int> (buf[m++]);
-      }
-    }
-
-    if (impropers_allow) {
-      num_improper[nlocal] = static_cast<int> (buf[m++]);
-      for (k = 0; k < num_improper[nlocal]; k++) {
-	improper_type[nlocal][k] = static_cast<int> (buf[m++]);
-	improper_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-	improper_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-	improper_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-	improper_atom4[nlocal][k] = static_cast<int> (buf[m++]);
-      }
-    }
-  }
-
-  if (nextra_store) {
-    int size = static_cast<int> (buf[0]) - m;
-    for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
-  }
-
-  nlocal++;
-  return m;
-}
-
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory 
+   return # of bytes of allocated memory
+   call to avec sums per-atom vectors
+   add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
 int Atom::memory_usage()
 {
-  int bytes = 0;
+  memlength = DELTA_MEMSTR;
+  memstr = (char *) memory->smalloc(memlength*sizeof(char),"atom:memstr");
+  memstr[0] = '\0';
 
-  bytes += 4 * nmax * sizeof(int);
-  bytes += 3 * nmax*3 * sizeof(double);
-
-  if (charge_allow) bytes += 1 * nmax * sizeof(double);     // q
-  if (mass_allow) bytes += 1 * nmax * sizeof(double);       // rmass
-  if (style_dipole) bytes += 3 * nmax*3 * sizeof(double);   // mu,omega,torque
-  if (style_granular) {
-    bytes += 3 * nmax*3 * sizeof(double);                   // phix,phiv,phia
-    bytes += 2 * nmax * sizeof(double);                     // radius,density
-  }
-  if (style_peri) bytes += nmax * sizeof(double);           // vfrac
-
+  int bytes = avec->memory_usage();
   if (map_style == 1)
     bytes += map_tag_max * sizeof(int);
   else if (map_style == 2) {
@@ -1827,31 +1168,35 @@ int Atom::memory_usage()
     bytes += map_nhash*sizeof(HashElem);
   }
 
-  if (molecular) {
-    bytes += nmax * sizeof(int);
-    bytes += nmax*3 * sizeof(int);
-    bytes += nmax*maxspecial * sizeof(int);
+  memory->sfree(memstr);
+  return bytes;
+}
 
-    if (bonds_allow) {
-      bytes += nmax * sizeof(int);
-      bytes += 2 * nmax*bond_per_atom * sizeof(int);
-    }
+/* ----------------------------------------------------------------------
+   accumulate per-atom vec names in memstr, padded by spaces
+   return 1 if padded str is not already in memlist, else 0
+------------------------------------------------------------------------- */
 
-    if (angles_allow) {
-      bytes += nmax * sizeof(int);
-      bytes += 4 * nmax*angle_per_atom * sizeof(int);
-    }
-
-    if (dihedrals_allow) {
-      bytes += nmax * sizeof(int);
-      bytes += 5 * nmax*dihedral_per_atom * sizeof(int);
-    }
-
-    if (impropers_allow) {
-      bytes += nmax * sizeof(int);
-      bytes += 5 * nmax*improper_per_atom * sizeof(int);
-    }
+int Atom::memcheck(const char *str)
+{
+  int n = strlen(str) + 3;
+  char *padded = new char[n];
+  strcpy(padded," ");
+  strcat(padded,str);
+  strcat(padded," ");
+  
+  if (strstr(memstr,padded)) {
+    delete [] padded;
+    return 0;
   }
 
-  return bytes;
+  if (strlen(memstr) + n >= memlength) {
+    memlength += DELTA_MEMSTR;
+    memstr = (char *) memory->srealloc(memstr,memlength*sizeof(char),
+				       "atom:memstr");
+  }
+
+  strcat(memstr,padded);
+  delete [] padded;
+  return 1;
 }

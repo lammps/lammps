@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,6 +15,8 @@
 #define RESPA_H
 
 #include "integrate.h"
+
+namespace LAMMPS_NS {
 
 class Respa : public Integrate {
  public:
@@ -31,7 +33,7 @@ class Respa : public Integrate {
   int level_improper,level_pair,level_kspace;
   int level_inner,level_middle,level_outer;
 
-  Respa(int, char **);
+  Respa(class LAMMPS *, int, char **);
   ~Respa();
   void init();
   void setup();
@@ -45,13 +47,15 @@ class Respa : public Integrate {
   int virial_every;       // what vflag should be on every timestep (0,1)
   int virial_thermo;      // what vflag should be on thermo steps (1)
 
-  int *newton;            // newton flag at each level
-  int eflag,vflag;        // flags for energy/virial computation
-  int ifix_respa;         // which Fix stores the force level array
+  int *newton;                  // newton flag at each level
+  int eflag,vflag;              // flags for energy/virial computation
+  class FixRespa *fix_respa;    // Fix to store the force level array
 
   void recurse(int);
   void force_clear(int);
   void sum_flevel_f();
 };
+
+}
 
 #endif

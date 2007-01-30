@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,17 +15,18 @@
 #define INPUT_H
 
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class Variable;
+namespace LAMMPS_NS {
 
-class Input : public LAMMPS {
+class Input : protected Pointers {
+ public:
  public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
-  Variable *variable;          // defined variables
+  class Variable *variable;    // defined variables
 
-  Input(int, char **);
+  Input(class LAMMPS *, int, char **);
   ~Input();
   void file();                   // process all input
   void file(char *);             // process an input script
@@ -49,14 +50,25 @@ class Input : public LAMMPS {
   void parse();                // parse an input text line
   int execute_command();       // execute a single command
 
-  void angle_coeff();          // individual commands
+  void clear();                // input script commands
+  void echo();
+  void include();
+  void jump();
+  void label();
+  void log();
+  void next_command();
+  void print();
+  void variable_command();
+
+  void angle_coeff();          // LAMMPS commands
   void angle_style();
   void atom_modify();
   void atom_style();
   void bond_coeff();
   void bond_style();
   void boundary();
-  void clear();
+  void compute();
+  void compute_modify();
   void dielectric();
   void dihedral_coeff();
   void dihedral_style();
@@ -64,39 +76,30 @@ class Input : public LAMMPS {
   void dipole();
   void dump();
   void dump_modify();
-  void echo();
   void fix();
   void fix_modify();
   void group_command();
   void improper_coeff();
   void improper_style();
-  void include();
-  void jump();
   void kspace_modify();
   void kspace_style();
-  void label();
   void lattice();
-  void log();
   void mass();
   void min_modify();
   void min_style();
   void neigh_modify();
   void neighbor_command();
   void newton();
-  void next_command();
   void pair_coeff();
   void pair_modify();
   void pair_style();
   void pair_write();
-  void print();
   void processors();
   void region();
   void reset_timestep();
   void restart();
   void run_style();
   void special_bonds();
-  void temp_modify();
-  void temperature();
   void thermo();
   void thermo_modify();
   void thermo_style();
@@ -104,7 +107,8 @@ class Input : public LAMMPS {
   void undump();
   void unfix();
   void units();
-  void variable_command();
 };
+
+}
 
 #endif

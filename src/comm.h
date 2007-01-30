@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,17 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// interprocessor communication
-
 #ifndef COMM_H
 #define COMM_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Fix;
-class Pair;
+namespace LAMMPS_NS {
 
-class Comm : public LAMMPS {
+class Comm : protected Pointers {
  public:
   int me,nprocs;                    // proc info
   int procgrid[3];                  // assigned # of procs in each dim
@@ -30,10 +27,10 @@ class Comm : public LAMMPS {
   int procneigh[3][2];              // my 6 neighboring procs
   int nswap;                        // # of swaps to perform
   int need[3];                      // procs I need atoms from in each dim
-  int maxforward_fix,maxreverse_fix; // comm sizes called from Fix,Pair
+  int maxforward_fix,maxreverse_fix;   // comm sizes called from Fix,Pair
   int maxforward_pair,maxreverse_pair;
   
-  Comm();
+  Comm(class LAMMPS *);
   ~Comm();
 
   void init();
@@ -43,25 +40,28 @@ class Comm : public LAMMPS {
   void reverse_communicate();       // reverse communication of forces
   void exchange();                  // move atoms to new procs
   void borders();                   // setup list of atoms to communicate
+
+  void comm_pair(class Pair *);                // forward comm from a Pair
+  void reverse_comm_pair(class Pair *);        // reverse comm from a Pair
+  void comm_fix(class Fix *);                  // forward comm from a Fix
+  void reverse_comm_fix(class Fix *);          // reverse comm from a Fix
+  void comm_compute(class Compute *);          // forward comm from a Compute
+  void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
+
   int memory_usage();               // tally memory usage
-  void comm_fix(Fix *);             // forward comm from a Fix
-  void reverse_comm_fix(Fix *);     // reverse comm from a Fix
-  void comm_pair(Pair *);           // forward comm from a Pair
-  void reverse_comm_pair(Pair *);   // reverse comm from a Pair
 
  private:
   int maxswap;                      // max # of swaps memory is allocated for
   int *sendnum,*recvnum;            // # of atoms to send/recv in each swap
   int *sendproc,*recvproc;          // proc to send/recv to/from at each swap
-  int *size_comm_send;              // # of values to send in each comm
-  int *size_comm_recv;              // # of values to recv in each comm
+  int *size_comm_recv;              // # of values to recv in each forward comm
   int *size_reverse_send;           // # to send in each reverse comm
   int *size_reverse_recv;           // # to recv in each reverse comm
   double *slablo,*slabhi;           // bounds of slab to send at each swap
   int **pbc_flags;                  // flags for sending atoms thru PBC
                                     // [0] = 1 if any dim is across PBC
                                     // [123] = 1 if dim 012 is across PBC
-  int direct_flag;                  // 1 if only x,f are forward/reverse comm
+  int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
@@ -81,5 +81,7 @@ class Comm : public LAMMPS {
   void allocate_swap(int);          // allocate swap arrays
   void free_swap();                 // free swap arrays
 };
+
+}
 
 #endif

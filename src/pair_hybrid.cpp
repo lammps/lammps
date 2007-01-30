@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: James Fischer (High Performance Technologies, Inc)
-                         Vincent Natoli (Stone Ridge Technology)
-			 David Richie (Stone Ridge Technology)
+   Contributing authors: 
+     James Fischer (High Performance Technologies, Inc)
+     Vincent Natoli (Stone Ridge Technology)
+     David Richie (Stone Ridge Technology)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -30,6 +31,8 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define NEIGHEXTRA 10000
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -37,14 +40,12 @@
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid()
+PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
 {
   nstyles = 0;
 }
 
-/* ----------------------------------------------------------------------
-   free all arrays 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 PairHybrid::~PairHybrid()
 {
@@ -445,6 +446,13 @@ void PairHybrid::settings(int narg, char **arg)
     nstyles++;
   }
 
+  // set comm_forward, comm_reverse to max of any sub-style
+
+  for (m = 0; m < nstyles; m++) {
+    if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
+    if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
+  }
+
   // neigh_every = 1 if any sub-style = 1
 
   neigh_half_every = neigh_full_every = 0;
@@ -631,13 +639,12 @@ void PairHybrid::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairHybrid::single_embed(int i, int itype, double &fpi,
-			      int eflag, double &phi)
+void PairHybrid::single_embed(int i, int itype, double &phi)
 {
   if (map[itype][itype] == -1)
     error->one("Invoked pair single on pair style none");
   
-  styles[map[itype][itype]]->single_embed(i,itype,fpi,eflag,phi);
+  styles[map[itype][itype]]->single_embed(i,itype,phi);
 }
 
 /* ----------------------------------------------------------------------

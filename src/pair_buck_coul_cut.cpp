@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,12 +27,16 @@
 #include "neighbor.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-/* ----------------------------------------------------------------------
-   free all arrays
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) : Pair(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 PairBuckCoulCut::~PairBuckCoulCut()
 {
@@ -302,7 +306,7 @@ void PairBuckCoulCut::init_style()
 {
   // require an atom style with charge defined
 
-  if (atom->charge_allow == 0)
+  if (atom->q == NULL)
     error->all("Must use charged atom style with this pair style");
 }
 

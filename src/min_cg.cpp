@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,11 +36,12 @@
 #include "thermo.h"
 #include "update.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_minimize.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -52,9 +53,11 @@
 #define SCAN   0   // same as in min.cpp
 #define SECANT 1
 
-/* ----------------------------------------------------------------------
-   initialization before run 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+MinCG::MinCG(LAMMPS *lmp) : Min(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 void MinCG::init()
 {
@@ -67,9 +70,7 @@ void MinCG::init()
   fixarg[2] = "MINIMIZE";
   modify->add_fix(3,fixarg);
   delete [] fixarg;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"MINIMIZE") == 0) ifix_minimize = i;
+  fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
 
   // zero gradient vectors before first atom exchange
 
@@ -92,7 +93,7 @@ void MinCG::init()
   granflag = 0;
   if (atom->check_style("granular")) granflag = 1;
   pairflag = 1;
-  if (strcmp(atom->style,"granular") == 0) pairflag = 0;
+  if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
   // reset reneighboring criteria if necessary
 
@@ -132,7 +133,6 @@ void MinCG::run()
 
   setup();
   setup_vectors();
-  output->thermo->fix_compute_pe();
   output->thermo->compute_pe();
   ecurrent = output->thermo->potential_energy;
 
@@ -337,9 +337,9 @@ void MinCG::iterate(int n)
 void MinCG::setup_vectors()
 {
   ndof = 3 * atom->nlocal;
-  if (ndof) g = ((FixMinimize *) modify->fix[ifix_minimize])->gradient[0];
+  if (ndof) g = fix_minimize->gradient[0];
   else g = NULL;
-  if (ndof) h = ((FixMinimize *) modify->fix[ifix_minimize])->searchdir[0];
+  if (ndof) h = fix_minimize->searchdir[0];
   else h = NULL;
 }
 
@@ -415,7 +415,6 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
 
   // compute potential energy of system via Thermo
 
-  output->thermo->fix_compute_pe();
   output->thermo->compute_pe();
   ecurrent = output->thermo->potential_energy;
 

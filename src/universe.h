@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,9 +16,11 @@
 
 #include "mpi.h"
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class Universe : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Universe : protected Pointers {
  public:
   char *version;          // LAMMPS version string = date
 
@@ -33,10 +35,12 @@ class Universe : public LAMMPS {
   int *procs_per_world;   // # of procs in each world
   int *root_proc;         // root proc in each world
 
-  Universe(MPI_Comm);
+  Universe(class LAMMPS *, MPI_Comm);
   ~Universe();
   void add_world(char *);
   int consistent();
 };
+
+}
 
 #endif

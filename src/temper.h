@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,13 +14,13 @@
 #ifndef TEMPER_H
 #define TEMPER_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class RanPark;
+namespace LAMMPS_NS {
 
-class Temper : public LAMMPS {
+class Temper : protected Pointers {
  public:
-  Temper() {}
+  Temper(class LAMMPS *);
   ~Temper();
   void command(int, char **);
 
@@ -29,7 +29,7 @@ class Temper : public LAMMPS {
   int iworld,nworlds;          // world info
   double boltz;                // copy from output->boltz
   MPI_Comm roots;              // Comm with 1 root proc from each world
-  RanPark *ranswap,*ranboltz;  // RNGs for swapping and Boltz factor
+  class RanPark *ranswap,*ranboltz;  // RNGs for swapping and Boltz factor
   int nevery;                  // # of timesteps between swaps
   int nswaps;                  // # of tempering swaps to perform
   int seed_swap;               // 0 = toggle swaps, n = RNG for swap direction
@@ -45,5 +45,7 @@ class Temper : public LAMMPS {
 
   void print_status();
 };
+
+}
 
 #endif

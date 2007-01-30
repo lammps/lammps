@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,11 +14,11 @@
 #ifndef DOMAIN_H
 #define DOMAIN_H
 
-#include "lammps.h"
-class Lattice;
-class Region;
+#include "pointers.h"
 
-class Domain : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Domain : protected Pointers {
  public:
   int box_exist;                            // 0 = not yet created, 1 = exists
 
@@ -54,13 +54,13 @@ class Domain : public LAMMPS {
 
   int box_change;            // 1 if box bounds ever change, 0 if fixed
 
-  Lattice *lattice;              // user-defined lattice
+  class Lattice *lattice;        // user-defined lattice
 
   int nregion;                   // # of defined Regions
   int maxregion;                 // max # list can hold
-  Region **regions;              // list of defined Regions
+  class Region **regions;        // list of defined Regions
 
-  Domain();
+  Domain(class LAMMPS *);
   ~Domain();
   void init();
   void set_initial_box();
@@ -76,5 +76,7 @@ class Domain : public LAMMPS {
   void add_region(int, char **);
   void set_boundary(int, char **);
 };
+
+}
 
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,8 +14,9 @@
 #include "mpi.h"
 #include "string.h"
 #include "write_restart.h"
-#include "system.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "atom_vec_hybrid.h"
 #include "group.h"
 #include "force.h"
 #include "pair.h"
@@ -33,11 +34,13 @@
 #include "memory.h"
 #include "error.h"
 
-enum {IGNORE,WARN,ERROR};     // same as thermo.cpp
+using namespace LAMMPS_NS;
+
+enum{IGNORE,WARN,ERROR};     // same as thermo.cpp
 
 /* ---------------------------------------------------------------------- */
 
-WriteRestart::WriteRestart()
+WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -69,7 +72,7 @@ void WriteRestart::command(int narg, char **arg)
 
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for write_restart ...\n");
-  sys->init();
+  lmp->init();
 
   // move atoms to new processors before writing file
   // enforce PBC before in case atoms are outside box
@@ -129,8 +132,8 @@ void WriteRestart::write(char *file)
   if (me == 0) {
     header();
     group->write_restart(fp);
-    if (atom->mass_require) mass();
-    if (atom->dipole_require) dipole();
+    if (atom->mass) mass();
+    if (atom->dipole) dipole();
     force_fields();
   }
 
@@ -140,7 +143,7 @@ void WriteRestart::write(char *file)
   // max_size = largest buffer needed by any proc
 
   int max_size;
-  int send_size = atom->size_restart();
+  int send_size = atom->avec->size_restart();
   MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
 
   double *buf;
@@ -153,8 +156,9 @@ void WriteRestart::write(char *file)
 
   // pack my atom data into buf
 
+  AtomVec *avec = atom->avec;
   int n = 0;
-  for (int i = 0; i < atom->nlocal; i++) n += atom->pack_restart(i,&buf[n]);
+  for (int i = 0; i < atom->nlocal; i++) n += avec->pack_restart(i,&buf[n]);
 
   // if single file:
   //   write one chunk of atoms per proc to file
@@ -235,22 +239,20 @@ void WriteRestart::header()
 
   // atom_style must be written before atom class values
   // so read_restart can create class before reading class values
-  // if style = hybrid, also write sub-class names (1 to nwords)
+  // if style = hybrid, also write sub-class styles
 
-  write_char(19,atom->style);
+  write_char(19,atom->atom_style);
 
-  if (strcmp(atom->style,"hybrid") == 0) {
-    char **words;
-    int nwords = atom->style2arg(words);
-    int nm1 = nwords - 1;
-    fwrite(&nm1,sizeof(int),1,fp);
-    for (int i = 1; i < nwords; i++) {
-      int n = strlen(words[i]) + 1;
+  if (strcmp(atom->atom_style,"hybrid") == 0) {
+    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
+    int nstyles = avec_hybrid->nstyles;
+    char **keywords = avec_hybrid->keywords;
+    fwrite(&nstyles,sizeof(int),1,fp);
+    for (int i = 0; i < nstyles; i++) {
+      int n = strlen(keywords[i]) + 1;
       fwrite(&n,sizeof(int),1,fp);
-      fwrite(words[i],sizeof(char),n,fp);
+      fwrite(keywords[i],sizeof(char),n,fp);
     }
-    for (int i = 0; i < nwords; i++) delete [] words[i];
-    delete [] words;
   }
 
   write_double(20,natoms);
@@ -322,7 +324,7 @@ void WriteRestart::force_fields()
     force->pair->write_restart(fp);
   }
 
-  if (atom->bonds_allow) {
+  if (atom->avec->bonds_allow) {
     if (force->bond) n = strlen(force->bond_style) + 1;
     else n = 0;
     fwrite(&n,sizeof(int),1,fp);
@@ -332,7 +334,7 @@ void WriteRestart::force_fields()
     }
   }
 
-  if (atom->angles_allow) {
+  if (atom->avec->angles_allow) {
     if (force->angle) n = strlen(force->angle_style) + 1;
     else n = 0;
     fwrite(&n,sizeof(int),1,fp);
@@ -342,7 +344,7 @@ void WriteRestart::force_fields()
     }
   }
 
-  if (atom->dihedrals_allow) {
+  if (atom->avec->dihedrals_allow) {
     if (force->dihedral) n = strlen(force->dihedral_style) + 1;
     else n = 0;
     fwrite(&n,sizeof(int),1,fp);
@@ -352,7 +354,7 @@ void WriteRestart::force_fields()
     }
   }
 
-  if (atom->impropers_allow) {
+  if (atom->avec->impropers_allow) {
     if (force->improper) n = strlen(force->improper_style) + 1;
     else n = 0;
     fwrite(&n,sizeof(int),1,fp);
@@ -364,7 +366,7 @@ void WriteRestart::force_fields()
 }
 
 /* ----------------------------------------------------------------------
-   write_int - write a flag and an int into restart file 
+   write a flag and an int into restart file 
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int(int flag, int value)
@@ -374,7 +376,7 @@ void WriteRestart::write_int(int flag, int value)
 }
 
 /* ----------------------------------------------------------------------
-   write_double - write a flag and a double into restart file 
+   write a flag and a double into restart file 
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double(int flag, double value)
@@ -384,7 +386,7 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write_char - write a flag and a char str into restart file 
+   write a flag and a char str into restart file 
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_char(int flag, char *value)

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,6 +28,8 @@
 #include "output.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define BIG 1000000000
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
@@ -35,7 +37,8 @@
 
 /* ---------------------------------------------------------------------- */
 
-FixOrientFCC::FixOrientFCC(int narg, char **arg) : Fix(narg, arg)
+FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   MPI_Comm_rank(world,&me);
 
@@ -136,6 +139,12 @@ FixOrientFCC::FixOrientFCC(int narg, char **arg) : Fix(narg, arg)
   xiid /= 12.0;
   xi0 = uxif_low * xiid;
   xi1 = uxif_high * xiid;
+
+  // set comm size needed by this Fix
+  // NOTE: doesn't seem that use_xismooth is ever true
+
+  if (use_xismooth) comm_forward = 62;
+  else comm_forward = 50;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,8 +162,8 @@ int FixOrientFCC::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
-  mask |= THERMO;
   return mask;
 }
 
@@ -162,21 +171,15 @@ int FixOrientFCC::setmask()
 
 void FixOrientFCC::init()
 {
-  if (use_xismooth) comm->maxforward_fix = MAX(comm->maxforward_fix,62);
-  else comm->maxforward_fix = MAX(comm->maxforward_fix,50);
-
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  if (thermo_print || thermo_energy) thermo_flag = 1;
-  else thermo_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixOrientFCC::setup()
 {
-  eflag_on = 1;
+  eflag_enable = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(1);
   else {
@@ -184,7 +187,7 @@ void FixOrientFCC::setup()
     post_force_respa(1,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  eflag_on = 0;
+  eflag_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,11 +202,9 @@ void FixOrientFCC::post_force(int vflag)
   double *dxiptr;
   bool found_myself;
 
-  int eflag = false;
-  if (thermo_flag) {
-    if (eflag_on) eflag = true;
-    else if (output->next_thermo == update->ntimestep) eflag = true;
-  }
+  bool eflag = false;
+  if (eflag_enable) eflag = true;
+  else if (output->next_thermo == update->ntimestep) eflag = true;
 
   // set local ptrs
 
@@ -410,20 +411,10 @@ void FixOrientFCC::post_force_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-int FixOrientFCC::thermo_fields(int n, int *flags, char **keywords)
+double FixOrientFCC::thermo(int n)
 {
-  if (n == 0) return 1;
-  flags[0] = 3;
-  strcpy(keywords[0],"Orient");
-  return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixOrientFCC::thermo_compute(double *values)
-{
-  values[0] = total_added_e;
-  return 1;
+  if (n == 0) return total_added_e;
+  else return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

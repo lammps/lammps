@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,24 +15,26 @@
 #define MODIFY_H
 
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class Fix;
+namespace LAMMPS_NS {
 
-class Modify : public LAMMPS {
+class Modify : protected Pointers {
  public:
-  int nfix;
-  int maxfix;
+  int nfix,maxfix;
   int n_initial_integrate,n_pre_decide,n_pre_exchange,n_pre_neighbor;
-  int n_post_force,n_final_integrate,n_end_of_step,n_thermo;
+  int n_post_force,n_final_integrate,n_end_of_step,n_thermo_energy;
   int n_initial_integrate_respa,n_post_force_respa,n_final_integrate_respa;
   int n_min_post_force;
   int nfix_restart_peratom;
 
-  Fix **fix;                 // list of fixes
+  class Fix **fix;           // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 
-  Modify();
+  int ncompute,maxcompute;   // list of computes
+  class Compute **compute;
+
+  Modify(class LAMMPS *);
   ~Modify();
   void init();
   void setup();
@@ -43,8 +45,7 @@ class Modify : public LAMMPS {
   void post_force(int);
   void final_integrate();
   void end_of_step();
-  int thermo_fields(int, int *, char **);
-  void thermo_compute(double *);
+  double thermo_energy();
 
   void initial_integrate_respa(int,int);
   void post_force_respa(int,int,int);
@@ -55,6 +56,12 @@ class Modify : public LAMMPS {
   void add_fix(int, char **);
   void modify_fix(int, char **);
   void delete_fix(char *);
+  int find_fix(char *);
+
+  void add_compute(int, char **);
+  void modify_compute(int, char **);
+  void delete_compute(char *);
+  int find_compute(char *);
 
   void write_restart(FILE *);
   int read_restart(FILE *);
@@ -66,7 +73,8 @@ class Modify : public LAMMPS {
                              // lists of fixes to apply at different times
   int *list_initial_integrate,*list_pre_decide;
   int *list_pre_exchange,*list_pre_neighbor;
-  int *list_post_force,*list_final_integrate,*list_end_of_step,*list_thermo;
+  int *list_post_force,*list_final_integrate,*list_end_of_step;
+  int *list_thermo_energy;
   int *list_initial_integrate_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
   int *list_min_post_force;
@@ -84,7 +92,9 @@ class Modify : public LAMMPS {
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
-  void list_init_thermo(int, int &, int *&);
+  void list_init_thermo_energy(int, int &, int *&);
 };
+
+}
 
 #endif

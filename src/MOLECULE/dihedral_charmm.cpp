@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,19 +24,21 @@
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "pair_lj_charmm_coul_charmm.h"
-#include "pair_lj_charmm_coul_charmm_implicit.h"
-#include "pair_lj_charmm_coul_long.h"
+#include "pair.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define TOLERANCE 0.05
 #define SMALL     0.001
 
-/* ----------------------------------------------------------------------
-   free all arrays 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 DihedralCharmm::~DihedralCharmm()
 {
@@ -273,7 +275,7 @@ void DihedralCharmm::compute(int eflag, int vflag)
       r2inv = 1.0/rsq;
       r6inv = r2inv*r2inv*r2inv;
 
-      if (implicitflag) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
+      if (implicit_flag) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
       else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
       forcelj = r6inv * (lj14_1[itype][jtype]*r6inv - lj14_2[itype][jtype]);
       fforce = weight[type] * (forcelj+forcecoul)*r2inv;
@@ -382,32 +384,14 @@ void DihedralCharmm::coeff(int which, int narg, char **arg)
 
 void DihedralCharmm::init_style()
 {
-  // set local ptrs to LJ 14 arrays setup by pair
+  // insure use of Charmm pair_style
+  // set local ptrs to LJ 14 arrays setup by Pair
 
-  Pair *anypair;
-  if (anypair = force->pair_match("lj/charmm/coul/charmm")) {
-    PairLJCharmmCoulCharmm *pair = (PairLJCharmmCoulCharmm *) anypair;
-    lj14_1 = pair->lj14_1;
-    lj14_2 = pair->lj14_2;
-    lj14_3 = pair->lj14_3;
-    lj14_4 = pair->lj14_4;
-    implicitflag = 0;
-  } else if (anypair = force->pair_match("lj/charmm/coul/charmm/implicit")) {
-    PairLJCharmmCoulCharmmImplicit *pair = 
-      (PairLJCharmmCoulCharmmImplicit *) anypair;
-    lj14_1 = pair->lj14_1;
-    lj14_2 = pair->lj14_2;
-    lj14_3 = pair->lj14_3;
-    lj14_4 = pair->lj14_4;
-    implicitflag = 1;
-  } else if (anypair = force->pair_match("lj/charmm/coul/long")) {
-    PairLJCharmmCoulLong *pair = (PairLJCharmmCoulLong *) anypair;
-    lj14_1 = pair->lj14_1;
-    lj14_2 = pair->lj14_2;
-    lj14_3 = pair->lj14_3;
-    lj14_4 = pair->lj14_4;
-    implicitflag = 0;
-  } else error->all("Pair style is incompatible with DihedralCharmm");
+  Pair *pair = force->pair_match("charmm");
+  if (pair == NULL)
+    error->all("Dihedral charmm is incompatible with Pair style");
+  double cutoff;
+  pair->extract_charmm(&lj14_1,&lj14_2,&lj14_3,&lj14_4,&implicit_flag);
 }
 
 /* ----------------------------------------------------------------------

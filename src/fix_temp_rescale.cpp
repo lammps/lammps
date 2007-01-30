@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,12 +22,16 @@
 #include "domain.h"
 #include "region.h"
 #include "comm.h"
-#include "temperature.h"
+#include "modify.h"
+#include "compute.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixTempRescale::FixTempRescale(int narg, char **arg) : Fix(narg, arg)
+FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 8) error->all("Illegal fix temp/rescale command");
   nevery = atoi(arg[3]);
@@ -53,22 +57,37 @@ FixTempRescale::FixTempRescale(int narg, char **arg) : Fix(narg, arg)
     } else error->all("Illegal fix temp/rescale command");
   }
 
-  // create a new temperature full or region style with fix ID and fix group
+  // create a new compute temp or temp/region style
+  // id = fix-ID + temp, compute group = fix group
+
+  int n = strlen(id) + 6;
+  id_temp = new char[n];
+  strcpy(id_temp,id);
+  strcat(id_temp,"_temp");
 
   char **newarg = new char*[4];
-  newarg[0] = id;
+  newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
   if (iregion == -1) {
-    newarg[2] = "full";
-    force->add_temp(3,newarg,1);
+    newarg[2] = "temp";
+    modify->add_compute(3,newarg);
   } else {
-    newarg[2] = "region";
+    newarg[2] = "temp/region";
     newarg[3] = domain->regions[iregion]->id;
-    force->add_temp(4,newarg,1);
+    modify->add_compute(4,newarg);
   }
   delete [] newarg;
+  tflag = 1;
+}
 
-  temperature = force->find_temp(id);
+/* ---------------------------------------------------------------------- */
+
+FixTempRescale::~FixTempRescale()
+{
+  // delete temperature if fix created it
+
+  if (tflag) modify->delete_compute(id_temp);
+  delete [] id_temp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +96,7 @@ int FixTempRescale::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO;
+  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -85,15 +104,20 @@ int FixTempRescale::setmask()
 
 void FixTempRescale::init()
 {
-  energy = 0.0;
+  int icompute = modify->find_compute(id_temp);
+  if (icompute < 0) error->all("Temp ID for fix temp/rescale does not exist");
+  temperature = modify->compute[icompute];
+
+  temperature->init();              // not yet called by Modify::init()
   efactor = (0.5 * force->boltz * temperature->dof);
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixTempRescale::end_of_step()
 {
-  double t_current = temperature->compute();
+  double t_current = temperature->compute_scalar();
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
   double t_target = t_start + delta * (t_end-t_start);
@@ -138,14 +162,23 @@ int FixTempRescale::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all("Illegal fix_modify command");
-    temperature = force->find_temp(arg[1]);
-    if (temperature == NULL)
-      error->all("Could not find fix_modify temperature ID");
+    if (tflag) {
+      modify->delete_compute(id_temp);
+      tflag = 0;
+    }
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temp ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning("Group for fix_modify temp != fix group");
-    if (strcmp(temperature->style,"region") == 0 && iregion == -1 && 
-	comm->me == 0)
-      error->warning("Temperature for temp/rescale is style region");
     return 2;
   }
   return 0;
@@ -153,18 +186,8 @@ int FixTempRescale::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int FixTempRescale::thermo_fields(int n, int *flags, char **keywords)
+double FixTempRescale::thermo(int n)
 {
-  if (n == 0) return 1;
-  flags[0] = 3;
-  strcpy(keywords[0],"EngTRscl");
-  return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixTempRescale::thermo_compute(double *values)
-{
-  values[0] = energy;
-  return 1;
+  if (n == 0) return energy;
+  else return 0.0;
 }

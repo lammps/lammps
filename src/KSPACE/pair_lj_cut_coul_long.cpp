@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,6 +31,8 @@
 #include "neighbor.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -44,15 +46,13 @@
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLong::PairLJCutCoulLong()
+PairLJCutCoulLong::PairLJCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   ftable = NULL;
 }
 
-/* ----------------------------------------------------------------------
-   free all arrays
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLong::~PairLJCutCoulLong()
 {
@@ -739,7 +739,7 @@ void PairLJCutCoulLong::init_style()
 
   // require an atom style with charge defined
 
-  if (atom->charge_allow == 0)
+  if (atom->q == NULL)
     error->all("Must use charged atom style with this pair style");
 
   cut_coulsq = cut_coul * cut_coul;
@@ -1101,4 +1101,11 @@ void PairLJCutCoulLong::single(int i, int j, int itype, int jtype,
       one.eng_vdwl = factor_lj*philj;
     } else one.eng_vdwl = 0.0;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulLong::extract_long(double *p_cut_coul)
+{
+  *p_cut_coul = cut_coul;
 }

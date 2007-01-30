@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,29 +22,29 @@
 #include "domain.h"
 #include "lattice.h"
 #include "force.h"
-#include "temperature.h"
-#include "temp_full.h"
+#include "modify.h"
+#include "compute.h"
+#include "compute_temp.h"
 #include "random_park.h"
 #include "group.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
 
-#define CREATE   1
-#define SET      2
-#define SCALE    3
-#define RAMP     4
-#define ZERO     5
+using namespace LAMMPS_NS;
 
-#define ALL      1
-#define LOCAL    2
-#define GEOM     3
+enum{CREATE,SET,SCALE,RAMP,ZERO};
+enum{ALL,LOCAL,GEOM};
 
 #define WARMUP 100
 #define SMALL  0.001
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+/* ---------------------------------------------------------------------- */
+
+Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,7 +77,7 @@ void Velocity::command(int narg, char **arg)
 
   // set defaults
 
-  tempwhich = -1;
+  temperature = NULL;
   dist_flag = 0;
   sum_flag = 0;
   momentum_flag = 1;
@@ -126,24 +126,24 @@ void Velocity::create(int narg, char **arg)
   double t_desired = atof(arg[0]);
   int seed = atoi(arg[1]);
 
-  // if tempwhich = -1, create a new temperature full style with the vel group
-  // else use pre-defined temperature
+  // if temperature = NULL, create a new ComputeTemp with the velocity group
 
-  Temperature *temperature;
-  if (tempwhich == -1) {
+  int tflag = 0;
+  if (temperature == NULL) {
     char **arg = new char*[3];
-    arg[0] = "temp";
+    arg[0] = "velocity_temp";
     arg[1] = group->names[igroup];
-    arg[2] = "full";
-    temperature = new TempFull(3,arg);
+    arg[2] = "temp";
+    temperature = new ComputeTemp(lmp,3,arg);
+    tflag = 1;
     delete [] arg;
-  } else temperature = force->templist[tempwhich];
+  }
 
   // initialize temperature computation
   // warn if groups don't match
 
   if (igroup != temperature->igroup && comm->me == 0)
-    error->warning("Mismatch between velocity and temperature groups");
+    error->warning("Mismatch between velocity and compute groups");
   temperature->init();
 
   // store a copy of current velocities
@@ -177,7 +177,6 @@ void Velocity::create(int narg, char **arg)
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int dimension = force->dimension;
-  int mass_require = atom->mass_require;
 
   int m;
   double vx,vy,vz,factor;
@@ -195,7 +194,7 @@ void Velocity::create(int narg, char **arg)
       atom->map_set();
     }
 
-    random = new RanPark(seed);
+    random = new RanPark(lmp,seed);
 
     if (atom->tag_enable == 0)
       error->all("Cannot use velocity create loop all unless atoms have IDs");
@@ -237,7 +236,7 @@ void Velocity::create(int narg, char **arg)
       m = atom->map(i);
       if (m >= 0 && m < nlocal) {
 	if (mask[m] & groupbit) {
-	  if (mass_require) factor = 1.0/sqrt(mass[type[m]]);
+	  if (mass) factor = 1.0/sqrt(mass[type[m]]);
 	  else factor = 1.0/sqrt(rmass[m]);
 	  v[m][0] = vx * factor;
 	  v[m][1] = vy * factor;
@@ -255,7 +254,7 @@ void Velocity::create(int narg, char **arg)
     }
 
   } else if (loop_flag == LOCAL) {
-    random = new RanPark(seed + comm->me);
+    random = new RanPark(lmp,seed + comm->me);
     for (i = 0; i < WARMUP; i++) random->uniform();
 
     for (i = 0; i < nlocal; i++) {
@@ -269,7 +268,7 @@ void Velocity::create(int narg, char **arg)
 	  vy = random->gaussian();
 	  vz = random->gaussian();
 	}
-	if (mass_require) factor = 1.0/sqrt(mass[type[i]]);
+	if (mass) factor = 1.0/sqrt(mass[type[i]]);
 	else factor = 1.0/sqrt(rmass[i]);
 	v[i][0] = vx * factor;
 	v[i][1] = vy * factor;
@@ -279,13 +278,13 @@ void Velocity::create(int narg, char **arg)
     }
 
   } else if (loop_flag == GEOM) {
-    random = new RanPark(seed);
+    random = new RanPark(lmp,seed);
     double **x = atom->x;
     
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	triple(x[i][0],x[i][1],x[i][2],&vx,&vy,&vz,seed,random);
-	if (mass_require) factor = 1.0/sqrt(mass[type[i]]);
+	if (mass) factor = 1.0/sqrt(mass[type[i]]);
 	else factor = 1.0/sqrt(rmass[i]);
 	v[i][0] = vx * factor;
 	v[i][1] = vy * factor;
@@ -302,7 +301,7 @@ void Velocity::create(int narg, char **arg)
 
   // scale temp to desired value
 
-  double t = temperature->compute();
+  double t = temperature->compute_scalar();
   rescale(t,t_desired);
 
   // if sum_flag set, add back in previous velocities 
@@ -322,7 +321,7 @@ void Velocity::create(int narg, char **arg)
 
   memory->destroy_2d_double_array(vhold);
   delete random;
-  if (tempwhich == -1) delete temperature;
+  if (tflag) delete temperature;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -376,34 +375,34 @@ void Velocity::scale(int narg, char **arg)
 {
   double t_desired = atof(arg[0]);
 
-  // if tempwhich = -1, create a new temperature full style with the vel group
-  // else use pre-defined temperature
+  // if temperature = NULL, create a new ComputeTemp with the velocity group
 
-  Temperature *temperature;
-  if (tempwhich == -1) {
+  int tflag = 0;
+  if (temperature == NULL) {
     char **arg = new char*[3];
-    arg[0] = "temp";
+    arg[0] = "velocity_temp";
     arg[1] = group->names[igroup];
-    arg[2] = "full";
-    temperature = new TempFull(3,arg);
+    arg[2] = "temp";
+    temperature = new ComputeTemp(lmp,3,arg);
+    tflag = 1;
     delete [] arg;
-  } else temperature = force->templist[tempwhich];
+  }
 
   // initialize temperature computation
   // warn if groups don't match
 
   if (igroup != temperature->igroup && comm->me == 0)
-    error->warning("Mismatch between velocity and temperature groups");
+    error->warning("Mismatch between velocity and compute groups");
   temperature->init();
 
   // scale temp to desired value
 
-  double t = temperature->compute();
+  double t = temperature->compute_scalar();
   rescale(t,t_desired);
 
   // if temperature was created, delete it
 
-  if (tempwhich == -1) delete temperature;
+  if (tflag) delete temperature;
 }
 
 /* ----------------------------------------------------------------------
@@ -542,7 +541,7 @@ void Velocity::zero_momentum()
 
 void Velocity::zero_rotation()
 {
-  int i,j;
+  int i;
 
   // cannot have 0 atoms in group
 
@@ -556,7 +555,7 @@ void Velocity::zero_rotation()
   group->xcm(igroup,masstotal,xcm);
   group->angmom(igroup,xcm,angmom);
   group->inertia(igroup,xcm,inertia);
-  group->omega(igroup,angmom,inertia,omega);
+  group->omega(angmom,inertia,omega);
 
   // adjust velocities to zero omega
   // vnew_i = v_i - w x r_i
@@ -624,10 +623,14 @@ void Velocity::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all("Illegal velocity command");
-      for (tempwhich = 0; tempwhich < force->ntemp; tempwhich++)
-	if (strcmp(arg[iarg+1],force->templist[tempwhich]->id) == 0) break;
-      if (tempwhich == force->ntemp) 
-	error->all("Could not find velocity temperature ID");
+      int icompute;
+      for (icompute = 0; icompute < modify->ncompute; icompute++)
+	if (strcmp(arg[iarg+1],modify->compute[icompute]->id) == 0) break;
+      if (icompute == modify->ncompute) 
+	error->all("Could not find velocity temp ID");
+      temperature = modify->compute[icompute];
+      if (temperature->tempflag == 0)
+	error->all("Velocity temp ID does not compute temperature");
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
       if (iarg+2 > narg) error->all("Illegal velocity command");

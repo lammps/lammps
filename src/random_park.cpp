@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,6 +16,8 @@
 #include "math.h"
 #include "random_park.h"
 
+using namespace LAMMPS_NS;
+
 #define IA 16807
 #define IM 2147483647
 #define AM (1.0/IM)
@@ -24,7 +26,7 @@
 
 /* ---------------------------------------------------------------------- */
 
-RanPark::RanPark(int seed_init)
+RanPark::RanPark(LAMMPS *lmp, int seed_init) : Pointers(lmp)
 {
   seed = seed_init;
   save = 0;

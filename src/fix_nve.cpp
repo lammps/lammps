@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,9 +20,12 @@
 #include "respa.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-FixNVE::FixNVE(int narg, char **arg) : Fix(narg, arg)
+FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all("Illegal fix nve command");
 }
@@ -46,7 +49,6 @@ void FixNVE::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  mass_require = atom->mass_require;
   if (strcmp(update->integrate_style,"respa") == 0)
     step_respa = ((Respa *) update->integrate)->step;
 }
@@ -62,12 +64,13 @@ void FixNVE::initial_integrate()
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (mass_require) {
-    double *mass = atom->mass;
+  if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf / mass[type[i]];
@@ -81,7 +84,6 @@ void FixNVE::initial_integrate()
     }
 
   } else {
-    double *rmass = atom->rmass;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf / rmass[i];
@@ -104,12 +106,13 @@ void FixNVE::final_integrate()
 
   double **v = atom->v;
   double **f = atom->f;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (mass_require) {
-    double *mass = atom->mass;
+  if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf / mass[type[i]];
@@ -120,7 +123,6 @@ void FixNVE::final_integrate()
     }
 
   } else {
-    double *rmass = atom->rmass;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf / rmass[i];

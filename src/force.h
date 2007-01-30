@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,18 +14,11 @@
 #ifndef FORCE_H
 #define FORCE_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Pair;
-class Bond;
-class Angle;
-class Dihedral;
-class Improper;
-class KSpace;
-class Temperature;
-class Pressure;
+namespace LAMMPS_NS {
 
-class Force : public LAMMPS {
+class Force : protected Pointers {
  public:
   double boltz;                      // Boltzmann constant (eng/degree-K)
   double mvv2e;                      // conversion of mv^2 to energy
@@ -39,34 +32,28 @@ class Force : public LAMMPS {
   int dimension;                        // 2 = 2d, 3 = 3d
   int newton,newton_pair,newton_bond;   // Newton's 3rd law settings
 
-  Pair *pair;
+  class Pair *pair;
   char *pair_style;
 
-  Bond *bond;
+  class Bond *bond;
   char *bond_style;
 
-  Angle *angle;
+  class Angle *angle;
   char *angle_style;
 
-  Dihedral *dihedral;
+  class Dihedral *dihedral;
   char *dihedral_style;
 
-  Improper *improper;
+  class Improper *improper;
   char *improper_style;
 
-  KSpace *kspace;
+  class KSpace *kspace;
   char *kspace_style;
                              // index [0] is not used in these arrays
   double special_lj[4];      // 1-2, 1-3, 1-4 prefactors for LJ
   double special_coul[4];    // 1-2, 1-3, 1-4 prefactors for Coulombics
 
-  int ntemp;                   // # of defined Temperatures
-  int maxtemp;                 // max number list can hold
-  Temperature **templist;      // list of defined Temperatures
-
-  Pressure *pressure;          // single defined Pressure
-
-  Force();
+  Force(class LAMMPS *);
   ~Force();
   void init();
 
@@ -90,11 +77,10 @@ class Force : public LAMMPS {
   void create_kspace(int, char **);
 
   void set_special(int, char **);
-  void add_temp(int, char **, int);
-  Temperature *find_temp(char *);
-  void modify_temp(int, char **);
   void bounds(char *, int, int &, int &);
   int memory_usage();
 };
+
+}
 
 #endif

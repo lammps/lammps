@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,6 +16,7 @@
 #include "string.h"
 #include "fix_deposit.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "update.h"
 #include "comm.h"
@@ -26,9 +27,12 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-FixDeposit::FixDeposit(int narg, char **arg) : Fix(narg, arg)
+FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 7) error->all("Illegal fix deposit command");
 
@@ -113,7 +117,7 @@ FixDeposit::FixDeposit(int narg, char **arg) : Fix(narg, arg)
 
   // random number generator, same for all procs
 
-  random = new RanPark(seed);
+  random = new RanPark(lmp,seed);
 
   // set up reneighboring
 
@@ -244,7 +248,7 @@ void FixDeposit::pre_exchange()
     double vztmp = vzlo + random->uniform() * (vzhi-vzlo);
 
     // check if new atom is in my sub-box or above it if I'm highest proc
-    // if so, add to my list via create_one()
+    // if so, add to my list via create_atom()
     // initialize info about the atoms
     // set group mask to "all" plus fix group
 
@@ -261,7 +265,7 @@ void FixDeposit::pre_exchange()
 	     xtmp >= domain->subxlo && xtmp < domain->subxhi) flag = 1;
 
     if (flag) {
-      atom->create_one(ntype,xtmp,ytmp,ztmp);
+      atom->avec->create_atom(ntype,xtmp,ytmp,ztmp,0);
       int m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->mask[m] = 1 | groupbit;

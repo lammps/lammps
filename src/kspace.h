@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,9 +14,11 @@
 #ifndef KSPACE_H
 #define KSPACE_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class KSpace : public LAMMPS {
+namespace LAMMPS_NS {
+
+class KSpace : protected Pointers {
  public:
   double energy;
   double virial[6];
@@ -28,7 +30,7 @@ class KSpace : public LAMMPS {
   int order;
   int slabflag;
  
-  KSpace(int, char **);
+  KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace() {}
   void modify_params(int, char **);
   virtual void init() = 0;
@@ -37,5 +39,7 @@ class KSpace : public LAMMPS {
   virtual void timing(int, double &, double &) {}
   virtual int memory_usage() {return 0;}
 };
+
+}
 
 #endif

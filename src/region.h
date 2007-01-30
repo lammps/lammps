@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,9 +14,11 @@
 #ifndef REGION_H
 #define REGION_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Region : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Region : protected Pointers {
  public:
   char *id,*style;
   int interior;                     // 1 for interior, 0 for exterior
@@ -26,12 +28,14 @@ class Region : public LAMMPS {
   double extent_ylo,extent_yhi;
   double extent_zlo,extent_zhi;
   
-  Region(int, char **);
+  Region(class LAMMPS *, int, char **);
   virtual ~Region();
   virtual int match(double, double, double) = 0;
 
  protected:
   void options(int, char **);
 };
+
+}
 
 #endif

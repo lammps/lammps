@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,11 +22,14 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define OFFSET 4096
 
 /* ---------------------------------------------------------------------- */
 
-PPPMTIP4P::PPPMTIP4P(int narg, char **arg) : PPPM(narg, arg) {}
+PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
+  PPPM(lmp, narg, arg) {}
 
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,6 +27,8 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
@@ -34,9 +36,11 @@
 #define SMALL     0.001
 #define SMALLER   0.00001
 
-/* ----------------------------------------------------------------------
-   free all arrays 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+DihedralOPLS::DihedralOPLS(LAMMPS *lmp) : Dihedral(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 DihedralOPLS::~DihedralOPLS()
 {
@@ -53,7 +57,7 @@ DihedralOPLS::~DihedralOPLS()
 
 void DihedralOPLS::compute(int eflag, int vflag)
 {
-  int i,m,n,i1,i2,i3,i4,type,factor;
+  int n,i1,i2,i3,i4,type,factor;
   double rfactor;
   double vb1x,vb1y,vb1z,vb2x,vb2y;
   double vb2z,vb2xm,vb2ym,vb2zm,vb3x,vb3y,vb3z,sb1;

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,8 +14,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "delete_atoms.h"
-#include "system.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
@@ -26,8 +26,14 @@
 #include "force.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+/* ---------------------------------------------------------------------- */
+
+DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -61,12 +67,12 @@ void DeleteAtoms::command(int narg, char **arg)
   // delete local atoms in list
   // reset nlocal
 
-  int *tag = atom->tag;
+  AtomVec *avec = atom->avec;
 
   int i = 0;
   while (i < nlocal) {
     if (list[i]) {
-      atom->copy(nlocal-1,i);
+      avec->copy(nlocal-1,i);
       list[i] = list[nlocal-1];
       nlocal--;
     } else i++;
@@ -185,7 +191,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for delete_atoms ...\n");
   neighbor->half_command = 1;
-  sys->init();
+  lmp->init();
   neighbor->half_command = 0;
 
   // setup domain, communication and neighboring

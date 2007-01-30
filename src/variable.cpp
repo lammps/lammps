@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,6 +14,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "unistd.h"
 #include "variable.h"
 #include "universe.h"
@@ -21,10 +22,14 @@
 #include "update.h"
 #include "group.h"
 #include "domain.h"
+#include "modify.h"
+#include "compute.h"
 #include "output.h"
 #include "thermo.h"
 #include "memory.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define VARDELTA 4
 
@@ -32,7 +37,7 @@ enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP};
 
 /* ---------------------------------------------------------------------- */
 
-Variable::Variable()
+Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
@@ -390,16 +395,26 @@ void Variable::copy(int narg, char **from, char **to)
 }
 
 /* ----------------------------------------------------------------------
-   recursive method to evaluate a string
-   string can be a number: 0.0, -5.45, etc
-   string can be a keyword: lx, ly, lz, vol, etc
-   string can be a vector: x[123], y[3], vx[34], etc
-     value inside brackets must be global ID from 1 to Natoms
-   string can be a function: div(x,y), mult(x,y), add(x,y), xcm(group,x), etc
-     function args can be combo of  number, keyword, vector, fn(), group, etc
-   see lists of valid keywords, vectors, and functions below
+   recursive evaluation of a "string"
+   string is defined as one of several items:
+     number =  0.0, -5.45, 2.8e-4, ...
+     thermo keyword = ke, vol, atoms, ...
+     variable keyword = v_a, v_myvar, ...
+     math function = div(x,y), mult(x,y), add(x,y), ...
+     group function = mass(group), xcm(group,x), ...
+     atom vector = x[123], y[3], vx[34], ...
+     compute vector = c_mytemp[0], c_thermo_press[3], ...
+   functions contain ()
+     can have 1 or 2 args, each of which can be a "string"
+   vectors contain []
+     single arg must be integer
+     for atom vectors, it is global ID of atom
+     for compute vectors, 0 is the scalar value, 1-N are vector values
+   keywords start with a lowercase letter (no parens or brackets)
+   numbers start with a digit or "." or "-" (no parens or brackets)
+   see lists of valid functions, vectors, keywords below
    when string is evaluated, put result in a newly allocated string
-   return address of result string (will be freed by caller)
+   return the address of result string (will be freed by caller)
 ------------------------------------------------------------------------- */
 
 char *Variable::evaluate(char *str)
@@ -409,7 +424,10 @@ char *Variable::evaluate(char *str)
   char *result = new char[32];
   double answer;
 
-  // if string is "function", grab one or two args, evaulate args recursively
+  // string is a "function" since contains ()
+  // grab one or two args, separated by ","
+  // evaulate args recursively
+  // then evaluate math or group function
 
   if (strchr(str,'(')) {
     if (str[strlen(str)-1] != ')')
@@ -452,11 +470,9 @@ char *Variable::evaluate(char *str)
     char *strarg1 = NULL;
     char *strarg2 = NULL;
 
-    // customize by adding function to this list and to if statement
-    // math functions: add(x,y),sub(x,y),mult(x,y),div(x,y),
-    //                 neg(x),pow(x,y),exp(x),ln(x),sqrt(x)
-    // group functions: mass(group),charge(group),xcm(group,dim),
-    //                  vcm(group,dim),bound(group,xmin),gyration(group)
+    // customize by adding math function to this list and to if statement
+    //   add(x,y),sub(x,y),mult(x,y),div(x,y),neg(x),
+    //   pow(x,y),exp(x),ln(x),sqrt(x)
 
     if (strcmp(func,"add") == 0) {
       if (!arg2) error->all("Cannot evaluate variable equal command");
@@ -530,6 +546,10 @@ char *Variable::evaluate(char *str)
 	error->all("Cannot evaluate variable equal command");
       answer = sqrt(value1);
 
+    // customize by adding group function to this list and to if statement
+    //   mass(group),charge(group),xcm(group,dim),vcm(group,dim),
+    //   bound(group,xmin),gyration(group)
+
     } else if (strcmp(func,"mass") == 0) {
       if (arg2) error->all("Cannot evaluate variable equal command");
       int igroup = group->find(arg1);
@@ -593,7 +613,7 @@ char *Variable::evaluate(char *str)
       group->xcm(igroup,masstotal,xcm);
       answer = group->gyration(igroup,masstotal,xcm);
 
-    } else error->all("Cannot evaluate variable equal command");
+    } else error->all("Invalid math/group function in variable equal command");
 
     delete [] func;
     delete [] arg1;
@@ -604,13 +624,17 @@ char *Variable::evaluate(char *str)
     }
     sprintf(result,"%.10g",answer);
 
-  // if string is "vector", find which proc owns atom, grab vector value
+  // string is a "vector" since contains []
+  // index = everything between [] evaluated as integer
+  // if vector name starts with "c_", trailing chars are compute ID
+  //   check if compute ID exists, invoke it with index as arg
+  // else is atom vector
+  //   find which proc owns atom via atom->map()
+  //   grab atom-based value with index as global atom ID
 
   } else if (strchr(str,'[')) {
     if (str[strlen(str)-1] != ']')
       error->all("Cannot evaluate variable equal command");
-    if (atom->map_style == 0)
-      error->all("Cannot use vectors in variables unless atom map exists");
 
     char *ptr = strchr(str,'[');
     int n = ptr - str;
@@ -625,77 +649,121 @@ char *Variable::evaluate(char *str)
     arg = new char[n+1];
     strncpy(arg,ptr,n);
     arg[n] = '\0';
-    int i = atom->map(atoi(arg));
 
-    double mine;
-    if (i >= 0 && i < atom->nlocal) {
+    if (strncmp(vector,"c_",2) == 0) {
+      n = strlen(vector) - 2 + 1;
+      char *id = new char[n];
+      strcpy(id,&vector[2]);
 
-      // customize by adding vector to this list and to if statement
+      int icompute;
+      for (icompute = 0; icompute < modify->ncompute; icompute++)
+	if (strcmp(id,modify->compute[icompute]->id) == 0) break;
+      if (icompute == modify->ncompute)
+	error->all("Invalid compute ID in variable equal");
+      delete [] id;
+      modify->compute[icompute]->init();
+
+      // call compute() if index = 0, else compute_vector()
+      // make pre-call to Compute object's id_pre if it is defined
+
+      int index = atoi(arg);
+      if (index == 0) {
+	if (modify->compute[icompute]->scalar_flag == 0)
+	  error->all("Variable compute ID does not compute scalar info");
+	if (modify->compute[icompute]->id_pre) {
+	  int ipre = modify->find_compute(modify->compute[icompute]->id_pre);
+	  if (ipre < 0) error->all("Could not pre-compute in variable equal");
+	  answer = modify->compute[ipre]->compute_scalar();
+	}
+	answer = modify->compute[icompute]->compute_scalar();
+      } else if (index > 0) {
+	if (modify->compute[icompute]->vector_flag == 0)
+	  error->all("Variable compute ID does not compute scalar info");
+	if (index > modify->compute[icompute]->size_vector)
+	  error->all("Variable compute ID vector is not large enough");
+	if (modify->compute[icompute]->id_pre) {
+	  int ipre = modify->find_compute(modify->compute[icompute]->id_pre);
+	  if (ipre < 0) error->all("Could not pre-compute in variable equal");
+	  modify->compute[ipre]->compute_vector();
+	}
+	modify->compute[icompute]->compute_vector();
+	answer = modify->compute[icompute]->vector[index-1];
+      } else error->all("Invalid compute ID index in variable equal");
+
+    } else {
+
+      if (atom->map_style == 0)
+	error->all("Cannot use atom vectors in variable "
+                   "unless atom map exists");
+
+      int index = atom->map(atoi(arg));
+
+      // customize by adding atom vector to this list and to if statement
       // x,y,z,vx,vy,vz,fx,fy,fz
 
-      if (strcmp(vector,"x") == 0) mine = atom->x[i][0];
-      else if (strcmp(vector,"y") == 0) mine = atom->x[i][1];
-      else if (strcmp(vector,"z") == 0) mine = atom->x[i][2];
-      else if (strcmp(vector,"vx") == 0) mine = atom->v[i][0];
-      else if (strcmp(vector,"vy") == 0) mine = atom->v[i][1];
-      else if (strcmp(vector,"vz") == 0) mine = atom->v[i][2];
-      else if (strcmp(vector,"fx") == 0) mine = atom->f[i][0];
-      else if (strcmp(vector,"fy") == 0) mine = atom->f[i][1];
-      else if (strcmp(vector,"fz") == 0) mine = atom->f[i][2];
+      double mine;
+      if (index >= 0 && index < atom->nlocal) {
 
-      else error->one("Invalid vector in variable equal command");
+	if (strcmp(vector,"x") == 0) mine = atom->x[index][0];
+	else if (strcmp(vector,"y") == 0) mine = atom->x[index][1];
+	else if (strcmp(vector,"z") == 0) mine = atom->x[index][2];
+	else if (strcmp(vector,"vx") == 0) mine = atom->v[index][0];
+	else if (strcmp(vector,"vy") == 0) mine = atom->v[index][1];
+	else if (strcmp(vector,"vz") == 0) mine = atom->v[index][2];
+	else if (strcmp(vector,"fx") == 0) mine = atom->f[index][0];
+	else if (strcmp(vector,"fy") == 0) mine = atom->f[index][1];
+	else if (strcmp(vector,"fz") == 0) mine = atom->f[index][2];
+	
+	else error->one("Invalid atom vector in variable equal command");
+	
+      } else mine = 0.0;
 
-    } else mine = 0.0;
-    MPI_Allreduce(&mine,&answer,1,MPI_DOUBLE,MPI_SUM,world);
+      MPI_Allreduce(&mine,&answer,1,MPI_DOUBLE,MPI_SUM,world);
+    }
 
     delete [] vector;
     delete [] arg;
     sprintf(result,"%.10g",answer);
 
-  // if string is "keyword", compute appropriate value via thermo
+  // string is "keyword" since starts with lowercase letter
+  // if keyword starts with "v_", trailing chars are variable name
+  //   evaluate it via retrieve(), convert it to double
+  // else is thermo keyword
+  //   evaluate it via evaluate_keyword()
 
-  } else if (str[0] - 'a' >= 0 && str[0] - 'a' < 26) {
+  // compute appropriate value via thermo
 
-    // customize by adding keyword to this list and to if statement
-    // keywords defined by thermo_style custom are passed to compute_value()
+  } else if (islower(str[0])) {
 
-    if (domain->box_exist == 0)
-      error->all("Using variable equal keyword before simulation box is defined");
+    if (strncmp(str,"v_",2) == 0) {
+      int n = strlen(str) - 2 + 1;
+      char *id = new char[n];
+      strcpy(id,&str[2]);
 
-    // process these keywords here, not in thermo
-    // they are allowed anytime after simulation box is defined
+      char *v = retrieve(id);
+      if (v == NULL)
+	error->all("Invalid variable name in variable equal command");
+      delete [] id;
 
-    if (strcmp(str,"step") == 0)
-      answer = update->ntimestep;
-    else if (strcmp(str,"atoms") == 0)
-      answer = atom->natoms;
-    else if (strcmp(str,"lx") == 0)
-      answer = domain->xprd;
-    else if (strcmp(str,"ly") == 0)
-      answer = domain->yprd;
-    else if (strcmp(str,"lz") == 0)
-      answer = domain->zprd;
-    else if (strcmp(str,"vol") == 0)
-      answer = domain->xprd * domain->yprd * domain->zprd;
+      answer = atof(v);
 
-    // process other keywords via thermo
-    // error if 1st run has not yet started
-    // warning if out-of-sync with thermo, since values can be bogus
-
-    else {
-      if (update->first_update == 0)
-	error->all("Using variable equal keyword before initial run");
-      if (update->ntimestep != output->next_thermo && me == 0)
-	error->warning("Using variable equal keyword with non-current thermo");
-      int flag = output->thermo->compute_value(str,&answer);
-      if (flag) error->all("Invalid keyword in variable equal command");
+    } else {
+      int flag = output->thermo->evaluate_keyword(str,&answer);
+      if (flag) error->all("Invalid thermo keyword in variable equal command");
     }
-    
+
     sprintf(result,"%.10g",answer);
 
-  // string is a number, just copy to result
+  // string is a number since starts with digit or "." or "-"
+  // just copy to result
 
-  } else strcpy(result,str);
+  } else if (isdigit(str[0]) || str[0] == '.' || str[0] == '-') {
+
+    strcpy(result,str);
+
+  // string is an error
+
+  } else error->all("Cannot evaluate variable equal command");
 
   // return newly allocated string
 

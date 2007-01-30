@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,17 +28,15 @@ AngleStyle(hybrid,AngleHybrid)
 #endif
 
 #ifdef AtomInclude
-#include "atom_angle.h"
-#include "atom_bond.h"
-#include "atom_full.h"
-#include "atom_molecular.h"
+#include "atom_vec_angle.h"
+#include "atom_vec_bond.h"
+#include "atom_vec_molecular.h"
 #endif
 
 #ifdef AtomClass
-AtomStyle(angle,AtomAngle)
-AtomStyle(bond,AtomBond)
-AtomStyle(full,AtomFull)
-AtomStyle(molecular,AtomMolecular)
+AtomStyle(angle,AtomVecAngle)
+AtomStyle(bond,AtomVecBond)
+AtomStyle(molecular,AtomVecMolecular)
 #endif
 
 #ifdef BondInclude

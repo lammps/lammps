@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,6 +16,7 @@
 #include "string.h"
 #include "fix_pour.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "update.h"
 #include "comm.h"
@@ -30,11 +31,14 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define EPSILON 0.001
 
 /* ---------------------------------------------------------------------- */
 
-FixPour::FixPour(int narg, char **arg) : Fix(narg, arg)
+FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 6) error->all("Illegal fix pour command");
 
@@ -151,7 +155,7 @@ FixPour::FixPour(int narg, char **arg) : Fix(narg, arg)
 
   // random number generator, same for all procs
 
-  random = new RanPark(seed);
+  random = new RanPark(lmp,seed);
 
   // allgather arrays
 
@@ -269,10 +273,11 @@ void FixPour::init()
 
   // check if a shear history fix exists
 
-  ifix_history = -1;
+  fix_history = NULL;
   if (force->pair_match("gran/history") || force->pair_match("gran/hertzian"))
     for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0) ifix_history = i;
+      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0)
+	fix_history = (FixShearHistory *) modify->fix[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -403,7 +408,7 @@ void FixPour::pre_exchange()
     error->warning("Less insertions than requested");
 
   // check if new atom is in my sub-box or above it if I'm highest proc
-  // if so, add to my list via create_one()
+  // if so, add to my list via create_atom()
   // initialize info about the atom
   // type, diameter, density set from fix parameters
   // group mask set to "all" plus fix group
@@ -412,6 +417,7 @@ void FixPour::pre_exchange()
   // this gives continuous stream of atoms
   // set npartner for new atom to 0 (assume not touching any others)
 
+  AtomVec *avec = atom->avec;
   int m,flag;
   double denstmp,vxtmp,vytmp,vztmp;
   double g = 1.0;
@@ -445,7 +451,7 @@ void FixPour::pre_exchange()
 	     xtmp >= domain->subxlo && xtmp < domain->subxhi) flag = 1;
 
     if (flag) {
-      atom->create_one(ntype,xtmp,ytmp,ztmp);
+      avec->create_atom(ntype,xtmp,ytmp,ztmp,0);
       m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;
@@ -458,8 +464,7 @@ void FixPour::pre_exchange()
       atom->v[m][0] = vxtmp;
       atom->v[m][1] = vytmp;
       atom->v[m][2] = vztmp;
-      if (ifix_history >= 0)
-	((FixShearHistory *) modify->fix[ifix_history])->npartner[m] = 0;
+      if (fix_history) fix_history->npartner[m] = 0;
     }
   }
 

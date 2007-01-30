@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,9 +16,9 @@
 #include "stdlib.h"
 #include "string.h"
 #include "input.h"
-#include "system.h"
 #include "universe.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "group.h"
 #include "domain.h"
@@ -40,18 +40,18 @@
 #include "error.h"
 #include "memory.h"
 
-#define AtomInclude
 #define CommandInclude
 #include "style.h"
-#undef AtomInclude
 #undef CommandInclude
+
+using namespace LAMMPS_NS;
 
 #define MAXLINE 2048
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
 
-Input::Input(int argc, char **argv)
+Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
@@ -74,7 +74,7 @@ Input::Input(int argc, char **argv)
     infiles[0] = infile;
   } else infiles = NULL;
 
-  variable = new Variable;
+  variable = new Variable(lmp);
 
   // process command-line args
   // check for args "-var" and "-echo"
@@ -119,7 +119,7 @@ Input::~Input()
 
 void Input::file()
 {
-  int n,flag;
+  int n;
 
   while (1) {
     
@@ -389,14 +389,25 @@ int Input::execute_command()
 {
   int flag = 1;
 
-  if (!strcmp(command,"angle_coeff")) angle_coeff();
+  if (!strcmp(command,"clear")) clear();
+  else if (!strcmp(command,"echo")) echo();
+  else if (!strcmp(command,"include")) include();
+  else if (!strcmp(command,"jump")) jump();
+  else if (!strcmp(command,"label")) label();
+  else if (!strcmp(command,"log")) log();
+  else if (!strcmp(command,"next")) next_command();
+  else if (!strcmp(command,"print")) print();
+  else if (!strcmp(command,"variable")) variable_command();
+
+  else if (!strcmp(command,"angle_coeff")) angle_coeff();
   else if (!strcmp(command,"angle_style")) angle_style();
   else if (!strcmp(command,"atom_modify")) atom_modify();
   else if (!strcmp(command,"atom_style")) atom_style();
   else if (!strcmp(command,"bond_coeff")) bond_coeff();
   else if (!strcmp(command,"bond_style")) bond_style();
   else if (!strcmp(command,"boundary")) boundary();
-  else if (!strcmp(command,"clear")) clear();
+  else if (!strcmp(command,"compute")) compute();
+  else if (!strcmp(command,"compute_modify")) compute_modify();
   else if (!strcmp(command,"dielectric")) dielectric();
   else if (!strcmp(command,"dihedral_coeff")) dihedral_coeff();
   else if (!strcmp(command,"dihedral_style")) dihedral_style();
@@ -404,39 +415,30 @@ int Input::execute_command()
   else if (!strcmp(command,"dipole")) dipole();
   else if (!strcmp(command,"dump")) dump();
   else if (!strcmp(command,"dump_modify")) dump_modify();
-  else if (!strcmp(command,"echo")) echo();
   else if (!strcmp(command,"fix")) fix();
   else if (!strcmp(command,"fix_modify")) fix_modify();
   else if (!strcmp(command,"group")) group_command();
   else if (!strcmp(command,"improper_coeff")) improper_coeff();
   else if (!strcmp(command,"improper_style")) improper_style();
-  else if (!strcmp(command,"include")) include();
-  else if (!strcmp(command,"jump")) jump();
   else if (!strcmp(command,"kspace_modify")) kspace_modify();
   else if (!strcmp(command,"kspace_style")) kspace_style();
-  else if (!strcmp(command,"label")) label();
   else if (!strcmp(command,"lattice")) lattice();
-  else if (!strcmp(command,"log")) log();
   else if (!strcmp(command,"mass")) mass();
   else if (!strcmp(command,"min_modify")) min_modify();
   else if (!strcmp(command,"min_style")) min_style();
   else if (!strcmp(command,"neigh_modify")) neigh_modify();
   else if (!strcmp(command,"neighbor")) neighbor_command();
   else if (!strcmp(command,"newton")) newton();
-  else if (!strcmp(command,"next")) next_command();
   else if (!strcmp(command,"pair_coeff")) pair_coeff();
   else if (!strcmp(command,"pair_modify")) pair_modify();
   else if (!strcmp(command,"pair_style")) pair_style();
   else if (!strcmp(command,"pair_write")) pair_write();
-  else if (!strcmp(command,"print")) print();
   else if (!strcmp(command,"processors")) processors();
   else if (!strcmp(command,"region")) region();
   else if (!strcmp(command,"reset_timestep")) reset_timestep();
   else if (!strcmp(command,"restart")) restart();
   else if (!strcmp(command,"run_style")) run_style();
   else if (!strcmp(command,"special_bonds")) special_bonds();
-  else if (!strcmp(command,"temp_modify")) temp_modify();
-  else if (!strcmp(command,"temperature")) temperature();
   else if (!strcmp(command,"thermo")) thermo();
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
@@ -444,7 +446,7 @@ int Input::execute_command()
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
   else if (!strcmp(command,"units")) units();
-  else if (!strcmp(command,"variable")) variable_command();
+
   else flag = 0;
 
   if (flag) return 0;
@@ -454,7 +456,7 @@ int Input::execute_command()
 #define CommandClass
 #define CommandStyle(key,Class)         \
   else if (strcmp(command,#key) == 0) { \
-    Class key;                          \
+    Class key(lmp);			\
     key.command(narg,arg);              \
     return 0;                           \
   }
@@ -468,168 +470,13 @@ int Input::execute_command()
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   one function for each input command executed here
-------------------------------------------------------------------------- */
-
-void Input::angle_coeff()
-{
-  if (domain->box_exist == 0)
-    error->all("Angle_coeff command before simulation box is defined");
-  if (force->angle == NULL) 
-    error->all("Angle_coeff command before angle_style is defined");
-  if (atom->angles_allow == 0) 
-    error->all("Angle_coeff command when no angles allowed");
-  force->angle->coeff(0,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::angle_style()
-{
-  if (narg < 1) error->all("Illegal angle_style command");
-  force->create_angle(arg[0]);
-  if (force->angle) force->angle->settings(narg-1,&arg[1]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::atom_modify()
-{
-  if (domain->box_exist) 
-    error->all("Atom_modify command after simulation box is defined");
-  if (!atom) error->all("Atom_modify command before atom_style command");
-  atom->modify_params(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::atom_style()
-{
-  if (domain->box_exist) 
-    error->all("Atom_style command after simulation box is defined");
-  if (narg < 1) error->all("Illegal atom_style command");
-
-  Atom *old = atom;
-
-  if (strcmp(arg[0],"none") == 0) error->all("Invalid atom style");
-
-#define AtomClass
-#define AtomStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) atom = new Class(narg,arg);
-#include "style.h"
-#undef AtomClass
-
-  else error->all("Invalid atom style");
-
-  if (old) {
-    atom->settings(old);
-    delete old;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::bond_coeff()
-{
-  if (domain->box_exist == 0)
-    error->all("Bond_coeff command before simulation box is defined");
-  if (force->bond == NULL) 
-    error->all("Bond_coeff command before bond_style is defined");
-  if (atom->bonds_allow == 0) 
-    error->all("Bond_coeff command when no bonds allowed");
-  force->bond->coeff(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::bond_style()
-{
-  if (narg < 1) error->all("Illegal bond_style command");
-  force->create_bond(arg[0]);
-  if (force->bond) force->bond->settings(narg-1,&arg[1]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::boundary()
-{
-  if (domain->box_exist)
-    error->all("Boundary command after simulation box is defined");
-  domain->set_boundary(narg,arg);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void Input::clear()
 {
   if (narg > 0) error->all("Illegal clear command");
-  sys->destroy();
-  sys->create();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dielectric()
-{
-  if (narg != 1) error->all("Illegal dielectric command");
-  force->dielectric = atof(arg[0]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dihedral_coeff()
-{
-  if (domain->box_exist == 0)
-    error->all("Dihedral_coeff command before simulation box is defined");
-  if (force->dihedral == NULL) 
-    error->all("Dihedral_coeff command before dihedral_style is defined");
-  if (atom->dihedrals_allow == 0) 
-    error->all("Dihedral_coeff command when no dihedrals allowed");
-  force->dihedral->coeff(0,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dihedral_style()
-{
-  if (narg < 1) error->all("Illegal dihedral_style command");
-  force->create_dihedral(arg[0]);
-  if (force->dihedral) force->dihedral->settings(narg-1,&arg[1]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dimension()
-{
-  if (domain->box_exist) 
-    error->all("Dimension command after simulation box is defined");
-  if (narg != 1) error->all("Illegal dimension command");
-  force->dimension = atoi(arg[0]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dipole()
-{
-  if (domain->box_exist == 0)
-    error->all("Dipole command before simulation box is defined");
-  if (narg != 2) error->all("Illegal dipole command");
-  atom->set_dipole(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dump()
-{
-  output->add_dump(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::dump_modify()
-{
-  output->modify_dump(narg,arg);
+  lmp->destroy();
+  lmp->create();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -651,49 +498,6 @@ void Input::echo()
     echo_screen = 1;
     echo_log = 1;
   } else error->all("Illegal echo command");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::fix()
-{
-  modify->add_fix(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::fix_modify()
-{
-  modify->modify_fix(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::group_command()
-{
-  group->assign(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::improper_coeff()
-{
-  if (domain->box_exist == 0)
-    error->all("Improper_coeff command before simulation box is defined");
-  if (force->improper == NULL) 
-    error->all("Improper_coeff command before improper_style is defined");
-  if (atom->impropers_allow == 0) 
-    error->all("Improper_coeff command when no impropers allowed");
-  force->improper->coeff(0,narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::improper_style()
-{
-  if (narg < 1) error->all("Illegal improper_style command");
-  force->create_improper(arg[0]);
-  if (force->improper) force->improper->settings(narg-1,&arg[1]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -751,6 +555,277 @@ void Input::jump()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::label()
+{
+  if (narg != 1) error->all("Illegal label command");
+  if (label_active && strcmp(labelstr,arg[0]) == 0) label_active = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::log()
+{
+  if (narg != 1) error->all("Illegal log command");
+
+  if (me == 0) {
+    if (logfile) fclose(logfile);
+    if (strcmp(arg[0],"none") == 0) logfile = NULL;
+    else {
+      logfile = fopen(arg[0],"w");
+      if (logfile == NULL) {
+	char str[128];
+	sprintf(str,"Cannot open logfile %s",arg[0]);
+	error->one(str);
+      }
+    }
+    if (universe->nworlds == 1) universe->ulogfile = logfile;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::next_command()
+{
+  if (variable->next(narg,arg)) jump_skip = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::print()
+{
+  if (narg < 1) error->all("Illegal print command");
+
+  char *str = new char[MAXLINE];
+  str[0] = '\0';
+  for (int iarg = 0; iarg < narg; iarg++) {
+    strcat(str,arg[iarg]);
+    strcat(str," ");
+  }
+  
+  if (me == 0) {
+    if (screen) fprintf(screen,"%s\n",str);
+    if (logfile) fprintf(logfile,"%s\n",str);
+  }
+
+  delete [] str;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::variable_command()
+{
+  variable->set(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   one function for each LAMMPS-specific input script command
+------------------------------------------------------------------------- */
+
+void Input::angle_coeff()
+{
+  if (domain->box_exist == 0)
+    error->all("Angle_coeff command before simulation box is defined");
+  if (force->angle == NULL) 
+    error->all("Angle_coeff command before angle_style is defined");
+  if (atom->avec->angles_allow == 0) 
+    error->all("Angle_coeff command when no angles allowed");
+  force->angle->coeff(0,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::angle_style()
+{
+  if (narg < 1) error->all("Illegal angle_style command");
+  if (atom->avec->angles_allow == 0) 
+    error->all("Angle_style command when no angles allowed");
+  force->create_angle(arg[0]);
+  if (force->angle) force->angle->settings(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::atom_modify()
+{
+  if (domain->box_exist) 
+    error->all("Atom_modify command after simulation box is defined");
+  atom->modify_params(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::atom_style()
+{
+  if (narg < 1) error->all("Illegal atom_style command");
+  if (domain->box_exist) 
+    error->all("Atom_style command after simulation box is defined");
+  atom->create_avec(arg[0],narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::bond_coeff()
+{
+  if (domain->box_exist == 0)
+    error->all("Bond_coeff command before simulation box is defined");
+  if (force->bond == NULL) 
+    error->all("Bond_coeff command before bond_style is defined");
+  if (atom->avec->bonds_allow == 0) 
+    error->all("Bond_coeff command when no bonds allowed");
+  force->bond->coeff(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::bond_style()
+{
+  if (narg < 1) error->all("Illegal bond_style command");
+  if (atom->avec->bonds_allow == 0) 
+    error->all("Bond_style command when no bonds allowed");
+  force->create_bond(arg[0]);
+  if (force->bond) force->bond->settings(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::boundary()
+{
+  if (domain->box_exist)
+    error->all("Boundary command after simulation box is defined");
+  domain->set_boundary(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::compute()
+{
+  modify->add_compute(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::compute_modify()
+{
+  modify->modify_compute(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dielectric()
+{
+  if (narg != 1) error->all("Illegal dielectric command");
+  force->dielectric = atof(arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dihedral_coeff()
+{
+  if (domain->box_exist == 0)
+    error->all("Dihedral_coeff command before simulation box is defined");
+  if (force->dihedral == NULL) 
+    error->all("Dihedral_coeff command before dihedral_style is defined");
+  if (atom->avec->dihedrals_allow == 0) 
+    error->all("Dihedral_coeff command when no dihedrals allowed");
+  force->dihedral->coeff(0,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dihedral_style()
+{
+  if (narg < 1) error->all("Illegal dihedral_style command");
+  if (atom->avec->dihedrals_allow == 0) 
+    error->all("Dihedral_style command when no dihedrals allowed");
+  force->create_dihedral(arg[0]);
+  if (force->dihedral) force->dihedral->settings(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dimension()
+{
+  if (narg != 1) error->all("Illegal dimension command");
+  if (domain->box_exist) 
+    error->all("Dimension command after simulation box is defined");
+  force->dimension = atoi(arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dipole()
+{
+  if (narg != 2) error->all("Illegal dipole command");
+  if (domain->box_exist == 0)
+    error->all("Dipole command before simulation box is defined");
+  atom->set_dipole(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dump()
+{
+  output->add_dump(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dump_modify()
+{
+  output->modify_dump(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::fix()
+{
+  modify->add_fix(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::fix_modify()
+{
+  modify->modify_fix(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::group_command()
+{
+  group->assign(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::improper_coeff()
+{
+  if (domain->box_exist == 0)
+    error->all("Improper_coeff command before simulation box is defined");
+  if (force->improper == NULL) 
+    error->all("Improper_coeff command before improper_style is defined");
+  if (atom->avec->impropers_allow == 0) 
+    error->all("Improper_coeff command when no impropers allowed");
+  force->improper->coeff(0,narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::improper_style()
+{
+  if (narg < 1) error->all("Illegal improper_style command");
+  if (atom->avec->impropers_allow == 0) 
+    error->all("Improper_style command when no impropers allowed");
+  force->create_improper(arg[0]);
+  if (force->improper) force->improper->settings(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::kspace_modify()
 {
   if (force->kspace == NULL) error->all("KSpace style has not yet been set");
@@ -766,14 +841,6 @@ void Input::kspace_style()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::label()
-{
-  if (narg != 1) error->all("Illegal label command");
-  if (label_active && strcmp(labelstr,arg[0]) == 0) label_active = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::lattice()
 {
   domain->set_lattice(narg,arg);
@@ -781,35 +848,11 @@ void Input::lattice()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::log()
-{
-  if (narg != 1) error->all("Illegal log command");
-
-  if (me == 0) {
-    if (logfile) fclose(logfile);
-    if (strcmp(arg[0],"none") == 0) logfile = NULL;
-    else {
-      // char fname[128];
-      // if (universe->nworlds == 1) strcpy(fname,arg[0]);
-      // else sprintf(fname,"%s.%d",arg[0],universe->iworld);
-      logfile = fopen(arg[0],"w");
-      if (logfile == NULL) {
-	char str[128];
-	sprintf(str,"Cannot open logfile %s",arg[0]);
-	error->one(str);
-      }
-    }
-    if (universe->nworlds == 1) universe->ulogfile = logfile;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::mass()
 {
+  if (narg != 2) error->all("Illegal mass command");
   if (domain->box_exist == 0)
     error->all("Mass command before simulation box is defined");
-  if (narg != 2) error->all("Illegal mass command");
   atom->set_mass(narg,arg);
 }
 
@@ -885,13 +928,6 @@ void Input::newton()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::next_command()
-{
-  if (variable->next(narg,arg)) jump_skip = 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::pair_coeff()
 {
   if (domain->box_exist == 0)
@@ -937,32 +973,11 @@ void Input::pair_write()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::print()
-{
-  if (narg < 1) error->all("Illegal print command");
-
-  char *str = new char[MAXLINE];
-  str[0] = '\0';
-  for (int iarg = 0; iarg < narg; iarg++) {
-    strcat(str,arg[iarg]);
-    strcat(str," ");
-  }
-  
-  if (me == 0) {
-    if (screen) fprintf(screen,"%s\n",str);
-    if (logfile) fprintf(logfile,"%s\n",str);
-  }
-
-  delete [] str;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::processors()
 {
+  if (narg != 3) error->all("Illegal processors command");
   if (domain->box_exist)
     error->all("Processors command after simulation box is defined");
-  if (narg != 3) error->all("Illegal processors command");
   comm->user_procgrid[0] = atoi(arg[0]);
   comm->user_procgrid[1] = atoi(arg[1]);
   comm->user_procgrid[2] = atoi(arg[2]);
@@ -1018,24 +1033,10 @@ void Input::special_bonds()
   if (domain->box_exist && atom->molecular) {
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
 	coul2 != force->special_coul[2] || coul3 != force->special_coul[3]) {
-      Special special;
+      Special special(lmp);
       special.build();
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::temp_modify()
-{
-  force->modify_temp(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::temperature()
-{
-  force->add_temp(narg,arg,0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1088,15 +1089,8 @@ void Input::unfix()
 
 void Input::units()
 {
+  if (narg != 1) error->all("Illegal units command");
   if (domain->box_exist) 
     error->all("Units command after simulation box is defined");
-  if (narg != 1) error->all("Illegal units command");
   update->set_units(arg[0]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::variable_command()
-{
-  variable->set(narg,arg);
 }

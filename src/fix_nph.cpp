@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,20 +24,22 @@
 #include "comm.h"
 #include "output.h"
 #include "modify.h"
+#include "compute.h"
 #include "kspace.h"
 #include "update.h"
 #include "respa.h"
-#include "temperature.h"
-#include "pressure.h"
 #include "domain.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
-FixNPH::FixNPH(int narg, char **arg) : Fix(narg, arg)
+FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all("Illegal fix nph command");
 
@@ -125,19 +127,6 @@ FixNPH::FixNPH(int narg, char **arg) : Fix(narg, arg)
   if (p_flag[2] && domain->zperiodic == 0)
     error->all("Cannot fix nph on a non-periodic dimension");
 
-  // create a new temperature full style with fix ID and group all
-  // pressure is always global (group all) and thus its
-  //   KE/temperature contribution should use group all
-
-  char **newarg = new char*[3];
-  newarg[0] = id;
-  newarg[1] = "all";
-  newarg[2] = "full";
-  force->add_temp(3,newarg,1);
-  delete [] newarg;
-
-  temperature = force->find_temp(id);
-
   // convert input periods to frequencies
 
   if ((p_flag[0] && p_period[0] <= 0.0) || 
@@ -149,9 +138,44 @@ FixNPH::FixNPH(int narg, char **arg) : Fix(narg, arg)
   if (p_flag[1]) p_freq[1] = 1.0 / p_period[1];
   if (p_flag[2]) p_freq[2] = 1.0 / p_period[2];
 
-  // pressure init
+  // create a new compute temp style
+  // id = fix-ID + temp
+  // compute group = all since pressure is always global (group all)
+  //   and thus its KE/temperature contribution should use group all
 
-  pressure = force->pressure;
+  int n = strlen(id) + 6;
+  id_temp = new char[n];
+  strcpy(id_temp,id);
+  strcat(id_temp,"_temp");
+
+  char **newarg = new char*[3];
+  newarg[0] = id_temp;
+  newarg[1] = "all";
+  newarg[2] = "temp";
+  modify->add_compute(3,newarg);
+  delete [] newarg;
+  tflag = 1;
+
+  // create a new compute pressure style
+  // id = fix-ID + press, compute group = all
+  // pass id_temp as 4th arg to pressure constructor
+
+  n = strlen(id) + 7;
+  id_press = new char[n];
+  strcpy(id_press,id);
+  strcat(id_press,"_press");
+
+  newarg = new char*[4];
+  newarg[0] = id_press;
+  newarg[1] = "all";
+  newarg[2] = "pressure";
+  newarg[3] = id_temp;
+  modify->add_compute(4,newarg);
+  delete [] newarg;
+  pflag = 1;
+
+  // Nose/Hoover pressure init
+
   omega[0] = omega[1] = omega[2] = 0.0;
   omega_dot[0] = omega_dot[1] = omega_dot[2] = 0.0;
 
@@ -164,6 +188,13 @@ FixNPH::FixNPH(int narg, char **arg) : Fix(narg, arg)
 FixNPH::~FixNPH()
 {
   delete [] rfix;
+
+  // delete temperature and pressure if fix created them
+
+  if (tflag) modify->delete_compute(id_temp);
+  if (pflag) modify->delete_compute(id_press);
+  delete [] id_temp;
+  delete [] id_press;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,7 +204,7 @@ int FixNPH::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO;
+  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   return mask;
@@ -183,8 +214,27 @@ int FixNPH::setmask()
 
 void FixNPH::init()
 {
-  if (atom->mass_require == 0)
-    error->all("Cannot use fix nph with no per-type mass defined");
+  if (atom->mass == NULL)
+    error->all("Cannot use fix nph without per-type mass defined");
+
+  // set temperature and pressure ptrs
+  // set ptemperature only if pressure's id_pre is not id_temp
+
+  int icompute = modify->find_compute(id_temp);
+  if (icompute < 0) error->all("Temp ID for fix nph does not exist");
+  temperature = modify->compute[icompute];
+
+  icompute = modify->find_compute(id_press);
+  if (icompute < 0) error->all("Press ID for fix nph does not exist");
+  pressure = modify->compute[icompute];
+
+  if (strcmp(id_temp,pressure->id_pre) == 0) ptemperature = NULL;
+  else {
+    icompute = modify->find_compute(pressure->id_pre);
+    if (icompute < 0)
+      error->all("Temp ID of press ID for fix nph does not exist");
+    ptemperature = modify->compute[icompute];
+  }
 
   // set timesteps and frequencies
   // Nkt = initial value for piston mass and energy conservation
@@ -202,7 +252,8 @@ void FixNPH::init()
   nktv2p = force->nktv2p;
   vol0 = domain->xprd * domain->yprd * domain->zprd;
 
-  double t_initial = temperature->compute();
+  temperature->init();           // not yet called by Modify::init()
+  double t_initial = temperature->compute_scalar();
   if (t_initial == 0.0) {
     if (strcmp(update->unit_style,"lj") == 0) t_initial = 1.0;
     else t_initial = 300.0;
@@ -246,12 +297,19 @@ void FixNPH::init()
 
 void FixNPH::setup()
 {
-  p_target[0] = p_start[0];                 // used by thermo_compute()
+  p_target[0] = p_start[0];                 // used by thermo()
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];
 
-  double t_current = temperature->compute();
-  pressure->compute(temperature);
+  double tmp = temperature->compute_scalar();
+  if (press_couple == 0) {
+    if (ptemperature) tmp = ptemperature->compute_scalar();
+    tmp = pressure->compute_scalar();
+  } else {
+    temperature->compute_vector();
+    if (ptemperature) ptemperature->compute_vector();
+    pressure->compute_vector();
+  }
   couple();
 }
 
@@ -352,8 +410,15 @@ void FixNPH::final_integrate()
 
   // compute new pressure
 
-  double t_current = temperature->compute();
-  pressure->compute(temperature);
+  double tmp = temperature->compute_scalar();
+  if (press_couple == 0) {
+    if (ptemperature) tmp = ptemperature->compute_scalar();
+    tmp = pressure->compute_scalar();
+  } else {
+    temperature->compute_vector();
+    if (ptemperature) ptemperature->compute_vector();
+    pressure->compute_vector();
+  }
   couple();
 
   // update omega_dot
@@ -509,26 +574,26 @@ void FixNPH::final_integrate_respa(int ilevel)
 
 void FixNPH::couple()
 {
-  double *p_tensor = pressure->p_tensor;
+  double *tensor = pressure->vector;
 
   if (press_couple == 0)
-    p_current[0] = p_current[1] = p_current[2] = pressure->p_total;
+    p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
   else if (press_couple == 1) {
-    double ave = 0.5 * (p_tensor[0] + p_tensor[1]);
+    double ave = 0.5 * (tensor[0] + tensor[1]);
     p_current[0] = p_current[1] = ave;
-    p_current[2] = p_tensor[2];
+    p_current[2] = tensor[2];
   } else if (press_couple == 2) {
-    double ave = 0.5 * (p_tensor[1] + p_tensor[2]);
+    double ave = 0.5 * (tensor[1] + tensor[2]);
     p_current[1] = p_current[2] = ave;
-    p_current[0] = p_tensor[0];
+    p_current[0] = tensor[0];
   } else if (press_couple == 3) {
-    double ave = 0.5 * (p_tensor[0] + p_tensor[2]);
+    double ave = 0.5 * (tensor[0] + tensor[2]);
     p_current[0] = p_current[2] = ave;
-    p_current[1] = p_tensor[1];
+    p_current[1] = tensor[1];
   } if (press_couple == 4) {
-    p_current[0] = p_tensor[0];
-    p_current[1] = p_tensor[1];
-    p_current[2] = p_tensor[2];
+    p_current[0] = tensor[0];
+    p_current[1] = tensor[1];
+    p_current[2] = tensor[2];
   }
 }
 
@@ -662,13 +727,51 @@ int FixNPH::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all("Illegal fix_modify command");
-    temperature = force->find_temp(arg[1]);
-    if (temperature == NULL)
-      error->all("Could not find fix_modify temperature ID");
+    if (tflag) {
+      modify->delete_compute(id_temp);
+      tflag = 0;
+    }
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temp ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for NPH is not for group all");
-    if (strcmp(temperature->style,"region") == 0 && comm->me == 0)
-      error->warning("Temperature for NPH is style region");
+
+    // reset id_pre of pressure to new temp ID
+    
+    icompute = modify->find_compute(id_press);
+    if (icompute < 0) error->all("Press ID for fix npt does not exist");
+    delete [] modify->compute[icompute]->id_pre;
+    modify->compute[icompute]->id_pre = new char[n];
+    strcpy(modify->compute[icompute]->id_pre,id_temp);
+
+    return 2;
+
+  } else if (strcmp(arg[0],"press") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    if (pflag) {
+      modify->delete_compute(id_press);
+      pflag = 0;
+    }
+    delete [] id_press;
+    int n = strlen(arg[1]) + 1;
+    id_press = new char[n];
+    strcpy(id_press,arg[1]);
+
+    int icompute = modify->find_compute(id_press);
+    if (icompute < 0) error->all("Could not find fix_modify press ID");
+    pressure = modify->compute[icompute];
+
+    if (pressure->pressflag == 0)
+      error->all("Fix_modify press ID does not compute pressure");
     return 2;
   }
   return 0;
@@ -676,25 +779,17 @@ int FixNPH::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int FixNPH::thermo_fields(int n, int *flags, char **keywords)
-{
-  if (n == 0) return 1;
-  flags[0] = 3;
-  strcpy(keywords[0],"EngNPH");
-  return 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixNPH::thermo_compute(double *values)
+double FixNPH::thermo(int n)
 {
   double volume = domain->xprd * domain->yprd * domain->zprd;
   int pdim = p_flag[0] + p_flag[1] + p_flag[2];
 
-  values[0] = 0.0;
+  double energy = 0.0;
   for (int i = 0; i < 3; i++)
     if (p_freq[i] > 0.0)
-      values[0] += 0.5*nkt*omega_dot[i]*omega_dot[i] / 
+      energy += 0.5*nkt*omega_dot[i]*omega_dot[i] / 
 	(p_freq[i]*p_freq[i]) + p_target[i]*(volume-vol0) / (pdim*nktv2p);
-  return 1;
+
+  if (n == 0) return energy;
+  else return 0.0;
 }

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,10 +18,13 @@
 #include "stdlib.h"
 #include "group.h"
 #include "domain.h"
+#include "atom.h"
+#include "atom_vec_hybrid.h"
 #include "region.h"
 #include "memory.h"
 #include "error.h"
-#include "atom.h"
+
+using namespace LAMMPS_NS;
 
 #define MAX_GROUP 32
 
@@ -44,7 +47,7 @@
    initialize group memory
 ------------------------------------------------------------------------- */
 
-Group::Group()
+Group::Group(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
@@ -124,7 +127,29 @@ void Group::assign(int narg, char **arg)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
 	mask[i] |= bit;
 
-    // style = logical condition
+  // style = hybrid
+
+  } else if (strcmp(arg[1],"hybrid") == 0) {
+
+    if (narg != 3) error->all("Illegal group command");
+    if (strcmp(atom->atom_style,"hybrid") != 0)
+      error->all("Group hybrid command requires atom style hybrid");
+    
+    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
+    int ihybrid;
+    for (ihybrid = 0; ihybrid < avec_hybrid->nstyles; ihybrid++)
+      if (strcmp(avec_hybrid->keywords[ihybrid],arg[2]) == 0) break;
+    if (ihybrid == avec_hybrid->nstyles)
+      error->all("Group hybrid sub-style does not exist");
+
+    // add to group if atom matches hybrid sub-style
+
+    int *hybrid = atom->hybrid;
+
+    for (i = 0; i < nlocal; i++)
+      if (hybrid[i] == ihybrid)	mask[i] |= bit;
+
+  // style = logical condition
 
   } else if (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 || 
 	     strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 || 
@@ -173,7 +198,7 @@ void Group::assign(int narg, char **arg)
 	if (attribute[i] >= bound1 && attribute[i] <= bound2) mask[i] |= bit;
     }
 
-    // style = list of values
+  // style = list of values
 
   } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
 	     strcmp(arg[1],"id") == 0) {
@@ -205,7 +230,7 @@ void Group::assign(int narg, char **arg)
 
     delete [] list;
     
-    // style = subtract
+  // style = subtract
 
   } else if (strcmp(arg[1],"subtract") == 0) {
 
@@ -241,7 +266,7 @@ void Group::assign(int narg, char **arg)
 
     delete [] list;
 
-    // style = union
+  // style = union
 
   } else if (strcmp(arg[1],"union") == 0) {
 
@@ -269,7 +294,7 @@ void Group::assign(int narg, char **arg)
 
     delete [] list;
 
-    // style = intersect
+  // style = intersect
 
   } else if (strcmp(arg[1],"intersect") == 0) {
 
@@ -300,7 +325,7 @@ void Group::assign(int narg, char **arg)
 
     delete [] list;
 
-    // not a valid group style
+  // not a valid group style
 
   } else error->all("Illegal group command");
 
@@ -443,7 +468,7 @@ double Group::mass(int igroup)
 
   double m = 0.0;
 
-  if (atom->mass_require) {
+  if (mass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) m += mass[type[i]];
   } else {
@@ -547,7 +572,7 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   int xbox,ybox,zbox;
   double massone;
 
-  if (atom->mass_require) {
+  if (mass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	xbox = (image[i] & 1023) - 512;
@@ -596,7 +621,7 @@ void Group::vcm(int igroup, double masstotal, double *cm)
   double p[3],massone;
   p[0] = p[1] = p[2] = 0.0;
 
-  if (atom->mass_require) {
+  if (mass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	massone = mass[type[i]];
@@ -636,7 +661,6 @@ double Group::gyration(int igroup, double masstotal, double *cm)
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
-  int mass_require = atom->mass_require;
 
   int xbox,ybox,zbox;
   double dx,dy,dz,massone;
@@ -653,7 +677,7 @@ double Group::gyration(int igroup, double masstotal, double *cm)
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
-      if (mass_require) massone = mass[type[i]];
+      if (mass) massone = mass[type[i]];
       else massone = rmass[i];
       rg += (dx*dx + dy*dy + dz*dz) * massone;
     }
@@ -680,7 +704,6 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
-  int mass_require = atom->mass_require;
 
   int xbox,ybox,zbox;
   double dx,dy,dz,massone;
@@ -698,7 +721,7 @@ void Group::angmom(int igroup, double *cm, double *lmom)
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
-      if (mass_require) massone = mass[type[i]];
+      if (mass) massone = mass[type[i]];
       else massone = rmass[i];
       p[0] += massone * (dy*v[i][2] - dz*v[i][1]);
       p[1] += massone * (dz*v[i][0] - dx*v[i][2]);
@@ -726,7 +749,6 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
-  int mass_require = atom->mass_require;
 
   int xbox,ybox,zbox;
   double dx,dy,dz,massone;
@@ -746,7 +768,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
-      if (mass_require) massone = mass[type[i]];
+      if (mass) massone = mass[type[i]];
       else massone = rmass[i];
       ione[0][0] += massone * (dy*dy + dz*dz);
       ione[1][1] += massone * (dx*dx + dz*dz);
@@ -764,14 +786,11 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
 
 /* ----------------------------------------------------------------------
    compute angular velocity omega from L = Iw, inverting I to solve for w
+   really not a group operation, but L and I were computed for a group
 ------------------------------------------------------------------------- */
 
-void Group::omega(int igroup, double *angmom, double inertia[3][3], double *w)
+void Group::omega(double *angmom, double inertia[3][3], double *w)
 {
-  int i,j;
-
-  int groupbit = bitmask[igroup];
-
   double inverse[3][3];
 
   inverse[0][0] = inertia[1][1]*inertia[2][2] - inertia[1][2]*inertia[2][1];
@@ -793,6 +812,7 @@ void Group::omega(int igroup, double *angmom, double inertia[3][3], double *w)
     inertia[0][1]*inertia[1][0]*inertia[2][2] - 
     inertia[2][0]*inertia[1][1]*inertia[0][2]; 
 
+  int i,j;
   for (i = 0; i < 3; i++)
     for (j = 0; j < 3; j++)
       inverse[i][j] /= determinant;

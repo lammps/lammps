@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,6 +33,8 @@
 #include "style.h"
 #undef DumpInclude
 
+using namespace LAMMPS_NS;
+
 #define DELTA 1
 #define MYMIN(a,b) ((a) < (b) ? (a) : (b))
 #define MYMAX(a,b) ((a) > (b) ? (a) : (b))
@@ -41,15 +43,13 @@
    initialize all output 
 ------------------------------------------------------------------------- */
 
-Output::Output()
+Output::Output(LAMMPS *lmp) : Pointers(lmp)
 {
   thermo = NULL;
-  char **thermoarg = new char*[1];
-  thermoarg[0] = new char[strlen("one") + 1];
-  strcpy(thermoarg[0],"one");
-  thermo = new Thermo(1,thermoarg);
-  delete [] thermoarg[0];
-  delete [] thermoarg;
+  char **newarg = new char*[1];
+  newarg[0] = "one";
+  thermo = new Thermo(lmp,1,newarg);
+  delete [] newarg;
     
   thermo_every = 0;
 
@@ -134,7 +134,7 @@ void Output::setup(int flag)
 
   // print memory usage unless being called between multiple runs
 
-  if (flag) print_memory_usage();
+  if (flag) memory_usage();
 
   // always do thermo with header at start of run
   // set next_thermo to multiple of every or last step of run (if smaller)
@@ -247,11 +247,11 @@ void Output::add_dump(int narg, char **arg)
 
   // create the Dump
 
-  if (strcmp(arg[2],"none") == 0) error->all("Invalid dump style");
+  if (0) return;         // dummy line to enable else-if macro expansion
 
 #define DumpClass
 #define DumpStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) dump[ndump] = new Class(narg,arg);
+  else if (strcmp(arg[2],#key) == 0) dump[ndump] = new Class(lmp,narg,arg);
 #include "style.h"
 #undef DumpClass
 
@@ -324,7 +324,7 @@ void Output::create_thermo(int narg, char **arg)
 
   delete thermo;
   thermo = NULL;
-  thermo = new Thermo(narg,arg);
+  thermo = new Thermo(lmp,narg,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -346,7 +346,7 @@ void Output::create_restart(int narg, char **arg)
     return;
   }
 
-  restart = new WriteRestart;
+  restart = new WriteRestart(lmp);
   last_restart = -1;
 
   int n = strlen(arg[1]) + 3;
@@ -370,7 +370,7 @@ void Output::create_restart(int narg, char **arg)
    is only memory on proc 0, not averaged across procs
 ------------------------------------------------------------------------- */
 
-void Output::print_memory_usage()
+void Output::memory_usage()
 {
   int bytes = 0;
 

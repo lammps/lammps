@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,11 +17,15 @@
 #include "stdio.h"
 #include "pair.h"
 
-class PairHybrid : public Pair {
-  friend class Force;
+namespace LAMMPS_NS {
 
+class PairHybrid : public Pair {
  public:
-  PairHybrid();
+  int nstyles;                  // # of different pair styles
+  Pair **styles;                // class list for each Pair style
+  char **keywords;              // sub-style name for each Pair style
+
+  PairHybrid(class LAMMPS *);
   ~PairHybrid();
   void compute(int, int);
   void settings(int, char **);
@@ -31,14 +35,11 @@ class PairHybrid : public Pair {
   void write_restart(FILE *);
   void read_restart(FILE *);
   void single(int, int, int, int, double, double, double, int, One &);
-  void single_embed(int, int, double &, int, double &);
+  void single_embed(int, int, double &);
   void modify_params(int narg, char **arg);
   int memory_usage();
 
  private:
-  int nstyles;                  // # of different pair styles
-  Pair **styles;                // class list for each Pair style
-  char **keywords;              // sub-style name for each Pair style
   int **map;                    // which style each itype,jtype points to
 
   int *nnlist;                  // # of half neighs in sub-style neigh lists
@@ -57,5 +58,7 @@ class PairHybrid : public Pair {
 
   void allocate();
 };
+
+}
 
 #endif

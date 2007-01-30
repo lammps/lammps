@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,20 +14,23 @@
 #ifndef CREATE_ATOMS_H
 #define CREATE_ATOMS_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class CreateAtoms : public LAMMPS {
+namespace LAMMPS_NS {
+
+class CreateAtoms : protected Pointers {
  public:
-  CreateAtoms() {}
-  ~CreateAtoms() {}
+  CreateAtoms(class LAMMPS *);
   void command(int, char **);
 
  private:
-  int regionflag;
+  int regionflag,nhybrid;
   double boxxhi,boxyhi,boxzhi;
   double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;
 
   void add_atom(int, double, double, double);
 };
+
+}
 
 #endif

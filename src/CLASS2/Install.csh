@@ -1,7 +1,5 @@
 # Install/unInstall package classes in LAMMPS
 
-# pair_lj_class2_coul_long.h must always be in src
-
 if ($1 == 1) then
 
   cp style_class2.h ..
@@ -22,7 +20,7 @@ if ($1 == 1) then
 
   cp pair_lj_class2.h ..
   cp pair_lj_class2_coul_cut.h ..
-#  cp pair_lj_class2_coul_long.h ..
+  cp pair_lj_class2_coul_long.h ..
 
 else if ($1 == 0) then
 
@@ -45,6 +43,6 @@ else if ($1 == 0) then
 
   rm ../pair_lj_class2.h
   rm ../pair_lj_class2_coul_cut.h
-#  rm ../pair_lj_class2_coul_long.h
+  rm ../pair_lj_class2_coul_long.h
 
 endif

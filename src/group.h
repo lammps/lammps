@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,9 +15,11 @@
 #define GROUP_H
 
 #include "stdio.h"
-#include "lammps.h"
+#include "pointers.h"
 
-class Group : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Group : protected Pointers {
  public:
   int me;
   int ngroup;                  // # of defined groups
@@ -25,7 +27,7 @@ class Group : public LAMMPS {
   int *bitmask;                // one-bit mask for each group
   int *inversemask;            // inverse mask for each group
 
-  Group();
+  Group(class LAMMPS *);
   ~Group();
   void assign(int, char **);         // assign atoms to a group
   void create(char *, int *);        // add flagged atoms to a group
@@ -41,9 +43,10 @@ class Group : public LAMMPS {
   void vcm(int, double, double *);         // center-of-mass velocity of group
   double gyration(int, double, double *);  // radius-of-gyration of group
   void angmom(int, double *, double *);    // angular momentum of group
-  void inertia(int, double *, double [3][3]);          // inertia tensor
-  void omega(int, double *, double [3][3], double *);  // angular velocity
+  void inertia(int, double *, double [3][3]);     // inertia tensor
+  void omega(double *, double [3][3], double *);  // angular velocity
 };
 
-#endif
+}
 
+#endif

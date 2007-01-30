@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,8 +15,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "delete_bonds.h"
-#include "system.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -26,6 +26,8 @@
 #include "special.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MULTI    1
 #define ATOM     2
 #define BOND     3
@@ -33,6 +35,10 @@
 #define DIHEDRAL 5
 #define IMPROPER 6
 #define STATS    7
+
+/* ---------------------------------------------------------------------- */
+
+DeleteBonds::DeleteBonds(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,7 +57,7 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for delete_bonds ...\n");
-  sys->init();
+  lmp->init();
 
   if (comm->me == 0 && screen) fprintf(screen,"Deleting bonds ...\n");
 
@@ -122,7 +128,7 @@ void DeleteBonds::command(int narg, char **arg)
   int i,m,n,flag;
   int atom1,atom2,atom3,atom4;
 
-  if (atom->bonds_allow) {
+  if (atom->avec->bonds_allow) {
     int *num_bond = atom->num_bond;
     int **bond_type = atom->bond_type;
 
@@ -147,7 +153,7 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
-  if (atom->angles_allow) {
+  if (atom->avec->angles_allow) {
     int *num_angle = atom->num_angle;
     int **angle_type = atom->angle_type;
 
@@ -177,7 +183,7 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
-  if (atom->dihedrals_allow) {
+  if (atom->avec->dihedrals_allow) {
     int *num_dihedral = atom->num_dihedral;
     int **dihedral_type = atom->dihedral_type;
 
@@ -208,7 +214,7 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
-  if (atom->impropers_allow) {
+  if (atom->avec->impropers_allow) {
     int *num_improper = atom->num_improper;
     int **improper_type = atom->improper_type;
 
@@ -244,7 +250,7 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (remove_flag) {
 
-    if (atom->bonds_allow) {
+    if (atom->avec->bonds_allow) {
       for (i = 0; i < nlocal; i++) {
 	m = 0;
 	while (m < atom->num_bond[i]) {
@@ -261,7 +267,7 @@ void DeleteBonds::command(int narg, char **arg)
       }
     }
 
-    if (atom->angles_allow) {
+    if (atom->avec->angles_allow) {
       for (i = 0; i < nlocal; i++) {
 	m = 0;
 	while (m < atom->num_angle[i]) {
@@ -283,7 +289,7 @@ void DeleteBonds::command(int narg, char **arg)
       }
     }
 
-    if (atom->dihedrals_allow) {
+    if (atom->avec->dihedrals_allow) {
       for (i = 0; i < nlocal; i++) {
 	m = 0;
 	while (m < atom->num_dihedral[i]) {
@@ -307,7 +313,7 @@ void DeleteBonds::command(int narg, char **arg)
       }
     }
 
-    if (atom->impropers_allow) {
+    if (atom->avec->impropers_allow) {
       for (i = 0; i < nlocal; i++) {
 	m = 0;
 	while (m < atom->num_improper[i]) {
@@ -337,28 +343,28 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (remove_flag) {
 
-    if (atom->bonds_allow) {
+    if (atom->avec->bonds_allow) {
       int nbonds = 0;
       for (i = 0; i < nlocal; i++) nbonds += atom->num_bond[i];
       MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_INT,MPI_SUM,world);
       if (force->newton_bond == 0) atom->nbonds /= 2;
     }
 
-    if (atom->angles_allow) {
+    if (atom->avec->angles_allow) {
       int nangles = 0;
       for (i = 0; i < nlocal; i++) nangles += atom->num_angle[i];
       MPI_Allreduce(&nangles,&atom->nangles,1,MPI_INT,MPI_SUM,world);
       if (force->newton_bond == 0) atom->nangles /= 3;
     }
 
-    if (atom->dihedrals_allow) {
+    if (atom->avec->dihedrals_allow) {
       int ndihedrals = 0;
       for (i = 0; i < nlocal; i++) ndihedrals += atom->num_dihedral[i];
       MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_INT,MPI_SUM,world);
       if (force->newton_bond == 0) atom->ndihedrals /= 4;
     }
 
-    if (atom->impropers_allow) {
+    if (atom->avec->impropers_allow) {
       int nimpropers = 0;
       for (i = 0; i < nlocal; i++) nimpropers += atom->num_improper[i];
       MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_INT,MPI_SUM,world);
@@ -375,7 +381,7 @@ void DeleteBonds::command(int narg, char **arg)
   int dihedral_on,dihedral_off;
   int improper_on,improper_off;
 
-  if (atom->bonds_allow) {
+  if (atom->avec->bonds_allow) {
     bond_on = bond_off = 0;
     for (i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_bond[i]; m++)
@@ -391,7 +397,7 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
-  if (atom->angles_allow) {
+  if (atom->avec->angles_allow) {
     angle_on = angle_off = 0;
     for (i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_angle[i]; m++)
@@ -407,7 +413,7 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
-  if (atom->dihedrals_allow) {
+  if (atom->avec->dihedrals_allow) {
     dihedral_on = dihedral_off = 0;
     for (i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_dihedral[i]; m++)
@@ -423,7 +429,7 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
-  if (atom->impropers_allow) {
+  if (atom->avec->impropers_allow) {
     improper_on = improper_off = 0;
     for (i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_improper[i]; m++)
@@ -441,30 +447,30 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (comm->me == 0) {
     if (screen) {
-      if (atom->bonds_allow)
+      if (atom->avec->bonds_allow)
 	fprintf(screen,"  %d total bonds, %d turned on, %d turned off\n",
 		atom->nbonds,bond_on,bond_off);
-      if (atom->angles_allow)
+      if (atom->avec->angles_allow)
 	fprintf(screen,"  %d total angles, %d turned on, %d turned off\n",
 		atom->nangles,angle_on,angle_off);
-      if (atom->dihedrals_allow)
+      if (atom->avec->dihedrals_allow)
 	fprintf(screen,"  %d total dihedrals, %d turned on, %d turned off\n",
 		atom->ndihedrals,dihedral_on,dihedral_off);
-      if (atom->impropers_allow)
+      if (atom->avec->impropers_allow)
 	fprintf(screen,"  %d total impropers, %d turned on, %d turned off\n",
 		atom->nimpropers,improper_on,improper_off);
     }
     if (logfile) {
-      if (atom->bonds_allow)
+      if (atom->avec->bonds_allow)
 	fprintf(logfile,"  %d total bonds, %d turned on, %d turned off\n",
 		atom->nbonds,bond_on,bond_off);
-      if (atom->angles_allow)
+      if (atom->avec->angles_allow)
 	fprintf(logfile,"  %d total angles, %d turned on, %d turned off\n",
 		atom->nangles,angle_on,angle_off);
-      if (atom->dihedrals_allow)
+      if (atom->avec->dihedrals_allow)
 	fprintf(logfile,"  %d total dihedrals, %d turned on, %d turned off\n",
 		atom->ndihedrals,dihedral_on,dihedral_off);
-      if (atom->impropers_allow)
+      if (atom->avec->impropers_allow)
 	fprintf(logfile,"  %d total impropers, %d turned on, %d turned off\n",
 		atom->nimpropers,improper_on,improper_off);
     }
@@ -473,7 +479,7 @@ void DeleteBonds::command(int narg, char **arg)
   // re-compute special list if requested
 
   if (special_flag) {
-    Special special;
+    Special special(lmp);
     special.build();
   }
 }

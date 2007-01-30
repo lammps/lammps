@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,24 +32,27 @@
 #include "neighbor.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHistory::PairGranHistory()
+PairGranHistory::PairGranHistory(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
 
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  ifix_history = -1;
+  history = 1;
+  fix_history = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairGranHistory::~PairGranHistory()
 {
-  if (ifix_history >= 0) modify->delete_fix("SHEAR_HISTORY");
+  if (fix_history) modify->delete_fix("SHEAR_HISTORY");
 
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
@@ -335,32 +338,21 @@ void PairGranHistory::init_style()
   if (atom->check_style("granular") == 0)
     error->all("Must use atom style granular with pair style granular");
 
-  // for pair choices with shear history:
-  //   check if newton flag is valid
-  //   if first init, create Fix needed for storing shear history
+  // if shear history is stored:
+  // check if newton flag is valid
+  // if first init, create Fix needed for storing shear history
 
-  int history = 0;
-  if (force->pair_match("gran/history") || force->pair_match("gran/hertzian"))
-    history = 1;
-  
   if (history && force->newton_pair == 1)
     error->all("Potential with shear history requires newton pair off");
 
-  if (history && ifix_history == -1) {
+  if (history && fix_history == NULL) {
     char **fixarg = new char*[3];
     fixarg[0] = "SHEAR_HISTORY";
     fixarg[1] = "all";
     fixarg[2] = "SHEAR_HISTORY";
     modify->add_fix(3,fixarg);
     delete [] fixarg;
-  }
-
-  // find associated SHEAR_HISTORY fix that must exist
-  // could have changed locations in fix list since created
-
-  if (history) {
-    for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0) ifix_history = i;
+    fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
   }
 
   // check for freeze Fix and set freeze_group_bit
@@ -451,4 +443,15 @@ void PairGranHistory::read_restart_settings(FILE *fp)
   MPI_Bcast(&gamman,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&xmu,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&dampflag,1,MPI_INT,0,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairGranHistory::extract_gran(double *p_xkk, double *p_gamman,
+				   double *p_xmu, int *p_dampflag)
+{
+  *p_xkk = xkk;
+  *p_gamman = gamman;
+  *p_xmu = xmu;
+  *p_dampflag = dampflag;
 }

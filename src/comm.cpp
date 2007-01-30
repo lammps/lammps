@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,14 +17,18 @@
 #include "stdlib.h"
 #include "comm.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "modify.h"
 #include "fix.h"
+#include "compute.h"
 #include "error.h"
 #include "memory.h"
+
+using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
@@ -38,7 +42,7 @@
    setup MPI and allocate buffer space 
 ------------------------------------------------------------------------- */
 
-Comm::Comm()
+Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -87,26 +91,34 @@ Comm::~Comm()
 
 void Comm::init()
 {
-  // direct_flag = 1 if only x,f are exchanged in forward/reverse comm
+  map_style = atom->map_style;
 
-  direct_flag = 1;
-  if (atom->check_style("dipole") || atom->check_style("dpd") ||
-      atom->check_style("granular")) direct_flag = 0;
+  // comm_only = 1 if only x,f are exchanged in forward/reverse comm
+
+  comm_x_only = atom->avec->comm_x_only;
+  comm_f_only = atom->avec->comm_f_only;
 
   // maxforward = # of datums in largest forward communication
   // maxreverse = # of datums in largest reverse communication
-  // pair,fix values are set by init() of force,modify
+  // query pair,fix,compute for their requirements
 
-  maxforward = MAX(atom->size_comm,atom->size_border);
-  maxforward = MAX(maxforward,maxforward_pair);
-  maxforward = MAX(maxforward,maxforward_fix);
+  maxforward = MAX(atom->avec->size_comm,atom->avec->size_border);
+  maxreverse = atom->avec->size_reverse;
 
-  maxreverse = atom->size_reverse;
-  maxreverse = MAX(maxreverse,maxreverse_pair);
-  maxreverse = MAX(maxreverse,maxreverse_fix);
+  if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
+
+  for (int i = 0; i < modify->nfix; i++) {
+    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < modify->ncompute; i++) {
+    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  }
+
   if (force->newton == 0) maxreverse = 0;
-
-  map_style = atom->map_style;
 }
 
 /* ----------------------------------------------------------------------
@@ -246,47 +258,47 @@ void Comm::setup()
 
 void Comm::communicate()
 {
+  int n;
   MPI_Request request;
   MPI_Status status;
+  AtomVec *avec = atom->avec;
   double **x = atom->x;
   double *buf;
 
   // exchange data with another proc
   // if other proc is self, just copy
-  // if direct_flag is set, exchange or copy directly to x, don't unpack
+  // if comm_x_only set, exchange or copy directly to x, don't unpack
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     if (sendproc[iswap] != me) {
-      if (direct_flag) {
+      if (comm_x_only) {
 	if (size_comm_recv[iswap]) buf = x[firstrecv[iswap]];
 	else buf = NULL;
 	MPI_Irecv(buf,size_comm_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
-	atom->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flags[iswap]);
-	MPI_Send(buf_send,size_comm_send[iswap],MPI_DOUBLE,
-		 sendproc[iswap],0,world);
+	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+			    buf_send,pbc_flags[iswap]);
+	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
       } else {
 	MPI_Irecv(buf_recv,size_comm_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
-	atom->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flags[iswap]);
-	MPI_Send(buf_send,size_comm_send[iswap],MPI_DOUBLE,
-		 sendproc[iswap],0,world);
+	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+			    buf_send,pbc_flags[iswap]);
+	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
-	atom->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
     } else {
-      if (direct_flag) {
+      if (comm_x_only) {
 	if (sendnum[iswap])
-	  atom->pack_comm(sendnum[iswap],sendlist[iswap],
-			  x[firstrecv[iswap]],pbc_flags[iswap]);
+	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+			      x[firstrecv[iswap]],pbc_flags[iswap]);
       } else {
-	atom->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flags[iswap]);
-	atom->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+			    buf_send,pbc_flags[iswap]);
+	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
   }
@@ -299,18 +311,20 @@ void Comm::communicate()
       
 void Comm::reverse_communicate()
 {
+  int n;
   MPI_Request request;
   MPI_Status status;
+  AtomVec *avec = atom->avec;
   double **f = atom->f;
   double *buf;
 
   // exchange data with another proc
   // if other proc is self, just copy
-  // if direct_flag is set, exchange or copy directly from f, don't pack
+  // if comm_f_only set, exchange or copy directly from f, don't pack
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
-      if (direct_flag) {
+      if (comm_f_only) {
 	MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
 		  sendproc[iswap],0,world,&request);
 	if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
@@ -321,21 +335,20 @@ void Comm::reverse_communicate()
       } else {
 	MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
 		  sendproc[iswap],0,world,&request);
-	atom->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	MPI_Send(buf_send,size_reverse_send[iswap],MPI_DOUBLE,
-		 recvproc[iswap],0,world);
+	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+	MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
 	MPI_Wait(&request,&status);
       }
-      atom->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
+      avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
 
     } else {
-      if (direct_flag) {
+      if (comm_f_only) {
 	if (sendnum[iswap])
-	    atom->unpack_reverse(sendnum[iswap],sendlist[iswap],
-				 f[firstrecv[iswap]]);
+	    avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
+				f[firstrecv[iswap]]);
       } else {
-	atom->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	atom->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
+	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+	avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
       }
     }
   }
@@ -360,6 +373,7 @@ void Comm::exchange()
   double *buf;
   MPI_Request request;
   MPI_Status status;
+  AtomVec *avec = atom->avec;
 
   // clear global->local map since atoms move & new ghosts are created
 
@@ -381,8 +395,8 @@ void Comm::exchange()
     while (i < nlocal) {
       if (x[i][dim] < lo || x[i][dim] >= hi) {
 	if (nsend > maxsend) grow_send(nsend,1);
-	nsend += atom->pack_exchange(i,&buf_send[nsend]);
-	atom->copy(nlocal-1,i);
+	nsend += avec->pack_exchange(i,&buf_send[nsend]);
+	avec->copy(nlocal-1,i);
 	nlocal--;
       } else i++;
     }
@@ -429,7 +443,7 @@ void Comm::exchange()
     m = 0;
     while (m < nrecv) {
       value = buf[m+dim+1];
-      if (value >= lo && value < hi) m += atom->unpack_exchange(&buf[m]);
+      if (value >= lo && value < hi) m += avec->unpack_exchange(&buf[m]);
       else m += static_cast<int> (buf[m]);
     }
   }
@@ -447,12 +461,14 @@ void Comm::exchange()
 
 void Comm::borders()
 {
-  int i,iswap,dim,ineed,maxneed,nsend,nrecv,nfirst,nlast,smax,rmax;
+  int i,n,iswap,dim,ineed,maxneed,nsend,nrecv,nfirst,nlast,smax,rmax;
   double lo,hi;
   double **x;
   double *buf;
   MPI_Request request;
   MPI_Status status;
+  AtomVec *avec = atom->avec;
+  int size_border = avec->size_border;
 
   // clear old ghosts
 
@@ -491,9 +507,9 @@ void Comm::borders()
       
       // pack up list of border atoms
 
-      if (nsend*atom->size_border > maxsend)
-	grow_send(nsend*atom->size_border,0);
-      atom->pack_border(nsend,sendlist[iswap],buf_send,pbc_flags[iswap]);
+      if (nsend*size_border > maxsend)
+	grow_send(nsend*size_border,0);
+      n = avec->pack_border(nsend,sendlist[iswap],buf_send,pbc_flags[iswap]);
 
       // swap atoms with other proc
       // put incoming ghosts at end of my atom arrays
@@ -502,12 +518,11 @@ void Comm::borders()
       if (sendproc[iswap] != me) {
 	MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
 		     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
-	if (nrecv*atom->size_border > maxrecv) 
-	  grow_recv(nrecv*atom->size_border);
-	MPI_Irecv(buf_recv,nrecv*atom->size_border,MPI_DOUBLE,
+	if (nrecv*size_border > maxrecv) 
+	  grow_recv(nrecv*size_border);
+	MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
-	MPI_Send(buf_send,nsend*atom->size_border,MPI_DOUBLE,
-		 sendproc[iswap],0,world);
+	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
 	buf = buf_recv;
       } else {
@@ -517,7 +532,7 @@ void Comm::borders()
 
       // unpack buffer
 
-      atom->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
+      avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
 
       // set all pointers & counters
 
@@ -525,10 +540,9 @@ void Comm::borders()
       rmax = MAX(rmax,nrecv);
       sendnum[iswap] = nsend;
       recvnum[iswap] = nrecv;
-      size_comm_send[iswap] = nsend * atom->size_comm;
-      size_comm_recv[iswap] = nrecv * atom->size_comm;
-      size_reverse_send[iswap] = nrecv * atom->size_reverse;
-      size_reverse_recv[iswap] = nsend * atom->size_reverse;
+      size_comm_recv[iswap] = nrecv * avec->size_comm;
+      size_reverse_send[iswap] = nrecv * avec->size_reverse;
+      size_reverse_recv[iswap] = nsend * avec->size_reverse;
       firstrecv[iswap] = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
       iswap++;
@@ -545,6 +559,260 @@ void Comm::borders()
   // reset global->local map
 
   if (map_style) atom->map_set();
+}
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Pair
+------------------------------------------------------------------------- */
+
+void Comm::comm_pair(Pair *pair)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = pair->pack_comm(sendnum[iswap],sendlist[iswap],
+			buf_send,pbc_flags[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    pair->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Pair
+------------------------------------------------------------------------- */
+
+void Comm::reverse_comm_pair(Pair *pair)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = pair->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc 
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    pair->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Fix
+------------------------------------------------------------------------- */
+
+void Comm::comm_fix(Fix *fix)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
+		       buf_send,pbc_flags[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    fix->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Fix
+------------------------------------------------------------------------- */
+
+void Comm::reverse_comm_fix(Fix *fix)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc 
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Compute
+------------------------------------------------------------------------- */
+
+void Comm::comm_compute(Compute *compute)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = compute->pack_comm(sendnum[iswap],sendlist[iswap],
+			   buf_send,pbc_flags[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    compute->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Compute
+------------------------------------------------------------------------- */
+
+void Comm::reverse_comm_compute(Compute *compute)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = compute->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc 
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		world,&request);
+      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    compute->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   assign nprocs to 3d xprd,yprd,zprd box so as to minimize surface area 
+------------------------------------------------------------------------- */
+
+void Comm::procs2box()
+{
+  int ipx,ipy,ipz,nremain;
+  double boxx,boxy,boxz,surf;
+
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+
+  double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
+
+  // loop thru all possible factorizations of nprocs
+  // surf = surface area of a proc sub-domain
+  // for 2d, insure ipz = 1
+
+  ipx = 1;
+  while (ipx <= nprocs) {
+    if (nprocs % ipx == 0) {
+      nremain = nprocs/ipx;
+      ipy = 1;
+      while (ipy <= nremain) {
+	if (nremain % ipy == 0) {
+	  ipz = nremain/ipy;
+	  if (force->dimension == 3 || ipz == 1) {
+	    boxx = xprd/ipx;
+	    boxy = yprd/ipy;
+	    boxz = zprd/ipz;
+	    surf = boxx*boxy + boxy*boxz + boxz*boxx;
+	    if (surf < bestsurf) {
+	      bestsurf = surf;
+	      procgrid[0] = ipx;
+	      procgrid[1] = ipy;
+	      procgrid[2] = ipz;
+	    }
+	  }
+	}
+	ipy++;
+      }
+    }
+    ipx++;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -622,7 +890,6 @@ void Comm::allocate_swap(int n)
   recvnum = (int *) memory->smalloc(n*sizeof(int),"comm:recvnum");
   sendproc = (int *) memory->smalloc(n*sizeof(int),"comm:sendproc");
   recvproc = (int *) memory->smalloc(n*sizeof(int),"comm:recvproc");
-  size_comm_send = (int *) memory->smalloc(n*sizeof(int),"comm:size");
   size_comm_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
   size_reverse_send = (int *) memory->smalloc(n*sizeof(int),"comm:size");
   size_reverse_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
@@ -642,7 +909,6 @@ void Comm::free_swap()
   memory->sfree(recvnum);
   memory->sfree(sendproc);
   memory->sfree(recvproc);
-  memory->sfree(size_comm_send);
   memory->sfree(size_comm_recv);
   memory->sfree(size_reverse_send);
   memory->sfree(size_reverse_recv);
@@ -650,53 +916,6 @@ void Comm::free_swap()
   memory->sfree(slabhi);
   memory->sfree(firstrecv);
   memory->destroy_2d_int_array(pbc_flags);
-}
-
-/* ----------------------------------------------------------------------
-   assign nprocs to 3d xprd,yprd,zprd box so as to minimize surface area 
-------------------------------------------------------------------------- */
-
-void Comm::procs2box()
-{
-  int ipx,ipy,ipz,nremain;
-  double boxx,boxy,boxz,surf;
-
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
-  double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
-
-  // loop thru all possible factorizations of nprocs
-  // surf = surface area of a proc sub-domain
-  // for 2d, insure ipz = 1
-
-  ipx = 1;
-  while (ipx <= nprocs) {
-    if (nprocs % ipx == 0) {
-      nremain = nprocs/ipx;
-      ipy = 1;
-      while (ipy <= nremain) {
-	if (nremain % ipy == 0) {
-	  ipz = nremain/ipy;
-	  if (force->dimension == 3 || ipz == 1) {
-	    boxx = xprd/ipx;
-	    boxy = yprd/ipy;
-	    boxz = zprd/ipz;
-	    surf = boxx*boxy + boxy*boxz + boxz*boxx;
-	    if (surf < bestsurf) {
-	      bestsurf = surf;
-	      procgrid[0] = ipx;
-	      procgrid[1] = ipy;
-	      procgrid[2] = ipz;
-	    }
-	  }
-	}
-	ipy++;
-      }
-    }
-    ipx++;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -712,142 +931,4 @@ int Comm::memory_usage()
   bytes += maxrecv * sizeof(double);
 
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   forward communication invoked by a Fix
-------------------------------------------------------------------------- */
-
-void Comm::comm_fix(Fix *fix)
-{
-  int iswap,n;
-  double *buf;
-  MPI_Request request;
-  MPI_Status status;
-
-  for (iswap = 0; iswap < nswap; iswap++) {
-
-    // pack buffer
-
-    n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
-		       buf_send,pbc_flags[iswap]);
-
-    // exchange with another proc
-    // if self, set recv buffer to send buffer
-
-    if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
-      buf = buf_recv;
-    } else buf = buf_send;
-
-    // unpack buffer
-
-    fix->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   reverse communication invoked by a Fix
-------------------------------------------------------------------------- */
-
-void Comm::reverse_comm_fix(Fix *fix)
-{
-  int iswap,n;
-  double *buf;
-  MPI_Request request;
-  MPI_Status status;
-
-  for (iswap = nswap-1; iswap >= 0; iswap--) {
-
-    // pack buffer
-
-    n = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
-
-    // exchange with another proc 
-    // if self, set recv buffer to send buffer
-
-    if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,&status);
-      buf = buf_recv;
-    } else buf = buf_send;
-
-    // unpack buffer
-
-    fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   forward communication invoked by a Pair
-------------------------------------------------------------------------- */
-
-void Comm::comm_pair(Pair *pair)
-{
-  int iswap,n;
-  double *buf;
-  MPI_Request request;
-  MPI_Status status;
-
-  for (iswap = 0; iswap < nswap; iswap++) {
-
-    // pack buffer
-
-    n = pair->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flags[iswap]);
-
-    // exchange with another proc
-    // if self, set recv buffer to send buffer
-
-    if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
-      buf = buf_recv;
-    } else buf = buf_send;
-
-    // unpack buffer
-
-    pair->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   reverse communication invoked by a Pair
-------------------------------------------------------------------------- */
-
-void Comm::reverse_comm_pair(Pair *pair)
-{
-  int iswap,n;
-  double *buf;
-  MPI_Request request;
-  MPI_Status status;
-
-  for (iswap = nswap-1; iswap >= 0; iswap--) {
-
-    // pack buffer
-
-    n = pair->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
-
-    // exchange with another proc 
-    // if self, set recv buffer to send buffer
-
-    if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,&status);
-      buf = buf_recv;
-    } else buf = buf_send;
-
-    // unpack buffer
-
-    pair->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
-  }
 }

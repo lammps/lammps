@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,6 +35,8 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define MAXBODY 2         // currently 2 since only linear chains allowed
 #define DELTA 128
 #define TOLERANCE 1.0e-6
@@ -45,10 +47,11 @@
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ----------------------------------------------------------------------
-   constructor - define rigid bodies and joints, initiate POEMS
+   define rigid bodies and joints, initiate POEMS
 ------------------------------------------------------------------------- */
 
-FixPOEMS::FixPOEMS(int narg, char **arg) : Fix(narg, arg)
+FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   int i,j,ibody;
 
@@ -57,7 +60,7 @@ FixPOEMS::FixPOEMS(int narg, char **arg) : Fix(narg, arg)
   // can't use with pure granular style since mass arrays are different
   // hybrid granular style would be OK if fix were on non-granular atoms
 
-  if (strcmp(atom->style,"granular") == 0)
+  if (atom->check_style("granular"))
     error->all("Cannot use fix poems with atom style granular");
 
   // perform initial allocation of atom-based arrays
@@ -262,7 +265,7 @@ FixPOEMS::FixPOEMS(int narg, char **arg) : Fix(narg, arg)
 }
 
 /* ----------------------------------------------------------------------
-   destructor - free all memory for rigid bodies, joints, and POEMS
+   free all memory for rigid bodies, joints, and POEMS
 ------------------------------------------------------------------------- */
 
 FixPOEMS::~FixPOEMS()

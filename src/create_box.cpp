@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,16 +22,20 @@
 #include "update.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
+
+CreateBox::CreateBox(LAMMPS *lmp) : Pointers(lmp) {}
+
 /* ---------------------------------------------------------------------- */
 
 void CreateBox::command(int narg, char **arg)
 {
-  if (atom == NULL)
-    error->all("Cannot create_box until atom_style is defined");
-  if (domain->box_exist) 
-    error->all("Cannot create_box after simulation box is defined");
   if (narg != 2) error->all("Illegal create_box command");
 
+  if (domain->box_exist) 
+    error->all("Cannot create_box after simulation box is defined");
   if (force->dimension == 2 && domain->zperiodic == 0)
     error->all("Cannot run 2d simulation with nonperiodic Z dimension");
 
@@ -90,7 +94,7 @@ void CreateBox::command(int narg, char **arg)
   atom->nimpropertypes = 0;
 
   // problem setup using info from header
-  // no call to atom->grow since create_atoms or insertion will do that
+  // no call to atom->grow since create_atoms or fixes will do it
 
   update->ntimestep = 0;
 

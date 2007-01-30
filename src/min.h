@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,9 +14,11 @@
 #ifndef MIN_H
 #define MIN_H
 
-#include "lammps.h"
+#include "pointers.h"
 
-class Min : public LAMMPS {
+namespace LAMMPS_NS {
+
+class Min : protected Pointers {
  public:
   double einitial,efinal,eprevious;
   double gnorm2_init,gnorminf_init,gnorm2_final,gnorminf_final;
@@ -24,7 +26,7 @@ class Min : public LAMMPS {
   double dmin,dmax;
   int linestyle,lineiter;
 
-  Min();
+  Min(class LAMMPS *);
   virtual ~Min() {}
   virtual void init() = 0;
   virtual void run() = 0;
@@ -32,5 +34,7 @@ class Min : public LAMMPS {
 
   void modify_params(int, char **);
 };
+
+}
 
 #endif

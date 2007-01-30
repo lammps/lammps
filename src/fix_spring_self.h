@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,9 +16,11 @@
 
 #include "fix.h"
 
+namespace LAMMPS_NS {
+
 class FixSpringSelf : public Fix {
  public:
-  FixSpringSelf(int, char **);
+  FixSpringSelf(class LAMMPS *, int, char **);
   ~FixSpringSelf();
   int setmask();
   void init();
@@ -41,5 +43,7 @@ class FixSpringSelf : public Fix {
   double **xoriginal;         // original coords of atoms
   int nlevels_respa;
 };
+
+}
 
 #endif

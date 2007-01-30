@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,9 +25,12 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 /* ---------------------------------------------------------------------- */
 
-FixSpringSelf::FixSpringSelf(int narg, char **arg) : Fix(narg, arg)
+FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg != 4) error->all("Illegal fix spring/self command");
 
@@ -37,7 +40,7 @@ FixSpringSelf::FixSpringSelf(int narg, char **arg) : Fix(narg, arg)
   if (k <= 0.0) error->all("Illegal fix spring/self command");
 
   // perform initial allocation of atom-based array
-  // register with atom class
+  // register with Atom class
 
   xoriginal = NULL;
   grow_arrays(atom->nmax);
@@ -72,11 +75,10 @@ FixSpringSelf::FixSpringSelf(int narg, char **arg) : Fix(narg, arg)
 
 FixSpringSelf::~FixSpringSelf()
 {
-  // if atom class still exists:
-  //   unregister this fix so atom class doesn't invoke it any more
- 
-  if (atom) atom->delete_callback(id,0);
-  if (atom) atom->delete_callback(id,1);
+  // unregister callbacks to this fix from Atom class
+
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
 
   // delete locally stored array
 

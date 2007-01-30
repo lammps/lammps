@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,21 +22,15 @@
 #include "atom.h"
 #include "update.h"
 #include "force.h"
+#include "pair.h"
 #include "modify.h"
-#include "pair_gran_no_history.h"
-#include "pair_gran_history.h"
-#include "pair_gran_hertzian.h"
 #include "memory.h"
 #include "error.h"
 
-#define XPLANE    1
-#define YPLANE    2
-#define ZPLANE    3
-#define ZCYLINDER 4
+using namespace LAMMPS_NS;
 
-#define NO_HISTORY 1
-#define HISTORY    2
-#define HERTZIAN   3
+enum{XPLANE,YPLANE,ZPLANE,ZCYLINDER};
+enum{NO_HISTORY,HISTORY,HERTZIAN};
 
 #define BIG 1.0e20
 
@@ -45,7 +39,8 @@
 
 /* ---------------------------------------------------------------------- */
 
-FixWallGran::FixWallGran(int narg, char **arg) : Fix(narg, arg)
+FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all("Illegal fix wall/gran command");
   
@@ -125,7 +120,7 @@ FixWallGran::FixWallGran(int narg, char **arg) : Fix(narg, arg)
   }
 
   // perform initial allocation of atom-based arrays
-  // register with atom class
+  // register with Atom class
 
   shear = NULL;
   grow_arrays(atom->nmax);
@@ -143,11 +138,10 @@ FixWallGran::FixWallGran(int narg, char **arg) : Fix(narg, arg)
 
 FixWallGran::~FixWallGran()
 {
-  // if atom class still exists:
-  //   unregister this fix so atom class doesn't invoke it any more
+  // unregister callbacks to this fix from Atom class
 
-  if (atom) atom->delete_callback(id,0);
-  if (atom) atom->delete_callback(id,1);
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
 
   // delete locally stored arrays
 
@@ -167,32 +161,29 @@ int FixWallGran::setmask()
 
 void FixWallGran::init()
 {
-  // set constants that depend on pair style
+  // insure use of granular pair_style
+  // set local values from Pair values
 
-  Pair *anypair;
-  if (anypair = force->pair_match("gran/no_history")) {
-    historystyle = 0;
-    pairstyle = NO_HISTORY;
-    xkk = ((PairGranNoHistory *) anypair)->xkk;
-    xkkt = ((PairGranNoHistory *) anypair)->xkkt;
-  } else if (anypair = force->pair_match("gran/history")) {
-    historystyle = 1;
-    pairstyle = HISTORY;
-    xkk = ((PairGranHistory *) anypair)->xkk;
-    xkkt = ((PairGranHistory *) anypair)->xkkt;
-  } else if (anypair = force->pair_match("gran/hertzian")) {
-    historystyle = 1;
-    pairstyle = HERTZIAN;
-    xkk = ((PairGranHertzian *) anypair)->xkk;
-    xkkt = ((PairGranHertzian *) anypair)->xkkt;
-  } else
-    error->all("Fix wall/gran can only be used with granular pair style");
+  Pair *pair = force->pair_match("gran");
+  if (pair == NULL)
+    error->all("Fix wall/gran is incompatible with Pair style");
+  int itmp;
+  double tmp1,tmp2;
+  pair->extract_gran(&xkk,&tmp1,&tmp2,&itmp);
 
-  // friction coeffs
+  // same initialization as in pair_gran_history::init_style()
 
+  xkkt = xkk * 2.0/7.0;
   dt = update->dt;
+  double gammas = 0.5*gamman;
   gamman_dl = gamman/dt;
-  gammas_dl = 0.5*gamman_dl;
+  gammas_dl = gammas/dt;
+
+  // set pairstyle from granular pair style
+
+  if (force->pair_match("gran/no_history")) pairstyle = NO_HISTORY;
+  else if (force->pair_match("gran/history")) pairstyle = HISTORY;
+  else if (force->pair_match("gran/hertzian")) pairstyle = HERTZIAN;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -274,7 +265,7 @@ void FixWallGran::post_force(int vflag)
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (rsq > radius[i]*radius[i]) {
-	if (historystyle) {
+	if (pairstyle != NO_HISTORY) {
 	  shear[i][0] = 0.0;
 	  shear[i][1] = 0.0;
 	  shear[i][2] = 0.0;

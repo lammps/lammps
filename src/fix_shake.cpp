@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,6 +31,8 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -38,7 +40,8 @@
 
 /* ---------------------------------------------------------------------- */
 
-FixShake::FixShake(int narg, char **arg) : Fix(narg, arg)
+FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -51,7 +54,7 @@ FixShake::FixShake(int narg, char **arg) : Fix(narg, arg)
     error->all("Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
-  // register with atom class
+  // register with Atom class
 
   shake_flag = NULL;
   shake_atom = shake_type = NULL;
@@ -59,6 +62,10 @@ FixShake::FixShake(int narg, char **arg) : Fix(narg, arg)
 
   grow_arrays(atom->nmax);
   atom->add_callback(0);
+
+  // set comm size needed by this Fix
+
+  comm_forward = 3;
 
   // parse SHAKE args
 
@@ -165,44 +172,42 @@ FixShake::FixShake(int narg, char **arg) : Fix(narg, arg)
 
 FixShake::~FixShake()
 {
-  // if atom class still exists:
-  //   unregister this fix so atom class doesn't invoke it any more
-  //   set bond_type and angle_type back to positive for SHAKE clusters
-  //     must set for all SHAKE bonds and angles stored by each atom
+  // unregister callbacks to this fix from Atom class
 
-  if (atom) {
-    atom->delete_callback(id,0);
+  atom->delete_callback(id,0);
 
-    int **bond_type = atom->bond_type;
-    int **angle_type = atom->angle_type;
-    int nlocal = atom->nlocal;
+  // set bond_type and angle_type back to positive for SHAKE clusters
+  // must set for all SHAKE bonds and angles stored by each atom
 
-    int n;
-    for (int i = 0; i < nlocal; i++) {
-      if (shake_flag[i] == 0) continue;
-      else if (shake_flag[i] == 1) {
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][2]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-	n = anglefind(i,shake_atom[i][1],shake_atom[i][2]);
-	if (n >= 0) angle_type[i][n] = -angle_type[i][n];
-      } else if (shake_flag[i] == 2) {
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-      } else if (shake_flag[i] == 3) {
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][2]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-      } else if (shake_flag[i] == 4) {
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][2]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-	n = bondfind(i,shake_atom[i][0],shake_atom[i][3]);
-	if (n >= 0) bond_type[i][n] = -bond_type[i][n];
-      }
+  int **bond_type = atom->bond_type;
+  int **angle_type = atom->angle_type;
+  int nlocal = atom->nlocal;
+
+  int n;
+  for (int i = 0; i < nlocal; i++) {
+    if (shake_flag[i] == 0) continue;
+    else if (shake_flag[i] == 1) {
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][2]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+      n = anglefind(i,shake_atom[i][1],shake_atom[i][2]);
+      if (n >= 0) angle_type[i][n] = -angle_type[i][n];
+    } else if (shake_flag[i] == 2) {
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+    } else if (shake_flag[i] == 3) {
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][2]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+    } else if (shake_flag[i] == 4) {
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][1]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][2]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
+      n = bondfind(i,shake_atom[i][0],shake_atom[i][3]);
+      if (n >= 0) bond_type[i][n] = -bond_type[i][n];
     }
   }
 
@@ -295,10 +300,6 @@ void FixShake::init()
     loop_respa = ((Respa *) update->integrate)->loop;
     step_respa = ((Respa *) update->integrate)->step;
   }
-
-  // set communication size in comm class
-
-  comm->maxforward_fix = MAX(comm->maxforward_fix,3);
 
   // set equilibrium bond distances
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,6 +14,8 @@
 #include "neighbor.h"
 #include "atom.h"
 #include "error.h"
+
+using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
    N^2 / 2 search for neighbor pairs with partial Newton's 3rd law
@@ -425,7 +427,7 @@ void Neighbor::half_full_newton()
 {
   int i,j,k,n,nfull;
   int *neighptr,*neighs;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double xtmp,ytmp,ztmp;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;

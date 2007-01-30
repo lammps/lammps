@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,9 +17,11 @@
 #include "stdio.h"
 #include "improper.h"
 
+namespace LAMMPS_NS {
+
 class ImproperClass2 : public Improper {
  public:
-  ImproperClass2();
+  ImproperClass2(class LAMMPS *);
   ~ImproperClass2();
   void compute(int, int);
   void coeff(int, int, char **);
@@ -37,5 +39,7 @@ class ImproperClass2 : public Improper {
   void cross(double *, double *, double *);
   double dot(double *, double *);
 };
+
+}
 
 #endif

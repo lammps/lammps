@@ -39,8 +39,6 @@ class PairEAM : public Pair {
 
   void extract_eam(double *, double **);
 
-  void foo();
-
  protected:
   double cutforcesq,cutmax;
 

@@ -157,11 +157,11 @@ Pair *Force::new_pair(char *style)
 
 Pair *Force::pair_match(char *word)
 {
-  if (strstr(pair_style,word) == 0) return pair;
+  if (strstr(pair_style,word)) return pair;
   else if (strcmp(pair_style,"hybrid") == 0) {
     PairHybrid *pair_hybrid = (PairHybrid *) pair;
     for (int i = 0; i < pair_hybrid->nstyles; i++)
-      if (strstr(pair_hybrid->keywords[i],word) == 0)
+      if (strstr(pair_hybrid->keywords[i],word))
 	return pair_hybrid->styles[i];
   }
   return NULL;

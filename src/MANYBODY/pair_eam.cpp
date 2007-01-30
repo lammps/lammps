@@ -261,7 +261,7 @@ void PairEAM::compute(int eflag, int vflag)
 	coeff = z2r_spline[type2z2r[itype][jtype]][m];
 	z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
 	z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	
+
 	recip = 1.0/r;
 	phi = z2*recip;
 	phip = z2p*recip - phi*recip;
@@ -672,11 +672,10 @@ void PairEAM::file2array()
 
   int irow,icol;
   for (i = 1; i <= ntypes; i++) {
-    irow = map[i];
-    if (irow == -1) continue;
     for (j = 1; j <= ntypes; j++) {
+      irow = map[i];
       icol = map[j];
-      if (icol == -1) continue;
+      if (irow == -1 || icol == -1) continue;
       if (irow < icol) {
 	irow = map[j];
 	icol = map[i];
@@ -807,7 +806,6 @@ void PairEAM::single(int i, int j, int itype, int jtype,
 
 void PairEAM::single_embed(int i, int itype, double &phi)
 {
-  printf("AAA %d\n",i);
   double p = rho[i]*rdrho + 1.0;
   int m = static_cast<int> (p);
   m = MAX(1,MIN(m,nrho-1));

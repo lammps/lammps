@@ -302,11 +302,10 @@ void PairEAMAlloy::file2array()
 
   int irow,icol;
   for (i = 1; i <= ntypes; i++) {
-    irow = map[i];
-    if (irow == -1) continue;
     for (j = 1; j <= ntypes; j++) {
+      irow = map[i];
       icol = map[j];
-      if (icol == -1) continue;
+      if (irow == -1 || icol == -1) continue;
       if (irow < icol) {
 	irow = map[j];
 	icol = map[i];

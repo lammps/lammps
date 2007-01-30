@@ -1,0 +1,20 @@
+MEAM (modified embedded atom method) library
+
+Greg Wagner, Sandia National Labs
+gjwagne at sandia.gov
+Jan 2007
+
+--------------
+
+This library is in implementation of the MEAM potential, specifically
+designed to work with LAMMPS.
+
+This library must be built with a F90 compiler, before LAMMPS is
+built, so LAMMPS can link against it.
+
+Build the library using one of the provided Makefiles or creating your
+own, specific to your compiler and system.  For example:
+
+make -f Makefile.g95
+
+If the build is successful, you should end up with a libmeam.a file.

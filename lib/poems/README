@@ -1,20 +1,43 @@
- POEMS 1.0 README
+POEMS (Parallelizable Open source Efficient Multibody Software) library
 
+Rudranarayan Mukherjee, RPI
+mukher at rpi.edu
+June 2006
 
-The Parallelizable Open source Efficient Multibody Software (POEMS) is general purpose distributed multibody dynamics software, which is able to simulate the dynamics of articulated body systems.
+--------------
 
-This work is supported by the funding agencies listed in the Grants' List. POEMS is an open source program distributed under the Rensselaer Scorec License.
+This is version 1.0 of the POEMS library, general purpose distributed
+multibody dynamics software, which is able to simulate the dynamics of
+articulated body systems.
 
-The Authors as listed in Authors' List reserve the right to reject the request on technical supports of the POEMS freely obtained.
+This library must be built with a C++ compiler, before LAMMPS is
+built, so LAMMPS can link against it.
 
+Build the library using one of the provided Makefiles or creating your
+own, specific to your compiler and system.  For example:
 
-We are open to hear from you about bugs, an idea for improvement, and suggestions, etc. We keep improving the POEMS. Check the POEMS web site (www.rpi.edu/~anderk5/POEMS) for the recent changes.
+make -f Makefile.g++
 
+If the build is successful, you should end up with a libpoems.a file.
+
+--------------
+
+POEMS is supported by the funding agencies listed in the Grants' List.
+POEMS is an open source program distributed under the Rensselaer
+Scorec License.
+
+The Authors as listed in Authors' List reserve the right to reject the
+request on technical supports of the POEMS freely obtained.
+
+We are open to hear from you about bugs, an idea for improvement, and
+suggestions, etc. We keep improving the POEMS. Check the POEMS web
+site (www.rpi.edu/~anderk5/POEMS) for the recent changes.
 
 All correspondence regarding the POEMS should be sent to:
 
 By email: (preferred)
-Prof. Kurt Anderson (anderk5@rpi.edu) or Rudranarayan Mukherjee (mukher@rpi.edu) - include "[POEMS]" in the subject
+Prof. Kurt Anderson (anderk5@rpi.edu) or
+Rudranarayan Mukherjee (mukher@rpi.edu) - include "[POEMS]" in the subject
 
 or by mail:
 Prof. Kurt S. Anderson
@@ -23,6 +46,3 @@ Rensselaer Polytechnic Institute
 110 8th Street,
 Troy, NY 12180-3510, U.S.A.
 
-	
-
-Created: June 6, 2006

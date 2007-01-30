@@ -10,3 +10,4 @@ not exist, you will need to edit one of the existing Makefiles.
 The libraries included with LAMMPS are the following:
 
 poems	      POEMS rigid-body integration package from RPI
+meam	      modified embedded atom method (MEAM) potential from Greg Wagner

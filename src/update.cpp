@@ -92,6 +92,11 @@ void Update::init()
 
 void Update::set_units(char *style)
 {
+
+  // physical constants from:
+  //   http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+  // using thermochemical calorie = 4.184 J
+  
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
     force->mvv2e = 1.0;
@@ -101,23 +106,23 @@ void Update::set_units(char *style)
     force->qe2f = 1.0;
     dt = 0.005;
     neighbor->skin = 0.3;
-
+    
   } else if (strcmp(style,"real") == 0) {
-    force->boltz = 0.001987191;
-    force->mvv2e = 48.88821 * 48.88821;
-    force->ftm2v = 1.0 / 48.88821 / 48.88821;
-    force->nktv2p = 68589.796;
-    force->qqr2e = 332.0636;
-    force->qe2f = 23.0602;
+    force->boltz = 0.0019872067; 
+    force->mvv2e = 48.88821291 * 48.88821291;
+    force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
+    force->nktv2p = 68568.415;
+    force->qqr2e = 332.06371;
+    force->qe2f = 23.060549; 
     dt = 1.0;
     neighbor->skin = 2.0;
 
   } else if (strcmp(style,"metal") == 0) {
-    force->boltz = 8.617e-5;
-    force->mvv2e = 1.0365e-4;
-    force->ftm2v = 1 / 1.0365e-4;
-    force->nktv2p = 1.602e6;
-    force->qqr2e = 14.40659;
+    force->boltz = 8.617343e-5;
+    force->mvv2e = 1.0364269e-4;
+    force->ftm2v = 1 / 1.0364269e-4;
+    force->nktv2p = 1.6021765e6;
+    force->qqr2e = 14.399645;
     force->qe2f = 1.0;
     dt = 0.001;
     neighbor->skin = 2.0;

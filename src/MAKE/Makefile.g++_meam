@@ -1,0 +1,45 @@
+# g++_meam = RedHat Linux box, g++, MPICH, FFTW, MEAM
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-g -O -I/home/sjplimp/tools/mpich/include \
+		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-g -O -L/home/sjplimp/tools/mpich/lib \
+		-L/home/sjplimp/tools/fftw/lib \
+		-L/home/sjplimp/lammps/lib/meam \
+		-L/opt/intel/fc/9.0/lib
+USRLIB =	-lfftw -lmpich -lmeam
+SYSLIB =	-lifcore
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

@@ -1,0 +1,212 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "stdlib.h"
+#include "atom_vec_dpd.h"
+#include "atom.h"
+#include "domain.h"
+#include "modify.h"
+#include "fix.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+
+#define DELTA 10000
+
+/* ---------------------------------------------------------------------- */
+
+AtomVecDPD::AtomVecDPD(LAMMPS *lmp, int narg, char **arg) :
+  AtomVecAtomic(lmp, narg, arg)
+{
+  mass_type = 1;
+  comm_x_only = 0;
+  size_comm = 6;
+  size_reverse = 3;
+  size_border = 9;
+  size_data_atom = 5;
+  size_data_vel = 4;
+  xcol_data = 3;
+}
+
+/* ----------------------------------------------------------------------
+   zero auxiliary data for n ghost atoms
+   data in border(), not including x,tag,type,mask
+   grow() is here since zero_ghost called first in hybrid::unpack_border()
+------------------------------------------------------------------------- */
+
+void AtomVecDPD::zero_ghost(int n, int first)
+{
+  int last = first + n;
+  for (int i = first; i < last; i++) {
+    if (i == nmax) atom->avec->grow(0);
+    v[i][0] = 0.0;
+    v[i][1] = 0.0;
+    v[i][2] = 0.0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDPD::pack_comm(int n, int *list, double *buf, int *pbc_flags)
+{
+  int i,j,m;
+
+  m = 0;
+  if (pbc_flags[0] == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+    }
+  } else {
+    double xprd = domain->xprd;
+    double yprd = domain->yprd;
+    double zprd = domain->zprd;
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
+      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
+      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDPD::pack_comm_one(int i, double *buf)
+{
+  buf[0] = v[i][0];
+  buf[1] = v[i][1];
+  buf[2] = v[i][2];
+  return 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecDPD::unpack_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDPD::unpack_comm_one(int i, double *buf)
+{
+  v[i][0] = buf[0];
+  v[i][1] = buf[1];
+  v[i][2] = buf[2];
+  return 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDPD::pack_border(int n, int *list, double *buf, int *pbc_flags)
+{
+  int i,j,m;
+
+  m = 0;
+  if (pbc_flags[0] == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+   }
+  } else {
+    double xprd = domain->xprd;
+    double yprd = domain->yprd;
+    double zprd = domain->zprd;
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
+      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
+      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDPD::pack_border_one(int i, double *buf)
+{
+  buf[0] = v[i][0];
+  buf[1] = v[i][1];
+  buf[2] = v[i][2];
+  return 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecDPD::unpack_border(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    if (i == nmax) grow(0);
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    tag[i] = static_cast<int> (buf[m++]);
+    type[i] = static_cast<int> (buf[m++]);
+    mask[i] = static_cast<int> (buf[m++]);
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDPD::unpack_border_one(int i, double *buf)
+{
+  v[i][0] = buf[0];
+  v[i][1] = buf[1];
+  v[i][2] = buf[2];
+  return 3;
+}
+

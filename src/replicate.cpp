@@ -124,7 +124,7 @@ void Replicate::command(int narg, char **arg)
 
   // check that new problem size will not be too large
   // if N > 2^31, turn off tags
-  // if molecular, N,Nbonds,etc cannot be > 2^31 else tags/counts invalid
+  // if molecular, N/Nbonds/etc cannot be > 2^31 else tags/counts invalid
 
   double rep = nrep;
   if (rep*old->natoms > MAXATOMS) atom->tag_enable = 0;

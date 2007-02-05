@@ -39,6 +39,12 @@
 #ifdef CommandClass
 #endif
 
+#ifdef ComputeInclude
+#endif
+
+#ifdef ComputeClass
+#endif
+
 #ifdef DihedralInclude
 #endif
 
@@ -91,10 +97,4 @@
 #endif
 
 #ifdef RegionClass
-#endif
-
-#ifdef TempInclude
-#endif
-
-#ifdef TempClass
 #endif

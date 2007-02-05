@@ -26,6 +26,11 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
+# Library target
+ 
+lib:    $(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
 # Compilation rules
 
 %.o:%.cpp

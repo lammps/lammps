@@ -25,12 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp)
-{
-  rhor_ = NULL;
-  frho_ = NULL;
-  z2r_ = NULL;
-}
+PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

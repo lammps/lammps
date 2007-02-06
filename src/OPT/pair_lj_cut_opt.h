@@ -49,8 +49,8 @@ void PairLJCutOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  int* restrict neighs;
-  double** restrict f;
+  int* __restrict__ neighs;
+  double** __restrict__ f;
   
   eng_vdwl = 0.0;
   if (VFLAG) for (int i = 0; i < 6; i++) virial[i] = 0.0;
@@ -58,21 +58,21 @@ void PairLJCutOpt::eval()
   if (VFLAG == 2) f = update->f_pair;
   else f = atom->f;
   
-  double** restrict x = atom->x;
-  int* restrict type = atom->type;
+  double** __restrict__ x = atom->x;
+  int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
-  double* restrict special_lj = force->special_lj;
-  int** restrict firstneigh = neighbor->firstneigh;
-  int* restrict num = neighbor->numneigh;
+  double* __restrict__ special_lj = force->special_lj;
+  int** __restrict__ firstneigh = neighbor->firstneigh;
+  int* __restrict__ num = neighbor->numneigh;
   
-  vec3_t* restrict xx = (vec3_t*)x[0];
-  vec3_t* restrict ff = (vec3_t*)f[0];
+  vec3_t* __restrict__ xx = (vec3_t*)x[0];
+  vec3_t* __restrict__ ff = (vec3_t*)f[0];
   
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
   
-  fast_alpha_t* restrict fast_alpha = 
+  fast_alpha_t* __restrict__ fast_alpha = 
     (fast_alpha_t*) malloc(ntypes2*sizeof(fast_alpha_t));
   for( int i = 0; i < ntypes; i++) for( int j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
@@ -83,7 +83,7 @@ void PairLJCutOpt::eval()
     a.lj4 = lj4[i+1][j+1];
     a.offset = offset[i+1][j+1];
   }
-  fast_alpha_t* restrict tabsix = fast_alpha;
+  fast_alpha_t* __restrict__ tabsix = fast_alpha;
   
   // loop over neighbors of my atoms
   
@@ -92,14 +92,14 @@ void PairLJCutOpt::eval()
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
     int itype = type[i] - 1;
-    int* restrict neighs = firstneigh[i];
+    int* __restrict__ neighs = firstneigh[i];
     int numneigh = num[i];
     
     double tmpfx = 0.0;
     double tmpfy = 0.0;
     double tmpfz = 0.0;
     
-    fast_alpha_t* restrict tabsixi = (fast_alpha_t*)&tabsix[itype*ntypes];
+    fast_alpha_t* __restrict__ tabsixi = (fast_alpha_t*)&tabsix[itype*ntypes];
     
     for (int k = 0; k < numneigh; k++) {
       int j = neighs[k];

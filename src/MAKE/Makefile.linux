@@ -8,8 +8,6 @@ SHELL = /bin/sh
 CC =		icc
 CCFLAGS =	-O -I/home/sjplimp/tools/mpich/include \
 		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
-#CCFLAGS =	-O -restrict -I/home/sjplimp/tools/mpich/include \
-#		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
 DEPFLAGS =	-M
 LINK =		icc
 LINKFLAGS =	-O -L/home/sjplimp/tools/mpich/lib \

@@ -75,8 +75,8 @@ void PairLJCharmmCoulLongOpt::eval()
   double grij,expm2,prefactor,t,erfc;
   double factor,phicoul,philj,switch1,switch2;
   
-  int* restrict neighs;
-  double** restrict f;
+  int* __restrict__ neighs;
+  double** __restrict__ f;
   
   float rsq;
   int *int_rsq = (int *) &rsq;
@@ -87,19 +87,19 @@ void PairLJCharmmCoulLongOpt::eval()
   if (VFLAG == 2) f = update->f_pair;
   else f = atom->f;
   
-  double** restrict x = atom->x;
-  double* restrict q = atom->q;
-  int* restrict type = atom->type;
+  double** __restrict__ x = atom->x;
+  double* __restrict__ q = atom->q;
+  int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
-  double* restrict special_coul = force->special_coul;
-  double* restrict special_lj = force->special_lj;
+  double* __restrict__ special_coul = force->special_coul;
+  double* __restrict__ special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
-  int** restrict firstneigh = neighbor->firstneigh;
-  int* restrict num = neighbor->numneigh;
+  int** __restrict__ firstneigh = neighbor->firstneigh;
+  int* __restrict__ num = neighbor->numneigh;
   
-  vec3_t* restrict xx = (vec3_t*)x[0];
-  vec3_t* restrict ff = (vec3_t*)f[0];
+  vec3_t* __restrict__ xx = (vec3_t*)x[0];
+  vec3_t* __restrict__ ff = (vec3_t*)f[0];
   
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
@@ -107,7 +107,7 @@ void PairLJCharmmCoulLongOpt::eval()
   double tmp_coef1 = 1.0/denom_lj;
   double tmp_coef2 = cut_ljsq - 3.0*cut_lj_innersq;
   
-  fast_alpha_t* restrict fast_alpha = 
+  fast_alpha_t* __restrict__ fast_alpha = 
     (fast_alpha_t*)malloc(ntypes2*sizeof(fast_alpha_t));
   for( int i = 0; i < ntypes; i++) for( int j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
@@ -117,7 +117,7 @@ void PairLJCharmmCoulLongOpt::eval()
     a.lj3 = lj3[i+1][j+1];
     a.lj4 = lj4[i+1][j+1];
   }
-  fast_alpha_t* restrict tabsix = fast_alpha;
+  fast_alpha_t* __restrict__ tabsix = fast_alpha;
   
   // loop over neighbors of my atoms
   
@@ -127,14 +127,14 @@ void PairLJCharmmCoulLongOpt::eval()
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
     itype = type[i] - 1;
-    int* restrict neighs = firstneigh[i];
+    int* __restrict__ neighs = firstneigh[i];
     int numneigh = num[i];
     
     double tmpfx = 0.0;
     double tmpfy = 0.0;
     double tmpfz = 0.0;
     
-    fast_alpha_t* restrict tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
+    fast_alpha_t* __restrict__ tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
     for (k = 0; k < numneigh; k++) {
       j = neighs[k];
       

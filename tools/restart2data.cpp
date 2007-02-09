@@ -807,8 +807,11 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if (strcmp(style,"eam") == 0) {
+  } else if (strcmp(style,"eam/opt") == 0) {
   } else if (strcmp(style,"eam/alloy") == 0) {
+  } else if (strcmp(style,"eam/alloy/opt") == 0) {
   } else if (strcmp(style,"eam/fs") == 0) {
+  } else if (strcmp(style,"eam/fs/opt") == 0) {
 
   } else if ((strcmp(style,"gran/history") == 0) ||
 	   (strcmp(style,"gran/no_history") == 0) ||
@@ -821,6 +824,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	   (strcmp(style,"lj/charmm/coul/long/opt") == 0) ||
 	   (strcmp(style,"lj/charmm/coul/long") == 0)) {
 
     if (strcmp(style,"lj/charmm/coul/charmm") == 0) {
@@ -925,6 +929,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"lj/cut") == 0) ||
+	   (strcmp(style,"lj/cut/opt") == 0) ||
 	   (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	   (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long") == 0) ||
@@ -1025,7 +1030,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if (strcmp(style,"morse") == 0) {
+  } else if ((strcmp(style,"morse") == 0) ||
+	     (strcmp(style,"morse/opt") == 0)) {
 
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);

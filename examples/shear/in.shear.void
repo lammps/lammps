@@ -3,7 +3,7 @@
 units		metal
 boundary	s s p
 
-atom_style	atomic
+atom_style	hybrid atomic
 lattice		fcc 3.52
 region		box block 0 16.0 0 10.0 0 2.828427
 create_box	3 box
@@ -35,8 +35,8 @@ delete_atoms	region void
 
 # temp controllers
 
-temperature	new3d mobile full
-temperature	new2d mobile partial 0 1 1
+compute		new3d mobile temp
+compute		new2d mobile temp/partial 0 1 1
 
 # equilibrate
 

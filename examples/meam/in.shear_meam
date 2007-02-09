@@ -1,9 +1,9 @@
-# 3d metal shear simulation
+# 3d metal shear simulation with MEAM potential
 
 units		metal
 boundary	s s p
 
-atom_style	hybrid atomic
+atom_style	atomic
 lattice		fcc 3.52
 region		box block 0 16.0 0 10.0 0 2.828427
 create_box	3 box
@@ -12,8 +12,8 @@ lattice		fcc 3.52 orient	x 1 0 0 orient y 0 1 1 orient z 0 -1 1 &
 		origin 0.5 0 0 
 create_atoms	1
 
-pair_style	eam
-pair_coeff	* * niu3.eam
+pair_style	meam
+pair_coeff	* * library.meam Ni4 ni.meam Ni4 Ni4 Ni4
 
 neighbor	0.3 bin
 neigh_modify	delay 5

@@ -3,7 +3,7 @@
 dimension	2
 boundary	p s p
 
-atom_style	atomic
+atom_style	hybrid atomic
 neighbor	0.3 bin
 neigh_modify	delay 5
 
@@ -59,7 +59,7 @@ set		hi-fixed atom 4
 
 # initial velocities
 
-temperature     new mobile partial 0 1 0
+compute         new mobile temp/partial 0 1 0
 velocity	mobile create 0.1 482748 temp new
 velocity	hi set 1.0 0.0 0.0 sum yes
 

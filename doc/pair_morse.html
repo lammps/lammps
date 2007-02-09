@@ -9,33 +9,28 @@
 
 <HR>
 
-<H3>pair_style dipole/cut command 
+<H3>pair_style morse command 
+</H3>
+<H3>pair_style morse/opt command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style dipole/cut cutoff (cutoff2) 
+<PRE>pair_style morse cutoff 
 </PRE>
-<UL><LI>cutoff = global cutoff for LJ interactions (and Coulombic if only 1 arg) (distance units)
-<LI>cutoff2 = global cutoff for Coulombic and dipole interactions (optional) (distance units) 
+<UL><LI>cutoff = global cutoff for Morse interactions (distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style dipole/cut 2.5
-pair_style dipole/cut 2.5 5.0
+<PRE>pair_style morse 2.5
+pair_style morse/opt 2.5
 pair_coeff * * 100.0 2.0 1.5
 pair_coeff 1 1 100.0 2.0 1.5 3.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>dipole/cut</I>
+<P>Style <I>morse</I> computes pairwise interactions with the formula
 </P>
-<P>The <I>dipole</I> styles are not yet implemented in LAMMPS.  They will
-enable a point dipole and charge to be assigned to each atom and the
-resulting charge-dipole and dipole-dipole interactions to be computed.
-</P>
-<P> computes pairwise interactions with the formula
-</P>
-<CENTER><IMG SRC = "Eqs/pair_dipole.jpg">
+<CENTER><IMG SRC = "Eqs/pair_morse.jpg">
 </CENTER>
 <P>Rc is the cutoff.
 </P>
@@ -53,9 +48,20 @@ commands:
 <P>The last coefficient is optional.  If not specified, the global morse
 cutoff is used.
 </P>
-<P><B>Restrictions:</B> none
+<P>Style <I>morse/opt</I> is an optimized version of style <I>morse</I> that should
+give identical answers.  Depending on system size and the processor
+you are running on, it may be 5-25% faster (for the pairwise portion
+of the run time).
 </P>
-<P>Must use atom style dipole.
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>morse</I> potential does not support the
+<A HREF = "pair_modify.hmtl">pair_modify</A> <I>mix</I> option.  Coefficients for all i,j
+pairs must be specified explicitly.
+</P>
+<P>The <I>morse/opt</I> style is part of the "opt" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

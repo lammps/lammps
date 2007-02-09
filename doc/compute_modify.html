@@ -9,13 +9,13 @@
 
 <HR>
 
-<H3>temp_modify command 
+<H3>compute_modify command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>temp_modify temp-ID keyword value ... 
+<PRE>compute_modify compute-ID keyword value ... 
 </PRE>
-<UL><LI>temp-ID = ID of temperature to modify 
+<UL><LI>compute-ID = ID of the compute to modify 
 
 <LI>one or more keyword/value pairs may be listed 
 
@@ -30,25 +30,25 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>temp_modify mine extra 0
-temp_modify mine dynamic yes 
+<PRE>compute_modify myTemp extra 0
+compute_modify newtemp dynamic yes extra 600 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Modify the parameters of a previously defined temperature method.
-This can either be the default temperature defined by LAMMPS (ID =
-<I>default</I>) or a user-defined temperature created by using the
-<A HREF = "temperature.html">temperature</A> command.
+<P>Modify one or more parameters of a previously defined compute.  Not
+all compute styles support all parameters.
 </P>
 <P>The <I>extra</I> keyword refers to how many degrees-of-freedom are
-subtracted (typically from 3N) as a normalizing factor in the
-temperature computation.  The default is 3 which is a correction
-factor for an ensemble of velocities with zero total linear momentum.
+subtracted (typically from 3N) as a normalizing factor in a
+temperature computation.  Only computes that compute a temperature use
+this option.  The default is 3 which is a correction factor for an
+ensemble of velocities with zero total linear momentum.
 </P>
 <P>The <I>dynamic</I> keyword determines whether the number of atoms N in the
-temperature group is re-computed each time the temperature is
-computed.  By default, N is assumed to be constant.  If you are adding
-atoms to the system (see the <A HREF = "fix_pour.html">fix pour</A> or <A HREF = "fix_deposit.html">fix
+compute group is re-computed each time a temperature is computed.
+Only compute styles that compute a temperature use this option.  By
+default, N is assumed to be constant.  If you are adding atoms to the
+system (see the <A HREF = "fix_pour.html">fix pour</A> or <A HREF = "fix_deposit.html">fix
 deposit</A> commands) or expect atoms to be lost
 (e.g. due to evaporation), then this option can be used to insure the
 temperature is correctly normalized.
@@ -57,7 +57,7 @@ temperature is correctly normalized.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "temperature.html">temperature</A>
+<P><A HREF = "compute.html">compute</A>
 </P>
 <P><B>Default:</B>
 </P>

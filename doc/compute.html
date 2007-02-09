@@ -1,0 +1,86 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID style args 
+</PRE>
+<UL><LI>ID = user-assigned name for the computation
+<LI>group-ID = ID of the group of atoms to perform the computation on
+<LI>style = one of a list of possible style names (see below)
+<LI>args = arguments used by a particular style 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all temp
+compute newtemp flow temp/partial 1 1 0
+compute 3 all ke/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Create a computation that will be performed on a group of atoms.
+</P>
+<P>In LAMMPS, a "compute" is used in several ways.  Computes that
+calculate one or more values for the entire group of atoms can output
+those values via the <A HREF = "thermo_style.html">thermo_style custom</A> command.
+Or the values can be referenced in a <A HREF = "variable.html">variable equal</A>
+command.  Computes that calculate a temperature or pressure are used
+by fixes that do thermostatting or barostatting and when atom
+velocities are created.  Computes that calculate one or more values
+for each atom in the group can output those values via the <A HREF = "dump.html">dump
+custom</A> command.
+</P>
+<P>LAMMPS creates its own computes for thermodynamic output and dumping
+atom snapshots.  Likewise fixes that compute temperature or pressure
+create their own computes.  These are discussed in the documentation
+for <A HREF = "thermo_style.html">thermo_style</A>, <A HREF = "dump.html">dump custom</A>, and
+specific <A HREF = "fix.html">fix</A> commands.
+</P>
+<P>In all these cases, the default computes can be replaced by computes
+defined in the input script, as described by the
+<A HREF = "thermo_modify.html">thermo_modify</A> and <A HREF = "fix_modify.html">fix modify</A>
+commands.  Code for new computes can also be added to LAMMPS (see
+<A HREF = "Section_modify.html">this section</A> of the manaul) and their
+calculations accessed in the various ways described above.
+</P>
+<P>Properties of a compute can be modified via the
+<A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P>Compute can be deleted with the <A HREF = "uncompute.html">uncompute</A> command.
+</P>
+<P>Each compute style has its own doc page which describes its arguments
+and what it does.  Here is an alphabetic list of compute styles
+defined in LAMMPS:
+</P>
+<UL><LI><A HREF = "compute_centro_atom.html">centro/atom</A> - centro-symmetry parameter for each atom
+<LI><A HREF = "compute_epair_atom.html">epair/atom</A> - pairwise energy for each atom
+<LI><A HREF = "compute_etotal_atom.html">etotal/atom</A> - total energy (ke + epair) for each atom
+<LI><A HREF = "compute_ke_atom.html">ke/atom</A> - kinetic energy for each atom
+<LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
+<LI><A HREF = "compute_rotate_dipole.html">rotate/dipole</A> - rotational energy of dipolar atoms
+<LI><A HREF = "compute_rotate_gran.html">rotate/gran</A> - rotational energy of granular atoms
+<LI><A HREF = "compute_stress_atom.html">stress/atom</A> - stress tensor for each atom
+<LI><A HREF = "compute_temp.html">temp</A> - temperature of group of atoms
+<LI><A HREF = "compute_temp_partial.html">temp/partial</A> - temperature excluding one or more dimensions of velocity
+<LI><A HREF = "compute_temp_ramp.html">temp/ramp</A> - temperature after subtracting a ramped velocity component
+<LI><A HREF = "compute_temp_region.html">temp/region</A> - temperature of a region of atoms 
+</UL>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "uncompute.html">uncompute</A>, <A HREF = "compute_modify.html">compute_modify</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

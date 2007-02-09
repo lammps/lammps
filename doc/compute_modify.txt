@@ -6,13 +6,13 @@
 
 :line
 
-temp_modify command :h3
+compute_modify command :h3
 
 [Syntax:]
 
-temp_modify temp-ID keyword value ... :pre
+compute_modify compute-ID keyword value ... :pre
 
-temp-ID = ID of temperature to modify :ulb,l
+compute-ID = ID of the compute to modify :ulb,l
 one or more keyword/value pairs may be listed :l
 keyword = {extra} or {dynamic} :l
   {extra} value = N
@@ -23,25 +23,25 @@ keyword = {extra} or {dynamic} :l
 
 [Examples:]
 
-temp_modify mine extra 0
-temp_modify mine dynamic yes :pre
+compute_modify myTemp extra 0
+compute_modify newtemp dynamic yes extra 600 :pre
 
 [Description:]
 
-Modify the parameters of a previously defined temperature method.
-This can either be the default temperature defined by LAMMPS (ID =
-{default}) or a user-defined temperature created by using the
-"temperature"_temperature.html command.
+Modify one or more parameters of a previously defined compute.  Not
+all compute styles support all parameters.
 
 The {extra} keyword refers to how many degrees-of-freedom are
-subtracted (typically from 3N) as a normalizing factor in the
-temperature computation.  The default is 3 which is a correction
-factor for an ensemble of velocities with zero total linear momentum.
+subtracted (typically from 3N) as a normalizing factor in a
+temperature computation.  Only computes that compute a temperature use
+this option.  The default is 3 which is a correction factor for an
+ensemble of velocities with zero total linear momentum.
 
 The {dynamic} keyword determines whether the number of atoms N in the
-temperature group is re-computed each time the temperature is
-computed.  By default, N is assumed to be constant.  If you are adding
-atoms to the system (see the "fix pour"_fix_pour.html or "fix
+compute group is re-computed each time a temperature is computed.
+Only compute styles that compute a temperature use this option.  By
+default, N is assumed to be constant.  If you are adding atoms to the
+system (see the "fix pour"_fix_pour.html or "fix
 deposit"_fix_deposit.html commands) or expect atoms to be lost
 (e.g. due to evaporation), then this option can be used to insure the
 temperature is correctly normalized.
@@ -50,7 +50,7 @@ temperature is correctly normalized.
 
 [Related commands:]
 
-"temperature"_temperature.html
+"compute"_compute.html
 
 [Default:]
 

@@ -1,0 +1,59 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute stress/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID stress/atom :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+stress/atom = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 mobile stress/atom :pre
+
+[Description:]
+
+Define a computation that computes the per-atom stress tensor for each
+atom in a group.  The 6 components can be output via the "dump
+custom"_dump.html command.
+
+The stress tensor is computed for only pairwise forces where the {ab}
+component of stress on atom {i} is given by
+
+:c,image(Eqs/stress_tensor.jpg)
+
+where the first term is a kinetic energy component for atom {i}, {j}
+loops over the {N} neighbors of atom {i}, and {Fb} is one of 3
+components of force on atom {i} due to atom {j}.  Both {a} and {b}
+take on values x,y,z to generate the 6 components of the symmetric
+tensor.
+
+Note that this formula for stress does not include virial
+contributions from intra-molecular interactions (e.g. bonds, angles,
+torsions, etc).  Also note that this quantity is the negative of the
+per-atom pressure tensor.  It is also really a stress-volume
+formulation.  It would need to be divided by a per-atom volume to have
+units of stress, but an individual atom's volume is not easy to
+compute in a deformed solid.  Thus, if you sum the diagonal components
+of the per-atom stress tensor for all atoms in the system and divide
+the sum by 3V, where V is the volume of the system, you should get -P,
+where P is the total pressure of the system.
+
+Computation of per-atom stress tensor components requires a loop thru
+the neighbor list and inter-processor communication, so it can be
+inefficient to compute/dump this quantity too frequently or to have
+multiple compute/dump commands, each of a {stress/atom} style.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

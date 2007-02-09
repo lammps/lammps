@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute ke/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID ke/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>ke/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ke/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the centro-symmetry parameter for
+each atom in a group.  This can be output via the <A HREF = "dump.html">dump
+custom</A> command.
+</P>
+<P>This parameter is computed using the following formula from
+<A HREF = "#Kelchner">(Kelchner)</A>
+</P>
+<CENTER><IMG SRC = "Eqs/centro_symmetry.jpg">
+</CENTER>
+<P>where the 12 nearest neighbors are found and Ri and Ri+6 are the
+vectors from the central atom to the opposite pair of nearest
+neighbors.  In solid state systems this is a useful measure of the
+local lattice disorder around an atom and can be used to characterize
+whether the atom is part of a perfect lattice, a local defect (e.g. a
+dislocation or stacking fault), or at a surface.
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently or to have multiple compute/dump commands, each of a
+<I>centro/atom</I> style.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Kelchner"></A>
+
+<P><B>(Kelchner)</B> Kelchner, Plimpton, Hamilton, Phys Rev B, 58, 11085 (1998).
+</P>
+</HTML>

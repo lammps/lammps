@@ -1,0 +1,65 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute pressure command :h3
+
+[Syntax:]
+
+compute ID group-ID pressure compute-ID :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+pressure = style name of this compute command
+compute-ID = ID of compute that calculates temperature :ul
+
+[Examples:]
+
+compute 1 all pressure myTemp :pre
+
+[Description:]
+
+Define a computation that calculates the pressure of atoms averaged
+over the entire system.  The specified group must be "all".  See the
+"dump custom"_dump.html command for how to dump the per-atom stress
+tensor if you want more localized information about pressure (stress)
+in your system.
+
+The pressure is computed by the standard formula
+
+:c,image(Eqs/pressure.jpg)
+
+where N is the number of atoms in the system (see discussion of DOF
+below), Kb is the Boltzmann constant, T is the temperature, V is the
+system volume, and the second term is the virial, computed within
+LAMMPS for all pairwise as well as 2-body, 3-body, 4-body bonded
+interactions.
+
+A 6-component pressure tensor is also calculated by this compute which
+can be output by the "thermo_style custom"_thermo_style.html command.
+The formula for the components of the tensor is the same as in above
+formula, except that the first term uses the components of the kinetic
+energy tensor (vx * vy instead of v^2 for temperature) and the second
+term uses Rx * Fy for the Wxy component of the virial tensor, etc.
+
+The temperature and kinetic energy tensor is not calculated by this
+compute, but rather by the temperature compute specified as the last
+argument of the command.  Normally this compute should calculate the
+temperature of all atoms for consistency with the virial term, but any
+compute style that calculates temperature can be used, e.g. one that
+excludes frozen atoms or other degrees of freedom.
+
+Note that the N is the above formula is really degrees-of-freedom/3
+where the DOF is specified by the temperature compute.  See the
+various "compute temperature"_compute.html styles for details.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "thermo_style"_themo_style.html
+
+[Default:] none

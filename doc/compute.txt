@@ -1,0 +1,81 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute command :h3
+
+[Syntax:]
+
+compute ID group-ID style args :pre
+
+ID = user-assigned name for the computation
+group-ID = ID of the group of atoms to perform the computation on
+style = one of a list of possible style names (see below)
+args = arguments used by a particular style :ul
+
+[Examples:]
+
+compute 1 all temp
+compute newtemp flow temp/partial 1 1 0
+compute 3 all ke/atom :pre
+
+[Description:]
+
+Create a computation that will be performed on a group of atoms.
+
+In LAMMPS, a "compute" is used in several ways.  Computes that
+calculate one or more values for the entire group of atoms can output
+those values via the "thermo_style custom"_thermo_style.html command.
+Or the values can be referenced in a "variable equal"_variable.html
+command.  Computes that calculate a temperature or pressure are used
+by fixes that do thermostatting or barostatting and when atom
+velocities are created.  Computes that calculate one or more values
+for each atom in the group can output those values via the "dump
+custom"_dump.html command.
+
+LAMMPS creates its own computes for thermodynamic output and dumping
+atom snapshots.  Likewise fixes that compute temperature or pressure
+create their own computes.  These are discussed in the documentation
+for "thermo_style"_thermo_style.html, "dump custom"_dump.html, and
+specific "fix"_fix.html commands.
+
+In all these cases, the default computes can be replaced by computes
+defined in the input script, as described by the
+"thermo_modify"_thermo_modify.html and "fix modify"_fix_modify.html
+commands.  Code for new computes can also be added to LAMMPS (see
+"this section"_Section_modify.html of the manaul) and their
+calculations accessed in the various ways described above.
+
+Properties of a compute can be modified via the
+"compute_modify"_compute_modify.html command.
+
+Compute can be deleted with the "uncompute"_uncompute.html command.
+
+Each compute style has its own doc page which describes its arguments
+and what it does.  Here is an alphabetic list of compute styles
+defined in LAMMPS:
+
+"centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
+"epair/atom"_compute_epair_atom.html - pairwise energy for each atom
+"etotal/atom"_compute_etotal_atom.html - total energy (ke + epair) for each atom
+"ke/atom"_compute_ke_atom.html - kinetic energy for each atom
+"pressure"_compute_pressure.html - total pressure and pressure tensor
+"rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
+"rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
+"stress/atom"_compute_stress_atom.html - stress tensor for each atom
+"temp"_compute_temp.html - temperature of group of atoms
+"temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
+"temp/ramp"_compute_temp_ramp.html - temperature after subtracting a ramped velocity component
+"temp/region"_compute_temp_region.html - temperature of a region of atoms :ul
+
+[Restrictions:] none
+
+[Related commands:]
+
+"uncompute"_uncompute.html, "compute_modify"_compute_modify.html
+
+[Default:] none

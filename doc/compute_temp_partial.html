@@ -1,0 +1,68 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/partial command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/partial xflag yflag zflag 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/partial = style name of this compute command
+<LI>xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute newT flow temp/partial 1 1 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a compute to calculate the temperature of a group of atoms,
+after excluding one or more velocity components.  A compute of this
+style can be used by any command that computes a temperature,
+e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
+</P>
+<P>The temperature is calculated by the formula KE = dim/2 N k T, where
+KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
+dim = dimensionality of the simulation, N = number of atoms in the
+group, k = Boltzmann constant, and T = temperature.  The calculation
+of KE excludes the x, y, or z dimensions if xflag, yflag, or zflag =
+0.  The dim parameter is adjusted to give the correct number of
+degrees of freedom.
+</P>
+<P>A 6-component kinetic energy tensor is also calculated by this compute
+for use in the calculation of a pressure tensor.  The formula for the
+components of the tensor is the same as the above formula, except that
+v^2 is replaced by vx * vy for the xy component, etc.
+</P>
+<P>The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the <I>dynamic</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
+</P>
+<P>This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
+<A HREF = "fix_rigid.html">fix rigid</A>.  This means the temperature of groups of
+atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+<I>extra</I> option of the <A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp_region.html">compute
+temp/region</A>, <A HREF = "compute_pressure.html">compute
+pressure</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

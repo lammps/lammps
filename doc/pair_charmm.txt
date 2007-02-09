@@ -9,12 +9,13 @@
 pair_style lj/charmm/coul/charmm command :h3
 pair_style lj/charmm/coul/charmm/implicit command :h3
 pair_style lj/charmm/coul/long command :h3
+pair_style lj/charmm/coul/long/opt command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long}
+style = {lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long} or {lj/charmm/coul/long/opt}
 args = list of arguments for a particular style :ul
   {lj/charmm/coul/charmm} args = inner outer (inner2) (outer2)
     inner, outer = global switching cutoffs for Lennard Jones (and Coulombic if only 2 args)
@@ -39,6 +40,7 @@ pair_coeff * * 100.0 2.0
 pair_coeff 1 1 100.0 2.0 150.0 3.5 :pre
 
 pair_style lj/charmm/coul/long 8.0 10.0
+pair_style lj/charmm/coul/long/opt 8.0 10.0
 pair_style lj/charmm/coul/long 8.0 10.0 9.0
 pair_coeff * * 100.0 2.0
 pair_coeff 1 1 100.0 2.0 150.0 3.5 :pre
@@ -77,6 +79,11 @@ applied to the Coulombic term, as in the discussion for pair style
 command, then the outer LJ cutoff is used as the single Coulombic
 cutoff.
 
+Style {lj/charmm/coul/long/opt} is an optimized version of style
+{lj/charmm/coul/long} that should give identical answers.  Depending
+on system size and the processor you are running on, it may be 5-25%
+faster (for the pairwise portion of the run time).
+
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the
@@ -103,9 +110,11 @@ the pair_style command.
 
 The {lj/charmm/coul/charmm} and {lj/charmm/coul/charmm/implicit}
 styles are part of the "molecule" package.  The {lj/charmm/coul/long}
-style is part of the "kspace" package.  They are only enabled if
-LAMMPS was built with those package(s).  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+style is part of the "kspace" package.  The {lj/charmm/coul/long/opt}
+style is part of the "opt" package and also requires the "kspace"
+package.  They are only enabled if LAMMPS was built with those
+package(s).  See the "Making LAMMPS"_Section_start.html#2_3 section
+for more info.
 
 On some 64-bit machines, compiling with -O3 appears to break the
 Coulombic tabling option used by the {lj/charmm/coul/long} style.  See

@@ -52,7 +52,7 @@ Lennard-Jones 12/6) given by
 Rc is the cutoff.
 
 The {buck/coul/cut} and {buck/coul/long} styles add a Coulombic term
-as described for the "lj/cut"_pair_style_lj.html pair styles.
+as described for the "lj/cut"_pair_lj.html pair styles.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

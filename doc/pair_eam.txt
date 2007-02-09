@@ -14,18 +14,21 @@ pair_style eam/fs command :h3
 
 pair_style style :pre
 
-style = {eam} or {eam/alloy} or {eam/fs} :ul
+style = {eam} or {eam/alloy} or {eam/fs} or {eam/opt} or {eam/alloy/opt} or {eam/fs/opt} :ul
 
 [Examples:]
 
 pair_style eam
+pair_style eam/opt
 pair_coeff * * cuu3
 pair_coeff 1*3 1*3 niu3.eam :pre
 
 pair_style eam/alloy
+pair_style eam/alloy/opt
 pair_coeff * * ../potentials/nialhjea.eam.alloy Ni Al Ni Ni :pre
 
 pair_style eam/fs
+pair_style eam/fs/opt
 pair_coeff * * nialhjea.eam.fs Ni Al Ni Ni :pre
 
 [Description:]
@@ -42,6 +45,11 @@ and beta are the element types of atoms I and J.  The multi-body
 nature of the EAM potential is a result of the embedding energy term.
 Both summations in the formula are over all neighbors J of atom I
 within the cutoff distance.
+
+Style {eam/opt} is an optimized version of style {eam} that should
+give identical answers.  Depending on system size and the processor
+you are running on, it may be 5-25% faster (for the pairwise portion
+of the run time).
 
 The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
@@ -140,6 +148,11 @@ above, {setfl} files contain explicit tabulated values for alloy
 interactions.  Thus they allow more generality than {funcfl} files for
 modeling alloys.
 
+Style {eam/alloy/opt} is an optimized version of style {eam/alloy}
+that should give identical answers.  Depending on system size and the
+processor you are running on, it may be 5-25% faster (for the pairwise
+portion of the run time).
+
 For style {eam/alloy}, potential values are read from a file that is
 in the DYNAMO multi-element {setfl} format, except that element names
 (Ni, Cu, etc) are added to one of the lines in the file.  If the
@@ -231,6 +244,11 @@ so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 
+Style {eam/fs/opt} is an optimized version of style {eam/fs} that
+should give identical answers.  Depending on system size and the
+processor you are running on, it may be 5-25% faster (for the pairwise
+portion of the run time).
+
 The associated "pair_coeff"_pair_coeff.html command for style {eam/fs}
 reads a DYNAMO {setfl} file that has been extended to include
 additional rho_alpha_beta arrays of tabulated values.  A discussion of
@@ -293,7 +311,11 @@ are listed.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+The {opt} styles are part of the "opt" package.  They are only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

@@ -1,0 +1,45 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute etotal/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID etotal/atom compute-ID :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+etotal/atom = style name of this compute command
+compute-ID = ID of compute that calculates per-atom pairwise energy :ul
+
+[Examples:]
+
+compute 1 all etotal/atom atomEng :pre
+
+[Description:]
+
+Define a computation that computes the total energy (kinetic +
+pairwise) for each atom in a group.  This can be output via the "dump
+custom"_dump.html command.
+
+The kinetic energy for each atom is computed the same way as in the
+"compute ke/atom"_compute_ke_atom.html command, namely as 1/2 m v^2.
+
+The pairwise energy is not calculated by this compute, but rather by
+the "epair/atom compute"_compute_epair_atom.html specified as the last
+argument of the command.
+
+Note that the total energy per atom as defined here does not include
+contributions due to bonds, angles, etc that the atom is part of.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute epair/atom"_compute_epair_atom.html
+
+[Default:] none

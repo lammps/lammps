@@ -1,0 +1,70 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute pressure command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID pressure compute-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>pressure = style name of this compute command
+<LI>compute-ID = ID of compute that calculates temperature 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all pressure myTemp 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the pressure of atoms averaged
+over the entire system.  The specified group must be "all".  See the
+<A HREF = "dump.html">dump custom</A> command for how to dump the per-atom stress
+tensor if you want more localized information about pressure (stress)
+in your system.
+</P>
+<P>The pressure is computed by the standard formula
+</P>
+<CENTER><IMG SRC = "Eqs/pressure.jpg">
+</CENTER>
+<P>where N is the number of atoms in the system (see discussion of DOF
+below), Kb is the Boltzmann constant, T is the temperature, V is the
+system volume, and the second term is the virial, computed within
+LAMMPS for all pairwise as well as 2-body, 3-body, 4-body bonded
+interactions.
+</P>
+<P>A 6-component pressure tensor is also calculated by this compute which
+can be output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.
+The formula for the components of the tensor is the same as in above
+formula, except that the first term uses the components of the kinetic
+energy tensor (vx * vy instead of v^2 for temperature) and the second
+term uses Rx * Fy for the Wxy component of the virial tensor, etc.
+</P>
+<P>The temperature and kinetic energy tensor is not calculated by this
+compute, but rather by the temperature compute specified as the last
+argument of the command.  Normally this compute should calculate the
+temperature of all atoms for consistency with the virial term, but any
+compute style that calculates temperature can be used, e.g. one that
+excludes frozen atoms or other degrees of freedom.
+</P>
+<P>Note that the N is the above formula is really degrees-of-freedom/3
+where the DOF is specified by the temperature compute.  See the
+various <A HREF = "compute.html">compute temperature</A> styles for details.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "themo_style.html">thermo_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

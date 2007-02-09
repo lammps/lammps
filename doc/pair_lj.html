@@ -11,6 +11,8 @@
 
 <H3>pair_style lj/cut command 
 </H3>
+<H3>pair_style lj/cut/opt command 
+</H3>
 <H3>pair_style lj/cut/coul/cut command 
 </H3>
 <H3>pair_style lj/cut/coul/debye command 
@@ -23,10 +25,12 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
+<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/opt</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I>         or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/cut</I> args = cutoff
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+  <I>lj/cut/opt</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   <I>lj/cut/coul/cut</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
@@ -48,6 +52,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj/cut 2.5
+pair_style lj/cut/opt 2.5
 pair_coeff * * 1 1
 pair_coeff 1 1 1 1.1 2.8 
 </PRE>
@@ -82,6 +87,11 @@ given by
 </CENTER>
 <P>Rc is the cutoff.
 </P>
+<P>Style <I>lj/cut/opt</I> is an optimized version of style <I>lj/cut</I> that
+should give identical answers.  Depending on system size and the
+processor you are running on, it may be 5-25% faster (for the pairwise
+portion of the run time).
+</P>
 <P>Style <I>lj/cut/coul/cut</I> adds a Coulombic pairwise interaction given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
@@ -114,9 +124,16 @@ interactions outside that distance are computed in K-space.
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
 and angle types for OH and HOH interactions, and the distance to the
-massless charge site are specified as pair_style arguments.  See the
-<A HREF = "Section_howto.html#4_8">howto section</A> for more information on how to
-use this pair style.
+massless charge site are specified as pair_style arguments.
+</P>
+<P>IMPORTANT NOTE: For each TIP4P water molecule in your system, the atom
+IDs for the O and 2 H atoms must be consecutive, with the O atom
+first.  This is to enable LAMMPS to "find" the 2 H atoms associated
+with each O atom.  For example, if the atom ID of an O atom in a TIP4P
+water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
+</P>
+<P>See the <A HREF = "Section_howto.html#4_8">howto section</A> for more information on
+how to use the TIP4P pair style.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -148,8 +165,10 @@ Coulombic cutoff specified in the pair_style command.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>lj/cut/coul/long</I> styles is part of the "kspace" package.  It is
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+<P>The <I>lj/cut/coul/long</I> style is part of the "kspace" package.  It is
+only enabled if LAMMPS was built with that package.  The <I>lj/cut/opt</I>
+style is part of the "opt" package.  It is only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P>On some 64-bit machines, compiling with -O3 appears to break the

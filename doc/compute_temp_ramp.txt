@@ -1,0 +1,77 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/ramp command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+temp/ramp = style name of this compute command
+vdim = {vx} or {vy} or {vz}
+vlo,vhi = subtract velocities between vlo and vhi (velocity units)
+dim = {x} or {y} or {z}
+clo,chi = lower and upper bound of domain to subtract from (distance units)
+zero or more keyword/value pairs may be appended to the args
+keyword = {units} :ul
+  {units} value = {lattice} or {box} :pre
+
+[Examples:]
+
+temperature 2nd middle ramp vx 0 8 y 2 12 units lattice :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of a group of
+atoms, while subtracting out an imposed velocity on the system before
+computing the kinetic energy.  A compute of this style can be used by
+any command that computes a temperature,
+e.g. "thermo_modify"_thermo_modify.html, "fix
+temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+
+The meaning of the arguments for this command is the same as for the
+"velocity"_velocity.html command which was presumably used to impose
+the velocity.
+
+The {units} keyword determines the meaning of the distance units used
+for coordinates (c1,c2) and velocities (vlo,vhi).  A {box} value
+selects standard distance units as defined by the "units"_units.html
+command, e.g. Angstroms for units = real or metal.  A {lattice} value
+means the distance units are in lattice spacings; e.g. velocity =
+lattice spacings / tau.  The "lattice"_lattice.html command must have
+been previously used to define the lattice spacing.
+
+A 6-component kinetic energy tensor is also calculated by this compute
+for use in the calculation of a pressure tensor.  The formula for the
+components of the tensor is the same as the above formula, except that
+v^2 is replaced by vx * vy for the xy component, etc.
+
+The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the {dynamic} option of the
+"compute_modify"_compute_modify.html command if this is not the case.
+
+This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as "fix shake"_fix_shake.html and
+"fix rigid"_fix_rigid.html.  This means the temperature of groups of
+atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+{extra} option of the "compute_modify"_compute_modify.html command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "compute
+temp/region"_compute_temp_region.html, "compute
+pressure"_compute_pressure.html
+
+[Default:]
+
+The option default is units = lattice.
+

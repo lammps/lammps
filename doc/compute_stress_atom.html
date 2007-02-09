@@ -1,0 +1,64 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute stress/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID stress/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>stress/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 mobile stress/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that computes the per-atom stress tensor for each
+atom in a group.  The 6 components can be output via the <A HREF = "dump.html">dump
+custom</A> command.
+</P>
+<P>The stress tensor is computed for only pairwise forces where the <I>ab</I>
+component of stress on atom <I>i</I> is given by
+</P>
+<CENTER><IMG SRC = "Eqs/stress_tensor.jpg">
+</CENTER>
+<P>where the first term is a kinetic energy component for atom <I>i</I>, <I>j</I>
+loops over the <I>N</I> neighbors of atom <I>i</I>, and <I>Fb</I> is one of 3
+components of force on atom <I>i</I> due to atom <I>j</I>.  Both <I>a</I> and <I>b</I>
+take on values x,y,z to generate the 6 components of the symmetric
+tensor.
+</P>
+<P>Note that this formula for stress does not include virial
+contributions from intra-molecular interactions (e.g. bonds, angles,
+torsions, etc).  Also note that this quantity is the negative of the
+per-atom pressure tensor.  It is also really a stress-volume
+formulation.  It would need to be divided by a per-atom volume to have
+units of stress, but an individual atom's volume is not easy to
+compute in a deformed solid.  Thus, if you sum the diagonal components
+of the per-atom stress tensor for all atoms in the system and divide
+the sum by 3V, where V is the volume of the system, you should get -P,
+where P is the total pressure of the system.
+</P>
+<P>Computation of per-atom stress tensor components requires a loop thru
+the neighbor list and inter-processor communication, so it can be
+inefficient to compute/dump this quantity too frequently or to have
+multiple compute/dump commands, each of a <I>stress/atom</I> style.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

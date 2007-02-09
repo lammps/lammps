@@ -1,0 +1,71 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/region command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/region region-ID :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+temp/region = style name of this compute command
+region-ID = ID of region to use for choosing atoms :ul
+
+[Examples:]
+
+temperature mine flow region boundary :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of a group of
+atoms in a geometric region.  This can be useful for thermostatting
+one portion of the simulation box.  E.g. a McDLT simulation where one
+side is cooled, and the other side is heated.  A compute of this style
+can be used by any command that computes a temperature,
+e.g. "thermo_modify"_thermo_modify.html, "fix
+temp/rescale"_fix_temp_rescale.html, etc.
+
+Note that a {region}-style temperature can be used to thermostat with
+"fix temp/rescale"_fix_temp_rescale.html or "fix
+langevin"_fix_langevin.html, but should probably not be used with
+Nose/Hoover style fixes ("fix nvt"_fix_nvt.html, fix
+npt"_fix_npt.html, or "fix nph"_fix_nph.html), if the
+degrees-of-freedom included in the computed T varies with time.
+
+The temperature is calculated by the formula KE = dim/2 N k T, where
+KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
+dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
+in both the group and region, k = Boltzmann constant, and T =
+temperature.
+
+A 6-component kinetic energy tensor is also calculated by this compute
+for use in the computation of a pressure tensor.  The formula for the
+components of the tensor is the same as the above formula, except that
+v^2 is replaced by vx * vy for the xy component, etc.
+
+The number of atoms contributing to the temperature is compute each
+time the temperature is evaluated since it is assumed atoms can
+enter/leave the region.  Thus there is no need to use the {dynamic}
+option of the "compute_modify"_compute_modify.html command for this
+compute style.
+
+Unlike other compute styles that calculate temperature, this compute
+does NOT currently subtract out degrees-of-freedom due to fixes that
+constrain molecular motion, such as "fix shake"_fix_shake.html and
+"fix rigid"_fix_rigid.html.  If needed the subtracted
+degrees-of-freedom can be altered using the {extra} option of the
+"compute_modify"_compute_modify.html command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "compute
+pressure"_compute_pressure.html
+
+[Default:] none

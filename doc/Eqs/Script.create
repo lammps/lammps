@@ -38,9 +38,11 @@ latex pair_granular.tex
 latex pair_lj.tex
 latex pair_lj_expand.tex
 latex pair_lj_smooth.tex
+latex pair_meam.tex
 latex pair_morse.tex
 latex pair_soft.tex
 latex pair_sw.tex
 latex pair_tersoff.tex
 latex pair_yukawa.tex
+latex pressure.tex
 latex stress_tensor.tex

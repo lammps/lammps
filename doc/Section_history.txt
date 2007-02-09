@@ -32,8 +32,7 @@ Monte Carlo bond-swapping for polymers (was in Fortran LAMMPS)
 torsional shear boundary conditions and temperature calculation
 bond creation potentials
 point dipole force fields
-many-body and bond-order potentials for materials like C, Si, or silica
-modified EAM (MEAM) potentials for metals
+REBO bond-order potential
 ReaxFF force field from Bill Goddard's group
 Parinello-Rahman non-rectilinear simulation box :ul
 

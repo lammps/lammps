@@ -73,7 +73,7 @@ of the following cases:
 allocated.  Most reasonable MD runs are compute limited, not memory
 limited, so this shouldn't be a bottleneck on most platforms.  Almost
 all large memory allocations in the code are done via C-style malloc's
-which will generate an error message if you run out of memory.
+prwhich will generate an error message if you run out of memory.
 Smaller chunks of memory are allocated via C++ "new" statements.  If
 you are unlucky you could run out of memory just when one of these
 small requests is made, in which case the code will crash or hang (in

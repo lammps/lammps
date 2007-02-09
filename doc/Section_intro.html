@@ -28,8 +28,8 @@ the years.
 </H4>
 <P>LAMMPS is a classical molecular dynamics code that models an ensemble
 of particles in a liquid, solid, or gaseous state.  It can model
-atomic, polymeric, biological, metallic, or granular systems using a
-variety of force fields and boundary conditions.
+atomic, polymeric, biological, metallic, granular, and coarse-grained
+systems using a variety of force fields and boundary conditions.
 </P>
 <P>For examples of LAMMPS simulations, see the Publications page of the
 <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>.
@@ -108,6 +108,7 @@ LAMMPS.
 <LI>  all-atom polymers, organic molecules, proteins, DNA
 <LI>  metals
 <LI>  granular materials
+<LI>  coarse-grained mesoscale models
 <LI>  hybrid systems 
 </UL>
 <H4>Force fields: 
@@ -117,8 +118,8 @@ LAMMPS.
 <A HREF = "improper_style.html">improper style</A>, <A HREF = "kspace_style.html">kspace style</A>
 commands)
 </P>
-<UL><LI>  pairwise potentials: Lennard-Jones, Coulombic, Buckingham, Morse,     Yukawa, embedded atom method (EAM, Finnis/Sinclair), frictional granular,
-<LI>    Debye, soft, DPD, class 2 (COMPASS), tabulated, hybrid
+<UL><LI>  pairwise potentials: Lennard-Jones, Coulombic, Buckingham, Morse,     Yukawa, frictional granular, Debye, soft, DPD, class 2 (COMPASS),     tabulated, hybrid
+<LI>  manybody potentials: EAM, Finnis/Sinclair, modified EAM (MEAM),     Stillinger-Weber, Tersoff
 <LI>  bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable), hybrid
 <LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared,     class 2 (COMPASS), hybrid
 <LI>  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS, hybrid	 
@@ -479,7 +480,16 @@ features in LAMMPS:
 <TR><TD >DCD and XTC dump styles</TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
 <TR><TD >breakable bond quartic potential</TD><TD > Chris Lorenz and Mark Stevens (SNL)</TD></TR>
 <TR><TD >faster pair hybrid potential</TD><TD > James Fischer   (High Performance Technologies, Inc), Vincent Natoli and   David Richie (Stone Ridge Technology)</TD></TR>
-<TR><TD >POEMS coupled rigid body integrator</TD><TD > Rudranarayan Mukherjee (RPI) 
+<TR><TD >POEMS coupled rigid body integrator</TD><TD > Rudranarayan Mukherjee (RPI)</TD></TR>
+<TR><TD >OPLS dihedral potential</TD><TD > Mark Stevens (Sandia)</TD></TR>
+<TR><TD >multi-letter variable names </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >fix momentum and recenter </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >LJ tail corrections for energy/pressure </TD><TD > Paul Crozier (Sandia)</TD></TR>
+<TR><TD >region prism </TD><TD > Pieter in't Veld (Sandia)</TD></TR>
+<TR><TD >Stillinger-Weber and Tersoff potentials </TD><TD > Aidan Thompson (Sandia)</TD></TR>
+<TR><TD >fix wall/lj126 </TD><TD > Mark Stevens (Sandia)</TD></TR>
+<TR><TD >optimized pair potentials for lj/cut, charmm/long, eam, morse </TD><TD > James Fischer (High Performance Tech), David Richie and Vincent Natol (Stone Ridge Technologies)</TD></TR>
+<TR><TD >MEAM potential </TD><TD > Greg Wagner (Sandia) 
 </TD></TR></TABLE></DIV>
 
 <P>Other CRADA partners involved in the design and testing of LAMMPS were

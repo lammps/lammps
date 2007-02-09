@@ -25,8 +25,8 @@ the years.
 
 LAMMPS is a classical molecular dynamics code that models an ensemble
 of particles in a liquid, solid, or gaseous state.  It can model
-atomic, polymeric, biological, metallic, or granular systems using a
-variety of force fields and boundary conditions.
+atomic, polymeric, biological, metallic, granular, and coarse-grained
+systems using a variety of force fields and boundary conditions.
 
 For examples of LAMMPS simulations, see the Publications page of the
 "LAMMPS WWW Site"_lws.
@@ -104,6 +104,7 @@ Kinds of systems LAMMPS can simulate: :h4
   all-atom polymers, organic molecules, proteins, DNA
   metals
   granular materials
+  coarse-grained mesoscale models
   hybrid systems :ul
 
 Force fields: :h4
@@ -113,8 +114,10 @@ Force fields: :h4
 commands)
 
   pairwise potentials: Lennard-Jones, Coulombic, Buckingham, Morse, \
-    Yukawa, embedded atom method (EAM, Finnis/Sinclair), frictional granular,
-    Debye, soft, DPD, class 2 (COMPASS), tabulated, hybrid
+    Yukawa, frictional granular, Debye, soft, DPD, class 2 (COMPASS), \
+    tabulated, hybrid
+  manybody potentials: EAM, Finnis/Sinclair, modified EAM (MEAM), \
+    Stillinger-Weber, Tersoff
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable), hybrid
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, \
@@ -467,7 +470,16 @@ breakable bond quartic potential: Chris Lorenz and Mark Stevens (SNL)
 faster pair hybrid potential: James Fischer \
   (High Performance Technologies, Inc), Vincent Natoli and \
   David Richie (Stone Ridge Technology)
-POEMS coupled rigid body integrator: Rudranarayan Mukherjee (RPI) :tb(s=:)
+POEMS coupled rigid body integrator: Rudranarayan Mukherjee (RPI)
+OPLS dihedral potential: Mark Stevens (Sandia)
+multi-letter variable names : Naveen Michaud-Agrawal (Johns Hopkins U)
+fix momentum and recenter : Naveen Michaud-Agrawal (Johns Hopkins U)
+LJ tail corrections for energy/pressure : Paul Crozier (Sandia)
+region prism : Pieter in't Veld (Sandia)
+Stillinger-Weber and Tersoff potentials : Aidan Thompson (Sandia)
+fix wall/lj126 : Mark Stevens (Sandia)
+optimized pair potentials for lj/cut, charmm/long, eam, morse : James Fischer (High Performance Tech), David Richie and Vincent Natol (Stone Ridge Technologies)
+MEAM potential : Greg Wagner (Sandia) :tb(s=:)
 
 Other CRADA partners involved in the design and testing of LAMMPS were
     

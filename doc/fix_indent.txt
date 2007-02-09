@@ -91,12 +91,12 @@ choice affects not only the indenter's physical geometry, but also its
 velocity and force constant since they are defined in terms of
 distance as well.
 
-This fix supports the "fix_modify"_fix_modify.html options for
-{thermo} and {energy}.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed,
-where the energy of each particle interacting with the indenter is K/3
-(r - R)^3.  The latter will add this contribution to the total
-potential energy (PotEng).
+This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the "fix_modify energy"_fix_modify.html option.  The energy of each
+particle interacting with the indenter is K/3 (r - R)^3.  The
+contribution can also be printed by itself via the keyword {f_fix-ID}
+in the "thermo_style custom"_thermo_style.html command.
 
 The forces due to this fix are also imposed during an energy
 minimization, invoked by the "minimize"_minimize.html command.  If you

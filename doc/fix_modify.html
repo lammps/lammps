@@ -19,18 +19,18 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>temp</I> or <I>energy</I> or <I>thermo</I> 
+<LI>keyword = <I>temp</I> or <I>press</I> or <I>thermo</I> 
 
-<PRE>  <I>temp</I> value = temperature ID
-  <I>energy</I> value = <I>yes</I> or <I>no</I>
+<PRE>  <I>temp</I> value = compute ID that calculates a temperature
+  <I>press</I> value = compute ID that calculates a pressure
   <I>thermo</I> value = <I>yes</I> or <I>no</I> 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix_modify 3 temp myTemp
-fix_modify 1 thermo yes energy no 
+<PRE>fix_modify 3 temp myTemp press myPress
+fix_modify 1 thermo yes 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -38,30 +38,29 @@ fix_modify 1 thermo yes energy no
 fix styles support all parameters.
 </P>
 <P>The <I>temp</I> keyword is used to determine how a fix computes
-temperature.  The specified temperature ID must have been previously
-defined by the user via the <A HREF = "temperature.html">temperature</A> command.
-The default setting for <I>temp</I> is temperature ID = <I>default</I>.  Fix
-styles that use the <I>temp</I> setting are
-<A HREF = "fix_temp_rescale.html">temp/rescale</A>, <A HREF = "fix_nvt.html">nvt</A>, and
-<A HREF = "fix_npt.html">npt</A>.
+temperature.  The specified compute ID must have been previously
+defined by the user via the <A HREF = "compute.html">compute</A> command and it must
+be a style of compute that calculates a temperature.  All fixes that
+compute temperatures defined their own compute by default, as
+described in their documentation.  Thus this option allows the user to
+override the default method for computing T.
 </P>
-<P>The <I>energy</I> and <I>thermo</I> keywords enable a fix to compute and/or
-print quantities as part of the thermodynamic output to the screen and
-log file (if the fix defines such quantities).  When the <I>energy</I>
-keyword is set to <I>yes</I>, the fix computes a contribution to the total
-potential energy that is printed as PotEng during thermodynamic
-output.  When the <I>thermo</I> keyword is set to yes, the fix prints one
-or more values that are appended to the list of thermodynamic outputs.
-See the <A HREF = "thermo_style.html">thermo_style</A> command for how this printing
-is formatted.
+<P>The <I>press</I> keyword is used to determine how a fix computes pressure.
+The specified compute ID must have been previously defined by the user
+via the <A HREF = "compute.html">compute</A> command and it must be a style of
+compute that calculates a pressure.  All fixes that compute pressures
+defined their own compute by default, as described in their
+documentation.  Thus this option allows the user to override the
+default method for computing P.
 </P>
-<P>The fixes that support the <I>energy</I> and <I>thermo</I> options include: <A HREF = "fix_indent.html">fix
-indent</A>, <A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_nph.html">fix
-nph</A>, <A HREF = "fix_npt.html">fix npt</A>, <A HREF = "fix_orient_fcc.html">fix
-orient/fcc</A>, <A HREF = "fix_temp_rescale.html">fix
-temp/rescale</A>, and <A HREF = "fix_wall_lj93.html">fix
-wall/lj93</A>.  See the individual fix commands for
-more info on what is computed and/or printed.
+<P>For fixes that calculates a contribution to the potential energy of
+the system, the <I>thermo</I> keyword will include that contribution in
+thermodyanmic output of the potential energy, as invoked by the
+<A HREF = "thermo_style.html">thermo_style</A> command.  The value of the
+contribution can also be printed by itself using the <A HREF = "thermo_style.html">thermo_style
+custom</A> keywords.  The documentation for individual
+fix commands specifies whether they make a contribution to the
+potential energy.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -72,6 +71,7 @@ more info on what is computed and/or printed.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are temp = default, energy = no, thermo = no.
+<P>The option defaults are temp = ID defined by fix, press = ID defined
+by fix, thermo = no.
 </P>
 </HTML>

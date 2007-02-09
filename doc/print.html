@@ -15,7 +15,7 @@
 </P>
 <PRE>print args 
 </PRE>
-<UL><LI>args = one or more text strings and variables names to print out 
+<UL><LI>args = a line of text and variables names to print out 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -25,14 +25,23 @@
 </P>
 <P>Print the list of arguments as a line of text to the screen and/or
 logfile.  If variables are included in the arguments, they will be
-evaluated and their values printed.  Note that if variables are
-included, the print string should not be enclosed in double quotes,
-else it will prevent the variables from being evaluated.
+evaluated and their current values printed.  Note that if variables
+are included, the print string should not be enclosed in double
+quotes, else it will prevent the variables from being evaluated.
 </P>
-<P>By using the print command in a section of the input script that is
-looped over (see the <A HREF = "jump.html">jump</A> command), and by including
-variables of the <I>equal</I> style (see the <A HREF = "variable.html">variable</A>
-command), a string with changing values can be printed.
+<P>If you want the print command to be executed multiple times (with
+changing variable values), there are 3 options.  First, consider using
+the <A HREF = "fix_print.html">fix print</A> command, which will invoke a print
+periodically during a simulation.  Second, the print command can be
+used as an argument to the <I>every</I> option of the <A HREF = "run.html">run</A>
+command.  Third, the print command could appear in a section of the
+input script that is looped over (see the <A HREF = "jump.html">jump</A> command).
+</P>
+<P>See the <A HREF = "variable.html">variable</A> command for a description of <I>equal</I>
+style variables which are typically the most useful ones to use with
+the print command.  Equal-style variables can calculate complex
+formulas involving atom and group properties, mathematical operations,
+other variables, etc.
 </P>
 <P><B>Restrictions:</B> none
 </P>

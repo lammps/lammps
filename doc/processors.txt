@@ -36,7 +36,7 @@ dramatically over the course of the simulation.
 The product of Px, Py, Pz must equal P, the total # of processors
 LAMMPS is running on.  If multiple partitions are being used then P is
 the number of processors in this partition; see "this
-section"_Section_start.html#2_4 for an explanation of the -partition
+section"_Section_start.html#2_6 for an explanation of the -partition
 command-line switch.
 
 If P is large and prime, a grid such as 1 x P x 1 will be required,

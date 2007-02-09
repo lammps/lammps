@@ -19,7 +19,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>bond</I> or <I>custom</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> 
+<LI>style = <I>atom</I> or <I>bond</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>custom</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -29,11 +29,18 @@
 
 <PRE>  <I>atom</I> args = none
   <I>bond</I> args = none
+  <I>dcd</I> args = none
+  <I>xtc</I> args = precision (optional)
+    precision = power-of-10 value from 10 to 1000000 (default = 1000)
+  <I>xyz</I> args = none
   <I>custom</I> args = list of atom attributes
-    possible attributes = tag, mol, type, x, y, z, xs, ys, zs, xu, yu, zu,
-                 ix, iy, iz, vx, vy, vz, fx, fy, fz,
-                 q, mux, muy, muz, tqx, tqy, tqz,
-		 etotal, ke, epair, centro, sxx, syy, szz, sxy, sxz, syz 
+    possible attributes = tag, mol, type,
+			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+			  vx, vy, vz, fx, fy, fz,
+                          q, mux, muy, muz, tqx, tqy, tqz,
+		          epair, ke, etotal, centro,
+                          sxx, syy, szz, sxy, sxz, syz,
+			  c_ID, c_ID[N]
       tag = atom ID
       mol = molecule ID
       type = atom type
@@ -46,15 +53,13 @@
       q = atom charge
       mux,muy,muz = orientation of dipolar atom
       tqx,tqy,tqz = torque on dipolar atoms
-      etotal = per-atom total energy (ke + epair)
-      ke = per-atom kinetic energy
       epair = per-atom pairwise energy
+      ke = per-atom kinetic energy
+      etotal = per-atom total energy (ke + epair)
       centro = per-atom centro-symmetry parameter
       sxx, syy, szz, sxy, sxz, syz = per-atom stress tensor components
-  <I>dcd</I> args = none
-  <I>xtc</I> args = precision (optional)
-    precision = power-of-10 value from 10 to 1000000 (default = 1000)
-  <I>xyz</I> args = none 
+      c_ID = scalar per-atom quantity calculated by a compute identified by its ID
+      c_ID[N] = Nth per-atom vector quantity calculated by a compute identified by its ID 
 </PRE>
 
 </UL>
@@ -63,7 +68,7 @@
 <PRE>dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* tag type x y vx fx
-dump 4b flow custom 100 dump.%.myforce tag type epair sxx syy szz
+dump 4b flow custom 100 dump.%.myforce tag type epair sxx syy szz c_myF[3]
 dump 1 all xtc 1000 file.xtc 100.0 
 </PRE>
 <P><B>Description:</B>
@@ -207,87 +212,71 @@ styles.
 part of the <I>custom</I> style.
 </P>
 <P>The <I>tag</I>, <I>mol</I>, <I>type</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
-<I>fz</I>, <I>q</I> attributes are self-explanatory.  <I>Tag</I> is the atom ID.
-<I>Mol</I> is the molecule ID, included in the data file for molecular
-systems.  The <I>x</I>, <I>y</I>, <I>z</I> attributes write atom coordinates
-"unscaled", in the appropriate distance units (Angstroms, sigma, etc).
-Use <I>xs</I>, <I>ys</I>, <I>zs</I> if you want the coordinates "scaled" to the box
-size, so that each value is 0.0 to 1.0.  Use <I>xu</I>, <I>yu</I>, <I>zu</I> if you
-want the coordinates "unwrapped" by the image flags for each atom.
-Unwrapped means that if the atom has passed thru a periodic boundary
-one or more times, the value is printed for what the coordinate would
-be if it had not been wrapped back into the periodic box.  Note that
-using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the coordinate values may be far
-outside the box size printed with the snapshot.  The image flags can
-be printed directly using the <I>ix</I>, <I>iy</I>, <I>iz</I> attributes. The
-<A HREF = "dump_modify.html">dump_modify</A> documentation describes in more detail
-what is meant by scaled vs unscaled coordinates and the image flags.
+<I>fz</I>, <I>q</I> keywords are self-explanatory.  <I>Tag</I> is the atom ID.  <I>Mol</I>
+is the molecule ID, included in the data file for molecular systems.
+The <I>x</I>, <I>y</I>, <I>z</I> keywords write atom coordinates "unscaled", in the
+appropriate distance units (Angstroms, sigma, etc).  Use <I>xs</I>, <I>ys</I>,
+<I>zs</I> if you want the coordinates "scaled" to the box size, so that
+each value is 0.0 to 1.0.  Use <I>xu</I>, <I>yu</I>, <I>zu</I> if you want the
+coordinates "unwrapped" by the image flags for each atom.  Unwrapped
+means that if the atom has passed thru a periodic boundary one or more
+times, the value is printed for what the coordinate would be if it had
+not been wrapped back into the periodic box.  Note that using <I>xu</I>,
+<I>yu</I>, <I>zu</I> means that the coordinate values may be far outside the box
+size printed with the snapshot.  The image flags can be printed
+directly using the <I>ix</I>, <I>iy</I>, <I>iz</I> keywords. The
+<A HREF = "dump_modify.html">dump_modify</A> command describes in more detail what
+is meant by scaled vs unscaled coordinates and the image flags.
 </P>
-<P>The <I>mux</I>, <I>muy</I>, <I>muz</I>, <I>tqy</I>, <I>tqx</I>, <I>tqy</I> attributes are specific
-to dipolar systems defined with an atom style of <I>dipole</I>.
+<P>The <I>mux</I>, <I>muy</I>, <I>muz</I>, <I>tqy</I>, <I>tqx</I>, <I>tqy</I> keywords are specific
+to dipolar systems defined with an atom style of <I>dipole</I>.  The first
+3 give the orientation of the atom's dipole.  The latter 3 give the
+torque on the dipolar atoms.
 </P>
-<P>The <I>etotal</I> attribute computes the total energy of each atom, which
-is the <I>ke</I> plus <I>epair</I> values.  Note that it does not include
-contributions due to bonds, angles, etc that the atom is part of.
+<P>The <I>epair</I>, <I>ke</I>, <I>etotal</I>, <I>centro</I>, and <I>sxx</I>, etc keywords print
+the pairwise energy, kinetic energy, total energy (pairwise +
+kinetic), centro-symmetry parameter, and components of the per-atom
+stress tensor for each atom.  These quantities are calculated by
+computes that the dump defines, as if these commands had been issued:
 </P>
-<P>The <I>ke</I> attribute computes the kinetic energy of each atom
-which is simply 0.5 m v^2.
+<PRE>compute dump-ID_epair/atom group-ID <A HREF = "compute_epair_atom.html">epair/atom</A>
+compute dump-ID_ke/atom group-ID <A HREF = "compute_ke_atom.html">ke/atom</A>
+compute dump-ID_etotal/atom group-ID <A HREF = "compute_etotal_atom.html">etotal/atom</A>
+compute dump-ID_centro/atom group-ID <A HREF = "compute_centro_atom.html">centro/atom</A>
+compute dump-ID_stress/atom group-ID <A HREF = "compute_stress_atom.html">stress/atom</A> 
+</PRE>
+<P>See the corresponding <A HREF = "compute.html">compute</A> style commands for
+details on what is computed for each atom.  Note that the ID of each
+new compute is the dump-ID with the compute style appended (with an
+underscore).  The group for each new compute is the same as the dump
+group.
 </P>
-<P>The <I>epair</I> attribute computes the pairwise energy for each atom.
-This is its pairwise interaction with all of its neighbors (divided by
-2).  Summed over all atoms, this should equal the pairwise energy of
-the entire system (Van der Waals + Coulombic).  However, for force
-fields that include a contribution to the pairwise energy that is
-computed as part of dihedral terms (i.e. 1-4 interactions), this
-contribution is not included in the per-atom pairwise energy.
-Computation of the per-atom energy requires a loop thru the neighbor
-list and inter-processor communication, so it can be inefficient to
-dump this quantity too frequently or to have multiple dump commands,
-each with a <I>epair</I> attribute.
+<P>Note that the <I>etotal</I> keyword does not include energy contributions
+due to bonds, angles, etc that the atom is part of.
 </P>
-<P>The <I>centro</I> attribute causes the centro-symmetry parameter to be
-computed for each atom in the dump group using the following formula
-from <A HREF = "#Kelchner">(Kelchner)</A>
+<P>The <I>sxx</I>, <I>syy</I>, <I>szz</I>, <I>sxy</I>, <I>sxz</I>, <I>syz</I> keywords access the 6
+components of the stress tensor calculated for each atom by the
+<A HREF = "compute_stress_atom.html">compute stress/atom</A> style.
 </P>
-<CENTER><IMG SRC = "Eqs/centro_symmetry.jpg">
-</CENTER>
-<P>where the 12 nearest neighbors are found and Ri and Ri+6 are the
-vectors from the central atom to the opposite pair of nearest
-neighbors.  In solid state systems this is a useful measure of the
-local lattice disorder around an atom and can be used to characterize
-whether the atom is part of a perfect lattice, a local defect (e.g. a
-dislocation or stacking fault), or at a surface.  The neighbor list
-needed to compute this quantity is constructed each time the dump is
-performed.  Thus it can be inefficient to dump this quantity too
-frequently or to have multiple dump commands, each with a <I>centro</I>
-attribute.
+<P>The <I>c_ID</I> and <I>c_ID[N]</I> keywords allow scalar or vector per-atom
+quantities calculated by a compute to be output.  The ID in the
+keyword should be replaced by the actual ID of the compute that has
+been defined elsewhere in the input script.  See the
+<A HREF = "compute.html">compute</A> command for details.  Note that scalar and
+vector quantities that are not calculated on a per-atoms basis
+(e.g. global temperature or pressure) cannot be output in a dump.
+Rather, these quantities are output by the <A HREF = "thermo_style.html">thermo_style
+custom</A> command.
 </P>
-<P>The <I>sxx</I>, <I>syy</I>, <I>szz</I>, <I>sxy</I>, <I>sxz</I>, <I>syz</I> attributes compute the
-pairwise stress tensor for each atom where the <I>ab</I> component of the
-stress on atom <I>i</I> is given by
+<P>If <I>c_ID</I> is used as a keyword, then the a single per-atom quantity
+calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N in
+the range from 1-M will print a specific component of the per-atom
+vector calculated by the compute.  A value of N=0 will output the
+single per-atom quantity.
 </P>
-<CENTER><IMG SRC = "Eqs/stress_tensor.jpg">
-</CENTER>
-<P>where the first term is a kinetic energy component for atom <I>i</I>, <I>j</I>
-loops over the <I>N</I> neighbors of atom <I>i</I>, and <I>Fb</I> is one of 3
-components of force on atom <I>i</I> due to atom <I>j</I>.  Both <I>a</I> and <I>b</I> can
-take on values x,y,z to generate the 6 components of the symmetric
-tensor.
-</P>
-<P>Note that this formula for stress does not include virial
-contributions from intra-molecular interactions (e.g. bonds, angles,
-torsions, etc).  Also note that this quantity is the negative of the
-per-atom pressure tensor.  It is also really a stress-volume
-formulation.  It would need to be divided by a per-atom volume to have
-units of stress, but an individual atom's volume is not easy to
-compute in a deformed solid.  Computation of stress tensor components
-requires a loop thru the neighbor list and inter-processor
-communication, so it can be inefficient to dump this quantity too
-frequently or to have multiple dump commands, each with stress tensor
-attributes.
-</P>
-<P>See <A HREF = "Section_modify.html">this section</A> for information on how to modify
-LAMMPS to dump other kinds of per-atom quantities.
+<P>See <A HREF = "Section_modify.html">this section</A> for information on how to add
+new compute styles to LAMMPS that calculate per-atom quantities which
+could then be output with these keywords.
 </P>
 <HR>
 
@@ -318,11 +307,5 @@ gran/diag</A> command should be used instead.
 <P><A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
 </P>
 <P><B>Default:</B> none
-</P>
-<HR>
-
-<A NAME = "Kelchner"></A>
-
-<P><B>(Kelchner)</B> Kelchner, Plimpton, Hamilton, Phys Rev B, 58, 11085 (1998).
 </P>
 </HTML>

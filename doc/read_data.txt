@@ -191,47 +191,37 @@ line syntax: ID coeffs :l
 
 {Atoms} section:
 
-one line per atom 
+one line per atom
 line syntax: depends on atom style :ul
 
-This is the list of all possible quantities that can appear on each
-line of this section:
+An {Atoms} section must appear in the data file if natoms > 0 in the
+header section.  The atoms can be listed in any order.  These are the
+line formats for each "atom style"_atom_style.html in LAMMPS:
+
+angle: atom-ID molecule-ID atom-type x y z
+atomic: atom-ID atom-type x y z
+bond: atom-ID molecule-ID atom-type x y z
+charge: atom-ID atom-type q x y z
+dpd: atom-ID atom-type x y z
+full: atom-ID molecule-ID atom-type q x y z
+granular: atom-ID atom-type diameter density x y z
+molecular: atom-ID molecule-ID atom-type x y z :tb(s=:)
+
+where the keywords have these meanings:
 
 atom-ID = integer ID of atom
 molecule-ID = integer ID of molecule the atom belongs to
-type-ID = integer type ID of atom (1-Ntype)
+type-ID = type of atom (1-Ntype)
 q = charge on atom
 diameter = diameter of atom
 density = density of atom
-x,y,z = coordinates of atom
-mux,muy,muz = components of dipole orientation of atom
-nx,ny,nz = image indices for atom :ul
-
-Which of these quantities are actually listed depends on the "atom
-style"_atom_style.html.  This is the list of which styles require each
-quantity:
-
-atom-ID = all styles
-molecule-ID = angle, bond, molecular, full styles
-type-ID = all styles
-q = charge, dipole, full styles
-diameter = granular style
-density = granular style
-x,y,z = all styles
-mux,muy,muz = dipole style
-nx,ny,nz = optional for all styles (see below) :ul
-
-Any quantity that is used by the atom style appears in the order
-listed above.  Thus if the atom style is {atomic}, an atom line should
-have 5 quantities: atom-ID, type-ID, x, y, z.  If the atom style is
-{hybrid dipole molecular}, then an atom line should have 10 quantites:
-atom-ID, molecule-ID, type-ID, q, x, y, z, mux, muy, muz.
+x,y,z = coordinates of atom :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.
 
-For 2d simulations specify z as 0.0, or whatever value is within the
-{zlo zhi} setting in the data file header.
+For 2d simulations specify z as 0.0, or a value is within the {zlo
+zhi} setting in the data file header.
 
 The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
@@ -245,25 +235,21 @@ be set to 0.
 
 The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
-to.  It can be 0 if it is an unbonded atom or if you don't care about
-molecule assignments.
+to.  It can be 0 if it is an unbonded atom or if you don't care to
+keep track of molecule assignments.
 
-An {Atoms} section must appear in the data file if natoms > 0 in the
-header section.  The atoms can be listed in any order. 
-
-Atom lines (all or none of them) can optionally list 3 final integer
-values: nx,ny,nz.  For periodic dimensions, they specify which image
-of the box the atom is considered to be in.  An image of 0 means the
-box as defined.  A value of 2 means add 2 box lengths to get the true
-value.  A value of -1 means subtract 1 box length to get the true
+Atom lines (all lines or none of them) can optionally list 3 final
+integer values: nx,ny,nz.  For periodic dimensions, they specify which
+image of the box the atom is considered to be in.  An image of 0 means
+the box as defined.  A value of 2 means add 2 box lengths to get the
+true value.  A value of -1 means subtract 1 box length to get the true
 value.  LAMMPS updates these flags as atoms cross periodic boundaries
-during the simulation.  The flags can be output via the
-"dump"_dump.html and "dump_modify"_dump_modify.html commands.  If
-nx,ny,nz values are not set in the data file, LAMMPS initializes them
-to 0.
+during the simulation.  The flags can be output with atom snapshots
+via the "dump"_dump.html command.  If nx,ny,nz values are not set in
+the data file, LAMMPS initializes them to 0.
 
 Atom velocities are set to 0.0 when the {Atoms} section is read.  They
-may later be set by a {Velocities} section or by a
+may later be set by a {Velocities} section in the data file or by a
 "velocity"_velocity.html command in the input script.
 
 :line

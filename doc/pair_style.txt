@@ -14,25 +14,14 @@ pair_style style args :pre
 
 style = one of the following :ulb,l
 
-{none}
-{hybrid}
-{buck} or {buck/coul/cut} or {buck/coul/long}
-{dipole/cut} or {dipole/long}
-{dpd}
-{eam} or {eam/alloy} or {eam/fs}
-{gran/hertzian} or {gran/history} or {gran/no_history}
-{lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long}
-{lj/class2} or {lj/class2/coul/cut} or {lj/class2/coul/long}
-{lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
-{lj/expand}
-{lj/smooth}
-{meam}
-{morse}
-{soft}
-{sw}
-{table}
-{tersoff}
-{yukawa} :ul
+{none}, {hybrid}, {buck}, {buck/coul/cut}, {buck/coul/long}, {dpd},
+{eam}, {eam/alloy} or {eam/fs}, {gran/hertzian}, {gran/history},
+{gran/no_history}, {lj/charmm/coul/charmm},
+{lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long},
+{lj/class2}, {lj/class2/coul/cut} or {lj/class2/coul/long}, {lj/cut},
+{lj/cut/coul/cut} or {lj/cut/coul/debye}, {lj/cut/coul/long},
+{lj/cut/coul/long/tip4p}, {lj/expand}, {lj/smooth}, {meam}, {morse},
+{soft}, {sw}, {table}, {tersoff}, {yukawa} :ul
 
 args = arguments used by a particular style :l,ule
 
@@ -97,40 +86,39 @@ the style to display the formula it computes, arguments specified in
 the pair_style command, and coefficients specified by the associated
 "pair_coeff"_pair_coeff.html command:
 
-"pair_style none"_pair_style_none.html - turn off pairwise interactions
-"pair_style hybrid"_pair_style_hybrid.html - define multiple styles of pairwise interactions :ul
+"pair_style none"_pair_none.html - turn off pairwise interactions
+"pair_style hybrid"_pair_hybrid.html - define multiple styles of pairwise interactions :ul
 
-"pair_style buck"_pair_style_buck.html - Buckingham potential
-"pair_style buck/coul/cut"_pair_style_buck.html - Buckinhham with cutoff Coulomb
-"pair_style buck/coul/long"_pair_style_buck.html - Buckingham with long-range Coulomb
-"pair_style dipole/cut"_pair_style_dipole.html - cutoff dipole and charge interactions
-"pair_style dpd"_pair_style_dpd.html - dissipative particle dynamics (DPD)
-"pair_style eam"_pair_style_eam.html - embedded atom method (EAM)
-"pair_style eam/alloy"_pair_style_eam.html - alloy EAM
-"pair_style eam/fs"_pair_style_eam.html - Finnis-Sinclair EAM
-"pair_style gran/hertzian"_pair_style_granular.html - granular potential with Hertizain interactions
-"pair_style gran/history"_pair_style_granular.html - granular potential with history effects
-"pair_style gran/no_history"_pair_style_granular.html - granular potential without history effects
-"pair_style lj/charmm/coul/charmm"_pair_style_charmm.html - CHARMM potential with cutoff Coulomb
-"pair_style lj/charmm/coul/charmm/implicit"_pair_style_charmm.html - CHARMM for implicit solvent
-"pair_style lj/charmm/coul/long"_pair_style_charmm.html - CHARMM with long-range Coulomb
-"pair_style lj/class2"_pair_style_class2.html - COMPASS (class 2) force field with no Coulomb
-"pair_style lj/class2/coul/cut"_pair_style_class2.html - COMPASS with cutoff Coulomb
-"pair_style lj/class2/coul/long"_pair_style_class2.html - COMPASS with long-range Coulomb
-"pair_style lj/cut"_pair_style_lj.html - cutoff Lennard-Jones potential with no Coulomb
-"pair_style lj/cut/coul/cut"_pair_style_lj.html - LJ with cutoff Coulomb
-"pair_style lj/cut/coul/debye"_pair_style_lj.html - LJ with Debye damping added to Coulomb
-"pair_style lj/cut/coul/long"_pair_style_lj.html - LJ with long-range Coulomb
-"pair_style lj/cut/coul/long/tip4p"_pair_style_lj.html - LJ with long-range Coulomb for TIP4P water
-"pair_style lj/expand"_pair_style_lj_expand.html - Lennard-Jones for variable size particles
-"pair_style lj/smooth"_pair_style_lj_smooth.html - smoothed Lennard-Jones potential
-"pair_style meam"_pair_style_meam.html - modified embedded atom method (MEAM)
-"pair_style morse"_pair_style_morse.html - Morse potential
-"pair_style soft"_pair_style_soft.html - Soft (cosine) potential
-"pair_style sw"_pair_style_sw.html - Stillinger-Weber 3-body potential
-"pair_style table"_pair_style_table.html - tabulated pair potential
-"pair_style tersoff"_pair_style_tersoff.html - Tersoff 3-body potential
-"pair_style yukawa"_pair_style_yukawa.html - Yukawa potential :ul
+"pair_style buck"_pair_buck.html - Buckingham potential
+"pair_style buck/coul/cut"_pair_buck.html - Buckinhham with cutoff Coulomb
+"pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
+"pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
+"pair_style eam"_pair_eam.html - embedded atom method (EAM)
+"pair_style eam/alloy"_pair_eam.html - alloy EAM
+"pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
+"pair_style gran/hertzian"_pair_granular.html - granular potential with Hertizain interactions
+"pair_style gran/history"_pair_granular.html - granular potential with history effects
+"pair_style gran/no_history"_pair_granular.html - granular potential without history effects
+"pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
+"pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
+"pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb
+"pair_style lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
+"pair_style lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
+"pair_style lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
+"pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
+"pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
+"pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye damping added to Coulomb
+"pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
+"pair_style lj/cut/coul/long/tip4p"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
+"pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
+"pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
+"pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
+"pair_style morse"_pair_morse.html - Morse potential
+"pair_style soft"_pair_soft.html - Soft (cosine) potential
+"pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
+"pair_style table"_pair_table.html - tabulated pair potential
+"pair_style tersoff"_pair_tersoff.html - Tersoff 3-body potential
+"pair_style yukawa"_pair_yukawa.html - Yukawa potential :ul
 
 :line
 

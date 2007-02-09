@@ -27,8 +27,11 @@
                           pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
-                          vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
-                          gke, grot, tave, pave, eave, peave, t_ID
+                          vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
+			  pxx, pyy, pzz, pxy, pxz, pyz
+                          drot, grot,
+			  tave, pave, eave, peave,
+			  c_ID, c_ID[n], f_ID, f_ID[n], v_name
       step = timestep
       atoms = # of atoms
       cpu = elapsed CPU time
@@ -50,11 +53,16 @@
       etail = VanderWaal energy long-range tail correction
       vol = volume
       lx,ly,lz = box lengths in x,y,z
+      xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
-      gke = granular translational kinetic energy (without frozen atoms)
-      grot = granular rotational kinetic energy (without frozen atoms)
+      drot = rotational energy of dipolar atoms
+      grot = rotational energy of granular atoms
       tave, pave, eave, peave = time-averaged temp, press, etotal, pe
-      t_ID = termperature as computed by temperature ID 
+      c_ID = scalar quantity calculated by a compute identified by its ID
+      c_ID[N] = Nth vector quantity calculated by a compute identified by its ID
+      f_ID = scalar quantity calculated by a fix identified by its ID
+      f_ID[N] = Nth vector quantity calculated by a fix identified by its ID
+      v_name = current value of a variable identified by the variable name 
 </PRE>
 
 </UL>
@@ -62,12 +70,12 @@
 </P>
 <PRE>thermo_style multi
 thermo_style custom step temp pe etotal press vol
-thermo_style custom step temp t_left t_right etotal 
+thermo_style custom step temp etotal c_myTemp v_abc 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Set the style in which thermodynamic data is printed to the screen and
-log file.
+<P>Set the style and content for printing thermodynamic data to the
+screen and log file.
 </P>
 <P>Style <I>one</I> prints a one-line summary of thermodynamic info that is
 the equivalent of "thermo_style custom step temp epair emol etotal
@@ -80,23 +88,97 @@ numeric values and a string ID for each quantity.
 </P>
 <P>Style <I>granular</I> is used with <A HREF = "atom_style.html">atom style</A> granular
 and prints a one-line numeric summary that is the equivalent of
-"thermo_style custom step atoms gke grot".
+"thermo_style custom step atoms ke grot".
 </P>
 <P>Style <I>custom</I> is the most general setting and allows you to specify
-which of the quantities listed above you want printed on each
-thermodynamic timestep.
+which of the keywords listed above you want printed on each
+thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
+references to <A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and
+<A HREF = "variable.html"">variables</A> that have been defined elsewhere in the
+input script or can even be new styles which users have added to
+LAMMPS (see the <A HREF = "Section_modify.html">Section_modify</A> section of the
+documentation).  Thus the <I>custom</I> style provides a flexible means of
+outputting essentially any desired quantity as a simulation proceeds.
 </P>
-<P>Also, all styles except <I>custom</I> have <I>vol</I> added to their list of
-outputs as a final printed quantity when the simulation box volume
-changes during the simulation.
+<P>All styles except <I>custom</I> have <I>vol</I> appended to their list of
+outputs if the simulation box volume changes during the simulation.
 </P>
-<P>All thermodynamic quantities which require a temperature (<I>temp, press,
-ke, etotal, tave, eave</I>) use the temperature with ID = <I>default</I> that is
-defined by LAMMPS (see the <A HREF = "temperature.html">temperature</A> command)
-that performs an average over all atoms.  This can be changed via the
-<A HREF = "thermo_modify.html">thermo_modify</A> command.  The exception is the
-<I>t_ID</I> quantity which directly specifies which temperature to compute
-and print out.
+<P>Options invoked by the <A HREF = "thermo_modify.html">thermo_modify</A> command can
+be used to set the one- or multi-line format of the print-out, the
+normalization of energy quantities (total or per-atom), and the
+numeric precision of each printed value.
+</P>
+<HR>
+
+<P>Several of the thermodynamic quantities require a temperature to be
+computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
+"tave", "pave".  To do this, a compute of style "temp" is created, as
+if this command had been issued:
+</P>
+<PRE>compute thermo_temp all temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> command for details.  Note
+that the ID of the new compute is <I>thermo_temp</I> and the group is
+<I>all</I>.  You can change the attributes of this temperature (e.g. its
+degrees-of-freedom) via the <A HREF = "compute_modify.html">compute_modify</A>
+command.  Alternatively, you can directly assign a new compute (that
+calculates temperature) which you have defined, to be used for any
+thermodynamic quantity that requires a temperature.  This is done via
+the <A HREF = "thermo_modify.html">thermo_modify</A> command.
+</P>
+<P>Several of the thermodynamic quantities require a pressure to be
+computed: "press", "enthalpy", "pxx etc", "pave".  To do this, a
+compute of style "pressure" is created, as if this command had been
+issued:
+</P>
+<PRE>compute thermo_press all pressure thermo_temp 
+</PRE>
+<P>See the <A HREF = "compute_pressure.html">compute pressure</A> command for details.
+Note that the ID of the new compute is <I>thermo_press</I> and the group is
+<I>all</I>.  You can change the attributes of this pressure via the
+<A HREF = "compute_modify.html">compute_modify</A> command.  Alternatively, you can
+directly assign a new compute (that calculates pressure) which you
+have defined, to be used for any thermodynamic quantity that requires
+a pressure.  This is done via the <A HREF = "thermo_modify.html">thermo_modify</A>
+command.
+</P>
+<P>The <I>drot</I> keyword requires a rotational energy to be compute for
+dipolar particles.  To do this, a compute of style "rotate/dipole" is
+created, as if this command had been issued:
+</P>
+<PRE>compute thermo_rotate_dipole all rotate/dipole 
+</PRE>
+<P>See the <A HREF = "compute_rotate_dipole.html">compute rotate/dipole</A> command for
+details.  Note that the ID of the new compute is
+<I>thermo_rotate_dipole</I> and the group is <I>all</I>.  You can change the
+attributes of this computation via the
+<A HREF = "compute_modify.html">compute_modify</A> command.  Alternatively, you can
+directly assign a new compute which you have defined, to be used for
+<I>drot</I>.  This is done via the <A HREF = "thermo_modify.html">thermo_modify</A>
+command.  For example, this could be useful if you wish to exclude
+certain particles from the compuation.
+</P>
+<P>The <I>grot</I> keyword requires a rotational energy to be compute for
+granular particles.  To do this, a compute of style "rotate/gran" is
+created, as if this command had been issued:
+</P>
+<PRE>compute thermo_rotate_gran all rotate/gran 
+</PRE>
+<P>See the <A HREF = "compute_rotate_gran.html">compute rotate/gran</A> command for
+details.  Note that the ID of the new compute is <I>thermo_rotate_gran</I>
+and the group is <I>all</I>.  You can change the attributes of this
+computation via the <A HREF = "compute_modify.html">compute_modify</A> command.
+Alternatively, you can directly assign a new compute which you have
+defined, to be used for <I>grot</I>.  This is done via the
+<A HREF = "thermo_modify.html">thermo_modify</A> command.  For example, this could
+be useful if you wish to exclude frozen particles from the compuation.
+</P>
+<HR>
+
+<P>The potential energy of the system <I>pe</I> will include contributions
+from fixes if the <A HREF = "fix_modify.html">fix_modify thermo</A> option was set
+for each fix.  For example, the <A HREF = "fix_wall_lj93">fix wall/lj93</A> fix will
+contribute the energy of atoms interacting with the wall.
 </P>
 <P>A long-range tail correction <I>etail</I> for the VanderWaal pairwise
 energy will be non-zero only if the <A HREF = "pair_modify.html">pair_modify
@@ -105,38 +187,52 @@ is included in <I>evdwl</I>, <I>pe</I>, and <I>etotal</I>, and the corresponding
 correction to the pressure is included in <I>press</I> and <I>pxx</I>, <I>pyy</I>,
 etc.
 </P>
-<P>The time-averaged quantities <I>tave, pave, eave, peave</I> are averaged
-over the last N thermodynamic outputs to the screen (not the last N
+<P>The time-averaged keywords <I>tave, pave, eave, peave</I> are averaged over
+the last N thermodynamic outputs to the screen (not the last N
 timesteps), where N is the value set by the <I>window</I> option of the
 <A HREF = "thermo_modify.html">thermo_modify</A> command (N = 10 by default).
 </P>
-<P>The <I>t_ID</I> quantity allows for user-defined temperatures to be printed
-with thermodynamic output.  For example, if either of the commands
+<HR>
+
+<P>The <I>c_ID</I> and <I>c_ID[N]</I> keywords allow scalar or vector quantities
+calculated by a compute to be output.  The ID in the keyword should be
+replaced by the actual ID of the compute that has been defined
+elsewhere in the input script.  See the <A HREF = "compute.html">compute</A> command
+for details.  Note that per-atom quantities calcalated by a compute
+cannot be output as part of thermodynamics.  Rather, these quantities
+are output by the <A HREF = "dump.html">dump custom</A> command.
 </P>
-<PRE>temperature mine all region sphere
-fix mine all temp/rescale 100 1.0 1.0 0.1 1.0 region sphere 
-</PRE>
-<P>were used to compute or thermostat the temperature of atoms inside a
-spherical geometric region, then the keyword <I>t_mine</I> will print that
-temperature as part of thermodynamic output.
+<P>If <I>c_ID</I> is used as a keyword, then the scalar quantity calculated by
+the compute is printed.  If <I>c_ID[N]</I> is used, then N in the range
+from 1-M will print a specific component of the vector calculated by
+the compute.  A value of N=0 will output the scalar quantity.
 </P>
-<P>Some fixes also generate quantities that can be appended to these
-lists each time thermodyanmic info prints out, if enabled by the
-<A HREF = "fix_modify.html">fix_modify</A> command.  See invidividual fix commands
-for more details, e.g. the <A HREF = "fix_nvt.html">fix nvt</A> and <A HREF = "fix_npt.html">fix
-npt</A> commands.
+<P>The <I>f_ID</I> and <I>f_ID[N]</I> keywords allow scalar or vector quantities
+calculated by a fix to be output.  The ID in the keyword should be
+replaced by the actual ID of the fix that has been defined elsewhere
+in the input script.  See the <A HREF = "fix.html">fix</A> command for details.
 </P>
-<P>Options invoked by the <A HREF = "thermo_modify.html">thermo_modify</A> command can
-be used to set the one- or multi-line format of the print-out, the
-normalization of energy quantities (total or per-atom), and the
-numeric precision of each printed value.
+<P>If <I>f_ID</I> is used as a keyword, then the scalar quantity calculated by
+the fix is printed.  If <I>f_ID[N]</I> is used, then N in the range from
+1-M will print a specific component of the vector calculated by the
+fix.  A value of N=0 will output the scalar quantity.
 </P>
+<P>The <I>v_name</I> keyword allow the current value of a variable to be
+output.  The name in the keyword should be replaced by the actual namd
+of the variable that has been defined elsewhere in the input script.
+See the <A HREF = "variable.html">variable</A> command for details.  Equal-style
+variables can calculate complex formulas involving atom and group
+properties, mathematical operations, other variables, etc.  This
+keyword enables them to be evaluated and their value printed
+periodically during a simulation.
+</P>
+<P>See <A HREF = "Section_modify.html">this section</A> for information on how to add
+new compute and fix styles as well as variable options to LAMMPS that
+calculate quantities that could then be output with these keywords.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
-</P>
-<P><A HREF = "atom_style.html">Atom style</A> granular cannot compute the usual
-temperature and pressure settings because it stores atom masses
-differently.  The gke and grot settings should be used instead (or use
-thermo style granular).
 </P>
 <P>This command must come after the simulation box is defined by a
 <A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or

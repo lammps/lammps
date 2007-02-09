@@ -52,27 +52,33 @@ Performing a short run and monitoring the temperature is the best way
 to determine if the drag term is working.  Typically a value between
 0.2 to 2.0 is sufficient to damp oscillations after a few periods.
 
-This fix computes a temperature each timestep.  The fix creates its
-own method for computing T, as if it had been defined by the command:
+This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "temp", as if this command had been
+issued:
 
-temperature fix-ID group-ID full :pre
+compute fix-ID_temp group-ID temp :pre
 
-See the "temperature"_temperature.html command for details.  Note that
-this is NOT the temperature with ID = {default}.  This means you can
-change the attributes of this fix's temperature (e.g. its
-degrees-of-freedom) via the "temp_modify"_temp_modify.html command or
-print the temperature with thermodyanmic output via the "thermo_style
-custom"_thermo_style.html command using the appropriate temp-ID =
-fix-ID.  It also means that changing attributes of the default
-temperature will have no effect on this fix.  Alternatively, you can
-directly assign a new temperature to the fix via the
-"fix_modify"_fix_modify.html command.
+See the "compute temp"_compute_temp.html command for details.  Note
+that the ID of the new compute is the fix-ID with "_temp" appended and
+the group for the new compute is the same as the fix group.
 
-This fix supports the "fix_modify"_fix_modify.html options for
-{thermo} and {energy}.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed.  The
-latter will add this contribution to the total potential energy
-(PotEng) so that energy conservation can be monitored.
+Note that this is NOT the compute used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+"compute_modify"_compute_modify.html command or print this temperature
+during thermodyanmic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} will have no
+effect on this fix.  Alternatively, you can directly assign a new
+compute (for calculating temeperature) that you have defined to this
+fix via the "fix_modify"_fix_modify.html command.
+
+This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the "fix_modify energy"_fix_modify.html option.  The contribution can
+also be printed by itself via the keyword {f_fix-ID} in the
+"thermo_style custom"_thermo_style.html command.
 
 [Restrictions:]
 

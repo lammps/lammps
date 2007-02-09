@@ -13,20 +13,23 @@ variable command :h3
 variable name style args ... :pre
 
 name = name of variable to define :ulb,l
-style = {index} or {loop} or {equal} or {world} or {universe} :l
+style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} :l
   {index} args = one or more strings
   {loop} args = N = integer size of loop
-  {equal} args = one string containing functions, vectors, keywords, numbers
+  {world} args = one string for each partition of processors
+  {universe} args = one or more strings
+  {uloop} args = N = integer size of loop
+  {equal} args = one equation containing numbers, thermo keywords, math functions, group functions, atom vectors, compute references, other variables
+    numbers = 0.0, -5.4, 2.8e-4, etc
+    thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
                      neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
     group functions = mass(group), charge(group), xcm(group,dim),
                       vcm(group,dim), bound(group,xmin), gyration(group)
-    vectors = x\[5\], y\[12\], z\[17\], vx\[88\], vy\[19\], vz\[2\],
-              fx\[1\], fy\[2005\], fz\[1\]
-    keywords = same keywords (mostly) as in "thermo_style custom"_thermo_style.html command
-  {world} args = one string for each partition of processors
-  {universe} args = one or more strings
-  {uloop} args = N = integer size of loop :pre
+    atom vectors = x\[N\], y\[N\], z\[N\], vx\[N\], vy\[N\], vz\[N\],
+                   fx\[N\], fy\[N\], fz\[N\]
+    compute references = c_ID\[0\], c_ID\[N\]
+    other variables = v_abc, v_x, etc :pre
 :ule
 
 [Examples:]
@@ -34,8 +37,9 @@ style = {index} or {loop} or {equal} or {world} or {universe} :l
 variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop 20
 variable beta equal div(temp,3.0)
-variable b1 equal add(x\[234\],mult(0.5,lx))
-variable b equal xcm(mol1,x)
+variable b1 equal add(x\[234\],mult(0.5,col))
+variable b equal div(xcm(mol1,x),2.0)
+variable b equal c_myTemp\[0\]
 variable temp world 300.0 310.0 320.0 330.0
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 :pre
@@ -43,14 +47,23 @@ variable x uloop 15 :pre
 [Description:]
 
 This command assigns one or more values to a variable name so that the
-variable can be used in subsequent input script commands.  The "name"
-of the variable is an arbitrary string.  Each "value" is a string
-which could be text or numbers, as in the examples above.  As
-explained in "this section"_Section_commands.html#3_2, occurrences of
-the variable name in an input script line are replaced by the
+variable can be used in subsequent input script commands or its value
+output during a simulation.  The "name" of the variable is an
+arbitrary string.  Each "value" is a string which could be text or
+numbers, as in the examples above.
+
+As explained in "this section"_Section_commands.html#3_2, occurrences
+of the variable name in an input script line are replaced by the
 variable's value.  The variable name can be referenced in the input
 script as $x if the name "x" is a single character, or as $\{LoopVar\}
 if the name "LoopVar" is one or more characters.
+
+Variable values can also be accessed for output once or periodically
+during a simulation by the "print"_print.html command, "fix
+print"_fix_print.html command, "run every"_run.html command, and the
+"thermo_style"_thermo_style.html command.
+
+:line
 
 As described below, for variable styles {index}, {loop}, {universe},
 and {uloop}, the value assigned to a variable can be incremented via
@@ -73,13 +86,15 @@ equal-style variable is encountered.  Also, if a variable is iterated
 on to the end of its list via the "next"_next.html command, it is
 available to be re-defined in a subsequent variable command.
 
+:line
+
 For the {index} style, one or more strings are specified.  Initially,
 the 1st string is assigned to the variable.  Each time a
 "next"_next.html command is used with the variable name, the next
 string is assigned.  All processors assign the same string to the
 variable.  {Index}-style variables can also be set (with a single
 value) by using the command-line switch -var; see "this
-section"_Section_start.html#2_4 for details.
+section"_Section_start.html#2_6 for details.
 
 The {loop} style is identical to the {index} style except that the
 strings are the integers from 1 to N.  This allows you to generate a
@@ -89,66 +104,9 @@ Each time a "next"_next.html command is used with the variable name,
 the next string ("2", "3", etc) is assigned.  All processors assign
 the same string to the variable.
 
-For the {equal} style, a single string is specified which represents
-an equation that will be evaluated afresh each time the variable is
-used.  Thus the variable can take on different values at different
-stages of the input script.  For example, if the variable is used in a
-"fix print"_fix_print.html command, it could print different values
-each timestep it was invoked.  The next command cannot be used with
-{equal}-style variables, since there is only one value.  Note that, as
-with any other input script command, it is feasible to use another
-variable in the {equal} variable's string, e.g. variable y equal
-mult($x,2).  However, $x will be replaced immediately by it's current
-value when the command is first parsed, not each time that $y is
-substituted for.
-
-The syntax of the equation assigned to {equal} variables is simple.
-It can contain "functions", "vectors", "keywords", or "numbers" in any
-combination.
-
-Function = a keyword followed by parenthesis with one or two arguments
-Supported arithmetic functions = add(x,y), sub(x,y), mult(x,y), div(x,y), \
-  neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-Supported group functions = mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), \
-  bound(ID,dir), gyration(ID)
-Example function usage = div(1.0e20,3.0), neg(x\[34\]), pow(lx,3.0), \
-  xcm(mol,x), bound(lower,zmin)
-Vector = a keyword followed by square brackets containing an atom ID
-Supported vectors = x, y, z, vx, vy, vz, fx, fy, fz
-Example vector usage = x\[123\], fz\[1000\]
-Keyword = any keyword supported by the \
-  "thermo_style custom"_thermo_style.html \
-  command except cpu, pressure tensor components (pxx, pyy, etc), \
-  time-averaged quantities (tave, pave, etc)
-Example keyword usage = atoms, pow(vol,0.333), mult(elong,0.5)
-Number = 0.2, 1.0e20, -15.4, etc :ul
-
-For the group functions, ID is a group-ID, dim is 'x' or 'y' or 'z',
-and dir is one of 6 strings: "xmin", "xmax", "ymin", "ymax", "zmin",
-or "zmax".  The group functions mass() and charge() are the total mass
-and charge of the group of atoms.  Xcm() and vcm() return components
-of the position and velocity of the center of mass of the group.
-Bound() returns the min/max of a particular coordinate for all atoms
-in the group.  Gyration() computes the radius-of-gyration of the group
-of atoms.  See the "fix gyration"_fix_gyration.html command for the
-formula.
-
-Keywords have restrictions on when they can be assigned to variables.
-For example, keywords that compute thermodynamic quantites can only be
-invoked after the first simulation has begun.  A warning is issued if
-thermodyanmic keywords are invoked on timesteps when thermodynamic
-information is not being printed to the screen, since the values
-assigned to the variable may be out-of-date.
-
-The variable {equal} equation can also be nested in that function
-arguments can be functions, vectors, keywords, or numbers.  For
-example, this is a valid equation:
-
-variable x equal div(add(pe,ke),pow(vol,div(1,3))) :pre
-
 For the {world} style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  See "this
-section"_Section_start.html#2_4 of the manual for information on
+section"_Section_start.html#2_6 of the manual for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command assigns one string to each
 world.  All processors in the world are assigned the same string.  The
@@ -161,7 +119,7 @@ different partitions.
 
 For the {universe} style, one or more strings are specified.  There
 must be at least as many strings as there are processor partitions or
-"worlds".  See "this page"_Section_start.html#2_4 for information on
+"worlds".  See "this page"_Section_start.html#2_6 for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command initially assigns one
 string to each world.  When a "next"_next.html command is encountered
@@ -179,11 +137,118 @@ strings are the integers from 1 to N.  This allows you to generate a
 long list of runs (e.g. 1000) without having to list N values in your
 input script.
 
+:line
+
+For the {equal} style, a single string is specified which represents
+an equation that will be evaluated afresh each time the variable is
+used.  Thus the variable can take on different values at different
+stages of the input script.  For example, if the variable is used in a
+"fix print"_fix_print.html command, different values could be printed
+each timestep it was invoked.  The next command cannot be used with
+{equal}-style variables, since there is only one value.
+
+The equation for an {equal}-style variable can contain a variety of
+quantities.  The syntax for each kind of quantity is simple, but
+multiple quantities can be nested and combined in various ways to
+build up formulas of arbitrary complexity.  For example, this is a
+valid (though strange) variable equation:
+
+variable x equal div(add(pe,c_MyTemp\[0\]),pow(vol,div(1,3))) :pre
+
+Specifically, an equation can contain numbers, thermo keywords, math
+functions, group functions, atom vectors, compute references, and
+other variables:
+
+Number: 0.2, 1.0e20, -15.4, etc
+Thermo keywords: vol, pe, ebond, etc
+Math functions: add(x,y), sub(x,y), mult(x,y), div(x,y), \
+  neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
+Group functions: mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), \
+  bound(ID,dir), gyration(ID)
+Atom vectors: x\[N\], y\[N\], z\[N\], vx\[N\], vy\[N\], vz\[N\], \
+                   fx\[N\], fy\[N\], fz\[N\]
+Compute references: c_ID\[0\], c_ID\[N\]
+Other variables: v_abc, v_x, etc :tb(s=:)
+
+The thermo keywords allowed in the equation are those defined by the
+"thermo_style custom" command.  Note that many thermodyanmic
+quantities are only computable after the first simulation has begun.
+Likewise, many thermodynamic quantities (such as energies) are only
+computed on timesteps when thermodyanmic output is being performed.
+If the variable equation these quantities at other times, out-of-date
+or invalid values may be used.
+
+Math functions take one or two arguments, each of which may be an
+equation containing any of the quantities defined above.  This allows
+equations to be nested, as in the examples above.
+
+Group functions take one or two arguments.  The first argument is the
+group-ID.  The {dim} argument is {x} or {y} or {z}.  The {dir}
+argument is {xmin}, {xmax}, {ymin}, {ymax}, {zmin}, or {zmax}.  The
+group functions mass() and charge() are the total mass and charge of
+the group of atoms.  Xcm() and vcm() return components of the position
+and velocity of the center of mass of the group.  Bound() returns the
+min/max of a particular coordinate for all atoms in the group.
+Gyration() computes the radius-of-gyration of the group of atoms.  See
+the "fix gyration"_fix_gyration.html command for the formula.
+
+The atom vectors take a single integer argument from 1-N, which
+is the desired atom-ID, e.g. x\[243\].
+
+Compute references access allow access to scalar or vector quantities
+calculated by a compute.  The ID in the reference should be replaced
+by the actual ID of the compute that has been defined elsewhere in the
+input script.  See the "compute"_compute.html command for details.
+Note that per-atom quantities calcalated by a compute cannot be
+accessed this way, but only global scalar or vector quantities.
+
+If {c_ID\[0\]} is used as a keyword, then the scalar quantity
+calculated by the compute is printed.  If {c_ID\[N\]} is used, then N
+in the range from 1-M will print a specific component of the vector
+calculated by the compute.
+
+The current values of other variables can be accessed by prepending a
+"v_" to the variable name.  This will cause the other variable to be
+evaulated.  Note that if you do something circular like this:
+
+variable a equal v_b
+variable b equal v_a
+print $a :pre
+
+then LAMMPS will run for a while when the print statement is invoked.
+
+Note that there is a subtle difference between using a variable
+in a {equal}-style equation in the form $x versus v_x.
+
+In the former case, as with any other input script command, the
+variable's value is substituted for immediately when the line is read
+from the input script.  Thus if the current simulation box volume was
+1000.0, then these lines:
+
+variable x equal vol
+variable y equal mult($x,2) :pre
+
+would associate the equation string "mult(1000.0,2)" with variable y.
+
+By contrast, these lines:
+
+variable x equal vol
+variable y equal mult(v_x,2) :pre
+
+would associate the equation string "mult(v_x,2)" with variable y.
+
+Thus if the variable y were evaluated periodically during a run where
+the box volume changed, the resulting value would always be 500.0 for
+the first case, but would change dynamically for the second case.
+
+:line
+
 [Restrictions:]
 
 The use of atom vectors in {equal} style variables requires the atom
 style to use a global mapping in order to look up the vector indices.
-Only atom styles with molecular information create global maps.
+Only atom styles with molecular information create global maps unless
+the "atom_modify map"_atom_modify.html command is used.
 
 [Related commands:]
 

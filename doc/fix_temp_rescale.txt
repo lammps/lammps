@@ -12,17 +12,15 @@ fix temp/rescale command :h3
 
 fix ID group-ID temp/rescale N Tstart Tstop window fraction keyword values ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command :ulb,l
-temp/rescale = style name of this fix command :l
-N = perform rescaling every N steps :l
-Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
-window = only rescale if temperature is outside this window (temperature units) :l
-fraction = rescale to target temperature by this fraction :l
-zero or more keyword/value pairs may be appended to the args :l
-keyword = {region}
-  {region} values = region-ID
-    region-ID = ID of region to apply rescaling to :pre
-:ule
+ID, group-ID are documented in "fix"_fix.html command
+temp/rescale = style name of this fix command
+N = perform rescaling every N steps 
+Tstart,Tstop = desired temperature at start/end of run (temperature units)
+window = only rescale if temperature is outside this window (temperature units)
+fraction = rescale to target temperature by this fraction
+zero or more keyword/value pairs may be appended to the args
+keyword = {region} :ul
+  {region} values = region-ID of region to apply rescaling to :pre
 
 [Examples:]
 
@@ -50,43 +48,47 @@ The keyword {region} applies the fix only to atoms that are in the
 specified geometric region (and in the fix group).  Since atoms can
 enter/leave a region, this test is performed each timestep.
 
-This fix computes a temperature each timestep.  The fix creates its
-own method for computing T, as if it had been defined by one of these
-commands:
-
-temperature fix-ID group-ID full
-temperature fix-ID group-ID region region-ID :pre
-
-Which is used depends on whether a region was specified with the fix.
-See the "temperature"_temperature.html command for details.  Note that
-this is NOT the temperature with ID = {default}.  This means you can
-change the attributes of this fix's temperature (e.g. its
-degrees-of-freedom) via the "temp_modify"_temp_modify.html command or
-print the temperature with thermodyanmic output via the "thermo_style
-custom"_thermo_style.html command using the appropriate temp-ID =
-fix-ID.  It also means that changing attributes of the default
-temperature will have no effect on this fix.  Alternatively, you can
-directly assign a new temperature to the fix via the
-"fix_modify"_fix_modify.html command.  For consistency, if using the
-keyword {region}, the temperature you assign should also be of style
-{region}.
-
 A temp/rescale fix does not update the coordinates of its atoms.  It
 is normally used with a fix of style {nve} that does that.  A
 temp/rescale fix should not normally be used on atoms that also have
 their temperature controlled by another fix - e.g. a
 "nvt"_fix_nvt.html or "langevin"_fix_langevin.html fix.
 
-This fix supports the "fix_modify"_fix_modify.html options for
-{thermo} and {energy}.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed.  The
-latter will add this contribution to the total potential energy
-(PotEng) so that energy conservation can be monitored.  Note that the
-energy value printed by thermo is not cummulative energy, but energy
-added in the most recent rescaling.  Also note that because this fix
-is invoked every N steps and thermo may be printed every M steps, that
-unless M is a multiple of N, the energy info printed by thermo will
-not be for the current timestep.
+This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "temp" or "temp/region", as if one of
+these commands had been issued:
+
+compute fix-ID_temp group-ID temp
+compute fix-ID_temp group-ID temp/region region-ID :pre
+
+Which is used depends on whether a region was specified with the fix.
+See the "compute temp"_compute_temp.html and "compute
+temp/region"_compute_temp_region.html commands for details.  Note that
+the ID of the new compute is the fix-ID with "_temp" appended and the
+group for the new compute is the same as the fix group.
+
+Note that this is NOT the compute used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+"compute_modify"_compute_modify.html command or print this temperature
+during thermodyanmic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} will have no
+effect on this fix.  Alternatively, you can directly assign a new
+compute (for calculating temeperature) that you have defined to this
+fix via the "fix_modify"_fix_modify.html command.  For consistency, if
+using the keyword {region}, the compute you assign should also be of
+style {temp/region}.
+
+This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the "fix_modify energy"_fix_modify.html option.  The contribution can
+also be printed by itself via the keyword {f_fix-ID} in the
+"thermo_style custom"_thermo_style.html command.  Note that because
+this fix is invoked every N steps and thermodynamic info may be
+printed every M steps, that unless M is a multiple of N, the energy
+info accessed will not be for the current timestep.
 
 [Restrictions:] none
 

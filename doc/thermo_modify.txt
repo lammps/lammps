@@ -14,7 +14,6 @@ thermo_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
 keyword = {temp} or {lost} or {norm} or {flush} or {line} or {format} :l
-  {temp} value = ID of temperature
   {lost} value = {error} or {warn} or {ignore}
   {norm} value = {yes} or {no}
   {flush} value = {yes} or {no}
@@ -24,56 +23,94 @@ keyword = {temp} or {lost} or {norm} or {flush} or {line} or {format} :l
     string = C-style format string
   {window} value = N
     N = number of previous print-outs to average over :pre
+  {temp} value = compute ID that calculates a temperature
+  {press} value = compute ID that calculates a pressure
+  {drot} value = compute ID that calculates rotational energy for dipolar atoms
+  {grot} value = compute ID that calculates rotational energy for granular atoms
 :ule
 
 [Examples:]
 
-thermo_modify temp mydef
 thermo_modify lost no flush yes
+thermo_modify temp myTemp
 thermo_modify line multi format float %g format 3 %15.8g :pre
 
 [Description:]
 
-Set options for how thermodynamics are computed and printed by LAMMPS.
+Set options for how thermodynamic information is computed and printed
+by LAMMPS.
 
-The {temp} option allows you to specify how temperature is computed
-when used to output thermodynamic info (temperature, kinetic energy,
-pressure).  Different methods of computing temperature can be defined
-via the "temperature"_temperature.html command.
-
-The {lost} option determines whether LAMMPS checks for lost atoms each
-time it computes thermodynamics and what it does if atoms are lost.
-If the value is {ignore}, LAMMPS does not check for lost atoms.  If
-the value is {error} or {warn}, LAMMPS checks and either issues an
+The {lost} keyword determines whether LAMMPS checks for lost atoms
+each time it computes thermodynamics and what it does if atoms are
+lost.  If the value is {ignore}, LAMMPS does not check for lost atoms.
+If the value is {error} or {warn}, LAMMPS checks and either issues an
 error or warning.  The code will exit with an error and continue with
 a warning.  This can be a useful debugging option.
 
-The {norm} option determines whether the thermodynamic print-out is
+The {norm} keyword determines whether the thermodynamic print-out is
 normalized by the number of atoms or is the total summed across all
 atoms.  Different unit styles have different defaults for this
 setting.
 
-The {flush} option invokes a flush operation after thermodynamic info
+The {flush} keyword invokes a flush operation after thermodynamic info
 is written to the log file.  This insures the output in that file is
 current (no buffering by the OS), even if LAMMPS halts before the
 simulation completes.
 
-The {line} option determines whether thermodynamics will be printed as
-a series of numeric values on one line or in a multi-line format with
-3 quantities with text strings per line and a dashed-line header
+The {line} keyword determines whether thermodynamics will be printed
+as a series of numeric values on one line or in a multi-line format
+with 3 quantities with text strings per line and a dashed-line header
 containing the timestep and CPU time.  This modify option overrides
 the {one} and {multi} thermo_style settings.
 
-The {format} option sets the numeric format of individual printed
+The {format} keyword sets the numeric format of individual printed
 quantities.  The {int} and {float} settings set the format for all
 integer or floating-point quantities printed.  The setting with a
 numeric value (e.g. format 5 %10.4g) sets the format of the Nth value
 printed.  If the format for a specific value has been set, it will
 take precedent over the {int} or {float} setting.
 
-The {window} option sets the number of previous thermodynamic screen
+The {window} keyword sets the number of previous thermodynamic screen
 outputs over which "thermo_style custom"_thermo_style.html {ave}
 quantities are averaged when printed.
+
+The {temp} keyword is used to determine how thermodynamic temperature
+is calculated, which is used by all thermo quantities that require a
+temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
+"tave", "pave").  The specified compute ID must have been previously
+defined by the user via the "compute"_compute.html command and it must
+be a style of compute that calculates a temperature.  As described in
+the "thermo_style"_thermo_style.html command, thermo output has a
+default compute for temperature with ID = {thermo_temp}.  This option
+allows the user to override the default.
+
+The {press} keyword is used to determine how thermodynamic pressure is
+calculated, which is used by all thermo quantities that require a
+pressure ("press", "enthalpy", "pxx etc", "pave").  The specified
+compute ID must have been previously defined by the user via the
+"compute"_compute.html command and it must be a style of compute that
+calculates a pressure.  As described in the
+"thermo_style"_thermo_style.html command, thermo output has a default
+compute for pressure with ID = {thermo_press}.  This option allows the
+user to override the default.
+
+The {drot} keyword is used to determine how rotational energy is
+calculated for dipolar atoms, which is used by the thermo_style
+keyword {drot}.  The specified compute ID must have been previously
+defined by the user via the "compute"_compute.html command.  As
+described in the "thermo_style"_thermo_style.html command, thermo
+output has a default compute for this calculation with ID =
+{thermo_rotate_dipole}.  This option allows the user to override the
+default.
+
+The {grot} keyword is used to determine how rotational energy is
+calculated for granular atoms, which is used by the thermo_style
+keyword {grot}.  The specified compute ID must have been previously
+defined by the user via the "compute"_compute.html command.  As
+described in the "thermo_style"_thermo_style.html command, thermo
+output has a default compute for this calculation with ID =
+{thermo_rotate_gran}.  This option allows the user to override the
+default.
 
 [Restrictions:] none
 
@@ -84,10 +121,12 @@ quantities are averaged when printed.
 
 [Default:]
 
-The option defaults are temp = default, lost = error, norm = yes for
-unit style of {lj}, norm = no for unit style of {real} and {metal},
-flush = no, window = 10.  The defaults for the line and format options
-depend on the thermo style.  For styles "one", "granular", and
-"custom" the line and format defaults are "one", "%8d", and "%12.8g".
-For style "multi", the line and format defaults are "multi", "%8d",
-and "%14.4f".
+The option defaults are lost = error, norm = yes for unit style of
+{lj}, norm = no for unit style of {real} and {metal}, flush = no,
+window = 10, temp/press/drot/grot = compute IDs defined by
+thermo_style.
+
+The defaults for the line and format options depend on the thermo
+style.  For styles "one", "granular", and "custom" the line and format
+defaults are "one", "%8d", and "%12.8g".  For style "multi", the line
+and format defaults are "multi", "%8d", and "%14.4f".

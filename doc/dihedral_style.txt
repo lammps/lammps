@@ -64,15 +64,15 @@ Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
 specified by the associated "dihedral_coeff"_dihedral_coeff.html command:
 
-"dihedral_style none"_dihedral_style_none.html - turn off dihedral interactions
-"dihedral_style hybrid"_dihedral_style_hybrid.html - define multiple styles of dihedral interactions :ul
+"dihedral_style none"_dihedral_none.html - turn off dihedral interactions
+"dihedral_style hybrid"_dihedral_hybrid.html - define multiple styles of dihedral interactions :ul
 
-"dihedral_style charmm"_dihedral_style_charmm.html - CHARMM dihedral
-"dihedral_style class2"_dihedral_style_class2.html - COMPASS (class 2) dihedral
-"dihedral_style harmonic"_dihedral_style_harmonic.html - harmonic dihedral
-"dihedral_style helix"_dihedral_style_helix.html - helix dihedral
-"dihedral_style multi/harmonic"_dihedral_style_multi_harmonic.html - multi-harmonic dihedral
-"dihedral_style opls"_dihedral_style_opls.html - OPLS dihedral :ul
+"dihedral_style charmm"_dihedral_charmm.html - CHARMM dihedral
+"dihedral_style class2"_dihedral_class2.html - COMPASS (class 2) dihedral
+"dihedral_style harmonic"_dihedral_harmonic.html - harmonic dihedral
+"dihedral_style helix"_dihedral_helix.html - helix dihedral
+"dihedral_style multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
+"dihedral_style opls"_dihedral_opls.html - OPLS dihedral :ul
 
 :line
 

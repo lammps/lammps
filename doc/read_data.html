@@ -212,47 +212,39 @@ integers (1, not 1.0).
 
 <P><I>Atoms</I> section:
 </P>
-<UL><LI>one line per atom 
+<UL><LI>one line per atom
 <LI>line syntax: depends on atom style 
 </UL>
-<P>This is the list of all possible quantities that can appear on each
-line of this section:
+<P>An <I>Atoms</I> section must appear in the data file if natoms > 0 in the
+header section.  The atoms can be listed in any order.  These are the
+line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >angle</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
+<TR><TD >atomic</TD><TD > atom-ID atom-type x y z</TD></TR>
+<TR><TD >bond</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
+<TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
+<TR><TD >dpd</TD><TD > atom-ID atom-type x y z</TD></TR>
+<TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
+<TR><TD >granular</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
+<TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z 
+</TD></TR></TABLE></DIV>
+
+<P>where the keywords have these meanings:
 </P>
 <UL><LI>atom-ID = integer ID of atom
 <LI>molecule-ID = integer ID of molecule the atom belongs to
-<LI>type-ID = integer type ID of atom (1-Ntype)
+<LI>type-ID = type of atom (1-Ntype)
 <LI>q = charge on atom
 <LI>diameter = diameter of atom
 <LI>density = density of atom
-<LI>x,y,z = coordinates of atom
-<LI>mux,muy,muz = components of dipole orientation of atom
-<LI>nx,ny,nz = image indices for atom 
+<LI>x,y,z = coordinates of atom 
 </UL>
-<P>Which of these quantities are actually listed depends on the <A HREF = "atom_style.html">atom
-style</A>.  This is the list of which styles require each
-quantity:
-</P>
-<UL><LI>atom-ID = all styles
-<LI>molecule-ID = angle, bond, molecular, full styles
-<LI>type-ID = all styles
-<LI>q = charge, dipole, full styles
-<LI>diameter = granular style
-<LI>density = granular style
-<LI>x,y,z = all styles
-<LI>mux,muy,muz = dipole style
-<LI>nx,ny,nz = optional for all styles (see below) 
-</UL>
-<P>Any quantity that is used by the atom style appears in the order
-listed above.  Thus if the atom style is <I>atomic</I>, an atom line should
-have 5 quantities: atom-ID, type-ID, x, y, z.  If the atom style is
-<I>hybrid dipole molecular</I>, then an atom line should have 10 quantites:
-atom-ID, molecule-ID, type-ID, q, x, y, z, mux, muy, muz.
-</P>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.
 </P>
-<P>For 2d simulations specify z as 0.0, or whatever value is within the
-<I>zlo zhi</I> setting in the data file header.
+<P>For 2d simulations specify z as 0.0, or a value is within the <I>zlo
+zhi</I> setting in the data file header.
 </P>
 <P>The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
@@ -266,25 +258,21 @@ be set to 0.
 </P>
 <P>The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
-to.  It can be 0 if it is an unbonded atom or if you don't care about
-molecule assignments.
+to.  It can be 0 if it is an unbonded atom or if you don't care to
+keep track of molecule assignments.
 </P>
-<P>An <I>Atoms</I> section must appear in the data file if natoms > 0 in the
-header section.  The atoms can be listed in any order. 
-</P>
-<P>Atom lines (all or none of them) can optionally list 3 final integer
-values: nx,ny,nz.  For periodic dimensions, they specify which image
-of the box the atom is considered to be in.  An image of 0 means the
-box as defined.  A value of 2 means add 2 box lengths to get the true
-value.  A value of -1 means subtract 1 box length to get the true
+<P>Atom lines (all lines or none of them) can optionally list 3 final
+integer values: nx,ny,nz.  For periodic dimensions, they specify which
+image of the box the atom is considered to be in.  An image of 0 means
+the box as defined.  A value of 2 means add 2 box lengths to get the
+true value.  A value of -1 means subtract 1 box length to get the true
 value.  LAMMPS updates these flags as atoms cross periodic boundaries
-during the simulation.  The flags can be output via the
-<A HREF = "dump.html">dump</A> and <A HREF = "dump_modify.html">dump_modify</A> commands.  If
-nx,ny,nz values are not set in the data file, LAMMPS initializes them
-to 0.
+during the simulation.  The flags can be output with atom snapshots
+via the <A HREF = "dump.html">dump</A> command.  If nx,ny,nz values are not set in
+the data file, LAMMPS initializes them to 0.
 </P>
 <P>Atom velocities are set to 0.0 when the <I>Atoms</I> section is read.  They
-may later be set by a <I>Velocities</I> section or by a
+may later be set by a <I>Velocities</I> section in the data file or by a
 <A HREF = "velocity.html">velocity</A> command in the input script.
 </P>
 <HR>

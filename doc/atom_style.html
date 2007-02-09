@@ -15,14 +15,15 @@
 </P>
 <PRE>atom_style style args 
 </PRE>
-<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or <I>dpd</I> or         <I>full</I> or <I>granular</I> or <I>molecular</I> or <I>hybrid</I> 
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>bond</I> or <I>charge</I> or <I>dpd</I> or         <I>full</I> or <I>granular</I> or <I>molecular</I> or <I>hybrid</I> 
 </UL>
 <PRE>  args = none for any style except <I>hybrid</I>
-  <I>hybrid</I> args = list of one or more styles 
+  <I>hybrid</I> args = list of one or more sub-styles 
 </PRE>
 <P><B>Examples:</B>
 </P>
-<PRE>atom_style bond
+<PRE>atom_style atomic
+atom_style bond
 atom_style full
 atom_style hybrid charge bond 
 </PRE>
@@ -51,11 +52,10 @@ velocities, atom IDs and types.
 <LI><I>atomic</I> = only the default values
 <LI><I>bond</I> = bonds - e.g. bead-spring polymers
 <LI><I>charge</I> = charge
-<LI><I>dipole</I> = charge + dipole moments
 <LI><I>dpd</I> = default values, also communicates velocities
 <LI><I>molecular</I> = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
 <LI><I>full</I> = molecular + charge - e.g. biomolecules, charged polymers
-<LI><I>granular</I> = granular material with rotational properties  
+<LI><I>granular</I> = granular atoms with rotational properties  
 </UL>
 <P>Typical simulations with a single pair potential will use only one of
 these styles.  For cases where multiple pair potentials will be used
@@ -77,13 +77,15 @@ section</A>.
 <P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
 "molecular" package.  The <I>granular</I> style is part of the "granular"
 package.  The <I>dpd</I> style is part of the "dpd" package.  They are only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "read_data.html">read_data</A>, <A HREF = "pair_style.html">pair_style</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>atom_style atomic
 </P>
 </HTML>

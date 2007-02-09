@@ -12,13 +12,14 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {bond} or {charge} or {dipole} or {dpd} or \
+style = {angle} or {atomic} or {bond} or {charge} or {dpd} or \
         {full} or {granular} or {molecular} or {hybrid} :ul
   args = none for any style except {hybrid}
-  {hybrid} args = list of one or more styles :pre
+  {hybrid} args = list of one or more sub-styles :pre
 
 [Examples:]
 
+atom_style atomic
 atom_style bond
 atom_style full
 atom_style hybrid charge bond :pre
@@ -48,11 +49,10 @@ velocities, atom IDs and types.
 {atomic} = only the default values
 {bond} = bonds - e.g. bead-spring polymers
 {charge} = charge
-{dipole} = charge + dipole moments
 {dpd} = default values, also communicates velocities
 {molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
 {full} = molecular + charge - e.g. biomolecules, charged polymers
-{granular} = granular material with rotational properties  :ul
+{granular} = granular atoms with rotational properties  :ul
 
 Typical simulations with a single pair potential will use only one of
 these styles.  For cases where multiple pair potentials will be used
@@ -75,10 +75,12 @@ The {angle}, {bond}, {full}, and {molecular} styles are part of the
 "molecular" package.  The {granular} style is part of the "granular"
 package.  The {dpd} style is part of the "dpd" package.  They are only
 enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 
 "read_data"_read_data.html, "pair_style"_pair_style.html
 
-[Default:] none
+[Default:]
+
+atom_style atomic

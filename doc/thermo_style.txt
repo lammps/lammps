@@ -22,8 +22,11 @@ args = list of arguments for a particular style :l
                           pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
-                          vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
-                          gke, grot, tave, pave, eave, peave, t_ID
+                          vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
+			  pxx, pyy, pzz, pxy, pxz, pyz
+                          drot, grot,
+			  tave, pave, eave, peave,
+			  c_ID, c_ID\[n\], f_ID, f_ID\[n\], v_name
       step = timestep
       atoms = # of atoms
       cpu = elapsed CPU time
@@ -45,23 +48,28 @@ args = list of arguments for a particular style :l
       etail = VanderWaal energy long-range tail correction
       vol = volume
       lx,ly,lz = box lengths in x,y,z
+      xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
-      gke = granular translational kinetic energy (without frozen atoms)
-      grot = granular rotational kinetic energy (without frozen atoms)
+      drot = rotational energy of dipolar atoms
+      grot = rotational energy of granular atoms
       tave, pave, eave, peave = time-averaged temp, press, etotal, pe
-      t_ID = termperature as computed by temperature ID :pre
+      c_ID = scalar quantity calculated by a compute identified by its ID
+      c_ID\[N\] = Nth vector quantity calculated by a compute identified by its ID
+      f_ID = scalar quantity calculated by a fix identified by its ID
+      f_ID\[N\] = Nth vector quantity calculated by a fix identified by its ID
+      v_name = current value of a variable identified by the variable name :pre
 :ule
 
 [Examples:]
 
 thermo_style multi
 thermo_style custom step temp pe etotal press vol
-thermo_style custom step temp t_left t_right etotal :pre
+thermo_style custom step temp etotal c_myTemp v_abc :pre
 
 [Description:]
 
-Set the style in which thermodynamic data is printed to the screen and
-log file.
+Set the style and content for printing thermodynamic data to the
+screen and log file.
 
 Style {one} prints a one-line summary of thermodynamic info that is
 the equivalent of "thermo_style custom step temp epair emol etotal
@@ -74,23 +82,97 @@ numeric values and a string ID for each quantity.
 
 Style {granular} is used with "atom style"_atom_style.html granular
 and prints a one-line numeric summary that is the equivalent of
-"thermo_style custom step atoms gke grot".
+"thermo_style custom step atoms ke grot".
 
 Style {custom} is the most general setting and allows you to specify
-which of the quantities listed above you want printed on each
-thermodynamic timestep.
+which of the keywords listed above you want printed on each
+thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
+references to "computes"_compute.html, "fixes"_fix.html, and
+"variables"_variable.html" that have been defined elsewhere in the
+input script or can even be new styles which users have added to
+LAMMPS (see the "Section_modify"_Section_modify.html section of the
+documentation).  Thus the {custom} style provides a flexible means of
+outputting essentially any desired quantity as a simulation proceeds.
 
-Also, all styles except {custom} have {vol} added to their list of
-outputs as a final printed quantity when the simulation box volume
-changes during the simulation.
+All styles except {custom} have {vol} appended to their list of
+outputs if the simulation box volume changes during the simulation.
 
-All thermodynamic quantities which require a temperature ({temp, press,
-ke, etotal, tave, eave}) use the temperature with ID = {default} that is
-defined by LAMMPS (see the "temperature"_temperature.html command)
-that performs an average over all atoms.  This can be changed via the
-"thermo_modify"_thermo_modify.html command.  The exception is the
-{t_ID} quantity which directly specifies which temperature to compute
-and print out.
+Options invoked by the "thermo_modify"_thermo_modify.html command can
+be used to set the one- or multi-line format of the print-out, the
+normalization of energy quantities (total or per-atom), and the
+numeric precision of each printed value.
+
+:line
+
+Several of the thermodynamic quantities require a temperature to be
+computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
+"tave", "pave".  To do this, a compute of style "temp" is created, as
+if this command had been issued:
+
+compute thermo_temp all temp :pre
+
+See the "compute temp"_compute_temp.html command for details.  Note
+that the ID of the new compute is {thermo_temp} and the group is
+{all}.  You can change the attributes of this temperature (e.g. its
+degrees-of-freedom) via the "compute_modify"_compute_modify.html
+command.  Alternatively, you can directly assign a new compute (that
+calculates temperature) which you have defined, to be used for any
+thermodynamic quantity that requires a temperature.  This is done via
+the "thermo_modify"_thermo_modify.html command.
+
+Several of the thermodynamic quantities require a pressure to be
+computed: "press", "enthalpy", "pxx etc", "pave".  To do this, a
+compute of style "pressure" is created, as if this command had been
+issued:
+
+compute thermo_press all pressure thermo_temp :pre
+
+See the "compute pressure"_compute_pressure.html command for details.
+Note that the ID of the new compute is {thermo_press} and the group is
+{all}.  You can change the attributes of this pressure via the
+"compute_modify"_compute_modify.html command.  Alternatively, you can
+directly assign a new compute (that calculates pressure) which you
+have defined, to be used for any thermodynamic quantity that requires
+a pressure.  This is done via the "thermo_modify"_thermo_modify.html
+command.
+
+The {drot} keyword requires a rotational energy to be compute for
+dipolar particles.  To do this, a compute of style "rotate/dipole" is
+created, as if this command had been issued:
+
+compute thermo_rotate_dipole all rotate/dipole :pre
+
+See the "compute rotate/dipole"_compute_rotate_dipole.html command for
+details.  Note that the ID of the new compute is
+{thermo_rotate_dipole} and the group is {all}.  You can change the
+attributes of this computation via the
+"compute_modify"_compute_modify.html command.  Alternatively, you can
+directly assign a new compute which you have defined, to be used for
+{drot}.  This is done via the "thermo_modify"_thermo_modify.html
+command.  For example, this could be useful if you wish to exclude
+certain particles from the compuation.
+
+The {grot} keyword requires a rotational energy to be compute for
+granular particles.  To do this, a compute of style "rotate/gran" is
+created, as if this command had been issued:
+
+compute thermo_rotate_gran all rotate/gran :pre
+
+See the "compute rotate/gran"_compute_rotate_gran.html command for
+details.  Note that the ID of the new compute is {thermo_rotate_gran}
+and the group is {all}.  You can change the attributes of this
+computation via the "compute_modify"_compute_modify.html command.
+Alternatively, you can directly assign a new compute which you have
+defined, to be used for {grot}.  This is done via the
+"thermo_modify"_thermo_modify.html command.  For example, this could
+be useful if you wish to exclude frozen particles from the compuation.
+
+:line
+
+The potential energy of the system {pe} will include contributions
+from fixes if the "fix_modify thermo"_fix_modify.html option was set
+for each fix.  For example, the "fix wall/lj93"_fix_wall_lj93 fix will
+contribute the energy of atoms interacting with the wall.
 
 A long-range tail correction {etail} for the VanderWaal pairwise
 energy will be non-zero only if the "pair_modify
@@ -99,38 +181,52 @@ is included in {evdwl}, {pe}, and {etotal}, and the corresponding tail
 correction to the pressure is included in {press} and {pxx}, {pyy},
 etc.
 
-The time-averaged quantities {tave, pave, eave, peave} are averaged
-over the last N thermodynamic outputs to the screen (not the last N
+The time-averaged keywords {tave, pave, eave, peave} are averaged over
+the last N thermodynamic outputs to the screen (not the last N
 timesteps), where N is the value set by the {window} option of the
 "thermo_modify"_thermo_modify.html command (N = 10 by default).
 
-The {t_ID} quantity allows for user-defined temperatures to be printed
-with thermodynamic output.  For example, if either of the commands
+:line
 
-temperature mine all region sphere
-fix mine all temp/rescale 100 1.0 1.0 0.1 1.0 region sphere :pre
+The {c_ID} and {c_ID\[N\]} keywords allow scalar or vector quantities
+calculated by a compute to be output.  The ID in the keyword should be
+replaced by the actual ID of the compute that has been defined
+elsewhere in the input script.  See the "compute"_compute.html command
+for details.  Note that per-atom quantities calcalated by a compute
+cannot be output as part of thermodynamics.  Rather, these quantities
+are output by the "dump custom"_dump.html command.
 
-were used to compute or thermostat the temperature of atoms inside a
-spherical geometric region, then the keyword {t_mine} will print that
-temperature as part of thermodynamic output.
+If {c_ID} is used as a keyword, then the scalar quantity calculated by
+the compute is printed.  If {c_ID\[N\]} is used, then N in the range
+from 1-M will print a specific component of the vector calculated by
+the compute.  A value of N=0 will output the scalar quantity.
 
-Some fixes also generate quantities that can be appended to these
-lists each time thermodyanmic info prints out, if enabled by the
-"fix_modify"_fix_modify.html command.  See invidividual fix commands
-for more details, e.g. the "fix nvt"_fix_nvt.html and "fix
-npt"_fix_npt.html commands.
+The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector quantities
+calculated by a fix to be output.  The ID in the keyword should be
+replaced by the actual ID of the fix that has been defined elsewhere
+in the input script.  See the "fix"_fix.html command for details.
 
-Options invoked by the "thermo_modify"_thermo_modify.html command can
-be used to set the one- or multi-line format of the print-out, the
-normalization of energy quantities (total or per-atom), and the
-numeric precision of each printed value.
+If {f_ID} is used as a keyword, then the scalar quantity calculated by
+the fix is printed.  If {f_ID\[N\]} is used, then N in the range from
+1-M will print a specific component of the vector calculated by the
+fix.  A value of N=0 will output the scalar quantity.
+
+The {v_name} keyword allow the current value of a variable to be
+output.  The name in the keyword should be replaced by the actual namd
+of the variable that has been defined elsewhere in the input script.
+See the "variable"_variable.html command for details.  Equal-style
+variables can calculate complex formulas involving atom and group
+properties, mathematical operations, other variables, etc.  This
+keyword enables them to be evaluated and their value printed
+periodically during a simulation.
+
+See "this section"_Section_modify.html for information on how to add
+new compute and fix styles as well as variable options to LAMMPS that
+calculate quantities that could then be output with these keywords.
+
+:line
 
 [Restrictions:]
-
-"Atom style"_atom_style.html granular cannot compute the usual
-temperature and pressure settings because it stores atom masses
-differently.  The gke and grot settings should be used instead (or use
-thermo style granular).
 
 This command must come after the simulation box is defined by a
 "read_data"_read_data.html, "read_restart"_read_restart.html, or

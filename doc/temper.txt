@@ -30,7 +30,7 @@ temper 40000 100 $t tempfix 0 32285 $w :pre
 Run a parallel tempering (replica exchange) simulation of multiple
 ensembles of a system on multiple partitions of processors.  The
 processor partitions are defined using the -partition command-line
-switch (see "this section"_Section_start.html#2_4).  Each ensemble's
+switch (see "this section"_Section_start.html#2_6).  Each ensemble's
 temperature is typically controlled at a different value by a fix with
 ID {fix-ID} that controls temperature.  Possible fix styles are
 "nvt"_fix_nvt.html, "npt"_fix_npt.html, and

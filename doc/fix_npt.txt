@@ -65,25 +65,7 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
-This fix computes a temperature each timestep, to contribute to the
-pressure.  The fix creates its own method for computing T, as if it
-had been defined by the command:
-
-temperature fix-ID all full :pre
-
-See the "temperature"_temperature.html command for details.  Note that
-this is NOT the temperature with ID = {default}.  This means you can
-change the attributes of this fix's temperature (e.g. its
-degrees-of-freedom) via the "temp_modify"_temp_modify.html command or
-print the temperature with thermodyanmic output via the "thermo_style
-custom"_thermo_style.html command using the appropriate temp-ID =
-fix-ID.  It also means that changing attributes of the default
-temperature will have no effect on this fix.  Alternatively, you can
-directly assign a new temperature to the fix via the
-"fix_modify"_fix_modify.html command.  If you do this, note that the
-kinetic energy derived from T should be consistent with the virial
-term computed using all atoms.  LAMMPS will warn you if you choose to
-compute temperature on a subset of atoms.
+:line
 
 The pressure can be controlled in one of several styles, as specified
 by the {p-style} argument.  In each case, the desired pressure at each
@@ -126,12 +108,46 @@ implemented in LAMMPS.
 
 For all styles, the {Pdamp} parameter operates like the {Tdamp}
 parameter, determining the time scale on which pressure is relaxed.
+For example, a value of 1000.0 means to relax the pressure in a
+timespan of (roughly) 1000 time units (tau or fmsec or psec - see the
+"units"_units.html command).
 
-This fix supports the "fix_modify"_fix_modify.html options for
-{thermo} and {energy}.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed.  The
-latter will add this contribution to the total potential energy
-(PotEng) so that energy conservation can be monitored.
+:line
+
+This fix computes a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if these commands had been issued:
+
+compute fix-ID_temp group-ID temp :pre
+compute fix-ID_press group-ID pressure fix-ID_temp :pre
+
+See the "compute temp"_compute_temp.html and "compute
+pressure"_compute_pressure.html commands for details.  Note that the
+IDs of the new computes are the fix-ID with "_temp" or "_press"
+appended and the group for the new computes is the same as the fix
+group.
+
+Note that these are NOT the computes used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}
+and {thermo_press}.  This means you can change the attributes of this
+fix's temperature or pressure via the
+"compute_modify"_compute_modify.html command or print this temperature
+or pressure during thermodyanmic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} or
+{thermo_press} will have no effect on this fix.  Alternatively, you
+can directly assign a new compute (for calculating temeperature or
+pressure) that you have defined to this fix via the
+"fix_modify"_fix_modify.html command.  If you do this, note that the
+kinetic energy derived from T should be consistent with the virial
+term computed using all atoms.  LAMMPS will warn you if you choose to
+compute temperature on a subset of atoms.
+
+This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the "fix_modify energy"_fix_modify.html option.  The contribution can
+also be printed by itself via the keyword {f_fix-ID} in the
+"thermo_style custom"_thermo_style.html command.
 
 [Restrictions:]
 

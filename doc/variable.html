@@ -17,21 +17,24 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>index</I> or <I>loop</I> or <I>equal</I> or <I>world</I> or <I>universe</I> 
+<LI>style = <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>equal</I> 
 
 <PRE>  <I>index</I> args = one or more strings
   <I>loop</I> args = N = integer size of loop
-  <I>equal</I> args = one string containing functions, vectors, keywords, numbers
+  <I>world</I> args = one string for each partition of processors
+  <I>universe</I> args = one or more strings
+  <I>uloop</I> args = N = integer size of loop
+  <I>equal</I> args = one equation containing numbers, thermo keywords, math functions, group functions, atom vectors, compute references, other variables
+    numbers = 0.0, -5.4, 2.8e-4, etc
+    thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
     math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
                      neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
     group functions = mass(group), charge(group), xcm(group,dim),
                       vcm(group,dim), bound(group,xmin), gyration(group)
-    vectors = x[5], y[12], z[17], vx[88], vy[19], vz[2],
-              fx[1], fy[2005], fz[1]
-    keywords = same keywords (mostly) as in <A HREF = "thermo_style.html">thermo_style custom</A> command
-  <I>world</I> args = one string for each partition of processors
-  <I>universe</I> args = one or more strings
-  <I>uloop</I> args = N = integer size of loop 
+    atom vectors = x[N], y[N], z[N], vx[N], vy[N], vz[N],
+                   fx[N], fy[N], fz[N]
+    compute references = c_ID[0], c_ID[N]
+    other variables = v_abc, v_x, etc 
 </PRE>
 
 </UL>
@@ -40,8 +43,9 @@
 <PRE>variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop 20
 variable beta equal div(temp,3.0)
-variable b1 equal add(x[234],mult(0.5,lx))
-variable b equal xcm(mol1,x)
+variable b1 equal add(x[234],mult(0.5,col))
+variable b equal div(xcm(mol1,x),2.0)
+variable b equal c_myTemp[0]
 variable temp world 300.0 310.0 320.0 330.0
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 
@@ -49,15 +53,24 @@ variable x uloop 15
 <P><B>Description:</B>
 </P>
 <P>This command assigns one or more values to a variable name so that the
-variable can be used in subsequent input script commands.  The "name"
-of the variable is an arbitrary string.  Each "value" is a string
-which could be text or numbers, as in the examples above.  As
-explained in <A HREF = "Section_commands.html#3_2">this section</A>, occurrences of
-the variable name in an input script line are replaced by the
+variable can be used in subsequent input script commands or its value
+output during a simulation.  The "name" of the variable is an
+arbitrary string.  Each "value" is a string which could be text or
+numbers, as in the examples above.
+</P>
+<P>As explained in <A HREF = "Section_commands.html#3_2">this section</A>, occurrences
+of the variable name in an input script line are replaced by the
 variable's value.  The variable name can be referenced in the input
 script as $x if the name "x" is a single character, or as ${LoopVar}
 if the name "LoopVar" is one or more characters.
 </P>
+<P>Variable values can also be accessed for output once or periodically
+during a simulation by the <A HREF = "print.html">print</A> command, <A HREF = "fix_print.html">fix
+print</A> command, <A HREF = "run.html">run every</A> command, and the
+<A HREF = "thermo_style.html">thermo_style</A> command.
+</P>
+<HR>
+
 <P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>universe</I>,
 and <I>uloop</I>, the value assigned to a variable can be incremented via
 the <A HREF = "next.html">next</A> command.  When there are no more values to
@@ -79,12 +92,14 @@ equal-style variable is encountered.  Also, if a variable is iterated
 on to the end of its list via the <A HREF = "next.html">next</A> command, it is
 available to be re-defined in a subsequent variable command.
 </P>
+<HR>
+
 <P>For the <I>index</I> style, one or more strings are specified.  Initially,
 the 1st string is assigned to the variable.  Each time a
 <A HREF = "next.html">next</A> command is used with the variable name, the next
 string is assigned.  All processors assign the same string to the
 variable.  <I>Index</I>-style variables can also be set (with a single
-value) by using the command-line switch -var; see <A HREF = "Section_start.html#2_4">this
+value) by using the command-line switch -var; see <A HREF = "Section_start.html#2_6">this
 section</A> for details.
 </P>
 <P>The <I>loop</I> style is identical to the <I>index</I> style except that the
@@ -95,59 +110,8 @@ Each time a <A HREF = "next.html">next</A> command is used with the variable nam
 the next string ("2", "3", etc) is assigned.  All processors assign
 the same string to the variable.
 </P>
-<P>For the <I>equal</I> style, a single string is specified which represents
-an equation that will be evaluated afresh each time the variable is
-used.  Thus the variable can take on different values at different
-stages of the input script.  For example, if the variable is used in a
-<A HREF = "fix_print.html">fix print</A> command, it could print different values
-each timestep it was invoked.  The next command cannot be used with
-<I>equal</I>-style variables, since there is only one value.  Note that, as
-with any other input script command, it is feasible to use another
-variable in the <I>equal</I> variable's string, e.g. variable y equal
-mult($x,2).  However, $x will be replaced immediately by it's current
-value when the command is first parsed, not each time that $y is
-substituted for.
-</P>
-<P>The syntax of the equation assigned to <I>equal</I> variables is simple.
-It can contain "functions", "vectors", "keywords", or "numbers" in any
-combination.
-</P>
-<UL><LI>Function = a keyword followed by parenthesis with one or two arguments
-<LI>Supported arithmetic functions = add(x,y), sub(x,y), mult(x,y), div(x,y),   neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-<LI>Supported group functions = mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim),   bound(ID,dir), gyration(ID)
-<LI>Example function usage = div(1.0e20,3.0), neg(x[34]), pow(lx,3.0),   xcm(mol,x), bound(lower,zmin)
-<LI>Vector = a keyword followed by square brackets containing an atom ID
-<LI>Supported vectors = x, y, z, vx, vy, vz, fx, fy, fz
-<LI>Example vector usage = x[123], fz[1000]
-<LI>Keyword = any keyword supported by the   <A HREF = "thermo_style.html">thermo_style custom</A>   command except cpu, pressure tensor components (pxx, pyy, etc),   time-averaged quantities (tave, pave, etc)
-<LI>Example keyword usage = atoms, pow(vol,0.333), mult(elong,0.5)
-<LI>Number = 0.2, 1.0e20, -15.4, etc 
-</UL>
-<P>For the group functions, ID is a group-ID, dim is 'x' or 'y' or 'z',
-and dir is one of 6 strings: "xmin", "xmax", "ymin", "ymax", "zmin",
-or "zmax".  The group functions mass() and charge() are the total mass
-and charge of the group of atoms.  Xcm() and vcm() return components
-of the position and velocity of the center of mass of the group.
-Bound() returns the min/max of a particular coordinate for all atoms
-in the group.  Gyration() computes the radius-of-gyration of the group
-of atoms.  See the <A HREF = "fix_gyration.html">fix gyration</A> command for the
-formula.
-</P>
-<P>Keywords have restrictions on when they can be assigned to variables.
-For example, keywords that compute thermodynamic quantites can only be
-invoked after the first simulation has begun.  A warning is issued if
-thermodyanmic keywords are invoked on timesteps when thermodynamic
-information is not being printed to the screen, since the values
-assigned to the variable may be out-of-date.
-</P>
-<P>The variable <I>equal</I> equation can also be nested in that function
-arguments can be functions, vectors, keywords, or numbers.  For
-example, this is a valid equation:
-</P>
-<PRE>variable x equal div(add(pe,ke),pow(vol,div(1,3))) 
-</PRE>
 <P>For the <I>world</I> style, one or more strings are specified.  There must
-be one string for each processor partition or "world".  See <A HREF = "Section_start.html#2_4">this
+be one string for each processor partition or "world".  See <A HREF = "Section_start.html#2_6">this
 section</A> of the manual for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command assigns one string to each
@@ -161,7 +125,7 @@ different partitions.
 </P>
 <P>For the <I>universe</I> style, one or more strings are specified.  There
 must be at least as many strings as there are processor partitions or
-"worlds".  See <A HREF = "Section_start.html#2_4">this page</A> for information on
+"worlds".  See <A HREF = "Section_start.html#2_6">this page</A> for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command initially assigns one
 string to each world.  When a <A HREF = "next.html">next</A> command is encountered
@@ -179,11 +143,117 @@ strings are the integers from 1 to N.  This allows you to generate a
 long list of runs (e.g. 1000) without having to list N values in your
 input script.
 </P>
+<HR>
+
+<P>For the <I>equal</I> style, a single string is specified which represents
+an equation that will be evaluated afresh each time the variable is
+used.  Thus the variable can take on different values at different
+stages of the input script.  For example, if the variable is used in a
+<A HREF = "fix_print.html">fix print</A> command, different values could be printed
+each timestep it was invoked.  The next command cannot be used with
+<I>equal</I>-style variables, since there is only one value.
+</P>
+<P>The equation for an <I>equal</I>-style variable can contain a variety of
+quantities.  The syntax for each kind of quantity is simple, but
+multiple quantities can be nested and combined in various ways to
+build up formulas of arbitrary complexity.  For example, this is a
+valid (though strange) variable equation:
+</P>
+<PRE>variable x equal div(add(pe,c_MyTemp[0]),pow(vol,div(1,3))) 
+</PRE>
+<P>Specifically, an equation can contain numbers, thermo keywords, math
+functions, group functions, atom vectors, compute references, and
+other variables:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >Number</TD><TD > 0.2, 1.0e20, -15.4, etc</TD></TR>
+<TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
+<TR><TD >Math functions</TD><TD > add(x,y), sub(x,y), mult(x,y), div(x,y),   neg(x), pow(x,y), exp(x), ln(x), sqrt(x)</TD></TR>
+<TR><TD >Group functions</TD><TD > mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim),   bound(ID,dir), gyration(ID)</TD></TR>
+<TR><TD >Atom vectors</TD><TD > x[N], y[N], z[N], vx[N], vy[N], vz[N],                    fx[N], fy[N], fz[N]</TD></TR>
+<TR><TD >Compute references</TD><TD > c_ID[0], c_ID[N]</TD></TR>
+<TR><TD >Other variables</TD><TD > v_abc, v_x, etc 
+</TD></TR></TABLE></DIV>
+
+<P>The thermo keywords allowed in the equation are those defined by the
+"thermo_style custom" command.  Note that many thermodyanmic
+quantities are only computable after the first simulation has begun.
+Likewise, many thermodynamic quantities (such as energies) are only
+computed on timesteps when thermodyanmic output is being performed.
+If the variable equation these quantities at other times, out-of-date
+or invalid values may be used.
+</P>
+<P>Math functions take one or two arguments, each of which may be an
+equation containing any of the quantities defined above.  This allows
+equations to be nested, as in the examples above.
+</P>
+<P>Group functions take one or two arguments.  The first argument is the
+group-ID.  The <I>dim</I> argument is <I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I>
+argument is <I>xmin</I>, <I>xmax</I>, <I>ymin</I>, <I>ymax</I>, <I>zmin</I>, or <I>zmax</I>.  The
+group functions mass() and charge() are the total mass and charge of
+the group of atoms.  Xcm() and vcm() return components of the position
+and velocity of the center of mass of the group.  Bound() returns the
+min/max of a particular coordinate for all atoms in the group.
+Gyration() computes the radius-of-gyration of the group of atoms.  See
+the <A HREF = "fix_gyration.html">fix gyration</A> command for the formula.
+</P>
+<P>The atom vectors take a single integer argument from 1-N, which
+is the desired atom-ID, e.g. x[243].
+</P>
+<P>Compute references access allow access to scalar or vector quantities
+calculated by a compute.  The ID in the reference should be replaced
+by the actual ID of the compute that has been defined elsewhere in the
+input script.  See the <A HREF = "compute.html">compute</A> command for details.
+Note that per-atom quantities calcalated by a compute cannot be
+accessed this way, but only global scalar or vector quantities.
+</P>
+<P>If <I>c_ID[0]</I> is used as a keyword, then the scalar quantity
+calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N
+in the range from 1-M will print a specific component of the vector
+calculated by the compute.
+</P>
+<P>The current values of other variables can be accessed by prepending a
+"v_" to the variable name.  This will cause the other variable to be
+evaulated.  Note that if you do something circular like this:
+</P>
+<PRE>variable a equal v_b
+variable b equal v_a
+print $a 
+</PRE>
+<P>then LAMMPS will run for a while when the print statement is invoked.
+</P>
+<P>Note that there is a subtle difference between using a variable
+in a <I>equal</I>-style equation in the form $x versus v_x.
+</P>
+<P>In the former case, as with any other input script command, the
+variable's value is substituted for immediately when the line is read
+from the input script.  Thus if the current simulation box volume was
+1000.0, then these lines:
+</P>
+<PRE>variable x equal vol
+variable y equal mult($x,2) 
+</PRE>
+<P>would associate the equation string "mult(1000.0,2)" with variable y.
+</P>
+<P>By contrast, these lines:
+</P>
+<PRE>variable x equal vol
+variable y equal mult(v_x,2) 
+</PRE>
+<P>would associate the equation string "mult(v_x,2)" with variable y.
+</P>
+<P>Thus if the variable y were evaluated periodically during a run where
+the box volume changed, the resulting value would always be 500.0 for
+the first case, but would change dynamically for the second case.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>The use of atom vectors in <I>equal</I> style variables requires the atom
 style to use a global mapping in order to look up the vector indices.
-Only atom styles with molecular information create global maps.
+Only atom styles with molecular information create global maps unless
+the <A HREF = "atom_modify.html">atom_modify map</A> command is used.
 </P>
 <P><B>Related commands:</B>
 </P>

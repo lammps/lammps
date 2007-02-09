@@ -16,16 +16,18 @@ new and experienced users.
 </P>
 2.1 <A HREF = "#2_1">What's in the LAMMPS distribution</A><BR>
 2.2 <A HREF = "#2_2">Making LAMMPS</A><BR>
-2.3 <A HREF = "#2_3">Running LAMMPS</A><BR>
-2.4 <A HREF = "#2_4">Command-line options</A><BR>
-2.5 <A HREF = "#2_5">Screen output</A><BR>
-2.6 <A HREF = "#2_6">Tips for users of previous versions</A> <BR>
+2.3 <A HREF = "#2_3">Making LAMMPS with optional packages</A><BR>
+2.4 <A HREF = "#2_4">Building LAMMPS as a library</A><BR>
+2.5 <A HREF = "#2_5">Running LAMMPS</A><BR>
+2.6 <A HREF = "#2_6">Command-line options</A><BR>
+2.7 <A HREF = "#2_7">Screen output</A><BR>
+2.8 <A HREF = "#2_8">Tips for users of previous versions</A> <BR>
 
 <HR>
 
 <H4><A NAME = "2_1"></A>2.1 What's in the LAMMPS distribution 
 </H4>
-<P>When you download LAMMPS you will need to unzip and untar the
+<P>When you download SLAMMPS you will need to unzip and untar the
 downloaded file with the following commands, after placing the file in
 an appropriate directory.
 </P>
@@ -57,20 +59,19 @@ makefile, there are compiler options, additional libraries can be used
 (MPI, FFT), etc.  Please read this section carefully.  If you are not
 comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
-you.  Many of the emails we get about build and run problems are not
-really about LAMMPS - they are peculiar to the user's system,
-compilers, libraries, etc.  Such questions are better answered by a
-local expert.
+you.  Many compiling, linking, and run problems users have do not
+really have to do with LAMMPS - they are peculiar to the user's
+system, compilers, libraries, etc.  Such questions are better answered
+by a local expert.
 </P>
 <P>If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
 please send an email to the
-<A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.  Note that doesn't
-include linking problems - that's a question for a local expert!
+<A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.
 </P>
-<P>Also, if you succeed in building LAMMPS on a new kind of machine
-(which there isn't a similar Makefile for in the distribution), send
-it to the developers and we'll include it in future LAMMPS releases.
+<P>If you succeed in building LAMMPS on a new kind of machine (which
+there isn't a similar Makefile for in the distribution), send it to
+the developers and we'll include it in future LAMMPS releases.
 </P>
 <P><B><I>Building a LAMMPS executable:</I></B>
 </P>
@@ -85,12 +86,9 @@ type a command like:
 gmake mac 
 </PRE>
 <P>If you get no errors and an executable like lmp_linux or lmp_mac is
-produced, you're done; it's your lucky day.  The remainder of this
-section addressed the following topics: errors that occur when making
-LAMMPS, editing a new low-level Makefile.foo, how to make LAMMPS with
-and without packages, and additional build tips.
+produced, you're done; it's your lucky day.
 </P>
-<P><B><I>Errors that occur when making LAMMPS:</I></B>
+<P><B><I>Errors that can occur when making LAMMPS:</I></B>
 </P>
 <P>(1) If the make command breaks immediately with errors that indicate
 it can't find files with a "*" in their names, this can be because
@@ -210,98 +208,6 @@ gmake foo
 </PRE>
 <P>You should get the executable lmp_foo when the build is complete.
 </P>
-<P><B><I>How to make LAMMPS with and without packages:</I></B>
-</P>
-<P>The source code for LAMMPS is structured as a large set of core files
-that are always used plus additional packages, which are groups of
-files that enable a specific set of features.  For example, force
-fields for molecular systems or granular systems are in packages.  You
-can see the list of packages by typing "make package".  The current
-list of packages is as follows:
-</P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >class2 </TD><TD > class 2 force fields</TD></TR>
-<TR><TD >dpd </TD><TD > dissipative particle dynamics (DPD) force field</TD></TR>
-<TR><TD >granular </TD><TD > force fields and boundary conditions for granular systems</TD></TR>
-<TR><TD >kspace </TD><TD > long-range Ewald and particle-mesh (PPPM) solvers</TD></TR>
-<TR><TD >manybody </TD><TD > metal, 3-body, bond-order potentials</TD></TR>
-<TR><TD >molecule </TD><TD > force fields for molecular systems</TD></TR>
-<TR><TD >poems </TD><TD > coupled rigid body motion</TD></TR>
-<TR><TD >xtc </TD><TD > dump atom snapshots in XTC format 
-</TD></TR></TABLE></DIV>
-
-<P>Any or all of these packages can be included or excluded when LAMMPS
-is built.  The default is to include only the kspace, manybody, and
-molecule packages.  You may wish to exclude certain packages if you
-will never run certain kinds of simulations.  This will produce a
-smaller executable which in some cases will also run a bit faster.
-</P>
-<P>Packages are included or excluded by typing "make yes-name" or "make
-no-name", where "name" is the name of the package.  You can also type
-"make yes-all" or "make no-all" to include/exclude all optional
-packages.  These commands work by simply moving files back and forth
-between the main src directory and sub-directories with the package
-name, so that the files are not seen when LAMMPS is built.  After you
-have included or excluded a package, you must re-make LAMMPS.
-</P>
-<P>Additional make options exist to help manage LAMMPS files that exist
-in both the src directory and in package sub-directories.  Typing
-"make package-update" will overwrite src files with files from the
-package directories if the package has been included.  Typing "make
-package-overwrite" will overwrite files in the package directories
-with src files.  Typing "make package-check" will list differences
-between src and package versions of the same files.
-</P>
-<P>To use the poems package you must build LAMMPS with the POEMS library,
-which computes the constrained rigid-body motion of articulated
-(jointed) multibody systems.  POEMS was written and is distributed by
-Prof Kurt Anderson's group at Rensselaer Polytechnic Institute (RPI).
-It is included in the LAMMPS distribution.  To build LAMMPS with
-POEMS, you must use a low-level LAMMPS Makefile that includes the
-POEMS directory in its paths.  See Makefile.g++.poems as an example.
-You must also build POEMS itself as a library before building LAMMPS,
-so that LAMMPS can link against it.  The POEMS library is built by
-typing "make" from within the poems directory in the LAMMPS
-distribution.  By default this uses Makefile which uses the gcc
-compiler.  If you need to use another compiler (so that the POEMS
-library and LAMMPS are consistent), use another poems/Makefile.* or
-create your own and invoke it as "make -f Makefile.*".
-</P>
-<P><B><I>Building LAMMPS as a library:</I></B>
-</P>
-<P>LAMMPS can be built as a library, which can then be called from
-another application or a scripting language.  See <A HREF = "Section_howto.html#4_10">this
-section</A> for more info on coupling LAMMPS to
-other codes.  Building LAMMPS as a library is done by typing
-</P>
-<PRE>make makelib
-make -f Makefile.lib foo 
-</PRE>
-<P>where foo is the machine name.  The first "make" command will create a
-current Makefile.lib with all the file names in your src dir.  The 2nd
-"make" command will use it to build LAMMPS as a library.  This
-requires that Makefile.foo have a library target (lib) and
-system-specific settings for ARCHIVE and ARFLAGS.  See Makefile.linux
-for an example.  The build will create the file liblmp_foo.a which
-another application can link to.  The callable functions in the
-library are listed in library.h, but you can add as many functions as
-you wish to library.h and library.cpp, which can access LAMMPS data
-and return it to the caller or set LAMMPS data values as specified by
-the caller. These 3 functions are included in the library:
-</P>
-<PRE>void lammps_open(int, char **, MPI_Comm);
-void lammps_close();
-int lammps_command(char *); 
-</PRE>
-<P>The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were <A HREF = "#2_4">command-line arguments</A> when
-LAMMPS is run from the command line and a MPI communicator for LAMMPS
-to run under.  The lammps_close() function is used to shut down LAMMPS
-and free all its memory.  The lammps_command() function is used to
-pass a string to LAMMPS as if it were an input command read from an
-input script.  See the library.h file for more information about the
-arguments and return values for these 3 functions.
-</P>
 <P><B><I>Additional build tips:</I></B>
 </P>
 <P>(1) Building LAMMPS for multiple platforms.
@@ -337,11 +243,149 @@ make.  Or you should be able to pull all the source files into Visual
 C++ (ugh) or some similar development environment and build it.  In
 the src/MAKE/Windows directory are some notes from users on how they
 built LAMMPS under Windows, so you can look at their instructions for
-tips.  Good luck - I can't help you on this one.
+tips.  Good luck - we can't help you on this one.
+</P>
+<H4><A NAME = "2_3"></A>2.3 Making LAMMPS with optional packages 
+</H4>
+<P>The source code for LAMMPS is structured as a large set of core files
+that are always used plus additional packages, which are groups of
+files that enable a specific set of features.  For example, force
+fields for molecular systems or granular systems are in packages.  You
+can see the list of packages by typing "make package".  The current
+list of packages is as follows:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >class2 </TD><TD > class 2 force fields</TD></TR>
+<TR><TD >dpd </TD><TD > dissipative particle dynamics (DPD) force field</TD></TR>
+<TR><TD >granular </TD><TD > force fields and boundary conditions for granular systems</TD></TR>
+<TR><TD >kspace </TD><TD > long-range Ewald and particle-mesh (PPPM) solvers</TD></TR>
+<TR><TD >manybody </TD><TD > metal, 3-body, bond-order potentials</TD></TR>
+<TR><TD >meam </TD><TD > modified embedded atom method (MEAM) potential</TD></TR>
+<TR><TD >molecule </TD><TD > force fields for molecular systems</TD></TR>
+<TR><TD >opt </TD><TD > optimized versions of a few pair potentials</TD></TR>
+<TR><TD >poems </TD><TD > coupled rigid body motion</TD></TR>
+<TR><TD >xtc </TD><TD > dump atom snapshots in XTC format 
+</TD></TR></TABLE></DIV>
+
+<P>Any or all packages can be included or excluded when LAMMPS is built.
+The one exception is that to use the "opt" package, you must also be
+using the "molecule" and "manybody" packages.  You may wish to exclude
+certain packages if you will never run certain kinds of simulations.
+This will produce a smaller executable which may run a bit faster.
+</P>
+<P>By default, LAMMPS includes only the "kspace", "manybody", and
+"molecule" packages.  As described below, some packages require LAMMPS
+be linked to separately built library files, which will require
+editing of your machine Makefile.
+</P>
+<P>Packages are included or excluded by typing "make yes-name" or "make
+no-name", where "name" is the name of the package.  You can also type
+"make yes-all" or "make no-all" to include/exclude all optional
+packages.  These commands work by simply moving files back and forth
+between the main src directory and sub-directories with the package
+name, so that the files are seen or not seen when LAMMPS is built.
+After you have included or excluded a package, you must re-make
+LAMMPS.
+</P>
+<P>Additional make options exist to help manage LAMMPS files that exist
+in both the src directory and in package sub-directories.  You do not
+normally need to use these commands unless you are editing LAMMPS
+files or have downloaded a patch from the LAMMPS WWW site.  Typing
+"make package-update" will overwrite src files with files from the
+package directories if the package has been included.  It should be
+used after a patch is installed, since patches only update the master
+package version of a file.  Typing "make package-overwrite" will
+overwrite files in the package directories with src files.  Typing
+"make package-check" will list differences between src and package
+versions of the same files.
+</P>
+<P>To use the "poems" package you must build LAMMPS with the POEMS
+library, which computes the constrained rigid-body motion of
+articulated (jointed) multibody systems.  POEMS was written and is
+distributed by Prof Kurt Anderson's group at Rensselaer Polytechnic
+Institute (RPI) and a version is included in the LAMMPS distribution
+under the "lib" directory.  To build LAMMPS with POEMS, you must use a
+low-level LAMMPS Makefile that includes the POEMS directory in its
+paths.  See Makefile.g++_poems as an example.  You must also build
+POEMS itself as a library before building LAMMPS, so that LAMMPS can
+link against it.  The POEMS library is built by typing "make" from
+within the poems directory with the appropriate Makefile, e.g. "make
+-f Makefile.g++".  If one of the provided Makefiles is not appropriate
+for your system you can edit or add one as needed.
+</P>
+<P>To use the "meam" package you must build LAMMPS with the MEAM library,
+which computes the modified embedded atom method potential, which is a
+generalization of EAM potentials that can be used to model a wider
+variety of materials.  This MEAM implementation was written by Greg
+Wagner at Sandia and is included under the "lib" directory.  To build
+LAMMPS with MEAM, you must use a low-level LAMMPS Makefile that
+includes the MEAM directory in its paths.  See Makefile.linux_meam as
+an example.  You must also build MEAM itself as a library before
+building LAMMPS, so that LAMMPS can link against it.  This requires a
+F90 compiler.  The library is built by typing "make" from within the
+meam directory with the appropriate Makefile, e.g. "make -f
+Makefile.icc".  If one of the provided Makefiles is not appropriate
+for your system you can edit or add one as needed.
+</P>
+<P>Linking a Fortran library to a C++ code can be problematic
+(e.g. non-matching underscore conventions).  If you have problems with
+a particular compiler/machine, please send an email to the developers.
+</P>
+<H4><A NAME = "2_4"></A>2.4 Building LAMMPS as a library 
+</H4>
+<P>LAMMPS can be built as a library, which can then be called from
+another application or a scripting language.  See <A HREF = "Section_howto.html#4_10">this
+section</A> for more info on coupling LAMMPS to
+other codes.  Building LAMMPS as a library is done by typing
+</P>
+<PRE>make makelib
+make -f Makefile.lib foo 
+</PRE>
+<P>where foo is the machine name.  The first "make" command will create a
+current Makefile.lib with all the file names in your src dir.  The 2nd
+"make" command will use it to build LAMMPS as a library.  This
+requires that Makefile.foo have a library target (lib) and
+system-specific settings for ARCHIVE and ARFLAGS.  See Makefile.linux
+for an example.  The build will create the file liblmp_foo.a which
+another application can link to.
+</P>
+<P>When used from a C++ program, the library allows one or more LAMMPS
+objects to be instantiated.  All of LAMMPS is wrapped in a LAMMPS_NS
+namespace; you can safely use any of its classes and methods from
+within your application code, as needed.  See the sample code
+examples/couple/c++_driver.cpp as an example.
+</P>
+<P>When used from a C or Fortran program or a scripting language, the
+library has a simple function-style interface, provided in library.cpp
+and library.h.  See the sample code examples/couple/c_driver.cpp as an
+example.
+</P>
+<P>You can add as many functions as you wish to library.cpp and
+library.h.  In a general sense, those functions can access LAMMPS data
+and return it to the caller or set LAMMPS data values as specified by
+the caller.  These 4 functions are currently included in library.cpp:
+</P>
+<PRE>void lammps_open(int, char **, MPI_Comm, void **ptr);
+void lammps_close(void *ptr);
+int lammps_file(void *ptr, char *);
+int lammps_command(void *ptr, char *); 
+</PRE>
+<P>The lammps_open() function is used to initialize LAMMPS, passing in a
+list of strings as if they were <A HREF = "#2_6">command-line arguments</A> when
+LAMMPS is run from the command line and a MPI communicator for LAMMPS
+to run under.  It returns a ptr to the LAMMPS object that is created,
+and which should be used in subsequent library calls.  Note that
+lammps_open() can be called multiple times to create multiple LAMMPS
+objects.
+</P>
+<P>The lammps_close() function is used to shut down LAMMPS and free all
+its memory.  The lammps_file() and lammps_command() functions are used
+to pass a file or string to LAMMPS as if it were an input file or
+single command read from an input script.
 </P>
 <HR>
 
-<H4><A NAME = "2_3"></A>2.3 Running LAMMPS 
+<H4><A NAME = "2_5"></A>2.5 Running LAMMPS 
 </H4>
 <P>By default, LAMMPS runs by reading commands from stdin; e.g. lmp_linux
 < in.file.  This means you first create an input script (e.g. in.file)
@@ -388,7 +432,7 @@ more processors or setup a smaller problem.
 </P>
 <HR>
 
-<H4><A NAME = "2_4"></A>2.4 Command-line options 
+<H4><A NAME = "2_6"></A>2.6 Command-line options 
 </H4>
 <P>At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  For example, lmp_ibm might be
@@ -476,7 +520,7 @@ variables in scripts.
 </P>
 <HR>
 
-<H4><A NAME = "2_5"></A>2.5 LAMMPS screen output 
+<H4><A NAME = "2_7"></A>2.7 LAMMPS screen output 
 </H4>
 <P>As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
@@ -573,7 +617,7 @@ communication, roughly 75% in the example above.
 </P>
 <HR>
 
-<H4><A NAME = "2_6"></A>2.6 Tips for users of previous LAMMPS versions 
+<H4><A NAME = "2_8"></A>2.8 Tips for users of previous LAMMPS versions 
 </H4>
 <P>LAMMPS 2003 is a complete C++ rewrite of LAMMPS 2001, which was
 written in F90.  Features of earlier versions of LAMMPS are listed in

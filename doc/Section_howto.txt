@@ -260,7 +260,7 @@ All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
 the "-partition" command-line switch as described in "this
-section"_Section_start.html#2_4 of the manual.
+section"_Section_start.html#2_6 of the manual.
 
 In the last 2 examples, if LAMMPS were run on 3 partitions, the same
 scripts could be used if the "index" and "loop" variables were
@@ -283,7 +283,7 @@ simulation are run at different temperatures on different sets of
 processors, and Monte Carlo temperature swaps are performed between
 pairs of copies.
 
-Use the -procs and -in "command-line switches"_Section_start.html#2_4
+Use the -procs and -in "command-line switches"_Section_start.html#2_6
 to launch LAMMPS on multiple partitions.
 
 In your input script, define a set of temperatures, one for each
@@ -405,10 +405,12 @@ This site M is located at a fixed distance away from the oxygen along
 the bisector of the HOH bond angle.  A bond style of {harmonic} and an
 angle style of {harmonic} or {charmm} should also be used.
 
-Two different four-point models (cutoff and long-range Coulombics) can
-be implemented using LAMMPS pair styles with {tip4p} in their style
-name.  For both models, the bond lengths and bond angles should be
-held fixed using the "fix shake"_fix_shake.html command.
+Currently, only a four-point model for long-range Coulombics is
+implemented via the LAMMPS "pair style
+lj/cut/coul/long/tip4p"_pair_lj.html.  We plan to add a cutoff
+version in the future.  For both models, the bond lengths and bond
+angles should be held fixed using the "fix shake"_fix_shake.html
+command.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
@@ -506,16 +508,16 @@ a new fix to LAMMPS.
 
 (2) Define a new LAMMPS command that calls the other code.  This is
 conceptually similar to method (1), but in this case LAMMPS and the
-other code are on a more equal footing.  Note that now the other
-code is not called during the timesteps of a LAMMPS run, but between
+other code are on a more equal footing.  Note that now the other code
+is not called during the timestepping of a LAMMPS run, but between
 runs.  The LAMMPS input script can be used to alternate LAMMPS runs
 with calls to the other code, invoked via the new command.  The
 "run"_run.html command facilitates this with its {every} option, which
 makes it easy to run a few steps, invoke the command, run a few steps,
 invoke the command, etc.
 
-In this scenario, the other code can be a library, called by the
-command, or it could be a stand-alone code, invoked by a system() call
+In this scenario, the other code can be called as a library, as in
+(1), or it could be a stand-alone code, invoked by a system() call
 made by the command (assuming your parallel machine allows one or more
 processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
@@ -531,49 +533,55 @@ Again, the "run"_run.html command has options that allow it to be
 invoked with minimal overhead (no setup or clean-up) if you wish to do
 multiple short runs, driven by another program.
 
-"This section"_Section_start.html#2_2 of the documentation describes 
-how to build LAMMPS as a library.  Once this is done, you can interface
-with LAMMPS either via C++, C, or Fortran (or any other language that
-supports a vanilla C-like interface, e.g. a scripting language).  For
-example, from C++ you could create an "instance" of LAMMPS, and
-initialize it, pass it an input script to process, or execute
+"This section"_Section_start.html#2_4 of the documentation describes
+how to build LAMMPS as a library.  Once this is done, you can
+interface with LAMMPS either via C++, C, or Fortran (or any other
+language that supports a vanilla C-like interface, e.g. a scripting
+language).  For example, from C++ you could create one (or more)
+"instances" of LAMMPS, pass it an input script to process, or execute
 individual commands, all by invoking the correct class methods in
-LAMMPS.  From C or Fortran you would make function calls to do the
-same things.  Library.cpp and library.h contain such a C interface
-that illustrates this with the functions:
+LAMMPS.  From C or Fortran you can make function calls to do the same
+things.  Library.cpp and library.h contain such a C interface with the
+functions:
 
-void lammps_open(int, char **, MPI_Comm);
-void lammps_close();
-void lammps_file(char *);
-char *lammps_command(char *); :pre
+void lammps_open(int, char **, MPI_Comm, void **);
+void lammps_close(void *);
+void lammps_file(void *, char *);
+char *lammps_command(doivd *, char *); :pre
 
-The functions contain the C++ code you would need to put in a C++
-application that was invoking LAMMPS directly.
+The functions contain C++ code you could write in a C++ application
+that was invoking LAMMPS directly.  Note that LAMMPS classes are
+defined wihin a LAMMPS namespace (LAMMPS_NS) if you use them
+from another C++ application.
 
 Two of the routines in library.cpp are of particular note.  The
 lammps_open() function initiates LAMMPS and takes an MPI communicator
-as an argument.  LAMMPS will run on the set of processors in the
-communicator.  This means the calling code can run LAMMPS on all or a
-subset of processors.  For example, a wrapper script might decide to
-alternate between LAMMPS and another code, allowing them both to run
-on all the processors.  Or it might allocate half the processors to
-LAMMPS and half to the other code and run both codes simultaneously
-before syncing them up periodically.
+as an argument.  It returns a pointer to a LAMMPS "object".  As with
+C++, the lammps_open() function can be called mutliple times, to
+create multiple instances of LAMMPS.
 
-Library.cpp also contains a lammps_command() function to which the
-caller passes a single LAMMPS command (a string).  Thus the calling
-code can read or generate a series of LAMMPS commands (e.g. an input
-script) one line at a time and pass it thru the library interface to
-setup a problem and then run it.
+LAMMPS will run on the set of processors in the communicator.  This
+means the calling code can run LAMMPS on all or a subset of
+processors.  For example, a wrapper script might decide to alternate
+between LAMMPS and another code, allowing them both to run on all the
+processors.  Or it might allocate half the processors to LAMMPS and
+half to the other code and run both codes simultaneously before
+syncing them up periodically.
 
-A few other sample routines are included in library.cpp, but the key
-idea is that you can write any routines you wish to define an
+Library.cpp contains a lammps_command() function to which the caller
+passes a single LAMMPS command (a string).  Thus the calling code can
+read or generate a series of LAMMPS commands (e.g. an input script)
+one line at a time and pass it thru the library interface to setup a
+problem and then run it.
+
+A few other sample functions are included in library.cpp, but the key
+idea is that you can write any functions you wish to define an
 interface for how your code talks to LAMMPS and add them to
 library.cpp and library.h.  The routines you add can access any LAMMPS
-data.  The umbrella.cpp code in examples/couple is a simple example of
-how a stand-alone code can link LAMMPS as a library, run LAMMPS on a
-subset of processors, grab data from LAMMPS, change it, and put it
-back into LAMMPS.
+data.  The examples/couple directory has example C++ and C codes which
+show how a stand-alone code can link LAMMPS as a library, run LAMMPS
+on a subset of processors, grab data from LAMMPS, change it, and put
+it back into LAMMPS.
 
 :line
 

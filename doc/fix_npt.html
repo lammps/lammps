@@ -76,26 +76,8 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 </P>
-<P>This fix computes a temperature each timestep, to contribute to the
-pressure.  The fix creates its own method for computing T, as if it
-had been defined by the command:
-</P>
-<PRE>temperature fix-ID all full 
-</PRE>
-<P>See the <A HREF = "temperature.html">temperature</A> command for details.  Note that
-this is NOT the temperature with ID = <I>default</I>.  This means you can
-change the attributes of this fix's temperature (e.g. its
-degrees-of-freedom) via the <A HREF = "temp_modify.html">temp_modify</A> command or
-print the temperature with thermodyanmic output via the <A HREF = "thermo_style.html">thermo_style
-custom</A> command using the appropriate temp-ID =
-fix-ID.  It also means that changing attributes of the default
-temperature will have no effect on this fix.  Alternatively, you can
-directly assign a new temperature to the fix via the
-<A HREF = "fix_modify.html">fix_modify</A> command.  If you do this, note that the
-kinetic energy derived from T should be consistent with the virial
-term computed using all atoms.  LAMMPS will warn you if you choose to
-compute temperature on a subset of atoms.
-</P>
+<HR>
+
 <P>The pressure can be controlled in one of several styles, as specified
 by the <I>p-style</I> argument.  In each case, the desired pressure at each
 timestep is a ramped value during the run from the starting value to
@@ -137,12 +119,47 @@ implemented in LAMMPS.
 </P>
 <P>For all styles, the <I>Pdamp</I> parameter operates like the <I>Tdamp</I>
 parameter, determining the time scale on which pressure is relaxed.
+For example, a value of 1000.0 means to relax the pressure in a
+timespan of (roughly) 1000 time units (tau or fmsec or psec - see the
+<A HREF = "units.html">units</A> command).
 </P>
-<P>This fix supports the <A HREF = "fix_modify.html">fix_modify</A> options for
-<I>thermo</I> and <I>energy</I>.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed.  The
-latter will add this contribution to the total potential energy
-(PotEng) so that energy conservation can be monitored.
+<HR>
+
+<P>This fix computes a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if these commands had been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp 
+</PRE>
+<PRE>compute fix-ID_press group-ID pressure fix-ID_temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html<A HREF = "temp"<A HREF = "press"">>>compute
+pressure</A> commands for details.  Note that the
+IDs of the new computes are the fix-ID with </A> or </A>
+appended and the group for the new computes is the same as the fix
+group.
+</P>
+<P>Note that these are NOT the computes used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
+and <I>thermo_press</I>.  This means you can change the attributes of this
+fix's temperature or pressure via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+or pressure during thermodyanmic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> or
+<I>thermo_press</I> will have no effect on this fix.  Alternatively, you
+can directly assign a new compute (for calculating temeperature or
+pressure) that you have defined to this fix via the
+<A HREF = "fix_modify.html">fix_modify</A> command.  If you do this, note that the
+kinetic energy derived from T should be consistent with the virial
+term computed using all atoms.  LAMMPS will warn you if you choose to
+compute temperature on a subset of atoms.
+</P>
+<P>This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
+also be printed by itself via the keyword <I>f_fix-ID</I> in the
+<A HREF = "thermo_style.html">thermo_style custom</A> command.
 </P>
 <P><B>Restrictions:</B>
 </P>

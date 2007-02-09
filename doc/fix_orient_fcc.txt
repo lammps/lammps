@@ -113,11 +113,11 @@ symmetry, so the list must include one from each pair of
 equal-and-opposite neighbors.  A pair of orientation files for a
 Sigma=5 tilt boundary are show below.
 
-This fix supports the "fix_modify"_fix_modify.html options for
-{thermo} and {energy}.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed.  The
-latter will add this contribution to the total potential energy
-(PotEng).
+This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the "fix_modify energy"_fix_modify.html option.  The contribution can
+also be printed by itself via the keyword {f_fix-ID} in the
+"thermo_style custom"_thermo_style.html command.
 
 [Restrictions:]
 

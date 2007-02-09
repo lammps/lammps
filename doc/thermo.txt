@@ -20,10 +20,14 @@ thermo 100 :pre
 
 [Description:]
 
-Compute and print thermodynamics (temperature, energy, pressure) on
-timesteps that are a multiple of N and at the beginning and end of a
-simulation.  A value of 0 will only print thermodynamics at the
-beginning and end.
+Compute and print thermodynamic info (e.g. temperature, energy,
+pressure) on timesteps that are a multiple of N and at the beginning
+and end of a simulation.  A value of 0 will only print thermodynamics
+at the beginning and end.
+
+The content and format of what is printed is controlled by the
+"thermo_style"_thermo_style.html and
+"thermo_modify"_thermo_modify.html commands.
 
 [Restrictions:] none
 

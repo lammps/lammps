@@ -30,28 +30,29 @@
 simulation run.  This can be used for diagnostic purposes or even as a
 debugging tool to monitor some quantity during a run.  The text string
 must be a single argument, so it should be enclosed in double quotes
-if it is more than one word.  If it contains variables ($a thru $z) it
-must be enclosed in double quotes to insure they are not evaluated
-when the input script is read, but will instead be evaluated when the
-string is printed.
+if it is more than one word.  If it contains variables it must be
+enclosed in double quotes to insure they are not evaluated when the
+input script is read, but will instead be evaluated when the string is
+printed.
 </P>
 <P>See the <A HREF = "variable.html">variable</A> command for a description of <I>equal</I>
 style variables which are the most useful ones to use with the fix
 print command, since they are evaluated afresh each timestep that the
-fix print line is output.
+fix print line is output.  Equal-style variables can calculate complex
+formulas involving atom and group properties, mathematical operations,
+other variables, etc.
 </P>
-<P>Note that if <I>equal</I>-style variables are used in the print line which
-contain <A HREF = "thermo_style.html">thermo_style custom</A> keywords for potential
-energy such as pe, eng, evdwl, ebond, etc, they will only be
-up-to-date on timesteps where thermodynamics are computed.  Hence, if
-you output thermodynamics every 100 steps, but issue a fix print
-command with N = 2 that contains such a variable, the printed value
-will only be current on timesteps that are a multiple of 100.  This is
-because the potential functions in LAMMPS (pairwise, bond, etc) only
-compute energies on timesteps when thermodynamic output is being
-performed.
+<P><B>Restrictions:</B>
 </P>
-<P><B>Restrictions:</B> none
+<P>If <I>equal</I>-style variables are used which contain
+<A HREF = "thermo_style.html">thermo_style custom</A> keywords for energy such as
+pe, eng, evdwl, ebond, etc, then they will only be up-to-date on
+timesteps where thermodynamics are computed.  For example, if you
+output thermodynamics every 100 steps, but issue a fix print command
+with N = 2 that contains such a variable, the printed value will only
+be current on timesteps that are a multiple of 100.  This is because
+the potential functions in LAMMPS (pairwise, bond, etc) only compute
+energies on timesteps when thermodynamic output is being performed.
 </P>
 <P><B>Related commands:</B>
 </P>

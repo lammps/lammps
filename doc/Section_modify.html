@@ -14,29 +14,34 @@ Section</A>
 <H3>8. Modifying & extending LAMMPS 
 </H3>
 <P>LAMMPS is designed in a modular fashion so as to be easy to modify and
-extend with new functionality.  In this section, changes and additions
-users can make are listed along with some minimal instructions.
-Realistically, the best way to add a new feature is to find a similar
-feature in LAMMPS and look at the corresponding source and header
-files to figure out what it does.  You will need some knowledge of C++
-to be able to understand the hi-level structure of LAMMPS and its
-class organization, but functions (class methods) that do actual
-computations are written in vanilla C-style code and operate on simple
-C-style data structures (vectors and arrays).
+extend with new functionality.  In fact, about 75% if its source code
+is files added in this fashion.
+</P>
+<P>In this section, changes and additions users can make are listed along
+with minimal instructions.  The best way to add a new feature is to
+find a similar feature in LAMMPS and look at the corresponding source
+and header files to figure out what it does.  You will need some
+knowledge of C++ to be able to understand the hi-level structure of
+LAMMPS and its class organization, but functions (class methods) that
+do actual computations are written in vanilla C-style code and operate
+on simple C-style data structures (vectors and arrays).
 </P>
 <P>Most of the new features described in this section require you to
-write a new C++ class (except for dump, thermo, and variable options,
-described below, where you can make small edits to existing files).
-Creating a new class requires 2 files, a source code file (*.cpp) and
-a header file (*.h).  Their contents are briefly discussed below.
-Enabling LAMMPS to invoke the new class is as simple as adding two
-definition lines to the style_user.h file, in the same syntax as the
-existing LAMMPS classes are defined in the style.h file.
+write a new C++ derived class (except for exceptions described below,
+where you can make small edits to existing files).  Creating a new
+class requires 2 files, a source code file (*.cpp) and a header file
+(*.h).  The derived class must provide certain methods to work as a
+new option.  Depending on how different your new feature is compared
+to existing features, you can either derive from the base class
+itself, or from a derived class that already exists.  Enabling LAMMPS
+to invoke the new class is as simple as adding two lines to the
+style_user.h file, in the same syntax as other LAMMPS classes are
+specified in the style.h file.
 </P>
-<P>The power of C++ and its object-orientation is that usually, all the
-code and variables needed to define the new feature are contained in
-the 2 files you write, and thus shouldn't make the rest of the code
-more complex or cause side-effect bugs.
+<P>The advantage of C++ and its object-orientation is that all the code
+and variables needed to define the new feature are in the 2 files you
+write, and thus shouldn't make the rest of LAMMPS more complex or
+cause side-effect bugs.
 </P>
 <P>Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
 and pair_foo.h that define a new class PairFoo that computes pairwise
@@ -46,8 +51,8 @@ command like
 </P>
 <PRE>pair_style foo 0.1 3.5 
 </PRE>
-<P>you simply need to put your 2 files in the LAMMPS src directory, add 2
-lines to the style_user.h file, and re-make the code.
+<P>you put your 2 files in the LAMMPS src directory, add 2 lines to the
+style_user.h file, and re-make the code.
 </P>
 <P>The first line added to style_user.h would be
 </P>
@@ -69,108 +74,121 @@ the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
 processed by your new class.
 </P>
-<P>Note that if you are using Makefile.list instead of Makefile to build
-LAMMPS, you will need to explicitly add the names of your new .cpp and
-.h file to Makefile.list.
+<P>Here is a list of the new features that can be added in this way:
 </P>
-<P>Here is a list of the kinds of new features that can be added in this
-way.  The dump and thermo options do not typically require new styles;
-LAMMPS can simply be recompiled after new code is added to
-dump_custom.cpp or thermo_custom.cpp.
-</P>
-<UL><LI><A HREF = "#pair">Pairwise potentials</A>
+<UL><LI><A HREF = "#atom">Atom styles</A>
 <LI><A HREF = "#bond">Bond, angle, dihedral, improper potentials</A>
-<LI><A HREF = "#dump">Dump options</A>
-<LI><A HREF = "#thermo">Thermodynamic output options</A>
-<LI><A HREF = "#temp">Temperature computation options</A>
-<LI><A HREF = "#region">Region geometry options</A>
-<LI><A HREF = "#fix">Fix options</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc
-<LI><A HREF = "#atom">Atom options</A>
-<LI><A HREF = "#variable">Variable options</A>
-<LI><A HREF = "#command">New top-level commands</A> 
+<LI><A HREF = "#compute">Compute styles</A>
+<LI><A HREF = "#dump">Dump styles</A>
+<LI><A HREF = "#fix">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc
+<LI><A HREF = "#command">Input script commands</A>
+<LI><A HREF = "#kspace">Kspace computations</A>
+<LI><A HREF = "#min">Minimization solvers</A>
+<LI><A HREF = "#pair">Pairwise potentials</A>
+<LI><A HREF = "#region">Region styles</A> 
 </UL>
-<P>As illustrated by the pairwise example, these options are
-referred to in the LAMMPS documentation as the "style" of a particular
-command.
+<P>As illustrated by the pairwise example, these options are referred to
+in the LAMMPS documentation as the "style" of a particular command.
 </P>
-<P>The instructions below for each category will list the header file for
-the parent class that these styles are sub-classes of.  Public
-variables in that file are ones used and set by the sub-classes which
-are also used by the parent class.  Sometimes they are also used by
-the rest of LAMMPS.  Virtual functions in the header file which are
-set = 0 are ones you must define in your new class to give it the
-functionality LAMMPS expects.  Virtual functions that are not set to 0
-are functions you can optionally define.
+<P>The instructions below give the header file for the base class that
+these styles are derived from.  Public variables in that file are ones
+used and set by the derived classes which are also used by the base
+class.  Sometimes they are also used by the rest of LAMMPS.  Virtual
+functions in the base class header file which are set = 0 are ones you
+must define in your new derived class to give it the functionality
+LAMMPS expects.  Virtual functions that are not set to 0 are functions
+you can optionally define.
 </P>
-<P>Here are some additional guidelines for modifying LAMMPS and adding
-new functionality:
+<P>Additionally, new output options can be added directly to the
+thermo.cpp, dump_custom.cpp, and variable.cpp files as explained in
+these sections:
 </P>
-<P>Think about whether what you want to do would be better as a pre- or
-post-processing step.  Many computations are more easily and more
-quickly done that way.
-</P>
-<P>Don't do anything within the timestepping of a run that isn't
-parallel.  E.g. don't accumulate a bunch of data on a single processor
-and analyze it.  You run the risk of seriously degrading the parallel
-efficiency.
-</P>
-<P>If your new feature reads arguments or writes output, make sure you
-follow the unit conventions discussed by the <A HREF = "units.html">units</A>
-command.
-</P>
-<P>If you add something you think is truly useful and doesn't impact
-LAMMPS performance when it isn't used, send an email to the
-<A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.  We might be
-interested in adding it to the LAMMPS distribution.
-</P>
+<UL><LI><A HREF = "#dump_custom">Dump custom output options</A>
+<LI><A HREF = "#thermo">Thermodynamic output options</A>
+<LI><A HREF = "#variable">Variable options</A> 
+</UL>
 <HR>
 
-<A NAME = "pair"></A><H4>Pairwise potentials 
+<P>Here are additional guidelines for modifying LAMMPS and adding new
+functionality:
+</P>
+<UL><LI>Think about whether what you want to do would be better as a pre- or
+post-processing step.  Many computations are more easily and more
+quickly done that way. 
+
+<LI>Don't do anything within the timestepping of a run that isn't
+parallel.  E.g. don't accumulate a bunch of data on a single processor
+and analyze it.  You run the risk of seriously degrading the parallel
+efficiency. 
+
+<LI>If your new feature reads arguments or writes output, make sure you
+follow the unit conventions discussed by the <A HREF = "units.html">units</A>
+command. 
+
+<LI>If you add something you think is truly useful and doesn't impact
+LAMMPS performance when it isn't used, send an email to the
+<A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.  We might be
+interested in adding it to the LAMMPS distribution. 
+</UL>
+<HR>
+
+<HR>
+
+<A NAME = "atom"></A><H4>Atom styles 
 </H4>
-<P>All classes that compute pairwise interactions are sub-classes of the
-Pair class.  See the pair.h file for a list of methods this class
-defines.
+<P>Classes that define an atom style are derived from the Atom class.
+The atom style determines what quantities are associated with an atom.
+A new atom style can be created if one of the existing atom styles
+does not define all the arrays you need to store and communicate with
+atoms.
 </P>
-<P>Pair_lj_cut.cpp and pair_lj_cut.h are the simplest example of a Pair
-class.  They implement the <I>lj/cut</I> style of the
-<A HREF = "pair_style.html">pair_style</A> command.
+<P>Atom_vec_atomic.cpp is a simple example of an atom style.
 </P>
-<P>Here is a brief description of the class methods in pair.h:
+<P>Here is a brief description of methods you define in your new derived
+class.  See atom.h for details.
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >compute</TD><TD > the workhorse routine that computes the pairwise interactions</TD></TR>
-<TR><TD >settings</TD><TD > reads the input script line with any arguments you define</TD></TR>
-<TR><TD >coeff</TD><TD > set coefficients for one i,j type pair</TD></TR>
-<TR><TD >init_one</TD><TD > perform initialization for one i,j type pair</TD></TR>
-<TR><TD >write & read_restart</TD><TD > write/read i,j pair coeffs to restart files</TD></TR>
-<TR><TD >write & read_restart_settings</TD><TD > write/read global settings to restart files</TD></TR>
-<TR><TD >single</TD><TD > force and energy of a single pairwise interaction between 2 atoms</TD></TR>
-<TR><TD >compute_inner/middle/outer</TD><TD > versions of compute used by rRESPA 
+<TR><TD >grow</TD><TD > re-allocate atom arrays to longer lengths</TD></TR>
+<TR><TD >copy</TD><TD > copy info for one atom to another atom's array locations</TD></TR>
+<TR><TD >pack_comm</TD><TD > store an atom's info in a buffer communicated every timestep</TD></TR>
+<TR><TD >unpack_comm</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >pack_reverse</TD><TD > store an atom's info in a buffer communicating partial forces</TD></TR>
+<TR><TD >unpack_reverse</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >pack_border</TD><TD > store an atom's info in a buffer communicated on neighbor re-builds</TD></TR>
+<TR><TD >unpack_border</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >pack_exchange</TD><TD > store all an atom's info to migrate to another processor</TD></TR>
+<TR><TD >unpack_exchange</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >size_restart</TD><TD > number of restart quantities associated with proc's atoms</TD></TR>
+<TR><TD >pack_restart</TD><TD > pack atom quantities into a buffer</TD></TR>
+<TR><TD >unpack_restart</TD><TD > unpack atom quantities from a buffer</TD></TR>
+<TR><TD >create_atom</TD><TD > create an individual atom of this style</TD></TR>
+<TR><TD >data_atom</TD><TD > parse an atom line from the data file</TD></TR>
+<TR><TD >memory_usage</TD><TD > tally memory allocated by atom arrays 
 </TD></TR></TABLE></DIV>
 
-<P>The inner/middle/outer routines are optional.  Only a few of the
-pairwise potentials use these in conjunction with rRESPA as set by the
-<A HREF = "run_style.html">run_style</A> command.
+<P>The constructor of the derived class sets values for several variables
+that you must set when defining a new atom style.  The atom arrays
+themselves are defined in atom.cpp.  Search for the word "customize"
+and you will find locations you will need to modify.
 </P>
 <HR>
 
 <A NAME = "bond"></A><H4>Bond, angle, dihedral, improper potentials 
 </H4>
-<P>All classes that compute molecular interactions are sub-classes of the
-Bond, Angle, Dihedral, and Improper classes.  See the bond.h, angle.h,
-dihedral.h, and improper.h file for a list of methods these classes
-defines. 
+<P>Classes that compute molecular interactions are derived from the Bond,
+Angle, Dihedral, and Improper classes.  New styles can be created to
+add new potentials to LAMMPS.
 </P>
-<P>Bond_harmonic.cpp and bond_harmonic.h are the simplest example of a
-Bond class.  Ditto for the harmonic forms of the angle, dihedral, and
-improper style commands.  The bond_harmonic files implement the
-<I>harmonic</I> style of the <A HREF = "bond_style.html">bond_style</A> command.
+<P>Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
+the harmonic forms of the angle, dihedral, and improper style
+commands.
 </P>
-<P>Here is a brief description of the class methods in bond.h, angle.h,
-etc:
+<P>Here is a brief description of methods you define in your new derived
+bond class.  See bond.h, angle.h, dihedral.h, and improper.h for
+details.
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >compute</TD><TD > the workhorse routine that computes the molecular interactions</TD></TR>
+<TR><TD >compute</TD><TD > compute the molecular interactions</TD></TR>
 <TR><TD >coeff</TD><TD > set coefficients for one bond type</TD></TR>
 <TR><TD >equilibrium_distance</TD><TD > length of bond, used by SHAKE</TD></TR>
 <TR><TD >write & read_restart</TD><TD > writes/reads coeffs to restart files</TD></TR>
@@ -179,145 +197,85 @@ etc:
 
 <HR>
 
-<A NAME = "dump"></A><H4>Dump options 
+<A NAME = "compute"></A><H4>Compute styles 
 </H4>
-<P>There are several classes that print dump files (snapshots of atoms)
-that are sub-classes of the Dump class.  These include the
-dump_atom.cpp, dump_bond.cpp, and dump_custom.cpp files.
+<P>Classes that compute scalar and vector quantities like temperature
+and the pressure tensor, as well as classes that compute per-atom
+quantities like kinetic energy and the centro-symmetry parameter
+are derived from the Compute class.  New styles can be created
+to add new calculations to LAMMPS.
 </P>
-<P>New dump classes can be added, but it is typically simpler to modify
-the DumpCustom class contained in the dump_custom.cpp file.  See the
-<A HREF = "dump.html">dump</A> command and its <I>custom</I> style for a list of what
-atom information can already be dumped by DumpCustom.  If the
-attribute you want to dump is not in the list, or if you define a <A HREF = "#atom">new
-atom style</A> with new attributes (e.g. atoms that store their own
-magnetic moment), here is how to dump it out in a snapshot file:
+<P>Compute_temp.cpp is a simple example of computing a scalar
+temperature.  Compute_ke_atom.cpp is a simple example of computing
+per-atom kinetic energy.
 </P>
-<P>Search the dump_custom.cpp and dump_custom.h files for the word
-"customize".  It appears in roughly half a dozen locations.  In each
-of the locations you can add a bit of code that will extend the
-DumpCustom class to enable it to dump a new quantity.  E.g. you will
-add a keyword, add an if test, add a new small method that packs the
-requested data into a buffer, etc.  For the latter, you can perform a
-modest amount of computation in this method; see the pack_xs()
-function for an example.
-</P>
-<P>If desired, a dump custom option can also compute more complicated
-quantities by invoking a fix that computed quantities at the end of a
-timestep (should be the same timestep the dump is invoked on).  See
-the ENERGY, CENTRO, and stress options (SXX, SYY, etc) in
-dump_custom.cpp for examples.
-</P>
-<P>When you re-make LAMMPS, your new option should now be useable via the
-dump custom command.
-</P>
-<HR>
-
-<A NAME = "thermo"></A><H4>Thermodynamic output options 
-</H4>
-<P>There is only one class that computes and prints thermodynamic
-information to the screen and log file, although the
-<A HREF = "thermo_style.html">thermo_style</A> command treats its options as styles.
-</P>
-<P>There are several styles defined in thermo.cpp: "one", "multi", and
-"granular".  There is also a flexible "custom" style which allows you
-to specify what quantities will be printed each timestep where
-thermodynamics is computed.  See the <A HREF = "thermo_style.html">thermo_style</A>
-command for a list of pre-defined quantities.
-</P>
-<P>Here is how you can extend the thermo output capabilities.  Search the
-thermo.cpp and thermo.h files for the word "customize" which will tell
-you where to make these additions.  Note that fixes can also print-out
-thermodynamic quantities via the <A HREF = "fix_modify.html">fix_modify</A> command,
-so you do not need to modify thermo.cpp to print fix information.
-</P>
-<P>If you want to create a new style (like "one" or "granular") that
-prints a collection of pre-defined quantities, you add a few lines
-that define the new style to thermo.cpp.  First, add a #DEFINE line at
-the top of the file which lists the quantities to print.  Then add the
-style name you have chosen to the if test in the constructor to copy
-the defined string to the line<B></B> variable.
-</P>
-<P>You can also add new quantities to the custom list.  Add your new
-keyword to the if test in the parse_fields() function where the call
-to addfield() specifies the text string (8 character max) that will be
-printed with the quantity, the function that will compute it, and the
-data type (INT,FLOAT) of the quantity.  Then at the bottom of the
-file, add a function compute_*() which computes the quantity you wish
-to print.  The function assigns the quantity to the variable "dvalue"
-if it is a floating-point quantity, or to "ivalue" if it is an
-integer.  See the other compute_*() functions for examples of how
-various quantities can be accessed, computed, summed across
-processors, normalized as per-atom values, etc.  Also, if it makes
-sense to allow the quantity to be stored in a variable in the input
-script, add a couple of lines to the compute_value() function that is
-called when a variable is evaluated.  Finally, add a prototype for
-your new compute method to thermo.h.
-</P>
-<HR>
-
-<A NAME = "temp"></A><H4>Temperature computation options 
-</H4>
-<P>All classes that compute the temperature of the system are sub-classes
-of the Temperature class.  See the temperature.h file for a list of
-methods these classes defines.  Temperatures are computed by LAMMPS
-when velocities are set, when thermodynamics are computed, and when
-temperature is controlled by various thermostats like the <A HREF = "fix_nvt.html">fix
-nvt</A> of <A HREF = "fix_langevin.html">fix langevin</A> commands.
-</P>
-<P>Temp_full.cpp and temp_full.h are the simplest example of a
-Temperature class.  They implement the <I>full</I> style of the
-<A HREF = "temperature.html">temperature</A> command.
-</P>
-<P>Here is a brief description of the class methods in temperature.h:
+<P>Here is a brief description of methods you define in your new derived
+class.  See compute.h for details.
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >init</TD><TD > setup the temperature computation</TD></TR>
-<TR><TD >compute</TD><TD > compute and return temperature 
+<TR><TD >compute_scalar</TD><TD > compute a scalar quantity</TD></TR>
+<TR><TD >compute_vector</TD><TD > compute a vector of quantities</TD></TR>
+<TR><TD >compute_peratom</TD><TD > compute one or more quantities per atom</TD></TR>
+<TR><TD >pack_comm</TD><TD > pack a buffer with items to communicate</TD></TR>
+<TR><TD >unpack_comm</TD><TD > unpack the buffer</TD></TR>
+<TR><TD >pack_reverse</TD><TD > pack a buffer with items to reverse communicate</TD></TR>
+<TR><TD >unpack_reverse</TD><TD > unpack the buffer</TD></TR>
+<TR><TD >memory_usage</TD><TD > tally memory usage 
 </TD></TR></TABLE></DIV>
 
 <HR>
 
-<A NAME = "region"></A><H4>Region geometry options 
+<A NAME = "dump"></A><H4>Dump styles 
 </H4>
-<P>All classes that define geometric regions are sub-classes of the
-Region class.  See the region.h file for a list of methods these
-classes defines.  Regions are used elsewhere in LAMMPS to group atoms,
-delete atoms to create a void, insert atoms in a specified region,
-etc.
+<A NAME = "dump_custom"></A><H4>Dump custom output options 
+</H4>
+<P>Classes that dump per-atom info to files are derived from the Dump
+class.  To dump new quantities or in a new format, a new derived dump
+class can be added, but it is typically simpler to modify the
+DumpCustom class contained in the dump_custom.cpp file.
 </P>
-<P>Region_sphere.cpp and region_sphere.h are the simplest example of a
-Region class.  They implement the <I>sphere</I> style of the
-<A HREF = "region.html">region</A> command.
+<P>Dump_atom.cpp is a simple example of a derived dump class.
 </P>
-<P>Here is a brief description of the single class method required:
+<P>Here is a brief description of methods you define in your new derived
+class.  See dump.h for details.
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >match</TD><TD > determine whether a point is in the region 
+<TR><TD >write_header</TD><TD > write the header section of a snapshot of atoms</TD></TR>
+<TR><TD >count</TD><TD > count the number of lines a processor will output</TD></TR>
+<TR><TD >pack</TD><TD > pack a proc's output data into a buffer</TD></TR>
+<TR><TD >write_data</TD><TD > write a proc's data to a file 
 </TD></TR></TABLE></DIV>
 
+<P>See the <A HREF = "dump.html">dump</A> command and its <I>custom</I> style for a list of
+keywords for atom information that can already be dumped by
+DumpCustom.  It includes options to dump per-atom info from Compute
+classes, so adding a new derived Compute class is one way to calculate
+new quantities to dump.
+</P>
+<P>Alternatively, you can add new keywords to the dump custom command.
+Search for the word "customize" in dump_custom.cpp to see the
+half-dozen or so locations where code will need to be added.
+</P>
 <HR>
 
-<A NAME = "fix"></A><H4>Fix options 
+<A NAME = "fix"></A><H4>Fix styles 
 </H4>
 <P>In LAMMPS, a "fix" is any operation that is computed during
 timestepping that alters some property of the system.  Essentially
 everything that happens during a simulation besides force computation,
-neighbor list manipulation, and output, is a "fix".  This includes
-time integration (update of velocity and coordinates), force
-constraints (SHAKE or walls), and diagnostics (compute a diffusion
-coefficient).  See the fix.h file for a list of methods these classes
-defines.
+neighbor list construction, and output, is a "fix".  This includes
+time integration (update of coordinates and velocities), force
+constraints or boundary conditions (SHAKE or walls), and diagnostics
+(compute a diffusion coefficient).  New styles can be created to add
+new options to LAMMPS.
 </P>
-<P>There are dozens of fix options in LAMMPS; choose one as a template
-that is similar to what you want to implement.  They can be as simple
-as zeroing out forces (see <A HREF = "fix_enforce2d.html">fix enforce2d</A> which
-corresponds to the <I>enforce2d</I> style) or as complicated as applying
-SHAKE constraints on bonds and angles (see <A HREF = "fix_shake.html">fix shake</A>
-which corresponds to the <I>shake</I> style) which involves many extra
-computations.
+<P>Fix_setforce.cpp is a simple example of setting forces on atoms to
+prescribed values.  There are dozens of fix options already in LAMMPS;
+choose one as a template that is similar to what you want to
+implement.
 </P>
-<P>Here is a brief description of the class methods in fix.h:
+<P>Here is a brief description of methods you can define in your new
+derived class.  See fix.h for details.
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >setmask</TD><TD > determines when the fix is called during the timestep</TD></TR>
@@ -347,8 +305,7 @@ computations.
 <TR><TD >unpack_comm</TD><TD > unpack a buffer to communicate a per-atom quantity</TD></TR>
 <TR><TD >pack_reverse_comm</TD><TD > pack a buffer to reverse communicate a per-atom quantity</TD></TR>
 <TR><TD >unpack_reverse_comm</TD><TD > unpack a buffer to reverse communicate a per-atom quantity</TD></TR>
-<TR><TD >thermo_fields</TD><TD > define quantities for thermodynamic output</TD></TR>
-<TR><TD >thermo_compute</TD><TD > compute thermodynamic quantities 
+<TR><TD >thermo</TD><TD > compute quantities for thermodynamic output 
 </TD></TR></TABLE></DIV>
 
 <P>Typically, only a small fraction of these methods are defined for a
@@ -363,128 +320,199 @@ when to call the fix.  By convention, this is the first argument the
 fix defines (after the ID, group-ID, style).
 </P>
 <P>If the fix needs to store information for each atom that persists from
-timestep to timestep, it can manage that memory and migrate it with
-the atoms as they move from processors to processor by implementing
-the grow_arrays, copy_arrays, pack_exchange, and unpack_exchange
-methods.  Similarly, the pack_restart and unpack_restart methods can be
-implemented to store information about the fix in restart files.  If
-you wish an integrator or force constraint fix to work with rRESPA (see
-the <A HREF = "run_style.html">run_style</A> command), the initial_integrate,
-post_force_integrate, and final_integrate_respa methods can be
-implemented.  The thermo_fields and thermo_compute methods enable a
-fix to contribute values to thermodynamic output, as printed
+timestep to timestep, it can manage that memory and migrate the info
+with the atoms as they move from processors to processor by
+implementing the grow_arrays, copy_arrays, pack_exchange, and
+unpack_exchange methods.  Similarly, the pack_restart and
+unpack_restart methods can be implemented to store information about
+the fix in restart files.  If you wish an integrator or force
+constraint fix to work with rRESPA (see the <A HREF = "run_style.html">run_style</A>
+command), the initial_integrate, post_force_integrate, and
+final_integrate_respa methods can be implemented.  The thermo method
+enables a fix to contribute values to thermodynamic output, as printed
 quantities and/or to be summed to the potential energy of the system.
 </P>
 <HR>
 
-<A NAME = "atom"></A><H4>Atom options 
+<A NAME = "command"></A><H4>Input script commands 
 </H4>
-<P>All classes that define an atom style are sub-classes of the Atom
-class.  See the atom.h file for a list of methods these classes
-defines.  The atom style determines what quantities are associated
-with an atom in a LAMMPS simulation.  If one of the existing atom
-styles does not define all the arrays you need to store with an atom,
-then a new atom class can be created.
-</P>
-<P>Atom_atomic.cpp and atom_atomic.h are the simplest example of an Atom
-class.  They implement the <I>atomic</I> style of the
-<A HREF = "atom_style.html">atom_style</A> command.
-</P>
-<P>Here is a brief description of the class methods in atom.h:
-</P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >copy</TD><TD > copy info for one atom to another atom's array location</TD></TR>
-<TR><TD >pack_comm</TD><TD > store an atom's info in a buffer communicated every timestep</TD></TR>
-<TR><TD >unpack_comm</TD><TD > retrieve an atom's info from the buffer</TD></TR>
-<TR><TD >pack_reverse</TD><TD > store an atom's info in a buffer communicating partial forces</TD></TR>
-<TR><TD >unpack_reverse</TD><TD > retrieve an atom's info from the buffer</TD></TR>
-<TR><TD >pack_border</TD><TD > store an atom's info in a buffer communicated on neighbor re-builds</TD></TR>
-<TR><TD >unpack_border</TD><TD > retrieve an atom's info from the buffer</TD></TR>
-<TR><TD >pack_exchange</TD><TD > store all an atom's info to migrate to another processor</TD></TR>
-<TR><TD >unpack_exchange</TD><TD > retrieve an atom's info from the buffer</TD></TR>
-<TR><TD >
-</TD></TR></TABLE></DIV>
-
-<P>There are also several methods in atom.cpp you will need to augment
-with information about your new atom class, following the patterns of
-the other atom styles.  These routines are so similar for all classes,
-that it was simpler to just have one master routine for all classes.
-</P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >constructor</TD><TD > create style variable and atom array ptrs to NULL</TD></TR>
-<TR><TD >destructor</TD><TD > free memory for atom arrays</TD></TR>
-<TR><TD >set_style</TD><TD > set style variable</TD></TR>
-<TR><TD >check_style</TD><TD > check for pure style vs hybrid style</TD></TR>
-<TR><TD >style2arg</TD><TD > convert style variables to keywords</TD></TR>
-<TR><TD >grow</TD><TD > re-allocate atom arrays to longer lengths</TD></TR>
-<TR><TD >unpack_data</TD><TD > parse atom lines from data file</TD></TR>
-<TR><TD >create_one</TD><TD > create an individual atom of this style</TD></TR>
-<TR><TD >size_restart</TD><TD > number of restart quantities associated with proc's atoms</TD></TR>
-<TR><TD >pack_restart</TD><TD > pack atom quantities into a buffer</TD></TR>
-<TR><TD >unpack_restart</TD><TD > unpack atom quantities from a buffer</TD></TR>
-<TR><TD >memory_usage</TD><TD > memory allocated by atom arrays</TD></TR>
-<TR><TD >
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "variable"></A><H4>Variable options 
-</H4>
-<P>The variable class stores and evaluates input script variables $a, $b,
-... $z, as described in <A HREF = "Section_commands.html#3_2">this section</A>.
-<I>Equal</I>-style variables are defined by an equation that is evaluated
-each time the variable is used.  The equation can include functions,
-vectors, keywords, and numbers as described in the
-<A HREF = "variable.html">variable</A> command.  The list of valid functions,
-vectors, and keywords, can be extended by adding a few lines of code
-to the evaluate() method at the end of the variable.cpp file.  Search
-for the word "customize" to find the correct locations for adding
-code.
-</P>
-<P>A new function (e.g. foo(arg1,arg2,...)) can be added in the section
-that starts with the comment
-</P>
-<PRE>// customize by adding function to this list and to if statement 
-</PRE>
-<P>A new vector (e.g. q<B></B>) can be added in the section that starts with
-the comment
-</P>
-<PRE>// customize by adding vector to this list and to if statement 
-</PRE>
-<P>A new keyword (e.g. mysum) can be added in the section that starts with
-the comment
-</P>
-<PRE>// customize by adding keyword to this list and to if statement 
-</PRE>
-<P>Note that keywords supported by the <A HREF = "themo_style.html">thermo_style
-custom</A> command are evaluated by the thermo routines,
-so do not need to be added to variable.cpp.
-</P>
-<HR>
-
-<A NAME = "command"></A><H4>New top-level commands 
-</H4>
-<P>It is possible to add a new command to a LAMMPS input script as
-opposed to adding a new style to an existing command (atom_style,
-pair_style, fix, etc).  For example the create_atoms, read_data,
-velocity, and run commands are all top-level LAMMPS commands that are
-listed in the Command section of style.h.  When such a command is
-encountered in the LAMMPS input script, the topmost level of LAMMPS
-(lammps.cpp) simply creates a class with the corresponding name,
+<P>New commands can be added to LAMMPS input scripts by adding new
+classes that have a "command" method and are listed in the Command
+sections of style.h (or style_user.h).  For example, the create_atoms,
+read_data, velocity, and run commands are all implemented in this
+fashion.  When such a command is encountered in the LAMMPS input
+script, LAMMPS simply creates a class with the corresponding name,
 invokes the "command" method of the class, and passes it the arguments
 from the input script.  The command method can perform whatever
-operations it wishes on the LAMMPS data structures.
+operations it wishes on LAMMPS data structures.
 </P>
-<P>Thus to add a new command, you simply need to add a *.cpp and *.h file
-containing a single class:
+<P>The single method your new class must define is as follows:
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >command</TD><TD > operations performed by the new command 
 </TD></TR></TABLE></DIV>
 
-<P>Of course, the new class can define other methods and variables that
-it uses internally.
+<P>Of course, the new class can define other methods and variables as
+needed.
 </P>
+<HR>
+
+<A NAME = "kspace"></A><H4>Kspace computations 
+</H4>
+<P>Classes that compute long-range Coulombic interactions via K-space
+represenations (Ewald, PPPM) are derived from the KSpace class.  New
+styles can be created to add new K-space options to LAMMPS.
+</P>
+<P>Ewald.cpp is an example of computing K-space interactions.
+</P>
+<P>Here is a brief description of methods you define in your new derived
+class.  See kspace.h for details.
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >init</TD><TD > initialize the calculation before a run</TD></TR>
+<TR><TD >setup</TD><TD > computation before the 1st timestep of a run</TD></TR>
+<TR><TD >compute</TD><TD > every-timestep computation</TD></TR>
+<TR><TD >memory_usage</TD><TD > tally of memory usage 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<A NAME = "min"></A><H4>Minimization solvers 
+</H4>
+<P>Classes that perform energy minimization derived from the Min class.
+New styles can be created to add new minimization algorithms to
+LAMMPS.
+</P>
+<P>Min_cg.cpp is an example of conjugate gradient minimization.
+</P>
+<P>Here is a brief description of methods you define in your new derived
+class.  See min.h for details.
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >init</TD><TD > initialize the minimization before a run</TD></TR>
+<TR><TD >run</TD><TD > perform the minimization</TD></TR>
+<TR><TD >memory_usage</TD><TD > tally of memory usage 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<A NAME = "pair"></A><H4>Pairwise potentials 
+</H4>
+<P>Classes that compute pairwise interactions are derived from the Pair
+class.  In LAMMPS, pairwise calculation include manybody potentials
+such as EAM or Tersoff where particles interact without a static bond
+topology.  New styles can be created to add new pair potentials to
+LAMMPS.
+</P>
+<P>Pair_lj_cut.cpp is a simple example of a Pair class, though it
+includes some optional methods to enable its use with rRESPA.
+</P>
+<P>Here is a brief description of the class methods in pair.h:
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >compute</TD><TD > workhorse routine that computes pairwise interactions</TD></TR>
+<TR><TD >settings</TD><TD > reads the input script line with arguments you define</TD></TR>
+<TR><TD >coeff</TD><TD > set coefficients for one i,j type pair</TD></TR>
+<TR><TD >init_one</TD><TD > perform initialization for one i,j type pair</TD></TR>
+<TR><TD >init_style</TD><TD > initialization specific to this pair style</TD></TR>
+<TR><TD >write & read_restart</TD><TD > write/read i,j pair coeffs to restart files</TD></TR>
+<TR><TD >write & read_restart_settings</TD><TD > write/read global settings to restart files</TD></TR>
+<TR><TD >single</TD><TD > force and energy of a single pairwise interaction between 2 atoms</TD></TR>
+<TR><TD >compute_inner/middle/outer</TD><TD > versions of compute used by rRESPA 
+</TD></TR></TABLE></DIV>
+
+<P>The inner/middle/outer routines are optional.
+</P>
+<HR>
+
+<A NAME = "region"></A><H4>Region styles 
+</H4>
+<P>Classes that define geometric regions are derived from the Region
+class.  Regions are used elsewhere in LAMMPS to group atoms, delete
+atoms to create a void, insert atoms in a specified region, etc.  New
+styles can be created to add new region shapes to LAMMPS.
+</P>
+<P>Region_sphere.cpp is an example of a spherical region.
+</P>
+<P>Here is a brief description of methods you define in your new derived
+class.  See region.h for details.
+</P>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >match</TD><TD > determine whether a point is in the region 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<A NAME = "thermo"></A><H4>Thermodynamic output options 
+</H4>
+<P>There is one class that computes and prints thermodynamic information
+to the screen and log file; see the file thermo.cpp.
+</P>
+<P>There are several styles defined in thermo.cpp: "one", "multi",
+"granular", etc.  There is also a flexible "custom" style which allows
+the user to explicitly list keywords for quantities to print when
+thermodynamic info is output.  See the
+<A HREF = "thermo_style.html">thermo_style</A> command for a list of defined
+quantities.
+</P>
+<P>The thermo styles (one, multi, etc) are simply lists of keywords.
+Adding a new style thus only requies defining a new list of keywords.
+Search for the word "customize" with references to "thermo style" in
+thermo.cpp to see the two locations where code will need to be added.
+</P>
+<P>New keywords can also be added to thermo.cpp to compute new quantities
+for output.  Search for the word "customize" with references to
+"keyword" in thermo.cpp to see the several locations where code will
+need to be added.
+</P>
+<P>Note that the <A HREF = "thermo.html">thermo_style custom</A> command already allows
+for thermo output of quantities calculated by <A HREF = "fix.html">fixes</A>,
+<A HREF = "compute.html">computes</A>, and <A HREF = "variable.html">variables</A>.  Thus, it may
+be simpler to compute what you wish via one of those constructs, than
+by adding a new keyword to the thermo command.
+</P>
+<HR>
+
+<A NAME = "variable"></A><H4>Variable options 
+</H4>
+<P>There is one class that computes and stores <A HREF = "variable.html">variable</A>
+information in LAMMPS; see the file variable.cpp.  The value
+associated with a variable can be periodically printed to the screen
+via the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix print</A>, or
+<A HREF = "thermo_style.html">thermo_style custom</A> commands.  Variables of style
+"equal" can compute complex equations that involve the following types
+of arguments:
+</P>
+<P>thermo keywords = ke, vol, atoms, ...
+other variables = v_a, v_myvar, ...
+math functions = div(x,y), mult(x,y), add(x,y), ...
+group functions = mass(group), xcm(group,x), ...
+atom values = x<B>123</B>, y<B>3</B>, vx<B>34</B>, ...
+compute values = c_mytemp<B>0</B>, c_thermo_press<B>3</B>, ...
+</P>
+<P>Adding keywords for the <A HREF = "themo_style.html">thermo_style custom</A> command
+(which can then be accessed by variables) was discussed
+<A HREF = "Section_modify.html#thermo">here</A> on this page.
+</P>
+<P>Adding a new math function of one or two arguments can be done by
+editing one section of the Variable::evaulate() method.  Search for
+the word "customize" to find the appropriate location.
+</P>
+<P>Adding a new group function can be done by editing one section of the
+Variable::evaulate() method.  Search for the word "customize" to find
+the appropriate location.  You may need to add a new method to the
+Group class as well (see the group.cpp file).
+</P>
+<P>Accessing a new atom-based vector can be done by editing one section
+of the Variable::evaulate() method.  Search for the word "customize"
+to find the appropriate location.
+</P>
+<P>Adding new <A HREF = "compute.html">compute styles</A> (whose calculated values can
+then be accessed by variables) was discussed
+<A HREF = "Section_modify.html#compute">here</A> on this page.
+</P>
+<HR>
+
 <HR>
 
 <A NAME = "Foo"></A>

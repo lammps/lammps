@@ -45,12 +45,11 @@ wall/lj126</A> command.
 <P>The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
 </P>
-<P>This fix supports the <A HREF = "fix_modify.html">fix_modify</A> options for
-<I>thermo</I> and <I>energy</I>.  The former will print the contribution the fix
-makes to the energy of the system when thermodynamics is printed,
-where the energy of each particle comes from the integrated form of
-the equation above.  The latter will add this contribution to the
-total potential energy (PotEng).
+<P>This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
+also be printed by itself via the keyword <I>f_fix-ID</I> in the
+<A HREF = "thermo_style.html">thermo_style custom</A> command.
 </P>
 <P>The forces due to this fix are also imposed during an energy
 minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.  If you

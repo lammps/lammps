@@ -41,7 +41,8 @@ using namespace LAMMPS_NS;
 
 // step, atoms, cpu, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, lx, ly, lz, pxx, pyy, pzz, pxy, pxz, pyz
+// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi
+// pxx, pyy, pzz, pxy, pxz, pyz
 // drot, grot (rotational KE for dipole and granular particles)
 // tave, pave, eave, peave (time-averaged quantities)
 
@@ -660,6 +661,7 @@ void Thermo::parse_fields(char *str)
       addfield("Atoms",&Thermo::compute_atoms,INT);
     } else if (strcmp(word,"cpu") == 0) {
       addfield("CPU",&Thermo::compute_cpu,FLOAT);
+
     } else if (strcmp(word,"temp") == 0) {
       addfield("Temp",&Thermo::compute_temp,FLOAT);
       index_temp = add_compute(id_temp,0);
@@ -681,6 +683,7 @@ void Thermo::parse_fields(char *str)
       addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
       index_temp = add_compute(id_temp,0);
       index_press = add_compute(id_press,0);
+
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
     } else if (strcmp(word,"ecoul") == 0) {
@@ -701,6 +704,7 @@ void Thermo::parse_fields(char *str)
       addfield("E_long",&Thermo::compute_elong,FLOAT);
     } else if (strcmp(word,"etail") == 0) {
       addfield("E_tail",&Thermo::compute_etail,FLOAT);
+
     } else if (strcmp(word,"vol") == 0) {
       addfield("Volume",&Thermo::compute_vol,FLOAT);
     } else if (strcmp(word,"lx") == 0) {
@@ -709,6 +713,20 @@ void Thermo::parse_fields(char *str)
       addfield("Ly",&Thermo::compute_ly,FLOAT);
     } else if (strcmp(word,"lz") == 0) {
       addfield("Lz",&Thermo::compute_lz,FLOAT);
+
+    } else if (strcmp(word,"xlo") == 0) {
+      addfield("Xlo",&Thermo::compute_xlo,FLOAT);
+    } else if (strcmp(word,"xhi") == 0) {
+      addfield("Xhi",&Thermo::compute_xhi,FLOAT);
+    } else if (strcmp(word,"ylo") == 0) {
+      addfield("Ylo",&Thermo::compute_ylo,FLOAT);
+    } else if (strcmp(word,"yhi") == 0) {
+      addfield("Yhi",&Thermo::compute_yhi,FLOAT);
+    } else if (strcmp(word,"zlo") == 0) {
+      addfield("Zlo",&Thermo::compute_zlo,FLOAT);
+    } else if (strcmp(word,"zhi") == 0) {
+      addfield("Zhi",&Thermo::compute_zhi,FLOAT);
+
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
       index_temp = add_compute(id_temp,1);
@@ -733,12 +751,14 @@ void Thermo::parse_fields(char *str)
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
       index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
+
     } else if (strcmp(word,"drot") == 0) {
       addfield("RotKEdip",&Thermo::compute_drot,FLOAT);
       index_drot = add_compute(id_drot,0);
     } else if (strcmp(word,"grot") == 0) {
       addfield("RotKEgrn",&Thermo::compute_grot,FLOAT);
       index_grot = add_compute(id_grot,0);
+
     } else if (strcmp(word,"tave") == 0) {
       addfield("T_ave",&Thermo::compute_tave,FLOAT);
       index_temp = add_compute(id_temp,0);
@@ -934,12 +954,14 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     dvalue = ivalue;
   }
   else if (strcmp(word,"cpu") == 0) compute_cpu();
+
   else if (strcmp(word,"temp") == 0) compute_temp();
   else if (strcmp(word,"press") == 0) compute_press();
   else if (strcmp(word,"pe") == 0) compute_pe();
   else if (strcmp(word,"ke") == 0) compute_ke();
   else if (strcmp(word,"etotal") == 0) compute_etotal();
   else if (strcmp(word,"enthalpy") == 0) compute_enthalpy();
+
   else if (strcmp(word,"evdwl") == 0) compute_evdwl();
   else if (strcmp(word,"ecoul") == 0) compute_ecoul();
   else if (strcmp(word,"epair") == 0) compute_epair();
@@ -950,18 +972,29 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"emol") == 0) compute_emol();
   else if (strcmp(word,"elong") == 0) compute_elong();
   else if (strcmp(word,"etail") == 0) compute_etail();
+
   else if (strcmp(word,"vol") == 0) compute_vol();
   else if (strcmp(word,"lx") == 0) compute_lx();
   else if (strcmp(word,"ly") == 0) compute_ly();
   else if (strcmp(word,"lz") == 0) compute_lz();
+
+  else if (strcmp(word,"xlo") == 0) compute_xlo();
+  else if (strcmp(word,"xhi") == 0) compute_xhi();
+  else if (strcmp(word,"ylo") == 0) compute_ylo();
+  else if (strcmp(word,"yhi") == 0) compute_yhi();
+  else if (strcmp(word,"zlo") == 0) compute_zlo();
+  else if (strcmp(word,"zhi") == 0) compute_zhi();
+
   else if (strcmp(word,"pxx") == 0) compute_pxx();
   else if (strcmp(word,"pyy") == 0) compute_pyy();
   else if (strcmp(word,"pzz") == 0) compute_pzz();
   else if (strcmp(word,"pxy") == 0) compute_pxy();
   else if (strcmp(word,"pxz") == 0) compute_pxz();
   else if (strcmp(word,"pyz") == 0) compute_pyz();
+
   else if (strcmp(word,"drot") == 0) compute_drot();
   else if (strcmp(word,"grot") == 0) compute_grot();
+
   else if (strcmp(word,"tave") == 0) compute_tave();
   else if (strcmp(word,"pave") == 0) compute_pave();
   else if (strcmp(word,"eave") == 0) compute_eave();
@@ -1287,6 +1320,48 @@ void Thermo::compute_ly()
 void Thermo::compute_lz()
 {
   dvalue = domain->zprd;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_xlo()
+{
+  dvalue = domain->boxxlo;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_xhi()
+{
+  dvalue = domain->boxxhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_ylo()
+{
+  dvalue = domain->boxylo;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_yhi()
+{
+  dvalue = domain->boxyhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_zlo()
+{
+  dvalue = domain->boxzlo;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_zhi()
+{
+  dvalue = domain->boxzhi;
 }
 
 /* ---------------------------------------------------------------------- */

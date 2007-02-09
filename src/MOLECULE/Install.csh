@@ -15,6 +15,7 @@ if ($1 == 1) then
   cp angle_hybrid.cpp ..
   cp atom_vec_angle.cpp ..
   cp atom_vec_bond.cpp ..
+  cp atom_vec_full.cpp ..
   cp atom_vec_molecular.cpp ..
   cp bond.cpp ..
   cp bond_fene.cpp ..
@@ -47,6 +48,7 @@ if ($1 == 1) then
   cp angle_hybrid.h ..
   cp atom_vec_angle.h ..
   cp atom_vec_bond.h ..
+  cp atom_vec_full.h ..
   cp atom_vec_molecular.h ..
 #  cp bond.h ..
   cp bond_fene.h ..
@@ -84,6 +86,7 @@ else if ($1 == 0) then
   rm ../angle_hybrid.cpp
   rm ../atom_vec_angle.cpp
   rm ../atom_vec_bond.cpp
+  rm ../atom_vec_full.cpp
   rm ../atom_vec_molecular.cpp
   rm ../bond.cpp
   rm ../bond_fene.cpp
@@ -116,6 +119,7 @@ else if ($1 == 0) then
   rm ../angle_hybrid.h
   rm ../atom_vec_angle.h
   rm ../atom_vec_bond.h
+  rm ../atom_vec_full.h
   rm ../atom_vec_molecular.h
 #  rm ../bond.h
   rm ../bond_fene.h

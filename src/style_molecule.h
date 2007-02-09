@@ -30,12 +30,14 @@ AngleStyle(hybrid,AngleHybrid)
 #ifdef AtomInclude
 #include "atom_vec_angle.h"
 #include "atom_vec_bond.h"
+#include "atom_vec_full.h"
 #include "atom_vec_molecular.h"
 #endif
 
 #ifdef AtomClass
 AtomStyle(angle,AtomVecAngle)
 AtomStyle(bond,AtomVecBond)
+AtomStyle(full,AtomVecFull)
 AtomStyle(molecular,AtomVecMolecular)
 #endif
 

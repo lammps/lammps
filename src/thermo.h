@@ -119,12 +119,14 @@ class Thermo : protected Pointers {
   void compute_step();    
   void compute_atoms();
   void compute_cpu();
+
   void compute_temp();
   void compute_press();
   void compute_pe();
   void compute_ke();
   void compute_etotal();
   void compute_enthalpy();
+
   void compute_evdwl();
   void compute_ecoul();
   void compute_epair();
@@ -135,18 +137,29 @@ class Thermo : protected Pointers {
   void compute_emol();
   void compute_elong();
   void compute_etail();
+
   void compute_vol();
   void compute_lx();
   void compute_ly();
   void compute_lz();
+
+  void compute_xlo();
+  void compute_xhi();
+  void compute_ylo();
+  void compute_yhi();
+  void compute_zlo();
+  void compute_zhi();
+
   void compute_pxx();
   void compute_pyy();
   void compute_pzz();
   void compute_pxy();
   void compute_pyz();
   void compute_pxz();
+
   void compute_drot();
   void compute_grot();
+
   void compute_tave();
   void compute_pave();
   void compute_eave();

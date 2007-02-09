@@ -40,10 +40,10 @@ AtomVecMolecular::AtomVecMolecular(LAMMPS *lmp, int narg, char **arg) :
   mass_type = 1;
   size_comm = 3;
   size_reverse = 3;
-  size_border = 8;
-  size_data_atom = 7;
+  size_border = 7;
+  size_data_atom = 6;
   size_data_vel = 4;
-  xcol_data = 5;
+  xcol_data = 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -70,8 +70,6 @@ void AtomVecMolecular::grow(int n)
   v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
   f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
 
-  q = atom->q = (double *) 
-    memory->srealloc(atom->q,nmax*sizeof(double),"atom:q");
   molecule = atom->molecule = (int *) 
     memory->srealloc(atom->molecule,nmax*sizeof(int),"atom:molecule");
 
@@ -158,7 +156,6 @@ void AtomVecMolecular::reset_ptrs()
   v = atom->v;
   f = atom->f;
 
-  q = atom->q;
   molecule = atom->molecule;
   nspecial = atom->nspecial;
   special = atom->special;
@@ -195,7 +192,6 @@ void AtomVecMolecular::reset_ptrs()
 
 void AtomVecMolecular::zero_owned(int i)
 {
-  q[i] = 0.0;
   molecule[i] = 0;
   num_bond[i] = 0;
   num_angle[i] = 0;
@@ -217,7 +213,6 @@ void AtomVecMolecular::zero_ghost(int n, int first)
   int last = first + n;
   for (int i = first; i < last; i++) {
     if (i == nmax) atom->avec->grow(0);
-    q[i] = 0.0;
     molecule[i] = 0;
   }
 }
@@ -239,7 +234,6 @@ void AtomVecMolecular::copy(int i, int j)
   v[j][1] = v[i][1];
   v[j][2] = v[i][2];
 
-  q[j] = q[i];
   molecule[j] = molecule[i];
 
   num_bond[j] = num_bond[i];
@@ -375,7 +369,6 @@ int AtomVecMolecular::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
-      buf[m++] = q[j];
       buf[m++] = molecule[j];
     }
   } else {
@@ -390,7 +383,6 @@ int AtomVecMolecular::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
-      buf[m++] = q[j];
       buf[m++] = molecule[j];
     }
   }
@@ -401,7 +393,6 @@ int AtomVecMolecular::pack_border(int n, int *list, double *buf,
 
 int AtomVecMolecular::pack_border_one(int i, double *buf)
 {
-  buf[0] = q[i];
   buf[1] = molecule[i];
   return 2;
 }
@@ -422,7 +413,6 @@ void AtomVecMolecular::unpack_border(int n, int first, double *buf)
     tag[i] = static_cast<int> (buf[m++]);
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
-    q[i] = buf[m++];
     molecule[i] = static_cast<int> (buf[m++]);
   }
 }
@@ -431,7 +421,6 @@ void AtomVecMolecular::unpack_border(int n, int first, double *buf)
 
 int AtomVecMolecular::unpack_border_one(int i, double *buf)
 {
-  q[i] = buf[0];
   molecule[i] = static_cast<int> (buf[1]);
   return 2;
 }
@@ -457,7 +446,6 @@ int AtomVecMolecular::pack_exchange(int i, double *buf)
   buf[m++] = mask[i];
   buf[m++] = image[i];
 
-  buf[m++] = q[i];
   buf[m++] = molecule[i];
 
   buf[m++] = num_bond[i];
@@ -526,7 +514,6 @@ int AtomVecMolecular::unpack_exchange(double *buf)
   mask[nlocal] = static_cast<int> (buf[m++]);
   image[nlocal] = static_cast<int> (buf[m++]);
 
-  q[nlocal] = buf[m++];
   molecule[nlocal] = static_cast<int> (buf[m++]);
 
   num_bond[nlocal] = static_cast<int> (buf[m++]);
@@ -633,7 +620,6 @@ int AtomVecMolecular::pack_restart(int i, double *buf)
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
-  buf[m++] = q[i];
   buf[m++] = molecule[i];
  
   buf[m++] = num_bond[i];
@@ -705,7 +691,6 @@ int AtomVecMolecular::unpack_restart(double *buf)
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
-  q[nlocal] = buf[m++];
   molecule[nlocal] = static_cast<int> (buf[m++]);
     
   num_bond[nlocal] = static_cast<int> (buf[m++]);
@@ -772,7 +757,6 @@ void AtomVecMolecular::create_atom(int itype, double x0, double y0, double z0,
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
-  q[nlocal] = 0.0;
   molecule[nlocal] = 0;
   num_bond[nlocal] = 0;
   num_angle[nlocal] = 0;
@@ -802,8 +786,6 @@ void AtomVecMolecular::data_atom(double xtmp, double ytmp, double ztmp,
   type[nlocal] = atoi(values[2]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one("Invalid atom type in Atoms section of data file");
-
-  q[nlocal] = atof(values[3]);
 
   x[nlocal][0] = xtmp;
   x[nlocal][1] = ytmp;

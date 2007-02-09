@@ -561,6 +561,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
       vtype[i] = INT;
+
     } else if (strcmp(arg[iarg],"x") == 0) {
       pack_choice[i] = &DumpCustom::pack_x;
       vtype[i] = DOUBLE;
@@ -597,6 +598,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"iz") == 0) {
       pack_choice[i] = &DumpCustom::pack_iz;
       vtype[i] = INT;
+
     } else if (strcmp(arg[iarg],"vx") == 0) {
       pack_choice[i] = &DumpCustom::pack_vx;
       vtype[i] = DOUBLE;
@@ -615,6 +617,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"fz") == 0) {
       pack_choice[i] = &DumpCustom::pack_fz;
       vtype[i] = DOUBLE;
+
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (atom->q == NULL)
 	error->all("Dumping an atom quantity that isn't allocated");
@@ -650,6 +653,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
+
     } else if (strcmp(arg[iarg],"epair") == 0) {
       pack_choice[i] = &DumpCustom::pack_epair;
       vtype[i] = DOUBLE;
@@ -667,6 +671,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_centro;
       vtype[i] = DOUBLE;
       index_centro = add_compute(style_centro,1);
+
     } else if (strcmp(arg[iarg],"sxx") == 0) {
       pack_choice[i] = &DumpCustom::pack_sxx;
       vtype[i] = DOUBLE;

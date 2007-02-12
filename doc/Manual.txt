@@ -10,7 +10,7 @@
 
 LAMMPS Documentation :c,h3
 
-(1 Oct 2006 version of LAMMPS) :c
+(12 Feb 2007 version of LAMMPS) :c
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.

@@ -9,6 +9,7 @@ The suffix of each file indicates the pair style it is used with:
 eam	      embedded atom method (EAM) single element, DYNAMO funcfl format
 eam.alloy     EAM multi-element alloy, DYNAMO setfl format
 eam.fs	      Finnis-Sinclair EAM multi-element alloy
+meam	      modified EAM (MEAM) library and individual elements/alloys
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential
 airebo	      AI-REBO (Brenner) potential

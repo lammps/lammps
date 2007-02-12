@@ -1,4 +1,4 @@
-# liberty_poems = HP clust w/ dual Xeons, mpiCC, native MPI, FFTW, POEMS lib
+# liberty_poems_meam = HP cluster w/ dual Xeons, mpiCC, native MPI, FFTW, POEMS/MEAM libs
 
 SHELL = /bin/sh
 .IGNORE:
@@ -11,9 +11,10 @@ CC =		mpiCC
 CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw -I/home/sjplimp/lammps/lib/poems
 DEPFLAGS =	-M
 LINK =		mpiCC
-LINKFLAGS =	-O -L${FFTW}/fftw/.libs -L/home/sjplimp/lammps/lib/poems
-USRLIB =	-lfftw -lpoems
-SYSLIB =	-lstdc++ -lm
+LINKFLAGS =	-O -L${FFTW}/fftw/.libs -L/home/sjplimp/lammps/lib/poems \
+		-L/home/sjplimp/lammps/lib/meam -L/opt/intel/fc/9.0/lib
+USRLIB =	-lfftw -lpoems -lmeam
+SYSLIB =	-lstdc++ -lm -lifcore
 SIZE =		size
 
 # Link rule

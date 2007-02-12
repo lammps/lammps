@@ -1,4 +1,4 @@
-# linux = RedHat Linux box, Intel icc, MPICH, FFTW, MEAM
+# linux_poems_meam = RedHat Linux box, Intel icc, MPICH, FFTW, POEMS & MEAM lib
 
 SHELL = /bin/sh
 #.IGNORE:
@@ -7,15 +7,17 @@ SHELL = /bin/sh
 
 CC =		icc
 CCFLAGS =	-O -I/home/sjplimp/tools/mpich/include \
+		-I/home/sjplimp/lammps/lib/poems \
 		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
 DEPFLAGS =	-M
 LINK =		icc
 LINKFLAGS =	-O -L/home/sjplimp/tools/mpich/lib \
-		-L/home/sjplimp/tools/fftw/lib \
+		-L/home/sjplimp/lammps/lib/poems \
 		-L/home/sjplimp/lammps/lib/meam \
+		-L/home/sjplimp/tools/fftw/lib \
 		-L/opt/intel/fc/9.0/lib
-USRLIB =	-lfftw -lmpich -lmeam
-SYSLIB =	-lcxa -lunwind -lstdc++ -lifcore
+USRLIB =	-lfftw -lmpich -lpoems -lmeam
+SYSLIB =	-lstdc++ -lcxa -lunwind -lifcore
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

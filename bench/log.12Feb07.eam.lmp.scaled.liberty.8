@@ -1,4 +1,4 @@
-LAMMPS (1 Oct 2006)
+LAMMPS (12 Feb 2007)
 # bulk Cu lattice
 
 variable	x index 20
@@ -9,6 +9,7 @@ units		metal
 atom_style	atomic
 
 lattice		fcc 3.615
+Lattice spacing in x,y,z = 3.615 3.615 3.615
 region		box block 0 $x 0 $y 0 $z
 region		box block 0 40 0 $y 0 $z
 region		box block 0 40 0 40 0 $z
@@ -35,25 +36,25 @@ thermo		50
 run		100
 Memory usage per processor = 14.9873 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0         1600      -906240            0   -853297.36     18701.28 
-      50    799.87665   -879587.33            0   -853120.09    51528.346 
-     100     784.7092   -879087.36            0   -853121.99    51929.574 
-Loop time of 23.074 on 8 procs for 100 steps with 256000 atoms
+       0         1600      -906240            0   -853295.25    18704.085 
+      50    799.88728   -879586.61            0   -853117.96    51535.434 
+     100    784.70888   -879086.24            0   -853119.86     51937.46 
+Loop time of 23.2889 on 8 procs for 100 steps with 256000 atoms
 
-Pair  time (%) = 18.7307 (81.1765)
-Neigh time (%) = 1.95514 (8.47332)
-Comm  time (%) = 1.47881 (6.40896)
-Outpt time (%) = 0.00384498 (0.0166636)
-Other time (%) = 0.905552 (3.92455)
+Pair  time (%) = 19.0116 (81.6336)
+Neigh time (%) = 1.94885 (8.36816)
+Comm  time (%) = 1.4661 (6.29526)
+Outpt time (%) = 0.00339171 (0.0145637)
+Other time (%) = 0.85899 (3.68841)
 
 Nlocal:    32000 ave 32128 max 31853 min
-Histogram: 1 0 1 1 0 1 1 2 0 1
+Histogram: 1 0 0 2 0 1 1 2 0 1
 Nghost:    19909.9 ave 20057 max 19782 min
 Histogram: 1 0 2 1 1 0 1 1 0 1
-Neighs:    1.20868e+06 ave 1.21395e+06 max 1.20305e+06 min
+Neighs:    1.20868e+06 ave 1.21395e+06 max 1.20304e+06 min
 Histogram: 1 2 0 0 0 0 2 2 0 1
 
-Total # of neighbors = 9669468
-Ave neighs/atom = 37.7714
+Total # of neighbors = 9669450
+Ave neighs/atom = 37.7713
 Neighbor list builds = 14
 Dangerous builds = 0

@@ -1,4 +1,4 @@
-LAMMPS (1 Oct 2006)
+LAMMPS (12 Feb 2007)
 # 3d Lennard-Jones melt
 
 variable	x index 20
@@ -9,6 +9,7 @@ units		lj
 atom_style	atomic
 
 lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
 region		box block 0 $x 0 $y 0 $z
 region		box block 0 40 0 $y 0 $z
 region		box block 0 40 0 40 0 $z
@@ -35,13 +36,13 @@ Memory usage per processor = 13.1944 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6133765    -5.019674 
      100    0.7616931   -5.7642895            0   -4.6217544   0.20907141 
-Loop time of 9.80536 on 8 procs for 100 steps with 256000 atoms
+Loop time of 9.93393 on 8 procs for 100 steps with 256000 atoms
 
-Pair  time (%) = 7.10165 (72.4262)
-Neigh time (%) = 0.641534 (6.54269)
-Comm  time (%) = 1.25001 (12.7483)
-Outpt time (%) = 0.00192311 (0.0196129)
-Other time (%) = 0.810236 (8.2632)
+Pair  time (%) = 7.17714 (72.2488)
+Neigh time (%) = 0.639012 (6.43262)
+Comm  time (%) = 1.32449 (13.333)
+Outpt time (%) = 0.00168276 (0.0169395)
+Other time (%) = 0.791604 (7.96869)
 
 Nlocal:    32000 ave 32077 max 31945 min
 Histogram: 2 2 0 1 0 0 0 1 1 1
@@ -54,4 +55,3 @@ Total # of neighbors = 9628940
 Ave neighs/atom = 37.613
 Neighbor list builds = 5
 Dangerous builds = 0
-

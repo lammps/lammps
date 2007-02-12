@@ -562,11 +562,8 @@ void ReadRestart::force_fields()
     MPI_Bcast(style,n,MPI_CHAR,0,world);
 
     if (force->pair == NULL || strcmp(style,force->pair_style)) {
-      if (force->pair) {
-	if (me == 0)
-	  error->warning("Resetting pair_style to restart file value");
-	delete force->pair;
-      }
+      if (force->pair && me == 0)
+	error->warning("Resetting pair_style to restart file value");
       force->create_pair(style);
     }
       
@@ -583,11 +580,8 @@ void ReadRestart::force_fields()
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       if (force->bond == NULL || strcmp(style,force->bond_style)) {
-	if (force->bond) {
-	  if (me == 0)
-	    error->warning("Resetting bond_style to restart file value");
-	  delete force->bond;
-	}
+	if (force->bond && me == 0)
+	  error->warning("Resetting bond_style to restart file value");
 	force->create_bond(style);
       }
       
@@ -605,11 +599,8 @@ void ReadRestart::force_fields()
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       if (force->angle == NULL || strcmp(style,force->angle_style)) {
-	if (force->angle) {
-	  if (me == 0)
-	    error->warning("Resetting angle_style to restart file value");
-	  delete force->angle;
-	}
+	if (force->angle && me == 0)
+	  error->warning("Resetting angle_style to restart file value");
 	force->create_angle(style);
       }
 
@@ -627,11 +618,8 @@ void ReadRestart::force_fields()
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       if (force->dihedral == NULL || strcmp(style,force->dihedral_style)) {
-	if (force->dihedral) {
-	  if (me == 0)
-	    error->warning("Resetting dihedral_style to restart file value");
-	  delete force->dihedral;
-	}
+	if (force->dihedral && me == 0)
+	  error->warning("Resetting dihedral_style to restart file value");
 	force->create_dihedral(style);
       }
 
@@ -649,11 +637,8 @@ void ReadRestart::force_fields()
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       if (force->improper == NULL || strcmp(style,force->improper_style)) {
-	if (force->improper) {
-	  if (me == 0)
-	    error->warning("Resetting improper_style to restart file value");
-	  delete force->improper;
-	}
+	if (force->improper && me == 0)
+	  error->warning("Resetting improper_style to restart file value");
 	force->create_improper(style);
       }
 

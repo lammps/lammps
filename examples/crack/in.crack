@@ -3,7 +3,7 @@
 dimension	2
 boundary	s s p
 
-atom_style	hybrid atomic
+atom_style	atomic
 neighbor	0.3 bin
 neigh_modify	delay 5
 

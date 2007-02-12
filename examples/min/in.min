@@ -22,7 +22,6 @@ fix		1 all nve
 fix		2 all enforce2d
 
 dump		1 all atom 100 dump.min
-dump_modify	1 scale no
 
 thermo		100
 

@@ -3,7 +3,7 @@
 units		metal
 boundary	s s p
 
-atom_style	hybrid atomic
+atom_style	atomic
 lattice		fcc 3.52
 region		box block 0 16.0 0 10.0 0 2.828427
 create_box	3 box

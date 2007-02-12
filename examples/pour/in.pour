@@ -28,6 +28,7 @@ fix		ins all pour 3000 1 300719 vol 0.13 50 region slab
 thermo_style	granular
 thermo		1000
 thermo_modify	lost ignore
+compute_modify	thermo_temp dynamic yes
 
 dump		id all atom 125 dump.pour
 run		25000

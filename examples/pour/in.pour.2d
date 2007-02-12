@@ -33,6 +33,7 @@ fix             3 all enforce2d
 thermo_style	granular
 thermo		1000
 thermo_modify	lost ignore
+compute_modify	thermo_temp dynamic yes
 
 dump		id all atom 100 dump.pour
 run		25000

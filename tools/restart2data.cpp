@@ -279,7 +279,7 @@ main (int argc, char **argv)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "1 Oct 2006";
+  char *version = "12 Feb 2007";
 
   int flag;
   flag = read_int(fp);

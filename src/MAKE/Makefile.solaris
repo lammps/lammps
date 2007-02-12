@@ -18,24 +18,24 @@ SIZE =          size
 # Link target
 
 $(EXE): $(OBJ)
-       $(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
-       $(SIZE) $(EXE)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
 
 # Library target
 
-lib:    $(OBJ)
-       $(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+lib: $(OBJ)
+     $(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
 # Compilation rules
 
 %.o:%.cpp
-       $(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) -c $<
 
 %.d:%.cpp
-       $(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 
-$(OBJ):         $(INC)
+$(OBJ): $(INC)
 #DEPENDS = $(OBJ:.o=.d)
 #include $(DEPENDS)

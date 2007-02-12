@@ -69,13 +69,12 @@ void PairLJCharmmCoulLongOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  int i,j,k,numneigh,itype,jtype,itable;
+  int i,j,k,itype,jtype,itable;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double factor,phicoul,philj,switch1,switch2;
   
-  int* __restrict__ neighs;
   double** __restrict__ f;
   
   float rsq;

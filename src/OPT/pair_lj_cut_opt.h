@@ -49,7 +49,6 @@ void PairLJCutOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  int* __restrict__ neighs;
   double** __restrict__ f;
   
   eng_vdwl = 0.0;

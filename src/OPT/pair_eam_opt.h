@@ -211,7 +211,6 @@ void PairEAMOpt::eval()
   // phi = embedding energy at each atom
   
   for (int i = 0; i < nlocal; i++) {
-    int itype = type[i];
     double p = rho[i]*rdrho;
     int m = MIN((int)p,nrho-2);
     p -= (double)m;
@@ -232,7 +231,6 @@ void PairEAMOpt::eval()
     double xtmp = xx[i].x;
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
-    int itype = type[i];
     int itype1 = type[i] - 1;
     int* __restrict__ neighs = firstneigh[i];
     int numneigh = num[i];
@@ -240,8 +238,6 @@ void PairEAMOpt::eval()
     double tmpfx = 0.0;
     double tmpfy = 0.0;
     double tmpfz = 0.0;
-    
-    double fpi = fp[i];
     
     fast_gamma_t* __restrict__ tabssi = &tabss[itype1*ntypes*nr];
     for (int k = 0; k < numneigh; k++) {
@@ -253,13 +249,13 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
       
       if (rsq < tmp_cutforcesq) {
-	int jtype = type[j] -1;
+	int jtype = type[j] - 1;
 	double r = sqrt(rsq);
 	double rhoip,rhojp,z2,z2p;
 	double p = r*tmp_rdr;
 	if ( (int)p <= nr2 ) {
-	  int m = (int)p + 1;
-	  p -= (double)((int)p);
+	  int m = (int) p + 1;
+	  p -= (double)((int) p);
 	  
 	  fast_gamma_t& a = tabssi[jtype*nr+m];
 	  rhoip = (a.rhor6i*p + a.rhor5i)*p + a.rhor4i;

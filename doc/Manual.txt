@@ -47,8 +47,8 @@ we can improve the LAMMPS documentation.
 "Getting started"_Section_start.html :l
   2.1 "What's in the LAMMPS distribution"_2_1 :ulb,b
   2.2 "Making LAMMPS"_2_2 :b
-  2.3 "Making LAMMPS with optional packages"_#2_3 :b
-  2.4 "Building LAMMPS as a library"_#2_4 :b
+  2.3 "Making LAMMPS with optional packages"_2_3 :b
+  2.4 "Building LAMMPS as a library"_2_4 :b
   2.5 "Running LAMMPS"_2_5 :b
   2.6 "Command-line options"_2_6 :b
   2.7 "Screen output"_2_7 :b

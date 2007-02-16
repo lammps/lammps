@@ -38,6 +38,13 @@ by a distance delta (e.g. due to <A HREF = "fix_nve.html">fix nve</A>), then it 
 put back inside the box by the same delta and the sign of the
 corresponding component of its velocity is flipped.
 </P>
+<P>This fix performs its operations at the same point in the timestep as
+other time integration fixes, such as <A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nvt.html">fix
+nvt</A>, or <A HREF = "fix_npt.html">fix npt</A>.  It is important that it
+be the last such fix specified in the input script, since it changes
+the atom positions set by those fixes to insure atoms stay within the
+simulation box.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

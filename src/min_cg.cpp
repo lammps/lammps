@@ -570,8 +570,8 @@ int MinCG::linemin_scan(int n, double *x, double *dir, double eng,
 /* ----------------------------------------------------------------------
    linemin: use secant approximation to estimate parabola minimum at each step
    should converge more quickly/accurately than "scan", but may be less robust
-   how to prevent func evals at new x bigger than maxdist?
    initial secant from two points: 0 and sigma0 = mindist
+   prevents successvive func evals further apart in x than maxdist
 ------------------------------------------------------------------------- */
 
 int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
@@ -579,20 +579,18 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
 			  double &alpha, int &nfunc)
 {
   int i,iter;
-  double eta,eta_prev,sigma0,alphadelta,fme,fmax,dsq,e0,tmp;
+  double eta,eta_prev,sigma0,sigmamax,alphadelta,fme,fmax,dsq,e0,tmp;
   double *f;
   double epssq = SECANT_EPS * SECANT_EPS;
 
   // stopping criterion for secant iterations
-  // change this
 
   fme = 0.0;
   for (i = 0; i < n; i++) fme += dir[i]*dir[i];
   MPI_Allreduce(&fme,&dsq,1,MPI_DOUBLE,MPI_SUM,world);
 
   // sigma0 = smallest allowed step of mindist
-  // eval func at sigma0
-  // test if minstep is already uphill
+  // sigmamax = largest allowed step (in single iteration) of maxdist
 
   fme = 0.0;
   for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
@@ -600,6 +598,10 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
   if (fmax == 0.0) return 1;
 
   sigma0 = mindist/fmax;
+  sigmamax = maxdist/fmax;
+
+  // eval func at sigma0
+  // test if minstep is already uphill
 
   e0 = eng;
   for (i = 0; i < n; i++) x[i] += sigma0*dir[i];
@@ -613,13 +615,13 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
     return 1;
   }
 
+  // secant iterations
+  // alphadelta = new increment to move, alpha = accumulated move
+
   f = atom->f[0];
   tmp = 0.0;
   for (i = 0; i < n; i++) tmp -= f[i]*dir[i];
   MPI_Allreduce(&tmp,&eta_prev,1,MPI_DOUBLE,MPI_SUM,world);
-
-  // secant iterations
-  // alphadelta = new increment to move, alpha = accumulated move
 
   alpha = sigma0;
   alphadelta = -sigma0;
@@ -638,6 +640,10 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
     alphadelta *= eta / (eta_prev - eta);
     eta_prev = eta;
     if (alphadelta*alphadelta*dsq <= epssq) break;
+    if (fabs(alphadelta) > sigmamax) {
+      if (alphadelta > 0.0) alphadelta = sigmamax;
+      else alphadelta = -sigmamax;
+    }
   }
 
   // if exited loop on first iteration, func eval was at alpha = 0.0

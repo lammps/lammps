@@ -425,18 +425,16 @@ void ReadRestart::header()
       if (flag && me == 0) 
 	error->warning("Resetting boundary settings to restart file values");
 
-      domain->xperiodic = xperiodic;
-      domain->yperiodic = yperiodic;
-      domain->zperiodic = zperiodic;
-      domain->periodicity[0] = xperiodic;
-      domain->periodicity[1] = yperiodic;
-      domain->periodicity[2] = zperiodic;
       domain->boundary[0][0] = boundary[0][0];
       domain->boundary[0][1] = boundary[0][1];
       domain->boundary[1][0] = boundary[1][0];
       domain->boundary[1][1] = boundary[1][1];
       domain->boundary[2][0] = boundary[2][0];
       domain->boundary[2][1] = boundary[2][1];
+
+      domain->periodicity[0] = domain->xperiodic = xperiodic;
+      domain->periodicity[1] = domain->yperiodic = yperiodic;
+      domain->periodicity[2] = domain->zperiodic = zperiodic;
   
       domain->nonperiodic = 0;
       if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) {

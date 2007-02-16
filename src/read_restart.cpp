@@ -428,6 +428,9 @@ void ReadRestart::header()
       domain->xperiodic = xperiodic;
       domain->yperiodic = yperiodic;
       domain->zperiodic = zperiodic;
+      domain->periodicity[0] = xperiodic;
+      domain->periodicity[1] = yperiodic;
+      domain->periodicity[2] = zperiodic;
       domain->boundary[0][0] = boundary[0][0];
       domain->boundary[0][1] = boundary[0][1];
       domain->boundary[1][0] = boundary[1][0];

@@ -74,6 +74,14 @@ means a fractional distance between the lo/hi box boundaries, e.g. 0.5
 <P>Note that the <A HREF = "velocity.html">velocity</A> command can be used to create
 velocities with zero aggregate linear and/or angular momentum.
 </P>
+<P>IMPORTANT NOTE: This fix performs its operations at the same point in
+the timestep as other time integration fixes, such as <A HREF = "fix_nve.html">fix
+nve</A>, <A HREF = "fix_nvt.html">fix nvt</A>, or <A HREF = "fix_npt.html">fix npt</A>.
+Thus fix recenter should normally be the last such fix specified in
+the input script, since the adjustments it makes to atom coordinates
+should come after the changes made by time integration.  LAMMPS will
+warn you if your fixes are not ordered this way.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>This fix should not be used with an x,y,z setting that causes a large
@@ -82,12 +90,6 @@ being very different from the initial COM.  This could cause atoms to
 be lost,especially in parallel.  Instead, use the
 <A HREF = "displace_atoms.html">displace_atoms</A> command, which can be used
 several times in succession to move atoms a large distance.
-</P>
-<P>This fix should be specified after integration fixes (<A HREF = "fix_nve.html">fix
-nve</A>, <A HREF = "fix_nvt.html">fix_nvt</A>, <A HREF = "fix_npt.html">fix npt</A>,
-etc), because the adjustments it makes to atom coordinates should come
-after atom coordinates are changed due to time integration.  LAMMPS
-will warn you if your fixes are not ordered this way.
 </P>
 <P><B>Related commands:</B>
 </P>

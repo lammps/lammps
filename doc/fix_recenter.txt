@@ -66,6 +66,14 @@ means a fractional distance between the lo/hi box boundaries, e.g. 0.5
 Note that the "velocity"_velocity.html command can be used to create
 velocities with zero aggregate linear and/or angular momentum.
 
+IMPORTANT NOTE: This fix performs its operations at the same point in
+the timestep as other time integration fixes, such as "fix
+nve"_fix_nve.html, "fix nvt"_fix_nvt.html, or "fix npt"_fix_npt.html.
+Thus fix recenter should normally be the last such fix specified in
+the input script, since the adjustments it makes to atom coordinates
+should come after the changes made by time integration.  LAMMPS will
+warn you if your fixes are not ordered this way.
+
 [Restrictions:]
 
 This fix should not be used with an x,y,z setting that causes a large
@@ -74,12 +82,6 @@ being very different from the initial COM.  This could cause atoms to
 be lost,especially in parallel.  Instead, use the
 "displace_atoms"_displace_atoms.html command, which can be used
 several times in succession to move atoms a large distance.
-
-This fix should be specified after integration fixes ("fix
-nve"_fix_nve.html, "fix_nvt"_fix_nvt.html, "fix npt"_fix_npt.html,
-etc), because the adjustments it makes to atom coordinates should come
-after atom coordinates are changed due to time integration.  LAMMPS
-will warn you if your fixes are not ordered this way.
 
 [Related commands:]
 

@@ -34,10 +34,12 @@ applied between the inner and outer cutoff.
 <P>The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
 cause the force to vary smoothly from Rin to Rc.  At Rin the force and
 its 1st derivative will match the unsmoothed LJ formula.  At Rc the
-force and its 1st derivative will be 0.0.  IMPORTANT NOTE: this force
-smoothing causes the energy to be discontinuous both in its values and
-1st derivative.  This can lead to poor energy conservation.  Plot the
-energy and force resulting from this formula via the
+force and its 1st derivative will be 0.0.
+</P>
+<P>IMPORTANT NOTE: this force smoothing causes the energy to be
+discontinuous both in its values and 1st derivative.  This can lead to
+poor energy conservation and may require the use of a thermostat.
+Plot the energy and force resulting from this formula via the
 <A HREF = "pair_write.html">pair_write</A> command to see the effect.
 </P>
 <P>The following coefficients must be defined for each pair of atoms

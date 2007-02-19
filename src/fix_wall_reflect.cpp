@@ -14,7 +14,9 @@
 #include "string.h"
 #include "fix_wall_reflect.h"
 #include "atom.h"
+#include "modify.h"
 #include "domain.h"
+#include "comm.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -45,6 +47,22 @@ int FixWallReflect::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixWallReflect::init()
+{
+  // warn if any integrate fix comes after this one
+
+  int after = 0;
+  int flag = 0;
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(id,modify->fix[i]->id) == 0) after = 1;
+    else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
+  }
+  if (flag && comm->me == 0)
+    error->warning("Fix wall/reflect should come after all other integration fixes");
 }
 
 /* ---------------------------------------------------------------------- */

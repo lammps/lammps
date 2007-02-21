@@ -27,39 +27,32 @@ class MinCG : public Min {
   virtual void iterate(int);
 
  protected:
-  int virial_thermo;         // what vflag should be on thermo steps (1,2)
-  int pairflag,torqueflag,granflag;               // force clear flags
+  int virial_thermo;      // what vflag should be on thermo steps (1,2)
+  int pairflag,torqueflag,granflag;
   int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
 
-  int maxpair;               // copies of Update quantities
+  int maxpair;            // copies of Update quantities
   double **f_pair;
 
   class FixMinimize *fix_minimize;  // fix that stores gradient vecs
-  double mindist,maxdist;    // min/max dist for coord delta in line search
+  double ecurrent;            // current potential energy
+  double mindist,maxdist;     // min/max dist for coord delta in line search
 
-  int ndof;                  // 3N degrees-of-freedom on this proc
-  double *x;                 // vec of 3N coords, ptr to atom->x[0]
-  double *f;                 // vec of 3N forces, ptr to atom->f[0]
-  double *g;                 // vec of 3N old forces, ptr to fix_minimize::g
-  double *h;                 // vec of 3N search dir, ptr to fix_minimize::h
+  int ndof;               // # of degrees-of-freedom on this proc
+  double *g,*h;           // local portion of gradient, searchdir vectors
 
-  int ndof_extra;            // extra degrees of freedom to include in min
-  double energy_extra;       // extra potential energy
-  double *xextra;            // extra vecs associated with ndof_extra
-  double *fextra;
-  double *gextra;
-  double *hextra;
+  typedef int (MinCG::*FnPtr)(int, double *, double *, double,
+			      double, double, double &, int &);
+  FnPtr linemin;          // ptr to linemin functions
 
-  double energy;             // potential energy of atoms and extra dof
-
-  typedef int (MinCG::*FnPtr)(int &);
-  FnPtr linemin;                        // ptr to linemin functions
-  int linemin_scan(int &);
-  int linemin_secant(int &);
+  int linemin_scan(int, double *, double *, double,
+		   double, double, double &, int &);
+  int linemin_secant(int, double *, double *, double,
+		     double, double, double &, int &);
 
   void setup();
-  void set_local_vectors();
-  void eng_force();
+  void setup_vectors();
+  void eng_force(int *, double **, double **, double *);
   void force_clear(int);
 };
 

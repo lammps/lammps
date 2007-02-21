@@ -35,9 +35,10 @@ void MinSD::iterate(int n)
 {
   int i,fail;
   double alpha,dot,dotall;
+  double *f;
 
+  f = atom->f[0];
   for (int i = 0; i < ndof; i++) h[i] = f[i];
-  for (i = 0; i < ndof_extra; i++) hextra[i] = fextra[i];
 
   neval = 0;
 
@@ -47,29 +48,28 @@ void MinSD::iterate(int n)
 
     // line minimization along direction h from current atom->x
 
-    eprevious = energy;
-    fail = (this->*linemin)(neval);
+    eprevious = ecurrent;
+    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,alpha,neval);
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently, all done
 
     if (neval >= update->max_eval) break;
 
-    if (fail || fabs(energy-eprevious) <= 
-    	update->tolerance * 0.5*(fabs(energy) + fabs(eprevious) + EPS))
+    if (fail || fabs(ecurrent-eprevious) <= 
+    	update->tolerance * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS))
       break;
 
     // set h to new f = -Grad(x)
     // done if size sq of grad vector < EPS
 
+    f = atom->f[0];
     dot = 0.0;
     for (i = 0; i < ndof; i++) dot += f[i]*f[i];
     MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < ndof_extra; i++) dotall += fextra[i]*fextra[i];
     if (dotall < EPS) break;
 
     for (i = 0; i < ndof; i++) h[i] = f[i];
-    for (i = 0; i < ndof_extra; i++) hextra[i] = fextra[i];
 
     // output for thermo, dump, restart files
 

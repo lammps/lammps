@@ -13,26 +13,45 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ave/spatial Nevery Nfreq dim origin delta file keyword value ... 
+<PRE>fix ID group-ID ave/spatial Nevery Nfreq dim origin delta file style args keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>ave/spatial = style name of this fix command
-<LI>Nevery = calculate property every this many timesteps
-<LI>Nfreq = write average property to file every this many steps
-<LI>dim = <I>x</I> or <I>y</I> or <I>z</I>
-<LI>origin = <I>lower</I> or <I>center</I> or <I>upper</I> or coordinate value
-<LI>delta = thickness of spatial layers in dim
-<LI>file = filename to write results to
-<LI>keyword = <I>density</I> or <I>atom</I> or <I>compute</I> 
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>ave/spatial = style name of this fix command 
+
+<LI>Nevery = calculate property every this many timesteps 
+
+<LI>Nfreq = write average property to file every this many steps 
+
+<LI>dim = <I>x</I> or <I>y</I> or <I>z</I> 
+
+<LI>origin = <I>lower</I> or <I>center</I> or <I>upper</I> or coordinate value (distance units) 
+
+<LI>delta = thickness of spatial layers in dim (distance units) 
+
+<LI>file = filename to write results to 
+
+<LI>style = <I>density</I> or <I>atom</I> or <I>compute</I> 
+
+<PRE>  <I>density</I> arg = <I>mass</I> or <I>number</I>
+    <I>mass</I> = compute mass density
+    <I>number</I> = compute number density
+  <I>atom</I> arg = <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>fx</I> or <I>fy</I> or <I>fz</I>
+  <I>compute</I> arg = compute-ID that calculates per-atom quantities 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended to the args 
+
+<PRE>keyword = <I>norm</I> or <I>units</I>
+  <I>norm</I> value = <I>all</I> or <I>sample</I>
+  <I>units</I> value = <I>box</I> or <I>lattice</I> 
+</PRE>
+
 </UL>
-<PRE>  <I>density</I> value = none
-  <I>atom</I> value = <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>fx</I> or <I>fy</I> or <I>fz</I>
-  <I>compute value</I> = compute-ID that calculates per-atom quantities 
-</PRE>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 1 all ave/time 10000 10000 z lower 2.0 centro.profile compute myCentro
-fix 1 flow ave/time 100 1000 y 0.0 1.0 vel.profile atom vx 
+fix 1 flow ave/time 100 1000 y 0.0 1.0 vel.profile atom vx norm sample
+fix 1 flow ave/time 100 1000 y 0.0 1.0 dens.profile density mass 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -43,20 +62,20 @@ to spatially average per-atom properties such as velocity or energy or
 a quantity calculated by an equation you define; see the <A HREF = "variable.html">variable
 atom</A> command.
 </P>
-<P>The <I>density</I> keyword means to simply count the number of atoms in
-each layer.  The <I>atom</I> keyword allows an atom property such as
-x-velocity to be specified.  The <I>compute</I> keyword allows
-specification of a <A HREF = "compute.html">compute</A> which will be invoked to
-calculate the desired property.  The compute can be previously defined
-in the input script.  Note that the "compute variable/atom" style
-allows you to calculate any quantity for an atom that can be specified
-by a <A HREF = "variable.html">variable atom</A> equation.  Users can also write
-code for their own compute styles and <A HREF = "Section_modify.html">add them to
+<P>The <I>density</I> styles means to simply count the number of atoms in each
+layer, either by mass or number.  The <I>atom</I> style allows an atom
+property such as x-velocity to be specified.  The <I>compute</I> style
+allows specification of a <A HREF = "compute.html">compute</A> which will be invoked
+to calculate the desired property.  The compute can be previously
+defined in the input script.  Note that the "compute variable/atom"
+style allows you to calculate any quantity for an atom that can be
+specified by a <A HREF = "variable.html">variable atom</A> equation.  Users can also
+write code for their own compute styles and <A HREF = "Section_modify.html">add them to
 LAMMPS</A>.  Note that the <A HREF = "dump.html">dump custom</A>
 command can also be used to output per-atom quantities calculated by a
 compute.
 </P>
-<P>For the <I>compute</I> keyword, the fix ave/spatial style uses the per-atom
+<P>For the <I>compute</I> style, the fix ave/spatial style uses the per-atom
 scalar or vector calculated by the compute.  See the <A HREF = "fix_ave_time.html">fix
 ave/time</A> command if you wish to time-average a
 global quantity, e.g. via a compute that temperature or pressure.
@@ -75,12 +94,32 @@ the box.  On subsequent timesteps every atom is mapped to one of the
 layers.  Atoms beyond the lowermost/uppermost layer are counted in the
 first/last layer.
 </P>
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+for the layer thickness <I>delta</I> and <I>origin</I> if it is a coordinate
+value.  A <I>box</I> value selects standard distance units as defined by
+the <A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or
+metal.  A <I>lattice</I> value means the distance units are in lattice
+spacings.  The <A HREF = "lattice.html">lattice</A> command must have been
+previously used to define the lattice spacing.
+</P>
 <P>The <I>Nevery</I> and <I>Nfreq</I> arguments specify how the property calculated
 for each layer is time-averaged.  The property is calculated once each
 Nevery timesteps.  It is averaged and output every Nfreq timesteps.
 Nfreq must be a multiple of Nevery.  In the 2nd example above, the
 property is calculated every 100 steps.  After 10 calculations, the
 average result is written to the file, once every 1000 steps.
+</P>
+<P>The <I>norm</I> keyword also affects how time-averaging is done.  For an
+<I>all</I> setting, a layer quantity is summed over all atoms in all
+Nfreq/Nevery samples, as is the count of atoms in the layer.  The
+printed value for the layer is Total-quantity / Total-count.
+In other words it is an average over the entire Nfreq timescale.
+</P>
+<P>For a <I>sample</I> setting, the quantity is summed over atoms for only a
+single sample, as is the count, and a "average sample value" is
+computed, i.e. Sample-quantity / Sample-count.  The printed value for
+the layer is the average of the M "average sample values", where M =
+Nfreq/Nevery.  In other words it is an average of an average.
 </P>
 <P>Each time info is written to the file, it is in the following format.
 A line with the timestep and number of layers is written.  Then one
@@ -94,11 +133,6 @@ with a compute that calculates a single quantity per atom, then a
 single value will be printed for each layer.  If the <I>compute</I> keyword
 is used with a compute that calculates N quantities per atom, then N
 values per line will be written, each of them averaged independently.
-</P>
-<P>Note that for the <I>density</I> keyword, the printed count of atoms in the
-layer is actually what you should use to infer a density.  The
-calculated value is always 1.0, since it is normalized by the number
-of atoms in the layer.
 </P>
 <P>For the <I>compute</I> keyword, the calculation performed by the compute in
 on the group defined by the compute.  However, only atoms in the fix
@@ -115,6 +149,8 @@ fix ave/spatial, it can slow down a simulation.
 </P>
 <P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are norm = all and units = lattice.
 </P>
 </HTML>

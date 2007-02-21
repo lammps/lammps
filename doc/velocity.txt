@@ -19,14 +19,14 @@ style = {create} or {set} or {scale} or {ramp} or {zero} :l
     seed = random # seed (8 digits or less)
   {set} args = vx vy vz
     vx,vy,vz = velocity value or NULL (velocity units)
-  {scale} args = temp
+  {scale} arg = temp
     temp = temperature value (temperature units)
   {ramp} args = vdim vlo vhi dim clo chi
     vdim = {vx} or {vy} or {vz}
     vlo,vhi = lower and upper velocity value (velocity units)
     dim = {x} or {y} or {z}
     clo,chi = lower and upper coordinate bound (distance units)
-  {zero} args = {linear} or {angular}
+  {zero} arg = {linear} or {angular}
     {linear} = zero the linear momentum
     {angular} = zero the angular momentum :pre
 

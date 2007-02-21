@@ -1,0 +1,85 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix ave/time command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID ave/time Nevery Nfreq compute-ID flag file 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>ave/time = style name of this fix command
+<LI>Nevery = calculate property every this many timesteps
+<LI>Nfreq = write average property to file every this many steps
+<LI>compute-ID = ID of compute that performs the calculation
+<LI>flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
+<LI>file = filename to write results to 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all ave/time 100 1000 myTemp 0 temp.stats 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Calculate one or more instantaneous quantities every few timesteps,
+average them over a longer timescale, and print the results to a file.
+This can be used to time-average any "compute" entity in LAMMPS such
+as a temperature or pressure.
+</P>
+<P>The <I>compute-ID</I> specifies a <A HREF = "compute.html">compute</A> which calculates
+the desired property.  The compute can be previously defined in the
+input script.  Or it can be a compute defined by <A HREF = "thermo_style.html">thermodynamic
+output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
+nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  Users
+can also write code for their own compute styles and <A HREF = "Section_modify.html">add them to
+LAMMPS</A>.
+</P>
+<P>In all these cases, the fix ave/time style uses the global scalar or
+vector calculated by the compute.  See the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command if you wish to average
+spatially, e.g. via a compute that calculates per-atom quantities.
+</P>
+<P>The <I>Nevery</I> and <I>Nfreq</I> arguments specify how the property will be
+averaged.  The property is calculated once each Nevery timesteps.  It
+is averaged and output every Nfreq timesteps.  Nfreq must be a
+multiple of Nevery.  In the example above, the property is calculated
+every 100 steps.  After 10 calculations, the average result is written
+to the file, once every 1000 steps.
+</P>
+<P>The <I>flag</I> argument chooses whether the scalar and/or vector
+calculation of the compute is invoked.  The former computes a single
+global value.  The latter computes N global values, where N is defined
+by the compute, e.g. 6 pressure tensor components.  In the vector
+case, each of the N values is averaged independently and N values are
+written to the file at each output.
+</P>
+<P>Since the calculation is performed by the compute which stores its own
+"group" definition, the group specified for the fix is ignored.
+LAMMPS prints a warning if the fix group and compute group do not
+match.
+</P>
+<P>If the compute calculates pressure, it will cause the force
+computations performed by LAMMPS (pair, bond, angle, etc) to calculate
+virial terms each Nevery timesteps.  If this is more frequent than
+thermodynamic output, this adds extra cost to a simulation.  However,
+if a constant pressure simulation is being run (<A HREF = "fix_npt.html">fix npt</A>
+or <A HREF = "fix_nph.html">fix nph</A>), LAMMPS is already calculating virial terms
+for the pressure every timestep.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

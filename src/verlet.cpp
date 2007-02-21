@@ -34,10 +34,25 @@
 
 using namespace LAMMPS_NS;
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 /* ---------------------------------------------------------------------- */
 
 Verlet::Verlet(LAMMPS *lmp, int narg, char **arg) :
-  Integrate(lmp, narg, arg) {}
+  Integrate(lmp, narg, arg)
+{
+  fix_virial_every = NULL;
+  next_fix_virial = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+Verlet::~Verlet()
+{
+  delete [] fix_virial_every;
+  delete [] next_fix_virial;
+}
 
 /* ----------------------------------------------------------------------
    initialization before run
@@ -50,26 +65,31 @@ void Verlet::init()
   if (modify->nfix == 0)
     error->warning("No fixes defined, atoms won't move");
 
-  // set flags for how virial should be computed when needed
-  // pressure_flag is 1 if NPT,NPH
-  // virial_every is how virial should be computed every timestep
-  //   0 = not computed, 1 = computed explicity by pair, 
-  //   2 = computed implicitly by pair (via summation over ghost atoms)
-  // virial_thermo is how virial should be computed on thermo timesteps
-  //   1 = computed explicity by pair, 2 = computed implicitly by pair
+  // setup virial computations for timestepping
+  // virial_style = 1 if computed explicitly by pair
+  //                2 if computed implicitly by pair (sum over ghost atoms)
+  // virial_every = 1 if computed every timestep (NPT,NPH)
+  // fix arrays store info on fixes that need virial computed occasionally
 
-  int pressure_flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) pressure_flag = 1;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) pressure_flag = 1;
+  if (force->newton_pair) virial_style = 2;
+  else virial_style = 1;
+
+  virial_every = 0;
+  nfix_virial = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->pressure_every == 1) virial_every = 1;
+    else if (modify->fix[i]->pressure_every > 1) nfix_virial++;
+
+  if (nfix_virial) {
+    delete [] fix_virial_every;
+    delete [] next_fix_virial;
+    fix_virial_every = new int[nfix_virial];
+    next_fix_virial = new int[nfix_virial];
+    nfix_virial = 0;
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->pressure_every > 1)
+	fix_virial_every[nfix_virial++] = modify->fix[i]->pressure_every;
   }
-
-  if (pressure_flag && force->newton_pair) virial_every = 2;
-  else if (pressure_flag) virial_every = 1;
-  else virial_every = 0;
-
-  if (force->newton_pair) virial_thermo = 2;
-  else virial_thermo = 1;
 
   // set flags for what arrays to clear in force_clear()
   // need to clear torques if atom_style is dipole
@@ -83,7 +103,7 @@ void Verlet::init()
   pairflag = 1;
   if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
-  // local versions of Update quantities
+  // local copies of Update quantities
 
   maxpair = update->maxpair;
   f_pair = update->f_pair;
@@ -113,7 +133,7 @@ void Verlet::setup()
   // compute all forces
 
   int eflag = 1;
-  int vflag = virial_thermo;
+  int vflag = virial_style;
   force_clear(vflag);
   
   if (atom->molecular) {
@@ -134,6 +154,21 @@ void Verlet::setup()
 
   modify->setup();
   output->setup(1);
+
+  // setup virial computations for timestepping
+
+  int ntimestep = update->ntimestep;
+  next_virial = 0;
+  if (virial_every) next_virial = ntimestep + 1;
+  else {
+    for (int ivirial = 0; ivirial < nfix_virial; ivirial++) {
+      next_fix_virial[ivirial] = 
+	(ntimestep/fix_virial_every[ivirial])*fix_virial_every[ivirial] + 
+	fix_virial_every[ivirial];
+      if (ivirial) next_virial = MIN(next_virial,next_fix_virial[ivirial]);
+      else next_virial = next_fix_virial[0];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -142,13 +177,17 @@ void Verlet::setup()
 
 void Verlet::iterate(int n)
 {
-  int eflag,vflag,nflag;
+  int eflag,vflag,nflag,ntimestep;
 
   for (int i = 0; i < n; i++) {
 
-    update->ntimestep++;
+    ntimestep = ++update->ntimestep;
+
+    // initial time integration
 
     modify->initial_integrate();
+
+    // regular communication vs neighbor list rebuild
 
     nflag = neighbor->decide();
 
@@ -173,12 +212,19 @@ void Verlet::iterate(int n)
       timer->stamp(TIME_NEIGHBOR);
     }
 
-    eflag = 0;
-    vflag = virial_every;
-    if (output->next_thermo == update->ntimestep) {
-      eflag = 1;
-      vflag = virial_thermo;
-    }
+    // eflag/vflag = 0/1/2 for energy/virial computation
+
+    if (ntimestep == output->next_thermo) eflag = 1;
+    else eflag = 0;
+
+    if (ntimestep == output->next_thermo || ntimestep == next_virial) {
+      vflag = virial_style;
+      if (virial_every) next_virial++;
+      else next_virial = fix_virial(ntimestep);
+    } else vflag = 0;
+
+    // force computations
+
     force_clear(vflag);
 
     timer->stamp();
@@ -200,18 +246,24 @@ void Verlet::iterate(int n)
       timer->stamp(TIME_KSPACE);
     }
 
+    // reverse communication of forces
+
     if (force->newton) {
       comm->reverse_communicate();
       timer->stamp(TIME_COMM);
     }
 
+    // force modifications, final time integration, diagnostics
+
     if (modify->n_post_force) modify->post_force(vflag);
     modify->final_integrate();
     if (modify->n_end_of_step) modify->end_of_step();
 
-    if (output->next == update->ntimestep) {
+    // all output
+
+    if (ntimestep == output->next) {
       timer->stamp();
-      output->write(update->ntimestep);
+      output->write(ntimestep);
       timer->stamp(TIME_OUTPUT);
     }
   }
@@ -274,4 +326,21 @@ void Verlet::force_clear(int vflag)
       f_pair[i][2] = 0.0;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   return next timestep virial should be computed
+   based on one or more fixes that need virial computed periodically
+------------------------------------------------------------------------- */
+
+int Verlet::fix_virial(int ntimestep)
+{
+  int next;
+  for (int ivirial = 0; ivirial < nfix_virial; ivirial++) {
+    if (ntimestep == next_fix_virial[ivirial])
+      next_fix_virial[ivirial] += fix_virial_every[ivirial];
+    if (ivirial) next = MIN(next,next_fix_virial[ivirial]);
+    else next = next_fix_virial[0];
+  }
+  return next;
 }

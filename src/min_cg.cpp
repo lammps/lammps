@@ -72,12 +72,12 @@ void MinCG::init()
   delete [] fixarg;
   fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
 
-  // zero gradient vectors before first atom exchange
+  // zero local vectors before first atom exchange
 
-  setup_vectors();
+  set_local_vectors();
   for (int i = 0; i < ndof; i++) h[i] = g[i] = 0.0;
 
-  // virial_thermo is how virial should be computed on thermo timesteps
+  // virial_thermo = how virial computed on thermo timesteps
   // 1 = computed explicity by pair, 2 = computed implicitly by pair
 
   if (force->newton_pair) virial_thermo = 2;
@@ -127,28 +127,31 @@ void MinCG::init()
 
 void MinCG::run()
 {
-  double tmp,*f;
+  int i;
+  double tmp;
 
   // set initial force & energy
 
   setup();
-  setup_vectors();
   output->thermo->compute_pe();
-  ecurrent = output->thermo->potential_energy;
+  energy = output->thermo->potential_energy;
+  energy += energy_extra;
 
   // stats for Finish to print
 	
-  einitial = ecurrent;
+  einitial = energy;
 
-  f = atom->f[0];
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
+  for (i = 0; i < ndof; i++) tmp += f[i]*f[i];
   MPI_Allreduce(&tmp,&gnorm2_init,1,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < ndof_extra; i++) gnorm2_init += fextra[i]*fextra[i];
   gnorm2_init = sqrt(gnorm2_init);
 
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
+  for (i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
   MPI_Allreduce(&tmp,&gnorminf_init,1,MPI_DOUBLE,MPI_MAX,world);
+  for (i = 0; i < ndof_extra; i++)
+    gnorminf_init = MAX(gnorminf_init,fabs(fextra[i]));
 
   // minimizer iterations
 
@@ -169,16 +172,19 @@ void MinCG::run()
     output->next_dump_any = update->ntimestep;
     if (output->restart_every) output->next_restart = update->ntimestep;
     output->next_thermo = update->ntimestep;
-    int ntmp;
-    double *xtmp,*htmp,etmp;
-    eng_force(&ntmp,&xtmp,&htmp,&etmp);
+    eng_force();
     output->write(update->ntimestep);
   }
   timer->barrier_stop(TIME_LOOP);
 
   // delete fix at end of run, so its atom arrays won't persist
+  // delete extra arrays
 
   modify->delete_fix("MINIMIZE");
+  delete [] xextra;
+  delete [] fextra;
+  delete [] gextra;
+  delete [] hextra;
 
   // reset reneighboring criteria
 
@@ -188,17 +194,20 @@ void MinCG::run()
 
   // stats for Finish to print
 	
-  efinal = ecurrent;
+  efinal = energy;
 
   f = atom->f[0];
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
+  for (i = 0; i < ndof; i++) tmp += f[i]*f[i];
   MPI_Allreduce(&tmp,&gnorm2_final,1,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < ndof_extra; i++) gnorm2_final += fextra[i]*fextra[i];
   gnorm2_final = sqrt(gnorm2_final);
 
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
+  for (i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
   MPI_Allreduce(&tmp,&gnorminf_final,1,MPI_DOUBLE,MPI_MAX,world);
+  for (i = 0; i < ndof_extra; i++)
+    gnorminf_final = MAX(gnorminf_final,fabs(fextra[i]));
 }
 
 /* ----------------------------------------------------------------------
@@ -207,6 +216,20 @@ void MinCG::run()
 
 void MinCG::setup()
 {
+  // allocate extra arrays
+  // couldn't do in init(), b/c modify and fixes weren't yet init()
+  // set initial xextra values via fixes
+
+  ndof_extra = modify->min_dof();
+  xextra = new double[ndof_extra];
+  fextra = new double[ndof_extra];
+  gextra = new double[ndof_extra];
+  hextra = new double[ndof_extra];
+
+  modify->min_xinitial(xextra);
+
+  // perform usual setup
+
   if (comm->me == 0 && screen) fprintf(screen,"Setting up minimization ...\n");
 
   // setup domain, communication and neighboring
@@ -222,7 +245,7 @@ void MinCG::setup()
   comm->borders();
   neighbor->build();
   neighbor->ncalls = 0;
-  setup_vectors();
+  set_local_vectors();
 
   // compute all forces
 
@@ -247,6 +270,7 @@ void MinCG::setup()
   if (force->newton) comm->reverse_communicate();
 
   modify->setup();
+  energy_extra = modify->min_energy(xextra,fextra);
   output->setup(1);
 }
 
@@ -259,14 +283,14 @@ void MinCG::iterate(int n)
 {
   int i,gradsearch,fail;
   double alpha,beta,gg,dot[2],dotall[2];
-  double *f;
 
-  f = atom->f[0];
-  for (int i = 0; i < ndof; i++) h[i] = g[i] = f[i];
+  for (i = 0; i < ndof; i++) h[i] = g[i] = f[i];
+  for (i = 0; i < ndof_extra; i++) hextra[i] = gextra[i] = fextra[i];
 
   dot[0] = 0.0;
   for (i = 0; i < ndof; i++) dot[0] += f[i]*f[i];
   MPI_Allreduce(dot,&gg,1,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < ndof_extra; i++) gg += fextra[i]*fextra[i];
 
   neval = 0;
   gradsearch = 1;
@@ -277,8 +301,8 @@ void MinCG::iterate(int n)
 
     // line minimization along direction h from current atom->x
 
-    eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,alpha,neval);
+    eprevious = energy;
+    fail = (this->*linemin)(neval);
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently:
@@ -287,8 +311,8 @@ void MinCG::iterate(int n)
 
     if (neval >= update->max_eval) break;
 
-    if (fail || fabs(ecurrent-eprevious) <= 
-    	update->tolerance * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS)) {
+    if (fail || fabs(energy-eprevious) <= 
+    	update->tolerance * 0.5*(fabs(energy) + fabs(eprevious) + EPS)) {
       if (gradsearch == 1) break;
       gradsearch = -1;
     }
@@ -299,14 +323,17 @@ void MinCG::iterate(int n)
     // force new search dir to be grad dir if need to restart CG
     // set gradsearch to 1 if will search in grad dir on next iteration
 
-    f = atom->f[0];
     dot[0] = dot[1] = 0.0;
     for (i = 0; i < ndof; i++) {
       dot[0] += f[i]*f[i];
       dot[1] += f[i]*g[i];
     }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
-
+    for (i = 0; i < ndof_extra; i++) {
+      dotall[0] += fextra[i]*fextra[i];
+      dotall[1] += fextra[i]*gextra[i];
+    }
+    
     beta = MAX(0.0,(dotall[0] - dotall[1])/gg);
     gg = dotall[0];
     if (gg < EPS) break;
@@ -318,6 +345,10 @@ void MinCG::iterate(int n)
     for (i = 0; i < ndof; i++) {
       g[i] = f[i];
       h[i] = g[i] + beta*h[i];
+    }
+    for (i = 0; i < ndof_extra; i++) {
+      gextra[i] = fextra[i];
+      hextra[i] = gextra[i] + beta*hextra[i];
     }
 
     // output for thermo, dump, restart files
@@ -334,9 +365,11 @@ void MinCG::iterate(int n)
    set ndof and vector pointers after atoms have migrated
 ------------------------------------------------------------------------- */
 
-void MinCG::setup_vectors()
+void MinCG::set_local_vectors()
 {
   ndof = 3 * atom->nlocal;
+  x = atom->x[0];
+  f = atom->f[0];
   if (ndof) g = fix_minimize->gradient[0];
   else g = NULL;
   if (ndof) h = fix_minimize->searchdir[0];
@@ -346,11 +379,11 @@ void MinCG::setup_vectors()
 /* ----------------------------------------------------------------------
    evaluate potential energy and forces
    may migrate atoms
-   new energy stored in ecurrent and returned (in case caller not in class)
-   negative gradient will be stored in atom->f
+   energy = new objective function energy = poteng of atoms + eng_extra
+   atom->f, fextra = negative gradient of objective function
 ------------------------------------------------------------------------- */
 
-void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
+void MinCG::eng_force()
 {
   // check for reneighboring
   // always communicate since minimizer moved atoms
@@ -375,7 +408,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
     timer->stamp(TIME_COMM);
     neighbor->build();
     timer->stamp(TIME_NEIGHBOR);
-    setup_vectors();
+    set_local_vectors();
   }
 
   // eflag is always set, since minimizer needs potential energy
@@ -409,21 +442,17 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
     timer->stamp(TIME_COMM);
   }
 
-  // fixes that affect minimization
+  // min_post_force = forces on atoms that affect minimization
+  // min_energy = energy, forces on extra degrees of freedom
 
   if (modify->n_min_post_force) modify->min_post_force(vflag);
+  if (modify->n_min_energy) energy_extra = modify->min_energy(xextra,fextra);
 
   // compute potential energy of system via Thermo
 
   output->thermo->compute_pe();
-  ecurrent = output->thermo->potential_energy;
-
-  // return updated ptrs to caller since atoms may have migrated
-
-  *pndof = ndof;
-  *px = atom->x[0];
-  *ph = h;
-  *peng = ecurrent;
+  energy = output->thermo->potential_energy;
+  energy += energy_extra;
 }
 
 /* ----------------------------------------------------------------------
@@ -487,25 +516,15 @@ void MinCG::force_clear(int vflag)
 
 /* ----------------------------------------------------------------------
    line minimization methods
-   find minimum-energy starting at x along dir direction
-   input: n = # of degrees of freedom on this proc
-          x = ptr to atom->x[0] as vector
-	  dir = search direction as vector
-	  eng = current energy at initial x
-	  min/max dist = min/max distance to move any atom coord
-   output: return 0 if successful move, set alpha
-           return 1 if failed, no move, no need to set alpha
-           alpha = distance moved along dir to set x to min-eng config
-           caller has several quantities set via last call to eng_force()
-	     INSURE last call to eng_force() is consistent with returns
-	       if fail, eng_force() of original x
-	       if succeed, eng_force() at x + alpha*dir
-             atom->x = coords at new configuration
-	     atom->f = force (-Grad) is evaulated at new configuration
-	     ecurrent = energy of new configuration
-   NOTE: when call eng_force: n,x,dir,eng may change due to atom migration
-	 updated values are returned by eng_force()
-	 this routine CANNOT store atom-based quantities b/c of migration
+   find minimum-energy starting at x along h direction
+   update atom->x by alpha, call eng_force() for result
+   alpha = distance moved along h to set x to minimun-energy configuration
+   return 0 if successful move, 1 if failed (no move)
+   insure last call to eng_force() is consistent with return
+     if fail, eng_force() of original x
+     if succeed, eng_force() at x + alpha*h
+   eng_force() may migrate atoms due to neighbor list build
+     therefore linemin routines CANNOT store atom-based quantities
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -515,52 +534,55 @@ void MinCG::force_clear(int vflag)
    quit as soon as energy starts to rise
 ------------------------------------------------------------------------- */
 
-int MinCG::linemin_scan(int n, double *x, double *dir, double eng,
-			double mindist, double maxdist,
-			double &alpha, int &nfunc)
+int MinCG::linemin_scan(int &nfunc)
 {
   int i;
-  double fmax,fme,elowest,alphamin,alphamax,alphalast;
+  double fmax,fme,elowest,alpha,alphamin,alphamax,alphalast;
 
   // alphamin = step that moves some atom coord by mindist
   // alphamax = step that moves some atom coord by maxdist
 
   fme = 0.0;
-  for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
+  for (i = 0; i < ndof; i++) fme = MAX(fme,fabs(h[i]));
   MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
-  if (fmax == 0.0) return 1;
+  for (i = 0; i < ndof_extra; i++) fmax = MAX(fmax,fabs(hextra[i]));
 
-  alphamin = mindist/fmax;
-  alphamax = maxdist/fmax;
+  if (fmax == 0.0) return 1;
+  alphamin = dmin/fmax;
+  alphamax = dmax/fmax;
 
   // if minstep is already uphill, fail
   // if eng increases, stop and return previous alpha
   // if alphamax, stop and return alphamax
 
-  elowest = eng;
+  elowest = energy;
   alpha = alphamin;
 
   while (1) {
-    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
-    eng_force(&n,&x,&dir,&eng);
+    for (i = 0; i < ndof; i++) x[i] += alpha*h[i];
+    for (i = 0; i < ndof_extra; i++) xextra[i] += alpha*hextra[i];
+    eng_force();
     nfunc++;
 
-    if (alpha == alphamin && eng >= elowest) {
-      for (i = 0; i < n; i++) x[i] -= alpha*dir[i];
-      eng_force(&n,&x,&dir,&eng);
+    if (alpha == alphamin && energy >= elowest) {
+      for (i = 0; i < ndof; i++) x[i] -= alpha*h[i];
+      for (i = 0; i < ndof_extra; i++) xextra[i] -= alpha*hextra[i];
+      eng_force();
       nfunc++;
       return 1;
     }
-    if (eng > elowest) {
-      for (i = 0; i < n; i++) x[i] += (alphalast-alpha)*dir[i];
-      eng_force(&n,&x,&dir,&eng);
+    if (energy > elowest) {
+      for (i = 0; i < ndof; i++) x[i] += (alphalast-alpha)*h[i];
+      for (i = 0; i < ndof_extra; i++)
+	xextra[i] += (alphalast-alpha)*hextra[i];
+      eng_force();
       nfunc++;
       alpha = alphalast;
       return 0;
     }      
     if (alpha == alphamax) return 0;
 
-    elowest = eng;
+    elowest = energy;
     alphalast = alpha;
     alpha *= SCAN_FACTOR;
     if (alpha > alphamax) alpha = alphamax;
@@ -574,43 +596,44 @@ int MinCG::linemin_scan(int n, double *x, double *dir, double eng,
    prevents successvive func evals further apart in x than maxdist
 ------------------------------------------------------------------------- */
 
-int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
-			  double mindist, double maxdist,
-			  double &alpha, int &nfunc)
+int MinCG::linemin_secant(int &nfunc)
 {
   int i,iter;
-  double eta,eta_prev,sigma0,sigmamax,alphadelta,fme,fmax,dsq,e0,tmp;
-  double *f;
+  double eta,eta_prev,sigma0,sigmamax,alpha,alphadelta,fme,fmax,dsq,e0,tmp;
   double epssq = SECANT_EPS * SECANT_EPS;
 
   // stopping criterion for secant iterations
 
   fme = 0.0;
-  for (i = 0; i < n; i++) fme += dir[i]*dir[i];
+  for (i = 0; i < ndof; i++) fme += h[i]*h[i];
   MPI_Allreduce(&fme,&dsq,1,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < ndof_extra; i++) dsq += hextra[i]*hextra[i];
 
   // sigma0 = smallest allowed step of mindist
   // sigmamax = largest allowed step (in single iteration) of maxdist
 
   fme = 0.0;
-  for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
+  for (i = 0; i < ndof; i++) fme = MAX(fme,fabs(h[i]));
   MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
-  if (fmax == 0.0) return 1;
+  for (i = 0; i < ndof_extra; i++) fmax = MAX(fmax,fabs(hextra[i]));
 
-  sigma0 = mindist/fmax;
-  sigmamax = maxdist/fmax;
+  if (fmax == 0.0) return 1;
+  sigma0 = dmin/fmax;
+  sigmamax = dmax/fmax;
 
   // eval func at sigma0
   // test if minstep is already uphill
 
-  e0 = eng;
-  for (i = 0; i < n; i++) x[i] += sigma0*dir[i];
-  eng_force(&n,&x,&dir,&eng);
+  e0 = energy;
+  for (i = 0; i < ndof; i++) x[i] += sigma0*h[i];
+  for (i = 0; i < ndof_extra; i++) xextra[i] += sigma0*hextra[i];
+  eng_force();
   nfunc++;
 
-  if (eng >= e0) {
-    for (i = 0; i < n; i++) x[i] -= sigma0*dir[i];
-    eng_force(&n,&x,&dir,&eng);
+  if (energy >= e0) {
+    for (i = 0; i < ndof; i++) x[i] -= sigma0*h[i];
+    for (i = 0; i < ndof_extra; i++) xextra[i] -= sigma0*hextra[i];
+    eng_force();
     nfunc++;
     return 1;
   }
@@ -618,24 +641,25 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
   // secant iterations
   // alphadelta = new increment to move, alpha = accumulated move
 
-  f = atom->f[0];
   tmp = 0.0;
-  for (i = 0; i < n; i++) tmp -= f[i]*dir[i];
+  for (i = 0; i < ndof; i++) tmp -= f[i]*h[i];
   MPI_Allreduce(&tmp,&eta_prev,1,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < ndof_extra; i++) eta_prev -= fextra[i]*hextra[i];
 
   alpha = sigma0;
   alphadelta = -sigma0;
 
   for (iter = 0; iter < lineiter; iter++) {
     alpha += alphadelta;
-    for (i = 0; i < n; i++) x[i] += alphadelta*dir[i];
-    eng_force(&n,&x,&dir,&eng);
+    for (i = 0; i < ndof; i++) x[i] += alphadelta*h[i];
+    for (i = 0; i < ndof_extra; i++) xextra[i] += alphadelta*hextra[i];
+    eng_force();
     nfunc++;
 
-    f = atom->f[0];
     tmp = 0.0;
-    for (i = 0; i < n; i++) tmp -= f[i]*dir[i];
+    for (i = 0; i < ndof; i++) tmp -= f[i]*h[i];
     MPI_Allreduce(&tmp,&eta,1,MPI_DOUBLE,MPI_SUM,world);
+    for (i = 0; i < ndof_extra; i++) eta -= fextra[i]*hextra[i];
 
     alphadelta *= eta / (eta_prev - eta);
     eta_prev = eta;

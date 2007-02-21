@@ -39,14 +39,14 @@ void MinCGFR::iterate(int n)
 {
   int i,gradsearch,fail;
   double alpha,beta,gg,dot,dotall;
-  double *f;
 
-  f = atom->f[0];
   for (int i = 0; i < ndof; i++) h[i] = g[i] = f[i];
+  for (i = 0; i < ndof_extra; i++) hextra[i] = gextra[i] = fextra[i];
 
   dot = 0.0;
   for (i = 0; i < ndof; i++) dot += f[i]*f[i];
   MPI_Allreduce(&dot,&gg,1,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < ndof_extra; i++) gg += fextra[i]*fextra[i];
 
   neval = 0;
   gradsearch = 1;
@@ -57,8 +57,8 @@ void MinCGFR::iterate(int n)
 
     // line minimization along direction h from current atom->x
 
-    eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,alpha,neval);
+    eprevious = energy;
+    fail = (this->*linemin)(neval);
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently:
@@ -67,8 +67,8 @@ void MinCGFR::iterate(int n)
 
     if (neval >= update->max_eval) break;
 
-    if (fail || fabs(ecurrent-eprevious) <= 
-    	update->tolerance * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS)) {
+    if (fail || fabs(energy-eprevious) <= 
+    	update->tolerance * 0.5*(fabs(energy) + fabs(eprevious) + EPS)) {
       if (gradsearch == 1) break;
       gradsearch = -1;
     }
@@ -79,10 +79,10 @@ void MinCGFR::iterate(int n)
     // force new search dir to be grad dir if need to restart CG
     // set gradsesarch to 1 if will search in grad dir on next iteration
 
-    f = atom->f[0];
     dot = 0.0;
     for (i = 0; i < ndof; i++) dot += f[i]*f[i];
     MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
+    for (i = 0; i < ndof_extra; i++) dotall += fextra[i]*fextra[i];
 
     beta = dotall/gg;
     gg = dotall;
@@ -95,6 +95,10 @@ void MinCGFR::iterate(int n)
     for (i = 0; i < ndof; i++) {
       g[i] = f[i];
       h[i] = g[i] + beta*h[i];
+    }
+    for (i = 0; i < ndof_extra; i++) {
+      gextra[i] = fextra[i];
+      hextra[i] = gextra[i] + beta*hextra[i];
     }
 
     // output for thermo, dump, restart files

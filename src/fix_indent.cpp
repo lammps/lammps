@@ -66,7 +66,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   }
   else xscale = yscale = zscale = 1.0;
 
-  // apply scaling to force constant, velocity, and geometry
+  // apply scaling factors to force constant, velocity, and geometry
 
   k /= xscale;
   k3 = k/3.0;

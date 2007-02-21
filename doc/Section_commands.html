@@ -94,12 +94,12 @@ across two or more lines.
 comment and discarded.
 </P>
 <P>(3) The line is searched repeatedly for $ characters which indicate
-variables that are replaced with text.  If the $ is followed by curly
-brackets, then the variable name is the text inside the curly
+variables that are replaced with a text string.  If the $ is followed
+by curly brackets, then the variable name is the text inside the curly
 brackets.  If no curly brackets follow the $, then the variable name
 is the character immediately following the $.  Thus ${myTemp} and $x
 refer to variable names "myTemp" and "x".  See the
-<A HREF = "variable.html">variable</A> command for details of how values are
+<A HREF = "variable.html">variable</A> command for details of how strings are
 assigned to variables and how they are substituted for in input
 scripts.
 </P>
@@ -315,12 +315,12 @@ descriptions of each style or click on the style itself for a full
 description:
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "fix_addforce.html">addforce</A></TD><TD ><A HREF = "fix_aveforce.html">aveforce</A></TD><TD ><A HREF = "fix_com.html">com</A></TD><TD ><A HREF = "fix_deposit.html">deposit</A></TD><TD ><A HREF = "fix_drag.html">drag</A></TD><TD ><A HREF = "fix_efield.html">efield</A></TD><TD ><A HREF = "fix_enforce2d.html">enforce2d</A></TD><TD ><A HREF = "fix_freeze.html">freeze</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_gran_diag.html">gran/diag</A></TD><TD ><A HREF = "fix_gravity.html">gravity</A></TD><TD ><A HREF = "fix_gyration.html">gyration</A></TD><TD ><A HREF = "fix_indent.html">indent</A></TD><TD ><A HREF = "fix_langevin.html">langevin</A></TD><TD ><A HREF = "fix_lineforce.html">lineforce</A></TD><TD ><A HREF = "fix_msd.html">msd</A></TD><TD ><A HREF = "fix_momentum.html">momentum</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_nph.html">nph</A></TD><TD ><A HREF = "fix_npt.html">npt</A></TD><TD ><A HREF = "fix_nve.html">nve</A></TD><TD ><A HREF = "fix_nve_gran.html">nve/gran</A></TD><TD ><A HREF = "fix_nvt.html">nvt</A></TD><TD ><A HREF = "fix_orient_fcc.html">orient/fcc</A></TD><TD ><A HREF = "fix_planeforce.html">planeforce</A></TD><TD ><A HREF = "fix_poems.html">poems</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_pour.html">pour</A></TD><TD ><A HREF = "fix_print.html">print</A></TD><TD ><A HREF = "fix_rdf.html">rdf</A></TD><TD ><A HREF = "fix_recenter.html">recenter</A></TD><TD ><A HREF = "fix_rigid.html">rigid</A></TD><TD ><A HREF = "fix_setforce.html">setforce</A></TD><TD ><A HREF = "fix_shake.html">shake</A></TD><TD ><A HREF = "fix_spring.html">spring</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_spring_rg.html">spring/rg</A></TD><TD ><A HREF = "fix_spring_self.html">spring/self</A></TD><TD ><A HREF = "fix_temp_rescale.html">temp/rescale</A></TD><TD ><A HREF = "fix_tmd.html">tmd</A></TD><TD ><A HREF = "fix_uniaxial.html">uniaxial</A></TD><TD ><A HREF = "fix_vcm.html">vcm</A></TD><TD ><A HREF = "fix_viscous.html">viscous</A></TD><TD ><A HREF = "fix_volume_rescale.html">volume/rescale</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_wall_gran.html">wall/gran</A></TD><TD ><A HREF = "fix_wall_lj93.html">wall/lj93</A></TD><TD ><A HREF = "fix_wall_lj126.html">wall/lj126</A></TD><TD ><A HREF = "fix_wall_reflect.html">wall/reflect</A></TD><TD ><A HREF = "fix_wiggle.html">wiggle</A> 
+<TR ALIGN="center"><TD ><A HREF = "fix_addforce.html">addforce</A></TD><TD ><A HREF = "fix_aveforce.html">aveforce</A></TD><TD ><A HREF = "fix_ave_spatial.html">ave/spatial</A></TD><TD ><A HREF = "fix_ave_time.html">ave/time</A></TD><TD ><A HREF = "fix_box_relax.html">box/relax</A></TD><TD ><A HREF = "fix_com.html">com</A></TD><TD ><A HREF = "fix_deposit.html">deposit</A></TD><TD ><A HREF = "fix_drag.html">drag</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_efield.html">efield</A></TD><TD ><A HREF = "fix_enforce2d.html">enforce2d</A></TD><TD ><A HREF = "fix_freeze.html">freeze</A></TD><TD ><A HREF = "fix_gran_diag.html">gran/diag</A></TD><TD ><A HREF = "fix_gravity.html">gravity</A></TD><TD ><A HREF = "fix_gyration.html">gyration</A></TD><TD ><A HREF = "fix_indent.html">indent</A></TD><TD ><A HREF = "fix_langevin.html">langevin</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_lineforce.html">lineforce</A></TD><TD ><A HREF = "fix_msd.html">msd</A></TD><TD ><A HREF = "fix_momentum.html">momentum</A></TD><TD ><A HREF = "fix_nph.html">nph</A></TD><TD ><A HREF = "fix_npt.html">npt</A></TD><TD ><A HREF = "fix_nve.html">nve</A></TD><TD ><A HREF = "fix_nve_gran.html">nve/gran</A></TD><TD ><A HREF = "fix_nvt.html">nvt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_orient_fcc.html">orient/fcc</A></TD><TD ><A HREF = "fix_planeforce.html">planeforce</A></TD><TD ><A HREF = "fix_poems.html">poems</A></TD><TD ><A HREF = "fix_pour.html">pour</A></TD><TD ><A HREF = "fix_print.html">print</A></TD><TD ><A HREF = "fix_rdf.html">rdf</A></TD><TD ><A HREF = "fix_recenter.html">recenter</A></TD><TD ><A HREF = "fix_rigid.html">rigid</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_setforce.html">setforce</A></TD><TD ><A HREF = "fix_shake.html">shake</A></TD><TD ><A HREF = "fix_spring.html">spring</A></TD><TD ><A HREF = "fix_spring_rg.html">spring/rg</A></TD><TD ><A HREF = "fix_spring_self.html">spring/self</A></TD><TD ><A HREF = "fix_temp_rescale.html">temp/rescale</A></TD><TD ><A HREF = "fix_tmd.html">tmd</A></TD><TD ><A HREF = "fix_uniaxial.html">uniaxial</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_vcm.html">vcm</A></TD><TD ><A HREF = "fix_viscous.html">viscous</A></TD><TD ><A HREF = "fix_volume_rescale.html">volume/rescale</A></TD><TD ><A HREF = "fix_wall_gran.html">wall/gran</A></TD><TD ><A HREF = "fix_wall_lj93.html">wall/lj93</A></TD><TD ><A HREF = "fix_wall_lj126.html">wall/lj126</A></TD><TD ><A HREF = "fix_wall_reflect.html">wall/reflect</A></TD><TD ><A HREF = "fix_wiggle.html">wiggle</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -331,7 +331,7 @@ description:
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR ALIGN="center"><TD ><A HREF = "compute_centro_atom.html">centro/atom</A></TD><TD ><A HREF = "compute_epair_atom.html">epair/atom</A></TD><TD ><A HREF = "compute_etotal_atom.html">etotal/atom</A></TD><TD ><A HREF = "compute_ke_atom.html">ke/atom</A></TD><TD ><A HREF = "compute_pressure.html">pressure</A></TD><TD ><A HREF = "compute_rotate_dipole.html">rotate/dipole</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "compute_rotate_gran.html">rotate/gran</A></TD><TD ><A HREF = "compute_stress_atom.html">stress/atom</A></TD><TD ><A HREF = "compute_temp.html">temp</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial</A></TD><TD ><A HREF = "compute_temp_ramp.html">temp/ramp</A></TD><TD ><A HREF = "compute_temp_region.html">temp/region</A> 
+<TR ALIGN="center"><TD ><A HREF = "compute_rotate_gran.html">rotate/gran</A></TD><TD ><A HREF = "compute_stress_atom.html">stress/atom</A></TD><TD ><A HREF = "compute_temp.html">temp</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial</A></TD><TD ><A HREF = "compute_temp_ramp.html">temp/ramp</A></TD><TD ><A HREF = "compute_temp_region.html">temp/region</A><A HREF = "compute_variable_atom.html">variable/atom</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>

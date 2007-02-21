@@ -263,16 +263,15 @@ quantities calculated by a compute to be output.  The ID in the
 keyword should be replaced by the actual ID of the compute that has
 been defined elsewhere in the input script.  See the
 <A HREF = "compute.html">compute</A> command for details.  Note that scalar and
-vector quantities that are not calculated on a per-atoms basis
+vector quantities that are not calculated on a per-atom basis
 (e.g. global temperature or pressure) cannot be output in a dump.
 Rather, these quantities are output by the <A HREF = "thermo_style.html">thermo_style
 custom</A> command.
 </P>
-<P>If <I>c_ID</I> is used as a keyword, then the a single per-atom quantity
-calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N in
-the range from 1-M will print a specific component of the per-atom
-vector calculated by the compute.  A value of N=0 will output the
-single per-atom quantity.
+<P>If <I>c_ID</I> is used as a keyword, then the scalar per-atom quantity
+calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N
+in the range from 1-M will print the Nth component of the M-length
+per-atom vector calculated by the compute.
 </P>
 <P>See <A HREF = "Section_modify.html">this section</A> for information on how to add
 new compute styles to LAMMPS that calculate per-atom quantities which

@@ -17,22 +17,26 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>equal</I> 
+<LI>style = <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>equal</I> or <I>atom</I> 
 
 <PRE>  <I>index</I> args = one or more strings
   <I>loop</I> args = N = integer size of loop
   <I>world</I> args = one string for each partition of processors
   <I>universe</I> args = one or more strings
   <I>uloop</I> args = N = integer size of loop
-  <I>equal</I> args = one equation containing numbers, thermo keywords, math functions, group functions, atom vectors, compute references, other variables
+  <I>equal</I> or <I>atom</I> args = one equation containing numbers, thermo keywords, math functions, group functions, atom vectors, compute references, other variables
     numbers = 0.0, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
     math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
                      neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
     group functions = mass(group), charge(group), xcm(group,dim),
                       vcm(group,dim), bound(group,xmin), gyration(group)
-    atom vectors = x[N], y[N], z[N], vx[N], vy[N], vz[N],
-                   fx[N], fy[N], fz[N]
+    atom vectors for <I>equal</I> = mass[N], x[N], y[N], z[N],
+                               vx[N], vy[N], vz[N],
+			       fx[N], fy[N], fz[N]
+    atom vectors for <I>atom</I> =  mass[], x[], y[], z[],
+                               vx[], vy[], vz[],
+			       fx[], fy[], fz[]
     compute references = c_ID[0], c_ID[N]
     other variables = v_abc, v_x, etc 
 </PRE>
@@ -43,54 +47,66 @@
 <PRE>variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop 20
 variable beta equal div(temp,3.0)
-variable b1 equal add(x[234],mult(0.5,col))
+variable b1 equal add(x[234],mult(0.5,vol))
 variable b equal div(xcm(mol1,x),2.0)
 variable b equal c_myTemp[0]
+variable b atom div(mult(x<B></B>,y<B></B>),vol)
 variable temp world 300.0 310.0 320.0 330.0
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command assigns one or more values to a variable name so that the
-variable can be used in subsequent input script commands or its value
-output during a simulation.  The "name" of the variable is an
-arbitrary string.  Each "value" is a string which could be text or
-numbers, as in the examples above.
+<P>This command assigns one or more strings to a variable name.
+Variables can be used in several ways in LAMMPS.  A variable can be
+referenced elsewhere in an input script.  For variable styles that
+store multiple strings, the <A HREF = "next.html">next</A> command can be used to
+increment which string is assigned to the variable.  Variables can be
+evaluated to produce a numeric value which can be output either
+directly (see the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix print</A>, and
+<A HREF = "run.html">run every</A> commands) or as part of thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command), fix output (see the
+<A HREF = "fix_ave_spatial.html">fix ave/spatial</A> and <A HREF = "compute_variable_atom.html">compute
+variable/atom</A> commands), or dump output
+(see the <A HREF = "dump.html">dump custom</A> and <A HREF = "compute_variable_atom.html">compute
+variable/atom</A> commands).
 </P>
-<P>As explained in <A HREF = "Section_commands.html#3_2">this section</A>, occurrences
-of the variable name in an input script line are replaced by the
-variable's value.  The variable name can be referenced in the input
-script as $x if the name "x" is a single character, or as ${LoopVar}
-if the name "LoopVar" is one or more characters.
+<P>In the discussion that follows, the "name" of the variable is the
+arbitrary string that is the 1st argument in the variable command.
+The "string" is one of the subsequent arguments.  The "value" is the
+numeric quantity resulting from evaluation of the string.  Note that
+the same string can generate different values when it is evaluated at
+different times during a simulation.
 </P>
-<P>Variable values can also be accessed for output once or periodically
-during a simulation by the <A HREF = "print.html">print</A> command, <A HREF = "fix_print.html">fix
-print</A> command, <A HREF = "run.html">run every</A> command, and the
-<A HREF = "thermo_style.html">thermo_style</A> command.
+<P>IMPORTANT NOTE: When a variable command is encountered in the input
+script and the variable name has already been specified, the command
+is ignored.  This means variables can NOT be re-defined in an input
+script.  This is to allow an input script with variable commands to be
+processed multiple times without resetting the variables; see the
+<A HREF = "jump.html">jump</A> or <A HREF = "include.html">include</A> commands.  It also means
+that using a command-line switch -var will override a corresponding
+variable setting in the input script.
+</P>
+<P>There is one exception to this rule.  As described below, if a
+variable is iterated on to the end of its list of strings via the
+<A HREF = "next.html">next</A> command, it is available to be re-defined in a
+subsequent variable command.
 </P>
 <HR>
 
+<P><A HREF = "Section_commands.html#3_2">This section</A> explains how occurrences of a
+variable name in an input script line are replaced by the variable's
+string.  The variable name can be referenced as $x if the name "x" is
+a single character, or as ${LoopVar} if the name "LoopVar" is one or
+more characters.
+</P>
 <P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>universe</I>,
-and <I>uloop</I>, the value assigned to a variable can be incremented via
-the <A HREF = "next.html">next</A> command.  When there are no more values to
+and <I>uloop</I>, the string assigned to a variable can be incremented via
+the <A HREF = "next.html">next</A> command.  When there are no more strings to
 assign, the variable is "exhausted" and a flag is set that causes the
 next <A HREF = "jump.html">jump</A> command encountered in the input script to be
 skipped.  This enables the construction of simple loops in the input
 script that are iterated over and exited from.
-</P>
-<P>When a variable command is encountered for a variable that has already
-been specified, the command is ignored.  This allows an input script
-with a variable command to be processed multiple times; see the
-<A HREF = "jump.html">jump</A> or <A HREF = "include.html">include</A> commands.  It also means
-that the use of the command-line switch -var will override a
-corresponding variable setting in the input script.
-</P>
-<P>There are two exceptions to this rule. The first is for <I>equal</I> style
-variables.  They are re-defined each time a variable command using an
-equal-style variable is encountered.  Also, if a variable is iterated
-on to the end of its list via the <A HREF = "next.html">next</A> command, it is
-available to be re-defined in a subsequent variable command.
 </P>
 <HR>
 
@@ -98,13 +114,11 @@ available to be re-defined in a subsequent variable command.
 the 1st string is assigned to the variable.  Each time a
 <A HREF = "next.html">next</A> command is used with the variable name, the next
 string is assigned.  All processors assign the same string to the
-variable.  <I>Index</I>-style variables can also be set (with a single
-value) by using the command-line switch -var; see <A HREF = "Section_start.html#2_6">this
-section</A> for details.
+variable.
 </P>
 <P>The <I>loop</I> style is identical to the <I>index</I> style except that the
-strings are the integers from 1 to N.  This allows you to generate a
-long list of runs (e.g. 1000) without having to list N values in your
+strings are the integers from 1 to N.  This allows generation of a
+long list of runs (e.g. 1000) without having to list N strings in the
 input script.  Initially, the string "1" is assigned to the variable.
 Each time a <A HREF = "next.html">next</A> command is used with the variable name,
 the next string ("2", "3", etc) is assigned.  All processors assign
@@ -116,7 +130,7 @@ section</A> of the manual for information on
 running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command assigns one string to each
 world.  All processors in the world are assigned the same string.  The
-next command cannot be used with <I>equal</I>-style variables, since there
+next command cannot be used with <I>equal</I> style variables, since there
 is only one value per world.  This style of variable is useful when
 you wish to run different simulations on different partitions, or when
 performing a parallel tempering simulation (see the
@@ -130,31 +144,43 @@ running LAMMPS with multiple partitions via the "-partition"
 command-line switch.  This variable command initially assigns one
 string to each world.  When a <A HREF = "next.html">next</A> command is encountered
 using this variable, the first processor partition to encounter it, is
-assigned the next available value.  This continues until all the
-variable values are consumed.  Thus, this command can be used to run
+assigned the next available string.  This continues until all the
+variable strings are consumed.  Thus, this command can be used to run
 50 simulations on 8 processor partitions.  The simulations will be run
 one after the other on whatever partition becomes available, until
-they are all finished.  <I>Universe</I>-style variables are incremented
+they are all finished.  <I>Universe</I> style variables are incremented
 using the files "tmp.lammps.variable" and "tmp.lammps.variable.lock"
 which you will see in your directory during such a LAMMPS run.
 </P>
 <P>The <I>uloop</I> style is identical to the <I>universe</I> style except that the
-strings are the integers from 1 to N.  This allows you to generate a
-long list of runs (e.g. 1000) without having to list N values in your
-input script.
+strings are the integers from 1 to N.  This allows generation of long
+list of runs (e.g. 1000) without having to list N strings in the input
+script.
 </P>
 <HR>
 
-<P>For the <I>equal</I> style, a single string is specified which represents
-an equation that will be evaluated afresh each time the variable is
-used.  Thus the variable can take on different values at different
-stages of the input script.  For example, if the variable is used in a
-<A HREF = "fix_print.html">fix print</A> command, different values could be printed
-each timestep it was invoked.  The next command cannot be used with
-<I>equal</I>-style variables, since there is only one value.
+<P>For the <I>equal</I> and <I>atom</I> styles, a single string is specified which
+represents an equation that will be evaluated afresh each time the
+variable is used.  For <I>equal</I> style variables this equation computes
+a scalar quantity, which becomes the value of the variable whenever it
+is evaluated.  For <I>atom</I> style variables it computes a quantity for
+each atom, which is used by the "compute variable/atom" command and
+its associated output.
 </P>
-<P>The equation for an <I>equal</I>-style variable can contain a variety of
-quantities.  The syntax for each kind of quantity is simple, but
+<P>Note that <I>equal</I> and <I>atom</I> variables can produce different values at
+different stages of the input script or at different times during a
+run.  For example, if an <I>equal</I> variable is used in a <A HREF = "fix_print.html">fix
+print</A> command, different values could be printed each
+timestep it was invoked.
+</P>
+<P><I>Equal</I> style variables can also be set by using the command-line
+switch -var; see <A HREF = "Section_start.html#2_6">this section</A> for details.
+</P>
+<P>The next command cannot be used with <I>equal</I> or <I>atom</I> style
+variables, since there is only one string.
+</P>
+<P>The equation for an <I>equal</I> or <I>atom</I> variable can contain a variety
+of quantities.  The syntax for each kind of quantity is simple, but
 multiple quantities can be nested and combined in various ways to
 build up formulas of arbitrary complexity.  For example, this is a
 valid (though strange) variable equation:
@@ -163,14 +189,16 @@ valid (though strange) variable equation:
 </PRE>
 <P>Specifically, an equation can contain numbers, thermo keywords, math
 functions, group functions, atom vectors, compute references, and
-other variables:
+other variables.  There is one difference between <I>equal</I> and <I>atom</I>
+variables; the syntax of Atom vector references is different.
 </P>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math functions</TD><TD > add(x,y), sub(x,y), mult(x,y), div(x,y),   neg(x), pow(x,y), exp(x), ln(x), sqrt(x)</TD></TR>
 <TR><TD >Group functions</TD><TD > mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim),   bound(ID,dir), gyration(ID)</TD></TR>
-<TR><TD >Atom vectors</TD><TD > x[N], y[N], z[N], vx[N], vy[N], vz[N],                    fx[N], fy[N], fz[N]</TD></TR>
+<TR><TD >Atom vectors for <I>equal</I></TD><TD > mass[N], x[N], y[N], z[N],                           vx[N], vy[N], vz[N],                           fx[N], fy[N], fz[N]</TD></TR>
+<TR><TD >Atom vectors for <I>atom</I></TD><TD >  mass[], x[], y[], z[],                           vx[], vy[], vz[],                           fx[], fy[], fz[]</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID[0], c_ID[N]</TD></TR>
 <TR><TD >Other variables</TD><TD > v_abc, v_x, etc 
 </TD></TR></TABLE></DIV>
@@ -197,20 +225,24 @@ min/max of a particular coordinate for all atoms in the group.
 Gyration() computes the radius-of-gyration of the group of atoms.  See
 the <A HREF = "fix_gyration.html">fix gyration</A> command for the formula.
 </P>
-<P>The atom vectors take a single integer argument from 1-N, which
-is the desired atom-ID, e.g. x[243].
+<P>For <I>equal</I> style variables, atom vectors take a single integer
+argument from 1-N, which is the desired atom-ID, e.g. x[243].  For
+<I>atom</I> style variables, atom vectors take no argument.  Since <I>atom</I>
+style variables compute one value per atom, a reference like x[]
+means the x-coord of each atom will be used when evaluating the
+variable.
 </P>
-<P>Compute references access allow access to scalar or vector quantities
-calculated by a compute.  The ID in the reference should be replaced
-by the actual ID of the compute that has been defined elsewhere in the
-input script.  See the <A HREF = "compute.html">compute</A> command for details.
-Note that per-atom quantities calcalated by a compute cannot be
-accessed this way, but only global scalar or vector quantities.
+<P>Compute references access scalar or vector quantities calculated by a
+<A HREF = "compute.html">compute</A>.  The ID in the reference should be replaced by
+the actual ID of the compute defined elsewhere in the input script.
+See the <A HREF = "compute.html">compute</A> command for details.  Note that
+per-atom quantities calculated by a compute cannot be accessed this
+way, but only global scalar or vector quantities.
 </P>
 <P>If <I>c_ID[0]</I> is used as a keyword, then the scalar quantity
 calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N
-in the range from 1-M will print a specific component of the vector
-calculated by the compute.
+in the range from 1-M will print the Mth component of the N-length
+vector calculated by the compute.
 </P>
 <P>The current values of other variables can be accessed by prepending a
 "v_" to the variable name.  This will cause the other variable to be
@@ -222,8 +254,8 @@ print $a
 </PRE>
 <P>then LAMMPS will run for a while when the print statement is invoked.
 </P>
-<P>Note that there is a subtle difference between using a variable
-in a <I>equal</I>-style equation in the form $x versus v_x.
+<P>Note that there is a subtle difference between using a variable in a
+<I>equal</I> or <I>atom</I> style equation in the form $x versus v_x.
 </P>
 <P>In the former case, as with any other input script command, the
 variable's value is substituted for immediately when the line is read
@@ -243,7 +275,7 @@ variable y equal mult(v_x,2)
 <P>would associate the equation string "mult(v_x,2)" with variable y.
 </P>
 <P>Thus if the variable y were evaluated periodically during a run where
-the box volume changed, the resulting value would always be 500.0 for
+the box volume changed, the resulting value would always be 2000.0 for
 the first case, but would change dynamically for the second case.
 </P>
 <HR>

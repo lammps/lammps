@@ -32,13 +32,14 @@ compute 3 all ke/atom
 </P>
 <P>In LAMMPS, a "compute" is used in several ways.  Computes that
 calculate one or more values for the entire group of atoms can output
-those values via the <A HREF = "thermo_style.html">thermo_style custom</A> command.
-Or the values can be referenced in a <A HREF = "variable.html">variable equal</A>
-command.  Computes that calculate a temperature or pressure are used
-by fixes that do thermostatting or barostatting and when atom
-velocities are created.  Computes that calculate one or more values
-for each atom in the group can output those values via the <A HREF = "dump.html">dump
-custom</A> command.
+those values via the <A HREF = "thermo_style.html">thermo_style custom</A> or <A HREF = "fix_ave_time.html">fix
+ave/time</A> command.  Or the values can be referenced
+in a <A HREF = "variable.html">variable equal</A> command.  Computes that calculate
+a temperature or pressure are used by fixes that do thermostatting or
+barostatting and when atom velocities are created.  Computes that
+calculate one or more values for each atom in the group can output
+those values via the <A HREF = "dump.html">dump custom</A> command or the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command.
 </P>
 <P>LAMMPS creates its own computes for thermodynamic output and dumping
 atom snapshots.  Likewise fixes that compute temperature or pressure
@@ -73,7 +74,8 @@ defined in LAMMPS:
 <LI><A HREF = "compute_temp.html">temp</A> - temperature of group of atoms
 <LI><A HREF = "compute_temp_partial.html">temp/partial</A> - temperature excluding one or more dimensions of velocity
 <LI><A HREF = "compute_temp_ramp.html">temp/ramp</A> - temperature after subtracting a ramped velocity component
-<LI><A HREF = "compute_temp_region.html">temp/region</A> - temperature of a region of atoms 
+<LI><A HREF = "compute_temp_region.html">temp/region</A> - temperature of a region of atoms
+<LI><A HREF = "compute_variable_atom.html">variable/atom</A> - calculate a formula for each atom 
 </UL>
 <P><B>Restrictions:</B> none
 </P>

@@ -91,12 +91,12 @@ across two or more lines.
 comment and discarded.
 
 (3) The line is searched repeatedly for $ characters which indicate
-variables that are replaced with text.  If the $ is followed by curly
-brackets, then the variable name is the text inside the curly
+variables that are replaced with a text string.  If the $ is followed
+by curly brackets, then the variable name is the text inside the curly
 brackets.  If no curly brackets follow the $, then the variable name
 is the character immediately following the $.  Thus $\{myTemp\} and $x
 refer to variable names "myTemp" and "x".  See the
-"variable"_variable.html command for details of how values are
+"variable"_variable.html command for details of how strings are
 assigned to variables and how they are substituted for in input
 scripts.
 
@@ -371,6 +371,9 @@ description:
 
 "addforce"_fix_addforce.html,
 "aveforce"_fix_aveforce.html,
+"ave/spatial"_fix_ave_spatial.html,
+"ave/time"_fix_ave_time.html,
+"box/relax"_fix_box_relax.html,
 "com"_fix_com.html,
 "deposit"_fix_deposit.html,
 "drag"_fix_drag.html,
@@ -432,7 +435,8 @@ description:
 "temp"_compute_temp.html,
 "temp/partial"_compute_temp_partial.html,
 "temp/ramp"_compute_temp_ramp.html,
-"temp/region"_compute_temp_region.html :tb(c=6,ea=c)
+"temp/region"_compute_temp_region.html
+"variable/atom"_compute_variable_atom.html :tb(c=6,ea=c)
 
 :line
 

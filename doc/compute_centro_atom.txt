@@ -6,18 +6,18 @@
 
 :line
 
-compute ke/atom command :h3
+compute centro/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID ke/atom :pre
+compute ID group-ID centro/atom :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-ke/atom = style name of this compute command :ul
+centro/atom = style name of this compute command :ul
 
 [Examples:]
 
-compute 1 all ke/atom :pre
+compute 1 all centro/atom :pre
 
 [Description:]
 

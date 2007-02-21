@@ -29,13 +29,14 @@ Create a computation that will be performed on a group of atoms.
 
 In LAMMPS, a "compute" is used in several ways.  Computes that
 calculate one or more values for the entire group of atoms can output
-those values via the "thermo_style custom"_thermo_style.html command.
-Or the values can be referenced in a "variable equal"_variable.html
-command.  Computes that calculate a temperature or pressure are used
-by fixes that do thermostatting or barostatting and when atom
-velocities are created.  Computes that calculate one or more values
-for each atom in the group can output those values via the "dump
-custom"_dump.html command.
+those values via the "thermo_style custom"_thermo_style.html or "fix
+ave/time"_fix_ave_time.html command.  Or the values can be referenced
+in a "variable equal"_variable.html command.  Computes that calculate
+a temperature or pressure are used by fixes that do thermostatting or
+barostatting and when atom velocities are created.  Computes that
+calculate one or more values for each atom in the group can output
+those values via the "dump custom"_dump.html command or the "fix
+ave/spatial"_fix_ave_spatial.html command.
 
 LAMMPS creates its own computes for thermodynamic output and dumping
 atom snapshots.  Likewise fixes that compute temperature or pressure
@@ -70,7 +71,8 @@ defined in LAMMPS:
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
 "temp/ramp"_compute_temp_ramp.html - temperature after subtracting a ramped velocity component
-"temp/region"_compute_temp_region.html - temperature of a region of atoms :ul
+"temp/region"_compute_temp_region.html - temperature of a region of atoms
+"variable/atom"_compute_variable_atom.html - calculate a formula for each atom :ul
 
 [Restrictions:] none
 

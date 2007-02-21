@@ -81,11 +81,11 @@ different times during a simulation.
 <P>IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command
 is ignored.  This means variables can NOT be re-defined in an input
-script.  This is to allow an input script with variable commands to be
-processed multiple times without resetting the variables; see the
-<A HREF = "jump.html">jump</A> or <A HREF = "include.html">include</A> commands.  It also means
-that using a command-line switch -var will override a corresponding
-variable setting in the input script.
+script.  This is to allow an input script to be processed multiple
+times without resetting the variables; see the <A HREF = "jump.html">jump</A> or
+<A HREF = "include.html">include</A> commands.  It also means that using a
+command-line switch -var will override a corresponding variable
+setting in the input script.
 </P>
 <P>There is one exception to this rule.  As described below, if a
 variable is iterated on to the end of its list of strings via the
@@ -94,11 +94,11 @@ subsequent variable command.
 </P>
 <HR>
 
-<P><A HREF = "Section_commands.html#3_2">This section</A> explains how occurrences of a
-variable name in an input script line are replaced by the variable's
-string.  The variable name can be referenced as $x if the name "x" is
-a single character, or as ${LoopVar} if the name "LoopVar" is one or
-more characters.
+<P><A HREF = "Section_commands.html#3_2">This section</A> of the manual explains how
+occurrences of a variable name in an input script line are replaced by
+the variable's string.  The variable name can be referenced as $x if
+the name "x" is a single character, or as ${LoopVar} if the name
+"LoopVar" is one or more characters.
 </P>
 <P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>universe</I>,
 and <I>uloop</I>, the string assigned to a variable can be incremented via

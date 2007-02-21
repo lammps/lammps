@@ -75,11 +75,11 @@ different times during a simulation.
 IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command
 is ignored.  This means variables can NOT be re-defined in an input
-script.  This is to allow an input script with variable commands to be
-processed multiple times without resetting the variables; see the
-"jump"_jump.html or "include"_include.html commands.  It also means
-that using a command-line switch -var will override a corresponding
-variable setting in the input script.
+script.  This is to allow an input script to be processed multiple
+times without resetting the variables; see the "jump"_jump.html or
+"include"_include.html commands.  It also means that using a
+command-line switch -var will override a corresponding variable
+setting in the input script.
 
 There is one exception to this rule.  As described below, if a
 variable is iterated on to the end of its list of strings via the
@@ -88,11 +88,11 @@ subsequent variable command.
 
 :line
 
-"This section"_Section_commands.html#3_2 explains how occurrences of a
-variable name in an input script line are replaced by the variable's
-string.  The variable name can be referenced as $x if the name "x" is
-a single character, or as $\{LoopVar\} if the name "LoopVar" is one or
-more characters.
+"This section"_Section_commands.html#3_2 of the manual explains how
+occurrences of a variable name in an input script line are replaced by
+the variable's string.  The variable name can be referenced as $x if
+the name "x" is a single character, or as $\{LoopVar\} if the name
+"LoopVar" is one or more characters.
 
 As described below, for variable styles {index}, {loop}, {universe},
 and {uloop}, the string assigned to a variable can be incremented via

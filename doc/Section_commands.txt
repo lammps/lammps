@@ -409,7 +409,6 @@ description:
 "temp/rescale"_fix_temp_rescale.html,
 "tmd"_fix_tmd.html,
 "uniaxial"_fix_uniaxial.html,
-"vcm"_fix_vcm.html,
 "viscous"_fix_viscous.html,
 "volume/rescale"_fix_volume_rescale.html,
 "wall/gran"_fix_wall_gran.html,

@@ -84,6 +84,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_temp_partial.h"
 #include "compute_temp_ramp.h"
 #include "compute_temp_region.h"
+#include "compute_variable_atom.h"
 #endif
 
 #ifdef ComputeClass
@@ -99,6 +100,7 @@ ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/partial,ComputeTempPartial)
 ComputeStyle(temp/ramp,ComputeTempRamp)
 ComputeStyle(temp/region,ComputeTempRegion)
+ComputeStyle(variable/atom,ComputeVariableAtom)
 #endif
 
 #ifdef DihedralInclude
@@ -124,6 +126,9 @@ DumpStyle(xyz,DumpXYZ)
 #ifdef FixInclude
 #include "fix_add_force.h"
 #include "fix_ave_force.h"
+#include "fix_ave_spatial.h"
+#include "fix_ave_time.h"
+  //#include "fix_box_relax.h"
 #include "fix_com.h"
 #include "fix_drag.h"
 #include "fix_deposit.h"
@@ -168,6 +173,9 @@ DumpStyle(xyz,DumpXYZ)
 #ifdef FixClass
 FixStyle(addforce,FixAddForce)
 FixStyle(aveforce,FixAveForce)
+FixStyle(ave/spatial,FixAveSpatial)
+FixStyle(ave/time,FixAveTime)
+  //FixStyle(box/relax,FixBoxRelax)
 FixStyle(com,FixCOM)
 FixStyle(drag,FixDrag)
 FixStyle(deposit,FixDeposit)

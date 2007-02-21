@@ -29,6 +29,7 @@ class Fix : protected Pointers {
   int next_reneighbor;           // next timestep to force a reneighboring
   int thermo_energy;             // 1 if ThEng enabled via fix_modify, 0 if not
   int nevery;                    // how often to call an end_of_step fix
+  int pressure_every;            // how often fix needs virial computed
 
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
@@ -42,7 +43,7 @@ class Fix : protected Pointers {
   int INITIAL_INTEGRATE,PRE_EXCHANGE,PRE_NEIGHBOR;    // mask settings
   int POST_FORCE,FINAL_INTEGRATE,END_OF_STEP,THERMO_ENERGY;
   int INITIAL_INTEGRATE_RESPA,POST_FORCE_RESPA,FINAL_INTEGRATE_RESPA;
-  int MIN_POST_FORCE;
+  int MIN_POST_FORCE,MIN_ENERGY;
 
   Fix(class LAMMPS *, int, char **);
   virtual ~Fix();
@@ -76,6 +77,9 @@ class Fix : protected Pointers {
   virtual void final_integrate_respa(int) {}
 
   virtual void min_post_force(int) {}
+  virtual double min_energy(double *, double *) {return 0.0;}
+  virtual int min_dof() {return 0;}
+  virtual void min_xinitial(double *) {}
 
   virtual int pack_comm(int, int *, double *, int *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}

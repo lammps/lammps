@@ -44,6 +44,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all("Illegal fix npt command");
 
   restart_global = 1;
+  pressure_every = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);

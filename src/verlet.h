@@ -21,19 +21,25 @@ namespace LAMMPS_NS {
 class Verlet : public Integrate {
  public:
   Verlet(class LAMMPS *, int, char **);
+  ~Verlet();
   void init();
   void setup();
   void iterate(int);
 
  private:
-  int virial_every;       // what vflag should be on every timestep (0,1,2)
-  int virial_thermo;      // what vflag should be on thermo steps (1,2)
-  int pairflag,torqueflag,granflag;
+  int virial_style;                 // compute virial explicitly or implicitly
+  int virial_every;                 // 1 if virial computed every step
+  int next_virial;                  // next timestep to compute virial
+  int nfix_virial;                  // # of fixes that need virial occasionally
+  int *fix_virial_every;            // frequency they require it
+  int *next_fix_virial;             // next timestep they need it
 
-  int maxpair;            // copies of Update quantities
+  int pairflag,torqueflag,granflag; // arrays to zero out every step
+  int maxpair;                      // local copies of Update quantities
   double **f_pair;
 
   void force_clear(int);
+  int fix_virial(int);
 };
 
 }

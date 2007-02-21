@@ -47,6 +47,7 @@ using namespace LAMMPS_NS;
 #define POST_FORCE_RESPA        256
 #define FINAL_INTEGRATE_RESPA   512
 #define MIN_POST_FORCE         1024
+#define MIN_ENERGY             2048
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,7 +58,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_exchange = n_pre_neighbor = 0;
   n_post_force = n_final_integrate = n_end_of_step = n_thermo_energy = 0;
   n_initial_integrate_respa = n_post_force_respa = n_final_integrate_respa = 0;
-  n_min_post_force = 0;
+  n_min_post_force = n_min_energy = 0;
 
   fix = NULL;
   fmask = NULL;
@@ -67,7 +68,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_thermo_energy = NULL;
   list_initial_integrate_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
-  list_min_post_force = NULL;
+  list_min_post_force = list_min_energy = NULL;
 
   end_of_step_every = NULL;
 
@@ -103,6 +104,7 @@ Modify::~Modify()
   delete [] list_post_force_respa;
   delete [] list_final_integrate_respa;
   delete [] list_min_post_force;
+  delete [] list_min_energy;
 
   delete [] end_of_step_every;
 
@@ -149,6 +151,7 @@ void Modify::init()
 	    n_final_integrate_respa,list_final_integrate_respa);
 
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
+  list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
   // init each compute
 
@@ -281,6 +284,50 @@ void Modify::min_post_force(int vflag)
 {
   for (int i = 0; i < n_min_post_force; i++)
     fix[list_min_post_force[i]]->min_post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   minimizer energy, force evaluation only for relevant fixes
+   return energy and forces on extra degrees of freedom
+------------------------------------------------------------------------- */
+
+double Modify::min_energy(double *xextra, double *fextra)
+{
+  int ifix,index;
+
+  index = 0;
+  double energy_extra = 0.0;
+  for (int i = 0; i < n_min_energy; i++) {
+    ifix = list_min_energy[i];
+    energy_extra += fix[ifix]->min_energy(&xextra[index],&fextra[index]);
+    index += fix[ifix]->min_dof();
+  }
+  return energy_extra;
+}
+
+/* ----------------------------------------------------------------------
+   minimizer extra degrees of freedom from relevant fixes
+------------------------------------------------------------------------- */
+
+int Modify::min_dof()
+{
+  int ndof = 0;
+  for (int i = 0; i < n_min_energy; i++)
+    ndof += fix[list_min_energy[i]]->min_dof();
+  return ndof;
+}
+
+/* ----------------------------------------------------------------------
+   minimizer initial xextra values only from relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_xinitial(double *xextra)
+{
+  int index = 0;
+  for (int i = 0; i < n_min_energy; i++) {
+    fix[list_min_energy[i]]->min_xinitial(&xextra[index]);
+    index += fix[list_min_energy[i]]->min_dof();
+  }
 }
 
 /* ----------------------------------------------------------------------

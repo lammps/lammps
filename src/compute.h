@@ -23,15 +23,15 @@ class Compute : protected Pointers {
   char *id,*style;
   int igroup,groupbit;
 
-  double scalar;            // computed scalar
-  double *vector;           // computed vector
+  double scalar;            // computed global scalar
+  double *vector;           // computed global vector
   double *scalar_atom;      // computed per-atom scalar
   double **vector_atom;     // computed per-atom vector
 
   int scalar_flag;          // 0/1 if compute_scalar() function exists
   int vector_flag;          // 0/1 if compute_vector() function exists
   int peratom_flag;         // 0/1 if compute_peratom() function exists
-  int size_vector;          // N = size of vector
+  int size_vector;          // N = size of global vector
   int size_peratom;         // 0 = just scalar_atom, N = size of vector_atom
 
   int extensive;      // 0/1 if scalar,vector are intensive/extensive values

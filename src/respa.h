@@ -44,16 +44,21 @@ class Respa : public Integrate {
   void copy_flevel_f(int);
 
  private:
-  int virial_every;       // what vflag should be on every timestep (0,1)
-  int virial_thermo;      // what vflag should be on thermo steps (1)
+  int eflag,vflag;                  // flags for energy/virial computation
+  int virial_style;                 // compute virial explicitly (not implicit)
+  int virial_every;                 // 1 if virial computed every step
+  int next_virial;                  // next timestep to compute virial
+  int nfix_virial;                  // # of fixes that need virial occasionally
+  int *fix_virial_every;            // frequency they require it
+  int *next_fix_virial;             // next timestep they need it
 
-  int *newton;                  // newton flag at each level
-  int eflag,vflag;              // flags for energy/virial computation
-  class FixRespa *fix_respa;    // Fix to store the force level array
+  int *newton;                      // newton flag at each level
+  class FixRespa *fix_respa;        // Fix to store the force level array
 
   void recurse(int);
   void force_clear(int);
   void sum_flevel_f();
+  int fix_virial(int);
 };
 
 }

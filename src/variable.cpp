@@ -33,7 +33,8 @@ using namespace LAMMPS_NS;
 
 #define VARDELTA 4
 
-enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP};
+enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
+enum{VALUE,ATOMARRAY,TYPEARRAY,ADD,SUB,MULT,DIV,NEG,POW,EXP,LN,SQRT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -73,9 +74,9 @@ void Variable::set(int narg, char **arg)
 {
   if (narg < 3) error->all("Illegal variable command");
 
-  // if var already exists, just skip (except EQUAL vars)
+  // if var already exists, just skip
 
-  if (find(arg[0]) >= 0 && strcmp(arg[1],"equal") != 0) return;
+  if (find(arg[0]) >= 0) return;
       
   // make space for new variable
 
@@ -89,6 +90,11 @@ void Variable::set(int narg, char **arg)
     data = (char ***) 
       memory->srealloc(data,maxvar*sizeof(char **),"var:data");
   }
+
+  // set name of variable
+
+  names[nvar] = new char[strlen(arg[0]) + 1];
+  strcpy(names[nvar],arg[0]);
 
   // INDEX
   // num = listed args, index = 1st value, data = copied args
@@ -111,16 +117,10 @@ void Variable::set(int narg, char **arg)
     for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
     
   // EQUAL
-  // remove pre-existing var if also style EQUAL (allows it to be reset)
   // num = 2, index = 1st value
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
-    if (find(arg[0]) >= 0) {
-      if (style[find(arg[0])] != EQUAL)
-	error->all("Cannot redefine variable as a different style");
-      remove(find(arg[0]));
-    }
     style[nvar] = EQUAL;
     num[nvar] = 2;
     index[nvar] = 0;
@@ -187,17 +187,24 @@ void Variable::set(int narg, char **arg)
 		arg[0],index[nvar]+1,universe->iworld);
     }
 
+  // ATOM
+  // num = 1, index = 1st value
+  // data = 1 value, string to eval
+
+  } else if (strcmp(arg[1],"atom") == 0) {
+    style[nvar] = ATOM;
+    num[nvar] = 1;
+    index[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    copy(1,&arg[2],data[nvar]);
+    
   } else error->all("Illegal variable command");
 
-  // set variable name (after possible EQUAL remove)
-
-  names[nvar] = new char[strlen(arg[0]) + 1];
-  strcpy(names[nvar],arg[0]);
   nvar++;
 }
 
 /* ----------------------------------------------------------------------
-   single-value INDEX variable created by command-line argument
+   single-value EQUAL variable created by command-line argument
 ------------------------------------------------------------------------- */
 
 void Variable::set(char *name, char *value)
@@ -205,25 +212,12 @@ void Variable::set(char *name, char *value)
   int ivar = find(name);
   if (ivar >= 0) error->all("Command-line variable already exists");
 
-  if (nvar == maxvar) {
-    maxvar += VARDELTA;
-    names = (char **)
-      memory->srealloc(names,maxvar*sizeof(char *),"var:names");
-    style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
-    num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
-    index = (int *) memory->srealloc(index,maxvar*sizeof(int),"var:index");
-    data = (char ***) 
-      memory->srealloc(data,maxvar*sizeof(char **),"var:data");
-  }
-
-  names[nvar] = new char[strlen(name) + 1];
-  strcpy(names[nvar],name);
-  style[nvar] = INDEX;
-  num[nvar] = 1;
-  index[nvar] = 0;
-  data[nvar] = new char*[num[nvar]];
-  copy(1,&value,data[nvar]);
-  nvar++;
+  char **newarg = new char*[3];
+  newarg[0] = name;
+  newarg[1] = "equal";
+  newarg[2] = value;
+  set(3,newarg);
+  delete [] newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -247,10 +241,10 @@ int Variable::next(int narg, char **arg)
       error->all("All variables in next command must be same style");
   }
 
-  // check for invalid styles EQUAL or WORLD
+  // invalid styles EQUAL or WORLD or ATOM
 
   int istyle = style[find(arg[0])];
-  if (istyle == EQUAL || istyle == WORLD)
+  if (istyle == EQUAL || istyle == WORLD || istyle == ATOM)
     error->all("Invalid variable style with next command");
 
   // increment all variables in list
@@ -336,14 +330,16 @@ char *Variable::retrieve(char *name)
     delete [] value;
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
-    char *value = evaluate(data[ivar][0]);
-    int n = strlen(value) + 1;
+    char result[32];
+    double answer = evaluate(data[ivar][0],NULL);
+    sprintf(result,"%.10g",answer);
+    int n = strlen(result) + 1;
     if (data[ivar][1]) delete [] data[ivar][1];
     data[ivar][1] = new char[n];
-    strcpy(data[ivar][1],value);
-    delete [] value;
+    strcpy(data[ivar][1],result);
     str = data[ivar][1];
-  }
+  } else if (style[ivar] == ATOM) return NULL;
+
   return str;
 }
 
@@ -404,34 +400,34 @@ void Variable::copy(int narg, char **from, char **to)
      group function = mass(group), xcm(group,x), ...
      atom vector = x[123], y[3], vx[34], ...
      compute vector = c_mytemp[0], c_thermo_press[3], ...
+   numbers start with a digit or "." or "-" (no parens or brackets)
+   keywords start with a lowercase letter (no parens or brackets)
    functions contain ()
      can have 1 or 2 args, each of which can be a "string"
    vectors contain []
      single arg must be integer
-     for atom vectors, it is global ID of atom
+     for atom vectors, arg is global ID of atom
      for compute vectors, 0 is the scalar value, 1-N are vector values
-   keywords start with a lowercase letter (no parens or brackets)
-   numbers start with a digit or "." or "-" (no parens or brackets)
-   see lists of valid functions, vectors, keywords below
-   when string is evaluated, put result in a newly allocated string
-   return the address of result string (will be freed by caller)
+   see lists of valid functions & vectors below
+   return answer = value of string
 ------------------------------------------------------------------------- */
 
-char *Variable::evaluate(char *str)
+double Variable::evaluate(char *str, Tree *tree)
 {
-  // allocate a new string for the eventual result
-
-  char *result = new char[32];
-  double answer;
+  double answer = 0.0;
+  if (tree) {
+    tree->type = VALUE;
+    tree->left = tree->right = NULL;
+  }
 
   // string is a "function" since contains ()
   // grab one or two args, separated by ","
   // evaulate args recursively
-  // then evaluate math or group function
+  // if tree = NULL, evaluate math or group function
+  // else store as leaf in tree
 
   if (strchr(str,'(')) {
-    if (str[strlen(str)-1] != ')')
-      error->all("Cannot evaluate variable equal command");
+    if (str[strlen(str)-1] != ')') error->all("Cannot evaluate variable");
 
     char *ptr = strchr(str,'(');
     int n = ptr - str;
@@ -442,8 +438,7 @@ char *Variable::evaluate(char *str)
     char *comma = ++ptr;
     int level = 0;
     while (1) {
-      if (*comma == '\0')
-	error->all("Cannot evaluate variable equal command");
+      if (*comma == '\0') error->all("Cannot evaluate variable");
       else if (*comma == ',' && level == 0) break;
       else if (*comma == ')' && level == 0) break;
       else if (*comma == '(') level++;
@@ -467,106 +462,132 @@ char *Variable::evaluate(char *str)
     } else arg2 = NULL;
     
     double value1,value2;
-    char *strarg1 = NULL;
-    char *strarg2 = NULL;
 
     // customize by adding math function to this list and to if statement
     //   add(x,y),sub(x,y),mult(x,y),div(x,y),neg(x),
     //   pow(x,y),exp(x),ln(x),sqrt(x)
 
     if (strcmp(func,"add") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      answer = value1 + value2;
+      if (!arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = ADD;
+	tree->left = new Tree();
+	tree->right = new Tree();
+	value1 = evaluate(arg1,tree->left);
+	value2 = evaluate(arg2,tree->right);
+      } else answer = evaluate(arg1,NULL) + evaluate(arg2,NULL);
 
     } else if (strcmp(func,"sub") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      answer = value1 - value2;
+      if (!arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = SUB;
+	tree->left = new Tree();
+	tree->right = new Tree();
+	value1 = evaluate(arg1,tree->left);
+	value2 = evaluate(arg2,tree->right);
+      } else answer = evaluate(arg1,NULL) - evaluate(arg2,NULL);
 
     } else if (strcmp(func,"mult") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      answer = value1 * value2;
+      if (!arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = MULT;
+	tree->left = new Tree();
+	tree->right = new Tree();
+	value1 = evaluate(arg1,tree->left);
+	value2 = evaluate(arg2,tree->right);
+      } else answer = evaluate(arg1,NULL) * evaluate(arg2,NULL);
 
     } else if (strcmp(func,"div") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      if (value2 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = value1 / value2;
+      if (!arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = DIV;
+	tree->left = new Tree();
+	tree->right = new Tree();
+	value1 = evaluate(arg1,tree->left);
+	value2 = evaluate(arg2,tree->right);
+      } else {
+	value1 = evaluate(arg1,NULL);
+	value2 = evaluate(arg2,NULL);
+	if (value2 == 0.0) error->all("Cannot evaluate variable");
+	answer = value1 / value2;
+      }
 
     } else if (strcmp(func,"neg") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      answer = -value1;
+      if (arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = NEG;
+	tree->left = new Tree();
+	value1 = evaluate(arg1,tree->left);
+      } else answer = -evaluate(arg1,NULL);
 
     } else if (strcmp(func,"pow") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      strarg2 = evaluate(arg2);
-      value1 = atof(strarg1);
-      value2 = atof(strarg2);
-      if (value2 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = pow(value1,value2);
+      if (!arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = POW;
+	tree->left = new Tree();
+	tree->right = new Tree();
+	value1 = evaluate(arg1,tree->left);
+	value2 = evaluate(arg2,tree->right);
+      } else {
+	value1 = evaluate(arg1,NULL);
+	value2 = evaluate(arg2,NULL);
+	if (value2 == 0.0) error->all("Cannot evaluate variable");
+	answer = pow(value1,value2);
+      }
 
     } else if (strcmp(func,"exp") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      answer = exp(value1);
+      if (arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = EXP;
+	tree->left = new Tree();
+	value1 = evaluate(arg1,tree->left);
+      } else answer = exp(evaluate(arg1,NULL));
 
     } else if (strcmp(func,"ln") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      if (value1 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = log(value1);
+      if (arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = LN;
+	tree->left = new Tree();
+	value1 = evaluate(arg1,tree->left);
+      } else {
+	value1 = evaluate(arg1,NULL);
+	if (value1 == 0.0) error->all("Cannot evaluate variable");
+	answer = log(value1);
+      }
 
     } else if (strcmp(func,"sqrt") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
-      strarg1 = evaluate(arg1);
-      value1 = atof(strarg1);
-      if (value1 == 0.0)
-	error->all("Cannot evaluate variable equal command");
-      answer = sqrt(value1);
+      if (arg2) error->all("Cannot evaluate variable");
+      if (tree) {
+	tree->type = SQRT;
+	tree->left = new Tree();
+	value1 = evaluate(arg1,tree->left);
+      } else {
+	value1 = evaluate(arg1,NULL);
+	if (value1 == 0.0) error->all("Cannot evaluate variable");
+	answer = sqrt(value1);
+      }
 
     // customize by adding group function to this list and to if statement
     //   mass(group),charge(group),xcm(group,dim),vcm(group,dim),
     //   bound(group,xmin),gyration(group)
 
     } else if (strcmp(func,"mass") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
+      if (arg2) error->all("Cannot evaluate variable");
       int igroup = group->find(arg1);
-      if (igroup == -1) error->all("Variable equal group ID does not exist");
+      if (igroup == -1) error->all("Variable group ID does not exist");
       atom->check_mass();
       answer = group->mass(igroup);
 
     } else if (strcmp(func,"charge") == 0) {
-      if (arg2) error->all("Cannot evaluate variable equal command");
+      if (arg2) error->all("Cannot evaluate variable");
       int igroup = group->find(arg1);
-      if (igroup == -1) error->all("Variable equal group ID does not exist");
+      if (igroup == -1) error->all("Variable group ID does not exist");
       answer = group->charge(igroup);
 
     } else if (strcmp(func,"xcm") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
+      if (!arg2) error->all("Cannot evaluate variable");
       int igroup = group->find(arg1);
-      if (igroup == -1) error->all("Variable equal group ID does not exist");
+      if (igroup == -1) error->all("Variable group ID does not exist");
       atom->check_mass();
       double masstotal = group->mass(igroup);
       double xcm[3];
@@ -574,12 +595,12 @@ char *Variable::evaluate(char *str)
       if (strcmp(arg2,"x") == 0) answer = xcm[0];
       else if (strcmp(arg2,"y") == 0) answer = xcm[1];
       else if (strcmp(arg2,"z") == 0) answer = xcm[2];
-      else error->all("Cannot evaluate variable equal command");
+      else error->all("Cannot evaluate variable");
 
     } else if (strcmp(func,"vcm") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
+      if (!arg2) error->all("Cannot evaluate variable");
       int igroup = group->find(arg1);
-      if (igroup == -1) error->all("Variable equal group ID does not exist");
+      if (igroup == -1) error->all("Variable group ID does not exist");
       atom->check_mass();
       double masstotal = group->mass(igroup);
       double vcm[3];
@@ -587,12 +608,12 @@ char *Variable::evaluate(char *str)
       if (strcmp(arg2,"x") == 0) answer = vcm[0];
       else if (strcmp(arg2,"y") == 0) answer = vcm[1];
       else if (strcmp(arg2,"z") == 0) answer = vcm[2];
-      else error->all("Cannot evaluate variable equal command");
+      else error->all("Cannot evaluate variable");
 
     } else if (strcmp(func,"bound") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
+      if (!arg2) error->all("Cannot evaluate variable");
       int igroup = group->find(arg1);
-      if (igroup == -1) error->all("Variable equal group ID does not exist");
+      if (igroup == -1) error->all("Variable group ID does not exist");
       double minmax[6];
       group->bounds(igroup,minmax);
       if (strcmp(arg2,"xmin") == 0) answer = minmax[0];
@@ -601,28 +622,23 @@ char *Variable::evaluate(char *str)
       else if (strcmp(arg2,"ymax") == 0) answer = minmax[3];
       else if (strcmp(arg2,"zmin") == 0) answer = minmax[4];
       else if (strcmp(arg2,"zmax") == 0) answer = minmax[5];
-      else error->all("Cannot evaluate variable equal command");
+      else error->all("Cannot evaluate variable");
 
     } else if (strcmp(func,"gyration") == 0) {
-      if (!arg2) error->all("Cannot evaluate variable equal command");
+      if (!arg2) error->all("Cannot evaluate variable");
       int igroup = group->find(arg1);
-      if (igroup == -1) error->all("Variable equal group ID does not exist");
+      if (igroup == -1) error->all("Variable group ID does not exist");
       atom->check_mass();
       double masstotal = group->mass(igroup);
       double xcm[3];
       group->xcm(igroup,masstotal,xcm);
       answer = group->gyration(igroup,masstotal,xcm);
 
-    } else error->all("Invalid math/group function in variable equal command");
+    } else error->all("Invalid math/group function in variable");
 
     delete [] func;
     delete [] arg1;
-    delete [] strarg1;
-    if (arg2) {
-      delete [] arg2;
-      delete [] strarg2;
-    }
-    sprintf(result,"%.10g",answer);
+    delete [] arg2;
 
   // string is a "vector" since contains []
   // index = everything between [] evaluated as integer
@@ -633,8 +649,7 @@ char *Variable::evaluate(char *str)
   //   grab atom-based value with index as global atom ID
 
   } else if (strchr(str,'[')) {
-    if (str[strlen(str)-1] != ']')
-      error->all("Cannot evaluate variable equal command");
+    if (str[strlen(str)-1] != ']') error->all("Cannot evaluate variable");
 
     char *ptr = strchr(str,'[');
     int n = ptr - str;
@@ -659,7 +674,7 @@ char *Variable::evaluate(char *str)
       for (icompute = 0; icompute < modify->ncompute; icompute++)
 	if (strcmp(id,modify->compute[icompute]->id) == 0) break;
       if (icompute == modify->ncompute)
-	error->all("Invalid compute ID in variable equal");
+	error->all("Invalid compute ID in variable");
       delete [] id;
       modify->compute[icompute]->init();
 
@@ -672,7 +687,7 @@ char *Variable::evaluate(char *str)
 	  error->all("Variable compute ID does not compute scalar info");
 	if (modify->compute[icompute]->id_pre) {
 	  int ipre = modify->find_compute(modify->compute[icompute]->id_pre);
-	  if (ipre < 0) error->all("Could not pre-compute in variable equal");
+	  if (ipre < 0) error->all("Could not pre-compute in variable");
 	  answer = modify->compute[ipre]->compute_scalar();
 	}
 	answer = modify->compute[icompute]->compute_scalar();
@@ -683,28 +698,62 @@ char *Variable::evaluate(char *str)
 	  error->all("Variable compute ID vector is not large enough");
 	if (modify->compute[icompute]->id_pre) {
 	  int ipre = modify->find_compute(modify->compute[icompute]->id_pre);
-	  if (ipre < 0) error->all("Could not pre-compute in variable equal");
+	  if (ipre < 0) error->all("Could not pre-compute in variable");
 	  modify->compute[ipre]->compute_vector();
 	}
 	modify->compute[icompute]->compute_vector();
 	answer = modify->compute[icompute]->vector[index-1];
-      } else error->all("Invalid compute ID index in variable equal");
+      } else error->all("Invalid compute ID index in variable");
+
+    } else if (tree) {
+
+      if (strlen(arg)) error->all("Invalid atom vector argument in variable");
+
+      // customize by adding atom vector to this list and to if statement
+      // mass,x,y,z,vx,vy,vz,fx,fy,fz
+
+      tree->type = ATOMARRAY;
+      tree->nstride = 3;
+
+      if (strcmp(vector,"mass") == 0) {
+	if (atom->mass) {
+	  tree->type = TYPEARRAY;
+	  tree->array = atom->mass;
+	} else {
+	  tree->nstride = 1;
+	  tree->array = atom->rmass;
+	}
+      }
+      else if (strcmp(vector,"x") == 0) tree->array = &atom->x[0][0];
+      else if (strcmp(vector,"y") == 0) tree->array = &atom->x[0][1];
+      else if (strcmp(vector,"z") == 0) tree->array = &atom->x[0][2];
+      else if (strcmp(vector,"vx") == 0) tree->array = &atom->v[0][0];
+      else if (strcmp(vector,"vy") == 0) tree->array = &atom->v[0][1];
+      else if (strcmp(vector,"vz") == 0) tree->array = &atom->v[0][2];
+      else if (strcmp(vector,"fx") == 0) tree->array = &atom->f[0][0];
+      else if (strcmp(vector,"fy") == 0) tree->array = &atom->f[0][1];
+      else if (strcmp(vector,"fz") == 0) tree->array = &atom->f[0][2];
+      
+      else error->all("Invalid atom vector in variable");
 
     } else {
 
       if (atom->map_style == 0)
-	error->all("Cannot use atom vectors in variable "
-                   "unless atom map exists");
+	error->all("Cannot use atom vector in variable unless atom map exists");
 
       int index = atom->map(atoi(arg));
 
       // customize by adding atom vector to this list and to if statement
-      // x,y,z,vx,vy,vz,fx,fy,fz
+      // mass,x,y,z,vx,vy,vz,fx,fy,fz
 
       double mine;
       if (index >= 0 && index < atom->nlocal) {
 
-	if (strcmp(vector,"x") == 0) mine = atom->x[index][0];
+	if (strcmp(vector,"mass") == 0) {
+	  if (atom->mass) mine = atom->mass[atom->type[index]];
+	  else mine = atom->rmass[index];
+	}
+        else if (strcmp(vector,"x") == 0) mine = atom->x[index][0];
 	else if (strcmp(vector,"y") == 0) mine = atom->x[index][1];
 	else if (strcmp(vector,"z") == 0) mine = atom->x[index][2];
 	else if (strcmp(vector,"vx") == 0) mine = atom->v[index][0];
@@ -714,7 +763,7 @@ char *Variable::evaluate(char *str)
 	else if (strcmp(vector,"fy") == 0) mine = atom->f[index][1];
 	else if (strcmp(vector,"fz") == 0) mine = atom->f[index][2];
 	
-	else error->one("Invalid atom vector in variable equal command");
+	else error->one("Invalid atom vector in variable");
 	
       } else mine = 0.0;
 
@@ -723,15 +772,12 @@ char *Variable::evaluate(char *str)
 
     delete [] vector;
     delete [] arg;
-    sprintf(result,"%.10g",answer);
 
   // string is "keyword" since starts with lowercase letter
   // if keyword starts with "v_", trailing chars are variable name
   //   evaluate it via retrieve(), convert it to double
   // else is thermo keyword
   //   evaluate it via evaluate_keyword()
-
-  // compute appropriate value via thermo
 
   } else if (islower(str[0])) {
 
@@ -741,31 +787,98 @@ char *Variable::evaluate(char *str)
       strcpy(id,&str[2]);
 
       char *v = retrieve(id);
-      if (v == NULL)
-	error->all("Invalid variable name in variable equal command");
+      if (v == NULL) error->all("Invalid variable name in variable");
       delete [] id;
 
       answer = atof(v);
 
     } else {
       int flag = output->thermo->evaluate_keyword(str,&answer);
-      if (flag) error->all("Invalid thermo keyword in variable equal command");
+      if (flag) error->all("Invalid thermo keyword in variable");
     }
-
-    sprintf(result,"%.10g",answer);
 
   // string is a number since starts with digit or "." or "-"
   // just copy to result
 
   } else if (isdigit(str[0]) || str[0] == '.' || str[0] == '-') {
 
-    strcpy(result,str);
+    answer = atof(str);
 
   // string is an error
 
-  } else error->all("Cannot evaluate variable equal command");
+  } else error->all("Cannot evaluate variable");
 
-  // return newly allocated string
+  // store answer in tree and return it
 
-  return result;
+  if (tree) tree->value = answer;
+  return answer;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Variable::build_parse_tree(int ivar)
+{
+  if (style[ivar] != ATOM) error->all("");
+  ptree = new Tree();
+  double tmp = evaluate(data[ivar][0],ptree);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Variable::evaluate_parse_tree(int igroup, double *result)
+{
+  int groupbit = group->bitmask[igroup];
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] && groupbit) result[i] = eval_tree(ptree,i);
+    else result[i] = 0.0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Variable::free_parse_tree()
+{
+  free_tree(ptree);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Variable::eval_tree(Tree *tree, int i)
+{
+  if (tree->type == VALUE) return tree->value;
+  if (tree->type == ATOMARRAY) return tree->array[i*tree->nstride];
+  if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
+
+  if (tree->type == ADD)
+    return eval_tree(tree->left,i) + eval_tree(tree->right,i);
+  if (tree->type == SUB)
+    return eval_tree(tree->left,i) - eval_tree(tree->right,i);
+  if (tree->type == MULT)
+    return eval_tree(tree->left,i) * eval_tree(tree->right,i);
+  if (tree->type == DIV)
+    return eval_tree(tree->left,i) / eval_tree(tree->right,i);
+  if (tree->type == NEG)
+    return -eval_tree(tree->left,i);
+  if (tree->type == POW)
+    return pow(eval_tree(tree->left,i),eval_tree(tree->right,i));
+  if (tree->type == EXP)
+    return exp(eval_tree(tree->left,i));
+  if (tree->type == LN)
+    return log(eval_tree(tree->left,i));
+  if (tree->type == SQRT)
+    return sqrt(eval_tree(tree->left,i));
+
+  return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Variable::free_tree(Tree *tree)
+{
+  if (tree->left) free_tree(tree->left);
+  if (tree->right) free_tree(tree->right);
+  delete tree;
 }

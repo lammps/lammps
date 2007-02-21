@@ -50,7 +50,8 @@ class Ewald : public KSpace {
   void slabcorr(int);
 };
 
-#endif
 }
+
+#endif
 
 

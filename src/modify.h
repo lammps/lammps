@@ -25,7 +25,7 @@ class Modify : protected Pointers {
   int n_initial_integrate,n_pre_decide,n_pre_exchange,n_pre_neighbor;
   int n_post_force,n_final_integrate,n_end_of_step,n_thermo_energy;
   int n_initial_integrate_respa,n_post_force_respa,n_final_integrate_respa;
-  int n_min_post_force;
+  int n_min_post_force,n_min_energy;
   int nfix_restart_peratom;
 
   class Fix **fix;           // list of fixes
@@ -52,6 +52,9 @@ class Modify : protected Pointers {
   void final_integrate_respa(int);
 
   void min_post_force(int);
+  double min_energy(double *, double *);
+  int min_dof();
+  void min_xinitial(double *);
 
   void add_fix(int, char **);
   void modify_fix(int, char **);
@@ -77,7 +80,7 @@ class Modify : protected Pointers {
   int *list_thermo_energy;
   int *list_initial_integrate_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
-  int *list_min_post_force;
+  int *list_min_post_force,*list_min_energy;
 
   int *end_of_step_every;
 

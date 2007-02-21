@@ -37,6 +37,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   restart_peratom = 0;
   force_reneighbor = 0;
   thermo_energy = 0;
+  pressure_every = 0;
 
   comm_forward = comm_reverse = 0;
   neigh_half_once = neigh_half_every = 0;
@@ -55,6 +56,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   POST_FORCE_RESPA = 256;
   FINAL_INTEGRATE_RESPA = 512;
   MIN_POST_FORCE = 1024;
+  MIN_ENERGY = 2048;
 }
 
 /* ---------------------------------------------------------------------- */

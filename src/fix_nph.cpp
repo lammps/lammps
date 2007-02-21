@@ -44,6 +44,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all("Illegal fix nph command");
 
   restart_global = 1;
+  pressure_every = 1;
 
   double p_period[3];
   if (strcmp(arg[3],"xyz") == 0) {

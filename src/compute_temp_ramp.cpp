@@ -36,6 +36,35 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 9) error->all("Illegal compute temp command");
 
+  // parse optional args
+
+  scaleflag = 1;
+
+  int iarg = 9;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"units") == 0) {
+      if (iarg+2 > narg) error->all("Illegal compute temp/ramp command");
+      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
+      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      else error->all("Illegal compute temp/ramp command");
+      iarg += 2;
+    } else error->all("Illegal compute temp/ramp command");
+  }
+
+  // setup scaling
+
+  if (scaleflag && domain->lattice == NULL)
+    error->all("Use of compute temp/ramp with undefined lattice");
+
+  if (scaleflag) {
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
+  }
+  else xscale = yscale = zscale = 1.0;
+
+  // read standard args and apply scaling
+
   if (strcmp(arg[3],"vx") == 0) v_dim = 0;
   else if (strcmp(arg[3],"vy") == 0) v_dim = 1;
   else if (strcmp(arg[3],"vz") == 0) v_dim = 2;
@@ -68,32 +97,7 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
     coord_hi = zscale*atof(arg[8]);
   }
 
-  // parse optional args
-
-  scaleflag = 1;
-
-  int iarg = 9;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute temp/ramp command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal compute temp/ramp command");
-      iarg += 2;
-    } else error->all("Illegal compute temp/ramp command");
-  }
-
-  // setup scaling
-
-  if (scaleflag && domain->lattice == NULL)
-    error->all("Use of compute temp/ramp with undefined lattice");
-
-  if (scaleflag) {
-    xscale = domain->lattice->xlattice;
-    yscale = domain->lattice->ylattice;
-    zscale = domain->lattice->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
+  // settings
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

@@ -25,8 +25,12 @@ micelle2d:	micelle2d.o
 data2xmovie:	data2xmovie.o
 	g++ -g data2xmovie.o -o data2xmovie
 
+thermo_extract:	thermo_extract.o
+	gcc -g thermo_extract.o -o thermo_extract
+
 clean:
 	rm binary2txt replicate restart2data chain micelle2d data2xmovie
+	rm thermo_extract
 	rm *.o
 
 #

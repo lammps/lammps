@@ -495,14 +495,14 @@ void Neighbor::init()
   if (respa == 0 && respa_previous) {
     memory->sfree(numneigh_inner);
     memory->sfree(firstneigh_inner);
-    for (i = 0; i < maxpage; i++) memory->sfree(pages_inner[i]);
+    for (i = 0; i < maxpage_inner; i++) memory->sfree(pages_inner[i]);
     memory->sfree(pages_inner);
     pages_inner = NULL;
     maxpage_inner = 0;
     if (respa_previous == 2) {
       memory->sfree(numneigh_middle);
       memory->sfree(firstneigh_middle);
-      for (i = 0; i < maxpage; i++) memory->sfree(pages_middle[i]);
+      for (i = 0; i < maxpage_middle; i++) memory->sfree(pages_middle[i]);
       memory->sfree(pages_middle);
       pages_middle = NULL;
       maxpage_middle = 0;

@@ -69,7 +69,8 @@ we can improve the LAMMPS documentation.
   4.7 "TIP3P water model"_4_7 :b
   4.8 "TIP4P water model"_4_8 :b
   4.9 "SPC water model"_4_9 :b
-  4.10 "Coupling LAMMPS to other codes"_4_10 :ule,b
+  4.10 "Coupling LAMMPS to other codes"_4_10
+  4.11 "Visualizing LAMMPS snapshots"_4_11 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
@@ -114,6 +115,7 @@ we can improve the LAMMPS documentation.
 :link(4_8,Section_howto.html#4_8)
 :link(4_9,Section_howto.html#4_9)
 :link(4_10,Section_howto.html#4_10)
+:link(4_11,Section_howto.html#4_11)
 
 :link(9_1,Section_errors.html#9_1)
 :link(9_2,Section_errors.html#9_2)

@@ -66,6 +66,14 @@ LAMMPS</A> section for more info.
 <A HREF = "pair_modify.hmtl">pair_modify</A> <I>mix</I> option.  Coefficients for all i,j
 pairs must be specified explicitly.
 </P>
+<P>The default frequency for rebuilding neighbor lists is every 10 steps
+(see the <A HREF = "neigh_modify.html">neigh_modify</A> command). This may be too
+infrequent for DPD simulations since particles move rapidly and can
+overlap by large amounts.  If this setting yields a non-zero number of
+"dangerous" reneighborings (printed at the end of a simulation), you
+should experiment with forcing reneighboring more often and see if
+system energies/trajectories change.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>

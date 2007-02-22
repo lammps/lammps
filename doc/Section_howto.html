@@ -23,7 +23,8 @@ certain kinds of LAMMPS simulations.
 4.7 <A HREF = "#4_7">TIP3P water model</A><BR>
 4.8 <A HREF = "#4_8">TIP4P water model</A><BR>
 4.9 <A HREF = "#4_9">SPC water model</A><BR>
-4.10 <A HREF = "#4_10">Coupling LAMMPS to other codes</A> <BR>
+4.10 <A HREF = "#4_10">Coupling LAMMPS to other codes</A><BR>
+4.11 <A HREF = "#4_11">Visualizing LAMMPS snapshots</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -587,6 +588,65 @@ show how a stand-alone code can link LAMMPS as a library, run LAMMPS
 on a subset of processors, grab data from LAMMPS, change it, and put
 it back into LAMMPS.
 </P>
+<HR>
+
+<A NAME = "4_11"></A><H4>4.11 Visualizing LAMMPS snapshots 
+</H4>
+<P>LAMMPS itself does not do visualization, but snapshots from LAMMPS
+simulations can be visualized (and analyzed) in a variety of ways.
+</P>
+<P>LAMMPS snapshots are created by the <A HREF = "dump.html">dump</A> command which can
+create files in several formats.  The native LAMMPS dump format is a
+text file (see "dump atom" or "dump custom") which can be visualized
+by the <A HREF = "Section_tools.html#xmovie">xmovie</A> program, included with the
+LAMMPS package.  This produces simple, fast 2d projections of 3d
+systems, and can be useful for rapid debugging of simulation geoemtry
+and atom trajectories.
+</P>
+<P>Several programs included with LAMMPS as auxiliary tools can convert
+native LAMMPS dump files to other formats.  See the
+<A HREF = "Section_tools.html">Section_tools</A> doc page for details.  The first is
+the <A HREF = "Section_tools.html#charmm">ch2lmp tool</A>, which contains a
+lammps2pdb Perl script which converts LAMMPS dump files into PDB
+files.  The second is the <A HREF = "Section_tools.html#arc">lmp2arc tool</A> which
+converts LAMMPS dump files into Accelrys's Insight MD program files.
+The thrid is the <A HREF = "Section_tools.html#cfg">lmp2cfg tool</A> which converts
+LAMMPS dump files into CFG files which can be read into the
+<A HREF = "http://164.107.79.177/Archive/Graphics/A">AtomEye</A> visualizer.
+</P>
+<P>A Python-based toolkit distributed by our group can read native LAMMPS
+dump files, including custom dump files with additional columns of
+user-specified atom information, and convert them to various formats
+or pipe them into visualization software directly.  See the <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py
+WWW site</A> for details.  Specifically, Pizza.py can convert
+LAMMPS dump files into PDB, XYZ, <A HREF = "http://www.ensight.com">Ensight</A>, and VTK formats.
+Pizza.py can pipe LAMMPS dump files directly into the Raster3d and
+RasMol visualization programs.  Pizza.py has tools that do interactive
+3d OpenGL visualization and one that creates SVG images of dump file
+snapshots.
+</P>
+<P>LAMMPS can create XYZ files directly (via "dump xyz") which is a
+simple text-based file format used by many visualization programs
+including <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>.
+</P>
+<P>LAMMPS can create DCD files directly (via "dump dcd") which can be
+read by <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> in conjunction with a CHARMM PSF file.  Using this
+form of output avoids the need to convert LAMMPS snapshots to PDB
+files.  See the <A HREF = "dump.html">dump</A> command for more information on DCD
+files.
+</P>
+<P>LAMMPS can create XTC files directly (via "dump xtc") which is GROMACS
+file format which can also be read by <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> for visualization.
+See the <A HREF = "dump.html">dump</A> command for more information on XTC files.
+</P>
+
+
+
+
+
+
+
+
 <HR>
 
 <A NAME = "Cornell"></A>

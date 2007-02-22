@@ -132,7 +132,7 @@ files are binary and thus may not be portable to different machines.
 The dump group must be {all} for the {dcd} style.
 
 The {xtc} style writes XTC files, a compressed trajectory format used
-by the Gromacs molecular dynamics package, and described
+by the GROMACS molecular dynamics package, and described
 "here"_http://www.gromacs.org/documentation/reference_3.3/online/xtc.html.
 The precision used in XTC files can be specified; for example, a value
 of 100 means that coordinates are stored to 1/100 nanometer accuracy.
@@ -145,9 +145,9 @@ coordinate format that many codes can read.
 
 Note that DCD, XTC, and XYZ formatted files can be read directly by
 "VMD"_http://www.ks.uiuc.edu/Research/vmd (a popular molecular viewing
-program).  VMD will also read LAMMPS {atom} style dump files since
-someone added a LAMMPS plug-in to VMD.  I am told it requires an
-initial snapshot from an XYZ formatted file to get started.
+program).  We are told VMD will also read LAMMPS {atom} style dump
+files since someone has added a LAMMPS format plug-in to VMD.  It may
+require an initial snapshot from an XYZ formatted file to get started.
 
 :line
 

@@ -60,7 +60,7 @@ the "pair_coeff"_pair_coeff.html command.  These are ASCII text files
 in a DYNAMO-style format which is described below.  DYNAMO is a serial
 MD code.  Several DYNAMO potential files for different metals are
 included in the "potentials" directory of the LAMMPS distribution.
-All of these are parameterized in terms of LAMMPS "metal
+All of these files are parameterized in terms of LAMMPS "metal
 units"_units.html.
 
 IMPORTANT NOTE: The {eam} style reads single-element EAM potentials in
@@ -323,6 +323,15 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html
+
+Here are 2 WWW sites that discuss EAM potentials formulated in
+alternate file formats:
+
+http://www.ims.uconn.edu/centers/simul/pot
+http://cst-www.nrl.navy.mil/ccm6/ap :pre
+
+In principle, these potentials could be converted to the DYNAMO file
+format described above and used by LAMMPS.
 
 [Default:] none
 

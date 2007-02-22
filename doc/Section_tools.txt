@@ -51,7 +51,8 @@ own sub-directories with their own Makefiles.
 "amber2lammps"_#amber
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
-"lmp2traj"_#traj :ul
+"lmp2traj"_#traj
+"thermo_extract"_#thermo_extract :ul
 
 :line
 
@@ -194,8 +195,8 @@ lammps2pdb.pl you can convert LAMMPS atom dumps into pdb files.
 
 See the README file in the ch2lmp sub-directory for more information.
 
-These tools were created by Pieter in't Veld (pjintve@sandia.gov) and
-Paul Crozier (pscrozi@sandia.gov) at Sandia.
+These tools were created by Pieter in't Veld (pjintve at sandia.gov)
+and Paul Crozier (pscrozi at sandia.gov) at Sandia.
 
 :line
 
@@ -207,8 +208,7 @@ its Discover MD code).  See the README file for more information.
 
 This tool was written by John Carpenter (Cray), Michael Peachey
 (Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
-("jec@mayo.edu"_mailto:jec@mayo.edu), but still fields questions about
-the tool.
+(jec at mayo.edu), but still fields questions about the tool.
 
 This tool may be out-of-date with respect to the current LAMMPS and
 Insight versions.  Since we don't use it at Sandia, you'll need to
@@ -240,11 +240,10 @@ information.
 
 This tool was written by John Carpenter (Cray), Michael Peachey
 (Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
-("jec@mayo.edu"_mailto:jec@mayo.edu), but still fields questions about
-the tool.
+(jec at mayo.edu), but still fields questions about the tool.
 
 This tool was updated for the current LAMMPS C++ version by Jeff
-Greathouse at Sandia (jagreat@sandia.gov).
+Greathouse at Sandia (jagreat at sandia.gov).
 
 :line
 
@@ -255,7 +254,7 @@ files into a series of *.cfg files which can be read into the
 "AtomEye"_http://164.107.79.177/Archive/Graphics/A visualizer.  See
 the README file for more information.
 
-This tool was written by Ara Kooser at Sandia (askoose@sandia.gov).
+This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
 :line
 
@@ -267,4 +266,18 @@ maps of the atom positions over the course of the simulation. The
 other two files provide density profiles and dipole moments.  See the
 README file for more information.
 
-This tool was written by Ara Kooser at Sandia (askoose@sandia.gov).
+This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
+
+:line
+
+thermo_extract tool :h4,link(thermo_extract)
+
+The thermo_extract tool reads one of more LAMMPS log files and
+extracts a thermodynamic value (e.g. Temp, Press).  It spits out the
+time,value as 2 columns of numbers so the tool can be used as a quick
+way to plot some quantity of interest.  See the header of the
+thermo_extract.c file for the syntax of how to run it and other
+details.
+
+This tool was written by Vikas Varshney at Wright Patterson AFB
+(vikas.varshney at gmail.com).

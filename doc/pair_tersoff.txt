@@ -76,10 +76,11 @@ D (distance units)
 lambda1 (1/distance units)
 A (energy units) :ul
 
-The n, beta, lambda2, B, R, D, lambda1, and A parameters are for
+The n, beta, lambda2, B, lambda1, and A parameters are only used for
 two-body interactions.  The lambda3, c, d, and costheta0 parameters
-are for three-body interactions.  The non-annotated parameters are
-unitless.
+are only used for three-body interactions. The R and D parameters 
+are used for both two-body and three-body interactions. The 
+non-annotated parameters are unitless.
 
 The Tersoff potential file must contain entries for all the elements
 listed in the pair_coeff command.  It can also contain entries for
@@ -98,12 +99,16 @@ in a three-body interaction and it is bonded to the 2nd atom and the
 bond is influenced by the 3rd atom.  Thus an entry for SiCC means Si
 bonded to a C with another C atom influencing the bond.  Thus
 three-body parameters for SiCSi and SiSiC entries will not, in
-general, be the same.  Two-body parameters for an interaction come
+general, be the same.  The parameters used for the two-body interaction come
 from the entry where the 2nd element is repeated.  Thus the two-body
 parameters for Si interacting with C, comes from the SiCC entry.  By
-symmetry, the two-body parameters in the SiCC and CSiSi entries should
-thus be the same.  Two-body parameters in entries whose 2nd and 3rd
-element are different (e.g. SiCSi) are ignored.
+symmetry, the twobody parameters in the SiCC and CSiSi entries should
+thus be the same.  The parameters used for a particular three-body 
+interaction come from the entry with the corresponding three elements. 
+The parameters used only for two-body interactions 
+(n, beta, lambda2, B, lambda1, and A) 
+in entries whose 2nd and 3rd element are different (e.g. SiCSi) 
+are not used for anything and can be set to 0.0 if desired.
 
 [Restrictions:]
 

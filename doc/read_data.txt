@@ -55,12 +55,13 @@ valid.
 :line
 
 These are the recognized header keywords.  Header lines can come in
-any order.  The value(s) is read from the beginning of the line.  Thus
-the keyword {atoms} should be in a line like "1000 atoms" and the
-keyword {ylo yhi} should be in a line like "-10.0 10.0 ylo yhi".  All
-these settings have a default value of 0, except the lo/hi box size
-defaults are -0.5 and 0.5.  A line need only appear if the value is
-different than the default.
+any order.  The value(s) are read from the beginning of the line.
+Thus the keyword {atoms} should be in a line like "1000 atoms"; the
+keyword {ylo yhi} should be in a line like "-10.0 10.0 ylo yhi"; the
+keyword {xy xz yz} should be in a line like "0.0 5.0 6.0 xy xz yz".
+All these settings have a default value of 0, except the lo/hi box
+size defaults are -0.5 and 0.5.  A line need only appear if the value
+is different than the default.
 
 {atoms} = # of atoms in system
 {bonds} = # of bonds in system
@@ -74,15 +75,39 @@ different than the default.
 {improper types} = # of improper types in system
 {xlo xhi} = simulation box boundaries in x dimension
 {ylo yhi} = simulation box boundaries in y dimension
-{zlo zhi} = simulation box boundaries in z dimension :ul
-
-For 2d simulations, the {zlo zhi} values should be set to bound the z
-coords for atoms that appear in the file; the default of -0.5 0.5 is
-valid if all z coords are 0.0.
+{zlo zhi} = simulation box boundaries in z dimension
+{xy xz yz} = simulation box tilt factors for triclinic domain :ul
 
 The initial simulation box size is determined by the lo/hi settings.
 In any dimension, the system may be periodic or non-periodic; see the
 "boundary"_boundary.html command.
+
+If the {xy xz yz} line does not appear, then LAMMPS will set up an
+axis-aligned (orthogonal) simulation box.  If the line does appear,
+LAMMPS creates a non-orthogonal simulation domain shaped as a
+parallelepiped with triclinic symmetry.  See the "region
+prism"_region.html command for a description of how the extent of the
+parallelepiped is defined.  Basically, the parallelepiped has its
+"origin" at (xlo,ylo,zlo) and 3 edge vectors starting from the origin
+given by a = (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+
+The skew factors (xy,xz,yz) must not skew the box more than half the
+distance of its side lengths.  For example, if ylo = 2 and yhi = 12,
+then the y box length is 10 and the xy factor must be between -5 and
+5.  Similary xz must be between -(zhi-zlo)/2 and +(zhi-zlo)/2 and yz
+must be between -(zhi-zlo)/2 and +(zhi-zlo)/2.
+
+When a triclinic system is used, the simulation domain must be
+periodic in any dimensions with a non-zero skew factor, as defined by
+the "boundary"_boundary.html command.  I.e. if the xy factor is
+non-zero, then both the x and y dimensions must be periodic.
+Similarly, x and z must be periodic if xz is non-zero and y and z must
+be periodic if yz is non-zero.
+
+For 2d simulations, the {zlo zhi} values should be set to bound the z
+coords for atoms that appear in the file; the default of -0.5 0.5 is
+valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
+and yz skew factors must be 0.0.
 
 If the system is non-periodic (in a dimension), then all atoms in the
 data file should have coordinates (in that dimension) between the lo
@@ -460,19 +485,20 @@ script.
 
 {Velocities} section:
 
-one line per atom :ulb
-line syntax: atom-ID vx vy vz :l
-  atom-ID = integer ID of atom to assign velocity to
-  vx,vy,vz = components of velocity of the atom :pre
-example: :l
-  45 -3.4 0.05 1.25 :pre
-:ule
+one line per atom
+line syntax: depends on atom style :ul
+
+all styles except granular: atom-ID vx vy vz
+granular: atom-ID vx vy vz phix phiy phiz :tb(s=:)
 
 The velocity lines can appear in any order.  This section can only be
 used after an {Atoms} section.  The {Atoms} section must have assigned
 a unique atom ID to each atom so that velocities can be assigned in
-this way.  Velocities can also be set by the "velocity"_velocity.html
-command in the input script.
+this way.  Vx,vy,vz are in "units"_units.html of velocity.
+Phix,phiy,phiz are in units of angular velocity (radians/time).
+
+Translational velocities can also be set by the
+"velocity"_velocity.html command in the input script.
 
 :line
 

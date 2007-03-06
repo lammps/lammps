@@ -60,12 +60,13 @@ valid.
 <HR>
 
 <P>These are the recognized header keywords.  Header lines can come in
-any order.  The value(s) is read from the beginning of the line.  Thus
-the keyword <I>atoms</I> should be in a line like "1000 atoms" and the
-keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi".  All
-these settings have a default value of 0, except the lo/hi box size
-defaults are -0.5 and 0.5.  A line need only appear if the value is
-different than the default.
+any order.  The value(s) are read from the beginning of the line.
+Thus the keyword <I>atoms</I> should be in a line like "1000 atoms"; the
+keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi"; the
+keyword <I>xy xz yz</I> should be in a line like "0.0 5.0 6.0 xy xz yz".
+All these settings have a default value of 0, except the lo/hi box
+size defaults are -0.5 and 0.5.  A line need only appear if the value
+is different than the default.
 </P>
 <UL><LI><I>atoms</I> = # of atoms in system
 <LI><I>bonds</I> = # of bonds in system
@@ -79,15 +80,39 @@ different than the default.
 <LI><I>improper types</I> = # of improper types in system
 <LI><I>xlo xhi</I> = simulation box boundaries in x dimension
 <LI><I>ylo yhi</I> = simulation box boundaries in y dimension
-<LI><I>zlo zhi</I> = simulation box boundaries in z dimension 
+<LI><I>zlo zhi</I> = simulation box boundaries in z dimension
+<LI><I>xy xz yz</I> = simulation box tilt factors for triclinic domain 
 </UL>
-<P>For 2d simulations, the <I>zlo zhi</I> values should be set to bound the z
-coords for atoms that appear in the file; the default of -0.5 0.5 is
-valid if all z coords are 0.0.
-</P>
 <P>The initial simulation box size is determined by the lo/hi settings.
 In any dimension, the system may be periodic or non-periodic; see the
 <A HREF = "boundary.html">boundary</A> command.
+</P>
+<P>If the <I>xy xz yz</I> line does not appear, then LAMMPS will set up an
+axis-aligned (orthogonal) simulation box.  If the line does appear,
+LAMMPS creates a non-orthogonal simulation domain shaped as a
+parallelepiped with triclinic symmetry.  See the <A HREF = "region.html">region
+prism</A> command for a description of how the extent of the
+parallelepiped is defined.  Basically, the parallelepiped has its
+"origin" at (xlo,ylo,zlo) and 3 edge vectors starting from the origin
+given by a = (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+</P>
+<P>The skew factors (xy,xz,yz) must not skew the box more than half the
+distance of its side lengths.  For example, if ylo = 2 and yhi = 12,
+then the y box length is 10 and the xy factor must be between -5 and
+5.  Similary xz must be between -(zhi-zlo)/2 and +(zhi-zlo)/2 and yz
+must be between -(zhi-zlo)/2 and +(zhi-zlo)/2.
+</P>
+<P>When a triclinic system is used, the simulation domain must be
+periodic in any dimensions with a non-zero skew factor, as defined by
+the <A HREF = "boundary.html">boundary</A> command.  I.e. if the xy factor is
+non-zero, then both the x and y dimensions must be periodic.
+Similarly, x and z must be periodic if xz is non-zero and y and z must
+be periodic if yz is non-zero.
+</P>
+<P>For 2d simulations, the <I>zlo zhi</I> values should be set to bound the z
+coords for atoms that appear in the file; the default of -0.5 0.5 is
+valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
+and yz skew factors must be 0.0.
 </P>
 <P>If the system is non-periodic (in a dimension), then all atoms in the
 data file should have coordinates (in that dimension) between the lo
@@ -543,24 +568,22 @@ script.
 
 <P><I>Velocities</I> section:
 </P>
-<UL>one line per atom 
-
-<LI>line syntax: atom-ID vx vy vz 
-
-<PRE>  atom-ID = integer ID of atom to assign velocity to
-  vx,vy,vz = components of velocity of the atom 
-</PRE>
-<LI>example: 
-
-<PRE>  45 -3.4 0.05 1.25 
-</PRE>
-
+<UL><LI>one line per atom
+<LI>line syntax: depends on atom style 
 </UL>
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<TR><TD >all styles except granular</TD><TD > atom-ID vx vy vz</TD></TR>
+<TR><TD >granular</TD><TD > atom-ID vx vy vz phix phiy phiz 
+</TD></TR></TABLE></DIV>
+
 <P>The velocity lines can appear in any order.  This section can only be
 used after an <I>Atoms</I> section.  The <I>Atoms</I> section must have assigned
 a unique atom ID to each atom so that velocities can be assigned in
-this way.  Velocities can also be set by the <A HREF = "velocity.html">velocity</A>
-command in the input script.
+this way.  Vx,vy,vz are in <A HREF = "units.html">units</A> of velocity.
+Phix,phiy,phiz are in units of angular velocity (radians/time).
+</P>
+<P>Translational velocities can also be set by the
+<A HREF = "velocity.html">velocity</A> command in the input script.
 </P>
 <HR>
 

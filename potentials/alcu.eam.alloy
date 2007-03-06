@@ -1,6 +1,6 @@
-kistkistkistkistkistkistkistkistkistkistkistkist
-kistkistkistkistkistkistkistkistkistkistkistkist
-kistkistkistkistkistkistkistkistkistkistkistkist
+##Al-Cu EAM potentials from J. Cai and Y.Y. Ye##
+##Phys. Rev. B 54, 8398-8410 (1996).############
+################################################
 2  Al  Cu
 3000    1.6672224075e-02    3000    2.2282427476e-03    6.6825000000e+00
 13   26.981539  4.05035 FCC
@@ -4205,3 +4205,4 @@ kistkistkistkistkistkistkistkistkistkistkistkist
 0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	
 0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	
 0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	0.0000000000e+00	
+

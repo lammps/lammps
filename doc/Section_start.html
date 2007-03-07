@@ -327,9 +327,11 @@ meam directory with the appropriate Makefile, e.g. "make -f
 Makefile.icc".  If one of the provided Makefiles is not appropriate
 for your system you can edit or add one as needed.
 </P>
-<P>Linking a Fortran library to a C++ code can be problematic
-(e.g. non-matching underscore conventions).  If you have problems with
-a particular compiler/machine, please send an email to the developers.
+<P>Note that linking a Fortran library to a C++ code can be problematic
+(e.g. Fortran routine names can't be found due to non-standard
+underscore rules) and typically requires additional C++ or F90
+libraries be included in the link.  You may need to read documentation
+for your compiler about how to do this correctly.
 </P>
 <H4><A NAME = "2_4"></A>2.4 Building LAMMPS as a library 
 </H4>

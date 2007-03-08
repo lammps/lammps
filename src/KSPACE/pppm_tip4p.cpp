@@ -45,9 +45,6 @@ void PPPMTIP4P::particle_map()
   int *type = atom->type;
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -60,9 +57,9 @@ void PPPMTIP4P::particle_map()
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-    nx = static_cast<int> ((xi[0]-boxxlo)*delxinv+shift) - OFFSET;
-    ny = static_cast<int> ((xi[1]-boxylo)*delyinv+shift) - OFFSET;
-    nz = static_cast<int> ((xi[2]-boxzlo)*delzinv+shift) - OFFSET;
+    nx = static_cast<int> ((xi[0]-boxlo[0])*delxinv+shift) - OFFSET;
+    ny = static_cast<int> ((xi[1]-boxlo[1])*delyinv+shift) - OFFSET;
+    nz = static_cast<int> ((xi[2]-boxlo[2])*delzinv+shift) - OFFSET;
 
     part2grid[i][0] = nx;
     part2grid[i][1] = ny;
@@ -107,9 +104,6 @@ void PPPMTIP4P::make_rho()
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
 
   for (int i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
@@ -120,9 +114,9 @@ void PPPMTIP4P::make_rho()
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx+shiftone - (xi[0]-boxxlo)*delxinv;
-    dy = ny+shiftone - (xi[1]-boxylo)*delyinv;
-    dz = nz+shiftone - (xi[2]-boxzlo)*delzinv;
+    dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
 
     compute_rho1d(dx,dy,dz);
 
@@ -167,9 +161,6 @@ void PPPMTIP4P::fieldforce()
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
@@ -180,9 +171,9 @@ void PPPMTIP4P::fieldforce()
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx+shiftone - (xi[0]-boxxlo)*delxinv;
-    dy = ny+shiftone - (xi[1]-boxylo)*delyinv;
-    dz = nz+shiftone - (xi[2]-boxzlo)*delzinv;
+    dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
 
     compute_rho1d(dx,dy,dz);
 
@@ -251,12 +242,12 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];
   double delz1 = x[iH1][2] - x[i][2];
-  domain->minimum_image(&delx1,&dely1,&delz1);
+  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = x[iH2][0] - x[i][0];
   double dely2 = x[iH2][1] - x[i][1];
   double delz2 = x[iH2][2] - x[i][2];
-  domain->minimum_image(&delx2,&dely2,&delz2);
+  domain->minimum_image(delx2,dely2,delz2);
 
   xM[0] = x[i][0] + alpha * (delx1 + delx2);
   xM[1] = x[i][1] + alpha * (dely1 + dely2);

@@ -30,6 +30,8 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL 0.00001
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -78,7 +80,11 @@ void Ewald::init()
 
   // error check
 
+  if (domain->triclinic) error->all("Cannot use Ewald with triclinic box");
   if (force->dimension == 2) error->all("Cannot use Ewald with 2d simulation");
+
+  if (atom->q == NULL)
+    error->all("Must use charged atom style with kspace style");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all("Cannot use nonperiodic boundaries with Ewald");
@@ -99,19 +105,27 @@ void Ewald::init()
   double cutoff;
   pair->extract_long(&cutoff);
 
-  // compute qsum & qsqsum
+  // compute qsum & qsqsum and warn if not charge-neutral
+
+  qsum = qsqsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    qsum += atom->q[i];
+    qsqsum += atom->q[i]*atom->q[i];
+  }
 
   double tmp;
-
-  qsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) qsum += atom->q[i];
   MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsum = tmp;
-
-  qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) qsqsum += atom->q[i]*atom->q[i];
   MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsqsum = tmp;
+
+  if (qsqsum == 0.0)
+    error->all("Cannot use kspace solver on system with no charge");
+  if (fabs(qsum) > SMALL && comm->me == 0) {
+    char str[128];
+    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
+    error->warning(str);
+  }
 
   // setup K-space resolution
 

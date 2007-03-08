@@ -250,17 +250,17 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delx1 = x[i][0] - x2[0];
 	      dely1 = x[i][1] - x2[1];
 	      delz1 = x[i][2] - x2[2];
-	      domain->minimum_image(&delx1,&dely1,&delz1);
+	      domain->minimum_image(delx1,dely1,delz1);
 
 	      delx2 = x[iH1][0] - x2[0];
 	      dely2 = x[iH1][1] - x2[1];
 	      delz2 = x[iH1][2] - x2[2];
-	      domain->minimum_image(&delx2,&dely2,&delz2);
+	      domain->minimum_image(delx2,dely2,delz2);
 
 	      delx3 = x[iH2][0] - x2[0];
 	      dely3 = x[iH2][1] - x2[1];
 	      delz3 = x[iH2][2] - x2[2];
-	      domain->minimum_image(&delx3,&dely3,&delz3);
+	      domain->minimum_image(delx3,dely3,delz3);
 
 	      tvirial[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
 	      tvirial[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
@@ -329,17 +329,17 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delx1 = x[j][0] - x1[0];
 	      dely1 = x[j][1] - x1[1];
 	      delz1 = x[j][2] - x1[2];
-	      domain->minimum_image(&delx1,&dely1,&delz1);
+	      domain->minimum_image(delx1,dely1,delz1);
 
 	      delx2 = x[jH1][0] - x1[0];
 	      dely2 = x[jH1][1] - x1[1];
 	      delz2 = x[jH1][2] - x1[2];
-	      domain->minimum_image(&delx2,&dely2,&delz2);
+	      domain->minimum_image(delx2,dely2,delz2);
 
 	      delx3 = x[jH2][0] - x1[0];
 	      dely3 = x[jH2][1] - x1[1];
 	      delz3 = x[jH2][2] - x1[2];
-	      domain->minimum_image(&delx3,&dely3,&delz3);
+	      domain->minimum_image(delx3,dely3,delz3);
 
 	      tvirial[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
 	      tvirial[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
@@ -518,12 +518,12 @@ void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];
   double delz1 = x[iH1][2] - x[i][2];
-  domain->minimum_image(&delx1,&dely1,&delz1);
+  domain->minimum_image(delx1,dely1,delz1);
 
   double delx2 = x[iH2][0] - x[i][0];
   double dely2 = x[iH2][1] - x[i][1];
   double delz2 = x[iH2][2] - x[i][2];
-  domain->minimum_image(&delx2,&dely2,&delz2);
+  domain->minimum_image(delx2,dely2,delz2);
 
   xM[0] = x[i][0] + alpha * (delx1 + delx2);
   xM[1] = x[i][1] + alpha * (dely1 + dely2);

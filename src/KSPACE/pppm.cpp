@@ -36,14 +36,14 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXORDER 7
 #define OFFSET 4096
 #define SMALL 0.00001
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,7 +105,12 @@ void PPPM::init()
 
   // error check
 
+  if (domain->triclinic)
+    error->all("Cannot (yet) use PPPM with triclinic box");
   if (force->dimension == 2) error->all("Cannot use PPPM with 2d simulation");
+
+  if (atom->q == NULL)
+    error->all("Must use charged atom style with kspace style");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all("Cannot use nonperiodic boundaries with PPPM");
@@ -169,6 +174,8 @@ void PPPM::init()
   MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsqsum = tmp;
 
+  if (qsqsum == 0.0)
+    error->all("Cannot use kspace solver on system with no charge");
   if (fabs(qsum) > SMALL && me == 0) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
@@ -214,36 +221,60 @@ void PPPM::init()
   // effectively nlo_in,nhi_in + ghost cells
   // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
-  // particle position bound = subbox + skin/2.0 + qdist
+  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
   //   qdist = offset due to TIP4P fictitious charge
+  //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
   // for slab PPPM, assign z grid as if it were not extended
 
-  int nlo,nhi;
-  double cuthalf = 0.5 * neighbor->skin + qdist;
-  
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  triclinic = domain->triclinic;
+  double *prd,*sublo,*subhi;
+
+  if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
 
-  nlo = static_cast<int> ((domain->subxlo-cuthalf-domain->boxxlo) * 
+  double dist[3];
+  double cuthalf = 0.5 * neighbor->skin + qdist;
+  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
+  else {
+    dist[0] = cuthalf/domain->prd[0];
+    dist[1] = cuthalf/domain->prd[1];
+    dist[2] = cuthalf/domain->prd[2];
+  }
+
+  int nlo,nhi;
+  
+  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) * 
 			  nx_pppm/xprd + shift) - OFFSET;
-  nhi = static_cast<int> ((domain->subxhi+cuthalf-domain->boxxlo) * 
+  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) * 
 			  nx_pppm/xprd + shift) - OFFSET;
   nxlo_out = nlo + nlower;
   nxhi_out = nhi + nupper;
 
-  nlo = static_cast<int> ((domain->subylo-cuthalf-domain->boxylo) * 
+  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) * 
 			  ny_pppm/yprd + shift) - OFFSET;
-  nhi = static_cast<int> ((domain->subyhi+cuthalf-domain->boxylo) * 
+  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) * 
 			  ny_pppm/yprd + shift) - OFFSET;
   nylo_out = nlo + nlower;
   nyhi_out = nhi + nupper;
 
-  nlo = static_cast<int> ((domain->subzlo-cuthalf-domain->boxzlo) * 
+  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) * 
 			  nz_pppm/zprd_slab + shift) - OFFSET;
-  nhi = static_cast<int> ((domain->subzhi+cuthalf-domain->boxzlo) * 
+  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * 
 			  nz_pppm/zprd_slab + shift) - OFFSET;
   nzlo_out = nlo + nlower;
   nzhi_out = nhi + nupper;
@@ -426,18 +457,19 @@ void PPPM::init()
 void PPPM::setup()
 {
   int i,j,k,l,m,n;
+  double *prd;
 
   // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-    
-  // adjustment of z dimension for 2d slab PPPM
-  // 3d PPPM just uses zprd since slab_volfactor = 1.0
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
 
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
-
   volume = xprd * yprd * zprd_slab;
     
   delxinv = nx_pppm/xprd;
@@ -579,6 +611,14 @@ void PPPM::compute(int eflag, int vflag)
 {
   int i;
 
+  // convert atoms from box to lamda coords
+  
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
+  }
+
   // extend size of nlocal-dependent arrays if necessary
 
   if (atom->nlocal > nmax) {
@@ -641,6 +681,10 @@ void PPPM::compute(int eflag, int vflag)
   // 2d slab correction
 
   if (slabflag) slabcorr(eflag);
+
+  // convert atoms back from lamda to box coords
+  
+  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -781,7 +825,8 @@ void PPPM::set_grid()
   double q2 = qsqsum / force->dielectric;
   double natoms = atom->natoms;
 
-  // adjustment of z dimension for 2d slab PPPM
+  // use xprd,yprd,zprd even if triclinic so grid size is the same
+  // adjust z dimension for 2d slab PPPM
   // 3d PPPM just uses zprd since slab_volfactor = 1.0
 
   double xprd = domain->xprd;
@@ -1387,9 +1432,6 @@ void PPPM::particle_map()
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -1398,9 +1440,9 @@ void PPPM::particle_map()
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-    nx = static_cast<int> ((x[i][0]-boxxlo)*delxinv+shift) - OFFSET;
-    ny = static_cast<int> ((x[i][1]-boxylo)*delyinv+shift) - OFFSET;
-    nz = static_cast<int> ((x[i][2]-boxzlo)*delzinv+shift) - OFFSET;
+    nx = static_cast<int> ((x[i][0]-boxlo[0])*delxinv+shift) - OFFSET;
+    ny = static_cast<int> ((x[i][1]-boxlo[1])*delyinv+shift) - OFFSET;
+    nz = static_cast<int> ((x[i][2]-boxlo[2])*delzinv+shift) - OFFSET;
 
     part2grid[i][0] = nx;
     part2grid[i][1] = ny;
@@ -1443,18 +1485,15 @@ void PPPM::make_rho()
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
 
   for (int i = 0; i < nlocal; i++) {
 
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxxlo)*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxylo)*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxzlo)*delzinv;
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
     compute_rho1d(dx,dy,dz);
 
@@ -1614,18 +1653,15 @@ void PPPM::fieldforce()
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
 
   for (i = 0; i < nlocal; i++) {
 
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxxlo)*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxylo)*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxzlo)*delzinv;
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
     compute_rho1d(dx,dy,dz);
 

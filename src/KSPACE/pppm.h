@@ -66,6 +66,8 @@ class PPPM : public KSpace {
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
 
+  int triclinic;               // domain settings, orthog or triclinic
+  double *boxlo;
                                // TIP4P settings
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
   double qdist;                // distance from O site to negative charge

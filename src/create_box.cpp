@@ -18,6 +18,7 @@
 #include "force.h"
 #include "domain.h"
 #include "region.h"
+#include "region_prism.h"
 #include "comm.h"
 #include "update.h"
 #include "error.h"
@@ -39,6 +40,8 @@ void CreateBox::command(int narg, char **arg)
   if (force->dimension == 2 && domain->zperiodic == 0)
     error->all("Cannot run 2d simulation with nonperiodic Z dimension");
 
+  domain->box_exist = 1;
+
   // find region ID
 
   int iregion;
@@ -50,26 +53,33 @@ void CreateBox::command(int narg, char **arg)
   if (domain->regions[iregion]->interior == 0)
     error->all("Create_box region must be of type inside");
 
-  // set global box from region extent
+  // if region not prism:
+  //   setup orthogonal domain
+  //   set simulation domain from region extent
+  // if region is prism:
+  //   seutp triclinic domain
+  //   set simulation domain params from prism params
 
-  domain->boxxlo = domain->regions[iregion]->extent_xlo;
-  domain->boxxhi = domain->regions[iregion]->extent_xhi;
-  domain->boxylo = domain->regions[iregion]->extent_ylo;
-  domain->boxyhi = domain->regions[iregion]->extent_yhi;
-  domain->boxzlo = domain->regions[iregion]->extent_zlo;
-  domain->boxzhi = domain->regions[iregion]->extent_zhi;
-  
-  domain->box_exist = 1;
+  if (strcmp(domain->regions[iregion]->style,"prism") != 0) {
+    domain->boxxlo = domain->regions[iregion]->extent_xlo;
+    domain->boxxhi = domain->regions[iregion]->extent_xhi;
+    domain->boxylo = domain->regions[iregion]->extent_ylo;
+    domain->boxyhi = domain->regions[iregion]->extent_yhi;
+    domain->boxzlo = domain->regions[iregion]->extent_zlo;
+    domain->boxzhi = domain->regions[iregion]->extent_zhi;
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"Created box = (%g %g %g) to (%g %g %g)\n",
-	      domain->boxxlo,domain->boxylo,domain->boxzlo,
-	      domain->boxxhi,domain->boxyhi,domain->boxzhi);
-    if (logfile)
-      fprintf(logfile,"Created box = (%g %g %g) to (%g %g %g)\n",
-	      domain->boxxlo,domain->boxylo,domain->boxzlo,
-	      domain->boxxhi,domain->boxyhi,domain->boxzhi);
+  } else {
+    domain->triclinic = 1;
+    RegPrism *region = (RegPrism *) domain->regions[iregion];
+    domain->boxxlo = region->xlo;
+    domain->boxxhi = region->xhi;
+    domain->boxylo = region->ylo;
+    domain->boxyhi = region->yhi;
+    domain->boxzlo = region->zlo;
+    domain->boxzhi = region->zhi;
+    domain->xy = region->xy;
+    domain->xz = region->xz;
+    domain->yz = region->yz;
   }
 
   // if molecular, zero out topology info
@@ -100,6 +110,7 @@ void CreateBox::command(int narg, char **arg)
 
   atom->allocate_type_arrays();
 
+  domain->print_box("Created ");
   domain->set_initial_box();
   domain->set_global_box();
   comm->set_procs();

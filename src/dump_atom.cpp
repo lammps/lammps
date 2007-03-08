@@ -40,6 +40,9 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 void DumpAtom::init()
 {
+  if (scale_flag && domain->triclinic)
+    error->all("Cannot dump scaled coords with triclinic box");
+
   if (image_flag == 0) size_one = 5;
   else size_one = 8;
 
@@ -142,12 +145,12 @@ void DumpAtom::header_binary(int ndump)
 {
   fwrite(&update->ntimestep,sizeof(int),1,fp);
   fwrite(&ndump,sizeof(int),1,fp);
-  fwrite(&domain->boxxlo,sizeof(double),1,fp);
-  fwrite(&domain->boxxhi,sizeof(double),1,fp);
-  fwrite(&domain->boxylo,sizeof(double),1,fp);
-  fwrite(&domain->boxyhi,sizeof(double),1,fp);
-  fwrite(&domain->boxzlo,sizeof(double),1,fp);
-  fwrite(&domain->boxzhi,sizeof(double),1,fp);
+  fwrite(&boxxlo,sizeof(double),1,fp);
+  fwrite(&boxxhi,sizeof(double),1,fp);
+  fwrite(&boxylo,sizeof(double),1,fp);
+  fwrite(&boxyhi,sizeof(double),1,fp);
+  fwrite(&boxzlo,sizeof(double),1,fp);
+  fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
   if (multiproc) {
     int one = 1;
@@ -164,9 +167,9 @@ void DumpAtom::header_item(int ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,"%d\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
-  fprintf(fp,"%g %g\n",domain->boxxlo,domain->boxxhi);
-  fprintf(fp,"%g %g\n",domain->boxylo,domain->boxyhi);
-  fprintf(fp,"%g %g\n",domain->boxzlo,domain->boxzhi);
+  fprintf(fp,"%g %g\n",boxxlo,boxxhi);
+  fprintf(fp,"%g %g\n",boxylo,boxyhi);
+  fprintf(fp,"%g %g\n",boxzlo,boxzhi);
   fprintf(fp,"ITEM: ATOMS\n");
 }
 
@@ -181,9 +184,6 @@ int DumpAtom::pack_scale_image()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
   double invxprd = 1.0/domain->xprd;
   double invyprd = 1.0/domain->yprd;
   double invzprd = 1.0/domain->zprd;
@@ -214,9 +214,6 @@ int DumpAtom::pack_scale_noimage()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  double boxxlo = domain->boxxlo;
-  double boxylo = domain->boxylo;
-  double boxzlo = domain->boxzlo;
   double invxprd = 1.0/domain->xprd;
   double invyprd = 1.0/domain->yprd;
   double invzprd = 1.0/domain->zprd;

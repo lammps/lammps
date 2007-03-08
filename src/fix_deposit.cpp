@@ -150,7 +150,8 @@ int FixDeposit::setmask()
 void FixDeposit::pre_exchange()
 {
   int flag,flagall;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  double coord[3],lamda[3],delx,dely,delz,rsq;
+  double *newcoord;
 
   // just return if should not be called on this timestep
 
@@ -161,6 +162,15 @@ void FixDeposit::pre_exchange()
   double offset = 0.0;
   if (rateflag) offset = (update->ntimestep - nfirst) * update->dt * rate;
 
+  double *sublo,*subhi;
+  if (domain->triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
   // attempt an insertion until successful
   
   int success = 0;
@@ -170,19 +180,19 @@ void FixDeposit::pre_exchange()
 
     // choose random position for new atom within region
 
-    xtmp = xlo + random->uniform() * (xhi-xlo);
-    ytmp = ylo + random->uniform() * (yhi-ylo);
-    ztmp = zlo + random->uniform() * (zhi-zlo);
-    while (domain->regions[iregion]->match(xtmp,ytmp,ztmp) == 0) {
-      xtmp = xlo + random->uniform() * (xhi-xlo);
-      ytmp = ylo + random->uniform() * (yhi-ylo);
-      ztmp = zlo + random->uniform() * (zhi-zlo);
+    coord[0] = xlo + random->uniform() * (xhi-xlo);
+    coord[1] = ylo + random->uniform() * (yhi-ylo);
+    coord[2] = zlo + random->uniform() * (zhi-zlo);
+    while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+      coord[0] = xlo + random->uniform() * (xhi-xlo);
+      coord[1] = ylo + random->uniform() * (yhi-ylo);
+      coord[2] = zlo + random->uniform() * (zhi-zlo);
     }
 
     // adjust vertical coord by offset
 
-    if (force->dimension == 2) ytmp += offset;
-    else ztmp += offset;
+    if (force->dimension == 2) coord[1] += offset;
+    else coord[2] += offset;
 
     // if global, reset vertical coord to be lo-hi above highest atom
     // if local, reset vertical coord to be lo-hi above highest "nearby" atom
@@ -204,10 +214,10 @@ void FixDeposit::pre_exchange()
       int nlocal = atom->nlocal;
       for (int i = 0; i < nlocal; i++) {
 	if (localflag) {
-	  delx = xtmp - x[i][0];
-	  dely = ytmp - x[i][1];
+	  delx = coord[0] - x[i][0];
+	  dely = coord[1] - x[i][1];
 	  delz = 0.0;
-	  domain->minimum_image(&delx,&dely,&delz);
+	  domain->minimum_image(delx,dely,delz);
 	  if (force->dimension == 2) rsq = delx*delx;
 	  else rsq = delx*delx + dely*dely;
 	  if (rsq > deltasq) continue;
@@ -217,12 +227,12 @@ void FixDeposit::pre_exchange()
 
       MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
       if (force->dimension == 2)
-	ytmp = maxall + lo + random->uniform()*(hi-lo);
+	coord[1] = maxall + lo + random->uniform()*(hi-lo);
       else
-	ztmp = maxall + lo + random->uniform()*(hi-lo);
+	coord[2] = maxall + lo + random->uniform()*(hi-lo);
     }      
 
-    // now have final xtmp,ytmp,ztmp
+    // now have final coord
     // if distance to any atom is less than near, try again
 
     double **x = atom->x;
@@ -230,10 +240,10 @@ void FixDeposit::pre_exchange()
 
     flag = 0;
     for (int i = 0; i < nlocal; i++) {
-      delx = xtmp - x[i][0];
-      dely = ytmp - x[i][1];
-      delz = ztmp - x[i][2];
-      domain->minimum_image(&delx,&dely,&delz);
+      delx = coord[0] - x[i][0];
+      dely = coord[1] - x[i][1];
+      delz = coord[2] - x[i][2];
+      domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < nearsq) flag = 1;
     }
@@ -251,21 +261,26 @@ void FixDeposit::pre_exchange()
     // if so, add to my list via create_atom()
     // initialize info about the atoms
     // set group mask to "all" plus fix group
+    
+    if (domain->triclinic) {
+      domain->x2lamda(coord,lamda);
+      newcoord = lamda;
+    } else newcoord = coord;
 
     flag = 0;
-    if (xtmp >= domain->subxlo && xtmp < domain->subxhi &&
-	ytmp >= domain->subylo && ytmp < domain->subyhi &&
-	ztmp >= domain->subzlo && ztmp < domain->subzhi) flag = 1;
-    else if (force->dimension == 3 && ztmp >= domain->boxzhi &&
+    if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+	newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
+	newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
+    else if (force->dimension == 3 && newcoord[2] >= domain->boxzhi &&
 	     comm->myloc[2] == comm->procgrid[2]-1 &&
-	     xtmp >= domain->subxlo && xtmp < domain->subxhi &&
-	     ytmp >= domain->subylo && ytmp < domain->subyhi) flag = 1;
-    else if (force->dimension == 2 && ytmp >= domain->boxyhi &&
+	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+	     newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
+    else if (force->dimension == 2 && newcoord[1] >= domain->boxyhi &&
 	     comm->myloc[1] == comm->procgrid[1]-1 &&
-	     xtmp >= domain->subxlo && xtmp < domain->subxhi) flag = 1;
+	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
 
     if (flag) {
-      atom->avec->create_atom(ntype,xtmp,ytmp,ztmp,0);
+      atom->avec->create_atom(ntype,coord,0);
       int m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->mask[m] = 1 | groupbit;

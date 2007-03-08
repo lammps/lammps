@@ -1,3 +1,4 @@
+
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -14,7 +15,6 @@
 #include "string.h"
 #include "atom_vec_hybrid.h"
 #include "atom.h"
-#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
@@ -152,12 +152,13 @@ void AtomVecHybrid::copy(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecHybrid::pack_comm(int n, int *list, double *buf, int *pbc_flags)
+int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
+			     int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = x[j][0];
@@ -166,14 +167,11 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf, int *pbc_flags)
       m += styles[hybrid[j]]->pack_comm_one(j,&buf[m]);
     }
   } else {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
-      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
-      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = x[j][0] + pbc_dist[0];
+      buf[m++] = x[j][1] + pbc_dist[1];
+      buf[m++] = x[j][2] + pbc_dist[2];
       m += styles[hybrid[j]]->pack_comm_one(j,&buf[m]);
     }
   }
@@ -231,12 +229,13 @@ void AtomVecHybrid::unpack_reverse(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecHybrid::pack_border(int n, int *list, double *buf, int *pbc_flags)
+int AtomVecHybrid::pack_border(int n, int *list, double *buf,
+			       int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = x[j][0];
@@ -249,14 +248,11 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf, int *pbc_flags)
       m += styles[hybrid[j]]->pack_border_one(j,&buf[m]);
     }
   } else {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
-      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
-      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = x[j][0] + pbc_dist[0];
+      buf[m++] = x[j][1] + pbc_dist[1];
+      buf[m++] = x[j][2] + pbc_dist[2];
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
@@ -396,14 +392,13 @@ int AtomVecHybrid::unpack_restart(double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   create one atom of type itype at x0,y0,z0 for ihybrid style
+   create one atom of itype at coord for ihybrid style
    sub-style does create
    grow() must occur here so arrays for all sub-styles are grown
    zero auxiliary arrays for all other styles before create
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::create_atom(int itype, double x0, double y0, double z0,
-				int ihybrid)
+void AtomVecHybrid::create_atom(int itype, double *coord, int ihybrid)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -411,7 +406,7 @@ void AtomVecHybrid::create_atom(int itype, double x0, double y0, double z0,
   for (int m = 0; m < nstyles; m++)
     if (m != ihybrid) styles[m]->zero_owned(nlocal);
   hybrid[nlocal] = ihybrid;
-  styles[ihybrid]->create_atom(itype,x0,y0,z0,0);
+  styles[ihybrid]->create_atom(itype,coord,0);
 }
 
 /* ----------------------------------------------------------------------
@@ -420,8 +415,8 @@ void AtomVecHybrid::create_atom(int itype, double x0, double y0, double z0,
    sub-style will increment nlocal
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::data_atom(double xtmp, double ytmp, double ztmp,
-			      int imagetmp, char **values, int ihybrid)
+void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values,
+			      int ihybrid)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -429,7 +424,7 @@ void AtomVecHybrid::data_atom(double xtmp, double ytmp, double ztmp,
   for (int m = 0; m < nstyles; m++)
     if (m != ihybrid) styles[m]->zero_owned(nlocal);
   hybrid[nlocal] = ihybrid;
-  styles[ihybrid]->data_atom(xtmp,ytmp,ztmp,imagetmp,values,0);
+  styles[ihybrid]->data_atom(coord,imagetmp,values,0);
 }
 
 /* ----------------------------------------------------------------------

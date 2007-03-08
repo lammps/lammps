@@ -45,6 +45,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   pressure_every = 1;
+  box_change = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -126,14 +127,15 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix npt command");
   }
 
-  // check for periodicity in controlled dimensions
+  // error checks
 
+  if (domain->triclinic) error->all("Cannot use fix npt with triclinic box");
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all("Cannot fix npt on a non-periodic dimension");
+    error->all("Cannot use fix npt on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all("Cannot fix npt on a non-periodic dimension");
+    error->all("Cannot use fix npt on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all("Cannot fix npt on a non-periodic dimension");
+    error->all("Cannot use fix npt on a non-periodic dimension");
 
   // convert input periods to frequencies
 

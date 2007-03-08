@@ -419,7 +419,8 @@ double FixOrientFCC::thermo(int n)
 
 /* ---------------------------------------------------------------------- */
 
-int FixOrientFCC::pack_comm(int n, int *list, double *buf, int *pbc_flags)
+int FixOrientFCC::pack_comm(int n, int *list, double *buf,
+			    int pbc_flag, double *pair_dist)
 {
   int i,j,k,id,num;
   int *tag = atom->tag;

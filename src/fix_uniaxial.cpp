@@ -47,8 +47,11 @@ FixUniaxial::FixUniaxial(LAMMPS *lmp, int narg, char **arg) :
   lambda_final = atof(arg[5]);
 
   if (lambda_final <= 0) error->all("Illegal fix uniaxial command");
+
   if (domain->nonperiodic) 
-    error->all("Cannot fix uniaxial on non-periodic system");
+    error->all("Cannot use fix uniaxial on non-periodic system");
+  if (domain->triclinic)
+    error->all("Cannot use fix uniaxial with triclinic box");
 
   nrigid = 0;
   rfix = NULL;
@@ -204,4 +207,3 @@ void FixUniaxial::end_of_step()
 
   if (kspace_flag) force->kspace->setup();
 }
-

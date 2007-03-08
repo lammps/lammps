@@ -283,7 +283,7 @@ void Velocity::create(int narg, char **arg)
     
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	triple(x[i][0],x[i][1],x[i][2],&vx,&vy,&vz,seed,random);
+	triple(x[i],&vx,&vy,&vz,seed,random);
 	if (mass) factor = 1.0/sqrt(mass[type[i]]);
 	else factor = 1.0/sqrt(rmass[i]);
 	v[i][0] = vx * factor;
@@ -661,31 +661,37 @@ void Velocity::options(int narg, char **arg)
 #define IC3 54773
 #define IM3 259200
 
-void Velocity::triple(double x, double y, double z, 
-		      double *vx, double *vy, double *vz,
+void Velocity::triple(double *x, double *vx, double *vy, double *vz,
 		      int seed, RanPark *random)
 {
+  // lamda[3] = fractional position in box
+  // for triclinic box, just convert to lamda coords
+
+  double lamda[3];
+
+  if (domain->triclinic == 0) {
+    lamda[0] = (x[0] - domain->boxlo[0]) / domain->prd[0];
+    lamda[1] = (x[1] - domain->boxlo[1]) / domain->prd[1];
+    lamda[2] = (x[2] - domain->boxlo[2]) / domain->prd[2];
+  } else domain->x2lamda(x,lamda);
+
   // seed 1,2,3 = combination of atom coord in each dim and user-input seed
   // map geometric extent into range of each of 3 RNGs
   // warm-up each RNG by calling it twice
 
-  double fraction;
   int seed1,seed2,seed3;
 
-  fraction = (x - domain->boxxlo) / domain->xprd;
-  seed1 = static_cast<int> (fraction * IM1);
+  seed1 = static_cast<int> (lamda[0] * IM1);
   seed1 = (seed1+seed) % IM1;
   seed1 = (seed1*IA1+IC1) % IM1;
   seed1 = (seed1*IA1+IC1) % IM1;
 
-  fraction = (y - domain->boxylo) / domain->yprd;
-  seed2 = static_cast<int> (fraction * IM2);
+  seed2 = static_cast<int> (lamda[1] * IM2);
   seed2 = (seed2+seed) % IM2;
   seed2 = (seed2*IA2+IC2) % IM2;
   seed2 = (seed2*IA2+IC2) % IM2;
 
-  fraction = (z - domain->boxzlo) / domain->zprd;
-  seed3 = static_cast<int> (fraction * IM3);
+  seed3 = static_cast<int> (lamda[2] * IM3);
   seed3 = (seed3+seed) % IM3;
   seed3 = (seed3*IA3+IC3) % IM3;
   seed3 = (seed3*IA3+IC3) % IM3;
@@ -693,7 +699,7 @@ void Velocity::triple(double x, double y, double z,
   // fraction = 0-1 with giving each dim an equal weighting
   // use fraction to reset Park/Miller RNG seed
 
-  fraction = 1.0*seed1/(3*IM1) + 1.0*seed2/(3*IM2) + 1.0*seed3/(3*IM3);
+  double fraction = 1.0*seed1/(3*IM1) + 1.0*seed2/(3*IM2) + 1.0*seed3/(3*IM3);
   random->reset(fraction);
 
   // use RNG to set velocities after warming up twice

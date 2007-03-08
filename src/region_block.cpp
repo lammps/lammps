@@ -28,37 +28,43 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   if (strcmp(arg[2],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    xlo = domain->boxxlo;
+    if (domain->triclinic == 0) xlo = domain->boxlo[0];
+    else xlo = domain->boxlo_bound[0];
   } else xlo = xscale*atof(arg[2]);
 
   if (strcmp(arg[3],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    xhi = domain->boxxhi;
+    if (domain->triclinic == 0) xhi = domain->boxhi[0];
+    else xhi = domain->boxhi_bound[0];
   } else xhi = xscale*atof(arg[3]);
 
   if (strcmp(arg[4],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    ylo = domain->boxylo;
+    if (domain->triclinic == 0) ylo = domain->boxlo[1];
+    else ylo = domain->boxlo_bound[1];
   } else ylo = yscale*atof(arg[4]);
 
   if (strcmp(arg[5],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    yhi = domain->boxyhi;
+    if (domain->triclinic == 0) yhi = domain->boxhi[1];
+    else yhi = domain->boxhi_bound[1];
   } else yhi = yscale*atof(arg[5]);
 
   if (strcmp(arg[6],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    zlo = domain->boxzlo;
+    if (domain->triclinic == 0) zlo = domain->boxlo[2];
+    else zlo = domain->boxlo_bound[2];
   } else zlo = zscale*atof(arg[6]);
 
   if (strcmp(arg[7],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    zhi = domain->boxzhi;
+    if (domain->triclinic == 0) zhi = domain->boxhi[2];
+    else zhi = domain->boxhi_bound[2];
   } else zhi = zscale*atof(arg[7]);
 
   // error check

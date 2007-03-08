@@ -135,22 +135,31 @@ void FixRecenter::init()
 void FixRecenter::initial_integrate()
 {
   // target COM
+  // bounding box around domain works for both orthog and triclinic
 
   double xtarget,ytarget,ztarget;
+  double *bboxlo,*bboxhi;
+
+  if (scaleflag == 2) {
+    if (domain->triclinic == 0) {
+      bboxlo = domain->boxlo;
+      bboxhi = domain->boxhi;
+    } else {
+      bboxlo = domain->boxlo_bound;
+      bboxhi = domain->boxhi_bound;
+    }
+  }
 
   if (xinitflag) xtarget = xinit;
-  else if (scaleflag == 2)
-    xtarget = domain->boxxlo + xcom*(domain->boxxhi - domain->boxxlo);
+  else if (scaleflag == 2) xtarget = bboxlo[0] + xcom*(bboxhi[0] - bboxlo[0]);
   else xtarget = xcom;
 
   if (yinitflag) ytarget = yinit;
-  else if (scaleflag == 2)
-    ytarget = domain->boxylo + ycom*(domain->boxyhi - domain->boxylo);
+  else if (scaleflag == 2) ytarget = bboxlo[1] + ycom*(bboxhi[1] - bboxlo[1]);
   else ytarget = ycom;
 
   if (zinitflag) ztarget = zinit;
-  else if (scaleflag == 2)
-    ztarget = domain->boxzlo + zcom*(domain->boxzhi - domain->boxzlo);
+  else if (scaleflag == 2) ztarget = bboxlo[2] + zcom*(bboxhi[2] - bboxlo[2]);
   else ztarget = zcom;
 
   // current COM

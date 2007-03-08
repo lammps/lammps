@@ -36,42 +36,42 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   if (strcmp(arg[2],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    xlo = domain->boxxlo;
+    xlo = domain->boxlo[0];
   } else xlo = xscale*atof(arg[2]);
 
   if (strcmp(arg[3],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    xhi = domain->boxxhi;
+    xhi = domain->boxhi[0];
   } else xhi = xscale*atof(arg[3]);
 
   if (strcmp(arg[4],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    ylo = domain->boxylo;
+    ylo = domain->boxlo[1];
   } else ylo = yscale*atof(arg[4]);
 
   if (strcmp(arg[5],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    yhi = domain->boxyhi;
+    yhi = domain->boxhi[1];
   } else yhi = yscale*atof(arg[5]);
 
   if (strcmp(arg[6],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    zlo = domain->boxzlo;
+    zlo = domain->boxlo[0];
   } else zlo = zscale*atof(arg[6]);
 
   if (strcmp(arg[7],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    zhi = domain->boxzhi;
+    zhi = domain->boxhi[1];
   } else zhi = zscale*atof(arg[7]);
 
-  yxshift = xscale*atof(arg[8]);
-  zxshift = xscale*atof(arg[9]);
-  zyshift = yscale*atof(arg[10]);
+  xy = xscale*atof(arg[8]);
+  xz = xscale*atof(arg[9]);
+  yz = yscale*atof(arg[10]);
 
   // error check
   // prism cannot be 0 thickness in any dim, else inverse blows up
@@ -81,13 +81,14 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   // extent of prism
   
-  extent_xlo = MIN(xlo,xlo+yxshift);
-  extent_xlo = MIN(extent_xlo,extent_xlo+zxshift);
-  extent_xhi = MAX(xhi,xhi+yxshift);
-  extent_xhi = MAX(extent_xhi,extent_xhi+zxshift);
-  extent_ylo = MIN(ylo,ylo+zyshift);
-  extent_yhi = MAX(yhi,yhi+zyshift);
+  extent_xlo = MIN(xlo,xlo+xy);
+  extent_xlo = MIN(extent_xlo,extent_xlo+xz);
+  extent_ylo = MIN(ylo,ylo+yz);
   extent_zlo = zlo;
+
+  extent_xhi = MAX(xhi,xhi+xy);
+  extent_xhi = MAX(extent_xhi,extent_xhi+xz);
+  extent_yhi = MAX(yhi,yhi+yz);
   extent_zhi = zhi;
 
   // h = transformation matrix from tilt coords (0-1) to box coords (xyz)
@@ -98,27 +99,27 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   //   and bottom face of prism is in xy plane
 
   h[0][0] = xhi - xlo;
-  h[0][1] = yxshift;
+  h[0][1] = xy;
+  h[0][2] = xz;
   h[1][1] = yhi - ylo;
-  h[0][2] = zxshift;
-  h[1][2] = zyshift;
+  h[1][2] = yz;
   h[2][2] = zhi - zlo;
 
   hinv[0][0] = 1.0/h[0][0];
   hinv[0][1] = -h[0][1] / (h[0][0]*h[1][1]);
-  hinv[1][1] = 1.0/h[1][1];
   hinv[0][2] = (h[0][1]*h[1][2] - h[0][2]*h[1][1]) / (h[0][0]*h[1][1]*h[2][2]);
+  hinv[1][1] = 1.0/h[1][1];
   hinv[1][2] = -h[1][2] / (h[1][1]*h[2][2]);
   hinv[2][2] = 1.0/h[2][2];
 }
 
 /* ----------------------------------------------------------------------
    check xyz against prism
-   abc = Hinv * (xyz - xyzlo)
+   abc = Hinv * (xyz - xyz/lo)
    abc = tilt coords (0-1)
    Hinv = transformation matrix from box coords to tilt coords
    xyz = box coords
-   xyzlo = lower-left corner of prism
+   xyz/lo = lower-left corner of prism
 ------------------------------------------------------------------------- */
 
 int RegPrism::match(double x, double y, double z)

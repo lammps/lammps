@@ -33,6 +33,7 @@ class Verlet : public Integrate {
   int nfix_virial;                  // # of fixes that need virial occasionally
   int *fix_virial_every;            // frequency they require it
   int *next_fix_virial;             // next timestep they need it
+  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
 
   int pairflag,torqueflag,granflag; // arrays to zero out every step
   int maxpair;                      // local copies of Update quantities

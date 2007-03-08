@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include "math.h"
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "mpi.h"
 #include "comm.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -72,9 +73,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   maxforward_pair = maxreverse_pair = 0;
 }
 
-/* ----------------------------------------------------------------------
-   destructor, free all memory 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 Comm::~Comm()
 {
@@ -122,11 +121,13 @@ void Comm::init()
 }
 
 /* ----------------------------------------------------------------------
-   setup 3d grid of procs based on box size 
+   setup 3d grid of procs based on box size
 ------------------------------------------------------------------------- */
 
 void Comm::set_procs()
 {
+  triclinic = domain->triclinic;
+
   if (user_procgrid[0] == 0) procs2box();
   else {
     procgrid[0] = user_procgrid[0];
@@ -151,6 +152,10 @@ void Comm::set_procs()
   MPI_Cart_shift(cartesian,2,1,&procneigh[2][0],&procneigh[2][1]);
   MPI_Comm_free(&cartesian);
 
+  // can't set lamda box params until procs are assigned
+
+  if (triclinic) domain->set_lamda_box();
+
   if (me == 0) {
     if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
 			procgrid[0],procgrid[1],procgrid[2]);
@@ -166,25 +171,47 @@ void Comm::set_procs()
 
 void Comm::setup()
 {
+  // for triclinic, tilted planes are neigh cutoff apart
+  // but cutneigh is distance between those planes along xyz (non-tilted) axes
+
+  double cutneigh[3];
+  double *prd,*prd_border,*sublo,*subhi;
+
+  if (triclinic == 0) {
+    prd = prd_border = domain->prd;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+    cutneigh[0] = cutneigh[1] = cutneigh[2] = neighbor->cutneigh;
+  } else {
+    prd = domain->prd;
+    prd_border = domain->prd_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+    double *h_inv = domain->h_inv;
+    double length;
+    length = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
+    cutneigh[0] = neighbor->cutneigh * length;
+    length = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
+    cutneigh[1] = neighbor->cutneigh * length;
+    length = h_inv[2];
+    cutneigh[2] = neighbor->cutneigh * length;
+  }
+
   // need = # of procs I need atoms from in each dim
-
-  need[0] = static_cast<int> 
-    (neighbor->cutneigh * procgrid[0] / domain->xprd) + 1;
-  need[1] = static_cast<int> 
-    (neighbor->cutneigh * procgrid[1] / domain->yprd) + 1;
-  need[2] = static_cast<int> 
-    (neighbor->cutneigh * procgrid[2] / domain->zprd) + 1;
-
   // for 2d, don't communicate in z
 
+  need[0] = static_cast<int> (cutneigh[0] * procgrid[0] / prd_border[0]) + 1;
+  need[1] = static_cast<int> (cutneigh[1] * procgrid[1] / prd_border[1]) + 1;
+  need[2] = static_cast<int> (cutneigh[2] * procgrid[2] / prd_border[2]) + 1;
   if (force->dimension == 2) need[2] = 0;
 
   // if non-periodic, do not communicate further than procgrid-1 away
   // this enables very large cutoffs in non-periodic systems
 
-  if (domain->xperiodic == 0) need[0] = MIN(need[0],procgrid[0]-1);
-  if (domain->yperiodic == 0) need[1] = MIN(need[1],procgrid[1]-1);
-  if (domain->zperiodic == 0) need[2] = MIN(need[2],procgrid[2]-1);
+  int *periodicity = domain->periodicity;
+  if (periodicity[0] == 0) need[0] = MIN(need[0],procgrid[0]-1);
+  if (periodicity[1] == 0) need[1] = MIN(need[1],procgrid[1]-1);
+  if (periodicity[2] == 0) need[2] = MIN(need[2],procgrid[2]-1);
 
   // allocate comm memory
 
@@ -201,47 +228,62 @@ void Comm::setup()
   // set slablo > slabhi for swaps across non-periodic boundaries
   //   this insures no atoms are swapped
   //   only for procs owning sub-box at non-periodic end of global box
-  // pbc_flags = add-on factor for atoms sent across a periodic global boundary
-  //    0 = not across a boundary
-  //    1 = add box-length to coord when sending
-  //   -1 = subtract box-length from coord when sending
+  // pbc_flag: 0 = not across a boundary, 1 = yes across a boundary
+  // pbc_dist/border: factors to add to atom coords across PBC for comm/borders
+  // for triclinic, slablo/hi and pbc_border will be used in lamda (0-1) coords
   // 1st part of if statement is sending to the west/south/down
   // 2nd part of if statement is sending to the east/north/up
 
   int iswap = 0;
   for (int dim = 0; dim < 3; dim++) {
     for (int ineed = 0; ineed < 2*need[dim]; ineed++) {
-      pbc_flags[iswap][0] = 0;
-      pbc_flags[iswap][1] = 0;
-      pbc_flags[iswap][2] = 0;
-      pbc_flags[iswap][3] = 0;
+      pbc_flag[iswap] = 0;
+      pbc_dist[iswap][0] = pbc_dist[iswap][1] = pbc_dist[iswap][2] = 0.0;
+      pbc_dist_border[iswap][0] = pbc_dist_border[iswap][1] = 
+	pbc_dist_border[iswap][2] = 0.0;
 
       if (ineed % 2 == 0) {
 	sendproc[iswap] = procneigh[dim][0];
 	recvproc[iswap] = procneigh[dim][1];
 	if (ineed < 2) slablo[iswap] = -BIG;
-	else slablo[iswap] = 0.5 * (domain->sublo[dim] + domain->subhi[dim]);
-	slabhi[iswap] = domain->sublo[dim] + neighbor->cutneigh;
+	else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
+	slabhi[iswap] = sublo[dim] + cutneigh[dim];
 	if (myloc[dim] == 0) {
-	  if (domain->periodicity[dim] == 0)
+	  if (periodicity[dim] == 0)
 	    slabhi[iswap] = slablo[iswap] - 1.0;
 	  else {
-	    pbc_flags[iswap][0] = 1;
-	    pbc_flags[iswap][dim+1] = 1;
+	    pbc_flag[iswap] = 1;
+	    pbc_dist[iswap][dim] = prd[dim];
+	    pbc_dist_border[iswap][dim] = prd_border[dim];
+	    if (triclinic) {
+	      if (dim == 1) pbc_dist[iswap][0] += domain->xy;
+	      else if (dim == 2) {
+		pbc_dist[iswap][0] += domain->xz;
+		pbc_dist[iswap][1] += domain->yz;
+	      }
+	    }
 	  }
 	}
       } else {
 	sendproc[iswap] = procneigh[dim][1];
 	recvproc[iswap] = procneigh[dim][0];
-	slablo[iswap] = domain->subhi[dim] - neighbor->cutneigh;
+	slablo[iswap] = subhi[dim] - cutneigh[dim];
 	if (ineed < 2) slabhi[iswap] = BIG;
-	else slabhi[iswap] = 0.5 * (domain->sublo[dim] + domain->subhi[dim]);
+	else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
 	if (myloc[dim] == procgrid[dim]-1) {
-	  if (domain->periodicity[dim] == 0)
+	  if (periodicity[dim] == 0)
 	    slabhi[iswap] = slablo[iswap] - 1.0;
 	  else {
-	    pbc_flags[iswap][0] = 1;
-	    pbc_flags[iswap][dim+1] = -1;
+	    pbc_flag[iswap] = 1;
+	    pbc_dist[iswap][dim] = -prd[dim];
+	    pbc_dist_border[iswap][dim] = -prd_border[dim];
+	    if (triclinic) {
+	      if (dim == 1) pbc_dist[iswap][0] -= domain->xy;
+	      else if (dim == 2) {
+		pbc_dist[iswap][0] -= domain->xz;
+		pbc_dist[iswap][1] -= domain->yz;
+	      }
+	    }
 	  }
 	}
       }
@@ -277,14 +319,14 @@ void Comm::communicate()
 	MPI_Irecv(buf,size_comm_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flags[iswap]);
+			    buf_send,pbc_flag[iswap],pbc_dist[iswap]);
 	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
       } else {
 	MPI_Irecv(buf_recv,size_comm_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flags[iswap]);
+			    buf_send,pbc_flag[iswap],pbc_dist[iswap]);
 	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
 	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
@@ -294,10 +336,11 @@ void Comm::communicate()
       if (comm_x_only) {
 	if (sendnum[iswap])
 	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			      x[firstrecv[iswap]],pbc_flags[iswap]);
+			      x[firstrecv[iswap]],
+			      pbc_flag[iswap],pbc_dist[iswap]);
       } else {
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flags[iswap]);
+			    buf_send,pbc_flag[iswap],pbc_dist[iswap]);
 	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
@@ -363,6 +406,7 @@ void Comm::reverse_communicate()
      can happen if atom moves outside of non-periodic bounary
      or if atom moves more than one proc away
    this routine called before every reneighboring
+   for triclinic, atoms must be in lamda coords (0-1) before exchange is called
 ------------------------------------------------------------------------- */
 
 void Comm::exchange()
@@ -370,7 +414,7 @@ void Comm::exchange()
   int i,m,nsend,nrecv,nrecv1,nrecv2,nlocal;
   double lo,hi,value;
   double **x;
-  double *buf;
+  double *sublo,*subhi,*buf;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
@@ -378,6 +422,16 @@ void Comm::exchange()
   // clear global->local map since atoms move & new ghosts are created
 
   if (map_style) atom->map_clear();
+
+  // subbox bounds for orthogonal or triclinic
+
+  if (triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
 
   // loop over dimensions
 
@@ -387,8 +441,8 @@ void Comm::exchange()
     // when atom is deleted, fill it in with last atom
 
     x = atom->x;
-    lo = domain->sublo[dim];
-    hi = domain->subhi[dim];
+    lo = sublo[dim];
+    hi = subhi[dim];
     nlocal = atom->nlocal;
     i = nsend = 0;
 
@@ -457,6 +511,7 @@ void Comm::exchange()
    this does equivalent of a communicate (so don't need to explicitly
      call communicate routine on reneighboring timestep)
    this routine is called before every reneighboring
+   for triclinic, atoms must be in lamda coords (0-1) before borders is called
 ------------------------------------------------------------------------- */
 
 void Comm::borders()
@@ -509,7 +564,8 @@ void Comm::borders()
 
       if (nsend*size_border > maxsend)
 	grow_send(nsend*size_border,0);
-      n = avec->pack_border(nsend,sendlist[iswap],buf_send,pbc_flags[iswap]);
+      n = avec->pack_border(nsend,sendlist[iswap],buf_send,
+			    pbc_flag[iswap],pbc_dist_border[iswap]);
 
       // swap atoms with other proc
       // put incoming ghosts at end of my atom arrays
@@ -577,7 +633,7 @@ void Comm::comm_pair(Pair *pair)
     // pack buffer
 
     n = pair->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flags[iswap]);
+			buf_send,pbc_flag[iswap],pbc_dist[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -646,7 +702,7 @@ void Comm::comm_fix(Fix *fix)
     // pack buffer
 
     n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
-		       buf_send,pbc_flags[iswap]);
+		       buf_send,pbc_flag[iswap],pbc_dist[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -715,7 +771,7 @@ void Comm::comm_compute(Compute *compute)
     // pack buffer
 
     n = compute->pack_comm(sendnum[iswap],sendlist[iswap],
-			   buf_send,pbc_flags[iswap]);
+			   buf_send,pbc_flag[iswap],pbc_dist[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -770,22 +826,37 @@ void Comm::reverse_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    assign nprocs to 3d xprd,yprd,zprd box so as to minimize surface area 
+   area = surface area of each of 3 faces of simulation box
+   for triclinic, area = cross product of 2 edge vectors stored in h matrix
 ------------------------------------------------------------------------- */
 
 void Comm::procs2box()
 {
-  int ipx,ipy,ipz,nremain;
-  double boxx,boxy,boxz,surf;
+  double area[3];
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  if (triclinic == 0) {
+    area[0] = domain->xprd * domain->yprd;
+    area[1] = domain->xprd * domain->zprd;
+    area[2] = domain->yprd * domain->zprd;
+  } else {
+    double *h = domain->h;
+    double x,y,z;
+    cross(h[0],0.0,0.0,h[5],h[1],0.0,x,y,z);
+    area[0] = sqrt(x*x + y*y + z*z);
+    cross(h[0],0.0,0.0,h[4],h[3],h[2],x,y,z);
+    area[1] = sqrt(x*x + y*y + z*z);
+    cross(h[5],h[1],0.0,h[4],h[3],h[2],x,y,z);
+    area[2] = sqrt(x*x + y*y + z*z);
+  }
 
-  double bestsurf = 2.0 * (xprd*yprd + yprd*zprd + zprd*xprd);
+  double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
 
   // loop thru all possible factorizations of nprocs
   // surf = surface area of a proc sub-domain
   // for 2d, insure ipz = 1
+
+  int ipx,ipy,ipz,nremain;
+  double surf;
 
   ipx = 1;
   while (ipx <= nprocs) {
@@ -796,10 +867,7 @@ void Comm::procs2box()
 	if (nremain % ipy == 0) {
 	  ipz = nremain/ipy;
 	  if (force->dimension == 3 || ipz == 1) {
-	    boxx = xprd/ipx;
-	    boxy = yprd/ipy;
-	    boxz = zprd/ipz;
-	    surf = boxx*boxy + boxy*boxz + boxz*boxx;
+	    surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
 	    if (surf < bestsurf) {
 	      bestsurf = surf;
 	      procgrid[0] = ipx;
@@ -813,6 +881,19 @@ void Comm::procs2box()
     }
     ipx++;
   }
+}
+
+/* ----------------------------------------------------------------------
+   vector cross product: c = a x b
+------------------------------------------------------------------------- */
+
+void Comm::cross(double ax, double ay, double az, 
+		 double bx, double by, double bz, 
+		 double &cx, double &cy, double &cz)
+{
+  cx = ay*bz - az*by;
+  cy = az*bx - ax*bz;
+  cz = ax*by - ay*bx;
 }
 
 /* ----------------------------------------------------------------------
@@ -896,7 +977,10 @@ void Comm::allocate_swap(int n)
   slablo = (double *) memory->smalloc(n*sizeof(double),"comm:slablo");
   slabhi = (double *) memory->smalloc(n*sizeof(double),"comm:slabhi");
   firstrecv = (int *) memory->smalloc(n*sizeof(int),"comm:firstrecv");
-  pbc_flags = (int **) memory->create_2d_int_array(n,4,"comm:pbc_flags");
+  pbc_flag = (int *) memory->smalloc(n*sizeof(int),"comm:pbc_flag");
+  pbc_dist = (double **) memory->create_2d_double_array(n,3,"comm:pbc_dist");
+  pbc_dist_border = (double **)
+    memory->create_2d_double_array(n,3,"comm:pbc_dist_border");
 }
 
 /* ----------------------------------------------------------------------
@@ -915,7 +999,9 @@ void Comm::free_swap()
   memory->sfree(slablo);
   memory->sfree(slabhi);
   memory->sfree(firstrecv);
-  memory->destroy_2d_int_array(pbc_flags);
+  memory->sfree(pbc_flag);
+  memory->destroy_2d_double_array(pbc_dist);
+  memory->destroy_2d_double_array(pbc_dist_border);
 }
 
 /* ----------------------------------------------------------------------

@@ -36,6 +36,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   restart_global = 0;
   restart_peratom = 0;
   force_reneighbor = 0;
+  box_change = 0;
   thermo_energy = 0;
   pressure_every = 0;
 

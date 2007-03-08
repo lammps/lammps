@@ -104,11 +104,13 @@ void DeleteBonds::command(int narg, char **arg)
   // border swap to insure type and mask is current for off-proc atoms
   // enforce PBC before in case atoms are outside box
 
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   comm->exchange();
   comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   // set topology interactions either off or on
   // criteria for an interaction to potentially be changed (set flag = 1)

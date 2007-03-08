@@ -131,16 +131,9 @@ void Neighbor::full_bin()
     // only skip i = j
 
     for (k = 0; k < nstencil_full; k++) {
-      j = binhead[ibin+stencil_full[k]];
-      while (j >= 0) {
-	if (i == j) {
-	  j = bins[j];
-	  continue;
-	}
-	if (exclude && exclusion(i,j,type,mask,molecule)) {
-	  j = bins[j];
-	  continue;
-	}
+      for (j = binhead[ibin+stencil_full[k]]; j >= 0; j = bins[j]) {
+	if (i == j) continue;
+	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	jtype = type[j];
 	delx = xtmp - x[j][0];
@@ -154,8 +147,6 @@ void Neighbor::full_bin()
 	  if (which == 0) neighptr[n++] = j;
 	  else if (which > 0) neighptr[n++] = which*nall + j;
 	}
-
-	j = bins[j];
       }
     }
 

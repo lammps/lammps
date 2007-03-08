@@ -27,7 +27,8 @@
 using namespace LAMMPS_NS;
 
 #define LB_FACTOR 1.1
-#define MAXATOMS 0x7FFFFFFF
+#define MAXATOMS  0x7FFFFFFF
+#define EPSILON   1.0e-6
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -92,7 +93,7 @@ void Replicate::command(int narg, char **arg)
   // unmap existing atoms via image flags
 
   for (i = 0; i < atom->nlocal; i++)
-    domain->unmap(atom->x[i][0],atom->x[i][1],atom->x[i][2],atom->image[i]);
+    domain->unmap(atom->x[i],atom->image[i]);
 
   // communication buffer for all my atom's info
   // max_size = largest buffer needed by any proc
@@ -157,15 +158,24 @@ void Replicate::command(int narg, char **arg)
 
   // store old simulation box
 
+  int triclinic = domain->triclinic;
   double old_xprd = domain->xprd;
   double old_yprd = domain->yprd;
   double old_zprd = domain->zprd;
+  double old_xy = domain->xy;
+  double old_xz = domain->xz;
+  double old_yz = domain->yz;
 
   // setup new simulation box
 
   domain->boxxhi = domain->boxxlo + nx*old_xprd;
   domain->boxyhi = domain->boxylo + ny*old_yprd;
   domain->boxzhi = domain->boxzlo + nz*old_zprd;
+  if (triclinic) {
+    domain->xy *= ny;
+    domain->xz *= nz;
+    domain->yz *= nz;
+  }
 
   // new problem setup using new box boundaries
 
@@ -175,19 +185,11 @@ void Replicate::command(int narg, char **arg)
   atom->allocate_type_arrays();
   atom->avec->grow(n);
 
+  domain->print_box("  ");
   domain->set_initial_box();
   domain->set_global_box();
   comm->set_procs();
   domain->set_local_box();
-
-  // sub xyz lo/hi = new processor sub-domain
-
-  double subxlo = domain->subxlo;
-  double subxhi = domain->subxhi;
-  double subylo = domain->subylo;
-  double subyhi = domain->subyhi;
-  double subzlo = domain->subzlo;
-  double subzhi = domain->subzhi;
 
   // copy type arrays to new atom class
 
@@ -206,12 +208,41 @@ void Replicate::command(int narg, char **arg)
     }
   }
 
+  // set bounds for my proc
+  // if periodic and I am lo/hi proc, adjust bounds by EPSILON
+  // insures all replicated atoms will be owned even with round-off
+
+  double sublo[3],subhi[3];
+
+  if (triclinic == 0) {
+    sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
+    sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
+    sublo[2] = domain->sublo[2]; subhi[2] = domain->subhi[2];
+  } else {
+    sublo[0] = domain->sublo_lamda[0]; subhi[0] = domain->subhi_lamda[0];
+    sublo[1] = domain->sublo_lamda[1]; subhi[1] = domain->subhi_lamda[1];
+    sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
+  }
+
+  if (domain->xperiodic) {
+    if (comm->myloc[0] == 0) sublo[0] -= EPSILON;
+    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += EPSILON;
+  }
+  if (domain->yperiodic) {
+    if (comm->myloc[1] == 0) sublo[1] -= EPSILON;
+    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] += EPSILON;
+  }
+  if (domain->zperiodic) {
+    if (comm->myloc[2] == 0) sublo[2] -= EPSILON;
+    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] += EPSILON;
+  }
+
   // loop over all procs
   // if this iteration of loop is me:
   //   pack my unmapped atom data into buf
   //   bcast it to all other procs
-  // for each atom in buf, each proc performs 3d replicate loop:
-  //   xnew,ynew,znew = new replicated position
+  // performs 3d replicate loop with while loop over atoms in buf
+  //   x = new replicated position
   //   unpack atom into new atom class from buf if I own it
   //   adjust tag, mol #, coord, topology info as needed
 
@@ -219,7 +250,8 @@ void Replicate::command(int narg, char **arg)
   AtomVec *avec = atom->avec;
 
   int ix,iy,iz,image,atom_offset,mol_offset;
-  double xnew,ynew,znew;
+  double x[3],lamda[3];
+  double *coord;
   int tag_enable = atom->tag_enable;
 
   for (int iproc = 0; iproc < nprocs; iproc++) {
@@ -234,17 +266,29 @@ void Replicate::command(int narg, char **arg)
       for (iy = 0; iy < ny; iy++) {
 	for (iz = 0; iz < nz; iz++) {
 
+	  // while loop over one proc's atom list
+
 	  m = 0;
 	  while (m < n) {
-	    xnew = buf[m+1] + ix*old_xprd;
-	    ynew = buf[m+2] + iy*old_yprd;
-	    znew = buf[m+3] + iz*old_zprd;
 	    image = (512 << 20) | (512 << 10) | 512;
-	    domain->remap(xnew,ynew,znew,image);
+	    if (triclinic == 0) {
+	      x[0] = buf[m+1] + ix*old_xprd;
+	      x[1] = buf[m+2] + iy*old_yprd;
+	      x[2] = buf[m+3] + iz*old_zprd;
+	    } else {
+	      x[0] = buf[m+1] + ix*old_xprd + iy*old_xy + iz*old_xz;
+	      x[1] = buf[m+2] + iy*old_yprd + iz*old_yz;
+	      x[2] = buf[m+3] + iz*old_zprd;
+	    }
+	    domain->remap(x,image);
+	    if (triclinic) {
+	      domain->x2lamda(x,lamda);
+	      coord = lamda;
+	    } else coord = x;
 
-	    if (xnew >= subxlo && xnew < subxhi &&
-		ynew >= subylo && ynew < subyhi &&
-		znew >= subzlo && znew < subzhi) {
+	    if (coord[0] >= sublo[0] && coord[0] < subhi[0] && 
+		coord[1] >= sublo[1] && coord[1] < subhi[1] && 
+		coord[2] >= sublo[2] && coord[2] < subhi[2]) {
 
 	      m += avec->unpack_restart(&buf[m]);
 
@@ -254,9 +298,9 @@ void Replicate::command(int narg, char **arg)
 	      else atom_offset = 0;
 	      mol_offset = iz*ny*nx*maxmol + iy*nx*maxmol + ix*maxmol;
 
-	      atom->x[i][0] = xnew;
-	      atom->x[i][1] = ynew;
-	      atom->x[i][2] = znew;
+	      atom->x[i][0] = x[0];
+	      atom->x[i][1] = x[1];
+	      atom->x[i][2] = x[2];
 
 	      atom->tag[i] += atom_offset;
 	      atom->image[i] = image;
@@ -289,8 +333,7 @@ void Replicate::command(int narg, char **arg)
 		  }
 	      }
 	    } else m += static_cast<int> (buf[m]);
-	  } // end of while loop over one proc's atom list
-
+	  }
 	}
       }
     }

@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 #define BIG 1.0e30
 
-enum{NONE,SC,BCC,FCC,DIAMOND,SQ,SQ2,HEX,USER};
+enum{NONE,SC,BCC,FCC,DIAMOND,SQ,SQ2,HEX,CUSTOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,7 +45,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   else if (strcmp(arg[0],"sq") == 0) style = SQ;
   else if (strcmp(arg[0],"sq2") == 0) style = SQ2;
   else if (strcmp(arg[0],"hex") == 0) style = HEX;
-  else if (strcmp(arg[0],"user") == 0) style = USER;
+  else if (strcmp(arg[0],"custom") == 0) style = CUSTOM;
   else error->all("Illegal lattice command");
 
   if (style == NONE) {
@@ -54,7 +54,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   }
 
   // check that lattice matches dimension
-  // style USER can be either 2d or 3d
+  // style CUSTOM can be either 2d or 3d
 
   int dimension = force->dimension;
   if (dimension == 2) {
@@ -74,7 +74,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // set basis atoms for each style
   // x,y,z = fractional coords within unit cell
-  // style USER will be defined by optional args
+  // style CUSTOM will be defined by optional args
 
   nbasis = 0;
   basis = NULL;
@@ -116,6 +116,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   orienty[0] = 0;  orienty[1] = 1;  orienty[2] = 0;
   orientz[0] = 0;  orientz[1] = 0;  orientz[2] = 1;
 
+  int spaceflag = 0;
+
   a1[0] = 1.0;  a1[1] = 0.0;  a1[2] = 0.0;
   a2[0] = 0.0;  a2[1] = 1.0;  a2[2] = 0.0;
   a3[0] = 0.0;  a3[1] = 0.0;  a3[2] = 1.0;
@@ -153,26 +155,34 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       orient[2] = atoi(arg[iarg+4]);
       iarg += 5;
 
+    } else if (strcmp(arg[iarg],"spacings") == 0) {
+      if (iarg+4 > narg) error->all("Illegal lattice command");
+      spaceflag = 1;
+      xlattice = atoi(arg[iarg+1]);
+      ylattice = atoi(arg[iarg+2]);
+      zlattice = atoi(arg[iarg+3]);
+      iarg += 4;
+
     } else if (strcmp(arg[iarg],"a1") == 0) {
       if (iarg+4 > narg) error->all("Illegal lattice command");
-      if (style != USER) 
-	error->all("Invalid option in lattice command for non-user style");
+      if (style != CUSTOM) 
+	error->all("Invalid option in lattice command for non-custom style");
       a1[0] = atof(arg[iarg+1]);
       a1[1] = atof(arg[iarg+2]);
       a1[2] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a2") == 0) {
       if (iarg+4 > narg) error->all("Illegal lattice command");
-      if (style != USER) 
-	error->all("Invalid option in lattice command for non-user style");
+      if (style != CUSTOM) 
+	error->all("Invalid option in lattice command for non-custom style");
       a2[0] = atof(arg[iarg+1]);
       a2[1] = atof(arg[iarg+2]);
       a2[2] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a3") == 0) {
       if (iarg+4 > narg) error->all("Illegal lattice command");
-      if (style != USER) 
-	error->all("Invalid option in lattice command for non-user style");
+      if (style != CUSTOM) 
+	error->all("Invalid option in lattice command for non-custom style");
       a3[0] = atof(arg[iarg+1]);
       a3[1] = atof(arg[iarg+2]);
       a3[2] = atof(arg[iarg+3]);
@@ -180,8 +190,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+4 > narg) error->all("Illegal lattice command");
-      if (style != USER) 
-	error->all("Invalid option in lattice command for non-user style");
+      if (style != CUSTOM) 
+	error->all("Invalid option in lattice command for non-custom style");
       double x = atof(arg[iarg+1]);
       double y = atof(arg[iarg+2]);
       double z = atof(arg[iarg+3]);
@@ -212,6 +222,11 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       error->all("Lattice settings are not compatible with 2d simulation");
   }
 
+  if (spaceflag) {
+    if (xlattice <= 0.0 || ylattice <= 0.0 || zlattice <= 0.0)
+      error->all("Lattice spacings are invalid");
+  }
+
   // reset scale for LJ units (input scale is rho*)
   // scale = (Nbasis/(Vprimitive * rho*)) ^ (1/dim)
 
@@ -232,23 +247,30 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // set xlattice,ylattice,zlattice to 0.0 initially
   //   since bbox uses them to shift origin (irrelevant for this computation)
 
-  double xmin,ymin,zmin,xmax,ymax,zmax;
-  xmin = ymin = zmin = BIG;
-  xmax = ymax = zmax = -BIG;
-  xlattice = ylattice = zlattice = 0.0;
+  if (spaceflag == 0) {
+    double xmin,ymin,zmin,xmax,ymax,zmax;
+    xmin = ymin = zmin = BIG;
+    xmax = ymax = zmax = -BIG;
+    xlattice = ylattice = zlattice = 0.0;
 
-  bbox(0,0.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,1.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,0.0,1.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,1.0,1.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,0.0,0.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,1.0,0.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,0.0,1.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
-  bbox(0,1.0,1.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,0.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,1.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,0.0,1.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,1.0,1.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,0.0,0.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,1.0,0.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,0.0,1.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
+    bbox(0,1.0,1.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
 
-  xlattice = xmax - xmin;
-  ylattice = ymax - ymin;
-  zlattice = zmax - zmin;
+    xlattice = xmax - xmin;
+    ylattice = ymax - ymin;
+    zlattice = zmax - zmin;
+
+  } else {
+    xlattice *= scale;
+    ylattice *= scale;
+    zlattice *= scale;
+  }
 
   // print lattice spacings
 

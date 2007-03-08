@@ -196,13 +196,15 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
 
   // setup domain, communication and neighboring
   // acquire ghosts
-    
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   // call to build() forces memory allocation for neighbor lists
   // build half list explicitly if build() doesn't do it

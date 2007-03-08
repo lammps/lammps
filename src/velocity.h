@@ -41,7 +41,7 @@ class Velocity : protected Pointers {
   void zero_rotation();
 
   void options(int, char **);
-  void triple(double, double, double, double *, double *, double *,
+  void triple(double *, double *, double *, double *,
 	      int, class RanPark *);
 };
 

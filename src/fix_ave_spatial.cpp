@@ -147,6 +147,15 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
   invdelta = 1.0/delta;
 
+  if (domain->triclinic) {
+    if (dim == 0 && (domain->xy != 0.0 || domain->xz != 0.0))
+      error->all("Cannot (yet) use fix ave/spatial with triclinic box");
+    if (dim == 1 && (domain->xy != 0.0 || domain->yz != 0.0))
+      error->all("Cannot (yet) use fix ave/spatial with triclinic box");
+    if (dim == 2 && (domain->xz != 0.0 || domain->yz != 0.0))
+      error->all("Cannot (yet) use fix ave/spatial with triclinic box");
+  }
+
   nvalues = 1;
   if (which == COMPUTE) {
     int icompute = modify->find_compute(id_compute);

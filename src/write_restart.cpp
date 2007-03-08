@@ -77,10 +77,12 @@ void WriteRestart::command(int narg, char **arg)
   // move atoms to new processors before writing file
   // enforce PBC before in case atoms are outside box
 
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   comm->exchange();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   write(file);
   delete [] file;
@@ -283,6 +285,12 @@ void WriteRestart::header()
   write_double(43,force->special_coul[1]);
   write_double(44,force->special_coul[2]);
   write_double(45,force->special_coul[3]);
+
+  if (domain->triclinic) {
+    write_double(46,domain->xy);
+    write_double(47,domain->xz);
+    write_double(48,domain->yz);
+  }
 
   // -1 flag signals end of header
 

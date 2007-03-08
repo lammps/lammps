@@ -38,6 +38,13 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"zhi") == 0) zhiflag = 1;
     else error->all("Illegal fix wall/reflect command");
   }
+
+  if ((xloflag || xhiflag) && domain->xperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if ((yloflag || yhiflag) && domain->yperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if ((zloflag || zhiflag) && domain->zperiodic)
+    error->all("Cannot use wall in periodic dimension");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
@@ -114,6 +115,7 @@ void ReadData::command(int narg, char **arg)
   atom->allocate_type_arrays();
   atom->avec->grow(n);
 
+  domain->print_box("  ");
   domain->set_initial_box();
   domain->set_global_box();
   comm->set_procs();
@@ -356,7 +358,10 @@ void ReadData::header(int flag)
       sscanf(line,"%lg %lg",&domain->boxylo,&domain->boxyhi);
     else if (strstr(line,"zlo zhi")) 
       sscanf(line,"%lg %lg",&domain->boxzlo,&domain->boxzhi);
-    else break;
+    else if (strstr(line,"xy xz yz")) {
+      domain->triclinic = 1;
+      sscanf(line,"%lg %lg %lg",&domain->xy,&domain->xz,&domain->yz);
+    } else break;
   }
 
   // error check on consistency of header values
@@ -382,10 +387,6 @@ void ReadData::header(int flag)
     error->one("Dihedrals defined but no dihedral types");
   if (atom->nimpropers > 0 && atom->nimpropertypes <= 0)
     error->one("Impropers defined but no improper types");
-
-  if (domain->boxxlo >= domain->boxxhi || domain->boxylo >= domain->boxyhi ||
-      domain->boxzlo >= domain->boxzhi)
-    error->one("Box bounds are invalid");
 }
 
 /* ----------------------------------------------------------------------

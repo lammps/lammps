@@ -26,6 +26,7 @@ class Fix : protected Pointers {
   int restart_global;            // 1 if Fix saves global state, 0 if not
   int restart_peratom;           // 1 if Fix saves peratom state, 0 if not
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
+  int box_change;                // 1 if Fix changes box size, 0 if not
   int next_reneighbor;           // next timestep to force a reneighboring
   int thermo_energy;             // 1 if ThEng enabled via fix_modify, 0 if not
   int nevery;                    // how often to call an end_of_step fix
@@ -81,7 +82,7 @@ class Fix : protected Pointers {
   virtual int min_dof() {return 0;}
   virtual void min_xinitial(double *) {}
 
-  virtual int pack_comm(int, int *, double *, int *) {return 0;}
+  virtual int pack_comm(int, int *, double *, int, double *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}

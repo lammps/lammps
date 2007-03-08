@@ -54,8 +54,8 @@ void CreateAtoms::command(int narg, char **arg)
     error->all("Invalid atom type in create_atoms command");
   for (int i = 0; i < nbasis; i++) basistype[i] = itype;
 
-  regionflag = -1;
-  nhybrid = 0;
+  int regionflag = -1;
+  int nhybrid = 0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -93,30 +93,42 @@ void CreateAtoms::command(int narg, char **arg)
   // convert 8 corners of my sub-box from box coords to lattice coords
   // min to max = bounding box around the pts in lattice space
 
-  subxlo = domain->subxlo;
-  subxhi = domain->subxhi;
-  subylo = domain->subylo;
-  subyhi = domain->subyhi;
-  subzlo = domain->subzlo;
-  subzhi = domain->subzhi;
+  int triclinic = domain->triclinic;
+  double *bboxlo,*bboxhi;
+
+  if (triclinic == 0) {
+    bboxlo = domain->sublo;
+    bboxhi = domain->subhi;
+  } else {
+    bboxlo = domain->sublo_bound;
+    bboxhi = domain->subhi_bound;
+  }
 
   double xmin,ymin,zmin,xmax,ymax,zmax;
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;
 
-  domain->lattice->bbox(1,subxlo,subylo,subzlo,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxhi,subylo,subzlo,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxlo,subyhi,subzlo,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxhi,subyhi,subzlo,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxlo,subylo,subzhi,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxhi,subylo,subzhi,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxlo,subyhi,subzhi,xmin,ymin,zmin,xmax,ymax,zmax);
-  domain->lattice->bbox(1,subxhi,subyhi,subzhi,xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxlo[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxlo[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxlo[0],bboxhi[1],bboxlo[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxlo[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxhi[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxhi[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxlo[0],bboxhi[1],bboxhi[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
+  domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxhi[2],
+			xmin,ymin,zmin,xmax,ymax,zmax);
 
-  // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my sub-box
-  // overlap = any part of a unit cell (face,edge,pt) in common with my sub-box
-  // in lattice space, sub-box is a tilted box
-  // but bbox of sub-box is aligned with lattice axes
+  // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my subbox
+  // overlap = any part of a unit cell (face,edge,pt) in common with my subbox
+  // in lattice space, subbox is a tilted box
+  // but bbox of subbox is aligned with lattice axes
   // so ilo:khi unit cells should completely tile bounding box
   // decrement lo values if min < 0, since static_cast(-1.5) = -1
 
@@ -132,25 +144,84 @@ void CreateAtoms::command(int narg, char **arg)
   if (ymin < 0.0) jlo--;
   if (zmin < 0.0) klo--;
 
+  // set bounds for my proc
+  // if periodic and I am lo/hi proc, adjust bounds by EPSILON
+  // on lower boundary, allows triclinic atoms just outside box to be added
+  // on upper boundary, prevents atoms with lower images from being added
+
+  double sublo[3],subhi[3];
+
+  if (triclinic == 0) {
+    sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
+    sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
+    sublo[2] = domain->sublo[2]; subhi[2] = domain->subhi[2];
+  } else {
+    sublo[0] = domain->sublo_lamda[0]; subhi[0] = domain->subhi_lamda[0];
+    sublo[1] = domain->sublo_lamda[1]; subhi[1] = domain->subhi_lamda[1];
+    sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
+  }
+
+  if (domain->xperiodic) {
+    if (triclinic && comm->myloc[0] == 0) sublo[0] -= EPSILON;
+    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= EPSILON;
+  }
+  if (domain->yperiodic) {
+    if (triclinic && comm->myloc[1] == 0) sublo[1] -= EPSILON;
+    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= EPSILON;
+  }
+  if (domain->zperiodic) {
+    if (triclinic && comm->myloc[2] == 0) sublo[2] -= EPSILON;
+    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= EPSILON;
+  }
+
   // iterate on 3d periodic lattice using loop bounds
   // invoke add_atom for nbasis atoms in each unit cell
-  // add_atom converts lattice coords to box coords, checks if in my sub-box
-
-  boxxhi = domain->boxxhi;
-  boxyhi = domain->boxyhi;
-  boxzhi = domain->boxzhi;
+  // converts lattice coords to box coords
+  // add atom if it meets all criteria 
 
   double natoms_previous = atom->natoms;
   int nlocal_previous = atom->nlocal;
 
   double **basis = domain->lattice->basis;
+  double x[3],lamda[3];
+  double *coord;
 
   int i,j,k,m;
   for (k = klo; k <= khi; k++)
     for (j = jlo; j <= jhi; j++)
       for (i = ilo; i <= ihi; i++)
-	for (m = 0; m < nbasis; m++)
-	  add_atom(basistype[m],i+basis[m][0],j+basis[m][1],k+basis[m][2]);
+	for (m = 0; m < nbasis; m++) {
+
+	  x[0] = i + basis[m][0];
+	  x[1] = j + basis[m][1];
+	  x[2] = k + basis[m][2];
+
+	  // convert from lattice coords to box coords
+
+	  domain->lattice->lattice2box(x[0],x[1],x[2]);
+
+	  // if a region was specified, test if atom is in it
+
+	  if (regionflag >= 0)
+	    if (!domain->regions[regionflag]->match(x[0],x[1],x[2])) continue;
+
+	  // test if atom is in my subbox
+	  
+	  if (triclinic) {
+	    domain->x2lamda(x,lamda);
+	    coord = lamda;
+	  } else coord = x;
+
+	  if (coord[0] < sublo[0] || coord[0] >= subhi[0] || 
+	      coord[1] < sublo[1] || coord[1] >= subhi[1] || 
+	      coord[2] < sublo[2] || coord[2] >= subhi[2]) continue;
+
+	  // add the atom to my list of atoms
+
+	  atom->avec->create_atom(basistype[m],x,nhybrid);
+	}
+
+  // clean up
 
   delete [] basistype;
 
@@ -188,37 +259,4 @@ void CreateAtoms::command(int narg, char **arg)
       nspecial[i][2] = 0;
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   add an atom of type at lattice coords x,y,z if it meets all criteria 
-------------------------------------------------------------------------- */
-
-void CreateAtoms::add_atom(int ntype, double x, double y, double z)
-{
-  // convert from lattice coords to box coords
-
-  domain->lattice->lattice2box(x,y,z);
-
-  // if a region was specified, test if atom is in it
-
-  if (regionflag >= 0)
-    if (!domain->regions[regionflag]->match(x,y,z)) return;
-
-  // test if atom is in my subbox
-
-  if (x < subxlo || x >= subxhi || 
-      y < subylo || y >= subyhi || 
-      z < subzlo || z >= subzhi) return;
-
-  // don't put atoms within EPSILON of upper periodic boundary
-  // else may overlap image atom at lower boundary
-
-  if (domain->xperiodic && fabs(x-boxxhi) < EPSILON) return;
-  if (domain->yperiodic && fabs(y-boxyhi) < EPSILON) return;
-  if (domain->zperiodic && fabs(z-boxzhi) < EPSILON) return;
-
-  // add the atom to my list of atoms
-
-  atom->avec->create_atom(ntype,x,y,z,nhybrid);
 }

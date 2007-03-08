@@ -46,9 +46,18 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    if (axis == 'x') lo = domain->boxxlo;
-    if (axis == 'y') lo = domain->boxylo;
-    if (axis == 'z') lo = domain->boxzlo;
+    if (axis == 'x') {
+      if (domain->triclinic == 0) lo = domain->boxlo[0];
+      else lo = domain->boxlo_bound[0];
+    }
+    if (axis == 'y') {
+      if (domain->triclinic == 0) lo = domain->boxlo[1];
+      else lo = domain->boxlo_bound[1];
+    }
+    if (axis == 'z') {
+      if (domain->triclinic == 0) lo = domain->boxlo[2];
+      else lo = domain->boxlo_bound[2];
+    }
   } else {
     if (axis == 'x') lo = xscale*atof(arg[6]);
     if (axis == 'y') lo = yscale*atof(arg[6]);
@@ -58,9 +67,18 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[7],"INF") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF when box does not exist");
-    if (axis == 'x') hi = domain->boxxhi;
-    if (axis == 'y') hi = domain->boxyhi;
-    if (axis == 'z') hi = domain->boxzhi;
+    if (axis == 'x') {
+      if (domain->triclinic == 0) hi = domain->boxhi[0];
+      else hi = domain->boxhi_bound[0];
+    }
+    if (axis == 'y') {
+      if (domain->triclinic == 0) hi = domain->boxhi[1];
+      else hi = domain->boxhi_bound[1];
+    }
+    if (axis == 'z') {
+      if (domain->triclinic == 0) hi = domain->boxhi[2];
+      else hi = domain->boxhi_bound[2];
+    }
   } else {
     if (axis == 'x') hi = xscale*atof(arg[7]);
     if (axis == 'y') hi = yscale*atof(arg[7]);

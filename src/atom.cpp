@@ -35,18 +35,17 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define DELTA 1
 #define DELTA_MEMSTR 1024
+#define EPSILON 1.0e-6
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
-  // no atoms
-
   natoms = nlocal = nghost = nmax = 0;
   ntypes = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
@@ -620,8 +619,9 @@ int Atom::count_words(char *line)
 
 void Atom::data_atoms(int n, char *buf, int ihybrid)
 {
-  int m,imagetmp,xptr,iptr;
-  double xtmp,ytmp,ztmp;
+  int m,imagedata,xptr,iptr;
+  double xdata[3],lamda[3],sublo[3],subhi[3];
+  double *coord;
   char *next;
 
   next = strchr(buf,'\n');
@@ -635,12 +635,33 @@ void Atom::data_atoms(int n, char *buf, int ihybrid)
 
   char **values = new char*[nwords];
 
-  double subxlo = domain->subxlo;
-  double subxhi = domain->subxhi;
-  double subylo = domain->subylo;
-  double subyhi = domain->subyhi;
-  double subzlo = domain->subzlo;
-  double subzhi = domain->subzhi;
+  // set bounds for my proc
+  // if periodic and I am lo/hi proc, adjust bounds by EPSILON
+  // insures all data atoms will be owned even with round-off
+
+  int triclinic = domain->triclinic;
+  if (triclinic == 0) {
+    sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
+    sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
+    sublo[2] = domain->sublo[2]; subhi[2] = domain->subhi[2];
+  } else {
+    sublo[0] = domain->sublo_lamda[0]; subhi[0] = domain->subhi_lamda[0];
+    sublo[1] = domain->sublo_lamda[1]; subhi[1] = domain->subhi_lamda[1];
+    sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
+  }
+
+  if (domain->xperiodic) {
+    if (comm->myloc[0] == 0) sublo[0] -= EPSILON;
+    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += EPSILON;
+  }
+  if (domain->yperiodic) {
+    if (comm->myloc[1] == 0) sublo[1] -= EPSILON;
+    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] += EPSILON;
+  }
+  if (domain->zperiodic) {
+    if (comm->myloc[2] == 0) sublo[2] -= EPSILON;
+    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] += EPSILON;
+  }
 
   // xptr = which word in line starts xyz coords
   // iptr = which word in line starts ix,iy,iz image flags
@@ -662,20 +683,25 @@ void Atom::data_atoms(int n, char *buf, int ihybrid)
     for (m = 1; m < nwords; m++)
       values[m] = strtok(NULL," \t\n\r\f");
 
-    xtmp = atof(values[xptr]);
-    ytmp = atof(values[xptr+1]);
-    ztmp = atof(values[xptr+2]);
     if (imageflag)
-      imagetmp = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |
+      imagedata = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |
 	((atoi(values[iptr+1]) + 512 & 1023) << 10) |
 	(atoi(values[iptr]) + 512 & 1023);
-    else imagetmp = (512 << 20) | (512 << 10) | 512;
+    else imagedata = (512 << 20) | (512 << 10) | 512;
 
-    domain->remap(xtmp,ytmp,ztmp,imagetmp);
-    if (xtmp >= subxlo && xtmp < subxhi &&
-	ytmp >= subylo && ytmp < subyhi &&
-	ztmp >= subzlo && ztmp < subzhi)
-      avec->data_atom(xtmp,ytmp,ztmp,imagetmp,values,ihybrid);
+    xdata[0] = atof(values[xptr]);
+    xdata[1] = atof(values[xptr+1]);
+    xdata[2] = atof(values[xptr+2]);
+    domain->remap(xdata,imagedata);
+    if (triclinic) {
+      domain->x2lamda(xdata,lamda);
+      coord = lamda;
+    } else coord = xdata;
+
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	coord[2] >= sublo[2] && coord[2] < subhi[2])
+      avec->data_atom(xdata,imagedata,values,ihybrid);
 
     buf = next + 1;
   }

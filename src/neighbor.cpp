@@ -206,6 +206,7 @@ void Neighbor::init()
   int i,j,m,n;
 
   ncalls = ndanger = 0;
+  triclinic = domain->triclinic;
 
   // error check
 
@@ -544,7 +545,7 @@ void Neighbor::init()
     cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);
   }
 
-  // set ptrs to correct half and full build functions
+  // set ptrs to correct half, full, triclinic build functions
   // cannot combine granular and rRESPA
 
   if (half) {
@@ -556,6 +557,8 @@ void Neighbor::init()
       } else if (style == 1) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::granular_bin_no_newton;
+	else if (triclinic)
+	  half_build = &Neighbor::granular_bin_newton_tri;
 	else half_build = &Neighbor::granular_bin_newton;
       }
     } else if (respa) {
@@ -566,6 +569,8 @@ void Neighbor::init()
       } else if (style == 1) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::respa_bin_no_newton;
+	else if (triclinic)
+	  half_build = &Neighbor::respa_bin_newton_tri;
 	else half_build = &Neighbor::respa_bin_newton;
       }
     } else {
@@ -583,6 +588,8 @@ void Neighbor::init()
 	  else half_build = &Neighbor::half_bin_no_newton;
 	} else {
 	  if (full_every) half_build = &Neighbor::half_full_newton;
+	  else if (triclinic)
+	    half_build = &Neighbor::half_bin_newton_tri;
 	  else half_build = &Neighbor::half_bin_newton;
 	}
       }
@@ -869,6 +876,7 @@ void Neighbor::build_full()
      binsize = 1/2 of cutoff is roughly optimal
    prd must be filled exactly by integer # of bins
      so procs on both sides of PBC see same bin boundary
+     triclinic is an exception, since stencil & neigh list built differently
    mbinlo = lowest global bin any of my ghost atoms could fall into
    mbinhi = highest global bin any of my ghost atoms could fall into
    mbin = number of bins I need in a dimension
@@ -878,31 +886,53 @@ void Neighbor::build_full()
 
 void Neighbor::setup_bins()
 {
-  double cutneighinv = 1.0/cutneigh;
+  // bbox = bounding box of entire domain
+  // bboxlo,bboxhi = bounding box of proc's sub-domain
+  // for triclinic, bounding box surrounds all 8 corner pts
+
+  double bbox[3];
+  double *bboxlo,*bboxhi;
+
+  if (triclinic == 0) {
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    bboxlo = domain->sublo;
+    bboxhi = domain->subhi;
+  } else {
+    boxlo = domain->boxlo_bound;
+    boxhi = domain->boxhi_bound;
+    bboxlo = domain->sublo_bound;
+    bboxhi = domain->subhi_bound;
+  }
+
+  bbox[0] = boxhi[0] - boxlo[0];
+  bbox[1] = boxhi[1] - boxlo[1];
+  bbox[2] = boxhi[2] - boxlo[2];
 
   // test for too many global bins in any dimension due to huge domain
 
-  if (2.0*domain->xprd*cutneighinv > INT_MAX ||
-      2.0*domain->yprd*cutneighinv > INT_MAX ||
-      2.0*domain->zprd*cutneighinv > INT_MAX)
+  double cutneighinv = 1.0/cutneigh;
+
+  if (2.0*bbox[0]*cutneighinv > INT_MAX || 2.0*bbox[1]*cutneighinv > INT_MAX ||
+      2.0*bbox[2]*cutneighinv > INT_MAX)
     error->all("Domain too large for neighbor bins");
 
   // divide box into bins
   // optimal size is roughly 1/2 the cutoff
 
-  nbinx = static_cast<int> (2.0*domain->xprd*cutneighinv);
-  nbiny = static_cast<int> (2.0*domain->yprd*cutneighinv);
+  nbinx = static_cast<int> (2.0*bbox[0]*cutneighinv);
+  nbiny = static_cast<int> (2.0*bbox[1]*cutneighinv);
   if (force->dimension == 3)
-    nbinz = static_cast<int> (2.0*domain->zprd*cutneighinv);
+    nbinz = static_cast<int> (2.0*bbox[2]*cutneighinv);
   else nbinz = 1;
 
   if (nbinx == 0) nbinx = 1;
   if (nbiny == 0) nbiny = 1;
   if (nbinz == 0) nbinz = 1;
 
-  binsizex = domain->xprd/nbinx;
-  binsizey = domain->yprd/nbiny;
-  binsizez = domain->zprd/nbinz;
+  binsizex = bbox[0]/nbinx;
+  binsizey = bbox[1]/nbiny;
+  binsizez = bbox[2]/nbinz;
 
   bininvx = 1.0 / binsizex;
   bininvy = 1.0 / binsizey;
@@ -915,23 +945,23 @@ void Neighbor::setup_bins()
   double coord;
   int mbinxhi,mbinyhi,mbinzhi;
 
-  coord = domain->subxlo - cutneigh - SMALL*domain->xprd;
-  mbinxlo = static_cast<int> ((coord-domain->boxxlo)*bininvx);
+  coord = bboxlo[0] - cutneigh - SMALL*bbox[0];
+  mbinxlo = static_cast<int> ((coord-boxlo[0])*bininvx);
   if (coord < 0.0) mbinxlo = mbinxlo - 1;
-  coord = domain->subxhi + cutneigh + SMALL*domain->xprd;
-  mbinxhi = static_cast<int> ((coord-domain->boxxlo)*bininvx);
+  coord = bboxhi[0] + cutneigh + SMALL*bbox[0];
+  mbinxhi = static_cast<int> ((coord-boxlo[0])*bininvx);
 
-  coord = domain->subylo - cutneigh - SMALL*domain->yprd;
-  mbinylo = static_cast<int> ((coord-domain->boxylo)*bininvy);
+  coord = bboxlo[1] - cutneigh - SMALL*bbox[1];
+  mbinylo = static_cast<int> ((coord-boxlo[1])*bininvy);
   if (coord < 0.0) mbinylo = mbinylo - 1;
-  coord = domain->subyhi + cutneigh + SMALL*domain->yprd;
-  mbinyhi = static_cast<int> ((coord-domain->boxylo)*bininvy);
+  coord = bboxhi[1] + cutneigh + SMALL*bbox[1];
+  mbinyhi = static_cast<int> ((coord-boxlo[1])*bininvy);
 
-  coord = domain->subzlo - cutneigh - SMALL*domain->zprd;
-  mbinzlo = static_cast<int> ((coord-domain->boxzlo)*bininvz);
+  coord = bboxlo[2] - cutneigh - SMALL*bbox[2];
+  mbinzlo = static_cast<int> ((coord-boxlo[2])*bininvz);
   if (coord < 0.0) mbinzlo = mbinzlo - 1;
-  coord = domain->subzhi + cutneigh + SMALL*domain->zprd;
-  mbinzhi = static_cast<int> ((coord-domain->boxzlo)*bininvz);
+  coord = bboxhi[2] + cutneigh + SMALL*bbox[2];
+  mbinzhi = static_cast<int> ((coord-boxlo[2])*bininvz);
 
   // extend bins by 1 to insure stencil extent is included
 
@@ -965,10 +995,15 @@ void Neighbor::setup_bins()
   //   is within neighbor cutoff
   // next(xyz) = how far the stencil could possibly extend
   // for partial Newton (newton = 0)
-  //   stencil is all surrounding bins including self
+  //   stencil is all surrounding bins
+  //   stencil includes self
+  // for triclinic
+  //   stencil is all bins in z-plane of self and above, but not below
+  //   in 2d is all bins in y-plane of self and above, but not below
+  //   stencil includes self
   // for full Newton (newton = 1)
   //   stencil is bins to the "upper right" of central bin
-  //   stencil does NOT include self
+  //   stencil does not include self
   // for full neighbor list (full = 1)
   //   stencil is all surrounding bins including self, regardless of Newton
   //   stored in stencil_full
@@ -999,6 +1034,12 @@ void Neighbor::setup_bins()
 	  for (i = -nextx; i <= nextx; i++)
 	    if (bin_distance(i,j,k) < cutsq)
 	      stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+    } else if (triclinic) {
+      for (k = 0; k <= nextz; k++)
+	for (j = -nexty; j <= nexty; j++)
+	  for (i = -nextx; i <= nextx; i++)
+	    if (bin_distance(i,j,k) < cutsq)
+	      stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
     } else {
       for (k = 0; k <= nextz; k++)
 	for (j = -nexty; j <= nexty; j++)
@@ -1013,6 +1054,11 @@ void Neighbor::setup_bins()
 	for (i = -nextx; i <= nextx; i++)
 	  if (bin_distance(i,j,0) < cutsq)
 	    stencil[nstencil++] = j*mbinx + i;
+    } else if (triclinic) {
+	for (j = 0; j <= nexty; j++)
+	  for (i = -nextx; i <= nextx; i++)
+	    if (bin_distance(i,j,0) < cutsq)
+	      stencil[nstencil++] = j*mbinx + i;
     } else {
 	for (j = 0; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
@@ -1373,32 +1419,33 @@ void Neighbor::bin_atoms()
    take special care to insure ghosts are put in correct bins
    this is necessary so that both procs on either side of PBC
      treat a pair of atoms straddling the PBC in a consistent way
+     triclinic is an exception, since stencil & neigh list built differently
 ------------------------------------------------------------------------- */
 
 int Neighbor::coord2bin(double *x)
 {
   int ix,iy,iz;
 
-  if (x[0] >= domain->boxxhi)
-    ix = static_cast<int> ((x[0]-domain->boxxhi)*bininvx) + nbinx - mbinxlo;
-  else if (x[0] >= domain->boxxlo)
-    ix = static_cast<int> ((x[0]-domain->boxxlo)*bininvx) - mbinxlo;
+  if (x[0] >= boxhi[0])
+    ix = static_cast<int> ((x[0]-boxhi[0])*bininvx) + nbinx - mbinxlo;
+  else if (x[0] >= boxlo[0])
+    ix = static_cast<int> ((x[0]-boxlo[0])*bininvx) - mbinxlo;
   else
-    ix = static_cast<int> ((x[0]-domain->boxxlo)*bininvx) - mbinxlo - 1;
+    ix = static_cast<int> ((x[0]-boxlo[0])*bininvx) - mbinxlo - 1;
   
-  if (x[1] >= domain->boxyhi)
-    iy = static_cast<int> ((x[1]-domain->boxyhi)*bininvy) + nbiny - mbinylo;
-  else if (x[1] >= domain->boxylo)
-    iy = static_cast<int> ((x[1]-domain->boxylo)*bininvy) - mbinylo;
+  if (x[1] >= boxhi[1])
+    iy = static_cast<int> ((x[1]-boxhi[1])*bininvy) + nbiny - mbinylo;
+  else if (x[1] >= boxlo[1])
+    iy = static_cast<int> ((x[1]-boxlo[1])*bininvy) - mbinylo;
   else
-    iy = static_cast<int> ((x[1]-domain->boxylo)*bininvy) - mbinylo - 1;
+    iy = static_cast<int> ((x[1]-boxlo[1])*bininvy) - mbinylo - 1;
   
-  if (x[2] >= domain->boxzhi)
-    iz = static_cast<int> ((x[2]-domain->boxzhi)*bininvz) + nbinz - mbinzlo;
-  else if (x[2] >= domain->boxzlo)
-    iz = static_cast<int> ((x[2]-domain->boxzlo)*bininvz) - mbinzlo;
+  if (x[2] >= boxhi[2])
+    iz = static_cast<int> ((x[2]-boxhi[2])*bininvz) + nbinz - mbinzlo;
+  else if (x[2] >= boxlo[2])
+    iz = static_cast<int> ((x[2]-boxlo[2])*bininvz) - mbinzlo;
   else
-    iz = static_cast<int> ((x[2]-domain->boxzlo)*bininvz) - mbinzlo - 1;
+    iz = static_cast<int> ((x[2]-boxlo[2])*bininvz) - mbinzlo - 1;
 
   return (iz*mbiny*mbinx + iy*mbinx + ix + 1);
 }

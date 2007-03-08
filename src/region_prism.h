@@ -19,13 +19,15 @@
 namespace LAMMPS_NS {
 
 class RegPrism : public Region {
+  friend class CreateBox;
+
  public:
   RegPrism(class LAMMPS *, int, char **);
   int match(double, double, double);
 
  private:
   double xlo,xhi,ylo,yhi,zlo,zhi;
-  double yxshift,zxshift,zyshift;
+  double xy,xz,yz;
   double h[3][3],hinv[3][3];
 };
 

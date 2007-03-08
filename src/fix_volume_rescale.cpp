@@ -31,6 +31,9 @@ FixVolRescale::FixVolRescale(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 7) error->all("Illegal fix volume/rescale command");
+
+  box_change = 1;
+
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix volume/rescale command");
 
@@ -63,6 +66,9 @@ FixVolRescale::FixVolRescale(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else error->all("Illegal fix volume/rescale command");
   }
+
+  if (domain->triclinic)
+    error->all("Cannot use fix volume/rescale with triclinic box");
 
   nrigid = 0;
   rfix = NULL;

@@ -51,6 +51,7 @@ class Comm : protected Pointers {
   int memory_usage();               // tally memory usage
 
  private:
+  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int maxswap;                      // max # of swaps memory is allocated for
   int *sendnum,*recvnum;            // # of atoms to send/recv in each swap
   int *sendproc,*recvproc;          // proc to send/recv to/from at each swap
@@ -58,9 +59,9 @@ class Comm : protected Pointers {
   int *size_reverse_send;           // # to send in each reverse comm
   int *size_reverse_recv;           // # to recv in each reverse comm
   double *slablo,*slabhi;           // bounds of slab to send at each swap
-  int **pbc_flags;                  // flags for sending atoms thru PBC
-                                    // [0] = 1 if any dim is across PBC
-                                    // [123] = 1 if dim 012 is across PBC
+  int *pbc_flag;                    // flags for sending atoms thru PBC
+  double **pbc_dist;                // distance to adjust atoms coords for PBC
+  double **pbc_dist_border;         // PBC distance for borders()
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
 
@@ -74,6 +75,9 @@ class Comm : protected Pointers {
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
 
   void procs2box();                 // map procs to 3d box
+  void cross(double, double, double,
+	     double, double, double,
+	     double &, double &, double &);    // cross product
   void grow_send(int,int);          // reallocate send buffer
   void grow_recv(int);              // free/allocate recv buffer
   void grow_list(int, int);         // reallocate one sendlist

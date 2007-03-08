@@ -20,6 +20,7 @@
 #include "string.h"
 #include "fix_wall_lj126.h"
 #include "atom.h"
+#include "domain.h"
 #include "update.h"
 #include "output.h"
 #include "respa.h"
@@ -67,6 +68,13 @@ FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
   double r2inv = 1.0/(cutoff*cutoff);
   double r6inv = r2inv*r2inv*r2inv;
   offset = r6inv*(coeff3*r6inv - coeff4);
+
+  if (dim == 0 && domain->xperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (dim == 1 && domain->yperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (dim == 2 && domain->zperiodic)
+    error->all("Cannot use wall in periodic dimension");
 }
 
 /* ---------------------------------------------------------------------- */

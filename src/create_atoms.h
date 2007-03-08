@@ -22,13 +22,6 @@ class CreateAtoms : protected Pointers {
  public:
   CreateAtoms(class LAMMPS *);
   void command(int, char **);
-
- private:
-  int regionflag,nhybrid;
-  double boxxhi,boxyhi,boxzhi;
-  double subxlo,subxhi,subylo,subyhi,subzlo,subzhi;
-
-  void add_atom(int, double, double, double);
 };
 
 }

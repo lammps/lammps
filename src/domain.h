@@ -20,61 +20,91 @@ namespace LAMMPS_NS {
 
 class Domain : protected Pointers {
  public:
-  int box_exist;                            // 0 = not yet created, 1 = exists
+  int box_exist;                         // 0 = not yet created, 1 = exists
 
-  int nonperiodic;                          // 0 = periodic in all 3 dims
-                                            // 1 = periodic or fixed in all 6
-                                            // 2 = shrink-wrap in any of 6
-  int xperiodic,yperiodic,zperiodic;        // 0 = not periodic, 1 = periodic
-  int boundary[3][2];                       // settings for 6 boundaries
-                                            // 0 = periodic
-                                            // 1 = fixed non-periodic
-                                            // 2 = shrink-wrap non-periodic
-                                            // 3 = shrink-wrap non-per w/ min
+  int nonperiodic;                       // 0 = periodic in all 3 dims
+                                         // 1 = periodic or fixed in all 6
+                                         // 2 = shrink-wrap in any of 6
+  int xperiodic,yperiodic,zperiodic;     // 0 = non-periodic, 1 = periodic
+  int periodicity[3];                    // xyz periodicity as array
 
-  double minxlo,minxhi;                     // minimum size of global box
-  double minylo,minyhi;                     // when shrink-wrapping
-  double minzlo,minzhi;
+  int boundary[3][2];                    // settings for 6 boundaries
+                                         // 0 = periodic
+                                         // 1 = fixed non-periodic
+                                         // 2 = shrink-wrap non-periodic
+                                         // 3 = shrink-wrap non-per w/ min
 
-  double boxxlo,boxxhi;                     // global box boundaries 
-  double boxylo,boxyhi;
+  int triclinic;		         // 0 = orthog box, 1 = triclinic
+
+                                         // orthogonal box
+  double xprd,yprd,zprd;                 // global box dimensions
+  double xprd_half,yprd_half,zprd_half;  // half dimensions
+  double prd[3];                         // array form of dimensions
+
+                                         // triclinic box
+                                         // xprd,half,prd = same
+                                         // (as if untilted)
+  double prd_lamda[3];                   // lamda box = (1,1,1)
+
+  double boxxlo,boxxhi;                  // orthogonal box
+  double boxylo,boxyhi;                  // global box bounds
   double boxzlo,boxzhi;
+  double boxlo[3],boxhi[3];              // array form of box bounds
 
-  double xprd,yprd,zprd;                    // global box size
-  double xprd_half,yprd_half,zprd_half;
+                                         // triclinic box
+                                         // boxxlo/hi,boxlo/hi = same
+                                         // (as if untilted)
+  double boxlo_lamda[3],boxhi_lamda[3];  // lamda box = (0,1)
+  double boxlo_bound[3],boxhi_bound[3];  // bounding box of tilted domain
 
-  double subxlo,subxhi;                     // sub-box boudaries on this proc
-  double subylo,subyhi;
-  double subzlo,subzhi;
+                                         // orthogonal box
+  double minxlo,minxhi;                  // minimum size of global box
+  double minylo,minyhi;                  // when shrink-wrapping
+  double minzlo,minzhi;                  // no shrink-wrapping for triclinic
 
-  double boxlo[3],boxhi[3];                 // global box bounds as arrays
-  double prd[3];                            // global box size as array
-  double sublo[3],subhi[3];                 // sub-box bounds as arrays
-  int periodicity[3];                       // xyz periodic as array
+                                         // orthogonal box
+  double sublo[3],subhi[3];              // sub-box bounds on this proc
 
-  int box_change;            // 1 if box bounds ever change, 0 if fixed
+                                         // triclinic box
+                                         // sublo = lower-left corner with tilt
+                                         // subhi = upper-right as if untilted
+  double sublo_lamda[3],subhi_lamda[3];  // bounds of subbox in lamda
+  double sublo_bound[3],subhi_bound[3];  // bounding box of tilted subdomain
 
-  class Lattice *lattice;        // user-defined lattice
+                                         // triclinic box
+  double xy,xz,yz;                       // 3 tilt factors
+  double h[6],h_inv[6];	          	 // shape matrix in Voigt notation
 
-  int nregion;                   // # of defined Regions
-  int maxregion;                 // max # list can hold
-  class Region **regions;        // list of defined Regions
+  int box_change;                 // 1 if box bounds ever change, 0 if fixed
+
+  class Lattice *lattice;                  // user-defined lattice
+
+  int nregion;                             // # of defined Regions
+  int maxregion;                           // max # list can hold
+  class Region **regions;                  // list of defined Regions
 
   Domain(class LAMMPS *);
   ~Domain();
   void init();
   void set_initial_box();
   void set_global_box();
+  void set_lamda_box();
   void set_local_box();
   void reset_box();
   void pbc();
-  void remap(double &, double &, double &, int &);
-  void unmap(double &, double &, double &, int);
-  void minimum_image(double *, double *, double *);
+  void remap(double *, int &);
+  void unmap(double *, int);
+  void minimum_image(double &, double &, double &);
   void minimum_image(double *);
   void set_lattice(int, char **);
   void add_region(int, char **);
   void set_boundary(int, char **);
+  void print_box(char *);
+
+  void lamda2x(int);
+  void x2lamda(int);
+  void lamda2x(double *, double *);
+  void x2lamda(double *, double *);
 };
 
 }

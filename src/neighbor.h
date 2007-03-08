@@ -117,6 +117,9 @@ class Neighbor : protected Pointers {
   double binsizex,binsizey,binsizez;  // bin sizes and inverse sizes
   double bininvx,bininvy,bininvz;
 
+  int triclinic;                   // 0 if domain is orthog, 1 if triclinic
+  double *boxlo,*boxhi;            // copies of domain bounds
+
   int **pages;                     // half neighbor list pages
   int maxpage;                     // # of half pages currently allocated
 
@@ -217,6 +220,12 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int find_special(int, int);           // look for special neighbor
   int exclusion(int, int, int *, int *, int *);  // test for pair exclusion
+
+  // PJV
+
+  void granular_bin_newton_tri();
+  void respa_bin_newton_tri();
+  void half_bin_newton_tri();
 };
 
 }

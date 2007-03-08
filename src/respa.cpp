@@ -321,6 +321,10 @@ void Respa::init()
 	newton[ilevel] = 1;
     }
   }
+
+  // orthogonal vs triclinic simulation box
+
+  triclinic = domain->triclinic;
 }
 
 /* ----------------------------------------------------------------------
@@ -335,12 +339,14 @@ void Respa::setup()
   // acquire ghosts
   // build neighbor lists
 
+  if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build();
   neighbor->ncalls = 0;
 
@@ -464,6 +470,7 @@ void Respa::recurse(int ilevel)
       int nflag = neighbor->decide();
       if (nflag) {
 	if (modify->n_pre_exchange) modify->pre_exchange();
+	if (triclinic) domain->x2lamda(atom->nlocal);
 	domain->pbc();
 	if (domain->box_change) {
 	  domain->reset_box();
@@ -473,6 +480,7 @@ void Respa::recurse(int ilevel)
 	timer->stamp();
 	comm->exchange();
 	comm->borders();
+	if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 	timer->stamp(TIME_COMM);
 	if (modify->n_pre_neighbor) modify->pre_neighbor();
 	neighbor->build();

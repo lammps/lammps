@@ -195,12 +195,12 @@ void DumpCustom::header_binary(int ndump)
 {
   fwrite(&update->ntimestep,sizeof(int),1,fp);
   fwrite(&ndump,sizeof(int),1,fp);
-  fwrite(&domain->boxxlo,sizeof(double),1,fp);
-  fwrite(&domain->boxxhi,sizeof(double),1,fp);
-  fwrite(&domain->boxylo,sizeof(double),1,fp);
-  fwrite(&domain->boxyhi,sizeof(double),1,fp);
-  fwrite(&domain->boxzlo,sizeof(double),1,fp);
-  fwrite(&domain->boxzhi,sizeof(double),1,fp);
+  fwrite(&boxxlo,sizeof(double),1,fp);
+  fwrite(&boxxhi,sizeof(double),1,fp);
+  fwrite(&boxylo,sizeof(double),1,fp);
+  fwrite(&boxyhi,sizeof(double),1,fp);
+  fwrite(&boxzlo,sizeof(double),1,fp);
+  fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
   if (multiproc) {
     int one = 1;
@@ -217,9 +217,9 @@ void DumpCustom::header_item(int ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,"%d\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
-  fprintf(fp,"%g %g\n",domain->boxxlo,domain->boxxhi);
-  fprintf(fp,"%g %g\n",domain->boxylo,domain->boxyhi);
-  fprintf(fp,"%g %g\n",domain->boxzlo,domain->boxzhi);
+  fprintf(fp,"%g %g\n",boxxlo,boxxhi);
+  fprintf(fp,"%g %g\n",boxylo,boxyhi);
+  fprintf(fp,"%g %g\n",boxzlo,boxzhi);
   fprintf(fp,"ITEM: ATOMS\n");
 }
 
@@ -550,6 +550,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
   int i;
   for (int iarg = 5; iarg < narg; iarg++) {
     i = iarg-5;
+
     if (strcmp(arg[iarg],"tag") == 0) {
       pack_choice[i] = &DumpCustom::pack_tag;
       vtype[i] = INT;
@@ -572,12 +573,18 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_z;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"xs") == 0) {
+      if (domain->triclinic)
+	error->all("Cannot dump scaled coords with triclinic box");
       pack_choice[i] = &DumpCustom::pack_xs;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"ys") == 0) {
+      if (domain->triclinic)
+	error->all("Cannot dump scaled coords with triclinic box");
       pack_choice[i] = &DumpCustom::pack_ys;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"zs") == 0) {
+      if (domain->triclinic)
+	error->all("Cannot dump scaled coords with triclinic box");
       pack_choice[i] = &DumpCustom::pack_zs;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"xu") == 0) {
@@ -843,6 +850,13 @@ int DumpCustom::modify_param(int narg, char **arg)
     thresh_value = (double *)
       memory->srealloc(thresh_value,(nthresh+1)*sizeof(double),
 		       "dump:thresh_value");
+
+    // error check for triclinic box
+
+    if (domain->triclinic &&
+	(strcmp(arg[1],"xs") == 0 || strcmp(arg[1],"ys") == 0 || 
+	 strcmp(arg[1],"zs") == 0))
+	error->all("Cannot dump scaled coords with triclinic box");
 
     // set keyword type of threshhold
     // customize by adding to if statement

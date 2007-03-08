@@ -51,6 +51,10 @@ class Dump : protected Pointers {
   virtual int memory_usage();
 
  protected:
+  double boxxlo,boxxhi;      // local copies of domain values
+  double boxylo,boxyhi;      // adjusted to be bounding box for triclinic
+  double boxzlo,boxzhi;
+
   virtual void openfile();
   virtual int modify_param(int, char **) {return 0;}
 

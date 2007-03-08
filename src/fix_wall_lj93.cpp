@@ -16,6 +16,7 @@
 #include "string.h"
 #include "fix_wall_lj93.h"
 #include "atom.h"
+#include "domain.h"
 #include "update.h"
 #include "output.h"
 #include "respa.h"
@@ -64,6 +65,13 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
   double r2inv = rinv*rinv;
   double r4inv = r2inv*r2inv;
   offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
+
+  if (dim == 0 && domain->xperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (dim == 1 && domain->yperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (dim == 2 && domain->zperiodic)
+    error->all("Cannot use wall in periodic dimension");
 }
 
 /* ---------------------------------------------------------------------- */

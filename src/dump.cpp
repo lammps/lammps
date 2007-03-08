@@ -18,6 +18,7 @@
 #include "dump.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
 #include "group.h"
 #include "output.h"
 #include "memory.h"
@@ -117,6 +118,24 @@ void Dump::write()
   // if file per timestep, open new file
 
   if (multifile) openfile();
+
+  // simulation box bounds
+
+  if (domain->triclinic == 0) {
+    boxxlo = domain->boxxlo;
+    boxxhi = domain->boxxhi;
+    boxylo = domain->boxylo;
+    boxyhi = domain->boxyhi;
+    boxzlo = domain->boxzlo;
+    boxzhi = domain->boxzhi;
+  } else {
+    boxxlo = domain->boxlo_bound[0];
+    boxxhi = domain->boxhi_bound[0];
+    boxylo = domain->boxlo_bound[1];
+    boxyhi = domain->boxhi_bound[1];
+    boxzlo = domain->boxlo_bound[2];
+    boxzhi = domain->boxhi_bound[2];
+  }
 
   // nme = # of dump lines this proc will contribute to dump
   // ntotal = total # of dump lines

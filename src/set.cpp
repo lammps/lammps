@@ -103,11 +103,13 @@ void Set::command(int narg, char **arg)
     if (comm->me == 0 && screen) fprintf(screen,"System init for set ...\n");
     lmp->init();
 
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
     comm->setup();
     comm->exchange();
     comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   }
 
   if (comm->me == 0 && screen) fprintf(screen,"Setting atom values ...\n");

@@ -55,7 +55,7 @@ class Compute : protected Pointers {
   virtual void compute_vector() {}
   virtual void compute_peratom() {}
 
-  virtual int pack_comm(int, int *, double *, int *) {return 0;}
+  virtual int pack_comm(int, int *, double *, int, double *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}

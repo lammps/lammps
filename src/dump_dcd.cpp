@@ -15,6 +15,7 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "inttypes.h"
 #include "stdio.h"
 #include "time.h"
@@ -133,14 +134,26 @@ void DumpDCD::write_header(int n)
     nframes = 0;
   }
 
-  // dim[134] = angle cosines of periodic box
+  // dim[] = size and angle cosines of orthogonal or triclinic box
+  // dim[1] = alpha = cosine of angle between b and c
+  // dim[3] = beta = cosine of angle between a and c
+  // dim[4] = gamma = cosine of angle between a and b
   // 48 = 6 doubles
 
   double dim[6];
-  dim[0] = domain->boxxhi - domain->boxxlo;
-  dim[2] = domain->boxyhi - domain->boxylo;
-  dim[5] = domain->boxzhi - domain->boxzlo;
-  dim[1] = dim[3] = dim[4] = 0.0;
+  dim[0] = domain->xprd;
+  dim[2] = domain->yprd;
+  dim[5] = domain->zprd;
+  if (domain->triclinic == 0) dim[1] = dim[3] = dim[4] = 0.0;
+  else {
+    double *h = domain->h;
+    double alen = h[0];
+    double blen = sqrt(h[5]*h[5] + h[1]*h[1]);
+    double clen = sqrt(h[4]*h[4] + h[3]*h[3] + h[2]*h[2]);
+    dim[1] = (h[5]*h[4] + h[1]*h[3]) / blen/clen;
+    dim[3] = (h[0]*h[4]) / alen/clen;
+    dim[4] = (h[0]*h[5]) / alen/blen;
+  }
   
   uint32_t out_integer = 48;
   fwrite(&out_integer,sizeof(uint32_t),1,fp);

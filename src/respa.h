@@ -51,6 +51,7 @@ class Respa : public Integrate {
   int nfix_virial;                  // # of fixes that need virial occasionally
   int *fix_virial_every;            // frequency they require it
   int *next_fix_virial;             // next timestep they need it
+  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
 
   int *newton;                      // newton flag at each level
   class FixRespa *fix_respa;        // Fix to store the force level array

@@ -101,6 +101,7 @@ void ReadRestart::command(int narg, char **arg)
   atom->allocate_type_arrays();
   atom->avec->grow(n);
 
+  domain->print_box("  ");
   domain->set_initial_box();
   domain->set_global_box();
   comm->set_procs();
@@ -124,21 +125,25 @@ void ReadRestart::command(int narg, char **arg)
   //   proc 0 reads chunks from series of files (nprocs_file)
   // proc 0 bcasts each chunk to other procs
   // each proc unpacks the atoms, saving ones in it's sub-domain
+  // check for atom in sub-domain is different for orthogonal vs triclinic box
 
   AtomVec *avec = atom->avec;
+  int triclinic = domain->triclinic;
 
   int maxbuf = 0;
   double *buf = NULL;
 
-  double subxlo = domain->subxlo;
-  double subxhi = domain->subxhi;
-  double subylo = domain->subylo;
-  double subyhi = domain->subyhi;
-  double subzlo = domain->subzlo;
-  double subzhi = domain->subzhi;
+  double *x,lamda[3];
+  double *coord,*sublo,*subhi;
+  if (triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
 
   int m;
-  double xtmp,ytmp,ztmp;
   char *perproc = new char[strlen(file) + 16];
   char *ptr = strchr(file,'%');
 
@@ -171,12 +176,15 @@ void ReadRestart::command(int narg, char **arg)
 
     m = 0;
     while (m < n) {
-      xtmp = buf[m+1];
-      ytmp = buf[m+2];
-      ztmp = buf[m+3];
-      if (xtmp >= subxlo && xtmp < subxhi &&
-	  ytmp >= subylo && ytmp < subyhi &&
-	  ztmp >= subzlo && ztmp < subzhi)
+      x = &buf[m+1];
+      if (triclinic) {
+	domain->x2lamda(x,lamda);
+	coord = lamda;
+      } else coord = x;
+
+      if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	  coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	  coord[2] >= sublo[2] && coord[2] < subhi[2])
 	m += avec->unpack_restart(&buf[m]);
       else m += static_cast<int> (buf[m]);
     }
@@ -519,6 +527,16 @@ void ReadRestart::header()
       force->special_coul[2] = read_double();
     } else if (flag == 45) {
       force->special_coul[3] = read_double();
+
+    } else if (flag == 46) {
+      domain->triclinic = 1;
+      domain->xy = read_double();
+    } else if (flag == 47) {
+      domain->triclinic = 1;
+      domain->xz = read_double();
+    } else if (flag == 48) {
+      domain->triclinic = 1;
+      domain->yz = read_double();
 
     } else error->all("Invalid flag in header of restart file");
 

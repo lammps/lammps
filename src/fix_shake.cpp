@@ -1911,7 +1911,7 @@ void FixShake::stats()
       delx = x[iatom][0] - x[jatom][0];
       dely = x[iatom][1] - x[jatom][1];
       delz = x[iatom][2] - x[jatom][2];
-      domain->minimum_image(&delx,&dely,&delz);
+      domain->minimum_image(delx,dely,delz);
       r = sqrt(delx*delx + dely*dely + delz*delz);
       
       m = shake_type[i][j-1];
@@ -1931,19 +1931,19 @@ void FixShake::stats()
       delx = x[iatom][0] - x[jatom][0];
       dely = x[iatom][1] - x[jatom][1];
       delz = x[iatom][2] - x[jatom][2];
-      domain->minimum_image(&delx,&dely,&delz);
+      domain->minimum_image(delx,dely,delz);
       r1 = sqrt(delx*delx + dely*dely + delz*delz);
 
       delx = x[iatom][0] - x[katom][0];
       dely = x[iatom][1] - x[katom][1];
       delz = x[iatom][2] - x[katom][2];
-      domain->minimum_image(&delx,&dely,&delz);
+      domain->minimum_image(delx,dely,delz);
       r2 = sqrt(delx*delx + dely*dely + delz*delz);
 
       delx = x[jatom][0] - x[katom][0];
       dely = x[jatom][1] - x[katom][1];
       delz = x[jatom][2] - x[katom][2];
-      domain->minimum_image(&delx,&dely,&delz);
+      domain->minimum_image(delx,dely,delz);
       r3 = sqrt(delx*delx + dely*dely + delz*delz);
 
       angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
@@ -2252,12 +2252,13 @@ void FixShake::post_force_respa(int vflag_in, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-int FixShake::pack_comm(int n, int *list, double *buf, int *pbc_flags)
+int FixShake::pack_comm(int n, int *list, double *buf,
+			int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = xshake[j][0];
@@ -2267,9 +2268,9 @@ int FixShake::pack_comm(int n, int *list, double *buf, int *pbc_flags)
   } else {
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = xshake[j][0] + pbc_flags[1]*domain->xprd;
-      buf[m++] = xshake[j][1] + pbc_flags[2]*domain->yprd;
-      buf[m++] = xshake[j][2] + pbc_flags[3]*domain->zprd;
+      buf[m++] = xshake[j][0] + pbc_dist[0];
+      buf[m++] = xshake[j][1] + pbc_dist[1];
+      buf[m++] = xshake[j][2] + pbc_dist[2];
     }
   }
   return 3;

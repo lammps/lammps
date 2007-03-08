@@ -14,7 +14,6 @@
 #include "stdlib.h"
 #include "atom_vec_dpd.h"
 #include "atom.h"
-#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
@@ -58,12 +57,13 @@ void AtomVecDPD::zero_ghost(int n, int first)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecDPD::pack_comm(int n, int *list, double *buf, int *pbc_flags)
+int AtomVecDPD::pack_comm(int n, int *list, double *buf,
+			  int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = x[j][0];
@@ -74,14 +74,11 @@ int AtomVecDPD::pack_comm(int n, int *list, double *buf, int *pbc_flags)
       buf[m++] = v[j][2];
     }
   } else {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
-      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
-      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = x[j][0] + pbc_dist[0];
+      buf[m++] = x[j][1] + pbc_dist[1];
+      buf[m++] = x[j][2] + pbc_dist[2];
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -130,12 +127,13 @@ int AtomVecDPD::unpack_comm_one(int i, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecDPD::pack_border(int n, int *list, double *buf, int *pbc_flags)
+int AtomVecDPD::pack_border(int n, int *list, double *buf,
+			    int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = x[j][0];
@@ -149,14 +147,11 @@ int AtomVecDPD::pack_border(int n, int *list, double *buf, int *pbc_flags)
       buf[m++] = v[j][2];
    }
   } else {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
-      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
-      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = x[j][0] + pbc_dist[0];
+      buf[m++] = x[j][1] + pbc_dist[1];
+      buf[m++] = x[j][2] + pbc_dist[2];
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];

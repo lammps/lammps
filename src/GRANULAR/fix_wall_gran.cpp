@@ -20,6 +20,7 @@
 #include "string.h"
 #include "fix_wall_gran.h"
 #include "atom.h"
+#include "domain.h"
 #include "update.h"
 #include "force.h"
 #include "pair.h"
@@ -107,6 +108,15 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
     } else error->all("Illegal fix wall/gran command");
   }
+
+  if (wallstyle == XPLANE && domain->xperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (wallstyle == YPLANE && domain->yperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (wallstyle == ZPLANE && domain->zperiodic)
+    error->all("Cannot use wall in periodic dimension");
+  if (wallstyle == ZCYLINDER && (domain->xperiodic || domain->yperiodic))
+    error->all("Cannot use wall in periodic dimension");
 
   if (wallstyle == ZCYLINDER && wiggle)
     if (axis != 2) error->all("Can only wiggle zcylinder wall in z dim");

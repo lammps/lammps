@@ -51,7 +51,7 @@ class FixPour : public Fix {
   class RanPark *random;
 
   int overlap(int);
-  void xyz_random(double, double &, double &, double &);
+  void xyz_random(double, double *);
 };
 
 }

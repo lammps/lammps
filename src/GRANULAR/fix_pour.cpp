@@ -45,6 +45,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (atom->check_style("granular") == 0)
     error->all("Must use fix pour with atom style granular");
 
+  if (domain->triclinic) error->all("Cannot use fix pour with triclinic box");
+
   // required args
 
   ninsert = atoi(arg[3]);
@@ -365,7 +367,7 @@ void FixPour::pre_exchange()
   // h = height, biased to give uniform distribution in time of insertion
 
   int success;
-  double xtmp,ytmp,ztmp,radtmp,delx,dely,delz,rsq,radsum,rn,h;
+  double coord[3],radtmp,delx,dely,delz,rsq,radsum,rn,h;
 
   int attempt = 0;
   int max = nnew * maxattempt;
@@ -378,11 +380,11 @@ void FixPour::pre_exchange()
     success = 0;
     while (attempt < max) {
       attempt++;
-      xyz_random(h,xtmp,ytmp,ztmp);
+      xyz_random(h,coord);
       for (i = 0; i < nnear; i++) {
-	delx = xtmp - xnear[i][0];
-	dely = ytmp - xnear[i][1];
-	delz = ztmp - xnear[i][2];
+	delx = coord[0] - xnear[i][0];
+	dely = coord[1] - xnear[i][1];
+	delz = coord[2] - xnear[i][2];
 	rsq = delx*delx + dely*dely + delz*delz;
 	radsum = radtmp + xnear[i][3];
 	if (rsq <= radsum*radsum) break;
@@ -393,9 +395,9 @@ void FixPour::pre_exchange()
       }
     }
     if (success) {
-      xnear[nnear][0] = xtmp;
-      xnear[nnear][1] = ytmp;
-      xnear[nnear][2] = ztmp;
+      xnear[nnear][0] = coord[0];
+      xnear[nnear][1] = coord[1];
+      xnear[nnear][2] = coord[2];
       xnear[nnear][3] = radtmp;
       nnear++;
     } else break;
@@ -421,37 +423,39 @@ void FixPour::pre_exchange()
   int m,flag;
   double denstmp,vxtmp,vytmp,vztmp;
   double g = 1.0;
+  double *sublo = domain->sublo;
+  double *subhi = domain->subhi;
 
   for (i = nprevious; i < nnear; i++) {
-    xtmp = xnear[i][0];
-    ytmp = xnear[i][1];
-    ztmp = xnear[i][2];
+    coord[0] = xnear[i][0];
+    coord[1] = xnear[i][1];
+    coord[2] = xnear[i][2];
     radtmp = xnear[i][3];
     denstmp = density_lo + random->uniform() * (density_hi-density_lo);
     if (force->dimension == 3) {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
       vytmp = vylo + random->uniform() * (vyhi-vylo);
-      vztmp = vz - sqrt(2.0*g*(hi_current-ztmp));
+      vztmp = vz - sqrt(2.0*g*(hi_current-coord[2]));
     } else {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
-      vytmp = vy - sqrt(2.0*g*(hi_current-ytmp));
+      vytmp = vy - sqrt(2.0*g*(hi_current-coord[1]));
       vztmp = 0.0;
     }
 
     flag = 0;
-    if (xtmp >= domain->subxlo && xtmp < domain->subxhi &&
-	ytmp >= domain->subylo && ytmp < domain->subyhi &&
-	ztmp >= domain->subzlo && ztmp < domain->subzhi) flag = 1;
-    else if (force->dimension == 3 && ztmp >= domain->boxzhi &&
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+	coord[2] >= sublo[2] && coord[2] < subhi[2]) flag = 1;
+    else if (force->dimension == 3 && coord[2] >= domain->boxzhi &&
 	     comm->myloc[2] == comm->procgrid[2]-1 &&
-	     xtmp >= domain->subxlo && xtmp < domain->subxhi &&
-	     ytmp >= domain->subylo && ytmp < domain->subyhi) flag = 1;
-    else if (force->dimension == 2 && ytmp >= domain->boxyhi &&
+	     coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+	     coord[1] >= sublo[1] && coord[1] < subhi[1]) flag = 1;
+    else if (force->dimension == 2 && coord[1] >= domain->boxyhi &&
 	     comm->myloc[1] == comm->procgrid[1]-1 &&
-	     xtmp >= domain->subxlo && xtmp < domain->subxhi) flag = 1;
+	     coord[0] >= sublo[0] && coord[0] < subhi[0]) flag = 1;
 
     if (flag) {
-      avec->create_atom(ntype,xtmp,ytmp,ztmp,0);
+      avec->create_atom(ntype,coord,0);
       m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;
@@ -526,13 +530,13 @@ int FixPour::overlap(int i)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPour::xyz_random(double h, double &x, double &y, double &z)
+void FixPour::xyz_random(double h, double *coord)
 {
   if (force->dimension == 3) {
     if (region_style == 1) {
-      x = xlo + random->uniform() * (xhi-xlo);
-      y = ylo + random->uniform() * (yhi-ylo);
-      z = h;
+      coord[0] = xlo + random->uniform() * (xhi-xlo);
+      coord[1] = ylo + random->uniform() * (yhi-ylo);
+      coord[2] = h;
     } else {
       double r1,r2;
       while (1) {
@@ -540,13 +544,13 @@ void FixPour::xyz_random(double h, double &x, double &y, double &z)
 	r2 = random->uniform() - 0.5;
 	if (r1*r1 + r2*r2 < 0.25) break;
       }
-      x = xc + 2.0*r1*rc;
-      y = yc + 2.0*r2*rc;
-      z = h;
+      coord[0] = xc + 2.0*r1*rc;
+      coord[1] = yc + 2.0*r2*rc;
+      coord[2] = h;
     }
   } else {
-    x = xlo + random->uniform() * (xhi-xlo);
-    y = h;
-    z = 0.0;
+    coord[0] = xlo + random->uniform() * (xhi-xlo);
+    coord[1] = h;
+    coord[2] = 0.0;
   }
 }

@@ -19,6 +19,7 @@
 #include "neighbor.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
@@ -868,15 +869,16 @@ void Neighbor::build_full()
 /* ----------------------------------------------------------------------
    setup neighbor binning parameters
    bin numbering is global: 0 = 0.0 to binsize, 1 = binsize to 2*binsize
-			    nbin-1 = prd-binsize to binsize
-			    nbin = prd to prd+binsize
-                            -1 = -binsize to 0.0
+			    nbin-1 = bbox-binsize to binsize
+			    nbin = bbox to bbox+binsize
+                            -1,-2,etc = -binsize to 0.0, -2*size to -size, etc
    code will work for any binsize
      since next(xyz) and stencil extend as far as necessary
      binsize = 1/2 of cutoff is roughly optimal
-   prd must be filled exactly by integer # of bins
+   for orthogonal boxes, prd must be filled exactly by integer # of bins
      so procs on both sides of PBC see same bin boundary
-     triclinic is an exception, since stencil & neigh list built differently
+   for triclinic, tilted simulation box cannot contain integer # of bins
+     stencil & neigh list built differently to account for this
    mbinlo = lowest global bin any of my ghost atoms could fall into
    mbinhi = highest global bin any of my ghost atoms could fall into
    mbin = number of bins I need in a dimension
@@ -886,28 +888,41 @@ void Neighbor::build_full()
 
 void Neighbor::setup_bins()
 {
-  // bbox = bounding box of entire domain
-  // bboxlo,bboxhi = bounding box of proc's sub-domain
-  // for triclinic, bounding box surrounds all 8 corner pts
+  // bbox lo/hi = bounding box of entire domain
+  // bbox = size of bbox of entire domain
+  // for triclinic, bbox bounds all 8 corners of tilted box
+  // bsubbox lo/hi = bounding box of my subdomain extended by cutneigh
+  // for triclinic, subdomain with cutneigh extension is first computed
+  //   in lamda coords, including tilt factor via cutcomm,
+  //   domain->bbox then computes bbox of corner pts transformed to box coords
 
-  double bbox[3];
-  double *bboxlo,*bboxhi;
+  double bbox[3],bsubboxlo[3],bsubboxhi[3];
 
   if (triclinic == 0) {
-    boxlo = domain->boxlo;
-    boxhi = domain->boxhi;
-    bboxlo = domain->sublo;
-    bboxhi = domain->subhi;
+    bboxlo = domain->boxlo;
+    bboxhi = domain->boxhi;
+    bsubboxlo[0] = domain->sublo[0] - cutneigh;
+    bsubboxlo[1] = domain->sublo[1] - cutneigh;
+    bsubboxlo[2] = domain->sublo[2] - cutneigh;
+    bsubboxhi[0] = domain->subhi[0] + cutneigh;
+    bsubboxhi[1] = domain->subhi[1] + cutneigh;
+    bsubboxhi[2] = domain->subhi[2] + cutneigh;
   } else {
-    boxlo = domain->boxlo_bound;
-    boxhi = domain->boxhi_bound;
-    bboxlo = domain->sublo_bound;
-    bboxhi = domain->subhi_bound;
+    bboxlo = domain->boxlo_bound;
+    bboxhi = domain->boxhi_bound;
+    double lo[3],hi[3];
+    lo[0] = domain->sublo_lamda[0] - comm->cutcomm[0];
+    lo[1] = domain->sublo_lamda[1] - comm->cutcomm[1];
+    lo[2] = domain->sublo_lamda[2] - comm->cutcomm[2];
+    hi[0] = domain->subhi_lamda[0] + comm->cutcomm[0];
+    hi[1] = domain->subhi_lamda[1] + comm->cutcomm[1];
+    hi[2] = domain->subhi_lamda[2] + comm->cutcomm[2];
+    domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
   }
 
-  bbox[0] = boxhi[0] - boxlo[0];
-  bbox[1] = boxhi[1] - boxlo[1];
-  bbox[2] = boxhi[2] - boxlo[2];
+  bbox[0] = bboxhi[0] - bboxlo[0];
+  bbox[1] = bboxhi[1] - bboxlo[1];
+  bbox[2] = bboxhi[2] - bboxlo[2];
 
   // test for too many global bins in any dimension due to huge domain
 
@@ -919,6 +934,7 @@ void Neighbor::setup_bins()
 
   // divide box into bins
   // optimal size is roughly 1/2 the cutoff
+  // use one bin even if cutoff >> bbox
 
   nbinx = static_cast<int> (2.0*bbox[0]*cutneighinv);
   nbiny = static_cast<int> (2.0*bbox[1]*cutneighinv);
@@ -940,28 +956,29 @@ void Neighbor::setup_bins()
 
   // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
   // coord = lowest and highest values of coords for my ghost atoms
-  //         add in SMALL for round-off safety
+  // static_cast(-1.5) = -1, so subract additional -1
+  // add in SMALL for round-off safety
 
-  double coord;
   int mbinxhi,mbinyhi,mbinzhi;
+  double coord;
 
-  coord = bboxlo[0] - cutneigh - SMALL*bbox[0];
-  mbinxlo = static_cast<int> ((coord-boxlo[0])*bininvx);
-  if (coord < 0.0) mbinxlo = mbinxlo - 1;
-  coord = bboxhi[0] + cutneigh + SMALL*bbox[0];
-  mbinxhi = static_cast<int> ((coord-boxlo[0])*bininvx);
+  coord = bsubboxlo[0] - SMALL*bbox[0];
+  mbinxlo = static_cast<int> ((coord-bboxlo[0])*bininvx);
+  if (coord < bboxlo[0]) mbinxlo = mbinxlo - 1;
+  coord = bsubboxhi[0] + SMALL*bbox[0];
+  mbinxhi = static_cast<int> ((coord-bboxlo[0])*bininvx);
 
-  coord = bboxlo[1] - cutneigh - SMALL*bbox[1];
-  mbinylo = static_cast<int> ((coord-boxlo[1])*bininvy);
-  if (coord < 0.0) mbinylo = mbinylo - 1;
-  coord = bboxhi[1] + cutneigh + SMALL*bbox[1];
-  mbinyhi = static_cast<int> ((coord-boxlo[1])*bininvy);
+  coord = bsubboxlo[1] - SMALL*bbox[1];
+  mbinylo = static_cast<int> ((coord-bboxlo[1])*bininvy);
+  if (coord < bboxlo[1]) mbinylo = mbinylo - 1;
+  coord = bsubboxhi[1] + SMALL*bbox[1];
+  mbinyhi = static_cast<int> ((coord-bboxlo[1])*bininvy);
 
-  coord = bboxlo[2] - cutneigh - SMALL*bbox[2];
-  mbinzlo = static_cast<int> ((coord-boxlo[2])*bininvz);
-  if (coord < 0.0) mbinzlo = mbinzlo - 1;
-  coord = bboxhi[2] + cutneigh + SMALL*bbox[2];
-  mbinzhi = static_cast<int> ((coord-boxlo[2])*bininvz);
+  coord = bsubboxlo[2] - SMALL*bbox[2];
+  mbinzlo = static_cast<int> ((coord-bboxlo[2])*bininvz);
+  if (coord < bboxlo[2]) mbinzlo = mbinzlo - 1;
+  coord = bsubboxhi[2] + SMALL*bbox[2];
+  mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz);
 
   // extend bins by 1 to insure stencil extent is included
 
@@ -1415,37 +1432,37 @@ void Neighbor::bin_atoms()
 
 /* ----------------------------------------------------------------------
    convert atom coords into local bin #
-   only ghost atoms will have coord >= boxhi or coord < boxlo
-   take special care to insure ghosts are put in correct bins
-   this is necessary so that both procs on either side of PBC
-     treat a pair of atoms straddling the PBC in a consistent way
-     triclinic is an exception, since stencil & neigh list built differently
+   for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
+     take special care to insure ghosts are put in correct bins
+     this is necessary so that both procs on either side of PBC
+       treat a pair of atoms straddling the PBC in a consistent way
+   for triclinic, doesn't matter since stencil & neigh list built differently
 ------------------------------------------------------------------------- */
 
 int Neighbor::coord2bin(double *x)
 {
   int ix,iy,iz;
 
-  if (x[0] >= boxhi[0])
-    ix = static_cast<int> ((x[0]-boxhi[0])*bininvx) + nbinx - mbinxlo;
-  else if (x[0] >= boxlo[0])
-    ix = static_cast<int> ((x[0]-boxlo[0])*bininvx) - mbinxlo;
+  if (x[0] >= bboxhi[0])
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx - mbinxlo;
+  else if (x[0] >= bboxlo[0])
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - mbinxlo;
   else
-    ix = static_cast<int> ((x[0]-boxlo[0])*bininvx) - mbinxlo - 1;
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - mbinxlo - 1;
   
-  if (x[1] >= boxhi[1])
-    iy = static_cast<int> ((x[1]-boxhi[1])*bininvy) + nbiny - mbinylo;
-  else if (x[1] >= boxlo[1])
-    iy = static_cast<int> ((x[1]-boxlo[1])*bininvy) - mbinylo;
+  if (x[1] >= bboxhi[1])
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny - mbinylo;
+  else if (x[1] >= bboxlo[1])
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - mbinylo;
   else
-    iy = static_cast<int> ((x[1]-boxlo[1])*bininvy) - mbinylo - 1;
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - mbinylo - 1;
   
-  if (x[2] >= boxhi[2])
-    iz = static_cast<int> ((x[2]-boxhi[2])*bininvz) + nbinz - mbinzlo;
-  else if (x[2] >= boxlo[2])
-    iz = static_cast<int> ((x[2]-boxlo[2])*bininvz) - mbinzlo;
+  if (x[2] >= bboxhi[2])
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz - mbinzlo;
+  else if (x[2] >= bboxlo[2])
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo;
   else
-    iz = static_cast<int> ((x[2]-boxlo[2])*bininvz) - mbinzlo - 1;
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo - 1;
 
   return (iz*mbiny*mbinx + iy*mbinx + ix + 1);
 }

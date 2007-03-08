@@ -66,10 +66,8 @@ class Domain : protected Pointers {
   double sublo[3],subhi[3];              // sub-box bounds on this proc
 
                                          // triclinic box
-                                         // sublo = lower-left corner with tilt
-                                         // subhi = upper-right as if untilted
+                                         // sublo/hi = undefined
   double sublo_lamda[3],subhi_lamda[3];  // bounds of subbox in lamda
-  double sublo_bound[3],subhi_bound[3];  // bounding box of tilted subdomain
 
                                          // triclinic box
   double xy,xz,yz;                       // 3 tilt factors
@@ -105,6 +103,7 @@ class Domain : protected Pointers {
   void x2lamda(int);
   void lamda2x(double *, double *);
   void x2lamda(double *, double *);
+  void bbox(double *, double *, double *, double *);
 };
 
 }

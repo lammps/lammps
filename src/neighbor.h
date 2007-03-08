@@ -118,7 +118,7 @@ class Neighbor : protected Pointers {
   double bininvx,bininvy,bininvz;
 
   int triclinic;                   // 0 if domain is orthog, 1 if triclinic
-  double *boxlo,*boxhi;            // copies of domain bounds
+  double *bboxlo,*bboxhi;          // copy of full domain bounding box
 
   int **pages;                     // half neighbor list pages
   int maxpage;                     // # of half pages currently allocated

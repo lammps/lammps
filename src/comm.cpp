@@ -171,17 +171,19 @@ void Comm::set_procs()
 
 void Comm::setup()
 {
-  // for triclinic, tilted planes are neigh cutoff apart
-  // but cutneigh is distance between those planes along xyz (non-tilted) axes
+  // cutcomm = distance at which ghost atoms need to be acquired
+  // for orthogonal, cutcomm = box coords = cutneigh in all 3 dims
+  // for triclinic, cutneigh = distance between tilted planes in box coords
+  //   cutcomm = lamda coords = distance between those same planes
+  //                            can be different for each dim
 
-  double cutneigh[3];
   double *prd,*prd_border,*sublo,*subhi;
 
   if (triclinic == 0) {
     prd = prd_border = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
-    cutneigh[0] = cutneigh[1] = cutneigh[2] = neighbor->cutneigh;
+    cutcomm[0] = cutcomm[1] = cutcomm[2] = neighbor->cutneigh;
   } else {
     prd = domain->prd;
     prd_border = domain->prd_lamda;
@@ -190,19 +192,19 @@ void Comm::setup()
     double *h_inv = domain->h_inv;
     double length;
     length = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
-    cutneigh[0] = neighbor->cutneigh * length;
+    cutcomm[0] = neighbor->cutneigh * length;
     length = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
-    cutneigh[1] = neighbor->cutneigh * length;
+    cutcomm[1] = neighbor->cutneigh * length;
     length = h_inv[2];
-    cutneigh[2] = neighbor->cutneigh * length;
+    cutcomm[2] = neighbor->cutneigh * length;
   }
 
   // need = # of procs I need atoms from in each dim
   // for 2d, don't communicate in z
 
-  need[0] = static_cast<int> (cutneigh[0] * procgrid[0] / prd_border[0]) + 1;
-  need[1] = static_cast<int> (cutneigh[1] * procgrid[1] / prd_border[1]) + 1;
-  need[2] = static_cast<int> (cutneigh[2] * procgrid[2] / prd_border[2]) + 1;
+  need[0] = static_cast<int> (cutcomm[0] * procgrid[0] / prd_border[0]) + 1;
+  need[1] = static_cast<int> (cutcomm[1] * procgrid[1] / prd_border[1]) + 1;
+  need[2] = static_cast<int> (cutcomm[2] * procgrid[2] / prd_border[2]) + 1;
   if (force->dimension == 2) need[2] = 0;
 
   // if non-periodic, do not communicate further than procgrid-1 away
@@ -247,7 +249,7 @@ void Comm::setup()
 	recvproc[iswap] = procneigh[dim][1];
 	if (ineed < 2) slablo[iswap] = -BIG;
 	else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-	slabhi[iswap] = sublo[dim] + cutneigh[dim];
+	slabhi[iswap] = sublo[dim] + cutcomm[dim];
 	if (myloc[dim] == 0) {
 	  if (periodicity[dim] == 0)
 	    slabhi[iswap] = slablo[iswap] - 1.0;
@@ -267,7 +269,7 @@ void Comm::setup()
       } else {
 	sendproc[iswap] = procneigh[dim][1];
 	recvproc[iswap] = procneigh[dim][0];
-	slablo[iswap] = subhi[dim] - cutneigh[dim];
+	slablo[iswap] = subhi[dim] - cutcomm[dim];
 	if (ineed < 2) slabhi[iswap] = BIG;
 	else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
 	if (myloc[dim] == procgrid[dim]-1) {

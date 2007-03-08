@@ -135,7 +135,7 @@ void FixRecenter::init()
 void FixRecenter::initial_integrate()
 {
   // target COM
-  // bounding box around domain works for both orthog and triclinic
+  // bounding box around domain works for both orthogonal and triclinic
 
   double xtarget,ytarget,ztarget;
   double *bboxlo,*bboxhi;

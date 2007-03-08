@@ -219,7 +219,6 @@ void Domain::set_lamda_box()
    set local subbox params
    assumes global box is defined and proc assignment has been made
    for uppermost proc, insure subhi = boxhi (in case round-off occurs)
-   for triclinic, lo/hi_bound is a bbox around all 8 tilted pts of sub-box
 ------------------------------------------------------------------------- */
 
 void Domain::set_local_box()
@@ -242,26 +241,6 @@ void Domain::set_local_box()
     if (myloc[2] < procgrid[2]-1)
       subhi[2] = boxlo[2] + (myloc[2]+1) * zprd / procgrid[2];
     else subhi[2] = boxhi[2];
-
-  } else {
-    sublo[0] = h[0]*sublo_lamda[0] + h[5]*sublo_lamda[1] + 
-      h[4]*sublo_lamda[2] + boxlo[0];
-    sublo[1] = h[1]*sublo_lamda[1] + h[3]*sublo_lamda[2] + boxlo[1];
-    sublo[2] = h[2]*sublo_lamda[2] + boxlo[2];
-
-    subhi[0] = sublo[0] + xprd/procgrid[0];
-    subhi[1] = sublo[1] + yprd/procgrid[1];
-    subhi[2] = sublo[2] + zprd/procgrid[2];
-
-    sublo_bound[0] = MIN(sublo[0],sublo[0] + xy/procgrid[1]);
-    sublo_bound[0] = MIN(sublo_bound[0],sublo_bound[0] + xz/procgrid[2]);
-    sublo_bound[1] = MIN(sublo[1],sublo[1] + yz/procgrid[2]);
-    sublo_bound[2] = sublo[2];
-
-    subhi_bound[0] = MAX(subhi[0],subhi[0] + xy/procgrid[1]);
-    subhi_bound[0] = MAX(subhi_bound[0],subhi_bound[0] + xz/procgrid[2]);
-    subhi_bound[1] = MAX(subhi[1],subhi[1] + yz/procgrid[2]);
-    subhi_bound[2] = subhi[2];
   }
 }
 
@@ -860,4 +839,65 @@ void Domain::x2lamda(double *x, double *lamda)
   lamda[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
   lamda[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
   lamda[2] = h_inv[2]*delta[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert 8 lamda corner pts of lo/hi box to box coords
+   return bboxlo/hi = bounding box around 8 corner pts in box coords
+------------------------------------------------------------------------- */
+
+void Domain::bbox(double *lo, double *hi, double *bboxlo, double *bboxhi)
+{
+  double x[3];
+
+  bboxlo[0] = bboxlo[1] = bboxlo[2] = BIG;
+  bboxhi[0] = bboxhi[1] = bboxhi[2] = -BIG;
+
+  x[0] = lo[0]; x[1] = lo[1]; x[2] = lo[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = hi[0]; x[1] = lo[1]; x[2] = lo[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = lo[0]; x[1] = hi[1]; x[2] = lo[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = hi[0]; x[1] = hi[1]; x[2] = lo[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = lo[0]; x[1] = lo[1]; x[2] = hi[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = hi[0]; x[1] = lo[1]; x[2] = hi[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = lo[0]; x[1] = hi[1]; x[2] = hi[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
+
+  x[0] = hi[0]; x[1] = hi[1]; x[2] = hi[2];
+  lamda2x(x,x);
+  bboxlo[0] = MIN(bboxlo[0],x[0]); bboxhi[0] = MAX(bboxhi[0],x[0]);
+  bboxlo[1] = MIN(bboxlo[1],x[1]); bboxhi[1] = MAX(bboxhi[1],x[1]);
+  bboxlo[2] = MIN(bboxlo[2],x[2]); bboxhi[2] = MAX(bboxhi[2],x[2]);
 }

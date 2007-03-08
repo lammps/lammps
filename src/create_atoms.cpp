@@ -90,19 +90,19 @@ void CreateAtoms::command(int narg, char **arg)
     } else error->all("Illegal create_atoms command");
   }
 
-  // convert 8 corners of my sub-box from box coords to lattice coords
-  // min to max = bounding box around the pts in lattice space
+  // convert 8 corners of my subdomain from box coords to lattice coords
+  // for orthogonal, use corner pts of my subbox
+  // for triclinic, use bounding box of my subbox
+  // xyz min to max = bounding box around the domain corners in lattice space
 
   int triclinic = domain->triclinic;
-  double *bboxlo,*bboxhi;
+  double bboxlo[3],bboxhi[3];
 
   if (triclinic == 0) {
-    bboxlo = domain->sublo;
-    bboxhi = domain->subhi;
-  } else {
-    bboxlo = domain->sublo_bound;
-    bboxhi = domain->subhi_bound;
-  }
+    bboxlo[0] = domain->sublo[0]; bboxhi[0] = domain->subhi[0];
+    bboxlo[1] = domain->sublo[1]; bboxhi[1] = domain->subhi[1];
+    bboxlo[2] = domain->sublo[2]; bboxhi[2] = domain->subhi[2];
+  } else domain->bbox(domain->sublo_lamda,domain->subhi_lamda,bboxlo,bboxhi);
 
   double xmin,ymin,zmin,xmax,ymax,zmax;
   xmin = ymin = zmin = BIG;

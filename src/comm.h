@@ -29,6 +29,7 @@ class Comm : protected Pointers {
   int need[3];                      // procs I need atoms from in each dim
   int maxforward_fix,maxreverse_fix;   // comm sizes called from Fix,Pair
   int maxforward_pair,maxreverse_pair;
+  double cutcomm[3];                // cutoffs used for acquiring ghost atoms
   
   Comm(class LAMMPS *);
   ~Comm();

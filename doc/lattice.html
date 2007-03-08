@@ -15,7 +15,7 @@
 </P>
 <PRE>lattice style scale keyword values ... 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>sc</I> or <I>bcc</I> or <I>fcc</I> or <I>diamond</I> or         <I>sq</I> or <I>sq2</I> or <I>hex</I> or <I>user</I> 
+<UL><LI>style = <I>none</I> or <I>sc</I> or <I>bcc</I> or <I>fcc</I> or <I>diamond</I> or         <I>sq</I> or <I>sq2</I> or <I>hex</I> or <I>custom</I> 
 
 <LI>scale = scale factor between lattice and simulation box 
 
@@ -27,13 +27,15 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>origin</I> or <I>orient</I> or <I>a1</I> or <I>a2</I> or <I>a3</I> or <I>basis</I> 
+<LI>keyword = <I>origin</I> or <I>orient</I> or <I>spacings</I> or <I>a1</I> or <I>a2</I> or <I>a3</I> or <I>basis</I> 
 
 <PRE>  <I>origin</I> values = x y z
     x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
   <I>orient</I> values = dim i j k
     dim = <I>x</I> or <I>y</I> or <I>z</I>
     i,j,k = integer lattice directions
+  <I>spacing</I> values = dx dy dz
+    dx,dy,dz = lattice spacings in the x,y,z box directions
   <I>a1</I>,<I>a2</I>,<I>a3</I> values = x y z
     x,y,z = primitive vector components that define unit cell
   <I>basis</I> values = x y z
@@ -46,8 +48,8 @@
 <PRE>lattice fcc 3.52
 lattice hex 0.85
 lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
-lattice user 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
-                  basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
+lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
+                    basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
 lattice none 
 </PRE>
 <P><B>Description:</B>
@@ -71,7 +73,7 @@ underlying problem geometry is atoms on a lattice.
 <P>The lattice style must be consistent with the dimension of the
 simulation - see the <A HREF = "dimension.html">dimension</A> command.  Styles <I>sc</I>
 or <I>bcc</I> or <I>fcc</I> or <I>diamond</I> are for 3d problems.  Styles <I>sq</I> or
-<I>sq2</I> or <I>hex</I> are for 2d problems.  Style <I>user</I> can be used for
+<I>sq2</I> or <I>hex</I> are for 2d problems.  Style <I>custom</I> can be used for
 either 2d or 3d problems.
 </P>
 <P>A lattice consists of a unit cell, a set of basis atoms within that
@@ -103,7 +105,7 @@ corner and one at the center of the square.  A <I>hex</I> style is also a
 and a2 = 0.0 sqrt(3.0) 0.0.  It has 2 basis atoms, one at the corner
 and one at the center of the rectangle.
 </P>
-<P>A lattice of style <I>user</I> allows you to specify a1, a2, a3, and a list
+<P>A lattice of style <I>custom</I> allows you to specify a1, a2, a3, and a list
 of basis atoms to put in the unit cell.  By default, a1,a2,a3 are 3
 orthogonal unit vectors (edges of a unit cube).  But you can specify
 them to be of any length and non-orthogonal to each other, so that
@@ -116,7 +118,7 @@ means a position half-way across the unit cell in that dimension.
 
 <P>This sub-section discusses the arguments that determine how the
 idealized unit cell is transformed into a lattice of points within the
-simulation box with desired spacings.
+simulation box.
 </P>
 <P>The <I>scale</I> argument determines how the size of the unit cell will be
 scaled when mapping it into the simulation box.  I.e. it determines a
@@ -159,17 +161,27 @@ the Z direction.
 <HR>
 
 <P>Several LAMMPS commands have the option to use distance units that are
-inferred from "lattice spacings" in the x,y,z directions.  E.g. the
-<A HREF = "region.html">region</A> command can create a block of size 10x20x20,
-where 10 means 10 lattice spacings in the x direction.
+inferred from "lattice spacings" in the x,y,z box directions.
+E.g. the <A HREF = "region.html">region</A> command can create a block of size
+10x20x20, where 10 means 10 lattice spacings in the x direction.
 </P>
-<P>These lattice spacings are computed by LAMMPS in the following way.  A
-unit cell of the lattice is mapped into the simulation box (scaled,
-shifted, rotated), so that it now has (perhaps) a modified shape and
-orientation.  The lattice spacing in X is defined as the difference
-between the min/max extent of the x coordinates of the 8 corner points
-of the modified unit cell.  Similarly, the Y and Z lattice spacings
-are defined as the min/max of the y and z coordinates.
+<P>The <I>spacing</I> option sets the 3 lattice spacings directly.  All must
+be non-zero (use 1.0 for dz in a 2d simulation).  The specified values
+are multiplied by the multiplicative factor described above that is
+associated with the scale factor.  Thus a spacing of 1.0 means one
+unit cell independent of the scale factor.  This option can be useful
+if the spacings LAMMPS computes are inconvenient to use in subsequent
+commands, which can be the case for non-orthogonal or rotated/scaled
+lattices.
+</P>
+<P>If the <I>spacing</I> option is not specified, the lattice spacings are
+computed by LAMMPS in the following way.  A unit cell of the lattice
+is mapped into the simulation box (scaled, shifted, rotated), so that
+it now has (perhaps) a modified shape and orientation.  The lattice
+spacing in X is defined as the difference between the min/max extent
+of the x coordinates of the 8 corner points of the modified unit cell.
+Similarly, the Y and Z lattice spacings are defined as the min/max of
+the y and z coordinates.
 </P>
 <P>Note that if the unit cell has axis-aligned edges (a1,a2,a3) and is
 not rotated (via the <I>orient</I> keyword), then the lattice spacings in
@@ -180,7 +192,7 @@ factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
 </P>
 <P>For unit cells with a more general shape or when a rotation is
 applied, the lattice spacing is less intuitive.  But regardless, the
-values of the computed lattice spacings are printed by LAMMPS, so
+values of the lattice spacings LAMMPS will use are printed out, so
 their effect in commands that use the spacings should be decipherable.
 </P>
 <HR>
@@ -195,14 +207,14 @@ then generate an error.  No additional arguments need be used with
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>a1,a2,a3,basis</I> keywords can only be used with style <I>user</I>.
+<P>The <I>a1,a2,a3,basis</I> keywords can only be used with style <I>custom</I>.
 </P>
 <P>For lattices oriented at an angle or with a non-orthognal unit cell,
 care must be taken when using the <A HREF = "region.html">region</A> and
 <A HREF = "create_atoms.html">create_atoms</A> commands to create a periodic system.
 If the box size is not chosen appropriately, the system may not
-actually be periodic, and atoms may overlap incorretly at the faces of
-the simulation box.
+actually be periodic, and atoms may overlap incorrectly at the faces
+of the simulation box.
 </P>
 <P><B>Related commands:</B>
 </P>

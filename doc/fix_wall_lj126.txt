@@ -53,7 +53,9 @@ want that energy to be included in the total potential energy of the
 system (the quantity being minimized), you must enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
-[Restrictions:] none
+[Restrictions:]
+
+Any dimension (xyz) that has a LJ 12/6 wall must be non-periodic.
 
 [Related commands:]
 

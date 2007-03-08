@@ -44,8 +44,8 @@ behavior is wrong.
 
 Because restart files are binary, they may not be portable to other
 machines.  They can be converted to ASCII data files using the
-restart2data tool in the tools sub-directory of the LAMMPS
-distribution.
+"restart2data tool"_Section_tools.html#restart in the tools
+sub-directory of the LAMMPS distribution.
 
 Similar to how restart files are written (see the
 "write_restart"_write_restart.html and "restart"_restart.html
@@ -75,12 +75,14 @@ current LAMMPS simulation.
 :line
 
 A restart file stores the units and atom style, simulation box
-attibutes, individual atoms and their attributes including molecular
-topology, force field styles and coefficients,
-"special_bonds"_special_bonds.html settings, and atom group
-definitions.  This means that commands for these quantities do not
-need to be specified in your input script that reads the restart file.
-The exceptions to this are listed below in the Restrictions section.
+attibutes (including whether it is an orthogonal box or a
+non-orthogonal parallelepiped with triclinic symmetry), individual
+atoms and their attributes including molecular topology, force field
+styles and coefficients, "special_bonds"_special_bonds.html settings,
+and atom group definitions.  This means that commands for these
+quantities do not need to be specified in your input script that reads
+the restart file.  The exceptions to this are listed below in the
+Restrictions section.
 
 Information about the "kspace_style"_kspace_style.html settings are
 not stored in the restart file.  Hence if you wish to invoke an Ewald
@@ -117,11 +119,11 @@ bonds will still be broken when the restart file is read.
 
 The "pair_style"_pair_style.html {eam}, {table}, and {hybrid} styles
 do not store coefficient data for individual atom type pairs in the
-restart file.  Nor does the "bond_style"_bond_style.html {hybrid}
-style.  Thus you must use new "pair_coeff"_pair_coeff.html and
-"bond_coeff"_bond_coeff.html commands to read the appropriate
-tabulated files or reset the coefficients after the restart file is
-read.
+restart file.  Nor does the "bond_style hybrid"_bond_style.html style
+(angle, dihedral hybrid, etc).  Thus for these styles you must use new
+"pair_coeff"_pair_coeff.html and "bond_coeff"_bond_coeff.html (angle,
+dihedral, etc) commands to read the appropriate tabulated files or
+reset the coefficients after the restart file is read.
 
 [Related commands:]
 

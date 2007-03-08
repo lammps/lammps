@@ -13,7 +13,7 @@ lattice command :h3
 lattice style scale keyword values ... :pre
 
 style = {none} or {sc} or {bcc} or {fcc} or {diamond} or \
-        {sq} or {sq2} or {hex} or {user} :ulb,l
+        {sq} or {sq2} or {hex} or {custom} :ulb,l
 scale = scale factor between lattice and simulation box :l
   for style {none}:
     scale is not specified (nor any optional args)
@@ -21,12 +21,14 @@ scale = scale factor between lattice and simulation box :l
     scale = reduced density rho* (for LJ units)
     scale = lattice constant in Angstroms (for real or metal units) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {origin} or {orient} or {a1} or {a2} or {a3} or {basis} :l
+keyword = {origin} or {orient} or {spacings} or {a1} or {a2} or {a3} or {basis} :l
   {origin} values = x y z
     x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
   {orient} values = dim i j k
     dim = {x} or {y} or {z}
     i,j,k = integer lattice directions
+  {spacing} values = dx dy dz
+    dx,dy,dz = lattice spacings in the x,y,z box directions
   {a1},{a2},{a3} values = x y z
     x,y,z = primitive vector components that define unit cell
   {basis} values = x y z
@@ -38,8 +40,8 @@ keyword = {origin} or {orient} or {a1} or {a2} or {a3} or {basis} :l
 lattice fcc 3.52
 lattice hex 0.85
 lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
-lattice user 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
-                  basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
+lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
+                    basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
 lattice none :pre
 
 [Description:]
@@ -63,7 +65,7 @@ underlying problem geometry is atoms on a lattice.
 The lattice style must be consistent with the dimension of the
 simulation - see the "dimension"_dimension.html command.  Styles {sc}
 or {bcc} or {fcc} or {diamond} are for 3d problems.  Styles {sq} or
-{sq2} or {hex} are for 2d problems.  Style {user} can be used for
+{sq2} or {hex} are for 2d problems.  Style {custom} can be used for
 either 2d or 3d problems.
 
 A lattice consists of a unit cell, a set of basis atoms within that
@@ -95,7 +97,7 @@ corner and one at the center of the square.  A {hex} style is also a
 and a2 = 0.0 sqrt(3.0) 0.0.  It has 2 basis atoms, one at the corner
 and one at the center of the rectangle.
 
-A lattice of style {user} allows you to specify a1, a2, a3, and a list
+A lattice of style {custom} allows you to specify a1, a2, a3, and a list
 of basis atoms to put in the unit cell.  By default, a1,a2,a3 are 3
 orthogonal unit vectors (edges of a unit cube).  But you can specify
 them to be of any length and non-orthogonal to each other, so that
@@ -108,7 +110,7 @@ means a position half-way across the unit cell in that dimension.
 
 This sub-section discusses the arguments that determine how the
 idealized unit cell is transformed into a lattice of points within the
-simulation box with desired spacings.
+simulation box.
 
 The {scale} argument determines how the size of the unit cell will be
 scaled when mapping it into the simulation box.  I.e. it determines a
@@ -151,17 +153,27 @@ the Z direction.
 :line
 
 Several LAMMPS commands have the option to use distance units that are
-inferred from "lattice spacings" in the x,y,z directions.  E.g. the
-"region"_region.html command can create a block of size 10x20x20,
-where 10 means 10 lattice spacings in the x direction.
+inferred from "lattice spacings" in the x,y,z box directions.
+E.g. the "region"_region.html command can create a block of size
+10x20x20, where 10 means 10 lattice spacings in the x direction.
 
-These lattice spacings are computed by LAMMPS in the following way.  A
-unit cell of the lattice is mapped into the simulation box (scaled,
-shifted, rotated), so that it now has (perhaps) a modified shape and
-orientation.  The lattice spacing in X is defined as the difference
-between the min/max extent of the x coordinates of the 8 corner points
-of the modified unit cell.  Similarly, the Y and Z lattice spacings
-are defined as the min/max of the y and z coordinates.
+The {spacing} option sets the 3 lattice spacings directly.  All must
+be non-zero (use 1.0 for dz in a 2d simulation).  The specified values
+are multiplied by the multiplicative factor described above that is
+associated with the scale factor.  Thus a spacing of 1.0 means one
+unit cell independent of the scale factor.  This option can be useful
+if the spacings LAMMPS computes are inconvenient to use in subsequent
+commands, which can be the case for non-orthogonal or rotated/scaled
+lattices.
+
+If the {spacing} option is not specified, the lattice spacings are
+computed by LAMMPS in the following way.  A unit cell of the lattice
+is mapped into the simulation box (scaled, shifted, rotated), so that
+it now has (perhaps) a modified shape and orientation.  The lattice
+spacing in X is defined as the difference between the min/max extent
+of the x coordinates of the 8 corner points of the modified unit cell.
+Similarly, the Y and Z lattice spacings are defined as the min/max of
+the y and z coordinates.
 
 Note that if the unit cell has axis-aligned edges (a1,a2,a3) and is
 not rotated (via the {orient} keyword), then the lattice spacings in
@@ -172,7 +184,7 @@ factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
 
 For unit cells with a more general shape or when a rotation is
 applied, the lattice spacing is less intuitive.  But regardless, the
-values of the computed lattice spacings are printed by LAMMPS, so
+values of the lattice spacings LAMMPS will use are printed out, so
 their effect in commands that use the spacings should be decipherable.
 
 :line
@@ -187,14 +199,14 @@ then generate an error.  No additional arguments need be used with
 
 [Restrictions:]
 
-The {a1,a2,a3,basis} keywords can only be used with style {user}.
+The {a1,a2,a3,basis} keywords can only be used with style {custom}.
 
 For lattices oriented at an angle or with a non-orthognal unit cell,
 care must be taken when using the "region"_region.html and
 "create_atoms"_create_atoms.html commands to create a periodic system.
 If the box size is not chosen appropriately, the system may not
-actually be periodic, and atoms may overlap incorretly at the faces of
-the simulation box.
+actually be periodic, and atoms may overlap incorrectly at the faces
+of the simulation box.
 
 [Related commands:]
 

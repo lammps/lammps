@@ -281,6 +281,13 @@ could then be output with these keywords.
 
 <P><B>Restrictions:</B>
 </P>
+<P>Scaled coordinates cannot be writted to dump files when the simulation
+box is triclinic (non-orthogonal).  Note that this is the default for
+dump style <I>atom</I>; the <A HREF = "dump_modify.html">dump_modify command</A> must be
+used to change it.  The exception is DCD files which store the tilt
+factors for subsequent visualization by programs like
+<A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>.
+</P>
 <P>To write gzipped dump files, you must compile LAMMPS with the -DGZIP
 option - see the <A HREF = "Section_start.html#2_2">Making LAMMPS</A> section of the
 documentation.

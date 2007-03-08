@@ -22,12 +22,11 @@ style = {block} or {cylinder} or {prism} or {sphere} or {union} or {intersect} :
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
     lo,hi = bounds of cylinder in dim (distance units)
-  {prism} args = xlo xhi ylo yhi zlo zhi yxtilt zxtilt zytilt
-      xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism in all
-        dimensions (distance units)
-      yxtilt = distance to shift upper y in x direction (distance units)
-      zxtilt = distance to shift upper z in x direction (distance units)
-      zytilt = distance to shift upper z in y direction (distance units)
+  {prism} args = xlo xhi ylo yhi zlo zhi xy xz yz
+      xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
+      xy = distance to skew y in x direction (distance units)
+      xz = distance to skew z in x direction (distance units)
+      yz = distance to skew z in y direction (distance units)
   {sphere} args = x y z radius
       x,y,z = center of sphere (distance units)
       radius = radius of sphere (distance units)
@@ -77,18 +76,21 @@ third example above specifes a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
 
-For style {prism}, a tilted block is defined.  The bounds of the
-untilted axis-aligned block are specified in the same way as for the
-{block} style.  A tilt factor for each dimension with respect to
-another dimension is also specified.  If the lower xy face of the
-prism is initially a rectangle (untilted), then the yxtilt factor
-specifies how far the upper y edge of that face is shifted in the x
-direction (skewing that face, keeping the xy face a parallelogram).  A
-plus or minus value can be chosen; 0.0 would be no tilt.  Similarly,
-zxtilt and zytilt describe how far the upper xy face of the prism is
-translated in the x and y directions to further tilt the prism.  The
-final prism shape remains a parallelipiped, with opposing pairs of the
-6 faces remaining parallel to each other.
+For style {prism}, a parallelepiped is defined (it's too hard to spell
+parallelepiped in an input script!).  A prism region is used by the
+"create_box"_create_box.html command to define a triclinic
+(non-orthogonal) simulation domain.  Think of the parallelepided as
+initially an axis-aligned orthogonal box with the same xyz lo/hi
+parameters as region style {block} would define.  Then, while holding
+the (xlo,ylo,zlo) corner point fixed, the box is "skewed" in 3
+directions.  First, for the lower xy face of the box, the {xy} factor
+is how far the upper y edge is shifted in the x direction.  The lower
+xy face is now a parallelogram.  A plus or minus value for {xy} can be
+specified; 0.0 means no skew.  Then, the upper xy face of the box is
+translated in the x and y directions by {xz} and {yz}.  This results
+in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3 edge
+vectors starting from its origin given by a = (xhi-xlo,0,0); b =
+(xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
 
 The {union} style creates a region consisting of the volume of all the
 listed regions combined.  The {intesect} style creates a region
@@ -113,8 +115,8 @@ previously used to define the lattice spacing.
 [Restrictions:] none
 
 A prism cannot be of 0.0 thickness in any dimension; use a small z
-thickness for 2d simulations.  For 2d simulations, the zxtilt and
-zytilt parameters must be 0.0.
+thickness for 2d simulations.  For 2d simulations, the xz and yz
+parameters must be 0.0.
 
 [Related commands:]
 

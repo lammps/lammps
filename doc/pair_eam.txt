@@ -68,7 +68,7 @@ the DYNAMO {funcfl} format.  Either single element or alloy systems
 can be modeled using multiple {funcfl} files and style {eam}.  For the
 alloy case LAMMPS mixes the single-element potentials to produce alloy
 potentials, the same way that DYNAMO does.  Alternatively, a single
-DYNAMO {setfl} file of Finnis/Sinclair EAM file can be used by LAMMPS
+DYNAMO {setfl} file or Finnis/Sinclair EAM file can be used by LAMMPS
 to model alloy systems by invoking the {eam/alloy} or {eam/fs} styles
 as described below.  These files require no mixing since they specify
 alloy interactions explicitly.

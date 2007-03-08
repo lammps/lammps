@@ -25,10 +25,7 @@ fix walls all wall/reflect xlo ylo zlo xhi yhi zhi :pre
 [Description:]
 
 Bound the simulation with one or more walls which reflect particles
-when they attempt to move thru them.  Normally, the simulation domain
-should be set non-periodic via the "boundary"_boundary.html command in
-any dimension that has such a wall, but LAMMPS does not check for this
-condition.
+when they attempt to move thru them. 
 
 Reflection means that if an atom moves outside the box on a timestep
 by a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is
@@ -43,7 +40,9 @@ in the input script, since the adjustments it makes to atom
 coordinates should come after the changes made by time integration.
 LAMMPS will warn you if your fixes are not ordered this way.
 
-[Restrictions:] none
+[Restrictions:]
+
+Any dimension (xyz) that has a reflecting wall must be non-periodic.
 
 [Related commands:]
 

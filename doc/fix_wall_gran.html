@@ -79,9 +79,11 @@ also set to the derivative of this expression.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Can only be used if LAMMPS was built with the "granular" package.  A
-zcylinder wall can only be oscillated in the z dimension.  This fix
-can only be used with atom_style granular.
+<P>Any dimension (xyz) that has a granular wall must be non-periodic.
+</P>
+<P>This fix can only be used if LAMMPS was built with the "granular"
+package and with atom_style granular.  A zcylinder wall can only be
+oscillated in the z dimension.
 </P>
 <P><B>Related commands:</B>
 </P>

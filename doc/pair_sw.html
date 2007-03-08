@@ -77,9 +77,11 @@ and three-body coefficients in the formula above:
 <LI>p
 <LI>q 
 </UL>
-<P>The epsilon, sigma, a, A, B, p, and q parameters are for two-body
-interactions.  The lambda, gamma, and costheta0 parameters are for
-three-body interactions.  The non-annotated parameters are unitless.
+<P>The A, B, p, and q parameters are used only for two-body
+interactions.  The lambda, gamma, and costheta0 parameters are used only for
+three-body interactions. The epsilon, sigma and a parameters are used
+for both two-body and three-body interactions.  
+The non-annotated parameters are unitless.
 </P>
 <P>The Stillinger-Weber potential file must contain entries for all the
 elements listed in the pair_coeff command.  It can also contain
@@ -96,13 +98,17 @@ entries would be required, etc.
 <P>As annotated above, the first element in the entry is the center atom
 in a three-body interaction.  Thus an entry for SiCC means a Si atom
 with 2 C atoms as neighbors.  By symmetry, three-body parameters for
-SiCSi and SiSiC entries should be the same.  Two-body parameters for
-an interaction come from the entry where the 2nd element is repeated.
-Thus the two-body parameters for Si interacting with C, comes from the
-SiCC entry.  Again by symmetry, the two-body parameters in the SiCC
-and CSiSi entries should thus be the same.  Two-body parameters in
-entries whose 2nd and 3rd element are different (e.g. SiCSi) are
-ignored.
+SiCSi and SiSiC entries should be the same.   The parameters used for 
+the two-body interaction come
+from the entry where the 2nd element is repeated.  Thus the two-body
+parameters for Si interacting with C, comes from the SiCC entry.  
+Again by symmetry, the two-body parameters in the SiCC
+and CSiSi entries should thus be the same. 
+The parameters used for a particular three-body 
+interaction come from the entry with the corresponding three elements. 
+The parameters used only for two-body interactions (A, B, p, and q) 
+in entries whose 2nd and 3rd element are different (e.g. SiCSi) 
+are not used for anything and can be set to 0.0 if desired.
 </P>
 <P><B>Restrictions:</B>
 </P>

@@ -24,13 +24,38 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command creates a simulation box that encloses the specified
-region.  Thus a <A HREF = "region.html">region</A> command must first be used to
-define a geometric domain.  If the region is not of style <I>block</I>,
-LAMMPS encloses it with a rectangular simulation box.
+<P>This command creates a simulation box based on the specified region.
+Thus a <A HREF = "region.html">region</A> command must first be used to define a
+geometric domain.
 </P>
 <P>The argument N is the number of atom types that will be used in the
 simulation.
+</P>
+<P>If the region is not of style <I>prism</I>, then LAMMPS encloses the region
+(block, sphere, etc) with an axis-aligned (orthogonal) box which
+becomes the simulation domain.
+</P>
+<P>If the region is of style <I>prism</I>, LAMMPS creates a non-orthogonal
+simulation domain shaped as a parallelepiped with triclinic symmetry.
+See the <A HREF = "region.html">region prism</A> command for a description of how
+the shape of the parallelepiped is defined.  The parallelepiped has
+its "origin" at (xlo,ylo,zlo) and 3 edge vectors starting from its
+origin given by a = (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c =
+(xz,yz,zhi-zlo).
+</P>
+<P>A prism region used with the create_box command must have skew factors
+(xy,xz,yz) that do not skew the box more than half the distance of its
+side lengths.  For example, if ylo = 2 and yhi = 12, then the y box
+length is 10 and the xy factor must be between -5 and 5.  Similary xz
+must be between -(zhi-zlo)/2 and +(zhi-zlo)/2 and yz must be between
+-(zhi-zlo)/2 and +(zhi-zlo)/2.
+</P>
+<P>When a prism region is used, the simulation domain must be periodic in
+any dimensions with a non-zero skew factor, as defined by the
+<A HREF = "boundary.html">boundary</A> command.  I.e. if the xy factor is non-zero,
+then both the x and y dimensions must be periodic.  Similarly, x and z
+must be periodic if xz is non-zero and y and z must be periodic if yz
+is non-zero.
 </P>
 <P><B>Restrictions:</B>
 </P>

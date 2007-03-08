@@ -149,26 +149,26 @@ void DihedralClass2::compute(int eflag, int vflag)
     delx1 = x[i1][0] - x[i2][0];
     dely1 = x[i1][1] - x[i2][1];
     delz1 = x[i1][2] - x[i2][2];
-    domain->minimum_image(&delx1,&dely1,&delz1);
+    domain->minimum_image(delx1,dely1,delz1);
 
     // 2nd bond
 
     delx2 = x[i3][0] - x[i2][0];
     dely2 = x[i3][1] - x[i2][1];
     delz2 = x[i3][2] - x[i2][2];
-    domain->minimum_image(&delx2,&dely2,&delz2);
+    domain->minimum_image(delx2,dely2,delz2);
 
     delx2m = -delx2;
     dely2m = -dely2;
     delz2m = -delz2;
-    domain->minimum_image(&delx2m,&dely2m,&delz2m);
+    domain->minimum_image(delx2m,dely2m,delz2m);
 
     // 3rd bond
 
     delx3 = x[i4][0] - x[i3][0];
     dely3 = x[i4][1] - x[i3][1];
     delz3 = x[i4][2] - x[i3][2];
-    domain->minimum_image(&delx3,&dely3,&delz3);
+    domain->minimum_image(delx3,dely3,delz3);
 
     // distances
 

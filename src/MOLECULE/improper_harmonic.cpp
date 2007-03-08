@@ -88,17 +88,17 @@ void ImproperHarmonic::compute(int eflag, int vflag)
     v1x = x[i2][0] - x[i1][0];
     v1y = x[i2][1] - x[i1][1];
     v1z = x[i2][2] - x[i1][2];
-    domain->minimum_image(&v1x,&v1y,&v1z);
+    domain->minimum_image(v1x,v1y,v1z);
 
     v2x = x[i3][0] - x[i2][0];
     v2y = x[i3][1] - x[i2][1];
     v2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(&v2x,&v2y,&v2z);
+    domain->minimum_image(v2x,v2y,v2z);
 
     v3x = x[i4][0] - x[i3][0];
     v3y = x[i4][1] - x[i3][1];
     v3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(&v3x,&v3y,&v3z);
+    domain->minimum_image(v3x,v3y,v3z);
 
     ss1 = 1.0 / (v1x*v1x + v1y*v1y + v1z*v1z);
     ss2 = 1.0 / (v2x*v2x + v2y*v2y + v2z*v2z);

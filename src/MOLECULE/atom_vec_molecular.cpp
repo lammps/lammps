@@ -14,7 +14,6 @@
 #include "stdlib.h"
 #include "atom_vec_molecular.h"
 #include "atom.h"
-#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
@@ -280,12 +279,13 @@ void AtomVecMolecular::copy(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecMolecular::pack_comm(int n, int *list, double *buf, int *pbc_flags)
+int AtomVecMolecular::pack_comm(int n, int *list, double *buf, 
+				int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = x[j][0];
@@ -293,14 +293,11 @@ int AtomVecMolecular::pack_comm(int n, int *list, double *buf, int *pbc_flags)
       buf[m++] = x[j][2];
     }
   } else {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
-      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
-      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = x[j][0] + pbc_dist[0];
+      buf[m++] = x[j][1] + pbc_dist[1];
+      buf[m++] = x[j][2] + pbc_dist[2];
     }
   }
   return m;
@@ -355,12 +352,12 @@ void AtomVecMolecular::unpack_reverse(int n, int *list, double *buf)
 /* ---------------------------------------------------------------------- */
 
 int AtomVecMolecular::pack_border(int n, int *list, double *buf,
-				  int *pbc_flags)
+				  int pbc_flag, double *pbc_dist)
 {
   int i,j,m;
 
   m = 0;
-  if (pbc_flags[0] == 0) {
+  if (pbc_flag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = x[j][0];
@@ -372,14 +369,11 @@ int AtomVecMolecular::pack_border(int n, int *list, double *buf,
       buf[m++] = molecule[j];
     }
   } else {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_flags[1]*xprd;
-      buf[m++] = x[j][1] + pbc_flags[2]*yprd;
-      buf[m++] = x[j][2] + pbc_flags[3]*zprd;
+      buf[m++] = x[j][0] + pbc_dist[0];
+      buf[m++] = x[j][1] + pbc_dist[1];
+      buf[m++] = x[j][2] + pbc_dist[2];
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
@@ -736,21 +730,20 @@ int AtomVecMolecular::unpack_restart(double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   create one atom of type itype at x0,y0,z0
+   create one atom of itype at coord
    set other values to defaults
 ------------------------------------------------------------------------- */
 
-void AtomVecMolecular::create_atom(int itype, double x0, double y0, double z0,
-				   int ihybrid)
+void AtomVecMolecular::create_atom(int itype, double *coord, int ihybrid)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
   tag[nlocal] = 0;
   type[nlocal] = itype;
-  x[nlocal][0] = x0;
-  x[nlocal][1] = y0;
-  x[nlocal][2] = z0;
+  x[nlocal][0] = coord[0];
+  x[nlocal][1] = coord[1];
+  x[nlocal][2] = coord[2];
   mask[nlocal] = 1;
   image[nlocal] = (512 << 20) | (512 << 10) | 512;
   v[nlocal][0] = 0.0;
@@ -771,8 +764,8 @@ void AtomVecMolecular::create_atom(int itype, double x0, double y0, double z0,
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecMolecular::data_atom(double xtmp, double ytmp, double ztmp,
-				 int imagetmp, char **values, int ihybrid)
+void AtomVecMolecular::data_atom(double *coord, int imagetmp, char **values,
+				 int ihybrid)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -787,9 +780,9 @@ void AtomVecMolecular::data_atom(double xtmp, double ytmp, double ztmp,
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one("Invalid atom type in Atoms section of data file");
 
-  x[nlocal][0] = xtmp;
-  x[nlocal][1] = ytmp;
-  x[nlocal][2] = ztmp;
+  x[nlocal][0] = coord[0];
+  x[nlocal][1] = coord[1];
+  x[nlocal][2] = coord[2];
 
   image[nlocal] = imagetmp;
 

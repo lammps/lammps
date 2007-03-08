@@ -26,11 +26,11 @@ class AtomVecFull : public AtomVec {
   void zero_owned(int);
   void zero_ghost(int, int);
   void copy(int, int);
-  int pack_comm(int, int *, double *, int *);
+  int pack_comm(int, int *, double *, int, double *);
   void unpack_comm(int, int, double *);
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int *);
+  int pack_border(int, int *, double *, int, double *);
   int pack_border_one(int, double *);
   void unpack_border(int, int, double *);
   int unpack_border_one(int, double *);
@@ -40,8 +40,8 @@ class AtomVecFull : public AtomVec {
   int size_restart_one(int);
   int pack_restart(int, double *);
   int unpack_restart(double *);
-  void create_atom(int, double, double, double, int);
-  void data_atom(double, double, double, int, char **, int);
+  void create_atom(int, double *, int);
+  void data_atom(double *, int, char **, int);
   int memory_usage();
 
  private:

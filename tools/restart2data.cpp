@@ -56,7 +56,8 @@ class Data {
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int mass_require,dipole_require;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  int triclinic;
+  double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;
   double special_lj[4],special_coul[4];
 
   // force fields
@@ -281,6 +282,8 @@ void header(FILE *fp, Data &data)
 {
   char *version = "12 Feb 2007";
 
+  data.triclinic = 0;
+
   int flag;
   flag = read_int(fp);
 
@@ -360,7 +363,16 @@ void header(FILE *fp, Data &data)
     else if (flag == 43) data.special_coul[1] = read_double(fp);
     else if (flag == 44) data.special_coul[2] = read_double(fp);
     else if (flag == 45) data.special_coul[3] = read_double(fp);
-    else {
+    else if (flag == 46) {
+      data.triclinic = 1;
+      data.xy = read_double(fp);
+    } else if (flag == 47) {
+      data.triclinic = 1;
+      data.xz = read_double(fp);
+    } else if (flag == 48) {
+      data.triclinic = 1;
+      data.yz = read_double(fp);
+    } else {
       printf("ERROR: Invalid flag in header of restart file %d\n",flag);
       exit(1);
     }
@@ -1578,6 +1590,7 @@ void Data::stats()
   printf("  Xlo/xhi = %g %g\n",xlo,xhi);
   printf("  Ylo/yhi = %g %g\n",ylo,yhi);
   printf("  Zlo/zhi = %g %g\n",zlo,zhi);
+  if (triclinic) printf("  Xy/xz/yz = %g %g %g\n",xy,xz,yz);
   printf("  Periodicity = %d %d %d\n",xperiodic,yperiodic,zperiodic);
   printf("  Boundary = %d %d, %d %d, %d %d\n",boundary[0][0],boundary[0][1],
 	 boundary[1][0],boundary[1][1],boundary[2][0],boundary[2][1]);
@@ -1613,6 +1626,7 @@ void Data::write(FILE *fp)
   fprintf(fp,"%g %g xlo xhi\n",xlo,xhi);
   fprintf(fp,"%g %g ylo yhi\n",ylo,yhi);
   fprintf(fp,"%g %g zlo zhi\n",zlo,zhi);
+  if (triclinic) fprintf(fp,"%g %g %g xy,xz,yz\n",xy,xz,yz);
 
   if (mass_require) {
     fprintf(fp,"\nMasses\n\n");

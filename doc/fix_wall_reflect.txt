@@ -44,6 +44,12 @@ LAMMPS will warn you if your fixes are not ordered this way.
 
 Any dimension (xyz) that has a reflecting wall must be non-periodic.
 
+A reflecting wall cannot be used with rigid bodies such as those
+defined by a "fix rigid" command.  This is because the wall/reflect
+displaces atoms directly rather than exerts a force on them.  For
+rigid bodies, use a soft wall instead, such as "fix
+wall/lj93"_fix_wall_lj93.html.
+
 [Related commands:]
 
 "fix wall/lj93"_fix_wall_lj93.html command

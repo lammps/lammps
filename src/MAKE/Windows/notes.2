@@ -1,10 +1,9 @@
-/*
-//This is instruction for the modification of LAMMPS for MS Windows
-//LAMMPS version: Jan 2005
-//
+This is instruction for the modification of LAMMPS for MS Windows
+LAMMPS version: Feb 2007
 
 compiled without MPI and FFT in Viusal C++ 6.0
-(All packages except for XTC appear to work.)
+(All packages except for XTC, MEAM appear to work.)
+
 -------------------
 
 1. Create an empty workspace (Win32 console), add all .h and .cpp
@@ -39,13 +38,9 @@ in the code. It can be fixed easily based on the compiling error.
 
 In variable.cpp, change the header files
 //#include "unistd.h"
-#include "direct.h"
-#include "windows.h"
+#include "sleep.h"
 
-Change usleep(100000) to Sleep(100)
-
-Note that the value is divided by 1000 since usleep takes in 
-microseconds while Sleep takes in milliseconds.
+Add in the included sleep.h and sleep.cpp files.
 
 4B. (added by Tim Lau, MIT, ttl@mit.edu)
 
@@ -117,12 +112,15 @@ a version of it for Windows from the following website:
 
 http://www.softagalleria.net/dirent/index.en.html
 
-10. Build the project. Specify appropriate input file to run the code. 
-   The Windows result might be different from Unix results. Be Cautious.
+10. Every time an error pops up for a line like this:
 
----------------------------------------------------------
-  Jin Ma
-  Email: jin.ma@okstate.edu
-  Oklahoma State University
-  March 7, 2005
----------------------------------------------------------
+char *words[params_per_line];
+
+replace to the following type:
+
+char **words = new char*[params_per_line];
+
+The dynamic memory allocation in MSVC requires a line like this.
+
+11. Build the project. Specify appropriate input file to run the code. 
+   The Windows result might be different from Unix results. Be Cautious.

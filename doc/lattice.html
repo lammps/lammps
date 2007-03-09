@@ -27,7 +27,7 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>origin</I> or <I>orient</I> or <I>spacings</I> or <I>a1</I> or <I>a2</I> or <I>a3</I> or <I>basis</I> 
+<LI>keyword = <I>origin</I> or <I>orient</I> or <I>spacing</I> or <I>a1</I> or <I>a2</I> or <I>a3</I> or <I>basis</I> 
 
 <PRE>  <I>origin</I> values = x y z
     x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
@@ -161,9 +161,9 @@ the Z direction.
 <HR>
 
 <P>Several LAMMPS commands have the option to use distance units that are
-inferred from "lattice spacings" in the x,y,z box directions.
-E.g. the <A HREF = "region.html">region</A> command can create a block of size
-10x20x20, where 10 means 10 lattice spacings in the x direction.
+inferred from "lattice spacing" in the x,y,z box directions.  E.g. the
+<A HREF = "region.html">region</A> command can create a block of size 10x20x20,
+where 10 means 10 lattice spacings in the x direction.
 </P>
 <P>The <I>spacing</I> option sets the 3 lattice spacings directly.  All must
 be non-zero (use 1.0 for dz in a 2d simulation).  The specified values

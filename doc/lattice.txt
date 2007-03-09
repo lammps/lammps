@@ -21,7 +21,7 @@ scale = scale factor between lattice and simulation box :l
     scale = reduced density rho* (for LJ units)
     scale = lattice constant in Angstroms (for real or metal units) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {origin} or {orient} or {spacings} or {a1} or {a2} or {a3} or {basis} :l
+keyword = {origin} or {orient} or {spacing} or {a1} or {a2} or {a3} or {basis} :l
   {origin} values = x y z
     x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
   {orient} values = dim i j k
@@ -153,9 +153,9 @@ the Z direction.
 :line
 
 Several LAMMPS commands have the option to use distance units that are
-inferred from "lattice spacings" in the x,y,z box directions.
-E.g. the "region"_region.html command can create a block of size
-10x20x20, where 10 means 10 lattice spacings in the x direction.
+inferred from "lattice spacing" in the x,y,z box directions.  E.g. the
+"region"_region.html command can create a block of size 10x20x20,
+where 10 means 10 lattice spacings in the x direction.
 
 The {spacing} option sets the 3 lattice spacings directly.  All must
 be non-zero (use 1.0 for dz in a 2d simulation).  The specified values

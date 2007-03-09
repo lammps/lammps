@@ -39,57 +39,36 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Some of them are larger packages in their
 own sub-directories with their own Makefiles.
 
-"replicate"_#replicate
-"restart2data"_#restart
-"binary2txt"_#binary
-"data2xmovie"_#data
-"chain"_#chain
-"micelle2d"_#micelle
-"xmovie"_#xmovie
-"ch2lmp"_#charmm
-"msi2lmp"_#msi
 "amber2lammps"_#amber
+"binary2txt"_#binary
+"ch2lmp"_#charmm
+"chain"_#chain
+"data2xmovie"_#data
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
 "lmp2traj"_#traj
-"thermo_extract"_#thermo_extract :ul
+"matlab"_#matlab
+"micelle2d"_#micelle
+"msi2lmp"_#msi
+"replicate"_#replicate
+"restart2data"_#restart
+"thermo_extract"_#thermo_extract
+"xmovie"_#xmovie :ul
 
 :line
 
-replicate tool :h4,link(replicate)
+amber2lmp tool :h4,link(amber)
 
-The file replicate.c takes a LAMMPS data file and replicates it into a
-larger system.  The syntax for running the tool is
+The amber2lmp sub-directory contain two Python scripts for converting
+files back-and-forth between the AMBER MD code and LAMMPS.  See the
+README file in amber2lmp for more information.
 
-replicate [options] < infile > outfile :pre
-
-See the top of the replicate.c file for a discussion of the options.
-This tool is used by some of the "LAMMPS benchmarks"_Section_perf.html
-for creating larger systems to run scaled-size problems on multiple
-processors.
-
-:line
-
-restart2data tool :h4,link(restart)
-
-The file restart2data.cpp converts a binary LAMMPS restart file into
-an ASCII data file.  The syntax for running the tool is
-
-restart2data restart-file data-file :pre
-
-This tool must be compiled on a platform that can read the binary file
-created by a LAMMPS run, since binary files are not compatible across
-all platforms.
-
-Note that a text data file has less precision than a binary restart
-file.  Hence, continuing a run from a converted data file will
-typically not conform as closely to a previous run as will restarting
-from a binary restart file.
-
-If a "%" appears in the specified restart-file, the tool expects a set
-of multiple files to exist.  See the "restart"_restart.html and
-"write_restart"_write_restart.html commands for info on how such sets
-of files are written by LAMMPS, and how the files are named.
+These tools were written by Keir Novik while he was at Queen Mary
+University of London.  Keir is no longer there and cannot support
+these tools which are out-of-date with respect to the current LAMMPS
+version (and maybe with respect to AMBER as well).  Since we don't use
+these tools at Sandia, you'll need to experiment with them and make
+necessary modifications yourself.
 
 :line
 
@@ -103,83 +82,6 @@ binary2txt file1 file2 ... :pre
 which creates file1.txt, file2.txt, etc.  This tool must be compiled
 on a platform that can read the binary file created by a LAMMPS run,
 since binary files are not compatible across all platforms.
-
-:line
-
-data2xmovie tool :h4,link(data)
-
-The file data2xmovie.c converts a LAMMPS data file into a snapshot
-suitable for visualizing with the "xmovie"_#xmovie tool, as if it had
-been output with a dump command from LAMMPS itself.  The syntax for
-running the tool is
-
-data2xmovie [options] < infile > outfile :pre
-
-See the top of the data2xmovie.c file for a discussion of the options.
-
-:line
-
-chain tool :h4,link(chain)
-
-The file chain.f creates a LAMMPS data file containing bead-spring
-polymer chains and/or monomer solvent atoms.  It uses a text file
-containing chain definition parameters as an input.  The created
-chains and solvent atoms can strongly overlap, so LAMMPS needs to run
-the system initially with a "soft" pair potential to un-overlap it.
-The syntax for running the tool is
-
-chain < def.chain > data.file :pre
-
-See the def.chain or def.chain.ab files in the tools directory for
-examples of definition files.  This tool was used to create the
-system for the "chain benchmark"_Section_perf.html.
-
-:line
-
-micelle2d tool :h4,link(micelle)
-
-The file micelle2d.f creates a LAMMPS data file containing short lipid
-chains in a monomer solution.  It uses a text file containing lipid
-definition parameters as an input.  The created molecules and solvent
-atoms can strongly overlap, so LAMMPS needs to run the system
-initially with a "soft" pair potential to un-overlap it.  The syntax
-for running the tool is
-
-micelle2d < def.micelle2d > data.file :pre
-
-See the def.micelle2d file in the tools directory for an example of a
-definition file.  This tool was used to create the system for the
-"micelle example"_Section_example.html.
-
-:line
-
-xmovie tool :h4,link(xmovie)
-
-The xmovie tool is an X-based visualization package that can read
-LAMMPS dump files and animate them.  It is in its own sub-directory
-with the tools directory.  You may need to modify its Makefile so that
-it can find the appropriate X libraries to link against.
-
-The syntax for running xmovie is
-
-xmovie [options] dump.file1 dump.file2 ... :pre
-
-If you just type "xmovie" you will see a list of options.  Note that
-by default, LAMMPS dump files are in scaled coordinates, so you
-typically need to use the -scale option with xmovie.  When xmovie runs
-it opens a visualization window and a control window.  The control
-options are straightforward to use.
-
-Xmovie was mostly written by Mike Uttormark (U Wisconsin) while he
-spent a summer at Sandia.  It displays 2d projections of a 3d domain.
-While simple in design, it is an amazingly fast program that can
-render large numbers of atoms very quickly.  It's a useful tool for
-debugging LAMMPS input and output and making sure your simulation is
-doing what you think it should.  The animations on the Examples page
-of the "LAMMPS WWW site"_lws were created with xmovie.
-
-I've lost contact with Mike, so I hope he's comfortable with us
-distributing his great tool!
 
 :line
 
@@ -200,34 +102,33 @@ and Paul Crozier (pscrozi at sandia.gov) at Sandia.
 
 :line
 
-msi2lmp tool :h4,link(msi)
+chain tool :h4,link(chain)
 
-The msi2lmp sub-directory contains a tool for creating LAMMPS input
-data files from Accelrys's Insight MD code (formerly MSI/Biosysm and
-its Discover MD code).  See the README file for more information.
+The file chain.f creates a LAMMPS data file containing bead-spring
+polymer chains and/or monomer solvent atoms.  It uses a text file
+containing chain definition parameters as an input.  The created
+chains and solvent atoms can strongly overlap, so LAMMPS needs to run
+the system initially with a "soft" pair potential to un-overlap it.
+The syntax for running the tool is
 
-This tool was written by John Carpenter (Cray), Michael Peachey
-(Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
-(jec at mayo.edu), but still fields questions about the tool.
+chain < def.chain > data.file :pre
 
-This tool may be out-of-date with respect to the current LAMMPS and
-Insight versions.  Since we don't use it at Sandia, you'll need to
-experiment with it yourself.
+See the def.chain or def.chain.ab files in the tools directory for
+examples of definition files.  This tool was used to create the
+system for the "chain benchmark"_Section_perf.html.
 
 :line
 
-amber2lmp tool :h4,link(amber)
+data2xmovie tool :h4,link(data)
 
-The amber2lmp sub-directory contain two Python scripts for converting
-files back-and-forth between the AMBER MD code and LAMMPS.  See the
-README file in amber2lmp for more information.
+The file data2xmovie.c converts a LAMMPS data file into a snapshot
+suitable for visualizing with the "xmovie"_#xmovie tool, as if it had
+been output with a dump command from LAMMPS itself.  The syntax for
+running the tool is
 
-These tools were written by Keir Novik while he was at Queen Mary
-University of London.  Keir is no longer there and cannot support
-these tools which are out-of-date with respect to the current LAMMPS
-version (and maybe with respect to AMBER as well).  Since we don't use
-these tools at Sandia, you'll need to experiment with them and make
-necessary modifications yourself.
+data2xmovie [options] < infile > outfile :pre
+
+See the top of the data2xmovie.c file for a discussion of the options.
 
 :line
 
@@ -270,6 +171,95 @@ This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
 :line
 
+matlab tool :h4,link(matlab)
+
+The matlab sub-directory contains several "MATLAB"_matlab scripts for
+post-processing LAMMPS output.  The scripts include readers for log
+and dump files, a reader for radial distribution output from the "fix
+rdf"_fix_rdf.html command, a reader for EAM potential files, and a
+converter that reads LAMMPS dump files and produces CFG files that can
+be visualized with the
+"AtomEye"_http://164.107.79.177/Archive/Graphics/A visualizer.
+
+See the README.pdf file for more information.
+
+These scripts were written by Arun Subramaniyan at Purdue Univ
+(asubrama at purdue.edu).
+
+:link(matlab,http://www.mathworks.com)
+
+:line
+
+micelle2d tool :h4,link(micelle)
+
+The file micelle2d.f creates a LAMMPS data file containing short lipid
+chains in a monomer solution.  It uses a text file containing lipid
+definition parameters as an input.  The created molecules and solvent
+atoms can strongly overlap, so LAMMPS needs to run the system
+initially with a "soft" pair potential to un-overlap it.  The syntax
+for running the tool is
+
+micelle2d < def.micelle2d > data.file :pre
+
+See the def.micelle2d file in the tools directory for an example of a
+definition file.  This tool was used to create the system for the
+"micelle example"_Section_example.html.
+
+:line
+
+msi2lmp tool :h4,link(msi)
+
+The msi2lmp sub-directory contains a tool for creating LAMMPS input
+data files from Accelrys's Insight MD code (formerly MSI/Biosysm and
+its Discover MD code).  See the README file for more information.
+
+This tool was written by John Carpenter (Cray), Michael Peachey
+(Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
+(jec at mayo.edu), but still fields questions about the tool.
+
+This tool may be out-of-date with respect to the current LAMMPS and
+Insight versions.  Since we don't use it at Sandia, you'll need to
+experiment with it yourself.
+
+:line
+
+replicate tool :h4,link(replicate)
+
+The file replicate.c takes a LAMMPS data file and replicates it into a
+larger system.  The syntax for running the tool is
+
+replicate [options] < infile > outfile :pre
+
+See the top of the replicate.c file for a discussion of the options.
+This tool is used by some of the "LAMMPS benchmarks"_Section_perf.html
+for creating larger systems to run scaled-size problems on multiple
+processors.
+
+:line
+
+restart2data tool :h4,link(restart)
+
+The file restart2data.cpp converts a binary LAMMPS restart file into
+an ASCII data file.  The syntax for running the tool is
+
+restart2data restart-file data-file :pre
+
+This tool must be compiled on a platform that can read the binary file
+created by a LAMMPS run, since binary files are not compatible across
+all platforms.
+
+Note that a text data file has less precision than a binary restart
+file.  Hence, continuing a run from a converted data file will
+typically not conform as closely to a previous run as will restarting
+from a binary restart file.
+
+If a "%" appears in the specified restart-file, the tool expects a set
+of multiple files to exist.  See the "restart"_restart.html and
+"write_restart"_write_restart.html commands for info on how such sets
+of files are written by LAMMPS, and how the files are named.
+
+:line
+
 thermo_extract tool :h4,link(thermo_extract)
 
 The thermo_extract tool reads one of more LAMMPS log files and
@@ -281,3 +271,33 @@ details.
 
 This tool was written by Vikas Varshney at Wright Patterson AFB
 (vikas.varshney at gmail.com).
+
+:line
+
+xmovie tool :h4,link(xmovie)
+
+The xmovie tool is an X-based visualization package that can read
+LAMMPS dump files and animate them.  It is in its own sub-directory
+with the tools directory.  You may need to modify its Makefile so that
+it can find the appropriate X libraries to link against.
+
+The syntax for running xmovie is
+
+xmovie [options] dump.file1 dump.file2 ... :pre
+
+If you just type "xmovie" you will see a list of options.  Note that
+by default, LAMMPS dump files are in scaled coordinates, so you
+typically need to use the -scale option with xmovie.  When xmovie runs
+it opens a visualization window and a control window.  The control
+options are straightforward to use.
+
+Xmovie was mostly written by Mike Uttormark (U Wisconsin) while he
+spent a summer at Sandia.  It displays 2d projections of a 3d domain.
+While simple in design, it is an amazingly fast program that can
+render large numbers of atoms very quickly.  It's a useful tool for
+debugging LAMMPS input and output and making sure your simulation is
+doing what you think it should.  The animations on the Examples page
+of the "LAMMPS WWW site"_lws were created with xmovie.
+
+I've lost contact with Mike, so I hope he's comfortable with us
+distributing his great tool!

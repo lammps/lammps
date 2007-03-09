@@ -112,7 +112,7 @@ as defined by the "units"_units.html command, e.g. Angstroms for units
 lattice spacings.  The "lattice"_lattice.html command must have been
 previously used to define the lattice spacing.
 
-[Restrictions:] none
+[Restrictions:]
 
 A prism cannot be of 0.0 thickness in any dimension; use a small z
 thickness for 2d simulations.  For 2d simulations, the xz and yz

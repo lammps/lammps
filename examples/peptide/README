@@ -1,0 +1,8 @@
+If you get bogus, large energies on timestep 0 when you run this
+example in.peptide, you likely have a machine/compiler problem with
+the pair_style "long" potentials which use Coulombic tabling by
+default.
+
+See the "Additional build tips" sub-section of the manual in
+Section_start.html in the "Making LAMMPS" section for details and
+suggestions on how to work around this issue.

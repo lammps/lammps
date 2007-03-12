@@ -915,7 +915,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_array[nthresh] = CENTRO;
       if (index_centro < 0) {
 	index_centro = add_compute(style_centro,1);
-	create_compute(style_stress,NULL);
+	create_compute(style_centro,NULL);
       }
     } else if (strcmp(arg[1],"sxx") == 0) {
       thresh_array[nthresh] = SXX;

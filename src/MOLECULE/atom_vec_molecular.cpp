@@ -569,7 +569,7 @@ int AtomVecMolecular::size_restart()
   int nlocal = atom->nlocal;
   int n = 0;
   for (i = 0; i < nlocal; i++)
-    n += 17 + 2*num_bond[i] + 4*num_angle[i] +
+    n += 16 + 2*num_bond[i] + 4*num_angle[i] +
       5*num_dihedral[i] + 5*num_improper[i];
 
   if (atom->nextra_restart)
@@ -587,7 +587,7 @@ int AtomVecMolecular::size_restart()
 
 int AtomVecMolecular::size_restart_one(int i)
 {
-  int n = 17 + 2*num_bond[i] + 4*num_angle[i] + 
+  int n = 16 + 2*num_bond[i] + 4*num_angle[i] + 
     5*num_dihedral[i] + 5*num_improper[i];
   return n;
 }

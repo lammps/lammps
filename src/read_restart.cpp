@@ -171,8 +171,10 @@ void ReadRestart::command(int narg, char **arg)
       buf = new double[maxbuf];
     }
 
-    if (me == 0) fread(buf,sizeof(double),n,fp);
-    MPI_Bcast(buf,n,MPI_DOUBLE,0,world);
+    if (n > 0) {
+      if (me == 0) fread(buf,sizeof(double),n,fp);
+      MPI_Bcast(buf,n,MPI_DOUBLE,0,world);
+    }
 
     m = 0;
     while (m < n) {

@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "atom_vec_dpd.h"
 #include "atom.h"
+#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
@@ -58,9 +59,10 @@ void AtomVecDPD::zero_ghost(int n, int first)
 /* ---------------------------------------------------------------------- */
 
 int AtomVecDPD::pack_comm(int n, int *list, double *buf,
-			  int pbc_flag, double *pbc_dist)
+			  int pbc_flag, int *pbc)
 {
   int i,j,m;
+  double dx,dy,dz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -74,11 +76,20 @@ int AtomVecDPD::pack_comm(int n, int *list, double *buf,
       buf[m++] = v[j][2];
     }
   } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+      dz = pbc[2]*domain->zprd;
+    }
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_dist[0];
-      buf[m++] = x[j][1] + pbc_dist[1];
-      buf[m++] = x[j][2] + pbc_dist[2];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -128,9 +139,10 @@ int AtomVecDPD::unpack_comm_one(int i, double *buf)
 /* ---------------------------------------------------------------------- */
 
 int AtomVecDPD::pack_border(int n, int *list, double *buf,
-			    int pbc_flag, double *pbc_dist)
+			    int pbc_flag, int *pbc)
 {
   int i,j,m;
+  double dx,dy,dz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -147,11 +159,20 @@ int AtomVecDPD::pack_border(int n, int *list, double *buf,
       buf[m++] = v[j][2];
    }
   } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0];
+      dy = pbc[1];
+      dz = pbc[2];
+    }
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = x[j][0] + pbc_dist[0];
-      buf[m++] = x[j][1] + pbc_dist[1];
-      buf[m++] = x[j][2] + pbc_dist[2];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];

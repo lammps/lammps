@@ -171,11 +171,12 @@ void Comm::set_procs()
 
 void Comm::setup()
 {
-  // cutcomm = distance at which ghost atoms need to be acquired
-  // for orthogonal, cutcomm = box coords = cutneigh in all 3 dims
-  // for triclinic, cutneigh = distance between tilted planes in box coords
-  //   cutcomm = lamda coords = distance between those same planes
-  //                            can be different for each dim
+  // cutghost = distance at which ghost atoms need to be acquired
+  // for orthogonal:
+  //   cutghost is in box coords = neigh->cutghost in all 3 dims
+  // for triclinic:
+  //   neigh->cutghost = distance between tilted planes in box coords
+  //   cutghost is in lamda coords = distance between those planes
 
   double *prd,*prd_border,*sublo,*subhi;
 
@@ -183,7 +184,7 @@ void Comm::setup()
     prd = prd_border = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
-    cutcomm[0] = cutcomm[1] = cutcomm[2] = neighbor->cutneigh;
+    cutghost[0] = cutghost[1] = cutghost[2] = neighbor->cutghost;
   } else {
     prd = domain->prd;
     prd_border = domain->prd_lamda;
@@ -192,19 +193,19 @@ void Comm::setup()
     double *h_inv = domain->h_inv;
     double length;
     length = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
-    cutcomm[0] = neighbor->cutneigh * length;
+    cutghost[0] = neighbor->cutghost * length;
     length = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
-    cutcomm[1] = neighbor->cutneigh * length;
+    cutghost[1] = neighbor->cutghost * length;
     length = h_inv[2];
-    cutcomm[2] = neighbor->cutneigh * length;
+    cutghost[2] = neighbor->cutghost * length;
   }
 
   // need = # of procs I need atoms from in each dim
   // for 2d, don't communicate in z
 
-  need[0] = static_cast<int> (cutcomm[0] * procgrid[0] / prd_border[0]) + 1;
-  need[1] = static_cast<int> (cutcomm[1] * procgrid[1] / prd_border[1]) + 1;
-  need[2] = static_cast<int> (cutcomm[2] * procgrid[2] / prd_border[2]) + 1;
+  need[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd_border[0]) + 1;
+  need[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd_border[1]) + 1;
+  need[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd_border[2]) + 1;
   if (force->dimension == 2) need[2] = 0;
 
   // if non-periodic, do not communicate further than procgrid-1 away
@@ -230,8 +231,8 @@ void Comm::setup()
   // set slablo > slabhi for swaps across non-periodic boundaries
   //   this insures no atoms are swapped
   //   only for procs owning sub-box at non-periodic end of global box
-  // pbc_flag: 0 = not across a boundary, 1 = yes across a boundary
-  // pbc_dist/border: factors to add to atom coords across PBC for comm/borders
+  // pbc_flag: 0 = nothing across a boundary, 1 = somthing across a boundary
+  // pbc = -1/0/1 for PBC factor in each of 3/6 orthog/triclinic dirs
   // for triclinic, slablo/hi and pbc_border will be used in lamda (0-1) coords
   // 1st part of if statement is sending to the west/south/down
   // 2nd part of if statement is sending to the east/north/up
@@ -240,36 +241,31 @@ void Comm::setup()
   for (int dim = 0; dim < 3; dim++) {
     for (int ineed = 0; ineed < 2*need[dim]; ineed++) {
       pbc_flag[iswap] = 0;
-      pbc_dist[iswap][0] = pbc_dist[iswap][1] = pbc_dist[iswap][2] = 0.0;
-      pbc_dist_border[iswap][0] = pbc_dist_border[iswap][1] = 
-	pbc_dist_border[iswap][2] = 0.0;
+      pbc[iswap][0] = pbc[iswap][1] = pbc[iswap][2] =
+	pbc[iswap][3] = pbc[iswap][4] = pbc[iswap][5] = 0;
 
       if (ineed % 2 == 0) {
 	sendproc[iswap] = procneigh[dim][0];
 	recvproc[iswap] = procneigh[dim][1];
 	if (ineed < 2) slablo[iswap] = -BIG;
 	else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-	slabhi[iswap] = sublo[dim] + cutcomm[dim];
+	slabhi[iswap] = sublo[dim] + cutghost[dim];
 	if (myloc[dim] == 0) {
 	  if (periodicity[dim] == 0)
 	    slabhi[iswap] = slablo[iswap] - 1.0;
 	  else {
 	    pbc_flag[iswap] = 1;
-	    pbc_dist[iswap][dim] = prd[dim];
-	    pbc_dist_border[iswap][dim] = prd_border[dim];
+	    pbc[iswap][dim] = 1;
 	    if (triclinic) {
-	      if (dim == 1) pbc_dist[iswap][0] += domain->xy;
-	      else if (dim == 2) {
-		pbc_dist[iswap][0] += domain->xz;
-		pbc_dist[iswap][1] += domain->yz;
-	      }
+	      if (dim == 1) pbc[iswap][5] = 1;
+	      else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = 1;
 	    }
 	  }
 	}
       } else {
 	sendproc[iswap] = procneigh[dim][1];
 	recvproc[iswap] = procneigh[dim][0];
-	slablo[iswap] = subhi[dim] - cutcomm[dim];
+	slablo[iswap] = subhi[dim] - cutghost[dim];
 	if (ineed < 2) slabhi[iswap] = BIG;
 	else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
 	if (myloc[dim] == procgrid[dim]-1) {
@@ -277,14 +273,10 @@ void Comm::setup()
 	    slabhi[iswap] = slablo[iswap] - 1.0;
 	  else {
 	    pbc_flag[iswap] = 1;
-	    pbc_dist[iswap][dim] = -prd[dim];
-	    pbc_dist_border[iswap][dim] = -prd_border[dim];
+	    pbc[iswap][dim] = -1;
 	    if (triclinic) {
-	      if (dim == 1) pbc_dist[iswap][0] -= domain->xy;
-	      else if (dim == 2) {
-		pbc_dist[iswap][0] -= domain->xz;
-		pbc_dist[iswap][1] -= domain->yz;
-	      }
+	      if (dim == 1) pbc[iswap][5] = -1;
+	      else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = -1;
 	    }
 	  }
 	}
@@ -321,14 +313,14 @@ void Comm::communicate()
 	MPI_Irecv(buf,size_comm_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc_dist[iswap]);
+			    buf_send,pbc_flag[iswap],pbc[iswap]);
 	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
       } else {
 	MPI_Irecv(buf_recv,size_comm_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc_dist[iswap]);
+			    buf_send,pbc_flag[iswap],pbc[iswap]);
 	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
 	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
@@ -338,11 +330,10 @@ void Comm::communicate()
       if (comm_x_only) {
 	if (sendnum[iswap])
 	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			      x[firstrecv[iswap]],
-			      pbc_flag[iswap],pbc_dist[iswap]);
+			      x[firstrecv[iswap]],pbc_flag[iswap],pbc[iswap]);
       } else {
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc_dist[iswap]);
+			    buf_send,pbc_flag[iswap],pbc[iswap]);
 	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
@@ -567,8 +558,8 @@ void Comm::borders()
       if (nsend*size_border > maxsend)
 	grow_send(nsend*size_border,0);
       n = avec->pack_border(nsend,sendlist[iswap],buf_send,
-			    pbc_flag[iswap],pbc_dist_border[iswap]);
-
+			    pbc_flag[iswap],pbc[iswap]);
+      
       // swap atoms with other proc
       // put incoming ghosts at end of my atom arrays
       // if swapping with self, simply copy, no messages
@@ -635,7 +626,7 @@ void Comm::comm_pair(Pair *pair)
     // pack buffer
 
     n = pair->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flag[iswap],pbc_dist[iswap]);
+			buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -704,7 +695,7 @@ void Comm::comm_fix(Fix *fix)
     // pack buffer
 
     n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
-		       buf_send,pbc_flag[iswap],pbc_dist[iswap]);
+		       buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -773,7 +764,7 @@ void Comm::comm_compute(Compute *compute)
     // pack buffer
 
     n = compute->pack_comm(sendnum[iswap],sendlist[iswap],
-			   buf_send,pbc_flag[iswap],pbc_dist[iswap]);
+			   buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -980,9 +971,7 @@ void Comm::allocate_swap(int n)
   slabhi = (double *) memory->smalloc(n*sizeof(double),"comm:slabhi");
   firstrecv = (int *) memory->smalloc(n*sizeof(int),"comm:firstrecv");
   pbc_flag = (int *) memory->smalloc(n*sizeof(int),"comm:pbc_flag");
-  pbc_dist = (double **) memory->create_2d_double_array(n,3,"comm:pbc_dist");
-  pbc_dist_border = (double **)
-    memory->create_2d_double_array(n,3,"comm:pbc_dist_border");
+  pbc = (int **) memory->create_2d_int_array(n,6,"comm:pbc");
 }
 
 /* ----------------------------------------------------------------------
@@ -1002,8 +991,7 @@ void Comm::free_swap()
   memory->sfree(slabhi);
   memory->sfree(firstrecv);
   memory->sfree(pbc_flag);
-  memory->destroy_2d_double_array(pbc_dist);
-  memory->destroy_2d_double_array(pbc_dist_border);
+  memory->destroy_2d_int_array(pbc);
 }
 
 /* ----------------------------------------------------------------------

@@ -44,7 +44,7 @@ class AtomVec : protected Pointers {
   virtual void zero_ghost(int,int) {}
   virtual void copy(int, int) = 0;
 
-  virtual int pack_comm(int, int *, double *, int, double *) = 0;
+  virtual int pack_comm(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_one(int, double *) {return 0;}
   virtual void unpack_comm(int, int, double *) = 0;
   virtual int unpack_comm_one(int, double *) {return 0;}
@@ -54,7 +54,7 @@ class AtomVec : protected Pointers {
   virtual void unpack_reverse(int, int *, double *) = 0;
   virtual int unpack_reverse_one(int, double *) {return 0;}
 
-  virtual int pack_border(int, int *, double *, int, double *) = 0;
+  virtual int pack_border(int, int *, double *, int, int *) = 0;
   virtual int pack_border_one(int, double *) {return 0;}
   virtual void unpack_border(int, int, double *) = 0;
   virtual int unpack_border_one(int, double *) {return 0;}

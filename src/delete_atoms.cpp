@@ -214,8 +214,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
 
   // error check on cutoff
 
-  if (cut > neighbor->cutneigh) 
-    error->all("Delete_atoms cutoff > neighbor cutoff");
+  if (cut > neighbor->cutghost) 
+    error->all("Delete_atoms cutoff > ghost cutoff");
 
   // create an atom map if one doesn't exist already
 

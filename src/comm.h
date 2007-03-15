@@ -29,7 +29,7 @@ class Comm : protected Pointers {
   int need[3];                      // procs I need atoms from in each dim
   int maxforward_fix,maxreverse_fix;   // comm sizes called from Fix,Pair
   int maxforward_pair,maxreverse_pair;
-  double cutcomm[3];                // cutoffs used for acquiring ghost atoms
+  double cutghost[3];               // cutoffs used for acquiring ghost atoms
   
   Comm(class LAMMPS *);
   ~Comm();
@@ -60,9 +60,8 @@ class Comm : protected Pointers {
   int *size_reverse_send;           // # to send in each reverse comm
   int *size_reverse_recv;           // # to recv in each reverse comm
   double *slablo,*slabhi;           // bounds of slab to send at each swap
-  int *pbc_flag;                    // flags for sending atoms thru PBC
-  double **pbc_dist;                // distance to adjust atoms coords for PBC
-  double **pbc_dist_border;         // PBC distance for borders()
+  int *pbc_flag;                    // general flag for sending atoms thru PBC
+  int **pbc;                        // dimension flags for PBC adjustments
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
 

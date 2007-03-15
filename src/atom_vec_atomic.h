@@ -25,11 +25,11 @@ class AtomVecAtomic : public AtomVec {
   void grow(int);
   void reset_ptrs();
   void copy(int, int);
-  virtual int pack_comm(int, int *, double *, int, double *);
+  virtual int pack_comm(int, int *, double *, int, int *);
   virtual void unpack_comm(int, int, double *);
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
-  virtual int pack_border(int, int *, double *, int, double *);
+  virtual int pack_border(int, int *, double *, int, int *);
   virtual void unpack_border(int, int, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(double *);

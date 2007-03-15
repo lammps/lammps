@@ -29,7 +29,7 @@ class Neighbor : protected Pointers {
   int oneatom;                     // max # of neighbors for one atom
 
   double skin;                     // skin distance
-  double cutneigh;                 // neighbor cutoff
+  double cutghost;                 // distance for acquiring ghost atoms
 
   int ncalls;                      // # of times build has been called
   int ndanger;                     // # of dangerous builds
@@ -79,6 +79,7 @@ class Neighbor : protected Pointers {
   void build();               // create all neighbor lists (half,full,bond)
   void build_half();          // one-time creation of half neighbor list
   void build_full();          // one-time creation of full neighbor list
+  void set(int, char **);     // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters of neighbor build
   int memory_usage();         // tally memory usage
   
@@ -93,8 +94,11 @@ class Neighbor : protected Pointers {
   int fix_check;                   // # of fixes that induce reneigh
   int *fixchecklist;               // which fixes to check
 
-  double **cutneighsq;             // neighbor cutoff squared for type pairs
-  double triggersq;                // sq distance to trigger build on
+  double **cutneigh;               // neighbor cutoff for type pairs
+  double **cutneighsq;             // cutneigh squared
+  double cutneighmax;              // max neighbor cutoff for all type pairs
+  double cutneighmin;              // min neighbor cutoff (for cutforce > 0)
+  double triggersq;                // trigger build when atom moves this dist
 
   double **xhold;                  // atom coords at last neighbor build
   int maxhold;                     // size of xhold array
@@ -106,10 +110,6 @@ class Neighbor : protected Pointers {
   int *binhead;                    // ptr to 1st atom in each bin
   int maxhead;                     // size of binhead array
 
-  int nstencil;                    // # of bins in stencil
-  int *stencil;                    // stencil list of bin offsets
-  int maxstencil;                  // size of stencil
-
   int mbins;                       // # of local bins and offset
   int mbinx,mbiny,mbinz;
   int mbinxlo,mbinylo,mbinzlo;
@@ -120,15 +120,23 @@ class Neighbor : protected Pointers {
   int triclinic;                   // 0 if domain is orthog, 1 if triclinic
   double *bboxlo,*bboxhi;          // copy of full domain bounding box
 
+  int nstencil;                    // # of bins in half neighbor stencil
+  int *stencil;                    // list of bin offsets
+  int maxstencil;                  // size of stencil
+
+  int nstencil_full;               // # of bins in full neighbor stencil
+  int *stencil_full;               // list of bin offsets
+  int maxstencil_full;             // size of stencil
+
+  int *mstencils;                  // # bins in each type-based multi stencil
+  int **mstencil;                  // list of bin offsets in each stencil
+  double **mdist;                  // list of distances to bins in each stencil
+
   int **pages;                     // half neighbor list pages
   int maxpage;                     // # of half pages currently allocated
 
   int **pages_full;                // full neighbor list pages
   int maxpage_full;                // # of full pages currently allocated
-
-  int nstencil_full;               // # of bins in full neighbor stencil
-  int *stencil_full;               // full neighbor stencil list of bin offsets
-  int maxstencil_full;             // size of full neighbor stencil
 
                                          // granular neighbor list
   class FixShearHistory *fix_history;    // NULL if history not needed
@@ -173,25 +181,31 @@ class Neighbor : protected Pointers {
   FnPtr half_build;                   // ptr to half pair list functions
   FnPtr full_build;                   // ptr to full pair list functions
 
-  void half_nsq_no_newton();          // via nsq w/ pair newton off
-  void half_nsq_newton();             // via nsq w/ pair newton on
-  void half_bin_no_newton();          // via binning w/ pair newton off
-  void half_bin_newton();             // via binning w/ pair newton on
-  void half_full_no_newton();         // via full list w/ pair newton off
-  void half_full_newton();            // via full list w/ pair newton on
+  void half_nsq_no_newton();          // fns for half neighbor lists
+  void half_nsq_newton();
+  void half_bin_no_newton();
+  void half_bin_no_newton_multi();
+  void half_bin_newton();
+  void half_bin_newton_multi();
+  void half_bin_newton_tri();
+  void half_bin_newton_multi_tri();
+  void half_full_no_newton();
+  void half_full_newton();
 
-  void full_nsq();                    // 2 fns for full neighbor lists
+  void full_nsq();                    // fns for full neighbor lists
   void full_bin();
 
-  void granular_nsq_no_newton();      // 4 fns for granular systems
+  void granular_nsq_no_newton();      // fns for granular neighbor lists
   void granular_nsq_newton();
   void granular_bin_no_newton();
   void granular_bin_newton();
+  void granular_bin_newton_tri();
 
-  void respa_nsq_no_newton();         // 4 fns for multiple respa lists
+  void respa_nsq_no_newton();         // fns for respa neighbor lists
   void respa_nsq_newton();
   void respa_bin_no_newton();
   void respa_bin_newton();
+  void respa_bin_newton_tri();
 
   FnPtr bond_build;                   // ptr to bond list functions
   void bond_all();                    // bond list with all bonds
@@ -220,12 +234,6 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int find_special(int, int);           // look for special neighbor
   int exclusion(int, int, int *, int *, int *);  // test for pair exclusion
-
-  // PJV
-
-  void granular_bin_newton_tri();
-  void respa_bin_newton_tri();
-  void half_bin_newton_tri();
 };
 
 }

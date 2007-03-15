@@ -664,8 +664,8 @@ void Velocity::options(int narg, char **arg)
 void Velocity::triple(double *x, double *vx, double *vy, double *vz,
 		      int seed, RanPark *random)
 {
-  // lamda[3] = fractional position in box
-  // for triclinic box, just convert to lamda coords
+  // for orthogonal box, lamda = fractional position in box
+  // for triclinic box, convert to lamda coords
 
   double lamda[3];
 

@@ -883,12 +883,7 @@ void Input::neigh_modify()
 
 void Input::neighbor_command()
 {
-  if (narg != 2) error->all("Illegal neighbor command");
-
-  neighbor->skin = atof(arg[0]);
-  if (strcmp(arg[1],"nsq") == 0) neighbor->style = 0;
-  else if (strcmp(arg[1],"bin") == 0) neighbor->style = 1;
-  else error->all("Illegal neighbor command");
+  neighbor->set(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

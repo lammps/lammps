@@ -58,21 +58,21 @@ class Force : protected Pointers {
   void init();
 
   void create_pair(char *);
-  Pair *new_pair(char *);
-  Pair *pair_match(char *);
+  class Pair *new_pair(char *);
+  class Pair *pair_match(char *);
 
   void create_bond(char *);
-  Bond *new_bond(char *);
-  Bond *bond_match(char *);
+  class Bond *new_bond(char *);
+  class Bond *bond_match(char *); 
 
   void create_angle(char *);
-  Angle *new_angle(char *);
+  class Angle *new_angle(char *);
 
   void create_dihedral(char *);
-  Dihedral *new_dihedral(char *);
+  class Dihedral *new_dihedral(char *);
 
   void create_improper(char *);
-  Improper *new_improper(char *);
+  class Improper *new_improper(char *);
 
   void create_kspace(int, char **);
 

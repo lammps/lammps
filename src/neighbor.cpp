@@ -39,9 +39,12 @@ using namespace LAMMPS_NS;
 #define LB_FACTOR 1.5
 #define SMALL 1.0e-6
 #define EXDELTA 1
+#define BIG 1.0e20
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+enum{NSQ,BIN,MULTI};
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,7 +53,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  style = 1;
+  style = BIN;
   every = 1;
   delay = 10;
   dist_check = 1;
@@ -59,6 +62,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   maxlocal = 0;
     
+  cutneigh = NULL;
   cutneighsq = NULL;
   fixchecklist = NULL;
 
@@ -91,6 +95,8 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   maxstencil_full = 0;
   stencil_full = NULL;
 
+  //mstencil = NULL;
+  
   // half neighbor list info
 
   half = half_command = 0;
@@ -143,6 +149,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
 Neighbor::~Neighbor()
 {
+  memory->destroy_2d_double_array(cutneigh);
   memory->destroy_2d_double_array(cutneighsq);
   delete [] fixchecklist;
   memory->destroy_2d_double_array(xhold);
@@ -217,36 +224,42 @@ void Neighbor::init()
   // ------------------------------------------------------------------
   // settings
 
-  // set cutneigh and trigger distance for reneighboring
+  // set neighbor cutoffs (force cutoff + skin)
+  // trigger determines when atoms migrate and neighbor lists are rebuilt
+  // cutneigh and cutneighsq determine what pairs go into neighbor list
+  //   set to 0 if cutforce = 0
+  // cutneighmin/max used for neighbor bin sizes
+  // cutghost determines comm distance = max of cutneigh & skin
+  //   may need ghosts for bonds even if all cutneigh = 0 (pair = NULL)
 
-  if (force->pair) cutneigh = force->pair->cutforce + skin;
-  else cutneigh = skin;
   triggersq = 0.25*skin*skin;
-  if (cutneighsq == NULL)
-    cutneighsq = memory->create_2d_double_array(atom->ntypes+1,atom->ntypes+1,
-						"neigh:cutneighsq");
-
-  // set neighbor cutoffs with skin included
-  // if no pair defined, cutneigh is just skin
 
   n = atom->ntypes;
-
-  if (force->pair) {
-    double cutoff;
-    double **cutsq = force->pair->cutsq;
-    for (i = 1; i <= n; i++)
-      for (j = i; j <= n; j++) {
-	cutoff = sqrt(cutsq[i][j]);
-	cutneighsq[i][j] = (cutoff+skin) * (cutoff+skin);
-	cutneighsq[j][i] = cutneighsq[i][j];
-      }
-  } else {
-    for (i = 1; i <= n; i++)
-      for (j = i; j <= n; j++) {
-	cutneighsq[i][j] = skin*skin;
-	cutneighsq[j][i] = cutneighsq[i][j];
-      }
+  if (cutneigh == NULL) {
+    cutneigh = memory->create_2d_double_array(n+1,n+1,"neigh:cutneigh");
+    cutneighsq = memory->create_2d_double_array(n+1,n+1,"neigh:cutneighsq");
   }
+
+  double cutoff,delta;
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++) {
+      if (force->pair) cutoff = sqrt(force->pair->cutsq[i][j]);
+      else cutoff = 0.0;
+      if (cutoff > 0.0) delta = skin;
+      else delta = 0.0;
+      cutneigh[i][j] = cutneigh[j][i] = cutoff + delta;
+      cutneighsq[i][j] = cutneighsq[j][i] = (cutoff+delta) * (cutoff+delta);
+    }
+
+  cutneighmin = BIG;
+  cutneighmax = 0.0;
+  cutghost = skin;
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++) {
+      cutneighmin = MIN(cutneighmin,cutneigh[i][j]);
+      cutneighmax = MAX(cutneighmax,cutneigh[i][j]);
+      cutghost = MAX(cutghost,cutneigh[i][j]);
+    }
 
   // check other classes that can induce reneighboring in decide()
 
@@ -302,7 +315,7 @@ void Neighbor::init()
     maxhold = 0;
   }
 
-  if (style == 0) {
+  if (style == NSQ) {
     memory->sfree(bins);
     memory->sfree(binhead);
     memory->sfree(stencil);
@@ -319,7 +332,7 @@ void Neighbor::init()
     }
   }
 
-  if (style == 1) {
+  if (style == BIN) {
     if (maxbin == 0) {
       maxbin = atom->nmax;
       bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
@@ -546,36 +559,36 @@ void Neighbor::init()
     cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);
   }
 
-  // set ptrs to correct half, full, triclinic build functions
+  // set ptrs to correct half, full, multi, triclinic build functions
   // cannot combine granular and rRESPA
 
   if (half) {
     if (atom->check_style("granular")) {
-      if (style == 0) {
+      if (style == NSQ) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::granular_nsq_no_newton;
 	else half_build = &Neighbor::granular_nsq_newton;
-      } else if (style == 1) {
+      } else if (style == BIN) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::granular_bin_no_newton;
 	else if (triclinic)
 	  half_build = &Neighbor::granular_bin_newton_tri;
 	else half_build = &Neighbor::granular_bin_newton;
-      }
+      } else error->all("Neighbor multi not allowed with granular");
     } else if (respa) {
-      if (style == 0) {
+      if (style == NSQ) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::respa_nsq_no_newton;
 	else half_build = &Neighbor::respa_nsq_newton;
-      } else if (style == 1) {
+      } else if (style == BIN) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::respa_bin_no_newton;
 	else if (triclinic)
 	  half_build = &Neighbor::respa_bin_newton_tri;
 	else half_build = &Neighbor::respa_bin_newton;
-      }
+      } else error->all("Neighbor multi not allowed with rRESPA");
     } else {
-      if (style == 0) {
+      if (style == NSQ) {
 	if (force->newton_pair == 0) {
 	  if (full_every) half_build = &Neighbor::half_full_no_newton;
 	  else half_build = &Neighbor::half_nsq_no_newton;
@@ -583,23 +596,33 @@ void Neighbor::init()
 	  if (full_every) half_build = &Neighbor::half_full_newton;
 	  else half_build = &Neighbor::half_nsq_newton;
 	}
-      } else if (style == 1) {
+      } else if (style == BIN) {
 	if (force->newton_pair == 0) {
 	  if (full_every) half_build = &Neighbor::half_full_no_newton;
 	  else half_build = &Neighbor::half_bin_no_newton;
 	} else {
 	  if (full_every) half_build = &Neighbor::half_full_newton;
-	  else if (triclinic)
-	    half_build = &Neighbor::half_bin_newton_tri;
+	  else if (triclinic) half_build = &Neighbor::half_bin_newton_tri;
 	  else half_build = &Neighbor::half_bin_newton;
+	}
+      } else if (style == MULTI) {
+	if (force->newton_pair == 0) {
+	  if (full_every) half_build = &Neighbor::half_full_no_newton;
+	  else half_build = &Neighbor::half_bin_no_newton_multi;
+	} else {
+	  if (full_every) half_build = &Neighbor::half_full_newton;
+	  else if (triclinic)
+	    half_build = &Neighbor::half_bin_newton_multi_tri;
+	  else half_build = &Neighbor::half_bin_newton_multi;
 	}
       }
     }
   } else half_build = NULL;
 
   if (full) {
-    if (style == 0) full_build = &Neighbor::full_nsq;
-    else full_build = &Neighbor::full_bin;
+    if (style == NSQ) full_build = &Neighbor::full_nsq;
+    else if (style == BIN) full_build = &Neighbor::full_bin;
+    else error->all("Neighbor multi not allowed with full neighbor lists");
   } else full_build = NULL;
 
   // ------------------------------------------------------------------
@@ -828,7 +851,7 @@ void Neighbor::build()
 
   // extend bin list if necessary
 
-  if (style && atom->nmax > maxbin) {
+  if (style != NSQ && atom->nmax > maxbin) {
     maxbin = atom->nmax;
     memory->sfree(bins);
     bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
@@ -890,33 +913,34 @@ void Neighbor::setup_bins()
 {
   // bbox lo/hi = bounding box of entire domain
   // bbox = size of bbox of entire domain
-  // for triclinic, bbox bounds all 8 corners of tilted box
-  // bsubbox lo/hi = bounding box of my subdomain extended by cutneigh
-  // for triclinic, subdomain with cutneigh extension is first computed
-  //   in lamda coords, including tilt factor via cutcomm,
-  //   domain->bbox then computes bbox of corner pts transformed to box coords
+  // bsubbox lo/hi = bounding box of my subdomain extended by ghost atoms
+  // for triclinic:
+  //   bbox bounds all 8 corners of tilted box
+  //   subdomain is in lamda coords
+  //   include dimension-dependent extension via comm->cutghost
+  //   domain->bbox() converts lamda extent to box coords and computes bbox
 
   double bbox[3],bsubboxlo[3],bsubboxhi[3];
 
   if (triclinic == 0) {
     bboxlo = domain->boxlo;
     bboxhi = domain->boxhi;
-    bsubboxlo[0] = domain->sublo[0] - cutneigh;
-    bsubboxlo[1] = domain->sublo[1] - cutneigh;
-    bsubboxlo[2] = domain->sublo[2] - cutneigh;
-    bsubboxhi[0] = domain->subhi[0] + cutneigh;
-    bsubboxhi[1] = domain->subhi[1] + cutneigh;
-    bsubboxhi[2] = domain->subhi[2] + cutneigh;
+    bsubboxlo[0] = domain->sublo[0] - cutghost;
+    bsubboxlo[1] = domain->sublo[1] - cutghost;
+    bsubboxlo[2] = domain->sublo[2] - cutghost;
+    bsubboxhi[0] = domain->subhi[0] + cutghost;
+    bsubboxhi[1] = domain->subhi[1] + cutghost;
+    bsubboxhi[2] = domain->subhi[2] + cutghost;
   } else {
     bboxlo = domain->boxlo_bound;
     bboxhi = domain->boxhi_bound;
     double lo[3],hi[3];
-    lo[0] = domain->sublo_lamda[0] - comm->cutcomm[0];
-    lo[1] = domain->sublo_lamda[1] - comm->cutcomm[1];
-    lo[2] = domain->sublo_lamda[2] - comm->cutcomm[2];
-    hi[0] = domain->subhi_lamda[0] + comm->cutcomm[0];
-    hi[1] = domain->subhi_lamda[1] + comm->cutcomm[1];
-    hi[2] = domain->subhi_lamda[2] + comm->cutcomm[2];
+    lo[0] = domain->sublo_lamda[0] - comm->cutghost[0];
+    lo[1] = domain->sublo_lamda[1] - comm->cutghost[1];
+    lo[2] = domain->sublo_lamda[2] - comm->cutghost[2];
+    hi[0] = domain->subhi_lamda[0] + comm->cutghost[0];
+    hi[1] = domain->subhi_lamda[1] + comm->cutghost[1];
+    hi[2] = domain->subhi_lamda[2] + comm->cutghost[2];
     domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
   }
 
@@ -924,22 +948,30 @@ void Neighbor::setup_bins()
   bbox[1] = bboxhi[1] - bboxlo[1];
   bbox[2] = bboxhi[2] - bboxlo[2];
 
+  // for BIN style, binsize = 1/2 of max neighbor cutoff
+  // for MULTI style, binsize = 1/2 of min neighbor cutoff
+  // special case of all cutoffs = 0.0, binsize = box size
+
+  double binsize;
+  if (style == BIN) binsize = 0.5*cutneighmax;
+  else binsize = 0.5*cutneighmin;
+  if (binsize == 0.0) binsize = bbox[0];
+
   // test for too many global bins in any dimension due to huge domain
 
-  double cutneighinv = 1.0/cutneigh;
-
-  if (2.0*bbox[0]*cutneighinv > INT_MAX || 2.0*bbox[1]*cutneighinv > INT_MAX ||
-      2.0*bbox[2]*cutneighinv > INT_MAX)
+  double binsizeinv = 1.0/binsize;
+  if (bbox[0]*binsizeinv > INT_MAX || bbox[1]*binsizeinv > INT_MAX ||
+      bbox[2]*binsizeinv > INT_MAX)
     error->all("Domain too large for neighbor bins");
 
   // divide box into bins
   // optimal size is roughly 1/2 the cutoff
   // use one bin even if cutoff >> bbox
 
-  nbinx = static_cast<int> (2.0*bbox[0]*cutneighinv);
-  nbiny = static_cast<int> (2.0*bbox[1]*cutneighinv);
+  nbinx = static_cast<int> (bbox[0]*binsizeinv);
+  nbiny = static_cast<int> (bbox[1]*binsizeinv);
   if (force->dimension == 3)
-    nbinz = static_cast<int> (2.0*bbox[2]*cutneighinv);
+    nbinz = static_cast<int> (bbox[2]*binsizeinv);
   else nbinz = 1;
 
   if (nbinx == 0) nbinx = 1;
@@ -1009,7 +1041,8 @@ void Neighbor::setup_bins()
   }
 
   // create stencil of bins whose closest corner to central bin
-  //   is within neighbor cutoff
+  //   is within cutneighmax
+  // stencil will be empty if cutneighmax = 0.0
   // next(xyz) = how far the stencil could possibly extend
   // for partial Newton (newton = 0)
   //   stencil is all surrounding bins
@@ -1026,12 +1059,12 @@ void Neighbor::setup_bins()
   //   stored in stencil_full
   // 3d creates xyz stencil, 2d is only xy
 
-  int nextx = static_cast<int> (cutneigh*bininvx);
-  if (nextx*binsizex < cutneigh) nextx++;
-  int nexty = static_cast<int> (cutneigh*bininvy);
-  if (nexty*binsizey < cutneigh) nexty++;
-  int nextz = static_cast<int> (cutneigh*bininvz);
-  if (nextz*binsizez < cutneigh) nextz++;
+  int nextx = static_cast<int> (cutneighmax*bininvx);
+  if (nextx*binsizex < cutneighmax) nextx++;
+  int nexty = static_cast<int> (cutneighmax*bininvy);
+  if (nexty*binsizey < cutneighmax) nexty++;
+  int nextz = static_cast<int> (cutneighmax*bininvz);
+  if (nextz*binsizez < cutneighmax) nextz++;
 
   int nmax = (2*nextz+1) * (2*nexty+1) * (2*nextx+1);
   if (nmax > maxstencil) {
@@ -1042,45 +1075,45 @@ void Neighbor::setup_bins()
 
   int i,j,k;
   nstencil = 0;
-  double cutsq = cutneigh*cutneigh;
+  double cutneighmaxsq = cutneighmax*cutneighmax;
 
   if (force->dimension == 3) {
     if (force->newton_pair == 0) {
       for (k = -nextz; k <= nextz; k++)
 	for (j = -nexty; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
-	    if (bin_distance(i,j,k) < cutsq)
+	    if (bin_distance(i,j,k) < cutneighmaxsq)
 	      stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
     } else if (triclinic) {
       for (k = 0; k <= nextz; k++)
 	for (j = -nexty; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
-	    if (bin_distance(i,j,k) < cutsq)
+	    if (bin_distance(i,j,k) < cutneighmaxsq)
 	      stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
     } else {
       for (k = 0; k <= nextz; k++)
 	for (j = -nexty; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
 	    if (k > 0 || j > 0 || (j == 0 && i > 0))
-	      if (bin_distance(i,j,k) < cutsq)
+	      if (bin_distance(i,j,k) < cutneighmaxsq)
 		stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
     }
   } else {
     if (force->newton_pair == 0) {
       for (j = -nexty; j <= nexty; j++)
 	for (i = -nextx; i <= nextx; i++)
-	  if (bin_distance(i,j,0) < cutsq)
+	  if (bin_distance(i,j,0) < cutneighmaxsq)
 	    stencil[nstencil++] = j*mbinx + i;
     } else if (triclinic) {
 	for (j = 0; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
-	    if (bin_distance(i,j,0) < cutsq)
+	    if (bin_distance(i,j,0) < cutneighmaxsq)
 	      stencil[nstencil++] = j*mbinx + i;
     } else {
 	for (j = 0; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
 	    if (j > 0 || (j == 0 && i > 0))
-	      if (bin_distance(i,j,0) < cutsq)
+	      if (bin_distance(i,j,0) < cutneighmaxsq)
 		stencil[nstencil++] = j*mbinx + i;
     }
   }
@@ -1097,12 +1130,12 @@ void Neighbor::setup_bins()
       for (k = -nextz; k <= nextz; k++)
 	for (j = -nexty; j <= nexty; j++)
 	  for (i = -nextx; i <= nextx; i++)
-	    if (bin_distance(i,j,k) < cutsq)
+	    if (bin_distance(i,j,k) < cutneighmaxsq)
 	      stencil_full[nstencil_full++] = k*mbiny*mbinx + j*mbinx + i;
     } else {
       for (j = -nexty; j <= nexty; j++)
 	for (i = -nextx; i <= nextx; i++)
-	  if (bin_distance(i,j,0) < cutsq)
+	  if (bin_distance(i,j,0) < cutneighmaxsq)
 	    stencil_full[nstencil_full++] = j*mbinx + i;
     }
   }
@@ -1138,6 +1171,23 @@ double Neighbor::bin_distance(int i, int j, int k)
     delz = (k+1)*binsizez;
  
   return (delx*delx + dely*dely + delz*delz);
+}
+
+/* ----------------------------------------------------------------------
+   set neighbor style and skin distance
+------------------------------------------------------------------------- */
+
+void Neighbor::set(int narg, char **arg)
+{
+  if (narg != 2) error->all("Illegal neighbor command");
+
+  skin = atof(arg[0]);
+  if (skin < 0.0) error->all("Illegal neighbor command");
+
+  if (strcmp(arg[1],"nsq") == 0) style = NSQ;
+  else if (strcmp(arg[1],"bin") == 0) style = BIN;
+  else if (strcmp(arg[1],"multi") == 0) style = MULTI;
+  else error->all("Illegal neighbor command");
 }
 
 /* ----------------------------------------------------------------------
@@ -1245,7 +1295,7 @@ int Neighbor::memory_usage()
 
   bytes += maxhold*3 * sizeof(double);
 
-  if (style == 0) {
+  if (style == NSQ) {
     bytes += maxbin * sizeof(int);
     bytes += maxhead * sizeof(int);
     bytes += maxstencil * sizeof(int);

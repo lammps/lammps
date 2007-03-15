@@ -817,8 +817,7 @@ void PairEAM::single_embed(int i, int itype, double &phi)
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAM::pack_comm(int n, int *list, double *buf,
-		       int pbc_flag, double *pack_dist)
+int PairEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int i,j,m;
 

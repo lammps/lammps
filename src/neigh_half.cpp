@@ -211,12 +211,13 @@ void Neighbor::half_bin_no_newton()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    ibin = coord2bin(x[i]);
 
     // loop over all atoms in surrounding bins in stencil including self
     // only store pair if i < j
     // stores own/own pairs only once
     // stores own/ghost pairs on both procs
+
+    ibin = coord2bin(x[i]);
 
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
@@ -224,6 +225,94 @@ void Neighbor::half_bin_no_newton()
 	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	jtype = type[j];
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+
+	if (rsq <= cutneighsq[itype][jtype]) {
+	  if (molecular) which = find_special(i,j);
+	  else which = 0;
+	  if (which == 0) neighptr[n++] = j;
+	  else if (which > 0) neighptr[n++] = which*nall + j;
+	}
+      }
+    }
+
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    npnt += n;
+    if (npnt >= pgsize)
+      error->one("Neighbor list overflow, boost neigh_modify one or page");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   binned neighbor list construction with partial Newton's 3rd law
+   each owned atom i checks own bin and surrounding bins in non-Newton stencil
+   multi-type stencil is itype dependent and is distance checked
+   pair stored once if i,j are both owned and i < j
+   pair stored by me if j is ghost (also stored by proc owning j)
+------------------------------------------------------------------------- */
+
+void Neighbor::half_bin_no_newton_multi()
+{
+  int i,j,k,n,itype,jtype,ibin,which,ms;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr,*s;
+  double *cut,*dist;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
+
+  // loop over each atom, storing neighbors
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  int molecular = atom->molecular;
+
+  int npage = 0;
+  int npnt = 0;
+
+  for (i = 0; i < nlocal; i++) {
+
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage++;
+      if (npage == maxpage) add_pages(npage);
+    }
+
+    neighptr = &pages[npage][npnt];
+    n = 0;
+
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+
+    // loop over all atoms in surrounding bins in stencil including self
+    // only store pair if i < j
+    // skip if i,j neighbor cutoff is less than bin distance
+    // stores own/own pairs only once
+    // stores own/ghost pairs on both procs
+
+    ibin = coord2bin(x[i]);
+    s = mstencil[itype];
+    dist = mdist[itype];
+    cut = cutneigh[itype];
+    ms = mstencils[itype];
+    for (k = 0; k < ms; k++) {
+      for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
+	if (j <= i) continue;
+	jtype = type[j];
+	if (cut[jtype] < dist[k]) continue;
+	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
+
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
@@ -349,6 +438,116 @@ void Neighbor::half_bin_newton()
 }
 
 /* ----------------------------------------------------------------------
+   binned neighbor list construction with full Newton's 3rd law
+   each owned atom i checks its own bin and other bins in Newton stencil
+   multi-type stencil is itype dependent and is distance checked
+   every pair stored exactly once by some processor
+------------------------------------------------------------------------- */
+
+void Neighbor::half_bin_newton_multi()
+{
+  int i,j,k,n,itype,jtype,ibin,which,ms;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr,*s;
+  double *cut,*dist;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
+
+  // loop over each atom, storing neighbors
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  int molecular = atom->molecular;
+
+  int npage = 0;
+  int npnt = 0;
+
+  for (i = 0; i < nlocal; i++) {
+
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage++;
+      if (npage == maxpage) add_pages(npage);
+    }
+
+    neighptr = &pages[npage][npnt];
+    n = 0;
+
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+
+    // loop over rest of atoms in i's bin, ghosts are at end of linked list
+    // if j is owned atom, store it, since j is beyond i in linked list
+    // if j is ghost, only store if j coords are "above and to the right" of i
+
+    for (j = bins[i]; j >= 0; j = bins[j]) {
+      if (j >= nlocal) {
+	if (x[j][2] < ztmp) continue;
+	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+      }
+
+      if (exclude && exclusion(i,j,type,mask,molecule)) continue;
+
+      jtype = type[j];
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq <= cutneighsq[itype][jtype]) {
+	if (molecular) which = find_special(i,j);
+	else which = 0;
+	if (which == 0) neighptr[n++] = j;
+	else if (which > 0) neighptr[n++] = which*nall + j;
+      }
+    }
+
+    // loop over all atoms in other bins in stencil, store every pair
+    // skip if i,j neighbor cutoff is less than bin distance
+
+    ibin = coord2bin(x[i]);
+    s = mstencil[itype];
+    dist = mdist[itype];
+    cut = cutneigh[itype];
+    ms = mstencils[itype];
+    for (k = 0; k < ms; k++) {
+      for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
+	jtype = type[j];
+	if (cut[jtype] < dist[k]) continue;
+	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
+
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+
+	if (rsq <= cutneighsq[itype][jtype]) {
+	  if (molecular) which = find_special(i,j);
+	  else which = 0;
+	  if (which == 0) neighptr[n++] = j;
+	  else if (which > 0) neighptr[n++] = which*nall + j;
+	}
+      }
+    }
+
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    npnt += n;
+    if (npnt >= pgsize)
+      error->one("Neighbor list overflow, boost neigh_modify one or page");
+  }
+}
+
+/* ----------------------------------------------------------------------
    binned neighbor list construction with Newton's 3rd law for triclinic
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
@@ -407,6 +606,94 @@ void Neighbor::half_bin_newton_tri()
 	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	jtype = type[j];
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+
+	if (rsq <= cutneighsq[itype][jtype]) {
+	  if (molecular) which = find_special(i,j);
+	  else which = 0;
+	  if (which == 0) neighptr[n++] = j;
+	  else if (which > 0) neighptr[n++] = which*nall + j;
+	}
+      }
+    }
+
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    npnt += n;
+    if (npnt >= pgsize)
+      error->one("Neighbor list overflow, boost neigh_modify one or page");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   binned neighbor list construction with Newton's 3rd law for triclinic
+   each owned atom i checks its own bin and other bins in triclinic stencil
+   multi-type stencil is itype dependent and is distance checked
+   every pair stored exactly once by some processor
+------------------------------------------------------------------------- */
+
+void Neighbor::half_bin_newton_multi_tri()
+{
+  int i,j,k,n,itype,jtype,ibin,which,ms;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr,*s;
+  double *cut,*dist;
+
+  // bin local & ghost atoms
+
+  bin_atoms();
+
+  // loop over each atom, storing neighbors
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  int molecular = atom->molecular;
+
+  int npage = 0;
+  int npnt = 0;
+
+  for (i = 0; i < nlocal; i++) {
+
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage++;
+      if (npage == maxpage) add_pages(npage);
+    }
+
+    neighptr = &pages[npage][npnt];
+    n = 0;
+
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+
+    // loop over all atoms in bins, including self, in stencil
+    // skip if i,j neighbor cutoff is less than bin distance
+    // bins below self are excluded from stencil
+    // pairs for atoms j below i are excluded
+
+    ibin = coord2bin(x[i]);
+    s = mstencil[itype];
+    dist = mdist[itype];
+    cut = cutneigh[itype];
+    ms = mstencils[itype];
+    for (k = 0; k < ms; k++) {
+      for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
+	jtype = type[j];
+	if (cut[jtype] < dist[k]) continue;
+	if (x[j][2] < ztmp) continue;
+	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] <= xtmp) continue;
+	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
+
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];

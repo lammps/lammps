@@ -29,11 +29,11 @@ class AtomVecHybrid : public AtomVec {
   void grow(int);
   void reset_ptrs();
   void copy(int, int);
-  int pack_comm(int, int *, double *, int, double *);
+  int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, double *);
+  int pack_border(int, int *, double *, int, int *);
   void unpack_border(int, int, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(double *);

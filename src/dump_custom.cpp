@@ -311,7 +311,7 @@ int DumpCustom::count()
 	nstride = 3;
       } else if (thresh_array[ithresh] == XS) {
         double **x = atom->x;
-	double boxxlo = domain->boxxlo;
+	double boxxlo = domain->boxlo[0];
 	double invxprd = 1.0/domain->xprd;
 	for (i = 0; i < nlocal; i++) 
 	  dchoose[i] = (x[i][0] - boxxlo) * invxprd;
@@ -319,7 +319,7 @@ int DumpCustom::count()
 	nstride = 1;
       } else if (thresh_array[ithresh] == YS) {
         double **x = atom->x;
-	double boxylo = domain->boxylo;
+	double boxylo = domain->boxlo[1];
 	double invyprd = 1.0/domain->yprd;
 	for (i = 0; i < nlocal; i++) 
 	  dchoose[i] = (x[i][1] - boxylo) * invyprd;
@@ -327,7 +327,7 @@ int DumpCustom::count()
 	nstride = 1;
       } else if (thresh_array[ithresh] == ZS) {
         double **x = atom->x;
-	double boxzlo = domain->boxzlo;
+	double boxzlo = domain->boxlo[2];
 	double invzprd = 1.0/domain->zprd;
 	for (i = 0; i < nlocal; i++) 
 	  dchoose[i] = (x[i][2] - boxzlo) * invzprd;
@@ -1155,7 +1155,7 @@ void DumpCustom::pack_xs(int n)
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  double boxxlo = domain->boxxlo;
+  double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nlocal; i++)
@@ -1172,7 +1172,7 @@ void DumpCustom::pack_ys(int n)
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  double boxylo = domain->boxylo;
+  double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nlocal; i++)
@@ -1189,7 +1189,7 @@ void DumpCustom::pack_zs(int n)
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  double boxzlo = domain->boxzlo;
+  double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nlocal; i++)

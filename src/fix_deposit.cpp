@@ -204,10 +204,10 @@ void FixDeposit::pre_exchange()
 
       if (force->dimension == 2) {
 	dim = 1;
-	max = domain->boxylo;
+	max = domain->boxlo[1];
       } else {
 	dim = 2;
-	max = domain->boxzlo;
+	max = domain->boxlo[2];
       }
 
       double **x = atom->x;
@@ -271,11 +271,11 @@ void FixDeposit::pre_exchange()
     if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
 	newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
 	newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
-    else if (force->dimension == 3 && newcoord[2] >= domain->boxzhi &&
+    else if (force->dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
 	     comm->myloc[2] == comm->procgrid[2]-1 &&
 	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
 	     newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
-    else if (force->dimension == 2 && newcoord[1] >= domain->boxyhi &&
+    else if (force->dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
 	     comm->myloc[1] == comm->procgrid[1]-1 &&
 	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
 

@@ -94,12 +94,12 @@ int FixVolRescale::setmask()
 
 void FixVolRescale::init()
 {
-  xlo_start = domain->boxxlo;
-  xhi_start = domain->boxxhi;
-  ylo_start = domain->boxylo;
-  yhi_start = domain->boxyhi;
-  zlo_start = domain->boxzlo;
-  zhi_start = domain->boxzhi;
+  xlo_start = domain->boxlo[0];
+  xhi_start = domain->boxhi[0];
+  ylo_start = domain->boxlo[1];
+  yhi_start = domain->boxhi[1];
+  zlo_start = domain->boxlo[2];
+  zhi_start = domain->boxhi[2];
 
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
@@ -138,51 +138,51 @@ void FixVolRescale::end_of_step()
   int nlocal = atom->nlocal;
 
   if (xflag) {
-    oldlo = domain->boxxlo;
-    oldhi = domain->boxxhi;
+    oldlo = domain->boxlo[0];
+    oldhi = domain->boxhi[0];
     newlo = xlo_start + delta * (xlo_stop-xlo_start);
     newhi = xhi_start + delta * (xhi_stop-xhi_start);
     ratio = (newhi - newlo) / domain->xprd;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	x[i][0] = newlo + (x[i][0] - oldlo) * ratio;
-    domain->boxxlo = newlo;
-    domain->boxxhi = newhi;
-    domain->xprd = newhi - newlo;
+    domain->boxlo[0] = newlo;
+    domain->boxhi[0] = newhi;
+    domain->prd[0] = domain->xprd = newhi - newlo;
     if (nrigid)
       for (i = 0; i < nrigid; i++)
 	modify->fix[rfix[i]]->dilate(0,oldlo,oldhi,newlo,newhi);
   }
 
   if (yflag) {
-    oldlo = domain->boxylo;
-    oldhi = domain->boxyhi;
+    oldlo = domain->boxlo[1];
+    oldhi = domain->boxhi[1];
     newlo = ylo_start + delta * (ylo_stop-ylo_start);
     newhi = yhi_start + delta * (yhi_stop-yhi_start);
     ratio = (newhi - newlo) / domain->yprd;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	x[i][1] = newlo + (x[i][1] - oldlo) * ratio;
-    domain->boxylo = newlo;
-    domain->boxyhi = newhi;
-    domain->yprd = newhi - newlo;
+    domain->boxlo[1] = newlo;
+    domain->boxhi[1] = newhi;
+    domain->prd[1] = domain->yprd = newhi - newlo;
     if (nrigid)
       for (i = 0; i < nrigid; i++)
 	modify->fix[rfix[i]]->dilate(1,oldlo,oldhi,newlo,newhi);
   }
 
   if (zflag) {
-    oldlo = domain->boxzlo;
-    oldhi = domain->boxzhi;
+    oldlo = domain->boxlo[2];
+    oldhi = domain->boxhi[2];
     newlo = zlo_start + delta * (zlo_stop-zlo_start);
     newhi = zhi_start + delta * (zhi_stop-zhi_start);
     ratio = (newhi - newlo) / domain->zprd;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	x[i][2] = newlo + (x[i][2] - oldlo) * ratio;
-    domain->boxzlo = newlo;
-    domain->boxzhi = newhi;
-    domain->zprd = newhi - newlo;
+    domain->boxlo[2] = newlo;
+    domain->boxhi[2] = newhi;
+    domain->prd[2] = domain->zprd = newhi - newlo;
     if (nrigid)
       for (i = 0; i < nrigid; i++)
 	  modify->fix[rfix[i]]->dilate(2,oldlo,oldhi,newlo,newhi);

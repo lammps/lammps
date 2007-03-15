@@ -505,17 +505,17 @@ void ReadRestart::header()
       atom->improper_per_atom = read_int();
 
     } else if (flag == 34) {
-      domain->boxxlo = read_double();
+      domain->boxlo[0] = read_double();
     } else if (flag == 35) {
-      domain->boxxhi = read_double();
+      domain->boxhi[0] = read_double();
     } else if (flag == 36) {
-      domain->boxylo = read_double();
+      domain->boxlo[1] = read_double();
     } else if (flag == 37) {
-      domain->boxyhi = read_double();
+      domain->boxhi[1] = read_double();
     } else if (flag == 38) {
-      domain->boxzlo = read_double();
+      domain->boxlo[2] = read_double();
     } else if (flag == 39) {
-      domain->boxzhi = read_double();
+      domain->boxhi[2] = read_double();
 
     } else if (flag == 40) {
       force->special_lj[1] = read_double();

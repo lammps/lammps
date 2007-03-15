@@ -272,12 +272,12 @@ void WriteRestart::header()
   write_int(32,atom->nimpropertypes);
   write_int(33,atom->improper_per_atom);
 
-  write_double(34,domain->boxxlo);
-  write_double(35,domain->boxxhi);
-  write_double(36,domain->boxylo);
-  write_double(37,domain->boxyhi);
-  write_double(38,domain->boxzlo);
-  write_double(39,domain->boxzhi);
+  write_double(34,domain->boxlo[0]);
+  write_double(35,domain->boxhi[0]);
+  write_double(36,domain->boxlo[1]);
+  write_double(37,domain->boxhi[1]);
+  write_double(38,domain->boxlo[2]);
+  write_double(39,domain->boxhi[2]);
 
   write_double(40,force->special_lj[1]);
   write_double(41,force->special_lj[2]);

@@ -168,9 +168,9 @@ void Replicate::command(int narg, char **arg)
 
   // setup new simulation box
 
-  domain->boxxhi = domain->boxxlo + nx*old_xprd;
-  domain->boxyhi = domain->boxylo + ny*old_yprd;
-  domain->boxzhi = domain->boxzlo + nz*old_zprd;
+  domain->boxhi[0] = domain->boxlo[0] + nx*old_xprd;
+  domain->boxhi[1] = domain->boxlo[1] + ny*old_yprd;
+  domain->boxhi[2] = domain->boxlo[2] + nz*old_zprd;
   if (triclinic) {
     domain->xy *= ny;
     domain->xz *= nz;

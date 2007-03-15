@@ -150,9 +150,9 @@ void DumpXTC::write_header(int n)
   // cell basis vectors
 
   float zero = 0.0;
-  float xdim = domain->boxxhi - domain->boxxlo;
-  float ydim = domain->boxyhi - domain->boxylo;
-  float zdim = domain->boxzhi - domain->boxzlo;
+  float xdim = domain->boxhi[0] - domain->boxlo[0];
+  float ydim = domain->boxhi[1] - domain->boxlo[1];
+  float zdim = domain->boxhi[2] - domain->boxlo[2];
 
   xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
   xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);

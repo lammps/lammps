@@ -132,9 +132,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     yhi = ((RegBlock *) domain->regions[iregion])->yhi;
     zlo = ((RegBlock *) domain->regions[iregion])->zlo;
     zhi = ((RegBlock *) domain->regions[iregion])->zhi;
-    if (xlo < domain->boxxlo || xhi > domain->boxxhi || 
-	ylo < domain->boxylo || yhi > domain->boxyhi || 
-	zlo < domain->boxzlo || zhi > domain->boxzhi)
+    if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] || 
+	ylo < domain->boxlo[1] || yhi > domain->boxhi[1] || 
+	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all("Insertion region extends outside simulation box");
   } else if (strcmp(domain->regions[iregion]->style,"cylinder") == 0) {
     region_style = 2;
@@ -146,9 +146,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     zhi = ((RegCylinder *) domain->regions[iregion])->hi;
     if (axis != 'z')
       error->all("Must use a z-axis cylinder with fix pour");
-    if (xc-rc < domain->boxxlo || xc+rc > domain->boxxhi || 
-	yc-rc < domain->boxylo || yc+rc > domain->boxyhi || 
-	zlo < domain->boxzlo || zhi > domain->boxzhi)
+    if (xc-rc < domain->boxlo[0] || xc+rc > domain->boxhi[0] || 
+	yc-rc < domain->boxlo[1] || yc+rc > domain->boxhi[1] || 
+	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all("Insertion region extends outside simulation box");
   } else error->all("Must use a block or cylinder region with fix pour");
 
@@ -446,11 +446,11 @@ void FixPour::pre_exchange()
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
 	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
 	coord[2] >= sublo[2] && coord[2] < subhi[2]) flag = 1;
-    else if (force->dimension == 3 && coord[2] >= domain->boxzhi &&
+    else if (force->dimension == 3 && coord[2] >= domain->boxhi[2] &&
 	     comm->myloc[2] == comm->procgrid[2]-1 &&
 	     coord[0] >= sublo[0] && coord[0] < subhi[0] &&
 	     coord[1] >= sublo[1] && coord[1] < subhi[1]) flag = 1;
-    else if (force->dimension == 2 && coord[1] >= domain->boxyhi &&
+    else if (force->dimension == 2 && coord[1] >= domain->boxhi[1] &&
 	     comm->myloc[1] == comm->procgrid[1]-1 &&
 	     coord[0] >= sublo[0] && coord[0] < subhi[0]) flag = 1;
 

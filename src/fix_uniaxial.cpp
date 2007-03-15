@@ -37,6 +37,9 @@ FixUniaxial::FixUniaxial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 6) error->all("Illegal fix uniaxial command");
+
+  box_change = 1;
+
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix uniaxial command");
 
@@ -79,21 +82,21 @@ void FixUniaxial::init()
 {
   // store pointers to domain variable so can loop over dimensions
 
-  domainlo[0] = &domain->boxxlo;
-  domainlo[1] = &domain->boxylo;
-  domainlo[2] = &domain->boxzlo;
+  domainlo[0] = &domain->boxlo[0];
+  domainlo[1] = &domain->boxlo[1];
+  domainlo[2] = &domain->boxlo[2];
   
-  domainhi[0] = &domain->boxxhi;
-  domainhi[1] = &domain->boxyhi;
-  domainhi[2] = &domain->boxzhi;
+  domainhi[0] = &domain->boxhi[0];
+  domainhi[1] = &domain->boxhi[1];
+  domainhi[2] = &domain->boxhi[2];
 
   domainprd[0] = &domain->xprd;
   domainprd[1] = &domain->yprd;
   domainprd[2] = &domain->zprd;
 
-  double L = pow((domain->boxxhi-domain->boxxlo)*
-                 (domain->boxyhi-domain->boxylo)*
-                 (domain->boxzhi-domain->boxzlo) ,1.0/3.0);
+  double L = pow((domain->boxhi[0]-domain->boxlo[0])*
+                 (domain->boxhi[1]-domain->boxlo[1])*
+                 (domain->boxhi[2]-domain->boxlo[2]) ,1.0/3.0);
    
   // save box sizes for coordinate rescaling
   // calculate strains and asymmetry parameter
@@ -196,7 +199,7 @@ void FixUniaxial::end_of_step()
     
     *domainlo[m] = newlo;
     *domainhi[m] = newhi;
-    *domainprd[m] = newhi - newlo;
+    domain->prd[m] = *domainprd[m] = newhi - newlo;
   
     if (nrigid)
       for (i = 0; i < nrigid; i++)

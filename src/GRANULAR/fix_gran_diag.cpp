@@ -163,7 +163,7 @@ void FixGranDiag::end_of_step()
 
   // set bottom of box for binning purposes
 
-  boxzlo = domain->boxzlo;
+  boxzlo = domain->boxlo[2];
 
   // update ghost atom info
   // else ghost x/v is out-of-date at end of timestep

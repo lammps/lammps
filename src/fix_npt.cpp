@@ -649,12 +649,12 @@ void FixNPT::box_dilate(int flag)
   double oldlo,oldhi,ctr;
 
   if (domain->xperiodic && p_flag[0]) {
-    oldlo = domain->boxxlo;
-    oldhi = domain->boxxhi;
+    oldlo = domain->boxlo[0];
+    oldhi = domain->boxhi[0];
     ctr = 0.5 * (oldlo + oldhi);
-    domain->boxxlo = (oldlo-ctr)*dilation[0] + ctr;
-    domain->boxxhi = (oldhi-ctr)*dilation[0] + ctr;
-    domain->xprd = domain->boxxhi - domain->boxxlo;
+    domain->boxlo[0] = (oldlo-ctr)*dilation[0] + ctr;
+    domain->boxhi[0] = (oldhi-ctr)*dilation[0] + ctr;
+    domain->prd[0] = domain->xprd = domain->boxhi[0] - domain->boxlo[0];
     if (dilate_partial) {
       for (i = 0; i < n; i++)
 	if (mask[i] & groupbit)
@@ -666,16 +666,16 @@ void FixNPT::box_dilate(int flag)
     if (nrigid)
       for (i = 0; i < nrigid; i++)
 	modify->fix[rfix[i]]->
-	  dilate(0,oldlo,oldhi,domain->boxxlo,domain->boxxhi);
+	  dilate(0,oldlo,oldhi,domain->boxlo[0],domain->boxhi[0]);
   }
 
   if (domain->yperiodic && p_flag[1]) {
-    oldlo = domain->boxylo;
-    oldhi = domain->boxyhi;
+    oldlo = domain->boxlo[1];
+    oldhi = domain->boxhi[1];
     ctr = 0.5 * (oldlo + oldhi);
-    domain->boxylo = (oldlo-ctr)*dilation[1] + ctr;
-    domain->boxyhi = (oldhi-ctr)*dilation[1] + ctr;
-    domain->yprd = domain->boxyhi - domain->boxylo;
+    domain->boxlo[1] = (oldlo-ctr)*dilation[1] + ctr;
+    domain->boxhi[1] = (oldhi-ctr)*dilation[1] + ctr;
+    domain->prd[1] = domain->yprd = domain->boxhi[1] - domain->boxlo[1];
     if (dilate_partial) {
       for (i = 0; i < n; i++)
 	if (mask[i] & groupbit)
@@ -687,16 +687,16 @@ void FixNPT::box_dilate(int flag)
     if (nrigid)
       for (i = 0; i < nrigid; i++)
 	modify->fix[rfix[i]]->
-	  dilate(1,oldlo,oldhi,domain->boxylo,domain->boxyhi);
+	  dilate(1,oldlo,oldhi,domain->boxlo[1],domain->boxhi[1]);
   }
 
   if (domain->zperiodic && p_flag[2]) {
-    oldlo = domain->boxzlo;
-    oldhi = domain->boxzhi;
+    oldlo = domain->boxlo[2];
+    oldhi = domain->boxhi[2];
     ctr = 0.5 * (oldlo + oldhi);
-    domain->boxzlo = (oldlo-ctr)*dilation[2] + ctr;
-    domain->boxzhi = (oldhi-ctr)*dilation[2] + ctr;
-    domain->zprd = domain->boxzhi - domain->boxzlo;
+    domain->boxlo[2] = (oldlo-ctr)*dilation[2] + ctr;
+    domain->boxhi[2] = (oldhi-ctr)*dilation[2] + ctr;
+    domain->prd[2] = domain->zprd = domain->boxhi[2] - domain->boxlo[2];
     if (dilate_partial) {
       for (i = 0; i < n; i++)
 	if (mask[i] & groupbit)
@@ -708,7 +708,7 @@ void FixNPT::box_dilate(int flag)
     if (nrigid)
       for (i = 0; i < nrigid; i++)
 	modify->fix[rfix[i]]->
-	  dilate(2,oldlo,oldhi,domain->boxzlo,domain->boxzhi);
+	  dilate(2,oldlo,oldhi,domain->boxlo[2],domain->boxhi[2]);
   }
 }
 

@@ -59,8 +59,8 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boundary[2][0] = boundary[2][1] = 0;
 
   triclinic = 0;
-  boxxlo = boxylo = boxzlo = -0.5;
-  boxxhi = boxyhi = boxzhi = 0.5;
+  boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
+  boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
   xy = xz = yz = 0.0;
 
   prd_lamda[0] = prd_lamda[1] = prd_lamda[2] = 1.0;
@@ -103,7 +103,7 @@ void Domain::set_initial_box()
 {
   // error checks for orthogonal and triclinic domains
 
-  if (boxxlo >= boxxhi || boxylo >= boxyhi || boxzlo >= boxzhi)
+  if (boxlo[0] >= boxhi[0] || boxlo[1] >= boxhi[1] || boxlo[2] >= boxhi[2])
     error->one("Box bounds are invalid");
 
   if (triclinic) {
@@ -116,30 +116,30 @@ void Domain::set_initial_box()
     if (yz != 0.0 && (!yperiodic || !zperiodic))
       error->all("Triclinic box must be periodic in skewed dimensions");
 
-    if (fabs(xy/(boxyhi-boxylo)) > 0.5)
+    if (fabs(xy/(boxhi[1]-boxlo[1])) > 0.5)
       error->all("Triclinic box skew is too large");
-    if (fabs(xz/(boxzhi-boxzlo)) > 0.5)
+    if (fabs(xz/(boxhi[2]-boxlo[2])) > 0.5)
       error->all("Triclinic box skew is too large");
-    if (fabs(yz/(boxzhi-boxzlo)) > 0.5)
+    if (fabs(yz/(boxhi[2]-boxlo[2])) > 0.5)
       error->all("Triclinic box skew is too large");
   }
 
   // adjust box lo/hi for shrink-wrapped dims
 
-  if (boundary[0][0] == 2) boxxlo -= SMALL;
-  else if (boundary[0][0] == 3) minxlo = boxxlo;
-  if (boundary[0][1] == 2) boxxhi += SMALL;
-  else if (boundary[0][1] == 3) minxhi = boxxhi;
+  if (boundary[0][0] == 2) boxlo[0] -= SMALL;
+  else if (boundary[0][0] == 3) minxlo = boxlo[0];
+  if (boundary[0][1] == 2) boxhi[0] += SMALL;
+  else if (boundary[0][1] == 3) minxhi = boxhi[0];
 
-  if (boundary[1][0] == 2) boxylo -= SMALL;
-  else if (boundary[1][0] == 3) minylo = boxylo;
-  if (boundary[1][1] == 2) boxyhi += SMALL;
-  else if (boundary[1][1] == 3) minyhi = boxyhi;
+  if (boundary[1][0] == 2) boxlo[1] -= SMALL;
+  else if (boundary[1][0] == 3) minylo = boxlo[1];
+  if (boundary[1][1] == 2) boxhi[1] += SMALL;
+  else if (boundary[1][1] == 3) minyhi = boxhi[1];
 
-  if (boundary[2][0] == 2) boxzlo -= SMALL;
-  else if (boundary[2][0] == 3) minzlo = boxzlo;
-  if (boundary[2][1] == 2) boxzhi += SMALL;
-  else if (boundary[2][1] == 3) minzhi = boxzhi;
+  if (boundary[2][0] == 2) boxlo[2] -= SMALL;
+  else if (boundary[2][0] == 3) minzlo = boxlo[2];
+  if (boundary[2][1] == 2) boxhi[2] += SMALL;
+  else if (boundary[2][1] == 3) minzhi = boxhi[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -149,16 +149,13 @@ void Domain::set_initial_box()
 
 void Domain::set_global_box()
 {
-  prd[0] = xprd = boxxhi - boxxlo;
-  prd[1] = yprd = boxyhi - boxylo;
-  prd[2] = zprd = boxzhi - boxzlo;
+  prd[0] = xprd = boxhi[0] - boxlo[0];
+  prd[1] = yprd = boxhi[1] - boxlo[1];
+  prd[2] = zprd = boxhi[2] - boxlo[2];
 
   xprd_half = 0.5*xprd;
   yprd_half = 0.5*yprd;
   zprd_half = 0.5*zprd;
-
-  boxlo[0] = boxxlo;  boxlo[1] = boxylo;  boxlo[2] = boxzlo;
-  boxhi[0] = boxxhi;  boxhi[1] = boxyhi;  boxhi[2] = boxzhi;
 
   if (triclinic) {
     h[0] = xprd;
@@ -286,25 +283,25 @@ void Domain::reset_box()
     // if set, observe min box size settings
     
     if (xperiodic == 0) {
-      if (boundary[0][0] == 2) boxxlo = -all[0][0] - SMALL;
-      else if (boundary[0][0] == 3) boxxlo = MIN(-all[0][0]-SMALL,minxlo);
-      if (boundary[0][1] == 2) boxxhi = all[0][1] + SMALL;
-      else if (boundary[0][1] == 3) boxxhi = MAX(all[0][1]+SMALL,minxhi);
-      if (boxxlo > boxxhi) error->all("Illegal simulation box");
+      if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - SMALL;
+      else if (boundary[0][0] == 3) boxlo[0] = MIN(-all[0][0]-SMALL,minxlo);
+      if (boundary[0][1] == 2) boxhi[0] = all[0][1] + SMALL;
+      else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+SMALL,minxhi);
+      if (boxlo[0] > boxhi[0]) error->all("Illegal simulation box");
     }
     if (yperiodic == 0) {
-      if (boundary[1][0] == 2) boxylo = -all[1][0] - SMALL;
-      else if (boundary[1][0] == 3) boxylo = MIN(-all[1][0]-SMALL,minylo);
-      if (boundary[1][1] == 2) boxyhi = all[1][1] + SMALL;
-      else if (boundary[1][1] == 3) boxyhi = MAX(all[1][1]+SMALL,minyhi);
-      if (boxylo > boxyhi) error->all("Illegal simulation box");
+      if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - SMALL;
+      else if (boundary[1][0] == 3) boxlo[1] = MIN(-all[1][0]-SMALL,minylo);
+      if (boundary[1][1] == 2) boxhi[1] = all[1][1] + SMALL;
+      else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+SMALL,minyhi);
+      if (boxlo[1] > boxhi[1]) error->all("Illegal simulation box");
     }
     if (zperiodic == 0) {
-      if (boundary[2][0] == 2) boxzlo = -all[2][0] - SMALL;
-      else if (boundary[2][0] == 3) boxzlo = MIN(-all[2][0]-SMALL,minzlo);
-      if (boundary[2][1] == 2) boxzhi = all[2][1] + SMALL;
-      else if (boundary[2][1] == 3) boxzhi = MAX(all[2][1]+SMALL,minzhi);
-      if (boxzlo > boxzhi) error->all("Illegal simulation box");
+      if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - SMALL;
+      else if (boundary[2][0] == 3) boxlo[2] = MIN(-all[2][0]-SMALL,minzlo);
+      if (boundary[2][1] == 2) boxhi[2] = all[2][1] + SMALL;
+      else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+SMALL,minzhi);
+      if (boxlo[2] > boxhi[2]) error->all("Illegal simulation box");
     }
   }
 
@@ -751,23 +748,25 @@ void Domain::print_box(char *str)
     if (screen) {
       if (domain->triclinic == 0)
 	fprintf(screen,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
-		str,boxxlo,boxylo,boxzlo,boxxhi,boxyhi,boxzhi);
+		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
       else {
 	char *format = 
 	  "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
 	fprintf(screen,format,
-		str,boxxlo,boxylo,boxzlo,boxxhi,boxyhi,boxzhi,xy,xz,yz);
+		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
+		xy,xz,yz);
       }
     }
     if (logfile) {
       if (triclinic == 0)
 	fprintf(logfile,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
-		str,boxxlo,boxylo,boxzlo,boxxhi,boxyhi,boxzhi);
+		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
       else {
 	char *format = 
 	  "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
 	fprintf(logfile,format,
-		str,boxxlo,boxylo,boxzlo,boxxhi,boxyhi,boxzhi,xy,xz,yz);
+		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
+		xy,xz,yz);
       }
     }
   }

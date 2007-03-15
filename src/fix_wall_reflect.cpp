@@ -76,12 +76,12 @@ void FixWallReflect::init()
 
 void FixWallReflect::initial_integrate()
 {
-  double xlo = domain->boxxlo;
-  double xhi = domain->boxxhi;
-  double ylo = domain->boxylo;
-  double yhi = domain->boxyhi;
-  double zlo = domain->boxzlo;
-  double zhi = domain->boxzhi;
+  double xlo = domain->boxlo[0];
+  double xhi = domain->boxhi[0];
+  double ylo = domain->boxlo[1];
+  double yhi = domain->boxhi[1];
+  double zlo = domain->boxlo[2];
+  double zhi = domain->boxhi[2];
 
   double **x = atom->x;
   double **v = atom->v;

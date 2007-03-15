@@ -1326,42 +1326,42 @@ void Thermo::compute_lz()
 
 void Thermo::compute_xlo()
 {
-  dvalue = domain->boxxlo;
+  dvalue = domain->boxlo[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_xhi()
 {
-  dvalue = domain->boxxhi;
+  dvalue = domain->boxhi[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_ylo()
 {
-  dvalue = domain->boxylo;
+  dvalue = domain->boxlo[1];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_yhi()
 {
-  dvalue = domain->boxyhi;
+  dvalue = domain->boxhi[1];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_zlo()
 {
-  dvalue = domain->boxzlo;
+  dvalue = domain->boxlo[2];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_zhi()
 {
-  dvalue = domain->boxzhi;
+  dvalue = domain->boxhi[2];
 }
 
 /* ---------------------------------------------------------------------- */

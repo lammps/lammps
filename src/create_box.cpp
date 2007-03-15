@@ -61,22 +61,22 @@ void CreateBox::command(int narg, char **arg)
   //   set simulation domain params from prism params
 
   if (strcmp(domain->regions[iregion]->style,"prism") != 0) {
-    domain->boxxlo = domain->regions[iregion]->extent_xlo;
-    domain->boxxhi = domain->regions[iregion]->extent_xhi;
-    domain->boxylo = domain->regions[iregion]->extent_ylo;
-    domain->boxyhi = domain->regions[iregion]->extent_yhi;
-    domain->boxzlo = domain->regions[iregion]->extent_zlo;
-    domain->boxzhi = domain->regions[iregion]->extent_zhi;
+    domain->boxlo[0] = domain->regions[iregion]->extent_xlo;
+    domain->boxhi[0] = domain->regions[iregion]->extent_xhi;
+    domain->boxlo[1] = domain->regions[iregion]->extent_ylo;
+    domain->boxhi[1] = domain->regions[iregion]->extent_yhi;
+    domain->boxlo[2] = domain->regions[iregion]->extent_zlo;
+    domain->boxhi[2] = domain->regions[iregion]->extent_zhi;
 
   } else {
     domain->triclinic = 1;
     RegPrism *region = (RegPrism *) domain->regions[iregion];
-    domain->boxxlo = region->xlo;
-    domain->boxxhi = region->xhi;
-    domain->boxylo = region->ylo;
-    domain->boxyhi = region->yhi;
-    domain->boxzlo = region->zlo;
-    domain->boxzhi = region->zhi;
+    domain->boxlo[0] = region->xlo;
+    domain->boxhi[0] = region->xhi;
+    domain->boxlo[1] = region->ylo;
+    domain->boxhi[1] = region->yhi;
+    domain->boxlo[2] = region->zlo;
+    domain->boxhi[2] = region->zhi;
     domain->xy = region->xy;
     domain->xz = region->xz;
     domain->yz = region->yz;

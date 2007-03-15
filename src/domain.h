@@ -42,18 +42,13 @@ class Domain : protected Pointers {
   double prd[3];                         // array form of dimensions
 
                                          // triclinic box
-                                         // xprd,half,prd = same
-                                         // (as if untilted)
+                                         // xprd,half,prd = same (as if untilt)
   double prd_lamda[3];                   // lamda box = (1,1,1)
 
-  double boxxlo,boxxhi;                  // orthogonal box
-  double boxylo,boxyhi;                  // global box bounds
-  double boxzlo,boxzhi;
-  double boxlo[3],boxhi[3];              // array form of box bounds
+  double boxlo[3],boxhi[3];              // orthogonal box global bounds
 
                                          // triclinic box
-                                         // boxxlo/hi,boxlo/hi = same
-                                         // (as if untilted)
+                                         // boxlo/hi = same (as if untilted)
   double boxlo_lamda[3],boxhi_lamda[3];  // lamda box = (0,1)
   double boxlo_bound[3],boxhi_bound[3];  // bounding box of tilted domain
 

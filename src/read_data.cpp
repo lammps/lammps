@@ -353,11 +353,11 @@ void ReadData::header(int flag)
     else if (strstr(line,"improper types")) 
       sscanf(line,"%d",&atom->nimpropertypes);
     else if (strstr(line,"xlo xhi")) 
-      sscanf(line,"%lg %lg",&domain->boxxlo,&domain->boxxhi);
+      sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);
     else if (strstr(line,"ylo yhi")) 
-      sscanf(line,"%lg %lg",&domain->boxylo,&domain->boxyhi);
+      sscanf(line,"%lg %lg",&domain->boxlo[1],&domain->boxhi[1]);
     else if (strstr(line,"zlo zhi")) 
-      sscanf(line,"%lg %lg",&domain->boxzlo,&domain->boxzhi);
+      sscanf(line,"%lg %lg",&domain->boxlo[2],&domain->boxhi[2]);
     else if (strstr(line,"xy xz yz")) {
       domain->triclinic = 1;
       sscanf(line,"%lg %lg %lg",&domain->xy,&domain->xz,&domain->yz);

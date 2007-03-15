@@ -122,12 +122,12 @@ void Dump::write()
   // simulation box bounds
 
   if (domain->triclinic == 0) {
-    boxxlo = domain->boxxlo;
-    boxxhi = domain->boxxhi;
-    boxylo = domain->boxylo;
-    boxyhi = domain->boxyhi;
-    boxzlo = domain->boxzlo;
-    boxzhi = domain->boxzhi;
+    boxxlo = domain->boxlo[0];
+    boxxhi = domain->boxhi[0];
+    boxylo = domain->boxlo[1];
+    boxyhi = domain->boxhi[1];
+    boxzlo = domain->boxlo[2];
+    boxzhi = domain->boxhi[2];
   } else {
     boxxlo = domain->boxlo_bound[0];
     boxxhi = domain->boxhi_bound[0];

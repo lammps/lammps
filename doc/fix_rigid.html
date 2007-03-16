@@ -44,7 +44,7 @@ for simulating a system of colloidal particles.
 </P>
 <P>This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
-atoms via other fixes (e.g. nve, nvt, npt, temp/rescale, langevin).
+atoms via other fixes (e.g. nve, nvt, npt).
 </P>
 <P>Each body must have two or more atoms.  Which atoms are in which
 bodies can be defined via several options.
@@ -78,12 +78,12 @@ of three or more atoms, one degree-of-freedom must be added using a
 such rigid bodies, use "temp_modify mine extra -7", where 3 is the 
 default setting and -10 degrees-of-freedom are subtracted).
 </P>
-<P>Note that this fix uses constant-energy integration, so you need to
-impose additional constraints to control the temperature of an
+<P>Note that this fix uses constant-energy integration, so you may need
+to impose additional constraints to control the temperature of an
 ensemble of rigid bodies.  You can use <A HREF = "fix_langevin.html">fix
 langevin</A> for this purpose to treat the system as
 effectively immersed in an implicit solvent, i.e. a Brownian dynamics
-model.  Or you can thermostat the atoms of an explicit solvent
+model.  Or you can thermostat additional atoms of an explicit solvent
 directly.
 </P>
 <P><B>Restrictions:</B>

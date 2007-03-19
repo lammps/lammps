@@ -785,7 +785,7 @@ int DumpCustom::add_compute(char *keyword, int appendflag)
 /* ----------------------------------------------------------------------
    create a compute
    compute ID = dump-ID + "_" + keyword, compute style = keyword
-   pass additional extra args to Modify::add_compute() if defined
+   pass additional extra arg to Modify::add_compute() if defined
 ------------------------------------------------------------------------- */
 
 void DumpCustom::create_compute(char *keyword, char *extra)
@@ -800,10 +800,20 @@ void DumpCustom::create_compute(char *keyword, char *extra)
   newarg[0] = name;
   newarg[1] = group->names[igroup];
   newarg[2] = keyword;
-  if (extra) newarg[3] = extra;
+
+  if (extra) {
+    n = strlen(id) + strlen(extra) + 2;
+    newarg[3] = new char[n];
+    strcpy(newarg[3],id);
+    strcat(newarg[3],"_");
+    strcat(newarg[3],extra);
+  } else newarg[3] = NULL;
+
   if (extra) modify->add_compute(4,newarg);
   else modify->add_compute(3,newarg);
+
   delete [] name;
+  delete [] newarg[3];
   delete [] newarg;
 }
 

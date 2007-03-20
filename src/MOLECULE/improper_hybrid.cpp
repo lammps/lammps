@@ -185,7 +185,8 @@ void ImproperHybrid::coeff(int which, int narg, char **arg)
     sprintf(arg[1],"%d",i);
     map[i] = m;
     if (styles[m]) styles[m]->coeff(which,narg-1,&arg[1]);
-    setflag[i] = 1;
+    if (styles[m] == NULL) setflag[i] = 1;
+    else setflag[i] = styles[m]->setflag[i];
   }
 }
 

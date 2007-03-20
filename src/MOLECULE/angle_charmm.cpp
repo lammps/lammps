@@ -208,7 +208,7 @@ void AngleCharmm::allocate()
 
 void AngleCharmm::coeff(int which, int narg, char **arg)
 {
-  if (which != 0) error->all("Invalid coeffs for this angle style");
+  if (which > 0) return;
   if (narg != 5) error->all("Incorrect args for angle coefficients");
   if (!allocated) allocate();
 

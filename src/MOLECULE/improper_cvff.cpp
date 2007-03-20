@@ -301,7 +301,7 @@ void ImproperCvff::allocate()
 
 void ImproperCvff::coeff(int which, int narg, char **arg)
 {
-  if (which != 0) error->all("Invalid coeffs for this improper style");
+  if (which > 0) return;
   if (narg != 4) error->all("Incorrect args for improper coefficients");
   if (!allocated) allocate();
 

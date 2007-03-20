@@ -238,7 +238,7 @@ void ImproperHarmonic::allocate()
 
 void ImproperHarmonic::coeff(int which, int narg, char **arg)
 {
-  if (which != 0) error->all("Invalid coeffs for this improper style");
+  if (which > 0) return;
   if (narg != 3) error->all("Incorrect args for improper coefficients");
   if (!allocated) allocate();
 

@@ -340,7 +340,7 @@ void DihedralCharmm::allocate()
 
 void DihedralCharmm::coeff(int which, int narg, char **arg)
 {
-  if (which != 0) error->all("Invalid coeffs for this dihedral style");
+  if (which > 0) return;
   if (narg != 5) error->all("Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 

@@ -40,6 +40,14 @@ angle type 1 to be computed with a <I>harmonic</I> potential with
 coefficients 80.0, 1.2 for K, r0.  All other angle types (2-N) would
 be computed with a <I>cosine</I> potential with coefficient 50.0 for K.
 </P>
+<P>If the angle <I>class2</I> potential is one of the hybrid styles, it
+requires additional BondBond and BondAngle coefficients be specified
+in the data file.  These lines must also have an additional "class2"
+argument added after the angle type.  For angle types which are
+assigned to other hybrid styles, use the style name (e.g. "harmonic")
+appropriate to that style.  The BondBond and BondAngle coeffs for that
+angle type will then be ignored.
+</P>
 <P>An angle style of <I>none</I> can be specified as an argument to
 angle_style hybrid and the corresponding angle_coeff commands, if you
 desire to turn off certain angle types.

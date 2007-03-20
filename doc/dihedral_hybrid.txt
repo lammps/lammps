@@ -38,6 +38,15 @@ potential with coefficients 80.0, 1.2 for K, d, n.  Dihedral type 2
 would be computed with a {helix} potential with coefficients 10.0,
 10.0, 10.0 for A, B, C.
 
+If the dihedral {class2} potential is one of the hybrid styles, it
+requires additional MiddleBondTorsion, EndBondTorsion, AngleTorsion,
+AngleAngleTorsion, and BondBond13 coefficients be specified in the
+data file.  These lines must also have an additional "class2" argument
+added after the dihedral type.  For dihedral types which are assigned
+to other hybrid styles, use the style name (e.g. "harmonic")
+appropriate to that style.  The MiddleBondTorsion, etc coeffs for that
+dihedral type will then be ignored.
+
 A dihedral style of {none} can be specified as an argument to
 dihedral_style hybrid and the corresponding dihedral_coeff commands,
 if you desire to turn off certain dihedral types.

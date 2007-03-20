@@ -41,6 +41,14 @@ potential with coefficients 120.0, 30 for K, X0.  Improper type 2
 would be computed with a <I>cvff</I> potential with coefficients 20.0, -1,
 2 for K, d, n.
 </P>
+<P>If the improper <I>class2</I> potential is one of the hybrid styles, it
+requires additional AngleAngle coefficients be specified in the data
+file.  These lines must also have an additional "class2" argument
+added after the improper type.  For improper types which are assigned
+to other hybrid styles, use the style name (e.g. "harmonic")
+appropriate to that style.  The AngleAngle coeffs for that improper
+type will then be ignored.
+</P>
 <P>An improper style of <I>none</I> can be specified as an argument to
 improper_style hybrid and the corresponding improper_coeff commands,
 if you desire to turn off certain improper types.

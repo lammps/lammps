@@ -5,22 +5,20 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-# Openmpi on tbird does not work correctly with Lammps; mvapich should be used.
-# This is done through module commands.
-# fftw-2.1.5-openmpi-1.1.2-ofed-intel-9.1 can be used,
-#   in spite of openmpi in the name.
+# openmpi on tbird does not work correctly with LAMMPS
+# mvapich should be used
 #
 # Before building Lammps on tbird, do the following two module commands:
 #     "module switch mpi mpi/mvapich-0.9.8-ofed-intel-9.1"
 #     "module load libraries/fftw-2.1.5-openmpi-1.1.2-ofed-intel-9.1"
+#     Note: this fftw is correct, despite the openmpi in the name
 #
-# Before issuing a mpiexec command for Lammps,
-# the following commands are needed:
+# Before issuing a mpiexec command for Lammps, use the following commands:
 #     "source /opt/modules/3.1.6/init/bash"
 #     "module switch mpi mpi/mvapich-0.9.8-ofed-intel-9.1"
 #     "module load libraries/fftw-2.1.5-openmpi-1.1.2-ofed-intel-9.1" 
-# If bash is not your shell, or the one specified in the script,
-#    substitute the shell name for bash.
+# If bash is not interactive shell, or the one specified in your NQS script,
+#    substitute another shell name for bash
 
 CC =		mpicxx
 CCFLAGS =	-O -DFFT_FFTW -I${FFTW_INCLUDE}

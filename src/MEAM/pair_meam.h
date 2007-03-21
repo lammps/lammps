@@ -56,7 +56,7 @@ class PairMEAM : public Pair {
   double init_one(int, int);
   void init_style();
 
-  int pack_comm(int, int *, double *, int *);
+  int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
@@ -85,7 +85,6 @@ class PairMEAM : public Pair {
   void read_files(char *, char *);
   void neigh_f2c(int *, int **);
   void neigh_c2f(int *, int **);
-
 };
 
 }

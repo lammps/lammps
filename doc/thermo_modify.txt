@@ -116,8 +116,7 @@ default.
 
 [Related commands:]
 
-"thermo"_thermo.html, "thermo_style"_thermo_style.html,
-"temperature"_temperature.html
+"thermo"_thermo.html, "thermo_style"_thermo_style.html
 
 [Default:]
 

@@ -151,9 +151,10 @@ void Group::assign(int narg, char **arg)
 
   // style = logical condition
 
-  } else if (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 || 
-	     strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 || 
-	     strcmp(arg[2],"<>") == 0) {
+  } else if (narg >= 3 && 
+	     (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 || 
+	      strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 || 
+	      strcmp(arg[2],"<>") == 0)) {
 
     if (narg < 4 || narg > 5) error->all("Illegal group command");
     int category,condition,bound1,bound2;

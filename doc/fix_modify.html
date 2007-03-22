@@ -19,18 +19,18 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>temp</I> or <I>press</I> or <I>thermo</I> 
+<LI>keyword = <I>temp</I> or <I>press</I> or <I>energy</I> 
 
 <PRE>  <I>temp</I> value = compute ID that calculates a temperature
   <I>press</I> value = compute ID that calculates a pressure
-  <I>thermo</I> value = <I>yes</I> or <I>no</I> 
+  <I>energy</I> value = <I>yes</I> or <I>no</I> 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix_modify 3 temp myTemp press myPress
-fix_modify 1 thermo yes 
+fix_modify 1 energy yes 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -54,7 +54,7 @@ documentation.  Thus this option allows the user to override the
 default method for computing P.
 </P>
 <P>For fixes that calculates a contribution to the potential energy of
-the system, the <I>thermo</I> keyword will include that contribution in
+the system, the <I>energy</I> keyword will include that contribution in
 thermodyanmic output of the potential energy, as invoked by the
 <A HREF = "thermo_style.html">thermo_style</A> command.  The value of the
 contribution can also be printed by itself using the <A HREF = "thermo_style.html">thermo_style
@@ -72,6 +72,6 @@ potential energy.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are temp = ID defined by fix, press = ID defined
-by fix, thermo = no.
+by fix, energy = no.
 </P>
 </HTML>

@@ -14,16 +14,16 @@ fix_modify fix-ID keyword value ... :pre
 
 fix-ID = ID of the fix to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {press} or {thermo} :l
+keyword = {temp} or {press} or {energy} :l
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
-  {thermo} value = {yes} or {no} :pre
+  {energy} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
 
 fix_modify 3 temp myTemp press myPress
-fix_modify 1 thermo yes :pre
+fix_modify 1 energy yes :pre
 
 [Description:]
 
@@ -47,7 +47,7 @@ documentation.  Thus this option allows the user to override the
 default method for computing P.
 
 For fixes that calculates a contribution to the potential energy of
-the system, the {thermo} keyword will include that contribution in
+the system, the {energy} keyword will include that contribution in
 thermodyanmic output of the potential energy, as invoked by the
 "thermo_style"_thermo_style.html command.  The value of the
 contribution can also be printed by itself using the "thermo_style
@@ -65,4 +65,4 @@ potential energy.
 [Default:]
 
 The option defaults are temp = ID defined by fix, press = ID defined
-by fix, thermo = no.
+by fix, energy = no.

@@ -28,10 +28,12 @@ class FixSetForce : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  double thermo(int);
 
  private:
   int flagx,flagy,flagz;
   double xvalue,yvalue,zvalue;
+  double foriginal[3];
   int nlevels_respa;
 };
 

@@ -11,7 +11,7 @@ SHELL = /bin/sh
 
 # ------ FILES ------
 
-SRC = meam_data.F meam_setup_done.F meam_setup_global.F meam_setup_param.F meam_dens_init.F meam_dens_final.F meam_force.F
+SRC = meam_data.F meam_setup_done.F meam_setup_global.F meam_setup_param.F meam_dens_init.F meam_dens_final.F meam_force.F meam_cleanup.F
 
 FILES = $(SRC) Makefile 
 
@@ -23,7 +23,7 @@ OBJ =   $(SRC:.F=.o)
 # ------ SETTINGS ------
 
 F90 =           gfortran
-F90FLAGS =      -g -fno-second-underscore
+F90FLAGS =      -O -fno-second-underscore
 #F90FLAGS =      -O 
 ARCHIVE =	ar
 ARCHFLAG =	-rc

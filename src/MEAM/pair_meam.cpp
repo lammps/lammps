@@ -76,6 +76,8 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairMEAM::~PairMEAM()
 {
+  meam_cleanup_();
+
   memory->sfree(rho);
   memory->sfree(rho0);
   memory->sfree(rho1);

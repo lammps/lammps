@@ -40,7 +40,10 @@ extern "C" {
 		   double *, double *, double *, double *, double *, double *,
 		   double *, double *, double *, double *, double *, double *,
 		   double *, double *, double *, double *, double *, int *);
+
+  void meam_cleanup_();
 }
+
 
 #include "pair.h"
 

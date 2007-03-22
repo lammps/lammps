@@ -569,7 +569,7 @@ double Variable::evaluate(char *str, Tree *tree)
 
     // customize by adding group function to this list and to if statement
     //   mass(group),charge(group),xcm(group,dim),vcm(group,dim),
-    //   bound(group,xmin),gyration(group)
+    //   fcm(group,dim),bound(group,xmin),gyration(group)
 
     } else if (strcmp(func,"mass") == 0) {
       if (arg2) error->all("Cannot evaluate variable");
@@ -608,6 +608,17 @@ double Variable::evaluate(char *str, Tree *tree)
       if (strcmp(arg2,"x") == 0) answer = vcm[0];
       else if (strcmp(arg2,"y") == 0) answer = vcm[1];
       else if (strcmp(arg2,"z") == 0) answer = vcm[2];
+      else error->all("Cannot evaluate variable");
+
+    } else if (strcmp(func,"fcm") == 0) {
+      if (!arg2) error->all("Cannot evaluate variable");
+      int igroup = group->find(arg1);
+      if (igroup == -1) error->all("Variable group ID does not exist");
+      double fcm[3];
+      group->fcm(igroup,fcm);
+      if (strcmp(arg2,"x") == 0) answer = fcm[0];
+      else if (strcmp(arg2,"y") == 0) answer = fcm[1];
+      else if (strcmp(arg2,"z") == 0) answer = fcm[2];
       else error->all("Cannot evaluate variable");
 
     } else if (strcmp(func,"bound") == 0) {

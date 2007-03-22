@@ -647,6 +647,31 @@ void Group::vcm(int igroup, double masstotal, double *cm)
 }
 
 /* ----------------------------------------------------------------------
+   compute the total force on group of atoms
+------------------------------------------------------------------------- */
+
+void Group::fcm(int igroup, double *cm)
+{
+  int groupbit = bitmask[igroup];
+
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double flocal[3];
+  flocal[0] = flocal[1] = flocal[2] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      flocal[0] += f[i][0];
+      flocal[1] += f[i][1];
+      flocal[2] += f[i][2];
+    }
+
+  MPI_Allreduce(flocal,cm,3,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
    compute the radius-of-gyration of group around center-of-mass cm
    must unwrap atoms to compute Rg correctly
 ------------------------------------------------------------------------- */

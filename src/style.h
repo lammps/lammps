@@ -145,6 +145,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_nph.h"
 #include "fix_npt.h"
 #include "fix_nve.h"
+#include "fix_nve_noforce.h"
 #include "fix_nvt.h"
 #include "fix_plane_force.h"
 #include "fix_print.h"
@@ -192,6 +193,7 @@ FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)
 FixStyle(npt,FixNPT)
 FixStyle(nve,FixNVE)
+FixStyle(nve,FixNVENoforce)
 FixStyle(nvt,FixNVT)
 FixStyle(orient/fcc,FixOrientFCC)
 FixStyle(print,FixPrint)

@@ -24,8 +24,9 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
                      neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-    group functions = mass(group), charge(group), xcm(group,dim),
-                      vcm(group,dim), bound(group,xmin), gyration(group)
+    group functions = mass(group), charge(group),
+		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
+		      bound(group,xmin), gyration(group)
     atom vectors for {equal} = mass\[N\], x\[N\], y\[N\], z\[N\],
                                vx\[N\], vy\[N\], vz\[N\],
 			       fx\[N\], fy\[N\], fz\[N\]
@@ -190,7 +191,7 @@ Number: 0.2, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
 Math functions: add(x,y), sub(x,y), mult(x,y), div(x,y), \
   neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-Group functions: mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), \
+Group functions: mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim) \
   bound(ID,dir), gyration(ID)
 Atom vectors for {equal}: mass\[N\], x\[N\], y\[N\], z\[N\], \
                           vx\[N\], vy\[N\], vz\[N\], \
@@ -218,8 +219,9 @@ group-ID.  The {dim} argument is {x} or {y} or {z}.  The {dir}
 argument is {xmin}, {xmax}, {ymin}, {ymax}, {zmin}, or {zmax}.  The
 group functions mass() and charge() are the total mass and charge of
 the group of atoms.  Xcm() and vcm() return components of the position
-and velocity of the center of mass of the group.  Bound() returns the
-min/max of a particular coordinate for all atoms in the group.
+and velocity of the center of mass of the group.  Fcm() returns a
+component of the total force on the group of atoms.  Bound() returns
+the min/max of a particular coordinate for all atoms in the group.
 Gyration() computes the radius-of-gyration of the group of atoms.  See
 the "fix gyration"_fix_gyration.html command for the formula.
 

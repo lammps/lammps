@@ -29,8 +29,9 @@
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
     math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
                      neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-    group functions = mass(group), charge(group), xcm(group,dim),
-                      vcm(group,dim), bound(group,xmin), gyration(group)
+    group functions = mass(group), charge(group),
+		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
+		      bound(group,xmin), gyration(group)
     atom vectors for <I>equal</I> = mass[N], x[N], y[N], z[N],
                                vx[N], vy[N], vz[N],
 			       fx[N], fy[N], fz[N]
@@ -196,7 +197,7 @@ variables; the syntax of Atom vector references is different.
 <TR><TD >Number</TD><TD > 0.2, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math functions</TD><TD > add(x,y), sub(x,y), mult(x,y), div(x,y),   neg(x), pow(x,y), exp(x), ln(x), sqrt(x)</TD></TR>
-<TR><TD >Group functions</TD><TD > mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim),   bound(ID,dir), gyration(ID)</TD></TR>
+<TR><TD >Group functions</TD><TD > mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim)   bound(ID,dir), gyration(ID)</TD></TR>
 <TR><TD >Atom vectors for <I>equal</I></TD><TD > mass[N], x[N], y[N], z[N],                           vx[N], vy[N], vz[N],                           fx[N], fy[N], fz[N]</TD></TR>
 <TR><TD >Atom vectors for <I>atom</I></TD><TD >  mass[], x[], y[], z[],                           vx[], vy[], vz[],                           fx[], fy[], fz[]</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID[0], c_ID[N]</TD></TR>
@@ -220,8 +221,9 @@ group-ID.  The <I>dim</I> argument is <I>x</I> or <I>y</I> or <I>z</I>.  The <I>
 argument is <I>xmin</I>, <I>xmax</I>, <I>ymin</I>, <I>ymax</I>, <I>zmin</I>, or <I>zmax</I>.  The
 group functions mass() and charge() are the total mass and charge of
 the group of atoms.  Xcm() and vcm() return components of the position
-and velocity of the center of mass of the group.  Bound() returns the
-min/max of a particular coordinate for all atoms in the group.
+and velocity of the center of mass of the group.  Fcm() returns a
+component of the total force on the group of atoms.  Bound() returns
+the min/max of a particular coordinate for all atoms in the group.
 Gyration() computes the radius-of-gyration of the group of atoms.  See
 the <A HREF = "fix_gyration.html">fix gyration</A> command for the formula.
 </P>

@@ -86,6 +86,7 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix nve"_fix_nve.html - constant NVE time integration
 "fix nve/gran"_fix_nve_gran.html - NVE time integration for \
      granular systems
+"fix nve/noforce"_fix_nve_noforce.html - NVE integration without forces (v only)
 "fix nvt"_fix_nvt.html - constant NVT time integration via Nose/Hoover
 "fix orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
 "fix planeforce"_fix_planeforce.html - constrain atoms to move in a plane

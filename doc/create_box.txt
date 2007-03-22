@@ -17,7 +17,7 @@ region-ID = ID of region to use as simulation domain :ul
 
 [Examples:]
 
-create_atoms 2 mybox :pre
+create_box 2 mybox :pre
 
 [Description:]
 

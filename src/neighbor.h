@@ -30,6 +30,7 @@ class Neighbor : protected Pointers {
 
   double skin;                     // skin distance
   double cutghost;                 // distance for acquiring ghost atoms
+  double *cuttype;                 // for each type, max neigh cut w/ others
 
   int ncalls;                      // # of times build has been called
   int ndanger;                     // # of dangerous builds
@@ -94,11 +95,13 @@ class Neighbor : protected Pointers {
   int fix_check;                   // # of fixes that induce reneigh
   int *fixchecklist;               // which fixes to check
 
-  double **cutneigh;               // neighbor cutoff for type pairs
-  double **cutneighsq;             // cutneigh squared
-  double cutneighmax;              // max neighbor cutoff for all type pairs
+  double **cutneighsq;             // neighbor cutneigh sq for each type pair
   double cutneighmin;              // min neighbor cutoff (for cutforce > 0)
-  double triggersq;                // trigger build when atom moves this dist
+  double cutneighmax;              // max neighbor cutoff for all type pairs
+  double cutneighmaxsq;            // cutneighmax squared
+  double *cuttypesq;               // cuttype squared
+
+  double triggersq;                // trigger = build when atom moves this dist
 
   double **xhold;                  // atom coords at last neighbor build
   int maxhold;                     // size of xhold array
@@ -122,15 +125,21 @@ class Neighbor : protected Pointers {
 
   int nstencil;                    // # of bins in half neighbor stencil
   int *stencil;                    // list of bin offsets
-  int maxstencil;                  // size of stencil
+  int maxstencil;                  // max size of stencil
 
   int nstencil_full;               // # of bins in full neighbor stencil
   int *stencil_full;               // list of bin offsets
-  int maxstencil_full;             // size of stencil
+  int maxstencil_full;             // max size of stencil
 
-  int *mstencils;                  // # bins in each type-based multi stencil
-  int **mstencil;                  // list of bin offsets in each stencil
-  double **mdist;                  // list of distances to bins in each stencil
+  int *nstencil_multi;             // # bins in each type-based multi stencil
+  int **stencil_multi;             // list of bin offsets in each stencil
+  double **distsq_multi;           // sq distances to bins in each stencil
+  int maxstencil_multi;            // max sizes of stencils
+
+  int *nstencil_full_multi;        // # bins in full type-based multi stencil
+  int **stencil_full_multi;        // list of bin offsets in each stencil
+  double **distsq_full_multi;      // sq distances to bins in each stencil
+  int maxstencil_full_multi;       // max sizes of stencils
 
   int **pages;                     // half neighbor list pages
   int maxpage;                     // # of half pages currently allocated
@@ -143,6 +152,7 @@ class Neighbor : protected Pointers {
                                          // else is ptr to fix shear history
   int **pages_touch;               // pages of touch flags
   double **pages_shear;            // pages of shear values
+  int maxpage_history;             // # of history pages currently allocated
 
                                    // rRESPA neighbor lists
   int respa;                       // 0 = single neighbor list
@@ -183,17 +193,20 @@ class Neighbor : protected Pointers {
 
   void half_nsq_no_newton();          // fns for half neighbor lists
   void half_nsq_newton();
+
   void half_bin_no_newton();
   void half_bin_no_newton_multi();
   void half_bin_newton();
   void half_bin_newton_multi();
   void half_bin_newton_tri();
   void half_bin_newton_multi_tri();
+
   void half_full_no_newton();
   void half_full_newton();
 
   void full_nsq();                    // fns for full neighbor lists
   void full_bin();
+  void full_bin_multi();
 
   void granular_nsq_no_newton();      // fns for granular neighbor lists
   void granular_nsq_newton();
@@ -223,17 +236,51 @@ class Neighbor : protected Pointers {
   void improper_all();                // improper list with all impropers
   void improper_partial();            // exclude certain impropers
 
-  void add_pages(int);                // add pages to half neigh list
-  void add_pages_full(int);           // add pages to full neigh list
-  void add_pages_history(int);        // add pages to granular neigh list
-  void add_pages_inner(int);          // add pages to respa inner list
-  void add_pages_middle(int);         // add pages to respa middle list
+  void add_pages(int);                // add neigh list pages
+  void add_pages_full(int);
+  void add_pages_history(int);
+  void add_pages_inner(int);
+  void add_pages_middle(int);
+
+  void clear_pages();                 // clear all neigh list pages
+  void clear_pages_full();
+  void clear_pages_history();
+  void clear_pages_inner();
+  void clear_pages_middle();
 
   void bin_atoms();                     // bin all atoms
   double bin_distance(int, int, int);   // distance between binx
   int coord2bin(double *);              // mapping atom coord to a bin
   int find_special(int, int);           // look for special neighbor
   int exclusion(int, int, int *, int *, int *);  // test for pair exclusion
+
+  typedef void (Neighbor::*SFnPtr)(int, int, int);
+  SFnPtr half_stencil;                // ptr to half stencil functions
+  SFnPtr full_stencil;                // ptr to full stencil functions
+
+  void stencil_allocate(int, int, int);
+
+  void stencil_none(int, int, int);   // fns for stencil creation
+
+  void stencil_half_3d_no_newton(int, int, int);
+  void stencil_half_3d_no_newton_multi(int, int, int);
+  void stencil_half_3d_newton(int, int, int);
+  void stencil_half_3d_newton_multi(int, int, int);
+  void stencil_half_3d_newton_tri(int, int, int);
+  void stencil_half_3d_newton_multi_tri(int, int, int);
+
+  void stencil_half_2d_no_newton(int, int, int);
+  void stencil_half_2d_no_newton_multi(int, int, int);
+  void stencil_half_2d_newton(int, int, int);
+  void stencil_half_2d_newton_multi(int, int, int);
+  void stencil_half_2d_newton_tri(int, int, int);
+  void stencil_half_2d_newton_multi_tri(int, int, int);
+
+  void stencil_full_3d(int, int, int);
+  void stencil_full_3d_multi(int, int, int);
+
+  void stencil_full_2d(int, int, int);
+  void stencil_full_2d_multi(int, int, int);
 };
 
 }

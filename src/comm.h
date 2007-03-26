@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int me,nprocs;                    // proc info
+  int style;                        // single vs multi-type comm
   int procgrid[3];                  // assigned # of procs in each dim
   int user_procgrid[3];             // user request for procs in each dim
   int myloc[3];                     // which proc I am in each dim
@@ -49,6 +50,9 @@ class Comm : protected Pointers {
   void comm_compute(class Compute *);          // forward comm from a Compute
   void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
 
+  void irregular();                 // irregular communication across all procs
+
+  void set(int, char **);           // set communication style
   int memory_usage();               // tally memory usage
 
  private:
@@ -60,6 +64,8 @@ class Comm : protected Pointers {
   int *size_reverse_send;           // # to send in each reverse comm
   int *size_reverse_recv;           // # to recv in each reverse comm
   double *slablo,*slabhi;           // bounds of slab to send at each swap
+  double **multilo,**multihi;       // bounds of slabs for multi-type swap
+  double **cutghostmulti;           // cutghost on a per-type basis
   int *pbc_flag;                    // general flag for sending atoms thru PBC
   int **pbc;                        // dimension flags for PBC adjustments
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
@@ -74,6 +80,21 @@ class Comm : protected Pointers {
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
 
+  struct Plan {                // plan for irregular communication
+    int nsend;                 // # of messages to send
+    int nrecv;                 // # of messages to recv
+    int sendmax;               // # of doubles in largest send message
+    int *proc_send;            // procs to send to
+    int *length_send;          // # of doubles to send to each proc
+    int *datum_send;           // # of datums to send to each proc
+    int *index_send;           // list of datums to send to each proc
+    int *offset_send;          // where each datum starts in send buffer
+    int *proc_from;            // procs to recv from
+    int *length_from;          // # of doubles to recv from each proc
+    MPI_Request *request;      // MPI requests for posted recvs
+    MPI_Status *status;        // MPI statuses for WaitAll
+  };
+
   void procs2box();                 // map procs to 3d box
   void cross(double, double, double,
 	     double, double, double,
@@ -81,9 +102,15 @@ class Comm : protected Pointers {
   void grow_send(int,int);          // reallocate send buffer
   void grow_recv(int);              // free/allocate recv buffer
   void grow_list(int, int);         // reallocate one sendlist
-  void grow_swap();                 // grow swap arrays
+  void grow_swap(int);              // grow swap and multi arrays
   void allocate_swap(int);          // allocate swap arrays
+  void allocate_multi(int);         // allocate multi arrays
   void free_swap();                 // free swap arrays
+  void free_multi();                // free multi arrays
+
+  struct Plan *irregular_create(int, int *, int *, int *);
+  void irregular_perform(Plan *, double *, int *, double *);
+  void irregular_destroy(Plan *);
 };
 
 }

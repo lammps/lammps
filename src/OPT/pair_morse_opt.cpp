@@ -15,7 +15,7 @@
    Contributing authors:  
      James Fischer, High Performance Technologies, Inc.
      David Richie, Stone Ridge Technology
-     Vincent Natol, Stone Ridge Technology
+     Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
 #include "pair_morse_opt.h"

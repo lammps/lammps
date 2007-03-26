@@ -168,7 +168,7 @@ void Neighbor::half_nsq_newton()
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with partial Newton's 3rd law
-   each owned atom i checks own bin and surrounding bins in non-Newton stencil
+   each owned atom i checks own bin and other bins in stencil
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
@@ -212,7 +212,7 @@ void Neighbor::half_bin_no_newton()
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    // loop over all atoms in surrounding bins in stencil including self
+    // loop over all atoms in other bins in stencil including self
     // only store pair if i < j
     // stores own/own pairs only once
     // stores own/ghost pairs on both procs
@@ -249,7 +249,7 @@ void Neighbor::half_bin_no_newton()
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with partial Newton's 3rd law
-   each owned atom i checks own bin and surrounding bins in non-Newton stencil
+   each owned atom i checks own bin and other bins in stencil
    multi-type stencil is itype dependent and is distance checked
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
@@ -257,10 +257,10 @@ void Neighbor::half_bin_no_newton()
 
 void Neighbor::half_bin_no_newton_multi()
 {
-  int i,j,k,n,itype,jtype,ibin,which,ms;
+  int i,j,k,n,itype,jtype,ibin,which,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
-  double *cut,*dist;
+  double *cutsq,*distsq;
 
   // bin local & ghost atoms
 
@@ -295,22 +295,22 @@ void Neighbor::half_bin_no_newton_multi()
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    // loop over all atoms in surrounding bins in stencil including self
+    // loop over all atoms in other bins in stencil including self
     // only store pair if i < j
     // skip if i,j neighbor cutoff is less than bin distance
     // stores own/own pairs only once
     // stores own/ghost pairs on both procs
 
     ibin = coord2bin(x[i]);
-    s = mstencil[itype];
-    dist = mdist[itype];
-    cut = cutneigh[itype];
-    ms = mstencils[itype];
-    for (k = 0; k < ms; k++) {
+    s = stencil_multi[itype];
+    distsq = distsq_multi[itype];
+    cutsq = cutneighsq[itype];
+    ns = nstencil_multi[itype];
+    for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
 	if (j <= i) continue;
 	jtype = type[j];
-	if (cut[jtype] < dist[k]) continue;
+	if (cutsq[jtype] < distsq[k]) continue;
 	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	delx = xtmp - x[j][0];
@@ -446,10 +446,10 @@ void Neighbor::half_bin_newton()
 
 void Neighbor::half_bin_newton_multi()
 {
-  int i,j,k,n,itype,jtype,ibin,which,ms;
+  int i,j,k,n,itype,jtype,ibin,which,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
-  double *cut,*dist;
+  double *cutsq,*distsq;
 
   // bin local & ghost atoms
 
@@ -515,14 +515,14 @@ void Neighbor::half_bin_newton_multi()
     // skip if i,j neighbor cutoff is less than bin distance
 
     ibin = coord2bin(x[i]);
-    s = mstencil[itype];
-    dist = mdist[itype];
-    cut = cutneigh[itype];
-    ms = mstencils[itype];
-    for (k = 0; k < ms; k++) {
+    s = stencil_multi[itype];
+    distsq = distsq_multi[itype];
+    cutsq = cutneighsq[itype];
+    ns = nstencil_multi[itype];
+    for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
 	jtype = type[j];
-	if (cut[jtype] < dist[k]) continue;
+	if (cutsq[jtype] < distsq[k]) continue;
 	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	delx = xtmp - x[j][0];
@@ -637,10 +637,10 @@ void Neighbor::half_bin_newton_tri()
 
 void Neighbor::half_bin_newton_multi_tri()
 {
-  int i,j,k,n,itype,jtype,ibin,which,ms;
+  int i,j,k,n,itype,jtype,ibin,which,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
-  double *cut,*dist;
+  double *cutsq,*distsq;
 
   // bin local & ghost atoms
 
@@ -681,14 +681,14 @@ void Neighbor::half_bin_newton_multi_tri()
     // pairs for atoms j below i are excluded
 
     ibin = coord2bin(x[i]);
-    s = mstencil[itype];
-    dist = mdist[itype];
-    cut = cutneigh[itype];
-    ms = mstencils[itype];
-    for (k = 0; k < ms; k++) {
+    s = stencil_multi[itype];
+    distsq = distsq_multi[itype];
+    cutsq = cutneighsq[itype];
+    ns = nstencil_multi[itype];
+    for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
 	jtype = type[j];
-	if (cut[jtype] < dist[k]) continue;
+	if (cutsq[jtype] < distsq[k]) continue;
 	if (x[j][2] < ztmp) continue;
 	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
 	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] <= xtmp) continue;

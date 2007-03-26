@@ -39,6 +39,8 @@ using namespace LAMMPS_NS;
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define BIG 1.0e20
 
+enum{SINGLE,MULTI};
+
 /* ----------------------------------------------------------------------
    setup MPI and allocate buffer space 
 ------------------------------------------------------------------------- */
@@ -49,6 +51,9 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+
+  style = SINGLE;
+  multilo = multihi = NULL;
 
   // initialize comm buffers & exchange memory
 
@@ -78,6 +83,11 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 Comm::~Comm()
 {
   free_swap();
+  if (style == MULTI) {
+    free_multi();
+    memory->destroy_2d_double_array(cutghostmulti);
+  }
+
   memory->sfree(maxsendlist);
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->sfree(sendlist[i]);
   memory->sfree(sendlist);
@@ -118,6 +128,18 @@ void Comm::init()
   }
 
   if (force->newton == 0) maxreverse = 0;
+
+  // memory for multi-style communication
+
+  if (style == MULTI && multilo == NULL) {
+    allocate_multi(maxswap);
+    cutghostmulti = 
+      memory->create_2d_double_array(atom->ntypes+1,3,"comm:cutghostmulti");
+  }
+  if (style == SINGLE && multilo) {
+    free_multi();
+    memory->destroy_2d_double_array(cutghostmulti);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -165,42 +187,62 @@ void Comm::set_procs()
 }
 
 /* ----------------------------------------------------------------------
-   setup spatial-decomposition communication patterns 
-   function of neighbor cutoff and current box size 
+   setup spatial-decomposition communication patterns
+   function of neighbor cutoff(s) and current box size
+   single style sets slab boundaries (slablo,slabhi) based on max cutoff
+   multi style sets type-dependent slab boundaries (multilo,multihi)
 ------------------------------------------------------------------------- */
 
 void Comm::setup()
 {
-  // cutghost = distance at which ghost atoms need to be acquired
+  // cutghost = max distance at which ghost atoms need to be acquired
   // for orthogonal:
   //   cutghost is in box coords = neigh->cutghost in all 3 dims
   // for triclinic:
   //   neigh->cutghost = distance between tilted planes in box coords
   //   cutghost is in lamda coords = distance between those planes
+  // for multi:
+  //   cutghostmulti = same as cutghost, only for each atom type
 
+  int i;
+  int ntypes = atom->ntypes;
   double *prd,*prd_border,*sublo,*subhi;
-
+  
   if (triclinic == 0) {
     prd = prd_border = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = neighbor->cutghost;
+    if (style == MULTI) {
+      double *cuttype = neighbor->cuttype;
+      for (i = 1; i <= ntypes; i++)
+	cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] = 
+	  cuttype[i];
+    }
   } else {
     prd = domain->prd;
     prd_border = domain->prd_lamda;
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
     double *h_inv = domain->h_inv;
-    double length;
-    length = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
-    cutghost[0] = neighbor->cutghost * length;
-    length = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
-    cutghost[1] = neighbor->cutghost * length;
-    length = h_inv[2];
-    cutghost[2] = neighbor->cutghost * length;
+    double length0,length1,length2;
+    length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
+    cutghost[0] = neighbor->cutghost * length0;
+    length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
+    cutghost[1] = neighbor->cutghost * length1;
+    length2 = h_inv[2];
+    cutghost[2] = neighbor->cutghost * length2;
+    if (style == MULTI) {
+      double *cuttype = neighbor->cuttype;
+      for (i = 1; i <= ntypes; i++) {
+	cutghostmulti[i][0] = cuttype[i] * length0;
+	cutghostmulti[i][1] = cuttype[i] * length1;
+	cutghostmulti[i][2] = cuttype[i] * length2;
+      }
+    }
   }
 
-  // need = # of procs I need atoms from in each dim
+  // need = # of procs I need atoms from in each dim based on max cutoff
   // for 2d, don't communicate in z
 
   need[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd_border[0]) + 1;
@@ -219,41 +261,57 @@ void Comm::setup()
   // allocate comm memory
 
   nswap = 2 * (need[0]+need[1]+need[2]);
-  if (nswap > maxswap) grow_swap();
+  if (nswap > maxswap) grow_swap(nswap);
 
   // setup parameters for each exchange:
   // sendproc = proc to send to at each swap
   // recvproc = proc to recv from at each swap
-  // slablo/slabhi = boundaries for slab of atoms to send at each swap
+  // for style SINGLE:
+  //   slablo/slabhi = boundaries for slab of atoms to send at each swap
   //   use -BIG/midpt/BIG to insure all atoms included even if round-off occurs
   //   if round-off, atoms recvd across PBC can be < or > than subbox boundary
   //   note that borders() only loops over subset of atoms during each swap
-  // set slablo > slabhi for swaps across non-periodic boundaries
-  //   this insures no atoms are swapped
-  //   only for procs owning sub-box at non-periodic end of global box
-  // pbc_flag: 0 = nothing across a boundary, 1 = somthing across a boundary
+  //   set slablo > slabhi for swaps across non-periodic boundaries
+  //     this insures no atoms are swapped
+  //     only for procs owning sub-box at non-periodic end of global box
+  // for style MULTI:
+  //   multilo/multihi is same as slablo/slabhi, only for each atom type
+  // pbc_flag: 0 = nothing across a boundary, 1 = something across a boundary
   // pbc = -1/0/1 for PBC factor in each of 3/6 orthog/triclinic dirs
   // for triclinic, slablo/hi and pbc_border will be used in lamda (0-1) coords
   // 1st part of if statement is sending to the west/south/down
   // 2nd part of if statement is sending to the east/north/up
 
+  int dim,ineed;
+
   int iswap = 0;
-  for (int dim = 0; dim < 3; dim++) {
-    for (int ineed = 0; ineed < 2*need[dim]; ineed++) {
+  for (dim = 0; dim < 3; dim++) {
+    for (ineed = 0; ineed < 2*need[dim]; ineed++) {
       pbc_flag[iswap] = 0;
       pbc[iswap][0] = pbc[iswap][1] = pbc[iswap][2] =
 	pbc[iswap][3] = pbc[iswap][4] = pbc[iswap][5] = 0;
-
+      
       if (ineed % 2 == 0) {
 	sendproc[iswap] = procneigh[dim][0];
 	recvproc[iswap] = procneigh[dim][1];
-	if (ineed < 2) slablo[iswap] = -BIG;
-	else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-	slabhi[iswap] = sublo[dim] + cutghost[dim];
+	if (style == SINGLE) {
+	  if (ineed < 2) slablo[iswap] = -BIG;
+	  else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
+	  slabhi[iswap] = sublo[dim] + cutghost[dim];
+	} else {
+	  for (i = 1; i <= ntypes; i++) {
+	    if (ineed < 2) multilo[iswap][i] = -BIG;
+	    else multilo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+	    multihi[iswap][i] = sublo[dim] + cutghostmulti[i][dim];
+	  }
+	}
 	if (myloc[dim] == 0) {
-	  if (periodicity[dim] == 0)
-	    slabhi[iswap] = slablo[iswap] - 1.0;
-	  else {
+	  if (periodicity[dim] == 0) {
+	    if (style == SINGLE) slabhi[iswap] = slablo[iswap] - 1.0;
+	    else 
+	      for (i = 1; i <= ntypes; i++)
+		multihi[iswap][i] = multilo[iswap][i] - 1.0;
+	  } else {
 	    pbc_flag[iswap] = 1;
 	    pbc[iswap][dim] = 1;
 	    if (triclinic) {
@@ -262,16 +320,28 @@ void Comm::setup()
 	    }
 	  }
 	}
+	
       } else {
 	sendproc[iswap] = procneigh[dim][1];
 	recvproc[iswap] = procneigh[dim][0];
-	slablo[iswap] = subhi[dim] - cutghost[dim];
-	if (ineed < 2) slabhi[iswap] = BIG;
-	else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
+	if (style == SINGLE) {
+	  slablo[iswap] = subhi[dim] - cutghost[dim];
+	  if (ineed < 2) slabhi[iswap] = BIG;
+	  else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
+	} else {
+	  for (i = 1; i <= ntypes; i++) {
+	    multilo[iswap][i] = subhi[dim] - cutghostmulti[i][dim];
+	    if (ineed < 2) multihi[iswap][i] = BIG;
+	    else multihi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+	  }
+	}
 	if (myloc[dim] == procgrid[dim]-1) {
-	  if (periodicity[dim] == 0)
-	    slabhi[iswap] = slablo[iswap] - 1.0;
-	  else {
+	  if (periodicity[dim] == 0) {
+	    if (style == SINGLE) slabhi[iswap] = slablo[iswap] - 1.0;
+	    else
+	      for (i = 1; i <= ntypes; i++)
+		multihi[iswap][i] = multilo[iswap][i] - 1.0;
+	  } else {
 	    pbc_flag[iswap] = 1;
 	    pbc[iswap][dim] = -1;
 	    if (triclinic) {
@@ -281,7 +351,7 @@ void Comm::setup()
 	  }
 	}
       }
-
+      
       iswap++;
     }
   }
@@ -509,10 +579,11 @@ void Comm::exchange()
 
 void Comm::borders()
 {
-  int i,n,iswap,dim,ineed,maxneed,nsend,nrecv,nfirst,nlast,smax,rmax;
+  int i,n,itype,iswap,dim,ineed,maxneed,nsend,nrecv,nfirst,nlast,smax,rmax;
   double lo,hi;
+  int *type;
   double **x;
-  double *buf;
+  double *buf,*mlo,*mhi;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
@@ -538,20 +609,36 @@ void Comm::borders()
       //   for later swaps in a dim, only check newly arrived ghosts
       // store sent atom indices in list for use in future timesteps
 
-      lo = slablo[iswap];
-      hi = slabhi[iswap];
       x = atom->x;
+      if (style == SINGLE) {
+	lo = slablo[iswap];
+	hi = slabhi[iswap];
+      } else {
+	type = atom->type;
+	mlo = multilo[iswap];
+	mhi = multihi[iswap];
+      }
       if (ineed % 2 == 0) {
 	nfirst = nlast;
 	nlast = atom->nlocal + atom->nghost;
       }
 
       nsend = 0;
-      for (i = nfirst; i < nlast; i++)
-	if (x[i][dim] >= lo && x[i][dim] <= hi) {
-	  if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	  sendlist[iswap][nsend++] = i;
+      if (style == SINGLE) {
+	for (i = nfirst; i < nlast; i++)
+	  if (x[i][dim] >= lo && x[i][dim] <= hi) {
+	    if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+	    sendlist[iswap][nsend++] = i;
+	  }
+      } else {
+	for (i = nfirst; i < nlast; i++) {
+	  itype = type[i];
+	  if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+	    if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+	    sendlist[iswap][nsend++] = i;
+	  }
 	}
+      }
       
       // pack up list of border atoms
 
@@ -818,6 +905,277 @@ void Comm::reverse_comm_compute(Compute *compute)
 }
 
 /* ----------------------------------------------------------------------
+   communicate atoms to new owning procs via irregular communication
+   unlike exchange(), allows for atoms to move arbitrary distances
+   first setup irregular comm pattern, then invoke it
+------------------------------------------------------------------------- */
+
+void Comm::irregular()
+{
+  // clear global->local map since atoms move to new procs
+
+  if (map_style) atom->map_clear();
+
+  // subbox bounds for orthogonal or triclinic
+
+  double *sublo,*subhi;
+  if (triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  // loop over atoms, flag any that are not in my sub-box
+  // fill buffer with atoms leaving my box, using < and >=
+  // when atom is deleted, fill it in with last atom
+
+  AtomVec *avec = atom->avec;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  int nsend = 0;
+  int nsendatom = 0;
+  int *sizes = new int[nlocal];
+  int *proclist = new int[nlocal];
+
+  int i = 0;
+  while (i < nlocal) {
+    if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
+	x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
+	x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
+      if (nsend > maxsend) grow_send(nsend,1);
+      sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
+      nsend += sizes[nsendatom];
+      proclist[nsendatom] = 0;
+      nsendatom++;
+      avec->copy(nlocal-1,i);
+      nlocal--;
+    } else i++;
+  }
+  atom->nlocal = nlocal;
+
+  // create irregular communication plan, perform comm, destroy plan
+  // returned nrecv = size of buffer needed for incoming atoms
+
+  int nrecv;
+  Plan *plan = irregular_create(nsendatom,sizes,proclist,&nrecv);
+  if (nrecv > maxrecv) grow_recv(nrecv);
+  irregular_perform(plan,buf_send,sizes,buf_recv);
+  irregular_destroy(plan);
+
+  delete [] sizes;
+  delete [] proclist;
+
+  // add received atoms to my list
+
+  int m = 0;
+  while (m < nrecv) m += avec->unpack_exchange(&buf_recv[m]);
+
+  // reset global->local map
+
+  if (map_style) atom->map_set();
+}
+
+/* ----------------------------------------------------------------------
+   create an irregular communication plan
+   n = # of atoms to send
+   sizes = # of doubles for each atom
+   proclist = proc to send each atom to
+   return nrecvsize = total # of doubles I will recv
+------------------------------------------------------------------------- */
+
+Comm::Plan *Comm::irregular_create(int n, int *sizes, int *proclist,
+				   int *nrecvsize)
+{
+  int i;
+
+  // allocate plan and work vectors
+
+  Plan *plan = (struct Plan *) memory->smalloc(sizeof(Plan),"comm:plan");
+  /*
+  int *list = new int[nprocs];
+  int *counts = new int[nprocs];
+
+  // nrecv = # of messages I receive
+
+  for (i = 0; i < nprocs; i++) {
+    list[i] = 0;
+    counts[i] = 1;
+  }
+  for (i = 0; i < n; i++) list[proclist[i]] = 1;
+
+  int nrecv;
+  MPI_Reduce_scatter(list,&nrecv,counts,MPI_INT,MPI_SUM,world);
+
+  // storage for recv info
+
+  int *procs_from = new int[nrecv];
+  int *lengths_from = new int[nrecv];
+  MPI_Request *request = new MPI_Request[nrecv];
+  MPI_Status *status = new MPI_Status[nrecv];
+
+  // nsend = # of messages I send
+
+  for (i = 0; i < nprocs; i++) list[i] = 0;
+  for (i = 0; i < n; i++) list[proclist[i]]++;
+
+  int nsend = 0;
+  for (i = 0; i < nprocs; i++)
+    if (list[i] > 0) nsend++;
+  if (nself) nsend--;
+
+  // storage for send info
+
+  int *procs_to = new int[nsend];
+  int *lengths_to = new int[nsend];
+  int *indices_to = new int[n];
+
+  // set send info in procs_to and lengths_to
+  // each proc begins with iproc > me, and continues until iproc = me
+  // store pointer to sends in list for later use in setting indices_to
+
+  int iproc = me;
+  int isend = 0;
+  for (i = 0; i < nprocs; i++) {
+    iproc++;
+    if (iproc == nprocs) iproc = 0;
+    if (list[iproc] > 0) {
+      procs_to[isend] = iproc;
+      lengths_to[isend] = list[iproc];
+      list[iproc] = isend;
+      isend++;
+    }
+  }
+
+  // tell receivers how many I'm sending
+  // sendmax = largest # of datums I send
+
+  int sendmax = 0;
+  for (i = 0; i < nsend; i++) {
+    MPI_Send(&lengths_to[i],1,MPI_INT,procs_to[i],0,world);
+    sendmax = MAX(sendmax,lengths_to[i]);
+  }
+
+  // receive sizes and sources of incoming data
+  // nrecvsize = total # of datums I recv
+
+  *nrecvsize = 0;
+  for (i = 0; i < nrecv; i++) {
+    MPI_Recv(&lengths_from[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
+    procs_from[i] = status->MPI_SOURCE;
+    *nrecvsize += lengths_from[i];
+  }
+
+  // barrier to insure all my MPI_ANY_SOURCE messages are received
+  // else some procs could proceed to comm_do and start sending to me
+
+  MPI_Barrier(world);
+
+  // setup indices_to
+  // counts = current offset into indices_to for each proc I send to
+
+  counts[0] = 0;
+  for (i = 1; i < nsend; i++) counts[i] = counts[i-1] + lengths_to[i-1];
+
+  for (i = 0; i < n; i++) {
+    isend = list[proclist[i]];
+    indices_to[counts[isend]++] = i;
+  }
+
+  // free work vectors
+
+  delete [] counts;
+  delete [] list;
+    
+  // initialize plan and return it
+
+  plan->nsend = nsend;
+  plan->nrecv = nrecv;
+  plan->sendmax = sendmax;
+
+  plan->procs_to = procs_to;
+  plan->lengths_to = lengths_to;
+  plan->indices_to = indices_to;
+  plan->procs_from = procs_from;
+  plan->lengths_from = lengths_from;
+  plan->request = request;
+  plan->status = status;
+  */
+  return plan;
+}
+
+/* ----------------------------------------------------------------------
+   perform irregular communication
+   sendbuf = list of atoms to send
+   sizes = # of doubles for each atom
+   recvbuf = received atoms
+------------------------------------------------------------------------- */
+
+void Comm::irregular_perform(Plan *plan, double *sendbuf, int *sizes,
+			     double *recvbuf)
+{
+  int i,m;
+
+  // post all receives
+
+  int recv_offset = 0;
+  for (int irecv = 0; irecv < plan->nrecv; irecv++) {
+    MPI_Irecv(&recvbuf[recv_offset],plan->length_from[irecv],MPI_DOUBLE,
+	      plan->proc_from[irecv],0,world,&plan->request[irecv]);
+    recv_offset += plan->length_from[irecv];
+  }
+
+  // allocate buf for largest send
+
+  double *buf = (double *) memory->smalloc(plan->sendmax*sizeof(double),
+					   "comm::irregular");
+
+  // send each message
+  // pack buf with list of datums (datum = one atom)
+  // m = index of datum in sendbuf
+
+  int send_offset;
+  int ndatum = 0;
+  for (int isend = 0; isend < plan->nsend; isend++) {
+    send_offset = 0;
+    for (i = 0; i < plan->datum_send[isend]; i++) {
+      m = plan->index_send[ndatum++];
+      memcpy(&buf[send_offset],&sendbuf[plan->offset_send[m]],
+	     sizes[m]*sizeof(double));
+      send_offset += sizes[m];
+    }
+    MPI_Send(buf,plan->length_send[isend],MPI_DOUBLE,
+	     plan->proc_send[isend],0,world);
+  }       
+
+  // free temporary send buffer
+
+  memory->sfree(buf);
+
+  // wait on all incoming messages
+
+  if (plan->nrecv) MPI_Waitall(plan->nrecv,plan->request,plan->status);
+}
+
+/* ----------------------------------------------------------------------
+   destroy an irregular communication plan
+------------------------------------------------------------------------- */
+
+void Comm::irregular_destroy(Plan *plan)
+{
+  delete [] plan->proc_send;
+  delete [] plan->length_send;
+  delete [] plan->datum_send;
+  delete [] plan->index_send;
+  delete [] plan->offset_send;
+  delete [] plan->proc_from;
+  delete [] plan->length_from;
+  memory->sfree(plan);
+}
+
+/* ----------------------------------------------------------------------
    assign nprocs to 3d xprd,yprd,zprd box so as to minimize surface area 
    area = surface area of each of 3 faces of simulation box
    for triclinic, area = cross product of 2 edge vectors stored in h matrix
@@ -937,25 +1295,29 @@ void Comm::grow_list(int iswap, int n)
    realloc the buffers needed for swaps 
 ------------------------------------------------------------------------- */
 
-void Comm::grow_swap()
+void Comm::grow_swap(int n)
 {
   free_swap();
-  allocate_swap(nswap);
-
-  sendlist = (int **) memory->srealloc(sendlist,nswap*sizeof(int *),
-				       "comm:sendlist");
-  maxsendlist = (int *) memory->srealloc(maxsendlist,nswap*sizeof(int),
-					 "comm:maxsendlist");
-  for (int i = maxswap; i < nswap; i++) {
-    maxsendlist[i] = BUFMIN;
-    sendlist[i] = (int *) memory->smalloc(BUFMIN*sizeof(int),
-					  "comm:sendlist[i]");
+  allocate_swap(n);
+  if (style == MULTI) {
+    free_multi();
+    allocate_multi(n);
   }
-  maxswap = nswap;
+
+  sendlist = (int **)
+    memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
+  maxsendlist = (int *)
+    memory->srealloc(maxsendlist,n*sizeof(int),"comm:maxsendlist");
+  for (int i = maxswap; i < n; i++) {
+    maxsendlist[i] = BUFMIN;
+    sendlist[i] = (int *)
+      memory->smalloc(BUFMIN*sizeof(int),"comm:sendlist[i]");
+  }
+  maxswap = n;
 }
 
 /* ----------------------------------------------------------------------
-   initial allocation of swap info 
+   allocation of swap info 
 ------------------------------------------------------------------------- */
 
 void Comm::allocate_swap(int n)
@@ -972,6 +1334,17 @@ void Comm::allocate_swap(int n)
   firstrecv = (int *) memory->smalloc(n*sizeof(int),"comm:firstrecv");
   pbc_flag = (int *) memory->smalloc(n*sizeof(int),"comm:pbc_flag");
   pbc = (int **) memory->create_2d_int_array(n,6,"comm:pbc");
+}
+
+
+/* ----------------------------------------------------------------------
+   allocation of multi-type swap info
+------------------------------------------------------------------------- */
+
+void Comm::allocate_multi(int n)
+{
+  multilo = memory->create_2d_double_array(n,atom->ntypes+1,"comm:multilo");
+  multihi = memory->create_2d_double_array(n,atom->ntypes+1,"comm:multihi");
 }
 
 /* ----------------------------------------------------------------------
@@ -992,6 +1365,29 @@ void Comm::free_swap()
   memory->sfree(firstrecv);
   memory->sfree(pbc_flag);
   memory->destroy_2d_int_array(pbc);
+}
+
+/* ----------------------------------------------------------------------
+   free memory for multi-type swaps
+------------------------------------------------------------------------- */
+
+void Comm::free_multi()
+{
+  memory->destroy_2d_double_array(multilo);
+  memory->destroy_2d_double_array(multihi);
+}
+
+/* ----------------------------------------------------------------------
+   set communication style
+------------------------------------------------------------------------- */
+
+void Comm::set(int narg, char **arg)
+{
+  if (narg != 1) error->all("Illegal communicate command");
+
+  if (strcmp(arg[0],"single") == 0) style = SINGLE;
+  else if (strcmp(arg[0],"multi") == 0) style = MULTI;
+  else error->all("Illegal communicate command");
 }
 
 /* ----------------------------------------------------------------------

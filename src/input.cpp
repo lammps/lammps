@@ -406,6 +406,7 @@ int Input::execute_command()
   else if (!strcmp(command,"bond_coeff")) bond_coeff();
   else if (!strcmp(command,"bond_style")) bond_style();
   else if (!strcmp(command,"boundary")) boundary();
+  else if (!strcmp(command,"communicate")) communicate();
   else if (!strcmp(command,"compute")) compute();
   else if (!strcmp(command,"compute_modify")) compute_modify();
   else if (!strcmp(command,"dielectric")) dielectric();
@@ -697,6 +698,13 @@ void Input::boundary()
   if (domain->box_exist)
     error->all("Boundary command after simulation box is defined");
   domain->set_boundary(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::communicate()
+{
+  comm->set(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

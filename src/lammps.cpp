@@ -329,7 +329,7 @@ void LAMMPS::destroy()
   delete output;
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
-  delete atom;            // must come after modify
+  delete atom;            // must come after modify, neighbor
                           //   since fixes delete callbacks in atom
   delete timer;
 }

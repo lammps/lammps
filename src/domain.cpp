@@ -116,12 +116,14 @@ void Domain::set_initial_box()
     if (yz != 0.0 && (!yperiodic || !zperiodic))
       error->all("Triclinic box must be periodic in skewed dimensions");
 
+    /*
     if (fabs(xy/(boxhi[1]-boxlo[1])) > 0.5)
       error->all("Triclinic box skew is too large");
     if (fabs(xz/(boxhi[2]-boxlo[2])) > 0.5)
       error->all("Triclinic box skew is too large");
     if (fabs(yz/(boxhi[2]-boxlo[2])) > 0.5)
       error->all("Triclinic box skew is too large");
+    */
   }
 
   // adjust box lo/hi for shrink-wrapped dims

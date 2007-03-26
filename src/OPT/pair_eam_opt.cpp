@@ -16,7 +16,7 @@
      James Fischer, High Performance Technologies, Inc.
      Charles Cornwell, High Performance Technologies, Inc.
      David Richie, Stone Ridge Technology
-     Vincent Natol, Stone Ridge Technology
+     Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_opt.h"

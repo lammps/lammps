@@ -1,0 +1,53 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>communicate command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>communicate style 
+</PRE>
+<UL><LI>style = <I>single</I> or <I>multi</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>communicate multi 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets the style of inter-processor communication that
+occurs each timestep as atom coordinates and other properties are
+exchanged between neighboring processors.
+</P>
+<P>The default style is <I>single</I> which means each processor acquires
+information for ghost atoms that are within a single distance from its
+sub-domain.  The distance is the maximum of the neighbor cutoff for
+all atom type pairs.
+</P>
+<P>For many systems this is an efficient algorithm, but for systems with
+widely varying cutoffs for different type pairs, the <I>multi</I> style can
+be faster.  In this case, each atom type is assigned its own distance
+cutoff for communication purposes, and fewer atoms will be
+communicated.  See the <A HREF = "neighbor.html">neighbor multi</A> command for a
+neighbor list construction option that may also be beneficial for
+simulations of this kind.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "neighbor.html">neighbor</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>style = single
+</P>
+</HTML>

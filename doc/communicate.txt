@@ -1,0 +1,48 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+communicate command :h3
+
+[Syntax:]
+
+communicate style :pre
+
+style = {single} or {multi} :ul
+
+[Examples:]
+
+communicate multi :pre
+
+[Description:]
+
+This command sets the style of inter-processor communication that
+occurs each timestep as atom coordinates and other properties are
+exchanged between neighboring processors.
+
+The default style is {single} which means each processor acquires
+information for ghost atoms that are within a single distance from its
+sub-domain.  The distance is the maximum of the neighbor cutoff for
+all atom type pairs.
+
+For many systems this is an efficient algorithm, but for systems with
+widely varying cutoffs for different type pairs, the {multi} style can
+be faster.  In this case, each atom type is assigned its own distance
+cutoff for communication purposes, and fewer atoms will be
+communicated.  See the "neighbor multi"_neighbor.html command for a
+neighbor list construction option that may also be beneficial for
+simulations of this kind.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"neighbor"_neighbor.html
+
+[Default:]
+
+style = single

@@ -16,31 +16,42 @@
 <PRE>neighbor skin style 
 </PRE>
 <UL><LI>skin = extra distance beyond force cutoff (distance units)
-<LI>style = <I>bin</I> or <I>nsq</I> 
+<LI>style = <I>bin</I> or <I>nsq</I> or <I>multi</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>neighbor 0.3 bin
 neighbor 2.0 nsq 
 </PRE>
-<P><B>Description: </B>
+<P><B>Description:</B>
 </P>
 <P>This command sets parameters that affect the building of the pairwise
 neighbor list.  All atom pairs within a cutoff distance equal to the
 their force cutoff plus the <I>skin</I> distance are stored in the list.
 Typically, the larger the skin distance, the less often neighbor lists
 need to be built, but more pairs must be checked for possible force
-interactions every timestep.
+interactions every timestep.  The default value for <I>skin</I> depends on
+the choice of units for the simulation (see below).
 </P>
-<P>The <I>style</I> value chooses what algorithm is used to build the list.
-<I>Binning</I> is an operation that scales linearly with N, the number of
-atoms on a processor.  It is almost always faster than the <I>nsq</I> style
-which scales as N^2.  For unsolvated small molecules in a non-periodic
-box, the <I>nsq</I> choice can sometimes be faster.  Either style should
-give the same answers.
+<P>The <I>style</I> value selects what algorithm is used to build the list.
+The <I>bin</I> style creates the list by binning which is an operation that
+scales linearly with N/P, the number of atoms per processor where N =
+total number of atoms and P = number of processors.  It is almost
+always faster than the <I>nsq</I> style which scales as (N/P)^2.  For
+unsolvated small molecules in a non-periodic box, the <I>nsq</I> choice can
+sometimes be faster.  Either style should give the same answers.
 </P>
-<P>The default values for <I>skin</I> and <I>style</I> depend on the choice of
-units for the simulation.
+<P>The <I>multi</I> style is a modified binning algorithm that is useful for
+systems with a wide range of cutoff distances, e.g. due to different
+size particles.  For the <I>bin</I> style, the bin size is set to 1/2 of
+the largest cutoff distance between any pair of atom types and a
+single set of bins is defined to search over for all atom types.  This
+can be inefficient if one pair of types has a very long cutoff, but
+other type pairs have a much shorter cutoff.  For style <I>multi</I> the
+bin size is set to 1/2 of the shortest cutoff distance and multiple
+sets of bins are defined to search over for different atom types.
+This imposes some extra setup overhead, but the searches themselves
+may be much faster for the short-cutoff cases.
 </P>
 <P>The <A HREF = "neigh_modify.html">neigh_modify</A> command has additional options
 that control how often neighbor lists are built and which pairs are
@@ -59,7 +70,7 @@ section</A> for details.
 </P>
 <P><B>Default:</B>
 </P>
-<PRE>0.3 bin      for lj units
-2.0 bin      for real or metal units 
+<PRE>0.3 bin      for lj units (0.3 sigma)
+2.0 bin      for real or metal units (2.0 Angstroms) 
 </PRE>
 </HTML>

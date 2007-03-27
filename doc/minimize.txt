@@ -72,7 +72,7 @@ includes the energy change and convergence criteria information.
 
 [Restrictions:]
 
-Two features that are not yet implemented listed here, in case someone
+Features that are not yet implemented listed here, in case someone
 knows how they could be coded:
 
 It is an error to use "fix shake"_fix_shake.html with minimization
@@ -82,12 +82,13 @@ during a minimization by using stiff spring constants for the bonds
 and/or angles that would normally be constrained by the SHAKE
 algorithm.
 
-"Fix rigid" is also not supported by minimization.  It is not an error
-to have it defined, but the energy minimization will not keep the
-defined body(s) rigid during the minimization.  Note that if bonds,
-angles, etc internal to a rigid body have been turned off (e.g. via
-"neigh_modify exclude"_neigh_modify.html), they will not contribute to
-the potential energy which is probably not what is desired.
+"Fix rigid"_fix_rigid.html is also not supported by minimization.  It
+is not an error to have it defined, but the energy minimization will
+not keep the defined body(s) rigid during the minimization.  Note that
+if bonds, angles, etc internal to a rigid body have been turned off
+(e.g. via "neigh_modify exclude"_neigh_modify.html), they will not
+contribute to the potential energy which is probably not what is
+desired.
 
 The volume of the simulation domain is not allowed to change during a
 minimzation.  Ideally we would allow a fix such as {npt} to impose an

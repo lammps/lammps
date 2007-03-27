@@ -277,6 +277,12 @@ void FixShake::init()
     if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
   if (count > 1) error->all("More than one shake fix");
 
+  // cannot use with minimization since SHAKE turns off bonds
+  // that should contribute to potential energy
+
+  if (update->whichflag == 1)
+    error->all("Fix shake cannot be used with minimization");
+
   // error if npt,nph fix comes before shake fix
 
   for (i = 0; i < modify->nfix; i++) {

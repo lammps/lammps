@@ -6,7 +6,7 @@
 
 :line
 
-fix shake style :h3
+fix shake command :h3
 
 [Syntax:]
 

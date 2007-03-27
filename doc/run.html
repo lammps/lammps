@@ -97,15 +97,22 @@ other computations between successive short LAMMPS runs).
 <P>By default (pre and post = yes), LAMMPS creates neighbor lists,
 computes forces, and imposes fix constraints before every run.  And
 after every run it gathers and prints timings statistics.  If a run is
-just a continuation of a previous run (and no parameters have
-changed), the initial computation is not necessary; the old neighbor
-list is still valid as are the forces.  So if <I>pre</I> is specified as
-"no" then the initial setup is skipped, except for printing
-thermodynamic info.  Likewise, if <I>post</I> is specified as "no", the
-full timing summary is skipped; only a one-line summary timing is
-printed.  Note that if <I>pre</I> is set to "no" for the 1st run LAMMPS
-performs, then it is overridden, since the initial setup computations
-must be done.
+just a continuation of a previous run (i.e. no settings are changed),
+the initial computation is not necessary; the old neighbor list is
+still valid as are the forces.  So if <I>pre</I> is specified as "no" then
+the initial setup is skipped, except for printing thermodynamic info.
+</P>
+<P>IMPORTANT NOTE: If your input script changes settings between 2 runs
+(e.g. adds a <A HREF = "fix.html">fix</A> or <A HREF = "dump.html">dump</A> or
+<A HREF = "compute.html">compute</A> or changes a <A HREF = "neigh_modify.html">neighbor</A> list
+parameter), then the initial setup must be performed.  LAMMPS does not
+check for this, but it would be an error to use the <I>pre</I> option in
+this case.
+</P>
+<P>If <I>post</I> is specified as "no", the full timing summary is skipped;
+only a one-line summary timing is printed.  Note that if <I>pre</I> is set
+to "no" for the 1st run LAMMPS performs, then it is overridden, since
+the initial setup computations must be done.
 </P>
 <P>The <I>every</I> option provides a means of interleaving LAMMPS runs with a
 command.  This can be a short-hand abbreviation to avoid listing a

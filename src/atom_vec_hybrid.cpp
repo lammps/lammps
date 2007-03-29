@@ -96,11 +96,9 @@ void AtomVecHybrid::grow(int n)
   atom->nmax = nmax;
 
   int tmp = atom->nextra_grow;
-  for (int m = 0; m < nstyles; m++) {
-    atom->nextra_grow = 0;
-    styles[m]->grow(nmax);
-    atom->nextra_grow = tmp;
-  }
+  atom->nextra_grow = 0;
+  for (int m = 0; m < nstyles; m++) styles[m]->grow(nmax);
+  atom->nextra_grow = tmp;
 
   // pointers for arrays used directly by hybrid style
 
@@ -353,9 +351,12 @@ int AtomVecHybrid::size_restart()
   int i;
   int nlocal = atom->nlocal;
 
+  // nlocal is added for per-atom hybrid value appended by pack_restart()
+
   int n = 0;
   for (i = 0; i < nlocal; i++)
     n += styles[hybrid[i]]->size_restart_one(i);
+  n += nlocal;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 

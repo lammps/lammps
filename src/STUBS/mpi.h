@@ -11,6 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------ */
 
+#ifndef MPI_STUBS
+#define MPI_STUBS
+
 /* Dummy defs for MPI stubs */
 
 #define MPI_COMM_WORLD 0
@@ -25,11 +28,18 @@
 #define MPI_MAX 2
 #define MPI_MIN 3
 
+#define MPI_ANY_SOURCE -1
+
 #define MPI_Comm int
 #define MPI_Request int
-#define MPI_Status int
 #define MPI_Datatype int
 #define MPI_Op int
+
+/* MPI data structs */
+
+struct MPI_Status {
+  int MPI_SOURCE;
+};
 
 /* Function prototypes for MPI stubs */
 
@@ -49,6 +59,7 @@ void MPI_Recv(void *buf, int count, MPI_Datatype datatype,
 void MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
 	       int source, int tag, MPI_Comm comm, MPI_Request *request);
 void MPI_Wait(MPI_Request *request, MPI_Status *status);
+void MPI_Waitall(int n, MPI_Request *request, MPI_Status *status);
 void MPI_Waitany(int count, MPI_Request *request, int *index, 
 		 MPI_Status *status);
 void MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
@@ -86,3 +97,5 @@ void MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
 void MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype,
 		int root, MPI_Comm comm);
+
+#endif

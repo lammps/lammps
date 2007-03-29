@@ -86,6 +86,11 @@ void MPI_Wait(MPI_Request *request, MPI_Status *status)
   printf("MPI Stub WARNING: Should not wait on message from self\n");
 }
 
+void MPI_Waitall(int n, MPI_Request *request, MPI_Status *status)
+{
+  printf("MPI Stub WARNING: Should not wait on message from self\n");
+}
+
 void MPI_Waitany(int count, MPI_Request *request, int *index, 
 		 MPI_Status *status)
 {

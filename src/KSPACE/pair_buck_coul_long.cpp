@@ -250,6 +250,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
 
   double a_one = atof(arg[2]);
   double rho_one = atof(arg[3]);
+  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
   double c_one = atof(arg[4]);
 
   double cut_lj_one = cut_lj_global;

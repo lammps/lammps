@@ -80,8 +80,8 @@ This fix should not be used with an x,y,z setting that causes a large
 shift in the system on the 1st timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
 be lost,especially in parallel.  Instead, use the
-"displace_atoms"_displace_atoms.html command, which can be used
-several times in succession to move atoms a large distance.
+"displace_atoms"_displace_atoms.html command, which can be used to
+move atoms a large distance.
 
 [Related commands:]
 

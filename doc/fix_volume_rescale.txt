@@ -32,7 +32,8 @@ box dimensions is controlled separately.  Any dimension being varied
 by this command must be periodic - see the "boundary"_boundary.html
 command.  Dimensions not varied by this command can be periodic or
 non-periodic.  The volume associated with an unspecified dimension can
-also be controlled by a "fix npt"_fix_npt.html command.
+also be controlled by a "fix npt"_fix_npt.html or "fix
+nph"_fix_nph.html command.
 
 The initial simulation box boundaries at the beginning of a run are
 specified by the "create_box"_create_box.html or
@@ -55,7 +56,3 @@ Any dimension being varied by this fix must be periodic.
 [Related commands:] none
 
 [Default:] none
-
-
-
-

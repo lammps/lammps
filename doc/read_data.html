@@ -92,19 +92,22 @@ axis-aligned (orthogonal) simulation box.  If the line does appear,
 LAMMPS creates a non-orthogonal simulation domain shaped as a
 parallelepiped with triclinic symmetry.  See the <A HREF = "region.html">region
 prism</A> command for a description of how the extent of the
-parallelepiped is defined.  Basically, the parallelepiped has its
-"origin" at (xlo,ylo,zlo) and 3 edge vectors starting from the origin
-given by a = (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+parallelepiped is defined.  The parallelepiped has its "origin" at
+(xlo,ylo,zlo) and 3 edge vectors starting from the origin given by a =
+(xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
 </P>
-<P>The skew factors (xy,xz,yz) must not skew the box more than half the
-distance of its side lengths.  For example, if ylo = 2 and yhi = 12,
-then the y box length is 10 and the xy factor must be between -5 and
-5.  Similary xz must be between -(zhi-zlo)/2 and +(zhi-zlo)/2 and yz
-must be between -(zhi-zlo)/2 and +(zhi-zlo)/2.
+<P>The tilt factors (xy,xz,yz) must not skew the box more than half the
+distance of the opposing box length.  For example, if ylo = 2 and yhi
+= 12, then the y box length is 10 and the xy tilt factor must be
+between -5 and 5.  Similarly, both xz and yz must be between
+-(zhi-zlo)/2 and +(zhi-zlo)/2.  From a mechanics persepctive this is
+equivalent to saying the shear strain of the system (sideways
+displacement divided by perpendicular box length) must be between -0.5
+and 0.5.
 </P>
 <P>When a triclinic system is used, the simulation domain must be
-periodic in any dimensions with a non-zero skew factor, as defined by
-the <A HREF = "boundary.html">boundary</A> command.  I.e. if the xy factor is
+periodic in any dimensions with a non-zero tilt factor, as defined by
+the <A HREF = "boundary.html">boundary</A> command.  I.e. if the xy tilt factor is
 non-zero, then both the x and y dimensions must be periodic.
 Similarly, x and z must be periodic if xz is non-zero and y and z must
 be periodic if yz is non-zero.
@@ -112,7 +115,7 @@ be periodic if yz is non-zero.
 <P>For 2d simulations, the <I>zlo zhi</I> values should be set to bound the z
 coords for atoms that appear in the file; the default of -0.5 0.5 is
 valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
-and yz skew factors must be 0.0.
+and yz tilt factors must be 0.0.
 </P>
 <P>If the system is non-periodic (in a dimension), then all atoms in the
 data file should have coordinates (in that dimension) between the lo

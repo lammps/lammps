@@ -421,10 +421,15 @@ mpirun -np 4 lmp_linux < in.lj.nve :pre
 
 The screen output from LAMMPS is described in the next section.  As it
 runs, LAMMPS also writes a log.lammps file with the same information.
-Note that this sequence of commands copied the LAMMPS executable
-(lmp_linux) to the directory with the input files.  If you don't do
-this, LAMMPS may look for input files or create output files in the
-directory where the executable is, rather than where you run it from.
+
+Note that this sequence of commands copies the LAMMPS executable
+(lmp_linux) to the directory with the input files.  This may not be
+necessary, but some versions of MPI reset the working directory to
+where the executable is, rather than leave it as the directory where
+you launch mpirun from.  If that happens, LAMMPS will look for
+additional input files and write its output files to the executable
+directory, rather than your working directory, which is probably not
+what you want.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING

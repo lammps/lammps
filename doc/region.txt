@@ -24,9 +24,9 @@ style = {block} or {cylinder} or {prism} or {sphere} or {union} or {intersect} :
     lo,hi = bounds of cylinder in dim (distance units)
   {prism} args = xlo xhi ylo yhi zlo zhi xy xz yz
       xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
-      xy = distance to skew y in x direction (distance units)
-      xz = distance to skew z in x direction (distance units)
-      yz = distance to skew z in y direction (distance units)
+      xy = distance to tilt y in x direction (distance units)
+      xz = distance to tilt z in x direction (distance units)
+      yz = distance to tilt z in y direction (distance units)
   {sphere} args = x y z radius
       x,y,z = center of sphere (distance units)
       radius = radius of sphere (distance units)
@@ -82,14 +82,14 @@ parallelepiped in an input script!).  A prism region is used by the
 (non-orthogonal) simulation domain.  Think of the parallelepided as
 initially an axis-aligned orthogonal box with the same xyz lo/hi
 parameters as region style {block} would define.  Then, while holding
-the (xlo,ylo,zlo) corner point fixed, the box is "skewed" in 3
-directions.  First, for the lower xy face of the box, the {xy} factor
-is how far the upper y edge is shifted in the x direction.  The lower
-xy face is now a parallelogram.  A plus or minus value for {xy} can be
-specified; 0.0 means no skew.  Then, the upper xy face of the box is
-translated in the x and y directions by {xz} and {yz}.  This results
-in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3 edge
-vectors starting from its origin given by a = (xhi-xlo,0,0); b =
+the (xlo,ylo,zlo) corner point fixed, the box is "skewed" or "tilted"
+in 3 directions.  First, for the lower xy face of the box, the {xy}
+factor is how far the upper y edge is shifted in the x direction.  The
+lower xy face is now a parallelogram.  A plus or minus value for {xy}
+can be specified; 0.0 means no tilt.  Then, the upper xy face of the
+box is translated in the x and y directions by {xz} and {yz}.  This
+results in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3
+edge vectors starting from its origin given by a = (xhi-xlo,0,0); b =
 (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
 
 The {union} style creates a region consisting of the volume of all the

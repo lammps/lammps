@@ -73,6 +73,8 @@ this type pair.  If both coefficients are specified, they are used as
 the LJ and Coulombic cutoffs for this type pair.  You cannot specify 2
 cutoffs for style {buck}, since it has no Coulombic terms.
 
+The second coefficient, rho, must be greater than zero.
+
 For {buck/coul/long} only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the

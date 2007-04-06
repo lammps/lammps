@@ -18,8 +18,8 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
   {norm} value = {yes} or {no}
   {flush} value = {yes} or {no}
   {line} value = {one} or {multi}
-  {format} value = {int} string or {float} string or N string
-    N = integer from 1 to # of quantities being printed
+  {format} values = {int} string or {float} string or M string
+    M = integer from 1 to N, where N = # of quantities being printed
     string = C-style format string
   {window} value = N
     N = number of previous print-outs to average over
@@ -32,8 +32,8 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
 [Examples:]
 
 thermo_modify lost no flush yes
-thermo_modify temp myTemp
-thermo_modify line multi format float %g format 3 %15.8g :pre
+thermo_modify temp myTemp format 3 %15.8g
+thermo_modify line multi format float %g :pre
 
 [Description:]
 
@@ -64,11 +64,12 @@ containing the timestep and CPU time.  This modify option overrides
 the {one} and {multi} thermo_style settings.
 
 The {format} keyword sets the numeric format of individual printed
-quantities.  The {int} and {float} settings set the format for all
+quantities.  The {int} and {float} keywords set the format for all
 integer or floating-point quantities printed.  The setting with a
-numeric value (e.g. format 5 %10.4g) sets the format of the Nth value
-printed.  If the format for a specific value has been set, it will
-take precedent over the {int} or {float} setting.
+numeric value (e.g. format 5 %10.4g) sets the format of the Mth value
+printed in each output line, the 5th column of output in this case.
+If the format for a specific column has been set, it will take
+precedent over the {int} or {float} setting.
 
 The {window} keyword sets the number of previous thermodynamic screen
 outputs over which "thermo_style custom"_thermo_style.html {ave}

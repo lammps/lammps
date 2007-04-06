@@ -23,8 +23,8 @@
   <I>norm</I> value = <I>yes</I> or <I>no</I>
   <I>flush</I> value = <I>yes</I> or <I>no</I>
   <I>line</I> value = <I>one</I> or <I>multi</I>
-  <I>format</I> value = <I>int</I> string or <I>float</I> string or N string
-    N = integer from 1 to # of quantities being printed
+  <I>format</I> values = <I>int</I> string or <I>float</I> string or M string
+    M = integer from 1 to N, where N = # of quantities being printed
     string = C-style format string
   <I>window</I> value = N
     N = number of previous print-outs to average over
@@ -38,8 +38,8 @@
 <P><B>Examples:</B>
 </P>
 <PRE>thermo_modify lost no flush yes
-thermo_modify temp myTemp
-thermo_modify line multi format float %g format 3 %15.8g 
+thermo_modify temp myTemp format 3 %15.8g
+thermo_modify line multi format float %g 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -70,11 +70,12 @@ containing the timestep and CPU time.  This modify option overrides
 the <I>one</I> and <I>multi</I> thermo_style settings.
 </P>
 <P>The <I>format</I> keyword sets the numeric format of individual printed
-quantities.  The <I>int</I> and <I>float</I> settings set the format for all
+quantities.  The <I>int</I> and <I>float</I> keywords set the format for all
 integer or floating-point quantities printed.  The setting with a
-numeric value (e.g. format 5 %10.4g) sets the format of the Nth value
-printed.  If the format for a specific value has been set, it will
-take precedent over the <I>int</I> or <I>float</I> setting.
+numeric value (e.g. format 5 %10.4g) sets the format of the Mth value
+printed in each output line, the 5th column of output in this case.
+If the format for a specific column has been set, it will take
+precedent over the <I>int</I> or <I>float</I> setting.
 </P>
 <P>The <I>window</I> keyword sets the number of previous thermodynamic screen
 outputs over which <A HREF = "thermo_style.html">thermo_style custom</A> <I>ave</I>

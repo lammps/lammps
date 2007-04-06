@@ -539,8 +539,8 @@ void Thermo::modify_params(int narg, char **arg)
 	format_float_user = new char[n];
 	strcpy(format_float_user,arg[iarg+2]);
       } else {
-	int i = atoi(arg[iarg+1]);
-	if (i < 1 || i > nfield_initial)
+	int i = atoi(arg[iarg+1]) - 1;
+	if (i < 0 || i >= nfield_initial)
 	  error->all("Illegal thermo_modify command");
 	if (format_user[i]) delete [] format_user[i];
 	int n = strlen(arg[iarg+2]) + 1;
@@ -572,12 +572,13 @@ void Thermo::modify_params(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    allocate all per-field memory
-   allow for addition of Volume field at run time
    allow each c_ID to imply 2 Compute objects (if it has id_pre)
 ------------------------------------------------------------------------- */
 
 void Thermo::allocate()
 {
+  // n = specified fields + Volume field (added at run time)
+
   int n = nfield_initial + 1;
 
   keyword = new char*[n];

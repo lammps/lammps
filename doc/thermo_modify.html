@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>temp</I> or <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> 
+<LI>keyword = <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I> or <I>drot</I> or <I>grot</I> 
 
 <PRE>  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
   <I>norm</I> value = <I>yes</I> or <I>no</I>
@@ -27,9 +27,8 @@
     N = integer from 1 to # of quantities being printed
     string = C-style format string
   <I>window</I> value = N
-    N = number of previous print-outs to average over 
-</PRE>
-<PRE>  <I>temp</I> value = compute ID that calculates a temperature
+    N = number of previous print-outs to average over
+  <I>temp</I> value = compute ID that calculates a temperature
   <I>press</I> value = compute ID that calculates a pressure
   <I>drot</I> value = compute ID that calculates rotational energy for dipolar atoms
   <I>grot</I> value = compute ID that calculates rotational energy for granular atoms 

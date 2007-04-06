@@ -13,7 +13,7 @@ thermo_modify command :h3
 thermo_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {temp} or {lost} or {norm} or {flush} or {line} or {format} :l
+keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press} or {drot} or {grot} :l
   {lost} value = {error} or {warn} or {ignore}
   {norm} value = {yes} or {no}
   {flush} value = {yes} or {no}
@@ -22,7 +22,7 @@ keyword = {temp} or {lost} or {norm} or {flush} or {line} or {format} :l
     N = integer from 1 to # of quantities being printed
     string = C-style format string
   {window} value = N
-    N = number of previous print-outs to average over :pre
+    N = number of previous print-outs to average over
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
   {drot} value = compute ID that calculates rotational energy for dipolar atoms

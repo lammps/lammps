@@ -26,7 +26,7 @@ keyword = {temp} or {lost} or {norm} or {flush} or {line} or {format} :l
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
   {drot} value = compute ID that calculates rotational energy for dipolar atoms
-  {grot} value = compute ID that calculates rotational energy for granular atoms
+  {grot} value = compute ID that calculates rotational energy for granular atoms :pre
 :ule
 
 [Examples:]

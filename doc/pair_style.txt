@@ -96,9 +96,9 @@ the pair_style command, and coefficients specified by the associated
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
 "pair_style eam/alloy"_pair_eam.html - alloy EAM
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
-"pair_style gran/hertzian"_pair_granular.html - granular potential with Hertizain interactions
-"pair_style gran/history"_pair_granular.html - granular potential with history effects
-"pair_style gran/no_history"_pair_granular.html - granular potential without history effects
+"pair_style gran/hertzian"_pair_gran.html - granular potential with Hertizain interactions
+"pair_style gran/history"_pair_gran.html - granular potential with history effects
+"pair_style gran/no_history"_pair_gran.html - granular potential without history effects
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb

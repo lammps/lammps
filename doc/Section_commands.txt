@@ -377,6 +377,7 @@ description:
 "ave/time"_fix_ave_time.html,
 "box/relax"_fix_box_relax.html,
 "com"_fix_com.html,
+"deform"_fix_deform.html,
 "deposit"_fix_deposit.html,
 "drag"_fix_drag.html,
 "efield"_fix_efield.html,

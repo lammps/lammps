@@ -92,8 +92,8 @@ parallelepiped is defined.  The parallelepiped has its "origin" at
 (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
 
 The tilt factors (xy,xz,yz) must not skew the box more than half the
-distance of the opposing box length.  For example, if ylo = 2 and yhi
-= 12, then the y box length is 10 and the xy tilt factor must be
+distance of the perpendicular box length.  For example, if ylo = 2 and
+yhi = 12, then the y box length is 10 and the xy tilt factor must be
 between -5 and 5.  Similarly, both xz and yz must be between
 -(zhi-zlo)/2 and +(zhi-zlo)/2.  From a mechanics persepctive this is
 equivalent to saying the shear strain of the system (sideways

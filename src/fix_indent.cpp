@@ -29,9 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define NONE     0
-#define SPHERE   1
-#define CYLINDER 2
+enum{NONE,SPHERE,CYLINDER};
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,10 +96,6 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
       r0_start *= zscale;
     }
   } else error->all("Illegal fix indent command");
-
-  // time 0 for the indenter movement
-
-  ntimestep_initial = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,7 +169,7 @@ void FixIndent::post_force(int vflag)
 
     // x1,y1,z1 = current position of indenter from original x0,y0,z0
 
-    double delta = (update->ntimestep - ntimestep_initial) * update->dt;
+    double delta = (update->ntimestep - update->beginstep) * update->dt;
     double x1 = x0 + delta*vx;
     double y1 = y0 + delta*vy;
     double z1 = z0 + delta*vz;
@@ -208,7 +202,7 @@ void FixIndent::post_force(int vflag)
 
     // c1new,c2new = current coords of indenter axis from original c1,c2
 	      
-    double delta = (update->ntimestep - ntimestep_initial) * update->dt;
+    double delta = (update->ntimestep - update->beginstep) * update->dt;
     double c1new,c2new;
     if (cdim == 0) {
       c1new = c1 + delta*vy;

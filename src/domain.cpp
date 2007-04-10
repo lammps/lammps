@@ -116,14 +116,12 @@ void Domain::set_initial_box()
     if (yz != 0.0 && (!yperiodic || !zperiodic))
       error->all("Triclinic box must be periodic in skewed dimensions");
 
-    /*
     if (fabs(xy/(boxhi[1]-boxlo[1])) > 0.5)
       error->all("Triclinic box skew is too large");
     if (fabs(xz/(boxhi[2]-boxlo[2])) > 0.5)
       error->all("Triclinic box skew is too large");
     if (fabs(yz/(boxhi[2]-boxlo[2])) > 0.5)
       error->all("Triclinic box skew is too large");
-    */
   }
 
   // adjust box lo/hi for shrink-wrapped dims
@@ -225,7 +223,7 @@ void Domain::set_local_box()
   int *myloc = comm->myloc;
   int *procgrid = comm->procgrid;
 
-  if (domain->triclinic == 0) {
+  if (triclinic == 0) {
     sublo[0] = boxlo[0] + myloc[0] * xprd / procgrid[0];
     if (myloc[0] < procgrid[0]-1)
       subhi[0] = boxlo[0] + (myloc[0]+1) * xprd / procgrid[0];
@@ -748,7 +746,7 @@ void Domain::print_box(char *str)
 {
   if (comm->me == 0) {
     if (screen) {
-      if (domain->triclinic == 0)
+      if (triclinic == 0)
 	fprintf(screen,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
 		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
       else {

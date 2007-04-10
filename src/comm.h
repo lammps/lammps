@@ -86,11 +86,11 @@ class Comm : protected Pointers {
     int sendmax;               // # of doubles in largest send message
     int *proc_send;            // procs to send to
     int *length_send;          // # of doubles to send to each proc
-    int *datum_send;           // # of datums to send to each proc
-    int *index_send;           // list of datums to send to each proc
+    int *num_send;             // # of datums to send to each proc
+    int *index_send;           // list of which datums to send to each proc
     int *offset_send;          // where each datum starts in send buffer
-    int *proc_from;            // procs to recv from
-    int *length_from;          // # of doubles to recv from each proc
+    int *proc_recv;            // procs to recv from
+    int *length_recv;          // # of doubles to recv from each proc
     MPI_Request *request;      // MPI requests for posted recvs
     MPI_Status *status;        // MPI statuses for WaitAll
   };
@@ -111,6 +111,7 @@ class Comm : protected Pointers {
   struct Plan *irregular_create(int, int *, int *, int *);
   void irregular_perform(Plan *, double *, int *, double *);
   void irregular_destroy(Plan *);
+  int irregular_lookup(double *);
 };
 
 }

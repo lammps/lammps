@@ -27,6 +27,7 @@ RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp)
   double s,t;
       
   if (seed == 0) error->all("Marsaglia RNG cannot use 0 seed");
+  save = 0;
 
   u = new double[97+1];
 

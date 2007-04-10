@@ -31,7 +31,7 @@ class FixIndent : public Fix {
   double thermo(int);
 
  private:
-  int ntimestep_initial,istyle,scaleflag,radflag,thermo_flag,eflag_enable;
+  int istyle,scaleflag,radflag,thermo_flag,eflag_enable;
   double k,k3,eng,etotal;
   double x0,y0,z0,r0_stop,r0_start;
   int cdim;

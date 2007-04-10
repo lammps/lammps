@@ -908,6 +908,7 @@ void Comm::reverse_comm_compute(Compute *compute)
    communicate atoms to new owning procs via irregular communication
    unlike exchange(), allows for atoms to move arbitrary distances
    first setup irregular comm pattern, then invoke it
+   for triclinic, atoms must be in lamda coords (0-1) before irregular is called
 ------------------------------------------------------------------------- */
 
 void Comm::irregular()
@@ -929,6 +930,7 @@ void Comm::irregular()
 
   // loop over atoms, flag any that are not in my sub-box
   // fill buffer with atoms leaving my box, using < and >=
+  // assign which proc it belongs to
   // when atom is deleted, fill it in with last atom
 
   AtomVec *avec = atom->avec;
@@ -948,7 +950,7 @@ void Comm::irregular()
       if (nsend > maxsend) grow_send(nsend,1);
       sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
       nsend += sizes[nsendatom];
-      proclist[nsendatom] = 0;
+      proclist[nsendatom] = irregular_lookup(x[i]);
       nsendatom++;
       avec->copy(nlocal-1,i);
       nlocal--;
@@ -982,7 +984,7 @@ void Comm::irregular()
    create an irregular communication plan
    n = # of atoms to send
    sizes = # of doubles for each atom
-   proclist = proc to send each atom to
+   proclist = proc to send each atom to (none to me)
    return nrecvsize = total # of doubles I will recv
 ------------------------------------------------------------------------- */
 
@@ -994,47 +996,50 @@ Comm::Plan *Comm::irregular_create(int n, int *sizes, int *proclist,
   // allocate plan and work vectors
 
   Plan *plan = (struct Plan *) memory->smalloc(sizeof(Plan),"comm:plan");
-  /*
   int *list = new int[nprocs];
-  int *counts = new int[nprocs];
+  int *count = new int[nprocs];
 
   // nrecv = # of messages I receive
 
   for (i = 0; i < nprocs; i++) {
     list[i] = 0;
-    counts[i] = 1;
+    count[i] = 1;
   }
   for (i = 0; i < n; i++) list[proclist[i]] = 1;
 
   int nrecv;
-  MPI_Reduce_scatter(list,&nrecv,counts,MPI_INT,MPI_SUM,world);
+  MPI_Reduce_scatter(list,&nrecv,count,MPI_INT,MPI_SUM,world);
 
-  // storage for recv info
+  // allocate receive arrays
 
-  int *procs_from = new int[nrecv];
-  int *lengths_from = new int[nrecv];
+  int *proc_recv = new int[nrecv];
+  int *length_recv = new int[nrecv];
   MPI_Request *request = new MPI_Request[nrecv];
   MPI_Status *status = new MPI_Status[nrecv];
 
   // nsend = # of messages I send
 
   for (i = 0; i < nprocs; i++) list[i] = 0;
-  for (i = 0; i < n; i++) list[proclist[i]]++;
+  for (i = 0; i < n; i++) list[proclist[i]] += sizes[n];
 
   int nsend = 0;
   for (i = 0; i < nprocs; i++)
-    if (list[i] > 0) nsend++;
-  if (nself) nsend--;
+    if (list[i]) nsend++;
 
-  // storage for send info
+  // allocate send arrays
 
-  int *procs_to = new int[nsend];
-  int *lengths_to = new int[nsend];
-  int *indices_to = new int[n];
+  int *proc_send = new int[nsend];
+  int *length_send = new int[nsend];
+  int *num_send = new int[nsend];
+  int *index_send = new int[n];
+  int *offset_send = new int[n];
 
-  // set send info in procs_to and lengths_to
-  // each proc begins with iproc > me, and continues until iproc = me
-  // store pointer to sends in list for later use in setting indices_to
+  // list still stores size of message for procs I send to
+  // proc_send = procs I send to
+  // length_send = total size of message I send to each proc
+  // to balance pattern of send messages:
+  //   each proc begins with iproc > me, continues until iproc = me
+  // reset list to store which send message each proc corresponds to
 
   int iproc = me;
   int isend = 0;
@@ -1042,51 +1047,66 @@ Comm::Plan *Comm::irregular_create(int n, int *sizes, int *proclist,
     iproc++;
     if (iproc == nprocs) iproc = 0;
     if (list[iproc] > 0) {
-      procs_to[isend] = iproc;
-      lengths_to[isend] = list[iproc];
+      proc_send[isend] = iproc;
+      length_send[isend] = list[iproc];
       list[iproc] = isend;
       isend++;
     }
   }
 
-  // tell receivers how many I'm sending
-  // sendmax = largest # of datums I send
+  // num_send = # of datums I send to each proc
 
-  int sendmax = 0;
-  for (i = 0; i < nsend; i++) {
-    MPI_Send(&lengths_to[i],1,MPI_INT,procs_to[i],0,world);
-    sendmax = MAX(sendmax,lengths_to[i]);
+  for (i = 0; i < nsend; i++) num_send[i] = 0;
+  for (i = 0; i < n; i++) {
+    isend = list[proclist[i]];
+    num_send[isend]++;
   }
 
-  // receive sizes and sources of incoming data
-  // nrecvsize = total # of datums I recv
+  // count = offsets into n-length index_send for each proc I send to
+  // index_send = list of which datums to send to each proc
+  //   1st N1 values are datum indices for 1st proc,
+  //   next N2 values are datum indices for 2nd proc, etc
+  // offset_send = where each datum starts in send buffer
 
-  *nrecvsize = 0;
-  for (i = 0; i < nrecv; i++) {
-    MPI_Recv(&lengths_from[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
-    procs_from[i] = status->MPI_SOURCE;
-    *nrecvsize += lengths_from[i];
-  }
-
-  // barrier to insure all my MPI_ANY_SOURCE messages are received
-  // else some procs could proceed to comm_do and start sending to me
-
-  MPI_Barrier(world);
-
-  // setup indices_to
-  // counts = current offset into indices_to for each proc I send to
-
-  counts[0] = 0;
-  for (i = 1; i < nsend; i++) counts[i] = counts[i-1] + lengths_to[i-1];
+  count[0] = 0;
+  for (i = 1; i < nsend; i++) count[i] = count[i-1] + num_send[i-1];
 
   for (i = 0; i < n; i++) {
     isend = list[proclist[i]];
-    indices_to[counts[isend]++] = i;
+    index_send[count[isend]++] = i;
+    if (i) offset_send[i] = offset_send[i-1] + sizes[i-1];
+    else offset_send[i] = 0;
   }
+
+  // tell receivers how much data I send
+  // sendmax = largest # of datums I send in a single message
+
+  int sendmax = 0;
+  for (i = 0; i < nsend; i++) {
+    MPI_Send(&length_send[i],1,MPI_INT,proc_send[i],0,world);
+    sendmax = MAX(sendmax,length_send[i]);
+  }
+
+  // receive incoming messages
+  // proc_recv = procs I recv from
+  // length_recv = total size of message each proc sends me
+  // nrecvsize = total size of data I recv
+
+  *nrecvsize = 0;
+  for (i = 0; i < nrecv; i++) {
+    MPI_Recv(&length_recv[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
+    proc_recv[i] = status->MPI_SOURCE;
+    *nrecvsize += length_recv[i];
+  }
+
+  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // else another proc could proceed to irregular_perform() and send to me
+
+  MPI_Barrier(world);
 
   // free work vectors
 
-  delete [] counts;
+  delete [] count;
   delete [] list;
     
   // initialize plan and return it
@@ -1095,19 +1115,22 @@ Comm::Plan *Comm::irregular_create(int n, int *sizes, int *proclist,
   plan->nrecv = nrecv;
   plan->sendmax = sendmax;
 
-  plan->procs_to = procs_to;
-  plan->lengths_to = lengths_to;
-  plan->indices_to = indices_to;
-  plan->procs_from = procs_from;
-  plan->lengths_from = lengths_from;
+  plan->proc_send = proc_send;
+  plan->length_send = length_send;
+  plan->num_send = num_send;
+  plan->index_send = index_send;
+  plan->offset_send = offset_send;
+  plan->proc_recv = proc_recv;
+  plan->length_recv = length_recv;
   plan->request = request;
   plan->status = status;
-  */
+
   return plan;
 }
 
 /* ----------------------------------------------------------------------
    perform irregular communication
+   plan = previouly computed plan via irregular_create()
    sendbuf = list of atoms to send
    sizes = # of doubles for each atom
    recvbuf = received atoms
@@ -1116,15 +1139,15 @@ Comm::Plan *Comm::irregular_create(int n, int *sizes, int *proclist,
 void Comm::irregular_perform(Plan *plan, double *sendbuf, int *sizes,
 			     double *recvbuf)
 {
-  int i,m;
+  int i,m,n,offset;
 
   // post all receives
 
-  int recv_offset = 0;
+  offset = 0;
   for (int irecv = 0; irecv < plan->nrecv; irecv++) {
-    MPI_Irecv(&recvbuf[recv_offset],plan->length_from[irecv],MPI_DOUBLE,
-	      plan->proc_from[irecv],0,world,&plan->request[irecv]);
-    recv_offset += plan->length_from[irecv];
+    MPI_Irecv(&recvbuf[offset],plan->length_recv[irecv],MPI_DOUBLE,
+	      plan->proc_recv[irecv],0,world,&plan->request[irecv]);
+    offset += plan->length_recv[irecv];
   }
 
   // allocate buf for largest send
@@ -1136,15 +1159,14 @@ void Comm::irregular_perform(Plan *plan, double *sendbuf, int *sizes,
   // pack buf with list of datums (datum = one atom)
   // m = index of datum in sendbuf
 
-  int send_offset;
-  int ndatum = 0;
+  n = 0;
   for (int isend = 0; isend < plan->nsend; isend++) {
-    send_offset = 0;
-    for (i = 0; i < plan->datum_send[isend]; i++) {
-      m = plan->index_send[ndatum++];
-      memcpy(&buf[send_offset],&sendbuf[plan->offset_send[m]],
+    offset = 0;
+    for (i = 0; i < plan->num_send[isend]; i++) {
+      m = plan->index_send[n++];
+      memcpy(&buf[offset],&sendbuf[plan->offset_send[m]],
 	     sizes[m]*sizeof(double));
-      send_offset += sizes[m];
+      offset += sizes[m];
     }
     MPI_Send(buf,plan->length_send[isend],MPI_DOUBLE,
 	     plan->proc_send[isend],0,world);
@@ -1167,12 +1189,48 @@ void Comm::irregular_destroy(Plan *plan)
 {
   delete [] plan->proc_send;
   delete [] plan->length_send;
-  delete [] plan->datum_send;
+  delete [] plan->num_send;
   delete [] plan->index_send;
   delete [] plan->offset_send;
-  delete [] plan->proc_from;
-  delete [] plan->length_from;
+  delete [] plan->proc_recv;
+  delete [] plan->length_recv;
+  delete [] plan->request;
+  delete [] plan->status;
   memory->sfree(plan);
+}
+
+/* ----------------------------------------------------------------------
+   compute which proc owns atom with x coord
+   x will be in box (orthogonal) or lamda coords (triclinic)
+------------------------------------------------------------------------- */
+
+int Comm::irregular_lookup(double *x)
+{
+  int loc[3];
+  if (triclinic == 0) {
+    double *boxlo = domain->boxlo;
+    double *boxhi = domain->boxhi;
+    loc[0] = static_cast<int>
+      (procgrid[0] * (x[0]-boxlo[0]) / (boxhi[0]-boxlo[0]));
+    loc[1] = static_cast<int>
+      (procgrid[1] * (x[1]-boxlo[1]) / (boxhi[1]-boxlo[1]));
+    loc[2] = static_cast<int>
+      (procgrid[2] * (x[2]-boxlo[2]) / (boxhi[2]-boxlo[2]));
+  } else {
+    loc[0] = static_cast<int> (procgrid[0] * x[0]);
+    loc[1] = static_cast<int> (procgrid[1] * x[1]);
+    loc[2] = static_cast<int> (procgrid[2] * x[2]);
+  }
+
+  if (loc[0] < 0) loc[0] = 0;
+  if (loc[0] >= procgrid[0]) loc[0] = procgrid[0] - 1;
+  if (loc[1] < 0) loc[1] = 0;
+  if (loc[1] >= procgrid[1]) loc[0] = procgrid[1] - 1;
+  if (loc[2] < 0) loc[2] = 0;
+  if (loc[2] >= procgrid[2]) loc[0] = procgrid[2] - 1;
+
+  int proc = loc[2]*procgrid[1]*procgrid[0] + loc[1]*procgrid[0] + loc[0];
+  return proc;
 }
 
 /* ----------------------------------------------------------------------

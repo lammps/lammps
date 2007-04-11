@@ -60,7 +60,7 @@ two groups: the default group "all" and the group specified in the fix
 deposit command (which can also be "all").
 
 If you are computing temperature values which include inserted
-particles, you will want to use the "temp_modify"_temp_modify.html
+particles, you will want to use the "compute_modify"_compute_modify.html
 dynamic option, which insures the current number of atoms is used as a
 normalizing factor each time temperature is computed.
 

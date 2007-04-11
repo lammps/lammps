@@ -74,8 +74,8 @@ contribution to the pressure virial is also accounted for.  The latter
 is only correct if forces within the bodies have been turned off, and
 there is only a single fix rigid defined. For each linear rigid body
 of three or more atoms, one degree-of-freedom must be added using a
-<A HREF = "temp_modify.html">temp_modify</A> command (i.e. for a simulation of 10 
-such rigid bodies, use "temp_modify mine extra -7", where 3 is the 
+<A HREF = "compute_modify.html">compute_modify</A> command (i.e. for a simulation of 10 
+such rigid bodies, use "compute_modify mine extra -7", where 3 is the 
 default setting and -10 degrees-of-freedom are subtracted).
 </P>
 <P>Note that this fix uses constant-energy integration, so you may need

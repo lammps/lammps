@@ -93,8 +93,8 @@ file and in what format.  Settings made via the
 individual values and the file itself.
 
 The {atom}, {bond}, and {custom} styles create files in a simple text
-format that is self-explanatory.  Many of the LAMMPS "post-processing
-tools"_Section_tools.html, including
+format that is self-explanatory when viewing a dump file.  Many of the
+LAMMPS "post-processing tools"_Section_tools.html, including
 "Pizza.py"_http://www.cs.sandia.gov/~sjplimp/pizza.html, work with
 this format.
 

@@ -92,14 +92,11 @@ void Verlet::init()
   }
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques if atom_style is dipole
-  // need to clear phia if atom_style is granular
+  // need to clear torques if array exists
   // don't need to clear f_pair if atom_style is only granular (no virial)
 
   torqueflag = 0;
-  if (atom->check_style("dipole")) torqueflag = 1;
-  granflag = 0;
-  if (atom->check_style("granular")) granflag = 1;
+  if (atom->torque) torqueflag = 1;
   pairflag = 1;
   if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
@@ -306,15 +303,6 @@ void Verlet::force_clear(int vflag)
       torque[i][0] = 0.0;
       torque[i][1] = 0.0;
       torque[i][2] = 0.0;
-    }
-  }
-
-  if (granflag) {
-    double **phia = atom->phia;
-    for (i = 0; i < nall; i++) {
-      phia[i][0] = 0.0;
-      phia[i][1] = 0.0;
-      phia[i][2] = 0.0;
     }
   }
 

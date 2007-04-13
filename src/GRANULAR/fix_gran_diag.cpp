@@ -467,7 +467,7 @@ void FixGranDiag::stress_no_history()
 
   double **x = atom->x;
   double **v = atom->v;
-  double **phiv = atom->phiv;
+  double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -528,9 +528,9 @@ void FixGranDiag::stress_no_history()
 
 	//  relative rotational velocity
 
-	wr1 = radi*phiv[i][0] + radj*phiv[j][0];
-	wr2 = radi*phiv[i][1] + radj*phiv[j][1];
-	wr3 = radi*phiv[i][2] + radj*phiv[j][2];
+	wr1 = radi*omega[i][0] + radj*omega[j][0];
+	wr2 = radi*omega[i][1] + radj*omega[j][1];
+	wr3 = radi*omega[i][2] + radj*omega[j][2];
 
 	wr1 *= dt/r;
 	wr2 *= dt/r;
@@ -620,7 +620,7 @@ void FixGranDiag::stress_history()
 
   double **x = atom->x;
   double **v = atom->v;
-  double **phiv = atom->phiv;
+  double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -682,9 +682,9 @@ void FixGranDiag::stress_history()
 
 	//  relative rotational velocity
 
-	wr1 = radi*phiv[i][0] + radj*phiv[j][0];
-	wr2 = radi*phiv[i][1] + radj*phiv[j][1];
-	wr3 = radi*phiv[i][2] + radj*phiv[j][2];
+	wr1 = radi*omega[i][0] + radj*omega[j][0];
+	wr2 = radi*omega[i][1] + radj*omega[j][1];
+	wr3 = radi*omega[i][2] + radj*omega[j][2];
 
 	wr1 *= dt/r;
 	wr2 *= dt/r;
@@ -803,7 +803,7 @@ void FixGranDiag::stress_hertzian()
 
   double **x = atom->x;
   double **v = atom->v;
-  double **phiv = atom->phiv;
+  double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -865,9 +865,9 @@ void FixGranDiag::stress_hertzian()
 
 	//  relative rotational velocity
 
-	wr1 = radi*phiv[i][0] + radj*phiv[j][0];
-	wr2 = radi*phiv[i][1] + radj*phiv[j][1];
-	wr3 = radi*phiv[i][2] + radj*phiv[j][2];
+	wr1 = radi*omega[i][0] + radj*omega[j][0];
+	wr2 = radi*omega[i][1] + radj*omega[j][1];
+	wr3 = radi*omega[i][2] + radj*omega[j][2];
 
 	wr1 *= dt/r;
 	wr2 *= dt/r;

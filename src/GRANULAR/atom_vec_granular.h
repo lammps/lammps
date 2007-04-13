@@ -55,7 +55,7 @@ class AtomVecGranular : public AtomVec {
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   double *radius,*density,*rmass;
-  double **phix,**phiv,**phia;
+  double **xphi,**omega,**torque;
 };
 
 }

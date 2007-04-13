@@ -53,10 +53,8 @@ void FixNVEGran::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  if (force->dimension == 3)
-    dtfphi = 0.5 * update->dt * force->ftm2v / INERTIA3D;
-  else
-    dtfphi = 0.5 * update->dt * force->ftm2v / INERTIA2D;
+  if (force->dimension == 3) dtfphi = dtf / INERTIA3D;
+  else dtfphi = dtf / INERTIA2D;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,9 +66,9 @@ void FixNVEGran::initial_integrate()
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **phix = atom->phix;
-  double **phiv = atom->phiv;
-  double **phia = atom->phia;
+  double **xphi = atom->xphi;
+  double **omega = atom->omega;
+  double **torque = atom->torque;
   double *rmass = atom->rmass;
   double *radius = atom->radius;
   int *mask = atom->mask;
@@ -86,12 +84,12 @@ void FixNVEGran::initial_integrate()
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
       dtfm = dtfphi / (radius[i]*radius[i]*rmass[i]);
-      phiv[i][0] += dtfm * phia[i][0];
-      phiv[i][1] += dtfm * phia[i][1];
-      phiv[i][2] += dtfm * phia[i][2];
-      phix[i][0] += dtv * phiv[i][0];
-      phix[i][1] += dtv * phiv[i][1];
-      phix[i][2] += dtv * phiv[i][2];
+      omega[i][0] += dtfm * torque[i][0];
+      omega[i][1] += dtfm * torque[i][1];
+      omega[i][2] += dtfm * torque[i][2];
+      xphi[i][0] += dtv * omega[i][0];
+      xphi[i][1] += dtv * omega[i][1];
+      xphi[i][2] += dtv * omega[i][2];
     }
   }
 }
@@ -104,8 +102,8 @@ void FixNVEGran::final_integrate()
 
   double **v = atom->v;
   double **f = atom->f;
-  double **phiv = atom->phiv;
-  double **phia = atom->phia;
+  double **omega = atom->omega;
+  double **torque = atom->torque;
   double *rmass = atom->rmass;
   double *radius = atom->radius;
   int *mask = atom->mask;
@@ -118,9 +116,9 @@ void FixNVEGran::final_integrate()
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
       dtfm = dtfphi / (radius[i]*radius[i]*rmass[i]);
-      phiv[i][0] += dtfm * phia[i][0];
-      phiv[i][1] += dtfm * phia[i][1];
-      phiv[i][2] += dtfm * phia[i][2];
+      omega[i][0] += dtfm * torque[i][0];
+      omega[i][1] += dtfm * torque[i][1];
+      omega[i][2] += dtfm * torque[i][2];
     }
   }
 }

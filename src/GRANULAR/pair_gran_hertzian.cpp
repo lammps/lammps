@@ -54,8 +54,8 @@ void PairGranHertzian::compute(int eflag, int vflag)
   double **f = atom->f;
   double **x = atom->x;
   double **v = atom->v;
-  double **phiv = atom->phiv;
-  double **phia = atom->phia;
+  double **omega = atom->omega;
+  double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -122,9 +122,9 @@ void PairGranHertzian::compute(int eflag, int vflag)
 
 	// relative rotational velocity
 
-	wr1 = radi*phiv[i][0] + radj*phiv[j][0];
-	wr2 = radi*phiv[i][1] + radj*phiv[j][1];
-	wr3 = radi*phiv[i][2] + radj*phiv[j][2];
+	wr1 = radi*omega[i][0] + radj*omega[j][0];
+	wr2 = radi*omega[i][1] + radj*omega[j][1];
+	wr3 = radi*omega[i][2] + radj*omega[j][2];
 
 	wr1 *= dt/r;
 	wr2 *= dt/r;
@@ -211,17 +211,17 @@ void PairGranHertzian::compute(int eflag, int vflag)
 	tor1 = rinv * (dely*fs3 - delz*fs2);
 	tor2 = rinv * (delz*fs1 - delx*fs3);
 	tor3 = rinv * (delx*fs2 - dely*fs1);
-	phia[i][0] -= radi*tor1;
-	phia[i][1] -= radi*tor2;
-	phia[i][2] -= radi*tor3;
+	torque[i][0] -= radi*tor1;
+	torque[i][1] -= radi*tor2;
+	torque[i][2] -= radi*tor3;
 
 	if (newton_pair || j < nlocal) {
 	  f[j][0] -= ccelx;
 	  f[j][1] -= ccely;
 	  f[j][2] -= ccelz;
-	  phia[j][0] -= radj*tor1;
-	  phia[j][1] -= radj*tor2;
-	  phia[j][2] -= radj*tor3;
+	  torque[j][0] -= radj*tor1;
+	  torque[j][1] -= radj*tor2;
+	  torque[j][2] -= radj*tor3;
 	}
       }
     }

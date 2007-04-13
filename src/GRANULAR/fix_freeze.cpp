@@ -45,6 +45,7 @@ int FixFreeze::setmask()
 void FixFreeze::init()
 {
   // error if more than one freeze fix
+  // because accessed by pair style granular and fix gran/diag
 
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
@@ -64,7 +65,7 @@ void FixFreeze::setup()
 void FixFreeze::post_force(int vflag)
 {
   double **f = atom->f;
-  double **phia = atom->phia;
+  double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -73,8 +74,8 @@ void FixFreeze::post_force(int vflag)
       f[i][0] = 0.0;
       f[i][1] = 0.0;
       f[i][2] = 0.0;
-      phia[i][0] = 0.0;
-      phia[i][1] = 0.0;
-      phia[i][2] = 0.0;
+      torque[i][0] = 0.0;
+      torque[i][1] = 0.0;
+      torque[i][2] = 0.0;
     }
 }

@@ -73,12 +73,12 @@ void AtomVecGranular::grow(int n)
   rmass = atom->rmass = (double *)
     memory->srealloc(atom->rmass,nmax*sizeof(double),"atom:rmass");
 
-  phix = atom->phix = 
-    memory->grow_2d_double_array(atom->phix,nmax,3,"atom:phix");
-  phiv = atom->phiv = 
-    memory->grow_2d_double_array(atom->phiv,nmax,3,"atom:phiv");
-  phia = atom->phia =
-    memory->grow_2d_double_array(atom->phia,nmax,3,"atom:phia");
+  xphi = atom->xphi = 
+    memory->grow_2d_double_array(atom->xphi,nmax,3,"atom:xphi");
+  omega = atom->omega = 
+    memory->grow_2d_double_array(atom->omega,nmax,3,"atom:omega");
+  torque = atom->torque =
+    memory->grow_2d_double_array(atom->torque,nmax,3,"atom:torque");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -100,9 +100,9 @@ void AtomVecGranular::reset_ptrs()
   radius = atom->radius;
   density = atom->density;
   rmass = atom->rmass;
-  phix = atom->phix;
-  phiv = atom->phiv;
-  phia = atom->phia;
+  xphi = atom->xphi;
+  omega = atom->omega;
+  torque = atom->torque;
 }
 
 /* ----------------------------------------------------------------------
@@ -115,12 +115,12 @@ void AtomVecGranular::zero_owned(int i)
   radius[i] = 0.0;
   density[i] = 0.0;
   rmass[i] = 0.0;
-  phix[i][0] = 0.0;
-  phix[i][1] = 0.0;
-  phix[i][2] = 0.0;
-  phiv[i][0] = 0.0;
-  phiv[i][1] = 0.0;
-  phiv[i][2] = 0.0;
+  xphi[i][0] = 0.0;
+  xphi[i][1] = 0.0;
+  xphi[i][2] = 0.0;
+  omega[i][0] = 0.0;
+  omega[i][1] = 0.0;
+  omega[i][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -139,9 +139,9 @@ void AtomVecGranular::zero_ghost(int n, int first)
     v[i][2] = 0.0;
     radius[i] = 0.0;
     rmass[i] = 0.0;
-    phiv[i][0] = 0.0;
-    phiv[i][1] = 0.0;
-    phiv[i][2] = 0.0;
+    omega[i][0] = 0.0;
+    omega[i][1] = 0.0;
+    omega[i][2] = 0.0;
   }
 }
 
@@ -163,12 +163,12 @@ void AtomVecGranular::copy(int i, int j)
   radius[j] = radius[i];
   density[j] = density[i];
   rmass[j] = rmass[i];
-  phix[j][0] = phix[i][0];
-  phix[j][1] = phix[i][1];
-  phix[j][2] = phix[i][2];
-  phiv[j][0] = phiv[i][0];
-  phiv[j][1] = phiv[i][1];
-  phiv[j][2] = phiv[i][2];
+  xphi[j][0] = xphi[i][0];
+  xphi[j][1] = xphi[i][1];
+  xphi[j][2] = xphi[i][2];
+  omega[j][0] = omega[i][0];
+  omega[j][1] = omega[i][1];
+  omega[j][2] = omega[i][2];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -193,9 +193,9 @@ int AtomVecGranular::pack_comm(int n, int *list, double *buf,
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-      buf[m++] = phiv[j][0];
-      buf[m++] = phiv[j][1];
-      buf[m++] = phiv[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -215,9 +215,9 @@ int AtomVecGranular::pack_comm(int n, int *list, double *buf,
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-      buf[m++] = phiv[j][0];
-      buf[m++] = phiv[j][1];
-      buf[m++] = phiv[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
     }
   }
   return m;
@@ -230,9 +230,9 @@ int AtomVecGranular::pack_comm_one(int i, double *buf)
   buf[0] = v[i][0];
   buf[1] = v[i][1];
   buf[2] = v[i][2];
-  buf[3] = phiv[i][0];
-  buf[4] = phiv[i][1];
-  buf[5] = phiv[i][2];
+  buf[3] = omega[i][0];
+  buf[4] = omega[i][1];
+  buf[5] = omega[i][2];
   return 6;
 }
 
@@ -251,9 +251,9 @@ void AtomVecGranular::unpack_comm(int n, int first, double *buf)
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
-    phiv[i][0] = buf[m++];
-    phiv[i][1] = buf[m++];
-    phiv[i][2] = buf[m++];
+    omega[i][0] = buf[m++];
+    omega[i][1] = buf[m++];
+    omega[i][2] = buf[m++];
   }
 }
 
@@ -264,9 +264,9 @@ int AtomVecGranular::unpack_comm_one(int i, double *buf)
   v[i][0] = buf[0];
   v[i][1] = buf[1];
   v[i][2] = buf[2];
-  phiv[i][0] = buf[3];
-  phiv[i][1] = buf[4];
-  phiv[i][2] = buf[5];
+  omega[i][0] = buf[3];
+  omega[i][1] = buf[4];
+  omega[i][2] = buf[5];
   return 6;
 }
 
@@ -282,9 +282,9 @@ int AtomVecGranular::pack_reverse(int n, int first, double *buf)
     buf[m++] = f[i][0];
     buf[m++] = f[i][1];
     buf[m++] = f[i][2];
-    buf[m++] = phia[i][0];
-    buf[m++] = phia[i][1];
-    buf[m++] = phia[i][2];
+    buf[m++] = torque[i][0];
+    buf[m++] = torque[i][1];
+    buf[m++] = torque[i][2];
   }
   return m;
 }
@@ -293,9 +293,9 @@ int AtomVecGranular::pack_reverse(int n, int first, double *buf)
 
 int AtomVecGranular::pack_reverse_one(int i, double *buf)
 {
-  buf[0] = phia[i][0];
-  buf[1] = phia[i][1];
-  buf[2] = phia[i][2];
+  buf[0] = torque[i][0];
+  buf[1] = torque[i][1];
+  buf[2] = torque[i][2];
   return 3;
 }
 
@@ -311,9 +311,9 @@ void AtomVecGranular::unpack_reverse(int n, int *list, double *buf)
     f[j][0] += buf[m++];
     f[j][1] += buf[m++];
     f[j][2] += buf[m++];
-    phia[j][0] += buf[m++];
-    phia[j][1] += buf[m++];
-    phia[j][2] += buf[m++];
+    torque[j][0] += buf[m++];
+    torque[j][1] += buf[m++];
+    torque[j][2] += buf[m++];
   }
 }
 
@@ -321,9 +321,9 @@ void AtomVecGranular::unpack_reverse(int n, int *list, double *buf)
 
 int AtomVecGranular::unpack_reverse_one(int i, double *buf)
 {
-  phia[i][0] = buf[0];
-  phia[i][1] = buf[1];
-  phia[i][2] = buf[2];
+  torque[i][0] = buf[0];
+  torque[i][1] = buf[1];
+  torque[i][2] = buf[2];
   return 3;
 }
 
@@ -350,9 +350,9 @@ int AtomVecGranular::pack_border(int n, int *list, double *buf,
       buf[m++] = v[j][2];
       buf[m++] = radius[j];
       buf[m++] = rmass[j];
-      buf[m++] = phiv[j][0];
-      buf[m++] = phiv[j][1];
-      buf[m++] = phiv[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -377,9 +377,9 @@ int AtomVecGranular::pack_border(int n, int *list, double *buf,
       buf[m++] = v[j][2];
       buf[m++] = radius[j];
       buf[m++] = rmass[j];
-      buf[m++] = phiv[j][0];
-      buf[m++] = phiv[j][1];
-      buf[m++] = phiv[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
     }
   }
   return m;
@@ -394,9 +394,9 @@ int AtomVecGranular::pack_border_one(int i, double *buf)
   buf[2] = v[i][2];
   buf[3] = radius[i];
   buf[4] = rmass[i];
-  buf[5] = phiv[i][0];
-  buf[6] = phiv[i][1];
-  buf[7] = phiv[i][2];
+  buf[5] = omega[i][0];
+  buf[6] = omega[i][1];
+  buf[7] = omega[i][2];
   return 8;
 }
 
@@ -421,9 +421,9 @@ void AtomVecGranular::unpack_border(int n, int first, double *buf)
     v[i][2] = buf[m++];
     radius[i] = buf[m++];
     rmass[i] = buf[m++];
-    phiv[i][0] = buf[m++];
-    phiv[i][1] = buf[m++];
-    phiv[i][2] = buf[m++];
+    omega[i][0] = buf[m++];
+    omega[i][1] = buf[m++];
+    omega[i][2] = buf[m++];
   }
 }
 
@@ -436,9 +436,9 @@ int AtomVecGranular::unpack_border_one(int i, double *buf)
   v[i][2] = buf[2];
   radius[i] = buf[3];
   rmass[i] = buf[4];
-  phiv[i][0] = buf[5];
-  phiv[i][1] = buf[6];
-  phiv[i][2] = buf[7];
+  omega[i][0] = buf[5];
+  omega[i][1] = buf[6];
+  omega[i][2] = buf[7];
   return 8;
 }
 
@@ -464,12 +464,12 @@ int AtomVecGranular::pack_exchange(int i, double *buf)
   buf[m++] = radius[i];
   buf[m++] = density[i];
   buf[m++] = rmass[i];
-  buf[m++] = phix[i][0];
-  buf[m++] = phix[i][1];
-  buf[m++] = phix[i][2];
-  buf[m++] = phiv[i][0];
-  buf[m++] = phiv[i][1];
-  buf[m++] = phiv[i][2];
+  buf[m++] = xphi[i][0];
+  buf[m++] = xphi[i][1];
+  buf[m++] = xphi[i][2];
+  buf[m++] = omega[i][0];
+  buf[m++] = omega[i][1];
+  buf[m++] = omega[i][2];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -501,12 +501,12 @@ int AtomVecGranular::unpack_exchange(double *buf)
   radius[nlocal] = buf[m++];
   density[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
-  phix[nlocal][0] = buf[m++];
-  phix[nlocal][1] = buf[m++];
-  phix[nlocal][2] = buf[m++];
-  phiv[nlocal][0] = buf[m++];
-  phiv[nlocal][1] = buf[m++];
-  phiv[nlocal][2] = buf[m++];
+  xphi[nlocal][0] = buf[m++];
+  xphi[nlocal][1] = buf[m++];
+  xphi[nlocal][2] = buf[m++];
+  omega[nlocal][0] = buf[m++];
+  omega[nlocal][1] = buf[m++];
+  omega[nlocal][2] = buf[m++];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -569,12 +569,12 @@ int AtomVecGranular::pack_restart(int i, double *buf)
 
   buf[m++] = radius[i];
   buf[m++] = density[i];
-  buf[m++] = phix[i][0];
-  buf[m++] = phix[i][1];
-  buf[m++] = phix[i][2];
-  buf[m++] = phiv[i][0];
-  buf[m++] = phiv[i][1];
-  buf[m++] = phiv[i][2];
+  buf[m++] = xphi[i][0];
+  buf[m++] = xphi[i][1];
+  buf[m++] = xphi[i][2];
+  buf[m++] = omega[i][0];
+  buf[m++] = omega[i][1];
+  buf[m++] = omega[i][2];
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
@@ -619,12 +619,12 @@ int AtomVecGranular::unpack_restart(double *buf)
   else
     rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
 
-  phix[nlocal][0] = buf[m++];
-  phix[nlocal][1] = buf[m++];
-  phix[nlocal][2] = buf[m++];
-  phiv[nlocal][0] = buf[m++];
-  phiv[nlocal][1] = buf[m++];
-  phiv[nlocal][2] = buf[m++];
+  xphi[nlocal][0] = buf[m++];
+  xphi[nlocal][1] = buf[m++];
+  xphi[nlocal][2] = buf[m++];
+  omega[nlocal][0] = buf[m++];
+  omega[nlocal][1] = buf[m++];
+  omega[nlocal][2] = buf[m++];
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
@@ -664,12 +664,12 @@ void AtomVecGranular::create_atom(int itype, double *coord, int ihybrid)
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
   else
     rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
-  phix[nlocal][0] = 0.0;
-  phix[nlocal][1] = 0.0;
-  phix[nlocal][2] = 0.0;
-  phiv[nlocal][0] = 0.0;
-  phiv[nlocal][1] = 0.0;
-  phiv[nlocal][2] = 0.0;
+  xphi[nlocal][0] = 0.0;
+  xphi[nlocal][1] = 0.0;
+  xphi[nlocal][2] = 0.0;
+  omega[nlocal][0] = 0.0;
+  omega[nlocal][1] = 0.0;
+  omega[nlocal][2] = 0.0;
 
   atom->nlocal++;
 }
@@ -711,12 +711,12 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values,
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
-  phix[nlocal][0] = 0.0;
-  phix[nlocal][1] = 0.0;
-  phix[nlocal][2] = 0.0;
-  phiv[nlocal][0] = 0.0;
-  phiv[nlocal][1] = 0.0;
-  phiv[nlocal][2] = 0.0;
+  xphi[nlocal][0] = 0.0;
+  xphi[nlocal][1] = 0.0;
+  xphi[nlocal][2] = 0.0;
+  omega[nlocal][0] = 0.0;
+  omega[nlocal][1] = 0.0;
+  omega[nlocal][2] = 0.0;
 
   atom->nlocal++;
 }
@@ -729,7 +729,8 @@ void AtomVecGranular::data_vel(int m, char *line, int ihybrid)
 {
   int tmp;
   sscanf(line,"%d %lg %lg %lg %lg %lg %lg",
-	 &tmp,&v[m][0],&v[m][1],&v[m][2],&phiv[m][0],&phiv[m][1],&phiv[m][2]);
+	 &tmp,&v[m][0],&v[m][1],&v[m][2],
+	 &omega[m][0],&omega[m][1],&omega[m][2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -751,9 +752,9 @@ int AtomVecGranular::memory_usage()
   if (atom->memcheck("radius")) bytes += nmax * sizeof(double);
   if (atom->memcheck("density")) bytes += nmax * sizeof(double);
   if (atom->memcheck("rmass")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("phix")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("phiv")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("phia")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("xphi")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("omega")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("torque")) bytes += nmax*3 * sizeof(double);
 
   return bytes;
 }

@@ -235,8 +235,8 @@ void FixWallGran::post_force(int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **phiv = atom->phiv;
-  double **phia = atom->phia;
+  double **omega = atom->omega;
+  double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -282,13 +282,13 @@ void FixWallGran::post_force(int vflag)
 	}
       } else {
 	if (pairstyle == NO_HISTORY)
-	  no_history(rsq,dx,dy,dz,vwall,v[i],f[i],phiv[i],phia[i],
+	  no_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
 		     radius[i],rmass[i]);
 	else if (pairstyle == HISTORY)
-	  history(rsq,dx,dy,dz,vwall,v[i],f[i],phiv[i],phia[i],
+	  history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
 		  radius[i],rmass[i],shear[i]);
 	else if (pairstyle == HERTZIAN)
-	  hertzian(rsq,dx,dy,dz,vwall,v[i],f[i],phiv[i],phia[i],
+	  hertzian(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
 		   radius[i],rmass[i],shear[i]);
       }
     }
@@ -299,7 +299,7 @@ void FixWallGran::post_force(int vflag)
 
 void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
 			     double *vwall, double *v,
-			     double *f, double *phiv, double *phia,
+			     double *f, double *omega, double *torque,
 			     double radius, double mass)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -333,9 +333,9 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
 
   // relative rotational velocity
 
-  wr1 = radius*phiv[0];
-  wr2 = radius*phiv[1];
-  wr3 = radius*phiv[2];
+  wr1 = radius*omega[0];
+  wr2 = radius*omega[1];
+  wr3 = radius*omega[2];
 
   wr1 *= dt/r;
   wr2 *= dt/r;
@@ -386,16 +386,16 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
   tor1 = dy*fs3 - dz*fs2;
   tor2 = dz*fs1 - dx*fs3;
   tor3 = dx*fs2 - dy*fs1;
-  phia[0] -= radius*tor1;
-  phia[1] -= radius*tor2;
-  phia[2] -= radius*tor3;
+  torque[0] -= radius*tor1;
+  torque[1] -= radius*tor2;
+  torque[2] -= radius*tor3;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallGran::history(double rsq, double dx, double dy, double dz,
 			  double *vwall, double *v,
-			  double *f, double *phiv, double *phia,
+			  double *f, double *omega, double *torque,
 			  double radius, double mass, double *shear)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -430,9 +430,9 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
 
   // relative rotational velocity
 
-  wr1 = radius*phiv[0];
-  wr2 = radius*phiv[1];
-  wr3 = radius*phiv[2];
+  wr1 = radius*omega[0];
+  wr2 = radius*omega[1];
+  wr3 = radius*omega[2];
 
   wr1 *= dt/r;
   wr2 *= dt/r;
@@ -512,16 +512,16 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
-  phia[0] -= radius*tor1;
-  phia[1] -= radius*tor2;
-  phia[2] -= radius*tor3;
+  torque[0] -= radius*tor1;
+  torque[1] -= radius*tor2;
+  torque[2] -= radius*tor3;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
 			   double *vwall, double *v,
-			   double *f, double *phiv, double *phia,
+			   double *f, double *omega, double *torque,
 			   double radius, double mass, double *shear)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -556,9 +556,9 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
 
   // relative rotational velocity
 
-  wr1 = radius*phiv[0];
-  wr2 = radius*phiv[1];
-  wr3 = radius*phiv[2];
+  wr1 = radius*omega[0];
+  wr2 = radius*omega[1];
+  wr3 = radius*omega[2];
 
   wr1 *= dt/r;
   wr2 *= dt/r;
@@ -639,9 +639,9 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
   tor1 = dy*fs3 - dz*fs2;
   tor2 = dz*fs1 - dx*fs3;
   tor3 = dx*fs2 - dy*fs1;
-  phia[0] -= radius*tor1;
-  phia[1] -= radius*tor2;
-  phia[2] -= radius*tor3;
+  torque[0] -= radius*tor1;
+  torque[1] -= radius*tor2;
+  torque[2] -= radius*tor3;
 }
 
 /* ----------------------------------------------------------------------

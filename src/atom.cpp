@@ -60,8 +60,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   molecule = NULL;
   q = NULL;
-  mu = omega = torque = NULL;
-  phix = phiv = phia = NULL;
+  mu = NULL;
+  xphi = omega = torque = NULL;
   radius = density = rmass = vfrac = NULL;
 
   maxspecial = 1;
@@ -142,11 +142,9 @@ Atom::~Atom()
 
   memory->sfree(q);
   memory->destroy_2d_double_array(mu);
+  memory->destroy_2d_double_array(xphi);
   memory->destroy_2d_double_array(omega);
   memory->destroy_2d_double_array(torque);
-  memory->destroy_2d_double_array(phix);
-  memory->destroy_2d_double_array(phiv);
-  memory->destroy_2d_double_array(phia);
   memory->sfree(radius);
   memory->sfree(density);
   memory->sfree(rmass);

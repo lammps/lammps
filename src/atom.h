@@ -43,9 +43,8 @@ class Atom : protected Pointers {
 
   int *molecule;
   double *q,**mu;
-  double **omega,**torque;
+  double **xphi,**omega,**torque;
   double *radius,*density,*rmass,*vfrac;
-  double **phix,**phiv,**phia;
 
   int maxspecial;
   int **nspecial,**special;

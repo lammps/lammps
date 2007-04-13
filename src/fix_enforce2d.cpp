@@ -41,13 +41,6 @@ int FixEnforce2D::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::init()
-{
-  granular = atom->check_style("granular");
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixEnforce2D::setup()
 {
   if (strcmp(update->integrate_style,"verlet") == 0)
@@ -74,7 +67,9 @@ void FixEnforce2D::min_setup()
 void FixEnforce2D::post_force(int vflag)
 {
   double **v = atom->v;
+  double **omega = atom->omega;
   double **f = atom->f;
+  double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -84,17 +79,21 @@ void FixEnforce2D::post_force(int vflag)
       f[i][2] = 0.0;
     }
 
-  // for granular systems, zero xy rotational componenets
+  // for omega/torque systems, zero xy rotation
 
-  if (granular) {
-    double **phiv = atom->phiv;
-    double **phia = atom->phia;
+  if (omega) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	phiv[i][0] = 0.0;
-	phiv[i][1] = 0.0;
-	phia[i][0] = 0.0;
-	phia[i][1] = 0.0;
+	omega[i][0] = 0.0;
+	omega[i][1] = 0.0;
+      }
+  }
+
+  if (torque) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	torque[i][0] = 0.0;
+	torque[i][1] = 0.0;
       }
   }
 }

@@ -100,6 +100,7 @@ void ReadRestart::command(int narg, char **arg)
 
   atom->allocate_type_arrays();
   atom->avec->grow(n);
+  n = atom->nmax;
 
   domain->print_box("  ");
   domain->set_initial_box();

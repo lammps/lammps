@@ -49,7 +49,7 @@ void ComputeRotateGran::init()
 
 double ComputeRotateGran::compute_scalar()
 {
-  double **phiv = atom->phiv;
+  double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -59,8 +59,8 @@ double ComputeRotateGran::compute_scalar()
 
   for (int i = 0; i < nlocal; i++) 
     if (mask[i] & groupbit)
-      erot += (phiv[i][0]*phiv[i][0] + phiv[i][1]*phiv[i][1] + 
-	       phiv[i][2]*phiv[i][2]) * radius[i]*radius[i]*rmass[i];
+      erot += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
+	       omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
 
   MPI_Allreduce(&erot,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   scalar *= pfactor;

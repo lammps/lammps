@@ -69,14 +69,15 @@ includes all the desired rigid bodies.  LAMMPS will allow multiple
 rigid fixes to be defined, but it is more expensive.
 </P>
 <P>The degrees-of-freedom removed by rigid bodies are accounted for in
-temperature and pressure computations.  Similary, the rigid body
-contribution to the pressure virial is also accounted for.  The latter
+temperature and pressure computations. Similary, the rigid body
+contribution to the pressure virial is also accounted for. The latter
 is only correct if forces within the bodies have been turned off, and
 there is only a single fix rigid defined. For each linear rigid body
-of three or more atoms, one degree-of-freedom must be added using a
-<A HREF = "compute_modify.html">compute_modify</A> command (i.e. for a simulation of 10 
-such rigid bodies, use "compute_modify mine extra -7", where 3 is the 
-default setting and -10 degrees-of-freedom are subtracted).
+of three or more atoms, one degree-of-freedom must be subtracted using
+a compute_modify command (i.e. for a simulation of 10 such rigid
+bodies, use "compute_modify thermo_temp extra 13", after the
+thermo_style command, where 3 is the default setting and an additional
+10 degrees-of-freedom are subtracted).
 </P>
 <P>Note that this fix uses constant-energy integration, so you may need
 to impose additional constraints to control the temperature of an

@@ -47,7 +47,7 @@ In the formulas listed for each bond style, {r} is the distance
 between the 2 atoms in the bond.
 
 Note that when both a bond and pair style is defined, the
-"special_bond"_special_bond.html command often needs to be used to
+"special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 2 bonded atoms.
 

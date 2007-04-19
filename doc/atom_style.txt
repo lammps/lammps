@@ -12,7 +12,7 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {bond} or {charge} or {dpd} or \
+style = {angle} or {atomic} or {bond} or {charge} or {dpd} or {ellipsoid} or \
         {full} or {granular} or {molecular} or {hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
@@ -50,18 +50,23 @@ velocities, atom IDs and types.
 {bond} = bonds - e.g. bead-spring polymers
 {charge} = charge
 {dpd} = default values, also communicates velocities
+{ellipsoid} = quaternion for particle orientation, angular velocity/momentum
 {molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
 {full} = molecular + charge - e.g. biomolecules, charged polymers
 {granular} = granular atoms with rotational properties  :ul
 
-Typical simulations with a single pair potential will use only one of
-these styles.  For cases where multiple pair potentials will be used
-(see the "pair_style"_pair_style.html {hybrid} command), it may be
-necessary to use multiple atom styles.  Another example is doing a DPD
-simulations with bonds or angles.  In these cases the {hybrid} style
-can be used to list multiple atom styles.  Atoms will then store and
-communicate the union of all quantities implied by the individual
-styles.
+Typically, simulations require only a single (non-hybrid) atom style.
+If some atoms in the simulation do not have all the properties defined
+by a particular style, use the simplest style that defines all the
+needed properties by any atom.  For example, if some atoms in a
+simulation are charged, but others are not, use the {charge} style.
+If some atoms have bonds, but others do not, use the {bond} style.
+The only scenario where the {hybrid} style is needed is if there is no
+single style which defines all needed properties of all atoms.
+E.g. if you want charged DPD particles, you would need to use
+"atom_style hybrid dpd charge".  When a hybrid style is used, atoms
+store and communicate the union of all quantities implied by the
+individual styles.
 
 LAMMPS can be extended with new atom styles; see "this
 section"_Section_modify.html.

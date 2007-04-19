@@ -231,6 +231,7 @@ atomic: atom-ID atom-type x y z
 bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dpd: atom-ID atom-type x y z
+ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
 granular: atom-ID atom-type diameter density x y z
 molecular: atom-ID molecule-ID atom-type x y z :tb(s=:)
@@ -243,7 +244,8 @@ type-ID = type of atom (1-Ntype)
 q = charge on atom
 diameter = diameter of atom
 density = density of atom
-x,y,z = coordinates of atom :ul
+x,y,z = coordinates of atom
+quatw,quati,quatj,quatk = quaternion components for orientation of atom :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.
@@ -491,14 +493,24 @@ script.
 one line per atom
 line syntax: depends on atom style :ul
 
-all styles except granular: atom-ID vx vy vz
-granular: atom-ID vx vy vz phix phiy phiz :tb(s=:)
+all styles except those listed: atom-ID vx vy vz
+ellipsoid: atom-ID vx vy vz lx ly lz
+granular: atom-ID vx vy vz wx wy wz :tb(s=:)
+
+where the keywords have these meanings:
+
+vx,vy,vz = translational velocity of atom
+lx,ly,lz = angular momentum of aspherical atom
+wx,wy,wz = angular velocity of granular atom :ul
 
 The velocity lines can appear in any order.  This section can only be
-used after an {Atoms} section.  The {Atoms} section must have assigned
-a unique atom ID to each atom so that velocities can be assigned in
-this way.  Vx,vy,vz are in "units"_units.html of velocity.
-Phix,phiy,phiz are in units of angular velocity (radians/time).
+used after an {Atoms} section.  This is because the {Atoms} section
+must have assigned a unique atom ID to each atom so that velocities
+can be assigned to them.
+
+Vx,vy,vz are in "units"_units.html of velocity.  Lx, ly, lz are in
+units of angular momentum (distance-velocity-mass).  Wx,Wy,Wz are in
+units of angular velocity (radians/time).
 
 Translational velocities can also be set by the
 "velocity"_velocity.html command in the input script.

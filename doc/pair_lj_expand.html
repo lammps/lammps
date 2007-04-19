@@ -49,6 +49,13 @@ commands:
 <P>The delta values can be positive or negative.  The last coefficient is
 optional.  If not specified, the global LJ cutoff is used.
 </P>
+<P>If the pair_coeff command is not used to define coefficients for a
+particular I != J type pair, the mixing rule is set by the
+<A HREF = "pair_modify.html">pair_modify</A> command.  Additionally, the delta
+coefficient is always mixed by the rule
+</P>
+<PRE>delta_ij = (delta_i + delta_j) / 2 
+</PRE>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

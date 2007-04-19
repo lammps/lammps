@@ -28,7 +28,8 @@ args = list of arguments for a particular style :l
     possible attributes = tag, mol, type,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
-                          q, mux, muy, muz, tqx, tqy, tqz,
+                          q, mux, muy, muz,
+			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
 		          epair, ke, etotal, centro,
                           sxx, syy, szz, sxy, sxz, syz,
 			  c_ID, c_ID\[N\]
@@ -43,7 +44,8 @@ args = list of arguments for a particular style :l
       fx,fy,fz = forces on atoms
       q = atom charge
       mux,muy,muz = orientation of dipolar atom
-      tqx,tqy,tqz = torque on dipolar atoms
+      quatw,quati,quatj,quatk = quaternion components for aspherical particles
+      tqx,tqy,tqz = torque on aspherical particles
       epair = per-atom pairwise energy
       ke = per-atom kinetic energy
       etotal = per-atom total energy (ke + epair)
@@ -218,10 +220,15 @@ directly using the {ix}, {iy}, {iz} keywords. The
 "dump_modify"_dump_modify.html command describes in more detail what
 is meant by scaled vs unscaled coordinates and the image flags.
 
-The {mux}, {muy}, {muz}, {tqy}, {tqx}, {tqy} keywords are specific
-to dipolar systems defined with an atom style of {dipole}.  The first
-3 give the orientation of the atom's dipole.  The latter 3 give the
-torque on the dipolar atoms.
+The {mux}, {muy}, {muz} keywords are specific to dipolar systems
+defined with an atom style of {dipole}.  They give the orientation of
+the atom's dipole.
+
+The {quatw}, {quati}, {quatj}, {quatk}, {tqx}, {tqy}, {tqz} keywords
+are specific to aspherical particles defined with an atom style of
+{ellipsoid}.  The first 4 are the components of the quaternion that
+define the orientiation of the particle.  The final 3 give the
+rotational torque on the particle.
 
 The {epair}, {ke}, {etotal}, {centro}, and {sxx}, etc keywords print
 the pairwise energy, kinetic energy, total energy (pairwise +

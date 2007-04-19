@@ -84,7 +84,7 @@ run 10000
 next j
 jump in.script
 next i
-jump in.script
+jump in.script :pre
 
 [Restrictions:] none
 

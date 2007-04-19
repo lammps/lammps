@@ -1,0 +1,125 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style gayberne command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style gayberne gamma upsilon mu cutoff 
+</PRE>
+<UL><LI>gamma = shift for potential minimum (typically 1)
+<LI>upsilon = exponent for eta orientation-dependent energy function
+<LI>mu = exponent for chi orientation-dependent energy function
+<LI>cutoff = global cutoff for interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style gayberne 1.0 1.0 1.0 10.0
+pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>gayberne</I> computes a Gay-Berne anisotropic LJ interaction
+<A HREF = "#Beradi">(Beradi)</A> between pairs of ellipsoidal particles via the
+formulas
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gayberne.jpg">
+</CENTER>
+<P>where A1 and A2 are the transformation matrices from the simulation
+box frame to the body frame and r12 is the center to center vector
+between the particles.  Ur controls the shifted distance dependent
+interaction based on the distance of closest approach of the two
+particles (h12) and the user-specified shift parameter gamma.
+</P>
+<P>For large uniform molecules it has been shown that the energy
+parameters are approximately representable in terms of local contact
+curvatures <A HREF = "#Everaers">(Everaers)</A>:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gayberne2.jpg">
+</CENTER>
+<P>The variable names utilized as potential parameters are for the most
+part taken from <A HREF = "#Everaers">(Everaers)</A> in order to be consistent with
+its RE-squared potential fix. Details on the upsilon and mu 
+parameters are given <A HREF = "Eqs/pair_gayberne_extra.pdf">here</A>.
+Use of this pair style requires the
+<A HREF = "fix_nve_asphere.html">fix nve/asphere</A> in order to integrate particle
+rotation.  Additionally, <A HREF = "atom_style.html">atom_style ellipsoid</A> should
+be used since it defines the rotation state of the ellipsoidal
+particles.
+</P>
+<P>More details of the Gay-Berne formulation are given in the references
+listed below and in <A HREF = "Eqs/pair_gayberne_extra.pdf">this document</A>.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>epsilon = well depth (energy units)
+<LI>sigma = minimum effective particle radii (distance units)
+<LI>a = ellipsoid radius in x dimension (distance units)
+<LI>b = ellipsoid radius in y dimension (distance units)
+<LI>c = ellipsoid radius in z dimension (distance units)
+<LI>epsilon_a = relative well depth for side-to-side interactions
+<LI>epsilon_b = relative well depth for face-to-face interactions
+<LI>epsilon_c = relative well depth for end-to-end interactions
+<LI>cutoff (distance units) 
+</UL>
+<P>The last coefficient is optional.  If not specified, the global
+cutoff specified in the pair_style command is used.
+</P>
+<P>The epsilon and sigma parameters are mixed for I != J atom pairings
+the same as Lennard-Jones parameters; see the <A HREF = "pair_modify.html">pair_modify
+mix</A> documentation for details.  The other parameters
+(except cutoff) are really specific to a single atom type, and not a
+pair of atoms.  Thus they are applied to atom type I only.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Can only be used if LAMMPS was built with the "asphere" package.  Can
+only be used with <A HREF = "atom_style.html">atom_style ellipsoid</A>.
+</P>
+<P>The use of this potential requires additional fixes as described
+above.  The "shift yes" option currently cannot be used with this
+potential to shift energies to 0 at the cutoff due to the anisotropic
+dependence of the interaction.  Angular velocities are all set to zero
+initially.  The Gay-Berne potential does not become isotropic as r
+increases <A HREF = "#Everaers">(Everaers)</A>.  The distance of closest approach
+approximation becomes less accurate as the shape of ellipsoids becomes
+more dissimilar (high aspect ratio particles).
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>,
+<A HREF = "compute_temp_asphere.html">compute temp/asphere</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Everaers"></A>
+
+<P><B>(Everaers)</B> Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
+</P>
+<A NAME = "Berardi"></A>
+
+<P><B>(Berardi)</B> Berardi, Fava, Zannoni, Chem Phys Lett, 297, 8-14 (1998).
+</P>
+<A NAME = "Perram"></A>
+
+<P><B>(Perram)</B> Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).
+</P>
+<A NAME = "Allen"></A>
+
+<P><B>(Allen)</B> Allen and Germano, Mol Phys 104, 3225-3235 (2006).
+</P>
+</HTML>

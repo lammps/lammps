@@ -266,6 +266,7 @@ fields for molecular systems or granular systems are in packages.  You
 can see the list of packages by typing "make package".  The current
 list of packages is as follows:
 
+asphere : aspherical particles
 class2 : class 2 force fields
 dpd : dissipative particle dynamics (DPD) force field
 granular : force fields and boundary conditions for granular systems
@@ -286,7 +287,7 @@ This will produce a smaller executable which may run a bit faster.
 By default, LAMMPS includes only the "kspace", "manybody", and
 "molecule" packages.  As described below, some packages require LAMMPS
 be linked to separately built library files, which will require
-editing of your machine Makefile.
+editing of your src/MAKE/Makefile.machine.
 
 Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package.  You can also type
@@ -309,39 +310,38 @@ overwrite files in the package directories with src files.  Typing
 "make package-check" will list differences between src and package
 versions of the same files.
 
-To use the "poems" package you must build LAMMPS with the POEMS
-library, which computes the constrained rigid-body motion of
-articulated (jointed) multibody systems.  POEMS was written and is
-distributed by Prof Kurt Anderson's group at Rensselaer Polytechnic
-Institute (RPI) and a version is included in the LAMMPS distribution
-under the "lib" directory.  To build LAMMPS with POEMS, you must use a
-low-level LAMMPS Makefile that includes the POEMS directory in its
-paths.  See Makefile.g++_poems as an example.  You must also build
-POEMS itself as a library before building LAMMPS, so that LAMMPS can
-link against it.  The POEMS library is built by typing "make" from
-within the poems directory with the appropriate Makefile, e.g. "make
--f Makefile.g++".  If one of the provided Makefiles is not appropriate
-for your system you can edit or add one as needed.
-
-To use the "meam" package you must build LAMMPS with the MEAM library,
-which computes the modified embedded atom method potential, which is a
-generalization of EAM potentials that can be used to model a wider
-variety of materials.  This MEAM implementation was written by Greg
-Wagner at Sandia and is included under the "lib" directory.  To build
-LAMMPS with MEAM, you must use a low-level LAMMPS Makefile that
-includes the MEAM directory in its paths.  See Makefile.linux_meam as
-an example.  You must also build MEAM itself as a library before
-building LAMMPS, so that LAMMPS can link against it.  This requires a
-F90 compiler.  The library is built by typing "make" from within the
-meam directory with the appropriate Makefile, e.g. "make -f
-Makefile.icc".  If one of the provided Makefiles is not appropriate
-for your system you can edit or add one as needed.
+To use the "meam" package you must build LAMMPS with the MEAM library
+in lib/meam, which computes the modified embedded atom method
+potential, which is a generalization of EAM potentials that can be
+used to model a wider variety of materials.  This MEAM implementation
+was written by Greg Wagner at Sandia.  To build LAMMPS with MEAM, you
+must use a low-level LAMMPS Makefile that includes the MEAM directory
+in its paths.  See Makefile.linux_meam as an example.  You must also
+build MEAM itself as a library before building LAMMPS, so that LAMMPS
+can link against it.  This requires a F90 compiler.  The library is
+built by typing "make" from within the meam directory with the
+appropriate Makefile, e.g. "make -f Makefile.icc".  If one of the
+provided Makefiles is not appropriate for your system you can edit or
+add one as needed.
 
 Note that linking a Fortran library to a C++ code can be problematic
 (e.g. Fortran routine names can't be found due to non-standard
 underscore rules) and typically requires additional C++ or F90
 libraries be included in the link.  You may need to read documentation
 for your compiler about how to do this correctly.
+
+To use the "poems" package you must build LAMMPS with the POEMS
+library in lib/poems, which computes the constrained rigid-body motion
+of articulated (jointed) multibody systems.  POEMS was written and is
+distributed by Prof Kurt Anderson's group at Rensselaer Polytechnic
+Institute (RPI).  To build LAMMPS with POEMS, you must use a low-level
+LAMMPS Makefile that includes the POEMS directory in its paths.  See
+Makefile.g++_poems as an example.  You must also build POEMS itself as
+a library before building LAMMPS, so that LAMMPS can link against it.
+The POEMS library is built by typing "make" from within the poems
+directory with the appropriate Makefile, e.g. "make -f Makefile.g++".
+If one of the provided Makefiles is not appropriate for your system
+you can edit or add one as needed.
 
 2.4 Building LAMMPS as a library :h4,link(2_4)
 

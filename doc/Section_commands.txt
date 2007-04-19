@@ -394,6 +394,7 @@ description:
 "nph"_fix_nph.html,
 "npt"_fix_npt.html,
 "nve"_fix_nve.html,
+"nve/asphere"_fix_nve_asphere.html,
 "nve/gran"_fix_nve_gran.html,
 "nve/noforce"_fix_nve_noforce.html,
 "nvt"_fix_nvt.html,
@@ -436,9 +437,11 @@ description:
 "rotate/gran"_compute_rotate_gran.html,
 "stress/atom"_compute_stress_atom.html,
 "temp"_compute_temp.html,
+"temp/asphere"_compute_temp_asphere.html,
 "temp/partial"_compute_temp_partial.html,
 "temp/ramp"_compute_temp_ramp.html,
-"temp/region"_compute_temp_region.html
+"temp/region"_compute_temp_region.html,
+"variable"_compute_variable.html,
 "variable/atom"_compute_variable_atom.html :tb(c=6,ea=c)
 
 :line
@@ -459,6 +462,7 @@ full description:
 "eam/alloy/opt"_pair_eam.html,
 "eam/fs"_pair_eam.html,
 "eam/fs/opt"_pair_eam.html,
+"gayberne"_pair_gayberne.html,
 "gran/hertzian"_pair_gran.html,
 "gran/history"_pair_gran.html,
 "gran/no_history"_pair_gran.html,

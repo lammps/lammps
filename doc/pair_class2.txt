@@ -80,6 +80,14 @@ since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.
 
+If the pair_coeff command is not used to define coefficients for a
+particular I != J type pair, the mixing rule for epsilon and sigma for
+all class2 potentials is to use the {sixthpower} formulas documented
+by the "pair_modify"_pair_modify.html command.  The "pair_modify
+mix"_pair_modify.html setting is thus ignored for class2 potentials
+for epsilon and sigma.  However it is still followed for mixing the
+cutoff distance.
+
 [Restrictions:]
 
 These styles are part of the "class2" package.  They are only enabled

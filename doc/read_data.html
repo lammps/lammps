@@ -253,6 +253,7 @@ line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
 <TR><TD >bond</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
 <TR><TD >dpd</TD><TD > atom-ID atom-type x y z</TD></TR>
+<TR><TD >ellipsoid</TD><TD > atom-ID atom-type x y z quatw quati quatj quatk</TD></TR>
 <TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
 <TR><TD >granular</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
 <TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z 
@@ -266,7 +267,8 @@ line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
 <LI>q = charge on atom
 <LI>diameter = diameter of atom
 <LI>density = density of atom
-<LI>x,y,z = coordinates of atom 
+<LI>x,y,z = coordinates of atom
+<LI>quatw,quati,quatj,quatk = quaternion components for orientation of atom 
 </UL>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.
@@ -575,15 +577,25 @@ script.
 <LI>line syntax: depends on atom style 
 </UL>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
-<TR><TD >all styles except granular</TD><TD > atom-ID vx vy vz</TD></TR>
-<TR><TD >granular</TD><TD > atom-ID vx vy vz phix phiy phiz 
+<TR><TD >all styles except those listed</TD><TD > atom-ID vx vy vz</TD></TR>
+<TR><TD >ellipsoid</TD><TD > atom-ID vx vy vz lx ly lz</TD></TR>
+<TR><TD >granular</TD><TD > atom-ID vx vy vz wx wy wz 
 </TD></TR></TABLE></DIV>
 
+<P>where the keywords have these meanings:
+</P>
+<UL><LI>vx,vy,vz = translational velocity of atom
+<LI>lx,ly,lz = angular momentum of aspherical atom
+<LI>wx,wy,wz = angular velocity of granular atom 
+</UL>
 <P>The velocity lines can appear in any order.  This section can only be
-used after an <I>Atoms</I> section.  The <I>Atoms</I> section must have assigned
-a unique atom ID to each atom so that velocities can be assigned in
-this way.  Vx,vy,vz are in <A HREF = "units.html">units</A> of velocity.
-Phix,phiy,phiz are in units of angular velocity (radians/time).
+used after an <I>Atoms</I> section.  This is because the <I>Atoms</I> section
+must have assigned a unique atom ID to each atom so that velocities
+can be assigned to them.
+</P>
+<P>Vx,vy,vz are in <A HREF = "units.html">units</A> of velocity.  Lx, ly, lz are in
+units of angular momentum (distance-velocity-mass).  Wx,Wy,Wz are in
+units of angular velocity (radians/time).
 </P>
 <P>Translational velocities can also be set by the
 <A HREF = "velocity.html">velocity</A> command in the input script.

@@ -46,6 +46,13 @@ cutoff (distance units) :ul
 The delta values can be positive or negative.  The last coefficient is
 optional.  If not specified, the global LJ cutoff is used.
 
+If the pair_coeff command is not used to define coefficients for a
+particular I != J type pair, the mixing rule is set by the
+"pair_modify"_pair_modify.html command.  Additionally, the delta
+coefficient is always mixed by the rule
+
+delta_ij = (delta_i + delta_j) / 2 :pre
+
 [Restrictions:] none
 
 [Related commands:]

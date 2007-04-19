@@ -72,6 +72,7 @@ defined in LAMMPS:
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
 "temp/ramp"_compute_temp_ramp.html - temperature after subtracting a ramped velocity component
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
+"variable"_compute_variable.html - calculate a scalar value from a variable
 "variable/atom"_compute_variable_atom.html - calculate a formula for each atom :ul
 
 [Restrictions:] none

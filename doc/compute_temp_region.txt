@@ -33,7 +33,7 @@ temp/rescale"_fix_temp_rescale.html, etc.
 Note that a {region}-style temperature can be used to thermostat with
 "fix temp/rescale"_fix_temp_rescale.html or "fix
 langevin"_fix_langevin.html, but should probably not be used with
-Nose/Hoover style fixes ("fix nvt"_fix_nvt.html, fix
+Nose/Hoover style fixes ("fix nvt"_fix_nvt.html, "fix
 npt"_fix_npt.html, or "fix nph"_fix_nph.html), if the
 degrees-of-freedom included in the computed T varies with time.
 

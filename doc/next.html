@@ -77,7 +77,7 @@ finished.
 <P>Jump and next commands can also be nested to enable multi-level loops.
 For example, this script will run 15 simulations in a double loop.
 </P>
-<P>variable i loop 3
+<PRE>variable i loop 3
 variable j loop 5
 clear
 ...
@@ -87,8 +87,8 @@ run 10000
 next j
 jump in.script
 next i
-jump in.script
-</P>
+jump in.script 
+</PRE>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

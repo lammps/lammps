@@ -113,6 +113,12 @@ because this CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in
 the pair_style command.
 </P>
+<P>If the pair_coeff command is not used to define coefficients for a
+particular I != J type pair, the mixing rule for epsilon and sigma for
+all CHARMM potentials is to use the <I>arithmetic</I> formulas documented
+by the <A HREF = "pair_modify.html">pair_modify</A> command.  The <A HREF = "pair_modify.html">pair_modify
+mix</A> setting is thus ignored for CHARMM potentials.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>lj/charmm/coul/charmm</I> and <I>lj/charmm/coul/charmm/implicit</I>

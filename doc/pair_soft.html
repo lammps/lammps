@@ -54,6 +54,12 @@ or switch to a new pair style.
 <P>The last coefficient is optional.  If not specified, the global soft
 cutoff is used.
 </P>
+<P>If the pair_coeff command is not used to define coefficients for a
+particular I != J type pair, the mixing rule for Astart and Astop is
+as follows:
+</P>
+<PRE>A_ij = sqrt(A_i * A_j) 
+</PRE>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

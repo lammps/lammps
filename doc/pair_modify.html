@@ -49,13 +49,15 @@ not affected by this setting.
 </P>
 <P>The <I>mix</I> keyword affects how Lennard-Jones coefficients for epsilon
 and sigma are generated for interactions between atoms of type I and
-J, when I != J.  (I = J coefficients are set explicitly in the data
-file or input script.)  The <A HREF = "pair_coeff.html">pair_coeff</A> command can
-be used in the input script to specify epilon/sigma for a specific I,J
-pairing, which overrides the setting of the <I>mix</I> keyword.  In each
-case, the LJ cutoff is mixed the same way as sigma.
+J, when I != J.  Coefficients for I = J are set explicitly in the data
+file or input script.  The <A HREF = "pair_coeff.html">pair_coeff</A> command can be
+used in the input script to specify epilon/sigma for a specific I != J
+pairing, which overrides the setting of the <I>mix</I> keyword.
 </P>
-<P>These are the formulas used by the 3 <I>mix</I> options:
+<P>These are the formulas used by the 3 <I>mix</I> options.  In each case, the
+LJ cutoff is mixed the same way as sigma.  Note that some of these
+options are not available for certain pair styles.  See the doc page
+for individual pair styles for those restrictions.
 </P>
 <P><I>geometric</I>
 </P>
@@ -71,17 +73,7 @@ sigma_ij = (sigma_i + sigma_j) / 2
 </P>
 <PRE>epsilon_ij = (2 * sqrt(epsilon_i*epsilon_j) * sigma_i^3 * sigma_j^3) /
              (sigma_i^6 + sigma_j^6)
-sigma_ij=  ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6) 
-</PRE>
-<P>Style <I>soft</I> only uses a pre-factor coefficient, which is always mixed
-geometrically, regardless of the <I>mix</I> setting.  The <I>charmm</I> styles
-are always mixed arithmetically, regardless of the <I>mix</I> setting.  The
-<I>class2</I> styles are always mixed as a sixthpower, regardless of the
-<I>mix</I> setting, except that the cutoff is mixed according to the mix
-setting.  Style <I>lj/expand</I> always mixes its delta coefficient using
-the rule
-</P>
-<PRE>delta_ij = (delta_i + delta_j) / 2 
+sigma_ij = ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6) 
 </PRE>
 <P>The <I>table</I> keyword applies to pair styles with a long-range Coulombic
 term (lj/cut/coul/long and lj/charmm/coul/long).  If N is non-zero, a

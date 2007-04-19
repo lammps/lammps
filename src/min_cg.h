@@ -27,23 +27,23 @@ class MinCG : public Min {
   virtual void iterate(int);
 
  protected:
-  int virial_thermo;      // what vflag should be on thermo steps (1,2)
-  int pairflag,torqueflag,granflag;
+  int virial_thermo;          // what vflag should be on thermo steps (1,2)
+  int pairflag,torqueflag;
   int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
 
-  int maxpair;            // copies of Update quantities
+  int maxpair;                // copies of Update quantities
   double **f_pair;
 
   class FixMinimize *fix_minimize;  // fix that stores gradient vecs
   double ecurrent;            // current potential energy
   double mindist,maxdist;     // min/max dist for coord delta in line search
 
-  int ndof;               // # of degrees-of-freedom on this proc
-  double *g,*h;           // local portion of gradient, searchdir vectors
+  int ndof;                   // # of degrees-of-freedom on this proc
+  double *g,*h;               // local portion of gradient, searchdir vectors
 
   typedef int (MinCG::*FnPtr)(int, double *, double *, double,
 			      double, double, double &, int &);
-  FnPtr linemin;          // ptr to linemin functions
+  FnPtr linemin;             // ptr to linemin functions
 
   int linemin_scan(int, double *, double *, double,
 		   double, double, double &, int &);

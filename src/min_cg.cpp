@@ -84,14 +84,11 @@ void MinCG::init()
   else virial_thermo = 1;
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques if atom_style is dipole
-  // need to clear phia if atom_style is granular
+  // need to clear torques if array exists
   // don't need to clear f_pair if atom_style is only granular (no virial)
 
   torqueflag = 0;
-  if (atom->check_style("dipole")) torqueflag = 1;
-  granflag = 0;
-  if (atom->check_style("granular")) granflag = 1;
+  if (atom->torque) torqueflag = 1;
   pairflag = 1;
   if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
@@ -458,15 +455,6 @@ void MinCG::force_clear(int vflag)
     }
   }
 
-  if (granflag) {
-    double **phia = atom->phia;
-    for (i = 0; i < nall; i++) {
-      phia[i][0] = 0.0;
-      phia[i][1] = 0.0;
-      phia[i][2] = 0.0;
-    }
-  }
-
   // clear f_pair array if using it this timestep to compute virial
 
   if (vflag == 2 && pairflag) {
@@ -505,7 +493,7 @@ void MinCG::force_clear(int vflag)
 	     ecurrent = energy of new configuration
    NOTE: when call eng_force: n,x,dir,eng may change due to atom migration
 	 updated values are returned by eng_force()
-	 this routine CANNOT store atom-based quantities b/c of migration
+	 these routines CANNOT store atom-based quantities b/c of migration
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -569,9 +557,7 @@ int MinCG::linemin_scan(int n, double *x, double *dir, double eng,
 
 /* ----------------------------------------------------------------------
    linemin: use secant approximation to estimate parabola minimum at each step
-   should converge more quickly/accurately than "scan", but may be less robust
-   initial secant from two points: 0 and sigma0 = mindist
-   prevents successvive func evals further apart in x than maxdist
+   should converge more quickly/accurately than "scan", but can be less robust
 ------------------------------------------------------------------------- */
 
 int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
@@ -579,7 +565,7 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
 			  double &alpha, int &nfunc)
 {
   int i,iter;
-  double eta,eta_prev,sigma0,sigmamax,alphadelta,fme,fmax,dsq,e0,tmp;
+  double eta,eta_prev,alphamin,alphamax,alphadelta,fme,fmax,dsq,e0,tmp;
   double *f;
   double epssq = SECANT_EPS * SECANT_EPS;
 
@@ -589,27 +575,27 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
   for (i = 0; i < n; i++) fme += dir[i]*dir[i];
   MPI_Allreduce(&fme,&dsq,1,MPI_DOUBLE,MPI_SUM,world);
 
-  // sigma0 = smallest allowed step of mindist
-  // sigmamax = largest allowed step (in single iteration) of maxdist
+  // alphamin = smallest allowed step of mindist
+  // alphamax = largest allowed step (in single iteration) of maxdist
 
   fme = 0.0;
   for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
   MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
   if (fmax == 0.0) return 1;
 
-  sigma0 = mindist/fmax;
-  sigmamax = maxdist/fmax;
+  alphamin = mindist/fmax;
+  alphamax = maxdist/fmax;
 
-  // eval func at sigma0
-  // test if minstep is already uphill
+  // eval func at alphamin
+  // exit if minstep is already uphill
 
   e0 = eng;
-  for (i = 0; i < n; i++) x[i] += sigma0*dir[i];
+  for (i = 0; i < n; i++) x[i] += alphamin*dir[i];
   eng_force(&n,&x,&dir,&eng);
   nfunc++;
 
   if (eng >= e0) {
-    for (i = 0; i < n; i++) x[i] -= sigma0*dir[i];
+    for (i = 0; i < n; i++) x[i] -= alphamin*dir[i];
     eng_force(&n,&x,&dir,&eng);
     nfunc++;
     return 1;
@@ -617,14 +603,18 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
 
   // secant iterations
   // alphadelta = new increment to move, alpha = accumulated move
+  // first step is alpha = 0, first previous step is at mindist
+  // prevent func evals for alpha outside mindist to maxdist
+  // if happens on 1st iteration, secant approx is likely searching
+  //   for a maximum (negative alpha), so reevaluate at alphamin
 
   f = atom->f[0];
   tmp = 0.0;
   for (i = 0; i < n; i++) tmp -= f[i]*dir[i];
   MPI_Allreduce(&tmp,&eta_prev,1,MPI_DOUBLE,MPI_SUM,world);
 
-  alpha = sigma0;
-  alphadelta = -sigma0;
+  alpha = alphamin;
+  alphadelta = -alphamin;
 
   for (iter = 0; iter < lineiter; iter++) {
     alpha += alphadelta;
@@ -640,15 +630,16 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
     alphadelta *= eta / (eta_prev - eta);
     eta_prev = eta;
     if (alphadelta*alphadelta*dsq <= epssq) break;
-    if (fabs(alphadelta) > sigmamax) {
-      if (alphadelta > 0.0) alphadelta = sigmamax;
-      else alphadelta = -sigmamax;
+    if (alpha+alphadelta < alphamin || alpha+alphadelta > alphamax) {
+      if (iter == 0) {
+	alpha = alphamin;
+	for (i = 0; i < n; i++) x[i] += alphamin*dir[i];
+	eng_force(&n,&x,&dir,&eng);
+	nfunc++;
+      }
+      break;
     }
   }
 
-  // if exited loop on first iteration, func eval was at alpha = 0.0
-  // else successful line search
-
-  if (iter == 0) return 1;
   return 0;
 }

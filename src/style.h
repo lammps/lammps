@@ -84,6 +84,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_temp_partial.h"
 #include "compute_temp_ramp.h"
 #include "compute_temp_region.h"
+#include "compute_variable.h"
 #include "compute_variable_atom.h"
 #endif
 
@@ -100,6 +101,7 @@ ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/partial,ComputeTempPartial)
 ComputeStyle(temp/ramp,ComputeTempRamp)
 ComputeStyle(temp/region,ComputeTempRegion)
+ComputeStyle(variable,ComputeVariable)
 ComputeStyle(variable/atom,ComputeVariableAtom)
 #endif
 
@@ -301,6 +303,7 @@ RegionStyle(union,RegUnion)
 
 // style files for optional packages
 
+//#include "style_asphere.h"
 #include "style_class2.h"
 #include "style_dpd.h"
 #include "style_granular.h"

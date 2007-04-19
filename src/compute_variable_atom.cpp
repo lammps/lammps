@@ -21,6 +21,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};  // also in variable.cpp
+
 /* ---------------------------------------------------------------------- */
 
 ComputeVariableAtom::ComputeVariableAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -53,13 +55,11 @@ ComputeVariableAtom::~ComputeVariableAtom()
 
 void ComputeVariableAtom::init()
 {
-  // set ivariable used by this compute
+  // set ivariable used by this compute and check if it exists
 
   ivariable = input->variable->find(varname);
   if (ivariable < 0)
     error->all("Could not find compute variable name");
-
-  // test if variable of correct ATOM type
 }
 
 /* ---------------------------------------------------------------------- */

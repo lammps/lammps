@@ -308,7 +308,6 @@ void DihedralCharmm::compute(int eflag, int vflag)
 	virial[5] += rfactor * dely*delz*fforce;
       }
     }
-
   }
 }
 
@@ -384,14 +383,20 @@ void DihedralCharmm::coeff(int which, int narg, char **arg)
 
 void DihedralCharmm::init_style()
 {
-  // insure use of Charmm pair_style
+  // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
 
-  Pair *pair = force->pair_match("charmm");
-  if (pair == NULL)
-    error->all("Dihedral charmm is incompatible with Pair style");
-  double cutoff;
-  pair->extract_charmm(&lj14_1,&lj14_2,&lj14_3,&lj14_4,&implicit_flag);
+  int weightflag = 0;
+  for (int i = 1; i < atom->ndihedraltypes; i++)
+    if (weight[i] > 0.0) weightflag = 1;
+
+  if (weightflag) {
+    Pair *pair = force->pair_match("charmm");
+    if (pair == NULL)
+      error->all("Dihedral charmm is incompatible with Pair style");
+    double cutoff;
+    pair->extract_charmm(&lj14_1,&lj14_2,&lj14_3,&lj14_4,&implicit_flag);
+  }
 }
 
 /* ----------------------------------------------------------------------

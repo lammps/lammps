@@ -51,6 +51,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+  grid2proc = NULL;
 
   style = SINGLE;
   multilo = multihi = NULL;
@@ -82,6 +83,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
 Comm::~Comm()
 {
+  if (grid2proc) memory->destroy_3d_int_array(grid2proc);
+
   free_swap();
   if (style == MULTI) {
     free_multi();
@@ -162,6 +165,14 @@ void Comm::set_procs()
   if (force->dimension == 2 && procgrid[2] != 1)
     error->all("Proc grid in z != 1 for 2d simulation");
 
+  if (grid2proc) memory->destroy_3d_int_array(grid2proc);
+  grid2proc = memory->create_3d_int_array(procgrid[0],procgrid[1],procgrid[2],
+					  "comm:grid2proc");
+
+  // use MPI Cartesian routines to setup 3d grid of procs
+  // grid2proc[i][j][k] = proc that owns i,j,k location in grid
+  // let MPI compute it instead of LAMMPS in case it is machine optimized
+
   int reorder = 0;
   int periods[3];
   periods[0] = periods[1] = periods[2] = 1;
@@ -172,9 +183,19 @@ void Comm::set_procs()
   MPI_Cart_shift(cartesian,0,1,&procneigh[0][0],&procneigh[0][1]);
   MPI_Cart_shift(cartesian,1,1,&procneigh[1][0],&procneigh[1][1]);
   MPI_Cart_shift(cartesian,2,1,&procneigh[2][0],&procneigh[2][1]);
+
+  int coords[3];
+  int i,j,k;
+  for (i = 0; i < procgrid[0]; i++)
+    for (j = 0; j < procgrid[1]; j++)
+      for (k = 0; k < procgrid[2]; k++) {
+	coords[0] = i; coords[1] = j; coords[2] = k;
+	MPI_Cart_rank(cartesian,coords,&grid2proc[i][j][k]);
+      }
+
   MPI_Comm_free(&cartesian);
 
-  // can't set lamda box params until procs are assigned
+  // set lamda box params after procs are assigned
 
   if (triclinic) domain->set_lamda_box();
 
@@ -206,10 +227,10 @@ void Comm::setup()
 
   int i;
   int ntypes = atom->ntypes;
-  double *prd,*prd_border,*sublo,*subhi;
+  double *prd,*sublo,*subhi;
   
   if (triclinic == 0) {
-    prd = prd_border = domain->prd;
+    prd = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = neighbor->cutghost;
@@ -220,8 +241,7 @@ void Comm::setup()
 	  cuttype[i];
     }
   } else {
-    prd = domain->prd;
-    prd_border = domain->prd_lamda;
+    prd = domain->prd_lamda;
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
     double *h_inv = domain->h_inv;
@@ -245,9 +265,9 @@ void Comm::setup()
   // need = # of procs I need atoms from in each dim based on max cutoff
   // for 2d, don't communicate in z
 
-  need[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd_border[0]) + 1;
-  need[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd_border[1]) + 1;
-  need[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd_border[2]) + 1;
+  need[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
+  need[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
+  need[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
   if (force->dimension == 2) need[2] = 0;
 
   // if non-periodic, do not communicate further than procgrid-1 away
@@ -906,9 +926,11 @@ void Comm::reverse_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    communicate atoms to new owning procs via irregular communication
-   unlike exchange(), allows for atoms to move arbitrary distances
+   can be used in place of exchange()
+   unlike exchange(), allows atoms to have moved arbitrarily long distances
    first setup irregular comm pattern, then invoke it
-   for triclinic, atoms must be in lamda coords (0-1) before irregular is called
+   for triclinic,
+     atoms must be in lamda coords (0-1) before irregular is called
 ------------------------------------------------------------------------- */
 
 void Comm::irregular()
@@ -930,7 +952,7 @@ void Comm::irregular()
 
   // loop over atoms, flag any that are not in my sub-box
   // fill buffer with atoms leaving my box, using < and >=
-  // assign which proc it belongs to
+  // assign which proc it belongs to via irregular_lookup()
   // when atom is deleted, fill it in with last atom
 
   AtomVec *avec = atom->avec;
@@ -1020,7 +1042,7 @@ Comm::Plan *Comm::irregular_create(int n, int *sizes, int *proclist,
   // nsend = # of messages I send
 
   for (i = 0; i < nprocs; i++) list[i] = 0;
-  for (i = 0; i < n; i++) list[proclist[i]] += sizes[n];
+  for (i = 0; i < n; i++) list[proclist[i]] += sizes[i];
 
   int nsend = 0;
   for (i = 0; i < nprocs; i++)
@@ -1200,7 +1222,7 @@ void Comm::irregular_destroy(Plan *plan)
 }
 
 /* ----------------------------------------------------------------------
-   compute which proc owns atom with x coord
+   determine which proc owns atom with x coord
    x will be in box (orthogonal) or lamda coords (triclinic)
 ------------------------------------------------------------------------- */
 
@@ -1225,12 +1247,11 @@ int Comm::irregular_lookup(double *x)
   if (loc[0] < 0) loc[0] = 0;
   if (loc[0] >= procgrid[0]) loc[0] = procgrid[0] - 1;
   if (loc[1] < 0) loc[1] = 0;
-  if (loc[1] >= procgrid[1]) loc[0] = procgrid[1] - 1;
+  if (loc[1] >= procgrid[1]) loc[1] = procgrid[1] - 1;
   if (loc[2] < 0) loc[2] = 0;
-  if (loc[2] >= procgrid[2]) loc[0] = procgrid[2] - 1;
+  if (loc[2] >= procgrid[2]) loc[2] = procgrid[2] - 1;
 
-  int proc = loc[2]*procgrid[1]*procgrid[0] + loc[1]*procgrid[0] + loc[0];
-  return proc;
+  return grid2proc[loc[0]][loc[1]][loc[2]];
 }
 
 /* ----------------------------------------------------------------------

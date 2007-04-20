@@ -1,0 +1,65 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix heat command :h3
+
+[Syntax:]
+
+fix ID group-ID heat N eflux :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+heat = style name of this fix command
+N = add/subtract heat every this many timesteps
+eflux = rate of heat addition or subtraction (energy/time units) :ul
+
+[Examples:]
+
+fix 3 qin heat 1 1.0
+fix 4 qout heat 1 -1.0 :pre
+
+[Description:]
+
+Add non-translational kinetic energy (heat) to the a group of atoms
+such that their aggregate momentum is conserved.  Two of these fixes
+can be used to establish a temperature gradient across a simulation
+domain by adding heat to one group of atoms (hot reservoir) and
+subracting heat from another (cold reservoir).  I.e. a McDLT
+simulation.  Note that the fix is applied to a group of atoms not a
+geometric region, so that the atoms are affected wherever they may
+move to.
+
+Heat addition/subtraction is performed every N timesteps.  The {eflux}
+parameter determines the change in aggregate energy of the entire
+group of atoms.  If heat is subtracted from the system too
+aggressively so that the group's kinetic energy goes to zero, LAMMPS
+halts with an error message.
+
+Fix heat is different from a thermostat such as "fix nvt"_fix_nvt.html
+or "fix temp/rescale"_fix_temp_rescale.html in that energy is
+added/subtracted continually.  Thus if there isn't another mechanism
+in place to counterbalance this effect, the entire system will heat or
+cool continously.  You can use multiple heat fixes so that the net
+energy change is 0.0 or use "fix viscous"_fix_viscous to drain energy
+from the system.
+
+This fix does not change the coordinates of its atoms; it only scales
+their velocities.  Thus you must still use an integration fix
+(e.g. "fix nve"_fix_nve.html) on the affected atoms.  This fix should
+not normally be used on atoms that have their temperature controlled
+by another fix - e.g. "fix nvt"_fix_nvt.html or "fix
+langevin"_fix_langevin.html fix.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "compute
+temp/region"_compute_temp_region.html
+
+[Default:] none
+

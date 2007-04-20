@@ -386,6 +386,7 @@ description:
 "gran/diag"_fix_gran_diag.html,
 "gravity"_fix_gravity.html,
 "gyration"_fix_gyration.html,
+"heat"_fix_heat.html,
 "indent"_fix_indent.html,
 "langevin"_fix_langevin.html,
 "lineforce"_fix_lineforce.html,

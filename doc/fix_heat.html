@@ -1,0 +1,69 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix heat command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID heat N eflux 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>heat = style name of this fix command
+<LI>N = add/subtract heat every this many timesteps
+<LI>eflux = rate of heat addition or subtraction (energy/time units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 qin heat 1 1.0
+fix 4 qout heat 1 -1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Add non-translational kinetic energy (heat) to the a group of atoms
+such that their aggregate momentum is conserved.  Two of these fixes
+can be used to establish a temperature gradient across a simulation
+domain by adding heat to one group of atoms (hot reservoir) and
+subracting heat from another (cold reservoir).  I.e. a McDLT
+simulation.  Note that the fix is applied to a group of atoms not a
+geometric region, so that the atoms are affected wherever they may
+move to.
+</P>
+<P>Heat addition/subtraction is performed every N timesteps.  The <I>eflux</I>
+parameter determines the change in aggregate energy of the entire
+group of atoms.  If heat is subtracted from the system too
+aggressively so that the group's kinetic energy goes to zero, LAMMPS
+halts with an error message.
+</P>
+<P>Fix heat is different from a thermostat such as <A HREF = "fix_nvt.html">fix nvt</A>
+or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A> in that energy is
+added/subtracted continually.  Thus if there isn't another mechanism
+in place to counterbalance this effect, the entire system will heat or
+cool continously.  You can use multiple heat fixes so that the net
+energy change is 0.0 or use <A HREF = "fix_viscous">fix viscous</A> to drain energy
+from the system.
+</P>
+<P>This fix does not change the coordinates of its atoms; it only scales
+their velocities.  Thus you must still use an integration fix
+(e.g. <A HREF = "fix_nve.html">fix nve</A>) on the affected atoms.  This fix should
+not normally be used on atoms that have their temperature controlled
+by another fix - e.g. <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
+langevin</A> fix.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp_region.html">compute
+temp/region</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

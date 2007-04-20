@@ -38,6 +38,8 @@ DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 void DisplaceAtoms::command(int narg, char **arg)
 {
+  int i;
+
   if (domain->box_exist == 0) 
     error->all("Displace_atoms command before simulation box is defined");
   if (narg < 2) error->all("Illegal displace_atoms command");
@@ -84,7 +86,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   }
   else xscale = yscale = zscale = 1.0;
 
-  // move atoms directly by specified 3-vector distance
+  // move atoms by specified 3-vector distance
 
   if (style == MOVE) {
 
@@ -97,17 +99,18 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	x[i][0] += delx;
 	x[i][1] += dely;
 	x[i][2] += delz;
       }
     }
+  }
 
-    // move atoms in ramped fashion
-
-  } else if (style == RAMP) {
+  // move atoms in ramped fashion
+    
+  if (style == RAMP) {
 
     int d_dim;
     if (strcmp(arg[2],"x") == 0) d_dim = 0;
@@ -151,7 +154,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double fraction,dramp;
 
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
 	fraction = MAX(fraction,0.0);
@@ -162,12 +165,16 @@ void DisplaceAtoms::command(int narg, char **arg)
     }
   }
 
-  // move atoms to new processors
-  // enforce PBC before in case atoms are outside box
-  // use comm::irregular() since atoms could have moved long distances
+  // move atoms back inside simulation box and to new processors
+  // use remap() instead of pbc() in case atoms moved a long distance
+  // use irregular() instead of exchange() in case atoms moved a long distance
+
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+  for (i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
   domain->reset_box();
   comm->setup();
   comm->irregular();

@@ -137,6 +137,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_enforce2d.h"
 #include "fix_gravity.h"
 #include "fix_gyration.h"
+#include "fix_heat.h"
 #include "fix_indent.h"
 #include "fix_langevin.h"
 #include "fix_line_force.h"
@@ -184,6 +185,7 @@ FixStyle(efield,FixEfield)
 FixStyle(enforce2d,FixEnforce2D)
 FixStyle(gravity,FixGravity)
 FixStyle(gyration,FixGyration)
+FixStyle(heat,FixHeat)
 FixStyle(indent,FixIndent)
 FixStyle(langevin,FixLangevin)
 FixStyle(lineforce,FixLineForce)

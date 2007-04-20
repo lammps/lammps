@@ -20,6 +20,7 @@
 #include "domain.h"
 #include "atom.h"
 #include "atom_vec_hybrid.h"
+#include "force.h"
 #include "region.h"
 #include "memory.h"
 #include "error.h"
@@ -467,19 +468,19 @@ double Group::mass(int igroup)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  double m = 0.0;
+  double one = 0.0;
 
   if (mass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) m += mass[type[i]];
+      if (mask[i] & groupbit) one += mass[type[i]];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) m += rmass[i];
+      if (mask[i] & groupbit) one += rmass[i];
   }
 
-  double mall;
-  MPI_Allreduce(&m,&mall,1,MPI_DOUBLE,MPI_SUM,world);
-  return mall;
+  double all;
+  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  return all;
 }
 
 /* ----------------------------------------------------------------------
@@ -669,6 +670,41 @@ void Group::fcm(int igroup, double *cm)
     }
 
   MPI_Allreduce(flocal,cm,3,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
+   compute the total kinetic energy of group and return it
+------------------------------------------------------------------------- */
+
+double Group::ke(int igroup)
+{
+  int groupbit = bitmask[igroup];
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  double one = 0.0;
+
+  if (mass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+	  mass[type[i]];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+	  rmass[i];
+  }
+  
+  double all;
+  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  all *= 0.5 * force->mvv2e;
+  return all;
 }
 
 /* ----------------------------------------------------------------------

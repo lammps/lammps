@@ -230,7 +230,7 @@ void FixAveSpatial::init()
 
 void FixAveSpatial::end_of_step()
 {
-  int i,j,m,ilayer,nstide;
+  int i,j,m,ilayer;
   double lo,hi;
 
   // if computing the first sample, setup layers

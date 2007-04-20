@@ -28,10 +28,10 @@ Add non-translational kinetic energy (heat) to the a group of atoms
 such that their aggregate momentum is conserved.  Two of these fixes
 can be used to establish a temperature gradient across a simulation
 domain by adding heat to one group of atoms (hot reservoir) and
-subracting heat from another (cold reservoir).  I.e. a McDLT
-simulation.  Note that the fix is applied to a group of atoms not a
-geometric region, so that the atoms are affected wherever they may
-move to.
+subracting heat from another (cold reservoir).  E.g. a simulation
+sampling from the McDLT ensemble.  Note that the fix is applied to a
+group of atoms, not a geometric region, so that the same set of atoms
+is affected wherever they may move to.
 
 Heat addition/subtraction is performed every N timesteps.  The {eflux}
 parameter determines the change in aggregate energy of the entire

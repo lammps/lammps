@@ -21,8 +21,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};  // also in variable.cpp
-
 /* ---------------------------------------------------------------------- */
 
 ComputeVariable::ComputeVariable(LAMMPS *lmp, int narg, char **arg) : 

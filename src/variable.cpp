@@ -307,6 +307,7 @@ int Variable::next(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    return ptr to the data text associated with a variable
+   if EQUAL var, evaluates variable and puts result in str
    return NULL if no variable or index is bad, caller must respond
 ------------------------------------------------------------------------- */
 
@@ -829,7 +830,8 @@ double Variable::evaluate(char *str, Tree *tree)
 
 void Variable::build_parse_tree(int ivar)
 {
-  if (style[ivar] != ATOM) error->all("");
+  if (style[ivar] != ATOM)
+    error->all("Cannot build parse tree for non atom style variable");
   ptree = new Tree();
   double tmp = evaluate(data[ivar][0],ptree);
 }

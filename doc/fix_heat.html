@@ -27,20 +27,22 @@ fix 4 qout heat 1 -1.0
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Add non-translational kinetic energy (heat) to the a group of atoms
-such that their aggregate momentum is conserved.  Two of these fixes
-can be used to establish a temperature gradient across a simulation
-domain by adding heat to one group of atoms (hot reservoir) and
-subracting heat from another (cold reservoir).  E.g. a simulation
-sampling from the McDLT ensemble.  Note that the fix is applied to a
-group of atoms, not a geometric region, so that the same set of atoms
-is affected wherever they may move to.
+<P>Add non-translational kinetic energy (heat) to a group of atoms such
+that their aggregate momentum is conserved.  Two of these fixes can be
+used to establish a temperature gradient across a simulation domain by
+adding heat to one group of atoms (hot reservoir) and subracting heat
+from another (cold reservoir).  E.g. a simulation sampling from the
+McDLT ensemble.  Note that the fix is applied to a group of atoms, not
+a geometric region, so that the same set of atoms is affected wherever
+they may move to.
 </P>
 <P>Heat addition/subtraction is performed every N timesteps.  The <I>eflux</I>
 parameter determines the change in aggregate energy of the entire
-group of atoms.  If heat is subtracted from the system too
-aggressively so that the group's kinetic energy goes to zero, LAMMPS
-halts with an error message.
+group of atoms.  Since eflux is in units of energy/time, this means a
+larger value of N will add/subract a larger amount of energy each
+timestep the fix is invoked.  If heat is subtracted from the system
+too aggressively so that the group's kinetic energy goes to zero,
+LAMMPS halts with an error message.
 </P>
 <P>Fix heat is different from a thermostat such as <A HREF = "fix_nvt.html">fix nvt</A>
 or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A> in that energy is

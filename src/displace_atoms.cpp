@@ -164,12 +164,13 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // move atoms to new processors
   // enforce PBC before in case atoms are outside box
+  // use comm::irregular() since atoms could have moved long distances
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
-  comm->exchange();
+  comm->irregular();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // check if any atoms were lost

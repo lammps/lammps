@@ -214,7 +214,7 @@ main(int argc, char *argv[])
 		   &imagex,&imagey,&imagez);
 	} else {
 	  if (atomstyle == ATOMIC) 
-	    sscanf(line,"%d %d %d %lg %lg %lg",
+	    sscanf(line,"%d %d %lg %lg %lg",
 		   &tag,&type,&x,&y,&z);
 	  else if (atomstyle == BOND) 
 	    sscanf(line,"%d %d %d %lg %lg %lg",

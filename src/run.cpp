@@ -114,7 +114,6 @@ void Run::command(int narg, char **arg)
   //   else just init timer and setup output
   // if post, do full Finish, else just print time
 
-  char *command;
   update->whichflag = 0;
 
   if (nevery == 0) {
@@ -183,7 +182,7 @@ void Run::command(int narg, char **arg)
       if (postflag || nleft == 0) finish.end(1);
       else finish.end(0);
 
-      if (commandstr) command = input->one(commandstr);
+      if (commandstr) char *command = input->one(commandstr);
 
       nleft -= nsteps;
       iter++;

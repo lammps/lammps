@@ -62,13 +62,10 @@ Atoms can be moved arbitrarily long distances by this command.
 However if the box is non-periodic, this can change the shape of the
 simulation box.  This is not a problem, except that the mapping of
 processors to the simulation box is not changed from its initial 3d
-configuration by this command.  In other words, the number of
-processors assigned to each dimension of the simulation box so as to
-form a topological 3d grid of processors is not changed; see the
-"processors"_processors.html command.  Thus if the box shape changes
-dramatically, the simulation may not be as well load-balanced (atoms
-per processor) as the initial mapping tried to achieve.  This can be
-adjusted for by using the "processors"_processors.html command.
+configuration by this command; see the "processors"_processors.html
+command.  Thus, if the box shape changes dramatically, the simulation
+may not be as well load-balanced (atoms per processor) as the initial
+mapping tried to achieve.
 
 [Restrictions:]
 

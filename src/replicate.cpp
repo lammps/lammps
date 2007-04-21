@@ -243,7 +243,7 @@ void Replicate::command(int narg, char **arg)
   //   pack my unmapped atom data into buf
   //   bcast it to all other procs
   // performs 3d replicate loop with while loop over atoms in buf
-  //   x = new replicated position
+  //   x = new replicated position, remapped into simulation box
   //   unpack atom into new atom class from buf if I own it
   //   adjust tag, mol #, coord, topology info as needed
 

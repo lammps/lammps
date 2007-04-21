@@ -394,7 +394,6 @@ void DihedralCharmm::init_style()
     Pair *pair = force->pair_match("charmm");
     if (pair == NULL)
       error->all("Dihedral charmm is incompatible with Pair style");
-    double cutoff;
     pair->extract_charmm(&lj14_1,&lj14_2,&lj14_3,&lj14_4,&implicit_flag);
   }
 }

@@ -400,9 +400,9 @@ void Thermo::modify_params(int narg, char **arg)
 	internal_temp = 0;
       }
       delete [] id_compute[index_temp];
-      int n = strlen(arg[1]) + 1;
+      int n = strlen(arg[iarg+1]) + 1;
       id_compute[index_temp] = new char[n];
-      strcpy(id_compute[index_temp],arg[1]);
+      strcpy(id_compute[index_temp],arg[iarg+1]);
 
       int icompute = modify->find_compute(id_compute[index_temp]);
       if (icompute < 0) error->all("Could not find thermo_modify temp ID");
@@ -421,12 +421,12 @@ void Thermo::modify_params(int narg, char **arg)
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
 	delete [] modify->compute[icompute]->id_pre;
 	modify->compute[icompute]->id_pre = new char[n];
-	strcpy(modify->compute[icompute]->id_pre,arg[1]);
+	strcpy(modify->compute[icompute]->id_pre,arg[iarg+1]);
       }
 
       iarg += 2;
 
-    } else if (strcmp(arg[0],"press") == 0) {
+    } else if (strcmp(arg[iarg],"press") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
       if (index_press < 0) error->all("Thermo style does not use press");
       if (internal_press) {
@@ -434,9 +434,9 @@ void Thermo::modify_params(int narg, char **arg)
 	internal_press = 0;
       }
       delete [] id_compute[index_press];
-      int n = strlen(arg[1]) + 1;
+      int n = strlen(arg[iarg+1]) + 1;
       id_compute[index_press] = new char[n];
-      strcpy(id_compute[index_press],arg[1]);
+      strcpy(id_compute[index_press],arg[iarg+1]);
 
       int icompute = modify->find_compute(id_compute[index_press]);
       if (icompute < 0) error->all("Could not find thermo_modify press ID");
@@ -464,7 +464,7 @@ void Thermo::modify_params(int narg, char **arg)
 
       iarg += 2;
 
-    } else if (strcmp(arg[0],"drot") == 0) {
+    } else if (strcmp(arg[iarg],"drot") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
       if (index_drot < 0) error->all("Thermo style does not use drot");
       if (internal_drot) {
@@ -472,15 +472,15 @@ void Thermo::modify_params(int narg, char **arg)
 	internal_drot = 0;
       }
       delete [] id_compute[index_drot];
-      int n = strlen(arg[1]) + 1;
+      int n = strlen(arg[iarg+1]) + 1;
       id_compute[index_drot] = new char[n];
-      strcpy(id_compute[index_drot],arg[1]);
+      strcpy(id_compute[index_drot],arg[iarg+1]);
 
       int icompute = modify->find_compute(id_compute[index_drot]);
       if (icompute < 0) error->all("Could not find thermo_modify drot ID");
       iarg += 2;
 
-    } else if (strcmp(arg[0],"grot") == 0) {
+    } else if (strcmp(arg[iarg],"grot") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
       if (index_grot < 0) error->all("Thermo style does not use grot");
       if (internal_grot) {
@@ -488,9 +488,9 @@ void Thermo::modify_params(int narg, char **arg)
 	internal_grot = 0;
       }
       delete [] id_compute[index_grot];
-      int n = strlen(arg[1]) + 1;
+      int n = strlen(arg[iarg+1]) + 1;
       id_compute[index_grot] = new char[n];
-      strcpy(id_compute[index_grot],arg[1]);
+      strcpy(id_compute[index_grot],arg[iarg+1]);
 
       int icompute = modify->find_compute(id_compute[index_grot]);
       if (icompute < 0) error->all("Could not find thermo_modify grot ID");

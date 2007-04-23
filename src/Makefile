@@ -43,7 +43,7 @@ makelist:
 
 package:
 	@echo 'Available packages:'
-	@echo '  asphere, class2, dpd, granular, kspace, manybody,'
+	@echo '  class2, dpd, granular, kspace, manybody,'
 	@echo '  meam, molecule, opt, poems, xtc'
 	@echo 'make yes-name     to include a package'
 	@echo 'make no-name      to exclude a package'
@@ -51,12 +51,12 @@ package:
 	@echo 'make no-all       to exclude all packages'
 
 yes-all:
-	make yes-asphere yes-class2 yes-dpd yes-granular yes-kspace \
+	make yes-class2 yes-dpd yes-granular yes-kspace \
 	yes-manybody yes-meam yes-molecule yes-opt yes-poems yes-xtc
 
 no-all:
 	@echo 'Removing files, ignore any rm errors ...'
-	@cd ASPHERE; csh -f Install.csh 0
+#	@cd ASPHERE; csh -f Install.csh 0
 	@cd CLASS2; csh -f Install.csh 0
 	@cd DPD; csh -f Install.csh 0
 	@cd GRANULAR; csh -f Install.csh 0
@@ -69,12 +69,12 @@ no-all:
 	@cd XTC; csh -f Install.csh 0
 	@make clean
 
-yes-asphere:
-	@cd ASPHERE; csh -f Install.csh 1
-no-asphere:
-	@echo 'Removing files, ignore any rm errors ...'
-	@cd ASPHERE; csh -f Install.csh 0
-	@make clean
+#yes-asphere:
+#	@cd ASPHERE; csh -f Install.csh 1
+#no-asphere:
+#	@echo 'Removing files, ignore any rm errors ...'
+#	@cd ASPHERE; csh -f Install.csh 0
+#	@make clean
 
 yes-class2:
 	@cd CLASS2; csh -f Install.csh 1
@@ -149,7 +149,7 @@ no-xtc:
 # update src files with package files
 
 package-update:
-	@csh -f Package.csh ASPHERE update
+#	@csh -f Package.csh ASPHERE update
 	@csh -f Package.csh CLASS2 update
 	@csh -f Package.csh DPD update
 	@csh -f Package.csh GRANULAR update
@@ -164,7 +164,7 @@ package-update:
 # overwrite package files with src files
 
 package-overwrite:
-	@csh -f Package.csh ASPHERE overwrite
+#	@csh -f Package.csh ASPHERE overwrite
 	@csh -f Package.csh CLASS2 overwrite
 	@csh -f Package.csh DPD overwrite
 	@csh -f Package.csh GRANULAR overwrite
@@ -179,7 +179,7 @@ package-overwrite:
 # check differences between src and pacakge files
 
 package-check:
-	@csh -f Package.csh ASPHERE check
+#	@csh -f Package.csh ASPHERE check
 	@csh -f Package.csh CLASS2 check
 	@csh -f Package.csh DPD check
 	@csh -f Package.csh GRANULAR check

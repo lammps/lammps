@@ -78,6 +78,7 @@ void MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods,
 		  int *coords);
 void MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
 		    int *source, int *dest);
+void MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
 
 void MPI_Barrier(MPI_Comm comm);
 void MPI_Bcast(void *buf, int count, MPI_Datatype datatype,

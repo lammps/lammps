@@ -142,6 +142,11 @@ void MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
   *source = *dest = 0;
 }
 
+void MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
+{
+  *rank = 0;
+}
+
 void MPI_Barrier(MPI_Comm comm) {}
 
 void MPI_Bcast(void *buf, int count, MPI_Datatype datatype,

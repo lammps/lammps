@@ -329,7 +329,7 @@ void Output::create_thermo(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    setup restart capability
-   if only one filename, append ".*" if not "*" in filename
+   if only one filename and it contains no "*", then append ".*"
 ------------------------------------------------------------------------- */
 
 void Output::create_restart(int narg, char **arg)
@@ -339,6 +339,8 @@ void Output::create_restart(int narg, char **arg)
   if (restart) delete restart;
   delete [] restart1;
   delete [] restart2;
+  restart = NULL;
+  restart1 = restart2 = NULL;
 
   restart_every = atoi(arg[0]);
   if (restart_every == 0) {

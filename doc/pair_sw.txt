@@ -112,6 +112,12 @@ are not used for anything and can be set to 0.0 if desired.
 This pair potential requires the "newton"_newton.html setting to be
 "on" for pair interactions.
 
+The Stillinger-Weber potential files provided with LAMMPS (see the
+potentials directory) are parameterized for metal "units"_units.html.
+You can use the SW potential with any LAMMPS units, but you need to
+create your own SW potential file if your simulation doesn't use
+"metal" units.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

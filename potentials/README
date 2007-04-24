@@ -4,6 +4,13 @@ description of the "pair_style" and "pair_coeff" commands for details
 of the file formats and the various styles in LAMMPS that read these
 files.
 
+The prefix of each file indicates the element(s) it is parameterized
+for.  For EAM files it may also have some identifying characters.
+
+si = Silicon
+sic = Silicon and Carbon
+auu3 = Gold universal 3
+
 The suffix of each file indicates the pair style it is used with:
 
 eam	      embedded atom method (EAM) single element, DYNAMO funcfl format

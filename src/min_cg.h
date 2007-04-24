@@ -30,6 +30,7 @@ class MinCG : public Min {
   int virial_thermo;          // what vflag should be on thermo steps (1,2)
   int pairflag,torqueflag;
   int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
+  int triclinic;              // 0 if domain is orthog, 1 if triclinic
 
   int maxpair;                // copies of Update quantities
   double **f_pair;

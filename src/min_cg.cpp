@@ -92,6 +92,10 @@ void MinCG::init()
   pairflag = 1;
   if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
+  // orthogonal vs triclinic simulation box
+
+  triclinic = domain->triclinic;
+
   // reset reneighboring criteria if necessary
 
   neigh_every = neighbor->every;
@@ -211,12 +215,14 @@ void MinCG::setup()
   // build neighbor lists
   // reset gradient vector ptrs
 
+  if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build();
   neighbor->ncalls = 0;
   setup_vectors();
@@ -279,7 +285,7 @@ void MinCG::iterate(int n)
 
     // if max_eval exceeded, all done
     // if linemin failed or energy did not decrease sufficiently:
-    //   all done if searched in grad direction
+    //   if searched in grad direction, then all done
     //   else force next search to be in grad direction (CG restart)
 
     if (neval >= update->max_eval) break;
@@ -360,6 +366,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
     comm->communicate();
     timer->stamp(TIME_COMM);
   } else {
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     if (domain->box_change) {
       domain->reset_box();
@@ -369,6 +376,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
     timer->stamp();
     comm->exchange();
     comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(TIME_COMM);
     neighbor->build();
     timer->stamp(TIME_NEIGHBOR);
@@ -605,8 +613,11 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
   // alphadelta = new increment to move, alpha = accumulated move
   // first step is alpha = 0, first previous step is at mindist
   // prevent func evals for alpha outside mindist to maxdist
-  // if happens on 1st iteration, secant approx is likely searching
+  // if happens on 1st iteration and alpha < mindist
+  //   secant approx is likely searching
   //   for a maximum (negative alpha), so reevaluate at alphamin
+  // if happens on 1st iteration and alpha > maxdist
+  //   wants to take big step, so reevaluate at alphamax
 
   f = atom->f[0];
   tmp = 0.0;
@@ -630,10 +641,12 @@ int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
     alphadelta *= eta / (eta_prev - eta);
     eta_prev = eta;
     if (alphadelta*alphadelta*dsq <= epssq) break;
+
     if (alpha+alphadelta < alphamin || alpha+alphadelta > alphamax) {
       if (iter == 0) {
-	alpha = alphamin;
-	for (i = 0; i < n; i++) x[i] += alphamin*dir[i];
+	if (alpha+alphadelta < alphamin) alpha = alphamin;
+	else alpha = alphamax;
+	for (i = 0; i < n; i++) x[i] += alpha*dir[i];
 	eng_force(&n,&x,&dir,&eng);
 	nfunc++;
       }

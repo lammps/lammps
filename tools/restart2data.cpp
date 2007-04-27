@@ -1639,6 +1639,23 @@ void Data::write(FILE *fp)
   }
   
   if (pair_style) {
+    if ((strcmp(pair_style,"none") != 0) && 
+	(strcmp(pair_style,"eam") != 0) &&
+	(strcmp(pair_style,"eam/opt") != 0) &&
+	(strcmp(pair_style,"eam/alloy") != 0) &&
+	(strcmp(pair_style,"eam/alloy/opt") != 0) &&
+	(strcmp(pair_style,"eam/fs") != 0) &&
+	(strcmp(pair_style,"eam/fs/opt") != 0) &&
+	(strcmp(pair_style,"meam") != 0) &&
+	(strcmp(pair_style,"gran/history") != 0) &&
+	(strcmp(pair_style,"gran/no_history") != 0) &&
+	(strcmp(pair_style,"gran/hertzian") != 0) &&
+	(strcmp(pair_style,"sw") != 0) &&
+	(strcmp(pair_style,"table") != 0) &&
+	(strcmp(pair_style,"tersoff") != 0) &&
+	(strcmp(pair_style,"hybrid") != 0))
+      fprintf(fp,"\nPair Coeffs\n\n");
+
     if ((strcmp(pair_style,"buck") == 0) || 
 	(strcmp(pair_style,"buck/coul/cut") == 0) ||
 	(strcmp(pair_style,"buck/coul/long") == 0)) {

@@ -66,7 +66,7 @@ hybrid command in your input script, if atoms in the simulation will
 have attributes from several atom styles, due to using multiple pair
 potentials.
 
-[Restrictions:] none
+[Restrictions:]
 
 When using a long-range Coulomic solver (via the
 "kspace_style"_kspace_style command) with pair_style hybrid, one or

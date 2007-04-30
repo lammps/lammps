@@ -307,7 +307,7 @@ void FixAveSpatial::end_of_step()
 
   // perform the computation for one sample
   // sum within each layer, only include atoms in fix group
-  // DENSITY_MASS adds mass
+  // DENSITY_MASS adds mass to values
   // DENSITY_NUM adds 1 to values
   // ATOM adds atom vector to values
   // COMPUTE adds its vector to values
@@ -323,7 +323,7 @@ void FixAveSpatial::end_of_step()
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[dim][i] - offset) * invdelta);
+	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
 	if (ilayer < 0) ilayer = 0;
 	if (ilayer >= nlayers) ilayer = nlayers-1;
 	count_one[ilayer] += 1.0;
@@ -335,7 +335,7 @@ void FixAveSpatial::end_of_step()
   } else if (which == DENSITY_NUM) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[dim][i] - offset) * invdelta);
+	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
 	if (ilayer < 0) ilayer = 0;
 	if (ilayer >= nlayers) ilayer = nlayers-1;
 	count_one[ilayer] += 1.0;
@@ -356,7 +356,7 @@ void FixAveSpatial::end_of_step()
     m = 0;
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[dim][i] - offset) * invdelta);
+	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
 	if (ilayer < 0) ilayer = 0;
 	if (ilayer >= nlayers) ilayer = nlayers-1;
 	count_one[ilayer] += 1.0;
@@ -374,7 +374,7 @@ void FixAveSpatial::end_of_step()
     m = 0;
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[dim][i] - offset) * invdelta);
+	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
 	if (ilayer < 0) ilayer = 0;
 	if (ilayer >= nlayers) ilayer = nlayers-1;
 	count_one[ilayer] += 1.0;

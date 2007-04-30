@@ -22,10 +22,10 @@ command2 = command to execute if condition is not met (optional argument) :ul
 
 [Examples:]
 
-if ${steps} > 1000 then exit
+if $\{steps\} > 1000 then exit
 if $x <= $y then "print X is smaller = $x" else "print Y is smaller = $y"
-if ${eng} > 0.0 then "timestep 0.005"
-if ${eng} > ${eng_previous} then "jump file1" else "jump file2" :pre
+if $\{eng\} > 0.0 then "timestep 0.005"
+if $\{eng\} > $\{eng_previous\} then "jump file1" else "jump file2" :pre
 
 [Description:]
 

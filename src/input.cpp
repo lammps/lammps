@@ -391,6 +391,7 @@ int Input::execute_command()
 
   if (!strcmp(command,"clear")) clear();
   else if (!strcmp(command,"echo")) echo();
+  else if (!strcmp(command,"if")) ifthenelse();
   else if (!strcmp(command,"include")) include();
   else if (!strcmp(command,"jump")) jump();
   else if (!strcmp(command,"label")) label();
@@ -416,6 +417,7 @@ int Input::execute_command()
   else if (!strcmp(command,"dipole")) dipole();
   else if (!strcmp(command,"dump")) dump();
   else if (!strcmp(command,"dump_modify")) dump_modify();
+  // else if (!strcmp(command,"ellipsoid")) ellipsoid();
   else if (!strcmp(command,"fix")) fix();
   else if (!strcmp(command,"fix_modify")) fix_modify();
   else if (!strcmp(command,"group")) group_command();
@@ -499,6 +501,39 @@ void Input::echo()
     echo_screen = 1;
     echo_log = 1;
   } else error->all("Illegal echo command");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::ifthenelse()
+{
+  if (narg != 5 && narg != 7) error->all("Illegal if command");
+
+  int flag = 0;
+  if (strcmp(arg[1],"==") == 0) {
+    if (atof(arg[0]) == atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],"!=") == 0) {
+    if (atof(arg[0]) != atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],"<") == 0) {
+    if (atof(arg[0]) < atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],"<=") == 0) {
+    if (atof(arg[0]) <= atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],">") == 0) {
+    if (atof(arg[0]) > atof(arg[2])) flag = 1;
+  } else if (strcmp(arg[1],">=") == 0) {
+    if (atof(arg[0]) >= atof(arg[2])) flag = 1;
+  } else error->all("Illegal if command");
+
+  if (strcmp(arg[3],"then") != 0) error->all("Illegal if command");
+  if (narg == 7 && strcmp(arg[5],"else") != 0) 
+    error->all("Illegal if command");
+
+  char str[128] = "\0";
+  if (flag) strcpy(str,arg[4]);
+  else if (narg == 7) strcpy(str,arg[6]);
+  strcat(str,"\n");
+
+  if (strlen(str) > 1) char *tmp = one(str);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -786,6 +821,18 @@ void Input::dump_modify()
 {
   output->modify_dump(narg,arg);
 }
+
+/* ---------------------------------------------------------------------- */
+
+/*
+void Input::ellipsoid()
+{
+  if (narg != 4) error->all("Illegal ellipsoid command");
+  if (domain->box_exist == 0)
+    error->all("Ellipsoid command before simulation box is defined");
+  atom->set_radii3(narg,arg);
+}
+*/
 
 /* ---------------------------------------------------------------------- */
 

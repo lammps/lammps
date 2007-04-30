@@ -52,6 +52,7 @@ class Input : protected Pointers {
 
   void clear();                // input script commands
   void echo();
+  void ifthenelse();
   void include();
   void jump();
   void label();
@@ -77,6 +78,7 @@ class Input : protected Pointers {
   void dipole();
   void dump();
   void dump_modify();
+  // void ellipsoid();
   void fix();
   void fix_modify();
   void group_command();

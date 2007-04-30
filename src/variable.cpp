@@ -204,17 +204,14 @@ void Variable::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   single-value EQUAL variable created by command-line argument
+   single-value INDEX variable created by command-line argument
 ------------------------------------------------------------------------- */
 
 void Variable::set(char *name, char *value)
 {
-  int ivar = find(name);
-  if (ivar >= 0) error->all("Command-line variable already exists");
-
   char **newarg = new char*[3];
   newarg[0] = name;
-  newarg[1] = "equal";
+  newarg[1] = "index";
   newarg[2] = value;
   set(3,newarg);
   delete [] newarg;
@@ -831,7 +828,7 @@ double Variable::evaluate(char *str, Tree *tree)
 void Variable::build_parse_tree(int ivar)
 {
   if (style[ivar] != ATOM)
-    error->all("Cannot build parse tree for non atom style variable");
+    error->all("Cannot build parse tree for variable that is not atom style");
   ptree = new Tree();
   double tmp = evaluate(data[ivar][0],ptree);
 }

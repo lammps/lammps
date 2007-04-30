@@ -111,6 +111,10 @@ the 1st string is assigned to the variable.  Each time a
 string is assigned.  All processors assign the same string to the
 variable.
 
+{Index} style variables with a single string value can also be set by
+using the command-line switch -var; see "this
+section"_Section_start.html#2_6 for details.
+
 The {loop} style is identical to the {index} style except that the
 strings are the integers from 1 to N.  This allows generation of a
 long list of runs (e.g. 1000) without having to list N strings in the
@@ -167,9 +171,6 @@ different stages of the input script or at different times during a
 run.  For example, if an {equal} variable is used in a "fix
 print"_fix_print.html command, different values could be printed each
 timestep it was invoked.
-
-{Equal} style variables can also be set by using the command-line
-switch -var; see "this section"_Section_start.html#2_6 for details.
 
 The next command cannot be used with {equal} or {atom} style
 variables, since there is only one string.

@@ -120,7 +120,7 @@ N total steps are simulated, in shorter runs of M steps each.  After
 each M-length run, the command is invoked.  If the command is
 specified as NULL, no command is invoked.  Thus these lines:
 
-variable q equal x[100]
+variable q equal x\[100\]
 run 6000 every 2000 "print Coord = $q" :pre
 
 are the equivalent of:

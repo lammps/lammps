@@ -1,0 +1,63 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>if command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>if value1 operator value2 then command1 else command2 
+</PRE>
+<UL><LI>value1 = 1st value
+<LI>operator = "==" or "!=" or "<" or "<=" or ">" or ">="
+<LI>value2 = 2nd value
+<LI>then = required word
+<LI>command1 = command to execute if condition is met
+<LI>else = required word (optional argument)
+<LI>command2 = command to execute if condition is not met (optional argument) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>if $<I>steps</I> > 1000 then exit
+if $x <= $y then "print X is smaller = $x" else "print Y is smaller = $y"
+if $<I>eng</I> > 0.0 then "timestep 0.005"
+if $<I>eng</I> > $<I>eng_previous</I> then "jump file1" else "jump file2" 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command provides an in-then-else test capability within an input
+script.  Two values are numerically compared to each other and the
+result is TRUE or FALSE.  Note that as in the examples above, either
+of the values can be variables, as defined by the
+<A HREF = "variable.html">variable</A> command, so that when they are evaluated when
+substituted for in the if command, a user-defined computation will be
+performed which can depend on the current state of the simulation.
+</P>
+<P>If the result of the if test is TRUE, then command1 is executed.  This
+can be any valid LAMMPS input script command.  If the command is more
+than 1 word, it should be enclosed in double quotes, so that it will
+be treated as a single argument, as in the examples above.
+</P>
+<P>The if command can contain an optional "else" clause.  If it does and
+the result of the if test is FALSE, then command2 is executed.
+</P>
+<P>Note that if either command1 or command2 is a bogus LAMMPS command,
+such as "exit" in the first example, then executing the command will
+cause LAMMPS to halt.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

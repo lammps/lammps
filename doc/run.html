@@ -127,7 +127,7 @@ about how to couple LAMMPS to other codes.
 each M-length run, the command is invoked.  If the command is
 specified as NULL, no command is invoked.  Thus these lines:
 </P>
-<PRE>variable q equal x<B>100</B>
+<PRE>variable q equal x[100]
 run 6000 every 2000 "print Coord = $q" 
 </PRE>
 <P>are the equivalent of:

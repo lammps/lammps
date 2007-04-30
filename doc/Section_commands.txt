@@ -273,10 +273,10 @@ Actions:
 
 Miscellaneous:
 
-"clear"_clear.html, "echo"_echo.html, "include"_include.html,
-"jump"_jump.html, "label"_label.html, "log"_log.html,
-"next"_next.html, "print"_print.html, "shell"_shell.html,
-"variable"_variable.html
+"clear"_clear.html, "echo"_echo.html, "if"_if.html,
+"include"_include.html, "jump"_jump.html, "label"_label.html,
+"log"_log.html, "next"_next.html, "print"_print.html,
+"shell"_shell.html, "variable"_variable.html
 
 :line
 
@@ -318,6 +318,7 @@ in the command's documentation.
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,
 "group"_group.html,
+"if"_if.html,
 "improper_coeff"_improper_coeff.html,
 "improper_style"_improper_style.html,
 "include"_include.html,
@@ -381,6 +382,7 @@ description:
 "deposit"_fix_deposit.html,
 "drag"_fix_drag.html,
 "efield"_fix_efield.html,
+"ellipsoid"_fix_ellipsoid.html,
 "enforce2d"_fix_enforce2d.html,
 "freeze"_fix_freeze.html,
 "gran/diag"_fix_gran_diag.html,
@@ -394,11 +396,13 @@ description:
 "momentum"_fix_momentum.html,
 "nph"_fix_nph.html,
 "npt"_fix_npt.html,
+"npt/asphere"_fix_npt_asphere.html,
 "nve"_fix_nve.html,
 "nve/asphere"_fix_nve_asphere.html,
 "nve/gran"_fix_nve_gran.html,
 "nve/noforce"_fix_nve_noforce.html,
 "nvt"_fix_nvt.html,
+"nvt/asphere"_fix_nvt_asphere.html,
 "orient/fcc"_fix_orient_fcc.html,
 "planeforce"_fix_planeforce.html,
 "poems"_fix_poems.html,

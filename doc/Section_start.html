@@ -59,10 +59,10 @@ makefile, there are compiler options, additional libraries can be used
 (MPI, FFT), etc.  Please read this section carefully.  If you are not
 comfortable with makefiles, or building codes on a Unix platform, or
 running an MPI job on your machine, please find a local expert to help
-you.  Many compiling, linking, and run problems users have do not
-really have to do with LAMMPS - they are peculiar to the user's
-system, compilers, libraries, etc.  Such questions are better answered
-by a local expert.
+you.  Many compiling, linking, and run problems that users are not
+really LAMMPS issues - they are peculiar to the user's system,
+compilers, libraries, etc.  Such questions are better answered by a
+local expert.
 </P>
 <P>If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
@@ -76,7 +76,7 @@ the developers and we'll include it in future LAMMPS releases.
 <P><B><I>Building a LAMMPS executable:</I></B>
 </P>
 <P>The src directory contains the C++ source and header files for LAMMPS.
-It also contains a top-level Makefile and a MAKE directory with
+It also contains a top-level Makefile and a MAKE sub-directory with
 low-level Makefile.* files for several machines.  From within the src
 directory, type "make" or "gmake".  You should see a list of available
 choices.  If one of those is the machine and options you want, you can
@@ -107,9 +107,9 @@ gmake) will use it to build LAMMPS.
 </P>
 <P>(2) Other errors typically occur because the low-level Makefile isn't
 setup correctly for your machine.  If your platform is named "foo",
-you need to create a Makefile.foo in the MAKE directory.  Use whatever
-existing file is closest to your platform as a starting point.  See
-the next section for more instructions.
+you need to create a Makefile.foo in the MAKE sub-directory.  Use
+whatever existing file is closest to your platform as a starting
+point.  See the next section for more instructions.
 </P>
 <P><B><I>Editing a new low-level Makefile.foo:</I></B>
 </P>
@@ -125,24 +125,25 @@ you just type "make".
 <P>(2) Set the paths and flags for your C++ compiler, including
 optimization flags.  You can use g++, the open-source GNU compiler,
 which is available on all Unix systems.  Vendor compilers often
-produce faster code.  On boxes with Intel CPUs, I use the free Intel
-icc compiler, which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler
+produce faster code.  On boxes with Intel CPUs, we suggest using the
+free Intel icc compiler, which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler
 site</A>.
 </P>
 
 
 <P>(3) If you want LAMMPS to run in parallel, you must have an MPI
-library installed on your platform.  Makefile.foo needs to specify
-where the mpi.h file (-I switch) and the libmpi.a library (-L switch)
-is found.  On my Linux box, I use Argonne's MPICH 1.2 which can be
-downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
+library installed on your platform.  If you do not use "mpicc" as your
+compiler/linker, then Makefile.foo needs to specify where the mpi.h
+file (-I switch) and the libmpi.a library (-L switch) is found.  If
+you are installing MPI yourself, we recommend Argonne's MPICH 1.2
+which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
 site</A>.  LAM MPI should also work.  If
 you are running on a big parallel platform, your system people or the
 vendor should have already installed a version of MPI, which will be
-faster than MPICH or LAM, so find out how to link against it.  If you
-use MPICH or LAM, you will have to configure and build it for your
-platform.  The MPI configure script should have compiler options to
-enable you to use the same compiler you are using for the LAMMPS
+faster than MPICH or LAM, so find out how to build and link with it.
+If you use MPICH or LAM, you will have to configure and build it for
+your platform.  The MPI configure script should have compiler options
+to enable you to use the same compiler you are using for the LAMMPS
 build, which can avoid problems that may arise when linking LAMMPS to
 the MPI library.
 </P>
@@ -159,7 +160,7 @@ STUBS/Makefile for your platform.
 gettimeofday() .  If your system doesn't support gettimeofday() ,
 you'll need to insert code to call another timer.  Note that the
 ANSI-standard function clock() rolls over after an hour or so, and is
-therefore insufficient for timing long LAMMPS runs.
+therefore insufficient for timing long LAMMPS simulations.
 </P>
 <P>(5) If you want to use the particle-particle particle-mesh (PPPM)
 option in LAMMPS for long-range Coulombics, you must have a 1d FFT
@@ -168,9 +169,10 @@ the form -DFFT_XXX where XXX = INTEL, DEC, SGI, SCSL, or FFTW.  All
 but the last one are native vendor-provided libraries.  FFTW is a
 fast, portable library that should work on any platform.  You can
 download it from <A HREF = "http://www.fftw.org">www.fftw.org</A>.  Use version
-2.1.X, not the newer 3.0.X.  Building FFTW for my box was as simple as
-./configure; make.  Whichever FFT library you have on your platform,
-you'll need to set the appropriate -I and -L switches in Makefile.foo.
+2.1.X, not the newer 3.0.X.  Building FFTW for your box should be as
+simple as ./configure; make.  Whichever FFT library you have on your
+platform, you'll need to set the appropriate -I and -L switches in
+Makefile.foo.
 </P>
 <P>If you examine fft3d.c and fft3d.h you'll see it's possible to add
 other vendor FFT libraries via #ifdef statements in the appropriate
@@ -255,12 +257,12 @@ compiler option.
 <P>(5) Building for MicroSoft Windows.
 </P>
 <P>I've never done this, but LAMMPS is just standard C++ with MPI and FFT
-calls.  You should be able to use cygwin to build LAMMPS with a Unix
-make.  Or you should be able to pull all the source files into Visual
-C++ (ugh) or some similar development environment and build it.  In
-the src/MAKE/Windows directory are some notes from users on how they
-built LAMMPS under Windows, so you can look at their instructions for
-tips.  Good luck - we can't help you on this one.
+calls.  You can use cygwin to build LAMMPS with a Unix make; see
+Makefile.cygwin.  Or you should be able to pull all the source files
+into Visual C++ (ugh) or some similar development environment and
+build it.  In the src/MAKE/Windows directory are some notes from users
+on how they built LAMMPS under Windows, so you can look at their
+instructions for tips.  Good luck - we can't help you on this one.
 </P>
 <H4><A NAME = "2_3"></A>2.3 Making LAMMPS with optional packages 
 </H4>
@@ -289,7 +291,9 @@ list of packages is as follows:
 The one exception is that to use the "opt" package, you must also be
 using the "molecule" and "manybody" packages.  You may wish to exclude
 certain packages if you will never run certain kinds of simulations.
-This will produce a smaller executable which may run a bit faster.
+This will keep you from having to build auxiliary libraries (see
+below) and will produce a smaller executable which may run a bit
+faster.
 </P>
 <P>By default, LAMMPS includes only the "kspace", "manybody", and
 "molecule" packages.  As described below, some packages require LAMMPS
@@ -433,10 +437,10 @@ runs, LAMMPS also writes a log.lammps file with the same information.
 (lmp_linux) to the directory with the input files.  This may not be
 necessary, but some versions of MPI reset the working directory to
 where the executable is, rather than leave it as the directory where
-you launch mpirun from.  If that happens, LAMMPS will look for
-additional input files and write its output files to the executable
-directory, rather than your working directory, which is probably not
-what you want.
+you launch mpirun from (if you launch lmp_linux on its own and not
+under mpirun).  If that happens, LAMMPS will look for additional input
+files and write its output files to the executable directory, rather
+than your working directory, which is probably not what you want.
 </P>
 <P>If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
@@ -490,9 +494,11 @@ processors in all partitions must equal P.  Thus the command
 processors.
 </P>
 <P>The input script specifies what simulation is run on which partition;
-see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.
-Simulations running on different partitions can also communicate with
-each other; see the <A HREF = "temper.html">temper</A> command.
+see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.  <A HREF = "Section_howto.html#4_4">This
+howto section</A> gives examples of how to use
+these commands in this way.  Simulations running on different
+partitions can also communicate with each other; see the
+<A HREF = "temper.html">temper</A> command.
 </P>
 <PRE>-in file 
 </PRE>

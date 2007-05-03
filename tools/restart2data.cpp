@@ -1809,10 +1809,11 @@ void Data::write(FILE *fp)
     } else if (strcmp(dihedral_style,"class2") == 0) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g\n",i,
-		dihedral_class2_k1[i],dihedral_class2_k2[i],
-		dihedral_class2_k3[i],
+		dihedral_class2_k1[i],
 		dihedral_class2_phi1[i]/PI*180.0,
+		dihedral_class2_k2[i],
 		dihedral_class2_phi2[i]/PI*180.0,
+		dihedral_class2_k3[i],
 		dihedral_class2_phi3[i]/PI*180.0);
 
       fprintf(fp,"\nMiddleBondTorsion Coeffs\n\n");
@@ -1825,18 +1826,20 @@ void Data::write(FILE *fp)
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
 		dihedral_class2_ebt_f1_1[i],dihedral_class2_ebt_f2_1[i],
-		dihedral_class2_ebt_f3_1[i],dihedral_class2_ebt_r0_1[i],
+		dihedral_class2_ebt_f3_1[i],
 		dihedral_class2_ebt_f1_2[i],dihedral_class2_ebt_f2_2[i],
-		dihedral_class2_ebt_f3_2[i],dihedral_class2_ebt_r0_2[i]);
+		dihedral_class2_ebt_f3_2[i],
+		dihedral_class2_ebt_r0_1[i],
+		dihedral_class2_ebt_r0_2[i]);
 
       fprintf(fp,"\nAngleTorsion Coeffs\n\n");
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
 		dihedral_class2_at_f1_1[i],dihedral_class2_at_f2_1[i],
 		dihedral_class2_at_f3_1[i],
-		dihedral_class2_at_theta0_1[i]/PI*180.0,
 		dihedral_class2_at_f1_2[i],dihedral_class2_at_f2_2[i],
 		dihedral_class2_at_f3_2[i],
+		dihedral_class2_at_theta0_1[i]/PI*180.0,
 		dihedral_class2_at_theta0_2[i]/PI*180.0);
 
       fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");

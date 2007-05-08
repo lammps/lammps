@@ -436,7 +436,6 @@ void Neighbor::init()
   half = full = 0;
   if (half_every || half_once || half_command) half = 1;
   if (full_every || full_once) full = 1;
-  half = 1;
 
   // determine whether to build granular history lists
   // fix_history = granular shear history fix
@@ -509,7 +508,7 @@ void Neighbor::init()
   // set ptrs to half/full/multi/triclinic build & stencil functions
 
   if (half) {
-    if (atom->check_style("granular")) {
+    if (atom->radius) {
       if (style == NSQ) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::granular_nsq_no_newton;

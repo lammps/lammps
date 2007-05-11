@@ -230,11 +230,14 @@ int Variable::next(int narg, char **arg)
   if (narg == 0) error->all("Illegal next command");
 
   // check that variables exist and are all the same style
+  // exception: UNIVERSE and ULOOP variables can be mixed in same next command
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
     if (ivar == -1) error->all("Invalid variable in next command");
-    if (style[ivar] != style[find(arg[0])])
+    if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
+    else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
+    else if (style[ivar] != style[find(arg[0])])
       error->all("All variables in next command must be same style");
   }
 

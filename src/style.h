@@ -73,6 +73,7 @@ CommandStyle(write_restart,WriteRestart)
 
 #ifdef ComputeInclude
 #include "compute_centro_atom.h"
+#include "compute_coord_atom.h"
 #include "compute_epair_atom.h"
 #include "compute_etotal_atom.h"
 #include "compute_ke_atom.h"
@@ -90,6 +91,7 @@ CommandStyle(write_restart,WriteRestart)
 
 #ifdef ComputeClass
 ComputeStyle(centro/atom,ComputeCentroAtom)
+ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(epair/atom,ComputeEpairAtom)
 ComputeStyle(etotal/atom,ComputeEtotalAtom)
 ComputeStyle(ke/atom,ComputeKEAtom)

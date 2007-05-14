@@ -13,8 +13,8 @@ compute coord/atom command :h3
 compute ID group-ID coord/atom cutoff :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-coord/atom = style name of this compute command :ul
-cutoff = distance within which to count coordination neighbors (distance units)
+coord/atom = style name of this compute command
+cutoff = distance within which to count coordination neighbors (distance units) :ul
 
 [Examples:]
 

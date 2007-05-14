@@ -1,0 +1,48 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute coord/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID coord/atom cutoff 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>coord/atom = style name of this compute command 
+</UL>
+<P>cutoff = distance within which to count coordination neighbors (distance units)
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all coord/atom 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the coordination number for each
+atom in a group.  This can be output via the <A HREF = "dump.html">dump custom</A>
+command.
+</P>
+<P>The coordination number is defined as the number of neighbor atoms
+within the specified cutoff distance from the central atom.
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently or to have multiple compute/dump commands, each of a
+<I>coord/atom</I> style.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

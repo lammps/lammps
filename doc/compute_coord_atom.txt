@@ -1,0 +1,42 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute coord/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID coord/atom cutoff :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+coord/atom = style name of this compute command :ul
+cutoff = distance within which to count coordination neighbors (distance units)
+
+[Examples:]
+
+compute 1 all coord/atom 2.0 :pre
+
+[Description:]
+
+Define a computation that calculates the coordination number for each
+atom in a group.  This can be output via the "dump custom"_dump.html
+command.
+
+The coordination number is defined as the number of neighbor atoms
+within the specified cutoff distance from the central atom.
+
+The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently or to have multiple compute/dump commands, each of a
+{coord/atom} style.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

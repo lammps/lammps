@@ -212,6 +212,6 @@ void ComputeTempRamp::compute_vector()
       t[5] += massone * vtmp[1]*vtmp[2];
     }
 
-  MPI_Allreduce(&t,&vector,6,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }

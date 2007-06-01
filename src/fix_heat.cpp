@@ -71,7 +71,7 @@ void FixHeat::end_of_step()
 
   double vsub[3],vcm[3];
 
-  double ke = group->ke(igroup);
+  double ke = group->ke(igroup)*force->ftm2v;
   group->vcm(igroup,masstotal,vcm);
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
   double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);

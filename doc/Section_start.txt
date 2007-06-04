@@ -24,7 +24,7 @@ new and experienced users.
 
 2.1 What's in the LAMMPS distribution :h4,link(2_1)
 
-When you download SLAMMPS you will need to unzip and untar the
+When you download LAMMPS you will need to unzip and untar the
 downloaded file with the following commands, after placing the file in
 an appropriate directory.
 
@@ -487,8 +487,8 @@ processors in all partitions must equal P.  Thus the command
 processors.
 
 The input script specifies what simulation is run on which partition;
-see the "variable"_variable.html and "next"_next.html commands.  "This
-howto section"_Section_howto.html#4_4 gives examples of how to use
+see the "variable"_variable.html and "next"_next.html commands.  This
+"howto section"_Section_howto.html#4_4 gives examples of how to use
 these commands in this way.  Simulations running on different
 partitions can also communicate with each other; see the
 "temper"_temper.html command.

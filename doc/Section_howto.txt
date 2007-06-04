@@ -606,7 +606,7 @@ the "ch2lmp tool"_Section_tools.html#charmm, which contains a
 lammps2pdb Perl script which converts LAMMPS dump files into PDB
 files.  The second is the "lmp2arc tool"_Section_tools.html#arc which
 converts LAMMPS dump files into Accelrys's Insight MD program files.
-The thrid is the "lmp2cfg tool"_Section_tools.html#cfg which converts
+The third is the "lmp2cfg tool"_Section_tools.html#cfg which converts
 LAMMPS dump files into CFG files which can be read into the
 "AtomEye"_atomeye visualizer.
 

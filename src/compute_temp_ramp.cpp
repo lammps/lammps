@@ -76,7 +76,7 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   } else if (v_dim == 1) {
     v_lo = yscale*atof(arg[4]);
     v_hi = yscale*atof(arg[5]);
-  } else if (v_dim == 0) {
+  } else if (v_dim == 2) {
     v_lo = zscale*atof(arg[4]);
     v_hi = zscale*atof(arg[5]);
   }

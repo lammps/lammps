@@ -10,7 +10,7 @@ pair_style meam command :h3
 
 [Syntax:]
 
-pair_style mean :pre
+pair_style meam :pre
 
 [Examples:]
 

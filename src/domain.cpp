@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author (triclinic) : Pieter in 't Veld (SNL)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"
@@ -645,7 +649,7 @@ void Domain::unmap(double *x, int image)
 
 void Domain::set_lattice(int narg, char **arg)
 {
-  delete lattice;
+  if (lattice) delete lattice;
   lattice = new Lattice(lmp,narg,arg);
   if (lattice->style == 0) {
     delete lattice;
@@ -661,11 +665,7 @@ void Domain::add_region(int narg, char **arg)
 {
   if (narg < 2) error->all("Illegal region command");
 
-  // error checks
-
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (strcmp(arg[0],regions[iregion]->id) == 0)
-      error->all("Reuse of region ID");
+  if (find_region(arg[0]) >= 0) error->all("Reuse of region ID");
 
   // extend Region list if necessary
 
@@ -689,6 +689,18 @@ void Domain::add_region(int narg, char **arg)
   else error->all("Invalid region style");
 
   nregion++;
+}
+
+/* ----------------------------------------------------------------------
+   return region index if name matches existing region ID
+   return -1 if no such region
+------------------------------------------------------------------------- */
+
+int Domain::find_region(char *name)
+{
+  for (int iregion = 0; iregion < nregion; iregion++)
+    if (strcmp(name,regions[iregion]->id) == 0) return iregion;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

@@ -33,6 +33,9 @@ enum{NONE,SC,BCC,FCC,DIAMOND,SQ,SQ2,HEX,CUSTOM};
 
 Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  nbasis = 0;
+  basis = NULL;
+
   // parse style arg
 
   if (narg < 1) error->all("Illegal lattice command");
@@ -75,9 +78,6 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // set basis atoms for each style
   // x,y,z = fractional coords within unit cell
   // style CUSTOM will be defined by optional args
-
-  nbasis = 0;
-  basis = NULL;
 
   if (style == SC) {
     add_basis(0.0,0.0,0.0);
@@ -158,9 +158,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"spacings") == 0) {
       if (iarg+4 > narg) error->all("Illegal lattice command");
       spaceflag = 1;
-      xlattice = atoi(arg[iarg+1]);
-      ylattice = atoi(arg[iarg+2]);
-      zlattice = atoi(arg[iarg+3]);
+      xlattice = atof(arg[iarg+1]);
+      ylattice = atof(arg[iarg+2]);
+      zlattice = atof(arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"a1") == 0) {

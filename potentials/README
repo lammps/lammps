@@ -5,11 +5,14 @@ of the file formats and the various styles in LAMMPS that read these
 files.
 
 The prefix of each file indicates the element(s) it is parameterized
-for.  For EAM files it may also have some identifying characters.
+for.  An additional lower-case identification tag may be appended.
 
-si = Silicon
-sic = Silicon and Carbon
-auu3 = Gold universal 3
+Si = Silicon
+SiC = Silicon and Carbon
+Au_u3 = Gold universal 3
+
+For many of the files, comments in the header section give origin and
+citation information.
 
 The suffix of each file indicates the pair style it is used with:
 

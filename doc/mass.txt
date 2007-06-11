@@ -27,6 +27,11 @@ Set the mass for all atoms of one or more atom types.  Mass values can
 also be set in the "read_data"_read_data.html data file.  See the
 "units"_units.html command for what mass units to use.
 
+Most atom styles require masses to be specified.  One exception is
+"atom_style granular"_atom_style.html, where masses are defined for
+individual atoms, not types.  "Pair_style eam"_pair_eam.html defines
+the masses of atom types in the EAM potential file.
+
 I can be specified in one of two ways.  An explicit numeric value can
 be used, as in the 1st example above.  Or a wild-card asterik can be
 used to set the mass for multiple atom types.  This takes the form "*"
@@ -36,9 +41,9 @@ asterik means all types from 1 to n (inclusive).  A trailing asterik
 means all types from n to N (inclusive).  A middle asterik means all
 types from m to n (inclusive).
 
-A line in a data file that specifies mass uses the exact same format
-as the arguments of the mass command in an input script, except that
-no wild-card asterik can be used.  For example, under the "Masses"
+A line in a data file that specifies mass uses the same format as the
+arguments of the mass command in an input script, except that no
+wild-card asterik can be used.  For example, under the "Masses"
 section of a data file, the line that corresponds to the 1st example
 above would be listed as
 
@@ -54,9 +59,6 @@ All masses must be defined before a simulation is run (if the atom
 style requires masses be set).  They must also all be defined before a
 "velocity"_velocity.html or "fix shake"_fix_shake.html command is
 used.
-
-Masses are not set for atom style granular.  This is because each atom
-is assigned an individual mass in the data or restart file.
 
 [Related commands:] none
 

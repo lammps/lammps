@@ -72,6 +72,7 @@ and what it does.  Here is an alphabetic list of compute styles
 defined in LAMMPS:
 
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
+"coord/atom"_compute_coord_atom.html - coordination number for each atom
 "epair/atom"_compute_epair_atom.html - pairwise energy for each atom
 "etotal/atom"_compute_etotal_atom.html - total energy (ke + epair) for each atom
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
@@ -80,8 +81,11 @@ defined in LAMMPS:
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
+"temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
+"temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
+"temp/dipole"_compute_temp_dipole.html - temperature of point dipolar particles
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
-"temp/ramp"_compute_temp_ramp.html - temperature after subtracting a ramped velocity component
+"temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
 "variable"_compute_variable.html - calculate a scalar value from a variable
 "variable/atom"_compute_variable_atom.html - calculate a formula for each atom :ul

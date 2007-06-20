@@ -64,7 +64,6 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix aveforce"_fix_aveforce.html - add an averaged force to each atom
 "fix ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
 "fix ave/time"_fix_ave_time.html - output time-averaged compute quantities
-"fix box/relax"_fix_box_relax.html - relax box size during a minimization
 "fix com"_fix_com.html - compute a center-of-mass
 "fix deposit"_fix_desosit.html - add new atoms above a surface
 "fix drag"_fix_drag.html - drag atoms towards a defined coordinate

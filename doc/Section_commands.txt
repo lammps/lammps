@@ -377,7 +377,6 @@ description:
 "aveforce"_fix_aveforce.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
-"box/relax"_fix_box_relax.html,
 "com"_fix_com.html,
 "deform"_fix_deform.html,
 "deposit"_fix_deposit.html,
@@ -403,8 +402,8 @@ description:
 "nve/gran"_fix_nve_gran.html,
 "nve/noforce"_fix_nve_noforce.html,
 "nvt"_fix_nvt.html,
-"nvt/sllod"_fix_nvt_sllod.html,
 "nvt/asphere"_fix_nvt_asphere.html,
+"nvt/sllod"_fix_nvt_sllod.html,
 "orient/fcc"_fix_orient_fcc.html,
 "planeforce"_fix_planeforce.html,
 "poems"_fix_poems.html,
@@ -422,8 +421,8 @@ description:
 "tmd"_fix_tmd.html,
 "viscous"_fix_viscous.html,
 "wall/gran"_fix_wall_gran.html,
-"wall/lj93"_fix_wall_lj93.html,
 "wall/lj126"_fix_wall_lj126.html,
+"wall/lj93"_fix_wall_lj93.html,
 "wall/reflect"_fix_wall_reflect.html,
 "wiggle"_fix_wiggle.html :tb(c=8,ea=c)
 

@@ -51,8 +51,9 @@ package:
 	@echo 'make no-all       to exclude all packages'
 
 yes-all:
-	make yes-asphere yes-class2 yes-colloid yes-dpd yes-granular \
-	yes-kspace yes-manybody yes-meam yes-molecule yes-opt yes-poems yes-xtc
+	make yes-asphere yes-class2 yes-colloid yes-dipole \
+	yes-dpd yes-granular yes-kspace yes-manybody yes-meam \
+	yes-molecule yes-opt yes-poems yes-xtc
 
 no-all:
 	@echo 'Removing files, ignore any rm errors ...'

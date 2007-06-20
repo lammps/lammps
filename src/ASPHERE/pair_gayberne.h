@@ -32,16 +32,20 @@ class PairGayBerne : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- protected:
+ private:
   double cut_global;
   double **cut;
 
   double gamma,upsilon,mu;   // Gay-Berne parameters
   double **shape;            // radii in x, y and z SQUARED
   double *lshape;            // precalculation based on the shape
-  double **well;             // well depth scaling along each axis
-                             //   raised to -1.0/mu
-  double **epsi,**sig;       // epsilon and sigma values for atom-type pairs
+  double **well;             // well depth scaling along each axis ^ -1.0/mu
+  double **epsilon,**sigma;  // epsilon and sigma values for atom-type pairs
+
+  int **form;
+  double **lj1,**lj2,**lj3,**lj4;
+  double **offset;
+  int *setwell;
 
   void allocate();
   double gayberne_analytic(const int i, const int j, double a1[3][3],

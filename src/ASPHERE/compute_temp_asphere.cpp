@@ -121,7 +121,7 @@ double ComputeTempAsphere::compute_scalar()
   double wbody[3];
   double rot[3][3];
   double t = 0.0;
-
+  
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
 

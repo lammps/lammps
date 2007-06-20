@@ -122,6 +122,8 @@ void Pair::init()
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning("Using pair tail corrections with nonperiodic system");
 
+  init_style();
+
   if (!allocated) error->all("All pair coeffs are not set");
 
   for (i = 1; i <= atom->ntypes; i++)
@@ -144,8 +146,6 @@ void Pair::init()
 	}
       }
     }
-
-  init_style();
 }
 
 /* ----------------------------------------------------------------------

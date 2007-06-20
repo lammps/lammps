@@ -76,7 +76,7 @@ PairGayBerne::~PairGayBerne()
 void PairGayBerne::compute(int eflag, int vflag)
 {
   int i,j,k,m,numneigh,itype,jtype;
-  double one_eng,rsq,r2inv,r6inv,forcelj,phi;
+  double one_eng,rsq,r2inv,r6inv,forcelj;
   double fforce[3],ttor[3],rtor[3],r12[3];
   double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
   int *neighs;
@@ -132,17 +132,19 @@ void PairGayBerne::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
 
 	switch (form[itype][jtype]) {
-	case SPHERE_SPHERE: 
+	case SPHERE_SPHERE:
 	  r2inv = 1.0/rsq;
 	  r6inv = r2inv*r2inv*r2inv;
 	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 	  forcelj *= -r2inv;
-	  if (eflag) phi = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+	  if (eflag) one_eng = 
+		       r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
 		       offset[itype][jtype];
 	  fforce[0] = r12[0]*forcelj;
 	  fforce[1] = r12[1]*forcelj;
 	  fforce[2] = r12[2]*forcelj;
 	  ttor[0] = ttor[1] = ttor[2] = 0.0;
+	  rtor[0] = rtor[1] = rtor[2] = 0.0;
 	  break;
 
 	default:
@@ -399,7 +401,8 @@ void PairGayBerne::write_restart(FILE *fp)
 
   int i,j;
   for (i = 1; i <= atom->ntypes; i++) {
-    fwrite(&well[i][0],sizeof(double),3,fp);
+    fwrite(&setwell[i],sizeof(int),1,fp);
+    if (setwell[i]) fwrite(&well[i][0],sizeof(double),3,fp);
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
@@ -418,14 +421,17 @@ void PairGayBerne::write_restart(FILE *fp)
 void PairGayBerne::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
 
   int i,j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
-    if (me == 0) fread(&well[i][0],sizeof(double),3,fp);
-    MPI_Bcast(&well[i][0],3,MPI_DOUBLE,0,world);
+    if (me == 0) fread(&setwell[i],sizeof(int),1,fp);
+    MPI_Bcast(&setwell[i],1,MPI_INT,0,world);
+    if (setwell[i]) {
+      if (me == 0) fread(&well[i][0],sizeof(double),3,fp);
+      MPI_Bcast(&well[i][0],3,MPI_DOUBLE,0,world);
+    }
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);

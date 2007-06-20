@@ -169,7 +169,6 @@ void FixNPTASphere::final_integrate()
       v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
       v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
       v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
-  
       angmom[i][0] = (angmom[i][0] + dtf * torque[i][0]) * ang_factor;
       angmom[i][1] = (angmom[i][1] + dtf * torque[i][1]) * ang_factor;
       angmom[i][2] = (angmom[i][2] + dtf * torque[i][2]) * ang_factor;

@@ -65,7 +65,8 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
 "fix ave/time"_fix_ave_time.html - output time-averaged compute quantities
 "fix com"_fix_com.html - compute a center-of-mass
-"fix deposit"_fix_desosit.html - add new atoms above a surface
+"fix deform"_fix_deform.html - change the simulation box size/shape
+"fix deposit"_fix_deposit.html - add new atoms above a surface
 "fix drag"_fix_drag.html - drag atoms towards a defined coordinate
 "fix efield"_fix_efield.html - impose electric field on system
 "fix enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
@@ -82,11 +83,15 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
   of a group of atoms
 "fix nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
 "fix npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
+"fix npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
 "fix nve"_fix_nve.html - constant NVE time integration
-"fix nve/gran"_fix_nve_gran.html - NVE time integration for \
-     granular systems
-"fix nve/noforce"_fix_nve_noforce.html - NVE integration without forces (v only)
+"fix nve/asphere"_fix_nve_asphere.html - NVT for aspherical particles
+"fix nve/dipole"_fix_nve_dipole.html - NVE for point dipolar particles
+"fix nve/gran"_fix_nve_gran.html - NVE for granular particles
+"fix nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
 "fix nvt"_fix_nvt.html - constant NVT time integration via Nose/Hoover
+"fix nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
+"fix nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
 "fix orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
 "fix planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "fix poems"_fix_poems.html - constrain clusters of atoms to move \
@@ -110,8 +115,8 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix viscous"_fix_viscous.html - viscous damping for granular simulations
 "fix wall/gran"_fix_wall_gran.html - frictional wall(s) for \
      granular simulations
-"fix wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall
 "fix wall/lj126"_fix_wall_lj126.html - Lennard-Jones 12-6 wall
+"fix wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall
 "fix wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "fix wiggle"_fix_wiggle.html - oscillate walls and frozen atoms :ul
 

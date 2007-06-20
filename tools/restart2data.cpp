@@ -20,6 +20,7 @@
 // restart-file can have a '%' character to indicate a multiproc restart
 //   file as written by LAMMPS
 
+#include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -87,6 +88,8 @@ class Data {
   double *pair_charmm_epsilon,*pair_charmm_sigma;
   double *pair_charmm_eps14,*pair_charmm_sigma14;
   double *pair_class2_epsilon,*pair_class2_sigma;
+  double *pair_gb_epsilon,*pair_gb_sigma;
+  double *pair_gb_epsa,*pair_gb_epsb,*pair_gb_epsc;
   double *pair_lj_epsilon,*pair_lj_sigma;
   double *pair_ljexpand_epsilon,*pair_ljexpand_sigma,*pair_ljexpand_shift;
   double *pair_morse_d0,*pair_morse_alpha,*pair_morse_r0;
@@ -1344,6 +1347,54 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"eam/fs") == 0) {
   } else if (strcmp(style,"eam/fs/opt") == 0) {
 
+  } else if (strcmp(style,"gayberne") == 0) {
+
+    double gamma = read_double(fp);
+    double upsilon = read_double(fp);
+    double mu = read_double(fp);
+    double cut_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_gb_epsilon = new double[data.ntypes+1];
+    data.pair_gb_sigma = new double[data.ntypes+1];
+    data.pair_gb_epsa = new double[data.ntypes+1];
+    data.pair_gb_epsb = new double[data.ntypes+1];
+    data.pair_gb_epsc = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++) {
+      itmp = read_int(fp);
+      if (itmp) {
+	data.pair_gb_epsa[i] = read_double(fp);
+	data.pair_gb_epsb[i] = read_double(fp);
+	data.pair_gb_epsc[i] = read_double(fp);
+	data.pair_gb_epsa[i] = pow(data.pair_gb_epsa[i],-mu);
+	data.pair_gb_epsb[i] = pow(data.pair_gb_epsb[i],-mu);
+	data.pair_gb_epsc[i] = pow(data.pair_gb_epsc[i],-mu);
+      }
+      
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_gb_epsilon[i] = read_double(fp);
+	    data.pair_gb_sigma[i] = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double gb_epsilon = read_double(fp);
+	    double gb_sigma = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+    }
+
   } else if ((strcmp(style,"gran/history") == 0) ||
 	   (strcmp(style,"gran/no_history") == 0) ||
 	   (strcmp(style,"gran/hertzian") == 0)) {
@@ -2208,6 +2259,13 @@ void Data::write(FILE *fp)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_dpd_a0[i],pair_dpd_gamma[i]);
       
+    } else if (strcmp(pair_style,"gayberne") == 0) {
+      for (int i = 1; i <= ntypes; i++)
+	fprintf(fp,"%d %g %g %g %g %g %g %g %g %g\n",i,
+		pair_gb_epsilon[i],pair_gb_sigma[i],
+		pair_gb_epsa[i],pair_gb_epsb[i],pair_gb_epsc[i],
+		pair_gb_epsa[i],pair_gb_epsb[i],pair_gb_epsc[i]);
+
     } else if ((strcmp(pair_style,"lj/charmm/coul/charmm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/long") == 0) ||

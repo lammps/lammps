@@ -68,12 +68,12 @@ commands:
 </P>
 <UL><LI>epsilon = well depth (energy units)
 <LI>sigma = minimum effective particle radii (distance units)
-<LI>a = ellipsoid radius in x dimension (distance units)
-<LI>b = ellipsoid radius in y dimension (distance units)
-<LI>c = ellipsoid radius in z dimension (distance units)
-<LI>epsilon_a = relative well depth for side-to-side interactions
-<LI>epsilon_b = relative well depth for face-to-face interactions
-<LI>epsilon_c = relative well depth for end-to-end interactions
+<LI>epsilon_i_a = relative well depth of I for side-to-side interactions
+<LI>epsilon_i_b = relative well depth of I for face-to-face interactions
+<LI>epsilon_i_c = relative well depth of I for end-to-end interactions
+<LI>epsilon_j_a = relative well depth of J for side-to-side interactions
+<LI>epsilon_j_b = relative well depth of J for face-to-face interactions
+<LI>epsilon_j_c = relative well depth of J for end-to-end interactions
 <LI>cutoff (distance units) 
 </UL>
 <P>The last coefficient is optional.  If not specified, the global
@@ -94,9 +94,9 @@ above.  The "shift yes" option currently cannot be used with this
 potential to shift energies to 0 at the cutoff due to the anisotropic
 dependence of the interaction.  Angular velocities are all set to zero
 initially.  The Gay-Berne potential does not become isotropic as r
-increases <A HREF = "#Everaers">(Everaers)</A>.  The distance of closest approach
-approximation becomes less accurate as the shape of ellipsoids becomes
-more dissimilar (high aspect ratio particles).
+increases <A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach
+approximation used by the code becomes less accurate as the shape of
+ellipsoids becomes more dissimilar (high-aspect-ratio particles).
 </P>
 <P><B>Related commands:</B>
 </P>

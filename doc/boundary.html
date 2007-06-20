@@ -43,10 +43,9 @@ commands.
 <P>The style <I>p</I> means the box is periodic, so that particles interact
 across the boundary, and they can exit one end of the box and re-enter
 the other end.  A periodic dimension can change in size due to
-constant pressure boundary conditions or volume rescaling (see the
-<A HREF = "fix_npt.html">fix npt</A> and <A HREF = "fix_volume_rescale.html">fix volume/rescale</A>
-commands).  The <I>p</I> style must be applied to both faces of a
-dimension.
+constant pressure boundary conditions or box deformation (see the <A HREF = "fix_npt.html">fix
+npt</A> and <A HREF = "fix_deform.html">fix deform</A> commands).  The <I>p</I>
+style must be applied to both faces of a dimension.
 </P>
 <P>The styles <I>f</I>, <I>s</I>, and <I>m</I> mean the box is non-periodic, so that
 particles do not interact across the boundary and do not move from one

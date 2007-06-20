@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author (triclinic) : Pieter in 't Veld (SNL)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "string.h"
 #include "stdio.h"

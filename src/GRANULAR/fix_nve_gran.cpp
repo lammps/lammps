@@ -33,8 +33,9 @@ FixNVEGran::FixNVEGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal fix nve/gran command");
 
-  if (atom->check_style("granular") == 0)
-    error->all("Must use fix nve/gran with atom style granular");
+  if (atom->xphi == NULL || atom->omega == NULL || atom->torque == NULL)
+    error->all("Fix nve/gran requires atom attributes "
+	       "xphi, omega, torque");
 }
 
 /* ---------------------------------------------------------------------- */

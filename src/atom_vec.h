@@ -24,6 +24,7 @@ class AtomVec : protected Pointers {
   int bonds_allow,angles_allow;        // 1 if bonds, angles are used
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
+  int shape_type;                      // 1 if per-type shape array
   int dipole_type;                     // 1 if per-type dipole moments
   int comm_x_only;                     // 1 if only exchange x in forward comm
   int comm_f_only;                     // 1 if only exchange f in reverse comm
@@ -39,9 +40,7 @@ class AtomVec : protected Pointers {
   virtual void init() {}
 
   virtual void grow(int) = 0;
-  virtual void reset_ptrs() = 0;
-  virtual void zero_owned(int) {}
-  virtual void zero_ghost(int,int) {}
+  virtual void reset_special() {}
   virtual void copy(int, int) = 0;
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
@@ -63,14 +62,14 @@ class AtomVec : protected Pointers {
   virtual int unpack_exchange(double *) = 0;
 
   virtual int size_restart() = 0;
-  virtual int size_restart_one(int) = 0;
   virtual int pack_restart(int, double *) = 0;
   virtual int unpack_restart(double *) = 0;
 
-  virtual void create_atom(int, double *, int) = 0;
-  virtual void data_atom(double *, int, char **, int) = 0;
-  virtual void data_vel(int, char *, int);
-  virtual void data_params(int) {}
+  virtual void create_atom(int, double *) = 0;
+  virtual void data_atom(double *, int, char **) = 0;
+  virtual int data_atom_hybrid(int, char **) = 0;
+  virtual void data_vel(int, char **);
+  virtual int data_vel_hybrid(int, char **) {return 0;}
 
   virtual int memory_usage() = 0;
 

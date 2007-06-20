@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PairInclude
+#include "pair_airebo.h"
 #include "pair_eam.h"
 #include "pair_eam_alloy.h"
 #include "pair_eam_fs.h"
@@ -20,6 +21,7 @@
 #endif
 
 #ifdef PairClass
+PairStyle(airebo,PairAIREBO)
 PairStyle(eam,PairEAM)
 PairStyle(eam/alloy,PairEAMAlloy)
 PairStyle(eam/fs,PairEAMFS)

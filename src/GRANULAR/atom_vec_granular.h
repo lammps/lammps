@@ -23,9 +23,6 @@ class AtomVecGranular : public AtomVec {
   AtomVecGranular(class LAMMPS *, int, char **);
   ~AtomVecGranular() {}
   void grow(int);
-  void reset_ptrs();
-  void zero_owned(int);
-  void zero_ghost(int, int);
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_one(int, double *);
@@ -42,12 +39,13 @@ class AtomVecGranular : public AtomVec {
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
   int size_restart();
-  int size_restart_one(int);
   int pack_restart(int, double *);
   int unpack_restart(double *);
-  void create_atom(int, double *, int);
-  void data_atom(double *, int, char **, int);
-  void data_vel(int, char *, int);
+  void create_atom(int, double *);
+  void data_atom(double *, int, char **);
+  int data_atom_hybrid(int, char **);
+  void data_vel(int, char **);
+  int data_vel_hybrid(int, char **);
   int memory_usage();
 
  private:

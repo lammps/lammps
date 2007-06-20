@@ -27,8 +27,8 @@ FixFreeze::FixFreeze(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal fix freeze command");
 
-  if (atom->check_style("granular") == 0)
-    error->all("Must use fix freeze with atom style granular");
+  if (atom->torque == NULL)
+    error->all("Fix freeze requires atom attribute torque");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -50,7 +50,7 @@ void FixFreeze::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) count++;
-  if (count > 1) error->all("More than one freeze fix");
+  if (count > 1) error->all("More than one fix freeze");
 }
 
 /* ---------------------------------------------------------------------- */

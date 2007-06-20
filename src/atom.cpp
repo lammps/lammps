@@ -61,7 +61,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   molecule = NULL;
   q = NULL;
   mu = NULL;
-  xphi = omega = torque = NULL;
+  xphi = quat = omega = angmom = torque = NULL;
   radius = density = rmass = vfrac = NULL;
 
   maxspecial = 1;
@@ -82,12 +82,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
 
-  hybrid = NULL;
-
   // ntype-length arrays
 
   mass = NULL;
   mass_setflag = NULL;
+  shape = NULL;
+  shape_setflag = NULL;
   dipole = NULL;
   dipole_setflag = NULL;
 
@@ -143,8 +143,11 @@ Atom::~Atom()
   memory->sfree(q);
   memory->destroy_2d_double_array(mu);
   memory->destroy_2d_double_array(xphi);
+  memory->destroy_2d_double_array(quat);
   memory->destroy_2d_double_array(omega);
+  memory->destroy_2d_double_array(angmom);
   memory->destroy_2d_double_array(torque);
+
   memory->sfree(radius);
   memory->sfree(density);
   memory->sfree(rmass);
@@ -179,12 +182,12 @@ Atom::~Atom()
   memory->destroy_2d_int_array(improper_atom3);
   memory->destroy_2d_int_array(improper_atom4);
 
-  memory->sfree(hybrid);
-
   // delete per-type arrays
 
   delete [] mass;
   delete [] mass_setflag;
+  memory->destroy_2d_double_array(shape);
+  delete [] shape_setflag;
   delete [] dipole;
   delete [] dipole_setflag;
 
@@ -250,6 +253,7 @@ void Atom::init()
   // check arrays that are atom type in length
 
   check_mass();
+  check_shape();
   check_dipole();
 
   // init sub-style
@@ -258,11 +262,11 @@ void Atom::init()
 }
 
 /* ----------------------------------------------------------------------
-   check if atom style matches style
-   if hybrid, any sub-style can be a match
+   return 1 if style matches atom style hybrid sub-style
+   else return 0
 ------------------------------------------------------------------------- */
 
-int Atom::check_style(char *style)
+int Atom::style_match(char *style)
 {
   if (strcmp(atom_style,style) == 0) return 1;
   else if (strcmp(atom_style,"hybrid") == 0) {
@@ -612,10 +616,10 @@ int Atom::count_words(char *line)
 
 /* ----------------------------------------------------------------------
    unpack n lines from Atom section of data file
-   set all atom values and defaults
+   call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, int ihybrid)
+void Atom::data_atoms(int n, char *buf)
 {
   int m,imagedata,xptr,iptr;
   double xdata[3],lamda[3],sublo[3],subhi[3];
@@ -627,7 +631,6 @@ void Atom::data_atoms(int n, char *buf, int ihybrid)
   int nwords = count_words(buf);
   *next = '\n';
 
-  avec->data_params(ihybrid);
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
     error->all("Incorrect atom format in data file");
 
@@ -671,7 +674,8 @@ void Atom::data_atoms(int n, char *buf, int ihybrid)
 
   // loop over lines of atom data
   // tokenize the line into values
-  // extract xyz coords and image flags, remap them
+  // extract xyz coords and image flags
+  // remap atom into simulation box
   // if atom is in my sub-domain, unpack its values
 
   for (int i = 0; i < n; i++) {
@@ -699,7 +703,7 @@ void Atom::data_atoms(int n, char *buf, int ihybrid)
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
 	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
 	coord[2] >= sublo[2] && coord[2] < subhi[2])
-      avec->data_atom(xdata,imagedata,values,ihybrid);
+      avec->data_atom(xdata,imagedata,values);
 
     buf = next + 1;
   }
@@ -713,9 +717,9 @@ void Atom::data_atoms(int n, char *buf, int ihybrid)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_vels(int n, char *buf, int ihybrid)
+void Atom::data_vels(int n, char *buf)
 {
-  int m,tagtmp;
+  int j,m,tagdata;
   char *next;
 
   next = strchr(buf,'\n');
@@ -723,19 +727,31 @@ void Atom::data_vels(int n, char *buf, int ihybrid)
   int nwords = count_words(buf);
   *next = '\n';
 
-  avec->data_params(ihybrid);
   if (nwords != avec->size_data_vel)
     error->all("Incorrect velocity format in data file");
 
+  char **values = new char*[nwords];
+
+  // loop over lines of atom velocities
+  // tokenize the line into values
+  // if I own atom tag, unpack its values
+
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-    *next = '\0';
-    sscanf(buf,"%d",&tagtmp);
-    if (tagtmp <= 0 || tagtmp > map_tag_max)
+
+    values[0] = strtok(buf," \t\n\r\f");
+    for (j = 1; j < nwords; j++)
+      values[j] = strtok(NULL," \t\n\r\f");
+
+    tagdata = atoi(values[0]);
+    if (tagdata <= 0 || tagdata > map_tag_max)
       error->one("Invalid atom ID in Velocities section of data file");
-    if ((m = map(tagtmp)) >= 0) avec->data_vel(m,buf,ihybrid);
+    if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
+
     buf = next + 1;
   }
+
+  delete [] values;
 }
 
 /* ----------------------------------------------------------------------
@@ -950,6 +966,11 @@ void Atom::allocate_type_arrays()
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
   }
+  if (avec->shape_type) {
+    shape = memory->create_2d_double_array(ntypes+1,3,"atom:shape");
+    shape_setflag = new int[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) shape_setflag[itype] = 0;
+  }    
   if (avec->dipole_type) {
     dipole = new double[ntypes+1];
     dipole_setflag = new int[ntypes+1];
@@ -968,7 +989,8 @@ void Atom::set_mass(char *str)
 
   int itype;
   double mass_one;
-  sscanf(str,"%d %lg",&itype,&mass_one);
+  int n = sscanf(str,"%d %lg",&itype,&mass_one);
+  if (n != 2) error->all("Invalid mass line in data file");
 
   if (itype < 1 || itype > ntypes) error->all("Invalid type for mass set");
 
@@ -1033,6 +1055,79 @@ void Atom::check_mass()
 }
 
 /* ----------------------------------------------------------------------
+   set particle shape and flag it as set
+   called from reading of data file
+------------------------------------------------------------------------- */
+
+void Atom::set_shape(char *str)
+{
+  if (shape == NULL) error->all("Cannot set shape for this atom style");
+
+  int itype;
+  double a,b,c;
+  int n = sscanf(str,"%d %lg %lg %lg",&itype,&a,&b,&c);
+  if (n != 4) error->all("Invalid shape line in data file");
+
+  if (itype < 1 || itype > ntypes) error->all("Invalid type for shape set");
+
+  // store shape as radius, though specified as diameter
+
+  shape[itype][0] = 0.5*a;
+  shape[itype][1] = 0.5*b;
+  shape[itype][2] = 0.5*c;
+  shape_setflag[itype] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   set one or more particle shapes and flag them as set
+   called from reading of input script
+------------------------------------------------------------------------- */
+
+void Atom::set_shape(int narg, char **arg)
+{
+  if (shape == NULL) error->all("Cannot set shape for this atom style");
+
+  int lo,hi;
+  force->bounds(arg[0],ntypes,lo,hi);
+  if (lo < 1 || hi > ntypes) 
+	error->all("Invalid type for shape set");
+
+  // store shape as radius, though specified as diameter
+
+  for (int itype = lo; itype <= hi; itype++) {
+    shape[itype][0] = 0.5*atof(arg[1]);
+    shape[itype][1] = 0.5*atof(arg[2]);
+    shape[itype][2] = 0.5*atof(arg[3]);
+    shape_setflag[itype] = 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   set all particle shapes as read in from restart file
+------------------------------------------------------------------------- */
+
+void Atom::set_shape(double **values)
+{
+  for (int itype = 1; itype <= ntypes; itype++) {
+    shape[itype][0] = values[itype][0];
+    shape[itype][1] = values[itype][1];
+    shape[itype][2] = values[itype][2];
+    shape_setflag[itype] = 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   check that all particle shapes have been set
+------------------------------------------------------------------------- */
+
+void Atom::check_shape()
+{
+  if (shape == NULL) return;
+  for (int itype = 1; itype <= ntypes; itype++)
+    if (shape_setflag[itype] == 0) error->all("All shapes are not set");
+}
+
+/* ----------------------------------------------------------------------
    set a dipole moment and flag it as set
    called from reading of data file
 ------------------------------------------------------------------------- */
@@ -1043,7 +1138,8 @@ void Atom::set_dipole(char *str)
 
   int i;
   double dipole_one;
-  sscanf(str,"%d %lg",&i,&dipole_one);
+  int n = sscanf(str,"%d %lg",&i,&dipole_one);
+  if (n != 2) error->all("Invalid shape line in data file");
 
   dipole[i] = dipole_one;
   dipole_setflag[i] = 1;

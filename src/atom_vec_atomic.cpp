@@ -69,19 +69,6 @@ void AtomVecAtomic::grow(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecAtomic::reset_ptrs()
-{
-  tag = atom->tag;
-  type = atom->type;
-  mask = atom->mask;
-  image = atom->image;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AtomVecAtomic::copy(int i, int j)
 {
   tag[j] = tag[i];
@@ -319,16 +306,6 @@ int AtomVecAtomic::size_restart()
 }
 
 /* ----------------------------------------------------------------------
-   size of restart data for atom I
-   do not include extra data stored by fixes, included by caller
-------------------------------------------------------------------------- */
-
-int AtomVecAtomic::size_restart_one(int i)
-{
-  return 11;
-}
-
-/* ----------------------------------------------------------------------
    pack atom I's data for restart file including extra quantities
    xyz must be 1st 3 values, so that read_restart can test on them
    molecular types may be negative, but write as positive   
@@ -398,7 +375,7 @@ int AtomVecAtomic::unpack_restart(double *buf)
    set other values to defaults
 ------------------------------------------------------------------------- */
 
-void AtomVecAtomic::create_atom(int itype, double *coord, int ihybrid)
+void AtomVecAtomic::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -422,8 +399,7 @@ void AtomVecAtomic::create_atom(int itype, double *coord, int ihybrid)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecAtomic::data_atom(double *coord, int imagetmp, char **values,
-			      int ihybrid)
+void AtomVecAtomic::data_atom(double *coord, int imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -448,6 +424,20 @@ void AtomVecAtomic::data_atom(double *coord, int imagetmp, char **values,
   v[nlocal][2] = 0.0;
 
   atom->nlocal++;
+}
+
+/* ----------------------------------------------------------------------
+   unpack hybrid quantities from one line in Atoms section of data file
+   initialize other atom quantities for this sub-style
+------------------------------------------------------------------------- */
+
+int AtomVecAtomic::data_atom_hybrid(int nlocal, char **values)
+{
+  v[nlocal][0] = 0.0;
+  v[nlocal][1] = 0.0;
+  v[nlocal][2] = 0.0;
+
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

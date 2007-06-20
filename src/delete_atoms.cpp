@@ -143,11 +143,8 @@ void DeleteAtoms::delete_region(int narg, char **arg, int *list)
 {
   if (narg != 2) error->all("Illegal delete_atoms command");
   
-  int iregion;
-  for (iregion = 0; iregion < domain->nregion; iregion++)
-    if (strcmp(arg[1],domain->regions[iregion]->id) == 0) break;
-  if (iregion == domain->nregion)
-    error->all("Could not find delete_atoms region ID");
+  int iregion = domain->find_region(arg[1]);
+  if (iregion == -1) error->all("Could not find delete_atoms region ID");
 
   double **x = atom->x;
   int nlocal = atom->nlocal;

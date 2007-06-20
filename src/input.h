@@ -29,8 +29,8 @@ class Input : protected Pointers {
   Input(class LAMMPS *, int, char **);
   ~Input();
   void file();                   // process all input
-  void file(char *);             // process an input script
-  char *one(char *);             // process a single command
+  void file(const char *);       // process an input script
+  char *one(const char *);       // process a single command
   void substitute(char *, int);  // substitute for variables in a string
 
  private:
@@ -78,7 +78,6 @@ class Input : protected Pointers {
   void dipole();
   void dump();
   void dump_modify();
-  // void ellipsoid();
   void fix();
   void fix_modify();
   void group_command();
@@ -102,6 +101,7 @@ class Input : protected Pointers {
   void reset_timestep();
   void restart();
   void run_style();
+  void shape();
   void special_bonds();
   void thermo();
   void thermo_modify();

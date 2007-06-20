@@ -147,21 +147,13 @@ void PairDPD::compute(int eflag, int vflag)
 	}
 
 	if (vflag == 1) {
-	  if (newton_pair || j < nlocal) {
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  } else {
-	    virial[0] += 0.5*delx*delx*fforce;
-	    virial[1] += 0.5*dely*dely*fforce;
-	    virial[2] += 0.5*delz*delz*fforce;
-	    virial[3] += 0.5*delx*dely*fforce;
-	    virial[4] += 0.5*delx*delz*fforce;
-	    virial[5] += 0.5*dely*delz*fforce;
-	  }
+	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
+	  virial[0] += delx*delx*fforce;
+	  virial[1] += dely*dely*fforce;
+	  virial[2] += delz*delz*fforce;
+	  virial[3] += delx*dely*fforce;
+	  virial[4] += delx*delz*fforce;
+	  virial[5] += dely*delz*fforce;
 	}
       }
     }
@@ -277,14 +269,14 @@ double PairDPD::init_one(int i, int j)
 
 void PairDPD::init_style()
 {
-  // check that atom style is dpd
+  // check that atom style is dpd or hybrid with dpd
   // else compute() will not have ghost atom velocities
 
-  if (atom->check_style("dpd") == 0)
-    error->all("Must use atom style dpd with pair style dpd");
+  if (atom->style_match("dpd") == 0)
+    error->all("Pair style dpd requires atom style dpd");
 
   // if newton off, forces between atoms ij will be double computed
-  //   using different random numbers
+  // using different random numbers
 
   if (force->newton_pair == 0 && comm->me == 0) error->warning(
       "DPD potential needs newton pair on for momentum conservation");

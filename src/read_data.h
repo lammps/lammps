@@ -40,14 +40,15 @@ class ReadData : protected Pointers {
   void skip_lines(int);
   void parse_coeffs(int, char *);
 
-  void atoms(int);
-  void velocities(int);
+  void atoms();
+  void velocities();
   void bonds();
   void angles();
   void dihedrals();
   void impropers();
 
   void mass();
+  void shape();
   void dipole();
 
   void paircoeffs();

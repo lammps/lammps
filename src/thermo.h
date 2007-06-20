@@ -72,7 +72,7 @@ class Thermo : protected Pointers {
                          // id = ID of Compute objects
                          // Compute * = ptrs to the Compute objects
   int index_temp,index_press,index_drot,index_grot;
-  int internal_temp,internal_press,internal_drot,internal_grot;
+  int internal_drot,internal_grot;
   char *id_temp,*id_press,*id_drot,*id_grot;
   class Compute *temperature,*pressure,*rotate_dipole,*rotate_gran;
 
@@ -88,7 +88,7 @@ class Thermo : protected Pointers {
   int nvariable;         // # of variables evaulated by thermo
   char **id_variable;    // list of variable names
 
-  int nwindow;            // time averaged values
+  int nwindow;           // time averaged values
   int npartial_t,ncurrent_t,npartial_p,ncurrent_p;
   int npartial_e,ncurrent_e,npartial_pe,ncurrent_pe;
   double tsum,psum,esum,pesum;

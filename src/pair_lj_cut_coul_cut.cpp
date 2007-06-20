@@ -146,21 +146,13 @@ void PairLJCutCoulCut::compute(int eflag, int vflag)
 	}
 
 	if (vflag == 1) {
-	  if (newton_pair || j < nlocal) {
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  } else {
-	    virial[0] += 0.5*delx*delx*fforce;
-	    virial[1] += 0.5*dely*dely*fforce;
-	    virial[2] += 0.5*delz*delz*fforce;
-	    virial[3] += 0.5*delx*dely*fforce;
-	    virial[4] += 0.5*delx*delz*fforce;
-	    virial[5] += 0.5*dely*delz*fforce;
-	  }
+	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
+	  virial[0] += delx*delx*fforce;
+	  virial[1] += dely*dely*fforce;
+	  virial[2] += delz*delz*fforce;
+	  virial[3] += delx*dely*fforce;
+	  virial[4] += delx*delz*fforce;
+	  virial[5] += dely*delz*fforce;
 	}
       }
     }
@@ -330,10 +322,8 @@ double PairLJCutCoulCut::init_one(int i, int j)
 
 void PairLJCutCoulCut::init_style()
 {
-  // require an atom style with charge defined
-
   if (atom->q == NULL)
-    error->all("Must use charged atom style with this pair style");
+    error->all("Pair style lj/cut/coul/cut requires atom attribute q");
 }
 
 /* ----------------------------------------------------------------------

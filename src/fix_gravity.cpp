@@ -31,24 +31,18 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"chute") == 0) {
     if (narg != 5) error->all("Illegal fix gravity command");
-    if (atom->check_style("granular") == 0)
-      error->all("Must use fix gravity chute with atom style granular");
     dynamic = 0;
     granular = 1;
     phi = 0.0;
     theta = 180.0 - atof(arg[4]);
   } else if (strcmp(arg[3],"spherical") == 0) {
     if (narg != 6) error->all("Illegal fix gravity command");
-    if (atom->check_style("granular") == 0)
-      error->all("Must use fix gravity spherical with atom style granular");
     dynamic = 0;
     granular = 1;
     phi = atof(arg[4]);
     theta = atof(arg[5]);
   } else if (strcmp(arg[3],"gradient") == 0) {
     if (narg != 8) error->all("Illegal fix gravity command");
-    if (atom->check_style("granular") == 0)
-      error->all("Must use fix gravity gradient with atom style granular");
     dynamic = 1;
     granular = 1;
     phi = atof(arg[4]);
@@ -57,8 +51,6 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     thetagrad = atof(arg[7]);
   } else if (strcmp(arg[3],"vector") == 0) {
     if (narg != 8) error->all("Illegal fix gravity command");
-    if (atom->check_style("granular") != 0)
-      error->all("Cannot use fix gravity vector with atom style granular");
     dynamic = 0;
     granular = 0;
     magnitude = atof(arg[4]);
@@ -130,20 +122,20 @@ void FixGravity::post_force(int vflag)
   int nlocal = atom->nlocal;
   double massone;
 
-  if (granular) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	f[i][0] += rmass[i]*xgrav;
-	f[i][1] += rmass[i]*ygrav;
-	f[i][2] += rmass[i]*zgrav;
-      }
-  } else {
+  if (mass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	massone = mass[type[i]];
 	f[i][0] += massone*xgrav;
 	f[i][1] += massone*ygrav;
 	f[i][2] += massone*zgrav;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	f[i][0] += rmass[i]*xgrav;
+	f[i][1] += rmass[i]*ygrav;
+	f[i][2] += rmass[i]*zgrav;
       }
   }
 }

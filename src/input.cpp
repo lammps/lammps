@@ -196,7 +196,7 @@ void Input::file()
    process all input from filename
 ------------------------------------------------------------------------- */
 
-void Input::file(char *filename)
+void Input::file(const char *filename)
 {
   // error if another nested file still open
   // if single open file is not stdin, close it
@@ -223,7 +223,7 @@ void Input::file(char *filename)
    return command name to caller
 ------------------------------------------------------------------------- */
 
-char *Input::one(char *single)
+char *Input::one(const char *single)
 {
   strcpy(line,single);
 
@@ -417,7 +417,6 @@ int Input::execute_command()
   else if (!strcmp(command,"dipole")) dipole();
   else if (!strcmp(command,"dump")) dump();
   else if (!strcmp(command,"dump_modify")) dump_modify();
-  // else if (!strcmp(command,"ellipsoid")) ellipsoid();
   else if (!strcmp(command,"fix")) fix();
   else if (!strcmp(command,"fix_modify")) fix_modify();
   else if (!strcmp(command,"group")) group_command();
@@ -441,6 +440,7 @@ int Input::execute_command()
   else if (!strcmp(command,"reset_timestep")) reset_timestep();
   else if (!strcmp(command,"restart")) restart();
   else if (!strcmp(command,"run_style")) run_style();
+  else if (!strcmp(command,"shape")) shape();
   else if (!strcmp(command,"special_bonds")) special_bonds();
   else if (!strcmp(command,"thermo")) thermo();
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
@@ -824,18 +824,6 @@ void Input::dump_modify()
 
 /* ---------------------------------------------------------------------- */
 
-/*
-void Input::ellipsoid()
-{
-  if (narg != 4) error->all("Illegal ellipsoid command");
-  if (domain->box_exist == 0)
-    error->all("Ellipsoid command before simulation box is defined");
-  atom->set_radii3(narg,arg);
-}
-*/
-
-/* ---------------------------------------------------------------------- */
-
 void Input::fix()
 {
   modify->add_fix(narg,arg);
@@ -1063,6 +1051,16 @@ void Input::run_style()
   if (domain->box_exist == 0)
     error->all("Run_style command before simulation box is defined");
   update->create_integrate(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::shape()
+{
+  if (narg != 4) error->all("Illegal shape command");
+  if (domain->box_exist == 0)
+    error->all("Shape command before simulation box is defined");
+  atom->set_shape(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

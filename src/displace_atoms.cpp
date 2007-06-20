@@ -20,12 +20,12 @@
 #include "lattice.h"
 #include "comm.h"
 #include "group.h"
+#include "random_park.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
-#define MOVE 1
-#define RAMP 2
+enum{MOVE,RAMP,RANDOM};
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -62,6 +62,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   int style;
   if (strcmp(arg[1],"move") == 0) style = MOVE;
   else if (strcmp(arg[1],"ramp") == 0) style = RAMP;
+  else if (strcmp(arg[1],"random") == 0) style = RANDOM;
   else error->all("Illegal displace_atoms command");
 
   // set option defaults
@@ -72,6 +73,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (style == MOVE) options(narg-5,&arg[5]);
   else if (style == RAMP) options(narg-8,&arg[8]);
+  else if (style == RANDOM) options(narg-6,&arg[6]);
 
   // setup scaling
 
@@ -86,14 +88,13 @@ void DisplaceAtoms::command(int narg, char **arg)
   }
   else xscale = yscale = zscale = 1.0;
 
-  // move atoms by specified 3-vector distance
+  // move atoms by 3-vector
 
   if (style == MOVE) {
 
-    double delx,dely,delz;
-    delx = xscale*atof(arg[2]);
-    dely = yscale*atof(arg[3]);
-    delz = zscale*atof(arg[4]);
+    double delx = xscale*atof(arg[2]);
+    double dely = yscale*atof(arg[3]);
+    double delz = zscale*atof(arg[4]);
 
     double **x = atom->x;
     int *mask = atom->mask;
@@ -163,6 +164,33 @@ void DisplaceAtoms::command(int narg, char **arg)
 	x[i][d_dim] += dramp;
       }
     }
+  }
+
+  // move atoms randomly
+    
+  if (style == RANDOM) {
+    RanPark *random = new RanPark(lmp,1);
+
+    double dx = xscale*atof(arg[2]);
+    double dy = yscale*atof(arg[3]);
+    double dz = zscale*atof(arg[4]);
+    int seed = atoi(arg[5]);
+
+    double **x = atom->x;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    int j;
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	random->reset(seed,x[i]);
+	x[i][0] += dx * 2.0*(random->uniform()-0.5);
+	x[i][1] += dy * 2.0*(random->uniform()-0.5);
+	x[i][2] += dz * 2.0*(random->uniform()-0.5);
+      }
+    }
+
+    delete random;
   }
 
   // move atoms back inside simulation box and to new processors

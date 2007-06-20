@@ -129,7 +129,7 @@ void FixMSD::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"msd") == 0) count++;
-  if (count > 1 && me == 0) error->warning("More than one msd fix");
+  if (count > 1 && me == 0) error->warning("More than one fix msd");
 }
 
 /* ---------------------------------------------------------------------- */

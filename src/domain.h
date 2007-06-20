@@ -67,8 +67,12 @@ class Domain : protected Pointers {
                                          // triclinic box
   double xy,xz,yz;                       // 3 tilt factors
   double h[6],h_inv[6];	          	 // shape matrix in Voigt notation
+  double h_rate[6],h_ratelo[3];          // rate of box size/shape change
 
   int box_change;                 // 1 if box bounds ever change, 0 if fixed
+  int deform_flag;                // 1 if fix deform exist, else 0
+  int deform_remap;               // 1 if fix deform remaps v, else 0
+  int deform_groupbit;            // atom group to perform v remap for
 
   class Lattice *lattice;                  // user-defined lattice
 

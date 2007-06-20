@@ -36,7 +36,24 @@
 
 using namespace LAMMPS_NS;
 
-enum{IGNORE,WARN,ERROR};     // same as thermo.cpp
+// same as write_restart.cpp
+
+enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
+       NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
+       BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
+       ATOM_STYLE,NATOMS,NTYPES,
+       NBONDS,NBONDTYPES,BOND_PER_ATOM,
+       NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
+       NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
+       NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
+       BOXLO_0,BOXHI_0,BOXLO_1,BOXHI_1,BOXLO_2,BOXHI_2,
+       SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
+       SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
+       XY,XZ,YZ};
+enum{MASS,SHAPE,DIPOLE};
+enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
+
+enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -129,13 +146,13 @@ void WriteRestart::write(char *file)
     if (multiproc) delete [] hfile;
   }
 
-  // write header, groups, ntype-length arrays, force field, fix info
+  // proc 0 writes header, groups, ntype-length arrays, force field
+  // all procs write fix info
 
   if (me == 0) {
     header();
     group->write_restart(fp);
-    if (atom->mass) mass();
-    if (atom->dipole) dipole();
+    type_arrays();
     force_fields();
   }
 
@@ -219,31 +236,31 @@ void WriteRestart::write(char *file)
 
 void WriteRestart::header()
 {
-  write_char(0,universe->version);
-  write_char(1,update->unit_style);
-  write_int(2,update->ntimestep);
-  write_int(3,force->dimension);
-  write_int(4,nprocs);
-  write_int(5,comm->procgrid[0]);
-  write_int(6,comm->procgrid[1]);
-  write_int(7,comm->procgrid[2]);
-  write_int(8,force->newton_pair);
-  write_int(9,force->newton_bond);
-  write_int(10,domain->xperiodic);
-  write_int(11,domain->yperiodic);
-  write_int(12,domain->zperiodic);
-  write_int(13,domain->boundary[0][0]);
-  write_int(14,domain->boundary[0][1]);
-  write_int(15,domain->boundary[1][0]);
-  write_int(16,domain->boundary[1][1]);
-  write_int(17,domain->boundary[2][0]);
-  write_int(18,domain->boundary[2][1]);
+  write_char(VERSION,universe->version);
+  write_char(UNITS,update->unit_style);
+  write_int(NTIMESTEP,update->ntimestep);
+  write_int(DIMENSION,force->dimension);
+  write_int(NPROCS,nprocs);
+  write_int(PROCGRID_0,comm->procgrid[0]);
+  write_int(PROCGRID_1,comm->procgrid[1]);
+  write_int(PROCGRID_2,comm->procgrid[2]);
+  write_int(NEWTON_PAIR,force->newton_pair);
+  write_int(NEWTON_BOND,force->newton_bond);
+  write_int(XPERIODIC,domain->xperiodic);
+  write_int(YPERIODIC,domain->yperiodic);
+  write_int(ZPERIODIC,domain->zperiodic);
+  write_int(BOUNDARY_00,domain->boundary[0][0]);
+  write_int(BOUNDARY_01,domain->boundary[0][1]);
+  write_int(BOUNDARY_10,domain->boundary[1][0]);
+  write_int(BOUNDARY_11,domain->boundary[1][1]);
+  write_int(BOUNDARY_20,domain->boundary[2][0]);
+  write_int(BOUNDARY_21,domain->boundary[2][1]);
 
   // atom_style must be written before atom class values
   // so read_restart can create class before reading class values
   // if style = hybrid, also write sub-class styles
 
-  write_char(19,atom->atom_style);
+  write_char(ATOM_STYLE,atom->atom_style);
 
   if (strcmp(atom->atom_style,"hybrid") == 0) {
     AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
@@ -257,39 +274,39 @@ void WriteRestart::header()
     }
   }
 
-  write_double(20,natoms);
-  write_int(21,atom->ntypes);
-  write_int(22,atom->nbonds);
-  write_int(23,atom->nbondtypes);
-  write_int(24,atom->bond_per_atom);
-  write_int(25,atom->nangles);
-  write_int(26,atom->nangletypes);
-  write_int(27,atom->angle_per_atom);
-  write_int(28,atom->ndihedrals);
-  write_int(29,atom->ndihedraltypes);
-  write_int(30,atom->dihedral_per_atom);
-  write_int(31,atom->nimpropers);
-  write_int(32,atom->nimpropertypes);
-  write_int(33,atom->improper_per_atom);
+  write_double(NATOMS,natoms);
+  write_int(NTYPES,atom->ntypes);
+  write_int(NBONDS,atom->nbonds);
+  write_int(NBONDTYPES,atom->nbondtypes);
+  write_int(BOND_PER_ATOM,atom->bond_per_atom);
+  write_int(NANGLES,atom->nangles);
+  write_int(NANGLETYPES,atom->nangletypes);
+  write_int(ANGLE_PER_ATOM,atom->angle_per_atom);
+  write_int(NDIHEDRALS,atom->ndihedrals);
+  write_int(NDIHEDRALTYPES,atom->ndihedraltypes);
+  write_int(DIHEDRAL_PER_ATOM,atom->dihedral_per_atom);
+  write_int(NIMPROPERS,atom->nimpropers);
+  write_int(NIMPROPERTYPES,atom->nimpropertypes);
+  write_int(IMPROPER_PER_ATOM,atom->improper_per_atom);
 
-  write_double(34,domain->boxlo[0]);
-  write_double(35,domain->boxhi[0]);
-  write_double(36,domain->boxlo[1]);
-  write_double(37,domain->boxhi[1]);
-  write_double(38,domain->boxlo[2]);
-  write_double(39,domain->boxhi[2]);
+  write_double(BOXLO_0,domain->boxlo[0]);
+  write_double(BOXHI_0,domain->boxhi[0]);
+  write_double(BOXLO_1,domain->boxlo[1]);
+  write_double(BOXHI_1,domain->boxhi[1]);
+  write_double(BOXLO_2,domain->boxlo[2]);
+  write_double(BOXHI_2,domain->boxhi[2]);
 
-  write_double(40,force->special_lj[1]);
-  write_double(41,force->special_lj[2]);
-  write_double(42,force->special_lj[3]);
-  write_double(43,force->special_coul[1]);
-  write_double(44,force->special_coul[2]);
-  write_double(45,force->special_coul[3]);
+  write_double(SPECIAL_LJ_1,force->special_lj[1]);
+  write_double(SPECIAL_LJ_2,force->special_lj[2]);
+  write_double(SPECIAL_LJ_3,force->special_lj[3]);
+  write_double(SPECIAL_COUL_1,force->special_coul[1]);
+  write_double(SPECIAL_COUL_2,force->special_coul[2]);
+  write_double(SPECIAL_COUL_3,force->special_coul[3]);
 
   if (domain->triclinic) {
-    write_double(46,domain->xy);
-    write_double(47,domain->xz);
-    write_double(48,domain->yz);
+    write_double(XY,domain->xy);
+    write_double(XZ,domain->xz);
+    write_double(YZ,domain->yz);
   }
 
   // -1 flag signals end of header
@@ -299,78 +316,84 @@ void WriteRestart::header()
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out atom masses 
+   proc 0 writes out any type-based arrays that are defined
 ------------------------------------------------------------------------- */
 
-void WriteRestart::mass()
+void WriteRestart::type_arrays()
 {
-  fwrite(&atom->mass[1],sizeof(double),atom->ntypes,fp);
+  if (atom->mass) {
+    int flag = MASS;
+    fwrite(&flag,sizeof(int),1,fp);
+    fwrite(&atom->mass[1],sizeof(double),atom->ntypes,fp);
+  }
+  if (atom->shape) {
+    int flag = SHAPE;
+    fwrite(&flag,sizeof(int),1,fp);
+    fwrite(&atom->shape[1][0],sizeof(double),atom->ntypes*3,fp);
+  }
+  if (atom->dipole) {
+    int flag = DIPOLE;
+    fwrite(&flag,sizeof(int),1,fp);
+    fwrite(&atom->dipole[1],sizeof(double),atom->ntypes,fp);
+  }
+
+  // -1 flag signals end of type arrays
+
+  int flag = -1;
+  fwrite(&flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out dipole moments 
-------------------------------------------------------------------------- */
-
-void WriteRestart::dipole()
-{
-  fwrite(&atom->dipole[1],sizeof(double),atom->ntypes,fp);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes out force field styles and data 
+   proc 0 writes out and force field styles and data that are defined
 ------------------------------------------------------------------------- */
 
 void WriteRestart::force_fields()
 {
-  int n;
-
-  if (force->pair) n = strlen(force->pair_style) + 1;
-  else n = 0;
-  fwrite(&n,sizeof(int),1,fp);
-  if (n) {
+  if (force->pair) {
+    int flag = PAIR;
+    fwrite(&flag,sizeof(int),1,fp);
+    int n = strlen(force->pair_style) + 1;
+    fwrite(&n,sizeof(int),1,fp);
     fwrite(force->pair_style,sizeof(char),n,fp);
     force->pair->write_restart(fp);
   }
-
-  if (atom->avec->bonds_allow) {
-    if (force->bond) n = strlen(force->bond_style) + 1;
-    else n = 0;
+  if (atom->avec->bonds_allow && force->bond) {
+    int flag = BOND;
+    fwrite(&flag,sizeof(int),1,fp);
+    int n = strlen(force->bond_style) + 1;
     fwrite(&n,sizeof(int),1,fp);
-    if (n) {
-      fwrite(force->bond_style,sizeof(char),n,fp);
-      force->bond->write_restart(fp);
-    }
+    fwrite(force->bond_style,sizeof(char),n,fp);
+    force->bond->write_restart(fp);
+  }
+  if (atom->avec->angles_allow && force->angle) {
+    int flag = ANGLE;
+    fwrite(&flag,sizeof(int),1,fp);
+    int n = strlen(force->angle_style) + 1;
+    fwrite(&n,sizeof(int),1,fp);
+    fwrite(force->angle_style,sizeof(char),n,fp);
+    force->angle->write_restart(fp);
+  }
+  if (atom->avec->dihedrals_allow && force->dihedral) {
+    int flag = DIHEDRAL;
+    fwrite(&flag,sizeof(int),1,fp);
+    int n = strlen(force->dihedral_style) + 1;
+    fwrite(&n,sizeof(int),1,fp);
+    fwrite(force->dihedral_style,sizeof(char),n,fp);
+    force->dihedral->write_restart(fp);
+  }
+  if (atom->avec->impropers_allow && force->improper) {
+    int flag = IMPROPER;
+    fwrite(&flag,sizeof(int),1,fp);
+    int n = strlen(force->improper_style) + 1;
+    fwrite(&n,sizeof(int),1,fp);
+    fwrite(force->improper_style,sizeof(char),n,fp);
+    force->improper->write_restart(fp);
   }
 
-  if (atom->avec->angles_allow) {
-    if (force->angle) n = strlen(force->angle_style) + 1;
-    else n = 0;
-    fwrite(&n,sizeof(int),1,fp);
-    if (n) {
-      fwrite(force->angle_style,sizeof(char),n,fp);
-      force->angle->write_restart(fp);
-    }
-  }
+  // -1 flag signals end of force field info
 
-  if (atom->avec->dihedrals_allow) {
-    if (force->dihedral) n = strlen(force->dihedral_style) + 1;
-    else n = 0;
-    fwrite(&n,sizeof(int),1,fp);
-    if (n) {
-      fwrite(force->dihedral_style,sizeof(char),n,fp);
-      force->dihedral->write_restart(fp);
-    }
-  }
-
-  if (atom->avec->impropers_allow) {
-    if (force->improper) n = strlen(force->improper_style) + 1;
-    else n = 0;
-    fwrite(&n,sizeof(int),1,fp);
-    if (n) {
-      fwrite(force->improper_style,sizeof(char),n,fp);
-      force->improper->write_restart(fp);
-    }
-  }
+  int flag = -1;
+  fwrite(&flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------

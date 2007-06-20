@@ -44,9 +44,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all("Illegal fix wall/gran command");
-  
-  if (atom->check_style("granular") == 0)
-    error->all("Must use fix wall/gran with atom style granular");
+
+  if (atom->radius == NULL || atom->omega == NULL || atom->torque == NULL)
+    error->all("Fix wall/gran requires atom attributes radius, omega, torque");
 
   restart_peratom = 1;
   

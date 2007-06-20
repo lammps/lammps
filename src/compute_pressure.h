@@ -28,11 +28,10 @@ class ComputePressure : public Compute {
 
  private:
   double boltz,nktv2p,inv_volume;
-  double *pair_virial,*bond_virial,*angle_virial;
-  double *dihedral_virial,*improper_virial,*kspace_virial;
-  double *shake_virial,*rigid_virial,*poems_virial;
-  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag;
-  int shakeflag,bodyflag,rigidflag,poemsflag;
+  int nvirial;
+  double **vptr;
+  int kspaceflag;
+  double *kspace_virial;
   Compute *temperature;
   double virial[6];
 

@@ -139,7 +139,7 @@ void ComputeTempRamp::recount()
 
 double ComputeTempRamp::compute_scalar()
 {
-  double fraction,vramp,vtmp[3];
+  double fraction,vramp,vthermal[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -156,15 +156,16 @@ double ComputeTempRamp::compute_scalar()
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
       vramp = v_lo + fraction*(v_hi - v_lo);
-      vtmp[0] = v[i][0];
-      vtmp[1] = v[i][1];
-      vtmp[2] = v[i][2];
-      vtmp[v_dim] -= vramp;
+      vthermal[0] = v[i][0];
+      vthermal[1] = v[i][1];
+      vthermal[2] = v[i][2];
+      vthermal[v_dim] -= vramp;
       if (mass)
-	t += (vtmp[0]*vtmp[0] + vtmp[1]*vtmp[1] + vtmp[2]*vtmp[2]) * 
-	  mass[type[i]];
+	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
+	      vthermal[2]*vthermal[2]) * mass[type[i]];
       else
-	t += (vtmp[0]*vtmp[0] + vtmp[1]*vtmp[1] + vtmp[2]*vtmp[2]) * rmass[i];
+	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
+	      vthermal[2]*vthermal[2]) * rmass[i];
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -178,7 +179,7 @@ double ComputeTempRamp::compute_scalar()
 void ComputeTempRamp::compute_vector()
 {
   int i;
-  double fraction,vramp,vtmp[3];
+  double fraction,vramp,vthermal[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -197,19 +198,19 @@ void ComputeTempRamp::compute_vector()
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
       vramp = v_lo + fraction*(v_hi - v_lo);
-      vtmp[0] = v[i][0];
-      vtmp[1] = v[i][1];
-      vtmp[2] = v[i][2];
-      vtmp[v_dim] -= vramp;
+      vthermal[0] = v[i][0];
+      vthermal[1] = v[i][1];
+      vthermal[2] = v[i][2];
+      vthermal[v_dim] -= vramp;
 
       if (mass) massone = mass[type[i]];
       else massone = rmass[i];
-      t[0] += massone * vtmp[0]*vtmp[0];
-      t[1] += massone * vtmp[1]*vtmp[1];
-      t[2] += massone * vtmp[2]*vtmp[2];
-      t[3] += massone * vtmp[0]*vtmp[1];
-      t[4] += massone * vtmp[0]*vtmp[2];
-      t[5] += massone * vtmp[1]*vtmp[2];
+      t[0] += massone * vthermal[0]*vthermal[0];
+      t[1] += massone * vthermal[1]*vthermal[1];
+      t[2] += massone * vthermal[2]*vthermal[2];
+      t[3] += massone * vthermal[0]*vthermal[1];
+      t[4] += massone * vthermal[0]*vthermal[2];
+      t[5] += massone * vthermal[1]*vthermal[2];
     }
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);

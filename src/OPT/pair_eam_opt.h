@@ -286,15 +286,15 @@ void PairEAMOpt::eval()
 	double phi = z2*recip;
 	double phip = z2p*recip - phi*recip;
 	double psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-	double fforce = psip*recip;
+	double fforce = -psip*recip;
 	
 	tmpfx += delx*fforce;
 	tmpfy += dely*fforce;
 	tmpfz += delz*fforce;
 	if (NEWTON_PAIR || j < nlocal) {
-	  ff[j].x += delx*fforce;
-	  ff[j].y += dely*fforce;
-	  ff[j].z += delz*fforce;
+	  ff[j].x -= delx*fforce;
+	  ff[j].y -= dely*fforce;
+	  ff[j].z -= delz*fforce;
 	}
 	
 	if (EFLAG) {
@@ -303,27 +303,19 @@ void PairEAMOpt::eval()
 	}
 	
 	if (VFLAG == 1) {
-	  if (NEWTON_PAIR || j < nlocal) {
-	    virial[0] -= delx*delx*fforce;
-	    virial[1] -= dely*dely*fforce;
-	    virial[2] -= delz*delz*fforce;
-	    virial[3] -= delx*dely*fforce;
-	    virial[4] -= delx*delz*fforce;
-	    virial[5] -= dely*delz*fforce;
-	  } else {
-	    virial[0] -= 0.5*delx*delx*fforce;
-	    virial[1] -= 0.5*dely*dely*fforce;
-	    virial[2] -= 0.5*delz*delz*fforce;
-	    virial[3] -= 0.5*delx*dely*fforce;
-	    virial[4] -= 0.5*delx*delz*fforce;
-	    virial[5] -= 0.5*dely*delz*fforce;
-	  }
+	  if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
+	  virial[0] += delx*delx*fforce;
+	  virial[1] += dely*dely*fforce;
+	  virial[2] += delz*delz*fforce;
+	  virial[3] += delx*dely*fforce;
+	  virial[4] += delx*delz*fforce;
+	  virial[5] += dely*delz*fforce;
 	}
       }
     }
-    ff[i].x -= tmpfx;
-    ff[i].y -= tmpfy;
-    ff[i].z -= tmpfz;
+    ff[i].x += tmpfx;
+    ff[i].y += tmpfy;
+    ff[i].z += tmpfz;
   }
   
   free(fast_alpha); fast_alpha = 0;

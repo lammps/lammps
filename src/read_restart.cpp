@@ -37,6 +37,23 @@
 
 using namespace LAMMPS_NS;
 
+// same as write_restart.cpp
+
+enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
+       NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
+       BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
+       ATOM_STYLE,NATOMS,NTYPES,
+       NBONDS,NBONDTYPES,BOND_PER_ATOM,
+       NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
+       NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
+       NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
+       BOXLO_0,BOXHI_0,BOXLO_1,BOXHI_1,BOXLO_2,BOXHI_2,
+       SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
+       SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
+       XY,XZ,YZ};
+enum{MASS,SHAPE,DIPOLE};
+enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
+
 #define LB_FACTOR 1.1
 
 /* ---------------------------------------------------------------------- */
@@ -112,8 +129,7 @@ void ReadRestart::command(int narg, char **arg)
   // nextra = max # of extra quantities stored with each atom
 
   group->read_restart(fp);
-  if (atom->mass) mass();
-  if (atom->dipole) dipole();
+  type_arrays();
   force_fields();
 
   int nextra = modify->read_restart(fp);
@@ -336,7 +352,7 @@ void ReadRestart::header()
 
     // check restart file version, compare to LAMMPS version
 
-    if (flag == 0) {
+    if (flag == VERSION) {
       char *version = read_char();
       if (strcmp(version,universe->version) != 0) {
 	error->warning("Restart file version does not match LAMMPS version");
@@ -348,19 +364,19 @@ void ReadRestart::header()
       // reset unit_style only if different
       // so that timestep,neighbor-skin are not changed
 
-    } else if (flag == 1) {
+    } else if (flag == UNITS) {
       char *style = read_char();
       if (strcmp(style,update->unit_style) != 0 && me == 0)
 	error->warning("Resetting unit_style to restart file value");
       if (strcmp(style,update->unit_style) != 0) update->set_units(style);
       delete [] style;
 
-    } else if (flag == 2) {
+    } else if (flag == NTIMESTEP) {
       update->ntimestep = read_int();
 
       // set dimension from restart file, warn if different
 
-    } else if (flag == 3) {
+    } else if (flag == DIMENSION) {
       int dimension = read_int();
       if (dimension != force->dimension && me == 0)
 	error->warning("Resetting dimension to restart file value");
@@ -370,18 +386,18 @@ void ReadRestart::header()
 
       // read nprocs_file from restart file, warn if different
 
-    } else if (flag == 4) {
+    } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
 	error->warning("Restart file used different # of processors");
 
       // don't set procgrid, warn if different
 
-    } else if (flag == 5) {
+    } else if (flag == PROCGRID_0) {
       px = read_int();
-    } else if (flag == 6) {
+    } else if (flag == PROCGRID_1) {
       py = read_int();
-    } else if (flag == 7) {
+    } else if (flag == PROCGRID_2) {
       pz = read_int();
       if (comm->user_procgrid[0] != 0 && 
 	  (px != comm->user_procgrid[0] || py != comm->user_procgrid[1] || 
@@ -391,11 +407,11 @@ void ReadRestart::header()
       // don't set newton_pair, warn if different
       // set newton_bond from restart file, warn if different
 
-    } else if (flag == 8) {
+    } else if (flag == NEWTON_PAIR) {
       int newton_pair = read_int();
       if (newton_pair != force->newton_pair && me == 0)
 	error->warning("Restart file used different newton pair setting");
-    } else if (flag == 9) {
+    } else if (flag == NEWTON_BOND) {
       int newton_bond = read_int();
       if (newton_bond != force->newton_bond && me == 0)
 	error->warning("Resetting newton bond to restart file value");
@@ -405,23 +421,23 @@ void ReadRestart::header()
 
       // set boundary settings from restart file, warn if different
 
-    } else if (flag == 10) {
+    } else if (flag == XPERIODIC) {
       xperiodic = read_int();
-    } else if (flag == 11) {
+    } else if (flag == YPERIODIC) {
       yperiodic = read_int();
-    } else if (flag == 12) {
+    } else if (flag == ZPERIODIC) {
       zperiodic = read_int();
-    } else if (flag == 13) {
+    } else if (flag == BOUNDARY_00) {
       boundary[0][0] = read_int();
-    } else if (flag == 14) {
+    } else if (flag == BOUNDARY_01) {
       boundary[0][1] = read_int();
-    } else if (flag == 15) {
+    } else if (flag == BOUNDARY_10) {
       boundary[1][0] = read_int();
-    } else if (flag == 16) {
+    } else if (flag == BOUNDARY_11) {
       boundary[1][1] = read_int();
-    } else if (flag == 17) {
+    } else if (flag == BOUNDARY_20) {
       boundary[2][0] = read_int();
-    } else if (flag == 18) {
+    } else if (flag == BOUNDARY_21) {
       boundary[2][1] = read_int();
 
       int flag = 0;
@@ -459,7 +475,7 @@ void ReadRestart::header()
       // create new AtomVec class
       // if style = hybrid, read additional sub-class arguments
 
-    } else if (flag == 19) {
+    } else if (flag == ATOM_STYLE) {
       char *style = read_char();
 
       int nwords = 0;
@@ -476,72 +492,72 @@ void ReadRestart::header()
       delete [] words;
       delete [] style;
 
-    } else if (flag == 20) {
+    } else if (flag == NATOMS) {
       atom->natoms = read_double();
-    } else if (flag == 21) {
+    } else if (flag == NTYPES) {
       atom->ntypes = read_int();
-    } else if (flag == 22) {
+    } else if (flag == NBONDS) {
       atom->nbonds = read_int();
-    } else if (flag == 23) {
+    } else if (flag == NBONDTYPES) {
       atom->nbondtypes = read_int();
-    } else if (flag == 24) {
+    } else if (flag == BOND_PER_ATOM) {
       atom->bond_per_atom = read_int();
-    } else if (flag == 25) {
+    } else if (flag == NANGLES) {
       atom->nangles = read_int();
-    } else if (flag == 26) {
+    } else if (flag == NANGLETYPES) {
       atom->nangletypes = read_int();
-    } else if (flag == 27) {
+    } else if (flag == ANGLE_PER_ATOM) {
       atom->angle_per_atom = read_int();
-    } else if (flag == 28) {
+    } else if (flag == NDIHEDRALS) {
       atom->ndihedrals = read_int();
-    } else if (flag == 29) {
+    } else if (flag == NDIHEDRALTYPES) {
       atom->ndihedraltypes = read_int();
-    } else if (flag == 30) {
+    } else if (flag == DIHEDRAL_PER_ATOM) {
       atom->dihedral_per_atom = read_int();
-    } else if (flag == 31) {
+    } else if (flag == NIMPROPERS) {
       atom->nimpropers = read_int();
-    } else if (flag == 32) {
+    } else if (flag == NIMPROPERTYPES) {
       atom->nimpropertypes = read_int();
-    } else if (flag == 33) {
+    } else if (flag == IMPROPER_PER_ATOM) {
       atom->improper_per_atom = read_int();
 
-    } else if (flag == 34) {
+    } else if (flag == BOXLO_0) {
       domain->boxlo[0] = read_double();
-    } else if (flag == 35) {
+    } else if (flag == BOXHI_0) {
       domain->boxhi[0] = read_double();
-    } else if (flag == 36) {
+    } else if (flag == BOXLO_1) {
       domain->boxlo[1] = read_double();
-    } else if (flag == 37) {
+    } else if (flag == BOXHI_1) {
       domain->boxhi[1] = read_double();
-    } else if (flag == 38) {
+    } else if (flag == BOXLO_2) {
       domain->boxlo[2] = read_double();
-    } else if (flag == 39) {
+    } else if (flag == BOXHI_2) {
       domain->boxhi[2] = read_double();
 
-    } else if (flag == 40) {
+    } else if (flag == SPECIAL_LJ_1) {
       force->special_lj[1] = read_double();
-    } else if (flag == 41) {
+    } else if (flag == SPECIAL_LJ_2) {
       force->special_lj[2] = read_double();
-    } else if (flag == 42) {
+    } else if (flag == SPECIAL_LJ_3) {
       force->special_lj[3] = read_double();
-    } else if (flag == 43) {
+    } else if (flag == SPECIAL_COUL_1) {
       force->special_coul[1] = read_double();
-    } else if (flag == 44) {
+    } else if (flag == SPECIAL_COUL_2) {
       force->special_coul[2] = read_double();
-    } else if (flag == 45) {
+    } else if (flag == SPECIAL_COUL_3) {
       force->special_coul[3] = read_double();
 
-    } else if (flag == 46) {
+    } else if (flag == XY) {
       domain->triclinic = 1;
       domain->xy = read_double();
-    } else if (flag == 47) {
+    } else if (flag == XZ) {
       domain->triclinic = 1;
       domain->xz = read_double();
-    } else if (flag == 48) {
+    } else if (flag == YZ) {
       domain->triclinic = 1;
       domain->yz = read_double();
 
-    } else error->all("Invalid flag in header of restart file");
+    } else error->all("Invalid flag in header section of restart file");
 
     flag = read_int();
   }
@@ -549,24 +565,37 @@ void ReadRestart::header()
 
 /* ---------------------------------------------------------------------- */
 
-void ReadRestart::mass()
+void ReadRestart::type_arrays()
 {
-  double *mass = new double[atom->ntypes+1];
-  if (me == 0) fread(&mass[1],sizeof(double),atom->ntypes,fp);
-  MPI_Bcast(&mass[1],atom->ntypes,MPI_DOUBLE,0,world);
-  atom->set_mass(mass);
-  delete [] mass;
-}
+  int flag = read_int();
+  while (flag >= 0) {
 
-/* ---------------------------------------------------------------------- */
+    if (flag == MASS) {
+      double *mass = new double[atom->ntypes+1];
+      if (me == 0) fread(&mass[1],sizeof(double),atom->ntypes,fp);
+      MPI_Bcast(&mass[1],atom->ntypes,MPI_DOUBLE,0,world);
+      atom->set_mass(mass);
+      delete [] mass;
 
-void ReadRestart::dipole()
-{
-  double *dipole = new double[atom->ntypes+1];
-  if (me == 0) fread(&dipole[1],sizeof(double),atom->ntypes,fp);
-  MPI_Bcast(&dipole[1],atom->ntypes,MPI_DOUBLE,0,world);
-  atom->set_dipole(dipole);
-  delete [] dipole;
+    } else if (flag == SHAPE) {
+      double **shape =
+	memory->create_2d_double_array(atom->ntypes+1,3,"restart:shape");
+      if (me == 0) fread(&shape[1][0],sizeof(double),atom->ntypes*3,fp);
+      MPI_Bcast(&shape[1][0],atom->ntypes*3,MPI_DOUBLE,0,world);
+      atom->set_shape(shape);
+      memory->destroy_2d_double_array(shape);
+
+    } else if (flag == DIPOLE) {
+      double *dipole = new double[atom->ntypes+1];
+      if (me == 0) fread(&dipole[1],sizeof(double),atom->ntypes,fp);
+      MPI_Bcast(&dipole[1],atom->ntypes,MPI_DOUBLE,0,world);
+      atom->set_dipole(dipole);
+      delete [] dipole;
+
+    } else error->all("Invalid flag in type arrays section of restart file");
+
+    flag = read_int();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -576,47 +605,45 @@ void ReadRestart::force_fields()
   int n;
   char *style;
 
-  if (me == 0) fread(&n,sizeof(int),1,fp);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  if (n) {
-    style = (char *) memory->smalloc(n*sizeof(char),"read_restart:style");
-    if (me == 0) fread(style,sizeof(char),n,fp);
-    MPI_Bcast(style,n,MPI_CHAR,0,world);
+  int flag = read_int();
+  while (flag >= 0) {
 
-    if (force->pair == NULL || strcmp(style,force->pair_style)) {
-      if (force->pair && me == 0)
-	error->warning("Resetting pair_style to restart file value");
-      force->create_pair(style);
-    }
-      
-    memory->sfree(style);
-    force->pair->read_restart(fp);
-  } else force->create_pair("none");
-
-  if (atom->avec->bonds_allow) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n) {
-      style = (char *) memory->smalloc(n*sizeof(char),"read_restart:style");
+    if (flag == PAIR) {
+      if (me == 0) fread(&n,sizeof(int),1,fp);
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      style = new char[n];
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
+      if (force->pair == NULL || strcmp(style,force->pair_style)) {
+	if (force->pair && me == 0)
+	  error->warning("Resetting pair_style to restart file value");
+	force->create_pair(style);
+      }
+      
+      delete [] style;
+      force->pair->read_restart(fp);
+
+    } else if (flag == BOND) {
+      if (me == 0) fread(&n,sizeof(int),1,fp);
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      style = new char[n];
+      if (me == 0) fread(style,sizeof(char),n,fp);
+      MPI_Bcast(style,n,MPI_CHAR,0,world);
+      
       if (force->bond == NULL || strcmp(style,force->bond_style)) {
 	if (force->bond && me == 0)
 	  error->warning("Resetting bond_style to restart file value");
 	force->create_bond(style);
       }
       
-      memory->sfree(style);
+      delete [] style;
       force->bond->read_restart(fp);
-    } else force->create_bond("none");
-  }
 
-  if (atom->avec->angles_allow) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n) {
-      style = (char *) memory->smalloc(n*sizeof(char),"read_restart:style");
+    } else if (flag == ANGLE) {
+      if (me == 0) fread(&n,sizeof(int),1,fp);
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      style = new char[n];
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
@@ -626,16 +653,13 @@ void ReadRestart::force_fields()
 	force->create_angle(style);
       }
 
-      memory->sfree(style);
+      delete [] style;
       force->angle->read_restart(fp);
-    } else force->create_angle("none");
-  }
 
-  if (atom->avec->dihedrals_allow) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n) {
-      style = (char *) memory->smalloc(n*sizeof(char),"read_restart:style");
+    } else if (flag == DIHEDRAL) {
+      if (me == 0) fread(&n,sizeof(int),1,fp);
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      style = new char[n];
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
@@ -645,16 +669,13 @@ void ReadRestart::force_fields()
 	force->create_dihedral(style);
       }
 
-      memory->sfree(style);
+      delete [] style;
       force->dihedral->read_restart(fp);
-    } else force->create_dihedral("none");
-  }
 
-  if (atom->avec->impropers_allow) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n) {
-      style = (char *) memory->smalloc(n*sizeof(char),"read_restart:style");
+    } else if (flag == IMPROPER) {
+      if (me == 0) fread(&n,sizeof(int),1,fp);
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      style = new char[n];
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
@@ -664,9 +685,12 @@ void ReadRestart::force_fields()
 	force->create_improper(style);
       }
 
-      memory->sfree(style);
+      delete [] style;
       force->improper->read_restart(fp);
-    } else force->create_improper("none");
+
+    } else error->all("Invalid flag in force field section of restart file");
+
+    flag = read_int();
   }
 }
 

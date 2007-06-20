@@ -46,8 +46,8 @@ FixGranDiag::FixGranDiag(LAMMPS *lmp, int narg, char **arg) :
   if (nevery <= 0) error->all("Illegal fix gran/diag command");
   first = 1;
 
-  if (atom->check_style("granular") == 0)
-    error->all("Must use fix gran/diag with atom style granular");
+  if (atom->radius == NULL || atom->rmass == NULL || atom->omega == NULL)
+    error->all("Fix gran/diag requires atom attributes radius, rmass, omega");
 
   MPI_Comm_rank(world,&me);
   if (me == 0) {

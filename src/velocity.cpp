@@ -278,12 +278,22 @@ void Velocity::create(int narg, char **arg)
     }
 
   } else if (loop_flag == GEOM) {
-    random = new RanPark(lmp,seed);
+    random = new RanPark(lmp,1);
     double **x = atom->x;
     
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	triple(x[i],&vx,&vy,&vz,seed,random);
+	random->reset(seed,x[i]);
+	if (dist_flag == 0) {
+	  vx = random->uniform();
+	  vy = random->uniform();
+	  vz = random->uniform();
+	} else {
+	  vx = random->gaussian();
+	  vy = random->gaussian();
+	  vz = random->gaussian();
+	}
+
 	if (mass) factor = 1.0/sqrt(mass[type[i]]);
 	else factor = 1.0/sqrt(rmass[i]);
 	v[i][0] = vx * factor;
@@ -646,74 +656,5 @@ void Velocity::options(int narg, char **arg)
       else error->all("Illegal velocity command");
       iarg += 2;
     } else error->all("Illegal velocity command");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-#define IA1 1366
-#define IC1 150889
-#define IM1 714025
-#define IA2 8121
-#define IC2 28411
-#define IM2 134456
-#define IA3 7141
-#define IC3 54773
-#define IM3 259200
-
-void Velocity::triple(double *x, double *vx, double *vy, double *vz,
-		      int seed, RanPark *random)
-{
-  // for orthogonal box, lamda = fractional position in box
-  // for triclinic box, convert to lamda coords
-
-  double lamda[3];
-
-  if (domain->triclinic == 0) {
-    lamda[0] = (x[0] - domain->boxlo[0]) / domain->prd[0];
-    lamda[1] = (x[1] - domain->boxlo[1]) / domain->prd[1];
-    lamda[2] = (x[2] - domain->boxlo[2]) / domain->prd[2];
-  } else domain->x2lamda(x,lamda);
-
-  // seed 1,2,3 = combination of atom coord in each dim and user-input seed
-  // map geometric extent into range of each of 3 RNGs
-  // warm-up each RNG by calling it twice
-
-  int seed1,seed2,seed3;
-
-  seed1 = static_cast<int> (lamda[0] * IM1);
-  seed1 = (seed1+seed) % IM1;
-  seed1 = (seed1*IA1+IC1) % IM1;
-  seed1 = (seed1*IA1+IC1) % IM1;
-
-  seed2 = static_cast<int> (lamda[1] * IM2);
-  seed2 = (seed2+seed) % IM2;
-  seed2 = (seed2*IA2+IC2) % IM2;
-  seed2 = (seed2*IA2+IC2) % IM2;
-
-  seed3 = static_cast<int> (lamda[2] * IM3);
-  seed3 = (seed3+seed) % IM3;
-  seed3 = (seed3*IA3+IC3) % IM3;
-  seed3 = (seed3*IA3+IC3) % IM3;
-
-  // fraction = 0-1 with giving each dim an equal weighting
-  // use fraction to reset Park/Miller RNG seed
-
-  double fraction = 1.0*seed1/(3*IM1) + 1.0*seed2/(3*IM2) + 1.0*seed3/(3*IM3);
-  random->reset(fraction);
-
-  // use RNG to set velocities after warming up twice
-
-  random->uniform();
-  random->uniform();
-
-  if (dist_flag == 0) {
-    *vx = random->uniform();
-    *vy = random->uniform();
-    *vz = random->uniform();
-  } else {
-    *vx = random->gaussian();
-    *vy = random->gaussian();
-    *vz = random->gaussian();
   }
 }

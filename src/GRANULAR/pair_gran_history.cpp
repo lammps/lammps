@@ -325,18 +325,15 @@ void PairGranHistory::init_style()
 {
   int i;
 
+  if (atom->radius == NULL || atom->omega == NULL || atom->torque == NULL)
+    error->all("Pair granular requires atom attributes radius, omega, torque");
+
   xkkt = xkk * 2.0/7.0;
   dt = update->dt;
   double gammas = 0.5*gamman;
   if (dampflag == 0) gammas = 0.0;
   gamman_dl = gamman/dt;
   gammas_dl = gammas/dt;
-
-  // check that atom style is granular
-  // else compute() will update illegal arrays
-
-  if (atom->check_style("granular") == 0)
-    error->all("Must use atom style granular with pair style granular");
 
   // if shear history is stored:
   // check if newton flag is valid

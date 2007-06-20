@@ -58,6 +58,8 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   pressflag = 1;
 
   vector = new double[6];
+  nvirial = 0;
+  vptr = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,6 +68,7 @@ ComputePressure::~ComputePressure()
 {
   delete [] id_pre;
   delete [] vector;
+  delete [] vptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,56 +84,40 @@ void ComputePressure::init()
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   temperature = modify->compute[icompute];
 
-  // set flags/ptrs for all contributions to virial
-    
-  pairflag = bondflag = angleflag = dihedralflag = improperflag = 0;
+  // detect contributions to virial
+  // vptr points to all virial[6] contributions
+
+  delete [] vptr;
+  nvirial = 0;
+  vptr = NULL;
+
+  if (force->pair) nvirial++;
+  if (atom->molecular && force->bond) nvirial++;
+  if (atom->molecular && force->angle) nvirial++;
+  if (atom->molecular && force->dihedral) nvirial++;
+  if (atom->molecular && force->improper) nvirial++;
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->virial_flag) nvirial++;
+
+  if (nvirial) {
+    vptr = new double*[nvirial];
+    nvirial = 0;
+    if (force->pair) vptr[nvirial++] = force->pair->virial;
+    if (force->bond) vptr[nvirial++] = force->bond->virial;
+    if (force->angle) vptr[nvirial++] = force->angle->virial;
+    if (force->dihedral) vptr[nvirial++] = force->dihedral->virial;
+    if (force->improper) vptr[nvirial++] = force->improper->virial;
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->virial_flag)
+	vptr[nvirial++] = modify->fix[i]->virial;
+  }
+
+  // flag Kspace contribution separately, since not summed across procs
+
   kspaceflag = 0;
-  shakeflag = bodyflag = rigidflag = poemsflag = 0;
-
-  if (force->pair) {
-    pairflag = 1;
-    pair_virial = force->pair->virial;
-  }
-  if (atom->molecular) {
-    if (force->bond) {
-      bondflag = 1;
-      bond_virial = force->bond->virial;
-    }
-    if (force->angle) {
-      angleflag = 1;
-      angle_virial = force->angle->virial;
-    }
-    if (force->dihedral) {
-      dihedralflag = 1;
-      dihedral_virial = force->dihedral->virial;
-    }
-    if (force->improper) {
-      improperflag = 1;
-      improper_virial = force->improper->virial;
-    }
-  }
-
   if (force->kspace) {
     kspaceflag = 1;
     kspace_virial = force->kspace->virial;
-  }
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"shake") == 0) {
-      shakeflag = 1;
-      shake_virial = modify->fix[i]->virial;
-    }
-    if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	strcmp(modify->fix[i]->style,"poems") == 0) {
-      bodyflag = 1;
-      if (strcmp(modify->fix[i]->style,"rigid") == 0) {
-	rigidflag = 1;
-	rigid_virial = modify->fix[i]->virial;
-      } else {
-	poemsflag = 1;
-	poems_virial = modify->fix[i]->virial;
-      }
-    }
   }
 }
 
@@ -166,32 +153,16 @@ void ComputePressure::compute_vector()
 
 void ComputePressure::virial_compute(int n)
 {
-  int i;
-  double v[6];
+  int i,j;
+  double v[6],*vcomponent;
 
   for (i = 0; i < n; i++) v[i] = 0.0;
 
-  // sum contributions to virial from various forces and fixes
+  // sum contributions to virial from forces and fixes
 
-  if (pairflag)
-    for (i = 0; i < n; i++) v[i] += pair_virial[i];
-
-  if (atom->molecular) {
-    if (bondflag)
-      for (i = 0; i < n; i++) v[i] += bond_virial[i];
-    if (angleflag)
-      for (i = 0; i < n; i++) v[i] += angle_virial[i];
-    if (dihedralflag)
-      for (i = 0; i < n; i++) v[i] += dihedral_virial[i];
-    if (improperflag)
-      for (i = 0; i < n; i++) v[i] += improper_virial[i];
-    if (shakeflag)
-      for (i = 0; i < n; i++) v[i] += shake_virial[i];
-  }
-
-  if (bodyflag) {
-    if (rigidflag) for (i = 0; i < n; i++) v[i] += rigid_virial[i];
-    if (poemsflag) for (i = 0; i < n; i++) v[i] += poems_virial[i];
+  for (j = 0; j < nvirial; j++) {
+    vcomponent = vptr[j];
+    for (i = 0; i < n; i++) v[i] += vcomponent[i];
   }
 
   // sum virial across procs

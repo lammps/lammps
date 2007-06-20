@@ -42,8 +42,10 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all("Illegal fix pour command");
 
-  if (atom->check_style("granular") == 0)
-    error->all("Must use fix pour with atom style granular");
+  /*
+  if (atom->radius == NULL || atom->rmass == NULL)
+    error->all("Fix pour requires atom attributes radius, rmass");
+  */
 
   if (domain->triclinic) error->all("Cannot use fix pour with triclinic box");
 
@@ -71,10 +73,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix pour command");
-      for (iregion = 0; iregion < domain->nregion; iregion++)
-	if (strcmp(arg[iarg+1],domain->regions[iregion]->id) == 0) break;
-      if (iregion == domain->nregion) 
-	error->all("Fix pour region ID does not exist");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) error->all("Fix pour region ID does not exist");
       iarg += 2;
     } else if (strcmp(arg[iarg],"diam") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix pour command");
@@ -455,7 +455,7 @@ void FixPour::pre_exchange()
 	     coord[0] >= sublo[0] && coord[0] < subhi[0]) flag = 1;
 
     if (flag) {
-      avec->create_atom(ntype,coord,0);
+      avec->create_atom(ntype,coord);
       m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;

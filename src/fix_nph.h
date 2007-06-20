@@ -37,7 +37,7 @@ class FixNPH : public Fix {
  private:
   double dtv,dtf,dthalf;
   double boltz,nktv2p;
-  double total_mass,vol0,nkt;
+  double vol0,nkt;
 
   int press_couple,dilate_partial;
   int p_flag[3];                   // 1 if control P on this dim, 0 if not

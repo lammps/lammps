@@ -39,23 +39,6 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp, int narg, char **arg) :
   xcol_data = 3;
 }
 
-/* ----------------------------------------------------------------------
-   zero auxiliary data for n ghost atoms
-   data in border(), not including x,tag,type,mask
-   grow() is here since zero_ghost called first in hybrid::unpack_border()
-------------------------------------------------------------------------- */
-
-void AtomVecDPD::zero_ghost(int n, int first)
-{
-  int last = first + n;
-  for (int i = first; i < last; i++) {
-    if (i == nmax) atom->avec->grow(0);
-    v[i][0] = 0.0;
-    v[i][1] = 0.0;
-    v[i][2] = 0.0;
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 int AtomVecDPD::pack_comm(int n, int *list, double *buf,
@@ -225,4 +208,3 @@ int AtomVecDPD::unpack_border_one(int i, double *buf)
   v[i][2] = buf[2];
   return 3;
 }
-

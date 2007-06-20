@@ -148,78 +148,9 @@ void AtomVecFull::grow(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecFull::reset_ptrs()
+void AtomVecFull::reset_special()
 {
-  tag = atom->tag;
-  type = atom->type;
-  mask = atom->mask;
-  image = atom->image;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-
-  q = atom->q;
-  molecule = atom->molecule;
-  nspecial = atom->nspecial;
   special = atom->special;
-  
-  num_bond = atom->num_bond;
-  bond_type = atom->bond_type;
-  bond_atom = atom->bond_atom;
-
-  num_angle = atom->num_angle;
-  angle_type = atom->angle_type;
-  angle_atom1 = atom->angle_atom1;
-  angle_atom2 = atom->angle_atom2;
-  angle_atom3 = atom->angle_atom3;
-
-  num_dihedral = atom->num_dihedral;
-  dihedral_type = atom->dihedral_type;
-  dihedral_atom1 = atom->dihedral_atom1;
-  dihedral_atom2 = atom->dihedral_atom2;
-  dihedral_atom3 = atom->dihedral_atom3;
-  dihedral_atom4 = atom->dihedral_atom4;
-
-  num_improper = atom->num_improper;
-  improper_type = atom->improper_type;
-  improper_atom1 = atom->improper_atom1;
-  improper_atom2 = atom->improper_atom2;
-  improper_atom3 = atom->improper_atom3;
-  improper_atom4 = atom->improper_atom4;
-}
-
-/* ----------------------------------------------------------------------
-   zero auxiliary data for owned atom I
-   data in copy(), not including tag,type,mask,image,x,v
-------------------------------------------------------------------------- */
-
-void AtomVecFull::zero_owned(int i)
-{
-  q[i] = 0.0;
-  molecule[i] = 0;
-  num_bond[i] = 0;
-  num_angle[i] = 0;
-  num_dihedral[i] = 0;
-  num_improper[i] = 0;
-  nspecial[i][0] = 0;
-  nspecial[i][1] = 0;
-  nspecial[i][2] = 0;
-}
-
-/* ----------------------------------------------------------------------
-   zero auxiliary data for n ghost atoms
-   data in border(), not including x,tag,type,mask
-   grow() is here since zero_ghost called first in hybrid::unpack_border()
-------------------------------------------------------------------------- */
-
-void AtomVecFull::zero_ghost(int n, int first)
-{
-  int last = first + n;
-  for (int i = first; i < last; i++) {
-    if (i == nmax) atom->avec->grow(0);
-    q[i] = 0.0;
-    molecule[i] = 0;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -615,18 +546,6 @@ int AtomVecFull::size_restart()
 }
 
 /* ----------------------------------------------------------------------
-   size of restart data for atom I
-   do not include extra data stored by fixes, included by caller
-------------------------------------------------------------------------- */
-
-int AtomVecFull::size_restart_one(int i)
-{
-  int n = 17 + 2*num_bond[i] + 4*num_angle[i] + 
-    5*num_dihedral[i] + 5*num_improper[i];
-  return n;
-}
-
-/* ----------------------------------------------------------------------
    pack atom I's data for restart file including extra quantities
    xyz must be 1st 3 values, so that read_restart can test on them
    molecular types may be negative, but write as positive   
@@ -770,7 +689,7 @@ int AtomVecFull::unpack_restart(double *buf)
    set other values to defaults
 ------------------------------------------------------------------------- */
 
-void AtomVecFull::create_atom(int itype, double *coord, int ihybrid)
+void AtomVecFull::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -801,8 +720,7 @@ void AtomVecFull::create_atom(int itype, double *coord, int ihybrid)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecFull::data_atom(double *coord, int imagetmp, char **values,
-			    int ihybrid)
+void AtomVecFull::data_atom(double *coord, int imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -835,6 +753,27 @@ void AtomVecFull::data_atom(double *coord, int imagetmp, char **values,
   num_improper[nlocal] = 0;
 
   atom->nlocal++;
+}
+
+/* ----------------------------------------------------------------------
+   unpack hybrid quantities from one line in Atoms section of data file
+   initialize other atom quantities for this sub-style
+------------------------------------------------------------------------- */
+
+int AtomVecFull::data_atom_hybrid(int nlocal, char **values)
+{
+  molecule[nlocal] = atoi(values[1]);
+  q[nlocal] = atof(values[3]);
+
+  v[nlocal][0] = 0.0;
+  v[nlocal][1] = 0.0;
+  v[nlocal][2] = 0.0;
+  num_bond[nlocal] = 0;
+  num_angle[nlocal] = 0;
+  num_dihedral[nlocal] = 0;
+  num_improper[nlocal] = 0;
+
+  return 2;
 }
 
 /* ----------------------------------------------------------------------

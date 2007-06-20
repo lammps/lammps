@@ -1,4 +1,3 @@
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -12,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "stdlib.h"
 #include "string.h"
 #include "atom_vec_hybrid.h"
 #include "atom.h"
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
-  int i,m;
+  int i,k;
 
   if (narg < 1) error->all("Illegal atom_style command");
 
@@ -44,8 +44,8 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   keywords = new char*[nstyles];
 
   for (i = 0; i < narg; i++) {
-    for (m = 0; m < i; m++)
-      if (strcmp(arg[i],keywords[m]) == 0) 
+    for (k = 0; k < i; k++)
+      if (strcmp(arg[i],keywords[k]) == 0) 
 	error->all("Atom style hybrid cannot use same atom style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
       error->all("Atom style hybrid cannot have hybrid as an argument");
@@ -55,21 +55,31 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // hybrid settings are MAX or MIN of sub-style settings
-  // size_border has +1 for hybrid[] value that is also communicated
+  // hybrid sizes are minimial values plus extra values for each sub-style
 
-  for (m = 0; m < nstyles; m++) {
-    molecular = MAX(molecular,styles[m]->molecular);
-    bonds_allow = MAX(bonds_allow,styles[m]->bonds_allow);
-    angles_allow = MAX(angles_allow,styles[m]->angles_allow);
-    dihedrals_allow = MAX(dihedrals_allow,styles[m]->dihedrals_allow);
-    impropers_allow = MAX(impropers_allow,styles[m]->impropers_allow);
-    mass_type = MAX(mass_type,styles[m]->mass_type);
-    dipole_type = MAX(dipole_type,styles[m]->dipole_type);
-    comm_x_only = MIN(comm_x_only,styles[m]->comm_x_only);
-    comm_f_only = MIN(comm_f_only,styles[m]->comm_f_only);
-    size_comm = MAX(size_comm,styles[m]->size_comm);
-    size_reverse = MAX(size_reverse,styles[m]->size_reverse);
-    size_border = MAX(size_border,styles[m]->size_border) + 1;
+  size_comm = 3;
+  size_reverse = 3;
+  size_border = 6;
+  size_data_atom = 5;
+  size_data_vel = 4;
+  xcol_data = 3;
+
+  for (k = 0; k < nstyles; k++) {
+    molecular = MAX(molecular,styles[k]->molecular);
+    bonds_allow = MAX(bonds_allow,styles[k]->bonds_allow);
+    angles_allow = MAX(angles_allow,styles[k]->angles_allow);
+    dihedrals_allow = MAX(dihedrals_allow,styles[k]->dihedrals_allow);
+    impropers_allow = MAX(impropers_allow,styles[k]->impropers_allow);
+    mass_type = MAX(mass_type,styles[k]->mass_type);
+    shape_type = MAX(shape_type,styles[k]->shape_type);
+    dipole_type = MAX(dipole_type,styles[k]->dipole_type);
+    comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
+    comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
+    size_comm += styles[k]->size_comm - 3;
+    size_reverse += styles[k]->size_reverse - 3;
+    size_border += styles[k]->size_border - 6;
+    size_data_atom += styles[k]->size_data_atom - 5;
+    size_data_vel += styles[k]->size_data_vel - 4;
   }
 }
 
@@ -77,9 +87,9 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
 
 AtomVecHybrid::~AtomVecHybrid()
 {
-  for (int m = 0; m < nstyles; m++) delete styles[m];
+  for (int k = 0; k < nstyles; k++) delete styles[k];
   delete [] styles;
-  for (int m = 0; m < nstyles; m++) delete [] keywords[m];
+  for (int k = 0; k < nstyles; k++) delete [] keywords[k];
   delete [] keywords;
 }
 
@@ -97,7 +107,7 @@ void AtomVecHybrid::grow(int n)
 
   int tmp = atom->nextra_grow;
   atom->nextra_grow = 0;
-  for (int m = 0; m < nstyles; m++) styles[m]->grow(nmax);
+  for (int k = 0; k < nstyles; k++) styles[k]->grow(nmax);
   atom->nextra_grow = tmp;
 
   // pointers for arrays used directly by hybrid style
@@ -110,9 +120,6 @@ void AtomVecHybrid::grow(int n)
   v = atom->v;
   f = atom->f;
 
-  hybrid = atom->hybrid = (int *) 
-    memory->srealloc(atom->hybrid,nmax*sizeof(int),"atom:hybrid");
-
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
@@ -120,33 +127,25 @@ void AtomVecHybrid::grow(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecHybrid::reset_ptrs()
+void AtomVecHybrid::reset_special()
 {
-  for (int m = 0; m < nstyles; m++) styles[m]->reset_ptrs();
-
-  tag = atom->tag;
-  type = atom->type;
-  mask = atom->mask;
-  image = atom->image;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-
-  hybrid = atom->hybrid;
+  for (int k = 0; k < nstyles; k++) styles[k]->reset_special();
 }
 
 /* ----------------------------------------------------------------------
-   copy array values based on hybrid style of atom i
-   zero auxiliary arrays for all other styles before copy
+   copy array values for all sub-styles
 ------------------------------------------------------------------------- */
 
 void AtomVecHybrid::copy(int i, int j)
 {
-  int ihybrid = hybrid[i];
-  for (int m = 0; m < nstyles; m++)
-    if (m != ihybrid) styles[m]->zero_owned(j);
-  styles[ihybrid]->copy(i,j);
-  hybrid[j] = ihybrid;
+  int tmp = atom->nextra_grow;
+  atom->nextra_grow = 0;
+  for (int k = 0; k < nstyles; k++) styles[k]->copy(i,j);
+  atom->nextra_grow = tmp;
+
+  if (atom->nextra_grow)
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+      modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,7 +153,7 @@ void AtomVecHybrid::copy(int i, int j)
 int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
 			     int pbc_flag, int *pbc)
 {
-  int i,j,m;
+  int i,j,k,m;
   double dx,dy,dz;
 
   m = 0;
@@ -164,7 +163,8 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      m += styles[hybrid[j]]->pack_comm_one(j,&buf[m]);
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_comm_one(j,&buf[m]);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -181,7 +181,8 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      m += styles[hybrid[j]]->pack_comm_one(j,&buf[m]);
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_comm_one(j,&buf[m]);
     }
   }
   return m;
@@ -191,15 +192,16 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
 
 void AtomVecHybrid::unpack_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i,k,last;
 
-  m = 0;
+  int m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    m += styles[hybrid[i]]->unpack_comm_one(i,&buf[m]);
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->unpack_comm_one(i,&buf[m]);
   }
 }
 
@@ -207,15 +209,16 @@ void AtomVecHybrid::unpack_comm(int n, int first, double *buf)
 
 int AtomVecHybrid::pack_reverse(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i,k,last;
 
-  m = 0;
+  int m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     buf[m++] = f[i][0];
     buf[m++] = f[i][1];
     buf[m++] = f[i][2];
-    m += styles[hybrid[i]]->pack_reverse_one(i,&buf[m]);
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->pack_reverse_one(i,&buf[m]);
   }
   return m;
 }
@@ -224,7 +227,7 @@ int AtomVecHybrid::pack_reverse(int n, int first, double *buf)
 
 void AtomVecHybrid::unpack_reverse(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i,j,k,m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -232,7 +235,8 @@ void AtomVecHybrid::unpack_reverse(int n, int *list, double *buf)
     f[j][0] += buf[m++];
     f[j][1] += buf[m++];
     f[j][2] += buf[m++];
-    m += styles[hybrid[j]]->unpack_reverse_one(j,&buf[m]);
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->unpack_reverse_one(j,&buf[m]);
   }
 }
 
@@ -241,7 +245,7 @@ void AtomVecHybrid::unpack_reverse(int n, int *list, double *buf)
 int AtomVecHybrid::pack_border(int n, int *list, double *buf,
 			       int pbc_flag, int *pbc)
 {
-  int i,j,m;
+  int i,j,k,m;
   double dx,dy,dz;
 
   m = 0;
@@ -254,8 +258,8 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
-      buf[m++] = hybrid[j];
-      m += styles[hybrid[j]]->pack_border_one(j,&buf[m]);
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_border_one(j,&buf[m]);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -275,24 +279,18 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
-      buf[m++] = hybrid[j];
-      m += styles[hybrid[j]]->pack_border_one(j,&buf[m]);
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_border_one(j,&buf[m]);
     }
   }
   return m;
 }
 
-/* ----------------------------------------------------------------------
-   unpack border ghost atom data
-   zero auxiliary ghost arrays for all styles before unpack
-   grow() is called in zero_ghost() and here (in case zero_ghost is no-op)
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void AtomVecHybrid::unpack_border(int n, int first, double *buf)
 {
-  int i,m,last;
-
-  for (m = 0; m < nstyles; m++) styles[m]->zero_ghost(n,first);
+  int i,k,m,last;
 
   m = 0;
   last = first + n;
@@ -304,30 +302,40 @@ void AtomVecHybrid::unpack_border(int n, int first, double *buf)
     tag[i] = static_cast<int> (buf[m++]);
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
-    hybrid[i] = static_cast<int> (buf[m++]);
-    m += styles[hybrid[i]]->unpack_border_one(i,&buf[m]);
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->unpack_border_one(i,&buf[m]);
   }
 }
 
 /* ----------------------------------------------------------------------
    pack data for atom I for sending to another proc
-   sub-style does packing
-   append hybrid[i] and increment count stored in buf[0]
+   pack each sub-style one after the other
 ------------------------------------------------------------------------- */
 
 int AtomVecHybrid::pack_exchange(int i, double *buf)
 {
-  int m = styles[hybrid[i]]->pack_exchange(i,buf);
-  buf[m++] = hybrid[i];
-  buf[0] = m;
+  int k;
+
+  int tmp = atom->nextra_grow;
+  atom->nextra_grow = 0;
+
+  int m = 0;
+  for (k = 0; k < nstyles; k++) 
+    m += styles[k]->pack_exchange(i,&buf[m]);
+
+  atom->nextra_grow = tmp;
+
+  if (atom->nextra_grow)
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+      m += modify->fix[atom->extra_grow[iextra]]->pack_exchange(i,&buf[m]);
+
   return m;
 }
 
 /* ----------------------------------------------------------------------
    unpack data for single atom received from another proc
-   sub-style does unpacking
-   grow() must occur here so arrays for all sub-styles are grown
-   extract hybrid[nlocal] from end of buf
+   unpack each sub-style one after the other
+   grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
 int AtomVecHybrid::unpack_exchange(double *buf)
@@ -335,9 +343,23 @@ int AtomVecHybrid::unpack_exchange(double *buf)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  int m = static_cast<int> (buf[0]);
-  hybrid[nlocal] = static_cast<int> (buf[m-1]);
-  int tmp = styles[hybrid[nlocal]]->unpack_exchange(buf);
+  int tmp = atom->nextra_grow;
+  atom->nextra_grow = 0;
+
+  int m = 0;
+  for (int k = 0; k < nstyles; k++) {
+    m += styles[k]->unpack_exchange(buf);
+    atom->nlocal--;
+  }
+
+  atom->nextra_grow = tmp;
+
+  if (atom->nextra_grow)
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+      m += modify->fix[atom->extra_grow[iextra]]->
+	unpack_exchange(nlocal,&buf[m]);
+
+  atom->nlocal++;
   return m;
 }
 
@@ -348,19 +370,19 @@ int AtomVecHybrid::unpack_exchange(double *buf)
 
 int AtomVecHybrid::size_restart()
 {
-  int i;
-  int nlocal = atom->nlocal;
-
-  // nlocal is added for per-atom hybrid value appended by pack_restart()
+  int tmp = atom->nextra_restart;
+  atom->nextra_restart = 0;
 
   int n = 0;
-  for (i = 0; i < nlocal; i++)
-    n += styles[hybrid[i]]->size_restart_one(i);
-  n += nlocal;
+  for (int k = 0; k < nstyles; k++)
+    n += styles[k]->size_restart();
 
+  atom->nextra_restart = tmp;
+
+  int nlocal = atom->nlocal;
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
-      for (i = 0; i < nlocal; i++)
+      for (int i = 0; i < nlocal; i++)
 	n += modify->fix[atom->extra_restart[iextra]]->size_restart(i);
 
   return n;
@@ -368,24 +390,33 @@ int AtomVecHybrid::size_restart()
 
 /* ----------------------------------------------------------------------
    pack atom I's data for restart file including extra quantities
-   sub-style does packing
-   append hybrid[i] and increment count stored in buf[0]
+   xyz must be 1st 3 values, so that read_restart can test on them
+   pack each sub-style one after the other
 ------------------------------------------------------------------------- */
 
 int AtomVecHybrid::pack_restart(int i, double *buf)
 {
-  int m = styles[hybrid[i]]->pack_restart(i,buf);
-  buf[m++] = hybrid[i];
+  int tmp = atom->nextra_restart;
+  atom->nextra_restart = 0;
+
+  int m = 0;
+  for (int k = 0; k < nstyles; k++)
+    m += styles[k]->pack_restart(i,&buf[m]);
+
+  atom->nextra_restart = tmp;
+
+  if (atom->nextra_restart)
+    for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
+      m += modify->fix[atom->extra_restart[iextra]]->pack_restart(i,&buf[m]);
+
   buf[0] = m;
   return m;
 }
 
 /* ----------------------------------------------------------------------
    unpack data for one atom from restart file including extra quantities
-   sub-style does unpacking
-   grow() must occur here so arrays for all sub-styles are grown
-   zero auxiliary arrays for all other styles before unpack
-   extract hybrid[nlocal] from end of buf
+   unpack each sub-style one after the other
+   grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
 int AtomVecHybrid::unpack_restart(double *buf)
@@ -399,74 +430,93 @@ int AtomVecHybrid::unpack_restart(double *buf)
 						 "atom:extra");
   }
 
-  int m = static_cast<int> (buf[0]);
-  int ihybrid = static_cast<int> (buf[m-1]);
-  for (int m = 0; m < nstyles; m++)
-    if (m != ihybrid) styles[m]->zero_owned(nlocal);
-  hybrid[nlocal] = ihybrid;
+  int tmp = atom->nextra_store;
+  atom->nextra_store = 0;
 
-  // size of extra unpack in sub-style includes end-of-buf entry of hybrid
-  // avoid this by resetting buf[0] to one less
+  int m = 0;
+  for (int k = 0; k < nstyles; k++) {
+    m += styles[k]->unpack_restart(&buf[m]);
+    atom->nlocal--;
+  }
+  atom->nextra_store = tmp;
 
-  buf[0] = m-1;
-  int tmp = styles[ihybrid]->unpack_restart(buf);
+  double **extra = atom->extra;
+  if (atom->nextra_store) {
+    int size = static_cast<int> (buf[0]) - m;
+    for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
+  }
+
+  atom->nlocal++;
   return m;
 }
 
 /* ----------------------------------------------------------------------
-   create one atom of itype at coord for ihybrid style
-   sub-style does create
-   grow() must occur here so arrays for all sub-styles are grown
-   zero auxiliary arrays for all other styles before create
+   create one atom of itype at coord
+   create each sub-style one after the other
+   grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::create_atom(int itype, double *coord, int ihybrid)
+void AtomVecHybrid::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  for (int m = 0; m < nstyles; m++)
-    if (m != ihybrid) styles[m]->zero_owned(nlocal);
-  hybrid[nlocal] = ihybrid;
-  styles[ihybrid]->create_atom(itype,coord,0);
+  for (int k = 0; k < nstyles; k++) {
+    styles[k]->create_atom(itype,coord);
+    atom->nlocal--;
+  }
+  atom->nlocal++;
 }
 
 /* ----------------------------------------------------------------------
    unpack one line from Atoms section of data file
-   zero auxiliary arrays for all other styles before unpack
-   sub-style will increment nlocal
+   grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values,
-			      int ihybrid)
+void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  for (int m = 0; m < nstyles; m++)
-    if (m != ihybrid) styles[m]->zero_owned(nlocal);
-  hybrid[nlocal] = ihybrid;
-  styles[ihybrid]->data_atom(coord,imagetmp,values,0);
+  tag[nlocal] = atoi(values[0]);
+  if (tag[nlocal] <= 0)
+    error->one("Invalid atom ID in Atoms section of data file");
+
+  type[nlocal] = atoi(values[1]);
+  if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
+    error->one("Invalid atom type in Atoms section of data file");
+
+  x[nlocal][0] = coord[0];
+  x[nlocal][1] = coord[1];
+  x[nlocal][2] = coord[2];
+
+  image[nlocal] = imagetmp;
+  mask[nlocal] = 1;
+
+  // each sub-style parses sub-style specific values
+
+  int m = 5;
+  for (int k = 0; k < nstyles; k++) 
+    m += styles[k]->data_atom_hybrid(nlocal,&values[m]);
+
+  atom->nlocal++;
 }
 
 /* ----------------------------------------------------------------------
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::data_vel(int m, char *line, int ihybrid)
+void AtomVecHybrid::data_vel(int m, char **values)
 {
-  styles[ihybrid]->data_vel(m,line,0);
-}
+  v[m][0] = atof(values[0]);
+  v[m][1] = atof(values[1]);
+  v[m][2] = atof(values[2]);
 
-/* ----------------------------------------------------------------------
-   set data file parameters for ihybrid sub-style
-------------------------------------------------------------------------- */
+  // each sub-style parses sub-style specific values
 
-void AtomVecHybrid::data_params(int ihybrid)
-{
-  size_data_atom = styles[ihybrid]->size_data_atom;
-  size_data_vel = styles[ihybrid]->size_data_vel;
-  xcol_data = styles[ihybrid]->xcol_data;
+  int n = 3;
+  for (int k = 0; k < nstyles; k++) 
+    n += styles[k]->data_vel_hybrid(m,&values[n]);
 }
 
 /* ----------------------------------------------------------------------
@@ -476,8 +526,6 @@ void AtomVecHybrid::data_params(int ihybrid)
 int AtomVecHybrid::memory_usage()
 {
   int bytes = 0;
-  for (int m = 0; m < nstyles; m++)
-    bytes += styles[m]->memory_usage();
-  if (atom->memcheck("hybrid")) bytes += nmax * sizeof(int);
+  for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

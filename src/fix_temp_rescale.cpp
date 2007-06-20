@@ -49,9 +49,8 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      for (iregion = 0; iregion < domain->nregion; iregion++)
-	if (strcmp(arg[iarg+1],domain->regions[iregion]->id) == 0) break;
-      if (iregion == domain->nregion)
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) 
 	error->all("Fix temp/rescale region ID does not exist");
       iarg += 2;
     } else error->all("Illegal fix temp/rescale command");

@@ -107,6 +107,10 @@ class DumpCustom : public Dump {
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
+  void pack_quatw(int);
+  void pack_quati(int);
+  void pack_quatj(int);
+  void pack_quatk(int);
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);

@@ -280,7 +280,7 @@ void FixDeposit::pre_exchange()
 	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
 
     if (flag) {
-      atom->avec->create_atom(ntype,coord,0);
+      atom->avec->create_atom(ntype,coord);
       int m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->mask[m] = 1 | groupbit;
@@ -329,10 +329,8 @@ void FixDeposit::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix deposit command");
-      for (iregion = 0; iregion < domain->nregion; iregion++)
-	if (strcmp(arg[iarg+1],domain->regions[iregion]->id) == 0) break;
-      if (iregion == domain->nregion) 
-	error->all("Fix deposit region ID does not exist");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) error->all("Fix deposit region ID does not exist");
       iarg += 2;
     } else if (strcmp(arg[iarg],"global") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix deposit command");

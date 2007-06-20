@@ -60,7 +60,7 @@ void ComputeCoordAtom::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"coord/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute coord/atom defined");
+    error->warning("More than one compute coord/atom");
 }
 
 /* ---------------------------------------------------------------------- */

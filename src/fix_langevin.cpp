@@ -77,10 +77,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       ratio[itype] = scale;
       iarg += 3;
     } else if (strcmp(arg[iarg],"region") == 0) {
-      for (iregion = 0; iregion < domain->nregion; iregion++)
-	if (strcmp(arg[iarg+1],domain->regions[iregion]->id) == 0) break;
-      if (iregion == domain->nregion)
-	error->all("Fix langevin region ID does not exist");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) error->all("Fix langevin region ID does not exist");
       iarg += 2;
     } else error->all("Illegal fix langevin command");
   }

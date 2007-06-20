@@ -19,7 +19,6 @@
 #include "group.h"
 #include "domain.h"
 #include "atom.h"
-#include "atom_vec_hybrid.h"
 #include "force.h"
 #include "region.h"
 #include "memory.h"
@@ -29,15 +28,8 @@ using namespace LAMMPS_NS;
 
 #define MAX_GROUP 32
 
-#define TYPE      1
-#define MOLECULE  2
-#define ID        3
-
-#define LESS_THAN      1
-#define GREATER_THAN   2
-#define LESS_EQUAL     3
-#define GREATER_EQUAL  4
-#define BETWEEN        5
+enum{TYPE,MOLECULE,ID};
+enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
 
@@ -111,44 +103,18 @@ void Group::assign(int narg, char **arg)
   int bit = bitmask[igroup];
     
   // style = region
+  // add to group if atom is in region
 
   if (strcmp(arg[1],"region") == 0) {
 
     if (narg != 3) error->all("Illegal group command");
     
-    int iregion;
-    for (iregion = 0; iregion < domain->nregion; iregion++) 
-      if (strcmp(arg[2],domain->regions[iregion]->id) == 0) break;
-    if (iregion == domain->nregion)
-      error->all("Group region ID does not exist");
-
-    // add to group if atom is in region
+    int iregion = domain->find_region(arg[2]);
+    if (iregion == -1) error->all("Group region ID does not exist");
 
     for (i = 0; i < nlocal; i++)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
 	mask[i] |= bit;
-
-  // style = hybrid
-
-  } else if (strcmp(arg[1],"hybrid") == 0) {
-
-    if (narg != 3) error->all("Illegal group command");
-    if (strcmp(atom->atom_style,"hybrid") != 0)
-      error->all("Group hybrid command requires atom style hybrid");
-    
-    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
-    int ihybrid;
-    for (ihybrid = 0; ihybrid < avec_hybrid->nstyles; ihybrid++)
-      if (strcmp(avec_hybrid->keywords[ihybrid],arg[2]) == 0) break;
-    if (ihybrid == avec_hybrid->nstyles)
-      error->all("Group hybrid sub-style does not exist");
-
-    // add to group if atom matches hybrid sub-style
-
-    int *hybrid = atom->hybrid;
-
-    for (i = 0; i < nlocal; i++)
-      if (hybrid[i] == ihybrid)	mask[i] |= bit;
 
   // style = logical condition
 
@@ -165,10 +131,12 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[1],"id") == 0) category = ID;
     else error->all("Illegal group command");
     
-    if (strcmp(arg[2],"<") == 0) condition = LESS_THAN;
-    else if (strcmp(arg[2],">") == 0) condition = GREATER_THAN;
-    else if (strcmp(arg[2],"<=") == 0) condition = LESS_EQUAL;
-    else if (strcmp(arg[2],">=") == 0) condition = GREATER_EQUAL;
+    if (strcmp(arg[2],"<") == 0) condition = LT;
+    else if (strcmp(arg[2],"<=") == 0) condition = LE;
+    else if (strcmp(arg[2],">") == 0) condition = GT;
+    else if (strcmp(arg[2],">=") == 0) condition = GE;
+    else if (strcmp(arg[2],"==") == 0) condition = EQ;
+    else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
     else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
     else error->all("Illegal group command");
 
@@ -187,14 +155,18 @@ void Group::assign(int narg, char **arg)
 
     // add to group if meets condition
 
-    if (condition == LESS_THAN) {
+    if (condition == LT) {
       for (i = 0; i < nlocal; i++) if (attribute[i] < bound1) mask[i] |= bit;
-    } else if (condition == GREATER_THAN) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] > bound1) mask[i] |= bit;
-    } else if (condition == LESS_EQUAL) {
+    } else if (condition == LE) {
       for (i = 0; i < nlocal; i++) if (attribute[i] <= bound1) mask[i] |= bit;
-    } else if (condition == GREATER_EQUAL) {
+    } else if (condition == GT) {
+      for (i = 0; i < nlocal; i++) if (attribute[i] > bound1) mask[i] |= bit;
+    } else if (condition == GE) {
       for (i = 0; i < nlocal; i++) if (attribute[i] >= bound1) mask[i] |= bit;
+    } else if (condition == EQ) {
+      for (i = 0; i < nlocal; i++) if (attribute[i] == bound1) mask[i] |= bit;
+    } else if (condition == NEQ) {
+      for (i = 0; i < nlocal; i++) if (attribute[i] != bound1) mask[i] |= bit;
     } else if (condition == BETWEEN) {
       for (i = 0; i < nlocal; i++)
 	if (attribute[i] >= bound1 && attribute[i] <= bound2) mask[i] |= bit;
@@ -542,9 +514,9 @@ void Group::bounds(int igroup, double *minmax)
   
   MPI_Allreduce(extent,minmax,6,MPI_DOUBLE,MPI_MAX,world);
 
-  extent[0] = -extent[0];
-  extent[2] = -extent[2];
-  extent[4] = -extent[4];
+  minmax[0] = -minmax[0];
+  minmax[2] = -minmax[2];
+  minmax[4] = -minmax[4];
 }
 
 /* ----------------------------------------------------------------------

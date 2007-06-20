@@ -69,7 +69,9 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
-  newarg[2] = "temp";
+  if (strcmp(style,"nvt") == 0) newarg[2] = "temp";
+  else if (strcmp(style,"nvt/asphere") == 0) newarg[2] = "temp/asphere";
+  else if (strcmp(style,"nvt/deform") == 0) newarg[2] = "temp/deform";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -245,29 +247,16 @@ void FixNVT::initial_integrate_respa(int ilevel, int flag)
     eta_dot *= drag_factor;
     eta += dtv*eta_dot;
     factor = exp(-dthalf*eta_dot);
+  } else factor = 1.0;
 
-    // update v of only atoms in NVT group
+  // update v of only atoms in NVT group
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-      }
-    }
-
-  } else {
-
-    // update v of only atoms in NVT group
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      dtfm = dtf / mass[type[i]];
+      v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+      v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+      v[i][2] = v[i][2]*factor + dtfm*f[i][2];
     }
   }
 

@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
@@ -508,7 +512,7 @@ void Neighbor::init()
   // set ptrs to half/full/multi/triclinic build & stencil functions
 
   if (half) {
-    if (atom->radius) {
+    if (fix_history) {
       if (style == NSQ) {
 	if (force->newton_pair == 0) 
 	  half_build = &Neighbor::granular_nsq_no_newton;

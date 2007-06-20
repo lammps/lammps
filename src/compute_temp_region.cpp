@@ -29,10 +29,8 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all("Illegal compute temp/region command");
 
-  for (iregion = 0; iregion < domain->nregion; iregion++)
-    if (strcmp(arg[3],domain->regions[iregion]->id) == 0) break;
-  if (iregion == domain->nregion)
-    error->all("Temperature region ID does not exist");
+  iregion = domain->find_region(arg[3]);
+  if (iregion == -1) error->all("Temperature region ID does not exist");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

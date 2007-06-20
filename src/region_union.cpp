@@ -40,10 +40,8 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   int iregion;
   for (int iarg = 0; iarg < n; iarg++) {
-    for (iregion = 0; iregion < domain->nregion; iregion++)
-      if (strcmp(arg[iarg+3],domain->regions[iregion]->id) == 0) break;
-    if (iregion == domain->nregion)
-      error->all("Region union region ID does not exist");
+    iregion = domain->find_region(arg[iarg+3]);
+    if (iregion == -1) error->all("Region union region ID does not exist");
     list[nregion++] = iregion;
   }
 

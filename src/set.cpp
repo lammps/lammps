@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
+#include "region.h"
 #include "group.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -29,16 +30,11 @@
 
 using namespace LAMMPS_NS;
 
-#define ONEATOM  0
-#define ATOM     1
-#define BOND     2
-#define ANGLE    3
-#define DIHEDRAL 4
-#define IMPROPER 5
-#define CHARGE   6
-#define DIPOLE   7
-
-#define WARMUP 100
+enum{ATOM,GROUP,REGION};
+enum{TYPE,TYPE_FRACTION,MOLECULE,
+     X,Y,Z,VX,VY,VZ,CHARGE,
+     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
+     BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,112 +48,402 @@ void Set::command(int narg, char **arg)
     error->all("Set command before simulation box is defined");
   if (atom->natoms == 0)
     error->all("Set command with no atoms existing");
-  if (narg != 3) error->all("Illegal set command");
+  if (narg < 3) error->all("Illegal set command");
 
-  // set style
+  // style and ID
 
-  int style;
-  if (strcmp(arg[1],"atom") == 0) style = ATOM;
-  else if (strcmp(arg[1],"bond") == 0) style = BOND;
-  else if (strcmp(arg[1],"angle") == 0) style = ANGLE;
-  else if (strcmp(arg[1],"dihedral") == 0) style = DIHEDRAL;
-  else if (strcmp(arg[1],"improper") == 0) style = IMPROPER;
-  else if (strcmp(arg[1],"charge") == 0) style = CHARGE;
-  else if (strcmp(arg[1],"dipole") == 0) style = DIPOLE;
-  else style = ONEATOM;
+  if (strcmp(arg[0],"atom") == 0) style = ATOM;
+  else if (strcmp(arg[0],"group") == 0) style = GROUP;
+  else if (strcmp(arg[0],"region") == 0) style = REGION;
+  else error->all("Illegal set command");
 
-  // set atom or group
+  int n = strlen(arg[1]) + 1;
+  id = new char[n];
+  strcpy(id,arg[1]);
+  select = NULL;
 
-  int atomid,igroup,groupbit;
-  if (style == ONEATOM) atomid = atoi(arg[0]);
-  else {
-    igroup = group->find(arg[0]);
-    if (igroup == -1) error->all("Cannot find set command group ID");
-    groupbit = group->bitmask[igroup];
+  // loop over keyword/value pairs
+  // call appropriate routine to reset attributes
+
+  if (comm->me == 0 && screen) fprintf(screen,"Setting atom values ...\n");
+
+  int allcount,origarg;
+
+  int iarg = 2;
+  while (iarg < narg) {
+    count = 0;
+    origarg = iarg;
+    
+    if (strcmp(arg[iarg],"type") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (ivalue <= 0 || ivalue > atom->ntypes)
+	error->all("Invalid value in set command");
+      set(TYPE);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"type/fraction") == 0) {
+      if (iarg+4 > narg) error->all("Illegal set command");
+      newtype = atoi(arg[iarg+1]);
+      fraction = atof(arg[iarg+2]);
+      ivalue = atoi(arg[iarg+3]);
+      if (fraction < 0.0 || fraction > 1.0) 
+	error->all("Invalid value in set command");
+      if (ivalue <= 0) error->all("Invalid random number seed in set command");
+      setrandom(TYPE_FRACTION);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"mol") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->molecule == NULL)
+	error->all("Cannot set this attribute for this atom style");
+      set(MOLECULE);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"x") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      set(X);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      set(Y);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      set(Z);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      set(VX);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      set(VY);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      set(VZ);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"charge") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (atom->q == NULL)
+	error->all("Cannot set this attribute for this atom style");
+      set(CHARGE);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dipole") == 0) {
+      if (iarg+4 > narg) error->all("Illegal set command");
+      xvalue = atof(arg[iarg+1]);
+      yvalue = atof(arg[iarg+2]);
+      zvalue = atof(arg[iarg+3]);
+      if (atom->mu == NULL || atom->dipole == NULL)
+	error->all("Cannot set this attribute for this atom style");
+      set(DIPOLE);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"dipole/random") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->mu == NULL || atom->shape == NULL)
+	error->all("Cannot set this attribute for this atom style");
+      if (ivalue <= 0) error->all("Invalid random number seed in set command");
+      setrandom(DIPOLE_RANDOM);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"quat") == 0) {
+      if (iarg+4 > narg) error->all("Illegal set command");
+      xvalue = atof(arg[iarg+1]);
+      yvalue = atof(arg[iarg+2]);
+      zvalue = atof(arg[iarg+3]);
+      if (atom->quat == NULL)
+	error->all("Cannot set this attribute for this atom style");
+      set(QUAT);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"quat/random") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->quat == NULL)
+	error->all("Cannot set this attribute for this atom style");
+      if (ivalue <= 0) error->all("Invalid random number seed in set command");
+      setrandom(QUAT_RANDOM);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"bond") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->avec->bonds_allow == 0)
+	error->all("Cannot set this attribute for this atom style");
+      if (ivalue <= 0 || ivalue > atom->nbondtypes)
+	error->all("Invalid value in set command");
+      topology(BOND);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"angle") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->avec->angles_allow == 0)
+	error->all("Cannot set this attribute for this atom style");
+      if (ivalue <= 0 || ivalue > atom->nangletypes)
+	error->all("Invalid value in set command");
+      topology(ANGLE);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dihedral") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->avec->dihedrals_allow == 0)
+	error->all("Cannot set this attribute for this atom style");
+      if (ivalue <= 0 || ivalue > atom->ndihedraltypes)
+	error->all("Invalid value in set command");
+      topology(DIHEDRAL);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"improper") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      ivalue = atoi(arg[iarg+1]);
+      if (atom->avec->impropers_allow == 0)
+	error->all("Cannot set this attribute for this atom style");
+      if (ivalue <= 0 || ivalue > atom->nimpropertypes)
+	error->all("Invalid value in set command");
+      topology(IMPROPER);
+      iarg += 2;
+    } else error->all("Illegal set command");    
+
+    // statistics
+
+    MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
+    
+    if (comm->me == 0) {
+      if (screen) fprintf(screen,"  %d settings made for %s\n",
+			  allcount,arg[origarg]);
+      if (logfile) fprintf(logfile,"  %d settings made for %s\n",
+			   allcount,arg[origarg]);
+    }
   }
-  
-  // consistency checks
 
-  if ((style == BOND && atom->avec->bonds_allow == 0) ||
-      (style == ANGLE && atom->avec->angles_allow == 0) ||
-      (style == DIHEDRAL && atom->avec->dihedrals_allow == 0) ||
-      (style == IMPROPER && atom->avec->impropers_allow == 0) ||
-      (style == CHARGE && atom->q == NULL) ||
-      (style == DIPOLE && atom->dipole == NULL))
-    error->all("Cannot set this attribute for this atom style");
+  // free local memory
 
-  if (style == ONEATOM && strcmp(arg[1],"q") == 0 && atom->q == NULL)
-    error->all("Cannot set this attribute for this atom style");
+  delete [] id;
+  delete [] select;
+}
 
-  if (style == ONEATOM && strcmp(arg[1],"mol") == 0 && atom->molecular == 0)
-    error->all("Cannot set this attribute for this atom style");
+/* ----------------------------------------------------------------------
+   select atoms according to ATOM, GROUP, REGION style
+   n = nlocal or nlocal+nghost depending on keyword
+------------------------------------------------------------------------- */
 
-  // border swap to insure type and mask is current for off-proc atoms
-  // only needed for BOND, ANGLE, etc types
+void Set::selection(int n)
+{
+  delete [] select;
+  select = new int[n];
+
+  if (style == ATOM) {
+    if (atom->tag_enable == 0)
+      error->all("Cannot use set atom with no atom IDs defined");
+    int idatom = atoi(id);
+
+    int *tag = atom->tag;
+    for (int i = 0; i < n; i++)
+      if (idatom == tag[i]) select[i] = 1;
+      else select[i] = 0;
+
+  } else if (style == GROUP) {
+    int igroup = group->find(id);
+    if (igroup == -1) error->all("Could not find set group ID");
+    int groupbit = group->bitmask[igroup];
+
+    int *mask = atom->mask;
+    for (int i = 0; i < n; i++)
+      if (mask[i] & groupbit) select[i] = 1;
+      else select[i] = 0;
+
+  } else {
+    int iregion = domain->find_region(id);
+    if (iregion == -1) error->all("Set region ID does not exist");
+
+    double **x = atom->x;
+    for (int i = 0; i < n; i++)
+      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	select[i] = 1;
+      else select[i] = 0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   set an owned atom property directly
+------------------------------------------------------------------------- */
+
+void Set::set(int keyword)
+{
+  if (keyword == DIPOLE) atom->check_dipole();
+
+  selection(atom->nlocal);
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++)
+    if (select[i]) {
+      if (keyword == TYPE) atom->type[i] = ivalue;
+      else if (keyword == MOLECULE) atom->molecule[i] = ivalue;
+      else if (keyword == X) atom->x[i][0] = dvalue;
+      else if (keyword == Y) atom->x[i][1] = dvalue;
+      else if (keyword == Z) atom->x[i][2] = dvalue;
+      else if (keyword == VX) atom->v[i][0] = dvalue;
+      else if (keyword == VY) atom->v[i][1] = dvalue;
+      else if (keyword == VZ) atom->v[i][2] = dvalue;
+      else if (keyword == CHARGE) atom->q[i] = dvalue;
+
+      else if (keyword == DIPOLE) {
+	if (atom->dipole[atom->type[i]] > 0.0) {
+	  double **mu = atom->mu;
+	  mu[i][0] = xvalue;
+	  mu[i][1] = yvalue;
+	  mu[i][2] = zvalue;
+	  double lensq = 
+	    mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
+	  double scale = atom->dipole[atom->type[i]]/sqrt(lensq);
+	  mu[i][0] *= scale;
+	  mu[i][1] *= scale;
+	  mu[i][2] *= scale;
+	}
+
+      } else if (keyword == QUAT) {
+	// need to set orientation correctly and normalize quat
+	double **quat = atom->quat;
+	quat[i][0] = xvalue;
+	quat[i][1] = yvalue;
+	quat[i][2] = zvalue;
+      }
+      count++;
+    }
+}
+
+/* ----------------------------------------------------------------------
+   set an owned atom property randomly
+   set seed based on atom tag
+   makes atom's result independent of what proc owns it
+------------------------------------------------------------------------- */
+
+void Set::setrandom(int keyword)
+{
+  int i,j;
+
+  if (keyword == DIPOLE_RANDOM) atom->check_dipole();
+
+  selection(atom->nlocal);
+  RanPark *random = new RanPark(lmp,1);
+  double **x = atom->x;
+  int seed = ivalue;
+
+  // set fraction of atom types to newtype
+
+  if (keyword == TYPE_FRACTION) {
+    int nlocal = atom->nlocal;
+
+    for (i = 0; i < nlocal; i++)
+      if (select[i]) {
+	random->reset(seed,x[i]);
+	if (random->uniform() > fraction) continue;
+	atom->type[i] = newtype;
+        count++;
+      }
+
+  // set dipole moments to random orientations
+  // dipole length is determined by dipole type array
+
+  } else if (keyword == DIPOLE) {
+    int *type = atom->type;
+    double *dipole = atom->dipole;
+    double **mu = atom->mu;
+    int nlocal = atom->nlocal;
+
+    double msq,scale;
+    for (i = 0; i < nlocal; i++)
+      if (select[i]) {
+	if (dipole[type[i]] > 0.0) {
+	  random->reset(seed,x[i]);
+	  mu[i][0] = random->uniform() - 0.5;
+	  mu[i][1] = random->uniform() - 0.5;
+	  mu[i][2] = random->uniform() - 0.5;
+	  msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
+	  scale = dipole[type[i]]/sqrt(msq);
+	  mu[i][0] *= scale;
+	  mu[i][1] *= scale;
+	  mu[i][2] *= scale;
+	  count++;
+	}
+      }
+
+  // set quaternions to random orientations
+
+  } else if (keyword == QUAT) {
+    double **quat = atom->quat;
+    int nlocal = atom->nlocal;
+
+    double s,t1,t2,theta1,theta2;
+    double PI = 4.0*atan(1.0);
+
+    for (i = 0; i < nlocal; i++)
+      if (select[i]) {
+	random->reset(seed,x[i]);
+	s = random->uniform();
+	t1 = sqrt(1.0-s);
+	t2 = sqrt(s);
+	theta1 = 2.0*PI*random->uniform();
+	theta2 = 2.0*PI*random->uniform();
+	quat[i][0] = cos(theta2)*t2;
+	quat[i][1] = sin(theta1)*t1;
+	quat[i][2] = cos(theta1)*t1;
+	quat[i][3] = sin(theta2)*t2;
+        count++;
+      }
+  }
+
+  delete random;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Set::topology(int keyword)
+{
+  int m,atom1,atom2,atom3,atom4;
+
+  // border swap to acquire ghost atom info
   // enforce PBC before in case atoms are outside box
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
   
-  if (style == BOND || style == ANGLE || 
-      style == DIHEDRAL || style == IMPROPER) {
-    if (comm->me == 0 && screen) fprintf(screen,"System init for set ...\n");
-    lmp->init();
+  if (comm->me == 0 && screen) fprintf(screen,"  system init for set ...\n");
+  lmp->init();
 
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    domain->reset_box();
-    comm->setup();
-    comm->exchange();
-    comm->borders();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  }
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  comm->setup();
+  comm->exchange();
+  comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
-  if (comm->me == 0 && screen) fprintf(screen,"Setting atom values ...\n");
-  
-  // set new values
+  // select both owned and ghost atoms
 
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  int m,atom1,atom2,atom3,atom4;
+  selection(atom->nlocal + atom->nghost);
 
-  int count = 0;
+  // for BOND, each of 2 atoms must be in group
 
-  // for style ATOM, atom must be in group
-
-  if (style == ATOM) {
-    int ivalue = atoi(arg[2]);
-    if (ivalue < 1 || ivalue > atom->ntypes)
-      error->all("Invalid type in set command");
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	atom->type[i] = ivalue;
-	count++;
-      }
-  }
-
-  // for style BOND, each of 2 atoms must be in group
-
-  if (style == BOND) {
-    int ivalue = atoi(arg[2]);
-    if (ivalue < 1 || ivalue > atom->nbondtypes)
-      error->all("Invalid type in set command");
+  if (keyword == BOND) {
+    int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_bond[i]; m++) {
 	atom1 = atom->map(atom->bond_atom[i][m]);
 	if (atom1 == -1) error->one("Bond atom missing in set command");
-	if (mask[i] & groupbit && mask[atom1] & groupbit) {
+	if (select[i] && select[atom1]) {
 	  atom->bond_type[i][m] = ivalue;
 	  count++;
 	}
       }
   }
 
-  // for style ANGLE, each of 3 atoms must be in group
+  // for ANGLE, each of 3 atoms must be in group
 
-  if (style == ANGLE) {
-    int ivalue = atoi(arg[2]);
-    if (ivalue < 1 || ivalue > atom->nangletypes)
-      error->all("Invalid type in set command");
+  if (keyword == ANGLE) {
+    int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_angle[i]; m++) {
 	atom1 = atom->map(atom->angle_atom1[i][m]);
@@ -165,20 +451,17 @@ void Set::command(int narg, char **arg)
 	atom3 = atom->map(atom->angle_atom3[i][m]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1)
 	  error->one("Angle atom missing in set command");
-	if (mask[atom1] & groupbit && mask[atom2] & groupbit &&
-	    mask[atom3] & groupbit) {
+	if (select[atom1] && select[atom2] && select[atom3]) {
 	  atom->angle_type[i][m] = ivalue;
 	  count++;
 	}
       }
   }
 
-  // for style DIHEDRAL, each of 4 atoms must be in group
+  // for DIHEDRAL, each of 4 atoms must be in group
 
-  if (style == DIHEDRAL) {
-    int ivalue = atoi(arg[2]);
-    if (ivalue < 1 || ivalue > atom->ndihedraltypes)
-      error->all("Invalid type in set command");
+  if (keyword == DIHEDRAL) {
+    int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_dihedral[i]; m++) {
 	atom1 = atom->map(atom->dihedral_atom1[i][m]);
@@ -187,20 +470,17 @@ void Set::command(int narg, char **arg)
 	atom4 = atom->map(atom->dihedral_atom4[i][m]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
 	  error->one("Dihedral atom missing in set command");
-	if (mask[atom1] & groupbit && mask[atom2] & groupbit &&
-	    mask[atom3] & groupbit && mask[atom4] & groupbit) {
+	if (select[atom1] && select[atom2] && select[atom3] && select[atom4]) {
 	  atom->dihedral_type[i][m] = ivalue;
 	  count++;
 	}
       }
   }
 
-  // for style IMPROPER, each of 4 atoms must be in group
+  // for IMPROPER, each of 4 atoms must be in group
 
-  if (style == IMPROPER) {
-    int ivalue = atoi(arg[2]);
-    if (ivalue < 1 || ivalue > atom->nimpropertypes)
-      error->all("Invalid type in set command");
+  if (keyword == IMPROPER) {
+    int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++)
       for (m = 0; m < atom->num_improper[i]; m++) {
 	atom1 = atom->map(atom->improper_atom1[i][m]);
@@ -209,84 +489,10 @@ void Set::command(int narg, char **arg)
 	atom4 = atom->map(atom->improper_atom4[i][m]);
 	if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
 	  error->one("Improper atom missing in set command");
-	if (mask[atom1] & groupbit && mask[atom2] & groupbit &&
-	    mask[atom3] & groupbit && mask[atom4] & groupbit) {
+	if (select[atom1] && select[atom2] && select[atom3] && select[atom4]) {
 	  atom->improper_type[i][m] = ivalue;
 	  count++;
 	}
       }
-  }
-
-  // for style CHARGE, set charge of all atoms in group
-
-  if (style == CHARGE) {
-    double value = atof(arg[2]);
-    double *q = atom->q;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	q[i] = value;
-	count++;
-      }
-  }
-
-  // for style DIPOLE, create unique random number stream for each proc
-  // set dipole moment of each atom in group to random orientation
-  // dipole length is determined by dipole type array
-
-  if (style == DIPOLE) {
-    int ivalue = atoi(arg[2]);
-    if (ivalue <= 0) error->all("Invalid random number seed in set command");
-    double msq,scale;
-    RanPark *random = new RanPark(lmp,ivalue + comm->me);
-    for (int i = 0; i < WARMUP; i++) random->uniform();
-    int *type = atom->type;
-    double *dipole = atom->dipole;
-    double **mu = atom->mu;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	mu[i][0] = random->uniform() - 0.5;
-	mu[i][1] = random->uniform() - 0.5;
-	mu[i][2] = random->uniform() - 0.5;
-	msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
-	scale = dipole[type[i]]/sqrt(msq);
-	mu[i][0] *= scale;
-	mu[i][1] *= scale;
-	mu[i][2] *= scale;
-	count++;
-      }
-    delete random;
-  }
-
-  // for style ONEATOM, set attribute of single atom ID
-
-  if (style == ONEATOM) {
-    int *tag = atom->tag;
-    for (int i = 0; i < nlocal; i++)
-      if (atomid == tag[i]) {
-	if (strcmp(arg[1],"type") == 0) {
-	  atom->type[i] = atoi(arg[2]);
-	  if (atom->type[i] < 1 || atom->type[i] > atom->ntypes)
-	    error->one("Invalid type in set command");
-	} else if (strcmp(arg[1],"mol") == 0) atom->molecule[i] = atoi(arg[2]);
-	else if (strcmp(arg[1],"x") == 0) atom->x[i][0] = atof(arg[2]);
-	else if (strcmp(arg[1],"y") == 0) atom->x[i][1] = atof(arg[2]);
-	else if (strcmp(arg[1],"z") == 0) atom->x[i][2] = atof(arg[2]);
-	else if (strcmp(arg[1],"vx") == 0) atom->v[i][0] = atof(arg[2]);
-	else if (strcmp(arg[1],"vy") == 0) atom->v[i][1] = atof(arg[2]);
-	else if (strcmp(arg[1],"vz") == 0) atom->v[i][2] = atof(arg[2]);
-	else if (strcmp(arg[1],"q") == 0) atom->q[i] = atof(arg[2]);
-	else error->one("Illegal set command");
-	count++;
-      }
-  }
-
-  // statistics
-
-  int allcount;
-  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"  %d settings made\n",allcount);
-    if (logfile) fprintf(logfile,"  %d settings made\n",allcount);
   }
 }

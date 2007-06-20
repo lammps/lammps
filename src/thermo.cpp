@@ -110,7 +110,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   } else error->all("Illegal thermo style command");
 
-  // ptrs, flags, IDs for compute objects thermo may create
+  // ptrs, flags, IDs for compute objects thermo may use or create
 
   temperature = NULL;
   pressure = NULL;
@@ -118,10 +118,10 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   rotate_gran = NULL;
 
   index_temp = index_press = index_drot = index_grot = -1;
-  internal_temp = internal_press = internal_drot = internal_grot = 0;
+  internal_drot = internal_grot = 0;
 
   id_temp = "thermo_temp";
-  id_press = "thermo_press";
+  id_press = "thermo_pressure";
   id_drot = "thermo_rotate_dipole";
   id_grot = "thermo_rotate_gran";
 
@@ -134,15 +134,8 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   parse_fields(line);
 
   // create the requested compute styles
+  // temperature and pressure always exist b/c Output class created them
 
-  if (index_temp >= 0) {
-    create_compute(id_temp,"temp",NULL);
-    internal_temp = 1;
-  }
-  if (index_press >= 0) {
-    create_compute(id_press,"pressure",id_temp);
-    internal_press = 1;
-  }
   if (index_drot >= 0) {
     create_compute(id_drot,"rotate/dipole",NULL);
     internal_drot = 1;
@@ -181,10 +174,6 @@ Thermo::~Thermo()
 
   // delete Compute classes if thermo created them
 
-  if (index_temp >= 0 && internal_temp)
-    modify->delete_compute(id_compute[index_temp]);
-  if (index_press >= 0 && internal_press)
-    modify->delete_compute(id_compute[index_press]);
   if (index_drot >= 0 && internal_drot)
     modify->delete_compute(id_compute[index_drot]);
   if (index_grot >= 0 && internal_grot)
@@ -255,7 +244,7 @@ void Thermo::init()
   int icompute;
   for (i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all("Could not find thermo custom compute ID");
+    if (icompute < 0) error->all("Could not find thermo compute ID");
     computes[i] = modify->compute[icompute];
   }
 
@@ -264,7 +253,7 @@ void Thermo::init()
   int ifix;
   for (i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all("Could not find thermo custom fix ID");
+    if (ifix < 0) error->all("Could not find thermo fix ID");
     fixes[i] = modify->fix[ifix];
   }
 
@@ -395,10 +384,6 @@ void Thermo::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
       if (index_temp < 0) error->all("Thermo style does not use temp");
-      if (internal_temp) {
-	modify->delete_compute(id_compute[index_temp]);
-	internal_temp = 0;
-      }
       delete [] id_compute[index_temp];
       int n = strlen(arg[iarg+1]) + 1;
       id_compute[index_temp] = new char[n];
@@ -413,26 +398,23 @@ void Thermo::modify_params(int narg, char **arg)
       if (temperature->igroup != 0 && comm->me == 0)
 	error->warning("Temperature for thermo pressure is not for group all");
 
-      // if pressure being computed by thermo:
       // reset id_pre of pressure to new temp ID
+      // either pressure currently being used by thermo or "thermo_pressure"
 
       if (index_press >= 0) {
 	icompute = modify->find_compute(id_compute[index_press]);
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
-	delete [] modify->compute[icompute]->id_pre;
-	modify->compute[icompute]->id_pre = new char[n];
-	strcpy(modify->compute[icompute]->id_pre,arg[iarg+1]);
-      }
+      } else icompute = modify->find_compute("thermo_pressure");
+
+      delete [] modify->compute[icompute]->id_pre;
+      modify->compute[icompute]->id_pre = new char[n];
+      strcpy(modify->compute[icompute]->id_pre,arg[iarg+1]);
 
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"press") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
       if (index_press < 0) error->all("Thermo style does not use press");
-      if (internal_press) {
-	modify->delete_compute(id_compute[index_press]);
-	internal_press = 0;
-      }
       delete [] id_compute[index_press];
       int n = strlen(arg[iarg+1]) + 1;
       id_compute[index_press] = new char[n];

@@ -636,7 +636,7 @@ void Special::combine()
 
   atom->special = 
     memory->create_2d_int_array(atom->nmax,atom->maxspecial,"atom:special");
-  atom->avec->reset_ptrs();
+  atom->avec->reset_special();
   int **special = atom->special;
 
   // ----------------------------------------------------

@@ -18,7 +18,6 @@
 #include "read_data.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -123,42 +122,17 @@ void ReadData::command(int narg, char **arg)
   domain->set_local_box();
 
   // read rest of file in free format
-  // Atoms and Velocities keywords can have trailing hybrid sub-style
 
   int atomflag = 0;
-  int hybridflag = 0;
-  if (strcmp(atom->atom_style,"hybrid") == 0) hybridflag = 1;
-
   parse_keyword(1,1);
 
   while (strlen(keyword)) {
     if (strcmp(keyword,"Atoms") == 0) {
-      atoms(0);
-      atomflag = 1;
-    } else if (hybridflag && strstr(keyword,"Atoms") == keyword) {
-      strtok(keyword," \t");
-      char *substyle = strtok(NULL," \t");
-      AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
-      if (substyle == NULL) error->all("Invalid data file section: Atoms");
-      int ihybrid;
-      for (ihybrid = 0; ihybrid < avec_hybrid->nstyles; ihybrid++)
-	if (strcmp(avec_hybrid->keywords[ihybrid],substyle) == 0) break;
-      atoms(ihybrid);
+      atoms();
       atomflag = 1;
     } else if (strcmp(keyword,"Velocities") == 0) {
       if (atomflag == 0) error->all("Must read Atoms before Velocities");
-      velocities(0);
-    } else if (hybridflag && strstr(keyword,"Velocities") == keyword) {
-      if (atomflag == 0) error->all("Must read Atoms before Velocities");
-      strtok(keyword," \t");
-      char *substyle = strtok(NULL," \t");
-      AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
-      if (substyle == NULL)
-	error->all("Invalid data file section: Velocities");
-      int ihybrid;
-      for (ihybrid = 0; ihybrid < avec_hybrid->nstyles; ihybrid++)
-	if (strcmp(avec_hybrid->keywords[ihybrid],substyle) == 0) break;
-      velocities(ihybrid);
+      velocities();
     } else if (strcmp(keyword,"Bonds") == 0) {
       if (atom->avec->bonds_allow == 0) 
 	error->all("Invalid data file section: Bonds");
@@ -182,6 +156,8 @@ void ReadData::command(int narg, char **arg)
 
     } else if (strcmp(keyword,"Masses") == 0) {
       mass();
+    } else if (strcmp(keyword,"Shapes") == 0) {
+      shape();
     } else if (strcmp(keyword,"Dipoles") == 0) {
       dipole();
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
@@ -391,12 +367,11 @@ void ReadData::header(int flag)
 }
 
 /* ----------------------------------------------------------------------
-   read all atoms of a sub-style ihybrid (0 if not atom style hybrid)
-   to find atoms, must build atom map if not a molecular system 
+   read all atoms
    accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
-void ReadData::atoms(int ihybrid)
+void ReadData::atoms()
 {
   int i,m,nchunk;
   
@@ -419,7 +394,7 @@ void ReadData::atoms(int ihybrid)
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
-    atom->data_atoms(nchunk,buffer,ihybrid);
+    atom->data_atoms(nchunk,buffer);
     nread += nchunk;
   }
 
@@ -472,12 +447,12 @@ void ReadData::atoms(int ihybrid)
 }
 
 /* ----------------------------------------------------------------------
-   read all velocities of a sub-style ihybrid (0 if not atom style hybrid)
+   read all velocities
    to find atoms, must build atom map if not a molecular system 
    accumulate nread in double precision to allow natoms > 2^31
 ------------------------------------------------------------------------- */
 
-void ReadData::velocities(int ihybrid)
+void ReadData::velocities()
 {
   int i,m,nchunk;
 
@@ -508,7 +483,7 @@ void ReadData::velocities(int ihybrid)
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
-    atom->data_vels(nchunk,buffer,ihybrid);
+    atom->data_vels(nchunk,buffer);
     nread += nchunk;
   }
 
@@ -717,6 +692,35 @@ void ReadData::mass()
 
   for (i = 0; i < atom->ntypes; i++) {
     atom->set_mass(buf);
+    buf += strlen(buf) + 1;
+  }
+  delete [] original;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ReadData::shape()
+{
+  int i,m;
+  char *buf = new char[atom->ntypes*MAXLINE];
+  char *original = buf;
+
+  if (me == 0) {
+    char *eof;
+    m = 0;
+    for (i = 0; i < atom->ntypes; i++) {
+      eof = fgets(&buf[m],MAXLINE,fp);
+      if (eof == NULL) error->one("Unexpected end of data file");
+      m += strlen(&buf[m]);
+      buf[m-1] = '\0';
+    }
+  }
+
+  MPI_Bcast(&m,1,MPI_INT,0,world);
+  MPI_Bcast(buf,m,MPI_CHAR,0,world);
+
+  for (i = 0; i < atom->ntypes; i++) {
+    atom->set_shape(buf);
     buf += strlen(buf) + 1;
   }
   delete [] original;

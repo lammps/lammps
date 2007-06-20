@@ -42,14 +42,10 @@ void CreateBox::command(int narg, char **arg)
 
   domain->box_exist = 1;
 
-  // find region ID
+  // region check
 
-  int iregion;
-  for (iregion = 0; iregion < domain->nregion; iregion++)
-    if (strcmp(arg[1],domain->regions[iregion]->id) == 0) break;
-  if (iregion == domain->nregion) 
-    error->all("Create_box region ID does not exist");
-
+  int iregion = domain->find_region(arg[1]);
+  if (iregion == -1) error->all("Create_box region ID does not exist");
   if (domain->regions[iregion]->interior == 0)
     error->all("Create_box region must be of type inside");
 

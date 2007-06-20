@@ -22,9 +22,6 @@ class AtomVecCharge : public AtomVec {
  public:
   AtomVecCharge(class LAMMPS *, int, char **);
   void grow(int);
-  void reset_ptrs();
-  void zero_owned(int);
-  void zero_ghost(int, int);
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
@@ -37,11 +34,11 @@ class AtomVecCharge : public AtomVec {
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
   int size_restart();
-  int size_restart_one(int);
   int pack_restart(int, double *);
   int unpack_restart(double *);
-  void create_atom(int, double *, int);
-  void data_atom(double *, int, char **, int);
+  void create_atom(int, double *);
+  void data_atom(double *, int, char **);
+  int data_atom_hybrid(int, char **);
   int memory_usage();
 
  private:

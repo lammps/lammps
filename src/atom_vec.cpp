@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include "stdlib.h"
 #include "atom_vec.h"
 #include "atom.h"
 
@@ -24,19 +24,19 @@ AtomVec::AtomVec(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   nmax = 0;
   molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
-  mass_type = dipole_type = 0;
+  mass_type = shape_type = dipole_type = 0;
   comm_x_only = comm_f_only = 1;
   size_comm = size_reverse = size_border = 0;
 }
 
 /* ----------------------------------------------------------------------
-   unpack a single line from Velocity section of data file
-   individual style may override this
+   unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::data_vel(int m, char *line, int ihybrid)
+void AtomVec::data_vel(int m, char **values)
 {
-  int tmp;
   double **v = atom->v;
-  sscanf(line,"%d %lg %lg %lg",&tmp,&v[m][0],&v[m][1],&v[m][2]);
+  v[m][0] = atof(values[0]);
+  v[m][1] = atof(values[1]);
+  v[m][2] = atof(values[2]);
 }

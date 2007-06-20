@@ -23,7 +23,7 @@ class RanPark : protected Pointers {
   RanPark(class LAMMPS *, int);
   double uniform();
   double gaussian();
-  void reset(double);
+  void reset(int, double *);
 
  private:
   int seed,save;

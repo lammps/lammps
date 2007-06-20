@@ -31,6 +31,8 @@ class Fix : protected Pointers {
   int thermo_energy;             // 1 if ThEng enabled via fix_modify, 0 if not
   int nevery;                    // how often to call an end_of_step fix
   int pressure_every;            // how often fix needs virial computed
+  int rigid_flag;                // 1 if Fix integrates rigid bodies, 0 if not
+  int virial_flag;               // 1 if Fix contributes to virial, 0 if not
 
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)

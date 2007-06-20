@@ -411,7 +411,7 @@ void PairLJCutCoulLongTIP4P::init_style()
   if (!force->newton_pair) 
     error->all("Pair style lj/cut/coul/long/tip4p requires newton pair on");
   if (atom->q == NULL)
-    error->all("Must use charged atom style with this pair style");
+    error->all("Pair style lj/cut/coul/long/tip4p requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;
 

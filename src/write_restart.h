@@ -32,8 +32,7 @@ class WriteRestart : protected Pointers {
   double natoms;         // natoms (sum of nlocal) to write into file
 
   void header();
-  void mass();
-  void dipole();
+  void type_arrays();
   void force_fields();
 
   void write_int(int, int);

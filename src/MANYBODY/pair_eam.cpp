@@ -266,15 +266,15 @@ void PairEAM::compute(int eflag, int vflag)
 	phi = z2*recip;
 	phip = z2p*recip - phi*recip;
 	psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-	fforce = psip*recip;
+	fforce = -psip*recip;
 
-	f[i][0] -= delx*fforce;
-	f[i][1] -= dely*fforce;
-	f[i][2] -= delz*fforce;
+	f[i][0] += delx*fforce;
+	f[i][1] += dely*fforce;
+	f[i][2] += delz*fforce;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] += delx*fforce;
-	  f[j][1] += dely*fforce;
-	  f[j][2] += delz*fforce;
+	  f[j][0] -= delx*fforce;
+	  f[j][1] -= dely*fforce;
+	  f[j][2] -= delz*fforce;
 	}
 
 	if (eflag) {
@@ -283,21 +283,13 @@ void PairEAM::compute(int eflag, int vflag)
 	}
 
 	if (vflag == 1) {
-	  if (newton_pair || j < nlocal) {
-	    virial[0] -= delx*delx*fforce;
-	    virial[1] -= dely*dely*fforce;
-	    virial[2] -= delz*delz*fforce;
-	    virial[3] -= delx*dely*fforce;
-	    virial[4] -= delx*delz*fforce;
-	    virial[5] -= dely*delz*fforce;
-	  } else {
-	    virial[0] -= 0.5*delx*delx*fforce;
-	    virial[1] -= 0.5*dely*dely*fforce;
-	    virial[2] -= 0.5*delz*delz*fforce;
-	    virial[3] -= 0.5*delx*dely*fforce;
-	    virial[4] -= 0.5*delx*delz*fforce;
-	    virial[5] -= 0.5*dely*delz*fforce;
-	  }
+	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
+	  virial[0] += delx*delx*fforce;
+	  virial[1] += dely*dely*fforce;
+	  virial[2] += delz*delz*fforce;
+	  virial[3] += delx*dely*fforce;
+	  virial[4] += delx*delz*fforce;
+	  virial[5] += dely*delz*fforce;
 	}
       }
     }

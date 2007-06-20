@@ -15,7 +15,6 @@
 #include "compute_rotate_dipole.h"
 #include "atom.h"
 #include "force.h"
-#include "pair.h"
 #include "group.h"
 #include "error.h"
 
@@ -31,8 +30,8 @@ ComputeRotateDipole::ComputeRotateDipole(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal compute rotate/dipole command");
 
-  if (atom->check_style("dipole") == 0)
-    error->all("Must use atom style dipole with compute rotate/dipole");
+  if (atom->dipole == NULL || atom->omega == NULL)
+    error->all("Compute rotate/dipole requires atom attributes dipole, omega");
 
   scalar_flag = 1;
   extensive = 1;
@@ -53,23 +52,16 @@ void ComputeRotateDipole::init()
 {
   delete [] inertia;
   inertia = new double[atom->ntypes+1];
+
   double *mass = atom->mass;
-
-  // insure use of dipole pair_style
-  // set sigma to Pair's sigma
-
-  Pair *pair = force->pair_match("dipole");
-  if (pair == NULL)
-    error->all("Pair style is incompatible with compute rotate/dipole");
-  double **sigma;
-  pair->extract_dipole(&sigma);
+  double **shape = atom->shape;
 
   if (force->dimension == 3)
     for (int i = 1; i <= atom->ntypes; i++)
-      inertia[i] = INERTIA3D * mass[i] * 0.25*sigma[i][i]*sigma[i][i];
+      inertia[i] = INERTIA3D * mass[i] * 0.25*shape[i][0]*shape[i][0];
   else
     for (int i = 1; i <= atom->ntypes; i++)
-      inertia[i] = INERTIA2D * mass[i] * 0.25*sigma[i][i]*sigma[i][i];
+      inertia[i] = INERTIA2D * mass[i] * 0.25*shape[i][0]*shape[i][0];
 }
 
 /* ---------------------------------------------------------------------- */

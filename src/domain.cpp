@@ -26,6 +26,7 @@
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_deform.h"
 #include "region.h"
 #include "lattice.h"
 #include "comm.h"
@@ -43,6 +44,8 @@ using namespace LAMMPS_NS;
 #define DELTA 1
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 /* ----------------------------------------------------------------------
    default is periodic 
@@ -67,6 +70,12 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
   xy = xz = yz = 0.0;
 
+  h[3] = h[4] = h[5] = 0.0;
+  h_inv[3] = h_inv[4] = h_inv[5] = 0.0;
+  h_rate[0] = h_rate[1] = h_rate[2] = 
+    h_rate[3] = h_rate[4] = h_rate[5] = 0.0;
+  h_ratelo[0] = h_ratelo[1] = h_ratelo[2] = 0.0;
+  
   prd_lamda[0] = prd_lamda[1] = prd_lamda[2] = 1.0;
   boxlo_lamda[0] = boxlo_lamda[1] = boxlo_lamda[2] = 0.0;
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
@@ -96,6 +105,18 @@ void Domain::init()
   if (nonperiodic == 2) box_change = 1;
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->box_change) box_change = 1;
+
+  // check for fix deform
+
+  deform_flag = deform_remap = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+      deform_flag = 1;
+      if (((FixDeform *) modify->fix[i])->remapflag == V_REMAP) {
+	deform_remap = 1;
+	deform_groupbit = modify->fix[i]->groupbit;
+      } else deform_remap = 0;
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -120,11 +141,11 @@ void Domain::set_initial_box()
     if (yz != 0.0 && (!yperiodic || !zperiodic))
       error->all("Triclinic box must be periodic in skewed dimensions");
 
-    if (fabs(xy/(boxhi[1]-boxlo[1])) > 0.5)
+    if (fabs(xy/(boxhi[0]-boxlo[0])) > 0.5)
       error->all("Triclinic box skew is too large");
-    if (fabs(xz/(boxhi[2]-boxlo[2])) > 0.5)
+    if (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5)
       error->all("Triclinic box skew is too large");
-    if (fabs(yz/(boxhi[2]-boxlo[2])) > 0.5)
+    if (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5)
       error->all("Triclinic box skew is too large");
   }
 
@@ -157,21 +178,21 @@ void Domain::set_global_box()
   prd[1] = yprd = boxhi[1] - boxlo[1];
   prd[2] = zprd = boxhi[2] - boxlo[2];
 
+  h[0] = xprd;
+  h[1] = yprd;
+  h[2] = zprd;
+  h_inv[0] = 1.0/h[0];
+  h_inv[1] = 1.0/h[1];
+  h_inv[2] = 1.0/h[2];
+
   xprd_half = 0.5*xprd;
   yprd_half = 0.5*yprd;
   zprd_half = 0.5*zprd;
 
   if (triclinic) {
-    h[0] = xprd;
-    h[1] = yprd;
-    h[2] = zprd;
     h[3] = yz;
     h[4] = xz;
     h[5] = xy;
-  
-    h_inv[0] = 1.0/h[0];
-    h_inv[1] = 1.0/h[1];
-    h_inv[2] = 1.0/h[2];
     h_inv[3] = -h[3] / (h[1]*h[2]);
     h_inv[4] = (h[3]*h[5] - h[1]*h[4]) / (h[0]*h[1]*h[2]);
     h_inv[5] = -h[5] / (h[0]*h[1]);
@@ -318,6 +339,7 @@ void Domain::reset_box()
    called every reneighboring and by other commands that change atoms
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
+   if fix deform, remap velocity of fix group atoms by box edge velocities
    for triclinic, atoms must be in lamda coords (0-1) before pbc is called
    image = 10 bits for each dimension
    increment/decrement in wrap-around fashion
@@ -329,6 +351,8 @@ void Domain::pbc()
   double *lo,*hi,*period;
   int nlocal = atom->nlocal;
   double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
   int *image = atom->image;
 
   if (triclinic == 0) {
@@ -345,6 +369,7 @@ void Domain::pbc()
     if (xperiodic) {
       if (x[i][0] < lo[0]) {
 	x[i][0] += period[0];
+	if (deform_remap && mask[i] & deform_groupbit) v[i][0] += h_rate[0];
 	idim = image[i] & 1023;
         otherdims = image[i] ^ idim;
 	idim--;
@@ -354,6 +379,7 @@ void Domain::pbc()
       if (x[i][0] >= hi[0]) {
 	x[i][0] -= period[0];
 	x[i][0] = MAX(x[i][0],lo[0]);
+	if (deform_remap && mask[i] & deform_groupbit) v[i][0] -= h_rate[0];
 	idim = image[i] & 1023;
 	otherdims = image[i] ^ idim;
 	idim++;
@@ -365,6 +391,10 @@ void Domain::pbc()
     if (yperiodic) {
       if (x[i][1] < lo[1]) {
 	x[i][1] += period[1];
+	if (deform_remap && mask[i] & deform_groupbit) {
+	  v[i][0] += h_rate[5];
+	  v[i][1] += h_rate[1];
+	}
 	idim = (image[i] >> 10) & 1023;
         otherdims = image[i] ^ (idim << 10);
 	idim--;
@@ -374,6 +404,10 @@ void Domain::pbc()
       if (x[i][1] >= hi[1]) {
 	x[i][1] -= period[1];
 	x[i][1] = MAX(x[i][1],lo[1]);
+	if (deform_remap && mask[i] & deform_groupbit) {
+	  v[i][0] -= h_rate[5];
+	  v[i][1] -= h_rate[1];
+	}
 	idim = (image[i] >> 10) & 1023;
         otherdims = image[i] ^ (idim << 10);
 	idim++;
@@ -385,6 +419,11 @@ void Domain::pbc()
     if (zperiodic) {
       if (x[i][2] < lo[2]) {
 	x[i][2] += period[2];
+	if (deform_remap && mask[i] & deform_groupbit) {
+	  v[i][0] += h_rate[4];
+	  v[i][1] += h_rate[3];
+	  v[i][2] += h_rate[2];
+	}
 	idim = image[i] >> 20;
         otherdims = image[i] ^ (idim << 20);
 	idim--;
@@ -394,6 +433,11 @@ void Domain::pbc()
       if (x[i][2] >= hi[2]) {
 	x[i][2] -= period[2];
 	x[i][2] = MAX(x[i][2],lo[2]);
+	if (deform_remap && mask[i] & deform_groupbit) {
+	  v[i][0] -= h_rate[4];
+	  v[i][1] -= h_rate[3];
+	  v[i][2] -= h_rate[2];
+	}
 	idim = image[i] >> 20;
         otherdims = image[i] ^ (idim << 20);
 	idim++;
@@ -533,7 +577,7 @@ void Domain::minimum_image(double *delta)
    adjust image accordingly
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
-   for triclinic, convert atom to lamda coords (0-1) before doing remap
+   for triclinic, atom is converted to lamda coords (0-1) before doing remap
    image = 10 bits for each dimension
    increment/decrement in wrap-around fashion
 ------------------------------------------------------------------------- */

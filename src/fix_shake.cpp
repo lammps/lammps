@@ -43,6 +43,7 @@ using namespace LAMMPS_NS;
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  virial_flag = 1;
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
@@ -275,7 +276,7 @@ void FixShake::init()
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  if (count > 1) error->all("More than one shake fix");
+  if (count > 1) error->all("More than one fix shake");
 
   // cannot use with minimization since SHAKE turns off bonds
   // that should contribute to potential energy

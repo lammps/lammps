@@ -82,6 +82,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_rotate_gran.h"
 #include "compute_stress_atom.h"
 #include "compute_temp.h"
+#include "compute_temp_deform.h"
 #include "compute_temp_partial.h"
 #include "compute_temp_ramp.h"
 #include "compute_temp_region.h"
@@ -100,6 +101,7 @@ ComputeStyle(rotate/dipole,ComputeRotateDipole)
 ComputeStyle(rotate/gran,ComputeRotateGran)
 ComputeStyle(stress/atom,ComputeStressAtom)
 ComputeStyle(temp,ComputeTemp)
+ComputeStyle(temp/deform,ComputeTempDeform)
 ComputeStyle(temp/partial,ComputeTempPartial)
 ComputeStyle(temp/ramp,ComputeTempRamp)
 ComputeStyle(temp/region,ComputeTempRegion)
@@ -134,6 +136,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ave_time.h"
 #include "fix_com.h"
 #include "fix_drag.h"
+#include "fix_deform.h"
 #include "fix_deposit.h"
 #include "fix_efield.h"
 #include "fix_enforce2d.h"
@@ -166,9 +169,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_spring_self.h"
 #include "fix_temp_rescale.h"
 #include "fix_tmd.h"
-#include "fix_uniaxial.h"
 #include "fix_viscous.h"
-#include "fix_volume_rescale.h"
 #include "fix_wall_lj126.h"
 #include "fix_wall_lj93.h"
 #include "fix_wall_reflect.h"
@@ -182,6 +183,7 @@ FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
 FixStyle(com,FixCOM)
 FixStyle(drag,FixDrag)
+FixStyle(deform,FixDeform)
 FixStyle(deposit,FixDeposit)
 FixStyle(efield,FixEfield)
 FixStyle(enforce2d,FixEnforce2D)
@@ -214,9 +216,7 @@ FixStyle(spring/rg,FixSpringRG)
 FixStyle(spring/self,FixSpringSelf)
 FixStyle(temp/rescale,FixTempRescale)
 FixStyle(tmd,FixTMD)
-FixStyle(uniaxial,FixUniaxial)
 FixStyle(viscous,FixViscous)
-FixStyle(volume/rescale,FixVolRescale)
 FixStyle(wall/lj126,FixWallLJ126)
 FixStyle(wall/lj93,FixWallLJ93)
 FixStyle(wall/reflect,FixWallReflect)
@@ -307,8 +307,10 @@ RegionStyle(union,RegUnion)
 
 // style files for optional packages
 
-//#include "style_asphere.h"
+#include "style_asphere.h"
 #include "style_class2.h"
+#include "style_colloid.h"
+#include "style_dipole.h"
 #include "style_dpd.h"
 #include "style_granular.h"
 #include "style_kspace.h"

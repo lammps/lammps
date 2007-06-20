@@ -43,6 +43,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,ibody;
 
+  rigid_flag = 1;
+  virial_flag = 1;
+
   // perform initial allocation of atom-based arrays
   // register with Atom class
   
@@ -269,7 +272,7 @@ void FixRigid::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"rigid") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning("More than one rigid fix");
+  if (count > 1 && comm->me == 0) error->warning("More than one fix rigid");
 
   // error if npt,nph fix comes before rigid fix
 

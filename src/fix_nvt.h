@@ -21,13 +21,13 @@ namespace LAMMPS_NS {
 class FixNVT : public Fix {
  public:
   FixNVT(class LAMMPS *, int, char **);
-  ~FixNVT();
+  virtual ~FixNVT();
   int setmask();
-  void init();
+  virtual void init();
   void setup();
-  void initial_integrate();
-  void final_integrate();
-  void initial_integrate_respa(int,int);
+  virtual void initial_integrate();
+  virtual void final_integrate();
+  virtual void initial_integrate_respa(int,int);
   void final_integrate_respa(int);
   double thermo(int);
   void write_restart(FILE *);
@@ -35,7 +35,7 @@ class FixNVT : public Fix {
   int modify_param(int, char **);
   void reset_target(double);
 
- private:
+ protected:
   double t_start,t_stop;
   double t_current,t_target;
   double t_freq,drag,drag_factor;

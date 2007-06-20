@@ -87,66 +87,6 @@ void AtomVecGranular::grow(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecGranular::reset_ptrs()
-{
-  tag = atom->tag;
-  type = atom->type;
-  mask = atom->mask;
-  image = atom->image;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-
-  radius = atom->radius;
-  density = atom->density;
-  rmass = atom->rmass;
-  xphi = atom->xphi;
-  omega = atom->omega;
-  torque = atom->torque;
-}
-
-/* ----------------------------------------------------------------------
-   zero auxiliary data for owned atom I
-   data in copy(), not including tag,type,mask,image,x,v
-------------------------------------------------------------------------- */
-
-void AtomVecGranular::zero_owned(int i)
-{
-  radius[i] = 0.0;
-  density[i] = 0.0;
-  rmass[i] = 0.0;
-  xphi[i][0] = 0.0;
-  xphi[i][1] = 0.0;
-  xphi[i][2] = 0.0;
-  omega[i][0] = 0.0;
-  omega[i][1] = 0.0;
-  omega[i][2] = 0.0;
-}
-
-/* ----------------------------------------------------------------------
-   zero auxiliary data for n ghost atoms
-   data in border(), not including x,tag,type,mask
-   grow() is here since zero_ghost called first in hybrid::unpack_border()
-------------------------------------------------------------------------- */
-
-void AtomVecGranular::zero_ghost(int n, int first)
-{
-  int last = first + n;
-  for (int i = first; i < last; i++) {
-    if (i == nmax) atom->avec->grow(0);
-    v[i][0] = 0.0;
-    v[i][1] = 0.0;
-    v[i][2] = 0.0;
-    radius[i] = 0.0;
-    rmass[i] = 0.0;
-    omega[i][0] = 0.0;
-    omega[i][1] = 0.0;
-    omega[i][2] = 0.0;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AtomVecGranular::copy(int i, int j)
 {
   tag[j] = tag[i];
@@ -538,16 +478,6 @@ int AtomVecGranular::size_restart()
 }
 
 /* ----------------------------------------------------------------------
-   size of restart data for atom I
-   do not include extra data stored by fixes, included by caller
-------------------------------------------------------------------------- */
-
-int AtomVecGranular::size_restart_one(int i)
-{
-  return 19;
-}
-
-/* ----------------------------------------------------------------------
    pack atom I's data for restart file including extra quantities
    xyz must be 1st 3 values, so that read_restart can test on them
    molecular types may be negative, but write as positive   
@@ -641,7 +571,7 @@ int AtomVecGranular::unpack_restart(double *buf)
    set other values to defaults
 ------------------------------------------------------------------------- */
 
-void AtomVecGranular::create_atom(int itype, double *coord, int ihybrid)
+void AtomVecGranular::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -679,8 +609,7 @@ void AtomVecGranular::create_atom(int itype, double *coord, int ihybrid)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values,
-				int ihybrid)
+void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -722,15 +651,57 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values,
 }
 
 /* ----------------------------------------------------------------------
-   unpack a single line from Velocity section of data file
+   unpack hybrid quantities from one line in Atoms section of data file
+   initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-void AtomVecGranular::data_vel(int m, char *line, int ihybrid)
+int AtomVecGranular::data_atom_hybrid(int nlocal, char **values)
 {
-  int tmp;
-  sscanf(line,"%d %lg %lg %lg %lg %lg %lg",
-	 &tmp,&v[m][0],&v[m][1],&v[m][2],
-	 &omega[m][0],&omega[m][1],&omega[m][2]);
+  radius[nlocal] = 0.5 * atof(values[0]);
+  density[nlocal] = atof(values[1]);
+  if (force->dimension == 3)
+    rmass[nlocal] = 4.0*PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
+  else
+    rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
+
+  v[nlocal][0] = 0.0;
+  v[nlocal][1] = 0.0;
+  v[nlocal][2] = 0.0;
+  xphi[nlocal][0] = 0.0;
+  xphi[nlocal][1] = 0.0;
+  xphi[nlocal][2] = 0.0;
+  omega[nlocal][0] = 0.0;
+  omega[nlocal][1] = 0.0;
+  omega[nlocal][2] = 0.0;
+
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   unpack one line from Velocities section of data file
+------------------------------------------------------------------------- */
+
+void AtomVecGranular::data_vel(int m, char **values)
+{
+  v[m][0] = atof(values[0]);
+  v[m][1] = atof(values[1]);
+  v[m][2] = atof(values[2]);
+  omega[m][0] = atof(values[3]);
+  omega[m][1] = atof(values[4]);
+  omega[m][2] = atof(values[5]);
+}
+
+/* ----------------------------------------------------------------------
+   unpack hybrid quantities from one line in Velocities section of data file
+------------------------------------------------------------------------- */
+
+int AtomVecGranular::data_vel_hybrid(int m, char **values)
+{
+  omega[m][0] = atof(values[0]);
+  omega[m][1] = atof(values[1]);
+  omega[m][2] = atof(values[2]);
+  return 3;
 }
 
 /* ----------------------------------------------------------------------

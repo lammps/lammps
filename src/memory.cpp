@@ -131,8 +131,7 @@ double **Memory::grow_2d_double_array(double **array,
   if (array == NULL) return create_2d_double_array(n1,n2,name);
 
   double *data = (double *) srealloc(array[0],n1*n2*sizeof(double),name);
-  sfree(array);
-  array = (double **) smalloc(n1*sizeof(double *),name);
+  array = (double **) srealloc(array,n1*sizeof(double *),name);
 
   int n = 0;
   for (int i = 0; i < n1; i++) {
@@ -194,8 +193,7 @@ int **Memory::grow_2d_int_array(int **array, int n1, int n2, char *name)
   if (array == NULL) return create_2d_int_array(n1,n2,name);
 
   int *data = (int *) srealloc(array[0],n1*n2*sizeof(int),name);
-  sfree(array);
-  array = (int **) smalloc(n1*sizeof(int *),name);
+  array = (int **) srealloc(array,n1*sizeof(int *),name);
 
   int n = 0;
   for (int i = 0; i < n1; i++) {
@@ -285,10 +283,8 @@ double ***Memory::grow_3d_double_array(double ***array,
   if (array == NULL) return create_3d_double_array(n1,n2,n3,name);
 
   double *data = (double *) srealloc(array[0][0],n1*n2*n3*sizeof(double),name);
-  sfree(array[0]);
-  double **plane = (double **) smalloc(n1*n2*sizeof(double *),name);
-  sfree(array);
-  array = (double ***) smalloc(n1*sizeof(double **),name);
+  double **plane = (double **) srealloc(array[0],n1*n2*sizeof(double *),name);
+  array = (double ***) srealloc(array,n1*sizeof(double **),name);
 
   int n = 0;
   for (i = 0; i < n1; i++) {

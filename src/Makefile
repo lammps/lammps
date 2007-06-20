@@ -43,21 +43,23 @@ makelist:
 
 package:
 	@echo 'Available packages:'
-	@echo '  class2, dpd, granular, kspace, manybody,'
-	@echo '  meam, molecule, opt, poems, xtc'
+	@echo '  asphere, class2, colloid, dipole, dpd, granular,'
+	@echo '  kspace, manybody, meam, molecule, opt, poems, xtc'
 	@echo 'make yes-name     to include a package'
 	@echo 'make no-name      to exclude a package'
 	@echo 'make yes-all      to include all packages'
 	@echo 'make no-all       to exclude all packages'
 
 yes-all:
-	make yes-class2 yes-dpd yes-granular yes-kspace \
-	yes-manybody yes-meam yes-molecule yes-opt yes-poems yes-xtc
+	make yes-asphere yes-class2 yes-colloid yes-dpd yes-granular \
+	yes-kspace yes-manybody yes-meam yes-molecule yes-opt yes-poems yes-xtc
 
 no-all:
 	@echo 'Removing files, ignore any rm errors ...'
-#	@cd ASPHERE; csh -f Install.csh 0
+	@cd ASPHERE; csh -f Install.csh 0
 	@cd CLASS2; csh -f Install.csh 0
+	@cd COLLOID; csh -f Install.csh 0
+	@cd DIPOLE; csh -f Install.csh 0
 	@cd DPD; csh -f Install.csh 0
 	@cd GRANULAR; csh -f Install.csh 0
 	@cd KSPACE; csh -f Install.csh 0
@@ -69,18 +71,32 @@ no-all:
 	@cd XTC; csh -f Install.csh 0
 	@make clean
 
-#yes-asphere:
-#	@cd ASPHERE; csh -f Install.csh 1
-#no-asphere:
-#	@echo 'Removing files, ignore any rm errors ...'
-#	@cd ASPHERE; csh -f Install.csh 0
-#	@make clean
+yes-asphere:
+	@cd ASPHERE; csh -f Install.csh 1
+no-asphere:
+	@echo 'Removing files, ignore any rm errors ...'
+	@cd ASPHERE; csh -f Install.csh 0
+	@make clean
 
 yes-class2:
 	@cd CLASS2; csh -f Install.csh 1
 no-class2:
 	@echo 'Removing files, ignore any rm errors ...'
 	@cd CLASS2; csh -f Install.csh 0
+	@make clean
+
+yes-colloid:
+	@cd COLLOID; csh -f Install.csh 1
+no-colloid:
+	@echo 'Removing files, ignore any rm errors ...'
+	@cd COLLOID; csh -f Install.csh 0
+	@make clean
+
+yes-dipole:
+	@cd DIPOLE; csh -f Install.csh 1
+no-dipole:
+	@echo 'Removing files, ignore any rm errors ...'
+	@cd DIPOLE; csh -f Install.csh 0
 	@make clean
 
 yes-dpd:
@@ -149,8 +165,10 @@ no-xtc:
 # update src files with package files
 
 package-update:
-#	@csh -f Package.csh ASPHERE update
+	@csh -f Package.csh ASPHERE update
 	@csh -f Package.csh CLASS2 update
+	@csh -f Package.csh COLLOID update
+	@csh -f Package.csh DIPOLE update
 	@csh -f Package.csh DPD update
 	@csh -f Package.csh GRANULAR update
 	@csh -f Package.csh KSPACE update
@@ -164,8 +182,10 @@ package-update:
 # overwrite package files with src files
 
 package-overwrite:
-#	@csh -f Package.csh ASPHERE overwrite
+	@csh -f Package.csh ASPHERE overwrite
 	@csh -f Package.csh CLASS2 overwrite
+	@csh -f Package.csh COLLOID overwrite
+	@csh -f Package.csh DIPOLE overwrite
 	@csh -f Package.csh DPD overwrite
 	@csh -f Package.csh GRANULAR overwrite
 	@csh -f Package.csh KSPACE overwrite
@@ -179,8 +199,10 @@ package-overwrite:
 # check differences between src and pacakge files
 
 package-check:
-#	@csh -f Package.csh ASPHERE check
+	@csh -f Package.csh ASPHERE check
 	@csh -f Package.csh CLASS2 check
+	@csh -f Package.csh COLLOID check
+	@csh -f Package.csh DIPOLE check
 	@csh -f Package.csh DPD check
 	@csh -f Package.csh GRANULAR check
 	@csh -f Package.csh KSPACE check

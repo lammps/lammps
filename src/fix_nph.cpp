@@ -263,10 +263,6 @@ void FixNPH::init()
   }
   nkt = atom->natoms * boltz * t_initial;
 
-  double mass = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) mass += atom->mass[atom->type[i]];
-  MPI_Allreduce(&mass,&total_mass,1,MPI_DOUBLE,MPI_SUM,world);
-
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
@@ -275,7 +271,7 @@ void FixNPH::init()
     step_respa = ((Respa *) update->integrate)->step;
   }
 
-  // detect if any fix rigid exist so rigid bodies move when box is dilated
+  // detect if any rigid fixes exist so rigid bodies move when box is dilated
   // rfix[] = indices to each fix rigid
 
   delete [] rfix;
@@ -283,14 +279,12 @@ void FixNPH::init()
   rfix = NULL;
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
+    if (modify->fix[i]->rigid_flag) nrigid++;
   if (nrigid) {
     rfix = new int[nrigid];
     nrigid = 0;
     for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	  strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
+      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
   }
 }
 

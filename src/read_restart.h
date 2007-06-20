@@ -31,8 +31,7 @@ class ReadRestart : protected Pointers {
 
   void file_search(char *, char *);
   void header();
-  void mass();
-  void dipole();
+  void type_arrays();
   void force_fields();
 
   int read_int();

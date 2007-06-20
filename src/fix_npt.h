@@ -21,12 +21,12 @@ namespace LAMMPS_NS {
 class FixNPT : public Fix {
  public:
   FixNPT(class LAMMPS *, int, char **);
-  ~FixNPT();
+  virtual ~FixNPT();
   int setmask();
-  void init();
+  virtual void init();
   void setup();
-  void initial_integrate();
-  void final_integrate();
+  virtual void initial_integrate();
+  virtual void final_integrate();
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
   double thermo(int);
@@ -34,10 +34,10 @@ class FixNPT : public Fix {
   void restart(char *);
   int modify_param(int, char **);
 
- private:
-  double dtv,dtf,dthalf;
+ protected:
+  double dtv,dtq,dtf,dthalf;
   double boltz,nktv2p;
-  double total_mass,vol0;
+  double vol0;
 
   double t_start,t_stop;
   double t_current,t_target;

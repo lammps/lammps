@@ -55,6 +55,8 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,j,ibody;
 
+  rigid_flag = 1;
+  virial_flag = 1;
   MPI_Comm_rank(world,&me);
 
   // can't use with pure granular style since mass arrays are different

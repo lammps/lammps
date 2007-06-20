@@ -251,11 +251,6 @@ void Respa::init()
   if (modify->nfix == 0)
     error->warning("No fixes defined, atoms won't move");
 
-  // respa not allowed with granular atom style
-
-  if (atom->check_style("granular"))
-    error->all("Respa not allowed with atom style granular");
-
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
 

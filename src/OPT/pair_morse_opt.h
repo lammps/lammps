@@ -143,21 +143,13 @@ void PairMorseOpt::eval()
 	  }
 	  
 	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR || j < nlocal) {
-	      virial[0] += delx*delx*fforce;
-	      virial[1] += dely*dely*fforce;
-	      virial[2] += delz*delz*fforce;
-	      virial[3] += delx*dely*fforce;
-	      virial[4] += delx*delz*fforce;
-	      virial[5] += dely*delz*fforce;
-	    } else {
-	      virial[0] += 0.5*delx*delx*fforce;
-	      virial[1] += 0.5*dely*dely*fforce;
-	      virial[2] += 0.5*delz*delz*fforce;
-	      virial[3] += 0.5*delx*dely*fforce;
-	      virial[4] += 0.5*delx*delz*fforce;
-	      virial[5] += 0.5*dely*delz*fforce;
-	    }
+	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
+	    virial[0] += delx*delx*fforce;
+	    virial[1] += dely*dely*fforce;
+	    virial[2] += delz*delz*fforce;
+	    virial[3] += delx*dely*fforce;
+	    virial[4] += delx*delz*fforce;
+	    virial[5] += dely*delz*fforce;
 	  }
 	}
       } else {
@@ -196,21 +188,13 @@ void PairMorseOpt::eval()
 	  }
 	  
 	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR || j < nlocal) {
-	      virial[0] += delx*delx*fforce;
-	      virial[1] += dely*dely*fforce;
-	      virial[2] += delz*delz*fforce;
-	      virial[3] += delx*dely*fforce;
-	      virial[4] += delx*delz*fforce;
-	      virial[5] += dely*delz*fforce;
-	    } else {
-	      virial[0] += 0.5*delx*delx*fforce;
-	      virial[1] += 0.5*dely*dely*fforce;
-	      virial[2] += 0.5*delz*delz*fforce;
-	      virial[3] += 0.5*delx*dely*fforce;
-	      virial[4] += 0.5*delx*delz*fforce;
-	      virial[5] += 0.5*dely*delz*fforce;
-	    }
+	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
+	    virial[0] += delx*delx*fforce;
+	    virial[1] += dely*dely*fforce;
+	    virial[2] += delz*delz*fforce;
+	    virial[3] += delx*dely*fforce;
+	    virial[4] += delx*delz*fforce;
+	    virial[5] += dely*delz*fforce;
 	  }
 	}
       }

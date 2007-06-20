@@ -31,7 +31,8 @@ using namespace LAMMPS_NS;
 
 enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,TQX,TQY,TQZ,
+     Q,MUX,MUY,MUZ,
+     QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
      EPAIR,KE,ETOTAL,CENTRO,SXX,SYY,SZZ,SXY,SXZ,SYZ,
      COMPUTE};
 enum{LT,LE,GT,GE,EQ,NEQ};
@@ -405,6 +406,18 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == MUZ) {
 	ptr = &atom->mu[0][2];
 	nstride = 3;
+      } else if (thresh_array[ithresh] == QUATW) {
+	ptr = &atom->quat[0][0];
+	nstride = 4;
+      } else if (thresh_array[ithresh] == QUATI) {
+	ptr = &atom->quat[0][1];
+	nstride = 4;
+      } else if (thresh_array[ithresh] == QUATJ) {
+	ptr = &atom->quat[0][2];
+	nstride = 4;
+      } else if (thresh_array[ithresh] == QUATK) {
+	ptr = &atom->quat[0][3];
+	nstride = 4;
       } else if (thresh_array[ithresh] == TQX) {
 	ptr = &atom->torque[0][0];
 	nstride = 3;
@@ -455,27 +468,29 @@ int DumpCustom::count()
 	}
       }
 
+      // unselect atoms that don't meet threshhold criterion
+
       value = thresh_value[ithresh];
 
-      if (thresh_op[ithresh] == GE) {
+      if (thresh_op[ithresh] == LT) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
 	  if (choose[i] && *ptr >= value) {
 	    choose[i] = 0;
 	    nmine--;
 	  }
-      } else if (thresh_op[ithresh] == GT) {
+      } else if (thresh_op[ithresh] == LE) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
 	  if (choose[i] && *ptr > value) {
 	    choose[i] = 0;
 	    nmine--;
 	  }
-      } else if (thresh_op[ithresh] == LE) {
+      } else if (thresh_op[ithresh] == GT) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
 	  if (choose[i] && *ptr <= value) {
 	    choose[i] = 0;
 	    nmine--;
 	  }
-      } else if (thresh_op[ithresh] == LT) {
+      } else if (thresh_op[ithresh] == GE) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
 	  if (choose[i] && *ptr < value) {
 	    choose[i] = 0;
@@ -483,13 +498,13 @@ int DumpCustom::count()
 	  }
       } else if (thresh_op[ithresh] == EQ) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr == value) {
+	  if (choose[i] && *ptr != value) {
 	    choose[i] = 0;
 	    nmine--;
 	  }
       } else if (thresh_op[ithresh] == NEQ) {
 	for (i = 0; i < nlocal; i++, ptr += nstride)
-	  if (choose[i] && *ptr != value) {
+	  if (choose[i] && *ptr == value) {
 	    choose[i] = 0;
 	    nmine--;
 	  }
@@ -644,6 +659,27 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (atom->mu == NULL)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
+      vtype[i] = DOUBLE;
+
+    } else if (strcmp(arg[iarg],"quatw") == 0) {
+      if (atom->quat == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_quatw;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"quati") == 0) {
+      if (atom->quat == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_quati;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"quatj") == 0) {
+      if (atom->quat == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_quatj;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"quatk") == 0) {
+      if (atom->quat == NULL)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_quatk;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (atom->torque == NULL)
@@ -825,10 +861,8 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (narg < 2) error->all("Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) iregion = -1;
     else {
-      for (iregion = 0; iregion < domain->nregion; iregion++)
-	if (strcmp(arg[1],domain->regions[iregion]->id) == 0) break;
-      if (iregion == domain->nregion)
-	error->all("Dump_modify region ID does not exist");
+      iregion = domain->find_region(arg[1]);
+      if (iregion == -1) error->all("Dump_modify region ID does not exist");
     }
     return 2;
     
@@ -896,6 +930,10 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"mux") == 0) thresh_array[nthresh] = MUX;
     else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
     else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
+    else if (strcmp(arg[1],"quatw") == 0) thresh_array[nthresh] = QUATW;
+    else if (strcmp(arg[1],"quati") == 0) thresh_array[nthresh] = QUATI;
+    else if (strcmp(arg[1],"quatj") == 0) thresh_array[nthresh] = QUATJ;
+    else if (strcmp(arg[1],"quatk") == 0) thresh_array[nthresh] = QUATK;
     else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
@@ -1013,12 +1051,12 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     // set operation type of threshhold
 
-    if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = LT;
-    else if (strcmp(arg[2],">") == 0) thresh_op[nthresh] = LE;
-    else if (strcmp(arg[2],"<=") == 0) thresh_op[nthresh] = GT;
-    else if (strcmp(arg[2],"<") == 0) thresh_op[nthresh] = GE;
-    else if (strcmp(arg[2],"=") == 0) thresh_op[nthresh] = NEQ;
-    else if (strcmp(arg[2],"<>") == 0) thresh_op[nthresh] = EQ;
+    if (strcmp(arg[2],"<") == 0) thresh_op[nthresh] = LT;
+    else if (strcmp(arg[2],"<=") == 0) thresh_op[nthresh] = LE;
+    else if (strcmp(arg[2],">") == 0) thresh_op[nthresh] = GT;
+    else if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = GE;
+    else if (strcmp(arg[2],"==") == 0) thresh_op[nthresh] = EQ;
+    else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
     else error->all("Invalid dump_modify threshhold operator");
 
     // set threshhold value
@@ -1435,6 +1473,62 @@ void DumpCustom::pack_muz(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = mu[i][2];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_quatw(int n)
+{
+  double **quat = atom->quat;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = quat[i][0];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_quati(int n)
+{
+  double **quat = atom->quat;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = quat[i][1];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_quatj(int n)
+{
+  double **quat = atom->quat;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = quat[i][2];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_quatk(int n)
+{
+  double **quat = atom->quat;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = quat[i][3];
       n += size_one;
     }
 }

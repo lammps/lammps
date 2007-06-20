@@ -22,6 +22,14 @@ class CreateAtoms : protected Pointers {
  public:
   CreateAtoms(class LAMMPS *);
   void command(int, char **);
+
+ private:
+  int itype,style,iregion,nbasis;
+  int *basistype;
+  double xone[3];
+
+  void add_single();
+  void add_many();
 };
 
 }

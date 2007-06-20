@@ -43,7 +43,7 @@ class Atom : protected Pointers {
 
   int *molecule;
   double *q,**mu;
-  double **xphi,**omega,**torque;
+  double **xphi,**quat,**omega,**angmom,**torque;
   double *radius,*density,*rmass,*vfrac;
 
   int maxspecial;
@@ -65,18 +65,14 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
-  int *hybrid;
-
   // extra peratom info in restart file destined for fix & diag 
 
   double **extra;
 
   // per-type arrays
 
-  double *mass;
-  int *mass_setflag;
-  double *dipole;
-  int *dipole_setflag;
+  double *mass,**shape,*dipole;
+  int *mass_setflag,*shape_setflag,*dipole_setflag;
 
   // callback ptrs for atom arrays managed by fix classes
 
@@ -97,8 +93,7 @@ class Atom : protected Pointers {
   class AtomVec *new_avec(char *, int, char **);
   void init();
 
-  int check_style(char *);
-  int style2arg(char **);
+  int style_match(char *);
   void modify_params(int, char **);
   void tag_extend();
   int tag_consecutive();
@@ -106,8 +101,8 @@ class Atom : protected Pointers {
   int parse_data(char *);
   int count_words(char *);
 
-  void data_atoms(int, char *, int);
-  void data_vels(int, char *, int);
+  void data_atoms(int, char *);
+  void data_vels(int, char *);
   void data_bonds(int, char *);
   void data_angles(int, char *);
   void data_dihedrals(int, char *);
@@ -119,6 +114,10 @@ class Atom : protected Pointers {
   void set_mass(int, char **);
   void set_mass(double *);
   void check_mass();
+  void set_shape(char *);
+  void set_shape(int, char **);
+  void set_shape(double **);
+  void check_shape();
   void set_dipole(char *);
   void set_dipole(int, char **);
   void set_dipole(double *);

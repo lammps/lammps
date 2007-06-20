@@ -22,6 +22,17 @@ class Set : protected Pointers {
  public:
   Set(class LAMMPS *);
   void command(int, char **);
+
+ private:
+  char *id;
+  int *select;
+  int style,ivalue,newtype,count;
+  double dvalue,xvalue,yvalue,zvalue,fraction;
+
+  void selection(int);
+  void set(int);
+  void setrandom(int);
+  void topology(int);
 };
 
 }

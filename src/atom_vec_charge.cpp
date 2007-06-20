@@ -72,46 +72,6 @@ void AtomVecCharge::grow(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecCharge::reset_ptrs()
-{
-  tag = atom->tag;
-  type = atom->type;
-  mask = atom->mask;
-  image = atom->image;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-
-  q = atom->q;
-}
-
-/* ----------------------------------------------------------------------
-   zero auxiliary data for owned atom I
-   data in copy(), not including tag,type,mask,image,x,v
-------------------------------------------------------------------------- */
-
-void AtomVecCharge::zero_owned(int i)
-{
-  q[i] = 0.0;
-}
-
-/* ----------------------------------------------------------------------
-   zero auxiliary data for n ghost atoms
-   data in border(), not including x,tag,type,mask
-   grow() is here since zero_ghost called first in hybrid::unpack_border()
-------------------------------------------------------------------------- */
-
-void AtomVecCharge::zero_ghost(int n, int first)
-{
-  int last = first + n;
-  for (int i = first; i < last; i++) {
-    if (i == nmax) atom->avec->grow(0);
-    q[i] = 0.0;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AtomVecCharge::copy(int i, int j)
 {
   tag[j] = tag[i];
@@ -374,16 +334,6 @@ int AtomVecCharge::size_restart()
 }
 
 /* ----------------------------------------------------------------------
-   size of restart data for atom I
-   do not include extra data stored by fixes, included by caller
-------------------------------------------------------------------------- */
-
-int AtomVecCharge::size_restart_one(int i)
-{
-  return 12;
-}
-
-/* ----------------------------------------------------------------------
    pack atom I's data for restart file including extra quantities
    xyz must be 1st 3 values, so that read_restart can test on them
    molecular types may be negative, but write as positive   
@@ -457,7 +407,7 @@ int AtomVecCharge::unpack_restart(double *buf)
    set other values to defaults
 ------------------------------------------------------------------------- */
 
-void AtomVecCharge::create_atom(int itype, double *coord, int ihybrid)
+void AtomVecCharge::create_atom(int itype, double *coord)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -483,8 +433,7 @@ void AtomVecCharge::create_atom(int itype, double *coord, int ihybrid)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecCharge::data_atom(double *coord, int imagetmp, char **values,
-			      int ihybrid)
+void AtomVecCharge::data_atom(double *coord, int imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -511,6 +460,22 @@ void AtomVecCharge::data_atom(double *coord, int imagetmp, char **values,
   v[nlocal][2] = 0.0;
 
   atom->nlocal++;
+}
+
+/* ----------------------------------------------------------------------
+   unpack hybrid quantities from one line in Atoms section of data file
+   initialize other atom quantities for this sub-style
+------------------------------------------------------------------------- */
+
+int AtomVecCharge::data_atom_hybrid(int nlocal, char **values)
+{
+  q[nlocal] = atof(values[0]);
+
+  v[nlocal][0] = 0.0;
+  v[nlocal][1] = 0.0;
+  v[nlocal][2] = 0.0;
+
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

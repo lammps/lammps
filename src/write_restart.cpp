@@ -36,7 +36,7 @@
 
 using namespace LAMMPS_NS;
 
-// same as write_restart.cpp
+// same as read_restart.cpp and tools/restart2data.cpp
 
 enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
        NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,

@@ -12,19 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PairInclude
-#include "pair_eam_opt.h"
-#include "pair_eam_alloy_opt.h"
-#include "pair_eam_fs_opt.h"
-#include "pair_lj_charmm_coul_long_opt.h"
-#include "pair_lj_cut_opt.h"
-#include "pair_morse_opt.h"
+#include "pair_meam.h"
 #endif
 
 #ifdef PairClass
-PairStyle(eam/opt,PairEAMOpt)
-PairStyle(eam/alloy/opt,PairEAMAlloyOpt)
-PairStyle(eam/fs/opt,PairEAMFSOpt)
-PairStyle(lj/cut/opt,PairLJCutOpt)
-PairStyle(lj/charmm/coul/long/opt,PairLJCharmmCoulLongOpt)
-PairStyle(morse/opt,PairMorseOpt)
+PairStyle(meam,PairMEAM)
 #endif

@@ -31,7 +31,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,FINAL,DELTA,SCALE,VEL,RATE,VOLUME};
+enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 
 // same as domain.cpp, fix_nvt_sllod.cpp, compute_temp_deform.cpp
@@ -91,9 +91,14 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	set[index].style = VEL;
 	set[index].vel = atof(arg[iarg+2]);
 	iarg += 3;
-      } else if (strcmp(arg[iarg+1],"rate") == 0) {
+      } else if (strcmp(arg[iarg+1],"erate") == 0) {
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
-	set[index].style = RATE;
+	set[index].style = ERATE;
+	set[index].rate = atof(arg[iarg+2]);
+	iarg += 3;
+      } else if (strcmp(arg[iarg+1],"trate") == 0) {
+	if (iarg+3 > narg) error->all("Illegal fix deform command");
+	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
@@ -124,12 +129,18 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	set[index].style = VEL;
 	set[index].vel = atof(arg[iarg+2]);
 	iarg += 3;
-      } else if (strcmp(arg[iarg+1],"rate") == 0) {
+      } else if (strcmp(arg[iarg+1],"erate") == 0) {
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
-	set[index].style = RATE;
+	set[index].style = ERATE;
+	set[index].rate = atof(arg[iarg+2]);
+	iarg += 3;
+      } else if (strcmp(arg[iarg+1],"trate") == 0) {
+	if (iarg+3 > narg) error->all("Illegal fix deform command");
+	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
 	iarg += 3;
       } else error->all("Illegal fix deform command");
+
     } else break;
   }
 
@@ -189,7 +200,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
 
   // set initial/final values for box size and shape for FINAL,DELTA,SCALE
-  // final not possible for VEL,RATE since don't know length of run yet
+  // final not possible for VEL,ERATE,TRATE since don't know length of run yet
   // final = initial if no setting
 
   for (int i = 0; i < 3; i++) {
@@ -317,36 +328,51 @@ void FixDeform::init()
   double delt = (update->endstep - update->beginstep) * update->dt;
   if (delt == 0.0) error->all("Cannot use fix deform for 0 timestep run");
 
-  // set final values for box size and shape for VEL,RATE
+  // set final values for box size and shape for VEL,ERATE,TRATE
   // now possible since length of run is known
 
   for (int i = 0; i < 3; i++) {
     if (set[i].style == VEL) {
       set[i].lo_stop = set[i].lo_start - 0.5*delt*set[i].vel;
       set[i].hi_stop = set[i].hi_start + 0.5*delt*set[i].vel;
-    } else if (set[i].style == RATE) {
+    } else if (set[i].style == ERATE) {
+      set[i].lo_stop = set[i].lo_start - 
+	0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
+      set[i].hi_stop = set[i].hi_start + 
+	0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
+      if (set[i].hi_stop <= set[i].lo_stop)
+	error->all("Final box dimension due to fix deform is < 0.0");
+    } else if (set[i].style == TRATE) {
       set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) - 
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
       set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
     }
   }
+
   for (int i = 3; i < 6; i++) {
     if (set[i].style == VEL) {
       set[i].tilt_stop = set[i].tilt_start + delt*set[i].vel;
-    } else if (set[i].style == RATE) {
+    } else if (set[i].style == ERATE) {
+      if (i == 3) set[i].tilt_stop = set[i].tilt_start + 
+		    delt*set[i].rate * (set[2].hi_start-set[2].lo_start);
+      if (i == 4) set[i].tilt_stop = set[i].tilt_start + 
+		    delt*set[i].rate * (set[2].hi_start-set[2].lo_start);
+      if (i == 5) set[i].tilt_stop = set[i].tilt_start + 
+		    delt*set[i].rate * (set[1].hi_start-set[1].lo_start);
+    } else if (set[i].style == TRATE) {
       set[i].tilt_stop = set[i].tilt_start * pow(1.0+set[i].rate,delt);
     }
   }
 
-  // if using tilt RATE, then initial tilt must be non-zero
+  // if using tilt TRATE, then initial tilt must be non-zero
 
   for (int i = 3; i < 6; i++)
-    if (set[i].style == RATE)
+    if (set[i].style == TRATE)
       if ((i == 5 && domain->xy == 0.0) || 
 	  (i == 4 && domain->xz == 0.0) || 
 	  (i == 3 && domain->yz == 0.0)) 
-	error->all("Cannot use fix deform rate to tilt a box with zero tilt");
+	error->all("Cannot use fix deform trate on a box with zero tilt");
 
   // if yz changes and will cause box flip, then xy cannot be changing
   // this is b/c the flips would induce continuous changes in xz
@@ -362,7 +388,7 @@ void FixDeform::init()
 
   // set domain->h_rate values for use by domain and other fixes/computes
   // initialize all rates to 0.0
-  // cannot set rate now for RATE,VOLUME styles since not constant
+  // cannot set h_rate now for TRATE,VOLUME styles since not constant
 
   h_rate = domain->h_rate;
   h_ratelo = domain->h_ratelo;
@@ -370,17 +396,19 @@ void FixDeform::init()
   for (int i = 0; i < 3; i++) {
     h_rate[i] = h_ratelo[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA ||
-	set[i].style == SCALE || set[i].style == VEL) {
+	set[i].style == SCALE || set[i].style == VEL || 
+	set[i].style == ERATE) {
       double dlo_dt = (set[i].lo_stop - set[i].lo_start) / delt;
       double dhi_dt = (set[i].hi_stop - set[i].hi_start) / delt;
       h_rate[i] = dhi_dt - dlo_dt;
       h_ratelo[i] = dlo_dt;
     }
-  }    
+  }
+
   for (int i = 3; i < 6; i++) {
     h_rate[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA || 
-	set[i].style == VEL)
+	set[i].style == VEL || set[i].style == ERATE)
       h_rate[i] = (set[i].tilt_stop - set[i].tilt_start) / delt;
   }    
 
@@ -443,13 +471,13 @@ void FixDeform::end_of_step()
   delta /= update->endstep - update->beginstep;
 
   // set new box size
-  // for RATE, set target directly based on current time and set h_rate
+  // for TRATE, set target directly based on current time and set h_rate
   // for others except VOLUME, target is linear value between start and stop
 
   for (i = 0; i < 3; i++) {
     if (set[i].style == NONE) continue;
 
-    if (set[i].style == RATE) {
+    if (set[i].style == TRATE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) - 
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
@@ -467,7 +495,7 @@ void FixDeform::end_of_step()
   }
 
   // set new box size for VOLUME dims that are linked to other dims
-  // also need to set h_rate
+  // also need to set h_rate for these dims
 
   for (int i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
@@ -517,8 +545,8 @@ void FixDeform::end_of_step()
   }
 
   // for triclinic, set new box shape
-  // for RATE, set target directly based on current time and set h_rate
-  // for all others, target is linear value between start and stop values
+  // for TRATE, set target directly based on current time and set h_rate
+  // for other styles, target is linear value between start and stop values
 
   if (triclinic) {
     double *h = domain->h;
@@ -526,7 +554,7 @@ void FixDeform::end_of_step()
     for (i = 3; i < 6; i++) {
       if (set[i].style == NONE) continue;
 
-      if (set[i].style == RATE) {
+      if (set[i].style == TRATE) {
 	double delt = (update->ntimestep - update->beginstep) * update->dt;
 	set[i].tilt_target = set[i].tilt_start * pow(1.0+set[i].rate,delt);
 	h_rate[i] = set[i].rate * domain->h[i];

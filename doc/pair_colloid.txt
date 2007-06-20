@@ -1,0 +1,131 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style colloid command :h3
+
+[Syntax:]
+
+pair_style colloid cutoff :pre
+
+cutoff = global cutoff for colloidal interactions (distance units) :ul
+
+[Examples:]
+
+pair_style colloid 10.0
+pair_coeff * *  25 1.0 10.0 10.0
+pair_coeff 1 1 144 1.0 0.0 0.0 3.0
+pair_coeff 1 2  75.398 1.0 0.0 10.0 9.0
+pair_coeff 2 2  39.478 1.0 10.0 10.0 25.0 :pre
+
+[Description:]
+
+Style {colloid} computes pairwise interactions between large colloidal
+particles and small solvent particles using 3 formulas.  A colloidal
+particle has a size > sigma; a solvent particle is the usual
+Lennard-Jones particle of size sigma.
+
+The colloid-colloid interaction energy is given by
+
+:c,image(Eqs/pair_colloid_cc.jpg)
+
+A is the Hamaker constant, a1 and a2 are the radii of the two
+colloidal particles, and Rc is the cutoff.  This equation results from
+describing each colloidal particle as an integrated collection of
+Lennard-Jones particles of size sigma and is derived in
+"(Everaers)"_#Everaers.
+
+The colloid-solvent interaction energy is given by
+
+:c,image(Eqs/pair_colloid_cs.jpg)
+
+A is the Hamaker constant, a is the radius of the colloidal particle,
+and Rc is the cutoff.  This formula is derived from the
+colloid-colloid interaction, letting one of the particle sizes go to
+zero.
+
+The solvent-solvent interaction energy is given by the usual
+Lennard-Jones formula
+
+:c,image(Eqs/pair_colloid_ss.jpg)
+
+which results from letting both particle sizes go to zero.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+A (energy units)
+sigma (distance units)
+d1 (distance units)
+d2 (distance units)
+cutoff (distance units) :ul
+
+A is the energy prefactor and should typically be set as follows:
+
+A_cc = colloid/colloid = 4 pi^2 = 39.5
+A_ss = solvent/solvent = 144 (assuming epsilon = 1, so that 144/36 = 4)
+A_cs = colloid/solvent = sqrt(A_cc*A_ss) :ul
+
+Sigma is the size of the solvent particle or the constituent particles
+integrated over in the colloidal particle and should typically be set
+as follows:
+
+Sigma_cc = colloid/colloid = 1.0
+Sigma_ss = solvent/solvent = 1.0 or whatever size the solvent particle is
+Sigma_cs = colloid/solvent = arithmetic mixing between colloid sigma and solvent sigma :ul
+
+Thus typically Sigma_cs = 1.0, unless the solvent particle's size !=
+1.0.
+
+D1 and d2 are particle diameters, so that d1 = 2*a1 and d2 = 2*a2 in
+the formulas above.  Both d1 and d2 must be values >= 0.  If d1 > 0
+and d2 > 0, then the pair interacts via the colloid-colloid formula
+above.  If d1 = 0 and d2 = 0, then the pair interacts via the
+solvent-solvent formula.  I.e. a d value of 0 is a Lennard-Jones
+particle of size sigma.  If either d1 = 0 or d2 = 0 and the other is
+larger, then the pair interacts via the colloid-solvent formula.
+
+Note that the diameter of a particular particle type may appear in
+multiple pair_coeff commands, as it interacts with other particle
+types.  You should insure the particle diameter is specified
+consistently each time it appears.
+
+The last coefficient is optional.  If not specified, the global cutoff
+specified in the pair_style command is used.  However, you typically
+want different cutoffs for interactions between different particle
+sizes.  E.g. if colloidal particles of diameter 10 are used with
+solvent particles of diameter 1, then a solvent-solvent cutoff of 2.5
+would correspond to a colloid-colloid cutoff of 25.  A good
+rule-of-thumb is to use a colloid-solvent cutoff that is half the big
+diamter + 4 times the small diamter.  I.e. 9 = 5 + 4 for the
+colloid-solvent cutoff in this case.
+
+If a pair_coeff command is not specified for I != J, then the
+coefficients are mixed according the mixing rules defined by the
+"pair_modify"_pair_modify.html command.  The prefactor A is mixed like
+the Lennard-Jones epsilon; sigma,d1,d2 are all mixed like the
+Lennard-Jones sigma.
+
+[Restrictions:]
+
+The {colloid} style is part of the "colloid" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Everaers)
+[(Everaers)] Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).

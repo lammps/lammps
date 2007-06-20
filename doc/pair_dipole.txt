@@ -1,0 +1,98 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style dipole/cut command :h3
+
+[Syntax:]
+
+pair_style dipole/cut cutoff (cutoff2) :pre
+
+cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)
+cutoff2 = global cutoff for Coulombic (optional) (distance units) :ul
+
+[Examples:]
+
+pair_style dipole/cut 10.0
+pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
+
+[Description:]
+
+Style {dipole/cut} computes interactions bewteen pairs of particles
+that each have a charge and/or a point dipole moment.  In addition to
+the usual Lennard-Jones interaction between the particles (Elj) the
+charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)
+interactions are computed by these formulas for the energy (E), force
+(F), and torque (T) between particles I and J.
+
+:c,image(Eqs/pair_dipole.jpg)
+
+where qi and qj are the charges on the two particles, pi and pj are
+the dipole moment vectors of the two particles, r is their separation
+distance, and the vector r = Ri - Rj is the separation vector between
+the two particles.  Note that Eqq and Fqq are simply Coulombic energy
+and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
+torques do not act symmetrically.  These formulas are discussed in
+"(Allen)"_#Allen and in "(Toukmaji)"_#Toukmaji.
+
+If one cutoff is specified in the pair_style command, it is used for
+both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
+they are used as cutoffs for the LJ and Coulombic (q,p) terms
+respectively.
+
+Use of this pair style requires the use of the "fix
+nve/dipole"_fix_nve_dipole.html command to integrate rotation of the
+dipole moments.  Additionally, "atom_style dipole"_atom_style.html
+should be used since it defines the point dipoles and their rotational
+state.  The magnitude of the dipole moment for each type of particle
+can be defined by the "dipole"_dipole.html command or in the "Dipoles"
+section of the data file read in by the "read_data"_read_data.html
+command.  Their initial orientation can be defined by the "set
+dipole"_set.html command or in the "Atoms" section of the data file.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+epsilon (energy units)
+sigma (distance units)
+cutoff1 (distance units)
+cutoff2 (distance units) :ul
+
+The latter 2 coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.
+
+[Restrictions:]
+
+Can only be used if LAMMPS was built with the "dipole" package.
+
+The use of this potential requires additional fixes as described
+above.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "fix nve/dipole"_fix_nve_dipole.html,
+"compute temp/dipole"_compute_temp_dipole.html
+
+[Default:] none
+
+:line
+
+:link(Allen)
+[(Allen)] Allen and Tildesley, Computer Simulation of Liquids,
+Clarendon Press, Oxford, 1987.
+
+:link(Toukmaji)
+[(Toukmaji)] Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
+10913 (2000).

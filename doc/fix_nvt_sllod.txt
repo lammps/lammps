@@ -1,0 +1,132 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix nvt/sllod command :h3
+
+[Syntax:]
+
+fix ID group-ID nvt/sllod Tstart Tstop Tdamp keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+nvt/sllod = style name of this fix command :l
+Tstart,Tstop = desired temperature at start/end of run :l
+Tdamp = temperature damping parameter (time units) :l
+
+zero or more keyword/value pairs may be appended to the args :l
+keyword = {drag} :l
+  {drag} value = drag factor added to thermostat (0.0 = no drag) :pre
+:ule
+
+[Examples:]
+
+fix 1 all nvt/sllod 300.0 300.0 100.0
+fix 1 all nvt/sllod 300.0 300.0 100.0 drag 0.2 :pre
+
+[Description:]
+
+Perform constant NVT integration to update positions and velocities
+each timestep for atoms in the group using a Nose/Hoover temperature
+thermostat.  V is volume; T is temperature.  This creates a system
+trajectory consistent with the canonical ensemble. 
+
+This thermostat is used for a simulation box that is changing size
+and/or shape, for example in a non-equilibrium MD (NEMD) simulation.
+The size/shape change is induced by use of the "fix
+deform"_fix_deform.html command, so each point in the simulation box
+can be thought of as having a "streaming" velocity.  This
+position-dependent streaming velocity is subtracted from each atom's
+actual velocity to yield a thermal velocity which is used for
+temperature computation and thermostatting.  For example, if the box
+is being sheared in x, relative to y, then points at the bottom of the
+box (low y) have a small x velocity, while points at the top of the
+box (hi y) have a large x velocity.  These velocities do not
+contribute to the thermal "temperature" of the atom.
+
+IMPORTANT NOTE: "Fix deform"_fix_deform.html has an option for
+remapping either atom coordinates or velocities to the changing
+simulation box.  To use fix nvt/sllod, fix deform should NOT remap
+atom positions, because fix nvt/sllod adjusts the atom positions and
+velocities to create a velocity profile that matches the changing box
+size/shape.  Fix deform SHOUDLD remap atom velocities when atoms cross
+periodic boundaries since that is consistent with maintaining the
+velocity profile created by fix nvt/sllod.  LAMMPS will warn you if
+this setting is not consistent.
+
+The SLLOD equations of motion coupled to a Nose/Hoover thermostat are
+discussed in "(Tuckerman)"_#Tuckerman (eqs 4 and 5), which is what is
+implemented in LAMMPS in a velocity Verlet formulation.
+
+The desired temperature at each timestep is a ramped value during the
+run from {Tstart} to {Tstop}.  The "run"_run.html command documents
+how to make the ramping take place across multiple runs.  The {Tdamp}
+parameter is specified in time units and determines how rapidly the
+temperature is relaxed.  For example, a value of 100.0 means to relax
+the temperature in a timespan of (roughly) 100 time units (tau or
+fmsec or psec - see the "units"_units.html command).
+
+In some cases (e.g. for solids) the temperature of the system can
+oscillate undesirably when a Nose/Hoover thermostat is applied.  The
+optional {drag} keyword will damp these oscillations, although it
+alters the Nose/Hoover equations.  A value of 0.0 (no drag) leaves the
+Nose/Hoover formalism unchanged.  A non-zero value adds a drag term;
+the larger the value specified, the greater the damping effect.
+Performing a short run and monitoring the temperature is the best way
+to determine if the drag term is working.  Typically a value between
+0.2 to 2.0 is sufficient to damp oscillations after a few periods.
+
+This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "temp/deform", as if this command had
+been issued:
+
+compute fix-ID_temp group-ID temp/deform :pre
+
+See the "compute temp/deform"_compute_temp_deform.html command for
+details.  Note that the ID of the new compute is the fix-ID with
+underscore + "temp" appended and the group for the new compute is the
+same as the fix group.
+
+Note that this is NOT the compute used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+"compute_modify"_compute_modify.html command or print this temperature
+during thermodyanmic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} will have no
+effect on this fix.  Alternatively, you can directly assign a new
+compute (for calculating temeperature) that you have defined to this
+fix via the "fix_modify"_fix_modify.html command.
+
+This fix makes a contribution to the potential energy of the system
+that can be included in thermodynamic output of potential energy using
+the "fix_modify energy"_fix_modify.html option.  The contribution can
+also be printed by itself via the keyword {f_fix-ID} in the
+"thermo_style custom"_thermo_style.html command.
+
+[Restrictions:]
+
+The final Tstop cannot be 0.0 since it would make the target T = 0.0
+at some timestep during the simulation which is not allowed in 
+the Nose/Hoover formulation.
+
+[Related commands:]
+
+"fix nve"_fix_nve.html, "fix npt"_fix_npt.html, "fix
+npt"_fix_npt.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
+langevin"_fix_langevin.html, "fix_modify"_fix_modify.html,
+"temperature"_temperature.html
+
+[Default:]
+
+The keyword defaults are drag = 0.0.
+
+:line
+
+:link(Tuckerman)
+[(Tuckerman)] Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
+106, 5615 (1997).

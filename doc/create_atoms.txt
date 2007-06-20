@@ -10,63 +10,101 @@ create_atoms command :h3
 
 [Syntax:]
 
-create_atoms type keyword values ... :pre
+create_atoms type style args keyword values ... :pre
 
-type = atom type (1-N) of atoms to create on a lattice :ulb,l
-zero or more keyword/value pairs may be appended :l
-keyword = {region} or {basis} :l
-  {region} value = region-ID
+type = atom type (1-Ntypes) of atoms to create :ulb,l
+style = {box} or {region} or {single} :l
+  {box} args = none
+  {region} args = region-ID
     region-ID = atoms will only be created if contained in the region
+  {single} args = x y z
+    x,y,z = coordinates of a single atom (distance units) :pre
+zero or more keyword/value pairs may be appended to the args :l
+keyword = {basis} or {units} :l
   {basis} values = M itype
     M = which basis atom
-    itype = atom type (1-N) to assign to the basis atom :pre
+    itype = atom type (1-N) to assign to this basis atom
+  {units} value = {lattice} or {box}
+    {lattice} = the geometry is defined in lattice units
+    {box} = the geometry is defined in simulation box units :pre
 :ule
 
 [Examples:]
 
-create_atoms 1
-create_atoms 3 region regsphere
-create_atoms 1 basis 2 5 :pre
+create_atoms 1 box
+create_atoms 3 region regsphere basis 2 3
+create_atoms 3 single 0 0 5 :pre
 
 [Description:]
 
-This command creates atoms on a lattice as an alternative to reading
-in their coordinates via a "read_data"_read_data.html or
-"read_restart"_read_restart.html command.  A simulation box must
-already exist, which is typically created via the
-"create_box"_create_box.html command.
+This command creates atoms on a lattice or a single atom as an
+alternative to reading in their coordinates via a
+"read_data"_read_data.html or "read_restart"_read_restart.html
+command.  A simulation box must already exist, which is typically
+created via the "create_box"_create_box.html command.  Before using
+this command, a lattice must also be defined using the
+"lattice"_lattice.html command.  The only exception is for the
+{single} style with units = box.
 
-Before using this command, a lattice must be defined using the
-"lattice"_lattice.html command.  If a region is not specified, the
-create_atoms command fills the entire simulation box with atoms on the
-lattice.  If a region is specified (see the "region"_region.html
-command), then the geometric volume is filled that is inside the
-simulation box and is also consistent with the region volume.  Note
-that a region can be specified so that its "volume" is either inside
-or outside a geometric boundary.
+For the {box} style, the create_atoms command fills the entire
+simulation box with atoms on the lattice.  If your box is periodic,
+you should insure its size is a multiple of the lattice spacings, to
+avoid unwanted atom overlap at the box boundaries.
 
-The "lattice"_lattice.html command specifies one or more basis atoms
-in each unit cell.  By default, when created, all basis atoms are
-assigned the argument {type} as their atom type.  The keyword {basis}
-can be used to override the default for one or more basis atoms and
-assign them a different atom type.
+For the {region} style, the geometric volume is filled that is inside
+the simulation box and is also consistent with the region volume.  See
+the "region"_region.html command for details.  Note that a region can
+be specified so that its "volume" is either inside or outside a
+geometric boundary.
 
-By using the create_atoms command multiple times (interleaved with
-"lattice"_lattice.html commands specifying different orientations),
-grain boundaries can be created.  Using the create_atoms command in
-conjunction with the "delete_atoms"_delete_atoms.html command,
-reasonably complex geometries can be created.  The create_atoms
-command can also be used to add atoms to a system previously read in
-from a data or restart file.  In all these cases, care should be taken
-to insure that new atoms do not overlap existing atoms
-inappropriately.
+For the {single} style, a single atom is added to the system at the
+specified coordinates.  This can be useful for debugging purposes or
+to create a tiny system with a handful of atoms at specified
+positions.
 
-Created atoms are assigned a velocity of 0.0.
+The {basis} keyword specifies an atom type that will be assigned to
+specific basis atoms as they are created.  See the
+"lattice"_lattice.html command for specifics on how basis atoms are
+defined for the unit cell of the lattice.  By default, all created
+atoms are assigned the argument {type} as their atom type.
+
+The {units} keyword determines the meaning of the distance units used
+to specify the coordinates of the one atom created by the {single}
+style.  A {box} value selects standard distance units as defined by
+the "units"_units.html command, e.g. Angstroms for units = real or
+metal.  A {lattice} value means the distance units are in lattice
+spacings.
+
+Note that this command adds atoms to those that already exist.  By
+using the create_atoms command multiple times, multiple sets of atoms
+can be added to the simulation.  For example, interleaving
+create_atoms with "lattice"_lattice.html commands specifying different
+orientations, grain boundaries can be created.  By using the
+create_atoms command in conjunction with the
+"delete_atoms"_delete_atoms.html command, reasonably complex
+geometries can be created.  The create_atoms command can also be used
+to add atoms to a system previously read in from a data or restart
+file.  In all these cases, care should be taken to insure that new
+atoms do not overlap existing atoms inappropriately.  The
+"delete_atoms"_delete_atoms.html command can be used to handle
+overlaps.
+
+Aside from their position and atom type, other properties of created
+atoms are set to 0.0, e.g velocity, charge, etc.  These properties can
+be changed via the "velocity"_velocity.html or "set"_set.html
+commands.
+
+Atom IDs are assigned to created atoms in the following way.  The
+collection of created atoms are assigned consecutive IDs that start
+immediately following the largest atom ID existing before the
+create_atoms command was invoked.  When a simulation is performed on
+different numbers of processors, there is no guarantee a particular
+created atom will be assigned the same ID.
 
 [Restrictions:]
 
-An "atom_style"_atom_style.html and "lattice"_lattice.html must be
-previously defined to use this command.
+An "atom_style"_atom_style.html must be previously defined to use this
+command.
 
 [Related commands:]
 

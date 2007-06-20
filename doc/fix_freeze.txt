@@ -26,8 +26,7 @@ for preventing certain particles from moving in a simulation.
 
 [Restrictions:]
 
-Can only be used if LAMMPS was built with the "granular" package.  Can
-only be used with atom_style granular.
+Can only be used if LAMMPS was built with the "granular" package.
 
 There can only be a single freeze fix defined.  This is because other
 parts of the code (pair potentials, thermodynamics, etc) treat frozen

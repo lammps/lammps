@@ -19,7 +19,7 @@ style = {region} or {type} or {id} or {molecule} or {subtract} or \
   {type} or {id} or {molecule}
     args = one or more atom types, atom IDs, or molecule IDs
     args = logical value
-      logical = "<" or "<=" or ">" or ">="
+      logical = "<" or "<=" or ">" or ">=" or "==" or "!="
       value = an atom type or atom ID or molecule ID (depending on {style})
     args = logical value1 value2
       logical = "<>"
@@ -60,7 +60,7 @@ specified atom types, atom IDs, or molecule IDs into the group.  These
 The 1st format is a list of values (types or IDs).  For example, the
 2nd command in the examples above puts all atoms of type 3 or 4 into
 the group named {water}.  The 2nd format is a {logical} followed by
-one or two values (type or ID).  The 5 valid logicals are listed
+one or two values (type or ID).  The 7 valid logicals are listed
 above.  All the logicals except <> take a single argument.  The 3rd
 example above adds all atoms with IDs from 1 to 150 to the group named
 {sub}.  The logical <> means "between" and takes 2 arguments.  The 4th

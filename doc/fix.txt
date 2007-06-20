@@ -108,11 +108,7 @@ Here is an alphabetic list of fix styles defined in LAMMPS:
 "fix temp/rescale"_fix_temp_rescale.html - temperature control by \
      velocity rescaling
 "fix tmd"_fix_tmd.html - guide a group of atoms to a new configuration
-"fix uniaxial"_fix_uniaxial.html - uniaxial straining of system while \
-     preserving total volume
 "fix viscous"_fix_viscous.html - viscous damping for granular simulations
-"fix volume/rescale"_fix_volume_rescale.html - density control by \
-     volume rescaling
 "fix wall/gran"_fix_wall_gran.html - frictional wall(s) for \
      granular simulations
 "fix wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall

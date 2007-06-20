@@ -33,8 +33,7 @@ written to the file are averaged over all atoms in the bin.
 
 [Restrictions:]
 
-Can only be used if LAMMPS was built with the "granular" package.  Can
-only be used with atom_style granular.
+Can only be used if LAMMPS was built with the "granular" package.
 
 [Related commands:]
 

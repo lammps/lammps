@@ -26,15 +26,24 @@ next a t x myTemp
 </P>
 <P>This command is used with variables defined by the
 <A HREF = "variable.html">variable</A> command.  It assigns the next value to the
-variable from the variable's list, so that when a variable is
+variable from the list of values defined for that variable by the
+<A HREF = "variable.html">variable</A> command.  Thus when that variable is
 subsequently substituted for in an input script command, the new value
-is used.  If a variable name is a single lower-case character from "a"
-to "z", it can be used in an input script command as $a or $z.  If it
-is multiple letters, it can be used as $<I>myTemp</I>.
+is used. 
 </P>
-<P>All variables in a single next command must be the same style:
-<I>index</I>, <I>loop</I>, <I>universe</I>, or <I>uloop</I>.  <I>Equal</I>- or <I>world</I>-style
-variables cannot be incremented by a next command.
+<P>See the <A HREF = "variable.html">variable</A> command for info on how to define and
+use different kinds of variables in LAMMPS input scripts.  If a
+variable name is a single lower-case character from "a" to "z", it can
+be used in an input script command as $a or $z.  If it is multiple
+letters, it can be used as ${myTemp}.
+</P>
+<P>If multiple variables are used as arguments to the <I>next</I> command,
+then all must be of the same variable style: <I>index</I>, <I>loop</I>,
+<I>universe</I>, or <I>uloop</I>.  An exception is that <I>universe</I>- and
+<I>uloop</I>-style variables can be mixed in the same <I>next</I> command.
+<I>Atom</I>- or <I>equal</I>- or <I>world</I>-style variables cannot be incremented
+by a next command.  All the variables specified are incremented by one
+value from their respective lists.
 </P>
 <P>When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next

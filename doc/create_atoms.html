@@ -13,67 +13,107 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>create_atoms type keyword values ... 
+<PRE>create_atoms type style args keyword values ... 
 </PRE>
-<UL><LI>type = atom type (1-N) of atoms to create on a lattice 
+<UL><LI>type = atom type (1-Ntypes) of atoms to create 
 
-<LI>zero or more keyword/value pairs may be appended 
+<LI>style = <I>box</I> or <I>region</I> or <I>single</I> 
 
-<LI>keyword = <I>region</I> or <I>basis</I> 
-
-<PRE>  <I>region</I> value = region-ID
+<PRE>  <I>box</I> args = none
+  <I>region</I> args = region-ID
     region-ID = atoms will only be created if contained in the region
-  <I>basis</I> values = M itype
+  <I>single</I> args = x y z
+    x,y,z = coordinates of a single atom (distance units) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended to the args 
+
+<LI>keyword = <I>basis</I> or <I>units</I> 
+
+<PRE>  <I>basis</I> values = M itype
     M = which basis atom
-    itype = atom type (1-N) to assign to the basis atom 
+    itype = atom type (1-N) to assign to this basis atom
+  <I>units</I> value = <I>lattice</I> or <I>box</I>
+    <I>lattice</I> = the geometry is defined in lattice units
+    <I>box</I> = the geometry is defined in simulation box units 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>create_atoms 1
-create_atoms 3 region regsphere
-create_atoms 1 basis 2 5 
+<PRE>create_atoms 1 box
+create_atoms 3 region regsphere basis 2 3
+create_atoms 3 single 0 0 5 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command creates atoms on a lattice as an alternative to reading
-in their coordinates via a <A HREF = "read_data.html">read_data</A> or
-<A HREF = "read_restart.html">read_restart</A> command.  A simulation box must
-already exist, which is typically created via the
-<A HREF = "create_box.html">create_box</A> command.
+<P>This command creates atoms on a lattice or a single atom as an
+alternative to reading in their coordinates via a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+command.  A simulation box must already exist, which is typically
+created via the <A HREF = "create_box.html">create_box</A> command.  Before using
+this command, a lattice must also be defined using the
+<A HREF = "lattice.html">lattice</A> command.  The only exception is for the
+<I>single</I> style with units = box.
 </P>
-<P>Before using this command, a lattice must be defined using the
-<A HREF = "lattice.html">lattice</A> command.  If a region is not specified, the
-create_atoms command fills the entire simulation box with atoms on the
-lattice.  If a region is specified (see the <A HREF = "region.html">region</A>
-command), then the geometric volume is filled that is inside the
-simulation box and is also consistent with the region volume.  Note
-that a region can be specified so that its "volume" is either inside
-or outside a geometric boundary.
+<P>For the <I>box</I> style, the create_atoms command fills the entire
+simulation box with atoms on the lattice.  If your box is periodic,
+you should insure its size is a multiple of the lattice spacings, to
+avoid unwanted atom overlap at the box boundaries.
 </P>
-<P>The <A HREF = "lattice.html">lattice</A> command specifies one or more basis atoms
-in each unit cell.  By default, when created, all basis atoms are
-assigned the argument <I>type</I> as their atom type.  The keyword <I>basis</I>
-can be used to override the default for one or more basis atoms and
-assign them a different atom type.
+<P>For the <I>region</I> style, the geometric volume is filled that is inside
+the simulation box and is also consistent with the region volume.  See
+the <A HREF = "region.html">region</A> command for details.  Note that a region can
+be specified so that its "volume" is either inside or outside a
+geometric boundary.
 </P>
-<P>By using the create_atoms command multiple times (interleaved with
-<A HREF = "lattice.html">lattice</A> commands specifying different orientations),
-grain boundaries can be created.  Using the create_atoms command in
-conjunction with the <A HREF = "delete_atoms.html">delete_atoms</A> command,
-reasonably complex geometries can be created.  The create_atoms
-command can also be used to add atoms to a system previously read in
-from a data or restart file.  In all these cases, care should be taken
-to insure that new atoms do not overlap existing atoms
-inappropriately.
+<P>For the <I>single</I> style, a single atom is added to the system at the
+specified coordinates.  This can be useful for debugging purposes or
+to create a tiny system with a handful of atoms at specified
+positions.
 </P>
-<P>Created atoms are assigned a velocity of 0.0.
+<P>The <I>basis</I> keyword specifies an atom type that will be assigned to
+specific basis atoms as they are created.  See the
+<A HREF = "lattice.html">lattice</A> command for specifics on how basis atoms are
+defined for the unit cell of the lattice.  By default, all created
+atoms are assigned the argument <I>type</I> as their atom type.
+</P>
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+to specify the coordinates of the one atom created by the <I>single</I>
+style.  A <I>box</I> value selects standard distance units as defined by
+the <A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or
+metal.  A <I>lattice</I> value means the distance units are in lattice
+spacings.
+</P>
+<P>Note that this command adds atoms to those that already exist.  By
+using the create_atoms command multiple times, multiple sets of atoms
+can be added to the simulation.  For example, interleaving
+create_atoms with <A HREF = "lattice.html">lattice</A> commands specifying different
+orientations, grain boundaries can be created.  By using the
+create_atoms command in conjunction with the
+<A HREF = "delete_atoms.html">delete_atoms</A> command, reasonably complex
+geometries can be created.  The create_atoms command can also be used
+to add atoms to a system previously read in from a data or restart
+file.  In all these cases, care should be taken to insure that new
+atoms do not overlap existing atoms inappropriately.  The
+<A HREF = "delete_atoms.html">delete_atoms</A> command can be used to handle
+overlaps.
+</P>
+<P>Aside from their position and atom type, other properties of created
+atoms are set to 0.0, e.g velocity, charge, etc.  These properties can
+be changed via the <A HREF = "velocity.html">velocity</A> or <A HREF = "set.html">set</A>
+commands.
+</P>
+<P>Atom IDs are assigned to created atoms in the following way.  The
+collection of created atoms are assigned consecutive IDs that start
+immediately following the largest atom ID existing before the
+create_atoms command was invoked.  When a simulation is performed on
+different numbers of processors, there is no guarantee a particular
+created atom will be assigned the same ID.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>An <A HREF = "atom_style.html">atom_style</A> and <A HREF = "lattice.html">lattice</A> must be
-previously defined to use this command.
+<P>An <A HREF = "atom_style.html">atom_style</A> must be previously defined to use this
+command.
 </P>
 <P><B>Related commands:</B>
 </P>

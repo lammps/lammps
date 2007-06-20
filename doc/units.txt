@@ -42,6 +42,7 @@ force = epsilon/sigma
 temperature = reduced LJ temperature
 pressure = reduced LJ pressure
 charge = reduced LJ charge
+dipole = reduced LJ dipole moment
 electric field = force/charge :ul
 
 For style {real}, these are the units:
@@ -55,6 +56,7 @@ force = Kcal/mole-Angstrom
 temperature = degrees K
 pressure = atmospheres
 charge = multiple of electron charge (+1.0 is a proton)
+dipole = charge*Angstroms
 electric field = volts/Angstrom :ul
 
 For style {metal}, these are the units:
@@ -68,6 +70,7 @@ force = eV/Angstrom
 temperature = degrees K
 pressure = bars
 charge = multiple of electron charge (+1.0 is a proton)
+dipole = charge*Angstroms
 electric field = volts/Angstrom :ul
 
 This command also sets the timestep size and neighbor skin distance to

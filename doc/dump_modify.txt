@@ -24,7 +24,7 @@ keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {
   {region} arg = region-ID or "none"
   {thresh} args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
-    operation = < or <= or > or >= or = or <>
+    operation = "<" or "<=" or ">" or ">=" or "==" or "!="
     value = numeric value to compare to
     these 3 args can be replaced by the word "none" to turn off threshholding
 :pre

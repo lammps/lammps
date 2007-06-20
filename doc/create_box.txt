@@ -42,12 +42,12 @@ origin given by a = (xhi-xlo,0,0); b = (xy,yhi-ylo,0); c =
 
 A prism region used with the create_box command must have tilt factors
 (xy,xz,yz) that do not skew the box more than half the distance of the
-perpendicular box length.  For example, if ylo = 2 and yhi = 12, then
-the y box length is 10 and the xy tilt factor must be between -5 and
-5.  Similarly, both xz and yz must be between -(zhi-zlo)/2 and
-+(zhi-zlo)/2.  From a mechanics persepctive this is equivalent to
-saying the shear strain of the system (sideways displacement divided
-by perpendicular box length) must be between -0.5 and 0.5.
+parallel box length.  For example, if xlo = 2 and xhi = 12, then the x
+box length is 10 and the xy tilt factor must be between -5 and 5.
+Similarly, both xz and yz must be between -(xhi-xlo)/2 and
++(yhi-ylo)/2.  Note that this is not a limitation, since if the
+maximum tilt factor is 5 (as in this example), then configurations
+with tilt = ..., -15, -5, 5, 15, 25, ... are all equivalent.
 
 When a prism region is used, the simulation domain must be periodic in
 any dimensions with a non-zero tilt factor, as defined by the

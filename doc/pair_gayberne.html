@@ -47,14 +47,16 @@ curvatures <A HREF = "#Everaers">(Everaers)</A>:
 </CENTER>
 <P>The variable names utilized as potential parameters are for the most
 part taken from <A HREF = "#Everaers">(Everaers)</A> in order to be consistent with
-its RE-squared potential fix. Details on the upsilon and mu 
-parameters are given <A HREF = "Eqs/pair_gayberne_extra.pdf">here</A>.
-Use of this pair style requires the
-<A HREF = "fix_nve_asphere.html">fix nve/asphere</A> in order to integrate particle
+its RE-squared potential fix.  Details on the upsilon and mu
+parameters are given <A HREF = "Eqs/pair_gayberne_extra.pdf">here</A>.  Use of this pair style requires
+the NVE, NVT, or NPT fixes with the <I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix
+nve/asphere</A>) in order to integrate particle
 rotation.  Additionally, <A HREF = "atom_style.html">atom_style ellipsoid</A> should
-be used since it defines the rotation state of the ellipsoidal
+be used since it defines the rotational state of the ellipsoidal
 particles.
 </P>
+
+
 <P>More details of the Gay-Berne formulation are given in the references
 listed below and in <A HREF = "Eqs/pair_gayberne_extra.pdf">this document</A>.
 </P>
@@ -85,8 +87,7 @@ pair of atoms.  Thus they are applied to atom type I only.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Can only be used if LAMMPS was built with the "asphere" package.  Can
-only be used with <A HREF = "atom_style.html">atom_style ellipsoid</A>.
+<P>Can only be used if LAMMPS was built with the "asphere" package.
 </P>
 <P>The use of this potential requires additional fixes as described
 above.  The "shift yes" option currently cannot be used with this

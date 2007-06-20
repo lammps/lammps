@@ -70,11 +70,11 @@ as
 </P>
 <PRE>2 1.0 1.0 2.5 
 </PRE>
-<P>If coefficients for type pairs with I not equal J are not set
-explicity by a pair_coeff command, they are inferred from the I,I and
-J,J settings by mixing rules; see the <A HREF = "pair_modify.html">pair_modify</A>
-command for a discussion.  Exceptions to the mixing rules of the
-pair_modify command are discussed with the individual pair styles.
+<P>For many potentials, if coefficients for type pairs with I != J are
+not set explicity by a pair_coeff command, the values are inferred
+from the I,I and J,J settings by mixing rules; see the
+<A HREF = "pair_modify.html">pair_modify</A> command for a discussion.  Exceptions
+to the mixing rules are discussed with the individual pair styles.
 </P>
 <HR>
 
@@ -86,9 +86,11 @@ the pair_style command, and coefficients specified by the associated
 <UL><LI><A HREF = "pair_none.html">pair_style none</A> - turn off pairwise interactions
 <LI><A HREF = "pair_hybrid.html">pair_style hybrid</A> - define multiple styles of pairwise interactions 
 </UL>
-<UL><LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
+<UL><LI><A HREF = "pair_airebo.html">pair_style airebo</A> - AI-REBO potential
+<LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/cut</A> - Buckinhham with cutoff Coulomb
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulomb
+<LI><A HREF = "pair_colloid.html">pair_style colloid</A> - integrated colloidal potential
 <LI><A HREF = "pair_dpd.html">pair_style dpd</A> - dissipative particle dynamics (DPD)
 <LI><A HREF = "pair_eam.html">pair_style eam</A> - embedded atom method (EAM)
 <LI><A HREF = "pair_eam.html">pair_style eam/alloy</A> - alloy EAM

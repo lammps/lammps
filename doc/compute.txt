@@ -38,23 +38,34 @@ calculate one or more values for each atom in the group can output
 those values via the "dump custom"_dump.html command or the "fix
 ave/spatial"_fix_ave_spatial.html command.
 
-LAMMPS creates its own computes for thermodynamic output and dumping
-atom snapshots.  Likewise fixes that compute temperature or pressure
-create their own computes.  These are discussed in the documentation
-for "thermo_style"_thermo_style.html, "dump custom"_dump.html, and
-specific "fix"_fix.html commands.
+LAMMPS creates its own computes for thermodynamic output.  Two
+computes are always created, named "thermo_temp" and
+"thermo_pressure", as if these commands had been invoked:
+
+compute thermo_temp all temp
+compute thermo_pressure all pressure thermo_temp :pre
+
+Additional computes are created if the thermo style requires it.  See
+the documentation for the "thermo_style"_thermo_style.html command.
+
+The dumping of atom snapshots and fixes that compute temperature or
+pressure also create computes as required.  These are discussed in the
+documentation for the "dump custom"_dump.html and specific
+"fix"_fix.html commands.
 
 In all these cases, the default computes can be replaced by computes
 defined in the input script, as described by the
 "thermo_modify"_thermo_modify.html and "fix modify"_fix_modify.html
-commands.  Code for new computes can also be added to LAMMPS (see
-"this section"_Section_modify.html of the manaul) and their
+commands.
+
+Properties of either a default of user-defined compute can be modified
+via the "compute_modify"_compute_modify.html command.
+
+Computes can be deleted with the "uncompute"_uncompute.html command.
+
+Code for new computes can be added to LAMMPS (see "this
+section"_Section_modify.html of the manaul) and the results of their
 calculations accessed in the various ways described above.
-
-Properties of a compute can be modified via the
-"compute_modify"_compute_modify.html command.
-
-Compute can be deleted with the "uncompute"_uncompute.html command.
 
 Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles

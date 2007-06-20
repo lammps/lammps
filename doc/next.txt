@@ -23,15 +23,24 @@ next a t x myTemp :pre
 
 This command is used with variables defined by the
 "variable"_variable.html command.  It assigns the next value to the
-variable from the variable's list, so that when a variable is
+variable from the list of values defined for that variable by the
+"variable"_variable.html command.  Thus when that variable is
 subsequently substituted for in an input script command, the new value
-is used.  If a variable name is a single lower-case character from "a"
-to "z", it can be used in an input script command as $a or $z.  If it
-is multiple letters, it can be used as ${myTemp}.
+is used. 
 
-All variables in a single next command must be the same style:
-{index}, {loop}, {universe}, or {uloop}.  {Equal}- or {world}-style
-variables cannot be incremented by a next command.
+See the "variable"_variable.html command for info on how to define and
+use different kinds of variables in LAMMPS input scripts.  If a
+variable name is a single lower-case character from "a" to "z", it can
+be used in an input script command as $a or $z.  If it is multiple
+letters, it can be used as $\{myTemp\}.
+
+If multiple variables are used as arguments to the {next} command,
+then all must be of the same variable style: {index}, {loop},
+{universe}, or {uloop}.  An exception is that {universe}- and
+{uloop}-style variables can be mixed in the same {next} command.
+{Atom}- or {equal}- or {world}-style variables cannot be incremented
+by a next command.  All the variables specified are incremented by one
+value from their respective lists.
 
 When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next

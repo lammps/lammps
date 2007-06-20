@@ -94,16 +94,19 @@ parallelepiped with triclinic symmetry.  See the <A HREF = "region.html">region
 prism</A> command for a description of how the extent of the
 parallelepiped is defined.  The parallelepiped has its "origin" at
 (xlo,ylo,zlo) and 3 edge vectors starting from the origin given by a =
-(xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+(xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).  Note that if
+your simulation will tilt the box, e.g. via the <A HREF = "fix_deform.html">fix
+deform</A> command, the simulation box must be triclinic,
+even if the tilt factors are initially 0.0.
 </P>
-<P>The tilt factors (xy,xz,yz) must not skew the box more than half the
-distance of the perpendicular box length.  For example, if ylo = 2 and
-yhi = 12, then the y box length is 10 and the xy tilt factor must be
+<P>The tilt factors (xy,xz,yz) can not skew the box more than half the
+distance of the parallel box length.  For example, if xlo = 2 and xhi
+= 12, then the x box length is 10 and the xy tilt factor must be
 between -5 and 5.  Similarly, both xz and yz must be between
--(zhi-zlo)/2 and +(zhi-zlo)/2.  From a mechanics persepctive this is
-equivalent to saying the shear strain of the system (sideways
-displacement divided by perpendicular box length) must be between -0.5
-and 0.5.
+-(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
+since if the maximum tilt factor is 5 (as in this example), then
+configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
+equivalent.
 </P>
 <P>When a triclinic system is used, the simulation domain must be
 periodic in any dimensions with a non-zero tilt factor, as defined by
@@ -135,12 +138,12 @@ back inside the box.
 
 <P>These are the section keywords for the body of the file.
 </P>
-<UL><LI><I>Atoms, Velocities, Masses, Dipoles</I> = atom-property sections 
+<UL><LI><I>Atoms, Velocities, Masses, Shapes, Dipoles</I> = atom-property sections 
 <LI><I>Bonds, Angles, Dihedrals, Impropers</I> = molecular topolgy sections 
 <LI><I>Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs</I> = force field sections
 <LI><I>BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs</I> = class 2 force field sections 
 </UL>
-<P>Each section is now listed in alphabetic order.  The format of each
+<P>Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
 rules (if any) for where it can appear in the data file.
 </P>
@@ -252,11 +255,13 @@ line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
 <TR><TD >atomic</TD><TD > atom-ID atom-type x y z</TD></TR>
 <TR><TD >bond</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
+<TR><TD >dipole</TD><TD > atom-ID atom-type q x y z mux muy muz</TD></TR>
 <TR><TD >dpd</TD><TD > atom-ID atom-type x y z</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID atom-type x y z quatw quati quatj quatk</TD></TR>
 <TR><TD >full</TD><TD > atom-ID molecule-ID atom-type q x y z</TD></TR>
 <TR><TD >granular</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
-<TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z 
+<TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
+<TR><TD >hybrid</TD><TD > atom-ID atom-type x y z sub-style1 sub-style2 ...  
 </TD></TR></TABLE></DIV>
 
 <P>where the keywords have these meanings:
@@ -268,13 +273,14 @@ line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
 <LI>diameter = diameter of atom
 <LI>density = density of atom
 <LI>x,y,z = coordinates of atom
+<LI>mux,muy,muz = direction of dipole moment of atom
 <LI>quatw,quati,quatj,quatk = quaternion components for orientation of atom 
 </UL>
 <P>The units for these quantities depend on the unit style; see the
 <A HREF = "units.html">units</A> command for details.
 </P>
-<P>For 2d simulations specify z as 0.0, or a value is within the <I>zlo
-zhi</I> setting in the data file header.
+<P>For 2d simulations specify z as 0.0, or a value within the <I>zlo zhi</I>
+setting in the data file header.
 </P>
 <P>The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
@@ -291,6 +297,36 @@ is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is an unbonded atom or if you don't care to
 keep track of molecule assignments.
 </P>
+<P>The values <I>quatw</I>, <I>quati</I>, <I>quatj</I>, and <I>quatk</I> set the orientation
+of the atom as a quaternion (4-vector).  Note that the
+<A HREF = "shape.html">shape</A> command or "Shapes" section of the data file
+specifies the aspect ratios of an ellipsoidal particle, which is
+oriented by default with its x-axis along the simulation box's x-axis,
+and similarly for y and z.  If this body is rotated (via the
+right-hand rule) by an angle theta around a unit vector (a,b,c), then
+the quaternion that represents its new orientation is given by
+(cos(theta/2), a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  These
+4 components are quatw, quati, quatj, and quatk as specfied above.
+LAMMPS normalizes each atom's quaternion in case (a,b,c) was not a
+unit vector.
+</P>
+<P>For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
+specific values for each sub-style must be listed.  The order of the
+sub-styles is the same as they were listed in the
+<A HREF = "atom_style.html">atom_style</A> command.  The sub-style specific values
+are those that are not the 5 standard ones (ID,type,x,y,z).  For
+example, for the "charge" sub-style, a "q" value would appear.  For
+the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
+listed in the same order they appear as listed above.
+</P>
+<P>Thus if
+</P>
+<PRE>atom_style hybrid charge granular 
+</PRE>
+<P>were used in the input script, each atom line would have these fields:
+</P>
+<PRE>atom-ID atom-type x y z q diameter density 
+</PRE>
 <P>Atom lines (all lines or none of them) can optionally list 3 final
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
 image of the box the atom is considered to be in.  An image of 0 means
@@ -301,9 +337,10 @@ during the simulation.  The flags can be output with atom snapshots
 via the <A HREF = "dump.html">dump</A> command.  If nx,ny,nz values are not set in
 the data file, LAMMPS initializes them to 0.
 </P>
-<P>Atom velocities are set to 0.0 when the <I>Atoms</I> section is read.  They
-may later be set by a <I>Velocities</I> section in the data file or by a
-<A HREF = "velocity.html">velocity</A> command in the input script.
+<P>Atom velocities and other atom quantities not defined above are set to
+0.0 when the <I>Atoms</I> section is read.  They may later be set by a
+<I>Velocities</I> section in the data file or by a <A HREF = "velocity.html">velocity</A>
+or <A HREF = "set.html">set</A> command in the input script.
 </P>
 <HR>
 
@@ -571,6 +608,30 @@ script.
 </P>
 <HR>
 
+<P><I>Shapes</I> section:
+</P>
+<UL><LI>one line per atom type 
+
+<LI>line syntax: ID x y z 
+
+<PRE>  ID = atom type (1-N)
+  x = x diameter
+  y = y diameter
+  z = z diameter 
+</PRE>
+<LI>example: 
+
+<PRE>  3 2.0 1.0 1.0 
+</PRE>
+
+</UL>
+<P>This defines the shape of each atom type.  This can also be set via
+the <A HREF = "mass.html">shape</A> command in the input script.  This section
+should only be used for atom styles that define a shape, e.g. atom
+style dipole or ellipsoid.
+</P>
+<HR>
+
 <P><I>Velocities</I> section:
 </P>
 <UL><LI>one line per atom
@@ -578,6 +639,7 @@ script.
 </UL>
 <DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >all styles except those listed</TD><TD > atom-ID vx vy vz</TD></TR>
+<TR><TD >dipole</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID vx vy vz lx ly lz</TD></TR>
 <TR><TD >granular</TD><TD > atom-ID vx vy vz wx wy wz 
 </TD></TR></TABLE></DIV>

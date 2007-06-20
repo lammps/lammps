@@ -32,8 +32,7 @@ moment of inertia and w is the angular velocity.
 
 [Restrictions:]
 
-Can only be used if LAMMPS was built with the "asphere" package.  Can
-only be used with atom_style ellipsoid.
+Can only be used if LAMMPS was built with the "asphere" package.
 
 [Related commands:]
 

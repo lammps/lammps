@@ -41,12 +41,13 @@ output, but does not affect atom dynamics (forces).  Pair styles that
 are already 0.0 at their cutoff such as {lj/charmm/coul/charmm} are
 not affected by this setting.
 
-The {mix} keyword affects how Lennard-Jones coefficients for epsilon
-and sigma are generated for interactions between atoms of type I and
-J, when I != J.  Coefficients for I = J are set explicitly in the data
-file or input script.  The "pair_coeff"_pair_coeff.html command can be
-used in the input script to specify epilon/sigma for a specific I != J
-pairing, which overrides the setting of the {mix} keyword.
+The {mix} keyword affects how Lennard-Jones coefficients for epsilon,
+sigma, and the cutoff are generated for interactions between atoms of
+type I and J, when I != J.  Coefficients for I = J are set explicitly
+in the data file or input script.  The "pair_coeff"_pair_coeff.html
+command can be used in the input script to specify epilon/sigma for a
+specific I != J pairing, which overrides the setting of the {mix}
+keyword.
 
 These are the formulas used by the 3 {mix} options.  In each case, the
 LJ cutoff is mixed the same way as sigma.  Note that some of these

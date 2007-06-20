@@ -89,16 +89,19 @@ parallelepiped with triclinic symmetry.  See the "region
 prism"_region.html command for a description of how the extent of the
 parallelepiped is defined.  The parallelepiped has its "origin" at
 (xlo,ylo,zlo) and 3 edge vectors starting from the origin given by a =
-(xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+(xhi-xlo,0,0); b = (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).  Note that if
+your simulation will tilt the box, e.g. via the "fix
+deform"_fix_deform.html command, the simulation box must be triclinic,
+even if the tilt factors are initially 0.0.
 
-The tilt factors (xy,xz,yz) must not skew the box more than half the
-distance of the perpendicular box length.  For example, if ylo = 2 and
-yhi = 12, then the y box length is 10 and the xy tilt factor must be
+The tilt factors (xy,xz,yz) can not skew the box more than half the
+distance of the parallel box length.  For example, if xlo = 2 and xhi
+= 12, then the x box length is 10 and the xy tilt factor must be
 between -5 and 5.  Similarly, both xz and yz must be between
--(zhi-zlo)/2 and +(zhi-zlo)/2.  From a mechanics persepctive this is
-equivalent to saying the shear strain of the system (sideways
-displacement divided by perpendicular box length) must be between -0.5
-and 0.5.
+-(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
+since if the maximum tilt factor is 5 (as in this example), then
+configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
+equivalent.
 
 When a triclinic system is used, the simulation domain must be
 periodic in any dimensions with a non-zero tilt factor, as defined by
@@ -130,7 +133,7 @@ back inside the box.
 
 These are the section keywords for the body of the file.
 
-{Atoms, Velocities, Masses, Dipoles} = atom-property sections 
+{Atoms, Velocities, Masses, Shapes, Dipoles} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topolgy sections 
 {Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
@@ -138,7 +141,7 @@ These are the section keywords for the body of the file.
    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs, \
    BondBond13 Coeffs, AngleAngle Coeffs} = class 2 force field sections :ul
 
-Each section is now listed in alphabetic order.  The format of each
+Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
 rules (if any) for where it can appear in the data file.
 
@@ -230,11 +233,13 @@ angle: atom-ID molecule-ID atom-type x y z
 atomic: atom-ID atom-type x y z
 bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
+dipole: atom-ID atom-type q x y z mux muy muz
 dpd: atom-ID atom-type x y z
 ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
 granular: atom-ID atom-type diameter density x y z
-molecular: atom-ID molecule-ID atom-type x y z :tb(s=:)
+molecular: atom-ID molecule-ID atom-type x y z
+hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
 where the keywords have these meanings:
 
@@ -245,13 +250,14 @@ q = charge on atom
 diameter = diameter of atom
 density = density of atom
 x,y,z = coordinates of atom
+mux,muy,muz = direction of dipole moment of atom
 quatw,quati,quatj,quatk = quaternion components for orientation of atom :ul
 
 The units for these quantities depend on the unit style; see the
 "units"_units.html command for details.
 
-For 2d simulations specify z as 0.0, or a value is within the {zlo
-zhi} setting in the data file header.
+For 2d simulations specify z as 0.0, or a value within the {zlo zhi}
+setting in the data file header.
 
 The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
@@ -268,6 +274,36 @@ is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is an unbonded atom or if you don't care to
 keep track of molecule assignments.
 
+The values {quatw}, {quati}, {quatj}, and {quatk} set the orientation
+of the atom as a quaternion (4-vector).  Note that the
+"shape"_shape.html command or "Shapes" section of the data file
+specifies the aspect ratios of an ellipsoidal particle, which is
+oriented by default with its x-axis along the simulation box's x-axis,
+and similarly for y and z.  If this body is rotated (via the
+right-hand rule) by an angle theta around a unit vector (a,b,c), then
+the quaternion that represents its new orientation is given by
+(cos(theta/2), a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  These
+4 components are quatw, quati, quatj, and quatk as specfied above.
+LAMMPS normalizes each atom's quaternion in case (a,b,c) was not a
+unit vector.
+
+For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
+specific values for each sub-style must be listed.  The order of the
+sub-styles is the same as they were listed in the
+"atom_style"_atom_style.html command.  The sub-style specific values
+are those that are not the 5 standard ones (ID,type,x,y,z).  For
+example, for the "charge" sub-style, a "q" value would appear.  For
+the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
+listed in the same order they appear as listed above.
+
+Thus if
+
+atom_style hybrid charge granular :pre
+
+were used in the input script, each atom line would have these fields:
+
+atom-ID atom-type x y z q diameter density :pre
+
 Atom lines (all lines or none of them) can optionally list 3 final
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
 image of the box the atom is considered to be in.  An image of 0 means
@@ -278,9 +314,10 @@ during the simulation.  The flags can be output with atom snapshots
 via the "dump"_dump.html command.  If nx,ny,nz values are not set in
 the data file, LAMMPS initializes them to 0.
 
-Atom velocities are set to 0.0 when the {Atoms} section is read.  They
-may later be set by a {Velocities} section in the data file or by a
-"velocity"_velocity.html command in the input script.
+Atom velocities and other atom quantities not defined above are set to
+0.0 when the {Atoms} section is read.  They may later be set by a
+{Velocities} section in the data file or by a "velocity"_velocity.html
+or "set"_set.html command in the input script.
 
 :line
 
@@ -488,12 +525,32 @@ script.
 
 :line
 
+{Shapes} section:
+
+one line per atom type :ulb,l
+line syntax: ID x y z :l
+  ID = atom type (1-N)
+  x = x diameter
+  y = y diameter
+  z = z diameter :pre
+example: :l
+  3 2.0 1.0 1.0 :pre
+:ule
+
+This defines the shape of each atom type.  This can also be set via
+the "shape"_mass.html command in the input script.  This section
+should only be used for atom styles that define a shape, e.g. atom
+style dipole or ellipsoid.
+
+:line
+
 {Velocities} section:
 
 one line per atom
 line syntax: depends on atom style :ul
 
 all styles except those listed: atom-ID vx vy vz
+dipole: atom-ID vx vy vz wx wy wz
 ellipsoid: atom-ID vx vy vz lx ly lz
 granular: atom-ID vx vy vz wx wy wz :tb(s=:)
 

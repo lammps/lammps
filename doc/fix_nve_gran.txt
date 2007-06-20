@@ -29,8 +29,7 @@ to forces and torques.
 
 [Restrictions:] none
 
-Can only be used if LAMMPS was built with the "granular" package.  Can
-only be used with atom_style granular.
+Can only be used if LAMMPS was built with the "granular" package.
 
 [Related commands:]
 

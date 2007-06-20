@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>group-ID = ID of group of atoms to displace 
 
-<LI>style = <I>move</I> or <I>ramp</I> 
+<LI>style = <I>move</I> or <I>ramp</I> or <I>random</I> 
 
 <PRE>  <I>move</I> args = delx dely delz
     delx,dely,delz = distance to displace in each dimension (distance units)
@@ -25,7 +25,10 @@
     ddim = <I>x</I> or <I>y</I> or <I>z</I>
     dlo,dhi = displacement distance between dlo and dhi (distance units)
     dim = <I>x</I> or <I>y</I> or <I>z</I>
-    clo,chi = lower and upper bound of domain to displace (distance units) 
+    clo,chi = lower and upper bound of domain to displace (distance units)
+  <I>random</I> args = dx dy dz seed
+    dx,dy,dz = random displacement magnitude in each dimension (distance units)
+    seed = random # seed (8 digits or less) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended to the args 
 
@@ -42,25 +45,34 @@ displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5
 <P><B>Description:</B>
 </P>
 <P>Displace a group of atoms.  This can be used to move atoms a large
-distance before beginning a simulation.  For example, in a shear
-simulation, an initial strain can be imposed on the system.  Or two
-groups of atoms can be brought into closer proximity.
+distance before beginning a simulation or to randomize atoms initially
+on a lattice.  For example, in a shear simulation, an initial strain
+can be imposed on the system.  Or two groups of atoms can be brought
+into closer proximity.
 </P>
 <P>The <I>move</I> style displaces the group of atoms by the specified 3d
-distance.  The <I>ramp</I> style displaces atoms a variable amount in one
-dimension depending on the atom's coordinate in a (possibly) different
+distance.
+</P>
+<P>The <I>ramp</I> style displaces atoms a variable amount in one dimension
+depending on the atom's coordinate in a (possibly) different
 dimension.  For example, the second example command displaces atoms in
 the x-direction an amount between 0.0 and 5.0 distance units.  Each
 atom's displacement depends on the fractional distance its y
 coordinate is between 2.0 and 20.5.  Atoms with y-coordinates outside
 those bounds will be moved the minimum (0.0) or maximum (5.0) amount.
 </P>
-<P>Distance units for the displacement are determined by the setting of
-<I>box</I> or <I>lattice</I> for the <I>units</I> keyword.  <I>Box</I> means distance
-units as defined by the <A HREF = "units.html">units</A> command - e.g. Angstroms
-for <I>real</I> units.  <I>Lattice</I> means distance units are in lattice
-spacings.  The <A HREF = "lattice.html">lattice</A> command must have been
-previously used to define the lattice spacing.
+<P>The <I>random</I> style independently moves each atom in the group by a
+random displacement, uniformly sampled from a value between -dx and
++dx in the x dimension, and similarly for y and z.  Random numbers are
+used in such a way that the displacement of a particular atom is the
+same, regardless of how many processors are being used.
+</P>
+<P>Distance units for displacement are determined by the setting of <I>box</I>
+or <I>lattice</I> for the <I>units</I> keyword.  <I>Box</I> means distance units as
+defined by the <A HREF = "units.html">units</A> command - e.g. Angstroms for <I>real</I>
+units.  <I>Lattice</I> means distance units are in lattice spacings.  The
+<A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacing.
 </P>
 <P>Care should be taken not to move atoms on top of other atoms.  After
 the move, atoms are remapped into the periodic simulation box if

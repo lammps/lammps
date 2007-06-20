@@ -41,23 +41,34 @@ calculate one or more values for each atom in the group can output
 those values via the <A HREF = "dump.html">dump custom</A> command or the <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A> command.
 </P>
-<P>LAMMPS creates its own computes for thermodynamic output and dumping
-atom snapshots.  Likewise fixes that compute temperature or pressure
-create their own computes.  These are discussed in the documentation
-for <A HREF = "thermo_style.html">thermo_style</A>, <A HREF = "dump.html">dump custom</A>, and
-specific <A HREF = "fix.html">fix</A> commands.
+<P>LAMMPS creates its own computes for thermodynamic output.  Two
+computes are always created, named "thermo_temp" and
+"thermo_pressure", as if these commands had been invoked:
+</P>
+<PRE>compute thermo_temp all temp
+compute thermo_pressure all pressure thermo_temp 
+</PRE>
+<P>Additional computes are created if the thermo style requires it.  See
+the documentation for the <A HREF = "thermo_style.html">thermo_style</A> command.
+</P>
+<P>The dumping of atom snapshots and fixes that compute temperature or
+pressure also create computes as required.  These are discussed in the
+documentation for the <A HREF = "dump.html">dump custom</A> and specific
+<A HREF = "fix.html">fix</A> commands.
 </P>
 <P>In all these cases, the default computes can be replaced by computes
 defined in the input script, as described by the
 <A HREF = "thermo_modify.html">thermo_modify</A> and <A HREF = "fix_modify.html">fix modify</A>
-commands.  Code for new computes can also be added to LAMMPS (see
-<A HREF = "Section_modify.html">this section</A> of the manaul) and their
+commands.
+</P>
+<P>Properties of either a default of user-defined compute can be modified
+via the <A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P>Computes can be deleted with the <A HREF = "uncompute.html">uncompute</A> command.
+</P>
+<P>Code for new computes can be added to LAMMPS (see <A HREF = "Section_modify.html">this
+section</A> of the manaul) and the results of their
 calculations accessed in the various ways described above.
-</P>
-<P>Properties of a compute can be modified via the
-<A HREF = "compute_modify.html">compute_modify</A> command.
-</P>
-<P>Compute can be deleted with the <A HREF = "uncompute.html">uncompute</A> command.
 </P>
 <P>Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles

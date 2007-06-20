@@ -44,13 +44,15 @@ curvatures "(Everaers)"_#Everaers:
 
 The variable names utilized as potential parameters are for the most
 part taken from "(Everaers)"_#Everaers in order to be consistent with
-its RE-squared potential fix. Details on the upsilon and mu 
-parameters are given "here"_Eqs/pair_gayberne_extra.pdf.
-Use of this pair style requires the
-"fix nve/asphere"_fix_nve_asphere.html in order to integrate particle
+its RE-squared potential fix.  Details on the upsilon and mu
+parameters are given "here"_gbdoc.  Use of this pair style requires
+the NVE, NVT, or NPT fixes with the {asphere} extension (e.g. "fix
+nve/asphere"_fix_nve_asphere.html) in order to integrate particle
 rotation.  Additionally, "atom_style ellipsoid"_atom_style.html should
-be used since it defines the rotation state of the ellipsoidal
+be used since it defines the rotational state of the ellipsoidal
 particles.
+
+:link(gbdoc,Eqs/pair_gayberne_extra.pdf)
 
 More details of the Gay-Berne formulation are given in the references
 listed below and in "this document"_Eqs/pair_gayberne_extra.pdf.
@@ -63,12 +65,12 @@ commands:
 
 epsilon = well depth (energy units)
 sigma = minimum effective particle radii (distance units)
-a = ellipsoid radius in x dimension (distance units)
-b = ellipsoid radius in y dimension (distance units)
-c = ellipsoid radius in z dimension (distance units)
-epsilon_a = relative well depth for side-to-side interactions
-epsilon_b = relative well depth for face-to-face interactions
-epsilon_c = relative well depth for end-to-end interactions
+epsilon_i_a = relative well depth of I for side-to-side interactions
+epsilon_i_b = relative well depth of I for face-to-face interactions
+epsilon_i_c = relative well depth of I for end-to-end interactions
+epsilon_j_a = relative well depth of J for side-to-side interactions
+epsilon_j_b = relative well depth of J for face-to-face interactions
+epsilon_j_c = relative well depth of J for end-to-end interactions
 cutoff (distance units) :ul
 
 The last coefficient is optional.  If not specified, the global
@@ -82,17 +84,16 @@ pair of atoms.  Thus they are applied to atom type I only.
 
 [Restrictions:]
 
-Can only be used if LAMMPS was built with the "asphere" package.  Can
-only be used with "atom_style ellipsoid"_atom_style.html.
+Can only be used if LAMMPS was built with the "asphere" package.
 
 The use of this potential requires additional fixes as described
 above.  The "shift yes" option currently cannot be used with this
 potential to shift energies to 0 at the cutoff due to the anisotropic
 dependence of the interaction.  Angular velocities are all set to zero
 initially.  The Gay-Berne potential does not become isotropic as r
-increases "(Everaers)"_#Everaers.  The distance of closest approach
-approximation becomes less accurate as the shape of ellipsoids becomes
-more dissimilar (high aspect ratio particles).
+increases "(Everaers)"_#Everaers.  The distance-of-closest-approach
+approximation used by the code becomes less accurate as the shape of
+ellipsoids becomes more dissimilar (high-aspect-ratio particles).
 
 [Related commands:]
 

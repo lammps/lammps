@@ -13,11 +13,11 @@ if command :h3
 if value1 operator value2 then command1 else command2 :pre
 
 value1 = 1st value
-operator = "==" or "!=" or "<" or "<=" or ">" or ">="
+operator = "<" or "<=" or ">" or ">=" or "==" or "!="
 value2 = 2nd value
 then = required word
 command1 = command to execute if condition is met
-else = required word (optional argument)
+else = optional word
 command2 = command to execute if condition is not met (optional argument) :ul
 
 [Examples:]

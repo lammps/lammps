@@ -142,7 +142,7 @@ rho0(I)     = relative density for element I (overwrites value
               read from meamf file)
 Ec(I,J)     = cohesive energy of reference structure for I-J mixture
 delta(I,J)  = heat of formation for I-J alloy; if Ec_IJ is input as
-              zero, then WARP sets Ec_IJ = (Ec_II + Ec_JJ)/2 - delta_IJ
+              zero, then LAMMPS sets Ec_IJ = (Ec_II + Ec_JJ)/2 - delta_IJ
 alpha(I,J)  = alpha parameter for pair potential between I and J (can
               be computed from bulk modulus of reference structure
 re(I,J)     = equilibrium distance between I and J in the reference
@@ -168,6 +168,10 @@ augt1           = integer flag for whether to augment t1 parameter by
                     1 = augment t1
                     default = 1 
 </PRE>
+<P>Rc, delr, re are in distance units (Angstroms in the case of metal
+units).  Ec and delta are in energy units (eV in the case of metal
+units).
+</P>
 <P>Each keyword represents a quantity which is either a scalar, vector,
 2d array, or 3d array and must be specified with the correct
 corresponding array syntax.  The indices I,J,K each run from 1 to N

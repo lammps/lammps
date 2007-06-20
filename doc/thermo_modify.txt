@@ -31,7 +31,7 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
 
 [Examples:]
 
-thermo_modify lost no flush yes
+thermo_modify lost ignore flush yes
 thermo_modify temp myTemp format 3 %15.8g
 thermo_modify line multi format float %g :pre
 
@@ -39,6 +39,13 @@ thermo_modify line multi format float %g :pre
 
 Set options for how thermodynamic information is computed and printed
 by LAMMPS.
+
+IMPORTANT NOTE: These options apply to the currently defined thermo
+style (thermo_style {one} by default).  When you specify a
+"thermo_style"_thermo_style.html command, all thermodynamic settings
+are restored to their default values.  Thus a thermo_style command
+will wipe out any options previously specified by the
+"thermo_modify"_thermo_modify.html command.
 
 The {lost} keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
@@ -81,7 +88,7 @@ temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
 "tave", "pave").  The specified compute ID must have been previously
 defined by the user via the "compute"_compute.html command and it must
 be a style of compute that calculates a temperature.  As described in
-the "thermo_style"_thermo_style.html command, thermo output has a
+the "thermo_style"_thermo_style.html command, thermo output uses a
 default compute for temperature with ID = {thermo_temp}.  This option
 allows the user to override the default.
 
@@ -91,9 +98,9 @@ pressure ("press", "enthalpy", "pxx etc", "pave").  The specified
 compute ID must have been previously defined by the user via the
 "compute"_compute.html command and it must be a style of compute that
 calculates a pressure.  As described in the
-"thermo_style"_thermo_style.html command, thermo output has a default
-compute for pressure with ID = {thermo_press}.  This option allows the
-user to override the default.
+"thermo_style"_thermo_style.html command, thermo output uses a default
+compute for pressure with ID = {thermo_pressure}.  This option allows
+the user to override the default.
 
 The {drot} keyword is used to determine how rotational energy is
 calculated for dipolar atoms, which is used by the thermo_style

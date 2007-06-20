@@ -67,11 +67,11 @@ as
 
 2 1.0 1.0 2.5 :pre
 
-If coefficients for type pairs with I not equal J are not set
-explicity by a pair_coeff command, they are inferred from the I,I and
-J,J settings by mixing rules; see the "pair_modify"_pair_modify.html
-command for a discussion.  Exceptions to the mixing rules of the
-pair_modify command are discussed with the individual pair styles.
+For many potentials, if coefficients for type pairs with I != J are
+not set explicity by a pair_coeff command, the values are inferred
+from the I,I and J,J settings by mixing rules; see the
+"pair_modify"_pair_modify.html command for a discussion.  Exceptions
+to the mixing rules are discussed with the individual pair styles.
 
 :line
 
@@ -83,9 +83,11 @@ the pair_style command, and coefficients specified by the associated
 "pair_style none"_pair_none.html - turn off pairwise interactions
 "pair_style hybrid"_pair_hybrid.html - define multiple styles of pairwise interactions :ul
 
+"pair_style airebo"_pair_airebo.html - AI-REBO potential
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckinhham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
+"pair_style colloid"_pair_colloid.html - integrated colloidal potential
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
 "pair_style eam/alloy"_pair_eam.html - alloy EAM

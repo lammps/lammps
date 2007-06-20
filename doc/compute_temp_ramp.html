@@ -33,15 +33,15 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the temperature of a group of
-atoms, while subtracting out an imposed velocity on the system before
+atoms, after subtracting out an imposed velocity on the system before
 computing the kinetic energy.  A compute of this style can be used by
 any command that computes a temperature,
 e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_temp_rescale.html">fix
 temp/rescale</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
 </P>
 <P>The meaning of the arguments for this command is the same as for the
-<A HREF = "velocity.html">velocity</A> command which was presumably used to impose
-the velocity.
+<A HREF = "velocity.html">velocity ramp</A> command which was presumably used to
+impose the velocity.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 for coordinates (c1,c2) and velocities (vlo,vhi).  A <I>box</I> value
@@ -72,7 +72,8 @@ needed, the subtracted degrees-of-freedom can be altered using the
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp_region.html">compute
-temp/region</A>, <A HREF = "compute_pressure.html">compute
+temp/region</A>, <A HREF = "compute_temp_deform.html">compute
+temp/deform</A>, <A HREF = "compute_pressure.html">compute
 pressure</A>
 </P>
 <P><B>Default:</B>

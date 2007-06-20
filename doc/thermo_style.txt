@@ -102,43 +102,49 @@ be used to set the one- or multi-line format of the print-out, the
 normalization of energy quantities (total or per-atom), and the
 numeric precision of each printed value.
 
+IMPORTANT NOTE: When you specify a "thermo_style"_thermo_style.html
+command, all thermodynamic settings are restored to their default
+values.  Thus a thermo_style command will wipe out any options
+previously specified by the "thermo_modify"_thermo_modify.html
+command.
+
 :line
 
 Several of the thermodynamic quantities require a temperature to be
 computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
-"tave", "pave".  To do this, a compute of style "temp" is created, as
-if this command had been issued:
+"tave", "pave".  By default this is done by using the "thermo_temp"
+compute which is created by LAMMPS as if this command had been issued:
 
 compute thermo_temp all temp :pre
 
 See the "compute temp"_compute_temp.html command for details.  Note
-that the ID of the new compute is {thermo_temp} and the group is
-{all}.  You can change the attributes of this temperature (e.g. its
+that the ID of this compute is {thermo_temp} and the group is {all}.
+You can change the attributes of this temperature (e.g. its
 degrees-of-freedom) via the "compute_modify"_compute_modify.html
 command.  Alternatively, you can directly assign a new compute (that
-calculates temperature) which you have defined, to be used for any
-thermodynamic quantity that requires a temperature.  This is done via
-the "thermo_modify"_thermo_modify.html command.
+calculates temperature) which you have defined, to be used for
+calculating any thermodynamic quantity that requires a temperature.
+This is done via the "thermo_modify"_thermo_modify.html command.
 
 Several of the thermodynamic quantities require a pressure to be
-computed: "press", "enthalpy", "pxx etc", "pave".  To do this, a
-compute of style "pressure" is created, as if this command had been
-issued:
+computed: "press", "enthalpy", "pxx etc", "pave".  By default this is
+done by using the "thermo_pressure" compute which is created by LAMMPS
+as if this command had been issued:
 
-compute thermo_press all pressure thermo_temp :pre
+compute thermo_pressure all pressure thermo_temp :pre
 
 See the "compute pressure"_compute_pressure.html command for details.
-Note that the ID of the new compute is {thermo_press} and the group is
+Note that the ID of this compute is {thermo_pressure} and the group is
 {all}.  You can change the attributes of this pressure via the
 "compute_modify"_compute_modify.html command.  Alternatively, you can
 directly assign a new compute (that calculates pressure) which you
-have defined, to be used for any thermodynamic quantity that requires
-a pressure.  This is done via the "thermo_modify"_thermo_modify.html
-command.
+have defined, to be used for calculating any thermodynamic quantity
+that requires a pressure.  This is done via the
+"thermo_modify"_thermo_modify.html command.
 
-The {drot} keyword requires a rotational energy to be compute for
-dipolar particles.  To do this, a compute of style "rotate/dipole" is
-created, as if this command had been issued:
+The {drot} keyword requires a rotational energy to be computed for
+point dipole particles.  To do this, a compute of style
+"rotate/dipole" is created, as if this command had been issued:
 
 compute thermo_rotate_dipole all rotate/dipole :pre
 
@@ -152,7 +158,7 @@ directly assign a new compute which you have defined, to be used for
 command.  For example, this could be useful if you wish to exclude
 certain particles from the compuation.
 
-The {grot} keyword requires a rotational energy to be compute for
+The {grot} keyword requires a rotational energy to be computed for
 granular particles.  To do this, a compute of style "rotate/gran" is
 created, as if this command had been issued:
 

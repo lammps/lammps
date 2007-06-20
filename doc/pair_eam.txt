@@ -110,14 +110,14 @@ line 2: atomic number, mass, lattice constant, lattice type (e.g. FCC)
 line 3: Nrho, drho, Nr, dr, cutoff :ul
 
 On line 2, all values but the mass are ignored by LAMMPS.  The mass is
-in atomic mass units (g/cm^3) which is converted by LAMMPS to the
-appropriate internal mass "units"_units.html.  The cubic lattice
-constant is in Angstroms.  On line 3, Nrho and Nr are the number of
-tabulated values in the subsequent arrays, drho and dr are the spacing
-in density and distance space for the values in those arrays, and the
-specified cutoff becomes the pairwise cutoff used by LAMMPS for the
-potential.  The units of dr are Angstroms; I'm not sure of the units
-for drho - some measure of electron density.
+in mass "units"_units.html (e.g. mass number or grams/mole for metal
+units).  The cubic lattice constant is in Angstroms.  On line 3, Nrho
+and Nr are the number of tabulated values in the subsequent arrays,
+drho and dr are the spacing in density and distance space for the
+values in those arrays, and the specified cutoff becomes the pairwise
+cutoff used by LAMMPS for the potential.  The units of dr are
+Angstroms; I'm not sure of the units for drho - some measure of
+electron density.
 
 Following the 3 header lines are 3 arrays of tabulated values:
 

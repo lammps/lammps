@@ -13,86 +13,153 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>set ID style value 
+<PRE>set style ID keyword value ... 
 </PRE>
-<UL><LI>ID = ID of group or atom
-<LI>style = <I>atom</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or         <I>charge</I> or <I>dipole</I> or <I>type</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or 	<I>vx</I> or <I>vy</I> or <I>vz</I> or <I>q</I>
-<LI>value = value to set selected atom(s) to 
+<UL><LI>style = <I>atom</I> or <I>group</I> or <I>region</I> 
+
+<LI>ID = atom ID or group ID or region ID 
+
+<LI>one or more keyword/value pairs may be appended to the args 
+
+<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or 	  <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or 	  <I>quat</I> or <I>quat/random</I> or 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
+
+<PRE>  <I>type</I> value = atom type
+  <I>type/fraction</I> values = type fraction seed
+    type = new atom type
+    fraction = fraction of selected atoms to set to new atom type
+    seed = random # seed (8 digits or less)
+  <I>mol</I> value = molecule ID
+  <I>x</I>,<I>y</I>,<I>z</I> value = atom coordinate (distance units)
+  <I>vx</I>,<I>vy</I>,<I>vz</I> value = velocity component (velocity units)
+  <I>charge</I> value = atomic charge (charge units)
+  <I>dipole</I> values = x y z
+    x,y,z = orientation of dipole moment vector
+  <I>dipole/random</I> value = seed
+    seed = random # seed (8 digits or less) for dipole moment orientations
+  <I>quat</I> values = w i j k
+    w,i,j,k = quaternion components (see below)
+  <I>quat/random</I> value = seed
+    seed = random # seed (8 digits or less) for quaternion orientations
+  <I>bond</I> value = bond type for all bonds between selected atoms
+  <I>angle</I> value = angle type for all angles bewteen selected atoms
+  <I>dihedral</I> value = dihedral type for all dihedrals between selected atoms
+  <I>improper</I> value = improper type for all impropers between selected atoms 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>set solvent atom 2
-set edge bond 4
-set half charge 0.5
-set 100 x 0.5
-set 1492 type 3 
+<PRE>set group solvent type 2
+set group solvent type/fraction 2 0.5 12393
+set group edge bond 4
+set region half charge 0.5
+set atom 100 x 0.5 vx 1.0
+set atom 1492 type 3 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Set an attribute for a single atom or each atom in a group.  The
-context depends on the specified <I>style</I>.
-</P>
-<P>Styles <I>atom</I>, <I>bond</I>, <I>angle</I>, <I>dihedral</I>, <I>improper</I>, <I>charge</I>, and
-<I>dipole</I> set attributes for all atoms in a group, so the specified ID
-is a group-ID string.
-</P>
-<P>Styles <I>type</I>, <I>mol</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, and <I>q</I> set the
-attribute of a single atom, so the specified ID is an atom-ID number
-(1-N).
-</P>
-<P>Since atom attributes are assigned by the <A HREF = "read_data.html">read_data</A>,
+<P>Set one or more properties of one or more atoms.  Since atom
+properties are initially assigned by the <A HREF = "read_data.html">read_data</A>,
 <A HREF = "read_restart.html">read_restart</A> or <A HREF = "create_atoms.html">create_atoms</A>
 commands, this command changes those assignments.  This can be useful
-for altering pairwise and molecular force interactions, since
-force-field coefficients are defined in terms of types.  It can also
-be used to change the labeling of atoms when they are output in
-<A HREF = "dump.html">dump</A> files.  It can also be useful for debugging purposes;
-i.e. positioning an atom at a precise location to compute subsequent
-forces or energy.
+for overriding the default values assigned by the
+<A HREF = "create_atoms.html">create_atoms</A> command (e.g. charge = 0.0).  It can
+be useful for altering pairwise and molecular force interactions,
+since force-field coefficients are defined in terms of types.  It can
+be used to change the labeling of atoms by atom type when they are
+output in <A HREF = "dump.html">dump</A> files.  It can be useful for debugging
+purposes; i.e. positioning an atom at a precise location to compute
+subsequent forces or energy.
 </P>
-<P>For style <I>atom</I>, the atom type of all atoms in the group is changed
-to the specified value from 1 to ntypes.  Note that ntypes must be
-within the range the simulation was initialized for.  The maximum
-number of types is set by the <A HREF = "create_box.html">create_box</A> command or
-the <I>atom types</I> field in the header of the data file read by the
-<A HREF = "read_data.html">read_data</A> command.
+<P>The style <I>atom</I> selects a single atom.  The style <I>group</I> selects the
+entire group of atoms.  The style <I>region</I> selects all atoms in the
+geometric region.  The associated ID for each of these styles is
+either the unique atom ID (typically a number from 1 to N = the number
+of atoms in the simulation), the group ID, or the region ID.  See the
+<A HREF = "group.html">group</A> and <A HREF = "region.html">region</A> commands for details of
+how to specify a group or region.
 </P>
-<P>For style <I>bond</I>, <I>angle</I>, <I>dihedral</I>, or <I>improper</I>, the bond type
-(angle type, etc) of all bonds (angles, etc) of atoms in the group is
-changed to the specified value from 1 to nbondtypes (angletypes, etc).
-All atoms in the bond (angle, etc) must be in the group in order for
-the change to be made.  The maximum number of types is set by the
-<I>bond types</I> (<I>angle types</I>, etc) field in the header of the data
-file.
+<HR>
+
+<P>Keyword <I>type</I> sets the atom type for all selected atoms.  The
+specified value must be from 1 to ntypes, where ntypes was set by the
+<A HREF = "create_box.html">create_box</A> command or the <I>atom types</I> field in the
+header of the data file read by the <A HREF = "read_data.html">read_data</A>
+command.
 </P>
-<P>For style <I>charge</I>, the charge of each atom in the group is set to
-the specified value.
+<P>Keyword <I>type/fraction</I> sets the atom type for a fraction of the
+selected atoms.  The actual number of atoms changed is not guaranteed
+to be exactly the requested fraction, but should be statisticaly
+close.  Random numbers are used in such a way that a particular atom
+is changed or not changed, regardless of how many processors are being
+used.
 </P>
-<P>For style <I>dipole</I>, the specified value is used as a random number
-seed.  The dipole moment of each atom in the group is set to a random
-orientation with a magnitude determined by the <A HREF = "dipole.html">dipole</A>
-command setting for that atom type.
+<P>Keyword <I>mol</I> sets the molecule ID for all selected atoms.  The <A HREF = "atom_style.html">atom
+style</A> being used must support the use of molecule
+IDs.
 </P>
-<P>For styles <I>type</I>, <I>mol</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, or <I>q</I>, the
-corresponding attribute of a single atom with the specified atom-ID is
-set to the specified value.  E.g. the last example above, sets the
-atom-type of atom 1492 to 3.  If "type" were replaced by "q", the
-charge on atom 1492 would be set to 3; if it were replaced by "mol",
-then then the molecule-ID would be set to 3.  The values for x,y,z are
-in distance units, the values for vx,vy,vz are in velocity units, and
-the value for charge is in charge units, as explained by the
-<A HREF = "units.html">units</A> command.
+<P>Keywords <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, and <I>charge</I> set the
+coordinates, velocity, or charge of all selected atoms.  For <I>charge</I>,
+the <A HREF = "atom_style.html">atom style</A> being used must support the use of
+atomic charge.
+</P>
+<P>Keyword <I>dipole</I> uses the specified x,y,z values as components of a
+vector to set as the orientation of the dipole moment vectors of the
+selected atoms.  The magnitude of the dipole moment for each atom is
+set by the <A HREF = "dipole.html">dipole</A> command.
+</P>
+<P>Keyword <I>dipole/random</I> randomizes the orientation of the dipole
+moment vectors of the selected atoms.  The magnitude of the dipole
+moment for each atom is set by the <A HREF = "dipole.html">dipole</A> command.
+Random numbers are used in such a way that the orientation of a
+particular atom is the same, regardless of how many processors are
+being used.
+</P>
+<P>Keyword <I>quat</I> uses the specified values as components of a quaternion
+(4-vector) to set the orientation of the selected atoms.  Note that
+the <A HREF = "shape.html">shape</A> command is used to specify the aspect ratios of
+an ellipsoidal particle, which is oriented by default with its x-axis
+along the simulation box's x-axis, and similarly for y and z.  If this
+body is rotated (via the right-hand rule) by an angle theta around a
+unit vector (a,b,c), then the quaternion that represents its new
+orientation is given by (cos(theta/2), a*sin(theta/2), b*sin(theta/2),
+c*sin(theta/2)).  These 4 components are the arguments w,i,j,k to the
+<I>quat</I> keyword.  LAMMPS normalizes the quaternion in case (a,b,c) was
+not a unit vector.
+</P>
+<P>Keyword <I>quat/random</I> randomizes the orientation of the quaternion of
+the selected atoms.  Random numbers are used in such a way that the
+orientation of a particular atom is the same, regardless of how many
+processors are being used.
+</P>
+<P>For the <I>dipole</I> and <I>quat</I> keywords, the <A HREF = "atom_style.html">atom style</A>
+being used must support the use of dipoles or quaternions.
+</P>
+<P>Keywords <I>bond</I>, <I>angle</I>, <I>dihedral</I>, and <I>improper</I>, set the bond
+type (angle type, etc) of all bonds (angles, etc) of selected atoms to
+the specified value from 1 to nbondtypes (nangletypes, etc).  All
+atoms in a particular bond (angle, etc) must be selected atoms in
+order for the change to be made.  The value of nbondtype (nangletypes,
+etc) was set by the <I>bond types</I> (<I>angle types</I>, etc) field in the
+header of the data file read by the <A HREF = "read_data.html">read_data</A>
+command.
 </P>
 <P><B>Restrictions:</B>
 </P>
+<P>You cannot set an atom attribute (e.g. <I>mol</I> or <I>q</I>) if the
+<A HREF = "atom_style.html">atom_style</A> does not have that attribute.
+</P>
 <P>This command requires inter-processor communication to coordinate the
 setting of bond types (angle types, etc).  This means that your system
-must be ready to perform a simulation before using this command (force
-fields setup, atom masses set, etc).  This is not necessary to simply
-reset atom types.
+must be ready to perform a simulation before using one of these
+keywords (force fields set, atom mass set, etc).  This is not
+necessary for other keywords.
 </P>
-<P>You cannot set the <I>mol</I> or <I>q</I> for an atom if the
-<A HREF = "atom_style.html">atom_style</A> does not have those attributes.
+<P>Using the <I>region</I> style with the bond (angle, etc) keywords can give
+unpredictable results if there are bonds (angles, etc) that straddle
+periodic boundaries.  This is because the region may only extend up to
+the boundary and partner atoms in the bond (angle, etc) may have
+coordinates outside the simulation box if they are ghost atoms.
 </P>
 <P><B>Related commands:</B>
 </P>

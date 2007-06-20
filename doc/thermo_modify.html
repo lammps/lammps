@@ -37,7 +37,7 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>thermo_modify lost no flush yes
+<PRE>thermo_modify lost ignore flush yes
 thermo_modify temp myTemp format 3 %15.8g
 thermo_modify line multi format float %g 
 </PRE>
@@ -45,6 +45,13 @@ thermo_modify line multi format float %g
 </P>
 <P>Set options for how thermodynamic information is computed and printed
 by LAMMPS.
+</P>
+<P>IMPORTANT NOTE: These options apply to the currently defined thermo
+style (thermo_style <I>one</I> by default).  When you specify a
+<A HREF = "thermo_style.html">thermo_style</A> command, all thermodynamic settings
+are restored to their default values.  Thus a thermo_style command
+will wipe out any options previously specified by the
+<A HREF = "thermo_modify.html">thermo_modify</A> command.
 </P>
 <P>The <I>lost</I> keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
@@ -87,7 +94,7 @@ temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
 "tave", "pave").  The specified compute ID must have been previously
 defined by the user via the <A HREF = "compute.html">compute</A> command and it must
 be a style of compute that calculates a temperature.  As described in
-the <A HREF = "thermo_style.html">thermo_style</A> command, thermo output has a
+the <A HREF = "thermo_style.html">thermo_style</A> command, thermo output uses a
 default compute for temperature with ID = <I>thermo_temp</I>.  This option
 allows the user to override the default.
 </P>
@@ -97,9 +104,9 @@ pressure ("press", "enthalpy", "pxx etc", "pave").  The specified
 compute ID must have been previously defined by the user via the
 <A HREF = "compute.html">compute</A> command and it must be a style of compute that
 calculates a pressure.  As described in the
-<A HREF = "thermo_style.html">thermo_style</A> command, thermo output has a default
-compute for pressure with ID = <I>thermo_press</I>.  This option allows the
-user to override the default.
+<A HREF = "thermo_style.html">thermo_style</A> command, thermo output uses a default
+compute for pressure with ID = <I>thermo_pressure</I>.  This option allows
+the user to override the default.
 </P>
 <P>The <I>drot</I> keyword is used to determine how rotational energy is
 calculated for dipolar atoms, which is used by the thermo_style

@@ -17,9 +17,9 @@
 </PRE>
 <UL><LI>style = one of the following 
 
-<UL><LI><I>none</I>, <I>hybrid</I>, <I>buck</I>, <I>buck/coul/cut</I>, <I>buck/coul/long</I>, <I>dpd</I>,
-<LI><I>eam</I>, <I>eam/alloy</I> or <I>eam/fs</I>, <I>gran/hertzian</I>, <I>gran/history</I>,
-<LI><I>gran/no_history</I>, <I>lj/charmm/coul/charmm</I>,
+<UL><LI><I>none</I>, <I>hybrid</I>, <I>airebo</I>, <I>buck</I>, <I>buck/coul/cut</I>, <I>buck/coul/long</I>,
+<LI><I>dpd</I>, <I>eam</I>, <I>eam/alloy</I> or <I>eam/fs</I>, <I>gran/hertzian</I>,
+<LI><I>gran/history</I>, <I>gran/no_history</I>, <I>lj/charmm/coul/charmm</I>,
 <LI><I>lj/charmm/coul/charmm/implicit</I> or <I>lj/charmm/coul/long</I>,
 <LI><I>lj/class2</I>, <I>lj/class2/coul/cut</I> or <I>lj/class2/coul/long</I>, <I>lj/cut</I>,
 <LI><I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I>, <I>lj/cut/coul/long</I>,
@@ -47,8 +47,8 @@ remain in place for the duration of a simulation.
 </P>
 <P>In LAMMPS, pairwise force fields encompass a variety of interactions,
 some of which include many-body effects, e.g. EAM, Stillinger-Weber,
-Tersoff, REBO potentials.  They are still classed as "pairwise"
-potential because the set of interacting atoms changes with time
+Tersoff, REBO potentials.  They are still classified as "pairwise"
+potentials because the set of interacting atoms changes with time
 (unlike a bonded system) and thus a neighbor list is used to find
 nearby interacting atoms.
 </P>
@@ -92,9 +92,11 @@ the pair_style command, and coefficients specified by the associated
 <UL><LI><A HREF = "pair_none.html">pair_style none</A> - turn off pairwise interactions
 <LI><A HREF = "pair_hybrid.html">pair_style hybrid</A> - define multiple styles of pairwise interactions 
 </UL>
-<UL><LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
+<UL><LI><A HREF = "pair_airebo.html">pair_style airebo</A> - AI-REBO potential
+<LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/cut</A> - Buckinhham with cutoff Coulomb
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulomb
+<LI><A HREF = "pair_colloid.html">pair_style colloid</A> - integrated colloidal potential
 <LI><A HREF = "pair_dpd.html">pair_style dpd</A> - dissipative particle dynamics (DPD)
 <LI><A HREF = "pair_eam.html">pair_style eam</A> - embedded atom method (EAM)
 <LI><A HREF = "pair_eam.html">pair_style eam/alloy</A> - alloy EAM

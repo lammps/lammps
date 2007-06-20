@@ -12,8 +12,9 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {bond} or {charge} or {dpd} or {ellipsoid} or \
-        {full} or {granular} or {molecular} or {hybrid} :ul
+style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
+        {dpd} or {ellipsoid} or {full} or {granular} or {molecular} or \
+	{hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
 
@@ -49,11 +50,12 @@ velocities, atom IDs and types.
 {atomic} = only the default values
 {bond} = bonds - e.g. bead-spring polymers
 {charge} = charge
+{dipole} = charge and dipole moment
 {dpd} = default values, also communicates velocities
 {ellipsoid} = quaternion for particle orientation, angular velocity/momentum
-{molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
 {full} = molecular + charge - e.g. biomolecules, charged polymers
-{granular} = granular atoms with rotational properties  :ul
+{granular} = granular atoms with rotational properties
+{molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers :ul
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
@@ -78,9 +80,11 @@ This command cannot be used after the simulation box is defined by a
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
 "molecular" package.  The {granular} style is part of the "granular"
-package.  The {dpd} style is part of the "dpd" package.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+package.  The {dpd} style is part of the "dpd" package.  The {dipole}
+style is part of the "dipole" package.  The {ellipsoid} style is part
+of the "ellipsoid" package.  They are only enabled if LAMMPS was built
+with that package.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info.
 
 [Related commands:]
 

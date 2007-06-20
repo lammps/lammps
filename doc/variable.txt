@@ -288,6 +288,9 @@ style to use a global mapping in order to look up the vector indices.
 Only atom styles with molecular information create global maps unless
 the "atom_modify map"_atom_modify.html command is used.
 
+All {universe}- and {uloop}-style variables must have the same number
+of values.
+
 [Related commands:]
 
 "next"_next.html, "jump"_jump.html, "include"_include.html,

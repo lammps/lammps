@@ -86,9 +86,7 @@ y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
 </P>
 <P>For style <I>prism</I>, a parallelepiped is defined (it's too hard to spell
-parallelepiped in an input script!).  A prism region is used by the
-<A HREF = "create_box.html">create_box</A> command to define a triclinic
-(non-orthogonal) simulation domain.  Think of the parallelepided as
+parallelepiped in an input script!).  Think of the parallelepided as
 initially an axis-aligned orthogonal box with the same xyz lo/hi
 parameters as region style <I>block</I> would define.  Then, while holding
 the (xlo,ylo,zlo) corner point fixed, the box is "skewed" or "tilted"
@@ -100,6 +98,16 @@ box is translated in the x and y directions by <I>xz</I> and <I>yz</I>.  This
 results in a parallelepiped whose "origin" is at (xlo,ylo,zlo) with 3
 edge vectors starting from its origin given by a = (xhi-xlo,0,0); b =
 (xy,yhi-ylo,0); c = (xz,yz,zhi-zlo).
+</P>
+<P>A prism region used with the <A HREF = "create_box.html">create_box</A> command must
+have tilt factors (xy,xz,yz) that do not skew the box more than half
+the distance of the parallel box length.  For example, if xlo = 2 and
+xhi = 12, then the x box length is 10 and the xy tilt factor must be
+between -5 and 5.  Similarly, both xz and yz must be between
+-(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
+since if the maximum tilt factor is 5 (as in this example), then
+configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
+equivalent.
 </P>
 <P>The <I>union</I> style creates a region consisting of the volume of all the
 listed regions combined.  The <I>intesect</I> style creates a region

@@ -14,9 +14,9 @@ pair_style style args :pre
 
 style = one of the following :ulb,l
 
-{none}, {hybrid}, {buck}, {buck/coul/cut}, {buck/coul/long}, {dpd},
-{eam}, {eam/alloy} or {eam/fs}, {gran/hertzian}, {gran/history},
-{gran/no_history}, {lj/charmm/coul/charmm},
+{none}, {hybrid}, {airebo}, {buck}, {buck/coul/cut}, {buck/coul/long},
+{dpd}, {eam}, {eam/alloy} or {eam/fs}, {gran/hertzian},
+{gran/history}, {gran/no_history}, {lj/charmm/coul/charmm},
 {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long},
 {lj/class2}, {lj/class2/coul/cut} or {lj/class2/coul/long}, {lj/cut},
 {lj/cut/coul/cut} or {lj/cut/coul/debye}, {lj/cut/coul/long},
@@ -44,8 +44,8 @@ remain in place for the duration of a simulation.
 
 In LAMMPS, pairwise force fields encompass a variety of interactions,
 some of which include many-body effects, e.g. EAM, Stillinger-Weber,
-Tersoff, REBO potentials.  They are still classed as "pairwise"
-potential because the set of interacting atoms changes with time
+Tersoff, REBO potentials.  They are still classified as "pairwise"
+potentials because the set of interacting atoms changes with time
 (unlike a bonded system) and thus a neighbor list is used to find
 nearby interacting atoms.
 
@@ -89,9 +89,11 @@ the pair_style command, and coefficients specified by the associated
 "pair_style none"_pair_none.html - turn off pairwise interactions
 "pair_style hybrid"_pair_hybrid.html - define multiple styles of pairwise interactions :ul
 
+"pair_style airebo"_pair_airebo.html - AI-REBO potential
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckinhham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
+"pair_style colloid"_pair_colloid.html - integrated colloidal potential
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
 "pair_style eam/alloy"_pair_eam.html - alloy EAM

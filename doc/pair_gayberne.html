@@ -28,8 +28,8 @@ pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0
 <P><B>Description:</B>
 </P>
 <P>Style <I>gayberne</I> computes a Gay-Berne anisotropic LJ interaction
-<A HREF = "#Beradi">(Beradi)</A> between pairs of ellipsoidal particles via the
-formulas
+<A HREF = "#Beradi">(Beradi)</A> between pairs of ellipsoidal particles or an
+ellipsoidal and spherical particle via the formulas
 </P>
 <CENTER><IMG SRC = "Eqs/pair_gayberne.jpg">
 </CENTER>
@@ -37,7 +37,10 @@ formulas
 box frame to the body frame and r12 is the center to center vector
 between the particles.  Ur controls the shifted distance dependent
 interaction based on the distance of closest approach of the two
-particles (h12) and the user-specified shift parameter gamma.
+particles (h12) and the user-specified shift parameter gamma.  When
+both particles are spherical, the formula reduces to the usual
+Lennard-Jones interaction (see details below for when Gay-Berne treats
+a particle as "spherical").
 </P>
 <P>For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -68,12 +71,12 @@ commands:
 </P>
 <UL><LI>epsilon = well depth (energy units)
 <LI>sigma = minimum effective particle radii (distance units)
-<LI>epsilon_i_a = relative well depth of I for side-to-side interactions
-<LI>epsilon_i_b = relative well depth of I for face-to-face interactions
-<LI>epsilon_i_c = relative well depth of I for end-to-end interactions
-<LI>epsilon_j_a = relative well depth of J for side-to-side interactions
-<LI>epsilon_j_b = relative well depth of J for face-to-face interactions
-<LI>epsilon_j_c = relative well depth of J for end-to-end interactions
+<LI>epsilon_i_a = relative well depth of type I for side-to-side interactions
+<LI>epsilon_i_b = relative well depth of type I for face-to-face interactions
+<LI>epsilon_i_c = relative well depth of type I for end-to-end interactions
+<LI>epsilon_j_a = relative well depth of type J for side-to-side interactions
+<LI>epsilon_j_b = relative well depth of type J for face-to-face interactions
+<LI>epsilon_j_c = relative well depth of type J for end-to-end interactions
 <LI>cutoff (distance units) 
 </UL>
 <P>The last coefficient is optional.  If not specified, the global
@@ -81,22 +84,52 @@ cutoff specified in the pair_style command is used.
 </P>
 <P>The epsilon and sigma parameters are mixed for I != J atom pairings
 the same as Lennard-Jones parameters; see the <A HREF = "pair_modify.html">pair_modify
-mix</A> documentation for details.  The other parameters
-(except cutoff) are really specific to a single atom type, and not a
-pair of atoms.  Thus they are applied to atom type I only.
+mix</A> documentation for details. 
+</P>
+<P>The epsilon_i and epsilon_j coefficients are actually defined for atom
+types, not for pairs of atom types.  Thus, in a series of pair_coeff
+commands, they only need to be specified once for each atom type.
+</P>
+<P>Specifically, if any of epsilon_i_a, epsilon_i_b, epsilon_i_c are
+non-zero, the three values are assigned to atom type I.  If all the
+epsilon_i values are zero, they are ignored.  If any of epsilon_j_a,
+epsilon_j_b, epsilon_j_c are non-zero, the three values are assigned
+to atom type J.  If all three epsilon_i values are zero, they are
+ignored.  Thus the typical way to define the epsilon_i and epsilon_j
+coefficients is to list their values in "pair_coeff I J" commands when
+I = J, but set them to 0.0 when I != J.  If you do list them when I !=
+J, you should insure they are consistent with their values in other
+pair_coeff commands.
+</P>
+<P>Note that if this potential is being used as a sub-style of
+<A HREF = "pair_hybrid.html">pair_style hybrid</A>, and there is no "pair_coeff I I"
+setting made for Gay-Berne for a particular type I (because I-I
+interactions are computed by another hybrid pair potential), then you
+still need to insure the epsilon a,b,c coefficients are assigned to
+that type in a "pair_coeff I J" command.
+</P>
+<P>IMPORTANT NOTE: If the epsilon a,b,c for an atom type are all 1.0, and
+if the shape of the particle is spherical (see the <A HREF = "shape.html">shape</A>
+command), meaning the 3 diameters are all the same, then the particle
+is treated as "spherical" by the Gay-Berne potential.  This is
+significant because if two "spherical" particles interact, then the
+simple Lennard-Jones formula is used to compute their interaction
+energy/force using epsilon and sigma, which is much cheaper to compute
+than the full Gay-Berne formula.  Thus you should insure epsilon a,b,c
+are set to 1.0 for spherical particle types and use epsilon and sigma
+to specify its interaction with other spherical particles.
 </P>
 <P><B>Restrictions:</B>
 </P>
 <P>Can only be used if LAMMPS was built with the "asphere" package.
 </P>
-<P>The use of this potential requires additional fixes as described
-above.  The "shift yes" option currently cannot be used with this
-potential to shift energies to 0 at the cutoff due to the anisotropic
-dependence of the interaction.  Angular velocities are all set to zero
-initially.  The Gay-Berne potential does not become isotropic as r
-increases <A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach
-approximation used by the code becomes less accurate as the shape of
-ellipsoids becomes more dissimilar (high-aspect-ratio particles).
+<P>The "shift yes" option in <A HREF = "pair_modify.html">pair_modify</A> only applies
+to sphere-sphere interactions for this potential; there is no shifting
+performed for ellipsoidal interactions due to the anisotropic
+dependence of the interaction.  The Gay-Berne potential does not
+become isotropic as r increases <A HREF = "#Everaers">(Everaers)</A>.  The
+distance-of-closest-approach approximation used by LAMMPS becomes less
+accurate when high-aspect ratio ellipsoids are used.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   www.cs.sandia.gov/~sjplimp/lammps.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,18 +11,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PairInclude
-#include "pair_eam.h"
-#include "pair_eam_alloy.h"
-#include "pair_eam_fs.h"
-#include "pair_sw.h"
-#include "pair_tersoff.h"
-#endif
+#ifndef FIX_NVT_SLODD_H
+#define FIX_NVT_SLODD_H
 
-#ifdef PairClass
-PairStyle(eam,PairEAM)
-PairStyle(eam/alloy,PairEAMAlloy)
-PairStyle(eam/fs,PairEAMFS)
-PairStyle(sw,PairSW)
-PairStyle(tersoff,PairTersoff)
+#include "fix_nvt.h"
+
+namespace LAMMPS_NS {
+
+class FixNVTSlodd : public FixNVT {
+ public:
+  FixNVTSlodd(class LAMMPS *, int, char **);
+  ~FixNVTSlodd() {}
+  void init();
+  void initial_integrate();
+  void final_integrate();
+  void initial_integrate_respa(int,int);
+};
+
+}
+
 #endif

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   www.cs.sandia.gov/~sjplimp/lammps.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,18 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef AtomInclude
+#include "atom_vec_dipole.h"
+#endif
+
+#ifdef AtomClass
+AtomStyle(dipole,AtomVecDipole)
+#endif
+
+#ifdef ComputeInclude
+#include "compute_temp_dipole.h"
+#endif
+
+#ifdef ComputeClass
+ComputeStyle(temp/dipole,ComputeTempDipole)
+#endif
+
+#ifdef FixInclude
+#include "fix_nve_dipole.h"
+#endif
+
+#ifdef FixClass
+FixStyle(nve/dipole,FixNVEDipole)
+#endif
+
 #ifdef PairInclude
-#include "pair_eam.h"
-#include "pair_eam_alloy.h"
-#include "pair_eam_fs.h"
-#include "pair_sw.h"
-#include "pair_tersoff.h"
+#include "pair_dipole_cut.h"
 #endif
 
 #ifdef PairClass
-PairStyle(eam,PairEAM)
-PairStyle(eam/alloy,PairEAMAlloy)
-PairStyle(eam/fs,PairEAMFS)
-PairStyle(sw,PairSW)
-PairStyle(tersoff,PairTersoff)
+PairStyle(dipole/cut,PairDipoleCut)
 #endif

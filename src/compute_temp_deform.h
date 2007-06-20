@@ -11,29 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_VOL_RESCALE_H
-#define FIX_VOL_RESCALE_H
+#ifndef COMPUTE_TEMP_DEFORM_H
+#define COMPUTE_TEMP_DEFORM_H
 
-#include "fix.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class FixVolRescale : public Fix {
+class ComputeTempDeform : public Compute {
  public:
-  FixVolRescale(class LAMMPS *, int, char **);
-  ~FixVolRescale();
-  int setmask();
+  ComputeTempDeform(class LAMMPS *, int, char **);
+  ~ComputeTempDeform();
   void init();
-  void end_of_step();
+  double compute_scalar();
+  void compute_vector();
 
  private:
-  int xflag,yflag,zflag;
-  double xlo_start,xlo_stop,xhi_start,xhi_stop;
-  double ylo_start,ylo_stop,yhi_start,yhi_stop;
-  double zlo_start,zlo_stop,zhi_start,zhi_stop;
-  int kspace_flag;                 // 1 if KSpace invoked, 0 if not
-  int nrigid;                      // number of rigid fixes
-  int *rfix;                       // indices of rigid fixes
+  int fix_dof;
+  double tfactor;
+
+  void recount();
 };
 
 }

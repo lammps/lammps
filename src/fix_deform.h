@@ -11,41 +11,54 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_UNIAXIAL_H
-#define FIX_UNIAXIAL_H
+#ifndef FIX_DEFORM_H
+#define FIX_DEFORM_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixUniaxial : public Fix {
+class FixDeform : public Fix {
  public:
-  FixUniaxial(class LAMMPS *, int, char **);
-  ~FixUniaxial();
+  int remapflag;
+
+  FixDeform(class LAMMPS *, int, char **);
+  ~FixDeform();
   int setmask();
   void init();
+  void pre_exchange();
   void end_of_step();
 
  private:
-  int dir;
-  double lambda_final;
-  double alpha0;                   // asymmetry parameter
-  
-  double lambdai[3];               // initial
-  double lambdaf[3];               // final
-  double domainloi[3];             // initial box lo/hi
-  double domainhii[3];
-  double *domainlo[3];             // pointers to make loop over dims possible
-  double *domainhi[3];
-  double *domainprd[3];
-  
+  double xlo_start,xhi_start,ylo_start,yhi_start,zlo_start,zhi_start;
+  double xlo_stop,xhi_stop,ylo_stop,yhi_stop,zlo_stop,zhi_stop;
+  double xy_start,xz_start,yz_start;
+  double xy_stop,xz_stop,yz_stop;
+  double xscale,yscale,zscale;
+  int triclinic,scaleflag,flip;
+  double *h_rate,*h_ratelo;
+
+  struct Set {
+    int style,substyle;
+    double flo,fhi,ftilt;
+    double dlo,dhi,dtilt;
+    double scale,vel,rate;
+    double lo_start,hi_start;
+    double lo_stop,hi_stop;
+    double lo_target,hi_target;
+    double tilt_start,tilt_stop,tilt_target;
+    double vol_start,tilt_flip;
+    int fixed,dynamic1,dynamic2;
+  };
+  Set *set;
+
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes
   int *rfix;                       // indices of rigid fixes
-};
 
-#endif
+  void options(int, char **);
+};
 
 }
 
-
+#endif

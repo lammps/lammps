@@ -11,18 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PairInclude
-#include "pair_eam.h"
-#include "pair_eam_alloy.h"
-#include "pair_eam_fs.h"
-#include "pair_sw.h"
-#include "pair_tersoff.h"
-#endif
+#ifndef FIX_NPT_ASPHERE_H
+#define FIX_NPT_ASPHERE_H
 
-#ifdef PairClass
-PairStyle(eam,PairEAM)
-PairStyle(eam/alloy,PairEAMAlloy)
-PairStyle(eam/fs,PairEAMFS)
-PairStyle(sw,PairSW)
-PairStyle(tersoff,PairTersoff)
+#include "fix_npt.h"
+
+namespace LAMMPS_NS {
+
+class FixNPTASphere : public FixNPT {
+ public:
+  FixNPTASphere(class LAMMPS *, int, char **);
+  ~FixNPTASphere() {}
+  void init();
+  void initial_integrate();
+  void final_integrate();
+
+ private:
+  double dtq;
+  double ang_factor;
+
+  void richardson(double *, double *, double *);
+  void omega_from_mq(double *, double *, double *, double *);
+  void calculate_inertia(double mass, double *shape, double *inertia);
+};
+
+}
+
 #endif

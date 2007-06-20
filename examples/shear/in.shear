@@ -25,8 +25,8 @@ group		upper region upper
 group		boundary union lower upper
 group		mobile subtract all boundary
 
-set		lower atom 2
-set		upper atom 3
+set		group lower type 2
+set		group upper type 3
 
 # void
 

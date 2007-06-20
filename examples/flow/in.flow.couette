@@ -32,8 +32,8 @@ group	     upper region 2
 group	     boundary union lower upper
 group	     flow subtract all boundary
 
-set	     lower atom 2
-set	     upper atom 3
+set	     group lower type 2
+set	     group upper type 3
 
 # initial velocities
 

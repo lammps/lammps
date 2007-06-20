@@ -54,8 +54,8 @@ group		hi-fixed region hi-fixed
 group		boundary union lo-fixed hi-fixed
 group		mobile subtract all boundary
 
-set		lo-fixed atom 4
-set		hi-fixed atom 4
+set		group lo-fixed type 4
+set		group hi-fixed type 4
 
 # initial velocities
 

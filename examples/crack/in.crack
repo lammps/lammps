@@ -39,10 +39,10 @@ region		leftlower block INF 20 INF 20 INF INF
 group		leftupper region leftupper
 group		leftlower region leftlower
 
-set		leftupper atom 2
-set		leftlower atom 3
-set		lower atom 4
-set		upper atom 5
+set		group leftupper type 2
+set		group leftlower type 3
+set		group lower type 4
+set		group upper type 5
 
 # initial velocities
 

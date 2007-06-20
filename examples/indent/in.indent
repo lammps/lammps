@@ -27,7 +27,7 @@ pair_coeff	* * 1.0 1.0 2.5
 region	        1 block INF INF INF 1.25 INF INF
 group		lower region 1
 group		mobile subtract all lower
-set		lower atom 2
+set		group lower type 2
 
 # initial velocities
 

@@ -65,6 +65,14 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
+  // per-atom array existence flags
+  // customize by adding new flag
+
+  int molecule_flag;
+  int q_flag,mu_flag;
+  int xphi_flag,quat_flag,omega_flag,angmom_flag,torque_flag;
+  int radius_flag,density_flag,rmass_flag,vfrac_flag;
+
   // extra peratom info in restart file destined for fix & diag 
 
   double **extra;

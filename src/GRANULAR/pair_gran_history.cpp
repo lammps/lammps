@@ -325,7 +325,7 @@ void PairGranHistory::init_style()
 {
   int i;
 
-  if (atom->radius == NULL || atom->omega == NULL || atom->torque == NULL)
+  if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Pair granular requires atom attributes radius, omega, torque");
 
   xkkt = xkk * 2.0/7.0;

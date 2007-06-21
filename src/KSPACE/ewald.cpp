@@ -83,8 +83,7 @@ void Ewald::init()
   if (domain->triclinic) error->all("Cannot use Ewald with triclinic box");
   if (force->dimension == 2) error->all("Cannot use Ewald with 2d simulation");
 
-  if (atom->q == NULL)
-    error->all("Must use charged atom style with kspace style");
+  if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all("Cannot use nonperiodic boundaries with Ewald");

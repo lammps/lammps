@@ -30,7 +30,7 @@ ComputeRotateGran::ComputeRotateGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal compute rotate/gran command");
 
-  if (atom->radius == NULL || atom->rmass == NULL || atom->omega == NULL)
+  if (!atom->radius_flag || !atom->rmass_flag || !atom->omega_flag)
     error->all("Compute rotate/gran requires atom attributes "
 	       "radius, rmass, omega");
 

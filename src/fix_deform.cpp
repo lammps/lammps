@@ -315,7 +315,7 @@ void FixDeform::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) count++;
-  if (count > 1) error->warning("More than one fix deform");
+  if (count > 1) error->all("More than one fix deform");
 
   // Kspace setting
 

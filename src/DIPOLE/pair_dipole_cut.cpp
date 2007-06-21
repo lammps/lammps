@@ -406,8 +406,8 @@ double PairDipoleCut::init_one(int i, int j)
 
 void PairDipoleCut::init_style()
 {
-  if (atom->q == NULL || atom->mu == NULL || 
-      atom->torque == NULL || atom->dipole == NULL)
+  if (!atom->q_flag || !atom->mu_flag || 
+      !atom->torque_flag || atom->dipole == NULL)
     error->all("Pair dipole/cut requires atom attributes "
 	       "q, mu, torque, dipole");
 }

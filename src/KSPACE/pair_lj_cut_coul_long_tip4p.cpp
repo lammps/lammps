@@ -410,7 +410,7 @@ void PairLJCutCoulLongTIP4P::init_style()
     error->all("Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair) 
     error->all("Pair style lj/cut/coul/long/tip4p requires newton pair on");
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long/tip4p requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;

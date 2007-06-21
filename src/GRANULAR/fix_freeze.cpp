@@ -27,7 +27,7 @@ FixFreeze::FixFreeze(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal fix freeze command");
 
-  if (atom->torque == NULL)
+  if (!atom->torque_flag)
     error->all("Fix freeze requires atom attribute torque");
 }
 

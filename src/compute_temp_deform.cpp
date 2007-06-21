@@ -69,13 +69,13 @@ void ComputeTempDeform::init()
 
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP && 
+      if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP && 
 	  comm->me == 0)
-	error->warning("Using fix nvt/sllod with inconsistent fix deform remapping");
+	error->warning("Using compute temp/deform with inconsistent fix deform remap option");
       break;
     }
   if (i == modify->nfix && comm->me == 0)
-    error->warning("Using fix nvt/sllod with no fix deform defined");
+    error->warning("Using compute temp/deform with no fix deform defined");
 }
 
 /* ---------------------------------------------------------------------- */

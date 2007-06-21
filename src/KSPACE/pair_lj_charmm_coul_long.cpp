@@ -747,7 +747,7 @@ double PairLJCharmmCoulLong::init_one(int i, int j)
 
 void PairLJCharmmCoulLong::init_style()
 {
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style lj/charmm/coul/long requires atom attribute q");
 
   // require cut_lj_inner < cut_lj

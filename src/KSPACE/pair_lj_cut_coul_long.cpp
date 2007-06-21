@@ -721,7 +721,7 @@ void PairLJCutCoulLong::init_style()
 {
   int i,j;
 
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;

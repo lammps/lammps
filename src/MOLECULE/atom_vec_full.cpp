@@ -44,6 +44,8 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp, int narg, char **arg) :
   size_data_atom = 7;
   size_data_vel = 4;
   xcol_data = 5;
+
+  atom->molecule_flag = atom->q_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

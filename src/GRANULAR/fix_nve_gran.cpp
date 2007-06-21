@@ -33,7 +33,7 @@ FixNVEGran::FixNVEGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal fix nve/gran command");
 
-  if (atom->xphi == NULL || atom->omega == NULL || atom->torque == NULL)
+  if (!atom->xphi_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Fix nve/gran requires atom attributes "
 	       "xphi, omega, torque");
 }

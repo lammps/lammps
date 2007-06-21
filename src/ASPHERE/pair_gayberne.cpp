@@ -375,7 +375,7 @@ double PairGayBerne::init_one(int i, int j)
 
 void PairGayBerne::init_style()
 {
-  if (atom->quat == NULL || atom->torque == NULL)
+  if (!atom->quat_flag || !atom->torque_flag)
     error->all("Pair gayberne requires atom attributes quat, torque");
 
   // per-type shape precalculations

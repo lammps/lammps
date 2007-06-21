@@ -53,13 +53,13 @@ void FixNVTSlodd::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP && 
+      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP && 
 	  comm->me == 0)
-	error->warning("Using compute temp/deform with fix deform remapping coords");
+	error->warning("Using fix nvt/sllod with inconsistent fix deform remap option");
       break;
     }
   if (i == modify->nfix && comm->me == 0)
-    error->warning("Using compute temp/deform with no fix deform defined");
+    error->warning("Using fix nvt/sllod with no fix deform defined");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -96,7 +96,7 @@ void Verlet::init()
   // don't need to clear f_pair if atom_style is only granular (no virial)
 
   torqueflag = 0;
-  if (atom->torque) torqueflag = 1;
+  if (atom->torque_flag) torqueflag = 1;
   pairflag = 1;
   if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 

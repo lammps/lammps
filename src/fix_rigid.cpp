@@ -162,7 +162,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   // error check on nbody
 
-  if (nbody == 0) error->all("No rigid bodies defined by fix rigid");
+  if (nbody == 0) error->all("No rigid bodies defined");
 
   // create all nbody-length arrays
 

@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 FixNVTASphere::FixNVTASphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVT(lmp, narg, arg)
 {
-  if (atom->quat == NULL || atom->angmom == NULL || atom->torque == NULL)
+  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag)
     error->all("Fix nvt/asphere requires atom attributes "
 	       "quat, angmom, torque");
 }

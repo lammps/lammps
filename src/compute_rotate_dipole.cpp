@@ -30,7 +30,7 @@ ComputeRotateDipole::ComputeRotateDipole(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal compute rotate/dipole command");
 
-  if (atom->dipole == NULL || atom->omega == NULL)
+  if (atom->dipole == NULL || !atom->omega_flag)
     error->all("Compute rotate/dipole requires atom attributes dipole, omega");
 
   scalar_flag = 1;

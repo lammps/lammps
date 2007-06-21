@@ -37,7 +37,7 @@ FixNVEASphere::FixNVEASphere(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 3) error->all("Illegal fix nve/asphere command");
-  if (atom->quat == NULL || atom->angmom == NULL || atom->torque == NULL)
+  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag)
     error->all("Fix nve/asphere requires atom attributes "
 	       "quat, angmom, torque");
   inertia = 

@@ -300,7 +300,7 @@ double PairBuckCoulLong::init_one(int i, int j)
 
 void PairBuckCoulLong::init_style()
 {
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style buck/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;

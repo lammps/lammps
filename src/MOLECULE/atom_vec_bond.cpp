@@ -41,6 +41,8 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp, int narg, char **arg) :
   size_data_atom = 6;
   size_data_vel = 4;
   xcol_data = 4;
+
+  atom->molecule_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

@@ -33,7 +33,7 @@ ComputeTempDipole::ComputeTempDipole(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal compute temp/dipole command");
 
-  if (atom->omega == NULL || atom->shape == NULL)
+  if (!atom->omega_flag || atom->shape == NULL)
     error->all("Compute temp/dipole requires atom attributes omega, shape");
 
   scalar_flag = vector_flag = 1;

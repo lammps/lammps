@@ -1,4 +1,4 @@
-# g++_meam = RedHat Linux box, g++, MPICH, FFTW, MEAM
+# g++_meam = RedHat Linux box, g++, MPICH, FFTW, MEAM library
 
 SHELL = /bin/sh
 #.IGNORE:

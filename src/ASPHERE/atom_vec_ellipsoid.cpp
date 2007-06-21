@@ -44,6 +44,8 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp, int narg, char **arg) :
   size_data_atom = 9;
   size_data_vel = 7;
   xcol_data = 3;
+
+  atom->angmom_flag = atom->torque_flag = atom->quat_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

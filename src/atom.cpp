@@ -52,7 +52,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nbonds = nangles = ndihedrals = nimpropers = 0;
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
 
-  // atom arrays
+  // initialize atom arrays
   // customize by adding new array
 
   tag = type = mask = image = NULL;
@@ -81,6 +81,14 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   num_improper = NULL;
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
+
+  // initialize atom array existence flags
+  // customize by adding new flag
+
+  molecule_flag = 0;
+  q_flag = mu_flag = 0;
+  xphi_flag = quat_flag = omega_flag = angmom_flag = torque_flag = 0;
+  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
 
   // ntype-length arrays
 

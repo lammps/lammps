@@ -42,10 +42,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all("Illegal fix pour command");
 
-  /*
-  if (atom->radius == NULL || atom->rmass == NULL)
+  if (!atom->radius_flag || !atom->rmass_flag)
     error->all("Fix pour requires atom attributes radius, rmass");
-  */
 
   if (domain->triclinic) error->all("Cannot use fix pour with triclinic box");
 

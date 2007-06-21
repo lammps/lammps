@@ -219,9 +219,12 @@ void WriteRestart::write(char *file)
     sprintf(perproc,"%s%d%s",file,me,ptr+1);
     *ptr = '%';
     fp = fopen(perproc,"wb");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open restart file %s",perproc);
+      error->one(str);
+    }
     delete [] perproc;
-    if (fp == NULL) error->one("Cannot open restart file");
-
     fwrite(&send_size,sizeof(int),1,fp);
     fwrite(buf,sizeof(double),send_size,fp);
     fclose(fp);

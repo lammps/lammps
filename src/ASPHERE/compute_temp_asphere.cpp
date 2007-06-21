@@ -35,7 +35,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal compute temp command");
 
-  if (atom->quat == NULL || atom->angmom == NULL)
+  if (!atom->quat_flag || !atom->angmom_flag)
     error->all("Compute temp/asphere requires atom attributes quat, angmom");
 
   scalar_flag = vector_flag = 1;

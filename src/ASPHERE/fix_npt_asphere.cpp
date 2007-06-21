@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 FixNPTASphere::FixNPTASphere(LAMMPS *lmp, int narg, char **arg) :
   FixNPT(lmp, narg, arg)
 {
-  if (atom->quat == NULL || atom->angmom == NULL || atom->torque == NULL)
+  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag)
     error->all("Fix npt/asphere requires atom attributes "
 	       "quat, angmom, torque");
 }

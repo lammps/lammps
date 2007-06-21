@@ -333,7 +333,7 @@ double PairLJClass2CoulLong::init_one(int i, int j)
 
 void PairLJClass2CoulLong::init_style()
 {
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style lj/class2/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;

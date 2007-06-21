@@ -323,7 +323,7 @@ double PairLJCharmmCoulCharmm::init_one(int i, int j)
 
 void PairLJCharmmCoulCharmm::init_style()
 {
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style lj/charmm/coul/charmm requires atom attribute q");
 
   // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul

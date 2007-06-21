@@ -39,6 +39,8 @@ AtomVecDipole::AtomVecDipole(LAMMPS *lmp, int narg, char **arg) :
   size_data_atom = 9;
   size_data_vel = 7;
   xcol_data = 4;
+
+  atom->q_flag = atom->mu_flag = atom->omega_flag = atom->torque_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

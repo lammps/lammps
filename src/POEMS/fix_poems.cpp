@@ -59,12 +59,6 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
   MPI_Comm_rank(world,&me);
 
-  // can't use with pure granular style since mass arrays are different
-  // hybrid granular style would be OK if fix were on non-granular atoms
-
-  if (atom->check_style("granular"))
-    error->all("Cannot use fix poems with atom style granular");
-
   // perform initial allocation of atom-based arrays
   // register with atom class
 
@@ -337,7 +331,7 @@ void FixPOEMS::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"poems") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning("More than one poems fix");
+  if (count > 1 && comm->me == 0) error->warning("More than one fix poems");
 
   // error if npt,nph fix comes before rigid fix
 

@@ -719,7 +719,7 @@ double Variable::evaluate(char *str, Tree *tree)
 
     } else if (tree) {
 
-      if (strlen(arg)) error->all("Invalid atom vector argument in variable");
+      if (strlen(arg)) error->all("Invalid atom vector in variable");
 
       // customize by adding atom vector to this list and to if statement
       // mass,x,y,z,vx,vy,vz,fx,fy,fz

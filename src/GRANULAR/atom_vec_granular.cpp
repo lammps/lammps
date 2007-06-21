@@ -39,6 +39,9 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
   size_data_vel = 7;
   xcol_data = 5;
 
+  atom->radius_flag = atom->density_flag = atom->rmass_flag = 1;
+  atom->xphi_flag = atom->omega_flag = atom->torque_flag = 1;
+
   PI = 4.0*atan(1.0);
 }
 

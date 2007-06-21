@@ -327,7 +327,7 @@ double PairLJClass2CoulCut::init_one(int i, int j)
 
 void PairLJClass2CoulCut::init_style()
 {
-  if (atom->q == NULL)
+  if (!atom->q_flag)
     error->all("Pair style lj/class2/coul/cut requires atom attribute q");
 }
 

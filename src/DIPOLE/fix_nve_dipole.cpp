@@ -32,8 +32,8 @@ FixNVEDipole::FixNVEDipole(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all("Illegal fix nve/dipole command");
-  if (atom->mu == NULL || atom->omega == NULL || 
-      atom->torque == NULL || atom->shape == NULL)
+  if (!atom->mu_flag || !atom->omega_flag || 
+      !atom->torque_flag || atom->shape == NULL)
     error->all("Fix nve/dipole requires atom attributes "
 	       "mu, omega, torque, shape");
   inertia = new double[atom->ntypes+1];

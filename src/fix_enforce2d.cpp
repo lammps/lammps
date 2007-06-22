@@ -67,9 +67,7 @@ void FixEnforce2D::min_setup()
 void FixEnforce2D::post_force(int vflag)
 {
   double **v = atom->v;
-  double **omega = atom->omega;
   double **f = atom->f;
-  double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -79,9 +77,10 @@ void FixEnforce2D::post_force(int vflag)
       f[i][2] = 0.0;
     }
 
-  // for omega/torque systems, zero xy rotation
+  // for systems with omega/angmom/torque, zero x and y components
 
-  if (omega) {
+  if (atom->omega_flag) {
+    double **omega = atom->omega;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	omega[i][0] = 0.0;
@@ -89,7 +88,17 @@ void FixEnforce2D::post_force(int vflag)
       }
   }
 
-  if (torque) {
+  if (atom->angmom_flag) {
+    double **angmom = atom->angmom;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	angmom[i][0] = 0.0;
+	angmom[i][1] = 0.0;
+      }
+  }
+
+  if (atom->torque_flag) {
+    double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	torque[i][0] = 0.0;

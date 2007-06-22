@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class Domain : protected Pointers {
  public:
   int box_exist;                         // 0 = not yet created, 1 = exists
-
+  int dimension;                         // 2 = 2d, 3 = 3d
   int nonperiodic;                       // 0 = periodic in all 3 dims
                                          // 1 = periodic or fixed in all 6
                                          // 2 = shrink-wrap in any of 6

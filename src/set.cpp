@@ -26,6 +26,7 @@
 #include "force.h"
 #include "pair.h"
 #include "random_park.h"
+#include "math_extra.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -94,7 +95,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
-      if (atom->molecule == NULL)
+      if (!atom->molecule_flag)
 	error->all("Cannot set this attribute for this atom style");
       set(MOLECULE);
       iarg += 2;
@@ -131,7 +132,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       dvalue = atof(arg[iarg+1]);
-      if (atom->q == NULL)
+      if (!atom->q_flag)
 	error->all("Cannot set this attribute for this atom style");
       set(CHARGE);
       iarg += 2;
@@ -140,31 +141,32 @@ void Set::command(int narg, char **arg)
       xvalue = atof(arg[iarg+1]);
       yvalue = atof(arg[iarg+2]);
       zvalue = atof(arg[iarg+3]);
-      if (atom->mu == NULL || atom->dipole == NULL)
+      if (!atom->mu_flag || atom->dipole == NULL)
 	error->all("Cannot set this attribute for this atom style");
       set(DIPOLE);
       iarg += 4;
     } else if (strcmp(arg[iarg],"dipole/random") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
-      if (atom->mu == NULL || atom->shape == NULL)
+      if (!atom->mu_flag || atom->shape == NULL)
 	error->all("Cannot set this attribute for this atom style");
       if (ivalue <= 0) error->all("Invalid random number seed in set command");
       setrandom(DIPOLE_RANDOM);
       iarg += 2;
     } else if (strcmp(arg[iarg],"quat") == 0) {
-      if (iarg+4 > narg) error->all("Illegal set command");
+      if (iarg+5 > narg) error->all("Illegal set command");
       xvalue = atof(arg[iarg+1]);
       yvalue = atof(arg[iarg+2]);
       zvalue = atof(arg[iarg+3]);
-      if (atom->quat == NULL)
+      wvalue = atof(arg[iarg+4]);
+      if (!atom->quat_flag)
 	error->all("Cannot set this attribute for this atom style");
       set(QUAT);
-      iarg += 4;
+      iarg += 5;
     } else if (strcmp(arg[iarg],"quat/random") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
-      if (atom->quat == NULL)
+      if (!atom->quat_flag)
 	error->all("Cannot set this attribute for this atom style");
       if (ivalue <= 0) error->all("Invalid random number seed in set command");
       setrandom(QUAT_RANDOM);
@@ -305,11 +307,15 @@ void Set::set(int keyword)
 	}
 
       } else if (keyword == QUAT) {
-	// need to set orientation correctly and normalize quat
+	double PI = 4.0*atan(1.0);
+	double theta2 = 0.5 * PI * wvalue/180.0;
+	double sintheta2 = sin(theta2);
 	double **quat = atom->quat;
-	quat[i][0] = xvalue;
-	quat[i][1] = yvalue;
-	quat[i][2] = zvalue;
+	quat[i][0] = cos(theta2);
+	quat[i][1] = xvalue * sintheta2;
+	quat[i][2] = yvalue * sintheta2;
+	quat[i][3] = zvalue * sintheta2;
+	MathExtra::normalize4(quat[i]);
       }
       count++;
     }
@@ -345,55 +351,90 @@ void Set::setrandom(int keyword)
         count++;
       }
 
-  // set dipole moments to random orientations
+  // set dipole moments to random orientations in 3d or 2d
   // dipole length is determined by dipole type array
 
-  } else if (keyword == DIPOLE) {
+  } else if (keyword == DIPOLE_RANDOM) {
     int *type = atom->type;
     double *dipole = atom->dipole;
     double **mu = atom->mu;
     int nlocal = atom->nlocal;
 
     double msq,scale;
-    for (i = 0; i < nlocal; i++)
-      if (select[i]) {
-	if (dipole[type[i]] > 0.0) {
-	  random->reset(seed,x[i]);
-	  mu[i][0] = random->uniform() - 0.5;
-	  mu[i][1] = random->uniform() - 0.5;
-	  mu[i][2] = random->uniform() - 0.5;
-	  msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
-	  scale = dipole[type[i]]/sqrt(msq);
-	  mu[i][0] *= scale;
-	  mu[i][1] *= scale;
-	  mu[i][2] *= scale;
-	  count++;
+
+    if (domain->dimension == 3) {
+      for (i = 0; i < nlocal; i++)
+	if (select[i]) {
+	  if (dipole[type[i]] > 0.0) {
+	    random->reset(seed,x[i]);
+	    mu[i][0] = random->uniform() - 0.5;
+	    mu[i][1] = random->uniform() - 0.5;
+	    mu[i][2] = random->uniform() - 0.5;
+	    msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
+	    scale = dipole[type[i]]/sqrt(msq);
+	    mu[i][0] *= scale;
+	    mu[i][1] *= scale;
+	    mu[i][2] *= scale;
+	    count++;
+	  }
 	}
-      }
 
-  // set quaternions to random orientations
+    } else {
+      for (i = 0; i < nlocal; i++)
+	if (select[i]) {
+	  if (dipole[type[i]] > 0.0) {
+	    random->reset(seed,x[i]);
+	    mu[i][0] = random->uniform() - 0.5;
+	    mu[i][1] = random->uniform() - 0.5;
+	    mu[i][2] = 0.0;
+	    msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1];
+	    scale = dipole[type[i]]/sqrt(msq);
+	    mu[i][0] *= scale;
+	    mu[i][1] *= scale;
+	    count++;
+	  }
+	}
+    }
 
-  } else if (keyword == QUAT) {
+  // set quaternions to random orientations in 3d or 2d
+  // no need to normalize quats since creations algorithms already do
+
+  } else if (keyword == QUAT_RANDOM) {
     double **quat = atom->quat;
     int nlocal = atom->nlocal;
 
-    double s,t1,t2,theta1,theta2;
-    double PI = 4.0*atan(1.0);
+    if (domain->dimension == 3) {
+      double s,t1,t2,theta1,theta2;
+      double PI = 4.0*atan(1.0);
+      for (i = 0; i < nlocal; i++)
+	if (select[i]) {
+	  random->reset(seed,x[i]);
+	  s = random->uniform();
+	  t1 = sqrt(1.0-s);
+	  t2 = sqrt(s);
+	  theta1 = 2.0*PI*random->uniform();
+	  theta2 = 2.0*PI*random->uniform();
+	  quat[i][0] = cos(theta2)*t2;
+	  quat[i][1] = sin(theta1)*t1;
+	  quat[i][2] = cos(theta1)*t1;
+	  quat[i][3] = sin(theta2)*t2;
+	  count++;
+	}
 
-    for (i = 0; i < nlocal; i++)
-      if (select[i]) {
-	random->reset(seed,x[i]);
-	s = random->uniform();
-	t1 = sqrt(1.0-s);
-	t2 = sqrt(s);
-	theta1 = 2.0*PI*random->uniform();
-	theta2 = 2.0*PI*random->uniform();
-	quat[i][0] = cos(theta2)*t2;
-	quat[i][1] = sin(theta1)*t1;
-	quat[i][2] = cos(theta1)*t1;
-	quat[i][3] = sin(theta2)*t2;
-        count++;
-      }
+    } else {
+      double theta2;
+      double PI = 4.0*atan(1.0);
+      for (i = 0; i < nlocal; i++)
+	if (select[i]) {
+	  random->reset(seed,x[i]);
+	  theta2 = PI*random->uniform();
+	  quat[i][0] = cos(theta2);
+	  quat[i][1] = 0.0;
+	  quat[i][2] = 0.0;
+	  quat[i][3] = sin(theta2);
+	  count++;
+	}
+    }
   }
 
   delete random;

@@ -107,7 +107,7 @@ void PPPM::init()
 
   if (domain->triclinic)
     error->all("Cannot (yet) use PPPM with triclinic box");
-  if (force->dimension == 2) error->all("Cannot use PPPM with 2d simulation");
+  if (domain->dimension == 2) error->all("Cannot use PPPM with 2d simulation");
 
   if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
 

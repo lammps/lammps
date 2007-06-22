@@ -81,7 +81,7 @@ void Ewald::init()
   // error check
 
   if (domain->triclinic) error->all("Cannot use Ewald with triclinic box");
-  if (force->dimension == 2) error->all("Cannot use Ewald with 2d simulation");
+  if (domain->dimension == 2) error->all("Cannot use Ewald with 2d simulation");
 
   if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
 

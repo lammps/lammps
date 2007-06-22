@@ -88,7 +88,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // apply scaling to all input parameters with dist/vel units
 
-  if (force->dimension == 2) {
+  if (domain->dimension == 2) {
     lo *= yscale;
     hi *= yscale;
     rate *= yscale;
@@ -191,7 +191,7 @@ void FixDeposit::pre_exchange()
 
     // adjust vertical coord by offset
 
-    if (force->dimension == 2) coord[1] += offset;
+    if (domain->dimension == 2) coord[1] += offset;
     else coord[2] += offset;
 
     // if global, reset vertical coord to be lo-hi above highest atom
@@ -202,7 +202,7 @@ void FixDeposit::pre_exchange()
       int dim;
       double max,maxall,delx,dely,delz,rsq;
 
-      if (force->dimension == 2) {
+      if (domain->dimension == 2) {
 	dim = 1;
 	max = domain->boxlo[1];
       } else {
@@ -218,7 +218,7 @@ void FixDeposit::pre_exchange()
 	  dely = coord[1] - x[i][1];
 	  delz = 0.0;
 	  domain->minimum_image(delx,dely,delz);
-	  if (force->dimension == 2) rsq = delx*delx;
+	  if (domain->dimension == 2) rsq = delx*delx;
 	  else rsq = delx*delx + dely*dely;
 	  if (rsq > deltasq) continue;
 	}
@@ -226,7 +226,7 @@ void FixDeposit::pre_exchange()
       }
 
       MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
-      if (force->dimension == 2)
+      if (domain->dimension == 2)
 	coord[1] = maxall + lo + random->uniform()*(hi-lo);
       else
 	coord[2] = maxall + lo + random->uniform()*(hi-lo);
@@ -271,11 +271,11 @@ void FixDeposit::pre_exchange()
     if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
 	newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
 	newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
-    else if (force->dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
+    else if (domain->dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
 	     comm->myloc[2] == comm->procgrid[2]-1 &&
 	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
 	     newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
-    else if (force->dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
+    else if (domain->dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
 	     comm->myloc[1] == comm->procgrid[1]-1 &&
 	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
 

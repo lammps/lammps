@@ -62,7 +62,7 @@ void Replicate::command(int narg, char **arg)
   // error and warning checks
 
   if (nx <= 0 || ny <= 0 || nz <= 0) error->all("Illegal replicate command");
-  if (force->dimension == 2 && nz != 1)
+  if (domain->dimension == 2 && nz != 1)
     error->all("Cannot replicate 2d simulation in z dimension");
   if ((nx > 1 && domain->xperiodic == 0) || 
       (ny > 1 && domain->yperiodic == 0) ||

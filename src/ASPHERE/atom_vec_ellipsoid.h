@@ -22,7 +22,6 @@ class AtomVecEllipsoid : public AtomVec {
  public:
   AtomVecEllipsoid(class LAMMPS *, int, char **);
   virtual ~AtomVecEllipsoid() {}
-  void init();
   void grow(int);
   void copy(int, int);
   virtual int pack_comm(int, int *, double *, int, int *);

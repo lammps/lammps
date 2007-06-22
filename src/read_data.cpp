@@ -71,7 +71,7 @@ void ReadData::command(int narg, char **arg)
 
   if (domain->box_exist) 
     error->all("Cannot read_data after simulation box is defined");
-  if (force->dimension == 2 && domain->zperiodic == 0)
+  if (domain->dimension == 2 && domain->zperiodic == 0)
     error->all("Cannot run 2d simulation with nonperiodic Z dimension");
 
   // scan data file to determine max topology needed per atom 

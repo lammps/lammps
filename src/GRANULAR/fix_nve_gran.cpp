@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "update.h"
 #include "force.h"
+#include "domain.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -33,9 +34,9 @@ FixNVEGran::FixNVEGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal fix nve/gran command");
 
-  if (!atom->xphi_flag || !atom->omega_flag || !atom->torque_flag)
+  if (!atom->xorient_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Fix nve/gran requires atom attributes "
-	       "xphi, omega, torque");
+	       "xorient, omega, torque");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,8 +55,8 @@ void FixNVEGran::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  if (force->dimension == 3) dtfphi = dtf / INERTIA3D;
-  else dtfphi = dtf / INERTIA2D;
+  if (domain->dimension == 3) dtfrotate = dtf / INERTIA3D;
+  else dtfrotate = dtf / INERTIA2D;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,7 +68,7 @@ void FixNVEGran::initial_integrate()
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **xphi = atom->xphi;
+  double **xorient = atom->xorient;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *rmass = atom->rmass;
@@ -85,13 +86,13 @@ void FixNVEGran::initial_integrate()
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
 
-      dtfm = dtfphi / (radius[i]*radius[i]*rmass[i]);
+      dtfm = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtfm * torque[i][0];
       omega[i][1] += dtfm * torque[i][1];
       omega[i][2] += dtfm * torque[i][2];
-      xphi[i][0] += dtv * omega[i][0];
-      xphi[i][1] += dtv * omega[i][1];
-      xphi[i][2] += dtv * omega[i][2];
+      xorient[i][0] += dtv * omega[i][0];
+      xorient[i][1] += dtv * omega[i][1];
+      xorient[i][2] += dtv * omega[i][2];
     }
   }
 }
@@ -118,7 +119,7 @@ void FixNVEGran::final_integrate()
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
 
-      dtfm = dtfphi / (radius[i]*radius[i]*rmass[i]);
+      dtfm = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtfm * torque[i][0];
       omega[i][1] += dtfm * torque[i][1];
       omega[i][2] += dtfm * torque[i][2];

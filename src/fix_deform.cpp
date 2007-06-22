@@ -162,20 +162,24 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (set[5].style && (domain->xperiodic == 0 || domain->yperiodic == 0))
     error->all("Cannot fix deform on a non-periodic boundary");
 
-  // setup scaling
+  // apply scaling to FINAL,DELTA,VEL since they have distance/vel units
 
-  if (scaleflag && domain->lattice == NULL)
+  int flag = 0;
+  for (int i = 0; i < 6; i++)
+    if (set[i].style == FINAL || set[i].style == DELTA || 
+	set[i].style == VEL) flag = 1;
+
+  if (flag && scaleflag && domain->lattice == NULL)
     error->all("Use of fix deform with undefined lattice");
 
-  if (scaleflag) {
+  if (flag && scaleflag) {
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;
     zscale = domain->lattice->zlattice;
   }
   else xscale = yscale = zscale = 1.0;
 
-  // apply scaling to input parameters with dist/vel units
-  // for 3,4,5 scale is in 1st dimension, e.g. x for xz
+  // for 3,4,5 scaling is in 1st dimension, e.g. x for xz
 
   double map[6];
   map[0] = xscale; map[1] = yscale; map[2] = zscale;

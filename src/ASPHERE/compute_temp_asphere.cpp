@@ -20,6 +20,7 @@
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
+#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
@@ -73,7 +74,7 @@ void ComputeTempAsphere::init()
 void ComputeTempAsphere::recount()
 {
   double natoms = group->count(igroup);
-  dof = force->dimension * natoms;
+  dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;
 
   // add rotational degrees of freedom

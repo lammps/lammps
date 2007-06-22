@@ -378,10 +378,10 @@ void ReadRestart::header()
 
     } else if (flag == DIMENSION) {
       int dimension = read_int();
-      if (dimension != force->dimension && me == 0)
+      if (dimension != domain->dimension && me == 0)
 	error->warning("Resetting dimension to restart file value");
-      force->dimension = dimension;
-      if (force->dimension == 2 && domain->zperiodic == 0)
+      domain->dimension = dimension;
+      if (domain->dimension == 2 && domain->zperiodic == 0)
 	error->all("Cannot run 2d simulation with nonperiodic Z dimension");
 
       // read nprocs_file from restart file, warn if different

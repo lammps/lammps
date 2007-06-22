@@ -570,7 +570,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_tag;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
-      if (atom->molecule == NULL)
+      if (!atom->molecule_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_molecule;
       vtype[i] = INT;
@@ -641,58 +641,58 @@ void DumpCustom::parse_fields(int narg, char **arg)
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"q") == 0) {
-      if (atom->q == NULL)
+      if (!atom->q_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_q;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"mux") == 0) {
-      if (atom->mu == NULL)
+      if (!atom->mu_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mux;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muy") == 0) {
-      if (atom->mu == NULL)
+      if (!atom->mu_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muz") == 0) {
-      if (atom->mu == NULL)
+      if (!atom->mu_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
-      if (atom->quat == NULL)
+      if (!atom->quat_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quatw;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quati") == 0) {
-      if (atom->quat == NULL)
+      if (!atom->quat_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quati;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
-      if (atom->quat == NULL)
+      if (!atom->quat_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quatj;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
-      if (atom->quat == NULL)
+      if (!atom->quat_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quatk;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
-      if (atom->torque == NULL)
+      if (!atom->torque_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqx;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
-      if (atom->torque == NULL)
+      if (!atom->torque_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
-      if (atom->torque == NULL)
+      if (!atom->torque_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;

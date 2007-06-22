@@ -129,7 +129,7 @@ void ComputeTempRamp::init()
 void ComputeTempRamp::recount()
 {
   double natoms = group->count(igroup);
-  dof = force->dimension * natoms;
+  dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;

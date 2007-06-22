@@ -27,7 +27,7 @@ class FixNVEGran : public Fix {
   void final_integrate();
 
  private:
-  double dtv,dtf,dtfphi;
+  double dtv,dtf,dtfrotate;
 };
 
 }

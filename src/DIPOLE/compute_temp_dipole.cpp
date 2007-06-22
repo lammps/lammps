@@ -15,6 +15,7 @@
 #include "compute_temp_dipole.h"
 #include "atom.h"
 #include "force.h"
+#include "domain.h"
 #include "group.h"
 #include "modify.h"
 #include "fix.h"
@@ -76,7 +77,7 @@ void ComputeTempDipole::init()
 void ComputeTempDipole::recount()
 {
   double natoms = group->count(igroup);
-  dof = 2.0 * force->dimension * natoms;
+  dof = 2.0 * domain->dimension * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;

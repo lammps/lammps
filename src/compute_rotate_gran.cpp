@@ -15,6 +15,7 @@
 #include "compute_rotate_gran.h"
 #include "atom.h"
 #include "force.h"
+#include "domain.h"
 #include "group.h"
 #include "error.h"
 
@@ -42,7 +43,7 @@ ComputeRotateGran::ComputeRotateGran(LAMMPS *lmp, int narg, char **arg) :
 
 void ComputeRotateGran::init()
 {
-  if (force->dimension == 3) pfactor = 0.5 * force->mvv2e * INERTIA3D;
+  if (domain->dimension == 3) pfactor = 0.5 * force->mvv2e * INERTIA3D;
   else pfactor = 0.5 * force->mvv2e * INERTIA2D;
 }
 

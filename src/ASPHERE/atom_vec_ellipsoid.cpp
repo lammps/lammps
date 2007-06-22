@@ -48,14 +48,6 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp, int narg, char **arg) :
   atom->angmom_flag = atom->torque_flag = atom->quat_flag = 1;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void AtomVecEllipsoid::init()
-{
-  if (force->dimension == 2)
-    error->all("Cannot use atom style ellipsoid for 2d simulation");
-}
-
 /* ----------------------------------------------------------------------
    grow atom arrays
    n = 0 grows arrays by DELTA

@@ -15,6 +15,7 @@
 #include "compute_temp.h"
 #include "atom.h"
 #include "force.h"
+#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
@@ -59,7 +60,7 @@ void ComputeTemp::init()
 void ComputeTemp::recount()
 {
   double natoms = group->count(igroup);
-  dof = force->dimension * natoms;
+  dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;

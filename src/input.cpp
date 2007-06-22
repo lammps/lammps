@@ -795,7 +795,7 @@ void Input::dimension()
   if (narg != 1) error->all("Illegal dimension command");
   if (domain->box_exist) 
     error->all("Dimension command after simulation box is defined");
-  force->dimension = atoi(arg[0]);
+  domain->dimension = atoi(arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */

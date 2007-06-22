@@ -16,7 +16,7 @@
 #include "stdlib.h"
 #include "lattice.h"
 #include "update.h"
-#include "force.h"
+#include "domain.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -59,7 +59,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // check that lattice matches dimension
   // style CUSTOM can be either 2d or 3d
 
-  int dimension = force->dimension;
+  int dimension = domain->dimension;
   if (dimension == 2) {
     if (style == SC || style == BCC || style == FCC || style == DIAMOND)
       error->all("Lattice style incompatible with simulation dimension");

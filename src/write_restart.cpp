@@ -242,7 +242,7 @@ void WriteRestart::header()
   write_char(VERSION,universe->version);
   write_char(UNITS,update->unit_style);
   write_int(NTIMESTEP,update->ntimestep);
-  write_int(DIMENSION,force->dimension);
+  write_int(DIMENSION,domain->dimension);
   write_int(NPROCS,nprocs);
   write_int(PROCGRID_0,comm->procgrid[0]);
   write_int(PROCGRID_1,comm->procgrid[1]);

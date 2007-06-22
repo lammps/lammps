@@ -94,7 +94,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       rate = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (force->dimension == 3) {
+      if (domain->dimension == 3) {
 	if (iarg+6 > narg) error->all("Illegal fix pour command");
 	vxlo = atof(arg[iarg+1]);
 	vxhi = atof(arg[iarg+2]);
@@ -150,7 +150,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       error->all("Insertion region extends outside simulation box");
   } else error->all("Must use a block or cylinder region with fix pour");
 
-  if (region_style == 2 && force->dimension == 2)
+  if (region_style == 2 && domain->dimension == 2)
     error->all("Must use a block region with fix pour for 2d simulations");
 
   // random number generator, same for all procs
@@ -171,7 +171,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   double v_relative,delta;
   double g = 1.0;
-  if (force->dimension == 3) {
+  if (domain->dimension == 3) {
     v_relative = vz - rate;
     delta = v_relative + sqrt(v_relative*v_relative + 2.0*g*(zhi-zlo)) / g;
   } else {
@@ -192,7 +192,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // in 3d, insure dy >= 1, for quasi-2d simulations
 
   double volume,volume_one;
-  if (force->dimension == 3) {
+  if (domain->dimension == 3) {
     if (region_style == 1) {
       double dy = yhi - ylo;
       if (dy < 1.0) dy = 1.0;
@@ -261,7 +261,7 @@ void FixPour::init()
   double ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
   double zgrav = cos(degree2rad * theta);
 
-  if (force->dimension == 3) {
+  if (domain->dimension == 3) {
     if (fabs(xgrav) > EPSILON || fabs(ygrav) > EPSILON ||
 	fabs(zgrav+1.0) > EPSILON)
       error->all("Gravity must point in -z to use with fix pour in 3d");
@@ -299,7 +299,7 @@ void FixPour::pre_exchange()
 
   // lo/hi current = z (or y) bounds of insertion region this timestep
 
-  if (force->dimension == 3) {
+  if (domain->dimension == 3) {
     lo_current = zlo + (update->ntimestep - nfirst) * update->dt * rate;
     hi_current = zhi + (update->ntimestep - nfirst) * update->dt * rate;
   } else {
@@ -430,7 +430,7 @@ void FixPour::pre_exchange()
     coord[2] = xnear[i][2];
     radtmp = xnear[i][3];
     denstmp = density_lo + random->uniform() * (density_hi-density_lo);
-    if (force->dimension == 3) {
+    if (domain->dimension == 3) {
       vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
       vytmp = vylo + random->uniform() * (vyhi-vylo);
       vztmp = vz - sqrt(2.0*g*(hi_current-coord[2]));
@@ -444,11 +444,11 @@ void FixPour::pre_exchange()
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
 	coord[1] >= sublo[1] && coord[1] < subhi[1] &&
 	coord[2] >= sublo[2] && coord[2] < subhi[2]) flag = 1;
-    else if (force->dimension == 3 && coord[2] >= domain->boxhi[2] &&
+    else if (domain->dimension == 3 && coord[2] >= domain->boxhi[2] &&
 	     comm->myloc[2] == comm->procgrid[2]-1 &&
 	     coord[0] >= sublo[0] && coord[0] < subhi[0] &&
 	     coord[1] >= sublo[1] && coord[1] < subhi[1]) flag = 1;
-    else if (force->dimension == 2 && coord[1] >= domain->boxhi[1] &&
+    else if (domain->dimension == 2 && coord[1] >= domain->boxhi[1] &&
 	     comm->myloc[1] == comm->procgrid[1]-1 &&
 	     coord[0] >= sublo[0] && coord[0] < subhi[0]) flag = 1;
 
@@ -458,7 +458,7 @@ void FixPour::pre_exchange()
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;
       atom->density[m] = denstmp;
-      if (force->dimension == 3) 
+      if (domain->dimension == 3) 
 	atom->rmass[m] = 4.0*PI/3.0 * radtmp*radtmp*radtmp * denstmp;
       else
 	atom->rmass[m] = PI * radtmp*radtmp * denstmp;
@@ -505,7 +505,7 @@ int FixPour::overlap(int i)
   double delta = radius_hi + atom->radius[i];
   double **x = atom->x;
 
-  if (force->dimension == 3) {
+  if (domain->dimension == 3) {
     if (region_style == 1) {
       if (x[i][0] < xlo-delta || x[i][0] > xhi+delta ||
 	  x[i][1] < ylo-delta || x[i][1] > yhi+delta ||
@@ -530,7 +530,7 @@ int FixPour::overlap(int i)
 
 void FixPour::xyz_random(double h, double *coord)
 {
-  if (force->dimension == 3) {
+  if (domain->dimension == 3) {
     if (region_style == 1) {
       coord[0] = xlo + random->uniform() * (xhi-xlo);
       coord[1] = ylo + random->uniform() * (yhi-ylo);

@@ -14,7 +14,7 @@
 #include "mpi.h"
 #include "compute_rotate_dipole.h"
 #include "atom.h"
-#include "force.h"
+#include "domain.h"
 #include "group.h"
 #include "error.h"
 
@@ -56,7 +56,7 @@ void ComputeRotateDipole::init()
   double *mass = atom->mass;
   double **shape = atom->shape;
 
-  if (force->dimension == 3)
+  if (domain->dimension == 3)
     for (int i = 1; i <= atom->ntypes; i++)
       inertia[i] = INERTIA3D * mass[i] * 0.25*shape[i][0]*shape[i][0];
   else

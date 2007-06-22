@@ -37,7 +37,7 @@ void CreateBox::command(int narg, char **arg)
 
   if (domain->box_exist) 
     error->all("Cannot create_box after simulation box is defined");
-  if (force->dimension == 2 && domain->zperiodic == 0)
+  if (domain->dimension == 2 && domain->zperiodic == 0)
     error->all("Cannot run 2d simulation with nonperiodic Z dimension");
 
   domain->box_exist = 1;

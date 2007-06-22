@@ -51,7 +51,6 @@ using namespace LAMMPS_NS;
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
 {
-  dimension = 3;
   newton = newton_pair = newton_bond = 1;
 
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;

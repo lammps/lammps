@@ -71,7 +71,7 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   newarg[1] = group->names[igroup];
   if (strcmp(style,"nvt") == 0) newarg[2] = "temp";
   else if (strcmp(style,"nvt/asphere") == 0) newarg[2] = "temp/asphere";
-  else if (strcmp(style,"nvt/deform") == 0) newarg[2] = "temp/deform";
+  else if (strcmp(style,"nvt/sllod") == 0) newarg[2] = "temp/deform";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;

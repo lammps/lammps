@@ -166,7 +166,7 @@ void Comm::set_procs()
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all("Bad grid of processors");
-  if (force->dimension == 2 && procgrid[2] != 1)
+  if (domain->dimension == 2 && procgrid[2] != 1)
     error->all("Proc grid in z != 1 for 2d simulation");
 
   if (grid2proc) memory->destroy_3d_int_array(grid2proc);
@@ -272,7 +272,7 @@ void Comm::setup()
   need[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
   need[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
   need[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
-  if (force->dimension == 2) need[2] = 0;
+  if (domain->dimension == 2) need[2] = 0;
 
   // if non-periodic, do not communicate further than procgrid-1 away
   // this enables very large cutoffs in non-periodic systems
@@ -1300,7 +1300,7 @@ void Comm::procs2box()
       while (ipy <= nremain) {
 	if (nremain % ipy == 0) {
 	  ipz = nremain/ipy;
-	  if (force->dimension == 3 || ipz == 1) {
+	  if (domain->dimension == 3 || ipz == 1) {
 	    surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
 	    if (surf < bestsurf) {
 	      bestsurf = surf;

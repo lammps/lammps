@@ -29,7 +29,6 @@ class Force : protected Pointers {
   double dielectric;                 // dielectric constant
   double qqrd2e;                     // q^2/r to energy w/ dielectric constant
 
-  int dimension;                        // 2 = 2d, 3 = 3d
   int newton,newton_pair,newton_bond;   // Newton's 3rd law settings
 
   class Pair *pair;

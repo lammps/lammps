@@ -520,19 +520,19 @@ void Neighbor::init()
       } else if (style == BIN) {
 	if (force->newton_pair == 0) {
 	  half_build = &Neighbor::granular_bin_no_newton;
-	  if (force->dimension == 3)
+	  if (domain->dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_no_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_no_newton;
 	} else if (triclinic) {
 	  half_build = &Neighbor::granular_bin_newton_tri;
-	  if (force->dimension == 3)
+	  if (domain->dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton_tri;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton_tri;
 	} else {
 	  half_build = &Neighbor::granular_bin_newton;
-	  if (force->dimension == 3)
+	  if (domain->dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton;
@@ -547,19 +547,19 @@ void Neighbor::init()
       } else if (style == BIN) {
 	if (force->newton_pair == 0) {
 	  half_build = &Neighbor::respa_bin_no_newton;
-	  if (force->dimension == 3)
+	  if (domain->dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_no_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_no_newton;
 	} else if (triclinic) {
 	  half_build = &Neighbor::respa_bin_newton_tri;
-	  if (force->dimension == 3)
+	  if (domain->dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton_tri;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton_tri;
 	} else {
 	  half_build = &Neighbor::respa_bin_newton;
-	  if (force->dimension == 3)
+	  if (domain->dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton;
@@ -582,7 +582,7 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else {
 	    half_build = &Neighbor::half_bin_no_newton;
-	    if (force->dimension == 3)
+	    if (domain->dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_no_newton;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_no_newton;
@@ -593,13 +593,13 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else if (triclinic) {
 	    half_build = &Neighbor::half_bin_newton_tri;
-	    if (force->dimension == 3)
+	    if (domain->dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton_tri;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton_tri;
 	  } else {
 	    half_build = &Neighbor::half_bin_newton;
-	    if (force->dimension == 3)
+	    if (domain->dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton;
@@ -612,7 +612,7 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else {
 	    half_build = &Neighbor::half_bin_no_newton_multi;
-	    if (force->dimension == 3)
+	    if (domain->dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_no_newton_multi;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_no_newton_multi;
@@ -623,13 +623,13 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else if (triclinic) {
 	    half_build = &Neighbor::half_bin_newton_multi_tri;
-	    if (force->dimension == 3)
+	    if (domain->dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton_multi_tri;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton_multi_tri;
 	  } else {
 	    half_build = &Neighbor::half_bin_newton_multi;
-	    if (force->dimension == 3)
+	    if (domain->dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton_multi;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton_multi;
@@ -644,13 +644,13 @@ void Neighbor::init()
     if (style == NSQ) full_build = &Neighbor::full_nsq;
     else if (style == BIN) {
       full_build = &Neighbor::full_bin;
-      if (force->dimension == 3)
+      if (domain->dimension == 3)
 	full_stencil = &Neighbor::stencil_full_3d;
       else
 	full_stencil = &Neighbor::stencil_full_2d;
     } else {
       full_build = &Neighbor::full_bin_multi;
-      if (force->dimension == 3)
+      if (domain->dimension == 3)
 	full_stencil = &Neighbor::stencil_full_3d_multi;
       else
 	full_stencil = &Neighbor::stencil_full_2d_multi;
@@ -1001,7 +1001,7 @@ void Neighbor::setup_bins()
 
   nbinx = static_cast<int> (bbox[0]*binsizeinv);
   nbiny = static_cast<int> (bbox[1]*binsizeinv);
-  if (force->dimension == 3)
+  if (domain->dimension == 3)
     nbinz = static_cast<int> (bbox[2]*binsizeinv);
   else nbinz = 1;
 

@@ -176,7 +176,7 @@ void Velocity::create(int narg, char **arg)
   int *mask = atom->mask;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int dimension = force->dimension;
+  int dimension = domain->dimension;
 
   int m;
   double vx,vy,vz,factor;
@@ -360,7 +360,7 @@ void Velocity::set(int narg, char **arg)
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int dimension = force->dimension;
+  int dimension = domain->dimension;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -427,7 +427,7 @@ void Velocity::ramp(int narg, char **arg)
   else if (strcmp(arg[0],"vz") == 0) v_dim = 2;
   else error->all("Illegal velocity command");
 
-  if (v_dim == 2 && force->dimension == 2) 
+  if (v_dim == 2 && domain->dimension == 2) 
     error->all("Velocity ramp in z for a 2d problem");
 
   double v_lo,v_hi;

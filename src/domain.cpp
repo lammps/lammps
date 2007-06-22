@@ -55,6 +55,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 {
   box_exist = 0;
 
+  dimension = 3;
   nonperiodic = 0;
   xperiodic = yperiodic = zperiodic = 1;
   periodicity[0] = xperiodic;
@@ -132,7 +133,7 @@ void Domain::set_initial_box()
     error->one("Box bounds are invalid");
 
   if (triclinic) {
-    if (force->dimension == 2 && (xz != 0.0 || yz != 0.0))
+    if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
       error->all("Cannot skew triclinic box in z for 2d simulation");
     if (xy != 0.0 && (!xperiodic || !yperiodic))
       error->all("Triclinic box must be periodic in skewed dimensions");

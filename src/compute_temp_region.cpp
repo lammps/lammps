@@ -90,7 +90,7 @@ double ComputeTempRegion::compute_scalar()
   tarray[0] = count;
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
-  dof = force->dimension * tarray_all[0] - extra_dof;
+  dof = domain->dimension * tarray_all[0] - extra_dof;
   if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;
   return scalar;

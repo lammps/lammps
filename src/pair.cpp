@@ -117,7 +117,7 @@ void Pair::init()
 
   if (offset_flag && tail_flag)
     error->all("Cannot have both pair_modify shift and tail set to yes");
-  if (tail_flag && force->dimension == 2)
+  if (tail_flag && domain->dimension == 2)
     error->all("Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning("Using pair tail corrections with nonperiodic system");

@@ -2,7 +2,7 @@
 
 dimension	2
 atom_style	granular
-boundary	p fm p
+boundary	f fm p
 newton		off
 
 region		reg block 0 100 0 50 -0.5 0.5 units box
@@ -35,5 +35,5 @@ thermo		1000
 thermo_modify	lost ignore
 compute_modify	thermo_temp dynamic yes
 
-dump		id all atom 100 dump.pour
+dump		id all atom 250 dump.pour
 run		25000

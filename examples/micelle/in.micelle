@@ -54,7 +54,7 @@ pair_coeff	2 3 1.0 0.88 1.12246
 pair_coeff	2 4 1.0 0.75 1.12246
 
 thermo		1000
-dump		1 all atom 250 dump.micelle
+dump		1 all atom 500 dump.micelle
 
 reset_timestep	0
 run		60000

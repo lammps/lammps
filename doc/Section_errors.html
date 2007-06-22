@@ -3058,6 +3058,15 @@ lattice must first be defined via the lattice command.
 <DD>If scale = lattice (the default) for the velocity set or velocity ramp
 command, then a lattice must first be defined via the lattice command. 
 
+<DT><I>Using fix nvt/sllod with inconsistent fix deform remap option</I> 
+
+<DD>Fix nvt/sllod requires that deforming atoms have a velocity profile
+provided by "remap v" as a fix deform option. 
+
+<DT><I>Using fix nvt/sllod with no fix deform defined</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Variable compute ID does not compute scalar info</I> 
 
 <DD>The specified compute ID does not compute a scalar quantity
@@ -3357,15 +3366,6 @@ could be inaccurate.
 by "remap v" or "remap none" as a fix deform option. 
 
 <DT><I>Using compute temp/deform with no fix deform defined</I> 
-
-<DD>Self-explanatory. 
-
-<DT><I>Using fix nvt/sllod with inconsistent fix deform remap option</I> 
-
-<DD>Fix nvt/sllod assumes deforming atoms have a velocity profile
-provided by "remap v" as a fix deform option. 
-
-<DT><I>Using fix nvt/sllod with no fix deform defined</I> 
 
 <DD>Self-explanatory. 
 

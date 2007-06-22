@@ -24,7 +24,7 @@ class CreateAtoms : protected Pointers {
   void command(int, char **);
 
  private:
-  int itype,style,iregion,nbasis;
+  int itype,style,nregion,nbasis;
   int *basistype;
   double xone[3];
 

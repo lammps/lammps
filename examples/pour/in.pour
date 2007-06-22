@@ -30,7 +30,7 @@ thermo		1000
 thermo_modify	lost ignore
 compute_modify	thermo_temp dynamic yes
 
-dump		id all atom 125 dump.pour
+dump		id all atom 1000 dump.pour
 run		25000
 
 unfix		ins

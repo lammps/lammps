@@ -8,7 +8,7 @@ atom_style	atomic
 read_data	data.meam
 
 pair_style	meam
-pair_coeff	* * library.meam Si C sic.meam Si C
+pair_coeff	* * library.meam Si C SiC.meam Si C
 
 neighbor	0.3 bin
 neigh_modify	delay 10

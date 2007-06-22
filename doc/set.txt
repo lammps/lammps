@@ -17,8 +17,7 @@ ID = atom ID or group ID or region ID :l
 one or more keyword/value pairs may be appended to the args :l
 keyword = {type} or {type/fraction} or {mol} or \
 	  {x} or {y} or {z} or {vx} or {vy} or {vz} or \
-          {charge} or {dipole} or {dipole/random} or \
-	  {quat} or {quat/random} or \
+          {charge} or {dipole} or {dipole/random} or {quat/random} or \
 	  {bond} or {angle} or {dihedral} or {improper} :l
   {type} value = atom type
   {type/fraction} values = type fraction seed
@@ -33,8 +32,9 @@ keyword = {type} or {type/fraction} or {mol} or \
     x,y,z = orientation of dipole moment vector
   {dipole/random} value = seed
     seed = random # seed (8 digits or less) for dipole moment orientations
-  {quat} values = w i j k
-    w,i,j,k = quaternion components (see below)
+  {quat} values = a b c theta
+    a,b,c = unit vector to rotate particle around via right-hand rule
+    theta = rotation angle in degrees
   {quat/random} value = seed
     seed = random # seed (8 digits or less) for quaternion orientations
   {bond} value = bond type for all bonds between selected atoms
@@ -106,27 +106,30 @@ set by the "dipole"_dipole.html command.
 
 Keyword {dipole/random} randomizes the orientation of the dipole
 moment vectors of the selected atoms.  The magnitude of the dipole
-moment for each atom is set by the "dipole"_dipole.html command.
-Random numbers are used in such a way that the orientation of a
-particular atom is the same, regardless of how many processors are
-being used.
+moment for each atom is set by the "dipole"_dipole.html command.  For
+2d systems, the z component of the orientation is set to 0.0.  Random
+numbers are used in such a way that the orientation of a particular
+atom is the same, regardless of how many processors are being used.
 
-Keyword {quat} uses the specified values as components of a quaternion
-(4-vector) to set the orientation of the selected atoms.  Note that
-the "shape"_shape.html command is used to specify the aspect ratios of
-an ellipsoidal particle, which is oriented by default with its x-axis
-along the simulation box's x-axis, and similarly for y and z.  If this
-body is rotated (via the right-hand rule) by an angle theta around a
-unit vector (a,b,c), then the quaternion that represents its new
-orientation is given by (cos(theta/2), a*sin(theta/2), b*sin(theta/2),
-c*sin(theta/2)).  These 4 components are the arguments w,i,j,k to the
-{quat} keyword.  LAMMPS normalizes the quaternion in case (a,b,c) was
-not a unit vector.
+Keyword {quat} uses the specified values to create a quaternion
+(4-vector) that represents the orientation of the selected atoms.
+Note that the "shape"_shape.html command is used to specify the aspect
+ratios of an ellipsoidal particle, which is oriented by default with
+its x-axis along the simulation box's x-axis, and similarly for y and
+z.  If this body is rotated (via the right-hand rule) by an angle
+theta around a unit rotation vector (a,b,c), then the quaternion that
+represents its new orientation is given by (cos(theta/2),
+a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  The theta and a,b,c
+values are the arguments to the {quat} keyword.  LAMMPS normalizes the
+quaternion in case (a,b,c) was not specified as a unit vector.  For 2d
+systems, the a,b,c values are ignored, since a rotation vector of
+(0,0,1) is the only valid choice.
 
 Keyword {quat/random} randomizes the orientation of the quaternion of
 the selected atoms.  Random numbers are used in such a way that the
 orientation of a particular atom is the same, regardless of how many
-processors are being used.
+processors are being used.  For 2d systems, only orientations in the
+xy plane are generated.
 
 For the {dipole} and {quat} keywords, the "atom style"_atom_style.html
 being used must support the use of dipoles or quaternions.

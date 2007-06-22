@@ -399,6 +399,8 @@ double PairEAM::init_one(int i, int j)
   } else if (setfl) cutmax = setfl->cut;
   else if (fs) cutmax = fs->cut;
 
+  cutforcesq = cutmax*cutmax;
+
   return cutmax;
 }
 
@@ -412,8 +414,6 @@ void PairEAM::init_style()
 
   file2array();
   array2spline();
-
-  cutforcesq = cutmax*cutmax;
 }
 
 /* ----------------------------------------------------------------------

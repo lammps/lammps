@@ -61,10 +61,10 @@ remapping either atom coordinates or velocities to the changing
 simulation box.  To use fix nvt/sllod, fix deform should NOT remap
 atom positions, because fix nvt/sllod adjusts the atom positions and
 velocities to create a velocity profile that matches the changing box
-size/shape.  Fix deform SHOUDLD remap atom velocities when atoms cross
+size/shape.  Fix deform SHOULD remap atom velocities when atoms cross
 periodic boundaries since that is consistent with maintaining the
-velocity profile created by fix nvt/sllod.  LAMMPS will warn you if
-this setting is not consistent.
+velocity profile created by fix nvt/sllod.  LAMMPS will give an
+error if this setting is not consistent.
 </P>
 <P>The SLLOD equations of motion coupled to a Nose/Hoover thermostat are
 discussed in <A HREF = "#Tuckerman">(Tuckerman)</A> (eqs 4 and 5), which is what is

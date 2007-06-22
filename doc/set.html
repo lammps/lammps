@@ -21,7 +21,7 @@
 
 <LI>one or more keyword/value pairs may be appended to the args 
 
-<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or 	  <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or 	  <I>quat</I> or <I>quat/random</I> or 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
+<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or 	  <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat/random</I> or 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
 
 <PRE>  <I>type</I> value = atom type
   <I>type/fraction</I> values = type fraction seed
@@ -36,8 +36,9 @@
     x,y,z = orientation of dipole moment vector
   <I>dipole/random</I> value = seed
     seed = random # seed (8 digits or less) for dipole moment orientations
-  <I>quat</I> values = w i j k
-    w,i,j,k = quaternion components (see below)
+  <I>quat</I> values = a b c theta
+    a,b,c = unit vector to rotate particle around via right-hand rule
+    theta = rotation angle in degrees
   <I>quat/random</I> value = seed
     seed = random # seed (8 digits or less) for quaternion orientations
   <I>bond</I> value = bond type for all bonds between selected atoms
@@ -110,27 +111,30 @@ set by the <A HREF = "dipole.html">dipole</A> command.
 </P>
 <P>Keyword <I>dipole/random</I> randomizes the orientation of the dipole
 moment vectors of the selected atoms.  The magnitude of the dipole
-moment for each atom is set by the <A HREF = "dipole.html">dipole</A> command.
-Random numbers are used in such a way that the orientation of a
-particular atom is the same, regardless of how many processors are
-being used.
+moment for each atom is set by the <A HREF = "dipole.html">dipole</A> command.  For
+2d systems, the z component of the orientation is set to 0.0.  Random
+numbers are used in such a way that the orientation of a particular
+atom is the same, regardless of how many processors are being used.
 </P>
-<P>Keyword <I>quat</I> uses the specified values as components of a quaternion
-(4-vector) to set the orientation of the selected atoms.  Note that
-the <A HREF = "shape.html">shape</A> command is used to specify the aspect ratios of
-an ellipsoidal particle, which is oriented by default with its x-axis
-along the simulation box's x-axis, and similarly for y and z.  If this
-body is rotated (via the right-hand rule) by an angle theta around a
-unit vector (a,b,c), then the quaternion that represents its new
-orientation is given by (cos(theta/2), a*sin(theta/2), b*sin(theta/2),
-c*sin(theta/2)).  These 4 components are the arguments w,i,j,k to the
-<I>quat</I> keyword.  LAMMPS normalizes the quaternion in case (a,b,c) was
-not a unit vector.
+<P>Keyword <I>quat</I> uses the specified values to create a quaternion
+(4-vector) that represents the orientation of the selected atoms.
+Note that the <A HREF = "shape.html">shape</A> command is used to specify the aspect
+ratios of an ellipsoidal particle, which is oriented by default with
+its x-axis along the simulation box's x-axis, and similarly for y and
+z.  If this body is rotated (via the right-hand rule) by an angle
+theta around a unit rotation vector (a,b,c), then the quaternion that
+represents its new orientation is given by (cos(theta/2),
+a*sin(theta/2), b*sin(theta/2), c*sin(theta/2)).  The theta and a,b,c
+values are the arguments to the <I>quat</I> keyword.  LAMMPS normalizes the
+quaternion in case (a,b,c) was not specified as a unit vector.  For 2d
+systems, the a,b,c values are ignored, since a rotation vector of
+(0,0,1) is the only valid choice.
 </P>
 <P>Keyword <I>quat/random</I> randomizes the orientation of the quaternion of
 the selected atoms.  Random numbers are used in such a way that the
 orientation of a particular atom is the same, regardless of how many
-processors are being used.
+processors are being used.  For 2d systems, only orientations in the
+xy plane are generated.
 </P>
 <P>For the <I>dipole</I> and <I>quat</I> keywords, the <A HREF = "atom_style.html">atom style</A>
 being used must support the use of dipoles or quaternions.

@@ -50,7 +50,7 @@ own sub-directories with their own Makefiles.
 "matlab"_#matlab
 "micelle2d"_#micelle
 "msi2lmp"_#msi
-"replicate"_#replicate
+"pymol_asphere"_#pymol
 "restart2data"_#restart
 "thermo_extract"_#thermo_extract
 "xmovie"_#xmovie :ul
@@ -223,17 +223,20 @@ experiment with it yourself.
 
 :line
 
-replicate tool :h4,link(replicate)
+pymol_asphere tool :h4,link(pymol)
 
-The file replicate.c takes a LAMMPS data file and replicates it into a
-larger system.  The syntax for running the tool is
+The pymol_asphere sub-directory contains a tool for converting a
+LAMMPS dump file that contains orientation info for ellipsoidal
+particles into an input file for the "PyMol visualization
+package"_pymol.
 
-replicate [options] < infile > outfile :pre
+:link(pymol,http://pymol.sourceforge.net)
 
-See the top of the replicate.c file for a discussion of the options.
-This tool is used by some of the "LAMMPS benchmarks"_Section_perf.html
-for creating larger systems to run scaled-size problems on multiple
-processors.
+Specifically, the tool triangulates the ellipsoids so they can be
+viewed as true ellipsoidal particles within PyMol.  See the README and
+examples directory within pymol_asphere for more information.
+
+This tool was written by Mike Brown at Sandia.
 
 :line
 

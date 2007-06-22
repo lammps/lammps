@@ -17,7 +17,7 @@ temp/deform = style name of this compute command :ul
 
 [Examples:]
 
-compute myTemp all temp/deform myDeform :pre
+compute myTemp all temp/deform :pre
 
 [Description:]
 

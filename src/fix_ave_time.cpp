@@ -156,6 +156,7 @@ void FixAveTime::end_of_step()
       if (vflag)
 	for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector[i]/nsum);
       fprintf(fp,"\n");
+      fflush(fp);
     }
 
     nsum = 0;

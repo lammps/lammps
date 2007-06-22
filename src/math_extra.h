@@ -253,7 +253,7 @@ void MathExtra::mldivide3(const double m[3][3], const double *v, double *ans,
       }
     }
 
-    while (aug[p][i] == 0 && p < 3) p++;
+    while (aug[p][i] == 0.0 && p < 3) p++;
 
     if (p == 3) error->all("Bad matrix inversion in MathExtra::mldivide3");
     else
@@ -270,7 +270,7 @@ void MathExtra::mldivide3(const double m[3][3], const double *v, double *ans,
     }
   }
 
-  if (aug[2][2] == 0)
+  if (aug[2][2] == 0.0)
     error->all("Bad matrix inversion in MathExtra::mldivide3");
   
   // back substitution

@@ -441,6 +441,7 @@ void FixAveSpatial::end_of_step()
 	for (i = 0; i < nvalues; i++) fprintf(fp," %g",values_total[m][i]);
 	fprintf(fp,"\n");
       }
+      fflush(fp);
     }
 
     nsum = 0;

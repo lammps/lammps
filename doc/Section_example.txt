@@ -20,19 +20,25 @@ the directories to compare your answers to.  E.g. a log file like
 log.crack.foo.P means it ran on P processors of machine "foo".
 
 The dump files produced by the example runs can be animated using the
-xmovie tool described in the "Tools section"_Section_tools.html.  MPEG
-versions of most of the xmovie animations are also viewable from the
-Examples page of the "LAMMPS WWW Site"_lws.
+xmovie tool described in the "Additional Tools"_Section_tools.html
+section of the LAMMPS documentation.  Animations of many of these
+examples can be viewed on the Movies section of the "LAMMPS WWW
+Site"_lws.
 
 These are the sample problems in the examples sub-directories:
 
-crack:    crack propagation in a 2d solid
-flow:     Couette and Poiseuille flow in a 2d channel
+colloid:  big colloid particles in a small particle solvent, 2d system
+crack:	  crack propagation in a 2d solid
+dipole:   point dipolar particles, 2d system
+ellipse:  ellipsoidal particles in spherical solvent, 2d system
+flow:	  Couette and Poisseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-indent:   spherical indenter into a 2d solid
-melt:     rapid melt of 3d LJ system
+indent:	  spherical indenter into a 2d solid
+meam:	  MEAM test for SiC and shear (same as shear examples)
+melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
-min:      energy minimization of 2d LJ melt
+min:	  energy minimization of 2d LJ melt
+nemd:	  non-equilibrium MD of 2d sheared system
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 pour:     pouring of granular particles into a 3d box, then chute flow

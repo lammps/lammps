@@ -30,11 +30,11 @@ time or interest; others are just a lot of work!
 
 Monte Carlo bond-swapping for polymers (was in Fortran LAMMPS)
 torsional shear boundary conditions and temperature calculation
+NPT with changing box shape (Parinello-Rahman)
 bond creation potentials
-point dipole force fields
+long-range point dipole solver
 REBO bond-order potential
-ReaxFF force field from Bill Goddard's group
-Parinello-Rahman non-rectilinear simulation box :ul
+ReaxFF force field from Bill Goddard's group :ul
 
 :line
 

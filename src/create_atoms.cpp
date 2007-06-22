@@ -56,8 +56,8 @@ void CreateAtoms::command(int narg, char **arg)
   } else if (strcmp(arg[1],"region") == 0) {
     style = REGION;
     if (narg < 3) error->all("Illegal create_atoms command");
-    int iregion = domain->find_region(arg[2]);
-    if (iregion == -1) error->all("Create_atoms region ID does not exist");
+    nregion = domain->find_region(arg[2]);
+    if (nregion == -1) error->all("Create_atoms region ID does not exist");
     iarg = 3;;
   } else if (strcmp(arg[1],"single") == 0) {
     style = SINGLE;
@@ -315,7 +315,7 @@ void CreateAtoms::add_many()
 	  // if a region was specified, test if atom is in it
 
 	  if (style == REGION)
-	    if (!domain->regions[iregion]->match(x[0],x[1],x[2])) continue;
+	    if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
 
 	  // test if atom is in my subbox
 	  

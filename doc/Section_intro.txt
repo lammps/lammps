@@ -105,6 +105,8 @@ Kinds of systems LAMMPS can simulate: :h4
   metals
   granular materials
   coarse-grained mesoscale models
+  ellipsoidal particles
+  point dipolar particles
   hybrid systems :ul
 
 Force fields: :h4
@@ -113,18 +115,21 @@ Force fields: :h4
 "improper style"_improper_style.html, "kspace style"_kspace_style.html
 commands)
 
-  pairwise potentials: Lennard-Jones, Coulombic, Buckingham, Morse, \
-    Yukawa, frictional granular, Debye, soft, DPD, class 2 (COMPASS), \
-    tabulated, hybrid
-  manybody potentials: EAM, Finnis/Sinclair, modified EAM (MEAM), \
+  pairwise potentials: Lennard-Jones, Buckingham, Morse, \
+    Yukawa, Debye, soft, class 2 (COMPASS), tabulated
+  charged pairwise potentials: Coulombic, point-dipole
+  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     Stillinger-Weber, Tersoff
+  coarse-grain potentials: granular, DPD, GayBerne, colloidal
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
-    quartic (breakable), hybrid
+    quartic (breakable)
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, \
-    class 2 (COMPASS), hybrid
+    class 2 (COMPASS)
   dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, \
-    class 2 (COMPASS), OPLS, hybrid	 
-  improper potentials: harmonic, cvff, class 2 (COMPASS), hybrid
+    class 2 (COMPASS), OPLS
+  improper potentials: harmonic, cvff, class 2 (COMPASS)
+  hybrid potentials: multiple pair, bond, angle, dihedral, improper \
+    potentials can be used
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   long-range Coulombics: Ewald, PPPM (similar to particle-mesh Ewald)
@@ -143,18 +148,19 @@ Creation of atoms: :h4
 Ensembles, constraints, and boundary conditions: :h4
 ("fix"_fix.html command) 
 
+  2d or 3d systems
+  orthogonal or non-orthogonal (triclinic symmetry) simulation domains
   constant NVE, NVT, NPT, NPH integrators
   thermostatting options for groups and geometric regions of atoms
   pressure control via Nose/Hoover barostatting in 1 to 3 dimensions
-  volume rescaling
-  altered motion via velocity and force constraints
+  simulation box deformation (tensile and shear)
   harmonic (umbrella) constraint forces
-  dragging of atoms to new positions
   independent or coupled rigid body integration
   SHAKE bond and angle constraints
-  wall constraints of various kinds
+  walls of various kinds
   targeted molecular dynamics (TMD) constraints
-  gravity :ul
+  non-equilibrium molecular dynamics (NEMD)
+  variety of additional boundary conditions and constraints :ul
 
 Integrators: :h4
 ("run"_run.html, "run_style"_run_style.html, "temper"_temper.html commands) 
@@ -164,15 +170,17 @@ Integrators: :h4
   energy minimization via conjugate gradient relaxation
   rRESPA hierarchical timestepping
   parallel tempering (replica exchange)
-  multiple independent simulations simultaneously :ul
+  run multiple independent simulations simultaneously :ul
 
 Output: :h4
 ("dump"_dump.html, "restart"_restart.html commands) 
 
+  log file of thermodynanmic info
+  text dump files of atom coords, velocities, other per-atom quantities
   binary restart files
-  text dump files of atom coords, velocities, other per-atom attributes
-  atom snapshots in native, XYZ, XTC, DCD formats
-  per-atom energy, stress, centro-symmetry parameter :ul
+  per-atom energy, stress, centro-symmetry parameter
+  user-defined system-wide (log file) or per-atom (dump file) calculations
+  atom snapshots in native, XYZ, XTC, DCD formats :ul
 
 Pre- and post-processing: :h4
 
@@ -226,14 +234,14 @@ to all atoms and bonds.  LAMMPS will not build molecular systems and
 assign force-field parameters for you.
 
 For atomic systems LAMMPS provides a "create_atoms"_create_atoms.html
-command which places atoms on solid-state lattices (fcc, bcc, etc).
-Assigning small numbers of force field coefficients can be done via
-the "pair coeff"_pair_coeff.html, "bond coeff"_bond_coeff.html, "angle
-coeff"_angle_coeff.html, etc commands.  For molecular systems or more
-complicated simulation geometries, users typically use another code as
-a builder and convert its output to LAMMPS input format, or write
-their own code to generate atom coordinate and molecular topology for
-LAMMPS to read in.
+command which places atoms on solid-state lattices (fcc, bcc,
+user-defined, etc).  Assigning small numbers of force field
+coefficients can be done via the "pair coeff"_pair_coeff.html, "bond
+coeff"_bond_coeff.html, "angle coeff"_angle_coeff.html, etc commands.
+For molecular systems or more complicated simulation geometries, users
+typically use another code as a builder and convert its output to
+LAMMPS input format, or write their own code to generate atom
+coordinate and molecular topology for LAMMPS to read in.
 
 For complicated molecular systems (e.g. a protein), a multitude of
 topology information and hundreds of force-field coefficients must
@@ -247,12 +255,13 @@ Similarly, LAMMPS creates output files in a simple format.  Most users
 post-process these files with their own analysis tools or re-format
 them for input into other programs, including visualization packages.
 If you are convinced you need to compute something on-the-fly as
-LAMMPS runs, see "this section"_Section_modify.html for a discussion of how you
-can use the "dump"_dump.html and "fix"_fix.html commands to print out
-data of your choosing.  Keep in mind that complicated computations can
-slow down the molecular dynamics timestepping, particularly if the
-computations are not parallel, so it is often better to leave such
-analysis to post-processing codes.
+LAMMPS runs, see "this section"_Section_modify.html for a discussion
+of how you can use the "dump"_dump.html and "compute"_compute.html and
+"fix"_fix.html commands to print out data of your choosing.  Keep in
+mind that complicated computations can slow down the molecular
+dynamics timestepping, particularly if the computations are not
+parallel, so it is often better to leave such analysis to
+post-processing codes.
 
 A very simple (yet fast) visualizer is provided with the LAMMPS
 package - see the "xmovie"_Section_tools.html#xmovie tool in "this
@@ -261,10 +270,11 @@ atomic coordinates and animates them.  We find it very useful for
 debugging purposes.  For high-quality visualization we recommend the
 following packages:
 
-"Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
-"RasMol"_http://www.openrasmol.org
 "VMD"_http://www.ks.uiuc.edu/Research/vmd
-"AtomEye"_http://164.107.79.177/Archive/Graphics/A :ul
+"AtomEye"_http://164.107.79.177/Archive/Graphics/A
+"PyMol"_http://pymol.sourceforge.net
+"Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
+"RasMol"_http://www.openrasmol.org :ul
 
 Other features that LAMMPS does not yet (and may never) support are
 discussed in "this section"_Section_history.html.
@@ -479,7 +489,19 @@ region prism : Pieter in't Veld (Sandia)
 Stillinger-Weber and Tersoff potentials : Aidan Thompson (Sandia)
 fix wall/lj126 : Mark Stevens (Sandia)
 optimized pair potentials for lj/cut, charmm/long, eam, morse : James Fischer (High Performance Tech), David Richie and Vincent Natol (Stone Ridge Technologies)
-MEAM potential : Greg Wagner (Sandia) :tb(s=:)
+MEAM potential : Greg Wagner (Sandia)
+fix ave/time and fix ave/spatial : Pieter in 't Veld (Sandia)
+thermo_extract tool: Vikas Varshney (Wright Patterson AFB)
+triclinic (non-orthogonal) simulation domains : Pieter in 't Veld (Sandia)
+MATLAB post-processing scripts : Arun Subramaniyan (Purdue)
+neighbor multi and communicate multi : Pieter in 't Veld (Sandia)
+fix heat : Paul Crozier and Ed Webb (Sandia)
+colloid potentials : Pieter in 't Veld (Sandia)
+ellipsoidal particles : Mike Brown (Sandia)
+GayBerne potential : Mike Brown (Sandia)
+tensile and shear box deformations :
+NEMD SLLOD integration : Pieter in 't Veld (Sandia)
+pymol_asphere viz tool : Mike Brown (Sandia) :tb(s=:)
 
 Other CRADA partners involved in the design and testing of LAMMPS were
     

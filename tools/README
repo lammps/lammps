@@ -2,40 +2,33 @@ LAMMPS pre- and post-processing tools
 
 This directory contains several stand-alone tools for creating LAMMPS
 input files and massaging LAMMPS output data.  Instructions on how to
-use the tools are discussed in the Tools section of the LAMMPS
-documentation.  The source files in this directory have additional
-comments that may be useful at the top of the code.  The packages that
-reside in their own sub-directories have README files of their own
-that you want to look at.
+use the tools are discussed in the "Additional Tools" section of the
+LAMMPS documentation.
 
-You will need to compile each of these tools if you wish to use them.
-Building LAMMPS itself (in the src dir) does not build these tools.
+Tools that are single source files in this directory have additional
+comments that may be useful at the top of the source file.  Tools that
+reside in their own sub-directories have README files you should look
+at.
 
 These are the included tools:
 
-binary2txt	       convert a LAMMPS dump file from binary to ASCII text
-replicate	       replicate a LAMMPS data file in one or more dimensions
-restart2data	       convert a binary restart file to an input data file
-data2xmovie	       convert a data file to a snapshot that xmovie can viz
-chain		       create a data file of bead-spring chains
-micelle2d	       create a data file of small lipid chains in solvent
-
-xmovie		       a quick/simple viz package that displays 2d projections
-			 of 3d LAMMPS snapshots
-
 amber2lammps	       python scripts for using AMBER to setup LAMMPS input
+binary2txt	       convert a LAMMPS dump file from binary to ASCII text
 ch2lmp		       convert CHARMM files to LAMMPS input
+chain		       create a data file of bead-spring chains
+data2xmovie	       convert a data file to a snapshot that xmovie can viz
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
-		         for analysis
-lmp2cfg		       convert LAMMPS output to CFG files that can be
-		         read by AtomEye visualizer
+lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
 lmp2traj	       convert LAMMPS output to contour, density profiles 
-msi2lmp		       use the Accelrys Insight (nee MSI/Biosym Discover)
-		         code to setup LAMMPS input
+micelle2d	       create a data file of small lipid chains in solvent
+msi2lmp		       use Accelrys Insight code to setup LAMMPS input
+pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
+restart2data	       convert a binary restart file to an input data file
+xmovie		       a quick/simple viz package (2d projections of 3d)
 
-The set of tools are single C, C++, or Fortran files.  A Makefile for
-building them is included in this directory, but you will have to edit
-it for the compilers and paths on your system.
+For tools that are single C, C++, or Fortran files, a Makefile for
+building them is included in this directory.  You may need to edit it
+for the compilers and paths on your system.
 
-The other tools are in their own sub-directories, and each has its own
-README file on how to build and use it.
+For tools in their own sub-directories, see their README file for info
+on how to build and use it.

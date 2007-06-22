@@ -1,0 +1,122 @@
+LAMMPS (22 June 2007)
+# 2-d LJ flow simulation
+
+dimension	2
+boundary	p s p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		hex 0.7
+Lattice spacing in x,y,z = 1.28436 2.22457 1.28436
+region		box block 0 20 0 10 -0.25 0.25
+create_box	3 box
+Created orthogonal box = (0 0 -0.321089) to (25.6871 22.2457 0.321089)
+  2 by 2 by 1 processor grid
+create_atoms	1 box
+Created 420 atoms
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+
+# LJ potentials
+
+pair_style	lj/cut 1.12246
+pair_coeff	* * 1.0 1.0 1.12246
+
+# define groups
+
+region	     1 block INF INF INF 1.25 INF INF
+group	     lower region 1
+60 atoms in group lower
+region	     2 block INF INF 8.75 INF INF INF
+group	     upper region 2
+60 atoms in group upper
+group	     boundary union lower upper
+120 atoms in group boundary
+group	     flow subtract all boundary
+300 atoms in group flow
+
+set	     group lower type 2
+  60 settings made for type
+set	     group upper type 3
+  60 settings made for type
+
+# initial velocities
+
+compute	     mobile flow temp
+velocity     flow create 1.0 482748 temp mobile
+fix	     1 all nve
+fix	     2 flow temp/rescale 200 1.0 1.0 0.02 1.0
+fix_modify   2 temp mobile
+
+# Couette flow
+
+#velocity     lower set 0.0 0.0 0.0
+#velocity     upper set 3.0 0.0 0.0
+#fix	     3 boundary setforce 0.0 0.0 0.0
+#fix	     4 all enforce2d
+
+# Poisseuille flow
+
+velocity     boundary set 0.0 0.0 0.0
+fix	     3 lower setforce 0.0 0.0 0.0
+fix	     4 upper setforce 0.0 NULL 0.0
+fix	     5 upper aveforce 0.0 -1.0 0.0
+fix	     6 flow addforce 0.5 0.0 0.0
+fix	     7 all enforce2d
+
+# Run
+
+timestep	0.003
+thermo		500
+thermo_modify	temp mobile
+
+dump		1 all atom 25 dump.flow
+run		10000
+Memory usage per processor = 1.44615 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            1            0            0   0.71071429   0.54228995    366.96236 
+     500    1.0778761  -0.35048279            0   0.41557918    2.8792129    369.20271 
+    1000            1  -0.38740705            0   0.32330724    2.2684877    375.93354 
+    1500    1.2052679  -0.37768559            0   0.47891551    1.6193029    376.17118 
+    2000            1  -0.38060118            0   0.33011311    1.4972142    371.27032 
+    2500    1.2211446  -0.39689946            0   0.47098548    1.5612989    364.09539 
+    3000            1  -0.46394625            0   0.24676803    1.5629864    356.17691 
+    3500    1.2338136   -0.5721878            0   0.30470115    1.8177807    344.96808 
+    4000            1  -0.69530976            0  0.015404522    2.3144776    333.06418 
+    4500    1.2279548  -0.72662695            0   0.14609808    2.9985939    323.55709 
+    5000            1  -0.81185506            0  -0.10114077    3.1833009    321.19482 
+    5500    1.2171627  -0.73966198            0   0.12539291     2.711954    325.39659 
+    6000            1  -0.66983997            0  0.040874311    2.1579634    329.73937 
+    6500    1.2267682  -0.66743744            0   0.20444422    2.1114545    331.88829 
+    7000            1  -0.64509348            0  0.065620807    1.9028431    332.49532 
+    7500    1.2202538   -0.6816503            0   0.18560148    2.1227978    329.88213 
+    8000            1  -0.72110847            0 -0.010394181    2.3587956    327.78501 
+    8500    1.2103845  -0.76502979            0  0.095207788    2.5823624    325.21722 
+    9000            1  -0.75191645            0 -0.041202164    2.4020904    324.81713 
+    9500    1.2094179  -0.74196652            0   0.11758403    2.5289414    326.12345 
+   10000            1   -0.7568777            0 -0.046163412    2.5601376    326.60462 
+Loop time of 2.41079 on 4 procs for 10000 steps with 420 atoms
+
+Pair  time (%) = 0.099645 (4.13329)
+Neigh time (%) = 0.0237269 (0.984194)
+Comm  time (%) = 1.25536 (52.0723)
+Outpt time (%) = 0.306114 (12.6977)
+Other time (%) = 0.725951 (30.1125)
+
+Nlocal:    105 ave 106 max 103 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    43.75 ave 45 max 41 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+Neighs:    276.5 ave 291 max 256 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 1106
+Ave neighs/atom = 2.63333
+Neighbor list builds = 553
+Dangerous builds = 0

@@ -1,0 +1,386 @@
+LAMMPS (22 June 2007)
+# 2d indenter simulation with minimization instead of dynamics
+
+dimension     2
+boundary      p s p
+
+atom_style    atomic
+neighbor      0.3 bin
+neigh_modify  delay 5
+
+# create geometry
+
+lattice	      hex 0.9
+Lattice spacing in x,y,z = 1.1327 1.96189 1.1327
+region	      box block 0 20 0 10 -0.25 0.25
+create_box    2 box
+Created orthogonal box = (0 0 -0.283174) to (22.6539 19.6189 0.283174)
+  1 by 1 by 1 processor grid
+create_atoms  1 box
+Created 420 atoms
+
+mass	      * 1.0
+
+# LJ potentials
+
+pair_style    lj/cut 2.5
+pair_coeff    * * 1.0 1.0 2.5
+
+# define groups
+
+region        1 block INF INF INF 1.25 INF INF
+group	      lower region 1
+60 atoms in group lower
+group	      mobile subtract all lower
+360 atoms in group mobile
+set	      group lower type 2
+  60 settings made for type
+
+# initial velocities
+
+fix	      2 lower setforce 0.0 0.0 0.0
+
+# indenter
+
+fix	      5 all enforce2d
+
+# minimize with indenter
+
+thermo	      10
+
+dump	      1 all atom 10 dump.indent
+dump_modify   1 scale no
+
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            0   -3.1727576            0   -3.1727576   -1.8810645    251.71282 
+      10            0   -3.1820434            0   -3.1820434   -1.3321628     249.7446 
+      20            0   -3.1892762            0   -3.1892762    -1.030012    247.85333 
+      30            0   -3.1906231            0   -3.1906231  -0.90653473    247.85333 
+      38            0   -3.1909329            0   -3.1909329  -0.81496712    247.85333 
+Loop time of 0.083943 on 1 procs for 38 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = -3.17276 -3.19093 -3.19093
+  Gradient 2-norm init/final= 6.74302 0.251767
+  Gradient inf-norm init/final= 1.46877 0.0232337
+  Iterations = 38
+  Force evaluations = 148
+
+Pair  time (%) = 0.062235 (74.1396)
+Neigh time (%) = 0.000978 (1.16508)
+Comm  time (%) = 0.001545 (1.84053)
+Outpt time (%) = 0.006357 (7.573)
+Other time (%) = 0.012828 (15.2818)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    95 ave 95 max 95 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3580 ave 3580 max 3580 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3580
+Ave neighs/atom = 8.52381
+Neighbor list builds = 2
+Dangerous builds = 0
+
+fix           4 all indent 5000.0 sphere 10 13.0 0 6.0
+fix_modify    4 energy yes
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+      38            0   -3.1909329            0   -2.1718641  -0.81877351    246.70109 
+      40            0    -3.169091            0   -2.8877594  -0.54943778    246.70107 
+      50            0   -3.1711852            0   -3.1696057  -0.39685207    246.70204 
+      60            0   -3.1780204            0   -3.1769046  -0.39225544    246.81048 
+      70            0   -3.1800811            0   -3.1793038  -0.31260477    246.81048 
+      80            0   -3.1809088            0   -3.1801828  -0.23455796    246.81048 
+      90            0   -3.1811924            0   -3.1805002  -0.17000885    246.18491 
+     100            0   -3.1812635            0   -3.1805822  -0.14393015    246.18491 
+     103            0   -3.1812545            0    -3.180591  -0.14136212    246.18491 
+Loop time of 0.130711 on 1 procs for 65 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = -2.17186 -3.18059 -3.18059
+  Gradient 2-norm init/final= 1621.12 0.469022
+  Gradient inf-norm init/final= 1193.11 0.272199
+  Iterations = 65
+  Force evaluations = 211
+
+Pair  time (%) = 0.089035 (68.1159)
+Neigh time (%) = 0.002389 (1.8277)
+Comm  time (%) = 0.002298 (1.75808)
+Outpt time (%) = 0.015673 (11.9906)
+Other time (%) = 0.021316 (16.3077)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    95 ave 95 max 95 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3586 ave 3586 max 3586 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3586
+Ave neighs/atom = 8.5381
+Neighbor list builds = 5
+Dangerous builds = 0
+
+fix           4 all indent 1000.0 sphere 10 12.5 0 6.0
+fix_modify    4 energy yes
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     103            0   -3.1812545            0  -0.21951029  -0.14159267    245.78405 
+     110            0   -2.9284097            0   -2.6466557    2.4269773    245.78334 
+     120            0   -3.0511214            0   -3.0267128    1.7637829    245.78215 
+     130            0   -3.0919408            0   -3.0831141    1.4860665    245.92571 
+     140            0   -3.1001312            0   -3.0930458    1.4234791    245.92571 
+     150            0    -3.102631            0   -3.0950311    1.4404842    246.21073 
+     160            0   -3.1037978            0     -3.09648    1.5609439    244.44101 
+     170            0   -3.1041785            0   -3.0969724    1.6411134    244.44101 
+     180            0   -3.1042622            0   -3.0971039    1.6655381    244.44101 
+     186            0   -3.1042077            0   -3.0971259    1.6700959    244.44101 
+Loop time of 0.174012 on 1 procs for 83 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = -0.21951 -3.09712 -3.09713
+  Gradient 2-norm init/final= 1753.54 0.525185
+  Gradient inf-norm init/final= 923.56 0.20363
+  Iterations = 83
+  Force evaluations = 279
+
+Pair  time (%) = 0.119678 (68.7757)
+Neigh time (%) = 0.005353 (3.07622)
+Comm  time (%) = 0.003228 (1.85504)
+Outpt time (%) = 0.017629 (10.1309)
+Other time (%) = 0.028124 (16.1621)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    107 ave 107 max 107 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3642 ave 3642 max 3642 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3642
+Ave neighs/atom = 8.67143
+Neighbor list builds = 11
+Dangerous builds = 0
+
+fix           4 all indent 1000.0 sphere 10 12.0 0 6.0
+fix_modify    4 energy yes
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     186            0   -3.1042077            0    1.9876467    1.6726187    244.07233 
+     190            0   -2.7684954            0   -1.1554028    4.8385981    243.82123 
+     200            0   -2.7738026            0   -2.6431045    5.3693642    246.38337 
+     210            0    -2.892911            0    -2.863976    4.4322106    250.63896 
+     220            0   -2.9428319            0   -2.9275563    3.8976868    253.54966 
+     230            0   -2.9566576            0   -2.9427828    3.7470914    255.96648 
+     240            0   -2.9622154            0   -2.9537038    3.6488191    256.62718 
+     250            0   -2.9685121            0   -2.9588966    3.5333392    257.75615 
+     260            0   -2.9851957            0   -2.9793281    3.2459764     258.1143 
+     270            0   -3.0137593            0   -3.0035449    2.8836141    257.01204 
+     280            0   -3.0182039            0   -3.0121893    2.7594651     257.4611 
+     290            0   -3.0271401            0   -3.0194953    2.4173885    260.04588 
+     300            0   -3.0332671            0   -3.0255652    2.4243877    260.04588 
+     310            0   -3.0346445            0   -3.0270706    2.4432531    258.57203 
+     320            0   -3.0355796            0   -3.0277669    2.4110728    258.57203 
+     330            0   -3.0359691            0   -3.0280778    2.3724675    258.57203 
+     340            0   -3.0358963            0   -3.0281771     2.350355    258.57203 
+     350            0   -3.0359324            0   -3.0282261    2.3336342    258.57203 
+Loop time of 0.364823 on 1 procs for 164 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = 1.98765 -3.02822 -3.02823
+  Gradient 2-norm init/final= 2323.65 0.605547
+  Gradient inf-norm init/final= 1037.31 0.149722
+  Iterations = 164
+  Force evaluations = 579
+
+Pair  time (%) = 0.254752 (69.8289)
+Neigh time (%) = 0.012437 (3.40905)
+Comm  time (%) = 0.007036 (1.92861)
+Outpt time (%) = 0.035757 (9.80119)
+Other time (%) = 0.054841 (15.0322)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    109 ave 109 max 109 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3789 ave 3789 max 3789 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3789
+Ave neighs/atom = 9.02143
+Neighbor list builds = 25
+Dangerous builds = 0
+
+fix           4 all indent 1000.0 sphere 10 11.4 0 6.0
+fix_modify    4 energy yes
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     350            0   -3.0359324            0    6.9766773    2.3291833    259.06614 
+     360            0    -2.335093            0   -1.5707757    8.8885568    259.07026 
+     370            0   -2.5599881            0   -2.4347598     7.565773    259.34078 
+     380            0   -2.7844216            0   -2.7584649    5.7681809    262.33347 
+     390            0   -2.8656166            0   -2.8440742    4.9699456    263.34254 
+     400            0   -2.9109956            0   -2.8923852    4.2490464    265.32325 
+     410            0   -2.9467505            0   -2.9334194    3.7795578    267.03801 
+     420            0   -2.9744267            0   -2.9577148    3.6538839    266.60412 
+     430            0   -2.9926459            0   -2.9736415    3.4779579     267.0876 
+     440            0   -2.9975444            0   -2.9801207    3.4033949    266.91222 
+     450            0   -2.9996115            0   -2.9820253    3.3516145    267.52149 
+     460            0     -2.99873            0   -2.9829304    3.3110697    267.52149 
+     470            0   -2.9987502            0    -2.984601    3.1122612    268.31993 
+     480            0   -3.0028144            0    -2.990299    2.7066551    271.25603 
+     490            0   -3.0064815            0   -2.9941922    2.5269217    272.94586 
+     500            0   -3.0096474            0   -2.9965356    2.3795554    274.42313 
+     510            0   -3.0123415            0    -2.999981    2.2773683    275.06513 
+     520            0   -3.0153983            0   -3.0059828    2.2054397    275.17639 
+     530            0   -3.0265326            0   -3.0171295    2.0959919    276.89139 
+     540            0   -3.0324549            0   -3.0227829    2.0207038    276.89139 
+     550            0   -3.0338293            0   -3.0240046    1.9861902    277.47265 
+     560            0   -3.0373141            0    -3.027647    1.8982732    278.61063 
+     570            0   -3.0418824            0   -3.0325541    1.8690028    278.55645 
+     580            0   -3.0429662            0   -3.0340728    1.8795056    278.36003 
+     590            0   -3.0447406            0   -3.0359543    1.8652644    277.68832 
+     600            0    -3.045522            0   -3.0368802    1.8599157    277.68832 
+     610            0   -3.0461885            0   -3.0374215    1.8228959    277.68832 
+     620            0   -3.0469853            0   -3.0377678    1.7959291     277.9626 
+     630            0   -3.0480444            0    -3.038612    1.7335705    278.37443 
+     631            0   -3.0484588            0   -3.0387787     1.724502    278.37443 
+Loop time of 0.627039 on 1 procs for 281 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = 6.97668 -3.03861 -3.03878
+  Gradient 2-norm init/final= 3559.61 6.9459
+  Gradient inf-norm init/final= 1438.88 2.75216
+  Iterations = 281
+  Force evaluations = 1000
+
+Pair  time (%) = 0.440883 (70.3119)
+Neigh time (%) = 0.02191 (3.4942)
+Comm  time (%) = 0.012146 (1.93704)
+Outpt time (%) = 0.060133 (9.58999)
+Other time (%) = 0.091967 (14.6669)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    115 ave 115 max 115 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3702 ave 3702 max 3702 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3702
+Ave neighs/atom = 8.81429
+Neighbor list builds = 43
+Dangerous builds = 0
+
+fix           4 all indent 1000.0 sphere 10 11.2 0 6.0
+fix_modify    4 energy yes
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     631            0   -3.0484588            0    -2.604481    1.7235776    278.52373 
+     640            0   -2.9643579            0    -2.928693     2.785548     278.5501 
+     650            0   -2.9743774            0   -2.9520339    2.7702732    278.80038 
+     660            0   -2.9814575            0   -2.9643711     2.777993    278.70742 
+     670            0   -2.9873942            0   -2.9725414    2.8285795    277.74776 
+     680            0   -2.9939115            0   -2.9787385    2.8153784    277.37112 
+     690            0   -3.0030163            0   -2.9852712    2.7060285    277.07917 
+     700            0   -3.0038477            0   -2.9869319    2.6884535    277.07917 
+     710            0   -3.0038815            0   -2.9874213    2.6896219    277.07917 
+     720            0   -3.0038761            0   -2.9875543     2.701217    277.07917 
+     730            0    -3.003858            0   -2.9875861    2.7091036    277.07917 
+     740            0     -3.00415            0    -2.987852    2.7243361    276.81523 
+     750            0   -3.0041764            0   -2.9882589    2.7318353    276.72141 
+     760            0   -3.0044009            0   -2.9883898    2.7254417    276.72141 
+     770            0   -3.0045687            0   -2.9885435    2.7179258    276.72141 
+     780            0     -3.00483            0    -2.988598    2.7038145    276.72141 
+     784            0   -3.0048523            0   -2.9886088    2.7008904    276.72141 
+Loop time of 0.341197 on 1 procs for 153 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = -2.60448 -2.98861 -2.98861
+  Gradient 2-norm init/final= 419.523 0.776857
+  Gradient inf-norm init/final= 175.55 0.266814
+  Iterations = 153
+  Force evaluations = 523
+
+Pair  time (%) = 0.228625 (67.0067)
+Neigh time (%) = 0.006238 (1.82827)
+Comm  time (%) = 0.006256 (1.83354)
+Outpt time (%) = 0.050744 (14.8723)
+Other time (%) = 0.049334 (14.4591)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    115 ave 115 max 115 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3810 ave 3810 max 3810 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3810
+Ave neighs/atom = 9.07143
+Neighbor list builds = 12
+Dangerous builds = 0
+
+fix	      4 all indent 1000.0 sphere 10 11.0 0 6.0
+fix_modify    4 energy yes
+minimize      1.0e-6 1000 1000
+Memory usage per processor = 1.90811 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     784            0   -3.0048523            0   -2.4268246    2.7001678    276.79547 
+     790            0   -2.8807915            0   -2.8212034    4.0892175    276.79878 
+     800            0   -2.8950546            0   -2.8611291     4.082591    277.02332 
+     810            0   -2.9005828            0   -2.8735631    4.0937007    277.23062 
+     820            0   -2.9033388            0    -2.880864    4.0724241    277.48631 
+     830            0   -2.9144679            0    -2.896527    3.8087147    281.95887 
+     840            0   -2.9296668            0   -2.9129029    3.4437246    286.37863 
+     850            0   -2.9523068            0   -2.9344645    2.7938894    290.46463 
+     860            0   -2.9752409            0   -2.9623271    2.4497341    291.16741 
+     870            0   -2.9878386            0   -2.9774613    2.3988152    288.45049 
+     880            0   -3.0168937            0   -3.0094002    2.2534858    289.05328 
+     890            0   -3.0298392            0   -3.0215958     2.118575    289.37008 
+     900            0   -3.0361898            0   -3.0276031    2.0386889    289.68806 
+     910            0   -3.0444205            0    -3.035322    1.8601706    291.35702 
+     920            0   -3.0593366            0   -3.0505717    1.6181397    291.67077 
+     930            0   -3.0654752            0   -3.0565939     1.571603      292.044 
+     940            0   -3.0712476            0   -3.0620886    1.5718668    291.77651 
+     950            0   -3.0727487            0   -3.0641228    1.5614938    291.98714 
+     960            0   -3.0743601            0   -3.0655064     1.560509    292.20323 
+     970            0   -3.0748867            0   -3.0659016    1.5496073    292.20323 
+     980            0   -3.0752084            0   -3.0661516    1.5372769    292.25778 
+     990            0   -3.0751243            0   -3.0662155    1.5394404    292.25778 
+     991            0    -3.075136            0   -3.0662166    1.5393777    292.25778 
+Loop time of 0.470478 on 1 procs for 207 steps with 420 atoms
+
+Minimization stats:
+  E initial, next-to-last, final = -2.42682 -3.06622 -3.06622
+  Gradient 2-norm init/final= 483.942 0.629476
+  Gradient inf-norm init/final= 212.858 0.27039
+  Iterations = 207
+  Force evaluations = 759
+
+Pair  time (%) = 0.325699 (69.2273)
+Neigh time (%) = 0.01922 (4.08521)
+Comm  time (%) = 0.009439 (2.00626)
+Outpt time (%) = 0.046274 (9.83553)
+Other time (%) = 0.069846 (14.8458)
+
+Nlocal:    420 ave 420 max 420 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    120 ave 120 max 120 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3579 ave 3579 max 3579 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3579
+Ave neighs/atom = 8.52143
+Neighbor list builds = 38
+Dangerous builds = 0

@@ -1,0 +1,60 @@
+LAMMPS (22 June 2007)
+# Test of MEAM potential for SiC system
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+
+read_data	data.meam
+  orthogonal box = (-6 -6 -6) to (5.97232 5.97232 5.97232)
+  1 by 2 by 2 processor grid
+  128 atoms
+
+pair_style	meam
+pair_coeff	* * library.meam Si C SiC.meam Si C
+
+neighbor	0.3 bin
+neigh_modify	delay 10
+
+fix		1 all nve
+thermo		10
+timestep	0.001
+
+dump		1 all atom 10 dump.meam
+
+run		100
+Memory usage per processor = 4.55272 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -636.93784            0   -636.93784   -76401.859 
+      10    1777.5718   -666.27518            0    -637.0945   -150596.32 
+      20    1908.6646   -668.42203            0   -637.08932   -120846.06 
+      30    1937.3373   -668.90047            0   -637.09706   -101367.81 
+      40     2110.906   -671.75978            0   -637.10706   -110475.14 
+      50    2057.8682   -670.89589            0   -637.11385   -107817.44 
+      60    1887.9614   -668.08977            0   -637.09693   -108906.46 
+      70    2036.4427   -670.53667            0   -637.10635   -113836.91 
+      80    2111.2748   -671.75001            0   -637.09124   -100964.78 
+      90    2087.3167   -671.34241            0   -637.07694   -95316.087 
+     100    1990.2171   -669.74712            0   -637.07564   -97755.737 
+Loop time of 0.18309 on 4 procs for 100 steps with 128 atoms
+
+Pair  time (%) = 0.155092 (84.7084)
+Neigh time (%) = 0.00145948 (0.797139)
+Comm  time (%) = 0.0187557 (10.244)
+Outpt time (%) = 0.00630403 (3.44313)
+Other time (%) = 0.00147808 (0.807296)
+
+Nlocal:    32 ave 35 max 29 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:    292.25 ave 307 max 279 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:    384.25 ave 432 max 327 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+FullNghs: 768.5 ave 859 max 657 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+
+Total # of neighbors = 3074
+Ave neighs/atom = 24.0156
+Neighbor list builds = 10
+Dangerous builds = 10

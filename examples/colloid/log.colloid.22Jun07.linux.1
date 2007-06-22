@@ -1,0 +1,80 @@
+LAMMPS (22 June 2007)
+# Big colloid particles and small LJ particles
+
+units		lj
+atom_style	atomic
+dimension	2
+
+lattice		sq 0.01
+Lattice spacing in x,y,z = 10 10 10
+region		box block 0 30 0 30 -0.5 0.5
+create_box	2 box
+Created orthogonal box = (0 0 -5) to (300 300 5)
+  1 by 1 by 1 processor grid
+create_atoms	1 box
+Created 900 atoms
+
+set		group all type/fraction 2 0.96 23984
+  868 settings made for type/fraction
+
+mass		1 9
+mass		2 1
+
+velocity	all create 1.44 87287 loop geom
+
+# multi neighbor and comm for efficiency
+
+neighbor	1 multi
+neigh_modify	delay 0
+communicate	multi
+
+# colloid potential
+
+pair_style	colloid 12.5
+pair_coeff	1 1  1.0 1.0 5.0 5.0 12.5
+pair_coeff	1 2  5.0 1.0 5.0 0.0 7.0
+pair_coeff	2 2 10.0 1.0 0.0 0.0 2.5
+
+fix		1 all npt 2.0 2.0 1.0 xyz 0.0 1.0 10.0 drag 1.0
+fix		2 all enforce2d
+
+dump		1 all atom 200 dump.colloid
+
+thermo_style	custom step temp epair etotal press vol
+thermo		1000
+
+timestep	0.005
+
+run		10000
+Memory usage per processor = 1.47629 Mbytes
+Step Temp E_pair TotEng Press Volume 
+       0         1.44            0       1.4376    0.0009584       900000 
+    1000    1.8470142 0.0048357172    1.8487715  0.017163086    74830.331 
+    2000    1.9719939   0.18486401    2.1535713   0.79205271    4710.4215 
+    3000    1.8760117   0.16888745    2.0417724    1.2866805    3349.4362 
+    4000    2.0084889   0.10591744    2.1110589   0.41080478     6315.195 
+    5000    2.0845189  0.074837406    2.1558821   0.32123703    7787.3569 
+    6000    2.0635646   0.12699208    2.1871174   0.55212245    5811.0643 
+    7000    2.0511741   0.13194486    2.1797003   0.75534937    4447.7483 
+    8000    2.0057569   0.14524464    2.1476586   0.93321505     4260.455 
+    9000    1.9863917   0.16294985    2.1460309   0.85687596    4264.0791 
+   10000    1.9867944   0.17403524    2.1575183     1.019418    3985.5163 
+Loop time of 13.1171 on 1 procs for 10000 steps with 900 atoms
+
+Pair  time (%) = 8.49344 (64.7507)
+Neigh time (%) = 1.7079 (13.0204)
+Comm  time (%) = 0.409296 (3.12032)
+Outpt time (%) = 0.224203 (1.70924)
+Other time (%) = 2.28229 (17.3993)
+
+Nlocal:    900 ave 900 max 900 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    648 ave 648 max 648 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    9057 ave 9057 max 9057 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 9057
+Ave neighs/atom = 10.0633
+Neighbor list builds = 777
+Dangerous builds = 0

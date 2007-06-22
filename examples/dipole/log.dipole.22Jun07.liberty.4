@@ -1,0 +1,83 @@
+LAMMPS (22 June 2007)
+# Point dipoles in a 2d box
+
+units		lj
+atom_style	dipole
+dimension	2
+
+lattice		sq2 0.7
+Lattice spacing in x,y,z = 1.69031 1.69031 1.69031
+region		box block 0 10 0 10 -0.5 0.5
+create_box	1 box
+Created orthogonal box = (0 0 -0.845154) to (16.9031 16.9031 0.845154)
+  2 by 2 by 1 processor grid
+create_atoms	1 box
+Created 200 atoms
+
+mass		1 1.0
+shape		1 1 1 1
+dipole		1 0.75
+set		group all dipole/random 98934
+  200 settings made for dipole/random
+
+velocity	all create 0.0 87287 mom no
+
+pair_style	dipole/cut 2.5
+pair_coeff	* * 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+fix		1 all nve/dipole
+fix		2 all enforce2d
+
+timestep	0.005
+
+thermo_style	dipole
+thermo		500
+
+dump		1 all custom 200 dump.dipole tag type x y z mux muy muz
+
+run		10000
+Memory usage per processor = 2.32239 Mbytes
+Step Temp E_pair RotKEdip TotEng Press 
+       0            0   -2.1284412            0   -2.1284412  -0.98973217 
+     500   0.38229437    -2.703408   0.24548268   -2.3239808 -0.073894217 
+    1000   0.41156476   -2.7426733   0.25757681   -2.3341953   0.05919685 
+    1500   0.43191585   -2.8089326   0.33203347   -2.3802561  -0.16059384 
+    2000   0.43337741   -2.7836977   0.30755109   -2.3535707 -0.050258895 
+    2500   0.41025746   -2.7704617   0.31976882   -2.3632812 -0.040387583 
+    3000    0.4343462   -2.7853843   0.32540887   -2.3542957 -0.040773878 
+    3500    0.4516216   -2.7378372   0.25848559   -2.2896027   0.01498558 
+    4000   0.46812215   -2.7531454   0.25653816   -2.2885341 -0.015167924 
+    4500   0.41857472   -2.7022096   0.27078871   -2.2867742  0.040384474 
+    5000   0.42275097   -2.7173978   0.28129865   -2.2978174   0.08127607 
+    5500   0.39689205   -2.6755268   0.28694074   -2.2816114 -0.063519745 
+    6000   0.40712229   -2.6810855   0.29780556   -2.2770166 -0.010331415 
+    6500   0.42401695   -2.7099716   0.32599472   -2.2891348 -0.080194492 
+    7000   0.46557586   -2.7235207     0.277596   -2.2614366 -0.025483686 
+    7500    0.4634213   -2.7520289   0.33385569   -2.2920833  -0.07670048 
+    8000   0.44330991   -2.6937045   0.28515119   -2.2537194  0.063037221 
+    8500   0.46501497   -2.7192191   0.31059999   -2.2576917  -0.12974997 
+    9000   0.48895857   -2.7113963   0.27823171   -2.2261049 -0.032792109 
+    9500    0.5206475   -2.7393465    0.2997953   -2.2226039   0.15436407 
+   10000   0.47111871   -2.6818528    0.2936091   -2.2142675  -0.18366919 
+Loop time of 2.70823 on 4 procs for 10000 steps with 200 atoms
+
+Pair  time (%) = 0.644681 (23.8045)
+Neigh time (%) = 0.0255789 (0.944486)
+Comm  time (%) = 1.55045 (57.2495)
+Outpt time (%) = 0.0430555 (1.5898)
+Other time (%) = 0.444467 (16.4117)
+
+Nlocal:    50 ave 53 max 46 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Nghost:    88.75 ave 91 max 86 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Neighs:    402.25 ave 443 max 365 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+
+Total # of neighbors = 1609
+Ave neighs/atom = 8.045
+Neighbor list builds = 700
+Dangerous builds = 0

@@ -1,6 +1,6 @@
-.TH asphere_vis 1 "June 11, 2007" "asphere_vis (Graphics Utilities) 0.1" "Graphics Utilities"
+.TH asphere_vis 1 "June 22, 2007" "asphere_vis (Graphics Utilities) 0.1" "Graphics Utilities"
 .SH NAME
-\fBasphere_vis\fR - Tools for LAMMPS ellipsoid trajectory visualization in PyMol.
+\fBasphere_vis\fR - Tools for ellipsoid visualization in PyMol of a LAMMPS trajectory.
 .PD 2
 .SH VERSION
 .PD 1
@@ -9,12 +9,12 @@ Version 0.1
 .SH SYNOPSIS
 .PD 1
 .TP
-\fBasphere_vis\fR input_data_file input_dump_file output_py_file [\fB-b\fR] [\fB-c\fR \fIcolor_file\fR] [\fB-d\fR] [\fB-f\fR \fImax_frame\fR] [\fB-h\fR] [\fB-i\fR \fIstart_frame\fR \fIskip\fR \fIend_frame\fR] [\fB-n\fR \fInotice_level\fR] [\fB-r\fR \fIellip_res\fR] [\fB-s\fR]
+\fBasphere_vis\fR input_file dump_file output_py_file [\fB-b\fR] [\fB-c\fR \fIcolor_file\fR] [\fB-d\fR] [\fB-f\fR \fImax_frame\fR] [\fB-h\fR] [\fB-i\fR \fIstart_frame\fR \fIskip\fR \fIend_frame\fR] [\fB-n\fR \fInotice_level\fR] [\fB-r\fR \fIellip_res\fR] [\fB-s\fR]
 .br
 .PD 2
 .SH DESCRIPTION
 .PD 1
-Tool for LAMMPS trajectory visualization in PyMol. The input is a LAMMPS 'data' file or a 'in' file with ellipsoid semi-axes specified using the ellipsoid command. The trajectory is input from a 'dump' file that must be generated using a custom style with the following arguments in order:
+Tool for ellipsoid visualization in PyMol of a LAMMPS trajectory. The \fIinput_file\fR is a LAMMPS data file with a 'Shapes' section or a LAMMPS input script file with ellipsoid diameters specified using the 'shape' command.  The trajectory is input from \fIdump_file\fR that must be generated using a LAMMPS dump_style custom command with the following arguments in order:
 .PD 0
 .PP
 .PD 1
@@ -40,10 +40,10 @@ When used with \fB-s\fR, the option will number the filenames based on the frame
 .TP
 .PP
 .PD 1
-Color the atom_types and set transparency based on the input file. The input file contains a space delimited set sequence of the color for an atom followed by the alpha. The color should be the string name and the alpha should be between 0 and 1.
+Color the atom_types and set transparency based on the color file. The color file contains a space delimited set sequence of the color for an atom followed by the alpha. The color should be the string name and the alpha should be between 0 and 1.
 .TP
 \fB-d\fR
-Use a LAMMPS input file rather than a data file for extracting atom type information. The input filename is specified as \fIinput_data_file\fR.
+Use a LAMMPS input script rather than a data file for extracting atom shape information. The input script is specified as \fIinput_file\fR.
 .TP
 \fB-f\fR \fImax_frame\fR
 .PD 0
@@ -94,7 +94,7 @@ Set the degree of program output.  Use:
 .TP
 .PP
 .PD 1
-Resolution of ellipsoids in trajectory. The number of triangles per ellipsoid is equal to 2*(\fIellip_res\fR^2). Default is 10.
+Resolution of ellipsoids in PyMol. The number of triangles per ellipsoid is equal to 2*(\fIellip_res\fR^2). Default is 10.
 .TP
 \fB-s\fR
 Output the results into separate .py files. The filename and extension for the output files is taken from \fIoutput_py_file\fR.

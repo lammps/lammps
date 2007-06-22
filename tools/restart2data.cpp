@@ -1886,6 +1886,12 @@ void angle(FILE *fp, Data &data)
     fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
     fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
 
+  } else if (strcmp(data.angle_style,"hybrid") == 0) {
+
+    int nstyles = read_int(fp);
+    for (int i = 0; i < nstyles; i++)
+      char *substyle = read_char(fp);
+
   } else {
     printf("ERROR: Unknown angle style %s\n",data.angle_style);
     exit(1);
@@ -2065,6 +2071,12 @@ void dihedral(FILE *fp, Data &data)
     fread(&data.dihedral_opls_k3[1],sizeof(double),data.ndihedraltypes,fp);
     fread(&data.dihedral_opls_k4[1],sizeof(double),data.ndihedraltypes,fp);
 
+  } else if (strcmp(data.dihedral_style,"hybrid") == 0) {
+
+    int nstyles = read_int(fp);
+    for (int i = 0; i < nstyles; i++)
+      char *substyle = read_char(fp);
+
   } else {
     printf("ERROR: Unknown dihedral style %s\n",data.dihedral_style);
     exit(1);
@@ -2127,6 +2139,12 @@ void improper(FILE *fp, Data &data)
     fread(&data.improper_harmonic_k[1],sizeof(double),data.nimpropertypes,fp);
     fread(&data.improper_harmonic_chi[1],sizeof(double),
 	  data.nimpropertypes,fp);
+
+  } else if (strcmp(data.improper_style,"hybrid") == 0) {
+
+    int nstyles = read_int(fp);
+    for (int i = 0; i < nstyles; i++)
+      char *substyle = read_char(fp);
 
   } else {
     printf("ERROR: Unknown improper style %s\n",data.improper_style);
@@ -2361,10 +2379,11 @@ void Data::write(FILE *fp)
   if (angle_style) {
     double PI = 3.1415926;           // convert back to degrees
 
-    if (strcmp(angle_style,"none") != 0)
+    if ((strcmp(angle_style,"none") != 0) && 
+	(strcmp(angle_style,"hybrid") != 0))
       fprintf(fp,"\nAngle Coeffs\n\n");
-
-    if (strcmp(angle_style,"charmm") == 0) {
+    
+    else if (strcmp(angle_style,"charmm") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
 		angle_charmm_k[i],angle_charmm_theta0[i]/PI*180.0,
@@ -2403,10 +2422,11 @@ void Data::write(FILE *fp)
   if (dihedral_style) {
     double PI = 3.1415926;           // convert back to degrees
 
-    if (strcmp(dihedral_style,"none") != 0)
+    if ((strcmp(dihedral_style,"none") != 0) && 
+	(strcmp(dihedral_style,"hybrid") != 0))
       fprintf(fp,"\nDihedral Coeffs\n\n");
 
-    if (strcmp(dihedral_style,"charmm") == 0) {
+    else if (strcmp(dihedral_style,"charmm") == 0) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %d %d %g\n",i,
 		dihedral_charmm_k[i],dihedral_charmm_multiplicity[i],
@@ -2485,10 +2505,11 @@ void Data::write(FILE *fp)
   if (improper_style) {
     double PI = 3.1415926;           // convert back to degrees
 
-    if (strcmp(improper_style,"none") != 0)
+    if ((strcmp(improper_style,"none") != 0) && 
+	(strcmp(improper_style,"hybrid") != 0))
       fprintf(fp,"\nImproper Coeffs\n\n");
 
-    if (strcmp(improper_style,"class2") == 0) {
+    else if (strcmp(improper_style,"class2") == 0) {
       for (int i = 1; i <= nimpropertypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		improper_class2_k0[i],improper_class2_chi0[i]/PI*180.0);

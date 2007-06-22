@@ -339,20 +339,20 @@ void Describe(CommandLine &cl,ostream &out) {
 void HandleArgs(CommandLine &cl, int argc, char *argv[], Error *error) {
   // Arguments
   cl.addmanditory(' ',3);
-  cl.addargname(' ',"input_data_file");
- cl.addargname(' ',"input_dump_file");
+  cl.addargname(' ',"input_file");
+ cl.addargname(' ',"dump_file");
  cl.addargname(' ',"output_py_file");
   cl.add('d',0);
-  cl.adddescription('d',"Use a LAMMPS input file rather than a data file for extracting atom type information. The input filename is specified as input_data_file.");
+  cl.adddescription('d',"Use a LAMMPS input script rather than a data file for extracting atom shape information. The input script is specified as input_file.");
   cl.add('f',1);
   cl.addargname('f',"max_frame");
   cl.adddescription('f',"Do not write more than max_frame frames to the output file.");
   cl.add('r',1);
   cl.addargname('r',"ellip_res");
-  cl.adddescription('r',"Resolution of ellipsoids in trajectory. The number of triangles per ellipsoid is equal to 2*(ellip_res^2). Default is 10.");
+  cl.adddescription('r',"Resolution of ellipsoids in PyMol. The number of triangles per ellipsoid is equal to 2*(ellip_res^2). Default is 10.");
   cl.add('c',1);
   cl.addargname('c',"color_file");
-  cl.adddescription('c',"Color the atom_types and set transparency based on the input file. The input file contains a space delimited set sequence of the color for an atom followed by the alpha. The color should be the string name and the alpha should be between 0 and 1.");
+  cl.adddescription('c',"Color the atom_types and set transparency based on the color file. The color file contains a space delimited set sequence of the color for an atom followed by the alpha. The color should be the string name and the alpha should be between 0 and 1.");
   cl.add('s',0);
   cl.adddescription('s',"Output the results into separate .py files. The filename and extension for the output files is taken from output_py_file.");
   cl.add('i',3);
@@ -371,17 +371,17 @@ void HandleArgs(CommandLine &cl, int argc, char *argv[], Error *error) {
   cl.adddescription('n',"Set the degree of program output.  Use: \n\n\t-n  0\tNo output\n\t-n 10\tNormal program output\n\t-n 20\tParameters useful for reproducing the results\n\t-n 30\tAll output");
 
   // Short Description
-  cl.addtoman_chapter("NAME","Tools for LAMMPS ellipsoid trajectory visualization in PyMol.");
+  cl.addtoman_chapter("NAME","Tools for ellipsoid visualization in PyMol of a LAMMPS trajectory.");
 
   // Version
   cl.addtoman_chapter("VERSION","Version 0.1");
 
   // Full Description
   const string desc[5]={
-  "Tool for LAMMPS trajectory visualization in PyMol. The input is a LAMMPS ",
-    "'data' file or a 'in' file with ellipsoid semi-axes specified using the ",
-    "ellipsoid command. The trajectory is input from a 'dump' file that must ",
-    "be generated using a custom style with the following arguments in order:\n",
+  "Tool for ellipsoid visualization in PyMol of a LAMMPS trajectory. The input_file is a LAMMPS ",
+    "data file with a 'Shapes' section or a LAMMPS input script file with ellipsoid diameters specified using the ",
+    "'shape' command.  The trajectory is input from dump_file that must ",
+    "be generated using a LAMMPS dump_style custom command with the following arguments in order:\n",
     ".TP\\fItag type x y z quatw quati quatj quatk\\fR\n"
  };
  cl.addtoman_chapter("DESCRIPTION",5,desc);

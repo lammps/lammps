@@ -463,6 +463,7 @@ full description:
 "buck"_pair_buck.html,
 "buck/coul/cut"_pair_buck.html,
 "buck/coul/long"_pair_buck.html,
+"colloid"_pair_colloid.html,
 "dipole/cut"_pair_dipole/cut.html,
 "dpd"_pair_dpd.html,
 "eam"_pair_eam.html,

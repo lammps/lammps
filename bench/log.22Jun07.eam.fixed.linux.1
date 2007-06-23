@@ -1,0 +1,60 @@
+LAMMPS (22 June 2007)
+# bulk Cu lattice
+
+variable	x index 20
+variable	y index 20
+variable	z index 20
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 3.615
+Lattice spacing in x,y,z = 3.615 3.615 3.615
+region		box block 0 $x 0 $y 0 $z
+region		box block 0 20 0 $y 0 $z
+region		box block 0 20 0 20 0 $z
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (72.3 72.3 72.3)
+  1 by 1 by 1 processor grid
+create_atoms	1 box
+Created 32000 atoms
+
+pair_style	eam
+pair_coeff	1 1 Cu_u3.eam
+
+velocity	all create 1600.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 all nve
+
+timestep	0.005
+thermo		50
+
+run		100
+Memory usage per processor = 15.2616 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1600      -113280            0   -106662.09    18703.573 
+      50    781.37184   -109870.67            0   -106638.76     52616.84 
+     100    792.19277   -109916.21            0   -106639.54     51739.67 
+Loop time of 31.0146 on 1 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 27.1822 (87.6433)
+Neigh time (%) = 2.71986 (8.76962)
+Comm  time (%) = 0.338775 (1.09231)
+Outpt time (%) = 0.002124 (0.00684839)
+Other time (%) = 0.771616 (2.48791)
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    19909 ave 19909 max 19909 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.20989e+06 ave 1.20989e+06 max 1.20989e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1209894
+Ave neighs/atom = 37.8092
+Neighbor list builds = 13
+Dangerous builds = 0

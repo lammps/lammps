@@ -561,8 +561,6 @@ description:
 
 :line
 
-Improper_style potentials.  
-
 Kspace solvers.  See the "kspace_style"_kspace_style.html command for
 an overview of Kspace solvers.  Click on the style itself for a full
 description:

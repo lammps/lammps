@@ -394,7 +394,7 @@ void header(FILE *fp, Data &data)
     else if (flag == NEWTON_BOND) data.newton_bond = read_int(fp);
     else if (flag == XPERIODIC) data.xperiodic = read_int(fp);
     else if (flag == YPERIODIC) data.yperiodic = read_int(fp);
-    else if (flag == XPERIODIC) data.zperiodic = read_int(fp);
+    else if (flag == ZPERIODIC) data.zperiodic = read_int(fp);
     else if (flag == BOUNDARY_00) data.boundary[0][0] = read_int(fp);
     else if (flag == BOUNDARY_01) data.boundary[0][1] = read_int(fp);
     else if (flag == BOUNDARY_10) data.boundary[1][0] = read_int(fp);

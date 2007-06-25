@@ -291,11 +291,11 @@ documentation.
 
 The {bond} style is part of the "molecular" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#2_2 section for more info.
 
 The {xtc} style is part of the "xtc" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.  This is because
+LAMMPS"_Section_start.html#2_2 section for more info.  This is because
 some machines may not support the lo-level XDR data format that XTC
 files are written with, which will result in a compile-time error when
 a lo-level include file is not found.  Putting this style in a package

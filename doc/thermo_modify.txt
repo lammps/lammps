@@ -41,11 +41,11 @@ Set options for how thermodynamic information is computed and printed
 by LAMMPS.
 
 IMPORTANT NOTE: These options apply to the currently defined thermo
-style.  When you specify a "thermo_style"_thermo_style.html command,
-all thermodynamic settings are restored to their default values,
-including those previously set by a thermo_modify command.  Thus if
-your input script specifies a thermo_style command, you should use the
-thermo_modify command after it.
+style (thermo_style {one} by default).  When you specify a
+"thermo_style"_thermo_style.html command, all thermodynamic settings
+are restored to their default values.  Thus a thermo_style command
+will wipe out any options previously specified by the
+"thermo_modify"_thermo_modify.html command.
 
 The {lost} keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are

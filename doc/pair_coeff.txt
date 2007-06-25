@@ -37,7 +37,7 @@ can be used for each, as in the 1st example above.  I <= J is
 required.  LAMMPS sets the coefficients for the symmetric J,I
 interaction to the same values.
 
-A wild-card asterik can be used in place of or in conjunction with the
+A wild-card asterik can be used in place of in conjunction with the
 I,J arguments to set the coefficients for multiple pairs of atom
 types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
 number of atom types, then an asterik with no numeric values means all
@@ -70,9 +70,8 @@ as
 For many potentials, if coefficients for type pairs with I != J are
 not set explicity by a pair_coeff command, the values are inferred
 from the I,I and J,J settings by mixing rules; see the
-"pair_modify"_pair_modify.html command for a discussion.  Details on
-this option as it pertains to individual potentials are described on
-the doc page for the potential.
+"pair_modify"_pair_modify.html command for a discussion.  Exceptions
+to the mixing rules are discussed with the individual pair styles.
 
 :line
 
@@ -81,15 +80,20 @@ the style to display the formula it computes, arguments specified in
 the pair_style command, and coefficients specified by the associated
 "pair_coeff"_pair_coeff.html command:
 
-"pair_style airebo"_pair_airebo.html - AI-REBO potential
+"pair_style none"_pair_none.html - turn off pairwise interactions
+"pair_style hybrid"_pair_hybrid.html - define multiple styles of pairwise interactions :ul
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckinhham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
+"pair_style dipole/cut"_pair_dpd.html - point dipole potential
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
+"pair_style eam/opt"_pair_eam.html - optimized embedded atom method (EAM)
 "pair_style eam/alloy"_pair_eam.html - alloy EAM
+"pair_style eam/alloy/opt"_pair_eam.html - optimized alloy EAM
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
+"pair_style eam/fs/opt"_pair_eam.html - optimized Finnis-Sinclair EAM
 "pair_style gayberne"_pair_gayberne.html - Gay-Berne ellipsoidal potential
 "pair_style gran/hertzian"_pair_gran.html - granular potential with Hertizain interactions
 "pair_style gran/history"_pair_gran.html - granular potential with history effects
@@ -97,10 +101,12 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb
+"pair_style lj/charmm/coul/long/opt"_pair_charmm.html - optimized CHARMM with long-range Coulomb
 "pair_style lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
 "pair_style lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
 "pair_style lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
 "pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
+"pair_style lj/cut/opt"_pair_lj.html - optimized cutoff Lennard-Jones potential with no Coulomb
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
 "pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye damping added to Coulomb
 "pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
@@ -109,6 +115,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
+"pair_style morse/opt"_pair_morse.html - optimized Morse potential
 "pair_style soft"_pair_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "pair_style table"_pair_table.html - tabulated pair potential

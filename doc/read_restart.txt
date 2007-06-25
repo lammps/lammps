@@ -24,9 +24,8 @@ read_restart poly.*.% :pre
 
 [Description:]
 
-Read in a previously saved simulation from a restart file.  This
-allows continuation of a previous run.  Information about what is
-stored in a restart file is given below.
+Read in a previously saved problem from a restart file.  This allows
+continuation of a previous run.
 
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
@@ -37,11 +36,11 @@ include running on a different number of processors or changing
 certain settings such as those set by the "newton"_newton.html or
 "processors"_processors.html commands.  LAMMPS will issue a WARNING in
 these cases.  Certain fixes will also not restart exactly, though they
-should provide statistically similar results.  These include "fix
-shake"_fix_shake.html and "fix langevin"_fix_langevin.html.  If a
-restarted run is immediately different than the run which produced the
-restart file, it could be a LAMMPS bug, so consider "reporting
-it"_Section_errors.html#9_2 if you think the behavior is wrong.
+should provide statistically similar results.  These include the shake
+and langevin styles.  If a restarted run is immediately different than
+the run which produced the restart file, it could be a LAMMPS bug, so
+consider "reporting it"_Section_errors.html#9_2 if you think the
+behavior is wrong.
 
 Because restart files are binary, they may not be portable to other
 machines.  They can be converted to ASCII data files using the
@@ -75,39 +74,36 @@ current LAMMPS simulation.
 
 :line
 
-A restart file stores the following information about a simulation:
-units and atom style, simulation box size and shape and boundary
-settings, group definitions, atom type settings such as mass and
-particle shape, individual atoms and their group assignments and
-molecular topology attributes, force field styles and coefficients,
-and "special_bonds"_special_bonds.html settings.  This means that
-commands for these quantities do not need to be re-specified in the
-input script that reads the restart file, though you can redefine
-settings after the restart file is read.
+A restart file stores the units and atom style, simulation box
+attibutes (including whether it is an orthogonal box or a
+non-orthogonal parallelepiped with triclinic symmetry), individual
+atoms and their attributes including molecular topology, force field
+styles and coefficients, "special_bonds"_special_bonds.html settings,
+and atom group definitions.  This means that commands for these
+quantities do not need to be specified in your input script that reads
+the restart file.  The exceptions to this are listed below in the
+Restrictions section.
 
-One exception is that some pair styles do not store their info in
-restart files.  The doc pages for individual pair styles note if this
-is the case.  This is also true of bond_style hybrid (and angle_style,
-dihedral_style, improper_style hybrid).
+Information about the "kspace_style"_kspace_style.html settings are
+not stored in the restart file.  Hence if you wish to invoke an Ewald
+or PPPM solver, this command must be re-issued after the restart file
+is read.
 
-Information about "kspace_style"_kspace_style.html settings are not
-stored in the restart file.  Hence if you wish to use an Ewald or PPPM
-solver, these commands must be re-issued after the restart file is
-read.
+The restart file also stores values for any fixes that require state
+information to enable restarting where they left off.  These include
+the {nvt} and {npt} styles that have a global state, as well as the
+{msd} and {wall/gran} styles that store information about each atom.
 
-The list of "fixes"_fix.html used for a simulation is not stored in
-the restart file.  This means the new input script should specify all
-fixes it will use.  Note that some fixes store an internal "state"
-which is written to the restart file.  This allows the fix to continue
-on with its calculations in a restarted simulation.  To re-enable such
-a fix, the fix command in the new input script must use the same
-fix-ID and group-ID as was used in the input script that wrote the
-restart file.  If a match is found, LAMMPS prints a message indicating
-that the fix is being re-enabled.  If no match is found before the
-first run or minimization is performed by the new script, the "state"
-information for the saved fix is discarded.  See the doc pages for
-individual fixes for info on which ones can be restarted in this
-manner.
+"Fix"_fix.html commands are not stored in the restart file which means
+they must be specified in the input script that reads the restart
+file.  To re-enable a fix whose state was stored in the restart file,
+the fix command in the new input script must use the same fix-ID and
+group-ID as the input script that wrote the restart file.  LAMMPS will
+print a message indicating that the fix is being re-enabled.
+
+Note that no other information is stored in the restart file.  This
+means that your new input script should specify settings for
+quantities like timestep size, thermodynamic and dump output, etc.
 
 Bond interactions (angle, etc) that have been turned off by the "fix
 shake"_fix_shake.html or "delete_bonds"_delete_bonds.html command will
@@ -119,13 +115,15 @@ Bonds that are broken (e.g. by a bond-breaking potential) are written
 to the restart file as broken bonds with a type of 0.  Thus these
 bonds will still be broken when the restart file is read.
 
-IMPORTANT NOTE: No other information is stored in the restart file.
-This means that an input script that reads a restart file should
-specify settings for quantities like "timestep size"_timestep.html,
-"thermodynamic"_thermo_style.html and "dump"_dump.html output,
-"geometric regions"_region.html, etc.
+[Restrictions:]
 
-[Restrictions:] none
+The "pair_style"_pair_style.html {eam}, {table}, and {hybrid} styles
+do not store coefficient data for individual atom type pairs in the
+restart file.  Nor does the "bond_style hybrid"_bond_style.html style
+(angle, dihedral hybrid, etc).  Thus for these styles you must use new
+"pair_coeff"_pair_coeff.html and "bond_coeff"_bond_coeff.html (angle,
+dihedral, etc) commands to read the appropriate tabulated files or
+reset the coefficients after the restart file is read.
 
 [Related commands:]
 

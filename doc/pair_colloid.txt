@@ -59,7 +59,7 @@ The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
-commands, or by mixing as described below:
+commands:
 
 A (energy units)
 sigma (distance units)
@@ -107,42 +107,16 @@ rule-of-thumb is to use a colloid-solvent cutoff that is half the big
 diamter + 4 times the small diamter.  I.e. 9 = 5 + 4 for the
 colloid-solvent cutoff in this case.
 
-:line
-
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
-
-For atom type pairs I,J and I != J, the A, sigma, d1, and d2
-coefficients and cutoff distance for this pair style can be mixed.  A
-is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
-values and are mixed like sigma.  The default mix value is
-{geometric}.  See the "pair_modify" command for details.
-
-This pair style supports the "pair_modify"_pair_modify.html shift
-option for the energy of the pair interaction.
-
-The "pair_modify"_pair_modify.html table option is not relevant
-for this pair style.
-
-This pair style does not support the "pair_modify"_pair_modify.html
-tail option for adding long-range tail corrections to energy and
-pressure.
-
-This pair style can calculate per-atom energy and stress, as used by
-the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands.
-
-This pair style writes its information to "binary restart
-files"_restart.html, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-
-:line
+If a pair_coeff command is not specified for I != J, then the
+coefficients are mixed according the mixing rules defined by the
+"pair_modify"_pair_modify.html command.  The prefactor A is mixed like
+the Lennard-Jones epsilon; sigma,d1,d2 are all mixed like the
+Lennard-Jones sigma.
 
 [Restrictions:]
 
-This style is part of the "colloid" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
+The {colloid} style is part of the "colloid" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]

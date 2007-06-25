@@ -131,7 +131,7 @@ The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
-commands, or by mixing as described below:
+commands:
 
 epsilon (energy units)
 sigma (distance units)
@@ -155,49 +155,13 @@ can be specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 
-:line
-
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
-
-For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is {geometric}.  See the "pair_modify" command
-for details.
-
-All of the lj/cut pair styles support the
-"pair_modify"_pair_modify.html shift option for the energy of the
-Lennard-Jones portion of the pair interaction.
-
-The {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} pair styles
-support the "pair_modify"_pair_modify.html table option since they can
-tabulate the short-range portion of the long-range Coulombic
-interaction.
-
-All of the lj/cut pair styles support the
-"pair_modify"_pair_modify.html tail option for adding a long-range
-tail correction to the energy and pressure of the Lennard-Jones
-portion of the pair interaction.
-
-All of the lj/cut pair styles can calculate per-atom energy and
-stress, as used by the "compute epair/atom"_compute_epair_atom.html,
-"compute stress/atom"_compute_stress_atom.html, and "dump
-custom"_dump.html commands.
-
-All of the lj/cut pair styles write their information to "binary
-restart files"_restart.html, so pair_style and pair_coeff commands do
-not need to be specified in an input script that reads a restart file.
-
-:line
-
 [Restrictions:]
 
-The {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} styles are part of
-the "kspace" package.  They are only enabled if LAMMPS was built with
-that package (which it is by default).  The {lj/cut/opt} style is part
-of the "opt" package.  It is only enabled if LAMMPS was built with
-that package.  See the "Making LAMMPS"_Section_start.html#2_3 section
-for more info.
+The {lj/cut/coul/long} style is part of the "kspace" package.  It is
+only enabled if LAMMPS was built with that package.  The {lj/cut/opt}
+style is part of the "opt" package.  It is only enabled if LAMMPS was
+built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 On some 64-bit machines, compiling with -O3 appears to break the
 Coulombic tabling option used by the {lj/cut/coul/long} style.  See

@@ -27,34 +27,33 @@ fix_modify 1 energy yes :pre
 
 [Description:]
 
-Modify one or more parameters of a previously defined fix.  Only
-specific fix styles support specific parameters.  See the doc pages
-for individual fix commands for info on which ones support which
-fix_modify parameters.
+Modify one or more parameters of a previously defined fix.  Not all
+fix styles support all parameters.
 
 The {temp} keyword is used to determine how a fix computes
 temperature.  The specified compute ID must have been previously
 defined by the user via the "compute"_compute.html command and it must
 be a style of compute that calculates a temperature.  All fixes that
-compute temperatures define their own compute by default, as described
-in their documentation.  Thus this option allows the user to override
-the default method for computing T.
+compute temperatures defined their own compute by default, as
+described in their documentation.  Thus this option allows the user to
+override the default method for computing T.
 
 The {press} keyword is used to determine how a fix computes pressure.
 The specified compute ID must have been previously defined by the user
 via the "compute"_compute.html command and it must be a style of
 compute that calculates a pressure.  All fixes that compute pressures
-define their own compute by default, as described in their
+defined their own compute by default, as described in their
 documentation.  Thus this option allows the user to override the
 default method for computing P.
 
-For fixes that calculate a contribution to the potential energy of the
-system, the {energy} keyword will include that contribution in
-thermodyanmic output of potential energy.  See the
-"thermo_style"_thermo_style.html command for info on how to output
-potential energy is printed.  The contribution itself can also be
-printed by using the keyword f_ID in the thermo_style custom command,
-where ID is the fix-ID of the appropriate fix.
+For fixes that calculates a contribution to the potential energy of
+the system, the {energy} keyword will include that contribution in
+thermodyanmic output of the potential energy, as invoked by the
+"thermo_style"_thermo_style.html command.  The value of the
+contribution can also be printed by itself using the "thermo_style
+custom"_thermo_style.html keywords.  The documentation for individual
+fix commands specifies whether they make a contribution to the
+potential energy.
 
 [Restrictions:] none
 

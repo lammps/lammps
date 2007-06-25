@@ -53,48 +53,15 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the "pair_style"_pair_style.html
 command so it does not need to be specified.
 
-:line
+[Restrictions:] none
 
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
+This style is part of the "dpd" package.  It is only enabled if LAMMPS
+was built with those package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
 
-Thsi pair style does not support mixing.  Thus, coefficients for all
-I,J pairs must be specified explicitly.
-
-This pair style does not support the "pair_modify"_pair_modify.html
-shift option for the energy of the pair interaction.
-
-The "pair_modify"_pair_modify.html table option is not relevant
-for this pair style.
-
-This pair style does not support the "pair_modify"_pair_modify.html
-tail option for adding long-range tail corrections to energy and
-pressure.
-
-This pair style can calculate per-atom energy and stress, as used by
-the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands.  However, only the first term with the A coefficienct
-(conservative force) is used for these computations.  The drag force
-and random force terms are not.
-
-This pair style writes its information to "binary restart
-files"_restart.html, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.  Note
-that the user-specifice random number seed is stored in the restart
-file, so when a simulation is restarted, each processor will
-re-initialize its random number generator the same way it did
-intially.  This means the random forces will be random, but will not
-be the same as they would have been if the original simulation had
-continued past the restart time.
-
-:line
-
-[Restrictions:]
-
-This style is part of the "dpd" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+The {dpd} potential does not support the
+"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
+pairs must be specified explicitly.
 
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the "neigh_modify"_neigh_modify.html command). This may be too

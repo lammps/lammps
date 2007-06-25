@@ -32,26 +32,16 @@ from a data or restart file.
 Hybrid models where dihedrals are computed using different dihedral
 potentials can be setup using the {hybrid} dihedral style.
 
-The coefficients associated with a dihedral style can be specified in
-a data or restart file or via the "dihedral_coeff"_dihedral_coeff.html
-command.
-
-All dihedral potentials store their coefficient data in binary restart
-files which means dihedral_style and
-"dihedral_coeff"_dihedral_coeff.html commands do not need to be
-re-specified in an input script that restarts a simulation.  See the
-"read_restart"_read_restart.html command for details on how to do
-this.  The one exception is that dihedral_style {hybrid} only stores
-the list of sub-styles in the restart file; dihedral coefficients need
-to be re-specified.
-
-IMPORTANT NOTE: When both a dihedral and pair style is defined, the
-"special_bonds"_special_bonds.html command often needs to be used to
-turn off (or weight) the pairwise interaction that would otherwise
-exist between 4 bonded atoms.
+The coefficients associated with a dihedral style can be specified in a
+data or restart file or via the "dihedral_coeff"_dihedral_coeff.html command.
 
 In the formulas listed for each dihedral style, {phi} is the torsional
 angle defined by the quadruplet of atoms.
+
+Note that when both a dihedral and pair style is defined, the
+"special_bond"_special_bond.html command often needs to be used to
+turn off (or weight) the pairwise interactions that would otherwise
+exist between the 4 bonded atoms.
 
 Here are some important points to take note of when defining the
 LAMMPS dihedral coefficients in the formulas that follow so that they
@@ -91,11 +81,10 @@ specified by the associated "dihedral_coeff"_dihedral_coeff.html command:
 Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.
 
-Most dihedral styles are part of the "molecular" package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual dihedral potentials tell if it is part of a
-package.
+Dihedral styles are part of the "molecular" package or other packages
+as noted in their documentation.  They are only enabled if LAMMPS was
+built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
 
 [Related commands:]
 

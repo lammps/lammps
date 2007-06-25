@@ -38,11 +38,7 @@ K2 (energy)
 K3 (energy)
 K4 (energy) :ul
 
-[Restrictions:]
-
-This dihedral style can only be used if LAMMPS was built with the
-"molecular" package (which it is by default).  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.
+[Restrictions:] none
 
 [Related commands:]
 

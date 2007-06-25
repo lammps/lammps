@@ -14,14 +14,17 @@ pair_style style args :pre
 
 style = one of the following :ulb,l
 
-{none}, {hybrid}, {airebo}, {buck}, {buck/coul/cut}, {buck/coul/long},
-{dpd}, {eam}, {eam/alloy} or {eam/fs}, {gran/hertzian},
-{gran/history}, {gran/no_history}, {lj/charmm/coul/charmm},
-{lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long},
-{lj/class2}, {lj/class2/coul/cut} or {lj/class2/coul/long}, {lj/cut},
-{lj/cut/coul/cut} or {lj/cut/coul/debye}, {lj/cut/coul/long},
-{lj/cut/coul/long/tip4p}, {lj/expand}, {lj/smooth}, {meam}, {morse},
-{soft}, {sw}, {table}, {tersoff}, {yukawa} :ul
+{none}, {hybrid}, {buck}, {buck/coul/cut}, {buck/coul/long},
+{colloid}, {dipole/cut}, {dpd}, {eam}, {eam/opt}, {eam/alloy},
+{eam/alloy/opt}, {eam/fs}, {eam/fs/opt}, {gayberne},
+{gran/hertzian}, {gran/history}, {gran/no_history},
+{lj/charmm/coul/charmm}, {lj/charmm/coul/charmm/opt},
+{lj/charmm/coul/charmm/implicit}, {lj/charmm/coul/long},
+{lj/class2}, {lj/class2/coul/cut}, {lj/class2/coul/long},
+{lj/cut}, {lj/cut/opt}, {lj/cut/coul/cut},
+{lj/cut/coul/debye}, {lj/cut/coul/long}, {lj/cut/coul/long/tip4p},
+{lj/expand}, {lj/smooth}, {meam}, {morse}, {morse/opt}, {soft}, {sw}, {table},
+{tersoff}, {yukawa} :ul
 
 args = arguments used by a particular style :l,ule
 
@@ -46,7 +49,7 @@ In LAMMPS, pairwise force fields encompass a variety of interactions,
 some of which include many-body effects, e.g. EAM, Stillinger-Weber,
 Tersoff, REBO potentials.  They are still classified as "pairwise"
 potentials because the set of interacting atoms changes with time
-(unlike molecular bonds) and thus a neighbor list is used to find
+(unlike a bonded system) and thus a neighbor list is used to find
 nearby interacting atoms.
 
 Hybrid models where specified pairs of atom types interact via
@@ -56,18 +59,9 @@ The coefficients associated with a pair style are typically set for
 each pair of atom types, and are specified by the
 "pair_coeff"_pair_coeff.html command or read from a file by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
-commands.
-
-The "pair_modify"_pair_modify.html command sets options for mixing of
-type I-J interaction coefficients and adding energy offsets or tail
-corrections to Lennard-Jones potentials.  Details on these options as
-they pertain to individual potentials are described on the doc page
-for the potential.  Likewise, info on whether the potential
-information is stored in a "restart file"_write_restart.html or
-whether the potential supports calculation of per-atom energy and
-stress by the "compute epair/atom"_compute_epair_atom.html and
-"compute stress/atom"_compute_stress_atom.html commands is given on
-the potential doc page.
+commands.  Mixing, shifting, and tail corrections for the potentials
+is discussed is the documentation for the
+"pair_modify"_pair_modify.html command.
 
 In the formulas listed for each pair style, {E} is the energy of a
 pairwise interaction between two atoms separated by a distance {r}.
@@ -98,15 +92,18 @@ the pair_style command, and coefficients specified by the associated
 "pair_style none"_pair_none.html - turn off pairwise interactions
 "pair_style hybrid"_pair_hybrid.html - define multiple styles of pairwise interactions :ul
 
-"pair_style airebo"_pair_airebo.html - AI-REBO potential
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckinhham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
+"pair_style dipole/cut"_pair_dpd.html - point dipole potential
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
+"pair_style eam/opt"_pair_eam.html - optimized embedded atom method (EAM)
 "pair_style eam/alloy"_pair_eam.html - alloy EAM
+"pair_style eam/alloy/opt"_pair_eam.html - optimized alloy EAM
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
+"pair_style eam/fs/opt"_pair_eam.html - optimized Finnis-Sinclair EAM
 "pair_style gayberne"_pair_gayberne.html - Gay-Berne ellipsoidal potential
 "pair_style gran/hertzian"_pair_gran.html - granular potential with Hertizain interactions
 "pair_style gran/history"_pair_gran.html - granular potential with history effects
@@ -114,10 +111,12 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb
+"pair_style lj/charmm/coul/long/opt"_pair_charmm.html - optimized CHARMM with long-range Coulomb
 "pair_style lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
 "pair_style lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
 "pair_style lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
 "pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
+"pair_style lj/cut/opt"_pair_lj.html - optimized cutoff Lennard-Jones potential with no Coulomb
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
 "pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye damping added to Coulomb
 "pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
@@ -126,6 +125,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
+"pair_style morse/opt"_pair_morse.html - optimized Morse potential
 "pair_style soft"_pair_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "pair_style table"_pair_table.html - tabulated pair potential
@@ -142,9 +142,7 @@ This command must be used before any coefficients are set by the
 
 Some pair styles are part of specific packages.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual pair potentials tell if it is part of a
-package.
+LAMMPS"_Section_start.html#2_2 section for more info.
 
 [Related commands:]
 

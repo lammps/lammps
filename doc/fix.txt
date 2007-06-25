@@ -35,7 +35,8 @@ defined in LAMMPS and new ones can be added - see "this
 section"_Section_modify.html for a discussion.
 
 Each fix style has its own documentation page which describes its
-arguments and what it does, as listed below.
+arguments and what it does.  For example, see the "fix
+setforce"_fix_setforce.html page for information on style {setforce}.
 
 Fixes perform their operations at different stages of the timestep.
 If 2 or more fixes both operate at the same stage of the timestep,
@@ -44,10 +45,10 @@ they are invoked in the order they were specified in the input script.
 Fixes can be deleted with the "unfix"_unfix.html command.  Note that
 this is the only way to turn off a fix; simply specifying a new fix
 with a similar style will not turn off the first one.  For example,
-using a "fix nve"_fix_nve.html command for a second run after using a
-"fix nvt"_fix_nvt.html command for the first run, will not cancel out
-the NVT time integration invoked by the "fix nvt" command.  Thus two
-time integrators would be in place!
+using a "fix nve" command for a second run after using a "fix nvt"
+command for the first run, will not cancel out the NVT time
+integration invoked by the "fix nvt" command.  Thus two time
+integrators would be in place!
 
 If you specify a new fix with the same ID and style as an existing
 fix, the old fix is deleted and the new one is created (presumably
@@ -57,18 +58,7 @@ same order relative to the existing fixes as the old one originally
 was.  Note that this operation also wipes out any additional changes
 made to the old fix via the "fix_modify"_fix_modify.html command.
 
-The "fix modify"_fix_modify.html command allows settings for some
-fixes to be reset.  See the doc page for individual fixes for details.
-
-Some fixes store an internal "state" which is written to binary
-restart files via the "restart"_restart.html or
-"write_restart"_write_restart.html commands.  This allows the fix to
-continue on with its calculations in a restarted simulation.  See the
-"read_restart"_read_restart.html command for info on how to re-specify
-a fix in an input script that reads a restart file.  See the doc pages
-for individual fixes for info on which ones can be restarted.
-
-Here is an alphabetic list of fix styles available in LAMMPS:
+Here is an alphabetic list of fix styles defined in LAMMPS:
 
 "fix addforce"_fix_addforce.html - add a force to each atom
 "fix aveforce"_fix_aveforce.html - add an averaged force to each atom
@@ -134,8 +124,12 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 
 Some fix styles are part of specific packages.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual fixes tell if it is part of a package.
+LAMMPS"_Section_start.html#2_2 section for more info.
+
+The {freeze}, {gran/diag}, {gravity}, {nve/gran}, {pour}, and
+{wall/gran} styles are part of the "granular" package.
+
+The {poems} style is part of the "poems" package.
 
 [Related commands:]
 

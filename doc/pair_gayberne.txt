@@ -79,6 +79,10 @@ cutoff (distance units) :ul
 The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
 
+The epsilon and sigma parameters are mixed for I != J atom pairings
+the same as Lennard-Jones parameters; see the "pair_modify
+mix"_pair_modify.html documentation for details. 
+
 The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
 commands, they only need to be specified once for each atom type.
@@ -112,49 +116,17 @@ than the full Gay-Berne formula.  Thus you should insure epsilon a,b,c
 are set to 1.0 for spherical particle types and use epsilon and sigma
 to specify its interaction with other spherical particles.
 
-:line
-
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
-
-For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-and cutoff distance for this pair style can be mixed.  The default mix
-value is {geometric}.  See the "pair_modify" command for details.
-
-This pair styles supports the "pair_modify"_pair_modify.html shift
-option for the energy of the Lennard-Jones portion of the pair
-interaction, but only for sphere-sphere interactions.  There is no
-shifting performed for ellipsoidal interactions due to the anisotropic
-dependence of the interaction.
-
-The "pair_modify"_pair_modify.html table option is not relevant
-for this pair style.
-
-This pair style does not support the "pair_modify"_pair_modify.html
-tail option for adding long-range tail corrections to energy and
-pressure.
-
-This pair style does not calculate per-atom energy and stress, as used
-by the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands.
-
-This pair style writes its information to "binary restart
-files"_restart.html, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-
-:line
-
 [Restrictions:]
 
-This style is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+Can only be used if LAMMPS was built with the "asphere" package.
 
-The Gay-Berne potential does not become isotropic as r increases
-"(Everaers)"_#Everaers.  The distance-of-closest-approach
-approximation used by LAMMPS becomes less accurate when high-aspect
-ratio ellipsoids are used.
+The "shift yes" option in "pair_modify"_pair_modify.html only applies
+to sphere-sphere interactions for this potential; there is no shifting
+performed for ellipsoidal interactions due to the anisotropic
+dependence of the interaction.  The Gay-Berne potential does not
+become isotropic as r increases "(Everaers)"_#Everaers.  The
+distance-of-closest-approach approximation used by LAMMPS becomes less
+accurate when high-aspect ratio ellipsoids are used.
 
 [Related commands:]
 

@@ -102,11 +102,11 @@ be used to set the one- or multi-line format of the print-out, the
 normalization of energy quantities (total or per-atom), and the
 numeric precision of each printed value.
 
-IMPORTANT NOTE: When you specify a "thermo_style" command, all
-thermodynamic settings are restored to their default values, including
-those previously set by a :thermo_modify"_thermo_modify.html command.
-Thus if your input script specifies a thermo_style command, you should
-use the thermo_modify command after it.
+IMPORTANT NOTE: When you specify a "thermo_style"_thermo_style.html
+command, all thermodynamic settings are restored to their default
+values.  Thus a thermo_style command will wipe out any options
+previously specified by the "thermo_modify"_thermo_modify.html
+command.
 
 :line
 
@@ -198,29 +198,24 @@ The {c_ID} and {c_ID\[N\]} keywords allow scalar or vector quantities
 calculated by a compute to be output.  The ID in the keyword should be
 replaced by the actual ID of the compute that has been defined
 elsewhere in the input script.  See the "compute"_compute.html command
-for details.  Note that only global scalar or vector quantites
-calculated by a compute can be output as thermodynamic data; per-atom
-quantities calcalated by a compute are output by the "dump
-custom"_dump.html command.
+for details.  Note that per-atom quantities calcalated by a compute
+cannot be output as part of thermodynamics.  Rather, these quantities
+are output by the "dump custom"_dump.html command.
 
 If {c_ID} is used as a keyword, then the scalar quantity calculated by
 the compute is printed.  If {c_ID\[N\]} is used, then N in the range
 from 1-M will print the Nth component of the M-length vector
-calculated by the compute.  See the doc pages for individual compute
-styles for info on what these quantities are.
+calculated by the compute.
 
 The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector quantities
 calculated by a fix to be output.  The ID in the keyword should be
 replaced by the actual ID of the fix that has been defined elsewhere
-in the input script.
+in the input script.  See the "fix"_fix.html command for details.
 
 If {f_ID} is used as a keyword, then the scalar quantity calculated by
 the fix is printed.  If {f_ID\[N\]} is used, then N in the range from
 1-M will print the Nth component of the M-length vector calculated by
-the fix.  See the doc pages for individual fix styles for info on what
-these quantities are.  For fixes that compute a contribution to the
-potential energy of the system, the scalar quantity f_ID is typically
-that quantity.
+the fix.
 
 The {v_name} keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the actual namd
@@ -233,8 +228,7 @@ periodically during a simulation.
 
 See "this section"_Section_modify.html for information on how to add
 new compute and fix styles as well as variable options to LAMMPS that
-calculate quantities that could then be output with these keywords as
-part of thermodyanmic information.
+calculate quantities that could then be output with these keywords.
 
 :line
 

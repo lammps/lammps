@@ -36,8 +36,8 @@ The following coefficients must be defined for each improper type via the
 the data file or restart files read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands:
 
-For this style, coefficients for the Ei formula can be specified in
-eiher the input script or data file.  These are the 2 coefficients:
+For this style, only coefficients for the Ei formula can be specified
+in the input script.  These are the 2 coefficients:
 
 K (energy/radian^2)
 X0 (degrees) :ul
@@ -45,8 +45,8 @@ X0 (degrees) :ul
 X0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 
-Coefficients for the Eaa formula can only be specified in the data
-file.  For the Eaa formula, the coefficients are listed under a
+Coefficients for the Eaa formula must be specified in the data file.
+For the Eaa formula, the coefficients are listed under a
 "AngleAngle Coeffs" heading and each line lists 6 coefficients:
 
 M1 (energy/distance)
@@ -61,9 +61,9 @@ radians internally; hence the units of M are in energy/radian^2.
 
 [Restrictions:]
 
-This improper style can only be used if LAMMPS was built with the
-"class2" package.  See the "Making LAMMPS"_Section_start.html#2_3
-section for more info on packages.
+This improper style is part of the "class2" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_2 section for more info.
 
 [Related commands:]
 

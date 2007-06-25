@@ -42,11 +42,7 @@ A bond style of {none} can be specified as an argument to bond_style
 hybrid and the corresponding bond_coeff commands, if you desire to
 turn off certain bond types.
 
-[Restrictions:]
-
-This bond style can only be used if LAMMPS was built with the
-"molecular" package (which it is by default).  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.
+[Restrictions:] none
 
 [Related commands:]
 

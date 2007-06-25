@@ -34,11 +34,7 @@ K (energy)
 d (+1 or -1)
 n (0,1,2,3,4,6) :ul
 
-[Restrictions:]
-
-This improper style can only be used if LAMMPS was built with the
-"molecular" package (which it is by default).  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.
+[Restrictions:] none
 
 [Related commands:]
 

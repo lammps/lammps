@@ -60,7 +60,7 @@
 <LI>keyword = <I>remap</I> or <I>units</I> 
 
 <PRE>  <I>remap</I> value = <I>x</I> or <I>v</I> or <I>none</I>
-    x = remap coords of atoms in group into deforming box
+    x = remap coords of atoms in group into deforming box (affine deformation)
     v = remap velocities of all atoms when they cross periodic boundaries
     none = no remapping of x or v
   <I>units</I> value = <I>lattice</I> or <I>box</I>
@@ -324,13 +324,18 @@ remapped into the new box in the appropriate manner.
 <P>Each time the box size or shape is changed, the <I>remap</I> keyword
 determines whether atom positions are re-mapped to the new box.  If
 <I>remap</I> is set to <I>x</I> (the default), atoms in the fix group are
-re-mapped; otherwise they are not.  If <I>remap</I> is set to <I>v</I>, then any
-atom in the fix group that crosses a periodic boundary will have a
-delta added to its velocity equal to the difference in velocities
-between the lo and hi boundaries.  Note that this velocity difference
-can include tilt components, e.g. a delta in the x velocity when an
-atom crosses the y periodic boundary.  If <I>remap</I> is set to <I>none</I>,
-then neither of these remappings take place.
+re-mapped; otherwise they are not.  If all atoms are remapped, this is
+effectively an "affine" deformation.
+</P>
+<P>If <I>remap</I> is set to <I>v</I>, then any atom in the fix group that crosses
+a periodic boundary will have a delta added to its velocity equal to
+the difference in velocities between the lo and hi boundaries.  Note
+that this velocity difference can include tilt components, e.g. a
+delta in the x velocity when an atom crosses the y periodic boundary.
+If <I>remap</I> is set to <I>none</I>, then neither of these remappings take
+place.  Note that unlike remap x which changes atom coords
+continuously as the box deforms, this remapping of v is done ONLY when
+an atom crosses a periodic boundary.
 </P>
 <P>IMPORTANT NOTE: When non-equilibrium MD (NEMD) simulations are
 performed using this fix, the option "remap v" should normally be

@@ -95,7 +95,7 @@ faster (for the pairwise portion of the run time).
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
+commands, or by mixing as described below:
 </P>
 <UL><LI>epsilon (energy units)
 <LI>sigma (distance units)
@@ -113,12 +113,41 @@ because this CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in
 the pair_style command.
 </P>
-<P>If the pair_coeff command is not used to define coefficients for a
-particular I != J type pair, the mixing rule for epsilon and sigma for
-all CHARMM potentials is to use the <I>arithmetic</I> formulas documented
-by the <A HREF = "pair_modify.html">pair_modify</A> command.  The <A HREF = "pair_modify.html">pair_modify
-mix</A> setting is thus ignored for CHARMM potentials.
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
 </P>
+<P>For atom type pairs I,J and I != J, the epsilon, sigma, epsilon_14,
+and sigma_14 coefficients for all of the lj/charmm pair styles can be
+mixed.  They are always mixed with the value <I>arithmetic</I>.  See the
+"pair_modify" command for details.
+</P>
+<P>None of the lj/charmm pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option, since the Lennard-Jones
+portion of the pair interaction is smoothed to 0.0 at the cutoff.
+</P>
+<P>The <I>lj/charmm/coul/long</I> and <I>lj/charmm/coul/long/opt</I> pair styles
+support the <A HREF = "pair_modify.html">pair_modify</A> table option since they can
+tabulate the short-range portion of the long-range Coulombic
+interaction.
+</P>
+<P>None of the lj/charmm pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
+corrections to energy and pressure, since the Lennard-Jones portion of
+the pair interaction is smoothed to 0.0 at the cutoff.
+</P>
+<P>All of the lj/charmm pair styles can calculate per-atom energy and
+stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
+<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
+custom</A> commands.
+</P>
+<P>All of the lj/charmm pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>lj/charmm/coul/charmm</I> and <I>lj/charmm/coul/charmm/implicit</I>
@@ -126,8 +155,8 @@ styles are part of the "molecule" package.  The <I>lj/charmm/coul/long</I>
 style is part of the "kspace" package.  The <I>lj/charmm/coul/long/opt</I>
 style is part of the "opt" package and also requires the "kspace"
 package.  They are only enabled if LAMMPS was built with those
-package(s).  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section
-for more info.
+package(s) (molecule and kspace are by default).  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>On some 64-bit machines, compiling with -O3 appears to break the
 Coulombic tabling option used by the <I>lj/charmm/coul/long</I> style.  See

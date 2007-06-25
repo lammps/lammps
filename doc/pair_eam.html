@@ -322,11 +322,46 @@ are listed.
 </P>
 <HR>
 
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, mixing is performed by LAMMPS as
+described above with the individual styles.  You never need to specify
+a pair_coeff command with I != J arguments for the eam styles.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> shift option is not relevant
+for this pair style.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> tail option is not relevant
+for this pair style.
+</P>
+<P>All of the eam pair styles can calculate per-atom energy and stress,
+as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.  These quantities include the contribution from the
+embedding term in the EAM formulas.
+</P>
+<P>None of the eam pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, since the info is tabulated in potential files.
+Thus, you need to re-specify the pair style and coefficient commands
+in an input script that reads a restart file.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>opt</I> styles are part of the "opt" package.  They are only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
+<P>All of these styles except those ending in <I>opt</I> are part of the
+"manybody" package.  They are only enabled if LAMMPS was built with
+that package (which it is by default).  The styles ending in <I>opt</I> are
+part of the "opt" package and also require the "manybody" package.
+They are only enabled if LAMMPS was built with those packages.  See
+the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

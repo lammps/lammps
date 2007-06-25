@@ -56,15 +56,48 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the <A HREF = "pair_style.html">pair_style</A>
 command so it does not need to be specified.
 </P>
-<P><B>Restrictions:</B> none
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
 </P>
-<P>This style is part of the "dpd" package.  It is only enabled if LAMMPS
-was built with those package.  See the <A HREF = "Section_start.html#2_2">Making
+<P>Thsi pair style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style can calculate per-atom energy and stress, as used by
+the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.  However, only the first term with the A coefficienct
+(conservative force) is used for these computations.  The drag force
+and random force terms are not.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.  Note
+that the user-specifice random number seed is stored in the restart
+file, so when a simulation is restarted, each processor will
+re-initialize its random number generator the same way it did
+intially.  This means the random forces will be random, but will not
+be the same as they would have been if the original simulation had
+continued past the restart time.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This style is part of the "dpd" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>The <I>dpd</I> potential does not support the
-<A HREF = "pair_modify.hmtl">pair_modify</A> <I>mix</I> option.  Coefficients for all i,j
-pairs must be specified explicitly.
 </P>
 <P>The default frequency for rebuilding neighbor lists is every 10 steps
 (see the <A HREF = "neigh_modify.html">neigh_modify</A> command). This may be too

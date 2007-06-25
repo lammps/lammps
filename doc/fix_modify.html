@@ -34,33 +34,34 @@ fix_modify 1 energy yes
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Modify one or more parameters of a previously defined fix.  Not all
-fix styles support all parameters.
+<P>Modify one or more parameters of a previously defined fix.  Only
+specific fix styles support specific parameters.  See the doc pages
+for individual fix commands for info on which ones support which
+fix_modify parameters.
 </P>
 <P>The <I>temp</I> keyword is used to determine how a fix computes
 temperature.  The specified compute ID must have been previously
 defined by the user via the <A HREF = "compute.html">compute</A> command and it must
 be a style of compute that calculates a temperature.  All fixes that
-compute temperatures defined their own compute by default, as
-described in their documentation.  Thus this option allows the user to
-override the default method for computing T.
+compute temperatures define their own compute by default, as described
+in their documentation.  Thus this option allows the user to override
+the default method for computing T.
 </P>
 <P>The <I>press</I> keyword is used to determine how a fix computes pressure.
 The specified compute ID must have been previously defined by the user
 via the <A HREF = "compute.html">compute</A> command and it must be a style of
 compute that calculates a pressure.  All fixes that compute pressures
-defined their own compute by default, as described in their
+define their own compute by default, as described in their
 documentation.  Thus this option allows the user to override the
 default method for computing P.
 </P>
-<P>For fixes that calculates a contribution to the potential energy of
-the system, the <I>energy</I> keyword will include that contribution in
-thermodyanmic output of the potential energy, as invoked by the
-<A HREF = "thermo_style.html">thermo_style</A> command.  The value of the
-contribution can also be printed by itself using the <A HREF = "thermo_style.html">thermo_style
-custom</A> keywords.  The documentation for individual
-fix commands specifies whether they make a contribution to the
-potential energy.
+<P>For fixes that calculate a contribution to the potential energy of the
+system, the <I>energy</I> keyword will include that contribution in
+thermodyanmic output of potential energy.  See the
+<A HREF = "thermo_style.html">thermo_style</A> command for info on how to output
+potential energy is printed.  The contribution itself can also be
+printed by using the keyword f_ID in the thermo_style custom command,
+where ID is the fix-ID of the appropriate fix.
 </P>
 <P><B>Restrictions:</B> none
 </P>

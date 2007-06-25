@@ -86,20 +86,41 @@ Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
 pair_style command.
 </P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
+</P>
+<P>None of the Buckingham pair styles support mixing.  Thus, coefficients
+for all I,J pairs must be specified explicitly.
+</P>
+<P>All of the Buckingham pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
+exp() and 1/r^6 portion of the pair interaction.
+</P>
+<P>The <I>buck/coul/long</I> pair style does not support the
+<A HREF = "pair_modify.html">pair_modify</A> table option since a tabulation
+capability has not yet been added to this potential.
+</P>
+<P>None of the Buckingham pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
+corrections to energy and pressure.
+</P>
+<P>All of the Buckinham pair styles can calculate per-atom energy and
+stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
+<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
+custom</A> commands.
+</P>
+<P>All of the Buckinham pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>buck</I> potentials do not support the
-<A HREF = "pair_modify.hmtl">pair_modify</A> <I>mix</I> option.  Coefficients for all i,j
-pairs must be specified explicitly.
-</P>
 <P>The <I>buck/coul/long</I> style is part of the "kspace" package.  It is
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
-</P>
-<P>On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the <I>buck/coul/long</I> style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
+only enabled if LAMMPS was built with that package (which it is by
+default).  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
+more info.
 </P>
 <P><B>Related commands:</B>
 </P>

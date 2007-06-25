@@ -34,13 +34,23 @@ from a data or restart file.
 <P>Hybrid models where impropers are computed using different improper
 potentials can be setup using the <I>hybrid</I> improper style.
 </P>
-<P>The coefficients associated with an improper style can be specified in a
-data or restart file or via the <A HREF = "improper_coeff.html">improper_coeff</A> command.
+<P>The coefficients associated with an improper style can be specified in
+a data or restart file or via the <A HREF = "improper_coeff.html">improper_coeff</A>
+command.
 </P>
-<P>Note that when both an improper and pair style is defined, the
-<A HREF = "special_bond.html">special_bond</A> command often needs to be used to
-turn off (or weight) the pairwise interactions that would otherwise
-exist between the 4 bonded atoms.
+<P>All improper potentials store their coefficient data in binary restart
+files which means improper_style and
+<A HREF = "improper_coeff.html">improper_coeff</A> commands do not need to be
+re-specified in an input script that restarts a simulation.  See the
+<A HREF = "read_restart.html">read_restart</A> command for details on how to do
+this.  The one exception is that improper_style <I>hybrid</I> only stores
+the list of sub-styles in the restart file; improper coefficients need
+to be re-specified.
+</P>
+<P>IMPORTANT NOTE: When both an improper and pair style is defined, the
+<A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
+turn off (or weight) the pairwise interaction that would otherwise
+exist between 4 bonded atoms.
 </P>
 <HR>
 
@@ -62,10 +72,11 @@ specified by the associated <A HREF = "improper_coeff.html">improper_coeff</A> c
 <P>Improper styles can only be set for atom_style choices that allow
 impropers to be defined.
 </P>
-<P>Improper styles are part of the "molecular" package or other packages
-as noted in their documentation.  They are only enabled if LAMMPS was
-built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
+<P>Most improper styles are part of the "molecular" package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info on packages.  The
+doc pages for individual improper potentials tell if it is part of a
+package.
 </P>
 <P><B>Related commands:</B>
 </P>

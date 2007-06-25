@@ -36,9 +36,9 @@ remain in force for the duration of the simulation (unless the bond
 breaks which is possible in some bond potentials).  The list of bonded
 atoms is read in by a <A HREF = "read_data.html">read_data</A> or
 <A HREF = "read_restart.html">read_restart</A> command from a data or restart file.
-By contrast, pair potentials are defined between pairs of atoms that
-are within a cutoff distance and the set of active interactions
-typically changes over time.
+By contrast, pair potentials are typically defined between all pairs
+of atoms within a cutoff distance and the set of active interactions
+changes over time.
 </P>
 <P>Hybrid models where bonds are computed using different bond potentials
 can be setup using the <I>hybrid</I> bond style.
@@ -46,13 +46,21 @@ can be setup using the <I>hybrid</I> bond style.
 <P>The coefficients associated with a bond style can be specified in a
 data or restart file or via the <A HREF = "bond_coeff.html">bond_coeff</A> command.
 </P>
-<P>In the formulas listed for each bond style, <I>r</I> is the distance
-between the 2 atoms in the bond.
+<P>All bond potentials store their coefficient data in binary restart
+files which means bond_style and <A HREF = "bond_coeff.html">bond_coeff</A> commands
+do not need to be re-specified in an input script that restarts a
+simulation.  See the <A HREF = "read_restart.html">read_restart</A> command for
+details on how to do this.  The one exception is that bond_style
+<I>hybrid</I> only stores the list of sub-styles in the restart file; bond
+coefficients need to be re-specified.
 </P>
-<P>Note that when both a bond and pair style is defined, the
+<P>IMPORTANT NOTE: When both a bond and pair style is defined, the
 <A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 2 bonded atoms.
+</P>
+<P>In the formulas listed for each bond style, <I>r</I> is the distance
+between the 2 atoms in the bond.
 </P>
 <HR>
 
@@ -78,10 +86,11 @@ specified by the associated <A HREF = "bond_coeff.html">bond_coeff</A> command:
 <P>Bond styles can only be set for atom styles that allow bonds to be
 defined.
 </P>
-<P>Bond styles are part of the "molecular" package or other packages as
-noted in their documentation.  They are only enabled if LAMMPS was
-built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
+<P>Most bond styles are part of the "molecular" package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info on packages.  The
+doc pages for individual bond potentials tell if it is part of a
+package.
 </P>
 <P><B>Related commands:</B>
 </P>

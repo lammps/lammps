@@ -62,7 +62,7 @@ dipole</A> command or in the "Atoms" section of the data file.
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
+commands, or by mixing as described below:
 </P>
 <UL><LI>epsilon (energy units)
 <LI>sigma (distance units)
@@ -76,12 +76,46 @@ and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.
 </P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distances for this pair style can be mixed.  The default
+mix value is <I>geometric</I>.  See the "pair_modify" command for details.
+</P>
+<P>For atom type pairs I,J and I != J, the A, sigma, d1, and d2
+coefficients and cutoff distance for this pair style can be mixed.  A
+is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
+values and are mixed like sigma.  The default mix value is
+<I>geometric</I>.  See the "pair_modify" command for details.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Lennard-Jones portion of the pair
+interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style can calculate per-atom energy and stress, as used by
+the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
 <P><B>Restrictions:</B>
 </P>
-<P>Can only be used if LAMMPS was built with the "dipole" package.
-</P>
-<P>The use of this potential requires additional fixes as described
-above.
+<P>This style is part of the "dipole" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

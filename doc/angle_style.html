@@ -37,13 +37,21 @@ potentials can be setup using the <I>hybrid</I> angle style.
 <P>The coefficients associated with a angle style can be specified in a
 data or restart file or via the <A HREF = "angle_coeff.html">angle_coeff</A> command.
 </P>
+<P>All angle potentials store their coefficient data in binary restart
+files which means angle_style and <A HREF = "angle_coeff.html">angle_coeff</A>
+commands do not need to be re-specified in an input script that
+restarts a simulation.  See the <A HREF = "read_restart.html">read_restart</A>
+command for details on how to do this.  The one exception is that
+angle_style <I>hybrid</I> only stores the list of sub-styles in the restart
+file; angle coefficients need to be re-specified.
+</P>
+<P>IMPORTANT NOTE: When both an angle and pair style is defined, the
+<A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
+turn off (or weight) the pairwise interaction that would otherwise
+exist between 3 bonded atoms.
+</P>
 <P>In the formulas listed for each angle style, <I>theta</I> is the angle
 between the 3 atoms in the angle.
-</P>
-<P>Note that when both an angle and pair style is defined, the
-<A HREF = "special_bond.html">special_bond</A> command often needs to be used to
-turn off (or weight) the pairwise interactions that would otherwise
-exist between the 3 bonded atoms.
 </P>
 <HR>
 
@@ -67,10 +75,11 @@ specified by the associated <A HREF = "angle_coeff.html">angle_coeff</A> command
 <P>Angle styles can only be set for atom_styles that allow angles to be
 defined.
 </P>
-<P>Angle styles are part of the "molecular" package or other packages as
-noted in their documentation.  They are only enabled if LAMMPS was
-built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
+<P>Most angle styles are part of the "molecular" package.  They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info on packages.  The
+doc pages for individual bond potentials tell if it is part of a
+package.
 </P>
 <P><B>Related commands:</B>
 </P>

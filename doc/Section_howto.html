@@ -24,7 +24,10 @@ certain kinds of LAMMPS simulations.
 4.8 <A HREF = "#4_8">TIP4P water model</A><BR>
 4.9 <A HREF = "#4_9">SPC water model</A><BR>
 4.10 <A HREF = "#4_10">Coupling LAMMPS to other codes</A><BR>
-4.11 <A HREF = "#4_11">Visualizing LAMMPS snapshots</A> <BR>
+4.11 <A HREF = "#4_11">Visualizing LAMMPS snapshots</A><BR>
+4.12 <A HREF = "#4_12">Non-orthogonal simulation boxes</A><BR>
+4.13 <A HREF = "#4_13">NEMD simulations</A><BR>
+4.14 <A HREF = "#4_14">Aspherical particles</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -647,6 +650,145 @@ See the <A HREF = "dump.html">dump</A> command for more information on XTC files
 
 
 
+<HR>
+
+<A NAME = "4_12"></A><H4>4.12 Non-orthogonal simulation boxes 
+</H4>
+<P>By default, LAMMPS uses an orthogonal simulation box to encompass the
+particles.  The <A HREF = "boundary.html">boundary</A> command sets the boundary
+conditions of the box (periodic, non-periodic, etc).  If the box size
+is xprd by yprd by zprd then the 3 mutually orthogonal edge vectors of
+an orthogonal simulation box are a = (xprd,0,0), b = (0,yprd,0), and c
+= (0,0,zprd).
+</P>
+<P>LAMMPS also allows non-orthogonal simulation boxes (triclinic
+symmetry) to be defined with 3 additional "tilt" parameters which
+change the edge vectors of the simulation box to be a = (xprd,0,0), b
+= (xy,yprd,0), and c = (xz,yz,zprd).  The xy, xz, and yz parameters
+can be positive or negative.  The simulation box must be periodic in
+both dimensions associated with a tilt factor.  For example, if xz !=
+0.0, then the x and z dimensions must be periodic.
+</P>
+<P>To avoid extremely tilted boxes (which would be computationally
+inefficient), no tilt factor can skew the box more than half the
+distance of the parallel box length, which is the 1st dimension in the
+tilt factor (x for xz).  For example, if xlo = 2 and xhi = 12, then
+the x box length is 10 and the xy tilt factor must be between -5 and
+5.  Similarly, both xz and yz must be between -(xhi-xlo)/2 and
++(yhi-ylo)/2.  Note that this is not a limitation, since if the
+maximum tilt factor is 5 (as in this example), then configurations
+with tilt = ..., -15, -5, 5, 15, 25, ... are all equivalent.
+</P>
+<P>You tell LAMMPS to use a non-orthogonal box when the simulation box is
+defined.  This happens in one of 3 ways.  If the
+<A HREF = "create_box.html">create_box</A> command is used with a region of style
+<I>prism</I>, then a non-orthogonal domain is setup.  See the
+<A HREF = "region.html">region</A> command for details.  If the
+<A HREF = "read_data.html">read_data</A> command is used to define the simulation
+box, and the header of the data file contains a line with the "xy xz
+yz" keyword, then a non-orthogonal domain is setup.  See the
+<A HREF = "read_data.html">read_data</A> command for details.  Finally, if the
+<A HREF = "read_restart.html">read_restart</A> command reads a restart file which
+was written from a simulation using a triclinic box, then a
+non-orthogonal box will be enabled for the restarted simulation.
+</P>
+<P>Note that you can define a non-orthogonal box with all 3 tilt factors
+= 0.0, so that it is initially orthogonal.  This is necessary if the
+box will ever become non-orthogonal.
+</P>
+<P>One use of non-orthogonal boxes is to model solid-state crystals with
+triclinic symmetry.  The <A HREF = "lattice.html">lattice</A> command can be used
+with non-orthogonal basis vectors to define a lattice that will tile a
+non-orthogonal simulation box via the <A HREF = "create_atoms.html">create_atoms</A>
+command.  Note that while the box edge vectors a,b,c cannot be
+arbitrary vectors (e.g. a must be aligned with the x axis), it is
+possible to rotate any crystal's basis vectors so that they meet these
+restrictions.
+</P>
+<P>A second use of non-orthogonal boxes is to shear a bulk solid to study
+the response of the material.  The <A HREF = "fix_deform.html">fix deform</A>
+command can be used for this purpose.  It allows dynamic control of
+the xy, xz, and yz tilt factors as a simulation runs.
+</P>
+<P>Another use of non-orthogonal boxes is to perform non-equilibrium MD
+(NEMD) simulations, as discussed in the next section.
+</P>
+<HR>
+
+<A NAME = "4_13"></A><H4>4.13 NEMD simulations 
+</H4>
+<P>Non-equilibrium molecular dynamics or NEMD simulations are typically
+used to measure a fluid's rheological properties such as viscosity.
+In LAMMPS, such simulations can be performed by first setting up a
+non-orthogonal simulation box (see the preceeding Howto section).
+</P>
+<P>A shear strain can be applied to the simualation box at a desired
+strain rate by using the <A HREF = "fix_deform.html">fix deform</A> command.  The
+<A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A> command can be used to thermostat
+the sheared fluid and integrate the SLLOD equations of motion for the
+system.  Fix nvt/sllod uses <A HREF = "compute_temp_deform.html">compute
+temp/deform</A> to compute a thermal temperature
+by subtracting out the streaming velocity of the shearing atoms.  The
+velocity profile or other properties of the fluid can be monitored via
+the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command.
+</P>
+<P>As discussed in the previous section on non-orthogonal simulation
+boxes, the amount of tilt or skew that can be applied is limited by
+LAMMPS for computation efficiency to be 1/2 of the paralell box
+length.  However, <A HREF = "fix_deform.html">fix deform</A> can be used to
+continuously strain a box by an arbitrary amount.  As discussed in the
+<A HREF = "fix_deform.html">fix deform</A> command, when the tilt reaches a limit,
+the box is re-shaped to the opposite limit which is an equivalent
+tiling of the periodic plane.  The strain rate can then continue to
+change as before.  In a long NEMD simulation these box re-shaping may
+occur any number of times.
+</P>
+<P>In a NEMD simulation, the "remap" option of <A HREF = "fix_deform.html">fix
+deform</A> should be set to "remap v", since that is what
+<A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A> assumes to generate a velocity
+profile consistent with the applied shear strain rate.
+</P>
+<HR>
+
+<A NAME = "4_14"></A><H4>4.14 Aspherical particles 
+</H4>
+<P>LAMMPS supports ellipsoidal particles via the <A HREF = "atom_style.html">atom_style
+ellipsoid</A> and <A HREF = "shape.html">shape</A> commands.  The
+latter defines the 3 axes (diamaters) of a general ellipsoid.  The
+<A HREF = "pair_gayberne.html">pair_style gayberne</A> command can be used to define
+a Gay-Berne (GB) potential for how such particles interact with each
+other and with spherical particles.  The GB potential is like a
+Lennard-Jones (LJ) potential generalized for ellipsoids interacting in
+an orientiation-dependent manner.
+</P>
+<P>The orientation of ellipsoidal particles is stored as a quaternion.
+See the <A HREF = "set.html">set</A> command for a brief explanation of quaternions
+and how the orientation of such particles can be initialized.  The
+data file read by the <A HREF = "read_data.html">read_data</A> command also contains
+quaternions for each atom in the Atoms section if <A HREF = "atom_style.html">atom_style
+ellipsoid</A> is being used.  The <A HREF = "compute_temp_asphere.html">compute
+temp/asphere</A> command can be used to
+calculate the temperature of a group of ellipsoidal particles, taking
+account of rotational degrees of freedom.  The motion of the particles
+can be integrated via the <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>, <A HREF = "fix_nvt_asphere.html">fix
+nvt/asphere</A>, or <A HREF = "fix_npt_asphere.html">fix
+npt/asphere</A> commands.  All of these commands are
+part of the ASPHERE package in LAMMPS.
+</P>
+<P>Computationally, the cost for two ellipsoidal particles to interact is
+30x or more expensive than for 2 LJ particles.  Thus if you are
+modeling a system with many spherical particles (e.g. as the solvent),
+then you should insure sphere-sphere interactions are computed with
+the a cheaper potential than GB.  This can be done by setting the
+particle's 3 shape parameters to all be equal (a sphere).
+Additionally, the corresponding GB potential coefficients can be set
+so the GB potential will treat the pair of particles as LJ spheres.
+Details are given in the doc page for the <A HREF = "pair_gayberne.html">pair_style
+gayberne</A>.  Alternatively, the <A HREF = "pair_hybrid.html">pair_style
+hybrid</A> potential can be used, with the sphere-sphere
+interactions computed by another pair potential, such as <A HREF = "pair_lj.html">pair_style
+lj/cut</A>.
+</P>
 <HR>
 
 <A NAME = "Cornell"></A>

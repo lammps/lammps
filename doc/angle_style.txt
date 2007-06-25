@@ -35,13 +35,21 @@ potentials can be setup using the {hybrid} angle style.
 The coefficients associated with a angle style can be specified in a
 data or restart file or via the "angle_coeff"_angle_coeff.html command.
 
+All angle potentials store their coefficient data in binary restart
+files which means angle_style and "angle_coeff"_angle_coeff.html
+commands do not need to be re-specified in an input script that
+restarts a simulation.  See the "read_restart"_read_restart.html
+command for details on how to do this.  The one exception is that
+angle_style {hybrid} only stores the list of sub-styles in the restart
+file; angle coefficients need to be re-specified.
+
+IMPORTANT NOTE: When both an angle and pair style is defined, the
+"special_bonds"_special_bonds.html command often needs to be used to
+turn off (or weight) the pairwise interaction that would otherwise
+exist between 3 bonded atoms.
+
 In the formulas listed for each angle style, {theta} is the angle
 between the 3 atoms in the angle.
-
-Note that when both an angle and pair style is defined, the
-"special_bond"_special_bond.html command often needs to be used to
-turn off (or weight) the pairwise interactions that would otherwise
-exist between the 3 bonded atoms.
 
 :line
 
@@ -65,10 +73,11 @@ specified by the associated "angle_coeff"_angle_coeff.html command:
 Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
-Angle styles are part of the "molecular" package or other packages as
-noted in their documentation.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+Most angle styles are part of the "molecular" package.  They are only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
+doc pages for individual bond potentials tell if it is part of a
+package.
 
 [Related commands:]
 

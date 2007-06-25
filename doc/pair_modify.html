@@ -19,8 +19,8 @@
 
 <LI>keyword = <I>shift</I> or <I>mix</I> or <I>table</I> or <I>tabinner</I> or <I>tail</I> 
 
-<PRE>  <I>shift</I> value = <I>yes</I> or <I>no</I>
-  <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
+<PRE>  <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
+  <I>shift</I> value = <I>yes</I> or <I>no</I>
   <I>table</I> value = N
     2^N = # of values in table
   <I>tabinner</I> value = cutoff
@@ -40,51 +40,56 @@ pair_modify table 12
 <P>Modify the parameters of the currently defined pair style.  Not all
 parameters are relevant to all pair styles.
 </P>
-<P>The <I>shift</I> keyword determines whether the Lennard-Jones potential is
-shifted at its cutoff to 0.0.  If so, this adds an energy term to each
-pairwise interaction which will be printed in the thermodynamic
-output, but does not affect atom dynamics (forces).  Pair styles that
-are already 0.0 at their cutoff such as <I>lj/charmm/coul/charmm</I> are
-not affected by this setting.
+<P>The <I>mix</I> keyword affects pair coefficients for interactions between
+atoms of type I and J, when I != J and the coefficients are not
+explicity set in the input script.  Note that coefficients for I = J
+must be set explicitly, either in the input script via the
+"pair_coeff" command or in the "Pair Coeffs" section of the <A HREF = "read_data.html">data
+file</A>.  For some pair styles is is not necessary to
+specify coefficients when I != J, since a "mixing" rule will create
+them from the I,I and J,J settings.  The pair_modify <I>mix</I> value
+determines what formulas are used to compute the mixed coefficients.
+In each case, the cutoff distance is mixed the same way as sigma.
 </P>
-<P>The <I>mix</I> keyword affects how Lennard-Jones coefficients for epsilon,
-sigma, and the cutoff are generated for interactions between atoms of
-type I and J, when I != J.  Coefficients for I = J are set explicitly
-in the data file or input script.  The <A HREF = "pair_coeff.html">pair_coeff</A>
-command can be used in the input script to specify epilon/sigma for a
-specific I != J pairing, which overrides the setting of the <I>mix</I>
-keyword.
+<P>Note that not all pair styles support mixing.  Also, some mix options
+are not available for certain pair styles.  See the doc page for
+individual pair styles for those restrictions.  Note also that the
+<A HREF = "pair_coeff.html">pair_coeff</A> command also can be to directly set
+coefficients for a specific I != J pairing, in which case no mixing is
+performed.
 </P>
-<P>These are the formulas used by the 3 <I>mix</I> options.  In each case, the
-LJ cutoff is mixed the same way as sigma.  Note that some of these
-options are not available for certain pair styles.  See the doc page
-for individual pair styles for those restrictions.
-</P>
-<P><I>geometric</I>
+<P>mix <I>geometric</I>
 </P>
 <PRE>epsilon_ij = sqrt(epsilon_i * epsilon_j)
 sigma_ij = sqrt(sigma_i * sigma_j) 
 </PRE>
-<P><I>arithmetic</I>
+<P>mix <I>arithmetic</I>
 </P>
 <PRE>epsilon_ij = sqrt(epsilon_i * epsilon_j)
 sigma_ij = (sigma_i + sigma_j) / 2 
 </PRE>
-<P><I>sixthpower</I>
+<P>mix <I>sixthpower</I>
 </P>
 <PRE>epsilon_ij = (2 * sqrt(epsilon_i*epsilon_j) * sigma_i^3 * sigma_j^3) /
              (sigma_i^6 + sigma_j^6)
 sigma_ij = ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6) 
 </PRE>
+<P>The <I>shift</I> keyword determines whether a Lennard-Jones potential is
+shifted at its cutoff to 0.0.  If so, this adds an energy term to each
+pairwise interaction which will be included in the thermodynamic
+output, but does not affect pair forces or atom trajectories.  See the
+doc page for individual pair styles to see which ones support this
+option.
+</P>
 <P>The <I>table</I> keyword applies to pair styles with a long-range Coulombic
-term (lj/cut/coul/long and lj/charmm/coul/long).  If N is non-zero, a
-table of length 2^N is pre-computed for forces and energies, which can
-shrink their computational cost by up to a factor of 2.  The table is
-indexed via a bit-mapping technique <A HREF = "#Wolff">(Wolff)</A> and a linear
-interpolation is performed between adjacent table values.  In our
-experiments with different table styles (lookup, linear, spline), this
-method typically gave the best performance in terms of speed and
-accuracy.
+term; see the doc page for individual styles to see which potentials
+support this option.  If N is non-zero, a table of length 2^N is
+pre-computed for forces and energies, which can shrink their
+computational cost by up to a factor of 2.  The table is indexed via a
+bit-mapping technique <A HREF = "#Wolff">(Wolff)</A> and a linear interpolation is
+performed between adjacent table values.  In our experiments with
+different table styles (lookup, linear, spline), this method typically
+gave the best performance in terms of speed and accuracy.
 </P>
 <P>The choice of table length is a tradeoff in accuracy versus speed.  A
 larger N yields more accurate force computations, but requires more
@@ -106,19 +111,16 @@ nearly all pairwise interactions are computed via table lookup for
 simulations with "real" units, but some close pairs may be computed
 directly (non-table) for simulations with "lj" units.
 </P>
-<P>When the <I>tail</I> keyword is set to <I>yes</I>, long-range VanderWaals tail
-"corrections" are added to the energy and pressure.  These are
-included in the calculation and printing of thermodynamic quantities
-(see the <A HREF = "thermo_style.html">thermo_style</A> command).  Their effect will
-also be included in constant NPT or NPH simulations where the pressure
-influences the simulation box dimensions (see the <A HREF = "fix_npt.html">fix
-npt</A> and <A HREF = "fix_nph.html">fix nph</A> commands).
-</P>
-<P>The <I>tail</I> keyword is only supported by <A HREF = "pair_style.html">pair_style</A>
-pairwise potentials which include Lennard-Jones interactions which are
-cutoff at a non-zero energy.  This does not include the LJ CHARMM
-potentials or <I>lj/smooth</I> since they go to zero at the cutoff.  The
-formulas used for the long-range corrections come from equation 5 of
+<P>When the <I>tail</I> keyword is set to <I>yes</I>, certain pair styles will add
+a long-range VanderWaals tail "correction" to the energy and pressure.
+See the doc page for individual styles to see which support this
+option.  These corrections are included in the calculation and
+printing of thermodynamic quantities (see the
+<A HREF = "thermo_style.html">thermo_style</A> command).  Their effect will also be
+included in constant NPT or NPH simulations where the pressure
+influences the simulation box dimensions (e.g. the <A HREF = "fix_npt.html">fix
+npt</A> and <A HREF = "fix_nph.html">fix nph</A> commands).  The formulas
+used for the long-range corrections come from equation 5 of
 <A HREF = "#Sun">(Sun)</A>.
 </P>
 <P>Several assumptions are inherent in using tail corrections, including
@@ -144,13 +146,8 @@ those interactions.
 </UL>
 <P><B>Restrictions:</B> none
 </P>
-<P>Not all pair styles support mixing.  See the doc page for individual
-pair styles for details.
-</P>
 <P>You cannot use <I>shift</I> yes with <I>tail</I> yes, since those are
-conflicting options.
-</P>
-<P>You cannot use <I>tail</I> yes with 2d simulations.
+conflicting options.  You cannot use <I>tail</I> yes with 2d simulations.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -159,9 +156,11 @@ conflicting options.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are shift = no, mix = arithmetic (for lj/charmm
-pair styles), mix = geometric (for other pair styles), table = 12,
-and tabinner = sqrt(2.0), tail = no.
+<P>The option defaults are mix = geometric, shift = no, table = 12,
+tabinner = sqrt(2.0), tail = no.
+</P>
+<P>Note that some pair styles perform mixing, but only a certain style of
+mixing.  See the doc pages for individual pair styles for details.
 </P>
 <HR>
 

@@ -66,7 +66,7 @@ styles.
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
+commands, or by mixing as described below:
 </P>
 <UL><LI>epsilon (energy units)
 <LI>sigma (distance units)
@@ -86,6 +86,8 @@ since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.
 </P>
+<P>: line
+</P>
 <P>If the pair_coeff command is not used to define coefficients for a
 particular I != J type pair, the mixing rule for epsilon and sigma for
 all class2 potentials is to use the <I>sixthpower</I> formulas documented
@@ -94,16 +96,43 @@ mix</A> setting is thus ignored for class2 potentials
 for epsilon and sigma.  However it is still followed for mixing the
 cutoff distance.
 </P>
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/class2 pair styles can be mixed.
+Epsilon and sigma are always mixed with the value <I>sixthpower</I>.  The
+cutoff distance is mixed by whatever option is set by the pair_modify
+command (default = geometric).  See the "pair_modify" command for
+details.
+</P>
+<P>All of the lj/class2 pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
+Lennard-Jones portion of the pair interaction.
+</P>
+<P>The <I>lj/class2/coul/long</I> pair style does not support the
+<A HREF = "pair_modify.html">pair_modify</A> table option since a tabulation
+capability has not yet been added to this potential.
+</P>
+<P>All of the lj/class2 pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> tail option for adding a long-range
+tail correction to the energy and pressure of the Lennard-Jones
+portion of the pair interaction.
+</P>
+<P>All of the lj/class2 pair styles can calculate per-atom energy and
+stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
+<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
+custom</A> commands.
+</P>
+<P>All of the lj/class2 pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
 <P><B>Restrictions:</B>
 </P>
-<P>These styles are part of the "class2" package.  They are only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
+<P>All of these pair styles are part of the "class2" package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the <I>lj/class2/coul/long</I> style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
 </P>
 <P><B>Related commands:</B>
 </P>

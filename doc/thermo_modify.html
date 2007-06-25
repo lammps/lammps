@@ -47,11 +47,11 @@ thermo_modify line multi format float %g
 by LAMMPS.
 </P>
 <P>IMPORTANT NOTE: These options apply to the currently defined thermo
-style (thermo_style <I>one</I> by default).  When you specify a
-<A HREF = "thermo_style.html">thermo_style</A> command, all thermodynamic settings
-are restored to their default values.  Thus a thermo_style command
-will wipe out any options previously specified by the
-<A HREF = "thermo_modify.html">thermo_modify</A> command.
+style.  When you specify a <A HREF = "thermo_style.html">thermo_style</A> command,
+all thermodynamic settings are restored to their default values,
+including those previously set by a thermo_modify command.  Thus if
+your input script specifies a thermo_style command, you should use the
+thermo_modify command after it.
 </P>
 <P>The <I>lost</I> keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are

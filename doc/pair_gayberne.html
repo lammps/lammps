@@ -82,10 +82,6 @@ commands:
 <P>The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
 </P>
-<P>The epsilon and sigma parameters are mixed for I != J atom pairings
-the same as Lennard-Jones parameters; see the <A HREF = "pair_modify.html">pair_modify
-mix</A> documentation for details. 
-</P>
 <P>The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
 commands, they only need to be specified once for each atom type.
@@ -119,17 +115,49 @@ than the full Gay-Berne formula.  Thus you should insure epsilon a,b,c
 are set to 1.0 for spherical particle types and use epsilon and sigma
 to specify its interaction with other spherical particles.
 </P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for this pair style can be mixed.  The default mix
+value is <I>geometric</I>.  See the "pair_modify" command for details.
+</P>
+<P>This pair styles supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Lennard-Jones portion of the pair
+interaction, but only for sphere-sphere interactions.  There is no
+shifting performed for ellipsoidal interactions due to the anisotropic
+dependence of the interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style does not calculate per-atom energy and stress, as used
+by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
-<P>Can only be used if LAMMPS was built with the "asphere" package.
+<P>This style is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
-<P>The "shift yes" option in <A HREF = "pair_modify.html">pair_modify</A> only applies
-to sphere-sphere interactions for this potential; there is no shifting
-performed for ellipsoidal interactions due to the anisotropic
-dependence of the interaction.  The Gay-Berne potential does not
-become isotropic as r increases <A HREF = "#Everaers">(Everaers)</A>.  The
-distance-of-closest-approach approximation used by LAMMPS becomes less
-accurate when high-aspect ratio ellipsoids are used.
+<P>The Gay-Berne potential does not become isotropic as r increases
+<A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach
+approximation used by LAMMPS becomes less accurate when high-aspect
+ratio ellipsoids are used.
 </P>
 <P><B>Related commands:</B>
 </P>

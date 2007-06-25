@@ -75,6 +75,10 @@ delete_bonds all bond 0 remove
 </PRE>
 <P><B>Restrictions:</B>
 </P>
+<P>This bond style can only be used if LAMMPS was built with the
+"molecular" package (which it is by default).  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info on packages.
+</P>
 <P>The <I>quartic</I> style requires that <A HREF = "special_bonds.html">special_bonds</A>
 parameters be set to 1,1,1.  Three- and four-body interactions (angle,
 dihedral, etc) cannot be used with <I>quartic</I> bonds.

@@ -459,6 +459,7 @@ full description:
 
 "none"_pair_none.html,
 "hybrid"_pair_hybrid.html,
+"airebo"_pair_airebo.html,
 "buck"_pair_buck.html,
 "buck/coul/cut"_pair_buck.html,
 "buck/coul/long"_pair_buck.html,

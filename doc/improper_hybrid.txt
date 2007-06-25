@@ -50,7 +50,11 @@ An improper style of {none} can be specified as an argument to
 improper_style hybrid and the corresponding improper_coeff commands,
 if you desire to turn off certain improper types.
 
-[Restrictions:] none
+[Restrictions:]
+
+This improper style can only be used if LAMMPS was built with the
+"molecular" package (which it is by default).  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info on packages.
 
 [Related commands:]
 

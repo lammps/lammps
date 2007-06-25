@@ -35,8 +35,8 @@ bond lengths.
 </P>
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
-<P>For this style, only coefficients for the Ed formula can be specified
-in the input script.  These are the 6 coefficients:
+<P>For this style, coefficients for the Ed formula can be specified in
+either the input script or data file.  These are the 6 coefficients:
 </P>
 <UL><LI>K1 (energy)
 <LI>phi1 (degrees)
@@ -45,8 +45,8 @@ in the input script.  These are the 6 coefficients:
 <LI>K3 (energy)
 <LI>phi3 (degrees) 
 </UL>
-<P>Coefficients for all the other formulas must be specified in the data
-file.
+<P>Coefficients for all the other formulas can only be specified in the
+data file.
 </P>
 <P>For the Embt formula, the coefficients are listed under a
 "MiddleBondTorsion Coeffs" heading and each line lists 4 coefficients:
@@ -103,9 +103,9 @@ Coeffs" heading and each line lists 3 coefficients:
 </UL>
 <P><B>Restrictions:</B>
 </P>
-<P>This dihedral style is part of the "class2" package.  It is only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_2">Making
-LAMMPS</A> section for more info.
+<P>This dihedral style can only be used if LAMMPS was built with the
+"class2" package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A>
+section for more info on packages.
 </P>
 <P><B>Related commands:</B>
 </P>

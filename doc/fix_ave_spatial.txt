@@ -141,11 +141,10 @@ A line with the timestep and number of layers is written.  Then one
 line per layer is written, containing the layer ID (1-N), the
 coordinate of the center of the layer, the number of atoms in the
 layer, and one or more calculated values.  The number of atoms and the
-value(s) are average quantities.  For orthogonal simulation boxes,
-"coord" is printed in box units, whether the {units} keyword has a
-value of {box} or {lattice}.  For non-orthogonal (triclinic)
-simulation boxes, "coord" is printed in reduced units (0-1) which is
-the required value for the {units} keyword.
+value(s) are average quantities.  If the value of the {units} keyword
+is {box} or {lattice}, the "coord" is printed in box units.  If the
+value of the {units} keyword is {reduced}, the "coord" is printed in
+reduced units (0-1).
 
 If the {density} or {atom} keyword is used, or the {compute} keyword
 with a compute that calculates a single quantity per atom, then a

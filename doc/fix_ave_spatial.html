@@ -94,9 +94,9 @@ the box.  On subsequent timesteps every atom is mapped to one of the
 layers.  Atoms beyond the lowermost/uppermost layer are counted in the
 first/last layer.
 </P>
-<P>For orthogonal simulation boxes, the layers are slices aligned with
+<P>For orthogonal simulation boxes, the layers are "slices" aligned with
 the xyz coordinate axes.  For non-orthogonal (triclinic) simulation
-boxes, the layers are tilted slices that align with the tilted faces
+boxes, the layers are "tilted slices" that align with the tilted faces
 of the box.  See the <A HREF = "region.html">region prism</A> command for a
 discussion of the geometry of tilted boxes in LAMMPS.  As described
 there, a tilted simulation box has edge vectors a,b,c.  In that
@@ -154,9 +154,10 @@ A line with the timestep and number of layers is written.  Then one
 line per layer is written, containing the layer ID (1-N), the
 coordinate of the center of the layer, the number of atoms in the
 layer, and one or more calculated values.  The number of atoms and the
-value(s) are average quantities.  Note that for non-orthogonal
-(triclinic) simulation boxes, the "coord" of the layer will be a
-normalized value between 0 and 1.
+value(s) are average quantities.  If the value of the <I>units</I> keyword
+is <I>box</I> or <I>lattice</I>, the "coord" is printed in box units.  If the
+value of the <I>units</I> keyword is <I>reduced</I>, the "coord" is printed in
+reduced units (0-1).
 </P>
 <P>If the <I>density</I> or <I>atom</I> keyword is used, or the <I>compute</I> keyword
 with a compute that calculates a single quantity per atom, then a

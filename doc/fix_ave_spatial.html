@@ -43,7 +43,7 @@
 
 <PRE>keyword = <I>norm</I> or <I>units</I>
   <I>norm</I> value = <I>all</I> or <I>sample</I>
-  <I>units</I> value = <I>box</I> or <I>lattice</I> 
+  <I>units</I> value = <I>box</I> or <I>lattice</I> or <I>reduced</I> 
 </PRE>
 
 </UL>
@@ -51,7 +51,7 @@
 </P>
 <PRE>fix 1 all ave/spatial 10000 10000 z lower 2.0 centro.profile compute myCentro
 fix 1 flow ave/spatial 100 1000 y 0.0 1.0 vel.profile atom vx norm sample
-fix 1 flow ave/spatial 100 1000 y 0.0 1.0 dens.profile density mass 
+fix 1 flow ave/spatial 100 1000 y 0.0 2.5 dens.profile density mass 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -94,13 +94,41 @@ the box.  On subsequent timesteps every atom is mapped to one of the
 layers.  Atoms beyond the lowermost/uppermost layer are counted in the
 first/last layer.
 </P>
+<P>For orthogonal simulation boxes, the layers are slices aligned with
+the xyz coordinate axes.  For non-orthogonal (triclinic) simulation
+boxes, the layers are tilted slices that align with the tilted faces
+of the box.  See the <A HREF = "region.html">region prism</A> command for a
+discussion of the geometry of tilted boxes in LAMMPS.  As described
+there, a tilted simulation box has edge vectors a,b,c.  In that
+nomenclature, layers in the x dimension have faces with normals in the
+"b" cross "c" direction.  Layers in y have faces normal to the "a"
+cross "c" direction.  And layers in z have faces normal to the "a"
+cross "b" direction.  Note that in order to define the thickness and
+position of these tilted layers in an unambiguous fashion, the <I>units</I>
+option must be set to <I>reduced</I>.
+</P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
-for the layer thickness <I>delta</I> and <I>origin</I> if it is a coordinate
-value.  A <I>box</I> value selects standard distance units as defined by
-the <A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or
-metal.  A <I>lattice</I> value means the distance units are in lattice
-spacings.  The <A HREF = "lattice.html">lattice</A> command must have been
-previously used to define the lattice spacing.
+for the layer thickness <I>delta</I> and for <I>origin</I> if it is a coordinate
+value.  For orthogonal simulation boxes, any of the 3 options may be
+used.  For non-orthongal (triclinic) simulation boxes, only the
+<I>reduced</I> option may be used.
+</P>
+<P>A <I>box</I> value selects standard distance units as defined by the
+<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
+A <I>lattice</I> value means the distance units are in lattice spacings.
+The <A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacing.  A <I>reduced</I> value means normalized
+unitless values between 0 and 1, which represent the lower and upper
+faces of the simulation box respectively.  Thus an <I>origin</I> value of
+0.5 means the center of the box in any dimension.  A <I>delta</I> value of
+0.1 means 10 layers span the box in any dimension. 
+</P>
+<P>Consider a non-orthogonal box, with layers in the x dimension.  No
+matter how the box is tilted, an <I>origin</I> of 0.0 means start layers at
+the lower "b" cross "c" plane of the simulation box and an <I>origin</I> of
+1.0 means to start layers at the upper "b" cross "c" face of the box.
+A <I>delta</I> value of 0.1 means there will be 10 layers from 0.0 to 1.0,
+regardless of the current size or shape of the simulation box.
 </P>
 <P>The <I>Nevery</I> and <I>Nfreq</I> arguments specify how the property calculated
 for each layer is time-averaged.  The property is calculated once each
@@ -126,7 +154,9 @@ A line with the timestep and number of layers is written.  Then one
 line per layer is written, containing the layer ID (1-N), the
 coordinate of the center of the layer, the number of atoms in the
 layer, and one or more calculated values.  The number of atoms and the
-value(s) are average quantities.
+value(s) are average quantities.  Note that for non-orthogonal
+(triclinic) simulation boxes, the "coord" of the layer will be a
+normalized value between 0 and 1.
 </P>
 <P>If the <I>density</I> or <I>atom</I> keyword is used, or the <I>compute</I> keyword
 with a compute that calculates a single quantity per atom, then a

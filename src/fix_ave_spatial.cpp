@@ -33,6 +33,7 @@ using namespace LAMMPS_NS;
 enum{LOWER,CENTER,UPPER,COORD};
 enum{DENSITY_MASS,DENSITY_NUM,VX,VY,VZ,FX,FY,FZ,COMPUTE};
 enum{SAMPLE,ALL};
+enum{BOX,LATTICE,REDUCED};
 
 /* ---------------------------------------------------------------------- */
 
@@ -92,7 +93,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // parse optional args
 
   normflag = ALL;
-  int scaleflag = 1;
+  scaleflag = BOX;
 
   int iarg = 11;
   while (iarg < narg) {
@@ -104,8 +105,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
+      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
+      else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
       else error->all("Illegal fix ave/spatial command");
       iarg += 2;
     } else error->all("Illegal fix ave/spatial command");
@@ -119,10 +121,14 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling
 
-  if (scaleflag && domain->lattice == NULL)
+  int triclinic = domain->triclinic;
+  if (triclinic == 1 && scaleflag != REDUCED)
+    error->all("Fix ave/spatial for triclinic boxes requires units reduced");
+
+  if (scaleflag == LATTICE && domain->lattice == NULL)
     error->all("Use of fix ave/spatial with undefined lattice");
 
-  if (scaleflag) {
+  if (scaleflag == LATTICE) {
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;
     zscale = domain->lattice->zlattice;
@@ -146,15 +152,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
   invdelta = 1.0/delta;
-
-  if (domain->triclinic) {
-    if (dim == 0 && (domain->xy != 0.0 || domain->xz != 0.0))
-      error->all("Cannot (yet) use fix ave/spatial with triclinic box");
-    if (dim == 1 && (domain->xy != 0.0 || domain->yz != 0.0))
-      error->all("Cannot (yet) use fix ave/spatial with triclinic box");
-    if (dim == 2 && (domain->xz != 0.0 || domain->yz != 0.0))
-      error->all("Cannot (yet) use fix ave/spatial with triclinic box");
-  }
 
   nvalues = 1;
   if (which == COMPUTE) {
@@ -240,34 +237,42 @@ void FixAveSpatial::end_of_step()
   // allocate and initialize arrays based on new layer count
 
   if (nsum == 0) {
-    double *boxlo = domain->boxlo;
-    double *boxhi = domain->boxhi;
+    double *boxlo,*boxhi,*prd;
+    if (scaleflag == REDUCED) {
+      boxlo = domain->boxlo_lamda;
+      boxhi = domain->boxhi_lamda;
+      prd = domain->prd_lamda;
+    } else {
+      boxlo = domain->boxlo;
+      boxhi = domain->boxhi;
+      prd = domain->prd;
+    }
+
     if (originflag == LOWER) origin = boxlo[dim];
     else if (originflag == UPPER) origin = boxhi[dim];
-    else if (originflag == CENTER)
-      origin = 0.5 * (boxlo[dim] + boxhi[dim]);
+    else if (originflag == CENTER) origin = 0.5 * (boxlo[dim] + boxhi[dim]);
 
-    if (origin < domain->boxlo[dim]) {
-      m = static_cast<int> ((domain->boxlo[dim] - origin) * invdelta);
+    if (origin < boxlo[dim]) {
+      m = static_cast<int> ((boxlo[dim] - origin) * invdelta);
       lo = origin + m*delta;
     } else {
-      m = static_cast<int> ((origin - domain->boxlo[dim]) * invdelta);
+      m = static_cast<int> ((origin - boxlo[dim]) * invdelta);
       lo = origin - m*delta;
-      if (lo > domain->boxlo[dim]) lo -= delta;
+      if (lo > boxlo[dim]) lo -= delta;
     }
-    if (origin < domain->boxhi[dim]) {
-      m = static_cast<int> ((domain->boxhi[dim] - origin) * invdelta);
+    if (origin < boxhi[dim]) {
+      m = static_cast<int> ((boxhi[dim] - origin) * invdelta);
       hi = origin + m*delta;
       if (hi < boxhi[dim]) hi += delta;
     } else {
-      m = static_cast<int> ((origin - domain->boxhi[dim]) * invdelta);
+      m = static_cast<int> ((origin - boxhi[dim]) * invdelta);
       hi = origin - m*delta;
     }
 
     offset = lo;
     nlayers = static_cast<int> ((hi-lo) * invdelta + 0.5);
     double volume = domain->xprd * domain->yprd * domain->zprd;
-    layer_volume = delta * volume/domain->prd[dim];
+    layer_volume = delta * volume/prd[dim];
 
     if (nlayers > maxlayer) {
       maxlayer = nlayers;
@@ -307,6 +312,8 @@ void FixAveSpatial::end_of_step()
 
   // perform the computation for one sample
   // sum within each layer, only include atoms in fix group
+  // insure array index is within bounds (since atoms can be outside box)
+  // if scaleflag = REDUCED, convert box coords to lamda coords
   // DENSITY_MASS adds mass to values
   // DENSITY_NUM adds 1 to values
   // ATOM adds atom vector to values
@@ -315,6 +322,8 @@ void FixAveSpatial::end_of_step()
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  if (scaleflag == REDUCED) domain->x2lamda(nlocal);
 
   if (which == DENSITY_MASS) {
     int *type = atom->type;
@@ -385,6 +394,8 @@ void FixAveSpatial::end_of_step()
       }
     }
   }
+
+  if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
   // average a single sample
 

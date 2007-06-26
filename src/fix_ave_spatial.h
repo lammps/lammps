@@ -35,7 +35,7 @@ class FixAveSpatial : public Fix {
   char *id_compute;
   FILE *fp;
 
-  int nlayers,nvalues,nsum,maxlayer;
+  int nlayers,nvalues,nsum,maxlayer,scaleflag;
   int compute_size_peratom;
   double xscale,yscale,zscale;
   double layer_volume;

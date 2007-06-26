@@ -715,7 +715,7 @@ used to measure a fluid's rheological properties such as viscosity.
 In LAMMPS, such simulations can be performed by first setting up a
 non-orthogonal simulation box (see the preceeding Howto section).
 
-A shear strain can be applied to the simualation box at a desired
+A shear strain can be applied to the simuaation box at a desired
 strain rate by using the "fix deform"_fix_deform.html command.  The
 "fix nvt/sllod"_fix_nvt_sllod.html command can be used to thermostat
 the sheared fluid and integrate the SLLOD equations of motion for the
@@ -727,14 +727,14 @@ the "fix ave/spatial"_fix_ave_spatial.html command.
 
 As discussed in the previous section on non-orthogonal simulation
 boxes, the amount of tilt or skew that can be applied is limited by
-LAMMPS for computation efficiency to be 1/2 of the paralell box
-length.  However, "fix deform"_fix_deform.html can be used to
-continuously strain a box by an arbitrary amount.  As discussed in the
-"fix deform"_fix_deform.html command, when the tilt reaches a limit,
+LAMMPS for computational efficiency to be 1/2 of the parallel box
+length.  However, "fix deform"_fix_deform.html can continuously strain
+a box by an arbitrary amount.  As discussed in the "fix
+deform"_fix_deform.html command, when the tilt value reaches a limit,
 the box is re-shaped to the opposite limit which is an equivalent
-tiling of the periodic plane.  The strain rate can then continue to
-change as before.  In a long NEMD simulation these box re-shaping may
-occur any number of times.
+tiling of periodic space.  The strain rate can then continue to change
+as before.  In a long NEMD simulation these box re-shaping events may
+occur many times.
 
 In a NEMD simulation, the "remap" option of "fix
 deform"_fix_deform.html should be set to "remap v", since that is what
@@ -747,17 +747,17 @@ profile consistent with the applied shear strain rate.
 
 LAMMPS supports ellipsoidal particles via the "atom_style
 ellipsoid"_atom_style.html and "shape"_shape.html commands.  The
-latter defines the 3 axes (diamaters) of a general ellipsoid.  The
-"pair_style gayberne"_pair_gayberne.html command can be used to define
-a Gay-Berne (GB) potential for how such particles interact with each
-other and with spherical particles.  The GB potential is like a
-Lennard-Jones (LJ) potential generalized for ellipsoids interacting in
-an orientiation-dependent manner.
+latter command defines the 3 axes (diameters) of a general ellipsoid.
+The "pair_style gayberne"_pair_gayberne.html command can be used to
+define a Gay-Berne (GB) potential for how ellipsoidal particles
+interact with each other and with spherical particles.  The GB
+potential is like a Lennard-Jones (LJ) potential, generalized for
+orientiation-dependent interactions.
 
 The orientation of ellipsoidal particles is stored as a quaternion.
 See the "set"_set.html command for a brief explanation of quaternions
 and how the orientation of such particles can be initialized.  The
-data file read by the "read_data"_read_data.html command also contains
+data file read by the "read_data"_read_data.html command contains
 quaternions for each atom in the Atoms section if "atom_style
 ellipsoid"_atom_style.html is being used.  The "compute
 temp/asphere"_compute_temp_asphere.html command can be used to
@@ -769,11 +769,11 @@ npt/asphere"_fix_npt_asphere.html commands.  All of these commands are
 part of the ASPHERE package in LAMMPS.
 
 Computationally, the cost for two ellipsoidal particles to interact is
-30x or more expensive than for 2 LJ particles.  Thus if you are
-modeling a system with many spherical particles (e.g. as the solvent),
-then you should insure sphere-sphere interactions are computed with
-the a cheaper potential than GB.  This can be done by setting the
-particle's 3 shape parameters to all be equal (a sphere).
+30 times (or more) expensive than for 2 spherical LJ particles.  Thus
+if you are modeling a system with many spherical particles (e.g. as
+the solvent), then you should insure sphere-sphere interactions are
+computed with a cheaper potential than GB.  This can be done by
+setting the particle's 3 shape parameters to all be equal (a sphere).
 Additionally, the corresponding GB potential coefficients can be set
 so the GB potential will treat the pair of particles as LJ spheres.
 Details are given in the doc page for the "pair_style

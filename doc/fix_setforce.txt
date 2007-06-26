@@ -32,17 +32,27 @@ force, assuming their initial velocity zero.
 Any of the fx,fy,fz values can be specified as NULL which means do not
 alter the force component in that dimension.
 
-The forces due to this fix are also imposed during an energy
-minimization, invoked by the "minimize"_minimize.html command.
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
 
-The total force on the group of atoms before it is reset is stored by
-the fix and its components can be accessed during thermodynamic
-print-out by using f_ID\[N\] where ID = he fix-ID and N = 1,2,3.  See
-the "thermo_style custom"_thermo_style.html command for details.  Note
-that the fix stores the total force on the group of atoms, but the
-printed value may be normalized by the total number of atoms in the
-simulation depending on the "thermo_modify norm"_thermo_modify.html
-option you are using.
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+The total vector force on the group of atoms before it is reset is
+stored by the fix and its components can be printed as part of
+thermodynamic output via the keywords f_ID\[N\] where ID is the fix-ID
+of this fix and N = 1,2,3.  See the "thermo_style
+custom"_thermo_style.html command for details.  Note that the fix
+stores the total force on the group of atoms, but the printed value
+may be normalized by the total number of atoms in the simulation
+depending on the "thermo_modify norm"_thermo_modify.html option being
+used.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.
 
 [Restrictions:] none
 

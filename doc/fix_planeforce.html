@@ -32,8 +32,17 @@ by subtracting out components of force perpendicular to the plane.
 <P>If the initial velocity of the atom is 0.0 (or in the plane), then it
 should continue to move in the plane thereafter.
 </P>
-<P>The forces due to this fix are also imposed during an energy
-minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
+parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
 </P>
 <P><B>Restrictions:</B> none
 </P>

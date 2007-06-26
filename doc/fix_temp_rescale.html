@@ -38,8 +38,7 @@ their velocities.
 </P>
 <P>Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the <I>Tstart</I> and <I>Tstop</I> temperatures at the
-beginning and end of the run.  The <A HREF = "run.html">run</A> command documents
-how to make the ramping take place across multiple runs.
+beginning and end of the run.
 </P>
 <P>Rescaling is only performed if the difference between the current and
 desired temperatures is greater than the <I>window</I> value.  The amount
@@ -80,20 +79,37 @@ This means you can change the attributes of this fix's temperature
 during thermodyanmic output via the <A HREF = "thermo_style.html">thermo_style
 custom</A> command using the appropriate compute-ID.
 It also means that changing attributes of <I>thermo_temp</I> will have no
-effect on this fix.  Alternatively, you can directly assign a new
-compute (for calculating temeperature) that you have defined to this
-fix via the <A HREF = "fix_modify.html">fix_modify</A> command.  For consistency, if
-using the keyword <I>region</I>, the compute you assign should also be of
-style <I>temp/region</I>.
+effect on this fix.
 </P>
-<P>This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
-also be printed by itself via the keyword <I>f_fix-ID</I> in the
-<A HREF = "thermo_style.html">thermo_style custom</A> command.  Note that because
-this fix is invoked every N steps and thermodynamic info may be
-printed every M steps, that unless M is a multiple of N, the energy
-info accessed will not be for the current timestep.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a <A HREF = "compute.html">compute</A> you have
+defined to this fix which will be used in its thermostatting
+procedure.  For consistency, if using the keyword <I>region</I>, the
+compute you assign should also be of style
+<A HREF = "compute_temp_region.html">temp/region</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change implied by a velocity rescaling to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  Note that because this fix is invoked
+every N steps and thermodynamic info is printed every M steps, that
+unless M is a multiple of N, the energy contribution will not be for
+the current timestep.
+</P>
+<P>The energy change can be printed as part of thermodynamic output via
+the keyword f_ID, where ID is the fix-ID of this fix.  See the
+<A HREF = "thermo_style.html">thermo_style custom</A> command for details.
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

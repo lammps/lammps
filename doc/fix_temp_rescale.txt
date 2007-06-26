@@ -34,8 +34,7 @@ their velocities.
 
 Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the {Tstart} and {Tstop} temperatures at the
-beginning and end of the run.  The "run"_run.html command documents
-how to make the ramping take place across multiple runs.
+beginning and end of the run.
 
 Rescaling is only performed if the difference between the current and
 desired temperatures is greater than the {window} value.  The amount
@@ -76,20 +75,37 @@ This means you can change the attributes of this fix's temperature
 during thermodyanmic output via the "thermo_style
 custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
-effect on this fix.  Alternatively, you can directly assign a new
-compute (for calculating temeperature) that you have defined to this
-fix via the "fix_modify"_fix_modify.html command.  For consistency, if
-using the keyword {region}, the compute you assign should also be of
-style {temp/region}.
+effect on this fix.
 
-This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the "fix_modify energy"_fix_modify.html option.  The contribution can
-also be printed by itself via the keyword {f_fix-ID} in the
-"thermo_style custom"_thermo_style.html command.  Note that because
-this fix is invoked every N steps and thermodynamic info may be
-printed every M steps, that unless M is a multiple of N, the energy
-info accessed will not be for the current timestep.
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {temp} option is supported by this
+fix.  You can use it to assign a "compute"_compute.html you have
+defined to this fix which will be used in its thermostatting
+procedure.  For consistency, if using the keyword {region}, the
+compute you assign should also be of style
+"temp/region"_compute_temp_region.html.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy change implied by a velocity rescaling to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.  Note that because this fix is invoked
+every N steps and thermodynamic info is printed every M steps, that
+unless M is a multiple of N, the energy contribution will not be for
+the current timestep.
+
+The energy change can be printed as part of thermodynamic output via
+the keyword f_ID, where ID is the fix-ID of this fix.  See the
+"thermo_style custom"_thermo_style.html command for details.
+
+This fix can ramp its target temperature over multiple runs, using the
+{start} and {stop} keywords of the "run"_run.html command.  See the
+"run"_run.html command for details of how to do this.
+
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
 

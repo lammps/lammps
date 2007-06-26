@@ -31,13 +31,23 @@ from a data or restart file.
 Hybrid models where impropers are computed using different improper
 potentials can be setup using the {hybrid} improper style.
 
-The coefficients associated with an improper style can be specified in a
-data or restart file or via the "improper_coeff"_improper_coeff.html command.
+The coefficients associated with an improper style can be specified in
+a data or restart file or via the "improper_coeff"_improper_coeff.html
+command.
 
-Note that when both an improper and pair style is defined, the
-"special_bond"_special_bond.html command often needs to be used to
-turn off (or weight) the pairwise interactions that would otherwise
-exist between the 4 bonded atoms.
+All improper potentials store their coefficient data in binary restart
+files which means improper_style and
+"improper_coeff"_improper_coeff.html commands do not need to be
+re-specified in an input script that restarts a simulation.  See the
+"read_restart"_read_restart.html command for details on how to do
+this.  The one exception is that improper_style {hybrid} only stores
+the list of sub-styles in the restart file; improper coefficients need
+to be re-specified.
+
+IMPORTANT NOTE: When both an improper and pair style is defined, the
+"special_bonds"_special_bonds.html command often needs to be used to
+turn off (or weight) the pairwise interaction that would otherwise
+exist between 4 bonded atoms.
 
 :line
 
@@ -59,10 +69,11 @@ specified by the associated "improper_coeff"_improper_coeff.html command:
 Improper styles can only be set for atom_style choices that allow
 impropers to be defined.
 
-Improper styles are part of the "molecular" package or other packages
-as noted in their documentation.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+Most improper styles are part of the "molecular" package.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
+doc pages for individual improper potentials tell if it is part of a
+package.
 
 [Related commands:]
 

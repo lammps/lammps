@@ -30,6 +30,22 @@ proportional to the diffusion coefficient of the diffusing atoms.  The
 "origin" of the displacement for each atom is its position at the time
 the fix command was issued.  Write the results to the specified file.
 
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+This fix writes the original coordinates of diffusing atoms to "binary
+restart files"_restart.html, so that the mean-squared displacement
+will be accurate in a restarted simulation.  See the
+"read_restart"_read_restart.html command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.
+
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.  No quantities calculated by this fix can be output by the
+"thermo_style custom"_thermo_style.html command.  No parameter of this
+fix can be used with the {start/stop} keywords of the "run"_run.html
+command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
 [Restrictions:] none
 
 [Related commands:] none

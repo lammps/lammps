@@ -30,9 +30,21 @@ rotational information as well as position and velocity, so this
 integrator updates translational and rotational degrees of freedom due
 to forces and torques.
 </P>
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
+parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
 <P><B>Restrictions:</B> none
 </P>
-<P>Can only be used if LAMMPS was built with the "granular" package.
+<P>This fix is part of the "granular" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

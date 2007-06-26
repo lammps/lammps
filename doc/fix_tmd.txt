@@ -30,8 +30,7 @@ Perform targeted molecular dynamics (TMD) on a group of atoms.  A
 holonomic constraint is used to force the atoms to move towards (or
 away from) the target configuration.  The parameter "rho" is
 monotonically decreased (or increased) from its initial value to
-rho_final at the end of the run.  The "run"_run.html command documents
-how to make the ramping take place across multiple runs.
+rho_final at the end of the run.
 
 Rho has distance units and is a measure of the root-mean-squared
 distance (RMSD) between the current configuration of the atoms in the
@@ -84,6 +83,19 @@ to prevent it being overwritten.
 
 For more information about TMD, see "(Schlitter1)"_#Schlitter1 and
 "(Schlitter2)"_#Schlitter2.
+
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.
+
+This fix can ramp its rho parameter over multiple runs, using the
+{start} and {stop} keywords of the "run"_run.html command.  See the
+"run"_run.html command for details of how to do this.
+
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 

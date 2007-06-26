@@ -84,6 +84,16 @@ below the z = 0 center plane of the pore (umbrella sampling).  The
 last example holds the ion a distance 5 away from the pore axis
 (assuming the center-of-mass of the pore in x,y is the pore axis).
 
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.  No
+parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
 [Restrictions:] none
 
 [Related commands:]

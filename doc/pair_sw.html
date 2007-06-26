@@ -110,16 +110,44 @@ The parameters used only for two-body interactions (A, B, p, and q)
 in entries whose 2nd and 3rd element are different (e.g. SiCSi) 
 are not used for anything and can be set to 0.0 if desired.
 </P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS as
+described above from values in the potential file.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>This pair style does not calculate per-atom energy and stress, as used
+by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
-<P>This pair potential requires the <A HREF = "newton.html">newton</A> setting to be
-"on" for pair interactions.
+<P>This pair style is part of the "manybody" package.  It is only enabled
+if LAMMPS was built with that package (which it is by default).  See
+the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+</P>
+<P>This pair style requires the <A HREF = "newton.html">newton</A> setting to be "on"
+for pair interactions.
 </P>
 <P>The Stillinger-Weber potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal <A HREF = "units.html">units</A>.
-You can use the SW potential with any LAMMPS units, but you need to
-create your own SW potential file if your simulation doesn't use
-"metal" units.
+You can use the SW potential with any LAMMPS units, but you would need
+to create your own SW potential file with coefficients listed in the
+appropriate units if your simulation doesn't use "metal" units.
 </P>
 <P><B>Related commands:</B>
 </P>

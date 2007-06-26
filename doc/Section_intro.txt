@@ -129,7 +129,7 @@ commands)
     class 2 (COMPASS), OPLS
   improper potentials: harmonic, cvff, class 2 (COMPASS)
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
-    potentials can be used
+    potentials can be used in one simlulation
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   long-range Coulombics: Ewald, PPPM (similar to particle-mesh Ewald)

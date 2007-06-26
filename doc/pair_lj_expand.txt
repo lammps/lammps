@@ -36,7 +36,7 @@ The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
-commands:
+commands, or by mixing as described below:
 
 epsilon (energy units)
 sigma (distance units)
@@ -46,12 +46,38 @@ cutoff (distance units) :ul
 The delta values can be positive or negative.  The last coefficient is
 optional.  If not specified, the global LJ cutoff is used.
 
-If the pair_coeff command is not used to define coefficients for a
-particular I != J type pair, the mixing rule is set by the
-"pair_modify"_pair_modify.html command.  Additionally, the delta
-coefficient is always mixed by the rule
+:line
 
-delta_ij = (delta_i + delta_j) / 2 :pre
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+For atom type pairs I,J and I != J, the epsilon, sigma, and shift
+coefficients and cutoff distance for this pair style can be mixed.
+Shift is always mixed via an {arithmetic} rule.  The other
+coefficients are mixed according to the pair_modify mix value.  The
+default mix value is {geometric}.  See the "pair_modify" command for
+details.
+
+This pair style supports the "pair_modify"_pair_modify.html shift
+option for the energy of the pair interaction.
+
+The "pair_modify"_pair_modify.html table option is not relevant
+for this pair style.
+
+This pair style supports the "pair_modify"_pair_modify.html tail
+option for adding a long-range tail correction to the energy and
+pressure of the pair interaction.
+
+This pair style can calculate per-atom energy and stress, as used by
+the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+:line
 
 [Restrictions:] none
 

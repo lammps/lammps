@@ -61,8 +61,7 @@ timestep size, and damp is the damping factor.  Random numbers are
 used to randomize the direction and magnitude of this force.
 
 The desired temperature at each timestep is a ramped value during the
-run from {Tstart} to {Tstop}.  The "run"_run.html command documents
-how to make the ramping take place across multiple runs.
+run from {Tstart} to {Tstop}.
 
 The {damp} parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0
@@ -78,10 +77,7 @@ The random # {seed} should be a non-zero integer with 1 to 8 digits.
 A Marsaglia random number generator is used.  Each processor uses the
 input seed to generate its own unique seed and its own stream of
 random numbers.  Thus the dynamics of the system will not be identical
-on two runs on different numbers of processors.  Also, the state of
-the random number generator is not saved in a restart file.  This
-means you cannot do exact restarts when a fix {langevin} command is
-used.
+on two runs on different numbers of processors. 
 
 The keyword {axes} can be used to specify which dimensions to add Ff
 and Fr to.  A flag of 0 means skip that dimension; a flag of 1 means
@@ -110,6 +106,25 @@ velocities of its atoms, only the forces.  It is normally used with a
 should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. a "nvt"_fix_nvt.html or
 "temp/rescale"_fix_temp_rescale.html fix.
+
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do "exact"
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.
+
+None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.
+
+This fix can ramp its target temperature over multiple runs, using the
+{start} and {stop} keywords of the "run"_run.html command.  See the
+"run"_run.html command for details of how to do this.
+
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
 

@@ -58,12 +58,11 @@ temperature.  This creates a system trajectory consistent with the
 isothermal-isobaric ensemble.
 </P>
 <P>The desired temperature at each timestep is a ramped value during the
-run from <I>Tstart</I> to <I>Tstop</I>.  The <A HREF = "run.html">run</A> command documents
-how to make the ramping take place across multiple runs.  The <I>Tdamp</I>
-parameter is specified in time units and determines how rapidly the
-temperature is relaxed.  For example, a value of 100.0 means to relax
-the temperature in a timespan of (roughly) 100 time units (tau or
-fmsec or psec - see the <A HREF = "units.html">units</A> command).
+run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in
+time units and determines how rapidly the temperature is relaxed.  For
+example, a value of 100.0 means to relax the temperature in a timespan
+of (roughly) 100 time units (tau or fmsec or psec - see the
+<A HREF = "units.html">units</A> command).
 </P>
 <P>The particles in the fix group are the only ones whose velocities and
 positions are updated by the velocity/position update portion of the
@@ -82,8 +81,7 @@ unchanged and controlling the pressure of a surrounding fluid.
 <P>The pressure can be controlled in one of several styles, as specified
 by the <I>p-style</I> argument.  In each case, the desired pressure at each
 timestep is a ramped value during the run from the starting value to
-the end value.  The <A HREF = "run.html">run</A> command documents how to make the
-ramping take place across multiple runs.
+the end value.
 </P>
 <P>Style <I>xyz</I> means couple all 3 dimensions together when pressure is
 computed (isotropic pressure), and dilate/contract the 3 dimensions
@@ -115,7 +113,7 @@ is working.  Typically a value between 0.2 to 2.0 is sufficient to
 damp oscillations after a few periods.
 </P>
 <P>For all pressure styles, the simulation box stays rectangular in
-shape.  Parinello-Rahman boundary conditions (tilted box) are not
+shape.  Parinello-Rahman boundary conditions (tilted box) are not yet
 implemented in LAMMPS.
 </P>
 <P>For all styles, the <I>Pdamp</I> parameter operates like the <I>Tdamp</I>
@@ -147,23 +145,46 @@ fix's temperature or pressure via the
 or pressure during thermodyanmic output via the <A HREF = "thermo_style.html">thermo_style
 custom</A> command using the appropriate compute-ID.
 It also means that changing attributes of <I>thermo_temp</I> or
-<I>thermo_press</I> will have no effect on this fix.  Alternatively, you
-can directly assign a new compute (for calculating temeperature or
-pressure) that you have defined to this fix via the
-<A HREF = "fix_modify.html">fix_modify</A> command.  If you do this, note that the
-kinetic energy derived from T should be consistent with the virial
-term computed using all particles.  LAMMPS will warn you if you choose 
-to compute temperature on a subset of particles.
+<I>thermo_press</I> will have no effect on this fix. 
 </P>
-<P>This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
-also be printed by itself via the keyword <I>f_fix-ID</I> in the
-<A HREF = "thermo_style.html">thermo_style custom</A> command.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the Nose/Hoover thermostat and barostat
+to <A HREF = "restart.html">binary restart files</A>.  See the
+<A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
+supported by this fix.  You can use them to assign a
+<A HREF = "compute.html">compute</A> you have defined to this fix which will be used
+in its thermostatting or barostatting procedure.  If you do this, note
+that the kinetic energy derived from the compute temperature should be
+consistent with the virial term computed using all atoms for the
+pressure.  LAMMPS will warn you if you choose to compute temperature
+on a subset of atoms.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Nose/Hoover thermostatting and
+barostatting to the system's potential energy as part of
+<A HREF = "thermo_style.html">thermodynamic output</A>.
+</P>
+<P>The energy change can be printed as part of thermodynamic output via
+the keyword f_ID, where ID is the fix-ID of this fix.  See the
+<A HREF = "thermo_style.html">thermo_style custom</A> command for details.
+</P>
+<P>This fix can ramp its target temperature and pressure over multiple
+runs, using the <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A>
+command.  See the <A HREF = "run.html">run</A> command for details of how to do
+this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Can only be used if LAMMPS was built with the "asphere" package.
+<P>This fix is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>Any dimension being adjusted by this fix must be periodic.  A
 dimension whose target pressures are specified as NULL can be

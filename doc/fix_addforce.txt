@@ -27,8 +27,17 @@ the group.  This command can be used to give an additional push to
 atoms in a simulation, such as for a simulation of Poiseuille flow in
 a channel.
 
-The forces due to this fix are also imposed during an energy
-minimization, invoked by the "minimize"_minimize.html command.
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.  No
+parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.
 
 [Restrictions:] none
 

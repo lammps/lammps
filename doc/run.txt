@@ -58,14 +58,12 @@ script with the same run command until the simulation finally
 completes.
 
 The {start} or {stop} keywords can be used if multiple runs are being
-performed and you want a "fix"_fix.html command that ramps some value
-(e.g. a temperature) over time to do its ramping across the entire set
-of runs and not just a single run.  Fixes in this category include
-"fix nvt"_fix_nvt.html, "fix npt"_fix_npt.html, "fix
-langevin"_fix_langevin.html, "fix temp/rescale"_fix_temp_rescale.html,
-"fix deform"_fix_deform.html, and "fix indent"_fix_indent.html.  The
-"pair_style soft"_pair_style.html potential also ramps its
-coefficients in a similar way.
+performed and you want a "fix"_fix.html command that changes some
+value over time (e.g. temperature) to make the change across the
+entire set of runs and not just a single run.  See the doc page for
+individual fixes to see which ones can be used with the {start/stop}
+keywords.  The "pair_style soft"_pair_style.html potential also
+changes its pair potential coefficients in this manner.
 
 For example, consider this fix followed by 10 run commands:
 

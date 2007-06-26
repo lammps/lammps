@@ -40,6 +40,16 @@ in the input script, since the adjustments it makes to atom
 coordinates should come after the changes made by time integration.
 LAMMPS will warn you if your fixes are not ordered this way.
 
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.  No
+parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
 [Restrictions:]
 
 Any dimension (xyz) that has a reflecting wall must be non-periodic.

@@ -62,7 +62,11 @@ weighting factors (4th coeff above) should be set to 0.0.  In this
 case, you can use any pair style you wish, since the dihedral does not
 need any 1-4 information.
 
-[Restrictions:] none
+[Restrictions:]
+
+This dihedral style can only be used if LAMMPS was built with the
+"molecular" package (which it is by default).  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info on packages.
 
 [Related commands:]
 

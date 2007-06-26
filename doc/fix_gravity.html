@@ -80,6 +80,16 @@ vector direction given by (x,y,z).
 <P>The strength of the acceleration due to gravity is 1.0 in LJ units,
 which are the only allowed units for granular systems.
 </P>
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
+parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>Styles <I>chute</I>, <I>spherical</I>, and <I>gradient</I> can only be used with

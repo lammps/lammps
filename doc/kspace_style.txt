@@ -73,7 +73,7 @@ must be periodic and the z dimension must be non-periodic.
 
 Kspace styles are part of the "kspace" package.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 When using a long-range pairwise TIP4P potential, you must use kspace
 style {pppm/tip4p} and vice versa.

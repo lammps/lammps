@@ -314,11 +314,38 @@ are listed.
 
 :line
 
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS as
+described above with the individual styles.  You never need to specify
+a pair_coeff command with I != J arguments for the eam styles.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+All of the eam pair styles can calculate per-atom energy and stress,
+as used by the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.  These quantities include the contribution from the
+embedding term in the EAM formulas.
+
+The eam pair styles do not write their information to "binary restart
+files"_restart.html, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+
+:line
+
 [Restrictions:]
 
-The {opt} styles are part of the "opt" package.  They are only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+All of these styles except those ending in {opt} are part of the
+"manybody" package.  They are only enabled if LAMMPS was built with
+that package (which it is by default).  The styles ending in {opt} are
+part of the "opt" package and also require the "manybody" package.
+They are only enabled if LAMMPS was built with those packages.  See
+the "Making LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

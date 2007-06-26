@@ -44,12 +44,11 @@ thermostat.  V is volume; T is temperature.  This creates a system
 trajectory consistent with the canonical ensemble.
 </P>
 <P>The desired temperature at each timestep is a ramped value during the
-run from <I>Tstart</I> to <I>Tstop</I>.  The <A HREF = "run.html">run</A> command documents
-how to make the ramping take place across multiple runs.  The <I>Tdamp</I>
-parameter is specified in time units and determines how rapidly the
-temperature is relaxed.  For example, a value of 100.0 means to relax
-the temperature in a timespan of (roughly) 100 time units (tau or
-fmsec or psec - see the <A HREF = "units.html">units</A> command).
+run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in
+time units and determines how rapidly the temperature is relaxed.  For
+example, a value of 100.0 means to relax the temperature in a timespan
+of (roughly) 100 time units (tau or fmsec or psec - see the
+<A HREF = "units.html">units</A> command).
 </P>
 <P>In some cases (e.g. for solids) the temperature of the system can
 oscillate undesirably when a Nose/Hoover thermostat is applied.  The
@@ -80,15 +79,35 @@ This means you can change the attributes of this fix's temperature
 during thermodyanmic output via the <A HREF = "thermo_style.html">thermo_style
 custom</A> command using the appropriate compute-ID.
 It also means that changing attributes of <I>thermo_temp</I> will have no
-effect on this fix.  Alternatively, you can directly assign a new
-compute (for calculating temeperature) that you have defined to this
-fix via the <A HREF = "fix_modify.html">fix_modify</A> command.
+effect on this fix.
 </P>
-<P>This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
-also be printed by itself via the keyword <I>f_fix-ID</I> in the
-<A HREF = "thermo_style.html">thermo_style custom</A> command.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the Nose/Hoover thermostat to <A HREF = "restart.html">binary
+restart files</A>.  See the <A HREF = "read_restart.html">read_restart</A>
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a <A HREF = "compute.html">compute</A> you have
+defined to this fix which will be used in its thermostatting
+procedure.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Nose/Hoover thermostatting to
+the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>The energy change can be printed as part of thermodynamic output via
+the keyword f_ID, where ID is the fix-ID of this fix.  See the
+<A HREF = "thermo_style.html">thermo_style custom</A> command for details.
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>

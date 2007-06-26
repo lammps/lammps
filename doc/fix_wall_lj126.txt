@@ -41,17 +41,31 @@ provided by the "fix wall/lj93"_fix_wall_lj93.html command.
 The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
 
-This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the "fix_modify energy"_fix_modify.html option.  The contribution can
-also be printed by itself via the keyword {f_fix-ID} in the
-"thermo_style custom"_thermo_style.html command.
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
 
-The forces due to this fix are also imposed during an energy
-minimization, invoked by the "minimize"_minimize.html command.  If you
-want that energy to be included in the total potential energy of the
-system (the quantity being minimized), you must enable the
-"fix_modify"_fix_modify.html {energy} option for this fix.
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy of interaction between atoms and the wall to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
+
+The atom/wall interaction energy can be printed as part of
+thermodynamic output via the keyword f_ID, where ID is the fix-ID of
+this fix.  See the "thermo_style custom"_thermo_style.html command for
+details.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.
+
+IMPORTANT NOTE: If you want the atom/wall interaction energy to be
+included in the total potential energy of the system (the quantity
+being minimized), you MUST enable the "fix_modify"_fix_modify.html
+{energy} option for this fix.
 
 [Restrictions:]
 

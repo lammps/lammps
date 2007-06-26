@@ -31,9 +31,21 @@ and file.str.  The z bins begin at the bottom of the system and extend
 upward with a thickness of {zlayer} for each bin.  The quantities
 written to the file are averaged over all atoms in the bin.
 
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.  No
+parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
 [Restrictions:]
 
-Can only be used if LAMMPS was built with the "granular" package.
+This fix is part of the "granular" package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

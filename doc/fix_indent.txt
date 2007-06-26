@@ -71,15 +71,9 @@ specified velocity.
 If the {rstart} keyword is specified, then the radius of the indenter
 is a time-dependent quantity.  R0 is the value assigned at the start
 of the run; R is the value at the end.  At intermediate times, the
-radius is linearly interpolated between these two values.  The
-"run"_run.html command documents how to make the interpolation take
-place across multiple runs.  This option can be used, for example, to
-grow/shrink a void within the simulation box.  This option is not
-relevant during an energy minimization; the indenter always has radius
-R in that case.  Note that if you do multiple runs, you may need to
-re-specify the fix so that the indenter radius has the appropriate
-value.  If you do nothing, it will be reset to R0 at the beginning of
-each run.
+radius is linearly interpolated between these two values.  This option
+can be used, for example, to grow/shrink a void within the simulation
+box.
 
 The {units} keyword determines the meaning of the distance units used
 to define the indenter.  A {box} value selects standard distance units
@@ -91,18 +85,36 @@ choice affects not only the indenter's physical geometry, but also its
 velocity and force constant since they are defined in terms of
 distance as well.
 
-This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the "fix_modify energy"_fix_modify.html option.  The energy of each
-particle interacting with the indenter is K/3 (r - R)^3.  The
-contribution can also be printed by itself via the keyword {f_fix-ID}
-in the "thermo_style custom"_thermo_style.html command.
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
 
-The forces due to this fix are also imposed during an energy
-minimization, invoked by the "minimize"_minimize.html command.  If you
-want that energy to be included in the total potential energy of the
-system (the quantity being minimized), you must enable the
-"fix_modify"_fix_modify.html {energy} option for this fix.
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy of interaction between atoms and the indenter to
+the system's potential energy as part of "thermodynamic
+output"_thermo_style.html.  The energy of each particle interacting
+with the indenter is K/3 (r - R)^3.
+
+The atom/indenter interaction energy can be printed as part of
+thermodynamic output via the keyword f_ID, where ID is the fix-ID of
+this fix.  See the "thermo_style custom"_thermo_style.html command for
+details.
+
+This fix can adjust the indenter position and radius over multiple
+runs, using the {start} and {stop} keywords of the "run"_run.html
+command.  See the "run"_run.html command for details of how to do
+this.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.  The {rstart} keyword
+does not change the indenter radius during an energy minimization; the
+indenter always has a radius of its final value R in that case.
+
+IMPORTANT NOTE: If you want the atom/indenter interaction energy to be
+included in the total potential energy of the system (the quantity
+being minimized), you MUST enable the "fix_modify"_fix_modify.html
+{energy} option for this fix.
 
 [Restrictions:] none
 

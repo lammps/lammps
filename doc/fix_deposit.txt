@@ -119,6 +119,30 @@ command must have been previously used to define the lattice spacing.
 Note that the units choice affects all the keyword values that have
 units of distance or velocity.
 
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  This means you must be careful when restarting a
+deposition simulation, when the restart file was written in the middle
+of the deposition operation.  Specifically, you should use a new fix
+deposit command in the input script for the restarted simulation that
+continues the operation.  You will need to adjust the arguments of the
+original fix deposit command to do this.
+
+Also note that because the state of the random number generator is not
+saved in restart files, you cannot do "exact" restarts with this fix,
+where the simulation continues on the same as if no restart had taken
+place.  However, in a statistical sense, a restarted simulation should
+produce the same behavior if you adjust the fix deposit parameters
+appropriately.
+
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.  No quantities calculated by this fix can be output by the
+"thermo_style custom"_thermo_style.html command.  No parameter of this
+fix can be used with the {start/stop} keywords of the "run"_run.html
+command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
 [Restrictions:] none
 
 [Related commands:]

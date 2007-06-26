@@ -34,7 +34,11 @@ or "read_restart"_read_restart.html commands:
 K (energy/distance^2)
 r0 (distance) :ul
 
-[Restrictions:] none
+[Restrictions:]
+
+This bond style can only be used if LAMMPS was built with the
+"molecular" package (which it is by default).  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info on packages.
 
 [Related commands:]
 

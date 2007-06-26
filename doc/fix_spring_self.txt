@@ -29,6 +29,22 @@ the magnitude of the force on each atom is -Kr, where r is the
 displacement of the atom from its current position to its initial
 position.
 
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+This fix writes the original coordinates of tethered atoms to "binary
+restart files"_restart.html, so that the spring effect will be the
+same in a restarted simulation.  See the
+"read_restart"_read_restart.html command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.
+
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.  No quantities calculated by this fix can be output by the
+"thermo_style custom"_thermo_style.html command.  No parameter of this
+fix can be used with the {start/stop} keywords of the "run"_run.html
+command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
 [Restrictions:] none
 
 [Related commands:]

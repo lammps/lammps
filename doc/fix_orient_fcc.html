@@ -116,11 +116,24 @@ symmetry, so the list must include one from each pair of
 equal-and-opposite neighbors.  A pair of orientation files for a
 Sigma=5 tilt boundary are show below.
 </P>
-<P>This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
-also be printed by itself via the keyword <I>f_fix-ID</I> in the
-<A HREF = "thermo_style.html">thermo_style custom</A> command.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the potential energy of atom interactions with the grain
+boundary driving force to the system's potential energy as part of
+<A HREF = "thermo_style.html">thermodynamic output</A>.
+</P>
+<P>The atom/grain-boundary interaction energy can be printed as part of
+thermodynamic output via the keyword f_ID, where ID is the fix-ID of
+this fix.  See the <A HREF = "thermo_style.html">thermo_style custom</A> command for
+details.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>

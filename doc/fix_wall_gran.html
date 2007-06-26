@@ -77,13 +77,32 @@ the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is 
 elapsed time since the fix was specified.  The velocity of the wall is
 also set to the derivative of this expression.
 </P>
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the shear friction state of atoms interacting with the
+wall to <A HREF = "restart.html">binary restart files</A>, so that a simulation can
+continue correctly if granular potentials with shear "history" effects
+are being used.  See the <A HREF = "read_restart.html">read_restart</A> command for
+info on how to re-specify a fix in an input script that reads a
+restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.  No quantities calculated by this fix can be output by the
+<A HREF = "thermo_style.html">thermo_style custom</A> command.  No parameter of this
+fix can be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A>
+command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
 <P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the "granular" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>Any dimension (xyz) that has a granular wall must be non-periodic.
 </P>
-<P>This fix can only be used if LAMMPS was built with the "granular"
-package and with atom_style granular.  A zcylinder wall can only be
-oscillated in the z dimension.
+<P>A zcylinder wall can only be oscillated in the z dimension.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -29,9 +29,21 @@ angular velocity for particles with point dipole moments in the group
 each timestep.  V is volume; E is energy.  This creates a system
 trajectory consistent with the microcanonical ensemble.
 </P>
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
+parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
 <P><B>Restrictions:</B> 
 </P>
-<P>Can only be used if LAMMPS was built with the "dipole" package.
+<P>This fix is part of the "dipole" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

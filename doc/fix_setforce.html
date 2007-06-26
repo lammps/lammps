@@ -35,17 +35,27 @@ force, assuming their initial velocity zero.
 <P>Any of the fx,fy,fz values can be specified as NULL which means do not
 alter the force component in that dimension.
 </P>
-<P>The forces due to this fix are also imposed during an energy
-minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
 </P>
-<P>The total force on the group of atoms before it is reset is stored by
-the fix and its components can be accessed during thermodynamic
-print-out by using f_ID[N] where ID = he fix-ID and N = 1,2,3.  See
-the <A HREF = "thermo_style.html">thermo_style custom</A> command for details.  Note
-that the fix stores the total force on the group of atoms, but the
-printed value may be normalized by the total number of atoms in the
-simulation depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A>
-option you are using.
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>The total vector force on the group of atoms before it is reset is
+stored by the fix and its components can be printed as part of
+thermodynamic output via the keywords f_ID[N] where ID is the fix-ID
+of this fix and N = 1,2,3.  See the <A HREF = "thermo_style.html">thermo_style
+custom</A> command for details.  Note that the fix
+stores the total force on the group of atoms, but the printed value
+may be normalized by the total number of atoms in the simulation
+depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A> option being
+used.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
 </P>
 <P><B>Restrictions:</B> none
 </P>

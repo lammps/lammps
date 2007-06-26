@@ -29,8 +29,8 @@ the equilibrium bond lengths.
 
 See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
 
-For this style, only coefficients for the Ea formula can be specified
-in the input script.  These are the 4 coefficients:
+For this style, coefficients for the Ea formula can be specified in
+the input script or data file.  These are the 4 coefficients:
 
 theta0 (degrees)
 K2 (energy/radian^2)
@@ -40,7 +40,7 @@ K4 (energy/radian^2) :ul
 Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of K are in energy/radian^2.
 
-Coefficients for the Ebb and Eba formulas must be specified in the
+Coefficients for the Ebb and Eba formulas can only be specified in the
 data file.
 
 For the Ebb formula, the coefficients are listed under a "BondBond
@@ -63,9 +63,9 @@ same value from the Ea formula.
 
 [Restrictions:]
 
-This angle style is part of the "class2" package.  It is only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+This angle style can only be used if LAMMPS was built with the
+"class2" package.  See the "Making LAMMPS"_Section_start.html#2_3
+section for more info on packages.
 
 [Related commands:]
 

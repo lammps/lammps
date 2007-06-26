@@ -58,19 +58,35 @@ spring and dash-pot model until Ft/Fn = xmu and then is held at Ft =
 Fn*xmu until the particles lose contact.
 
 For granular styles there are no individual atom type coefficients
-that can be set.  All global settings are made via the pair_style
-command.
+that can be set via the "pair_coeff"_pair_coeff.html command.  All
+global settings are made via the pair_style command.
 
-See the citation for more discussion of the granular potentials.
+See the citation below for more discussion of granular potentials.
+
+:line
+
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+The "pair_modify"_pair_modify.html mix, shift, table, and tail options
+are not relevant for granular pair styles.
+
+This pair style does not calculate per-atom energy and stress, as used
+by the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so a pair_style commands does not need to be
+specified in an input script that reads a restart file.
+
+:line
 
 [Restrictions:] none
 
-All of these styles are part of the "granular" package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
-
-You must use "atom style"_atom_style.html {granular} with these pair
-styles.
+All the granular pair styles are part of the "granular" package.  It
+is only enabled if LAMMPS was built with that package.  See the
+"Making LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

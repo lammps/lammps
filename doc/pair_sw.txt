@@ -107,16 +107,44 @@ The parameters used only for two-body interactions (A, B, p, and q)
 in entries whose 2nd and 3rd element are different (e.g. SiCSi) 
 are not used for anything and can be set to 0.0 if desired.
 
+:line
+
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS as
+described above from values in the potential file.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This pair style does not calculate per-atom energy and stress, as used
+by the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.
+
+This pair style does not write its information to "binary restart
+files"_restart.html, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+
+:line
+
 [Restrictions:]
 
-This pair potential requires the "newton"_newton.html setting to be
-"on" for pair interactions.
+This pair style is part of the "manybody" package.  It is only enabled
+if LAMMPS was built with that package (which it is by default).  See
+the "Making LAMMPS"_Section_start.html#2_3 section for more info.
+
+This pair style requires the "newton"_newton.html setting to be "on"
+for pair interactions.
 
 The Stillinger-Weber potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal "units"_units.html.
-You can use the SW potential with any LAMMPS units, but you need to
-create your own SW potential file if your simulation doesn't use
-"metal" units.
+You can use the SW potential with any LAMMPS units, but you would need
+to create your own SW potential file with coefficients listed in the
+appropriate units if your simulation doesn't use "metal" units.
 
 [Related commands:]
 

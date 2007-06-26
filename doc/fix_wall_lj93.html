@@ -45,17 +45,31 @@ wall/lj126</A> command.
 <P>The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
 </P>
-<P>This fix makes a contribution to the potential energy of the system
-that can be included in thermodynamic output of potential energy using
-the <A HREF = "fix_modify.html">fix_modify energy</A> option.  The contribution can
-also be printed by itself via the keyword <I>f_fix-ID</I> in the
-<A HREF = "thermo_style.html">thermo_style custom</A> command.
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
 </P>
-<P>The forces due to this fix are also imposed during an energy
-minimization, invoked by the <A HREF = "minimize.html">minimize</A> command.  If you
-want that energy to be included in the total potential energy of the
-system (the quantity being minimized), you must enable the
-<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for this fix.
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy of interaction between atoms and the wall to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>The atom/wall interaction energy can be printed as part of
+thermodynamic output via the keyword f_ID, where ID is the fix-ID of
+this fix.  See the <A HREF = "thermo_style.html">thermo_style custom</A> command for
+details.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P>IMPORTANT NOTE: If you want the atom/wall interaction energy to be
+included in the total potential energy of the system (the quantity
+being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
+<I>energy</I> option for this fix.
 </P>
 <P><B>Restrictions:</B>
 </P>

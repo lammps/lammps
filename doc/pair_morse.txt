@@ -49,11 +49,37 @@ give identical answers.  Depending on system size and the processor
 you are running on, it may be 5-25% faster (for the pairwise portion
 of the run time).
 
-[Restrictions:]
+:line
 
-The {morse} potential does not support the
-"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
-pairs must be specified explicitly.
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+None of the Morse pair styles support mixing.  Thus, coefficients for
+all I,J pairs must be specified explicitly.
+
+All of the Morse pair styles support the
+"pair_modify"_pair_modify.html shift option for the energy of the pair
+interaction.
+
+The "pair_modify"_pair_modify.html table options is not relevant for
+the Morse pair styles.
+
+None of the Morse pair styles support the
+"pair_modify"_pair_modify.html tail option for adding long-range tail
+corrections to energy and pressure.
+
+All of the Morse pair styles can calculate per-atom energy and
+stress, as used by the "compute epair/atom"_compute_epair_atom.html,
+"compute stress/atom"_compute_stress_atom.html, and "dump
+custom"_dump.html commands.
+
+All of the Morse pair styles write their information to "binary
+restart files"_restart.html, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+
+:line
+
+[Restrictions:]
 
 The {morse/opt} style is part of the "opt" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making

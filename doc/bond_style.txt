@@ -33,9 +33,9 @@ remain in force for the duration of the simulation (unless the bond
 breaks which is possible in some bond potentials).  The list of bonded
 atoms is read in by a "read_data"_read_data.html or
 "read_restart"_read_restart.html command from a data or restart file.
-By contrast, pair potentials are defined between pairs of atoms that
-are within a cutoff distance and the set of active interactions
-typically changes over time.
+By contrast, pair potentials are typically defined between all pairs
+of atoms within a cutoff distance and the set of active interactions
+changes over time.
 
 Hybrid models where bonds are computed using different bond potentials
 can be setup using the {hybrid} bond style.
@@ -43,13 +43,21 @@ can be setup using the {hybrid} bond style.
 The coefficients associated with a bond style can be specified in a
 data or restart file or via the "bond_coeff"_bond_coeff.html command.
 
-In the formulas listed for each bond style, {r} is the distance
-between the 2 atoms in the bond.
+All bond potentials store their coefficient data in binary restart
+files which means bond_style and "bond_coeff"_bond_coeff.html commands
+do not need to be re-specified in an input script that restarts a
+simulation.  See the "read_restart"_read_restart.html command for
+details on how to do this.  The one exception is that bond_style
+{hybrid} only stores the list of sub-styles in the restart file; bond
+coefficients need to be re-specified.
 
-Note that when both a bond and pair style is defined, the
+IMPORTANT NOTE: When both a bond and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
 exist between 2 bonded atoms.
+
+In the formulas listed for each bond style, {r} is the distance
+between the 2 atoms in the bond.
 
 :line
 
@@ -75,10 +83,11 @@ specified by the associated "bond_coeff"_bond_coeff.html command:
 Bond styles can only be set for atom styles that allow bonds to be
 defined.
 
-Bond styles are part of the "molecular" package or other packages as
-noted in their documentation.  They are only enabled if LAMMPS was
-built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_2 section for more info.
+Most bond styles are part of the "molecular" package.  They are only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
+doc pages for individual bond potentials tell if it is part of a
+package.
 
 [Related commands:]
 

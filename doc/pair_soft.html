@@ -39,7 +39,7 @@ cutoff.
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
+commands, or by mixing as described below:
 </P>
 <UL><LI>Astart (energy units)
 <LI>Astop (energy units)
@@ -54,12 +54,34 @@ or switch to a new pair style.
 <P>The last coefficient is optional.  If not specified, the global soft
 cutoff is used.
 </P>
-<P>If the pair_coeff command is not used to define coefficients for a
-particular I != J type pair, the mixing rule for Astart and Astop is
-as follows:
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
 </P>
-<PRE>A_ij = sqrt(A_i * A_j) 
-</PRE>
+<P>For atom type pairs I,J and I != J, the Astart, Astop coefficients and
+cutoff distance for this pair style can be mixed.  Astart and Atop are
+always mixed via a <I>geometric</I> rule.  The cutoff is mixed according to
+the pair_modify mix value.  The default mix value is <I>geometric</I>.  See
+the "pair_modify" command for details.
+</P>
+<P>This pair styles does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option, since the pair interaction is goes to 0.0 at the cutoff.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
+relevant for this pair style.
+</P>
+<P>This pair style can calculate per-atom energy and stress, as used by
+the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<HR>
+
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

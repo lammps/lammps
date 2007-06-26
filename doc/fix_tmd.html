@@ -33,8 +33,7 @@ fix 2 tmdatoms tmd 1.0 target_file 100 tmd_dump_file
 holonomic constraint is used to force the atoms to move towards (or
 away from) the target configuration.  The parameter "rho" is
 monotonically decreased (or increased) from its initial value to
-rho_final at the end of the run.  The <A HREF = "run.html">run</A> command documents
-how to make the ramping take place across multiple runs.
+rho_final at the end of the run.
 </P>
 <P>Rho has distance units and is a measure of the root-mean-squared
 distance (RMSD) between the current configuration of the atoms in the
@@ -87,6 +86,19 @@ to prevent it being overwritten.
 </P>
 <P>For more information about TMD, see <A HREF = "#Schlitter1">(Schlitter1)</A> and
 <A HREF = "#Schlitter2">(Schlitter2)</A>.
+</P>
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.
+</P>
+<P>This fix can ramp its rho parameter over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>

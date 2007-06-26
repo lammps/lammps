@@ -34,6 +34,9 @@ fashion that should allow for systems with highly overlapped atoms
 (large energies and forces) to still be minimized by pushing the atoms
 off of each other.
 </P>
+<P>Following the minimization a statistical summary is printed that
+includes the energy change and convergence criteria information.
+</P>
 <P>A minimization involves an outer iteration loop which sets the search
 direction along which coordinates are changed.  An inner iteration is
 then performed using a line search algorithm.  The line search
@@ -61,21 +64,20 @@ include <I>pair/lj/charmm/coul/charmm</I> and <I>pair/lj/charmm/coul/long</I>.
 If a <I>soft</I> potential is used the Astop value is used for the
 prefactor (no time dependence).
 </P>
-<P>Only fixes that apply force constraints are invoked during
-minimization.  The list of the currently implemented ones include fix
-<I>addforce</I>, <I>aveforce</I>, <I>enforce2d</I>, <I>indent</I>, <I>lineforce</I>,
-<I>planeforce</I>, <I>setforce</I>, and <I>wall/lj93</I>.  Note that <I>indent</I>,
-<I>wall/lj93</I> have an associated potential energy.  If you want that
-energy to be included in the total potential energy of the system (the
-quantity being minimized), you must enable the
-<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for that fix.
+<P>Only some fixes (typically those that apply force constraints) are
+invoked during minimization.  See the doc pages for individual
+<A HREF = "fix.html">fix</A> commands to see which ones are relevant.
 </P>
-<P>Following the minimization a statistical summary is printed that
-includes the energy change and convergence criteria information.
+<P>IMPORTANT NOTE: Some fixes which are invoked during minimization have
+an associated potential energy.  For that energy to be included in the
+total potential energy of the system (the quantity being minimized),
+you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for
+that fix.  The doc pages for individual <A HREF = "fix.html">fix</A> commands
+specify if this should be done.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Features that are not yet implemented listed here, in case someone
+<P>Features that are not yet implemented are listed here, in case someone
 knows how they could be coded:
 </P>
 <P>It is an error to use <A HREF = "fix_shake.html">fix shake</A> with minimization

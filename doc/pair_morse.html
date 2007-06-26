@@ -53,11 +53,37 @@ give identical answers.  Depending on system size and the processor
 you are running on, it may be 5-25% faster (for the pairwise portion
 of the run time).
 </P>
-<P><B>Restrictions:</B>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info</B>:
 </P>
-<P>The <I>morse</I> potential does not support the
-<A HREF = "pair_modify.hmtl">pair_modify</A> <I>mix</I> option.  Coefficients for all i,j
-pairs must be specified explicitly.
+<P>None of the Morse pair styles support mixing.  Thus, coefficients for
+all I,J pairs must be specified explicitly.
+</P>
+<P>All of the Morse pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the pair
+interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table options is not relevant for
+the Morse pair styles.
+</P>
+<P>None of the Morse pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
+corrections to energy and pressure.
+</P>
+<P>All of the Morse pair styles can calculate per-atom energy and
+stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
+<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
+custom</A> commands.
+</P>
+<P>All of the Morse pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
 </P>
 <P>The <I>morse/opt</I> style is part of the "opt" package.  It is only
 enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making

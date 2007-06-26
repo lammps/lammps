@@ -325,21 +325,13 @@ are listed.
 <P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
 restart info</B>:
 </P>
-<P>For atom type pairs I,J and I != J, mixing is performed by LAMMPS as
+<P>For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS as
 described above with the individual styles.  You never need to specify
 a pair_coeff command with I != J arguments for the eam styles.
 </P>
 <P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift option for the energy of the pair interaction.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> shift option is not relevant
-for this pair style.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
-for this pair style.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> tail option is not relevant
-for this pair style.
+shift, table, and tail options.
 </P>
 <P>All of the eam pair styles can calculate per-atom energy and stress,
 as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
@@ -347,10 +339,10 @@ stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
 commands.  These quantities include the contribution from the
 embedding term in the EAM formulas.
 </P>
-<P>None of the eam pair styles write their information to <A HREF = "restart.html">binary restart
-files</A>, since the info is tabulated in potential files.
-Thus, you need to re-specify the pair style and coefficient commands
-in an input script that reads a restart file.
+<P>The eam pair styles do not write their information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
 </P>
 <HR>
 

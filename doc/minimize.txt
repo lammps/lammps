@@ -31,6 +31,9 @@ fashion that should allow for systems with highly overlapped atoms
 (large energies and forces) to still be minimized by pushing the atoms
 off of each other.
 
+Following the minimization a statistical summary is printed that
+includes the energy change and convergence criteria information.
+
 A minimization involves an outer iteration loop which sets the search
 direction along which coordinates are changed.  An inner iteration is
 then performed using a line search algorithm.  The line search
@@ -58,21 +61,20 @@ include {pair/lj/charmm/coul/charmm} and {pair/lj/charmm/coul/long}.
 If a {soft} potential is used the Astop value is used for the
 prefactor (no time dependence).
 
-Only fixes that apply force constraints are invoked during
-minimization.  The list of the currently implemented ones include fix
-{addforce}, {aveforce}, {enforce2d}, {indent}, {lineforce},
-{planeforce}, {setforce}, and {wall/lj93}.  Note that {indent},
-{wall/lj93} have an associated potential energy.  If you want that
-energy to be included in the total potential energy of the system (the
-quantity being minimized), you must enable the
-"fix_modify"_fix_modify.html {energy} option for that fix.
+Only some fixes (typically those that apply force constraints) are
+invoked during minimization.  See the doc pages for individual
+"fix"_fix.html commands to see which ones are relevant.
 
-Following the minimization a statistical summary is printed that
-includes the energy change and convergence criteria information.
+IMPORTANT NOTE: Some fixes which are invoked during minimization have
+an associated potential energy.  For that energy to be included in the
+total potential energy of the system (the quantity being minimized),
+you MUST enable the "fix_modify"_fix_modify.html {energy} option for
+that fix.  The doc pages for individual "fix"_fix.html commands
+specify if this should be done.
 
 [Restrictions:]
 
-Features that are not yet implemented listed here, in case someone
+Features that are not yet implemented are listed here, in case someone
 knows how they could be coded:
 
 It is an error to use "fix shake"_fix_shake.html with minimization

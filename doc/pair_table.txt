@@ -137,11 +137,32 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-[Restrictions:]
+:line
 
-The {table} potential does not support the
-"pair_modify"_pair_modify.hmtl {mix} option.  Coefficients for all i,j
-pairs must be specified explicitly.
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+This pair style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+The "pair_modify"_pair_modify.html shift, table, and tail options are
+not relevant for this pair style.
+
+This pair style can calculate per-atom energy and stress, as used by
+the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.
+
+This pair style writes the settings for the "pair_style table" command
+to "binary restart files"_restart.html, so a pair_style command does
+not need to specified in an input script that reads a restart file.
+However, the coefficient information is not stored in the restart
+file, since it is tabulated in the potential files.  Thus, pair_coeff
+commands do need to be specified in the restart input script.
+
+:line
+
+[Restrictions:] none
 
 [Related commands:]
 

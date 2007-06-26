@@ -50,7 +50,7 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
 zero or more keyword/value pairs may be appended to the args :l
 keyword = {remap} or {units} :l
   {remap} value = {x} or {v} or {none}
-    x = remap coords of atoms in group into deforming box (affine deformation)
+    x = remap coords of atoms in group into deforming box
     v = remap velocities of all atoms when they cross periodic boundaries
     none = no remapping of x or v
   {units} value = {lattice} or {box}
@@ -100,8 +100,7 @@ As described below, the desired simulation box size and shape at the
 end of the run are determined by the parameters of the fix deform
 command.  Every Nth timestep during the run, the simulation box is
 expanded, contracted, or tilted to ramped values between the initial
-and final values.  The "run"_run.html command documents how to make
-the ramping take place across multiple runs.
+and final values.
 
 :line
 
@@ -313,18 +312,13 @@ remapped into the new box in the appropriate manner.
 Each time the box size or shape is changed, the {remap} keyword
 determines whether atom positions are re-mapped to the new box.  If
 {remap} is set to {x} (the default), atoms in the fix group are
-re-mapped; otherwise they are not.  If all atoms are remapped, this is
-effectively an "affine" deformation.
-
-If {remap} is set to {v}, then any atom in the fix group that crosses
-a periodic boundary will have a delta added to its velocity equal to
-the difference in velocities between the lo and hi boundaries.  Note
-that this velocity difference can include tilt components, e.g. a
-delta in the x velocity when an atom crosses the y periodic boundary.
-If {remap} is set to {none}, then neither of these remappings take
-place.  Note that unlike remap x which changes atom coords
-continuously as the box deforms, this remapping of v is done ONLY when
-an atom crosses a periodic boundary.
+re-mapped; otherwise they are not.  If {remap} is set to {v}, then any
+atom in the fix group that crosses a periodic boundary will have a
+delta added to its velocity equal to the difference in velocities
+between the lo and hi boundaries.  Note that this velocity difference
+can include tilt components, e.g. a delta in the x velocity when an
+atom crosses the y periodic boundary.  If {remap} is set to {none},
+then neither of these remappings take place.
 
 IMPORTANT NOTE: When non-equilibrium MD (NEMD) simulations are
 performed using this fix, the option "remap v" should normally be
@@ -346,13 +340,26 @@ been previously used to define the lattice spacing.  Note that the
 units choice also affects the {vel} style parameters since it is
 defined in terms of distance/time.
 
-:line
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.
+
+This fix can perform deformation over multiple runs, using the {start}
+and {stop} keywords of the "run"_run.html command.  See the
+"run"_run.html command for details of how to do this.
+
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
 Any box dimension varied by this fix must be periodic.
 
-[Related commands:] none
+[Related commands:]
+
+"displace_box"_displace_box.html
 
 [Default:]
 

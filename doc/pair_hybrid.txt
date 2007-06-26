@@ -47,14 +47,6 @@ pair_coeff * * eam/alloy nialhjea 1 1 0
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
 pair_coeff 1*2 3 lj/cut 0.8 1.1 :pre
 
-Note that as with any pair_style, coeffs must be defined for all I,J
-interactions.  If the sub-style allows for mixing (see the
-"pair_modify"_pair_modify.html command), then I,J interactions between
-atom types which both are assigned to that sub-style do not need to be
-specified.  I.e. if atom types 1 and 2 are both computed with {lj/cut}
-and coeffs for 1,1 and 2,2 interactions are specified, then coeffs for
-1,2 interactions will be generated automatically via mixing.
-
 If the pair_coeff command for a sub-style requires the use of * * as
 atom type arguments (e.g. the {eam/alloy} example above), then it will
 also include trailing arguments which map atom types to elements in
@@ -66,7 +58,42 @@ hybrid command in your input script, if atoms in the simulation will
 have attributes from several atom styles, due to using multiple pair
 potentials.
 
+:line
+
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+Any pair potential settings made via the
+"pair_modify"_pair_modify.html command are passed along to all
+sub-styles of the hybrid potential.
+
+For atom type pairs I,J and I != J, if the sub-style assigned to I,I
+and J,J is the same, and if the sub-style allows for mixing, then the
+coefficients for I,J can be mixed.  The default mix value is
+{geometric}.  See the "pair_modify" command for details.  See the
+See the doc page for the sub-style to see if allows for mixing.
+
+The hybrid pair style supports the "pair_modify"_pair_modify.html
+shift, table, and tail options for an I,J pair interaction, if the
+associated sub-style supports it.
+
+The hybrid pair style can calculate per-atom energy and stress, as
+used by the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands, if all its sub-styles can perform per-atom calculations.
+
+For the hybrid pair style, the list of sub-styles and their respective
+settings are written to "binary restart files"_restart.html, so a
+pair_style command does not need to specified in an input script that
+reads a restart file.  However, the coefficient information is not
+stored in the restart file.  Thus, pair_coeff commands do need to be
+specified in the restart input script.
+
 [Restrictions:]
+
+A pair style of {none} can be specified as an argument to pair_style
+hybrid and the corresponding pair_coeff commands, if you desire to
+turn off pairwise interactions between certain pairs of atom types.
 
 When using a long-range Coulomic solver (via the
 "kspace_style"_kspace_style command) with pair_style hybrid, one or
@@ -75,17 +102,6 @@ E.g. {lj/cut/coul/long} or {buck/coul/long}.  It is OK to have more
 than one sub-style with a "long" component, but you must insure that
 the short-range Coulombic cutoff used by each of these pair styles is
 consistent.  Else the long-range Coulombic solve will be inconsistent.
-
-A pair style of {none} can be specified as an argument to pair_style
-hybrid and the corresponding pair_coeff commands, if you desire to
-turn off pairwise interactions between certain pairs of atom types.
-
-The hybrid style cannot include any of the {granular} styles in its
-list of styles to use.
-
-If you use multiple {coul/long} pair styles along with a "kspace
-style"_kspace_style.html, then you should make sure the pairwise
-Coulombic cutoff is the same for all the pair styles.
 
 [Related commands:]
 

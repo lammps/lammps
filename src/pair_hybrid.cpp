@@ -649,11 +649,13 @@ void PairHybrid::single_embed(int i, int itype, double &phi)
 
 /* ----------------------------------------------------------------------
    modify parameters of the pair style
-   simply pass command args to each sub-style of hybrid
+   call modify_params of PairHybrid
+   also pass command args to each sub-style of hybrid
 ------------------------------------------------------------------------- */
 
 void PairHybrid::modify_params(int narg, char **arg)
 {
+  Pair::modify_params(narg,arg);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->modify_params(narg,arg);
 }

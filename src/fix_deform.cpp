@@ -650,7 +650,7 @@ void FixDeform::end_of_step()
   domain->set_global_box();
   domain->set_local_box();
 
-  // convert affine atoms back to box coords
+  // convert atoms back to box coords
 
   if (remapflag == X_REMAP) {
     double **x = atom->x;

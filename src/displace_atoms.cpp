@@ -215,7 +215,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
   if (natoms != atom->natoms) {
     char str[128];
-    sprintf(str,"Lost atoms via displacement: original %.15g current %.15g",
+    sprintf(str,"Lost atoms via displace_atoms: original %.15g current %.15g",
 	    atom->natoms,natoms);
     error->all(str);
   }

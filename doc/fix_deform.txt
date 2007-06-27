@@ -119,7 +119,7 @@ See the discsussion of the units keyword below.
 
 For style {delta}, plus or minus changes in the lo/hi box boundaries
 of a dimension are specified.  The values can be in lattice or box
-distance units.  See the discsussion of the units keyword below.
+distance units.  See the discussion of the units keyword below.
 
 For style {scale}, a multiplicative factor to apply to the box length
 of a dimension is specified.  For example, if the initial box length

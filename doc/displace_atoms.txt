@@ -66,18 +66,20 @@ units.  {Lattice} means distance units are in lattice spacings.  The
 "lattice"_lattice.html command must have been previously used to
 define the lattice spacing.
 
+:line
+
 Care should be taken not to move atoms on top of other atoms.  After
 the move, atoms are remapped into the periodic simulation box if
 needed.
 
-Atoms can be moved arbitrarily long distances by this command.
-However if the box is non-periodic, this can change the shape of the
-simulation box.  This is not a problem, except that the mapping of
-processors to the simulation box is not changed from its initial 3d
-configuration by this command; see the "processors"_processors.html
-command.  Thus, if the box shape changes dramatically, the simulation
-may not be as well load-balanced (atoms per processor) as the initial
-mapping tried to achieve.
+Atoms can be moved arbitrarily long distances by this command.  If the
+simulation box is non-periodic, this can change its size or shape.
+This is not a problem, except that the mapping of processors to the
+simulation box is not changed by this command from its initial 3d
+configuration; see the "processors"_processors.html command.  Thus, if
+the box size or shape changes dramatically, the simulation may not be
+as well load-balanced (atoms per processor) as the initial mapping
+tried to achieve.
 
 [Restrictions:]
 

@@ -45,8 +45,6 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->radius_flag || !atom->rmass_flag)
     error->all("Fix pour requires atom attributes radius, rmass");
 
-  if (domain->triclinic) error->all("Cannot use fix pour with triclinic box");
-
   // required args
 
   ninsert = atoi(arg[3]);
@@ -243,6 +241,8 @@ int FixPour::setmask()
 
 void FixPour::init()
 {
+  if (domain->triclinic) error->all("Cannot use fix pour with triclinic box");
+
   // insure gravity fix exists
   // for 3d must point in -z, for 2d must point in -y
   // else insertion cannot work

@@ -475,6 +475,11 @@ example: :l
   12 3 17 29 13 100 :pre
 :ule
 
+The ordering of the 4 atoms determines the definition of the improper
+angle used in the formula for each "improper
+style"_improper_style.html.  See the doc pages for individual styles
+for details.
+
 The {Impropers} section must appear after the {Atoms} section.  All
 values in this section must be integers (1, not 1.0).
 

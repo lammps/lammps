@@ -36,7 +36,7 @@ AtomStyle(hybrid,AtomVecHybrid)
 #endif
 
 #ifdef CommandInclude
-#include "convert_box.h"
+#include "change_box.h"
 #include "create_atoms.h"
 #include "create_box.h"
 #include "delete_atoms.h"
@@ -56,7 +56,7 @@ AtomStyle(hybrid,AtomVecHybrid)
 #endif
 
 #ifdef CommandClass
-CommandStyle(convert_box,ConvertBox)
+CommandStyle(change_box,ChangeBox)
 CommandStyle(create_atoms,CreateAtoms)
 CommandStyle(create_box,CreateBox)
 CommandStyle(delete_atoms,DeleteAtoms)

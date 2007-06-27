@@ -41,7 +41,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   pressure_every = 0;
   rigid_flag = 0;
   virial_flag = 0;
-  no_convert_box = 0;
+  no_change_box = 0;
 
   comm_forward = comm_reverse = 0;
   neigh_half_once = neigh_half_every = 0;

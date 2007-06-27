@@ -42,7 +42,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 11) error->all("Illegal fix ave/spatial command");
 
-  no_convert_box = 1;
+  no_change_box = 1;
 
   nevery = atoi(arg[3]);
   nfreq = atoi(arg[4]);

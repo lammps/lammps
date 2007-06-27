@@ -11,41 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_DEFORM_H
-#define FIX_DEFORM_H
+#ifndef DISPLACE_BOX_H
+#define DISPLACE_BOX_H
 
-#include "fix.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class FixDeform : public Fix {
+class DisplaceBox : protected Pointers {
  public:
-  int remapflag;
-
-  FixDeform(class LAMMPS *, int, char **);
-  ~FixDeform();
-  int setmask();
-  void init();
-  void pre_exchange();
-  void end_of_step();
+  DisplaceBox(class LAMMPS *);
+  void command(int, char **);
 
  private:
-  int triclinic,scaleflag,flip;
-  double *h_rate,*h_ratelo;
-  int kspace_flag;                 // 1 if KSpace invoked, 0 if not
-  int nrigid;                      // number of rigid fixes
-  int *rfix;                       // indices of rigid fixes
+  int remapflag,scaleflag;
 
   struct Set {
     int style,substyle;
     double flo,fhi,ftilt;
     double dlo,dhi,dtilt;
-    double scale,vel,rate;
+    double scale;
     double lo_start,hi_start;
     double lo_stop,hi_stop;
-    double lo_target,hi_target;
-    double tilt_start,tilt_stop,tilt_target;
-    double vol_start,tilt_flip;
+    double tilt_start,tilt_stop;
+    double vol_start;
     int fixed,dynamic1,dynamic2;
   };
   Set *set;

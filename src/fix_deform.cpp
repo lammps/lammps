@@ -172,6 +172,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (flag && scaleflag && domain->lattice == NULL)
     error->all("Use of fix deform with undefined lattice");
 
+  double xscale,yscale,zscale;
   if (flag && scaleflag) {
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;
@@ -330,7 +331,6 @@ void FixDeform::init()
   // cannot be 0.0 since can't deform a finite distance in 0 time
 
   double delt = (update->endstep - update->beginstep) * update->dt;
-  if (delt == 0.0) error->all("Cannot use fix deform for 0 timestep run");
 
   // set final values for box size and shape for VEL,ERATE,TRATE
   // now possible since length of run is known
@@ -402,8 +402,11 @@ void FixDeform::init()
     if (set[i].style == FINAL || set[i].style == DELTA ||
 	set[i].style == SCALE || set[i].style == VEL || 
 	set[i].style == ERATE) {
-      double dlo_dt = (set[i].lo_stop - set[i].lo_start) / delt;
-      double dhi_dt = (set[i].hi_stop - set[i].hi_start) / delt;
+      double dlo_dt,dhi_dt;
+      if (delt != 0.0) {
+	dlo_dt = (set[i].lo_stop - set[i].lo_start) / delt;
+	dhi_dt = (set[i].hi_stop - set[i].hi_start) / delt;
+      } else dlo_dt = dhi_dt = 0.0;
       h_rate[i] = dhi_dt - dlo_dt;
       h_ratelo[i] = dlo_dt;
     }
@@ -412,8 +415,11 @@ void FixDeform::init()
   for (int i = 3; i < 6; i++) {
     h_rate[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA || 
-	set[i].style == VEL || set[i].style == ERATE)
-      h_rate[i] = (set[i].tilt_stop - set[i].tilt_start) / delt;
+	set[i].style == VEL || set[i].style == ERATE) {
+      if (delt != 0.0)
+	h_rate[i] = (set[i].tilt_stop - set[i].tilt_start) / delt;
+      else h_rate[i] = 0.0;
+    }
   }    
 
   // detect if any rigid fixes exist so rigid bodies can be rescaled

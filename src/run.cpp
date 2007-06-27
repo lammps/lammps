@@ -190,5 +190,7 @@ void Run::command(int narg, char **arg)
   }
 
   update->whichflag = -1;
+  update->firststep = update->laststep = 0;
+  update->beginstep = update->endstep = 0;
   delete [] commandstr;
 }

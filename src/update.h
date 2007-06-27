@@ -24,11 +24,11 @@ class Update : protected Pointers {
   double tolerance;               // minimizer tolerance
   int ntimestep;                  // current step (dynamics or min iter)
   int nsteps;                     // # of steps to run (dynamics or min iter)
+  int whichflag;                  // 0 for time integration, 1 for minimization
   int firststep,laststep;         // 1st & last step of this run
   int beginstep,endstep;          // 1st and last step of multiple runs
   int first_update;               // 0 before initial update, 1 after
   int max_eval;                   // max force evaluations for minimizer
-  int whichflag;                  // 0 for time integration, 1 for minimization
 
   double **f_pair;                // used by pair to compute force & virial
   int maxpair;

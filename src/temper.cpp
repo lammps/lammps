@@ -298,7 +298,10 @@ void Temper::command(int narg, char **arg)
 
   Finish finish(lmp);
   finish.end(1);
+
   update->whichflag = -1;
+  update->firststep = update->laststep = 0;
+  update->beginstep = update->endstep = 0;
 }
 
 /* ----------------------------------------------------------------------

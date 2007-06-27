@@ -22,6 +22,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "limits.h"
 #include "rpc/rpc.h"
 #include "rpc/xdr.h"
 #include "dump_xtc.h"

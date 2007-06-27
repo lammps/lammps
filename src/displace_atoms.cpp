@@ -44,7 +44,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     error->all("Displace_atoms command before simulation box is defined");
   if (narg < 2) error->all("Illegal displace_atoms command");
 
-  // init entire system since comm->exchange is done
+  // init entire system since comm->irregular is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
   if (comm->me == 0 && screen)

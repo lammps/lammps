@@ -34,9 +34,12 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   int n;
   char *str;
 
-  whichflag = -1;
   ntimestep = 0;
   first_update = 0;
+
+  whichflag = -1;
+  firststep = laststep = 0;
+  beginstep = endstep = 0;
 
   maxpair = 0;
   f_pair = NULL;

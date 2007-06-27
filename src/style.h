@@ -41,6 +41,7 @@ AtomStyle(hybrid,AtomVecHybrid)
 #include "delete_atoms.h"
 #include "delete_bonds.h"
 #include "displace_atoms.h"
+#include "displace_box.h"
 #include "minimize.h"
 #include "read_data.h"
 #include "read_restart.h"
@@ -59,6 +60,7 @@ CommandStyle(create_box,CreateBox)
 CommandStyle(delete_atoms,DeleteAtoms)
 CommandStyle(delete_bonds,DeleteBonds)
 CommandStyle(displace_atoms,DisplaceAtoms)
+CommandStyle(displace_box,DisplaceBox)
 CommandStyle(minimize,Minimize)
 CommandStyle(read_data,ReadData)
 CommandStyle(read_restart,ReadRestart)

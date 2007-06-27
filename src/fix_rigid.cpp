@@ -491,7 +491,7 @@ void FixRigid::init()
   }
   
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-  
+
   for (ibody = 0; ibody < nbody; ibody++) {
     if (fabs(all[ibody][0]-inertia[ibody][0]) > TOLERANCE || 
 	fabs(all[ibody][1]-inertia[ibody][1]) > TOLERANCE ||

@@ -129,7 +129,6 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (domain->triclinic) error->all("Cannot use fix npt with triclinic box");
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix npt on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
@@ -227,6 +226,7 @@ int FixNPT::setmask()
 
 void FixNPT::init()
 {
+  if (domain->triclinic) error->all("Cannot use fix npt with triclinic box");
   if (atom->mass == NULL)
     error->all("Cannot use fix npt without per-type mass defined");
 

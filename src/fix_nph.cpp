@@ -122,7 +122,6 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (domain->triclinic) error->all("Cannot use fix nph with triclinic box");
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix nph on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
@@ -217,6 +216,7 @@ int FixNPH::setmask()
 
 void FixNPH::init()
 {
+  if (domain->triclinic) error->all("Cannot use fix nph with triclinic box");
   if (atom->mass == NULL)
     error->all("Cannot use fix nph without per-type mass defined");
 

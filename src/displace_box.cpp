@@ -41,7 +41,7 @@ void DisplaceBox::command(int narg, char **arg)
 
   if (domain->box_exist == 0) 
     error->all("Displace_box command before simulation box is defined");
-  if (narg < 2) error->all("Illegal displace_atoms command");
+  if (narg < 2) error->all("Illegal displace_box command");
 
   // init entire system since comm->irregular is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -391,7 +391,7 @@ void DisplaceBox::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   parse optional parameters at end of displace_atoms input line 
+   parse optional parameters at end of displace_box input line 
 ------------------------------------------------------------------------- */
 
 void DisplaceBox::options(int narg, char **arg)

@@ -57,6 +57,7 @@ void CreateBox::command(int narg, char **arg)
   //   set simulation domain params from prism params
 
   if (strcmp(domain->regions[iregion]->style,"prism") != 0) {
+    domain->triclinic = 0;
     domain->boxlo[0] = domain->regions[iregion]->extent_xlo;
     domain->boxhi[0] = domain->regions[iregion]->extent_xhi;
     domain->boxlo[1] = domain->regions[iregion]->extent_ylo;

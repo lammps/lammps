@@ -103,60 +103,12 @@ Comm::~Comm()
   memory->sfree(buf_recv);
 }
 
-/* ---------------------------------------------------------------------- */
-
-void Comm::init()
-{
-  map_style = atom->map_style;
-
-  // comm_only = 1 if only x,f are exchanged in forward/reverse comm
-
-  comm_x_only = atom->avec->comm_x_only;
-  comm_f_only = atom->avec->comm_f_only;
-
-  // maxforward = # of datums in largest forward communication
-  // maxreverse = # of datums in largest reverse communication
-  // query pair,fix,compute for their requirements
-
-  maxforward = MAX(atom->avec->size_comm,atom->avec->size_border);
-  maxreverse = atom->avec->size_reverse;
-
-  if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
-  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
-
-  for (int i = 0; i < modify->nfix; i++) {
-    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
-  }
-
-  for (int i = 0; i < modify->ncompute; i++) {
-    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
-  }
-
-  if (force->newton == 0) maxreverse = 0;
-
-  // memory for multi-style communication
-
-  if (style == MULTI && multilo == NULL) {
-    allocate_multi(maxswap);
-    cutghostmulti = 
-      memory->create_2d_double_array(atom->ntypes+1,3,"comm:cutghostmulti");
-  }
-  if (style == SINGLE && multilo) {
-    free_multi();
-    memory->destroy_2d_double_array(cutghostmulti);
-  }
-}
-
 /* ----------------------------------------------------------------------
    setup 3d grid of procs based on box size
 ------------------------------------------------------------------------- */
 
 void Comm::set_procs()
 {
-  triclinic = domain->triclinic;
-
   if (user_procgrid[0] == 0) procs2box();
   else {
     procgrid[0] = user_procgrid[0];
@@ -201,13 +153,60 @@ void Comm::set_procs()
 
   // set lamda box params after procs are assigned
 
-  if (triclinic) domain->set_lamda_box();
+  if (domain->triclinic) domain->set_lamda_box();
 
   if (me == 0) {
     if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
 			procgrid[0],procgrid[1],procgrid[2]);
     if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
 			 procgrid[0],procgrid[1],procgrid[2]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Comm::init()
+{
+  triclinic = domain->triclinic;
+  map_style = atom->map_style;
+
+  // comm_only = 1 if only x,f are exchanged in forward/reverse comm
+
+  comm_x_only = atom->avec->comm_x_only;
+  comm_f_only = atom->avec->comm_f_only;
+
+  // maxforward = # of datums in largest forward communication
+  // maxreverse = # of datums in largest reverse communication
+  // query pair,fix,compute for their requirements
+
+  maxforward = MAX(atom->avec->size_comm,atom->avec->size_border);
+  maxreverse = atom->avec->size_reverse;
+
+  if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
+
+  for (int i = 0; i < modify->nfix; i++) {
+    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < modify->ncompute; i++) {
+    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  }
+
+  if (force->newton == 0) maxreverse = 0;
+
+  // memory for multi-style communication
+
+  if (style == MULTI && multilo == NULL) {
+    allocate_multi(maxswap);
+    cutghostmulti = 
+      memory->create_2d_double_array(atom->ntypes+1,3,"comm:cutghostmulti");
+  }
+  if (style == SINGLE && multilo) {
+    free_multi();
+    memory->destroy_2d_double_array(cutghostmulti);
   }
 }
 
@@ -1268,7 +1267,7 @@ void Comm::procs2box()
 {
   double area[3];
 
-  if (triclinic == 0) {
+  if (domain->triclinic == 0) {
     area[0] = domain->xprd * domain->yprd;
     area[1] = domain->xprd * domain->zprd;
     area[2] = domain->yprd * domain->zprd;

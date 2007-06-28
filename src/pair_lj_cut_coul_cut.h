@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class PairLJCutCoulCut : public Pair {
  public:
   PairLJCutCoulCut(class LAMMPS *);
-  ~PairLJCutCoulCut();
+  virtual ~PairLJCutCoulCut();
   virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);

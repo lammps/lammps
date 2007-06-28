@@ -38,6 +38,9 @@ using namespace LAMMPS_NS;
 #define EPS 1e-5
 #define XTC_MAGIC 1995
 
+#define MYMIN(a,b) ((a) < (b) ? (a) : (b))
+#define MYMAX(a,b) ((a) > (b) ? (a) : (b))
+
 int xdropen(XDR *, const char *, const char *);
 int xdrclose(XDR *) ;
 void xdrfreebuf();
@@ -830,9 +833,9 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
       smallidx++;
     }
     xdr_int(xdrs, &smallidx);
-    maxidx = MIN(LASTIDX, smallidx + 8) ;
+    maxidx = MYMIN(LASTIDX, smallidx + 8) ;
     minidx = maxidx - 8; /* often this equal smallidx */
-    smaller = magicints[MAX(FIRSTIDX, smallidx-1)] / 2;
+    smaller = magicints[MYMAX(FIRSTIDX, smallidx-1)] / 2;
     small = magicints[smallidx] / 2;
     sizesmall[0] = sizesmall[1] = sizesmall[2] = magicints[smallidx];
     larger = magicints[maxidx] / 2;
@@ -1006,9 +1009,9 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     }
     
     xdr_int(xdrs, &smallidx);
-    maxidx = MIN(LASTIDX, smallidx + 8) ;
+    maxidx = MYMIN(LASTIDX, smallidx + 8) ;
     minidx = maxidx - 8; /* often this equal smallidx */
-    smaller = magicints[MAX(FIRSTIDX, smallidx-1)] / 2;
+    smaller = magicints[MYMAX(FIRSTIDX, smallidx-1)] / 2;
     small = magicints[smallidx] / 2;
     sizesmall[0] = sizesmall[1] = sizesmall[2] = magicints[smallidx] ;
     larger = magicints[maxidx];

@@ -36,6 +36,7 @@
 using namespace LAMMPS_NS;
 
 #define DELTA 1
+
 #define MYMIN(a,b) ((a) < (b) ? (a) : (b))
 #define MYMAX(a,b) ((a) > (b) ? (a) : (b))
 

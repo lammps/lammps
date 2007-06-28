@@ -35,12 +35,14 @@ is with respect to the other 3 atoms.
 
 Note that defining 4 atoms to interact in this way, does not mean that
 bonds necessarily exist between I-J, J-K, or K-L, as they would in a
-linear dihedral.
+linear dihedral.  Normally, the bonds I-J, I-K, I-L would exist for an
+improper to be defined between the 4 atoms.
 
-The following coefficients must be defined for each improper type via the
-"improper_coeff"_improper_coeff.html command as in the example above, or in
-the data file or restart files read by the "read_data"_read_data.html
-or "read_restart"_read_restart.html commands:
+The following coefficients must be defined for each improper type via
+the "improper_coeff"_improper_coeff.html command as in the example
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
 
 K (energy/radian^2)
 X0 (degrees) :ul

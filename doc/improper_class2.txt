@@ -24,7 +24,7 @@ The {class2} improper style uses the potential
 :c,image(Eqs/improper_class2.jpg)
 
 where Ei is the improper term and Eaa is an angle-angle term.  The 3 X
-terms used in Ei are an average over the 3 out-of-plane angles.
+terms in Ei are an average over 3 out-of-plane angles.
 
 The 4 atoms in an improper quadruplet (listed in the data file read by
 the "read_data"_read_data.html command) are ordered I,J,K,L.  X_IJKL

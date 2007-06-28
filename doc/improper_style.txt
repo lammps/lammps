@@ -26,7 +26,10 @@ Set the formula(s) LAMMPS uses to compute improper interactions
 between quadruplets of atoms, which remain in force for the duration
 of the simulation.  The list of improper quadruplets is read in by a
 "read_data"_read_data.html or "read_restart"_read_restart.html command
-from a data or restart file.
+from a data or restart file.  Note that the ordering of the 4 atoms in
+an improper quadruplet determines the the definition of the improper
+angle used in the formula for each style.  See the doc pages of
+individual styles for details.
 
 Hybrid models where impropers are computed using different improper
 potentials can be setup using the {hybrid} improper style.
@@ -47,7 +50,7 @@ to be re-specified.
 IMPORTANT NOTE: When both an improper and pair style is defined, the
 "special_bonds"_special_bonds.html command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
-exist between 4 bonded atoms.
+exist between a group of 4 bonded atoms.
 
 :line
 

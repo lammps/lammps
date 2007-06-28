@@ -28,10 +28,25 @@ improper_coeff 1 80.0 -1 4
 </CENTER>
 <P>where phi is the Wilson out-of-plane angle.
 </P>
-<P>The following coefficients must be defined for each improper type via the
-<A HREF = "improper_coeff.html">improper_coeff</A> command as in the example above, or in
-the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
-or <A HREF = "read_restart.html">read_restart</A> commands:
+<P>If the 4 atoms in an improper quadruplet (listed in the data file read
+by the <A HREF = "read_data.html">read_data</A> command) are ordered I,J,K,L then
+the Wilson angle is between the plane of I,J,K and the plane of J,K,L.
+This is essentially a dihedral angle, which is why the formula for
+this improper style is the same as for <A HREF = "dihedral_harmonic.html">dihedral_style
+harmonic</A>.  Alternatively, you can think of
+atoms J,K,L as being in a plane, and atom I above the plane, and the
+Wilson angle as a measure of how far out-of-plane I is with respect to
+the other 3 atoms.
+</P>
+<P>Note that defining 4 atoms to interact in this way, does not mean that
+bonds necessarily exist between I-J, J-K, or K-L, as they would in a
+linear dihedral.
+</P>
+<P>The following coefficients must be defined for each improper type via
+the <A HREF = "improper_coeff.html">improper_coeff</A> command as in the example
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
 </P>
 <UL><LI>K (energy)
 <LI>d (+1 or -1)

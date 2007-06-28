@@ -7,10 +7,10 @@ DEFINES	= -DMISSINGDEFS -D_POSIX_SOURCE -DUSEPRIVATE -DINCL_FLOAT
 WARNS	= -Wimplicit -Wunused -Wmissing-prototypes
 CCOPTS 	= -c $(OPTIM) $(DEFINES) $(WARNS) $(XINCLUDE)
 LNOPTS	= $(OPTIM) 
-LIBS	= $(XLIBDIR) -lX11 -lXaw #-lXt -lXext -lXmu -lXpm
+
+LIBS	= $(XLIBDIR) -lX11 -lXaw -lm
 
 # try this version on a Mac
-
 #LIBS	= $(XLIBDIR) -lX11 -lXaw -lXt -lXext -lXmu -lXpm
 
 OBJS	= xmovie.o \

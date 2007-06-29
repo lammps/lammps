@@ -260,9 +260,16 @@ void CreateAtoms::add_many()
   if (zmin < 0.0) klo--;
 
   // set bounds for my proc
-  // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-  // on lower boundary, allows triclinic atoms just outside box to be added
-  // on upper boundary, prevents atoms with lower images from being added
+  // if periodic:
+  //   should create exactly 1 atom when 2 images are both "on" the boundary
+  //   either image may be slightly inside/outside true box due to round-off
+  //   if I am lo proc, decrement lower bound by EPSILON
+  //     this will insure lo image is created
+  //   if I am hi proc, decrement upper bound by 2.0*EPSILON
+  //     this will insure hi image is not created
+  //   thus insertion box is EPSILON smaller than true box
+  //     and is shifted away from true boundary
+  //     which is where atoms are likely to be generated
 
   double sublo[3],subhi[3];
 
@@ -277,20 +284,20 @@ void CreateAtoms::add_many()
   }
 
   if (domain->xperiodic) {
-    if (triclinic && comm->myloc[0] == 0) sublo[0] -= EPSILON;
-    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= EPSILON;
+    if (comm->myloc[0] == 0) sublo[0] -= EPSILON;
+    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= 2.0*EPSILON;
   }
   if (domain->yperiodic) {
-    if (triclinic && comm->myloc[1] == 0) sublo[1] -= EPSILON;
-    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= EPSILON;
+    if (comm->myloc[1] == 0) sublo[1] -= EPSILON;
+    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= 2.0*EPSILON;
   }
   if (domain->zperiodic) {
-    if (triclinic && comm->myloc[2] == 0) sublo[2] -= EPSILON;
-    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= EPSILON;
+    if (comm->myloc[2] == 0) sublo[2] -= EPSILON;
+    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= 2.0*EPSILON;
   }
 
-  // iterate on 3d periodic lattice using loop bounds
-  // invoke add_atom for nbasis atoms in each unit cell
+  // iterate on 3d periodic lattice of unit cells using loop bounds
+  // iterate on nbasis atoms in each unit cell
   // convert lattice coords to box coords
   // add atom if it meets all criteria 
 

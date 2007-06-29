@@ -307,7 +307,7 @@ void LAMMPS::init()
                          //   used by fix shear_history::unpack_restart()
                          //   when force->pair->gran_history creates fix ??
   modify->init();        // modify must come after update, force, atom
-  neighbor->init();      // neighbor must come after force, modify (due to min)
+  neighbor->init();      // neighbor must come after force, modify
   output->init();        // output must come after domain, force, modify
   comm->init();          // comm must come after force, modify
   timer->init();
@@ -329,7 +329,7 @@ void LAMMPS::destroy()
   delete output;
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
-  delete atom;            // must come after modify, neighbor
+  delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
   delete timer;
 }

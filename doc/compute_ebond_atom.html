@@ -28,11 +28,11 @@
 atom in a group.  This can be output via the <A HREF = "dump.html">dump custom</A>
 command.
 </P>
-<P>The bond energy for each atom is computed by looping over its
-neighbors and computing the energy associated with the defined
-<A HREF = "pair_style.html">pair_style</A> command for each IJ pair (divided by 2).
-Thus the sum of per-atom energy for all atoms should give the total
-pairwise energy of the system.
+<P>The bond energy for each atom is computed by looping over the atoms it
+is bonded to and computing the bond energy associated with the defined
+<A HREF = "bond_style.html">bond_style</A> command for each I-J bond (divided by 2).
+Thus the sum of per-atom bond energy for all atoms should give the
+total bond energy of the system.
 </P>
 <P>If two atoms are bonded and only one of them is in the compute group,
 the energy of the bond is included in the per-atom energy of the atom

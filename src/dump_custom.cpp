@@ -33,7 +33,7 @@ enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
      Q,MUX,MUY,MUZ,
      QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
-     EPAIR,KE,ETOTAL,CENTRO,SXX,SYY,SZZ,SXY,SXZ,SYZ,
+     EPAIR,EBOND,KE,ETOTAL,CENTRO,SXX,SYY,SZZ,SXY,SXZ,SYZ,
      COMPUTE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
@@ -57,9 +57,11 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   // flags, IDs, and memory for compute objects dump may create
 
-  index_epair = index_ke = index_etotal = index_centro = index_stress = -1;
+  index_epair = index_ebond = index_ke = 
+    index_etotal = index_centro = index_stress = -1;
 
   style_epair = "epair/atom";
+  style_ebond = "ebond/atom";
   style_ke = "ke/atom";
   style_etotal = "etotal/atom";
   style_centro = "centro/atom";
@@ -79,6 +81,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // create the requested Computes
 
   if (index_epair >= 0) create_compute(style_epair,NULL);
+  if (index_ebond >= 0) create_compute(style_ebond,NULL);
   if (index_ke >= 0) create_compute(style_ke,NULL);
   if (index_etotal >= 0) create_compute(style_etotal,style_epair);
   if (index_centro >= 0) create_compute(style_centro,NULL);
@@ -122,6 +125,7 @@ DumpCustom::~DumpCustom()
   // delete Compute classes if dump custom created them
 
   if (index_epair >= 0)  modify->delete_compute(id_compute[index_epair]);
+  if (index_ebond >= 0)  modify->delete_compute(id_compute[index_ebond]);
   if (index_ke >= 0)  modify->delete_compute(id_compute[index_ke]);
   if (index_etotal >= 0)  modify->delete_compute(id_compute[index_etotal]);
   if (index_centro >= 0)  modify->delete_compute(id_compute[index_centro]);
@@ -430,6 +434,9 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == EPAIR) {
 	ptr = compute[index_epair]->scalar_atom;
 	nstride = 1;
+      } else if (thresh_array[ithresh] == EBOND) {
+	ptr = compute[index_ebond]->scalar_atom;
+	nstride = 1;
       } else if (thresh_array[ithresh] == KE) {
 	ptr = compute[index_ke]->scalar_atom;
 	nstride = 1;
@@ -701,6 +708,10 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_epair;
       vtype[i] = DOUBLE;
       index_epair = add_compute(style_epair,1);
+    } else if (strcmp(arg[iarg],"ebond") == 0) {
+      pack_choice[i] = &DumpCustom::pack_ebond;
+      vtype[i] = DOUBLE;
+      index_ebond = add_compute(style_ebond,1);
     } else if (strcmp(arg[iarg],"ke") == 0) {
       pack_choice[i] = &DumpCustom::pack_ke;
       vtype[i] = DOUBLE;
@@ -942,6 +953,12 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (index_epair < 0) {
 	index_epair = add_compute(style_epair,1);
 	create_compute(style_epair,NULL);
+      }
+    } else if (strcmp(arg[1],"ebond") == 0) {
+      thresh_array[nthresh] = EBOND;
+      if (index_ebond < 0) {
+	index_ebond = add_compute(style_ebond,1);
+	create_compute(style_ebond,NULL);
       }
     } else if (strcmp(arg[1],"ke") == 0) {
       thresh_array[nthresh] = KE;
@@ -1585,6 +1602,20 @@ void DumpCustom::pack_epair(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = epair[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_ebond(int n)
+{
+  double *ebond = compute[index_ebond]->scalar_atom;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = ebond[i];
       n += size_one;
     }
 }

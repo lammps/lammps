@@ -30,7 +30,10 @@ class ComputeStressAtom : public Compute {
   int memory_usage();
 
  private:
+  int pairrequest,bondrequest,kerequest;
+  int pairflag,bondflag;
   int nmax;
+
   double **stress;
 };
 

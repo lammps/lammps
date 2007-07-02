@@ -50,8 +50,9 @@ class DumpCustom : public Dump {
 
                              // index = where keyword's Compute is in list
                              // style = style of Compute object
-  int index_epair,index_ke,index_etotal,index_centro,index_stress;
-  char *style_epair,*style_ke,*style_etotal,*style_centro,*style_stress;
+  int index_epair,index_ebond,index_ke,index_etotal,index_centro,index_stress;
+  char *style_epair,*style_ebond,*style_ke,*style_etotal;
+  char *style_centro,*style_stress;
 
   // private methods
 
@@ -117,6 +118,7 @@ class DumpCustom : public Dump {
   void pack_etotal(int);
   void pack_ke(int);
   void pack_epair(int);
+  void pack_ebond(int);
   void pack_centro(int);
   void pack_sxx(int);
   void pack_syy(int);

@@ -14,7 +14,7 @@ fix ID group-ID wall/reflect keyword ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 wall/reflect = style name of this fix command
-one or more keyword/value pairs may be appended to the args
+one or more keyword/value pairs may be appended
 keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :ul
 
 [Examples:]

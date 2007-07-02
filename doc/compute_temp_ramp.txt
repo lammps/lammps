@@ -18,7 +18,7 @@ vdim = {vx} or {vy} or {vz}
 vlo,vhi = subtract velocities between vlo and vhi (velocity units)
 dim = {x} or {y} or {z}
 clo,chi = lower and upper bound of domain to subtract from (distance units)
-zero or more keyword/value pairs may be appended to the args
+zero or more keyword/value pairs may be appended
 keyword = {units} :ul
   {units} value = {lattice} or {box} :pre
 

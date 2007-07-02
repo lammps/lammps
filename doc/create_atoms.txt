@@ -19,7 +19,7 @@ style = {box} or {region} or {single} :l
     region-ID = atoms will only be created if contained in the region
   {single} args = x y z
     x,y,z = coordinates of a single atom (distance units) :pre
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {basis} or {units} :l
   {basis} values = M itype
     M = which basis atom

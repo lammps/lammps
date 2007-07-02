@@ -30,7 +30,7 @@ style = {create} or {set} or {scale} or {ramp} or {zero} :l
     {linear} = zero the linear momentum
     {angular} = zero the angular momentum :pre
 
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {loop} or {units} :l
   {dist} value = {uniform} or {gaussian}
   {sum} value = {no} or {yes}

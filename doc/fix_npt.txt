@@ -24,7 +24,7 @@ p-style = {xyz} or {xy} or {yz} or {xz} or {aniso} :l
     Px_start,Px_stop,... = desired pressure in x,y,z at start/end of run (pressure units)
     Pdamp = pressure damping parameter (time units) :pre
 
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {drag} or {dilate} :l
   {drag} value = drag factor added to barostat/thermostat (0.0 = no drag)
   {dilate} value = {all} or {partial} :pre

@@ -15,7 +15,7 @@ fix ID group-ID momentum N keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 momentum = style name of this fix command :l
 N = adjust the momentum every this many timesteps
-one or more keyword/value pairs may be appended to the args :l
+one or more keyword/value pairs may be appended :l
 keyword = {linear} or {angular} :l
   {linear} values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include each dimension

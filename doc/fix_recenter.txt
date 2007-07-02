@@ -16,7 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 recenter = style name of this fix command :l
 x,y,z = constrain center-of-mass to these coords (distance units), \
         any coord can also be NULL or INIT (see below) :l
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {shift} or {units} :l
   {shift} value = group-ID
     group-ID = group of atoms whose coords are shifted

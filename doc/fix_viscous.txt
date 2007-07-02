@@ -17,7 +17,7 @@ viscous = style name of this fix command :l
 gamma = damping coefficient (force/velocity units) :l
 zero or more keyword/value pairs can be appended :l
 keyword = {b} or {a} or {t} or {m} :l
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {scale}
   {scale} values = type ratio
     type = atom type (1-N)

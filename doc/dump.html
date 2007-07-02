@@ -39,7 +39,7 @@
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
-		          epair, ke, etotal, centro,
+		          epair, ebond, ke, etotal, centro,
                           sxx, syy, szz, sxy, sxz, syz,
 			  c_ID, c_ID[N]
       tag = atom ID
@@ -56,8 +56,9 @@
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on aspherical particles
       epair = per-atom pairwise energy
+      epair = per-atom bond energy
       ke = per-atom kinetic energy
-      etotal = per-atom total energy (ke + epair)
+      etotal = per-atom total energy (ke + epair, not ebond)
       centro = per-atom centro-symmetry parameter
       sxx, syy, szz, sxy, sxz, syz = per-atom stress tensor components
       c_ID = scalar per-atom quantity calculated by a compute identified by its ID
@@ -240,15 +241,17 @@ are specific to aspherical particles defined with an atom style of
 define the orientiation of the particle.  The final 3 give the
 rotational torque on the particle.
 </P>
-<P>The <I>epair</I>, <I>ke</I>, <I>etotal</I>, <I>centro</I>, and <I>sxx</I>, etc keywords print
-the pairwise energy, kinetic energy, total energy (pairwise +
-kinetic), centro-symmetry parameter, and components of the per-atom
-stress tensor for each atom.  These quantities are calculated by
-computes that the dump defines, as if these commands had been issued:
+<P>The <I>epair</I>, <I>ebond</I>, <I>ke</I>, <I>etotal</I>, <I>centro</I>, and <I>sxx</I>, etc
+keywords print the pairwise energy, bond energy, kinetic energy, total
+energy (pairwise + kinetic), centro-symmetry parameter, and components
+of the per-atom stress tensor for each atom.  These quantities are
+calculated by computes that the dump defines, as if these commands had
+been issued:
 </P>
 <PRE>compute dump-ID_epair/atom group-ID <A HREF = "compute_epair_atom.html">epair/atom</A>
+compute dump-ID_ebond/atom group-ID <A HREF = "compute_ebond_atom.html">ebond/atom</A>
 compute dump-ID_ke/atom group-ID <A HREF = "compute_ke_atom.html">ke/atom</A>
-compute dump-ID_etotal/atom group-ID <A HREF = "compute_etotal_atom.html">etotal/atom</A>
+compute dump-ID_etotal/atom group-ID <A HREF = "compute_etotal_atom.html">etotal/atom</A> dump-ID_epair/atom
 compute dump-ID_centro/atom group-ID <A HREF = "compute_centro_atom.html">centro/atom</A>
 compute dump-ID_stress/atom group-ID <A HREF = "compute_stress_atom.html">stress/atom</A> 
 </PRE>
@@ -256,10 +259,16 @@ compute dump-ID_stress/atom group-ID <A HREF = "compute_stress_atom.html">stress
 details on what is computed for each atom.  Note that the ID of each
 new compute is the dump-ID with the compute style appended (with an
 underscore).  The group for each new compute is the same as the dump
-group.
+group.  Note that for <I>etotal</I>, an auxiliary compute for calculating
+the pairwise energy is created, since the <A HREF = "compute_etotal_atom.html">compute
+etotal/atom</A> command requires it as an extra
+argument.
 </P>
-<P>Note that the <I>etotal</I> keyword does not include energy contributions
-due to bonds, angles, etc that the atom is part of.
+<P>IMPORTANT NOTE: The <I>etotal</I> keyword does NOT include contributions
+due to bonds, angles, etc that the atom is part of.  The bond
+contribution can be computed separately via the <I>ebond</I> keyword.
+Currently, there is no way in LAMMPS to dump per-atom energy for
+angles, dihedrals, improper, or long-range interactions.
 </P>
 <P>The <I>sxx</I>, <I>syy</I>, <I>szz</I>, <I>sxy</I>, <I>sxz</I>, <I>syz</I> keywords access the 6
 components of the stress tensor calculated for each atom by the
@@ -311,9 +320,11 @@ files are written with, which will result in a compile-time error when
 a lo-level include file is not found.  Putting this style in a package
 makes it easy to exclude from a LAMMPS build for those machines.
 </P>
-<P>Granular systems and granular pair potentials cannot be used to
-compute per-atom energy and stress.  The <A HREF = "fix_gran_diag.html">fix
-gran/diag</A> command should be used instead.
+<P>Some pair potentials do not allow the calculation of per-atom energy
+and stress via the <I>epair</I>, <I>etotal</I>, <I>sxx</I>, etc keywords.  One of
+these are the granular pair potentials.  However, for those
+potentials, the <A HREF = "fix_gran_diag.html">fix gran/diag</A> command can be used
+instead.
 </P>
 <P><B>Related commands:</B>
 </P>

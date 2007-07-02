@@ -31,7 +31,7 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
       {delta} value = dtilt
         dtilt = change in tilt factor at end of run (distance units) :pre
 
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {remap} or {units} :l
   {remap} value = {x} or {none}
     x = remap coords of atoms in group into deforming box

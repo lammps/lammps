@@ -17,7 +17,7 @@ nvt/sllod = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run :l
 Tdamp = temperature damping parameter (time units) :l
 
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {drag} :l
   {drag} value = drag factor added to thermostat (0.0 = no drag) :pre
 :ule

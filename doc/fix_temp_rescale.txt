@@ -18,7 +18,7 @@ N = perform rescaling every N steps
 Tstart,Tstop = desired temperature at start/end of run (temperature units)
 window = only rescale if temperature is outside this window (temperature units)
 fraction = rescale to target temperature by this fraction
-zero or more keyword/value pairs may be appended to the args
+zero or more keyword/value pairs may be appended
 keyword = {region} :ul
   {region} values = region-ID of region to apply rescaling to :pre
 

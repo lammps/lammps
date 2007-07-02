@@ -10,12 +10,12 @@ fix indent command :h3
 
 [Syntax:]
 
-fix ID group-ID indent k keyword args ... :pre
+fix ID group-ID indent k keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 indent = style name of this fix command :l
 k = force constant for indenter surface (force/distance^2 units) :l
-one or more keyword/value pairs may be appended to the args :l
+one or more keyword/value pairs may be appended :l
 keyword = {sphere} or {cylinder} or {vel} or {rstart} or {units} :l
   {sphere} args = x y z R
     x,y,z = initial position of center of indenter

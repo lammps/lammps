@@ -26,6 +26,7 @@ latex fix_wall_lj93
 latex improper_class2
 latex improper_cvff
 latex improper_harmonic
+latex pair_airebo
 latex pair_buck
 latex pair_charmm
 latex pair_class2

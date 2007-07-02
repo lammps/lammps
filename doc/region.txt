@@ -36,7 +36,7 @@ style = {block} or {cylinder} or {prism} or {sphere} or {union} or {intersect} :
   {intersect} args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to intersect :pre
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {side} or {units} :l
   {side} value = {in} or {out}
     {in} = the region is inside the specified geometry

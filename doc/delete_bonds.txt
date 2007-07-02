@@ -22,7 +22,7 @@ style = {multi} or {atom} or {bond} or {angle} or {dihedral} or
   {dihedral} args = a dihedral type
   {improper} args = an improper type
   {stats} args = none :pre
-zero or more keywords may be appended to the args :l
+zero or more keywords may be appended :l
 keyword = {undo} or {remove} or {special} :l
 :ule
 

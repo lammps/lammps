@@ -14,7 +14,7 @@ set style ID keyword value ... :pre
 
 style = {atom} or {group} or {region} :ulb,l
 ID = atom ID or group ID or region ID :l
-one or more keyword/value pairs may be appended to the args :l
+one or more keyword/value pairs may be appended :l
 keyword = {type} or {type/fraction} or {mol} or \
 	  {x} or {y} or {z} or {vx} or {vy} or {vz} or \
           {charge} or {dipole} or {dipole/random} or {quat/random} or \

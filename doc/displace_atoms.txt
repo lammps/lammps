@@ -24,7 +24,7 @@ style = {move} or {ramp} or {random} :l
   {random} args = dx dy dz seed
     dx,dy,dz = random displacement magnitude in each dimension (distance units)
     seed = random # seed (8 digits or less) :pre
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
   keyword = {units}
     value = {box} or {lattice} :pre
 :ule

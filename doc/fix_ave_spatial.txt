@@ -27,7 +27,7 @@ style = {density} or {atom} or {compute} :l
   {atom} arg = {vx} or {vy} or {vz} or {fx} or {fy} or {fz}
   {compute} arg = compute-ID that calculates per-atom quantities :pre
 
-zero or more keyword/value pairs may be appended to the args :l
+zero or more keyword/value pairs may be appended :l
 keyword = {norm} or {units}
   {norm} value = {all} or {sample}
   {units} value = {box} or {lattice} or {reduced} :pre

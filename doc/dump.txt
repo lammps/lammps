@@ -30,7 +30,7 @@ args = list of arguments for a particular style :l
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
-		          epair, ke, etotal, centro,
+		          epair, ebond, ke, etotal, centro,
                           sxx, syy, szz, sxy, sxz, syz,
 			  c_ID, c_ID\[N\]
       tag = atom ID
@@ -47,8 +47,9 @@ args = list of arguments for a particular style :l
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on aspherical particles
       epair = per-atom pairwise energy
+      epair = per-atom bond energy
       ke = per-atom kinetic energy
-      etotal = per-atom total energy (ke + epair)
+      etotal = per-atom total energy (ke + epair, not ebond)
       centro = per-atom centro-symmetry parameter
       sxx, syy, szz, sxy, sxz, syz = per-atom stress tensor components
       c_ID = scalar per-atom quantity calculated by a compute identified by its ID
@@ -230,15 +231,17 @@ are specific to aspherical particles defined with an atom style of
 define the orientiation of the particle.  The final 3 give the
 rotational torque on the particle.
 
-The {epair}, {ke}, {etotal}, {centro}, and {sxx}, etc keywords print
-the pairwise energy, kinetic energy, total energy (pairwise +
-kinetic), centro-symmetry parameter, and components of the per-atom
-stress tensor for each atom.  These quantities are calculated by
-computes that the dump defines, as if these commands had been issued:
+The {epair}, {ebond}, {ke}, {etotal}, {centro}, and {sxx}, etc
+keywords print the pairwise energy, bond energy, kinetic energy, total
+energy (pairwise + kinetic), centro-symmetry parameter, and components
+of the per-atom stress tensor for each atom.  These quantities are
+calculated by computes that the dump defines, as if these commands had
+been issued:
 
 compute dump-ID_epair/atom group-ID "epair/atom"_compute_epair_atom.html
+compute dump-ID_ebond/atom group-ID "ebond/atom"_compute_ebond_atom.html
 compute dump-ID_ke/atom group-ID "ke/atom"_compute_ke_atom.html
-compute dump-ID_etotal/atom group-ID "etotal/atom"_compute_etotal_atom.html
+compute dump-ID_etotal/atom group-ID "etotal/atom"_compute_etotal_atom.html dump-ID_epair/atom
 compute dump-ID_centro/atom group-ID "centro/atom"_compute_centro_atom.html
 compute dump-ID_stress/atom group-ID "stress/atom"_compute_stress_atom.html :pre
 
@@ -246,10 +249,16 @@ See the corresponding "compute"_compute.html style commands for
 details on what is computed for each atom.  Note that the ID of each
 new compute is the dump-ID with the compute style appended (with an
 underscore).  The group for each new compute is the same as the dump
-group.
+group.  Note that for {etotal}, an auxiliary compute for calculating
+the pairwise energy is created, since the "compute
+etotal/atom"_compute_etotal_atom.html command requires it as an extra
+argument.
 
-Note that the {etotal} keyword does not include energy contributions
-due to bonds, angles, etc that the atom is part of.
+IMPORTANT NOTE: The {etotal} keyword does NOT include contributions
+due to bonds, angles, etc that the atom is part of.  The bond
+contribution can be computed separately via the {ebond} keyword.
+Currently, there is no way in LAMMPS to dump per-atom energy for
+angles, dihedrals, improper, or long-range interactions.
 
 The {sxx}, {syy}, {szz}, {sxy}, {sxz}, {syz} keywords access the 6
 components of the stress tensor calculated for each atom by the
@@ -301,9 +310,11 @@ files are written with, which will result in a compile-time error when
 a lo-level include file is not found.  Putting this style in a package
 makes it easy to exclude from a LAMMPS build for those machines.
 
-Granular systems and granular pair potentials cannot be used to
-compute per-atom energy and stress.  The "fix
-gran/diag"_fix_gran_diag.html command should be used instead.
+Some pair potentials do not allow the calculation of per-atom energy
+and stress via the {epair}, {etotal}, {sxx}, etc keywords.  One of
+these are the granular pair potentials.  However, for those
+potentials, the "fix gran/diag"_fix_gran_diag.html command can be used
+instead.
 
 [Related commands:]
 

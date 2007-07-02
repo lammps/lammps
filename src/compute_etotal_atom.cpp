@@ -66,6 +66,9 @@ void ComputeEtotalAtom::init()
   if (icompute < 0)
     error->all("Could not find compute etotal/atom pre-compute ID");
   compute_epair = modify->compute[icompute];
+
+  if (groupbit != compute_epair->groupbit && comm->me == 0)
+    error->warning("Group for compute etotal and its epair are not the same");
 }
 
 /* ---------------------------------------------------------------------- */

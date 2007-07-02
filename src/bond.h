@@ -38,8 +38,7 @@ class Bond : protected Pointers {
   virtual double equilibrium_distance(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
-  virtual void single(int, double, int, int, 
-		      double, int, double &, double &) = 0;
+  virtual void single(int, double, int, int, int, double &, double &) = 0;
   virtual int memory_usage() {return 0;}
 };
 

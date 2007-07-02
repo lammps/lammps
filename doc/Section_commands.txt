@@ -437,6 +437,7 @@ description:
 
 "centro/atom"_compute_centro_atom.html,
 "coord/atom"_compute_coord_atom.html,
+"ebond/atom"_compute_ebond_atom.html,
 "epair/atom"_compute_epair_atom.html,
 "etotal/atom"_compute_etotal_atom.html,
 "ke/atom"_compute_ke_atom.html,

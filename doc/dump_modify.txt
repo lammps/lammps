@@ -10,10 +10,10 @@ dump_modify command :h3
 
 [Syntax:]
 
-dump_modify dump-ID keyword args ... :pre
+dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
-one or more keyword/arg pairs may be appended :l
+one or more keyword/value pairs may be appended :l
 keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {thresh} :l
   {format} arg = C-style format string for one line of output
   {scale} arg = {yes} or {no}

@@ -23,7 +23,11 @@ compute 1 all centro/atom :pre
 
 Define a computation that calculates the centro-symmetry parameter for
 each atom in a group.  This can be output via the "dump
-custom"_dump.html command.
+custom"_dump.html command.  In solid state systems the centro-symmetry
+parameter is a useful measure of the local lattice disorder around an
+atom and can be used to characterize whether the atom is part of a
+perfect lattice, a local defect (e.g. a dislocation or stacking
+fault), or at a surface.
 
 This parameter is computed using the following formula from
 "(Kelchner)"_#Kelchner
@@ -32,10 +36,8 @@ This parameter is computed using the following formula from
 
 where the 12 nearest neighbors are found and Ri and Ri+6 are the
 vectors from the central atom to the opposite pair of nearest
-neighbors.  In solid state systems this is a useful measure of the
-local lattice disorder around an atom and can be used to characterize
-whether the atom is part of a perfect lattice, a local defect (e.g. a
-dislocation or stacking fault), or at a surface.
+neighbors.  Atoms not in the group are included in the 12 neighbors
+used in this calculation.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms

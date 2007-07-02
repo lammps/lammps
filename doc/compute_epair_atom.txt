@@ -27,20 +27,27 @@ custom"_dump.html command.
 
 The pairwise energy for each atom is computed by looping over its
 neighbors and computing the energy associated with the defined
-"pair_style"_pair_style.html command for each IJ pair (divided by 2).
+"pair_style"_pair_style.html command for each I,J pair (divided by 2).
 Thus the sum of per-atom energy for all atoms should give the total
 pairwise energy of the system.
 
+If two atoms interact and only one of them is in the compute group,
+the energy of the pairwise interaction is included in the per-atom
+energy of the atom in the group.
+
 For force fields that include a contribution to the pairwise energy
 that is computed as part of dihedral terms (i.e. 1-4 interactions),
-this contribution is not included in the per-atom pairwise energy.
+this contribution is NOT included in the per-atom pairwise energy.
 
 Computation of per-atom pairwise energy requires a loop thru the
 neighbor list and inter-processor communication, so it can be
 inefficient to compute/dump this quantity too frequently or to have
 multiple compute/dump commands, each of a {epair/atom} style.
 
-[Restrictions:] none
+[Restrictions:]
+
+Some pair potentials do not allow the calculation of per-atom energy
+via this command.  An error will be generated if this is the case.
 
 [Related commands:] none
 

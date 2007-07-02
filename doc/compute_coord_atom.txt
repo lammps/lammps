@@ -27,7 +27,9 @@ atom in a group.  This can be output via the "dump custom"_dump.html
 command.
 
 The coordination number is defined as the number of neighbor atoms
-within the specified cutoff distance from the central atom.
+within the specified cutoff distance from the central atom.  Atoms not
+in the group are included in the coordination number of atoms in the
+group.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms

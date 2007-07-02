@@ -1,0 +1,52 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute ebond/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID ebond/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>ebond/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ebond/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that computes the per-atom bond energy for each
+atom in a group.  This can be output via the <A HREF = "dump.html">dump custom</A>
+command.
+</P>
+<P>The bond energy for each atom is computed by looping over its
+neighbors and computing the energy associated with the defined
+<A HREF = "pair_style.html">pair_style</A> command for each IJ pair (divided by 2).
+Thus the sum of per-atom energy for all atoms should give the total
+pairwise energy of the system.
+</P>
+<P>If two atoms are bonded and only one of them is in the compute group,
+the energy of the bond is included in the per-atom energy of the atom
+in the group.
+</P>
+<P>Computation of per-atom bond energy requires a loop thru the bond list
+and inter-processor communication, so it can be inefficient to
+compute/dump this quantity too frequently or to have multiple
+compute/dump commands, each of a <I>ebond/atom</I> style.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

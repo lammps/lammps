@@ -29,17 +29,27 @@
 pairwise) for each atom in a group.  This can be output via the <A HREF = "dump.html">dump
 custom</A> command.
 </P>
+<P>IMPORTANT NOTE: The per-atom total energy does NOT include
+contributions due to bonds, angles, dihedrals, impropers that the atom
+is part of, or a long-range Coulombic contribution.  The bond
+contribution can be computed separately via the <A HREF = "compute_ebond_atom.html">compute
+ebond/atom</A> command.  Currently, there is no
+way in LAMMPS to calculate per-atom energy from angles, dihedrals,
+improper, or long-range interactions.
+</P>
 <P>The kinetic energy for each atom is computed the same way as in the
 <A HREF = "compute_ke_atom.html">compute ke/atom</A> command, namely as 1/2 m v^2.
 </P>
-<P>The pairwise energy is not calculated by this compute, but rather by
-the <A HREF = "compute_epair_atom.html">epair/atom compute</A> specified as the last
-argument of the command.
+<P>The pairwise energy for each atom is computed the same way as in the
+<A HREF = "compute_epair_atom.html">compute epair/atom</A> command.  In fact, the
+last argument to this command is the ID of the epair/atom compute that
+performs this calculation.
 </P>
-<P>Note that the total energy per atom as defined here does not include
-contributions due to bonds, angles, etc that the atom is part of.
+<P><B>Restrictions:</B>
 </P>
-<P><B>Restrictions:</B> none
+<P>Some pair potentials do not allow the calculation of per-atom energy
+and via the auxiliary <A HREF = "compute_epair_atom.html">compute epair/atom</A>
+compute that is an argument to this command.
 </P>
 <P><B>Related commands:</B>
 </P>

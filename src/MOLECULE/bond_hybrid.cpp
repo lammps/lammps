@@ -250,11 +250,11 @@ void BondHybrid::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondHybrid::single(int type, double rsq, int i, int j, double rfactor,
+void BondHybrid::single(int type, double rsq, int i, int j,
 			int eflag, double &fforce, double &eng)
 {
   if (styles[map[type]]) 
-    styles[map[type]]->single(type,rsq,i,j,rfactor,eflag,fforce,eng);
+    styles[map[type]]->single(type,rsq,i,j,eflag,fforce,eng);
 }
 
 /* ----------------------------------------------------------------------

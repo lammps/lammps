@@ -203,7 +203,7 @@ void BondMorse::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondMorse::single(int type, double rsq, int i, int j, double rfactor,
+void BondMorse::single(int type, double rsq, int i, int j,
 		       int eflag, double &fforce, double &eng)
 {
   double r = sqrt(rsq);
@@ -214,5 +214,5 @@ void BondMorse::single(int type, double rsq, int i, int j, double rfactor,
 
   if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
   else fforce = 0.0;
-  if (eflag) eng = rfactor * d0[type]*(1-ralpha)*(1-ralpha);
+  if (eflag) eng = d0[type]*(1-ralpha)*(1-ralpha);
 }

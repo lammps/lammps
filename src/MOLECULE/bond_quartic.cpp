@@ -295,7 +295,7 @@ void BondQuartic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondQuartic::single(int type, double rsq, int i, int j, double rfactor,
+void BondQuartic::single(int type, double rsq, int i, int j,
 			 int eflag, double &fforce, double &eng)
 {
   double r,dr,r2,ra,rb,sr2,sr6;
@@ -334,7 +334,7 @@ void BondQuartic::single(int type, double rsq, int i, int j, double rfactor,
   }
     
   if (eflag) {
-    eng += rfactor*(k[type]*r2*ra*rb + u0[type]);
-    if (rsq < TWO_1_3) eng += rfactor * (4.0*sr6*(sr6-1.0) + 1.0);
+    eng += k[type]*r2*ra*rb + u0[type];
+    if (rsq < TWO_1_3) eng += 4.0*sr6*(sr6-1.0) + 1.0;
   }
 }

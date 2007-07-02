@@ -193,7 +193,7 @@ void BondHarmonic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondHarmonic::single(int type, double rsq, int i, int j, double rfactor,
+void BondHarmonic::single(int type, double rsq, int i, int j,
 			  int eflag, double &fforce, double &eng)
 {
   double r = sqrt(rsq);
@@ -204,5 +204,5 @@ void BondHarmonic::single(int type, double rsq, int i, int j, double rfactor,
 
   if (r > 0.0) fforce = -2.0*rk/r;
   else fforce = 0.0;
-  if (eflag) eng = rfactor * rk*dr;
+  if (eflag) eng = rk*dr;
 }

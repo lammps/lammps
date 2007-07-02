@@ -28,7 +28,7 @@ class BondNonlinear : public Bond {
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void single(int, double, int, int, double, int, double &, double &);
+  void single(int, double, int, int, int, double &, double &);
 
  private:
   double *epsilon,*r0,*lamda;

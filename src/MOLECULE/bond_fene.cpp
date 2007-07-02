@@ -233,7 +233,7 @@ void BondFENE::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondFENE::single(int type, double rsq, int i, int j, double rfactor,
+void BondFENE::single(int type, double rsq, int i, int j,
 		      int eflag, double &fforce, double &eng)
 {
   double r0sq = r0[type] * r0[type];
@@ -265,8 +265,8 @@ void BondFENE::single(int type, double rsq, int i, int j, double rfactor,
   // energy
 
   if (eflag) {
-    eng = -0.5*rfactor * k[type]*r0sq*log(rlogarg);
+    eng = -0.5 * k[type]*r0sq*log(rlogarg);
     if (rsq < TWO_1_3*sigma[type]*sigma[type])
-      eng += rfactor * (4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type]);
+      eng += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
   }
 }

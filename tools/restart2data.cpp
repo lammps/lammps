@@ -2179,10 +2179,10 @@ void Data::stats()
   printf("  Angle style = %s\n",angle_style);
   printf("  Dihedral style = %s\n",dihedral_style);
   printf("  Improper style = %s\n",improper_style);
-  printf("  Xlo/xhi = %g %g\n",xlo,xhi);
-  printf("  Ylo/yhi = %g %g\n",ylo,yhi);
-  printf("  Zlo/zhi = %g %g\n",zlo,zhi);
-  if (triclinic) printf("  Xy/xz/yz = %g %g %g\n",xy,xz,yz);
+  printf("  Xlo xhi = %g %g\n",xlo,xhi);
+  printf("  Ylo yhi = %g %g\n",ylo,yhi);
+  printf("  Zlo zhi = %g %g\n",zlo,zhi);
+  if (triclinic) printf("  Xy xz yz = %g %g %g\n",xy,xz,yz);
   printf("  Periodicity = %d %d %d\n",xperiodic,yperiodic,zperiodic);
   printf("  Boundary = %d %d, %d %d, %d %d\n",boundary[0][0],boundary[0][1],
 	 boundary[1][0],boundary[1][1],boundary[2][0],boundary[2][1]);
@@ -2218,7 +2218,7 @@ void Data::write(FILE *fp)
   fprintf(fp,"%g %g xlo xhi\n",xlo,xhi);
   fprintf(fp,"%g %g ylo yhi\n",ylo,yhi);
   fprintf(fp,"%g %g zlo zhi\n",zlo,zhi);
-  if (triclinic) fprintf(fp,"%g %g %g xy,xz,yz\n",xy,xz,yz);
+  if (triclinic) fprintf(fp,"%g %g %g xy xz yz\n",xy,xz,yz);
 
   if (mass) {
     fprintf(fp,"\nMasses\n\n");

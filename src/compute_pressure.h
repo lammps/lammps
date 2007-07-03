@@ -28,7 +28,7 @@ class ComputePressure : public Compute {
 
  private:
   double boltz,nktv2p,inv_volume;
-  int nvirial;
+  int nvirial,dimension;
   double **vptr;
   int kspaceflag;
   double *kspace_virial;

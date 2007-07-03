@@ -77,6 +77,7 @@ void ComputePressure::init()
 {
   boltz = force->boltz;
   nktv2p = force->nktv2p;
+  dimension = domain->dimension;
 
   // set temperature used by pressure
 
@@ -128,10 +129,18 @@ void ComputePressure::init()
 
 double ComputePressure::compute_scalar()
 {
-  inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  virial_compute(3);
-  scalar = (temperature->dof * boltz * temperature->scalar + 
-	    virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
+  if (dimension == 3) {
+    inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    virial_compute(3);
+    scalar = (temperature->dof * boltz * temperature->scalar + 
+	      virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
+  } else {
+    inv_volume = 1.0 / (domain->xprd * domain->yprd);
+    virial_compute(2);
+    scalar = (temperature->dof * boltz * temperature->scalar + 
+	      virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
+  }
+
   return scalar;
 }
 
@@ -142,11 +151,20 @@ double ComputePressure::compute_scalar()
 
 void ComputePressure::compute_vector()
 {
-  inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  virial_compute(6);
-  double *ke_tensor = temperature->vector;
-  for (int i = 0; i < 6; i++)
-    vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
+  if (dimension == 3) {
+    inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    virial_compute(6);
+    double *ke_tensor = temperature->vector;
+    for (int i = 0; i < 6; i++)
+      vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
+  } else {
+    inv_volume = 1.0 / (domain->xprd * domain->yprd);
+    virial_compute(4);
+    double *ke_tensor = temperature->vector;
+    vector[0] = (ke_tensor[0] + virial[0]) * inv_volume * nktv2p;
+    vector[1] = (ke_tensor[1] + virial[1]) * inv_volume * nktv2p;
+    vector[3] = (ke_tensor[3] + virial[3]) * inv_volume * nktv2p;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

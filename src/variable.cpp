@@ -74,9 +74,9 @@ void Variable::set(int narg, char **arg)
 {
   if (narg < 3) error->all("Illegal variable command");
 
-  // if var already exists, just skip
+  // if var already exists, just skip, except EQUAL vars
 
-  if (find(arg[0]) >= 0) return;
+  if (find(arg[0]) >= 0 && strcmp(arg[1],"equal") != 0) return;
       
   // make space for new variable
 
@@ -90,11 +90,6 @@ void Variable::set(int narg, char **arg)
     data = (char ***) 
       memory->srealloc(data,maxvar*sizeof(char **),"var:data");
   }
-
-  // set name of variable
-
-  names[nvar] = new char[strlen(arg[0]) + 1];
-  strcpy(names[nvar],arg[0]);
 
   // INDEX
   // num = listed args, index = 1st value, data = copied args
@@ -117,10 +112,16 @@ void Variable::set(int narg, char **arg)
     for (int i = 0; i < num[nvar]; i++) data[nvar][i] = NULL;
     
   // EQUAL
+  // remove pre-existing var if also style EQUAL (allows it to be reset)
   // num = 2, index = 1st value
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
+    if (find(arg[0]) >= 0) {
+      if (style[find(arg[0])] != EQUAL)
+	error->all("Cannot redefine variable as a different style");
+      remove(find(arg[0]));
+    }
     style[nvar] = EQUAL;
     num[nvar] = 2;
     index[nvar] = 0;
@@ -200,6 +201,11 @@ void Variable::set(int narg, char **arg)
     
   } else error->all("Illegal variable command");
 
+  // set name of variable
+  // must come at end, since EQUAL reset may have removed name
+
+  names[nvar] = new char[strlen(arg[0]) + 1];
+  strcpy(names[nvar],arg[0]);
   nvar++;
 }
 

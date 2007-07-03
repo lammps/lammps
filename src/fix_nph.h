@@ -35,6 +35,7 @@ class FixNPH : public Fix {
   int modify_param(int, char **);
 
  private:
+  int dimension;
   double dtv,dtf,dthalf;
   double boltz,nktv2p;
   double vol0,nkt;

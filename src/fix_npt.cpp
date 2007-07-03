@@ -63,6 +63,10 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
     p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[8]);
     p_period[0] = p_period[1] = p_period[2] = atof(arg[9]);
     p_flag[0] = p_flag[1] = p_flag[2] = 1;
+    if (domain->dimension == 2) {
+      p_start[2] = p_stop[2] = p_period[2] = 0.0;
+      p_flag[2] = 0;
+    }
 
   } else {
     if (strcmp(arg[6],"xy") == 0) press_couple = 1;
@@ -72,6 +76,10 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
     else error->all("Illegal fix npt command");
 
     if (narg < 14) error->all("Illegal fix npt command");
+
+    if (domain->dimension == 2 && 
+	(press_couple == 1 || press_couple == 2 || press_couple == 3))
+      error->all("Invalid fix npt command for a 2d simulation");
 
     if (strcmp(arg[7],"NULL") == 0) {
       p_start[0] = p_stop[0] = p_period[0] = 0.0;
@@ -93,6 +101,8 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
       p_start[2] = p_stop[2] = p_period[2] = 0.0;
       p_flag[2] = 0;
     } else {
+      if (domain->dimension == 2)
+	error->all("Invalid fix npt command for a 2d simulation");
       p_start[2] = atof(arg[11]);
       p_stop[2] = atof(arg[12]);
       p_flag[2] = 1;
@@ -262,7 +272,9 @@ void FixNPT::init()
 
   boltz = force->boltz;
   nktv2p = force->nktv2p;
-  vol0 = domain->xprd * domain->yprd * domain->zprd;
+  dimension = domain->dimension;
+  if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
+  else vol0 = domain->xprd * domain->yprd;
 
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
@@ -334,9 +346,10 @@ void FixNPT::initial_integrate()
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
 
-  double f_omega;
-  double denskt = (atom->natoms*boltz*t_target) / 
-    (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+  double denskt = atom->natoms*boltz*t_target / volume * nktv2p;
 
   for (i = 0; i < 3; i++) {
     p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
@@ -438,9 +451,10 @@ void FixNPT::final_integrate()
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
 
-  double f_omega;
-  double denskt = (atom->natoms*boltz*t_target) / 
-    (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+  double denskt = atom->natoms*boltz*t_target / volume * nktv2p;
 
   for (i = 0; i < 3; i++) {
     f_omega = p_freq[i]*p_freq[i] * (p_current[i]-p_target[i])/denskt;
@@ -500,9 +514,10 @@ void FixNPT::initial_integrate_respa(int ilevel, int flag)
     // update omega_dot
     // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
 
-    double f_omega;
-    double denskt = (atom->natoms*boltz*t_target) / 
-      (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+    double f_omega,volume;
+    if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+    else volume = domain->xprd*domain->yprd;
+    double denskt = atom->natoms*boltz*t_target / volume * nktv2p;
 
     for (int i = 0; i < 3; i++) {
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
@@ -812,7 +827,10 @@ double FixNPT::thermo(int n)
 {
   double ke = temperature->dof * boltz * t_target;
   double keplus = atom->natoms * boltz * t_target;
-  double volume = domain->xprd * domain->yprd * domain->zprd;
+  double volume;
+  if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
+  else volume = domain->xprd * domain->yprd;
+
   int pdim = p_flag[0] + p_flag[1] + p_flag[2];
 
   double energy = ke * (eta + 0.5*eta_dot*eta_dot/(t_freq*t_freq));

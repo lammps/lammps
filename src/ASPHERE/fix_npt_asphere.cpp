@@ -69,9 +69,10 @@ void FixNPTASphere::initial_integrate()
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
 
-  double f_omega;
-  double denskt = (atom->natoms*boltz*t_target) / 
-    (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+  double denskt = atom->natoms*boltz*t_target / volume * nktv2p;
 
   for (i = 0; i < 3; i++) {
     p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
@@ -197,9 +198,10 @@ void FixNPTASphere::final_integrate()
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
 
-  double f_omega;
-  double denskt = (atom->natoms*boltz*t_target) / 
-    (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+  double denskt = atom->natoms*boltz*t_target / volume * nktv2p;
 
   for (i = 0; i < 3; i++) {
     f_omega = p_freq[i]*p_freq[i] * (p_current[i]-p_target[i])/denskt;

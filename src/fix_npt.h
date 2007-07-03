@@ -35,6 +35,7 @@ class FixNPT : public Fix {
   int modify_param(int, char **);
 
  protected:
+  int dimension;
   double dtv,dtq,dtf,dthalf;
   double boltz,nktv2p;
   double vol0;

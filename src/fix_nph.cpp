@@ -56,6 +56,10 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
     p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[5]);
     p_period[0] = p_period[1] = p_period[2] = atof(arg[6]);
     p_flag[0] = p_flag[1] = p_flag[2] = 1;
+    if (domain->dimension == 2) {
+      p_start[2] = p_stop[2] = p_period[2] = 0.0;
+      p_flag[2] = 0;
+    }
 
   } else {
     if (strcmp(arg[3],"xy") == 0) press_couple = 1;
@@ -65,6 +69,10 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
     else error->all("Illegal fix nph command");
 
     if (narg < 11) error->all("Illegal fix nph command");
+
+    if (domain->dimension == 2 && 
+	(press_couple == 1 || press_couple == 2 || press_couple == 3))
+      error->all("Invalid fix nph command for a 2d simulation");
 
     if (strcmp(arg[4],"NULL") == 0) {
       p_start[0] = p_stop[0] = p_period[0] = 0.0;
@@ -86,6 +94,8 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
       p_start[2] = p_stop[2] = p_period[2] = 0.0;
       p_flag[2] = 0;
     } else {
+      if (domain->dimension == 2)
+	error->all("Invalid fix nph command for a 2d simulation");
       p_start[2] = atof(arg[8]);
       p_stop[2] = atof(arg[9]);
       p_flag[2] = 1;
@@ -253,7 +263,9 @@ void FixNPH::init()
 
   boltz = force->boltz;
   nktv2p = force->nktv2p;
-  vol0 = domain->xprd * domain->yprd * domain->zprd;
+  dimension = domain->dimension;
+  if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
+  else vol0 = domain->xprd * domain->yprd;
 
   temperature->init();           // not yet called by Modify::init()
   double t_initial = temperature->compute_scalar();
@@ -324,8 +336,10 @@ void FixNPH::initial_integrate()
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega doesn't change
 
-  double f_omega;
-  double denskt = nkt / (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+  double denskt = nkt / volume * nktv2p;
 
   for (i = 0; i < 3; i++) {
     p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
@@ -421,8 +435,10 @@ void FixNPH::final_integrate()
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
 
-  double f_omega;
-  double denskt = nkt / (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+  double f_omega,volume;
+  if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+  else volume = domain->xprd*domain->yprd;
+  double denskt = nkt / volume * nktv2p;
 
   for (i = 0; i < 3; i++) {
     f_omega = p_freq[i]*p_freq[i] * (p_current[i]-p_target[i])/denskt;
@@ -474,8 +490,10 @@ void FixNPH::initial_integrate_respa(int ilevel, int flag)
     // update omega_dot
     // for non-varying dims, p_freq is 0.0, so omega doesn't change
 
-    double f_omega;
-    double denskt = nkt / (domain->xprd*domain->yprd*domain->zprd) * nktv2p;
+    double f_omega,volume;
+    if (dimension == 3) volume = domain->xprd*domain->yprd*domain->zprd;
+    else volume = domain->xprd*domain->yprd;
+    double denskt = nkt / volume * nktv2p;
 
     for (int i = 0; i < 3; i++) {
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
@@ -778,7 +796,10 @@ int FixNPH::modify_param(int narg, char **arg)
 
 double FixNPH::thermo(int n)
 {
-  double volume = domain->xprd * domain->yprd * domain->zprd;
+  double volume;
+  if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
+  else volume = domain->xprd * domain->yprd;
+
   int pdim = p_flag[0] + p_flag[1] + p_flag[2];
 
   double energy = 0.0;

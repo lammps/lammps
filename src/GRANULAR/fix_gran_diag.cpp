@@ -80,8 +80,8 @@ FixGranDiag::FixGranDiag(LAMMPS *lmp, int narg, char **arg) :
     delete [] file;
   }
 
-  stepz = atof(arg[5]);
-  stepinv = 1.0/stepz;
+  step = atof(arg[5]);
+  stepinv = 1.0/step;
   PI = 4.0*atan(1.0);
 
   maxlayers = 0;
@@ -161,9 +161,15 @@ void FixGranDiag::end_of_step()
 {
   int i,m;
 
-  // set bottom of box for binning purposes
+  // setup for 2d vs 3d
 
-  boxzlo = domain->boxlo[2];
+  int dim;
+  if (domain->dimension == 3) dim = 2;
+  else dim = 1;
+
+  // set bottom of box for binning purposes
+  
+  boxlo = domain->boxlo[dim];
 
   // update ghost atom info
   // else ghost x/v is out-of-date at end of timestep
@@ -173,7 +179,7 @@ void FixGranDiag::end_of_step()
   // insure accumulator arrays are correct length
   // add 10 for buffer
 
-  nlayers = static_cast<int> (domain->zprd / stepz) + 10;
+  nlayers = static_cast<int> (domain->prd[dim] / step) + 10;
   if (nlayers > maxlayers) {
     deallocate();
     maxlayers = nlayers;
@@ -191,7 +197,7 @@ void FixGranDiag::end_of_step()
   }
 
   // density/velocity accumulation by atom
-  // assign to layer based on atom distance from z bottom of domain
+  // assign to layer based on atom distance from bottom of domain
 
   int overflow = 0;
 
@@ -203,7 +209,7 @@ void FixGranDiag::end_of_step()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      m = static_cast<int> ((x[i][2]-boxzlo) * stepinv);
+      m = static_cast<int> ((x[i][dim]-boxlo) * stepinv);
       if (m >= 0 && m < nlayers) {
 	numdens[m]++;
 	dendens[m] += rmass[i];
@@ -292,11 +298,12 @@ void FixGranDiag::end_of_step()
   // density/velocity/stress by layer
 
   double velxxd1,velyyd1,velzzd1,velxyd1,velxzd1,velyzd1;
-  double volxy = domain->xprd * domain->yprd;
+  double vollayer = domain->xprd;
+  if (domain->dimension == 3) vollayer *= domain->yprd;
 
   for (m = 0; m < nmax; m++) {
     if (numdens[m] == 0) numdens[m] = 1;
-    dendens[m] = stepinv*dendens[m]/volxy;
+    dendens[m] = stepinv*dendens[m]/vollayer;
 
     velx11[m] = velx[m]/numdens[m];
     vely11[m] = vely[m]/numdens[m];
@@ -322,12 +329,12 @@ void FixGranDiag::end_of_step()
     velfxz[m] = velxzd1 * dendens[m];
     velfyz[m] = velyzd1 * dendens[m];
 
-    sigx2[m] = sigxx[m]/(2.0*volxy*stepz) + velxxd1*dendens[m];
-    sigy2[m] = sigyy[m]/(2.0*volxy*stepz) + velyyd1*dendens[m];
-    sigz2[m] = sigzz[m]/(2.0*volxy*stepz) + velzzd1*dendens[m];
-    sigxy2[m] = sigxy[m]/(2.0*volxy*stepz) + velxyd1*dendens[m];
-    sigxz2[m] = sigxz[m]/(2.0*volxy*stepz) + velxzd1*dendens[m];
-    sigyz2[m] = sigyz[m]/(2.0*volxy*stepz) + velyzd1*dendens[m];
+    sigx2[m] = sigxx[m]/(2.0*vollayer*step) + velxxd1*dendens[m];
+    sigy2[m] = sigyy[m]/(2.0*vollayer*step) + velyyd1*dendens[m];
+    sigz2[m] = sigzz[m]/(2.0*vollayer*step) + velzzd1*dendens[m];
+    sigxy2[m] = sigxy[m]/(2.0*vollayer*step) + velxyd1*dendens[m];
+    sigxz2[m] = sigxz[m]/(2.0*vollayer*step) + velxzd1*dendens[m];
+    sigyz2[m] = sigyz[m]/(2.0*vollayer*step) + velyzd1*dendens[m];
   }
 
   // write out density profile
@@ -339,7 +346,7 @@ void FixGranDiag::end_of_step()
     fprintf(fpden,"%d %d\n",nmax,overflow);
     fprintf(fpden,"ITEM: DENSITY BY LAYER\n");
     for (m = 0; m < nmax; m++)
-      fprintf(fpden,"%d %g %g\n",m+1,(m+1)*stepz+boxzlo,dendens[m]*PI/6.0);
+      fprintf(fpden,"%d %g %g\n",m+1,(m+1)*step+boxlo,dendens[m]*PI/6.0);
   }
 
   // write out velocity profile
@@ -352,7 +359,7 @@ void FixGranDiag::end_of_step()
     fprintf(fpvel,"ITEM: VELOCITY BY LAYER\n");
     for (m = 0; m < nmax; m++)
       fprintf(fpvel,"%d %g %g %g %g %g %g %g %g %g %g\n",
-	      m+1,(m+1)*stepz+boxzlo,
+	      m+1,(m+1)*step+boxlo,
 	      velx11[m],vely11[m],velz11[m],
 	      velxx11[m],velyy11[m],velzz11[m],
 	      velxy11[m],velxz11[m],velyz11[m]);
@@ -368,7 +375,7 @@ void FixGranDiag::end_of_step()
     fprintf(fpstr,"ITEM: STRESS BY LAYER\n");
     for (m = 0; m < nmax; m++)
       fprintf(fpstr,"%d %g %g %g %g %g %g %g %g %g %g %g %g %g\n",
-	      m+1,(m+1)*stepz+boxzlo,
+	      m+1,(m+1)*step+boxlo,
               sigx2[m],sigy2[m],sigz2[m],
               sigxy2[m],sigxz2[m],sigyz2[m],
               velfxx[m],velfyy[m],velfzz[m],
@@ -576,7 +583,7 @@ void FixGranDiag::stress_no_history()
 	// atom i always contributes
 	// atom j contributes if newton_pair is on or if owned by this proc
 
-	m = static_cast<int> ((x[i][2]-boxzlo) * stepinv);
+	m = static_cast<int> ((x[i][dim]-boxlo) * stepinv);
 	if (m >= 0 && m < nlayers) {
 	  sigxx[m] += delx*ccelx;
 	  sigyy[m] += dely*ccely;
@@ -587,7 +594,7 @@ void FixGranDiag::stress_no_history()
 	}
 	
 	if (newton_pair || j < nlocal) {
-	  m = static_cast<int> ((x[j][2]-boxzlo) * stepinv);
+	  m = static_cast<int> ((x[j][dim]-boxlo) * stepinv);
 	  if (m >= 0 && m < nlayers) {
 	    sigxx[m] += delx*ccelx;
 	    sigyy[m] += dely*ccely;
@@ -759,7 +766,7 @@ void FixGranDiag::stress_history()
 	// atom i always contributes
 	// atom j contributes if newton_pair is on or if owned by this proc
 
-	m = static_cast<int> ((x[i][2]-boxzlo) * stepinv);
+	m = static_cast<int> ((x[i][dim]-boxlo) * stepinv);
 	if (m >= 0 && m < nlayers) {
 	  sigxx[m] += delx*ccelx;
 	  sigyy[m] += dely*ccely;
@@ -770,7 +777,7 @@ void FixGranDiag::stress_history()
 	}
 	
 	if (newton_pair || j < nlocal) {
-	  m = static_cast<int> ((x[j][2]-boxzlo) * stepinv);
+	  m = static_cast<int> ((x[j][dim]-boxlo) * stepinv);
 	  if (m >= 0 && m < nlayers) {
 	    sigxx[m] += delx*ccelx;
 	    sigyy[m] += dely*ccely;
@@ -944,7 +951,7 @@ void FixGranDiag::stress_hertzian()
 	// atom i always contributes
 	// atom j contributes if newton_pair is on or if owned by this proc
 
-	m = static_cast<int> ((x[i][2]-boxzlo) * stepinv);
+	m = static_cast<int> ((x[i][dim]-boxlo) * stepinv);
 	if (m >= 0 && m < nlayers) {
 	  sigxx[m] += delx*ccelx;
 	  sigyy[m] += dely*ccely;
@@ -955,7 +962,7 @@ void FixGranDiag::stress_hertzian()
 	}
 	
 	if (newton_pair || j < nlocal) {
-	  m = static_cast<int> ((x[j][2]-boxzlo) * stepinv);
+	  m = static_cast<int> ((x[j][dim]-boxlo) * stepinv);
 	  if (m >= 0 && m < nlayers) {
 	    sigxx[m] += delx*ccelx;
 	    sigyy[m] += dely*ccely;

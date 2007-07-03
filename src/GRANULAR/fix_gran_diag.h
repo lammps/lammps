@@ -29,9 +29,9 @@ class FixGranDiag : public Fix {
   void end_of_step();
 
  private:
-  int me,first,pairstyle,nlayers,maxlayers;
+  int me,first,pairstyle,nlayers,maxlayers,dim;
   FILE *fpden,*fpvel,*fpstr;
-  double stepz,stepinv,PI,boxzlo;
+  double step,stepinv,boxlo,PI;
   double dt,xkk,xkkt,xmu,gamman_dl,gammas_dl;
   int freeze_group_bit;
 

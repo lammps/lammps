@@ -72,23 +72,26 @@ by the {p-style} argument.  In each case, the desired pressure at each
 timestep is a ramped value during the run from the starting value to
 the end value.
 
-Style {xyz} means couple all 3 dimensions together when pressure is
-computed (isotropic pressure), and dilate/contract the 3 dimensions
+Style {xyz} means couple all dimensions together when pressure is
+computed (isotropic pressure), and dilate/contract the dimensions
 together.
 
 Styles {xy} or {yz} or {xz} means that the 2 specified dimensions are
 coupled together, both for pressure computation and for
 dilation/contraction.  The 3rd dimension dilates/contracts
 independently, using its pressure component as the driving force.
+These styles cannot be used for a 2d simulation.
 
-For style {aniso}, all 3 dimensions dilate/contract independently
-using their individual pressure components as the 3 driving forces.
+For style {aniso}, all dimensions dilate/contract independently using
+their individual pressure components as the driving forces.
 
 For any of the styles except {xyz}, any of the independent pressure
 components (e.g. z in {xy}, or any dimension in {aniso}) can have
 their target pressures (both start and stop values) specified as NULL.
 This means that no pressure control is applied to that dimension so
-that the box dimension remains unchanged.
+that the box dimension remains unchanged.  For a 2d simulation the z
+pressure components must be specified as NULL when using style
+{aniso}.
 
 In some cases (e.g. for solids) the pressure (volume) and/or
 temperature of the system can oscillate undesirably when a Nose/Hoover

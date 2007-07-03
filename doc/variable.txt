@@ -40,13 +40,13 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
 [Examples:]
 
 variable x index run1 run2 run3 run4 run5 run6 run7 run8
-variable LoopVar loop 20
+variable LoopVar loop $n
 variable beta equal div(temp,3.0)
 variable b1 equal add(x\[234\],mult(0.5,vol))
 variable b equal div(xcm(mol1,x),2.0)
 variable b equal c_myTemp\[0\]
 variable b atom div(mult(x[],y[]),vol)
-variable temp world 300.0 310.0 320.0 330.0
+variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 :pre
 
@@ -68,24 +68,33 @@ variable/atom"_compute_variable_atom.html commands).
 
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
-The "string" is one of the subsequent arguments.  The "value" is the
-numeric quantity resulting from evaluation of the string.  Note that
-the same string can generate different values when it is evaluated at
-different times during a simulation.
+The "string" is one or more of the subsequent arguments.  The "string"
+can be simple text as in the 1st example above, it can contain other
+variables as in the 2nd example, or it can be an equation as in the
+3rd example.  The "value" is the numeric quantity resulting from
+evaluation of the string.  Note that the same string can generate
+different values when it is evaluated at different times during a
+simulation.
 
 IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command
 is ignored.  This means variables can NOT be re-defined in an input
-script.  This is to allow an input script to be processed multiple
-times without resetting the variables; see the "jump"_jump.html or
-"include"_include.html commands.  It also means that using a
-command-line switch -var will override a corresponding variable
-setting in the input script.
+script (with 2 exceptions, read further).  This is to allow an input
+script to be processed multiple times without resetting the variables;
+see the "jump"_jump.html or "include"_include.html commands.  It also
+means that using a command-line switch -var will override a
+corresponding variable setting in the input script.
 
-There is one exception to this rule.  As described below, if a
-variable is iterated on to the end of its list of strings via the
-"next"_next.html command, it is available to be re-defined in a
-subsequent variable command.
+There are two exceptions to this rule.  First, variables of style
+{equal} ARE redefined each time the command is encountered.  This
+allow them to be reset, e.g. in a loop.  This means an {equal}-style
+variable will re-define a command-line swich -var setting, so use an
+{index}-style variable for these settings instead, as in bench/in.lj.
+
+Second, as described below, if a variable is iterated on to the end of
+its list of strings via the "next"_next.html command, it is removed
+from the list of active varaibles, and is thus available to be
+re-defined in a subsequent variable command.
 
 :line
 
@@ -96,8 +105,8 @@ the name "x" is a single character, or as $\{LoopVar\} if the name
 "LoopVar" is one or more characters.
 
 As described below, for variable styles {index}, {loop}, {universe},
-and {uloop}, the string assigned to a variable can be incremented via
-the "next"_next.html command.  When there are no more strings to
+and {uloop}, which string is assigned to a variable can be incremented
+via the "next"_next.html command.  When there are no more strings to
 assign, the variable is "exhausted" and a flag is set that causes the
 next "jump"_jump.html command encountered in the input script to be
 skipped.  This enables the construction of simple loops in the input

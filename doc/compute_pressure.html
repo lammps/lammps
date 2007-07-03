@@ -36,10 +36,13 @@ in your system.
 <CENTER><IMG SRC = "Eqs/pressure.jpg">
 </CENTER>
 <P>where N is the number of atoms in the system (see discussion of DOF
-below), Kb is the Boltzmann constant, T is the temperature, V is the
-system volume, and the second term is the virial, computed within
-LAMMPS for all pairwise as well as 2-body, 3-body, 4-body bonded
-interactions.
+below), Kb is the Boltzmann constant, T is the temperature, d is the
+dimensionality of the system (2 or 3 for 2d/3d), V is the system
+volume (or area in 2d), and the second term is the virial, computed
+within LAMMPS for all pairwise as well as 2-body, 3-body, 4-body, and
+long-range interactions.  <A HREF = "fix.html">Fixes</A> that impose constraints
+(e.g. the <A HREF = "fix_shake.html">fix shake</A> command) also contribute to the
+virial term.
 </P>
 <P>A 6-component pressure tensor is also calculated by this compute which
 can be output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.
@@ -55,7 +58,7 @@ temperature of all atoms for consistency with the virial term, but any
 compute style that calculates temperature can be used, e.g. one that
 excludes frozen atoms or other degrees of freedom.
 </P>
-<P>Note that the N is the above formula is really degrees-of-freedom/3
+<P>Note that the N is the above formula is really degrees-of-freedom/d
 where the DOF is specified by the temperature compute.  See the
 various <A HREF = "compute.html">compute temperature</A> styles for details.
 </P>

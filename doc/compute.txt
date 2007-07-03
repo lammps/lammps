@@ -73,6 +73,7 @@ defined in LAMMPS:
 
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
+"ebond/atom"_compute_ebond_atom.html - bond energy for each atom
 "epair/atom"_compute_epair_atom.html - pairwise energy for each atom
 "etotal/atom"_compute_etotal_atom.html - total energy (ke + epair) for each atom
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom

@@ -73,12 +73,14 @@ for gravity acting in the -z direction, theta would be specified as
 180.0 (or -180.0).  Theta = 90.0 and phi = -90.0 would mean gravity
 acts in the -y direction.
 </P>
-<P>Style <I>vector</I> is used for non-granular systems.  An acceleration of
-the specified magnitude is applied to each atom in the group in the
-vector direction given by (x,y,z).
+<P>For the <I>chute</I>, <I>spherical</I>, and <I>gradient</I> styles, the strength of
+the acceleration due to gravity is 1.0 in force/mass units.  These
+styles are intended to be used with LJ <A HREF = "units.html">units</A> which is the
+typical choice for granular systems in LAMMPS.
 </P>
-<P>The strength of the acceleration due to gravity is 1.0 in LJ units,
-which are the only allowed units for granular systems.
+<P>Style <I>vector</I> can be used for non-granular systems.  An acceleration
+of the specified magnitude in force/mass units is applied to each atom
+in the group in the vector direction given by (x,y,z).
 </P>
 <P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
 </P>

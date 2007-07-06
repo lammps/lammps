@@ -18,6 +18,7 @@
 #include "fix_gravity.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -80,14 +81,27 @@ void FixGravity::init()
   dt = update->dt;
 
   if (granular) {
-    xgrav = sin(degree2rad * theta) * cos(degree2rad * phi);
-    ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
-    zgrav = cos(degree2rad * theta);
+    if (domain->dimension == 3) {
+      xgrav = sin(degree2rad * theta) * cos(degree2rad * phi);
+      ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
+      zgrav = cos(degree2rad * theta);
+    } else {
+      xgrav = sin(degree2rad * theta);
+      ygrav = cos(degree2rad * theta);
+      zgrav = 0.0;
+    }
   } else {
-    double length = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
-    xgrav = magnitude * xdir/length;
-    ygrav = magnitude * ydir/length;
-    zgrav = magnitude * zdir/length;
+    if (domain->dimension == 3) {
+      double length = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
+      xgrav = magnitude * xdir/length;
+      ygrav = magnitude * ydir/length;
+      zgrav = magnitude * zdir/length;
+    } else {
+      double length = sqrt(xdir*xdir + ydir*ydir);
+      xgrav = magnitude * xdir/length;
+      ygrav = magnitude * ydir/length;
+      zgrav = 0.0;
+    }
   }
 }
 

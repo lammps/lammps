@@ -30,8 +30,7 @@ FixGravity(class LAMMPS *, int, char **);
 
  private:
   double phi,theta,phigrad,thetagrad;
-  int dynamic,time_initial;
-  int granular;                      // 0 if non-granular, 1 if granular
+  int style,time_initial;
   double magnitude,xdir,ydir,zdir;
   double dt;
   double xgrav,ygrav,zgrav;

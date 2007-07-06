@@ -23,6 +23,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
+
 /* ---------------------------------------------------------------------- */
 
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
@@ -32,28 +34,24 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"chute") == 0) {
     if (narg != 5) error->all("Illegal fix gravity command");
-    dynamic = 0;
-    granular = 1;
+    style = CHUTE;
     phi = 0.0;
     theta = 180.0 - atof(arg[4]);
   } else if (strcmp(arg[3],"spherical") == 0) {
     if (narg != 6) error->all("Illegal fix gravity command");
-    dynamic = 0;
-    granular = 1;
+    style = SPHERICAL;
     phi = atof(arg[4]);
     theta = atof(arg[5]);
   } else if (strcmp(arg[3],"gradient") == 0) {
     if (narg != 8) error->all("Illegal fix gravity command");
-    dynamic = 1;
-    granular = 1;
+    style = GRADIENT;
     phi = atof(arg[4]);
     theta = atof(arg[5]);
     phigrad = atof(arg[6]);
     thetagrad = atof(arg[7]);
   } else if (strcmp(arg[3],"vector") == 0) {
     if (narg != 8) error->all("Illegal fix gravity command");
-    dynamic = 0;
-    granular = 0;
+    style = VECTOR;
     magnitude = atof(arg[4]);
     xdir = atof(arg[5]);
     ydir = atof(arg[6]);
@@ -80,7 +78,7 @@ void FixGravity::init()
 {
   dt = update->dt;
 
-  if (granular) {
+  if (style == CHUTE || style == SPHERICAL || style == GRADIENT) {
     if (domain->dimension == 3) {
       xgrav = sin(degree2rad * theta) * cos(degree2rad * phi);
       ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
@@ -90,7 +88,7 @@ void FixGravity::init()
       ygrav = cos(degree2rad * theta);
       zgrav = 0.0;
     }
-  } else {
+  } else if (style == VECTOR) {
     if (domain->dimension == 3) {
       double length = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
       xgrav = magnitude * xdir/length;
@@ -116,9 +114,9 @@ void FixGravity::setup()
 
 void FixGravity::post_force(int vflag)
 {
-  // update direction of gravity vector if dynamic
+  // update direction of gravity vector if gradient style
 
-  if (dynamic) {
+  if (style == GRADIENT) {
     double phi_current = degree2rad * 
       (phi + (update->ntimestep-time_initial)*dt*phigrad*360.0);
     double theta_current = degree2rad * 

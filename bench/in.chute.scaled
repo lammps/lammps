@@ -24,7 +24,7 @@ group		bottom type 2
 group		active subtract all bottom
 neigh_modify	exclude group bottom bottom
 
-fix		1 all gravity chute 26.0
+fix		1 all gravity 1.0 chute 26.0
 fix		2 bottom freeze
 fix		3 active nve/gran
 

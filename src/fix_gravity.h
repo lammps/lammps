@@ -29,10 +29,10 @@ FixGravity(class LAMMPS *, int, char **);
   void post_force(int);
 
  private:
-  double phi,theta,phigrad,thetagrad;
   int style,time_initial;
-  double magnitude,xdir,ydir,zdir;
-  double dt;
+  double magnitude,dt;
+  double phi,theta,phigrad,thetagrad;
+  double xdir,ydir,zdir;
   double xgrav,ygrav,zgrav;
   double degree2rad;
 };

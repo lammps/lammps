@@ -30,29 +30,30 @@ enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix gravity command");
+  if (narg < 5) error->all("Illegal fix gravity command");
 
-  if (strcmp(arg[3],"chute") == 0) {
-    if (narg != 5) error->all("Illegal fix gravity command");
+  magnitude = atof(arg[3]);
+
+  if (strcmp(arg[4],"chute") == 0) {
+    if (narg != 6) error->all("Illegal fix gravity command");
     style = CHUTE;
     phi = 0.0;
-    theta = 180.0 - atof(arg[4]);
-  } else if (strcmp(arg[3],"spherical") == 0) {
+    theta = 180.0 - atof(arg[5]);
+  } else if (strcmp(arg[7],"spherical") == 0) {
     if (narg != 6) error->all("Illegal fix gravity command");
     style = SPHERICAL;
-    phi = atof(arg[4]);
-    theta = atof(arg[5]);
-  } else if (strcmp(arg[3],"gradient") == 0) {
-    if (narg != 8) error->all("Illegal fix gravity command");
+    phi = atof(arg[5]);
+    theta = atof(arg[6]);
+  } else if (strcmp(arg[4],"gradient") == 0) {
+    if (narg != 9) error->all("Illegal fix gravity command");
     style = GRADIENT;
-    phi = atof(arg[4]);
-    theta = atof(arg[5]);
-    phigrad = atof(arg[6]);
-    thetagrad = atof(arg[7]);
-  } else if (strcmp(arg[3],"vector") == 0) {
+    phi = atof(arg[5]);
+    theta = atof(arg[6]);
+    phigrad = atof(arg[7]);
+    thetagrad = atof(arg[8]);
+  } else if (strcmp(arg[4],"vector") == 0) {
     if (narg != 8) error->all("Illegal fix gravity command");
     style = VECTOR;
-    magnitude = atof(arg[4]);
     xdir = atof(arg[5]);
     ydir = atof(arg[6]);
     zdir = atof(arg[7]);
@@ -91,16 +92,20 @@ void FixGravity::init()
   } else if (style == VECTOR) {
     if (domain->dimension == 3) {
       double length = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
-      xgrav = magnitude * xdir/length;
-      ygrav = magnitude * ydir/length;
-      zgrav = magnitude * zdir/length;
+      xgrav = xdir/length;
+      ygrav = ydir/length;
+      zgrav = zdir/length;
     } else {
       double length = sqrt(xdir*xdir + ydir*ydir);
-      xgrav = magnitude * xdir/length;
-      ygrav = magnitude * ydir/length;
+      xgrav = xdir/length;
+      ygrav = ydir/length;
       zgrav = 0.0;
     }
   }
+
+  xgrav *= magnitude;
+  ygrav *= magnitude;
+  zgrav *= magnitude;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,13 +122,23 @@ void FixGravity::post_force(int vflag)
   // update direction of gravity vector if gradient style
 
   if (style == GRADIENT) {
-    double phi_current = degree2rad * 
-      (phi + (update->ntimestep-time_initial)*dt*phigrad*360.0);
-    double theta_current = degree2rad * 
-      (theta + (update->ntimestep-time_initial)*dt*thetagrad*360.0);
-    xgrav = sin(theta_current) * cos(phi_current);
-    ygrav = sin(theta_current) * sin(phi_current);
-    zgrav = cos(theta_current);
+    if (domain->dimension == 3) {
+      double phi_current = degree2rad * 
+	(phi + (update->ntimestep-time_initial)*dt*phigrad*360.0);
+      double theta_current = degree2rad * 
+	(theta + (update->ntimestep-time_initial)*dt*thetagrad*360.0);
+      xgrav = sin(theta_current) * cos(phi_current);
+      ygrav = sin(theta_current) * sin(phi_current);
+      zgrav = cos(theta_current);
+    } else {
+      double theta_current = degree2rad * 
+	(theta + (update->ntimestep-time_initial)*dt*thetagrad*360.0);
+      xgrav = sin(theta_current);
+      ygrav = cos(theta_current);
+    }
+    xgrav *= magnitude;
+    ygrav *= magnitude;
+    zgrav *= magnitude;
   }
 
   double **f = atom->f;

@@ -86,15 +86,15 @@ also be controlled by a "fix npt"_fix_npt.html or "fix
 nph"_fix_nph.html command.
 
 The size and shape of the initial simulation box at the beginning of a
-run are specified by the "create_box"_create_box.html or
+simulation are specified by the "create_box"_create_box.html or
 "read_data"_read_data.html or "read_restart"_read_restart.html command
 used to setup the simulation, or they are the values from the end of
 the previous run.  The "create_box"_create_box.html, "read
 data"_read_data.html, and "read_restart"_read_restart.html commands
-also specify whether the simulation box is orthogonal or triclinic and
-explain the meaning of the xy,xz,yz tilt factors.  If fix deform
-changes the xy,xz,yz tilt factors, then the simulation box must be
-triclinic, even if its initial tilt factors are 0.0.
+specify whether the simulation box is orthogonal or non-orthogonal
+(triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If
+fix deform changes the xy,xz,yz tilt factors, then the simulation box
+must be triclinic, even if its initial tilt factors are 0.0.
 
 As described below, the desired simulation box size and shape at the
 end of the run are determined by the parameters of the fix deform

@@ -10,70 +10,72 @@ fix gravity command :h3
 
 [Syntax:]
 
-fix ID group gravity style args :pre
+fix ID group gravity style magnitude args :pre
 
 ID, group are documented in "fix"_fix.html command :ulb,l
 gravity = style name of this fix command :l
+magnitude = size of acceleration (force/mass units) :l
 style = {chute} or {spherical} or {gradient} or {vector} :l
   {chute} args = angle
-    angle = angle in +x away from -z axis (in degrees)
+    angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
   {spherical} args = phi theta
     phi = azimuthal angle from +x axis (in degrees)
-    theta = angle from +z axis (in degrees)
+    theta = angle from +z or +y axis in 3d/2d (in degrees)
   {gradient} args = phi theta phi_grad theta_grad
     phi = azimuthal angle from +x axis (in degrees)
-    theta = angle from +z axis (in degrees)
+    theta = angle from +z or +y axis in 3d/2d (in degrees)
     phi_grad = rate of change of angle phi (full rotations per time unit)
-    theta_grad = rate of change of angle theta
-      (full rotations per time unit)
-  {vector} args = magnitude x y z
-    magnitude = size of acceleration (force/mass units)
+    theta_grad = rate of change of angle theta (full rotations per time unit)
+  {vector} args = x y z
     x y z = vector direction to apply the acceleration :pre
 :ule
 
 [Examples:]
 
-fix 1 all gravity chute 24.0
-fix 1 all gravity spherical 0.0 -180.0
-fix 1 all gravity gradient 0.0 -180.0 0.0 0.1
-fix 1 all gravity vector 100.0 1 1 0 :pre
+fix 1 all gravity 1.0 chute 24.0
+fix 1 all gravity 1.0 spherical 0.0 -180.0
+fix 1 all gravity 1.0 gradient 0.0 -180.0 0.0 0.1
+fix 1 all gravity 100.0 vector 1 1 0 :pre
 
 [Description:]
 
-Impose an additional acceleration on each particle in the group.  For
-granular systems the magnitude is chosen so as to be due to gravity.
-For non-granular systems the magnitude of the acceleration is
-specified, so it can be any kind of driving field desired (e.g. a
-pressure gradient inducing a Poisselle flow).  Note that this is
-different from what the "fix addforce"_fix_addforce.html command does,
-since it adds the same force to each atom, independent of its mass.
-This command adds the same acceleration to each atom (force/mass).
+Impose an additional acceleration on each particle in the group.  This
+fix is typically used with granular systems to include a "gravity"
+term acting on the macroscopic particles.  More generally, it can
+represent any kind of driving field, e.g. a pressure gradient inducing
+a Poisselle flow in a fluid.  Note that this fix operates differently
+than the "fix addforce"_fix_addforce.html command.  The addforce fix
+adds the same force to each atom, independent of its mass.  This
+command imparts the same acceleration to each atom (force/mass).
 
-The first 3 styles apply to granular systems.  Style {chute} is
-typically used for simulations of chute flow where the specified angle
-is the chute angle, with flow occurring in the +x direction.  Style
-{spherical} allows an arbitrary 3d direction to be specified for the
-gravity vector.  Style {gradient} allows the direction of the gravity
-vector to be time dependent.  The units of the gradient arguments are
-in full rotations per time unit.  E.g. a timestep of 0.001 and a
-gradient of 0.1 means the gravity vector would rotate thru 360 degrees
-every 10,000 timesteps.  For the time-dependent case, the initial
-direction of the gravity vector is phi,theta at the time the fix is
-specified.
+The {magnitude} of the acceleration is specified in force/mass units.
+For granular systems (LJ units) this is typically 1.0.  See the
+"units"_units.html command for details.
 
-Phi and theta are defined in the usual spherical coordinates.  Thus
-for gravity acting in the -z direction, theta would be specified as
-180.0 (or -180.0).  Theta = 90.0 and phi = -90.0 would mean gravity
-acts in the -y direction.
+Style {chute} is typically used for simulations of chute flow where
+the specified angle is the chute angle, with flow occurring in the +x
+direction.  For 3d systems, the tilt is away from the z axis; for 2d
+systems, the tilt is away from the y axis.
 
-For the {chute}, {spherical}, and {gradient} styles, the strength of
-the acceleration due to gravity is 1.0 in force/mass units.  These
-styles are intended to be used with LJ "units"_units.html which is the
-typical choice for granular systems in LAMMPS.
+Style {spherical} allows an arbitrary 3d direction to be specified for
+the acceleration vector.  Phi and theta are defined in the usual
+spherical coordinates.  Thus for acceleration acting in the -z
+direction, theta would be 180.0 (or -180.0).  Theta = 90.0 and phi =
+-90.0 would mean acceleration acts in the -y direction.  For 2d
+systems, {phi} is ignored and {theta} is an angle in the xy plane
+where theta = 0.0 is the y-axis.
 
-Style {vector} can be used for non-granular systems.  An acceleration
-of the specified magnitude in force/mass units is applied to each atom
-in the group in the vector direction given by (x,y,z).
+Style {gradient} is the same as style {spherical} except that the
+direction of the acceleration vector is time dependent.  The units of
+the gradient arguments are in full rotations per time unit.  E.g. a
+timestep of 0.001 and a gradient of 0.1 means the acceleration vector
+would rotate thru 360 degrees every 10,000 timesteps.  For the
+time-dependent case, the initial direction of the acceleration vector
+is phi,theta at the time the fix is specified.  For 2d systems, {phi}
+and {phi_grad} are ignored.
+
+Style {vector} imposes an acceleration in the vector direction given
+by (x,y,z).  For 2d systems, the z component is ignored.
 
 [Restart, fix_modify, thermo output, run start/stop, minimize info:]
 
@@ -85,11 +87,7 @@ parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
-[Restrictions:]
-
-Styles {chute}, {spherical}, and {gradient} can only be used with
-atom_style granular.  Style {vector} can only be used with
-non-granular systems.
+[Restrictions:] none
 
 [Related commands:]
 

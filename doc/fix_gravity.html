@@ -13,74 +13,77 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group gravity style args 
+<PRE>fix ID group gravity style magnitude args 
 </PRE>
 <UL><LI>ID, group are documented in <A HREF = "fix.html">fix</A> command 
 
 <LI>gravity = style name of this fix command 
 
+<LI>magnitude = size of acceleration (force/mass units) 
+
 <LI>style = <I>chute</I> or <I>spherical</I> or <I>gradient</I> or <I>vector</I> 
 
 <PRE>  <I>chute</I> args = angle
-    angle = angle in +x away from -z axis (in degrees)
+    angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
   <I>spherical</I> args = phi theta
     phi = azimuthal angle from +x axis (in degrees)
-    theta = angle from +z axis (in degrees)
+    theta = angle from +z or +y axis in 3d/2d (in degrees)
   <I>gradient</I> args = phi theta phi_grad theta_grad
     phi = azimuthal angle from +x axis (in degrees)
-    theta = angle from +z axis (in degrees)
+    theta = angle from +z or +y axis in 3d/2d (in degrees)
     phi_grad = rate of change of angle phi (full rotations per time unit)
-    theta_grad = rate of change of angle theta
-      (full rotations per time unit)
-  <I>vector</I> args = magnitude x y z
-    magnitude = size of acceleration (force/mass units)
+    theta_grad = rate of change of angle theta (full rotations per time unit)
+  <I>vector</I> args = x y z
     x y z = vector direction to apply the acceleration 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all gravity chute 24.0
-fix 1 all gravity spherical 0.0 -180.0
-fix 1 all gravity gradient 0.0 -180.0 0.0 0.1
-fix 1 all gravity vector 100.0 1 1 0 
+<PRE>fix 1 all gravity 1.0 chute 24.0
+fix 1 all gravity 1.0 spherical 0.0 -180.0
+fix 1 all gravity 1.0 gradient 0.0 -180.0 0.0 0.1
+fix 1 all gravity 100.0 vector 1 1 0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Impose an additional acceleration on each particle in the group.  For
-granular systems the magnitude is chosen so as to be due to gravity.
-For non-granular systems the magnitude of the acceleration is
-specified, so it can be any kind of driving field desired (e.g. a
-pressure gradient inducing a Poisselle flow).  Note that this is
-different from what the <A HREF = "fix_addforce.html">fix addforce</A> command does,
-since it adds the same force to each atom, independent of its mass.
-This command adds the same acceleration to each atom (force/mass).
+<P>Impose an additional acceleration on each particle in the group.  This
+fix is typically used with granular systems to include a "gravity"
+term acting on the macroscopic particles.  More generally, it can
+represent any kind of driving field, e.g. a pressure gradient inducing
+a Poisselle flow in a fluid.  Note that this fix operates differently
+than the <A HREF = "fix_addforce.html">fix addforce</A> command.  The addforce fix
+adds the same force to each atom, independent of its mass.  This
+command imparts the same acceleration to each atom (force/mass).
 </P>
-<P>The first 3 styles apply to granular systems.  Style <I>chute</I> is
-typically used for simulations of chute flow where the specified angle
-is the chute angle, with flow occurring in the +x direction.  Style
-<I>spherical</I> allows an arbitrary 3d direction to be specified for the
-gravity vector.  Style <I>gradient</I> allows the direction of the gravity
-vector to be time dependent.  The units of the gradient arguments are
-in full rotations per time unit.  E.g. a timestep of 0.001 and a
-gradient of 0.1 means the gravity vector would rotate thru 360 degrees
-every 10,000 timesteps.  For the time-dependent case, the initial
-direction of the gravity vector is phi,theta at the time the fix is
-specified.
+<P>The <I>magnitude</I> of the acceleration is specified in force/mass units.
+For granular systems (LJ units) this is typically 1.0.  See the
+<A HREF = "units.html">units</A> command for details.
 </P>
-<P>Phi and theta are defined in the usual spherical coordinates.  Thus
-for gravity acting in the -z direction, theta would be specified as
-180.0 (or -180.0).  Theta = 90.0 and phi = -90.0 would mean gravity
-acts in the -y direction.
+<P>Style <I>chute</I> is typically used for simulations of chute flow where
+the specified angle is the chute angle, with flow occurring in the +x
+direction.  For 3d systems, the tilt is away from the z axis; for 2d
+systems, the tilt is away from the y axis.
 </P>
-<P>For the <I>chute</I>, <I>spherical</I>, and <I>gradient</I> styles, the strength of
-the acceleration due to gravity is 1.0 in force/mass units.  These
-styles are intended to be used with LJ <A HREF = "units.html">units</A> which is the
-typical choice for granular systems in LAMMPS.
+<P>Style <I>spherical</I> allows an arbitrary 3d direction to be specified for
+the acceleration vector.  Phi and theta are defined in the usual
+spherical coordinates.  Thus for acceleration acting in the -z
+direction, theta would be 180.0 (or -180.0).  Theta = 90.0 and phi =
+-90.0 would mean acceleration acts in the -y direction.  For 2d
+systems, <I>phi</I> is ignored and <I>theta</I> is an angle in the xy plane
+where theta = 0.0 is the y-axis.
 </P>
-<P>Style <I>vector</I> can be used for non-granular systems.  An acceleration
-of the specified magnitude in force/mass units is applied to each atom
-in the group in the vector direction given by (x,y,z).
+<P>Style <I>gradient</I> is the same as style <I>spherical</I> except that the
+direction of the acceleration vector is time dependent.  The units of
+the gradient arguments are in full rotations per time unit.  E.g. a
+timestep of 0.001 and a gradient of 0.1 means the acceleration vector
+would rotate thru 360 degrees every 10,000 timesteps.  For the
+time-dependent case, the initial direction of the acceleration vector
+is phi,theta at the time the fix is specified.  For 2d systems, <I>phi</I>
+and <I>phi_grad</I> are ignored.
+</P>
+<P>Style <I>vector</I> imposes an acceleration in the vector direction given
+by (x,y,z).  For 2d systems, the z component is ignored.
 </P>
 <P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
 </P>
@@ -92,11 +95,7 @@ parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>Styles <I>chute</I>, <I>spherical</I>, and <I>gradient</I> can only be used with
-atom_style granular.  Style <I>vector</I> can only be used with
-non-granular systems.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>

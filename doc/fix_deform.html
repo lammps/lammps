@@ -97,15 +97,15 @@ also be controlled by a <A HREF = "fix_npt.html">fix npt</A> or <A HREF = "fix_n
 nph</A> command.
 </P>
 <P>The size and shape of the initial simulation box at the beginning of a
-run are specified by the <A HREF = "create_box.html">create_box</A> or
+simulation are specified by the <A HREF = "create_box.html">create_box</A> or
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
 used to setup the simulation, or they are the values from the end of
 the previous run.  The <A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read
 data</A>, and <A HREF = "read_restart.html">read_restart</A> commands
-also specify whether the simulation box is orthogonal or triclinic and
-explain the meaning of the xy,xz,yz tilt factors.  If fix deform
-changes the xy,xz,yz tilt factors, then the simulation box must be
-triclinic, even if its initial tilt factors are 0.0.
+specify whether the simulation box is orthogonal or non-orthogonal
+(triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If
+fix deform changes the xy,xz,yz tilt factors, then the simulation box
+must be triclinic, even if its initial tilt factors are 0.0.
 </P>
 <P>As described below, the desired simulation box size and shape at the
 end of the run are determined by the parameters of the fix deform

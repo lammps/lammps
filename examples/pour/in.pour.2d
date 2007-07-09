@@ -20,7 +20,7 @@ pair_style      gran/hertzian 2000.0 50.0 0.5 0
 timestep	0.001
 
 fix             1 all nve/gran
-fix		2 all gravity spherical 90.0 -90.0
+fix		2 all gravity 1.0 spherical 0.0 -180.0
 fix		xwalls all wall/gran xplane 0 100 50 0
 fix		ywalls all wall/gran yplane 0 NULL 50 0
  

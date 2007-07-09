@@ -19,7 +19,7 @@ pair_style      gran/history 2000.0 50.0 0.5 0
 timestep	0.001
 
 fix		1 all nve/gran
-fix		2 all gravity spherical 0.0 -180.0
+fix		2 all gravity 1.0 spherical 0.0 -180.0
 fix		zlower all wall/gran zplane 0.0 2000.0 50.0 0.5
 
 region		slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box
@@ -34,5 +34,5 @@ dump		id all atom 1000 dump.pour
 run		25000
 
 unfix		ins
-fix		2 all gravity chute 26.0
+fix		2 all gravity 1.0 chute 26.0
 run		25000

@@ -253,13 +253,9 @@ void FixPour::init()
   if (ifix == modify->nfix) 
     error->all("Must use fix gravity with fix pour");
 
-  double phi = ((FixGravity *) modify->fix[ifix])->phi;
-  double theta = ((FixGravity *) modify->fix[ifix])->theta;
-  double PI = 2.0 * asin(1.0);
-  double degree2rad = 2.0*PI / 360.0;
-  double xgrav = sin(degree2rad * theta) * cos(degree2rad * phi);
-  double ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
-  double zgrav = cos(degree2rad * theta);
+  double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
+  double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;
+  double zgrav = ((FixGravity *) modify->fix[ifix])->zgrav;
 
   if (domain->dimension == 3) {
     if (fabs(xgrav) > EPSILON || fabs(ygrav) > EPSILON ||

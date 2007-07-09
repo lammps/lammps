@@ -22,7 +22,7 @@ class FixGravity : public Fix {
   friend class FixPour;
 
  public:
-FixGravity(class LAMMPS *, int, char **);
+  FixGravity(class LAMMPS *, int, char **);
   int setmask();
   void init();
   void setup();
@@ -33,7 +33,7 @@ FixGravity(class LAMMPS *, int, char **);
   double magnitude,dt;
   double phi,theta,phigrad,thetagrad;
   double xdir,ydir,zdir;
-  double xgrav,ygrav,zgrav;
+  double xgrav,ygrav,zgrav,xacc,yacc,zacc;
   double degree2rad;
 };
 

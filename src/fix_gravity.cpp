@@ -39,8 +39,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     style = CHUTE;
     phi = 0.0;
     theta = 180.0 - atof(arg[5]);
-  } else if (strcmp(arg[7],"spherical") == 0) {
-    if (narg != 6) error->all("Illegal fix gravity command");
+  } else if (strcmp(arg[4],"spherical") == 0) {
+    if (narg != 7) error->all("Illegal fix gravity command");
     style = SPHERICAL;
     phi = atof(arg[5]);
     theta = atof(arg[6]);
@@ -61,23 +61,6 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
   double PI = 2.0 * asin(1.0);
   degree2rad = 2.0*PI / 360.0;
-  time_initial = update->ntimestep;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixGravity::setmask()
-{
-  int mask = 0;
-  mask |= POST_FORCE;
-  return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixGravity::init()
-{
-  dt = update->dt;
 
   if (style == CHUTE || style == SPHERICAL || style == GRADIENT) {
     if (domain->dimension == 3) {
@@ -103,9 +86,27 @@ void FixGravity::init()
     }
   }
 
-  xgrav *= magnitude;
-  ygrav *= magnitude;
-  zgrav *= magnitude;
+  time_initial = update->ntimestep;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixGravity::setmask()
+{
+  int mask = 0;
+  mask |= POST_FORCE;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixGravity::init()
+{
+  dt = update->dt;
+
+  xacc = magnitude*xgrav;
+  yacc = magnitude*ygrav;
+  zacc = magnitude*zgrav;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,9 +137,9 @@ void FixGravity::post_force(int vflag)
       xgrav = sin(theta_current);
       ygrav = cos(theta_current);
     }
-    xgrav *= magnitude;
-    ygrav *= magnitude;
-    zgrav *= magnitude;
+    xacc = magnitude*xgrav;
+    yacc = magnitude*ygrav;
+    zacc = magnitude*zgrav;
   }
 
   double **f = atom->f;
@@ -153,16 +154,16 @@ void FixGravity::post_force(int vflag)
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	massone = mass[type[i]];
-	f[i][0] += massone*xgrav;
-	f[i][1] += massone*ygrav;
-	f[i][2] += massone*zgrav;
+	f[i][0] += massone*xacc;
+	f[i][1] += massone*yacc;
+	f[i][2] += massone*zacc;
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	f[i][0] += rmass[i]*xgrav;
-	f[i][1] += rmass[i]*ygrav;
-	f[i][2] += rmass[i]*zgrav;
+	f[i][0] += rmass[i]*xacc;
+	f[i][1] += rmass[i]*yacc;
+	f[i][2] += rmass[i]*zacc;
       }
   }
 }

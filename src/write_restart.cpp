@@ -131,7 +131,7 @@ void WriteRestart::write(char *file)
   if (me == 0) {
     char *hfile;
     if (multiproc) {
-      char *hfile = new char[strlen(file) + 16];
+      hfile = new char[strlen(file) + 16];
       char *ptr = strchr(file,'%');
       *ptr = '\0';
       sprintf(hfile,"%s%s%s",file,"base",ptr+1);

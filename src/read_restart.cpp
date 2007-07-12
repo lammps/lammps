@@ -89,7 +89,7 @@ void ReadRestart::command(int narg, char **arg)
     if (screen) fprintf(screen,"Reading restart file ...\n");
     char *hfile;
     if (multiproc) {
-      char *hfile = new char[strlen(file) + 16];
+      hfile = new char[strlen(file) + 16];
       char *ptr = strchr(file,'%');
       *ptr = '\0';
       sprintf(hfile,"%s%s%s",file,"base",ptr+1);

@@ -155,7 +155,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       orient[2] = atoi(arg[iarg+4]);
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"spacings") == 0) {
+    } else if (strcmp(arg[iarg],"spacing") == 0) {
       if (iarg+4 > narg) error->all("Illegal lattice command");
       spaceflag = 1;
       xlattice = atof(arg[iarg+1]);

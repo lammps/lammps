@@ -2383,13 +2383,13 @@ void Data::write(FILE *fp)
 	(strcmp(angle_style,"hybrid") != 0))
       fprintf(fp,"\nAngle Coeffs\n\n");
     
-    else if (strcmp(angle_style,"charmm") == 0) {
+    if (strcmp(angle_style,"charmm") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
 		angle_charmm_k[i],angle_charmm_theta0[i]/PI*180.0,
 		angle_charmm_k_ub[i],angle_charmm_r_ub[i]);
 
-    } if (strcmp(angle_style,"class2") == 0) {
+    } else if (strcmp(angle_style,"class2") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
 		angle_class2_theta0[i]/PI*180.0,angle_class2_k2[i], 
@@ -2426,7 +2426,7 @@ void Data::write(FILE *fp)
 	(strcmp(dihedral_style,"hybrid") != 0))
       fprintf(fp,"\nDihedral Coeffs\n\n");
 
-    else if (strcmp(dihedral_style,"charmm") == 0) {
+    if (strcmp(dihedral_style,"charmm") == 0) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %d %d %g\n",i,
 		dihedral_charmm_k[i],dihedral_charmm_multiplicity[i],
@@ -2509,7 +2509,7 @@ void Data::write(FILE *fp)
 	(strcmp(improper_style,"hybrid") != 0))
       fprintf(fp,"\nImproper Coeffs\n\n");
 
-    else if (strcmp(improper_style,"class2") == 0) {
+    if (strcmp(improper_style,"class2") == 0) {
       for (int i = 1; i <= nimpropertypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		improper_class2_k0[i],improper_class2_chi0[i]/PI*180.0);

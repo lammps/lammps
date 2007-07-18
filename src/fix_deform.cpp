@@ -181,7 +181,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
   else xscale = yscale = zscale = 1.0;
 
-  // for 3,4,5 scaling is in 1st dimension, e.g. x for xz
+  // for 3,4,5: scaling is in 1st dimension, e.g. x for xz
 
   double map[6];
   map[0] = xscale; map[1] = yscale; map[2] = zscale;
@@ -277,7 +277,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       set[i].dynamic1 = other1;
     } else {
       set[i].substyle = ONE_FROM_TWO;
-      set[i].dynamic2 = other1;
+      set[i].dynamic1 = other1;
       set[i].dynamic2 = other2;
     }
   }
@@ -640,18 +640,24 @@ void FixDeform::end_of_step()
  }
 
   // reset global and local box to new size/shape
+  // only if deform fix is controlling the dimension
 
-  domain->boxlo[0] = set[0].lo_target;
-  domain->boxlo[1] = set[1].lo_target;
-  domain->boxlo[2] = set[2].lo_target;
-  domain->boxhi[0] = set[0].hi_target;
-  domain->boxhi[1] = set[1].hi_target;
-  domain->boxhi[2] = set[2].hi_target;
-
+  if (set[0].style) {
+    domain->boxlo[0] = set[0].lo_target;
+    domain->boxhi[0] = set[0].hi_target;
+  }
+  if (set[1].style) {
+    domain->boxlo[1] = set[1].lo_target;
+    domain->boxhi[1] = set[1].hi_target;
+  }
+  if (set[2].style) {
+    domain->boxlo[2] = set[2].lo_target;
+    domain->boxhi[2] = set[2].hi_target;
+  }
   if (triclinic) {
-    domain->yz = set[3].tilt_target;
-    domain->xz = set[4].tilt_target;
-    domain->xy = set[5].tilt_target;
+    if (set[3].style) domain->yz = set[3].tilt_target;
+    if (set[4].style) domain->xz = set[4].tilt_target;
+    if (set[5].style) domain->xy = set[5].tilt_target;
   }
 
   domain->set_global_box();

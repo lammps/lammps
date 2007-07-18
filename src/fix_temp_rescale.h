@@ -29,7 +29,7 @@ class FixTempRescale : public Fix {
   int modify_param(int, char **);
 
  private:
-  int iregion;
+  int type,iregion,partial,xflag,yflag,zflag;
   double t_start,t_end,t_window;
   double fraction,energy,efactor;
 

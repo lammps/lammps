@@ -28,6 +28,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{STANDARD,REGION,PARTIAL};
+
 /* ---------------------------------------------------------------------- */
 
 FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
@@ -45,18 +47,34 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
+  partial = 0;
+  xflag = yflag = zflag = 1;
 
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix temp/rescale command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1) 
 	error->all("Fix temp/rescale region ID does not exist");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"partial") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix temp/rescale command");
+      xflag = atoi(arg[iarg+1]);
+      yflag = atoi(arg[iarg+2]);
+      zflag = atoi(arg[iarg+3]);
+      partial = 1;
+      iarg += 4;
     } else error->all("Illegal fix temp/rescale command");
   }
 
-  // create a new compute temp or temp/region style
+  if (iregion == -1 && partial == 0) type = STANDARD;
+  else if (iregion >= 0 && partial == 0) type = REGION;
+  else if (iregion == -1 && partial) type = PARTIAL;
+  else 
+    error->all("Cannot use both region, partial options in fix temp/rescale");
+
+  // create a new compute temp or temp/region or temp/partial
   // id = fix-ID + temp, compute group = fix group
 
   int n = strlen(id) + 6;
@@ -64,16 +82,25 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_temp,id);
   strcat(id_temp,"_temp");
 
-  char **newarg = new char*[4];
+  char **newarg = new char*[6];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
-  if (iregion == -1) {
+  if (type == STANDARD) {
     newarg[2] = "temp";
     modify->add_compute(3,newarg);
-  } else {
+  } else if (type == REGION) {
     newarg[2] = "temp/region";
     newarg[3] = domain->regions[iregion]->id;
     modify->add_compute(4,newarg);
+  } else if (type == PARTIAL) {
+    newarg[2] = "temp/partial";
+    if (xflag) newarg[3] = "1";
+    else newarg[3] = "0";
+    if (yflag) newarg[4] = "1";
+    else newarg[4] = "0";
+    if (zflag) newarg[5] = "1";
+    else newarg[5] = "0";
+    modify->add_compute(6,newarg);
   }
   delete [] newarg;
   tflag = 1;
@@ -130,7 +157,7 @@ void FixTempRescale::end_of_step()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    if (iregion == -1) {
+    if (type == STANDARD) {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -140,7 +167,7 @@ void FixTempRescale::end_of_step()
 	}
       }
 
-    } else {
+    } else if (type == REGION) {
       efactor = (0.5 * force->boltz * temperature->dof);
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
@@ -151,7 +178,18 @@ void FixTempRescale::end_of_step()
 	  v[i][2] *= factor;
 	}
       }
+
+    } else {
+      energy += (t_current-t_target) * efactor;
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  if (xflag) v[i][0] *= factor;
+	  if (yflag) v[i][1] *= factor;
+	  if (zflag) v[i][2] *= factor;
+	}
+      }
     }
+
   } else energy = 0.0;
 }
 

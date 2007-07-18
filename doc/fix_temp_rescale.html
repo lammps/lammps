@@ -22,14 +22,18 @@
 <LI>window = only rescale if temperature is outside this window (temperature units)
 <LI>fraction = rescale to target temperature by this fraction
 <LI>zero or more keyword/value pairs may be appended
-<LI>keyword = <I>region</I> 
+<LI>keyword = <I>region</I> or <I>partial</I> 
 </UL>
-<PRE>  <I>region</I> values = region-ID of region to apply rescaling to 
+<PRE>  <I>region</I> values = region-ID
+    region-ID = ID of region to apply rescaling to
+  <I>partial</I> values = xflag yflag zflag
+    xflag,yflag,zflag = 0/1 if the velocity component should not or should be rescaled 
 </PRE>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 3 flow temp/rescale 100 1.0 1.1 0.02 0.5
-fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0 region edge 
+fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0 region edge
+fix 3 boundary temp/rescale 1 1.0 1.5 0.05 1.0 partial 0 1 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -51,6 +55,12 @@ value.
 specified geometric region (and in the fix group).  Since atoms can
 enter/leave a region, this test is performed each timestep.
 </P>
+<P>The keyword <I>partial</I> rescales only the specified velocity components.
+A compute of style temp/partial is used to compute the current
+temperature of just those components (see below).
+</P>
+<P>The <I>region</I> and <I>partial</I> keywords cannot currently be used together.
+</P>
 <P>A temp/rescale fix does not update the coordinates of its atoms.  It
 is normally used with a fix of style <I>nve</I> that does that.  A
 temp/rescale fix should not normally be used on atoms that also have
@@ -58,16 +68,19 @@ their temperature controlled by another fix - e.g. a
 <A HREF = "fix_nvt.html">nvt</A> or <A HREF = "fix_langevin.html">langevin</A> fix.
 </P>
 <P>This fix computes a temperature each timestep.  To do this, the fix
-creates its own compute of style "temp" or "temp/region", as if one of
-these commands had been issued:
+creates its own compute of style "temp" or "temp/region" or
+"temp/partial", as if one of these commands had been issued:
 </P>
 <PRE>compute fix-ID_temp group-ID temp
 compute fix-ID_temp group-ID temp/region region-ID 
+compute fix-ID_temp group-ID temp/partial xflag yflag zflag 
 </PRE>
-<P>Which is used depends on whether a region was specified with the fix.
-See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_temp_region.html">compute
-temp/region</A> commands for details.  Note that
-the ID of the new compute is the fix-ID with underscore + "temp"
+<P>Which is used depends on whether the <I>region</I> or <I>partial</I> keywords
+were specified with the fix.  See the <A HREF = "compute_temp.html">compute
+temp</A>, <A HREF = "compute_temp_region.html">compute
+temp/region</A>, and <A HREF = "compute_temp_partial.html">compute
+temp/partial</A> commands for details.  Note
+that the ID of the new compute is the fix-ID with underscore + "temp"
 appended and the group for the new compute is the same as the fix
 group.
 </P>

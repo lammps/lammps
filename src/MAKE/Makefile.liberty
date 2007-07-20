@@ -5,13 +5,24 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-FFTW =		/apps/libraries/fftw/icc
+# Note: this Makefile builds LAMMPS according to what modules you've loaded
+#   by default this is openmpi MPI
+#   if you want to build with mpich MPI instead, do the following:
+#   (1) put these lines in your .cshrc
+#       module switch mpi mpi/mpich-mx-1.2.7..4_intel-10.0-f025-c025
+#       module load libraries/fftw-2.1.5_mpich-mx-1.2.7..4_intel-9.1-f040-c046
+#   (2) your qsub environment also needs these same modules
+#       this will occur if you use qsub -V to inherit from your login shell
+
+#FFTW =		/home/sjplimp/fftw/fftw_liberty
 
 CC =		mpiCC
-CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw
+#CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw
+CCFLAGS =	-O -DFFT_FFTW -I${FFTW_INCLUDE}
 DEPFLAGS =	-M
 LINK =		mpiCC
-LINKFLAGS =	-O -L${FFTW}/fftw/.libs
+#LINKFLAGS =	-O -L${FFTW}/fftw/.libs
+LINKFLAGS =	-O -L${FFTW_LIB}
 USRLIB =	-lfftw
 SYSLIB =	-lstdc++ -lm
 SIZE =		size

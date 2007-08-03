@@ -131,7 +131,10 @@ void FixSetForce::min_post_force(int vflag)
   post_force(vflag);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   allow setforce stats to be printed with thermo output
+   n = 1,2,3 = components of total force on fix group before reset
+------------------------------------------------------------------------- */
 
 double FixSetForce::thermo(int n)
 {

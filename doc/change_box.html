@@ -47,11 +47,14 @@ orthogonal box.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>When this command is used, no <A HREF = "dump.html">dumps</A> can be defined, nor
-can <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> or <A HREF = "fix_deform.html">fix
-deform</A> be defined.  This is because these commands
-test whether the simulation box is orthogonal or not when they are
-first issued.
+<P>At the point in the input script when this command is issued, no
+<A HREF = "dump.html">dumps</A> can be active, nor can a <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> or <A HREF = "fix_deform.html">fix deform</A> be
+active.  This is because these commands test whether the simulation
+box is orthogonal when they are first issued.  Note that these
+commmands can appear in your script before a change_box command is
+issued, so long as an <A HREF = "undump.html">undump</A> or <A HREF = "unfix.html">unfix</A>
+command is also used to turn them off.
 </P>
 <P><B>Related commands:</B> none
 </P>

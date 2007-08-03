@@ -50,9 +50,8 @@
         V = change tilt factor at this velocity (distance/time units),
 	    effectively an engineering shear strain rate
       <I>erate</I> value = R
-        R = engineering shear strain rate (1/time units) 
-</PRE>
-<PRE>      <I>trate</I> value = R
+        R = engineering shear strain rate (1/time units)
+      <I>trate</I> value = R
         R = true shear strain rate (1/time units) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
@@ -337,10 +336,9 @@ used.  This is because <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A> adjusts 
 atom positions and velocities to provide a velocity profile that
 matches the changing box size/shape.  Thus atom coordinates should NOT
 be remapped by fix deform, but velocities SHOULD be when atoms cross
-periodic boundaries, since when atoms cross periodic boundaries since
-that is consistent with maintaining the velocity profile created by
-fix nvt/sllod.  LAMMPS will warn you if this settings is not
-consistent.
+periodic boundaries, since that is consistent with maintaining the
+velocity profile already created by fix nvt/sllod.  LAMMPS will warn
+you if the <I>remap</I> setting is not consistent with fix nvt/sllod.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to define various arguments.  A <I>box</I> value selects standard distance

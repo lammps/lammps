@@ -234,7 +234,7 @@ void Modify::end_of_step()
 
 /* ----------------------------------------------------------------------
    thermo energy call only for relevant fixes
-   called by Thermo clas
+   called by Thermo class
    arg to Fix thermo() is 0, so fix will return its energy contribution
 ------------------------------------------------------------------------- */
 

@@ -452,7 +452,11 @@ int Input::execute_command()
 
   else flag = 0;
 
+  // return if command was listed above
+
   if (flag) return 0;
+
+  // check if command is added via style.h
 
   if (0) return 0;      // dummy line to enable else-if macro expansion
 
@@ -465,6 +469,8 @@ int Input::execute_command()
   }
 #include "style.h"
 #undef CommandClass
+
+  // unrecognized command
 
   return -1;
 }

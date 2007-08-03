@@ -22,7 +22,7 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "output.h"
+#include "domain.h"
 #include "modify.h"
 #include "compute.h"
 #include "kspace.h"
@@ -110,7 +110,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   // process extra keywords
 
   drag = 0.0;
-  dilate_partial = 0;
+  allremap = 1;
 
   int iarg;
   if (press_couple == 0) iarg = 7;
@@ -123,8 +123,8 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix nph command");
-      if (strcmp(arg[iarg+1],"all") == 0) dilate_partial = 0;
-      else if (strcmp(arg[iarg+1],"partial") == 0) dilate_partial = 1;
+      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+      else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
       else error->all("Illegal fix nph command");
       iarg += 2;
     } else error->all("Illegal fix nph command");
@@ -283,7 +283,7 @@ void FixNPH::init()
     step_respa = ((Respa *) update->integrate)->step;
   }
 
-  // detect if any rigid fixes exist so rigid bodies move when box is dilated
+  // detect if any rigid fixes exist so rigid bodies move when box is remapped
   // rfix[] = indices to each fix rigid
 
   delete [] rfix;
@@ -306,7 +306,7 @@ void FixNPH::init()
 
 void FixNPH::setup()
 {
-  p_target[0] = p_start[0];                 // used by thermo()
+  p_target[0] = p_start[0];                 // needed by thermo() method
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];
 
@@ -371,9 +371,9 @@ void FixNPH::initial_integrate()
     }
   }
 
-  // rescale simulation box and all owned atoms by 1/2 step
+  // remap simulation box and all owned atoms by 1/2 step
 
-  box_dilate(0);
+  remap(0);
 
   // x update by full step only for atoms in NPH group
 
@@ -385,10 +385,10 @@ void FixNPH::initial_integrate()
     }
   }
 
-  // rescale simulation box and all owned atoms by 1/2 step
+  // remap simulation box and all owned atoms by 1/2 step
   // redo KSpace coeffs since volume has changed
 
-  box_dilate(0);
+  remap(0);
   if (kspace_flag) force->kspace->setup();
 }
 
@@ -452,11 +452,11 @@ void FixNPH::final_integrate()
 void FixNPH::initial_integrate_respa(int ilevel, int flag)
 {
   // if flag = 1, then is 2nd call at outermost level from rRESPA
-  // perform 2nd half of box dilate on own + ghost atoms and return
+  // perform 2nd half of box remap on own + ghost atoms and return
   // redo KSpace coeffs since volume has changed
 
   if (flag == 1) {
-    box_dilate(1);
+    remap(1);
     if (kspace_flag) force->kspace->setup();
     return;
   }
@@ -478,7 +478,7 @@ void FixNPH::initial_integrate_respa(int ilevel, int flag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  // outermost level - update omega_dot, apply to v, dilate box
+  // outermost level - update omega_dot, apply to v, remap box
   // all other levels - NVE update of v
   // x,v updates only performed for atoms in NPH group
 
@@ -516,9 +516,9 @@ void FixNPH::initial_integrate_respa(int ilevel, int flag)
       }
     }
 
-    // rescale simulation box and all owned atoms by 1/2 step
+    // remap simulation box and all owned atoms by 1/2 step
 
-    box_dilate(0);
+    remap(0);
 
   } else {
 
@@ -613,89 +613,62 @@ void FixNPH::couple()
 }
 
 /* ----------------------------------------------------------------------
-   dilate the box around center of box
+   change box size
+   remap owned or owned+ghost atoms depending on flag
+   remap all atoms or fix group atoms depending on allremap flag
+   if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 
-void FixNPH::box_dilate(int flag)
+void FixNPH::remap(int flag)
 {
   int i,n;
-
-  // ctr = geometric center of box in a dimension
-  // scale owned or owned+ghost atoms depending on flag
-  // re-define simulation box via xprd/yprd/zprd
-  // scale atom coords for all atoms or only for fix group atoms
-  // if fix rigid exists, scale rigid body centers-of-mass
-  // don't do anything if non-periodic or press style is constant volume
+  double oldlo,oldhi,ctr;
 
   double **x = atom->x;
   int *mask = atom->mask;
   if (flag) n = atom->nlocal + atom->nghost;
   else n = atom->nlocal;
 
-  double oldlo,oldhi,ctr;
+  // convert pertinent atoms and rigid bodies to lamda coords
 
-  if (domain->xperiodic && p_flag[0]) {
-    oldlo = domain->boxlo[0];
-    oldhi = domain->boxhi[0];
-    ctr = 0.5 * (oldlo + oldhi);
-    domain->boxlo[0] = (oldlo-ctr)*dilation[0] + ctr;
-    domain->boxhi[0] = (oldhi-ctr)*dilation[0] + ctr;
-    domain->prd[0] = domain->xprd = domain->boxhi[0] - domain->boxlo[0];
-    if (dilate_partial) {
-      for (i = 0; i < n; i++)
-	if (mask[i] & groupbit)
-	  x[i][0] = ctr + (x[i][0]-ctr)*dilation[0];
-    } else {
-      for (i = 0; i < n; i++)
-	x[i][0] = ctr + (x[i][0]-ctr)*dilation[0];
-    }
-    if (nrigid)
-      for (i = 0; i < nrigid; i++)
-	modify->fix[rfix[i]]->
-	  dilate(0,oldlo,oldhi,domain->boxlo[0],domain->boxhi[0]);
+  if (allremap) domain->x2lamda(n);
+  else {
+    for (i = 0; i < n; i++)
+      if (mask[i] & groupbit)
+	domain->x2lamda(x[i],x[i]);
   }
 
-  if (domain->yperiodic && p_flag[1]) {
-    oldlo = domain->boxlo[1];
-    oldhi = domain->boxhi[1];
-    ctr = 0.5 * (oldlo + oldhi);
-    domain->boxlo[1] = (oldlo-ctr)*dilation[1] + ctr;
-    domain->boxhi[1] = (oldhi-ctr)*dilation[1] + ctr;
-    domain->prd[1] = domain->yprd = domain->boxhi[1] - domain->boxlo[1];
-    if (dilate_partial) {
-      for (i = 0; i < n; i++)
-	if (mask[i] & groupbit)
-	  x[i][1] = ctr + (x[i][1]-ctr)*dilation[1];
-    } else {
-      for (i = 0; i < n; i++)
-	x[i][1] = ctr + (x[i][1]-ctr)*dilation[1];
+  if (nrigid)
+    for (i = 0; i < nrigid; i++)
+      modify->fix[rfix[i]]->deform(0);
+
+  // reset global and local box to new size/shape
+
+  for (i = 0; i < 3; i++) {
+    if (p_flag[i]) {
+      oldlo = domain->boxlo[i];
+      oldhi = domain->boxhi[i];
+      ctr = 0.5 * (oldlo + oldhi);
+      domain->boxlo[i] = (oldlo-ctr)*dilation[i] + ctr;
+      domain->boxhi[i] = (oldhi-ctr)*dilation[i] + ctr;
     }
-    if (nrigid)
-      for (i = 0; i < nrigid; i++)
-	modify->fix[rfix[i]]->
-	  dilate(1,oldlo,oldhi,domain->boxlo[1],domain->boxhi[1]);
   }
 
-  if (domain->zperiodic && p_flag[2]) {
-    oldlo = domain->boxlo[2];
-    oldhi = domain->boxhi[2];
-    ctr = 0.5 * (oldlo + oldhi);
-    domain->boxlo[2] = (oldlo-ctr)*dilation[2] + ctr;
-    domain->boxhi[2] = (oldhi-ctr)*dilation[2] + ctr;
-    domain->prd[2] = domain->zprd = domain->boxhi[2] - domain->boxlo[2];
-    if (dilate_partial) {
-      for (i = 0; i < n; i++)
-	if (mask[i] & groupbit)
-	  x[i][2] = ctr + (x[i][2]-ctr)*dilation[2];
-    } else {
-      for (i = 0; i < n; i++)
-	x[i][2] = ctr + (x[i][2]-ctr)*dilation[2];
-    }
-    if (nrigid)
-      for (i = 0; i < nrigid; i++)
-	modify->fix[rfix[i]]->
-	  dilate(2,oldlo,oldhi,domain->boxlo[2],domain->boxhi[2]);
+  domain->set_global_box();
+  domain->set_local_box();
+
+  // convert pertinent atoms and rigid bodies back to box coords
+
+  if (allremap) domain->lamda2x(n);
+  else {
+    for (i = 0; i < n; i++)
+      if (mask[i] & groupbit)
+	domain->lamda2x(x[i],x[i]);
   }
+
+  if (nrigid)
+    for (i = 0; i < nrigid; i++)
+      modify->fix[rfix[i]]->deform(1);
 }
 
 /* ----------------------------------------------------------------------

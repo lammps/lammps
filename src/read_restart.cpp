@@ -269,7 +269,7 @@ void ReadRestart::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   search for all files in dir matching infile which contains "*"
+   search for all files in dir matching infile which contains a "*"
    replace "*" with latest timestep value to create outfile name
    if infile also contains "%", need to use "base" when search directory
 ------------------------------------------------------------------------- */

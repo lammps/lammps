@@ -454,8 +454,8 @@ void Respa::recurse(int ilevel)
     if (ilevel) recurse(ilevel-1);
 
     // at outermost level:
-    //   call initial_integrate w/ flag = 1 so fix NPT,NPH perform 2nd dilate
-    //     at correct symmetric position in rRESPA hierarchy
+    //   call initial_integrate w/ flag = 1 so fix NPT,NPH performs
+    //     2nd box deform at correct symmetric position in rRESPA hierarchy
     //   check on rebuilding neighbor list
     // at innermost level, communicate
     // at middle levels, do nothing

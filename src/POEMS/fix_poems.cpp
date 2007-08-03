@@ -856,24 +856,17 @@ int FixPOEMS::dof(int igroup)
 }
 
 /* ----------------------------------------------------------------------
-   adjust xcm of each cluster due to box dilation in idim
-   called by various fixes that change box
+   adjust xcm of each cluster due to box deformation
+   called by various fixes that change box size/shape
+   flag = 0/1 means map from box to lamda coords or vice versa
    NOTE: cannot do this by changing xcm of each body in cluster
-         or even 1st body in cluster since POEMS does not observe xcm
-	 but only sets xcm
+         or even 1st body in cluster
+	 b/c POEMS does not see xcm but only sets xcm
 	 so dilation needs to be coordinated with POEMS
 	 this routine does nothing for now
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::dilate(int idim,
-		      double oldlo, double oldhi, double newlo, double newhi)
-{
-  // double ratio;
-  // for (int ibody = 0; ibody < nbody; ibody++) {
-  //   ratio = (xcm[ibody][idim] - oldlo) / (oldhi - oldlo);
-  //   xcm[ibody][idim] = newlo + ratio*(newhi - newlo);
-  // }
-}
+void FixPOEMS::deform(int flag) {}
 
 /* ---------------------------------------------------------------------- */
 

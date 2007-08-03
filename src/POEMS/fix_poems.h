@@ -39,7 +39,7 @@ class FixPOEMS : public Fix  {
   int unpack_exchange(int, double *);
 
   int dof(int);
-  void dilate(int, double, double, double, double);
+  void deform(int);
 
  private:
   int me;

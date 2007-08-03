@@ -108,9 +108,9 @@ void FixNPTASphere::initial_integrate()
     }
   }
 
-  // rescale simulation box and all owned atoms by 1/2 step
+  // remap simulation box and all owned atoms by 1/2 step
 
-  box_dilate(0);
+  remap(0);
 
   // x update by full step only for atoms in NPT group
 
@@ -137,10 +137,10 @@ void FixNPTASphere::initial_integrate()
     }
   }
 
-  // rescale simulation box and all owned atoms by 1/2 step
+  // remap simulation box and all owned atoms by 1/2 step
   // redo KSpace coeffs since volume has changed
 
-  box_dilate(0);
+  remap(0);
   if (kspace_flag) force->kspace->setup();
 }
 

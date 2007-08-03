@@ -49,6 +49,8 @@ void Neighbor::stencil_allocate(int sx, int sy, int sz)
 {
   int i;
 
+  // for 2d, sz = 0
+
   int nmax = (2*sz+1) * (2*sy+1) * (2*sx+1);
 
   if (half) {

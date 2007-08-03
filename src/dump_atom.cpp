@@ -40,6 +40,9 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 void DumpAtom::init()
 {
+  // this error check cannot occur in constructor since scale_flag = 1
+  // is the default and it can be changed by dump_modify
+
   if (scale_flag && domain->triclinic)
     error->all("Cannot dump scaled coords with triclinic box");
 

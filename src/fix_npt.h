@@ -45,7 +45,7 @@ class FixNPT : public Fix {
   double t_freq;
   double f_eta,eta_dot,eta;
 
-  int press_couple,dilate_partial;
+  int press_couple,allremap;
   int p_flag[3];                   // 1 if control P on this dim, 0 if not
   double p_start[3],p_stop[3];
   double p_freq[3],p_target[3];
@@ -65,7 +65,7 @@ class FixNPT : public Fix {
   int tflag,pflag;
 
   void couple();
-  void box_dilate(int);
+  void remap(int);
 };
 
 }

@@ -93,7 +93,7 @@ class Fix : protected Pointers {
   virtual double thermo(int) {return 0.0;}
 
   virtual int dof(int) {return 0;}
-  virtual void dilate(int, double, double, double, double) {}
+  virtual void deform(int) {}
 
   virtual int modify_param(int, char **) {return 0;}
 

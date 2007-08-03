@@ -847,18 +847,19 @@ int FixRigid::dof(int igroup)
 }
 
 /* ----------------------------------------------------------------------
-   adjust xcm of each rigid body due to box dilation in idim
-   called by various fixes that change box
+   adjust xcm of each rigid body due to box deformation
+   called by various fixes that change box size/shape
+   flag = 0/1 means map from box to lamda coords or vice versa
 ------------------------------------------------------------------------- */
 
-void FixRigid::dilate(int idim,
-		      double oldlo, double oldhi, double newlo, double newhi)
+void FixRigid::deform(int flag)
 {
-  double ratio;
-  for (int ibody = 0; ibody < nbody; ibody++) {
-    ratio = (xcm[ibody][idim] - oldlo) / (oldhi - oldlo);
-    xcm[ibody][idim] = newlo + ratio*(newhi - newlo);
-  }
+  if (flag == 0) 
+    for (int ibody = 0; ibody < nbody; ibody++)
+      domain->x2lamda(xcm[ibody],xcm[ibody]);
+  else
+    for (int ibody = 0; ibody < nbody; ibody++)
+      domain->lamda2x(xcm[ibody],xcm[ibody]);
 }
 
 /* ----------------------------------------------------------------------

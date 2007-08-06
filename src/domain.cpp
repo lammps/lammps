@@ -270,12 +270,16 @@ void Domain::set_local_box()
 /* ----------------------------------------------------------------------
    reset global & local boxes due to global box boundary changes
    if shrink-wrapped, determine atom extent and reset boxlo/hi
-   shrink-wrapping only occurs in non-periodic, non-triclinic dims
+   if shrink-wrapped and triclinic, perform shrink-wrap in box coords
 ------------------------------------------------------------------------- */
 
 void Domain::reset_box()
 {
   if (nonperiodic == 2) {
+
+    // convert back to box coords for shrink-wrap operation
+
+    if (triclinic) lamda2x(atom->nlocal);
 
     // compute extent of atoms on this proc
 
@@ -283,10 +287,10 @@ void Domain::reset_box()
 
     extent[2][0] = extent[1][0] = extent[0][0] = BIG;
     extent[2][1] = extent[1][1] = extent[0][1] = -BIG;
-    
+
     double **x = atom->x;
     int nlocal = atom->nlocal;
-
+    
     for (int i = 0; i < nlocal; i++) {
       extent[0][0] = MIN(extent[0][0],x[i][0]);
       extent[0][1] = MAX(extent[0][1],x[i][0]);
@@ -306,8 +310,8 @@ void Domain::reset_box()
     MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
 
     // in shrink-wrapped dims, set box by atom extent
-    // if set, observe min box size settings
-    
+    // if minimum set, enforce min box size settings
+
     if (xperiodic == 0) {
       if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - SMALL;
       else if (boundary[0][0] == 3) boxlo[0] = MIN(-all[0][0]-SMALL,minxlo);
@@ -333,6 +337,14 @@ void Domain::reset_box()
 
   set_global_box();
   set_local_box();
+
+  // if shrink-wrapped, convert to lamda coords for new box
+  // must re-invoke pbc() b/c x2lamda result can be outside 0,1 due to roundoff
+
+  if (nonperiodic == 2 && triclinic) {
+    x2lamda(atom->nlocal);
+    pbc();
+  }
 }
 
 /* ----------------------------------------------------------------------

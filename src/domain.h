@@ -52,10 +52,10 @@ class Domain : protected Pointers {
   double boxlo_lamda[3],boxhi_lamda[3];  // lamda box = (0,1)
   double boxlo_bound[3],boxhi_bound[3];  // bounding box of tilted domain
 
-                                         // orthogonal box
+                                         // orthogonal box & triclinic box
   double minxlo,minxhi;                  // minimum size of global box
   double minylo,minyhi;                  // when shrink-wrapping
-  double minzlo,minzhi;                  // no shrink-wrapping for triclinic
+  double minzlo,minzhi;                  // tri only possible for non-skew dims
 
                                          // orthogonal box
   double sublo[3],subhi[3];              // sub-box bounds on this proc

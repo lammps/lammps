@@ -289,8 +289,9 @@ void Input::parse()
   }
 
   // perform $ variable substitution (print changes)
+  // except if searching for a label since earlier variable may not be defined
 
-  substitute(copy,1);
+  if (!label_active) substitute(copy,1);
 
   // command = 1st arg
 

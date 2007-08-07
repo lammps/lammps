@@ -47,15 +47,23 @@ this command, a lattice must also be defined using the
 {single} style with units = box.
 
 For the {box} style, the create_atoms command fills the entire
-simulation box with atoms on the lattice.  If your box is periodic,
-you should insure its size is a multiple of the lattice spacings, to
-avoid unwanted atom overlap at the box boundaries.
+simulation box with atoms on the lattice.  If your simulation box is
+periodic, you should insure its size is a multiple of the lattice
+spacings, to avoid unwanted atom overlaps at the box boundaries.  If
+your box is periodic and a multiple of the lattice spacing in a
+particular dimension, LAMMPS is careful to put exactly one atom at the
+boundary (on either side of the box), not zero or two.
 
 For the {region} style, the geometric volume is filled that is inside
 the simulation box and is also consistent with the region volume.  See
 the "region"_region.html command for details.  Note that a region can
 be specified so that its "volume" is either inside or outside a
-geometric boundary.
+geometric boundary.  Also note that if your region is the same size as
+a periodic simulation box (in some dimension), LAMMPS does not
+implement the same logic as with the {box} style, to insure exactly
+one atom at the boundary.  if this is what you desire, you should
+either use the {box} style, or tweak the region size to get precisely
+the atoms you want.
 
 For the {single} style, a single atom is added to the system at the
 specified coordinates.  This can be useful for debugging purposes or

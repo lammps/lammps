@@ -58,13 +58,11 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg-7,&arg[7]);
 
-  // error check on region
+  // error check on region and its extent being inside simulation box
 
   if (iregion == -1) error->all("Must specify a region in fix deposit");
   if (domain->regions[iregion]->interior == 0)
     error->all("Must use region with side = in with fix deposit");
-
-  // store extent of region
 
   xlo = domain->regions[iregion]->extent_xlo;
   xhi = domain->regions[iregion]->extent_xhi;
@@ -72,6 +70,18 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   yhi = domain->regions[iregion]->extent_yhi;
   zlo = domain->regions[iregion]->extent_zlo;
   zhi = domain->regions[iregion]->extent_zhi;
+
+  if (domain->triclinic == 0) {
+    if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] || 
+	ylo < domain->boxlo[1] || yhi > domain->boxhi[1] || 
+	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
+      error->all("Deposition region extends outside simulation box");
+  } else {
+    if (xlo < domain->boxlo_bound[0] || xhi > domain->boxhi_bound[0] || 
+	ylo < domain->boxlo_bound[1] || yhi > domain->boxhi_bound[1] || 
+	zlo < domain->boxlo_bound[2] || zhi > domain->boxhi_bound[2])
+      error->all("Deposition region extends outside simulation box");
+  }
 
   // setup scaling
 
@@ -105,15 +115,6 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   vyhi *= yscale;
   vzlo *= zscale;
   vzhi *= zscale;
-
-  // store extent of region
-
-  xlo = domain->regions[iregion]->extent_xlo;
-  xhi = domain->regions[iregion]->extent_xhi;
-  ylo = domain->regions[iregion]->extent_ylo;
-  yhi = domain->regions[iregion]->extent_yhi;
-  zlo = domain->regions[iregion]->extent_zlo;
-  zhi = domain->regions[iregion]->extent_zhi;
 
   // random number generator, same for all procs
 

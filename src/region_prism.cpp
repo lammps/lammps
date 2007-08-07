@@ -24,6 +24,8 @@
 
 using namespace LAMMPS_NS;
 
+#define BIG 1.0e20
+
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
@@ -33,40 +35,46 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 {
   options(narg-11,&arg[11]);
 
-  if (strcmp(arg[2],"INF") == 0) {
+  if (strcmp(arg[2],"INF") == 0 || strcmp(arg[2],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
-    xlo = domain->boxlo[0];
+      error->all("Cannot use region INF or EDGE when box does not exist");
+    if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
+    else xlo = domain->boxlo[0];
   } else xlo = xscale*atof(arg[2]);
 
-  if (strcmp(arg[3],"INF") == 0) {
+  if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
-    xhi = domain->boxhi[0];
+      error->all("Cannot use region INF or EDGE when box does not exist");
+    if (strcmp(arg[3],"INF") == 0) xhi = BIG;
+    else xhi = domain->boxhi[0];
   } else xhi = xscale*atof(arg[3]);
 
-  if (strcmp(arg[4],"INF") == 0) {
+  if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
-    ylo = domain->boxlo[1];
+      error->all("Cannot use region INF or EDGE when box does not exist");
+    if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
+    else ylo = domain->boxlo[1];
   } else ylo = yscale*atof(arg[4]);
 
-  if (strcmp(arg[5],"INF") == 0) {
+  if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
-    yhi = domain->boxhi[1];
+      error->all("Cannot use region INF or EDGE when box does not exist");
+    if (strcmp(arg[5],"INF") == 0) yhi = BIG;
+    else yhi = domain->boxhi[1];
   } else yhi = yscale*atof(arg[5]);
 
-  if (strcmp(arg[6],"INF") == 0) {
+  if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
-    zlo = domain->boxlo[0];
+      error->all("Cannot use region INF or EDGE when box does not exist");
+    if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
+    else zlo = domain->boxlo[2];
   } else zlo = zscale*atof(arg[6]);
 
-  if (strcmp(arg[7],"INF") == 0) {
+  if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
-    zhi = domain->boxhi[1];
+      error->all("Cannot use region INF or EDGE when box does not exist");
+    if (strcmp(arg[7],"INF") == 0) zhi = BIG;
+    else zhi = domain->boxhi[2];
   } else zhi = zscale*atof(arg[7]);
 
   xy = xscale*atof(arg[8]);

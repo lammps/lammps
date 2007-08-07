@@ -20,6 +20,8 @@
 
 using namespace LAMMPS_NS;
 
+#define BIG 1.0e20
+
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
@@ -43,19 +45,22 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   }
   radius = xscale*atof(arg[5]);
 
-  if (strcmp(arg[6],"INF") == 0) {
+  if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
+      error->all("Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
-      if (domain->triclinic == 0) lo = domain->boxlo[0];
+      if (strcmp(arg[6],"INF") == 0) lo = -BIG;
+      else if (domain->triclinic == 0) lo = domain->boxlo[0];
       else lo = domain->boxlo_bound[0];
     }
     if (axis == 'y') {
-      if (domain->triclinic == 0) lo = domain->boxlo[1];
+      if (strcmp(arg[6],"INF") == 0) lo = -BIG;
+      else if (domain->triclinic == 0) lo = domain->boxlo[1];
       else lo = domain->boxlo_bound[1];
     }
     if (axis == 'z') {
-      if (domain->triclinic == 0) lo = domain->boxlo[2];
+      if (strcmp(arg[6],"INF") == 0) lo = -BIG;
+      else if (domain->triclinic == 0) lo = domain->boxlo[2];
       else lo = domain->boxlo_bound[2];
     }
   } else {
@@ -64,19 +69,22 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     if (axis == 'z') lo = zscale*atof(arg[6]);
   }
 
-  if (strcmp(arg[7],"INF") == 0) {
+  if (strcmp(arg[7],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF when box does not exist");
+      error->all("Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
-      if (domain->triclinic == 0) hi = domain->boxhi[0];
+      if (strcmp(arg[7],"INF") == 0) hi = BIG;
+      else if (domain->triclinic == 0) hi = domain->boxhi[0];
       else hi = domain->boxhi_bound[0];
     }
     if (axis == 'y') {
+      if (strcmp(arg[7],"INF") == 0) hi = BIG;
       if (domain->triclinic == 0) hi = domain->boxhi[1];
       else hi = domain->boxhi_bound[1];
     }
     if (axis == 'z') {
-      if (domain->triclinic == 0) hi = domain->boxhi[2];
+      if (strcmp(arg[7],"INF") == 0) hi = BIG;
+      else if (domain->triclinic == 0) hi = domain->boxhi[2];
       else hi = domain->boxhi_bound[2];
     }
   } else {

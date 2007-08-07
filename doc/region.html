@@ -72,11 +72,15 @@ in the region can be identified as a group via the <A HREF = "group.html">group<
 command, or deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.
 </P>
 <P>The lo/hi values for <I>block</I> or <I>cylinder</I> or <I>prism</I> styles can be
-specified as INF which means they extend all the way to the global
-simulation box boundary.  If a region is defined before the simulation
-box has been created (via <A HREF = "create_box.html">create_box</A> or
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands), then an INF parameter cannot be used.
+specified as EDGE or INF.  EDGE means they extend all the way to the
+global simulation box boundary.  Note that this is the current box
+boundary; if the box changes size during a simlation the region does
+not.  INF means a large negative or positive number (1.0e20), so it
+should encompass the simulation box even if it changes size.  If a
+region is defined before the simulation box has been created (via
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A> commands), then an EDGE or INF
+parameter cannot be used.
 </P>
 <P>For style <I>cylinder</I>, the c1,c2 params are coordinates in the 2 other
 dimensions besides the cylinder axis dimension.  For dim = x, c1/c2 =

@@ -81,15 +81,16 @@ Any parameter varied by this command must refer to a periodic
 dimension - see the "boundary"_boundary.html command.  For parameters
 "xy", "xz", and "yz" this means both affected dimensions must be
 periodic, e.g. x and y for "xy".  Dimensions not varied by this
-command can be periodic or non-periodic.  Unspecified dimensions can
-also be controlled by a "fix npt"_fix_npt.html or "fix
+command can be periodic or non-periodic.  Unspecified periodic
+dimensions can also be controlled by a "fix npt"_fix_npt.html or "fix
 nph"_fix_nph.html command.
 
-The size and shape of the initial simulation box at the beginning of a
-simulation are specified by the "create_box"_create_box.html or
-"read_data"_read_data.html or "read_restart"_read_restart.html command
-used to setup the simulation, or they are the values from the end of
-the previous run.  The "create_box"_create_box.html, "read
+The size and shape of the simulation box at the beginning of the
+simulation run were either specified by the
+"create_box"_create_box.html or "read_data"_read_data.html or
+"read_restart"_read_restart.html command used to setup the simulation
+initially if it is the first run, or they are the values from the end
+of the previous run.  The "create_box"_create_box.html, "read
 data"_read_data.html, and "read_restart"_read_restart.html commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If

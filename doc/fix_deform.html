@@ -91,15 +91,16 @@ temp/deform</A> commands for more details.
 dimension - see the <A HREF = "boundary.html">boundary</A> command.  For parameters
 "xy", "xz", and "yz" this means both affected dimensions must be
 periodic, e.g. x and y for "xy".  Dimensions not varied by this
-command can be periodic or non-periodic.  Unspecified dimensions can
-also be controlled by a <A HREF = "fix_npt.html">fix npt</A> or <A HREF = "fix_nph.html">fix
+command can be periodic or non-periodic.  Unspecified periodic
+dimensions can also be controlled by a <A HREF = "fix_npt.html">fix npt</A> or <A HREF = "fix_nph.html">fix
 nph</A> command.
 </P>
-<P>The size and shape of the initial simulation box at the beginning of a
-simulation are specified by the <A HREF = "create_box.html">create_box</A> or
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
-used to setup the simulation, or they are the values from the end of
-the previous run.  The <A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read
+<P>The size and shape of the simulation box at the beginning of the
+simulation run were either specified by the
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A> command used to setup the simulation
+initially if it is the first run, or they are the values from the end
+of the previous run.  The <A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read
 data</A>, and <A HREF = "read_restart.html">read_restart</A> commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If

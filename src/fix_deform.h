@@ -41,11 +41,10 @@ class FixDeform : public Fix {
     double flo,fhi,ftilt;
     double dlo,dhi,dtilt;
     double scale,vel,rate;
-    double lo_start,hi_start;
-    double lo_stop,hi_stop;
-    double lo_target,hi_target;
-    double tilt_start,tilt_stop,tilt_target;
-    double vol_start,tilt_flip;
+    double lo_initial,hi_initial;
+    double lo_start,hi_start,lo_stop,hi_stop,lo_target,hi_target;
+    double tilt_initial,tilt_start,tilt_stop,tilt_target,tilt_flip;
+    double vol_initial,vol_start;
     int fixed,dynamic1,dynamic2;
   };
   Set *set;

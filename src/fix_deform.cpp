@@ -205,48 +205,10 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     else if (set[i].style == VEL) set[i].vel *= map[i];
   }
 
-  // set initial/final values for box size and shape for FINAL,DELTA,SCALE
-  // final not possible for VEL,ERATE,TRATE since don't know length of run yet
-  // final = initial if no setting
-
-  for (int i = 0; i < 3; i++) {
-    set[i].lo_target = set[i].lo_stop = set[i].lo_start = domain->boxlo[i];
-    set[i].hi_target = set[i].hi_stop = set[i].hi_start = domain->boxhi[i];
-
-    if (set[i].style == FINAL) {
-      set[i].lo_stop = set[i].flo;
-      set[i].hi_stop = set[i].fhi;
-    } else if (set[i].style == DELTA) {
-      set[i].lo_stop = set[i].lo_start + set[i].dlo;
-      set[i].hi_stop = set[i].hi_start + set[i].dhi;
-    } else if (set[i].style == SCALE) {
-      set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) - 
-	0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
-      set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
-	0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
-    }
-  }
-
-  for (int i = 3; i < 6; i++) {
-    if (i == 5) set[i].tilt_start = domain->xy;
-    else if (i == 4) set[i].tilt_start = domain->xz;
-    else if (i == 3) set[i].tilt_start = domain->yz;
-    set[i].tilt_flip = set[i].tilt_target = 
-      set[i].tilt_stop = set[i].tilt_start;
-
-    if (set[i].style == FINAL) {
-      set[i].tilt_stop = set[i].ftilt;
-    } else if (set[i].style == DELTA) {
-      set[i].tilt_stop = set[i].tilt_start + set[i].dtilt;
-    }
-  }
-
   // for VOLUME, setup links to other dims
-  // fixed, dynamic1,2, vol_start
+  // fixed, dynamic1, dynamic2
 
   for (int i = 0; i < 3; i++) {
-    set[i].vol_start = domain->xprd * domain->yprd * domain->zprd;
-
     if (set[i].style != VOLUME) continue;
     int other1 = (i+1) % 3;
     int other2 = (i+2) % 3;
@@ -280,6 +242,19 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       set[i].dynamic1 = other1;
       set[i].dynamic2 = other2;
     }
+  }
+
+  // set initial values at time fix deform is issued
+
+  for (int i = 0; i < 3; i++) {
+    set[i].lo_initial = domain->boxlo[i];
+    set[i].hi_initial = domain->boxhi[i];
+  }
+  for (int i = 3; i < 6; i++) {
+    if (i == 5) set[i].tilt_initial = domain->xy;
+    else if (i == 4) set[i].tilt_initial = domain->xz;
+    else if (i == 3) set[i].tilt_initial = domain->yz;
+    set[i].vol_initial = domain->xprd * domain->yprd * domain->zprd;
   }
 
   // initial settings
@@ -329,15 +304,36 @@ void FixDeform::init()
   else kspace_flag = 0;
 
   // elapsed time for entire simulation, including multiple runs if defined
-  // cannot be 0.0 since can't deform a finite distance in 0 time
 
   double delt = (update->endstep - update->beginstep) * update->dt;
 
-  // set final values for box size and shape for VEL,ERATE,TRATE
-  // now possible since length of run is known
+  // set start/stop values for box size and shape
+  // if single run, start is current values
+  // if multiple runs enabled via run start/stop settings,
+  //   start is value when fix deform was issued
+  // if NONE, no need to set
 
   for (int i = 0; i < 3; i++) {
-    if (set[i].style == VEL) {
+    if (update->firststep == update->beginstep) {
+      set[i].lo_start = domain->boxlo[i];
+      set[i].hi_start = domain->boxhi[i];
+    } else {
+      set[i].lo_start = set[i].lo_initial;
+      set[i].hi_start = set[i].hi_initial;
+    }
+
+    if (set[i].style == FINAL) {
+      set[i].lo_stop = set[i].flo;
+      set[i].hi_stop = set[i].fhi;
+    } else if (set[i].style == DELTA) {
+      set[i].lo_stop = set[i].lo_start + set[i].dlo;
+      set[i].hi_stop = set[i].hi_start + set[i].dhi;
+    } else if (set[i].style == SCALE) {
+      set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) - 
+	0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
+      set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
+	0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
+    } else if (set[i].style == VEL) {
       set[i].lo_stop = set[i].lo_start - 0.5*delt*set[i].vel;
       set[i].hi_stop = set[i].hi_start + 0.5*delt*set[i].vel;
     } else if (set[i].style == ERATE) {
@@ -356,7 +352,21 @@ void FixDeform::init()
   }
 
   for (int i = 3; i < 6; i++) {
-    if (set[i].style == VEL) {
+    if (update->firststep == update->beginstep) {
+      if (i == 5) set[i].tilt_start = domain->xy;
+      else if (i == 4) set[i].tilt_start = domain->xz;
+      else if (i == 3) set[i].tilt_start = domain->yz;
+      set[i].vol_start = domain->xprd * domain->yprd * domain->zprd;
+    } else {
+      set[i].tilt_start = set[i].tilt_initial;
+      set[i].vol_start = set[i].vol_initial;
+    }
+
+    if (set[i].style == FINAL) {
+      set[i].tilt_stop = set[i].ftilt;
+    } else if (set[i].style == DELTA) {
+      set[i].tilt_stop = set[i].tilt_start + set[i].dtilt;
+    } else if (set[i].style == VEL) {
       set[i].tilt_stop = set[i].tilt_start + delt*set[i].vel;
     } else if (set[i].style == ERATE) {
       if (i == 3) set[i].tilt_stop = set[i].tilt_start + 
@@ -373,27 +383,29 @@ void FixDeform::init()
   // if using tilt TRATE, then initial tilt must be non-zero
 
   for (int i = 3; i < 6; i++)
-    if (set[i].style == TRATE)
-      if ((i == 5 && domain->xy == 0.0) || 
-	  (i == 4 && domain->xz == 0.0) || 
-	  (i == 3 && domain->yz == 0.0)) 
-	error->all("Cannot use fix deform trate on a box with zero tilt");
+    if (set[i].style == TRATE && set[i].tilt_start == 0.0)
+      error->all("Cannot use fix deform trate on a box with zero tilt");
 
   // if yz changes and will cause box flip, then xy cannot be changing
   // this is b/c the flips would induce continuous changes in xz
   //   in order to keep the edge vectors of the flipped shape matrix
   //   a linear combination of the edge vectors of the unflipped shape matrix
 
-  if (set[3].style && set[5].style)
+  if (set[3].style && set[5].style) {
+    int flag = 0;
     if (set[3].tilt_stop < -0.5*(set[1].hi_start-set[1].lo_start) ||
-	set[3].tilt_stop > 0.5*(set[1].hi_start-set[1].lo_start) ||
-	set[3].tilt_stop < -0.5*(set[1].hi_stop-set[1].lo_stop) ||
-	set[3].tilt_stop > 0.5*(set[1].hi_stop-set[1].lo_stop))
+	set[3].tilt_stop > 0.5*(set[1].hi_start-set[1].lo_start)) flag = 1;
+    if (set[1].style) {
+      if (set[3].tilt_stop < -0.5*(set[1].hi_stop-set[1].lo_stop) ||
+	  set[3].tilt_stop > 0.5*(set[1].hi_stop-set[1].lo_stop)) flag = 1;
+    }
+    if (flag)
       error->all("Fix deform is changing yz by too much with changing xy");
+  }
 
   // set domain->h_rate values for use by domain and other fixes/computes
   // initialize all rates to 0.0
-  // cannot set h_rate now for TRATE,VOLUME styles since not constant
+  // cannot set h_rate for TRATE,VOLUME styles since not constant
 
   h_rate = domain->h_rate;
   h_ratelo = domain->h_ratelo;
@@ -483,11 +495,10 @@ void FixDeform::end_of_step()
 
   // set new box size
   // for TRATE, set target directly based on current time and set h_rate
+  // for NONE, target is current box size
   // for others except VOLUME, target is linear value between start and stop
 
   for (i = 0; i < 3; i++) {
-    if (set[i].style == NONE) continue;
-
     if (set[i].style == TRATE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) - 
@@ -496,7 +507,9 @@ void FixDeform::end_of_step()
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
       h_rate[i] = set[i].rate * domain->h[i];
       h_ratelo[i] = -0.5*h_rate[i];
-
+    } else if (set[i].style == NONE) {
+      set[i].lo_target = domain->boxlo[i];
+      set[i].hi_target = domain->boxhi[i];
     } else if (set[i].style != VOLUME) {
       set[i].lo_target = set[i].lo_start + 
 	delta*(set[i].lo_stop - set[i].lo_start);
@@ -556,20 +569,23 @@ void FixDeform::end_of_step()
   }
 
   // for triclinic, set new box shape
-  // for TRATE, set target directly based on current time and set h_rate
+  // for TRATE, set target directly based on current time. also set h_rate
+  // for NONE, target is current tilt
   // for other styles, target is linear value between start and stop values
 
   if (triclinic) {
     double *h = domain->h;
 
     for (i = 3; i < 6; i++) {
-      if (set[i].style == NONE) continue;
-
       if (set[i].style == TRATE) {
 	double delt = (update->ntimestep - update->beginstep) * update->dt;
 	set[i].tilt_target = set[i].tilt_start * pow(1.0+set[i].rate,delt);
 	h_rate[i] = set[i].rate * domain->h[i];
-      } else if (set[i].style) {
+      } else if (set[i].style == NONE) {
+	if (i == 5) set[i].tilt_target = domain->xy;
+	else if (i == 4) set[i].tilt_target = domain->xz;
+	else if (i == 3) set[i].tilt_target = domain->yz;
+      } else {
 	set[i].tilt_target = set[i].tilt_start + 
 	  delta*(set[i].tilt_stop - set[i].tilt_start);
       }
@@ -627,7 +643,7 @@ void FixDeform::end_of_step()
     }
   }
 
-  // convert atoms to lamda coords
+  // convert atoms and rigid bodies to lamda coords
 
   if (remapflag == X_REMAP) {
     double **x = atom->x;
@@ -637,7 +653,11 @@ void FixDeform::end_of_step()
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	domain->x2lamda(x[i],x[i]);
- }
+
+    if (nrigid)
+      for (i = 0; i < nrigid; i++)
+	modify->fix[rfix[i]]->deform(0);
+  }
 
   // reset global and local box to new size/shape
   // only if deform fix is controlling the dimension
@@ -663,7 +683,7 @@ void FixDeform::end_of_step()
   domain->set_global_box();
   domain->set_local_box();
 
-  // convert atoms back to box coords
+  // convert atoms and rigid bodies back to box coords
 
   if (remapflag == X_REMAP) {
     double **x = atom->x;
@@ -673,17 +693,11 @@ void FixDeform::end_of_step()
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	domain->lamda2x(x[i],x[i]);
+
+    if (nrigid)
+      for (i = 0; i < nrigid; i++)
+	modify->fix[rfix[i]]->deform(1);
   }
-
-  // remap centers-of-mass of rigid bodies
-  // needs to be new call, not dilate
-  // check where else fix dilate is called from
-
-  /*
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->dilate(2,oldlo,oldhi,newlo,newhi);
-  */
 
   // redo KSpace coeffs since box has changed
 

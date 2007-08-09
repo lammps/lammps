@@ -269,23 +269,41 @@ void ReadRestart::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   search for all files in dir matching infile which contains a "*"
+   search for all files matching infile which contains a "*"
    replace "*" with latest timestep value to create outfile name
+   search dir referenced by initial pathname of file
    if infile also contains "%", need to use "base" when search directory
 ------------------------------------------------------------------------- */
 
 void ReadRestart::file_search(char *infile, char *outfile)
 {
-  // if filename contains "%" replace "%" with "base"
-
-  char *pattern = new char[strlen(infile) + 16];
   char *ptr;
 
-  if (ptr = strchr(infile,'%')) {
+  // separate infile into dir + filename
+
+  char *dirname = new char[strlen(infile) + 1];
+  char *filename = new char[strlen(infile) + 1];
+
+  if (strchr(infile,'/')) {
+    ptr = strrchr(infile,'/');
     *ptr = '\0';
-    sprintf(pattern,"%s%s%s",infile,"base",ptr+1);
+    strcpy(dirname,infile);
+    strcpy(filename,ptr+1);
+    *ptr = '/';
+  } else {
+    strcpy(dirname,"./");
+    strcpy(filename,infile);
+  }
+
+  // if filename contains "%" replace "%" with "base"
+
+  char *pattern = new char[strlen(filename) + 16];
+
+  if (ptr = strchr(filename,'%')) {
+    *ptr = '\0';
+    sprintf(pattern,"%s%s%s",filename,"base",ptr+1);
     *ptr = '%';
-  } else strcpy(pattern,infile);
+  } else strcpy(pattern,filename);
 
   // scan all files in directory, searching for files that match pattern
   // maxnum = largest int that matches "*"
@@ -304,7 +322,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
   if (me == 0) {
     struct dirent *ep;
-    DIR *dp = opendir("./");
+    DIR *dp = opendir(dirname);
     if (dp == NULL) 
       error->one("Cannot open dir to search for restart file");
     while (ep = readdir(dp)) {
@@ -321,11 +339,6 @@ void ReadRestart::file_search(char *infile, char *outfile)
     if (maxnum < 0) error->one("Found no restart file matching pattern");
   }
 
-  delete [] pattern;
-  delete [] begin;
-  delete [] middle;
-  delete [] end;
-
   // create outfile with maxint substituted for "*"
   // use original infile, not pattern, since need to retain "%" in filename
 
@@ -333,6 +346,15 @@ void ReadRestart::file_search(char *infile, char *outfile)
   *ptr = '\0';
   sprintf(outfile,"%s%d%s",infile,maxnum,ptr+1);
   *ptr = '*';
+
+  // clean up
+
+  delete [] dirname;
+  delete [] filename;
+  delete [] pattern;
+  delete [] begin;
+  delete [] middle;
+  delete [] end;
 }
 
 /* ----------------------------------------------------------------------

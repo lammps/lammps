@@ -44,6 +44,7 @@ using namespace LAMMPS_NS;
 #define SMALL 1.0e-6
 #define EXDELTA 1
 #define BIG 1.0e20
+#define CUT2BIN_RATIO 100
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -239,6 +240,7 @@ void Neighbor::init()
   int i,j,m,n;
 
   ncalls = ndanger = 0;
+  dimension = domain->dimension;
   triclinic = domain->triclinic;
 
   // error check
@@ -520,19 +522,19 @@ void Neighbor::init()
       } else if (style == BIN) {
 	if (force->newton_pair == 0) {
 	  half_build = &Neighbor::granular_bin_no_newton;
-	  if (domain->dimension == 3)
+	  if (dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_no_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_no_newton;
 	} else if (triclinic) {
 	  half_build = &Neighbor::granular_bin_newton_tri;
-	  if (domain->dimension == 3)
+	  if (dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton_tri;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton_tri;
 	} else {
 	  half_build = &Neighbor::granular_bin_newton;
-	  if (domain->dimension == 3)
+	  if (dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton;
@@ -547,19 +549,19 @@ void Neighbor::init()
       } else if (style == BIN) {
 	if (force->newton_pair == 0) {
 	  half_build = &Neighbor::respa_bin_no_newton;
-	  if (domain->dimension == 3)
+	  if (dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_no_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_no_newton;
 	} else if (triclinic) {
 	  half_build = &Neighbor::respa_bin_newton_tri;
-	  if (domain->dimension == 3)
+	  if (dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton_tri;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton_tri;
 	} else {
 	  half_build = &Neighbor::respa_bin_newton;
-	  if (domain->dimension == 3)
+	  if (dimension == 3)
 	    half_stencil = &Neighbor::stencil_half_3d_newton;
 	  else
 	    half_stencil = &Neighbor::stencil_half_2d_newton;
@@ -582,7 +584,7 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else {
 	    half_build = &Neighbor::half_bin_no_newton;
-	    if (domain->dimension == 3)
+	    if (dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_no_newton;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_no_newton;
@@ -593,13 +595,13 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else if (triclinic) {
 	    half_build = &Neighbor::half_bin_newton_tri;
-	    if (domain->dimension == 3)
+	    if (dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton_tri;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton_tri;
 	  } else {
 	    half_build = &Neighbor::half_bin_newton;
-	    if (domain->dimension == 3)
+	    if (dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton;
@@ -612,7 +614,7 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else {
 	    half_build = &Neighbor::half_bin_no_newton_multi;
-	    if (domain->dimension == 3)
+	    if (dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_no_newton_multi;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_no_newton_multi;
@@ -623,13 +625,13 @@ void Neighbor::init()
 	    half_stencil = &Neighbor::stencil_none;
 	  } else if (triclinic) {
 	    half_build = &Neighbor::half_bin_newton_multi_tri;
-	    if (domain->dimension == 3)
+	    if (dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton_multi_tri;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton_multi_tri;
 	  } else {
 	    half_build = &Neighbor::half_bin_newton_multi;
-	    if (domain->dimension == 3)
+	    if (dimension == 3)
 	      half_stencil = &Neighbor::stencil_half_3d_newton_multi;
 	    else
 	      half_stencil = &Neighbor::stencil_half_2d_newton_multi;
@@ -644,13 +646,13 @@ void Neighbor::init()
     if (style == NSQ) full_build = &Neighbor::full_nsq;
     else if (style == BIN) {
       full_build = &Neighbor::full_bin;
-      if (domain->dimension == 3)
+      if (dimension == 3)
 	full_stencil = &Neighbor::stencil_full_3d;
       else
 	full_stencil = &Neighbor::stencil_full_2d;
     } else {
       full_build = &Neighbor::full_bin_multi;
-      if (domain->dimension == 3)
+      if (dimension == 3)
 	full_stencil = &Neighbor::stencil_full_3d_multi;
       else
 	full_stencil = &Neighbor::stencil_full_2d_multi;
@@ -922,16 +924,19 @@ void Neighbor::build_full()
 
 /* ----------------------------------------------------------------------
    setup neighbor binning parameters
-   bin numbering is global: 0 = 0.0 to binsize, 1 = binsize to 2*binsize
-			    nbin-1 = bbox-binsize to binsize
-			    nbin = bbox to bbox+binsize
-                            -1,-2,etc = -binsize to 0.0, -2*size to -size, etc
+   bin numbering in each dimension is global:
+     0 = 0.0 to binsize, 1 = binsize to 2*binsize, etc
+     nbin-1,nbin,etc = bbox-binsize to binsize, bbox to bbox+binsize, etc
+     -1,-2,etc = -binsize to 0.0, -2*size to -size, etc
    code will work for any binsize
      since next(xyz) and stencil extend as far as necessary
      binsize = 1/2 of cutoff is roughly optimal
-   for orthogonal boxes, prd must be filled exactly by integer # of bins
-     so procs on both sides of PBC see same bin boundary
-   for triclinic, tilted simulation box cannot contain integer # of bins
+   for orthogonal boxes:
+     a dim must be filled exactly by integer # of bins
+     in periodic, procs on both sides of PBC must see same bin boundary
+     in non-periodic, coord2bin() still assumes this by use of nbin xyz
+   for triclinic boxes:
+     tilted simulation box cannot contain integer # of bins
      stencil & neigh list built differently to account for this
    mbinlo = lowest global bin any of my ghost atoms could fall into
    mbinhi = highest global bin any of my ghost atoms could fall into
@@ -979,35 +984,41 @@ void Neighbor::setup_bins()
   bbox[1] = bboxhi[1] - bboxlo[1];
   bbox[2] = bboxhi[2] - bboxlo[2];
 
+  // optimal bin size is roughly 1/2 the cutoff
   // for BIN style, binsize = 1/2 of max neighbor cutoff
   // for MULTI style, binsize = 1/2 of min neighbor cutoff
   // special case of all cutoffs = 0.0, binsize = box size
 
-  double binsize;
-  if (style == BIN) binsize = 0.5*cutneighmax;
-  else binsize = 0.5*cutneighmin;
-  if (binsize == 0.0) binsize = bbox[0];
+  double binsize_optimal;
+  if (style == BIN) binsize_optimal = 0.5*cutneighmax;
+  else binsize_optimal = 0.5*cutneighmin;
+  if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
+  double binsizeinv = 1.0/binsize_optimal;
 
-  // test for too many global bins in any dimension due to huge domain
+  // test for too many global bins in any dimension due to huge global domain
 
-  double binsizeinv = 1.0/binsize;
   if (bbox[0]*binsizeinv > INT_MAX || bbox[1]*binsizeinv > INT_MAX ||
       bbox[2]*binsizeinv > INT_MAX)
     error->all("Domain too large for neighbor bins");
 
-  // divide box into bins
-  // optimal size is roughly 1/2 the cutoff
-  // use one bin even if cutoff >> bbox
+  // create actual bins
+  // always have one bin even if cutoff > bbox
+  // for 2d, nbinz = 1
 
   nbinx = static_cast<int> (bbox[0]*binsizeinv);
   nbiny = static_cast<int> (bbox[1]*binsizeinv);
-  if (domain->dimension == 3)
-    nbinz = static_cast<int> (bbox[2]*binsizeinv);
+  if (dimension == 3) nbinz = static_cast<int> (bbox[2]*binsizeinv);
   else nbinz = 1;
 
   if (nbinx == 0) nbinx = 1;
   if (nbiny == 0) nbiny = 1;
   if (nbinz == 0) nbinz = 1;
+
+  // compute actual bin size for nbins to fit into box exactly
+  // error if actual bin size << cutoff, since will create a zillion bins
+  // this happens when nbin = 1 and box size << cutoff
+  // typically due to non-periodic, flat system in a particular dim
+  // in that extreme case, should use NSQ not BIN neighbor style
 
   binsizex = bbox[0]/nbinx;
   binsizey = bbox[1]/nbiny;
@@ -1016,7 +1027,12 @@ void Neighbor::setup_bins()
   bininvx = 1.0 / binsizex;
   bininvy = 1.0 / binsizey;
   bininvz = 1.0 / binsizez;
-
+  
+  if (binsize_optimal*bininvx > CUT2BIN_RATIO || 
+      binsize_optimal*bininvy > CUT2BIN_RATIO || 
+      binsize_optimal*bininvz > CUT2BIN_RATIO)
+    error->all("Cannot use neighbor bins - box size << cutoff");
+  
   // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
   // coord = lowest and highest values of coords for my ghost atoms
   // static_cast(-1.5) = -1, so subract additional -1
@@ -1037,13 +1053,16 @@ void Neighbor::setup_bins()
   coord = bsubboxhi[1] + SMALL*bbox[1];
   mbinyhi = static_cast<int> ((coord-bboxlo[1])*bininvy);
 
-  coord = bsubboxlo[2] - SMALL*bbox[2];
-  mbinzlo = static_cast<int> ((coord-bboxlo[2])*bininvz);
-  if (coord < bboxlo[2]) mbinzlo = mbinzlo - 1;
-  coord = bsubboxhi[2] + SMALL*bbox[2];
-  mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz);
+  if (dimension == 3) {
+    coord = bsubboxlo[2] - SMALL*bbox[2];
+    mbinzlo = static_cast<int> ((coord-bboxlo[2])*bininvz);
+    if (coord < bboxlo[2]) mbinzlo = mbinzlo - 1;
+    coord = bsubboxhi[2] + SMALL*bbox[2];
+    mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz);
+  }
 
   // extend bins by 1 to insure stencil extent is included
+  // if 2d, only 1 bin in z
 
   mbinxlo = mbinxlo - 1;
   mbinxhi = mbinxhi + 1;
@@ -1053,14 +1072,11 @@ void Neighbor::setup_bins()
   mbinyhi = mbinyhi + 1;
   mbiny = mbinyhi - mbinylo + 1;
 
-  mbinzlo = mbinzlo - 1;
-  mbinzhi = mbinzhi + 1;
+  if (dimension == 3) {
+    mbinzlo = mbinzlo - 1;
+    mbinzhi = mbinzhi + 1;
+  } else mbinzlo = mbinzhi = 0;
   mbinz = mbinzhi - mbinzlo + 1;
-
-  // test for too many total local bins due to huge domain
-
-  if (1.0*mbinx*mbiny*mbinz > INT_MAX)
-    error->all("Domain too large for neighbor bins");
 
   // memory for bin ptrs
 
@@ -1081,6 +1097,7 @@ void Neighbor::setup_bins()
   if (sy*binsizey < cutneighmax) sy++;
   int sz = static_cast<int> (cutneighmax*bininvz);
   if (sz*binsizez < cutneighmax) sz++;
+  if (dimension == 2) sz = 0;
 
   // allocate stencil memory and create stencil(s)
   // check half/full instead of half_every/full_every so stencils will be
@@ -1456,6 +1473,14 @@ void Neighbor::bin_atoms()
     bins[i] = binhead[ibin];
     binhead[ibin] = i;
   }
+
+  /*
+  for (i = nall-1; i >= 0; i--) {
+    ibin = coord2bin(x[i]);
+    bins[i] = binhead[ibin];
+    binhead[ibin] = i;
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------

@@ -120,6 +120,7 @@ class Neighbor : protected Pointers {
   double binsizex,binsizey,binsizez;  // bin sizes and inverse sizes
   double bininvx,bininvy,bininvz;
 
+  int dimension;                   // 2/3 for 2d/3d
   int triclinic;                   // 0 if domain is orthog, 1 if triclinic
   double *bboxlo,*bboxhi;          // copy of full domain bounding box
 

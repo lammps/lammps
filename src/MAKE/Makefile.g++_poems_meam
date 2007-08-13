@@ -1,0 +1,44 @@
+# g++_poems_meam = RedHat Linux box, g++, MPICH, FFTW, POEMS & MEAM library
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-g -O -I/home/sjplimp/lammps/lib/poems \
+		-DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-g -O -L/home/sjplimp/lammps/lib/poems \
+		-L/home/sjplimp/lammps/lib/meam \
+		-L/opt/intel/fce/10.0.023/lib
+USRLIB =	-lfftw -lmpich -lpoems -lmeam
+SYSLIB =	-lpthread -lifcore -lsvml -lompstub -limf
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

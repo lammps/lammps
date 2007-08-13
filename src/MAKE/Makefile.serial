@@ -1,16 +1,16 @@
-# serial = RedHat Linux box, g++, no MPI, no FFTs
+# serial = RedHat Linux box, icc, no MPI, no FFTs
 
 SHELL = /bin/sh
 
 # System-specific settings
 
-CC =		g++
+CC =		icc
 CCFLAGS =	-O -I../STUBS -DFFT_NONE
 DEPFLAGS =	-M
-LINK =		g++
+LINK =		icc
 LINKFLAGS =	-O -L../STUBS
 USRLIB =	-lmpi
-SYSLIB = 
+SYSLIB =	-lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

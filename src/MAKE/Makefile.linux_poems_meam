@@ -6,18 +6,15 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		icc
-CCFLAGS =	-O -I/home/sjplimp/tools/mpich/include \
-		-I/home/sjplimp/lammps/lib/poems \
-		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
+CCFLAGS =	-O -I/home/sjplimp/lammps/lib/poems \
+		-DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		icc
-LINKFLAGS =	-O -L/home/sjplimp/tools/mpich/lib \
-		-L/home/sjplimp/lammps/lib/poems \
+LINKFLAGS =	-O -L/home/sjplimp/lammps/lib/poems \
 		-L/home/sjplimp/lammps/lib/meam \
-		-L/home/sjplimp/tools/fftw/lib \
-		-L/opt/intel/fc/9.0/lib
+		-L/opt/intel/fce/10.0.023/lib
 USRLIB =	-lfftw -lmpich -lpoems -lmeam
-SYSLIB =	-lstdc++ -lcxa -lunwind -lifcore
+SYSLIB =	-lpthread -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

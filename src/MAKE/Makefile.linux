@@ -1,4 +1,4 @@
-# linux = RedHat Linux box, Intel icc, MPICH, FFTW
+# linux = RedHat Linux box, Intel icc, MPICH2, FFTW
 
 SHELL = /bin/sh
 #.IGNORE:
@@ -6,14 +6,12 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		icc
-CCFLAGS =	-O -I/home/sjplimp/tools/mpich/include \
-		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
+CCFLAGS =	-O -DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		icc
-LINKFLAGS =	-O -L/home/sjplimp/tools/mpich/lib \
-		-L/home/sjplimp/tools/fftw/lib
+LINKFLAGS =	-O
 USRLIB =	-lfftw -lmpich
-SYSLIB =	-lcxa -lunwind -lstdc++
+SYSLIB =	-lpthread -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

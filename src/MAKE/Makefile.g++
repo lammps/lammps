@@ -1,4 +1,4 @@
-# g++ = RedHat Linux box, g++, MPICH, FFTW
+# g++ = RedHat Linux box, g++, MPICH2, FFTW
 
 SHELL = /bin/sh
 #.IGNORE:
@@ -6,14 +6,12 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-g -O -I/home/sjplimp/tools/mpich/include \
-		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
+CCFLAGS =	-g -O -DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O -L/home/sjplimp/tools/mpich/lib \
-		-L/home/sjplimp/tools/fftw/lib
+LINKFLAGS =	-g -O
 USRLIB =	-lfftw -lmpich
-SYSLIB =
+SYSLIB =	-lpthread
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

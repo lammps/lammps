@@ -6,16 +6,13 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-g -O -I/home/sjplimp/tools/mpich/include \
-		-I/home/sjplimp/tools/fftw/include -DFFT_FFTW -DGZIP
+CCFLAGS =	-g -O -DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O -L/home/sjplimp/tools/mpich/lib \
-		-L/home/sjplimp/tools/fftw/lib \
-		-L/home/sjplimp/lammps/lib/meam \
-		-L/opt/intel/fc/9.0/lib
+LINKFLAGS =	-g -O -L/home/sjplimp/lammps/lib/meam \
+		-L/opt/intel/fce/10.0.023/lib
 USRLIB =	-lfftw -lmpich -lmeam
-SYSLIB =	-lifcore
+SYSLIB =	-lpthread -lifcore -lsvml -lompstub -limf
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

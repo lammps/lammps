@@ -14,7 +14,7 @@ LINKFLAGS =	-O -L/home/sjplimp/lammps/lib/poems \
 		-L/home/sjplimp/lammps/lib/meam \
 		-L/opt/intel/fce/10.0.023/lib
 USRLIB =	-lfftw -lmpich -lpoems -lmeam
-SYSLIB =	-lpthread -lstdc++
+SYSLIB =	-lpthread -lstdc++ -lifcore -lsvml -lompstub -limf
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

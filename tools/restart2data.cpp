@@ -2651,62 +2651,62 @@ void Data::write(FILE *fp)
 
 void Data::write_atom_angle(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %d %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %d %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],molecule[i],type[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_atomic(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],type[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_bond(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %d %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %d %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],molecule[i],type[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_charge(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %g %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %15.12g %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],type[i],q[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_dipole(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %g %g %g %g %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %15.12g %15.12g %15.12g %15.12g %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],type[i],q[i],x[i],y[i],z[i],mux[i],muy[i],muz[i],ix,iy,iz);
 }
 
 void Data::write_atom_dpd(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],type[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_ellipsoid(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %g %g %g %g %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %15.12g %15.12g %15.12g %15.12g %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],type[i],x[i],y[i],z[i],
 	  quatw[i],quati[i],quatj[i],quatk[i],ix,iy,iz);
 }
 
 void Data::write_atom_full(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %d %g %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %d %15.12g %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],molecule[i],type[i],q[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_granular(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %g %g %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %15.12g %15.12g %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],type[i],2.0*radius[i],density[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
 void Data::write_atom_molecular(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %d %g %g %g %d %d %d",
+  fprintf(fp,"%d %d %d %15.12g %15.12g %15.12g %d %d %d",
 	  tag[i],molecule[i],type[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
@@ -2729,29 +2729,29 @@ void Data::write_atom_bond_extra(FILE *fp, int i)
 
 void Data::write_atom_charge_extra(FILE *fp, int i)
 {
-  fprintf(fp," %g",q[i]);
+  fprintf(fp," %15.12g",q[i]);
 }
 
 void Data::write_atom_dipole_extra(FILE *fp, int i)
 {
-  fprintf(fp," %g %g %g %g",q[i],mux[i],muy[i],muz[i]);
+  fprintf(fp," %15.12g %15.12g %15.12g %15.12g",q[i],mux[i],muy[i],muz[i]);
 }
 
 void Data::write_atom_dpd_extra(FILE *fp, int i) {}
 
 void Data::write_atom_ellipsoid_extra(FILE *fp, int i)
 {
-  fprintf(fp," %g %g %g %g",quatw[i],quati[i],quatj[i],quatk[i]);
+  fprintf(fp," %15.12g %15.12g %15.12g %15.12g",quatw[i],quati[i],quatj[i],quatk[i]);
 }
 
 void Data::write_atom_full_extra(FILE *fp, int i)
 {
-  fprintf(fp," %d %g",molecule[i],q[i]);
+  fprintf(fp," %d %15.12g",molecule[i],q[i]);
 }
 
 void Data::write_atom_granular_extra(FILE *fp, int i)
 {
-  fprintf(fp," %g %g",2.0*radius[i],density[i]);
+  fprintf(fp," %15.12g %15.12g",2.0*radius[i],density[i]);
 }
 
 void Data::write_atom_molecular_extra(FILE *fp, int i)
@@ -2766,54 +2766,54 @@ void Data::write_atom_molecular_extra(FILE *fp, int i)
 
 void Data::write_vel_angle(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_atomic(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_bond(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_charge(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_dipole(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_dpd(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_ellipsoid(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g %g %g %g",
+  fprintf(fp,"%d %15.12g %15.12g %15.12g %15.12g %15.12g %15.12g",
 	  tag[i],vx[i],vy[i],vz[i],angmomx[i],angmomy[i],angmomz[i]);
 }
 
 void Data::write_vel_full(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 void Data::write_vel_granular(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g %g %g %g",
+  fprintf(fp,"%d %15.12g %15.12g %15.12g %15.12g %15.12g %15.12g",
 	  tag[i],vx[i],vy[i],vz[i],omegax[i],omegay[i],omegaz[i]);
 }
 
 void Data::write_vel_molecular(FILE *fp, int i)
 {
-  fprintf(fp,"%d %g %g %g",tag[i],vx[i],vy[i],vz[i]);
+  fprintf(fp,"%d %15.12g %15.12g %15.12g",tag[i],vx[i],vy[i],vz[i]);
 }
 
 // ---------------------------------------------------------------------
@@ -2830,14 +2830,14 @@ void Data::write_vel_dpd_extra(FILE *fp, int i) {}
 
 void Data::write_vel_ellipsoid_extra(FILE *fp, int i)
 {
-  fprintf(fp," %g %g %g",angmomx[i],angmomy[i],angmomz[i]);
+  fprintf(fp," %15.12g %15.12g %15.12g",angmomx[i],angmomy[i],angmomz[i]);
 }
 
 void Data::write_vel_full_extra(FILE *fp, int i) {}
 
 void Data::write_vel_granular_extra(FILE *fp, int i)
 {
-  fprintf(fp," %g %g %g",omegax[i],omegay[i],omegaz[i]);
+  fprintf(fp," %15.12g %15.12g %15.12g",omegax[i],omegay[i],omegaz[i]);
 }
 
 void Data::write_vel_molecular_extra(FILE *fp, int i) {}

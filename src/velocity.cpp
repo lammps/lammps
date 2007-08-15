@@ -592,7 +592,7 @@ void Velocity::zero_rotation()
       dy = (x[i][1] + ybox*yprd) - xcm[1];
       dz = (x[i][2] + zbox*zprd) - xcm[2];
       v[i][0] -= omega[1]*dz - omega[2]*dy;
-      v[i][1] -= omega[2]*dx - omega[0]*dy;
+      v[i][1] -= omega[2]*dx - omega[0]*dz;
       v[i][2] -= omega[0]*dy - omega[1]*dx;
     }
 }

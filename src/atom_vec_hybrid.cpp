@@ -348,7 +348,7 @@ int AtomVecHybrid::unpack_exchange(double *buf)
 
   int m = 0;
   for (int k = 0; k < nstyles; k++) {
-    m += styles[k]->unpack_exchange(buf);
+    m += styles[k]->unpack_exchange(&buf[m]);
     atom->nlocal--;
   }
 

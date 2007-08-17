@@ -71,10 +71,9 @@ clean-%:
 
 tar:
 	@cd STUBS; make clean
-	@cd ..; tar cvf src/$(ROOT)_src.tar \
-	  src/MAKE src/Make* src/Package.csh src/STUBS src/*.cpp src/*.h \
-	  $(patsubst %,src/%,$(PACKUC))
-	@gzip $(ROOT)_src.tar
+	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
+	  src/Make* src/Package.csh src/MAKE src/*.cpp src/*.h src/STUBS \
+	  $(patsubst %,src/%,$(PACKUC)) --exclude=*/.svn
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
 

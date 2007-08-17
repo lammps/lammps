@@ -1,6 +1,12 @@
-# Package.csh = copy src files to/from package directories
-# called from Makefile
-# Syntax: csh Package.csh DIR update/overwrite/check
+# Package.csh = package management, called from Makefile
+# Syntax: csh Package.csh DIR status/update/overwrite
+
+# if last arg = "status":
+#   print installation status of each package
+#   if package not installed (0-length src/style file), do nothing besides
+#     check that no package files are in src (except style file)
+#   flag src files that do not exist or are 0-length
+#   list package files that are different than src version
 
 # if last arg = "update":
 #   if 0-length src/style file doesn't exist, create src/style file
@@ -16,12 +22,6 @@
 #   flag src files that do not exist or are 0-length
 #   overwrite package files that are different than src version
 
-# if last arg = "check":
-#   if package not installed (0-length src/style file), do nothing besides
-#     check that no package files are in src (except style file)
-#   flag src files that do not exist or are 0-length
-#   list package files that are different than src version
-
 # use diff to compare files
 #   tried using cmp, but it doesn't satisfy if test if one file is
 #   just longer than the other (has new stuff added)
@@ -30,7 +30,29 @@ set glob
 set style = `echo $1 | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`
 cd $1
 
-if ($2 == "update") then
+if ($2 == "status") then
+
+  if (-z ../style_$style.h) then
+    echo "Installed  NO: package $1"
+    foreach file (*.cpp *.h)
+      if (-e ../$file && $file != "style_$style.h") then
+        echo "  src/$file exists but should not"
+      endif
+    end
+  else
+    echo "Installed YES: package $1"
+    foreach file (*.cpp *.h)
+      if (! -e ../$file) then
+        echo "  src/$file does not exist"
+      else if (-z ../$file) then
+        echo "  src/$file is empty file"
+      else if (`diff --brief $file ../$file` != "") then
+        echo "  src/$file and $1/$file are different"
+      endif
+    end
+  endif
+
+else if ($2 == "update") then
 
   echo "Updating src from $1 package"
 
@@ -71,29 +93,6 @@ else if ($2 == "overwrite") then
       else if (`diff --brief $file ../$file` != "") then
         echo "  overwriting $1/$file"
         cp ../$file .
-      endif
-    end
-  endif
-
-else if ($2 == "check") then
-
-  echo "Checking src versus $1 package"
-
-  if (-z ../style_$style.h) then
-    echo "  $1 package is not installed, no action"
-    foreach file (*.cpp *.h)
-      if (-e ../$file && $file != "style_$style.h") then
-        echo "  src/$file exists but should not"
-      endif
-    end
-  else
-    foreach file (*.cpp *.h)
-      if (! -e ../$file) then
-        echo "  src/$file does not exist"
-      else if (-z ../$file) then
-        echo "  src/$file is empty file"
-      else if (`diff --brief $file ../$file` != "") then
-        echo "  src/$file and $1/$file are different"
       endif
     end
   endif

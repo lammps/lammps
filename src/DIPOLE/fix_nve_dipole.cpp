@@ -95,7 +95,7 @@ void FixNVEDipole::initial_integrate()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double g[3],h[3];
+  double g[3];
 
   // update v,x for all particles
   // update omega,mu for all dipoles

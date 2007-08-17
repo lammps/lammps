@@ -72,7 +72,7 @@ void PairColloid::compute(int eflag, int vflag)
   int i,j,k,numneigh,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r,fforce,forcelj,factor_lj,phi;
-  double r2inv,r6inv,c1,c2,aij,s2,s6,fR,dUR,dUA;
+  double r2inv,r6inv,c1,c2,fR,dUR,dUA;
   double K[9],h[4],g[4];
   int *neighs;
   double **f;
@@ -372,8 +372,7 @@ void PairColloid::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
-  int i,j,flag;
-  double d;
+  int i,j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
@@ -397,14 +396,13 @@ void PairColloid::read_restart(FILE *fp)
   allocate();
 
   int i,j;
-  int me = comm->me;
-  double d;
+
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (comm->me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
+	if (comm->me == 0) {
 	  fread(&a12[i][j],sizeof(double),1,fp);
 	  fread(&sigma[i][j],sizeof(double),1,fp);
 	  fread(&d1[i][j],sizeof(double),1,fp);
@@ -455,7 +453,7 @@ void PairColloid::single(int i, int j, int itype, int jtype, double rsq,
 		       One &one)
 {
   double K[9],h[4],g[4];
-  double r,r2inv,r6inv,forcelj,c1,c2,aij,s6,phi,fR,dUR,dUA;
+  double r,r2inv,r6inv,forcelj,c1,c2,phi,fR,dUR,dUA;
 
   switch (form[itype][jtype]) {
   case SMALL_SMALL:

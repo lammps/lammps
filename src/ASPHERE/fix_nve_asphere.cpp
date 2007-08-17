@@ -89,7 +89,7 @@ void FixNVEASphere::initial_integrate()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < atom->nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       dtfm = dtf / mass[type[i]];
       v[i][0] += dtfm * f[i][0];
@@ -128,7 +128,7 @@ void FixNVEASphere::final_integrate()
   
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      dtfm = dtf / mass[atom->type[i]];
+      dtfm = dtf / mass[type[i]];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];

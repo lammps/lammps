@@ -329,7 +329,7 @@ void Set::set(int keyword)
 
 void Set::setrandom(int keyword)
 {
-  int i,j;
+  int i;
 
   if (keyword == DIPOLE_RANDOM) atom->check_dipole();
 

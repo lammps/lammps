@@ -180,7 +180,6 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    int j;
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	random->reset(seed,x[i]);

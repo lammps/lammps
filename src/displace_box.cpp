@@ -307,7 +307,6 @@ void DisplaceBox::command(int narg, char **arg)
 
   double xprd_stop = set[0].hi_stop - set[0].lo_stop;
   double yprd_stop = set[0].hi_stop - set[0].lo_stop;
-  double zprd_stop = set[0].hi_stop - set[0].lo_stop;
 
   if (set[3].tilt_stop < -0.5*yprd_stop || set[3].tilt_stop > 0.5*yprd_stop ||
       set[4].tilt_stop < -0.5*xprd_stop || set[4].tilt_stop > 0.5*xprd_stop ||

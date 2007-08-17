@@ -67,7 +67,7 @@ void ComputeCoordAtom::init()
 
 void ComputeCoordAtom::compute_peratom()
 {
-  int j,k,jj,kk,n,numneigh;
+  int j,k,n,numneigh;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighs;
 

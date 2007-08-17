@@ -2977,7 +2977,7 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 			      int typei, int typej, double dN3[3])
 {
-  int x,y,z,i,j,k,l,trigger,done;
+  int x,y,z,i,j,k,l,done;
   double piRC,coeffs[64];
   x=0;
   y=0;
@@ -2985,10 +2985,9 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   i=0;
   j=0;
   done=0;
-  trigger=0;
-  for (i=0; i<64; i++) {
-    coeffs[i]=0.0;
-  }
+
+  for (i=0; i<64; i++) coeffs[i]=0.0;
+
   if (typei==0 && typej==0) {
     //if the inputs are out of bounds set them back to a point in bounds
     if (Nij<piCCdom[0][0]) Nij=piCCdom[0][0];
@@ -3100,14 +3099,12 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 {
   int x,y,z,i,done;
   double Tijf,coeffs[64];
-  int trigger;
 
   x=0;
   y=0;
   z=0;
   i=0;
   Tijf=0.0;
-  trigger=0;
   done=0;
   for (i=0; i<64; i++) coeffs[i]=0.0;
 

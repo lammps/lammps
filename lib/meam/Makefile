@@ -22,13 +22,10 @@ OBJ =   $(SRC:.F=.o)
 
 # ------ SETTINGS ------
 
-F90 =           gfortran
-F90FLAGS =      -O -fno-second-underscore
-#F90FLAGS =      -O 
+F90 =           ifort
+F90FLAGS =      -O
 ARCHIVE =	ar
 ARCHFLAG =	-rc
-LINK =         	g++
-LINKFLAGS =	-O
 USRLIB =
 SYSLIB =
 

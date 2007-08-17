@@ -63,8 +63,10 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int index;
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"x") == 0 || strcmp(arg[iarg],"y") == 0 ||
+    if (strcmp(arg[iarg],"x") == 0 || 
+	strcmp(arg[iarg],"y") == 0 ||
 	strcmp(arg[iarg],"z") == 0) {
+
       if (strcmp(arg[iarg],"x") == 0) index = 0;
       else if (strcmp(arg[iarg],"y") == 0) index = 1;
       else if (strcmp(arg[iarg],"z") == 0) index = 2;
@@ -106,9 +108,11 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	set[index].style = VOLUME;
 	iarg += 2;
       } else error->all("Illegal fix deform command");
+      
+    } else if (strcmp(arg[iarg],"xy") == 0 || 
+	       strcmp(arg[iarg],"xz") == 0 ||
+	       strcmp(arg[iarg],"yz") == 0) {
 
-    } else if (strcmp(arg[iarg],"xy") == 0 || strcmp(arg[iarg],"xz") == 0 ||
-	strcmp(arg[iarg],"yz") == 0) {
       if (triclinic == 0)
 	error->all("Fix deform tilt factors require triclinic box");
       if (strcmp(arg[iarg],"xy") == 0) index = 5;

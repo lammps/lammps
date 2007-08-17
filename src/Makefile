@@ -11,18 +11,21 @@ SRC =	$(wildcard *.cpp)
 INC =	$(wildcard *.h)
 OBJ = 	$(SRC:.cpp=.o)
 
+# Package variables
+
 PACKAGE = asphere class2 colloid dipole dpd granular \
 	  kspace manybody meam molecule opt poems xtc
 PACKUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
 YESDIR = $(shell perl -e 'printf("%s", uc("$(@:yes-%=%)"));')
 NODIR  = $(shell perl -e 'printf("%s", uc("$(@:no-%=%)"));')
 
-# Targets
+# List of all targets
 
 help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
+	@echo 'make tar                 lmp_src.tar.gz of src dir and packages'
 	@echo 'make makelib             update Makefile.lib for library build'
 	@echo 'make makelist            update Makefile.list used by old makes'
 	@echo ''
@@ -41,6 +44,8 @@ help:
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
+# Build the code
+
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
@@ -49,6 +54,8 @@ help:
 	@cd Obj_$@; \
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
+
+# Remove machine-specific object files
 
 clean:
 	@echo 'make clean-all           delete all object files'
@@ -59,6 +66,17 @@ clean-all:
 
 clean-%:
 	rm -r Obj_$(@:clean-%=%)
+
+# Create a tarball of src dir and packages
+
+tar:
+	@cd STUBS; make clean
+	@cd ..; tar cvf src/$(ROOT)_src.tar \
+	  src/MAKE src/Make* src/Package.csh src/STUBS src/*.cpp src/*.h \
+	  $(patsubst %,src/%,$(PACKUC))
+	@gzip $(ROOT)_src.tar
+	@cd STUBS; make
+	@echo "Created $(ROOT)_src.tar.gz"
 
 # Update Makefile.lib and Makefile.list
 

@@ -28,4 +28,3 @@ dump		1 peptide atom 10 dump.peptide
 dump		2 peptide bond 300 dump.bond
 
 run		300
-

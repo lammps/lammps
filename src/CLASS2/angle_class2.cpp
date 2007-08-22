@@ -423,3 +423,45 @@ void AngleClass2::read_restart(FILE *fp)
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double AngleClass2::single(int type, int i1, int i2, int i3)
+{
+  double **x = atom->x;
+
+  double delx1 = x[i1][0] - x[i2][0];
+  double dely1 = x[i1][1] - x[i2][1];
+  double delz1 = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx1,dely1,delz1);
+  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+
+  double delx2 = x[i3][0] - x[i2][0];
+  double dely2 = x[i3][1] - x[i2][1];
+  double delz2 = x[i3][2] - x[i2][2];
+  domain->minimum_image(delx2,dely2,delz2);
+  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+
+  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  c /= r1*r2;
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+        
+  double s = sqrt(1.0 - c*c);
+  if (s < SMALL) s = SMALL;
+  s = 1.0/s;
+
+  double dtheta = acos(c) - theta0[type];
+  double dtheta2 = dtheta*dtheta;
+  double dtheta3 = dtheta2*dtheta;
+  double dtheta4 = dtheta3*dtheta;
+  
+  double energy = k2[type]*dtheta2 + k3[type]*dtheta3 + k4[type]*dtheta4;
+  
+  double dr1 = r1 - bb_r1[type];
+  double dr2 = r2 - bb_r2[type];
+  energy += bb_k[type]*dr1*dr2;
+
+  energy += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+  return energy;
+}

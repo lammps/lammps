@@ -28,6 +28,7 @@ class AngleClass2 : public Angle {
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  double single(int, int, int, int);
 
  private:
   double *theta0,*k2,*k3,*k4;

@@ -86,8 +86,6 @@ PairAIREBO::~PairAIREBO()
 
 void PairAIREBO::compute(int eflag, int vflag)
 {
-  int i;
-
   eng_vdwl = 0.0;
   if (vflag) for (int i = 0; i < 6; i++) virial[i] = 0.0;
 
@@ -437,8 +435,8 @@ void PairAIREBO::REBO_neigh()
 void PairAIREBO::FREBO(int eflag, double **f)
 {
   int i,j,k,m,itype,jtype;
-  double delx,dely,delz,rsq,rij,wij,fx,fy,fz;
-  double Qij,Aij,alphaij,VR,pre,dVRdi,VA,dV,term,bij,dVAdi,dVA;
+  double delx,dely,delz,rsq,rij,wij;
+  double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
   double dwij,fforce,del[3];
   int *REBO_neighs;
 
@@ -505,15 +503,15 @@ void PairAIREBO::FREBO(int eflag, double **f)
 
 void PairAIREBO::FLJ(int eflag, double **f)
 {
-  int i,j,k,m,jj,kk,mm,itype,jtype,ktype,ltype,mtype;
+  int i,j,k,m,jj,kk,mm,itype,jtype,ktype,mtype;
   int numneigh,atomi,atomj,atomk,atomm;
   int testpath,npath,done;
-  double delx,dely,delz,rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
+  double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
   double delij[3],rijsq,delik[3],rik,delkj[3];
-  double rkj,wkj,wij,dC,VLJ,dVLJ,fforce,VA,Str,dStr,Stb,dStb;
+  double rkj,wkj,dC,VLJ,dVLJ,fforce,VA,Str,dStr,Stb;
   double delkm[3],rkm,delmj[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *neighs,*REBO_neighs_i,*REBO_neighs_k;
-  double delijS[3],delikS[3],delkjS[3],delkmS[3],delmjS[3];
+  double delikS[3],delkjS[3],delkmS[3],delmjS[3];
   double rikS,rkjS,rkmS,rmjS,wikS,dwikS;
   double wkjS,dwkjS,wkmS,dwkmS,wmjS,dwmjS;
 
@@ -556,7 +554,7 @@ void PairAIREBO::FLJ(int eflag, double **f)
 	best = 0.0;
 	testpath = 1;
       } else {
-	best = wij = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+	best = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
 	npath = 2;
 	if (best < 1.0) testpath = 1;
 	else testpath = 0;
@@ -769,21 +767,17 @@ void PairAIREBO::FLJ(int eflag, double **f)
 
 void PairAIREBO::TORSION(int eflag, double **f)
 {
-  int i,j,k,l,atomi,atomj,atomk,atoml,atomp,atomq,OK,dummy;
-  int atom1,atom2,atom3,atom4;
-  double r12mag,r32mag,cos321,d1x,d1y,d1z,d2x,d2y,d2z,w32,dw32,dNlj;
-  double om1234,domdr1[3],domdr2[3],domdr3[3],domdr4[3],rln[3],rlnmag;
-  double wln,dwln,r23mag,r21mag;
-  double w21,dw21,r34mag,cos234,w34,dw34;
-  double cross321[3],cross321mag,cross234[3],cross234mag,prefactor;
-  double w23,dw23,Etmp,cw2,ekijl,Ec,tmp,tmp2;
-  double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc,dt2dik[3],dt2djl[3],dt2dij[3];
-  double aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
+  int i,j,k,l;
+
+  double cos321;
+  double w21,dw21,cos234,w34,dw34;
+  double cross321[3],cross321mag,cross234[3],cross234mag;
+  double w23,dw23,cw2,ekijl,Ec;
+  double cw,cwnum,cwnom;
   double rij,rij2,rik,rjl,tspjik,dtsjik,tspijl,dtsijl,costmp,fcpc;
-  double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
-  double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
-  double rjk,ril,dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
-  double F23[3],F12[3],F34[3],F31[3],F24[3],Vtors;
+  double sin321,sin234,rjk2,rik2,ril2,rjl2;
+  double rjk,ril;
+  double Vtors;
   double dndij[3],tmpvec[3],dndik[3],dndjl[3];
   double dcidij,dcidik,dcidjk,dcjdji,dcjdjl,dcjdil;
   double dsidij,dsidik,dsidjk,dsjdji,dsjdjl,dsjdil;
@@ -792,8 +786,7 @@ void PairAIREBO::TORSION(int eflag, double **f)
   double del32[3],rsq,r32,del23[3],del21[3],r21;
   double deljk[3],del34[3],delil[3],fforce,r23,r34;
   int itype,jtype,ktype,ltype,kk,ll,jj;
-  int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j;
-  int *REBO_neighs_k,*REBO_neighs_l;
+  int *REBO_neighs_i,*REBO_neighs_j;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -837,20 +830,12 @@ void PairAIREBO::TORSION(int eflag, double **f)
 	sin321 = sqrt(1.0 - cos321*cos321);
 	if (sin321 < TOL) continue;
 	
-	sink2i = 1.0 / (sin321*sin321);
-	rik2i = 1.0 / (r21*r21);
-	
-	rr = r23*r23 - r21*r21;
 	deljk[0] = del21[0]-del23[0];
 	deljk[1] = del21[1]-del23[1];
 	deljk[2] = del21[2]-del23[2];
 	rjk2 = deljk[0]*deljk[0] + deljk[1]*deljk[1] + deljk[2]*deljk[2];
 	rjk=sqrt(rjk2);
-	rijrik = 2.0*r23*r21;
 	rik2 = r21*r21;
-	dctik = (-rr+rjk2) / (rijrik*rik2);
-	dctij = (rr+rjk2) / (rijrik*r23*r23);
-	dctjk = -2.0 / rijrik;
 	w21 = Sp(r21,rcmin[itype][ktype],rcmax[itype][ktype],dw21);
 
 	rij = r32;
@@ -877,20 +862,13 @@ void PairAIREBO::TORSION(int eflag, double **f)
 	  cos234 = MAX(cos234,-1.0);
 	  sin234 = sqrt(1.0 - cos234*cos234);
 	  if (sin234 < TOL) continue;
-	  sinl2i = 1.0 / (sin234*sin234);
-	  rjl2i = 1.0 / (r34*r34);
 	  w34 = Sp(r34,rcmin[jtype][ltype],rcmax[jtype][ltype],dw34);
-	  rr = r23*r23 - r34*r34;
 	  delil[0] = del23[0] + del34[0];
 	  delil[1] = del23[1] + del34[1];
 	  delil[2] = del23[2] + del34[2];
 	  ril2 = delil[0]*delil[0] + delil[1]*delil[1] + delil[2]*delil[2];
 	  ril=sqrt(ril2);
-	  rijrjl = 2.0*r23*r34;
 	  rjl2 = r34*r34;
-	  dctjl = (-rr+ril2) / (rijrjl*rjl2);
-	  dctji = (rr+ril2) / (rijrjl*r23*r23);
-	  dctil = -2.0 / rijrjl;
 
 	  rjl = r34;
 	  rjl2 = r34*r34;
@@ -1170,27 +1148,27 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   int atomi,atomj,k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
   int itype,jtype,ktype,ltype,ntype;
   double rik[3], rjl[3], rkn[3],rknmag,dNki,dwjl,bij;
-  double NijC,NijH,NjiC,NjiH,wik,dwik,wkn,dwkn,wjl;
-  double rikmag,rjlmag,cosjik,cosijl,g1,dg1,g2,dg2,wNij,wNji,g,tmp2,tmp3;
+  double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
+  double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
   double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ,Nki,Nlj,dS;
   double lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
-  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3],domkijldrk[3];
-  double Ftmp[3],Ftmp2[3],dpijdri[3],dN2[2],dN3[3];
+  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
+  double dN2[2],dN3[3];
   double dcosjikdrj[3],dcosijldrj[3],dcosijldrl[3];
   double Tij;
-  double r12[3],r32[3],r12mag,r32mag,cos321;
-  double d1x,d1y,d1z,d2x,d2y,d2z,w32,dw32,dNlj;
-  double om1234,domdr1[3],domdr2[3],domdr3[3],domdr4[3],rln[3];
-  double rlnmag,wln,dwln,r23[3],r23mag,r21[3],r21mag;
+  double r32[3],r32mag,cos321;
+  double dNlj;
+  double om1234,rln[3];
+  double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
-  double cross321[3],cross321mag,cross234[3],cross234mag,prefactor,SpN;
+  double cross321[3],cross234[3],prefactor,SpN;
   double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
   double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
   double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
   double F23[3],F12[3],F34[3],F31[3],F24[3];
-  double cut321,dcut321,cut234,dcut234,PijS,PjiS;
+  double dcut321,PijS,PjiS;
   double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp;
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
 
@@ -1215,9 +1193,6 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   NconjtmpI = 0.0;
   NconjtmpJ = 0.0;
   Etmp = 0.0;
-  Ftmp[0] = 0.0;
-  Ftmp[1] = 0.0;
-  Ftmp[2] = 0.0;
   
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
@@ -1353,9 +1328,6 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   tmp2 = 0.0;
   tmp3 = 0.0;
   Etmp = 0.0;
-  Ftmp[0] = 0.0;
-  Ftmp[1] = 0.0;
-  Ftmp[2] = 0.0;
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -1531,7 +1503,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 	    rkn[1] = x[atomk][1]-x[atomn][1];
 	    rkn[2] = x[atomk][2]-x[atomn][2];
 	    rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-	    wkn = Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+	    Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 	    tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
 	    f[atomk][0] -= tmp2*rkn[0]; 
@@ -1588,7 +1560,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 	    rln[1] = x[atoml][1]-x[atomn][1];
 	    rln[2] = x[atoml][2]-x[atomn][2];
 	    rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-	    wln = Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+	    Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
 
 	    tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
 	    f[atoml][0] -= tmp2*rln[0]; 
@@ -1636,7 +1608,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 	  (r21mag*r32mag);
 	cos321 = MIN(cos321,1.0);
 	cos321 = MAX(cos321,-1.0);
-	cut321 = Sp2(cos321,thmin,thmax,dcut321);
+	Sp2(cos321,thmin,thmax,dcut321);
 	sin321 = sqrt(1.0 - cos321*cos321);
 	sink2i = 1.0/(sin321*sin321);
 	rik2i = 1.0/(r21mag*r21mag);
@@ -1700,15 +1672,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 		cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
 		cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
 		cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
-		cross321mag = sqrt(cross321[0]*cross321[0] +
-				   cross321[1]*cross321[1] + 
-				   cross321[2]*cross321[2]);
 		cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
 		cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
 		cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
-		cross234mag = sqrt(cross234[0]*cross234[0] + 
-				   cross234[1]*cross234[1] + 
-				   cross234[2]*cross234[2]);
+
 		cwnum = (cross321[0]*cross234[0]) + 
 		  (cross321[1]*cross234[1]) + (cross321[2]*cross234[2]);
 		cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
@@ -1854,7 +1821,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 	      rkn[1] = x[atomk][1]-x[atomn][1];
 	      rkn[2] = x[atomk][2]-x[atomn][2];
 	      rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-	      wkn = Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+	      Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
 	      f[atomk][0] -= tmp2*rkn[0]; 
@@ -1911,7 +1878,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 	      rln[1] = x[atoml][1]-x[atomn][1];
 	      rln[2] = x[atoml][2]-x[atomn][2];
 	      rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-	      wln = Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+	      Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)*Etmp/rlnmag;
 	      f[atoml][0] -= tmp2*rln[0];
@@ -1940,33 +1907,33 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 			       double **f)
 {
   int k,n,l,atomk,atoml,atomn,atom1,atom2,atom3,atom4;
-  int wwi,wwj,atomi,atomj,itype,jtype,ktype,ltype,ntype;
+  int atomi,atomj,itype,jtype,ktype,ltype,ntype;
   double rik[3], rjl[3], rkn[3],rknmag,dNki;
-  double NijC,NijH,NjiC,NjiH,wik,dwik,wkn,dwkn,wjl;
-  double rikmag,rjlmag,cosjik,cosijl,g1,dg1,g2,dg2,wNij,wNji,g,tmp2,tmp3;
+  double NijC,NijH,NjiC,NjiH,wik,dwik,dwkn,wjl;
+  double rikmag,rjlmag,cosjik,cosijl,g,tmp2,tmp3;
   double Etmp,pij,tmp,wij,dwij,NconjtmpI,NconjtmpJ;
   double Nki,Nlj,dS,lamdajik,lamdaijl,dgdc,dgdN,pji,Nijconj,piRC;
-  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3],domkijldrk[3];
-  double Ftmp[3],Ftmp2[3],dpijdri[3],dpjidri[3],dN2[2],dN3[3];
+  double dcosjikdri[3],dcosijldri[3],dcosjikdrk[3];
+  double dN2[2],dN3[3];
   double dcosijldrj[3],dcosijldrl[3],dcosjikdrj[3],dwjl;
-  double Tij,domkijldri[3],crosskij[3],crosskijmag;
-  double crossijl[3],crossijlmag,omkijl,dbdomdri[3];
-  int dummy;
+  double Tij,crosskij[3],crosskijmag;
+  double crossijl[3],crossijlmag,omkijl;
+  
   double tmppij,tmppji,dN2PIJ[2],dN2PJI[2],dN3piRC[3],dN3Tij[3];
-  double bij,tmp3pij,tmp3pji,Stb,dStb,dummy2,dummy3,dummy4,dummy5;
-  double r12[3],r32[3],r12mag,r32mag,cos321;
-  double d1x,d1y,d1z,d2x,d2y,d2z,w32,dw32,dNlj,rijsave[3],rijsavemag;
-  double om1234,domdr1[3],domdr2[3],domdr3[3],domdr4[3],rln[3];
-  double rlnmag,wln,dwln,r23[3],r23mag,r21[3],r21mag;
+  double bij,tmp3pij,tmp3pji,Stb,dStb;
+  double r32[3],r32mag,cos321;
+  
+  double om1234,rln[3];
+  double rlnmag,dwln,r23[3],r23mag,r21[3],r21mag;
   double w21,dw21,r34[3],r34mag,cos234,w34,dw34;
-  double cross321[3],cross321mag,cross234[3],cross234mag,prefactor,SpN;
+  double cross321[3],cross234[3],prefactor,SpN;
   double fcijpc,fcikpc,fcjlpc,fcjkpc,fcilpc;
   double dt2dik[3],dt2djl[3],dt2dij[3],aa,aaa1,aaa2,at2,cw,cwnum,cwnom;
   double sin321,sin234,rr,rijrik,rijrjl,rjk2,rik2,ril2,rjl2;
   double dctik,dctjk,dctjl,dctij,dctji,dctil,rik2i,rjl2i,sink2i,sinl2i;
   double rjk[3],ril[3],dt1dik,dt1djk,dt1djl,dt1dil,dt1dij;
-  double F1[3],F2[3],F3[3],F4[3],F5[3],F6[3],F7[3],F8[3],dijmin,rijmbr;
-  double cut321,dcut321,cut234,dcut234,PijS,PjiS;
+  double dNlj;
+  double PijS,PjiS;
   double rij2,tspjik,dtsjik,tspijl,dtsijl,costmp; 
   int *REBO_neighs,*REBO_neighs_i,*REBO_neighs_j,*REBO_neighs_k,*REBO_neighs_l;
   double F12[3],F23[3],F34[3],F31[3],F24[3];
@@ -1998,9 +1965,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   NconjtmpI = 0.0;
   NconjtmpJ = 0.0;
   Etmp = 0.0;
-  Ftmp[0] = 0.0;
-  Ftmp[1] = 0.0;
-  Ftmp[2] = 0.0;
 
   REBO_neighs = REBO_firstneigh[i];
   for (k = 0; k < REBO_numneigh[i]; k++) {
@@ -2417,7 +2381,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	      rkn[1] = x[atomk][1]-x[atomn][1];
 	      rkn[2] = x[atomk][2]-x[atomn][2];
 	      rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-	      wkn = Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+	      Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)/rknmag;
 	      f[atomk][0] -= tmp2*rkn[0]; 
@@ -2474,7 +2438,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 	      rln[1] = x[atoml][1]-x[atomn][1];
 	      rln[2] = x[atoml][2]-x[atomn][2];
 	      rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-	      wln = Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+	      Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
 
 	      tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)/rlnmag;
 	      f[atoml][0] -= tmp2*rln[0]; 
@@ -2499,8 +2463,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
       r32[1] = x[atom3][1]-x[atom2][1];
       r32[2] = x[atom3][2]-x[atom2][2];
       r32mag = sqrt((r32[0]*r32[0])+(r32[1]*r32[1])+(r32[2]*r32[2]));
-      dijmin = (rcmin[itype][jtype]);
-      rijmbr = dijmin/r32mag;
       r23[0] = -r32[0];
       r23[1] = -r32[1];
       r23[2] = -r32[2];
@@ -2580,18 +2542,14 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 		  tspijl = Sp2(costmp,thmin,thmax,dtsijl);
 		  dtsijl = -dtsijl; //need minus sign
 		  prefactor = VA*Tij;
+
 		  cross321[0] = (r32[1]*r21[2])-(r32[2]*r21[1]);
 		  cross321[1] = (r32[2]*r21[0])-(r32[0]*r21[2]);
 		  cross321[2] = (r32[0]*r21[1])-(r32[1]*r21[0]);
-		  cross321mag = sqrt(cross321[0]*cross321[0] + 
-				     cross321[1]*cross321[1] + 
-				     cross321[2]*cross321[2]);
 		  cross234[0] = (r23[1]*r34[2])-(r23[2]*r34[1]);
 		  cross234[1] = (r23[2]*r34[0])-(r23[0]*r34[2]);
 		  cross234[2] = (r23[0]*r34[1])-(r23[1]*r34[0]);
-		  cross234mag = sqrt(cross234[0]*cross234[0] +
-				     cross234[1]*cross234[1] + 
-				     cross234[2]*cross234[2]);
+
 		  cwnum = (cross321[0]*cross234[0]) + 
 		    (cross321[1]*cross234[1])+(cross321[2]*cross234[2]);
 		  cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
@@ -2738,7 +2696,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 		rkn[1] = x[atomk][1]-x[atomn][1];
 		rkn[2] = x[atomk][2]-x[atomn][2];
 		rknmag = sqrt((rkn[0]*rkn[0])+(rkn[1]*rkn[1])+(rkn[2]*rkn[2]));
-		wkn = Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
+		Sp(rknmag,rcmin[ktype][ntype],rcmax[ktype][ntype],dwkn);
 
 		tmp2 = VA*dN3[2]*(2.0*NconjtmpI*wik*dNki*dwkn)*Etmp/rknmag;
 		f[atomk][0] -= tmp2*rkn[0]; 
@@ -2795,7 +2753,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 		rln[1] = x[atoml][1]-x[atomn][1];
 		rln[2] = x[atoml][2]-x[atomn][2];
 		rlnmag = sqrt((rln[0]*rln[0])+(rln[1]*rln[1])+(rln[2]*rln[2]));
-		wln = Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
+		Sp(rlnmag,rcmin[ltype][ntype],rcmax[ltype][ntype],dwln);
 
 		tmp2 = VA*dN3[2]*(2.0*NconjtmpJ*wjl*dNlj*dwln)*Etmp/rlnmag;
 		f[atoml][0] -= tmp2*rln[0];
@@ -2823,7 +2781,7 @@ double PairAIREBO::gSpline(double costh, double Nij, int typei,
 			   double *dgdc, double *dgdN)
 {
   double coeffs[6],dS,g1,g2,dg1,dg2,cut,g;
-  int interval,i,j;
+  int i,j;
 
   i = 0;
   j = 0;
@@ -2907,7 +2865,7 @@ double PairAIREBO::gSpline(double costh, double Nij, int typei,
 double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 			     double dN2[2])
 {
-  int x,y,i,j,done;
+  int x,y,i,done;
   double Pij,coeffs[16];
   
   for (i = 0; i < 16; i++) coeffs[i]=0.0;
@@ -2977,13 +2935,13 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
 double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 			      int typei, int typej, double dN3[3])
 {
-  int x,y,z,i,j,k,l,done;
+  int x,y,z,i,done;
   double piRC,coeffs[64];
   x=0;
   y=0;
   z=0;
   i=0;
-  j=0;
+
   done=0;
 
   for (i=0; i<64; i++) coeffs[i]=0.0;
@@ -3994,3 +3952,4 @@ void PairAIREBO::spline_init()
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
 }
+

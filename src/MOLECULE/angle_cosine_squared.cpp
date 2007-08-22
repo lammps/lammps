@@ -240,8 +240,7 @@ void AngleCosineSquared::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosineSquared::single(int type, int i1, int i2, int i3,
-				  double rfactor)
+double AngleCosineSquared::single(int type, int i1, int i2, int i3)
 {
   double **x = atom->x;
 
@@ -264,5 +263,5 @@ double AngleCosineSquared::single(int type, int i1, int i2, int i3,
   
   double dcostheta = c - cos(theta0[type]);
   double tk = k[type] * dcostheta;
-  return (rfactor * tk*dcostheta);
+  return tk*dcostheta;
 }

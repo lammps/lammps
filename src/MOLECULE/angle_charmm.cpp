@@ -278,7 +278,7 @@ void AngleCharmm::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCharmm::single(int type, int i1, int i2, int i3, double rfactor)
+double AngleCharmm::single(int type, int i1, int i2, int i3)
 {
   double **x = atom->x;
 
@@ -310,5 +310,5 @@ double AngleCharmm::single(int type, int i1, int i2, int i3, double rfactor)
   double dr = rUB - r_ub[type];
   double rk = k_ub[type] * dr;
 
-  return (rfactor * (tk*dtheta + rk*dr));
+  return (tk*dtheta + rk*dr);
 }

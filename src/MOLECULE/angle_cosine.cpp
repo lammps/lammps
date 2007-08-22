@@ -220,7 +220,7 @@ void AngleCosine::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosine::single(int type, int i1, int i2, int i3, double rfactor)
+double AngleCosine::single(int type, int i1, int i2, int i3)
 {
   double **x = atom->x;
 
@@ -241,5 +241,5 @@ double AngleCosine::single(int type, int i1, int i2, int i3, double rfactor)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  return (rfactor * k[type]*(1.0+c));
+  return k[type]*(1.0+c);
 }

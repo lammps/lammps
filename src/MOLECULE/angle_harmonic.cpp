@@ -240,7 +240,7 @@ void AngleHarmonic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleHarmonic::single(int type, int i1, int i2, int i3, double rfactor)
+double AngleHarmonic::single(int type, int i1, int i2, int i3)
 {
   double **x = atom->x;
 
@@ -263,5 +263,5 @@ double AngleHarmonic::single(int type, int i1, int i2, int i3, double rfactor)
 
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;
-  return (rfactor * tk*dtheta);
+  return tk*dtheta;
 }

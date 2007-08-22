@@ -28,7 +28,7 @@ class AngleCharmm : public Angle {
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  double single(int, int, int, int, double);
+  double single(int, int, int, int);
 
  private:
   double *k,*theta0,*k_ub,*r_ub;

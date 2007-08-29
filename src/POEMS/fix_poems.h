@@ -38,6 +38,7 @@ class FixPOEMS : public Fix  {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
+  void pre_neighbor();
   int dof(int);
   void deform(int);
 

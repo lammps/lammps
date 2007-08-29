@@ -313,6 +313,7 @@ int FixPOEMS::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
+  mask |= PRE_NEIGHBOR;
   mask |= POST_FORCE;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
@@ -807,6 +808,22 @@ void FixPOEMS::final_integrate_respa(int ilevel)
 }
 
 /* ----------------------------------------------------------------------
+   remap xcm of each rigid body back into periodic simulation box
+   done during pre_neighbor so will be after call to pbc()
+     and after fix_deform::pre_exchange() may have flipped box
+   if don't do this, then atoms of a body which drifts far away
+     from a triclinic box will be remapped back into box
+     with huge displacements when the box tilt changes via set_x() 
+   NOTE: cannot do this by changing xcm of each body in cluster
+         or even 1st body in cluster
+	 b/c POEMS library does not see xcm but only sets xcm
+	 so remap needs to be coordinated with POEMS library
+	 thus this routine does nothing for now
+------------------------------------------------------------------------- */
+
+void FixPOEMS::pre_neighbor() {}
+
+/* ----------------------------------------------------------------------
    count # of degrees-of-freedom removed by fix_poems for atoms in igroup 
 ------------------------------------------------------------------------- */
 
@@ -861,9 +878,9 @@ int FixPOEMS::dof(int igroup)
    flag = 0/1 means map from box to lamda coords or vice versa
    NOTE: cannot do this by changing xcm of each body in cluster
          or even 1st body in cluster
-	 b/c POEMS does not see xcm but only sets xcm
-	 so dilation needs to be coordinated with POEMS
-	 this routine does nothing for now
+	 b/c POEMS library does not see xcm but only sets xcm
+	 so deform needs to be coordinated with POEMS library
+	 thus this routine does nothing for now
 ------------------------------------------------------------------------- */
 
 void FixPOEMS::deform(int flag) {}

@@ -36,6 +36,7 @@ class FixRigid : public Fix {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
+  void pre_neighbor();
   int dof(int);
   void deform(int);
 
@@ -43,6 +44,7 @@ class FixRigid : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int pressure_flag;
+  int triclinic;
 
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
@@ -57,11 +59,12 @@ class FixRigid : public Fix {
   double **omega;           // angular velocity of each in space coords
   double **torque;          // torque on each rigid body in space coords
   double **quat;            // quaternion of each rigid body
-
+  int *image;               // image flags of xcm of each rigid body
   int *body;                // which body each atom is part of (-1 if none)
   double **displace;        // displacement of each atom in body coords
 
   double **sum,**all;       // work vectors for each rigid body
+  int **remapflag;          // PBC remap flags for each rigid body
 
   int jacobi(double **, double *, double **);
   void rotate(double **, int, int, int, int, double, double);

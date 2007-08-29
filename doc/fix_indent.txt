@@ -113,7 +113,7 @@ indenter always has a radius of its final value R in that case.
 
 IMPORTANT NOTE: If you want the atom/indenter interaction energy to be
 included in the total potential energy of the system (the quantity
-being minimized), you MUST enable the "fix_modify"_fix_modify.html
+being minimized), you must enable the "fix_modify"_fix_modify.html
 {energy} option for this fix.
 
 [Restrictions:] none

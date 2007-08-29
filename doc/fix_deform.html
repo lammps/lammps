@@ -341,6 +341,18 @@ periodic boundaries, since that is consistent with maintaining the
 velocity profile already created by fix nvt/sllod.  LAMMPS will warn
 you if the <I>remap</I> setting is not consistent with fix nvt/sllod.
 </P>
+<P>IMPORTANT NOTE: If a <A HREF = "fix_rigid.html">fix rigid</A> is defined for rigid
+bodies, and <I>remap</I> is set to <I>x</I>, then the center-of-mass coordinates
+of rigid bodies will be remapped to the changing simulation box.  This
+will be done regardless of whether atoms in the rigid bodies are in
+the fix deform group or not.  The velocity of the centers of mass are
+not remapped even if <I>remap</I> is set to <I>v</I>, since <A HREF = "fix_nvt_sllod.html">fix
+nvt/sllod</A> does not currently do anything special
+for rigid particles.  If you wish to perform a NEMD simulation of
+rigid particles, you can either thermostat them independently or
+include a background fluid and thermostat the fluid via <A HREF = "fix_nvt_sllod">fix
+nvt/sllod</A>.
+</P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to define various arguments.  A <I>box</I> value selects standard distance
 units as defined by the <A HREF = "units.html">units</A> command, e.g. Angstroms for

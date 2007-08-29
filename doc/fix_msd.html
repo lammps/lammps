@@ -26,12 +26,21 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Compute the mean-squared displacement of the group of atoms every N
-steps, including all effects due to atoms passing thru periodic
-boundaries.  The slope of the mean-squared displacement versus time is
-proportional to the diffusion coefficient of the diffusing atoms.  The
-"origin" of the displacement for each atom is its position at the time
-the fix command was issued.  Write the results to the specified file.
+<P>Compute the mean-squared displacement (MSD) of the group of atoms
+every N steps, including all effects due to atoms passing thru
+periodic boundaries.  The slope of the mean-squared displacement
+versus time is proportional to the diffusion coefficient of the
+diffusing atoms.  The "origin" of the displacement for each atom is
+its position at the time the fix command was issued.  Write the
+results to the specified file.
+</P>
+<P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
+rigid</A> command), it's periodic image flags are altered,
+and the computed MSD will not reflect its true displacement.  See the
+<A HREF = "fix_rigid.html">fix rigid</A> command for details.  Thus, to compute the
+MSD of rigid bodies as they cross periodic boundaries, you will need
+to post-process a <A HREF = "dump.html">dump file</A> containing coordinates of the
+atomss in the bodies.
 </P>
 <P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
 </P>

@@ -80,6 +80,17 @@ effectively immersed in an implicit solvent, i.e. a Brownian dynamics
 model.  Or you can thermostat additional atoms of an explicit solvent
 directly.
 
+IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
+modified when the center-of-mass of the rigid body moves across a
+periodic boundary.  They are not incremented/decremented as they would
+be for non-rigid atoms.  This change does not affect dynamics, but
+means that any diagnostic computation based on the atomic image flag
+values must be adjusted accordingly.  For example, the "fix
+msd"_fix_msd.html will not compute the expected mean-squared
+displacement for such atoms, and the image flag values written to a
+"dump file"_dump.html will be different than they would be if the
+atoms were not in a rigid body.
+
 [Restart, fix_modify, thermo output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart

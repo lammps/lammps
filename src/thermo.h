@@ -25,6 +25,7 @@ class Thermo : protected Pointers {
  public:
   char *style;
   int peflag;
+  int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   double potential_energy;
 
   Thermo(class LAMMPS *, int, char **);
@@ -49,7 +50,6 @@ class Thermo : protected Pointers {
   char *format_int_user,*format_float_user;
   char **format,**format_user;
 
-  int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   int normvalue;         // use this for normflag unless natoms = 0
   int normuserflag;      // 0 if user has not set, 1 if has
   int normuser;

@@ -157,7 +157,9 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_momentum.h"
 #include "fix_nph.h"
 #include "fix_npt.h"
+  //#include "fix_npt_pr.h"
 #include "fix_nve.h"
+#include "fix_nve_limit.h"
 #include "fix_nve_noforce.h"
 #include "fix_nvt.h"
 #include "fix_nvt_sllod.h"
@@ -204,9 +206,11 @@ FixStyle(MINIMIZE,FixMinimize)
 FixStyle(momentum,FixMomentum)
 FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)
+  //FixStyle(npt/pr,FixNPTpr)
 FixStyle(npt,FixNPT)
 FixStyle(nve,FixNVE)
-FixStyle(nve,FixNVENoforce)
+FixStyle(nve/limit,FixNVELimit)
+FixStyle(nve/noforce,FixNVENoforce)
 FixStyle(nvt,FixNVT)
 FixStyle(nvt/sllod,FixNVTSlodd)
 FixStyle(orient/fcc,FixOrientFCC)
@@ -328,6 +332,8 @@ RegionStyle(union,RegUnion)
 #include "style_opt.h"
 #include "style_poems.h"
 #include "style_xtc.h"
+
+//#include "style_extra.h"
 
 // user add-ons
 

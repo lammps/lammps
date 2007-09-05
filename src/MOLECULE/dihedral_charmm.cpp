@@ -387,7 +387,7 @@ void DihedralCharmm::init_style()
   // set local ptrs to LJ 14 arrays setup by Pair
 
   int weightflag = 0;
-  for (int i = 1; i < atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     if (weight[i] > 0.0) weightflag = 1;
 
   if (weightflag) {

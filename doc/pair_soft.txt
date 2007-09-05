@@ -30,7 +30,8 @@ It is useful for pushing apart overlapping atoms, since it does not
 blow up as r goes to 0.  A is a pre-factor that varies in time from
 the start to the end of the run.  The "run"_run.html command documents
 how to make the ramping take place across multiple runs.  Rc is the
-cutoff.
+cutoff.  See the "fix nve/limit"_fix_nve_limit.html command for
+another way to push apart overlapping atoms.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -83,6 +84,6 @@ to be specified in an input script that reads a restart file.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "fix nve/limit"_fix_nve_limit.html
 
 [Default:] none

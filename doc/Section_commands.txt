@@ -403,6 +403,7 @@ description:
 "nve/asphere"_fix_nve_asphere.html,
 "nve/dipole"_fix_nve_dipole.html,
 "nve/gran"_fix_nve_gran.html,
+"nve/limit"_fix_nve_limit.html,
 "nve/noforce"_fix_nve_noforce.html,
 "nvt"_fix_nvt.html,
 "nvt/asphere"_fix_nvt_asphere.html,

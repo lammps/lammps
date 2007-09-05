@@ -33,7 +33,8 @@ pair_coeff 1 1 0.0 60.0 3.0
 blow up as r goes to 0.  A is a pre-factor that varies in time from
 the start to the end of the run.  The <A HREF = "run.html">run</A> command documents
 how to make the ramping take place across multiple runs.  Rc is the
-cutoff.
+cutoff.  See the <A HREF = "fix_nve_limit.html">fix nve/limit</A> command for
+another way to push apart overlapping atoms.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -86,7 +87,7 @@ to be specified in an input script that reads a restart file.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_nve_limit.html">fix nve/limit</A>
 </P>
 <P><B>Default:</B> none
 </P>

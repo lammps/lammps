@@ -41,6 +41,7 @@ using namespace LAMMPS_NS;
 #define NVT      1
 #define LANGEVIN 2
 // #define TEMPER_DEBUG 1
+
 /* ---------------------------------------------------------------------- */
 
 Temper::Temper(LAMMPS *lmp) : Pointers(lmp) {}
@@ -66,22 +67,11 @@ void Temper::command(int narg, char **arg)
 {
   if (universe->nworlds == 1) 
     error->all("Must have more than one processor partition to temper");
-
-  if (narg != 6 && narg != 7) error->universe_all("Illegal temper command");
-
   if (domain->box_exist == 0) 
     error->all("Temper command before simulation box is defined");
+  if (narg != 6 && narg != 7) error->universe_all("Illegal temper command");
 
-  update->nsteps = atoi(arg[0]);
-  update->beginstep = update->firststep = update->ntimestep;
-  update->endstep = update->laststep = update->firststep + update->nsteps;
-  update->whichflag = 0;
-
-  lmp->init();
-  
-  // grab temper command args
-
-  int nsteps = update->nsteps;
+  int nsteps = atoi(arg[0]);
   nevery = atoi(arg[1]);
   double temp = atof(arg[2]);
 
@@ -98,6 +88,7 @@ void Temper::command(int narg, char **arg)
 
   // swap frequency must evenly divide total # of timesteps
 
+  if (nevery == 0) error->universe_all("Invalid frequency in temper command");
   nswaps = nsteps/nevery;
   if (nswaps*nevery != nsteps) 
     error->universe_all("Non integer # of swaps in temper command");
@@ -109,7 +100,7 @@ void Temper::command(int narg, char **arg)
     error->universe_all("Thermodynamics not computed on tempering swap steps");
 
   if (output->thermo->peflag == 0)
-    error->universe_all("Thermodynamics must compute PE for temper");
+    error->universe_all("Thermodynamics must compute PE for temper command");
 
   // fix style must be appropriate for temperature control
 
@@ -117,6 +108,15 @@ void Temper::command(int narg, char **arg)
   else if (strcmp(modify->fix[whichfix]->style,"langevin") == 0) 
     fixstyle = LANGEVIN;
   else error->universe_all("Tempering fix is not valid");
+
+  // setup for long tempering run
+
+  update->whichflag = 0;
+  update->nsteps = nsteps;
+  update->beginstep = update->firststep = update->ntimestep;
+  update->endstep = update->laststep = update->firststep + nsteps;
+
+  lmp->init();
 
   // local storage
 
@@ -295,6 +295,8 @@ void Temper::command(int narg, char **arg)
   }
 
   timer->barrier_stop(TIME_LOOP);
+
+  update->integrate->cleanup();
 
   Finish finish(lmp);
   finish.end(1);

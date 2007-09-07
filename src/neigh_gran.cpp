@@ -395,7 +395,6 @@ void Neighbor::granular_bin_newton()
     // if j is owned atom, store it, since j is beyond i in linked list
     // if j is ghost, only store if j coords are "above and to the right" of i
 
-
     for (j = bins[i]; j >= 0; j = bins[j]) {
       if (j >= nlocal) {
 	if (x[j][2] < ztmp) continue;

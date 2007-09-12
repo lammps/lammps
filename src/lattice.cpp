@@ -390,24 +390,27 @@ void Lattice::setup_transform()
 
   // rotaterow = 3x3 matrix with normalized orient vectors as rows
 
-  length = sqrt(orientx[0]*orientx[0] + orientx[1]*orientx[1] +
-    orientx[2]*orientx[2]);
+  int lensq = orientx[0]*orientx[0] + orientx[1]*orientx[1] +
+    orientx[2]*orientx[2];
+  length = sqrt((double) lensq);
   if (length == 0.0) error->all("Zero-length lattice orient vector");
 
   rotaterow[0][0] = orientx[0] / length;
   rotaterow[0][1] = orientx[1] / length;
   rotaterow[0][2] = orientx[2] / length;
 
-  length = sqrt(orienty[0]*orienty[0] + orienty[1]*orienty[1] +
-    orienty[2]*orienty[2]);
+  lensq = orienty[0]*orienty[0] + orienty[1]*orienty[1] +
+    orienty[2]*orienty[2];
+  length = sqrt((double) lensq);
   if (length == 0.0) error->all("Zero-length lattice orient vector");
-
+  
   rotaterow[1][0] = orienty[0] / length;
   rotaterow[1][1] = orienty[1] / length;
   rotaterow[1][2] = orienty[2] / length;
-
-  length = sqrt(orientz[0]*orientz[0] + orientz[1]*orientz[1] +
-    orientz[2]*orientz[2]);
+  
+  lensq = orientz[0]*orientz[0] + orientz[1]*orientz[1] +
+    orientz[2]*orientz[2];
+  length = sqrt((double) lensq);
   if (length == 0.0) error->all("Zero-length lattice orient vector");
 
   rotaterow[2][0] = orientz[0] / length;

@@ -122,12 +122,11 @@ void Pair::init()
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning("Using pair tail corrections with nonperiodic system");
 
-  init_style();
-
   if (!allocated) error->all("All pair coeffs are not set");
-
   for (i = 1; i <= atom->ntypes; i++)
     if (setflag[i][i] == 0) error->all("All pair coeffs are not set");
+
+  init_style();
 
   double cut;
   cutforce = 0.0;

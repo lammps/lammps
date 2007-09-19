@@ -314,7 +314,7 @@ void PairEAM::allocate()
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
-  for (int i = 1; i <= n; i++) map[n] = -1;
+  for (int i = 1; i <= n; i++) map[i] = -1;
 
   type2frho = new int[n+1];
   type2rhor = memory->create_2d_int_array(n+1,n+1,"pair:type2rhor");

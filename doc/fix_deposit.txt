@@ -96,8 +96,8 @@ Once a trial x,y,z location has been computed, the insertion is only
 performed if no current particle in the simulation is within a
 distance R of the new particle.  If this test fails, a new random
 position within the insertion volume is chosen and another trial is
-made.  Up to Q attempts are made, after which LAMMPS prints a warning
-message.
+made.  Up to Q attempts are made.  If an atom is not successfully
+deposited, LAMMPS prints a warning message.
 
 The {rate} option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a

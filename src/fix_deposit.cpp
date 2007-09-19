@@ -314,6 +314,7 @@ void FixDeposit::pre_exchange()
 
   // next timestep to insert
 
+  if (success) ninserted++;
   if (ninserted < ninsert) next_reneighbor += nfreq;
   else next_reneighbor = 0;
 }

@@ -315,22 +315,20 @@ void FixAveSpatial::end_of_step()
   // perform the computation for one sample
   // sum within each layer, only include atoms in fix group
   // insure array index is within bounds (since atoms can be outside box)
-  // if scaleflag = REDUCED, convert box coords to lamda coords
-  // DENSITY_MASS adds mass to values
-  // DENSITY_NUM adds 1 to values
-  // ATOM adds atom vector to values
-  // COMPUTE adds its vector to values
+  // if scaleflag = REDUCED, box coords -> lamda coords before computing layer
 
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+  // DENSITY_MASS adds mass to values
 
   if (which == DENSITY_MASS) {
     int *type = atom->type;
     double *mass = atom->mass;
     double *rmass = atom->rmass;
+
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -343,7 +341,14 @@ void FixAveSpatial::end_of_step()
       }
     }
 
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  // DENSITY_NUM adds 1 to values
+
   } else if (which == DENSITY_NUM) {
+
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
@@ -354,6 +359,10 @@ void FixAveSpatial::end_of_step()
       }
     }
 
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  // ATOM (VX,FX,etc) adds atom attribute to values
+
   } else if (which != COMPUTE) {
     double *vector;
     int nstride = 3;
@@ -363,6 +372,8 @@ void FixAveSpatial::end_of_step()
     else if (which == FX) vector = &atom->f[0][0];
     else if (which == FY) vector = &atom->f[0][1];
     else if (which == FZ) vector = &atom->f[0][2];
+
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
 
     m = 0;
     for (i = 0; i < nlocal; i++) {
@@ -376,11 +387,17 @@ void FixAveSpatial::end_of_step()
       m += nstride;
     }
 
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  // COMPUTE adds its compute scalar or vector quantity to values
+
   } else {
     if (precompute) precompute->compute_peratom();
     compute->compute_peratom();
     double *scalar = compute->scalar_atom;
     double **vector = compute->vector_atom;
+
+    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
 
     m = 0;
     for (i = 0; i < nlocal; i++) {
@@ -395,9 +412,9 @@ void FixAveSpatial::end_of_step()
 	    values_one[ilayer][j] += vector[i][j];
       }
     }
-  }
 
-  if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+  }
 
   // average a single sample
 

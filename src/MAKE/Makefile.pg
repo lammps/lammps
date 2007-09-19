@@ -1,4 +1,4 @@
-# pg = Portland group compiler, MPICH, FFTW
+# pg = Portland Group compiler, MPICH, FFTW
 
 SHELL = /bin/sh
 #.IGNORE:

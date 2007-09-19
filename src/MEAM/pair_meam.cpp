@@ -607,8 +607,8 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
   double value;
   int nindex,index[3];
   int maxparams = 6;
+  char **params = new char*[maxparams];
   int nparams;
-  char *params[maxparams];
 
   eof = 0;
   while (1) {
@@ -674,6 +674,8 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       error->all(str);
     }
   }
+
+  delete [] params;
 }
 
 /* ---------------------------------------------------------------------- */

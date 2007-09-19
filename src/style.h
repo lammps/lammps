@@ -157,7 +157,6 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_momentum.h"
 #include "fix_nph.h"
 #include "fix_npt.h"
-  //#include "fix_npt_pr.h"
 #include "fix_nve.h"
 #include "fix_nve_limit.h"
 #include "fix_nve_noforce.h"
@@ -206,7 +205,6 @@ FixStyle(MINIMIZE,FixMinimize)
 FixStyle(momentum,FixMomentum)
 FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)
-  //FixStyle(npt/pr,FixNPTpr)
 FixStyle(npt,FixNPT)
 FixStyle(nve,FixNVE)
 FixStyle(nve/limit,FixNVELimit)

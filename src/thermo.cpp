@@ -1005,7 +1005,7 @@ void Thermo::compute_compute()
 {
   int index = field2object[ifield];
   if (arg_object[ifield] == 0) dvalue = computes[index]->scalar;
-  else dvalue = computes[index]->vector[arg_object[ifield]];
+  else dvalue = computes[index]->vector[arg_object[ifield]-1];
   if (computes[index]->extensive && normflag) dvalue /= natoms;
 }
 

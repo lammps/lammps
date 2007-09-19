@@ -1,0 +1,44 @@
+# pg = Portland group compiler, MPICH, FFTW
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =		pgCC -fast
+CCFLAGS =       -I/usr/local/mpich-1.2.6/pg/include \
+                -I/usr/local/include \
+                -DFFT_FFTW -DGZIP
+DEPFLAGS =	-M
+LINK =		pgCC
+LINKFLAGS =     -L/usr/local/mpich-1.2.6/pg/lib \
+                -L/usr/local/lib 
+USRLIB =	-lfftw -lmpich 
+SYSLIB =	
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

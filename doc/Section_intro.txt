@@ -499,7 +499,7 @@ fix heat : Paul Crozier and Ed Webb (Sandia)
 colloid potentials : Pieter in 't Veld (Sandia)
 ellipsoidal particles : Mike Brown (Sandia)
 GayBerne potential : Mike Brown (Sandia)
-tensile and shear box deformations :
+fix deform : Pieter in 't Veld (Sandia)
 NEMD SLLOD integration : Pieter in 't Veld (Sandia)
 pymol_asphere viz tool : Mike Brown (Sandia) :tb(s=:)
 

@@ -1,0 +1,82 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix ave/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID ave/atom Nevery Nrepeat Nfreq compute-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>ave/atom = style name of this fix command
+<LI>Nevery = calculate property every this many timesteps
+<LI>Nrepeat = # of times to repeat the Nevery calculation before averaging
+<LI>Nfreq = timestep frequency at which the average value is calculated
+<LI>compute-ID = ID of per-atom compute that performs the calculation 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all ave/atom 1 100 100 myVx
+fix 1 all ave/atom 10 20 1000 my_epair 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Calculate one or more time-averaged per-atom quantities every few
+timesteps.  The results of this calculation can be spatially averaged
+via the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command or output
+to a file via the <A HREF = "dump.html">dump custom</A> command.
+</P>
+<P>The <I>compute-ID</I> specifies a <A HREF = "compute.html">compute</A> which calculates
+the desired property.  It must be a per-atom compute (one with the
+word "atom" in its style name) that calculates one or more values for
+each atom, as opposed to a global compute.  The compute must be
+previously defined in the input script.  Users can also write code for
+their own compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
+</P>
+<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify how the
+property will be time-averaged.  The final averaged value(s) are
+computed every <I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I>
+values, computed in the preceeding portion of the simulation every
+<I>Nevery</I> timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
+values on timesteps 90,92,94,96,98,100 will be used to compute the
+final average at timestep 100.  Similary for timesteps
+190,192,194,196,198,200 at timestep 200, etc.
+</P>
+<P>If this fix is referenced by a <A HREF = "dump.html">dump custom</A> or <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command, the time-averaged values
+can only be accessed every <I>Nfreq</I> timesteps.
+</P>
+<P>If the compute calculates a single or multiple values per atom, then
+fix ave/atom will also calculate one or multiple time-averaged
+quantities per atom.  This makes a difference in how the quantities
+are referenced in a <A HREF = "dump.html">dump custom</A> command, e.g. c_ID versus
+c_ID[2].
+</P>
+<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
+parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>, <A HREF = "dump.html">dump
+custom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

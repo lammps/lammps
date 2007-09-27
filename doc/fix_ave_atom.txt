@@ -1,0 +1,77 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix ave/atom command :h3
+
+[Syntax:]
+
+fix ID group-ID ave/atom Nevery Nrepeat Nfreq compute-ID :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+ave/atom = style name of this fix command
+Nevery = calculate property every this many timesteps
+Nrepeat = # of times to repeat the Nevery calculation before averaging
+Nfreq = timestep frequency at which the average value is calculated
+compute-ID = ID of per-atom compute that performs the calculation :ul
+
+[Examples:]
+
+fix 1 all ave/atom 1 100 100 myVx
+fix 1 all ave/atom 10 20 1000 my_epair :pre
+
+[Description:]
+
+Calculate one or more time-averaged per-atom quantities every few
+timesteps.  The results of this calculation can be spatially averaged
+via the "fix ave/spatial"_fix_ave_spatial.html command or output
+to a file via the "dump custom"_dump.html command.
+
+The {compute-ID} specifies a "compute"_compute.html which calculates
+the desired property.  It must be a per-atom compute (one with the
+word "atom" in its style name) that calculates one or more values for
+each atom, as opposed to a global compute.  The compute must be
+previously defined in the input script.  Users can also write code for
+their own compute styles and "add them to LAMMPS"_Section_modify.html.
+
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify how the
+property will be time-averaged.  The final averaged value(s) are
+computed every {Nfreq} timesteps.  The average is over {Nrepeat}
+values, computed in the preceeding portion of the simulation every
+{Nevery} timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
+values on timesteps 90,92,94,96,98,100 will be used to compute the
+final average at timestep 100.  Similary for timesteps
+190,192,194,196,198,200 at timestep 200, etc.
+
+If this fix is referenced by a "dump custom"_dump.html or "fix
+ave/spatial"_fix_ave_spatial.html command, the time-averaged values
+can only be accessed every {Nfreq} timesteps.
+
+If the compute calculates a single or multiple values per atom, then
+fix ave/atom will also calculate one or multiple time-averaged
+quantities per atom.  This makes a difference in how the quantities
+are referenced in a "dump custom"_dump.html command, e.g. c_ID versus
+c_ID\[2\].
+
+[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No quantities calculated by this fix can be
+output by the "thermo_style custom"_thermo_style.html command.  No
+parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute"_compute.html, "fix ave/spatial"_fix_ave_spatial.html, "dump
+custom"_dump.html
+
+[Default:] none

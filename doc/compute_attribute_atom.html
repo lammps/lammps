@@ -1,0 +1,72 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute attribute/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID attribute/atom style 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>attribute/atom = style name of this compute command
+<LI>style = <I>x</I> or <I>y</I> or <I>z</I> or <I>xu</I> or <I>yu</I> or <I>zu</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>fx</I> or <I>fy</I> or <I>fz</I> or <I>xyz</I> or <I>v</I> or <I>f</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all attribute/atom vy
+compute mine all attribute/atom xyz 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates (or simply stores) one or more
+attributes for each atom in a group.  This is useful for input to the
+<A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command to do spatial averaging
+by layers or to the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command to
+perform time-averaging of per-atom quantities.  The attribute values
+can also be output directly by the <A HREF = "dump.html">dump custom</A> command,
+but it has keywords that output these quantities without the need to
+define an additional compute.
+</P>
+<P>The styles <I>x</I>, <I>y</I>, <I>z</I>, <I>xu</I>, <I>yu</I>, <I>zu</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>,
+<I>fy</I>, and <I>fz</I> each store a single scalar value per atom.
+</P>
+<P>The <I>x</I>, <I>y</I>, <I>z</I> keywords store atom coordinate in the appropriate
+distance <A HREF = "units.html">units</A> (Angstroms, sigma, etc) and will always be
+inside (or slightly outside) the simulation box.  Use <I>xu</I>, <I>yu</I>, <I>zu</I>
+if you want the coordinates "unwrapped" by the image flags for each
+atom.  Unwrapped means that if the atom has passed thru a periodic
+boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the coordinate
+values may be far outside the simulation box.
+</P>
+<P>Note that if you want to compute the time-averaged position of an atom
+coordinate that could pass thru a periodic boundary (e.g. via the <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command), you probably want to use <I>xu</I>
+instead of <I>x</I>.
+</P>
+<P>The styles <I>xyz</I>, <I>v</I>, and <I>f</I> each store a vector of 3 quantities per
+atom.
+</P>
+<P>Note that the various commands that reference this compute use a
+different syntax for accessing scalar versus vector values, e.g. c_ID
+versus c_ID<B>2</B>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A>, <A HREF = "dump.html">dump custom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

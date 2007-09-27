@@ -420,11 +420,9 @@ Computing, Minneapolis, MN (March 1997).
 
 If you use LAMMPS results in your published work, please cite the J
 Comp Phys reference and include a pointer to the "LAMMPS WWW Site"_lws
-(http://lammps.sandia.gov).  A paper describing the latest version of
-LAMMPS is in the works; when it appears in print, you can check the
-"LAMMPS WWW Site"_lws for a more current citation.
+(http://lammps.sandia.gov).
 
-If you send me information about your publication, I'll be pleased to
+If you send is information about your publication, we'll be pleased to
 add it to the Publications page of the "LAMMPS WWW Site"_lws.  Ditto
 for a picture or movie for the Pictures or Movies pages.
 

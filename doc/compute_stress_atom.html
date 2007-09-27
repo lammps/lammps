@@ -41,8 +41,11 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that computes the per-atom stress tensor for each
-atom in a group.  The 6 components can be output via the <A HREF = "dump.html">dump
-custom</A> command.
+atom in a group.  The tensor for each atom has 6 components: xx, yy,
+zz, xy, xz, yz.  The resulting values can be accessed by indices 1-6
+by any command that uses per-atom computes, e.g. the <A HREF = "dump.html">dump
+custom</A> command or <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
+command or <A HREF = "fix_ave_atom.html">fix ave/atom</A> command.
 </P>
 <P>The stress tensor for each atom is the sum of 3 terms in the following
 formula.  Any of the terms can be excluded by setting the <I>ke</I>,

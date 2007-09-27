@@ -72,6 +72,7 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 
 "fix addforce"_fix_addforce.html - add a force to each atom
 "fix aveforce"_fix_aveforce.html - add an averaged force to each atom
+"fix ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
 "fix ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
 "fix ave/time"_fix_ave_time.html - output time-averaged compute quantities
 "fix com"_fix_com.html - compute a center-of-mass

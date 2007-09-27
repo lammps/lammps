@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ave/spatial Nevery Nfreq dim origin delta file style args keyword value ... 
+<PRE>fix ID group-ID ave/spatial Nevery Nrepeat Nfreq dim origin delta file style args keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
@@ -21,7 +21,9 @@
 
 <LI>Nevery = calculate property every this many timesteps 
 
-<LI>Nfreq = write average property to file every this many steps 
+<LI>Nrepeat = # of times to repeat the Nevery calculation before averaging 
+
+<LI>Nfreq = timestep frequency at which the average value is written to file 
 
 <LI>dim = <I>x</I> or <I>y</I> or <I>z</I> 
 
@@ -31,13 +33,15 @@
 
 <LI>file = filename to write results to 
 
-<LI>style = <I>density</I> or <I>atom</I> or <I>compute</I> 
+<LI>style = <I>density</I> or <I>compute</I> or <I>fix</I> 
 
 <PRE>  <I>density</I> arg = <I>mass</I> or <I>number</I>
     <I>mass</I> = compute mass density
     <I>number</I> = compute number density
-  <I>atom</I> arg = <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>fx</I> or <I>fy</I> or <I>fz</I>
-  <I>compute</I> arg = compute-ID that calculates per-atom quantities 
+  <I>compute</I> arg = compute-ID that stores or calculates per-atom quantities
+  <I>fix</I> arg = fix-ID that stores or calculates per-atom quantities 
+</PRE>
+<PRE>
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -49,36 +53,49 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all ave/spatial 10000 10000 z lower 2.0 centro.profile compute myCentro
-fix 1 flow ave/spatial 100 1000 y 0.0 1.0 vel.profile atom vx norm sample
-fix 1 flow ave/spatial 100 1000 y 0.0 2.5 dens.profile density mass 
+<PRE>fix 1 all ave/spatial 10000 1 10000 z lower 2.0 centro.profile compute myCentro
+fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vel.profile compute Vx norm sample
+fix 1 flow ave/spatial 100 5 1000 y 0.0 2.5 dens.profile density mass 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Calculate one or more instantaneous per-atom quantities every few
 timesteps, average them by layer in a chosen dimension and over a
 longer timescale, and print the results to a file.  This can be used
-to spatially average per-atom properties such as velocity or energy or
-a quantity calculated by an equation you define; see the <A HREF = "variable.html">variable
-atom</A> command.
+to spatially average per-atom properties (velocity, force) or per-atom
+quantities calculated by a <A HREF = "compute.html">compute</A> (energy, stress) or
+by another fix (see the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command) or
+by a variable via an equation you define (see the <A HREF = "compute_variable_atom.html">compute
+variable/atom</A> command).
 </P>
 <P>The <I>density</I> styles means to simply count the number of atoms in each
-layer, either by mass or number.  The <I>atom</I> style allows an atom
-property such as x-velocity to be specified.  The <I>compute</I> style
-allows specification of a <A HREF = "compute.html">compute</A> which will be invoked
-to calculate the desired property.  The compute can be previously
-defined in the input script.  Note that the "compute variable/atom"
-style allows you to calculate any quantity for an atom that can be
-specified by a <A HREF = "variable.html">variable atom</A> equation.  Users can also
-write code for their own compute styles and <A HREF = "Section_modify.html">add them to
-LAMMPS</A>.  Note that the <A HREF = "dump.html">dump custom</A>
-command can also be used to output per-atom quantities calculated by a
-compute.
+layer, either by mass or number.  The <I>compute</I> style allows
+specification of a <A HREF = "compute.html">compute</A> which will be invoked to
+calculate the desired property.  The compute can be previously defined
+in the input script or it can be a compute defined by a <A HREF = "dump.html">dump
+custom</A> command.
 </P>
-<P>For the <I>compute</I> style, the fix ave/spatial style uses the per-atom
-scalar or vector calculated by the compute.  See the <A HREF = "fix_ave_time.html">fix
-ave/time</A> command if you wish to time-average a
-global quantity, e.g. via a compute that temperature or pressure.
+<P>For the <I>compute</I> style, the fix ave/spatial command accesses the
+per-atom scalar or vector values stored by the compute.  Thus it must
+be a "per-atom" compute with the word "atom" in its style name, rather
+than a "global" compute.  See the <A HREF = "fix_ave_time.html">fix ave/time</A>
+command if you wish to time-average a global quantity calculated by a
+compute without the word atom in its style name, e.g. a compute that
+calculates a temperature or pressure.
+</P>
+<P>See the <A HREF = "compute.html">compute</A> command for a list of pre-defined
+per-atom computes.  Two special computes are as follows.  The <A HREF = "compute_attribute_atom.html">compute
+attribute/atom</A> command selects one or
+more atom attributes like vx or fz.  The "compute variable/atom" style
+can calculate a value for an atom that can be specified by a <A HREF = "variable.html">variable
+atom</A> equation.  Users can also write code for their own
+per-atom compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
+Note that the <A HREF = "dump.html">dump custom</A> command can also be used to
+directly output per-atom quantities calculated by a per-atom compute.
+</P>
+<P>For the <I>fix</I> style, the fix ave/spatial command accesses the per-atom
+scalar or vector values stored by another fix.  The <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command is an example of such a fix.
 </P>
 <P>In all cases, the calculated property is averaged over atoms in each
 layer, where the layers are in a particular <I>dim</I> and have a thickness
@@ -130,12 +147,14 @@ the lower "b" cross "c" plane of the simulation box and an <I>origin</I> of
 A <I>delta</I> value of 0.1 means there will be 10 layers from 0.0 to 1.0,
 regardless of the current size or shape of the simulation box.
 </P>
-<P>The <I>Nevery</I> and <I>Nfreq</I> arguments specify how the property calculated
-for each layer is time-averaged.  The property is calculated once each
-Nevery timesteps.  It is averaged and output every Nfreq timesteps.
-Nfreq must be a multiple of Nevery.  In the 2nd example above, the
-property is calculated every 100 steps.  After 10 calculations, the
-average result is written to the file, once every 1000 steps.
+<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify how the
+property will be time-averaged.  The final averaged value(s) are
+computed every <I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I>
+values, computed in the preceeding portion of the simulation every
+<I>Nevery</I> timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
+values on timesteps 90,92,94,96,98,100 will be used to compute the
+final average written to the file on timestep 100.  Similary for
+timesteps 190,192,194,196,198,200 on timestep 200, etc.
 </P>
 <P>The <I>norm</I> keyword also affects how time-averaging is done.  For an
 <I>all</I> setting, a layer quantity is summed over all atoms in all
@@ -159,16 +178,16 @@ is <I>box</I> or <I>lattice</I>, the "coord" is printed in box units.  If the
 value of the <I>units</I> keyword is <I>reduced</I>, the "coord" is printed in
 reduced units (0-1).
 </P>
-<P>If the <I>density</I> or <I>atom</I> keyword is used, or the <I>compute</I> keyword
-with a compute that calculates a single quantity per atom, then a
-single value will be printed for each layer.  If the <I>compute</I> keyword
-is used with a compute that calculates N quantities per atom, then N
-values per line will be written, each of them averaged independently.
+<P>If the <I>density</I> keyword is used, or the <I>compute</I> or <I>fix</I> keyword
+with a compute/fix that calculates a single quantity per atom, then a
+single value will be printed for each layer.  If the <I>compute</I> or
+<I>fix</I> keyword is used with a compute/fix that calculates N quantities
+per atom, then N values per line will be written, each of them
+averaged independently.
 </P>
-<P>For the <I>compute</I> keyword, the calculation performed by the compute in
-on the group defined by the compute.  However, only atoms in the fix
-group are included in the layer averaging.  LAMMPS prints a warning if
-the fix group and compute group do not match.
+<P>For the <I>compute</I> and <I>fix</I> keywords, the calculation performed by the
+compute or fix is on the group defined by the that command.  However,
+only atoms in the fix group are included in the layer averaging.
 </P>
 <P>Note that some computes perform costly calculations, involving use of
 or creation of neighbor lists.  If the compute is invoked too often by

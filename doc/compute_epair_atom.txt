@@ -22,8 +22,7 @@ compute 1 all epair/atom :pre
 [Description:]
 
 Define a computation that computes the per-atom pairwise energy for
-each atom in a group.  This can be output via the "dump
-custom"_dump.html command.
+each atom in a group.
 
 The pairwise energy for each atom is computed by looping over its
 neighbors and computing the energy associated with the defined

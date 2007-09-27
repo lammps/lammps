@@ -23,8 +23,7 @@ compute 1 all coord/atom 2.0 :pre
 [Description:]
 
 Define a computation that calculates the coordination number for each
-atom in a group.  This can be output via the "dump custom"_dump.html
-command.
+atom in a group.
 
 The coordination number is defined as the number of neighbor atoms
 within the specified cutoff distance from the central atom.  Atoms not

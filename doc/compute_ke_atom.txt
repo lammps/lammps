@@ -22,8 +22,7 @@ compute 1 all ke/atom :pre
 [Description:]
 
 Define a computation that calculates the per-atom kinetic energy for
-each atom in a group.  This can be output via the "dump
-custom"_dump.html command.
+each atom in a group.
 
 The kinetic energy is simply 1/2 m v^2, where m is the mass and v is
 the velocity of each atom.

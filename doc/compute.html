@@ -30,18 +30,27 @@ compute 3 all ke/atom
 </P>
 <P>Create a computation that will be performed on a group of atoms.
 </P>
-<P>In LAMMPS, a "compute" is used in several ways.  Computes that
-calculate one or more values for the entire group of atoms can output
-those values via the <A HREF = "thermo_style.html">thermo_style custom</A> or <A HREF = "fix_ave_time.html">fix
-ave/time</A> command.  Or the values can be referenced
-in a <A HREF = "variable.html">variable equal</A> command.  Computes that calculate
-a temperature or pressure are used by fixes that do thermostatting or
-barostatting and when atom velocities are created.  Computes that
-calculate one or more values for each atom in the group can output
-those values via the <A HREF = "dump.html">dump custom</A> command or the <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A> command.
+<P>In LAMMPS, a "compute" is used in several ways.  There are two kinds
+of computes, "global" computes that calculate one or more values for
+the entire group of atoms, and "per-atom" computes that calculate one
+or more values for each atom in the group.  The latter has the word
+"atom" in its style name.
 </P>
-<P>LAMMPS creates its own computes for thermodynamic output.  Two
+<P>The results of global computes can be output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> or <A HREF = "fix_ave_time.html">fix ave/time</A> command.
+Or the values can be referenced in a <A HREF = "variable.html">variable equal</A>
+command.  The results of computes that calculate a global temperature
+or pressure can be used by fixes that do thermostatting or
+barostatting and when atom velocities are created.
+</P>
+<P>The results of per-atom computes can be output via the <A HREF = "dump.html">dump
+custom</A> command or the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command.  Or the per-atom values can
+be time-averaged via the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command and
+then output via the <A HREF = "dump.html">dump custom</A> or <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> commands.
+</P>
+<P>LAMMPS creates its own global computes for thermodynamic output.  Two
 computes are always created, named "thermo_temp" and
 "thermo_pressure", as if these commands had been invoked:
 </P>
@@ -57,9 +66,9 @@ documentation for the <A HREF = "dump.html">dump custom</A> and specific
 <A HREF = "fix.html">fix</A> commands.
 </P>
 <P>In all these cases, the default computes can be replaced by computes
-defined in the input script, as described by the
-<A HREF = "thermo_modify.html">thermo_modify</A> and <A HREF = "fix_modify.html">fix modify</A>
-commands.
+defined by the user in the input script, as described by the
+<A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_modify.html">fix modify</A>, and
+<A HREF = "dump.html">dump</A> commands.
 </P>
 <P>Properties of either a default of user-defined compute can be modified
 via the <A HREF = "compute_modify.html">compute_modify</A> command.
@@ -74,16 +83,17 @@ calculations accessed in the various ways described above.
 and what it does.  Here is an alphabetic list of compute styles
 defined in LAMMPS:
 </P>
-<UL><LI><A HREF = "compute_centro_atom.html">centro/atom</A> - centro-symmetry parameter for each atom
+<UL><LI><A HREF = "compute_attribute_atom.html">attribute/atom</A> - attribute (x,v,f,etc) of each atom
+<LI><A HREF = "compute_centro_atom.html">centro/atom</A> - centro-symmetry parameter for each atom
 <LI><A HREF = "compute_coord_atom.html">coord/atom</A> - coordination number for each atom
 <LI><A HREF = "compute_ebond_atom.html">ebond/atom</A> - bond energy for each atom
 <LI><A HREF = "compute_epair_atom.html">epair/atom</A> - pairwise energy for each atom
-<LI><A HREF = "compute_etotal_atom.html">etotal/atom</A> - total energy (ke + epair) for each atom
 <LI><A HREF = "compute_ke_atom.html">ke/atom</A> - kinetic energy for each atom
 <LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
 <LI><A HREF = "compute_rotate_dipole.html">rotate/dipole</A> - rotational energy of dipolar atoms
 <LI><A HREF = "compute_rotate_gran.html">rotate/gran</A> - rotational energy of granular atoms
 <LI><A HREF = "compute_stress_atom.html">stress/atom</A> - stress tensor for each atom
+<LI><A HREF = "compute_sum_atom.html">sum/atom</A> - sum 2 or more quantities for each atom
 <LI><A HREF = "compute_temp.html">temp</A> - temperature of group of atoms
 <LI><A HREF = "compute_temp_asphere.html">temp/asphere</A> - temperature of aspherical particles
 <LI><A HREF = "compute_temp_deform.html">temp/deform</A> - temperature excluding box deformation velocity

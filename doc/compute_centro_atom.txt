@@ -22,8 +22,7 @@ compute 1 all centro/atom :pre
 [Description:]
 
 Define a computation that calculates the centro-symmetry parameter for
-each atom in a group.  This can be output via the "dump
-custom"_dump.html command.  In solid state systems the centro-symmetry
+each atom in a group.  In solid-state systems the centro-symmetry
 parameter is a useful measure of the local lattice disorder around an
 atom and can be used to characterize whether the atom is part of a
 perfect lattice, a local defect (e.g. a dislocation or stacking

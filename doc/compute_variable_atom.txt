@@ -23,9 +23,10 @@ compute 1 flow variable/atom myVar :pre
 [Description:]
 
 Define a computation that calculates a formula for each atom in the
-group.  The per-atom quantities can be output via the "dump
-custom"_dump.html command or spatially averaged via the "fix
-ave/spatial"_fix_ave_spatial.html command.
+group.  The resulting values can be accessed by any command that uses
+per-atom computes, e.g. the "dump custom"_dump.html command or "fix
+ave/spatial"_fix_ave_spatial.html command or "fix
+ave/atom"_fix_ave_atom.html command.
 
 The formula is defined by the "variable atom"_variable.html command.
 A variable of style {atom} can access properties of the system, such

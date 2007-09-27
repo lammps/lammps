@@ -39,9 +39,7 @@
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
-		          epair, ebond, ke, etotal, centro,
-                          sxx, syy, szz, sxy, sxz, syz,
-			  c_ID, c_ID[N]
+			  c_ID, c_ID[N], f_ID, f_ID[N]
       tag = atom ID
       mol = molecule ID
       type = atom type
@@ -55,14 +53,10 @@
       mux,muy,muz = orientation of dipolar atom
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on aspherical particles
-      epair = per-atom pairwise energy
-      ebond = per-atom bond energy
-      ke = per-atom kinetic energy
-      etotal = per-atom total energy (ke + epair, not ebond)
-      centro = per-atom centro-symmetry parameter
-      sxx, syy, szz, sxy, sxz, syz = per-atom stress tensor components
       c_ID = scalar per-atom quantity calculated by a compute identified by its ID
-      c_ID[N] = Nth per-atom vector quantity calculated by a compute identified by its ID 
+      c_ID[N] = Nth per-atom vector quantity calculated by a compute identified by its ID
+      f_ID = scalar per-atom quantity calculated by a fix identified by its ID
+      f_ID[N] = Nth per-atom vector quantity calculated by a fix identified by its ID 
 </PRE>
 
 </UL>
@@ -71,7 +65,7 @@
 <PRE>dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* tag type x y vx fx
-dump 4b flow custom 100 dump.%.myforce tag type epair sxx syy szz c_myF[3]
+dump 4b flow custom 100 dump.%.myforce tag type c_myF[3]
 dump 1 all xtc 1000 file.xtc 100.0 
 </PRE>
 <P><B>Description:</B>
@@ -136,8 +130,8 @@ to specify a quantity that is not defined for a particular simulation
 - such as <I>q</I> for atom style <I>bond</I>, since that atom style doesn't
 assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
-the timestep.  An explanation of some of the dump custom quantities is
-given below.
+the timestep.  An explanation of the dump custom quantities is given
+below.
 </P>
 <P>The <I>dcd</I> style writes DCD files, a standard atomic trajectory format
 used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
@@ -218,16 +212,16 @@ part of the <I>custom</I> style.
 <I>fz</I>, <I>q</I> keywords are self-explanatory.  <I>Tag</I> is the atom ID.  <I>Mol</I>
 is the molecule ID, included in the data file for molecular systems.
 The <I>x</I>, <I>y</I>, <I>z</I> keywords write atom coordinates "unscaled", in the
-appropriate distance units (Angstroms, sigma, etc).  Use <I>xs</I>, <I>ys</I>,
-<I>zs</I> if you want the coordinates "scaled" to the box size, so that
-each value is 0.0 to 1.0.  Use <I>xu</I>, <I>yu</I>, <I>zu</I> if you want the
-coordinates "unwrapped" by the image flags for each atom.  Unwrapped
-means that if the atom has passed thru a periodic boundary one or more
-times, the value is printed for what the coordinate would be if it had
-not been wrapped back into the periodic box.  Note that using <I>xu</I>,
-<I>yu</I>, <I>zu</I> means that the coordinate values may be far outside the box
-size printed with the snapshot.  The image flags can be printed
-directly using the <I>ix</I>, <I>iy</I>, <I>iz</I> keywords. The
+appropriate distance <A HREF = "units.html">units</A> (Angstroms, sigma, etc).  Use
+<I>xs</I>, <I>ys</I>, <I>zs</I> if you want the coordinates "scaled" to the box size,
+so that each value is 0.0 to 1.0.  Use <I>xu</I>, <I>yu</I>, <I>zu</I> if you want
+the coordinates "unwrapped" by the image flags for each atom.
+Unwrapped means that if the atom has passed thru a periodic boundary
+one or more times, the value is printed for what the coordinate would
+be if it had not been wrapped back into the periodic box.  Note that
+using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the coordinate values may be far
+outside the box size printed with the snapshot.  The image flags can
+be printed directly using the <I>ix</I>, <I>iy</I>, <I>iz</I> keywords. The
 <A HREF = "dump_modify.html">dump_modify</A> command describes in more detail what
 is meant by scaled vs unscaled coordinates and the image flags.
 </P>
@@ -241,57 +235,45 @@ are specific to aspherical particles defined with an atom style of
 define the orientiation of the particle.  The final 3 give the
 rotational torque on the particle.
 </P>
-<P>The <I>epair</I>, <I>ebond</I>, <I>ke</I>, <I>etotal</I>, <I>centro</I>, and <I>sxx</I>, etc
-keywords print the pairwise energy, bond energy, kinetic energy, total
-energy (pairwise + kinetic), centro-symmetry parameter, and components
-of the per-atom stress tensor for each atom.  These quantities are
-calculated by computes that the dump defines, as if these commands had
-been issued:
-</P>
-<PRE>compute dump-ID_epair/atom group-ID <A HREF = "compute_epair_atom.html">epair/atom</A>
-compute dump-ID_ebond/atom group-ID <A HREF = "compute_ebond_atom.html">ebond/atom</A>
-compute dump-ID_ke/atom group-ID <A HREF = "compute_ke_atom.html">ke/atom</A>
-compute dump-ID_etotal/atom group-ID <A HREF = "compute_etotal_atom.html">etotal/atom</A> dump-ID_epair/atom
-compute dump-ID_centro/atom group-ID <A HREF = "compute_centro_atom.html">centro/atom</A>
-compute dump-ID_stress/atom group-ID <A HREF = "compute_stress_atom.html">stress/atom</A> 
-</PRE>
-<P>See the corresponding <A HREF = "compute.html">compute</A> style commands for
-details on what is computed for each atom.  Note that the ID of each
-new compute is the dump-ID with the compute style appended (with an
-underscore).  The group for each new compute is the same as the dump
-group.  Note that for <I>etotal</I>, an auxiliary compute for calculating
-the pairwise energy is created, since the <A HREF = "compute_etotal_atom.html">compute
-etotal/atom</A> command requires it as an extra
-argument.
-</P>
-<P>IMPORTANT NOTE: The <I>etotal</I> keyword does NOT include contributions
-due to bonds, angles, etc that the atom is part of.  The bond
-contribution can be computed separately via the <I>ebond</I> keyword.
-Currently, there is no way in LAMMPS to dump per-atom energy for
-angles, dihedrals, improper, or long-range interactions.
-</P>
-<P>The <I>sxx</I>, <I>syy</I>, <I>szz</I>, <I>sxy</I>, <I>sxz</I>, <I>syz</I> keywords access the 6
-components of the stress tensor calculated for each atom by the
-<A HREF = "compute_stress_atom.html">compute stress/atom</A> style.
-</P>
 <P>The <I>c_ID</I> and <I>c_ID[N]</I> keywords allow scalar or vector per-atom
 quantities calculated by a compute to be output.  The ID in the
 keyword should be replaced by the actual ID of the compute that has
-been defined elsewhere in the input script.  See the
-<A HREF = "compute.html">compute</A> command for details.  Note that scalar and
-vector quantities that are not calculated on a per-atom basis
-(e.g. global temperature or pressure) cannot be output in a dump.
-Rather, these quantities are output by the <A HREF = "thermo_style.html">thermo_style
-custom</A> command.
+been defined previously in the input script.  See the
+<A HREF = "compute.html">compute</A> command for details.  There are pre-defined
+computes for calculating the energy, stress, centro-symmetry
+parameter, and coordination number of individual atoms.  The "compute
+variable/atom" command will evaluate a per-atom formula you define via
+the <A HREF = "variable.html">variable atom</A> command, for each atom, which can
+then be dumped.
+</P>
+<P>Note that scalar and vector quantities that are not calculated on a
+per-atom basis by a compute (e.g. global temperature or pressure)
+cannot be output in a dump.  Rather, these quantities can be output by
+the <A HREF = "thermo_style.html">thermo_style custom</A> command.
 </P>
 <P>If <I>c_ID</I> is used as a keyword, then the scalar per-atom quantity
 calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N
 in the range from 1-M will print the Nth component of the M-length
 per-atom vector calculated by the compute.
 </P>
-<P>See <A HREF = "Section_modify.html">this section</A> for information on how to add
-new compute styles to LAMMPS that calculate per-atom quantities which
-could then be output with these keywords.
+<P>The <I>f_ID</I> and <I>f_ID[N]</I> keywords allow scalar or vector per-atom
+quantities calculated by a fix to be output.  The ID in the keyword
+should be replaced by the actual ID of the fix that has been defined
+previously in the input script.  Currently the <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command is the only fix that calculates
+per-atom quantities.  Since it takes a per-atom <A HREF = "compute.html">compute</A>
+as an argument it effectively time-averages any of the previously
+described compute quantities so the time-averaged result can be
+written to a dump file.
+</P>
+<P>If <I>f_ID</I> is used as a keyword, then the scalar per-atom quantity
+calculated by the fix is printed.  If <I>f_ID[N]</I> is used, then N
+in the range from 1-M will print the Nth component of the M-length
+per-atom vector calculated by the fix.
+</P>
+<P>See <A HREF = "Section_modify.html">this section</A> of the manual for information
+on how to add new compute and fix styles to LAMMPS that calculate
+per-atom quantities which could then be output with these keywords.
 </P>
 <HR>
 

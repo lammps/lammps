@@ -147,7 +147,7 @@ atoms.
 <P>Here is a brief description of methods you define in your new derived
 class.  See atom.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >grow</TD><TD > re-allocate atom arrays to longer lengths</TD></TR>
 <TR><TD >copy</TD><TD > copy info for one atom to another atom's array locations</TD></TR>
 <TR><TD >pack_comm</TD><TD > store an atom's info in a buffer communicated every timestep</TD></TR>
@@ -187,7 +187,7 @@ commands.
 bond class.  See bond.h, angle.h, dihedral.h, and improper.h for
 details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >compute</TD><TD > compute the molecular interactions</TD></TR>
 <TR><TD >coeff</TD><TD > set coefficients for one bond type</TD></TR>
 <TR><TD >equilibrium_distance</TD><TD > length of bond, used by SHAKE</TD></TR>
@@ -212,7 +212,7 @@ per-atom kinetic energy.
 <P>Here is a brief description of methods you define in your new derived
 class.  See compute.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >compute_scalar</TD><TD > compute a scalar quantity</TD></TR>
 <TR><TD >compute_vector</TD><TD > compute a vector of quantities</TD></TR>
 <TR><TD >compute_peratom</TD><TD > compute one or more quantities per atom</TD></TR>
@@ -239,7 +239,7 @@ DumpCustom class contained in the dump_custom.cpp file.
 <P>Here is a brief description of methods you define in your new derived
 class.  See dump.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >write_header</TD><TD > write the header section of a snapshot of atoms</TD></TR>
 <TR><TD >count</TD><TD > count the number of lines a processor will output</TD></TR>
 <TR><TD >pack</TD><TD > pack a proc's output data into a buffer</TD></TR>
@@ -277,7 +277,7 @@ implement.
 <P>Here is a brief description of methods you can define in your new
 derived class.  See fix.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >setmask</TD><TD > determines when the fix is called during the timestep</TD></TR>
 <TR><TD >init</TD><TD > initialization before a run</TD></TR>
 <TR><TD >setup</TD><TD > called immediately before the 1st timestep</TD></TR>
@@ -348,7 +348,7 @@ operations it wishes on LAMMPS data structures.
 </P>
 <P>The single method your new class must define is as follows:
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >command</TD><TD > operations performed by the new command 
 </TD></TR></TABLE></DIV>
 
@@ -368,7 +368,7 @@ styles can be created to add new K-space options to LAMMPS.
 <P>Here is a brief description of methods you define in your new derived
 class.  See kspace.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >init</TD><TD > initialize the calculation before a run</TD></TR>
 <TR><TD >setup</TD><TD > computation before the 1st timestep of a run</TD></TR>
 <TR><TD >compute</TD><TD > every-timestep computation</TD></TR>
@@ -388,7 +388,7 @@ LAMMPS.
 <P>Here is a brief description of methods you define in your new derived
 class.  See min.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >init</TD><TD > initialize the minimization before a run</TD></TR>
 <TR><TD >run</TD><TD > perform the minimization</TD></TR>
 <TR><TD >memory_usage</TD><TD > tally of memory usage 
@@ -409,7 +409,7 @@ includes some optional methods to enable its use with rRESPA.
 </P>
 <P>Here is a brief description of the class methods in pair.h:
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >compute</TD><TD > workhorse routine that computes pairwise interactions</TD></TR>
 <TR><TD >settings</TD><TD > reads the input script line with arguments you define</TD></TR>
 <TR><TD >coeff</TD><TD > set coefficients for one i,j type pair</TD></TR>
@@ -437,7 +437,7 @@ styles can be created to add new region shapes to LAMMPS.
 <P>Here is a brief description of methods you define in your new derived
 class.  See region.h for details.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >match</TD><TD > determine whether a point is in the region 
 </TD></TR></TABLE></DIV>
 

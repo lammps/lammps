@@ -378,6 +378,7 @@ description:
 
 "addforce"_fix_addforce.html,
 "aveforce"_fix_aveforce.html,
+"ave/atom"_fix_ave_atom.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
 "com"_fix_com.html,
@@ -436,16 +437,17 @@ Compute commands.  See the "compute"_compute.html command for one-line
 descriptions of each style or click on the style itself for a full
 description:
 
+"attribute/atom"_compute_attribute_atom.html,
 "centro/atom"_compute_centro_atom.html,
 "coord/atom"_compute_coord_atom.html,
 "ebond/atom"_compute_ebond_atom.html,
 "epair/atom"_compute_epair_atom.html,
-"etotal/atom"_compute_etotal_atom.html,
 "ke/atom"_compute_ke_atom.html,
 "pressure"_compute_pressure.html,
 "rotate/dipole"_compute_rotate_dipole.html,
 "rotate/gran"_compute_rotate_gran.html,
 "stress/atom"_compute_stress_atom.html,
+"sum/atom"_compute_sum_atom.html,
 "temp"_compute_temp.html,
 "temp/deform"_compute_temp_deform.html,
 "temp/asphere"_compute_temp_asphere.html,

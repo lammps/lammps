@@ -10,46 +10,52 @@ fix ave/time command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/time Nevery Nfreq compute-ID flag file :pre
+fix ID group-ID ave/time Nevery Nrepeat Nfreq compute-ID flag file :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 ave/time = style name of this fix command
 Nevery = calculate property every this many timesteps
-Nfreq = write average property to file every this many steps
+Nrepeat = # of times to repeat the Nevery calculation before averaging
+Nfreq = timestep frequency at which the average value is written to file
 compute-ID = ID of compute that performs the calculation
 flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
 file = filename to write results to :ul
 
 [Examples:]
 
-fix 1 all ave/time 100 1000 myTemp 0 temp.stats :pre
+fix 1 all ave/time 100 5 1000 myTemp 0 temp.stats :pre
 
 [Description:]
 
 Calculate one or more instantaneous quantities every few timesteps,
 average them over a longer timescale, and print the results to a file.
-This can be used to time-average any "compute" entity in LAMMPS such
-as a temperature or pressure.
+This can be used to time-average any "compute" entity in LAMMPS which
+calculates a global quantity such as a temperature or pressure.
+Per-atom computes cannot be used with this fix.
 
 The {compute-ID} specifies a "compute"_compute.html which calculates
-the desired property.  The compute can be previously defined in the
-input script.  Or it can be a compute defined by "thermodynamic
+the desired property.  The compute must be a "global" compute that
+calculates one or more global properties rather than a "per-atom"
+compute.  The compute can be previously defined in the input script.
+Or it can be a compute defined by "thermodynamic
 output"_thermo_style.html or other fixes such as "fix
 nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.  Users
 can also write code for their own compute styles and "add them to
 LAMMPS"_Section_modify.html.
 
-In all these cases, the fix ave/time style uses the global scalar or
+In all these cases, the fix ave/time command uses the global scalar or
 vector calculated by the compute.  See the "fix
 ave/spatial"_fix_ave_spatial.html command if you wish to average
 spatially, e.g. via a compute that calculates per-atom quantities.
 
-The {Nevery} and {Nfreq} arguments specify how the property will be
-averaged.  The property is calculated once each Nevery timesteps.  It
-is averaged and output every Nfreq timesteps.  Nfreq must be a
-multiple of Nevery.  In the example above, the property is calculated
-every 100 steps.  After 10 calculations, the average result is written
-to the file, once every 1000 steps.
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify how the
+property will be time-averaged.  The final averaged value(s) are
+computed every {Nfreq} timesteps.  The average is over {Nrepeat}
+values, computed in the preceeding portion of the simulation every
+{Nevery} timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
+values on timesteps 90,92,94,96,98,100 will be used to compute the
+final average written to the file on timestep 100.  Similary for
+timesteps 190,192,194,196,198,200 on timestep 200, etc.
 
 The {flag} argument chooses whether the scalar and/or vector
 calculation of the compute is invoked.  The former computes a single
@@ -59,9 +65,7 @@ case, each of the N values is averaged independently and N values are
 written to the file at each output.
 
 Since the calculation is performed by the compute which stores its own
-"group" definition, the group specified for the fix is ignored.
-LAMMPS prints a warning if the fix group and compute group do not
-match.
+"group" definition, the group specified for this fix is ignored.
 
 If the compute calculates pressure, it will cause the force
 computations performed by LAMMPS (pair, bond, angle, etc) to calculate

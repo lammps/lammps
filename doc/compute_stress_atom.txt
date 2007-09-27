@@ -32,8 +32,11 @@ compute 1 all stress/atom ke no :pre
 [Description:]
 
 Define a computation that computes the per-atom stress tensor for each
-atom in a group.  The 6 components can be output via the "dump
-custom"_dump.html command.
+atom in a group.  The tensor for each atom has 6 components: xx, yy,
+zz, xy, xz, yz.  The resulting values can be accessed by indices 1-6
+by any command that uses per-atom computes, e.g. the "dump
+custom"_dump.html command or "fix ave/spatial"_fix_ave_spatial.html
+command or "fix ave/atom"_fix_ave_atom.html command.
 
 The stress tensor for each atom is the sum of 3 terms in the following
 formula.  Any of the terms can be excluded by setting the {ke},

@@ -22,8 +22,7 @@ compute 1 all ebond/atom :pre
 [Description:]
 
 Define a computation that computes the per-atom bond energy for each
-atom in a group.  This can be output via the "dump custom"_dump.html
-command.
+atom in a group.
 
 The bond energy for each atom is computed by looping over the atoms it
 is bonded to and computing the bond energy associated with the defined

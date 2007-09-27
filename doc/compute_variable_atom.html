@@ -26,9 +26,10 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates a formula for each atom in the
-group.  The per-atom quantities can be output via the <A HREF = "dump.html">dump
-custom</A> command or spatially averaged via the <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A> command.
+group.  The resulting values can be accessed by any command that uses
+per-atom computes, e.g. the <A HREF = "dump.html">dump custom</A> command or <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command or <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command.
 </P>
 <P>The formula is defined by the <A HREF = "variable.html">variable atom</A> command.
 A variable of style <I>atom</I> can access properties of the system, such

@@ -27,18 +27,27 @@ compute 3 all ke/atom :pre
 
 Create a computation that will be performed on a group of atoms.
 
-In LAMMPS, a "compute" is used in several ways.  Computes that
-calculate one or more values for the entire group of atoms can output
-those values via the "thermo_style custom"_thermo_style.html or "fix
-ave/time"_fix_ave_time.html command.  Or the values can be referenced
-in a "variable equal"_variable.html command.  Computes that calculate
-a temperature or pressure are used by fixes that do thermostatting or
-barostatting and when atom velocities are created.  Computes that
-calculate one or more values for each atom in the group can output
-those values via the "dump custom"_dump.html command or the "fix
-ave/spatial"_fix_ave_spatial.html command.
+In LAMMPS, a "compute" is used in several ways.  There are two kinds
+of computes, "global" computes that calculate one or more values for
+the entire group of atoms, and "per-atom" computes that calculate one
+or more values for each atom in the group.  The latter has the word
+"atom" in its style name.
 
-LAMMPS creates its own computes for thermodynamic output.  Two
+The results of global computes can be output via the "thermo_style
+custom"_thermo_style.html or "fix ave/time"_fix_ave_time.html command.
+Or the values can be referenced in a "variable equal"_variable.html
+command.  The results of computes that calculate a global temperature
+or pressure can be used by fixes that do thermostatting or
+barostatting and when atom velocities are created.
+
+The results of per-atom computes can be output via the "dump
+custom"_dump.html command or the "fix
+ave/spatial"_fix_ave_spatial.html command.  Or the per-atom values can
+be time-averaged via the "fix ave/atom"_fix_ave_atom.html command and
+then output via the "dump custom"_dump.html or "fix
+ave/spatial"_fix_ave_spatial.html commands.
+
+LAMMPS creates its own global computes for thermodynamic output.  Two
 computes are always created, named "thermo_temp" and
 "thermo_pressure", as if these commands had been invoked:
 
@@ -54,9 +63,9 @@ documentation for the "dump custom"_dump.html and specific
 "fix"_fix.html commands.
 
 In all these cases, the default computes can be replaced by computes
-defined in the input script, as described by the
-"thermo_modify"_thermo_modify.html and "fix modify"_fix_modify.html
-commands.
+defined by the user in the input script, as described by the
+"thermo_modify"_thermo_modify.html, "fix modify"_fix_modify.html, and
+"dump"_dump.html commands.
 
 Properties of either a default of user-defined compute can be modified
 via the "compute_modify"_compute_modify.html command.
@@ -71,16 +80,17 @@ Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
 defined in LAMMPS:
 
+"attribute/atom"_compute_attribute_atom.html - attribute (x,v,f,etc) of each atom
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "ebond/atom"_compute_ebond_atom.html - bond energy for each atom
 "epair/atom"_compute_epair_atom.html - pairwise energy for each atom
-"etotal/atom"_compute_etotal_atom.html - total energy (ke + epair) for each atom
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
+"sum/atom"_compute_sum_atom.html - sum 2 or more quantities for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity

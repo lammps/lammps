@@ -13,46 +13,52 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ave/time Nevery Nfreq compute-ID flag file 
+<PRE>fix ID group-ID ave/time Nevery Nrepeat Nfreq compute-ID flag file 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>ave/time = style name of this fix command
 <LI>Nevery = calculate property every this many timesteps
-<LI>Nfreq = write average property to file every this many steps
+<LI>Nrepeat = # of times to repeat the Nevery calculation before averaging
+<LI>Nfreq = timestep frequency at which the average value is written to file
 <LI>compute-ID = ID of compute that performs the calculation
 <LI>flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
 <LI>file = filename to write results to 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all ave/time 100 1000 myTemp 0 temp.stats 
+<PRE>fix 1 all ave/time 100 5 1000 myTemp 0 temp.stats 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Calculate one or more instantaneous quantities every few timesteps,
 average them over a longer timescale, and print the results to a file.
-This can be used to time-average any "compute" entity in LAMMPS such
-as a temperature or pressure.
+This can be used to time-average any "compute" entity in LAMMPS which
+calculates a global quantity such as a temperature or pressure.
+Per-atom computes cannot be used with this fix.
 </P>
 <P>The <I>compute-ID</I> specifies a <A HREF = "compute.html">compute</A> which calculates
-the desired property.  The compute can be previously defined in the
-input script.  Or it can be a compute defined by <A HREF = "thermo_style.html">thermodynamic
+the desired property.  The compute must be a "global" compute that
+calculates one or more global properties rather than a "per-atom"
+compute.  The compute can be previously defined in the input script.
+Or it can be a compute defined by <A HREF = "thermo_style.html">thermodynamic
 output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
 nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  Users
 can also write code for their own compute styles and <A HREF = "Section_modify.html">add them to
 LAMMPS</A>.
 </P>
-<P>In all these cases, the fix ave/time style uses the global scalar or
+<P>In all these cases, the fix ave/time command uses the global scalar or
 vector calculated by the compute.  See the <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A> command if you wish to average
 spatially, e.g. via a compute that calculates per-atom quantities.
 </P>
-<P>The <I>Nevery</I> and <I>Nfreq</I> arguments specify how the property will be
-averaged.  The property is calculated once each Nevery timesteps.  It
-is averaged and output every Nfreq timesteps.  Nfreq must be a
-multiple of Nevery.  In the example above, the property is calculated
-every 100 steps.  After 10 calculations, the average result is written
-to the file, once every 1000 steps.
+<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify how the
+property will be time-averaged.  The final averaged value(s) are
+computed every <I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I>
+values, computed in the preceeding portion of the simulation every
+<I>Nevery</I> timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
+values on timesteps 90,92,94,96,98,100 will be used to compute the
+final average written to the file on timestep 100.  Similary for
+timesteps 190,192,194,196,198,200 on timestep 200, etc.
 </P>
 <P>The <I>flag</I> argument chooses whether the scalar and/or vector
 calculation of the compute is invoked.  The former computes a single
@@ -62,9 +68,7 @@ case, each of the N values is averaged independently and N values are
 written to the file at each output.
 </P>
 <P>Since the calculation is performed by the compute which stores its own
-"group" definition, the group specified for the fix is ignored.
-LAMMPS prints a warning if the fix group and compute group do not
-match.
+"group" definition, the group specified for this fix is ignored.
 </P>
 <P>If the compute calculates pressure, it will cause the force
 computations performed by LAMMPS (pair, bond, angle, etc) to calculate

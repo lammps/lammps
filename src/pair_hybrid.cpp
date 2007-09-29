@@ -559,7 +559,7 @@ double PairHybrid::init_one(int i, int j)
 	ptail_ij = styles[map[i][j]]->ptail_ij;
       }
     }
-  } else error->one("All pair coeffs are not set");
+  } else error->all("All pair coeffs are not set");
 
   map[j][i] = map[i][j];
 

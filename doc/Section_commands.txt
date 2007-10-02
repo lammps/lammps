@@ -592,4 +592,4 @@ description:
 These are Kspace solvers contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
-"ewald/n"_ewald_n.html :tb(c=4,ea=c,w=100)
+"ewald/n"_kspace_style.html :tb(c=4,ea=c,w=100)

@@ -12,13 +12,15 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {pppm} or others as referenced below :ulb,l
+style = {none} or {ewald} or {pppm} or {pppm/tip4p} or {ewald/n} :ulb,l
   {none} value = none
   {ewald} value = precision
     precision = desired accuracy
   {pppm} value = precision
     precision = desired accuracy
   {pppm/tip4p} value = precision
+    precision = desired accuracy
+  {ewald/n} value = precision
     precision = desired accuracy :pre
 :ule
 
@@ -29,12 +31,12 @@ kspace_style none :pre
 
 [Description:]
 
-Define a reciprocal (K-space) solver for LAMMPS to use each timestep
-to compute long-range Coulombic interactions.  When such a solver is
-used in conjunction with an appropriate pair style, the cutoff for
-Coulombic interactions is effectively infinite; each charge in the
-system interacts with charges in an infinite array of periodic images
-of the simulation domain.
+Define a K-space solver for LAMMPS to use each timestep to compute
+long-range Coulombic interactions or long-range 1/r^N interactions.
+When such a solver is used in conjunction with an appropriate pair
+style, the cutoff for Coulombic or other 1/r^N interactions is
+effectively infinite; each charge in the system interacts with charges
+in an infinite array of periodic images of the simulation domain.
 
 The {ewald} style performs a standard Ewald summation as described in
 any solid-state physics text.
@@ -54,15 +56,21 @@ adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
 {long/tip4p} in their style name.
 
-There are also additional kspace styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the kspace section of "this
-page"_Section_commands.html#3_5.
+The {ewald/n} style augments {ewald} by adding long-range dispersion
+sum capabilities for 1/r^N potentials and is useful for simulation of
+interfaces "(Veld)"_#Veld.  It also performs standard coulombic Ewald
+summations, but in a more efficient manner than the {ewald} style.
+The 1/r^N capability means that Lennard-Jones or Buckingham potentials
+can be used with {ewald/n} without a cutoff, i.e. they become full
+long-range potentials.
 
 When a kspace style is used, a pair style that includes the
-short-range correction to the pairwise Coulombic forces must also be
-selected.  These styles are ones that have a {coul/long} in their
-style name.
+short-range correction to the pairwise Coulombic or other 1/r^N forces
+must also be selected.  For Coulombic interactions, these styles are
+ones that have a {coul/long} in their style name.  For Lennard-Jones
+or Buckingham interactions, see the "pair_style
+lj/coul"_pair_lj_coul.html or "pair_style
+buck/coul"_pair_buck_coul.html potentials.
 
 A precision value of 1.0e-4 means one part in 10000.  This setting is
 used in conjunction with the pairwise cutoff to determine the number
@@ -80,13 +88,18 @@ Kspace styles are part of the "kspace" package.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
+The {ewald/n} style is part of the "user-ewaldn" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
 When using a long-range pairwise TIP4P potential, you must use kspace
 style {pppm/tip4p} and vice versa.
 
 [Related commands:]
 
 "kspace_modify"_kspace_modify.html, "pair_style"_pair_style.html
-lj/cut/coul/long, "pair_style"_pair_style.html lj/charmm/coul/long
+lj/cut/coul/long, "pair_style"_pair_style.html lj/charmm/coul/long,
+"pair_style"_pair_style lj/coul, "pair_style"_pair_style buck/coul
 
 [Default:]
 
@@ -103,3 +116,6 @@ Adam Hilger, NY (1989).
 
 :link(Pollock)
 [(Pollock)] Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
+
+:link(Veld)
+[(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).

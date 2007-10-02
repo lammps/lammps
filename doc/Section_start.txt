@@ -259,14 +259,18 @@ build it.  In the src/MAKE/Windows directory are some notes from users
 on how they built LAMMPS under Windows, so you can look at their
 instructions for tips.  Good luck - we can't help you on this one.
 
+:line
+
 2.3 Making LAMMPS with optional packages :h4,link(2_3)
 
 The source code for LAMMPS is structured as a large set of core files
-that are always used plus additional packages, which are groups of
-files that enable a specific set of features.  For example, force
-fields for molecular systems or granular systems are in packages.  You
-can see the list of packages by typing "make package".  The current
-list of packages is as follows:
+that are always used plus additional optional packages, which are
+groups of files that enable a specific set of features.  For example,
+force fields for molecular systems or granular systems are in
+packages.  You can see the list of both standard and user-contributed
+packages by typing "make package".
+
+The current list of standard packages is as follows:
 
 asphere : aspherical particles and force fields
 class2 : class 2 force fields
@@ -282,27 +286,86 @@ opt : optimized versions of a few pair potentials
 poems : coupled rigid body motion
 xtc : dump atom snapshots in XTC format :tb(s=:)
 
+There are also user-contributed packages which may be as simple as a
+single additional file (class) or many files grouped together which
+add a specific functionality to the code.  The difference between a
+{standard} package versus a {user} package is as follows.
+
+Standard packages are supported by the LAMMPS developers and are
+written in a syntax and style consistent with the rest of LAMMPS.
+This means we will answer questions about them, debug and fix them if
+necessary, and keep them compatible with future changes to LAMMPS.
+
+User packages don't necessarily meet these requirements.  If you have
+problems using a feature provided in a user package, you will likely
+need to contact the contributor directly to get help.
+
+We encourage users to submit new features to "the
+developers"_http://lammps.sandia.gov/authors.html that they add to
+LAMMPS, especially if you think they will be useful to other users.
+If they are broadly useful and meet the requirements listed above, we
+may add them as core files to LAMMPS or as part of a standard package.
+Else we will add them as a user package.
+
+With user packages, all we are really providing (aside from the fame
+and fortune that accompanies having your name in the source code and
+on the "Authors page"_http://lammps.sandia.gov/authors.html of the
+"LAMMPS WWW site"_lws), is a means for you to distribute your work to
+the LAMMPS user community and a mechanism for others to easily try out
+your new feature.  This may help you find bugs or make contact with
+new collaborators.
+
+"This section"_Section_modify.html of the documentation describes how
+to add new features of various kinds to LAMMPS.  Packages are simply
+collections of these kinds of new class files which are typically
+invoked as a new "style" within a LAMMPS input script.  If designed
+correctly, these additions do not require changes to the main core of
+LAMMPS; they are simply add-on files.  If you think your new feature
+requires something else in LAMMPS to change, you'll need to
+"communicate with the
+developers"_http://lammps.sandia.gov/authors.html.
+
+Examples of user-contributed packages are in src sub-directories that
+start with USER.  We impose only a few minor restrictions on the
+source files you submit.  They need to have the LAMMPS copyright, GPL
+notice, and your name at the top.  They need to create a class that is
+inside the LAMMPS namespace.  You need to provide the Install.csh and
+style*.h files that enable the package to be installed/un-installed.
+See any of the other LAMMPS source or package files for examples.
+Following this pattern will save you and us time when you submit the
+files.
+
+Finally, you also need to include a README file with your package, so
+that other users can get a quick idea of what it does and know how to
+contact you.  You also need to include a doc file in text format for
+each of the new styles you are adding, which we will convert to HTML.
+See the doc directory for numerous examples of these *.txt files; you
+should use one of them as a template for the feature you are adding.
+
+:line
+
 Any or all packages can be included or excluded when LAMMPS is built.
-The one exception is that to use the "opt" package, you must also be
-using the "molecule" and "manybody" packages.  You may wish to exclude
-certain packages if you will never run certain kinds of simulations.
-This will keep you from having to build auxiliary libraries (see
-below) and will produce a smaller executable which may run a bit
-faster.
+The one exception is that to use the standard "opt" package, you must
+also be using the "molecule" and "manybody" packages.  You may wish to
+exclude certain packages if you will never run certain kinds of
+simulations.  This will keep you from having to build auxiliary
+libraries (see below) and will produce a smaller executable which may
+run a bit faster.
 
 By default, LAMMPS includes only the "kspace", "manybody", and
-"molecule" packages.  As described below, some packages require LAMMPS
-be linked to separately built library files, which will require
-editing of your src/MAKE/Makefile.machine.
+"molecule" packages.  As described below, some standard packages
+require LAMMPS be linked to separately built library files, which will
+require editing of your src/MAKE/Makefile.machine.
 
 Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package.  You can also type
-"make yes-all" or "make no-all" to include/exclude all optional
-packages.  These commands work by simply moving files back and forth
-between the main src directory and sub-directories with the package
-name, so that the files are seen or not seen when LAMMPS is built.
-After you have included or excluded a package, you must re-make
-LAMMPS.
+"make yes-standard", "make no-standard", "make yes-user", "make
+no-user", "make yes-all" or "make no-all" to include/exclude various
+sets of packages.  These commands work by simply moving files back and
+forth between the main src directory and sub-directories with the
+package name, so that the files are seen or not seen when LAMMPS is
+built.  After you have included or excluded a package, you must
+re-build LAMMPS.
 
 Additional make options exist to help manage LAMMPS files that exist
 in both the src directory and in package sub-directories.  You do not
@@ -348,6 +411,8 @@ The POEMS library is built by typing "make" from within the poems
 directory with the appropriate Makefile, e.g. "make -f Makefile.g++".
 If one of the provided Makefiles is not appropriate for your system
 you can edit or add one as needed.
+
+:line
 
 2.4 Building LAMMPS as a library :h4,link(2_4)
 

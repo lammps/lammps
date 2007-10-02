@@ -17,14 +17,16 @@
 </PRE>
 <UL><LI>style = one of the following 
 
-<UL><LI><I>none</I>, <I>hybrid</I>, <I>airebo</I>, <I>buck</I>, <I>buck/coul/cut</I>, <I>buck/coul/long</I>,
-<LI><I>dpd</I>, <I>eam</I>, <I>eam/alloy</I> or <I>eam/fs</I>, <I>gran/hertzian</I>,
-<LI><I>gran/history</I>, <I>gran/no_history</I>, <I>lj/charmm/coul/charmm</I>,
-<LI><I>lj/charmm/coul/charmm/implicit</I> or <I>lj/charmm/coul/long</I>,
-<LI><I>lj/class2</I>, <I>lj/class2/coul/cut</I> or <I>lj/class2/coul/long</I>, <I>lj/cut</I>,
-<LI><I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I>, <I>lj/cut/coul/long</I>,
+<UL><LI><I>none</I>, <I>hybrid</I>, <I>hybrid/overlay</I>, <I>airebo</I>, <I>buck</I>, <I>buck/coul/cut</I>,
+<LI><I>buck/coul/long</I>, <I>coul/cut</I>, <I>coul/long</I>, <I>dipole/cut</I>, <I>dpd</I>, <I>eam</I>,
+<LI><I>eam/opt</I>, <I>eam/alloy</I>, <I>eam/alloy/opt</I>, <I>eam/fs</I>, <I>eam/fs/opt</I>,
+<LI><I>gayberne</I>, <I>gran/hertzian</I>, <I>gran/history</I>, <I>gran/no_history</I>,
+<LI><I>lj/charmm/coul/charmm</I>, <I>lj/charmm/coul/charmm/implicit</I>,
+<LI><I>lj/charmm/coul/long</I>, <I>lj/charmm/coul/long/opt</I>, <I>lj/class2</I>,
+<LI><I>lj/class2/coul/cut</I>, <I>lj/class2/coul/long</I>, <I>lj/cut</I>, <I>lj/cut/opt</I>,
+<LI><I>lj/cut/coul/cut</I>, <I>lj/cut/coul/debye</I>, <I>lj/cut/coul/long</I>,
 <LI><I>lj/cut/coul/long/tip4p</I>, <I>lj/expand</I>, <I>lj/smooth</I>, <I>meam</I>, <I>morse</I>,
-<LI><I>soft</I>, <I>sw</I>, <I>table</I>, <I>tersoff</I>, <I>yukawa</I> 
+<LI><I>morse/opt</I>, <I>soft</I>, <I>sw</I>, <I>table</I>, <I>tersoff</I>, <I>yukawa</I> 
 </UL>
 <LI>args = arguments used by a particular style 
 </UL>
@@ -99,17 +101,25 @@ the pair_style command, and coefficients specified by the associated
 <A HREF = "pair_coeff.html">pair_coeff</A> command:
 </P>
 <UL><LI><A HREF = "pair_none.html">pair_style none</A> - turn off pairwise interactions
-<LI><A HREF = "pair_hybrid.html">pair_style hybrid</A> - define multiple styles of pairwise interactions 
+<LI><A HREF = "pair_hybrid.html">pair_style hybrid</A> - multiple styles of pairwise interactions 
+</UL>
+<UL><LI><A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> - multiple styles of superposed pairwise interactions 
 </UL>
 <UL><LI><A HREF = "pair_airebo.html">pair_style airebo</A> - AI-REBO potential
 <LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/cut</A> - Buckinhham with cutoff Coulomb
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulomb
 <LI><A HREF = "pair_colloid.html">pair_style colloid</A> - integrated colloidal potential
+<LI><A HREF = "pair_coul.html">pair_style coul/cut</A> - cutoff Coulombic potential
+<LI><A HREF = "pair_coul.html">pair_style coul/long</A> - long-range Coulombic potential
+<LI><A HREF = "pair_dpd.html">pair_style dipole/cut</A> - point dipoles with cutoff
 <LI><A HREF = "pair_dpd.html">pair_style dpd</A> - dissipative particle dynamics (DPD)
 <LI><A HREF = "pair_eam.html">pair_style eam</A> - embedded atom method (EAM)
+<LI><A HREF = "pair_eam.html">pair_style eam/opt</A> - optimized version of EAM
 <LI><A HREF = "pair_eam.html">pair_style eam/alloy</A> - alloy EAM
+<LI><A HREF = "pair_eam.html">pair_style eam/alloy</A> - optimized version of alloy EAM
 <LI><A HREF = "pair_eam.html">pair_style eam/fs</A> - Finnis-Sinclair EAM
+<LI><A HREF = "pair_eam.html">pair_style eam/fs</A> - optimized version of Finnis-Sinclair EAM
 <LI><A HREF = "pair_gayberne.html">pair_style gayberne</A> - Gay-Berne ellipsoidal potential
 <LI><A HREF = "pair_gran.html">pair_style gran/hertzian</A> - granular potential with Hertizain interactions
 <LI><A HREF = "pair_gran.html">pair_style gran/history</A> - granular potential with history effects
@@ -117,10 +127,12 @@ the pair_style command, and coefficients specified by the associated
 <LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm</A> - CHARMM potential with cutoff Coulomb
 <LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm/implicit</A> - CHARMM for implicit solvent
 <LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/long</A> - CHARMM with long-range Coulomb
+<LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/long/opt</A> - optimized version of CHARMM with long-range Coulomb
 <LI><A HREF = "pair_class2.html">pair_style lj/class2</A> - COMPASS (class 2) force field with no Coulomb
 <LI><A HREF = "pair_class2.html">pair_style lj/class2/coul/cut</A> - COMPASS with cutoff Coulomb
 <LI><A HREF = "pair_class2.html">pair_style lj/class2/coul/long</A> - COMPASS with long-range Coulomb
 <LI><A HREF = "pair_lj.html">pair_style lj/cut</A> - cutoff Lennard-Jones potential with no Coulomb
+<LI><A HREF = "pair_lj.html">pair_style lj/cut/opt</A> - optimized version of cutoff LJ
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/cut</A> - LJ with cutoff Coulomb
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/debye</A> - LJ with Debye damping added to Coulomb
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/coul/long</A> - LJ with long-range Coulomb
@@ -129,6 +141,7 @@ the pair_style command, and coefficients specified by the associated
 <LI><A HREF = "pair_lj_smooth.html">pair_style lj/smooth</A> - smoothed Lennard-Jones potential
 <LI><A HREF = "pair_meam.html">pair_style meam</A> - modified embedded atom method (MEAM)
 <LI><A HREF = "pair_morse.html">pair_style morse</A> - Morse potential
+<LI><A HREF = "pair_morse.html">pair_style morse</A> - optimized version of Morse potential
 <LI><A HREF = "pair_soft.html">pair_style soft</A> - Soft (cosine) potential
 <LI><A HREF = "pair_sw.html">pair_style sw</A> - Stillinger-Weber 3-body potential
 <LI><A HREF = "pair_table.html">pair_style table</A> - tabulated pair potential

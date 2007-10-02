@@ -313,9 +313,8 @@ in the command's documentation.
 
 <HR>
 
-<P>Fix commands.  See the <A HREF = "fix.html">fix</A> command for one-line
-descriptions of each style or click on the style itself for a full
-description:
+<P>Fix styles.  See the <A HREF = "fix.html">fix</A> command for one-line descriptions
+of each style or click on the style itself for a full description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD ><A HREF = "fix_addforce.html">addforce</A></TD><TD ><A HREF = "fix_aveforce.html">aveforce</A></TD><TD ><A HREF = "fix_ave_atom.html">ave/atom</A></TD><TD ><A HREF = "fix_ave_spatial.html">ave/spatial</A></TD><TD ><A HREF = "fix_ave_time.html">ave/time</A></TD><TD ><A HREF = "fix_com.html">com</A></TD><TD ><A HREF = "fix_deform.html">deform</A></TD><TD ><A HREF = "fix_deposit.html">deposit</A></TD></TR>
@@ -329,15 +328,22 @@ description:
 
 <HR>
 
-<P>Compute commands.  See the <A HREF = "compute.html">compute</A> command for one-line
+<P>Compute styles.  See the <A HREF = "compute.html">compute</A> command for one-line
 descriptions of each style or click on the style itself for a full
 description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD ><A HREF = "compute_attribute_atom.html">attribute/atom</A></TD><TD ><A HREF = "compute_centro_atom.html">centro/atom</A></TD><TD ><A HREF = "compute_coord_atom.html">coord/atom</A></TD><TD ><A HREF = "compute_ebond_atom.html">ebond/atom</A></TD><TD ><A HREF = "compute_epair_atom.html">epair/atom</A></TD><TD ><A HREF = "compute_ke_atom.html">ke/atom</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "compute_pressure.html">pressure</A></TD><TD ><A HREF = "compute_rotate_dipole.html">rotate/dipole</A></TD><TD ><A HREF = "compute_rotate_gran.html">rotate/gran</A></TD><TD ><A HREF = "compute_stress_atom.html">stress/atom</A></TD><TD ><A HREF = "compute_sum_atom.html">sum/atom</A></TD><TD ><A HREF = "compute_temp.html">temp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "compute_temp_deform.html">temp/deform</A></TD><TD ><A HREF = "compute_temp_asphere.html">temp/asphere</A></TD><TD ><A HREF = "compute_temp_dipole.html">temp/dipole</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial</A></TD><TD ><A HREF = "compute_temp_ramp.html">temp/ramp</A></TD><TD ><A HREF = "compute_temp_region.html">temp/region</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "compute_temp_asphere.html">temp/asphere</A></TD><TD ><A HREF = "compute_temp_deform.html">temp/deform</A></TD><TD ><A HREF = "compute_temp_dipole.html">temp/dipole</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial</A></TD><TD ><A HREF = "compute_temp_ramp.html">temp/ramp</A></TD><TD ><A HREF = "compute_temp_region.html">temp/region</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "compute_variable.html">variable</A></TD><TD ><A HREF = "compute_variable_atom.html">variable/atom</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are compute styles contributed by users, which can be used if
+<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "compute_ackland.html">ackland</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -347,17 +353,25 @@ for an overview of pair potentials.  Click on the style itself for a
 full description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "pair_none.html">none</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid</A></TD><TD ><A HREF = "pair_airebo.html">airebo</A></TD><TD ><A HREF = "pair_buck.html">buck</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_buck.html">buck/coul/cut</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/long</A></TD><TD ><A HREF = "pair_colloid.html">colloid</A></TD><TD ><A HREF = "pair_dipole/cut.html">dipole/cut</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_dpd.html">dpd</A></TD><TD ><A HREF = "pair_eam.html">eam</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/fs</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hertzian</A></TD><TD ><A HREF = "pair_gran.html">gran/history</A></TD><TD ><A HREF = "pair_gran.html">gran/no_history</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD><TD ><A HREF = "pair_class2.html">lj/class2</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth</A></TD><TD ><A HREF = "pair_meam.html">meam</A></TD><TD ><A HREF = "pair_morse.html">morse</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_morse.html">morse/opt</A></TD><TD ><A HREF = "pair_soft.html">soft</A></TD><TD ><A HREF = "pair_sw.html">sw</A></TD><TD ><A HREF = "pair_table.html">table</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_tersoff.html">tersoff</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa</A> 
+<TR ALIGN="center"><TD ><A HREF = "pair_none.html">none</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid/overlay</A></TD><TD ><A HREF = "pair_airebo.html">airebo</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_buck.html">buck</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/long</A></TD><TD ><A HREF = "pair_colloid.html">colloid</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_coul.html">coul/cut</A></TD><TD ><A HREF = "pair_long.html">coul/long</A></TD><TD ><A HREF = "pair_dipole/cut.html">dipole/cut</A></TD><TD ><A HREF = "pair_dpd.html">dpd</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/fs</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne</A></TD><TD ><A HREF = "pair_gran.html">gran/hertzian</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/history</A></TD><TD ><A HREF = "pair_gran.html">gran/no_history</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD><TD ><A HREF = "pair_class2.html">lj/class2</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj_smooth.html">lj/smooth</A></TD><TD ><A HREF = "pair_meam.html">meam</A></TD><TD ><A HREF = "pair_morse.html">morse</A></TD><TD ><A HREF = "pair_morse.html">morse/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_soft.html">soft</A></TD><TD ><A HREF = "pair_sw.html">sw</A></TD><TD ><A HREF = "pair_table.html">table</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_yukawa.html">yukawa</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are pair styles contributed by users, which can be used if
+<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "pair_buck_coul.html">buck/coul</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -415,6 +429,13 @@ description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "kspace_style.html">ewald</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm/tip4p</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are Kspace solvers contributed by users, which can be used if
+<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "ewald_n.html">ewald/n</A> 
 </TD></TR></TABLE></DIV>
 
 </HTML>

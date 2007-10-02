@@ -34,12 +34,12 @@ kspace_style none
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a K-space solver for LAMMPS to use each timestep to compute
-long-range Coulombic interactions.  When such a solver is used in
-conjunction with an appropriate pair style, the cutoff for Coulombic
-interactions is effectively infinite; each charge in the system
-interacts with charges in an infinite array of periodic images of the
-simulation domain.
+<P>Define a reciprocal (K-space) solver for LAMMPS to use each timestep
+to compute long-range Coulombic interactions.  When such a solver is
+used in conjunction with an appropriate pair style, the cutoff for
+Coulombic interactions is effectively infinite; each charge in the
+system interacts with charges in an infinite array of periodic images
+of the simulation domain.
 </P>
 <P>The <I>ewald</I> style performs a standard Ewald summation as described in
 any solid-state physics text.

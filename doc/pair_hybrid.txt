@@ -7,55 +7,115 @@
 :line
 
 pair_style hybrid command :h3
+pair_style hybrid/overlay command :h3
 
 [Syntax:]
 
-pair_style hybrid style1 style2 ... :pre
+pair_style hybrid style1 args style2 args ...
+pair_style hybrid/overlay style1 args style2 args ... :pre
 
-style1,style2 = list of one or more pair styles :ul
+style1,style2 = list of one or more pair styles and their arguments :ul
 
 [Examples:]
 
-pair_style hybrid lj/charmm/coul/long 10.0 eam
+pair_style hybrid lj/cut/coul/cut 10.0 eam lj/cut 5.0
 pair_coeff 1*2 1*2 eam niu3
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
 pair_coeff 1*2 3 lj/cut 0.5 1.2 :pre
 
+pair_style hybrid/overlay lj/cut 2.5 coul/long 2.0
+pair_coeff * * lj/cut 1.0 1.0
+pair_coeff * * coul/long :pre
+
 [Description:]
 
-The {hybrid} style enables the use of multiple pair styles in one
-simulation.  A pair style can be assigned to each pair of atom types
-via the "pair_coeff"_pair_coeff.html command.
+The {hybrid} and {hybrid/overlay} styles enable the use of multiple
+pair styles in one simulation.  With the {hybrid} style, exactly one
+pair style is assigned to each pair of atom types.  With the
+{hybrid/overlay} style, one or more pair styles can be assigned to
+each pair of atom types.  The assignment of pair styles to type pairs
+is made via the "pair_coeff"_pair_coeff.html command.
 
-For example, a metal on a LJ surface could be computed where the metal
-atoms interact with each other via a {eam} potential, the surface
-atoms interact with each other via a {lj/cut} potential, and the
-metal/surface interaction is also via a {lj/cut} potential.
+Here are two examples of hybrid simulations.  The {hybrid} style could
+be used for a simulation of a metal droplet on a LJ surface.  The
+metal atoms interact with each other via an {eam} potential, the
+surface atoms interact with each other via a {lj/cut} potential, and
+the metal/surface interaction is also computed via a {lj/cut}
+potential.  The {hybrid/overlay} style could be used as in the 2nd
+example above, where multiple potentials are superposed in an additive
+fashion to compute the interaction between atoms.  In this example,
+using {lj/cut} and {coul/long} together gives the same result as if
+the {lj/cut/coul/long} potential were used by itself.  In this case,
+it would be more efficient to use the single combined potential, but
+in general any combination of pair potentials can be used together in
+to produce an interaction that is not encoded in any single pair_style
+file, e.g. adding Coulombic forces between granular particles.
 
-All pair styles that will be used must be listed in the pair_style
-hybrid command (in any order).  The name of each sub-style is followed
-by its arguments, as illustrated in the example above.
+All pair styles that will be used are listed as "sub-styles" following
+the {hybrid} or {hybrid/overlay} keyword, in any order.  Each
+sub-style's name is followed by its usual arguments, as illustrated in
+the example above.  See the doc pages of individual pair styles for a
+listing and explanation of the appropriate arguments.
 
-In the pair_coeff command, the first coefficient sets the pair style
-and the remaining coefficients are those appropriate to that style.
-For example, consider a simulation with 3 atom types: types 1 and 2
-are Ni atoms, type 3 are LJ atoms with charges.  The following
-commands would set up a hybrid simulation:
+The pair_coeff commands are also specified exactly as they would be
+for a simulation using only one pair style, with one additional
+argument.  Following the I,J type specification, the first argument
+sets the pair sub-style.  The remaining arguments are the coefficients
+appropriate to that style.  For example, consider a simulation with 3
+atom types: types 1 and 2 are Ni atoms, type 3 are LJ atoms with
+charges.  The following commands would set up a hybrid simulation:
 
 pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
-pair_coeff * * eam/alloy nialhjea 1 1 0
+pair_coeff * * eam/alloy nialhjea Ni Ni NULL
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-pair_coeff 1*2 3 lj/cut 0.8 1.1 :pre
+pair_coeff 1*2 3 lj/cut 0.8 1.3 :pre
 
-If the pair_coeff command for a sub-style requires the use of * * as
-atom type arguments (e.g. the {eam/alloy} example above), then it will
-also include trailing arguments which map atom types to elements in
-the potential.  These mapping arguments should be specified as 0 if
-the sub-style is not being applied to certain atom types.
+Note that the pair_coeff command for {eam/alloy} includes a mapping
+specification of elements to all atom types, even those not assigned
+to the {eam/alloy} potential.  The NULL keyword is used by such
+potentials (eam/alloy, Tersoff, AIREBO, etc), to denote an atom type
+that will be assigned to a different sub-style.
 
-Note that you may also need to use an "atom_style"_atom_style.html
-hybrid command in your input script, if atoms in the simulation will
-have attributes from several atom styles, due to using multiple pair
+For the {hybrid} style, each atom type pair I,J is assigned to exactly
+one sub-style.  Just as with a simulation using a single pair style,
+if you specify the same atom type pair in a second pair_coeff command,
+the previous assignment will be overwritten.
+
+For the {hybrid/overlay} style, each atom type pair I,J can be
+assigned to one or more sub-styles.  Thus if you specify the same atom
+type pair in a second pair_coeff command, a second sub-style is added
+to the list of potentials that will be calculated for two interactings
+atoms of those types.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+For both the {hybrid} and {hybrid/overlay} styles, every atom type
+pair I,J (where I <= J) must be assigned to at least one sub-style via
+the "pair_coeff"_pair_coeff.html command as in the examples above, or
+in the data file read by the "read_data"_read_data.html, or by mixing
+as described below.
+
+If you want there to be no interactions between a particular pair of
+atom types, you have 3 choices.  You can assign the type pair to some
+sub-style and use the "neigh_modify exclude type"_neigh_modify
+command.  You can assign it to some sub-style and set the coefficients
+so that there is effectively no interaction (e.g. epsilon = 0.0 in a
+LJ potential).  Or, for {hybrid} and {hybrid/overlay} simluations, you
+can use this form of the pair_coeff command:
+
+pair_coeff	2 3 none :pre
+
+If an assignment to {none} is made in a simluation with the
+{hybrid/overlay} pair style, it wipes out all previous assignments of
+that atom type pair to sub-styles.
+
+Note that you may need to use an "atom_style"_atom_style.html hybrid
+command in your input script, if atoms in the simulation will need
+attributes from several atom styles, due to using multiple pair
 potentials.
 
 :line
@@ -69,39 +129,39 @@ sub-styles of the hybrid potential.
 
 For atom type pairs I,J and I != J, if the sub-style assigned to I,I
 and J,J is the same, and if the sub-style allows for mixing, then the
-coefficients for I,J can be mixed.  The default mix value is
-{geometric}.  See the "pair_modify" command for details.  See the
-See the doc page for the sub-style to see if allows for mixing.
+coefficients for I,J can be mixed.  This means you do not have to
+specify a pair_coeff command for I,J since the I,J type pair will be
+assigned automatically to the I,I sub-style and its coefficients
+generated by the mixing rule used by that sub-style.  For the
+{hybrid/overlay} style, there is an additional requirement that both
+the I,I and J,J pairs are assigned to a single sub-style.  See the
+"pair_modify" command for details of mixing rules.  See the See the
+doc page for the sub-style to see if allows for mixing.
 
-The hybrid pair style supports the "pair_modify"_pair_modify.html
+The hybrid pair styles supports the "pair_modify"_pair_modify.html
 shift, table, and tail options for an I,J pair interaction, if the
 associated sub-style supports it.
 
-The hybrid pair style can calculate per-atom energy and stress, as
+The hybrid pair styles can calculate per-atom energy and stress, as
 used by the "compute epair/atom"_compute_epair_atom.html, "compute
 stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
 commands, if all its sub-styles can perform per-atom calculations.
 
-For the hybrid pair style, the list of sub-styles and their respective
-settings are written to "binary restart files"_restart.html, so a
-pair_style command does not need to specified in an input script that
-reads a restart file.  However, the coefficient information is not
-stored in the restart file.  Thus, pair_coeff commands do need to be
-specified in the restart input script.
+For the hybrid pair styles, the list of sub-styles and their
+respective settings are written to "binary restart
+files"_restart.html, so a pair_style command does not need to
+specified in an input script that reads a restart file.  However, the
+coefficient information is not stored in the restart file.  Thus,
+pair_coeff commands need to be specified in the restart input script.
 
 [Restrictions:]
 
-A pair style of {none} can be specified as an argument to pair_style
-hybrid and the corresponding pair_coeff commands, if you desire to
-turn off pairwise interactions between certain pairs of atom types.
-
 When using a long-range Coulomic solver (via the
-"kspace_style"_kspace_style command) with pair_style hybrid, one or
-more sub-styles will be of the "long" variety.
-E.g. {lj/cut/coul/long} or {buck/coul/long}.  It is OK to have more
-than one sub-style with a "long" component, but you must insure that
-the short-range Coulombic cutoff used by each of these pair styles is
-consistent.  Else the long-range Coulombic solve will be inconsistent.
+"kspace_style"_kspace_style command) with a hybrid pair_style, one or
+more sub-styles will be of the "long" variety, e.g. {lj/cut/coul/long}
+or {buck/coul/long}.  You must insure that the short-range Coulombic
+cutoff used by each of these long pair styles is the same or else
+LAMMPS will generate an error.
 
 [Related commands:]
 

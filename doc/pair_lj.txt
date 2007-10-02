@@ -109,7 +109,7 @@ applied to the Coulombic term so it can be used in conjunction with
 the "kspace_style"_kspace_style.html command and its {ewald} or {pppm}
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
-interactions outside that distance are computed in K-space.
+interactions outside that distance are computed in reciprocal space.
 
 Style {lj/cut/coul/long/tip4p} implements the TIP4P water model of
 "(Jorgensen)"_#Jorgensen, which introduces a massless site located a

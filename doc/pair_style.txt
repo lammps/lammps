@@ -12,20 +12,8 @@ pair_style command :h3
 
 pair_style style args :pre
 
-style = one of the following :ulb,l
-
-{none}, {hybrid}, {hybrid/overlay}, {airebo}, {buck}, {buck/coul/cut},
-{buck/coul/long}, {coul/cut}, {coul/long}, {dipole/cut}, {dpd}, {eam},
-{eam/opt}, {eam/alloy}, {eam/alloy/opt}, {eam/fs}, {eam/fs/opt},
-{gayberne}, {gran/hertzian}, {gran/history}, {gran/no_history},
-{lj/charmm/coul/charmm}, {lj/charmm/coul/charmm/implicit},
-{lj/charmm/coul/long}, {lj/charmm/coul/long/opt}, {lj/class2},
-{lj/class2/coul/cut}, {lj/class2/coul/long}, {lj/cut}, {lj/cut/opt},
-{lj/cut/coul/cut}, {lj/cut/coul/debye}, {lj/cut/coul/long},
-{lj/cut/coul/long/tip4p}, {lj/expand}, {lj/smooth}, {meam}, {morse},
-{morse/opt}, {soft}, {sw}, {table}, {tersoff}, {yukawa} :ul
-
-args = arguments used by a particular style :l,ule
+style = one of the styles from the list below
+args = arguments used by a particular style :ul
 
 [Examples:]
 
@@ -143,6 +131,11 @@ the pair_style command, and coefficients specified by the associated
 "pair_style table"_pair_table.html - tabulated pair potential
 "pair_style tersoff"_pair_tersoff.html - Tersoff 3-body potential
 "pair_style yukawa"_pair_yukawa.html - Yukawa potential :ul
+
+There are also additional pair styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the pair section of "this
+page"_Section_commands.html#3_5.
 
 :line
 

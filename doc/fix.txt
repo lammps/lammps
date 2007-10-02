@@ -133,6 +133,11 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 "fix wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "fix wiggle"_fix_wiggle.html - oscillate walls and frozen atoms :ul
 
+There are also additional fix styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the fix section of "this
+page"_Section_commands.html#3_5.
+
 [Restrictions:]
 
 Some fix styles are part of specific packages.  They are only enabled

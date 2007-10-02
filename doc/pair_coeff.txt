@@ -127,6 +127,11 @@ the pair_style command, and coefficients specified by the associated
 "pair_style tersoff"_pair_tersoff.html - Tersoff 3-body potential
 "pair_style yukawa"_pair_yukawa.html - Yukawa potential :ul
 
+There are also additional pair styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the pair section of "this
+page"_Section_commands.html#3_5.
+
 :line
 
 [Restrictions:]

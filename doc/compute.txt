@@ -101,6 +101,11 @@ defined in LAMMPS:
 "variable"_compute_variable.html - calculate a scalar value from a variable
 "variable/atom"_compute_variable_atom.html - calculate a formula for each atom :ul
 
+There are also additional compute styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the compute section of "this
+page"_Section_commands.html#3_5.
+
 [Restrictions:] none
 
 [Related commands:]

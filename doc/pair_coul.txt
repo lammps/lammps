@@ -1,0 +1,118 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style coul/cut command :h3
+pair_style coul/long command :h3
+
+[Syntax:]
+
+pair_style coul/cut cutoff
+pair_style coul/long cutoff :pre
+
+cutoff = global cutoff for Coulombic interactions :ul
+
+[Examples:]
+
+pair_style coul/cut 2.5
+pair_coeff * *
+pair_coeff 2 2 3.5 :pre
+
+pair_style coul/long 10.0
+pair_coeff * * :pre
+
+[Description:]
+
+The {coul/cut} style computes the standard Coulombic interaction
+potential given by
+
+:c,image(Eqs/pair_coulomb.jpg)
+
+where C is an energy-conversion constant, Qi and Qj are the charges on
+the 2 atoms, and epsilon is the dielectric constant which can be set
+by the "dielectric"_dielectric.html command.  The cutoff Rc truncates
+the interaction distance.
+
+Style {coul/long} computes the same Coulombic interactions as style
+{coul/cut} except that an additional damping factor is applied so it
+can be used in conjunction with the "kspace_style"_kspace_style.html
+command and its {ewald} or {pppm} option.  The Coulombic cutoff
+specified for this style means that pairwise interactions within this
+distance are computed directly; interactions outside that distance are
+computed in reciprocal space.
+
+These potentials are designed to be combined with other pair
+potentials via the "pair_style hybrid/overlay"_pair_hybrid.html
+command.  This is because they have no repulsive core.  Hence if they
+are used by themselves, there will be no repulsion to keep two
+oppositely charged particles from overlapping each other.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+cutoff (distance units) :ul
+
+For {coul/cut}, the cutoff coefficient is optional.  If it is not used
+(as in som of the examples above), the default global value specified
+in the pair_style command is used.
+
+For {coul/long} no cutoff can be specified for an individual I,J type
+pair via the pair_coeff command.  All type pairs use the same global
+Coulombic cutoff specified in the pair_style command.
+
+:line
+
+[Mixing, shift, table, tail correction, per-atom energy/stress, and
+restart info]:
+
+For atom type pairs I,J and I != J, the cutoff distance for the
+{coul/cut} style can be mixed.  The default mix value is {geometric}.
+See the "pair_modify" command for details.
+
+The "pair_modify"_pair_modify.html shift option is not relevant
+for these pair styles.
+
+The {coul/long} style supports the "pair_modify"_pair_modify.html
+table option for tabulation of the short-range portion of the
+long-range Coulombic interaction.
+
+These pair styles do not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
+
+These pair styles can calculate per-atom energy and stress, as used by
+the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.
+
+These pair styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+:line
+
+[Restrictions:]
+
+The {coul/long} style is part of the "kspace" package.  It is only
+enabled if LAMMPS was built with that package (which it is by
+default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info.
+
+On some 64-bit machines, compiling with -O3 appears to break the
+Coulombic tabling option used by the {coul/long} style.  See the
+"Additional build tips" section of the Making LAMMPS documentation
+pages for workarounds on this issue.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "pair_style
+hybrid/overlay"_pair_hybrid.html
+
+[Default:] none

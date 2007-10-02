@@ -108,6 +108,9 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
+  if (atom->mass == NULL)
+    error->all("Cannot use fix langevin without per-type mass defined");
+
   // set force prefactors
 
   for (int i = 1; i <= atom->ntypes; i++) {

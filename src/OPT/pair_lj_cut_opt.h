@@ -24,9 +24,8 @@
 #include "stdlib.h"
 #include "pair_lj_cut.h"
 #include "atom.h"
-#include "update.h"
 #include "force.h"
-#include "neighbor.h"
+#include "neigh_list.h"
 
 namespace LAMMPS_NS {
 
@@ -49,21 +48,22 @@ void PairLJCutOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  double** __restrict__ f;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   
   eng_vdwl = 0.0;
-  if (VFLAG) for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  
-  if (VFLAG == 2) f = update->f_pair;
-  else f = atom->f;
+  if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
   
   double** __restrict__ x = atom->x;
+  double** __restrict__ f = atom->f;
   int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double* __restrict__ special_lj = force->special_lj;
-  int** __restrict__ firstneigh = neighbor->firstneigh;
-  int* __restrict__ num = neighbor->numneigh;
+
+  inum = list->inum;
+  int* __restrict__ ilist = list->ilist;
+  int** __restrict__ firstneigh = list->firstneigh;
+  int* __restrict__ numneigh = list->numneigh;
   
   vec3_t* __restrict__ xx = (vec3_t*)x[0];
   vec3_t* __restrict__ ff = (vec3_t*)f[0];
@@ -73,7 +73,7 @@ void PairLJCutOpt::eval()
   
   fast_alpha_t* __restrict__ fast_alpha = 
     (fast_alpha_t*) malloc(ntypes2*sizeof(fast_alpha_t));
-  for( int i = 0; i < ntypes; i++) for( int j = 0; j < ntypes; j++) {
+  for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
     a.cutsq = cutsq[i+1][j+1];
     a.lj1 = lj1[i+1][j+1];
@@ -86,13 +86,14 @@ void PairLJCutOpt::eval()
   
   // loop over neighbors of my atoms
   
-  for (int i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     double xtmp = xx[i].x;
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
-    int itype = type[i] - 1;
-    int* __restrict__ neighs = firstneigh[i];
-    int numneigh = num[i];
+    itype = type[i] - 1;
+    int* __restrict__ jlist = firstneigh[i];
+    jnum = numneigh[i];
     
     double tmpfx = 0.0;
     double tmpfy = 0.0;
@@ -100,17 +101,17 @@ void PairLJCutOpt::eval()
     
     fast_alpha_t* __restrict__ tabsixi = (fast_alpha_t*)&tabsix[itype*ntypes];
     
-    for (int k = 0; k < numneigh; k++) {
-      int j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       double factor_lj;
-      
+
       if (j < nall) {
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;
 	double rsq = delx*delx + dely*dely + delz*delz;
 	
-	int jtype = type[j] - 1;
+	jtype = type[j] - 1;
 	
 	fast_alpha_t& a = tabsixi[jtype];
 	
@@ -155,7 +156,7 @@ void PairLJCutOpt::eval()
 	double rsq = delx*delx + dely*dely + delz*delz;
 	
 	int jtype1 = type[j];
-	int jtype = jtype1 - 1;
+	jtype = jtype1 - 1;
 	
 	fast_alpha_t& a = tabsixi[jtype];
 	if (rsq < a.cutsq) {

@@ -26,10 +26,9 @@
 #include "stdlib.h"
 #include "pair_eam.h"
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "force.h"
+#include "neigh_list.h"
 #include "memory.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -71,7 +70,7 @@ void PairEAMOpt::eval()
     double _pad[3];
   } fast_gamma_t;
   
-  double** __restrict__ f;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double* __restrict__ coeff;
   
   // grow energy array if necessary
@@ -85,12 +84,10 @@ void PairEAMOpt::eval()
   }
   
   eng_vdwl = 0.0;
-  if (VFLAG) for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  
-  if (VFLAG == 2) f = update->f_pair;
-  else f = atom->f;
+  if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
   
   double** __restrict__ x = atom->x;
+  double** __restrict__ f = atom->f;
   int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
   
@@ -102,15 +99,17 @@ void PairEAMOpt::eval()
   int nr2 = nr-2;
   int nr1 = nr-1;
   
-  int** __restrict__ firstneigh = neighbor->firstneigh;
-  int* __restrict__ num = neighbor->numneigh;
+  inum = list->inum;
+  int* __restrict__ ilist = list->ilist;
+  int** __restrict__ firstneigh = list->firstneigh;
+  int* __restrict__ numneigh = list->numneigh;
   
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
   
   fast_alpha_t* __restrict__ fast_alpha = 
     (fast_alpha_t*) malloc(ntypes2*(nr+1)*sizeof(fast_alpha_t));
-  for( int i = 0; i < ntypes; i++) for( int j = 0; j < ntypes; j++) {
+  for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t* __restrict__ tab = &fast_alpha[i*ntypes*nr+j*nr];
     for(int m = 1; m <= nr; m++) {
       tab[m].rhor0i =  rhor_spline[type2rhor[i+1][j+1]][m][6];
@@ -127,7 +126,7 @@ void PairEAMOpt::eval()
   
   fast_gamma_t* __restrict__ fast_gamma = 
     (fast_gamma_t*) malloc(ntypes2*(nr+1)*sizeof(fast_gamma_t));
-  for( int i = 0; i < ntypes; i++) for( int j = 0; j < ntypes; j++) {
+  for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_gamma_t* __restrict__ tab = &fast_gamma[i*ntypes*nr+j*nr];
     for(int m = 1; m <= nr; m++) {
       tab[m].rhor4i =  rhor_spline[type2rhor[i+1][j+1]][m][2];
@@ -151,26 +150,29 @@ void PairEAMOpt::eval()
   
   if (NEWTON_PAIR) {
     int m = nlocal + atom->nghost;
-    for (int i = 0; i < m; i++) rho[i] = 0.0;
-  } else for (int i = 0; i < nlocal; i++) rho[i] = 0.0;
+    for (i = 0; i < m; i++) rho[i] = 0.0;
+  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
   
   // rho = density at each atom
   // loop over neighbors of my atoms
   
-  for (int i = 0; i < nlocal; i++) {
+  // loop over neighbors of my atoms
+  
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     double xtmp = xx[i].x;
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
-    int itype = type[i] - 1;
-    int* __restrict__ neighs = firstneigh[i];
-    int numneigh = num[i];
+    itype = type[i] - 1;
+    int* __restrict__ jlist = firstneigh[i];
+    jnum = numneigh[i];
     
     double tmprho = rho[i];
-    
     fast_alpha_t* __restrict__ tabeighti = &tabeight[itype*ntypes*nr];
-    for (int k = 0; k < numneigh; k++) {
-      int j = neighs[k];
-      
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+
       double delx = xtmp - xx[j].x;
       double dely = ytmp - xx[j].y;
       double delz = ztmp - xx[j].z;
@@ -178,7 +180,7 @@ void PairEAMOpt::eval()
       
       if (rsq < tmp_cutforcesq) {
 	
-	int jtype = type[j] - 1;
+	jtype = type[j] - 1;
 	
 	double p = sqrt(rsq)*tmp_rdr;
 	if ( (int)p <= nr2 ) {
@@ -210,7 +212,8 @@ void PairEAMOpt::eval()
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
   
-  for (int i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     double p = rho[i]*rdrho;
     int m = MIN((int)p,nrho-2);
     p -= (double)m;
@@ -226,22 +229,24 @@ void PairEAMOpt::eval()
   
   // compute forces on each atom
   // loop over neighbors of my atoms
-  
-  for (int i = 0; i < nlocal; i++) {
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     double xtmp = xx[i].x;
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
     int itype1 = type[i] - 1;
-    int* __restrict__ neighs = firstneigh[i];
-    int numneigh = num[i];
+    int* __restrict__ jlist = firstneigh[i];
+    jnum = numneigh[i];
     
     double tmpfx = 0.0;
     double tmpfy = 0.0;
     double tmpfz = 0.0;
     
     fast_gamma_t* __restrict__ tabssi = &tabss[itype1*ntypes*nr];
-    for (int k = 0; k < numneigh; k++) {
-      int j = neighs[k];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       
       double delx = xtmp - xx[j].x;
       double dely = ytmp - xx[j].y;
@@ -249,7 +254,7 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
       
       if (rsq < tmp_cutforcesq) {
-	int jtype = type[j] - 1;
+	jtype = type[j] - 1;
 	double r = sqrt(rsq);
 	double rhoip,rhojp,z2,z2p;
 	double p = r*tmp_rdr;

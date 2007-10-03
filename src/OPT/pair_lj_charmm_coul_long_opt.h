@@ -21,21 +21,12 @@
 #ifndef PAIR_LJ_CHARMM_COUL_LONG_OPT_H
 #define PAIR_LJ_CHARMM_COUL_LONG_OPT_H
 
-#include "pair_lj_charmm_coul_long.h"
 #include "math.h"
-#include "stdio.h"
 #include "stdlib.h"
-#include "string.h"
+#include "pair_lj_charmm_coul_long.h"
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "error.h"
+#include "neigh_list.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -69,13 +60,11 @@ void PairLJCharmmCoulLongOpt::eval()
     double _pad[2];
   } fast_alpha_t;
   
-  int i,j,k,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double factor,phicoul,philj,switch1,switch2;
-  
-  double** __restrict__ f;
   
   float rsq;
   int *int_rsq = (int *) &rsq;
@@ -83,10 +72,8 @@ void PairLJCharmmCoulLongOpt::eval()
   eng_vdwl = eng_coul = 0.0;
   if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
   
-  if (VFLAG == 2) f = update->f_pair;
-  else f = atom->f;
-  
   double** __restrict__ x = atom->x;
+  double** __restrict__ f = atom->f;
   double* __restrict__ q = atom->q;
   int* __restrict__ type = atom->type;
   int nlocal = atom->nlocal;
@@ -94,8 +81,11 @@ void PairLJCharmmCoulLongOpt::eval()
   double* __restrict__ special_coul = force->special_coul;
   double* __restrict__ special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
-  int** __restrict__ firstneigh = neighbor->firstneigh;
-  int* __restrict__ num = neighbor->numneigh;
+
+  inum = list->inum;
+  int* __restrict__ ilist = list->ilist;
+  int** __restrict__ firstneigh = list->firstneigh;
+  int* __restrict__ numneigh = list->numneigh;
   
   vec3_t* __restrict__ xx = (vec3_t*)x[0];
   vec3_t* __restrict__ ff = (vec3_t*)f[0];
@@ -108,7 +98,7 @@ void PairLJCharmmCoulLongOpt::eval()
   
   fast_alpha_t* __restrict__ fast_alpha = 
     (fast_alpha_t*)malloc(ntypes2*sizeof(fast_alpha_t));
-  for( int i = 0; i < ntypes; i++) for( int j = 0; j < ntypes; j++) {
+  for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
     a.cutsq = cutsq[i+1][j+1];
     a.lj1 = lj1[i+1][j+1];
@@ -120,22 +110,24 @@ void PairLJCharmmCoulLongOpt::eval()
   
   // loop over neighbors of my atoms
   
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     double qtmp = q[i];
     double xtmp = xx[i].x;
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
     itype = type[i] - 1;
-    int* __restrict__ neighs = firstneigh[i];
-    int numneigh = num[i];
+    int* __restrict__ jlist = firstneigh[i];
+    jnum = numneigh[i];
     
     double tmpfx = 0.0;
     double tmpfy = 0.0;
     double tmpfz = 0.0;
     
     fast_alpha_t* __restrict__ tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       
       if (j < nall) {
 	double delx = xtmp - xx[j].x;

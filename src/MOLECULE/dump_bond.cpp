@@ -30,7 +30,7 @@ DumpBond::DumpBond(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   size_one = 3;
 
-  char *str = "%d %d %d %d";
+  char *str = (char *) "%d %d %d %d";
   int n = strlen(str) + 1;
   format_default = new char[n];
   strcpy(format_default,str);

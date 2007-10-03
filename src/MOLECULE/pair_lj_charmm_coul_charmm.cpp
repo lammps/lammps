@@ -22,9 +22,9 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "update.h"
-#include "memory.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -63,19 +63,17 @@ PairLJCharmmCoulCharmm::~PairLJCharmmCoulCharmm()
 
 void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
   double factor,phicoul,philj,switch1,switch2;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = eng_coul = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -85,19 +83,25 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_coul = factor_lj = 1.0;
       else {
@@ -280,6 +284,34 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLJCharmmCoulCharmm::init_style()
+{
+  if (!atom->q_flag)
+    error->all("Pair style lj/charmm/coul/charmm requires atom attribute q");
+
+  int irequest = neighbor->request(this);
+
+  // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
+
+  if (cut_lj_inner >= cut_lj || cut_coul_inner >= cut_coul)
+    error->all("Pair inner cutoff >= Pair outer cutoff");
+
+  cut_lj_innersq = cut_lj_inner * cut_lj_inner;
+  cut_ljsq = cut_lj * cut_lj;
+  cut_coul_innersq = cut_coul_inner * cut_coul_inner;
+  cut_coulsq = cut_coul * cut_coul;
+  cut_bothsq = MAX(cut_ljsq,cut_coulsq);
+
+  denom_lj = (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) * 
+    (cut_ljsq-cut_lj_innersq);
+  denom_coul = (cut_coulsq-cut_coul_innersq) * (cut_coulsq-cut_coul_innersq) * 
+    (cut_coulsq-cut_coul_innersq);
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -315,32 +347,6 @@ double PairLJCharmmCoulCharmm::init_one(int i, int j)
   lj14_4[j][i] = lj14_4[i][j];
 
   return cut;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairLJCharmmCoulCharmm::init_style()
-{
-  if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/charmm requires atom attribute q");
-
-  // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
-
-  if (cut_lj_inner >= cut_lj || cut_coul_inner >= cut_coul)
-    error->all("Pair inner cutoff >= Pair outer cutoff");
-
-  cut_lj_innersq = cut_lj_inner * cut_lj_inner;
-  cut_ljsq = cut_lj * cut_lj;
-  cut_coul_innersq = cut_coul_inner * cut_coul_inner;
-  cut_coulsq = cut_coul * cut_coul;
-  cut_bothsq = MAX(cut_ljsq,cut_coulsq);
-
-  denom_lj = (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) * 
-    (cut_ljsq-cut_lj_innersq);
-  denom_coul = (cut_coulsq-cut_coul_innersq) * (cut_coulsq-cut_coul_innersq) * 
-    (cut_coulsq-cut_coul_innersq);
 }
 
 /* ----------------------------------------------------------------------

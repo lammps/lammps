@@ -269,11 +269,11 @@ instructions for tips.  Good luck - we can't help you on this one.
 <H4><A NAME = "2_3"></A>2.3 Making LAMMPS with optional packages 
 </H4>
 <P>The source code for LAMMPS is structured as a large set of core files
-that are always used plus additional optional packages, which are
-groups of files that enable a specific set of features.  For example,
-force fields for molecular systems or granular systems are in
-packages.  You can see the list of both standard and user-contributed
-packages by typing "make package".
+which are always used, plus optional packages, which are groups of
+files that enable a specific set of features.  For example, force
+fields for molecular systems or granular systems are in packages.  You
+can see the list of both standard and user-contributed packages by
+typing "make package".
 </P>
 <P>The current list of standard packages is as follows:
 </P>
@@ -294,8 +294,8 @@ packages by typing "make package".
 </TD></TR></TABLE></DIV>
 
 <P>There are also user-contributed packages which may be as simple as a
-single additional file (class) or many files grouped together which
-add a specific functionality to the code.  The difference between a
+single additional file or many files grouped together which add a
+specific functionality to the code.  The difference between a
 <I>standard</I> package versus a <I>user</I> package is as follows.
 </P>
 <P>Standard packages are supported by the LAMMPS developers and are
@@ -305,49 +305,10 @@ necessary, and keep them compatible with future changes to LAMMPS.
 </P>
 <P>User packages don't necessarily meet these requirements.  If you have
 problems using a feature provided in a user package, you will likely
-need to contact the contributor directly to get help.
-</P>
-<P>We encourage users to submit new features to <A HREF = "http://lammps.sandia.gov/authors.html">the
-developers</A> that they add to
-LAMMPS, especially if you think they will be useful to other users.
-If they are broadly useful and meet the requirements listed above, we
-may add them as core files to LAMMPS or as part of a standard package.
-Else we will add them as a user package.
-</P>
-<P>With user packages, all we are really providing (aside from the fame
-and fortune that accompanies having your name in the source code and
-on the <A HREF = "http://lammps.sandia.gov/authors.html">Authors page</A> of the
-<A HREF = "http://lammps.sandia.gov">LAMMPS WWW site</A>), is a means for you to distribute your work to
-the LAMMPS user community and a mechanism for others to easily try out
-your new feature.  This may help you find bugs or make contact with
-new collaborators.
-</P>
-<P><A HREF = "Section_modify.html">This section</A> of the documentation describes how
-to add new features of various kinds to LAMMPS.  Packages are simply
-collections of these kinds of new class files which are typically
-invoked as a new "style" within a LAMMPS input script.  If designed
-correctly, these additions do not require changes to the main core of
-LAMMPS; they are simply add-on files.  If you think your new feature
-requires something else in LAMMPS to change, you'll need to
-<A HREF = "http://lammps.sandia.gov/authors.html">communicate with the
-developers</A>.
-</P>
-<P>Examples of user-contributed packages are in src sub-directories that
-start with USER.  We impose only a few minor restrictions on the
-source files you submit.  They need to have the LAMMPS copyright, GPL
-notice, and your name at the top.  They need to create a class that is
-inside the LAMMPS namespace.  You need to provide the Install.csh and
-style*.h files that enable the package to be installed/un-installed.
-See any of the other LAMMPS source or package files for examples.
-Following this pattern will save you and us time when you submit the
-files.
-</P>
-<P>Finally, you also need to include a README file with your package, so
-that other users can get a quick idea of what it does and know how to
-contact you.  You also need to include a doc file in text format for
-each of the new styles you are adding, which we will convert to HTML.
-See the doc directory for numerous examples of these *.txt files; you
-should use one of them as a template for the feature you are adding.
+need to contact the contributor directly to get help.  Information on
+how to submit additions you make to LAMMPS as a user-contributed
+package is given in <A HREF = "Section_modify.html#package">this section</A> of the
+documentation.
 </P>
 <HR>
 

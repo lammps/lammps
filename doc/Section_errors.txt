@@ -107,7 +107,7 @@ request your input script and data files if necessary.
 
 :line
 
-9.3 Error & warning Messages :h4,link(9_3)
+9.3 Error & warning messages :h4,link(9_3)
 
 These are two alphabetic lists of the "ERROR"_#error and
 "WARNING"_#warn messages LAMMPS prints out and the reason why.  If the
@@ -116,6 +116,11 @@ offending command may help.  Grepping the source files for the text of
 the error message and staring at the source code and comments is also
 not a bad idea!  Note that sometimes the same message can be printed
 from multiple places in the code.
+
+Also note that error messages from "user-contributed
+packages"_Section_start.html#2_3 are not listed here.  Is such an
+error occurs and is not self-explanatory, you'll need to look in the
+source code or contact the author of the package.
 
 Errors: :h4,link(error)
 

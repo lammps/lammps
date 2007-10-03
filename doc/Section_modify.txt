@@ -15,13 +15,19 @@ extend with new functionality.  In fact, about 75% if its source code
 is files added in this fashion.
 
 In this section, changes and additions users can make are listed along
-with minimal instructions.  The best way to add a new feature is to
-find a similar feature in LAMMPS and look at the corresponding source
-and header files to figure out what it does.  You will need some
-knowledge of C++ to be able to understand the hi-level structure of
-LAMMPS and its class organization, but functions (class methods) that
-do actual computations are written in vanilla C-style code and operate
-on simple C-style data structures (vectors and arrays).
+with minimal instructions.  If you add a new feature to LAMMPS and
+think it will be of interest to general users, we encourage you to
+submit it to the developers for inclusion in the released version of
+LAMMPS.  Information about how to do this is provided
+"below"_#package.
+
+The best way to add a new feature is to find a similar feature in
+LAMMPS and look at the corresponding source and header files to figure
+out what it does.  You will need some knowledge of C++ to be able to
+understand the hi-level structure of LAMMPS and its class
+organization, but functions (class methods) that do actual
+computations are written in vanilla C-style code and operate on simple
+C-style data structures (vectors and arrays).
 
 Most of the new features described in this section require you to
 write a new C++ derived class (except for exceptions described below,
@@ -71,12 +77,15 @@ the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
 processed by your new class.
 
-Here is a list of the new features that can be added in this way:
+Here is a list of the new features that can be added in this way,
+along with information about how to submit your features for inclusion
+in the LAMMPS distribution.
 
 "Atom styles"_#atom
 "Bond, angle, dihedral, improper potentials"_#bond
 "Compute styles"_#compute
 "Dump styles"_#dump
+"Dump custom output optoins"_#dump
 "Fix styles"_#fix which include integrators, \
      temperature and pressure control, force constraints, \
      boundary conditions, diagnostic output, etc
@@ -84,7 +93,11 @@ Here is a list of the new features that can be added in this way:
 "Kspace computations"_#kspace
 "Minimization solvers"_#min
 "Pairwise potentials"_#pair
-"Region styles"_#region :ul
+"Region styles"_#region
+"Thermodynamic output options"_#thermo
+"Variable options"_#variable :ul
+
+"Submitting new features to the developers to include in LAMMPS"_#package :ul
 
 As illustrated by the pairwise example, these options are referred to
 in the LAMMPS documentation as the "style" of a particular command.
@@ -487,6 +500,70 @@ to find the appropriate location.
 Adding new "compute styles"_compute.html (whose calculated values can
 then be accessed by variables) was discussed
 "here"_Section_modify.html#compute on this page.
+
+:line
+
+Submitting new features to the developers to include in LAMMPS :link(package),h4
+
+We encourage users to submit new features that they add to LAMMPS to
+"the developers"_http://lammps.sandia.gov/authors.html, especially if
+you think they will be useful to other users.  If they are broadly
+useful we may add them as core files to LAMMPS or as part of a
+"standard package"_Section_start.html#2_3.  Else we will add them as a
+user-contributed package.  Examples of user packages are in src
+sub-directories that start with USER.  You can see a list of the both
+standard and user packages by typing "make package" in the LAMMPS src
+directory.
+
+With user packages, all we are really providing (aside from the fame
+and fortune that accompanies having your name in the source code and
+on the "Authors page"_http://lammps.sandia.gov/authors.html of the
+"LAMMPS WWW site"_lws), is a means for you to distribute your work to
+the LAMMPS user community and a mechanism for others to easily try out
+your new feature.  This may help you find bugs or make contact with
+new collaborators.  Note that you're also implicitly agreeing to
+support your code which means answer questions, fix bugs, and maintain
+it if LAMMPS changes.
+
+The previous sections of this doc page describe how to add new
+features of various kinds to LAMMPS.  Packages are simply collections
+of one or more new class files which are invoked as a new "style"
+within a LAMMPS input script.  If designed correctly, these additions
+do not require changes to the main core of LAMMPS; they are simply
+add-on files.  If you think your new feature does requires changes in
+other LAMMPS files, you'll need to "communicate with the
+developers"_http://lammps.sandia.gov/authors.html, since we may or may
+not want to make those changes.
+
+Here is what you need to do to submit a user package for our
+consideration.  Following these steps will save time for both you and
+us.  See existing package files for examples of these details.
+
+Your user package will be a directory with a name like USER-FOO.  In
+addition to your new files, the directory should contain a README,
+Install.csh and style_user_foo.h file.
+
+The README text file should contain your name and contact information
+and a brief description of what your new package does.  This is for
+users to look at.
+
+The Install.csh and style_user_foo.h files enable LAMMPS to include
+and exclude your package.
+
+Your new source files need to have the LAMMPS copyright, GPL notice,
+and your name at the top.  They need to create a class that is inside
+the LAMMPS namespace.  Other than that, your files can do whatever is
+necessary to implement the new features.  They don't have to be
+written in the same style and syntax as other LAMMPS files, thought
+that would be nice.
+
+Finally, you also need to send us a documentation file for each new
+command or style you are adding to LAMMPS.  These are text files which
+we will convert to HTML.  Use one of the *.txt files in the doc dir as
+a starting point for the new file you create, since it should look
+similar to the doc files for existing commands and styles.  Note that
+the more clear and self-exaplantory you make your documentation, the
+more likely it is that users will try out your new feature.
 
 :line
 :line

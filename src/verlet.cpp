@@ -93,21 +93,13 @@ void Verlet::init()
 
   // set flags for what arrays to clear in force_clear()
   // need to clear torques if array exists
-  // don't need to clear f_pair if atom_style is only granular (no virial)
 
   torqueflag = 0;
   if (atom->torque_flag) torqueflag = 1;
-  pairflag = 1;
-  if (strcmp(atom->atom_style,"granular") == 0) pairflag = 0;
 
   // orthogonal vs triclinic simulation box
 
   triclinic = domain->triclinic;
-
-  // local copies of Update quantities
-
-  maxpair = update->maxpair;
-  f_pair = update->f_pair;
 }
 
 /* ----------------------------------------------------------------------
@@ -139,14 +131,14 @@ void Verlet::setup()
   int vflag = virial_style;
   force_clear(vflag);
   
+  if (force->pair) force->pair->compute(eflag,vflag);
+
   if (atom->molecular) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
     if (force->improper) force->improper->compute(eflag,vflag);
   }
-
-  if (force->pair) force->pair->compute(eflag,vflag);
 
   if (force->kspace) {
     force->kspace->setup();
@@ -233,17 +225,18 @@ void Verlet::iterate(int n)
     force_clear(vflag);
 
     timer->stamp();
+
+    if (force->pair) {
+      force->pair->compute(eflag,vflag);
+      timer->stamp(TIME_PAIR);
+    }
+
     if (atom->molecular) {
       if (force->bond) force->bond->compute(eflag,vflag);
       if (force->angle) force->angle->compute(eflag,vflag);
       if (force->dihedral) force->dihedral->compute(eflag,vflag);
       if (force->improper) force->improper->compute(eflag,vflag);
       timer->stamp(TIME_BOND);
-    }
-
-    if (force->pair) {
-      force->pair->compute(eflag,vflag);
-      timer->stamp(TIME_PAIR);
     }
 
     if (force->kspace) {
@@ -303,23 +296,6 @@ void Verlet::force_clear(int vflag)
       torque[i][0] = 0.0;
       torque[i][1] = 0.0;
       torque[i][2] = 0.0;
-    }
-  }
-
-  // clear f_pair array if using it this timestep to compute virial
-
-  if (vflag == 2 && pairflag) {
-    if (atom->nmax > maxpair) {
-      maxpair = atom->nmax;
-      memory->destroy_2d_double_array(f_pair);
-      f_pair = memory->create_2d_double_array(maxpair,3,"verlet:f_pair");
-      update->maxpair = maxpair;
-      update->f_pair = f_pair;
-    }
-    for (i = 0; i < nall; i++) {
-      f_pair[i][0] = 0.0;
-      f_pair[i][1] = 0.0;
-      f_pair[i][2] = 0.0;
     }
   }
 }

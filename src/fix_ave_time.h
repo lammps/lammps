@@ -29,16 +29,15 @@ class FixAveTime : public Fix {
 
  private:
   int me;
-
-  int nfreq;
+  int nrepeat,nfreq,nvalid,irepeat;
   char *id_compute;
   FILE *fp;
 
   int sflag,vflag;
   int size_vector,nsum;
   double scalar,*vector;
-  class Compute *compute;
-  class Compute *precompute;
+  int ncompute;
+  class Compute **compute;
 };
 
 }

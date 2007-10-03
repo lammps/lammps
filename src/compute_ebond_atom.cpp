@@ -56,7 +56,7 @@ ComputeEbondAtom::~ComputeEbondAtom()
 void ComputeEbondAtom::init()
 {
   if (force->bond == NULL)
-    error->all("Bond style does not support computing per-atom energy");
+    error->all("Bond style does not support computing per-atom bond energy");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
@@ -69,7 +69,7 @@ void ComputeEbondAtom::init()
 
 void ComputeEbondAtom::compute_peratom()
 {
-  int i,n,i1,i2,type;
+  int i,n,i1,i2,type,iflag,jflag;
   double delx,dely,delz,rsq,fforce,eng;
 
   // grow energy array if necessary
@@ -95,6 +95,7 @@ void ComputeEbondAtom::compute_peratom()
 
   // compute bond energy for atoms via bond->single()
   // if neither atom is in compute group, skip that bond
+  // only add energy to atoms in group
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -105,7 +106,9 @@ void ComputeEbondAtom::compute_peratom()
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-    if ((mask[i1] & groupbit) == 0 && (mask[i2] & groupbit) == 0) continue;
+    iflag = mask[i1] & groupbit;
+    jflag = mask[i2] & groupbit;
+    if (iflag == 0 && jflag == 0) continue;
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -114,8 +117,8 @@ void ComputeEbondAtom::compute_peratom()
       
     rsq = delx*delx + dely*dely + delz*delz;
     force->bond->single(type,rsq,i1,i2,0,fforce,eng);
-    energy[i] += eng;
-    if (newton_bond || i2 < nlocal) energy[i2] += eng;
+    if (iflag) energy[i1] += eng;
+    if (jflag && (newton_bond || i2 < nlocal)) energy[i2] += eng;
   }
 
   // communicate energy between neigchbor procs

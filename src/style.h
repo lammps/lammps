@@ -76,16 +76,17 @@ CommandStyle(write_restart,WriteRestart)
 #endif
 
 #ifdef ComputeInclude
+#include "compute_attribute_atom.h"
 #include "compute_centro_atom.h"
 #include "compute_coord_atom.h"
 #include "compute_ebond_atom.h"
 #include "compute_epair_atom.h"
-#include "compute_etotal_atom.h"
 #include "compute_ke_atom.h"
 #include "compute_pressure.h"
 #include "compute_rotate_dipole.h"
 #include "compute_rotate_gran.h"
 #include "compute_stress_atom.h"
+#include "compute_sum_atom.h"
 #include "compute_temp.h"
 #include "compute_temp_deform.h"
 #include "compute_temp_partial.h"
@@ -96,16 +97,17 @@ CommandStyle(write_restart,WriteRestart)
 #endif
 
 #ifdef ComputeClass
+ComputeStyle(attribute/atom,ComputeAttributeAtom)
 ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(ebond/atom,ComputeEbondAtom)
 ComputeStyle(epair/atom,ComputeEpairAtom)
-ComputeStyle(etotal/atom,ComputeEtotalAtom)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(pressure,ComputePressure)
 ComputeStyle(rotate/dipole,ComputeRotateDipole)
 ComputeStyle(rotate/gran,ComputeRotateGran)
 ComputeStyle(stress/atom,ComputeStressAtom)
+ComputeStyle(sum/atom,ComputeSumAtom)
 ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/deform,ComputeTempDeform)
 ComputeStyle(temp/partial,ComputeTempPartial)
@@ -137,6 +139,7 @@ DumpStyle(xyz,DumpXYZ)
 
 #ifdef FixInclude
 #include "fix_add_force.h"
+#include "fix_ave_atom.h"
 #include "fix_ave_force.h"
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
@@ -186,6 +189,7 @@ DumpStyle(xyz,DumpXYZ)
 
 #ifdef FixClass
 FixStyle(addforce,FixAddForce)
+FixStyle(ave/atom,FixAveAtom)
 FixStyle(aveforce,FixAveForce)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
@@ -270,7 +274,9 @@ MinimizeStyle(sd,MinSD)
 #ifdef PairInclude
 #include "pair_buck.h"
 #include "pair_buck_coul_cut.h"
+#include "pair_coul_cut.h"
 #include "pair_hybrid.h"
+#include "pair_hybrid_overlay.h"
 #include "pair_lj_cut.h"
 #include "pair_lj_cut_coul_cut.h"
 #include "pair_lj_cut_coul_debye.h"
@@ -285,7 +291,9 @@ MinimizeStyle(sd,MinSD)
 #ifdef PairClass
 PairStyle(buck,PairBuck)
 PairStyle(buck/coul/cut,PairBuckCoulCut)
+PairStyle(coul/cut,PairCoulCut)
 PairStyle(hybrid,PairHybrid)
+PairStyle(hybrid/overlay,PairHybridOverlay)
 PairStyle(lj/cut,PairLJCut)
 PairStyle(lj/cut/coul/cut,PairLJCutCoulCut)
 PairStyle(lj/cut/coul/debye,PairLJCutCoulDebye)
@@ -315,7 +323,7 @@ RegionStyle(sphere,RegSphere)
 RegionStyle(union,RegUnion)
 #endif
 
-// style files for optional packages
+// style files for standard packages
 
 #include "style_asphere.h"
 #include "style_class2.h"
@@ -331,8 +339,7 @@ RegionStyle(union,RegUnion)
 #include "style_poems.h"
 #include "style_xtc.h"
 
-//#include "style_extra.h"
-
-// user add-ons
+// user add-ons: individual classes and packages
 
 #include "style_user.h"
+#include "style_user_packages.h"

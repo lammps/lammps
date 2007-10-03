@@ -35,9 +35,7 @@ class Verlet : public Integrate {
   int *next_fix_virial;             // next timestep they need it
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
 
-  int pairflag,torqueflag;          // arrays to zero out every step
-  int maxpair;                      // local copies of Update quantities
-  double **f_pair;
+  int torqueflag;                   // arrays to zero out every step
 
   void force_clear(int);
   int fix_virial(int);

@@ -41,6 +41,7 @@ class FixOrientFCC : public Fix {
   ~FixOrientFCC();
   int setmask();
   void init();
+  void init_list(int, class NeighList *);
   void setup();
   void post_force(int);
   void post_force_respa(int, int, int);
@@ -70,6 +71,7 @@ class FixOrientFCC : public Fix {
 
   Nbr *nbr;
   Sort *sort;
+  class NeighList *list;
 
   void find_best_ref(double *, int, double &, double *);
   static int compare(const void *, const void *);

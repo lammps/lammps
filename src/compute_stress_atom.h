@@ -24,6 +24,7 @@ class ComputeStressAtom : public Compute {
   ComputeStressAtom(class LAMMPS *, int, char **);
   ~ComputeStressAtom();
   void init();
+  void init_list(int, class NeighList *);
   void compute_peratom();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
@@ -33,7 +34,7 @@ class ComputeStressAtom : public Compute {
   int pairrequest,bondrequest,kerequest;
   int pairflag,bondflag;
   int nmax;
-
+  class NeighList *list;
   double **stress;
 };
 

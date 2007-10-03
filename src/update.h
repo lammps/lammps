@@ -30,9 +30,6 @@ class Update : protected Pointers {
   int first_update;               // 0 before initial update, 1 after
   int max_eval;                   // max force evaluations for minimizer
 
-  double **f_pair;                // used by pair to compute force & virial
-  int maxpair;
-
   char *unit_style;
 
   class Integrate *integrate;
@@ -44,7 +41,7 @@ class Update : protected Pointers {
   Update(class LAMMPS *);
   ~Update();
   void init();
-  void set_units(char *);
+  void set_units(const char *);
   void create_integrate(int, char **);
   void create_minimize(int, char **);
   int memory_usage();

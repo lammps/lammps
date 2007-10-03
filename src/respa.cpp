@@ -255,9 +255,9 @@ void Respa::init()
   // will delete it at end of run
 
   char **fixarg = new char*[4];
-  fixarg[0] = "RESPA";
-  fixarg[1] = "all";
-  fixarg[2] = "RESPA";
+  fixarg[0] = (char *) "RESPA";
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "RESPA";
   fixarg[3] = new char[8];
   sprintf(fixarg[3],"%d",nlevels);
   modify->add_fix(4,fixarg);

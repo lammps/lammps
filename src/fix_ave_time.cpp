@@ -31,23 +31,24 @@ using namespace LAMMPS_NS;
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix ave/time command");
+  if (narg != 9) error->all("Illegal fix ave/time command");
 
   nevery = atoi(arg[3]);
-  nfreq = atoi(arg[4]);
+  nrepeat = atoi(arg[4]);
+  nfreq = atoi(arg[5]);
 
-  int n = strlen(arg[5]) + 1;
+  int n = strlen(arg[6]) + 1;
   id_compute = new char[n];
-  strcpy(id_compute,arg[5]);
+  strcpy(id_compute,arg[6]);
 
-  int flag = atoi(arg[6]);
+  int flag = atoi(arg[7]);
 
   MPI_Comm_rank(world,&me);
   if (me == 0) {
-    fp = fopen(arg[7],"w");
+    fp = fopen(arg[8],"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix ave/time file %s",arg[7]);
+      sprintf(str,"Cannot open fix ave/time file %s",arg[8]);
       error->one(str);
     }
   }
@@ -55,7 +56,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
 
   if (nevery <= 0) error->all("Illegal fix ave/time command");
-  if (nfreq < nevery || nfreq % nevery)
+  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all("Illegal fix ave/time command");
 
   int icompute = modify->find_compute(id_compute);
@@ -73,6 +74,13 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   if (modify->compute[icompute]->pressflag) pressure_every = nevery;
 
+  // setup list of computes to call, including pre-computes
+
+  ncompute = 1 + modify->compute[icompute]->npre;
+  compute = new Compute*[ncompute];
+
+  // print header into file
+
   if (me == 0) {
     fprintf(fp,"Time-averaged data for fix %s, group %s, and compute %s\n",
 	    id,group->names[modify->compute[icompute]->igroup],id_compute);
@@ -84,14 +92,19 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       fprintf(fp,"TimeStep Scalar-value Vector-values\n");
   }
 
-  nsum = 0;
-  scalar = 0.0;
   vector = NULL;
   if (vflag) {
     size_vector = modify->compute[icompute]->size_vector;
     vector = new double[size_vector];
-    for (int i = 0; i < size_vector; i++) vector[i] = 0.0;
   }
+
+  // nvalid = next step on which end_of_step does something
+
+  irepeat = 0;
+  nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  nvalid -= (nrepeat-1)*nevery;
+  if (nvalid <= update->ntimestep)
+    error->all("Fix ave/time cannot be started on this timestep");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,6 +113,7 @@ FixAveTime::~FixAveTime()
 {
   delete [] id_compute;
   if (me == 0) fclose(fp);
+  delete [] compute;
   delete [] vector;
 }
 
@@ -116,18 +130,22 @@ int FixAveTime::setmask()
 
 void FixAveTime::init()
 {
-  // set ptrs to current compute and precompute
+  // set ptrs to one or more computes called each end-of-step
 
   int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all("Compute ID for fix ave/time does not exist");
-  compute = modify->compute[icompute];
-
-  if (compute->id_pre) {
-    icompute = modify->find_compute(compute->id_pre);
-    if (icompute < 0)
-      error->all("Precompute ID for fix ave/time does not exist");
-    precompute = modify->compute[icompute];
-  } else precompute = NULL;
+  if (icompute < 0)
+    error->all("Compute ID for fix ave/time does not exist");
+  
+  ncompute = 0;
+  if (modify->compute[icompute]->npre)
+    for (int i = 0; i < modify->compute[icompute]->npre; i++) {
+      int ic = modify->find_compute(modify->compute[icompute]->id_pre[i]);
+      if (ic < 0)
+	error->all("Precompute ID for fix ave/time does not exist");
+      compute[ncompute++] = modify->compute[ic];
+    }
+  
+  compute[ncompute++] = modify->compute[icompute];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,32 +154,50 @@ void FixAveTime::end_of_step()
 {
   int i;
 
-  if (precompute) {
-    if (sflag) double tmp = precompute->compute_scalar();
-    if (vflag) precompute->compute_vector();
+  // skip if not step which requires doing something
+
+  if (update->ntimestep != nvalid) return;
+
+  // zero if first step
+
+  if (irepeat == 0) {
+    scalar = 0.0;
+    if (vflag) 
+      for (i = 0; i < size_vector; i++) vector[i] = 0.0;
   }
 
-  nsum++;
-  if (sflag) scalar += compute->compute_scalar();
+  // accumulate results of compute to local copy
+  
+  if (sflag) {
+    double value;
+    for (i = 0; i < ncompute; i++) value = compute[i]->compute_scalar();
+    scalar += value;
+  }
   if (vflag) {
-    compute->compute_vector();
-    double *cvector = compute->vector;
+    for (i = 0; i < ncompute; i++) compute[i]->compute_vector();
+    double *cvector = compute[ncompute-1]->vector;
     for (i = 0; i < size_vector; i++) vector[i] += cvector[i];
   }
 
-  if (update->ntimestep % nfreq == 0) {
+  irepeat++;
+  nvalid += nevery;
+
+  // output the results
+  // reset irepeat and nvalid
+
+  if (irepeat == nrepeat) {
+    double repeat = nrepeat;
+
     if (me == 0) {
       fprintf(fp,"%d",update->ntimestep);
-      if (sflag) fprintf(fp," %g",scalar/nsum);
+      if (sflag) fprintf(fp," %g",scalar/repeat);
       if (vflag)
-	for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector[i]/nsum);
+	for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector[i]/repeat);
       fprintf(fp,"\n");
       fflush(fp);
     }
 
-    nsum = 0;
-    scalar = 0.0;
-    if (vflag) 
-      for (i = 0; i < size_vector; i++) vector[i] = 0.0;
- }
+    irepeat = 0;
+    nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+  }
 }

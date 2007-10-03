@@ -31,7 +31,7 @@
 using namespace LAMMPS_NS;
 
 enum{LOWER,CENTER,UPPER,COORD};
-enum{DENSITY_MASS,DENSITY_NUM,VX,VY,VZ,FX,FY,FZ,COMPUTE};
+enum{DENSITY_MASS,DENSITY_NUM,COMPUTE,FIX};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 
@@ -40,56 +40,51 @@ enum{BOX,LATTICE,REDUCED};
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 11) error->all("Illegal fix ave/spatial command");
+  if (narg < 12) error->all("Illegal fix ave/spatial command");
 
   no_change_box = 1;
 
   nevery = atoi(arg[3]);
-  nfreq = atoi(arg[4]);
+  nrepeat = atoi(arg[4]);
+  nfreq = atoi(arg[5]);
 
-  if (strcmp(arg[5],"x") == 0) dim = 0;
-  else if (strcmp(arg[5],"y") == 0) dim = 1;
-  else if (strcmp(arg[5],"z") == 0) dim = 2;
+  if (strcmp(arg[6],"x") == 0) dim = 0;
+  else if (strcmp(arg[6],"y") == 0) dim = 1;
+  else if (strcmp(arg[6],"z") == 0) dim = 2;
   else error->all("Illegal fix ave/spatial command");
 
-  if (strcmp(arg[6],"lower") == 0) originflag = LOWER;
-  if (strcmp(arg[6],"center") == 0) originflag = CENTER;
-  if (strcmp(arg[6],"upper") == 0) originflag = UPPER;
+  if (strcmp(arg[7],"lower") == 0) originflag = LOWER;
+  if (strcmp(arg[7],"center") == 0) originflag = CENTER;
+  if (strcmp(arg[7],"upper") == 0) originflag = UPPER;
   else originflag = COORD;
   if (originflag == COORD) origin = atof(arg[6]);
 
-  delta = atof(arg[7]);
+  delta = atof(arg[8]);
 
   MPI_Comm_rank(world,&me);
   if (me == 0) {
-    fp = fopen(arg[8],"w");
+    fp = fopen(arg[9],"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix ave/spatial file %s",arg[8]);
+      sprintf(str,"Cannot open fix ave/spatial file %s",arg[9]);
       error->one(str);
     }
   }
 
-  if (strcmp(arg[9],"density") == 0) {
-    if (strcmp(arg[10],"mass") == 0) which = DENSITY_MASS;
-    else if (strcmp(arg[10],"number") == 0) which = DENSITY_NUM;
+  if (strcmp(arg[10],"density") == 0) {
+    if (strcmp(arg[11],"mass") == 0) which = DENSITY_MASS;
+    else if (strcmp(arg[11],"number") == 0) which = DENSITY_NUM;
     else error->all("Illegal fix ave/spatial command");
-
-  } else if (strcmp(arg[9],"atom") == 0) {
-    if (strcmp(arg[10],"vx") == 0) which = VX;
-    else if (strcmp(arg[10],"vy") == 0) which = VY;
-    else if (strcmp(arg[10],"vz") == 0) which = VZ;
-    else if (strcmp(arg[10],"fx") == 0) which = FX;
-    else if (strcmp(arg[10],"fy") == 0) which = FY;
-    else if (strcmp(arg[10],"fz") == 0) which = FZ;
-    else error->all("Illegal fix ave/spatial command");
-
-  } else if (strcmp(arg[9],"compute") == 0) {
+  } else if (strcmp(arg[10],"compute") == 0) {
     which = COMPUTE;
-    int n = strlen(arg[10]) + 1;
+    int n = strlen(arg[11]) + 1;
     id_compute = new char[n];
-    strcpy(id_compute,arg[10]);
-
+    strcpy(id_compute,arg[11]);
+  } else if (strcmp(arg[10],"fix") == 0) {
+    which = FIX;
+    int n = strlen(arg[11]) + 1;
+    id_fix = new char[n];
+    strcpy(id_fix,arg[11]);
   } else error->all("Illegal fix ave/spatial command");
 
   // parse optional args
@@ -97,7 +92,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   normflag = ALL;
   scaleflag = BOX;
 
-  int iarg = 11;
+  int iarg = 12;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
@@ -149,34 +144,61 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
 
   if (nevery <= 0) error->all("Illegal fix ave/spatial command");
-  if (nfreq < nevery || nfreq % nevery)
+  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all("Illegal fix ave/spatial command");
 
   if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
   invdelta = 1.0/delta;
 
+  // nvalues = # of quantites per line of output file
+  // for COMPUTE, setup list of computes to call, including pre-computes
+
   nvalues = 1;
+  compute = NULL;
+
   if (which == COMPUTE) {
     int icompute = modify->find_compute(id_compute);
     if (icompute < 0)
       error->all("Compute ID for fix ave/spatial does not exist");
     if (modify->compute[icompute]->peratom_flag == 0)
       error->all("Fix ave/spatial compute does not calculate per-atom info");
-    nvalues = compute_size_peratom = modify->compute[icompute]->size_peratom;
+    nvalues = size_peratom = modify->compute[icompute]->size_peratom;
+    if (nvalues == 0) nvalues = 1;
+    ncompute = 1 + modify->compute[icompute]->npre;
+    compute = new Compute*[ncompute];
+  }
+
+  if (which == FIX) {
+    int ifix = modify->find_fix(id_fix);
+    if (ifix < 0)
+      error->all("Fix ID for fix ave/spatial does not exist");
+    if (modify->fix[ifix]->peratom_flag == 0)
+      error->all("Fix ave/spatial fix does not calculate per-atom info");
+    nvalues = size_peratom = modify->fix[ifix]->size_peratom;
     if (nvalues == 0) nvalues = 1;
   }
 
+  // print header into file
+
   if (me == 0) {
     fprintf(fp,"Spatial-averaged data for fix %s, group %s, and %s %s\n",
-	    id,group->names[igroup],arg[9],arg[10]);
+	    id,group->names[igroup],arg[10],arg[11]);
     fprintf(fp,"TimeStep Number-of-layers (one per snapshot)\n");
     fprintf(fp,"Layer Coord Atoms Value(s) (one per layer)\n");
   }
   
-  nsum = nlayers = maxlayer = 0;
+  nlayers = maxlayer = 0;
   coord = NULL;
   count_one = count_many = count_total = NULL;
   values_one = values_many = values_total = NULL;
+
+  // nvalid = next step on which end_of_step does something
+
+  irepeat = 0;
+  nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  nvalid -= (nrepeat-1)*nevery;
+  if (nvalid <= update->ntimestep)
+    error->all("Fix ave/spatial cannot be started on this timestep");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,7 +206,10 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 FixAveSpatial::~FixAveSpatial()
 {
   if (which == COMPUTE) delete [] id_compute;
+  if (which == FIX) delete [] id_fix;
   if (me == 0) fclose(fp);
+
+  delete [] compute;
 
   memory->sfree(coord);
   memory->sfree(count_one);
@@ -208,21 +233,37 @@ int FixAveSpatial::setmask()
 
 void FixAveSpatial::init()
 {
-  // set ptrs to current compute and precompute
+  // set ptrs to one or more computes called each end-of-step
 
   if (which == COMPUTE) {
     int icompute = modify->find_compute(id_compute);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all("Compute ID for fix ave/spatial does not exist");
-    compute = modify->compute[icompute];
     
-    if (compute->id_pre) {
-      icompute = modify->find_compute(compute->id_pre);
-      if (icompute < 0)
-	error->all("Precompute ID for fix ave/spatial does not exist");
-      precompute = modify->compute[icompute];
-    } else precompute = NULL;
+    ncompute = 0;
+    if (modify->compute[icompute]->npre)
+      for (int i = 0; i < modify->compute[icompute]->npre; i++) {
+	int ic = modify->find_compute(modify->compute[icompute]->id_pre[i]);
+	if (ic < 0)
+	  error->all("Precompute ID for fix ave/spatial does not exist");
+	compute[ncompute++] = modify->compute[ic];
+      }
+    
+    compute[ncompute++] = modify->compute[icompute];
   }
+
+  // set ptr to fix ID
+  // check that fix frequency is acceptable
+
+  if (which == FIX) {
+    int ifix = modify->find_fix(id_fix);
+    if (ifix < 0) 
+      error->all("Fix ID for fix ave/spatial does not exist");
+    fix = modify->fix[ifix];
+    if (nevery % modify->fix[ifix]->peratom_freq)
+      error->all("Fix ave/spatial and fix not computed at compatible times");
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -232,13 +273,17 @@ void FixAveSpatial::end_of_step()
   int i,j,m,ilayer;
   double lo,hi;
 
+  // skip if not step which requires doing something
+
+  if (update->ntimestep != nvalid) return;
+
   // if computing the first sample, setup layers
   // compute current origin = boundary for some layer
   // lo = layer boundary immediately below boxlo
   // hi = layer boundary immediately above boxhi
   // allocate and initialize arrays based on new layer count
 
-  if (nsum == 0) {
+  if (irepeat == 0) {
     double *boxlo,*boxhi,*prd;
     if (scaleflag == REDUCED) {
       boxlo = domain->boxlo_lamda;
@@ -306,7 +351,6 @@ void FixAveSpatial::end_of_step()
   
   // zero out arrays for one sample
 
-  nsum++;
   for (m = 0; m < nlayers; m++) {
     count_one[m] = 0.0;
     for (i = 0; i < nvalues; i++) values_one[m][i] = 0.0;
@@ -361,17 +405,12 @@ void FixAveSpatial::end_of_step()
 
     if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
-  // ATOM (VX,FX,etc) adds atom attribute to values
+  // COMPUTE adds its scalar or vector quantity to values
 
-  } else if (which != COMPUTE) {
-    double *vector;
-    int nstride = 3;
-    if (which == VX) vector = &atom->v[0][0];
-    else if (which == VY) vector = &atom->v[0][1];
-    else if (which == VZ) vector = &atom->v[0][2];
-    else if (which == FX) vector = &atom->f[0][0];
-    else if (which == FY) vector = &atom->f[0][1];
-    else if (which == FZ) vector = &atom->f[0][2];
+  } else if (which == COMPUTE) {
+    for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
+    double *scalar = compute[ncompute-1]->scalar_atom;
+    double **vector = compute[ncompute-1]->vector_atom;
 
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
 
@@ -382,20 +421,20 @@ void FixAveSpatial::end_of_step()
 	if (ilayer < 0) ilayer = 0;
 	if (ilayer >= nlayers) ilayer = nlayers-1;
 	count_one[ilayer] += 1.0;
-	values_one[ilayer][0] += vector[m];
+	if (size_peratom == 0) values_one[ilayer][0] += scalar[i];
+	else
+	  for (j = 0; j < nvalues; j++)
+	    values_one[ilayer][j] += vector[i][j];
       }
-      m += nstride;
     }
 
     if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
-  // COMPUTE adds its compute scalar or vector quantity to values
+  // FIX adds its scalar or vector quantity to values
 
-  } else {
-    if (precompute) precompute->compute_peratom();
-    compute->compute_peratom();
-    double *scalar = compute->scalar_atom;
-    double **vector = compute->vector_atom;
+  } else if (which == FIX) {
+    double *scalar = fix->scalar_atom;
+    double **vector = fix->vector_atom;
 
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
 
@@ -406,7 +445,7 @@ void FixAveSpatial::end_of_step()
 	if (ilayer < 0) ilayer = 0;
 	if (ilayer >= nlayers) ilayer = nlayers-1;
 	count_one[ilayer] += 1.0;
-	if (compute_size_peratom == 0) values_one[ilayer][0] += scalar[i];
+	if (size_peratom == 0) values_one[ilayer][0] += scalar[i];
 	else
 	  for (j = 0; j < nvalues; j++)
 	    values_one[ilayer][j] += vector[i][j];
@@ -434,11 +473,19 @@ void FixAveSpatial::end_of_step()
     }
   }
 
+  // update counters
+
+  irepeat++;
+  nvalid += nevery;
+
   // output the results
   // time average across samples
   // if density, also normalize by volume
+  // reset irepeat and nvalid
 
-  if (update->ntimestep % nfreq == 0) {
+  if (irepeat == nrepeat) {
+    double repeat = nrepeat;
+
     if (normflag == ALL) {
       MPI_Allreduce(count_many,count_total,nlayers,MPI_DOUBLE,MPI_SUM,world);
       MPI_Allreduce(&values_many[0][0],&values_total[0][0],nlayers*nvalues,
@@ -447,15 +494,15 @@ void FixAveSpatial::end_of_step()
 	if (count_total[m] > 0.0)
 	  for (j = 0; j < nvalues; j++)
 	    values_total[m][j] /= count_total[m];
-	count_total[m] /= nsum;
+	count_total[m] /= repeat;
       }
     } else {
       MPI_Allreduce(&values_many[0][0],&values_total[0][0],nlayers*nvalues,
 		    MPI_DOUBLE,MPI_SUM,world);
       for (m = 0; m < nlayers; m++) {
 	for (j = 0; j < nvalues; j++)
-	  values_total[m][j] /= nsum;
-	count_total[m] /= nsum;
+	  values_total[m][j] /= repeat;
+	count_total[m] /= repeat;
       }
     }
 
@@ -474,6 +521,7 @@ void FixAveSpatial::end_of_step()
       fflush(fp);
     }
 
-    nsum = 0;
+    irepeat = 0;
+    nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
  }
 }

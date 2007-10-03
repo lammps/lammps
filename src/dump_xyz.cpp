@@ -29,7 +29,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   size_one = 5;
 
-  char *str = "%d %g %g %g";
+  char *str = (char *) "%d %g %g %g";
   int n = strlen(str) + 1;
   format_default = new char[n];
   strcpy(format_default,str);

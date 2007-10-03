@@ -14,10 +14,12 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "pair_morse.h"
+#include "string.h"
+#include "pair_coul_cut.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -29,44 +31,41 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairMorse::~PairMorse()
+PairCoulCut::~PairCoulCut()
 {
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
 
     memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(d0);
-    memory->destroy_2d_double_array(alpha);
-    memory->destroy_2d_double_array(r0);
-    memory->destroy_2d_double_array(morse1);
-    memory->destroy_2d_double_array(offset);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMorse::compute(int eflag, int vflag)
+void PairCoulCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r,dr,dexp,fforce,factor_lj,phi;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double rsq,r2inv,rinv,forcecoul,fforce,factor_coul,phicoul;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = 0.0;
+  eng_coul = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
   double **x = atom->x;
   double **f = atom->f;
+  double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
-  double *special_lj = force->special_lj;
+  double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -77,6 +76,7 @@ void PairMorse::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -87,9 +87,9 @@ void PairMorse::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
 
-      if (j < nall) factor_lj = 1.0;
+      if (j < nall) factor_coul = 1.0;
       else {
-	factor_lj = special_lj[j/nall];
+	factor_coul = special_coul[j/nall];
 	j %= nall;
       }
 
@@ -100,10 +100,10 @@ void PairMorse::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	dr = r - r0[itype][jtype];
-	dexp = exp(-alpha[itype][jtype] * dr);
-	fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+	r2inv = 1.0/rsq;
+	rinv = sqrt(r2inv);
+	forcecoul = qqrd2e * qtmp*q[j]*rinv;
+	fforce = factor_coul*forcecoul * r2inv;
 
 	f[i][0] += delx*fforce;
 	f[i][1] += dely*fforce;
@@ -115,10 +115,9 @@ void PairMorse::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-	    offset[itype][jtype];
-	  if (newton_pair || j < nlocal) eng_vdwl += factor_lj*phi;
-	  else eng_vdwl += 0.5*factor_lj*phi;
+	  phicoul = qqrd2e * qtmp*q[j]*rinv;
+	  if (newton_pair || j < nlocal) eng_coul += factor_coul*phicoul;
+	  else eng_coul += 0.5*factor_coul*phicoul;
 	}
 
 	if (vflag == 1) {
@@ -137,10 +136,10 @@ void PairMorse::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairMorse::allocate()
+void PairCoulCut::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -153,18 +152,13 @@ void PairMorse::allocate()
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
 
   cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  d0 = memory->create_2d_double_array(n+1,n+1,"pair:d0");
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");
-  r0 = memory->create_2d_double_array(n+1,n+1,"pair:r0");
-  morse1 = memory->create_2d_double_array(n+1,n+1,"pair:morse1");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
-void PairMorse::settings(int narg, char **arg)
+void PairCoulCut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal pair_style command");
 
@@ -184,28 +178,21 @@ void PairMorse::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairMorse::coeff(int narg, char **arg)
+void PairCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 2 || narg > 3) error->all("Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double d0_one = atof(arg[2]);
-  double alpha_one = atof(arg[3]);
-  double r0_one = atof(arg[4]);
-
   double cut_one = cut_global;
-  if (narg == 6) cut_one = atof(arg[5]);
+  if (narg == 3) cut_one = atof(arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      d0[i][j] = d0_one;
-      alpha[i][j] = alpha_one;
-      r0[i][j] = r0_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -217,34 +204,34 @@ void PairMorse::coeff(int narg, char **arg)
 
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairCoulCut::init_style()
+{
+  if (!atom->q_flag)
+    error->all("Pair style coul/cut requires atom attribute q");
+
+  int irequest = neighbor->request(this);
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMorse::init_one(int i, int j)
+double PairCoulCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
-
-  morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
-     
-  if (offset_flag) {
-    double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-    offset[i][j] = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
-  } else offset[i][j] = 0.0;
-
-  d0[j][i] = d0[i][j];
-  alpha[j][i] = alpha[i][j];
-  r0[j][i] = r0[i][j];
-  morse1[j][i] = morse1[i][j];
-  offset[j][i] = offset[i][j];
+  if (setflag[i][j] == 0)
+    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
 
   return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file
+  proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairMorse::write_restart(FILE *fp)
+void PairCoulCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -252,23 +239,17 @@ void PairMorse::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]) {
-	fwrite(&d0[i][j],sizeof(double),1,fp);
-	fwrite(&alpha[i][j],sizeof(double),1,fp);
-	fwrite(&r0[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
-      }
+      if (setflag[i][j]) fwrite(&cut[i][j],sizeof(double),1,fp);
     }
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
+  proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairMorse::read_restart(FILE *fp)
+void PairCoulCut::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
 
   int i,j;
@@ -278,25 +259,17 @@ void PairMorse::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&d0[i][j],sizeof(double),1,fp);
-	  fread(&alpha[i][j],sizeof(double),1,fp);
-	  fread(&r0[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&r0[i][j],1,MPI_DOUBLE,0,world);
+	if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
 	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file
+  proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairMorse::write_restart_settings(FILE *fp)
+void PairCoulCut::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
@@ -304,10 +277,10 @@ void PairMorse::write_restart_settings(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
+  proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairMorse::read_restart_settings(FILE *fp)
+void PairCoulCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
@@ -321,20 +294,20 @@ void PairMorse::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMorse::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, int eflag,
-		       One &one)
+void PairCoulCut::single(int i, int j, int itype, int jtype,
+			      double rsq, double factor_coul, double factor_lj,
+			      int eflag, One &one)
 {
-  double r,dr,dexp,phi;
+  double r2inv,rinv,forcecoul,phicoul;
 
-  r = sqrt(rsq);
-  dr = r - r0[itype][jtype];
-  dexp = exp(-alpha[itype][jtype] * dr);
-  one.fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-  
+  r2inv = 1.0/rsq;
+  rinv = sqrt(r2inv);
+  forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
+  one.fforce = factor_coul*forcecoul * r2inv;
+
   if (eflag) {
-    phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
-    one.eng_vdwl = factor_lj*phi;
-    one.eng_coul = 0.0;
+    phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
+    one.eng_coul = factor_coul*phicoul;
+    one.eng_vdwl = 0.0;
   }
 }

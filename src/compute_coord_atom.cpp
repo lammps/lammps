@@ -17,6 +17,8 @@
 #include "atom.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
@@ -30,13 +32,12 @@ using namespace LAMMPS_NS;
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute centro/atom command");
+  if (narg != 4) error->all("Illegal compute coord/atom command");
 
   cutoff = atof(arg[3]);
 
   peratom_flag = 1;
   size_peratom = 0;
-  neigh_full_once = 1;
 
   nmax = 0;
   coordination = NULL;
@@ -56,6 +57,15 @@ void ComputeCoordAtom::init()
   if (force->pair == NULL || cutoff > force->pair->cutforce) 
     error->all("Compute coord/atom cutoff is longer than pairwise cutoff");
 
+  // need an occasional full neighbor list
+
+  int irequest = neighbor->request((void *) this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->compute = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->occasional = 1;
+
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"coord/atom") == 0) count++;
@@ -65,11 +75,18 @@ void ComputeCoordAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeCoordAtom::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeCoordAtom::compute_peratom()
 {
-  int j,k,n,numneigh;
+  int i,j,ii,jj,inum,jnum,n;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   // grow coordination array if necessary
 
@@ -81,9 +98,14 @@ void ComputeCoordAtom::compute_peratom()
     scalar_atom = coordination;
   }
 
-  // if needed, build a full neighbor list
+  // invoke full neighbor list (will copy or build if necessary)
 
-  if (!neighbor->full_every) neighbor->build_full();
+  neighbor->build_one(list->index);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // compute coordination number for each atom in group
   // use full neighbor list to count atoms less than cutoff
@@ -94,17 +116,18 @@ void ComputeCoordAtom::compute_peratom()
   int nall = atom->nlocal + atom->nghost;
   double cutsq = cutoff*cutoff;
 
-  for (int i = 0; i < nlocal; i++)
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     if (mask[i] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
-      neighs = neighbor->firstneigh_full[i];
-      numneigh = neighbor->numneigh_full[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
       n = 0;
-      for (k = 0; k < numneigh; k++) {
-	j = neighs[k];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
 	if (j >= nall) j %= nall;
 
 	delx = xtmp - x[j][0];
@@ -115,8 +138,10 @@ void ComputeCoordAtom::compute_peratom()
       }
 
       coordination[i] = n;
-    }
+    } else coordination[i] = 0.0;
+  }
 }
+
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */

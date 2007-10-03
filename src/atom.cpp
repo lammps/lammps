@@ -212,7 +212,7 @@ Atom::~Atom()
    called from input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(char *style, int narg, char **arg)
+void Atom::create_avec(const char *style, int narg, char **arg)
 {
   delete [] atom_style;
   if (avec) delete avec;
@@ -232,7 +232,7 @@ void Atom::create_avec(char *style, int narg, char **arg)
    generate an AtomVec class
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(char *style, int narg, char **arg)
+AtomVec *Atom::new_avec(const char *style, int narg, char **arg)
 {
   if (0) return NULL;
 
@@ -274,7 +274,7 @@ void Atom::init()
    else return 0
 ------------------------------------------------------------------------- */
 
-int Atom::style_match(char *style)
+int Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return 1;
   else if (strcmp(atom_style,"hybrid") == 0) {
@@ -602,7 +602,7 @@ int Atom::tag_consecutive()
    trim anything from '#' onward
 ------------------------------------------------------------------------- */
 
-int Atom::count_words(char *line)
+int Atom::count_words(const char *line)
 {
   int n = strlen(line) + 1;
   char *copy = (char *) memory->smalloc(n*sizeof(char),"copy");
@@ -991,7 +991,7 @@ void Atom::allocate_type_arrays()
    called from reading of data file
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(char *str)
+void Atom::set_mass(const char *str)
 {
   if (mass == NULL) error->all("Cannot set mass for this atom style");
 
@@ -1067,7 +1067,7 @@ void Atom::check_mass()
    called from reading of data file
 ------------------------------------------------------------------------- */
 
-void Atom::set_shape(char *str)
+void Atom::set_shape(const char *str)
 {
   if (shape == NULL) error->all("Cannot set shape for this atom style");
 
@@ -1140,7 +1140,7 @@ void Atom::check_shape()
    called from reading of data file
 ------------------------------------------------------------------------- */
 
-void Atom::set_dipole(char *str)
+void Atom::set_dipole(const char *str)
 {
   if (dipole == NULL) error->all("Cannot set dipole for this atom style");
 
@@ -1244,7 +1244,7 @@ void Atom::add_callback(int flag)
    flag = 0 for grow, 1 for restart
 ------------------------------------------------------------------------- */
 
-void Atom::delete_callback(char *id, int flag)
+void Atom::delete_callback(const char *id, int flag)
 {
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)

@@ -21,6 +21,8 @@
 #include "string.h"
 #include "limits.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -39,17 +41,18 @@
 
 using namespace LAMMPS_NS;
 
-#define PGDELTA 1
+#define RQDELTA 1
+#define EXDELTA 1
+
 #define LB_FACTOR 1.5
 #define SMALL 1.0e-6
-#define EXDELTA 1
 #define BIG 1.0e20
 #define CUT2BIN_RATIO 100
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-enum{NSQ,BIN,MULTI};     // also in neigh_stencil.cpp
+enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,17 +68,22 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   pgsize = 10000;
   oneatom = 2000;
 
-  maxlocal = 0;
-    
   cutneighsq = NULL;
   cuttype = NULL;
   cuttypesq = NULL;
   fixchecklist = NULL;
 
-  // last neighbor info
+  // coords at last neighboring
 
   maxhold = 0;
   xhold = NULL;
+
+  // binning
+
+  maxhead = 0;
+  binhead = NULL;
+  maxbin = 0;
+  bins = NULL;
 
   // pair exclusion list info
 
@@ -89,66 +97,24 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   nex_mol = maxex_mol = 0;
   ex_mol_group = ex_mol_bit = NULL;
 
-  // bin info
+  // pair lists
 
-  maxhead = 0;
-  binhead = NULL;
-  maxbin = 0;
-  bins = NULL;
+  maxlocal = 0;
 
-  nstencil = maxstencil = 0;
-  stencil = NULL;
-  nstencil_full = maxstencil_full = 0;
-  stencil_full = NULL;
+  nlist = 0;
+  lists = NULL;
+  pair_build = NULL;
+  stencil_create = NULL;
+  blist = glist = slist = NULL;
 
-  maxstencil_multi = 0;
-  nstencil_multi = NULL;
-  stencil_multi = NULL;
-  distsq_multi = NULL;
+  nrequest = maxrequest = 0;
+  requests = NULL;
 
-  maxstencil_full_multi = 0;
-  nstencil_full_multi = NULL;
-  stencil_full_multi = NULL;
-  distsq_full_multi = NULL;
+  old_style = BIN;
+  old_nrequest = 0;
+  old_requests = NULL;
 
-  // half neighbor list info
-
-  half = half_command = 0;
-  numneigh = NULL;
-  firstneigh = NULL;
-  maxpage = 0;
-  pages = NULL;
-
-  // full neighbor list info
-
-  full = 0;
-  numneigh_full = NULL;
-  firstneigh_full = NULL;
-  maxpage_full = 0;
-  pages_full = NULL;
-
-  // shear history neighbor list info
-
-  fix_history = NULL;
-  firsttouch = NULL;
-  firstshear = NULL;
-  maxpage_history = 0;
-  pages_touch = NULL;
-  pages_shear = NULL;
-
-  // multiple respa neighbor list info
-
-  respa = 0;
-  numneigh_inner = NULL;
-  firstneigh_inner = NULL;
-  numneigh_middle = NULL;
-  firstneigh_middle = NULL;
-  maxpage_inner = 0;
-  maxpage_middle = 0;
-  pages_inner = NULL;
-  pages_middle = NULL;
-
-  // bond list info
+  // bond lists
 
   maxbond = 0;
   bondlist = NULL;
@@ -167,9 +133,12 @@ Neighbor::~Neighbor()
   memory->destroy_2d_double_array(cutneighsq);
   delete [] cuttype;
   delete [] cuttypesq;
-
   delete [] fixchecklist;
+
   memory->destroy_2d_double_array(xhold);
+
+  memory->sfree(binhead);
+  memory->sfree(bins);
 
   memory->sfree(ex1_type);
   memory->sfree(ex2_type);
@@ -183,54 +152,23 @@ Neighbor::~Neighbor()
   memory->sfree(ex_mol_group);
   delete [] ex_mol_bit;
 
-  memory->sfree(binhead);
-  memory->sfree(bins);
+  for (int i = 0; i < nlist; i++) delete lists[i];
+  delete [] lists;
+  delete [] pair_build;
+  delete [] stencil_create;
+  delete [] blist;
+  delete [] glist;
+  delete [] slist;
 
-  memory->sfree(stencil);
-  memory->sfree(stencil_full);
-
-  if (nstencil_multi) {
-    for (int i = 1; i <= atom->ntypes; i++) {
-      memory->sfree(stencil_multi[i]);
-      memory->sfree(distsq_multi[i]);
-    }
-    delete [] nstencil_multi;
-    delete [] stencil_multi;
-    delete [] distsq_multi;
-  }
-  if (nstencil_full_multi) {
-    for (int i = 1; i <= atom->ntypes; i++) {
-      memory->sfree(stencil_full_multi[i]);
-      memory->sfree(distsq_full_multi[i]);
-    }
-    delete [] nstencil_full_multi;
-    delete [] stencil_full_multi;
-    delete [] distsq_full_multi;
-  }
+  for (int i = 0; i < nrequest; i++) delete requests[i];
+  memory->sfree(requests);
+  for (int i = 0; i < old_nrequest; i++) delete old_requests[i];
+  memory->sfree(old_requests);
 
   memory->destroy_2d_int_array(bondlist);
   memory->destroy_2d_int_array(anglelist);
   memory->destroy_2d_int_array(dihedrallist);
   memory->destroy_2d_int_array(improperlist);
-
-  memory->sfree(numneigh);
-  memory->sfree(firstneigh);
-  clear_pages();
-
-  memory->sfree(numneigh_full);
-  memory->sfree(firstneigh_full);
-  clear_pages_full();
-
-  memory->sfree(firsttouch);
-  memory->sfree(firstshear);
-  clear_pages_history();
-
-  memory->sfree(numneigh_inner);
-  memory->sfree(firstneigh_inner);
-  memory->sfree(numneigh_middle);
-  memory->sfree(firstneigh_middle);
-  clear_pages_inner();
-  clear_pages_middle();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -242,6 +180,7 @@ void Neighbor::init()
   ncalls = ndanger = 0;
   dimension = domain->dimension;
   triclinic = domain->triclinic;
+  newton_pair = force->newton_pair;
 
   // error check
 
@@ -335,8 +274,23 @@ void Neighbor::init()
 
   if (force->kspace) special_flag[1] = special_flag[2] = special_flag[3] = 2;
 
+  // rRESPA cutoffs
+
+  int respa = 0;
+  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
+
+  if (respa) {
+    double *cut_respa = ((Respa *) update->integrate)->cutoff;
+    cut_inner_sq = (cut_respa[1] + skin) * (cut_respa[1] + skin);
+    cut_middle_sq = (cut_respa[3] + skin) * (cut_respa[3] + skin);
+    cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);
+  }
+
   // ------------------------------------------------------------------
-  // memory management
+  // xhold, bins, exclusion lists
 
   // free xhold and bins if not needed for this run
 
@@ -349,9 +303,7 @@ void Neighbor::init()
   if (style == NSQ) {
     memory->sfree(bins);
     memory->sfree(binhead);
-    memory->sfree(stencil);
-    memory->sfree(stencil_full);
-    maxbin = maxhead = maxstencil = maxstencil_full = 0;
+    maxbin = maxhead = 0;
     binhead = NULL;
     bins = NULL;
   }
@@ -417,252 +369,275 @@ void Neighbor::init()
   }
 
   // ------------------------------------------------------------------
-  // neighbor list flags and memory allocation/deallocation
+  // pairwise lists
 
-  // determine whether to build half and full lists
-  // query pair,fix,compute for their requirements
+  // test if pairwise lists need to be re-created
+  // no need to re-create if:
+  // neigh style has not changed and current requests = old requests
 
-  half_once = full_once = 0;
-  half_every = full_every = 0;
-  if (force->pair) half_every = force->pair->neigh_half_every;
-  if (force->pair) full_every = force->pair->neigh_full_every;
+  int same = 1;
+  if (style != old_style) same = 0;
+  if (nrequest != old_nrequest) same = 0;
+  else
+    for (i = 0; i < nrequest; i++)
+      if (requests[i]->identical(old_requests[i]) == 0) same = 0;
 
-  for (i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->neigh_half_every) half_every = 1;
-    if (modify->fix[i]->neigh_full_every) full_every = 1;
-    if (modify->fix[i]->neigh_half_once) half_once = 1;
-    if (modify->fix[i]->neigh_full_once) full_once = 1;
-  }
+  printf("SAME %d\n",same);
 
-  for (i = 0; i < modify->ncompute; i++) {
-    if (modify->compute[i]->neigh_half_once) half_once = 1;
-    if (modify->compute[i]->neigh_full_once) full_once = 1;
-  }
+  // if old and new are not the same, create new pairwise lists
 
-  half = full = 0;
-  if (half_every || half_once || half_command) half = 1;
-  if (full_every || full_once) full = 1;
+  if (!same) {
 
-  // determine whether to build granular history lists
-  // fix_history = granular shear history fix
-  
-  fix_history = NULL;
-  if (force->pair_match("gran/history") || force->pair_match("gran/hertzian"))
-    for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0) 
-	fix_history = (FixShearHistory *) modify->fix[i];
+    // delete old lists and create new ones
 
-  // determine whether to build extra rRESPA lists
-  // respa = 1,2 if rRESPA requires inner,middle neighbor lists
-  // set neighbor cutoffs for multiple lists
+    for (i = 0; i < nlist; i++) delete lists[i];
+    delete [] lists;
+    delete [] pair_build;
+    delete [] stencil_create;
 
-  respa = 0;
-  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-  }
+    nlist = nrequest;
+    lists = new NeighList*[nlist];
+    pair_build = new PairPtr[nlist];
+    stencil_create = new StencilPtr[nlist];
 
-  if (respa && half_every == 0)
-    error->all("Cannot use rRESPA with full neighbor lists");
+    // create individual lists, one per request
+    // copy dnum setting from request to list
+    // pass list ptr back to requestor (except for Command class)
 
-  if (respa) {
-    double *cut_respa = ((Respa *) update->integrate)->cutoff;
-    cut_inner_sq = (cut_respa[1] + skin) * (cut_respa[1] + skin);
-    cut_middle_sq = (cut_respa[3] + skin) * (cut_respa[3] + skin);
-    cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);
-  }
+    for (i = 0; i < nlist; i++) {
+      lists[i] = new NeighList(lmp,pgsize);
+      lists[i]->index = i;
+      lists[i]->dnum = requests[i]->dnum;
 
-  // zero atom-length numneigh and firstneigh arrays
-  // will be (re)allocated on first build()
+      if (requests[i]->pair) {
+	Pair *pair = (Pair *) requests[i]->requestor;
+	pair->init_list(requests[i]->id,lists[i]);
+      } else if (requests[i]->fix) {
+	Fix *fix = (Fix *) requests[i]->requestor;
+	fix->init_list(requests[i]->id,lists[i]);
+      } else if (requests[i]->compute) {
+	Compute *compute = (Compute *) requests[i]->requestor;
+	compute->init_list(requests[i]->id,lists[i]);
+      }
+    }
 
-  maxlocal = 0;
+    // detect lists that are connected to other lists
+    // skip: point this list at request->otherlist, copy skip ptrs from request
+    // copy: point this list at request->otherlist
+    // half_from_full: point this list at preceeding full list
+    // granhistory: set preceeding list's listgranhistory to this list
+    //   also set precedding list's ptr to FixShearHistory
+    // respaouter: point this list at preceeding 1/2 inner/middle lists
+    // pair and half and non-skip: if there is a pair full non-skip list,
+    //   change this list to half_from_full and point at the full list
+    // fix/compute requests:
+    //   kind of request = half or full
+    //   occasional or not doesn't matter
+    //   if non-skip pair list of same kind exists, become copy of that list
+    //   else if request is half and non-skip pair full exists,
+    //     become half_from_full of that list
+    //   else do nothing and the fix/compute list will be built directly
 
-  memory->sfree(numneigh);
-  memory->sfree(firstneigh);
-  memory->sfree(numneigh_full);
-  memory->sfree(firstneigh_full);
-  memory->sfree(firsttouch);
-  memory->sfree(firstshear);
-  memory->sfree(numneigh_inner);
-  memory->sfree(firstneigh_inner);
-  memory->sfree(numneigh_middle);
-  memory->sfree(firstneigh_middle);
+    for (i = 0; i < nlist; i++) {
+      if (requests[i]->skip) {
+	lists[i]->listskip = lists[requests[i]->otherlist];
+	lists[i]->iskip = requests[i]->iskip;
+	lists[i]->ijskip = requests[i]->ijskip;
+      }
 
-  numneigh = numneigh_full = numneigh_inner = numneigh_middle = NULL;
-  firstneigh = firstneigh_full = NULL;
-  firsttouch = NULL;
-  firstshear = NULL;
-  firstneigh_inner = firstneigh_middle = NULL;
+      if (requests[i]->copy)
+	lists[i]->listcopy = lists[requests[i]->otherlist];
 
-  // clear old neighbor lists if no longer needed (whether exist or not)
+      if (requests[i]->half_from_full) lists[i]->listfull = lists[i-1];
 
-  if (half == 0) clear_pages();
-  if (full == 0) clear_pages_full();
-  if (fix_history == NULL) clear_pages_history();
-  if (respa == 0) clear_pages_inner();
-  if (respa == 0 || respa == 1) clear_pages_middle();
+      if (requests[i]->granhistory) {
+	lists[i-1]->listgranhistory = lists[i];
+	for (int ifix = 0; ifix < modify->nfix; ifix++)
+	  if (strcmp(modify->fix[ifix]->style,"SHEAR_HISTORY") == 0) 
+	    lists[i-1]->fix_history = (FixShearHistory *) modify->fix[ifix];
+      }
 
-  // setup new neighbor lists
-  // only if they don't exist so memory will persist from run to run
-
-  if (half && pages == NULL) add_pages(0);
-  if (full && pages_full == NULL) add_pages_full(0);
-  if (fix_history && pages_touch == NULL) add_pages_history(0);
-  if (respa >= 1 && pages_inner == NULL) add_pages_inner(0);
-  if (respa == 2 && pages_middle == NULL) add_pages_middle(0);
-
-  // set ptrs to half/full/multi/triclinic build & stencil functions
-
-  if (half) {
-    if (fix_history) {
-      if (style == NSQ) {
-	if (force->newton_pair == 0) 
-	  half_build = &Neighbor::granular_nsq_no_newton;
-	else half_build = &Neighbor::granular_nsq_newton;
-      } else if (style == BIN) {
-	if (force->newton_pair == 0) {
-	  half_build = &Neighbor::granular_bin_no_newton;
-	  if (dimension == 3)
-	    half_stencil = &Neighbor::stencil_half_3d_no_newton;
-	  else
-	    half_stencil = &Neighbor::stencil_half_2d_no_newton;
-	} else if (triclinic) {
-	  half_build = &Neighbor::granular_bin_newton_tri;
-	  if (dimension == 3)
-	    half_stencil = &Neighbor::stencil_half_3d_newton_tri;
-	  else
-	    half_stencil = &Neighbor::stencil_half_2d_newton_tri;
+      if (requests[i]->respaouter) {
+	if (requests[i-1]->respainner) {
+	  lists[i]->respamiddle = 0;
+	  lists[i]->listinner = lists[i-1];
 	} else {
-	  half_build = &Neighbor::granular_bin_newton;
-	  if (dimension == 3)
-	    half_stencil = &Neighbor::stencil_half_3d_newton;
-	  else
-	    half_stencil = &Neighbor::stencil_half_2d_newton;
+	  lists[i]->respamiddle = 1;
+	  lists[i]->listmiddle = lists[i-1];
+	  lists[i]->listinner = lists[i-2];
 	}
-      } else error->all("Neighbor multi not allowed with granular");
+      }
 
-    } else if (respa) {
-      if (style == NSQ) {
-	if (force->newton_pair == 0) 
-	  half_build = &Neighbor::respa_nsq_no_newton;
-	else half_build = &Neighbor::respa_nsq_newton;
-      } else if (style == BIN) {
-	if (force->newton_pair == 0) {
-	  half_build = &Neighbor::respa_bin_no_newton;
-	  if (dimension == 3)
-	    half_stencil = &Neighbor::stencil_half_3d_no_newton;
-	  else
-	    half_stencil = &Neighbor::stencil_half_2d_no_newton;
-	} else if (triclinic) {
-	  half_build = &Neighbor::respa_bin_newton_tri;
-	  if (dimension == 3)
-	    half_stencil = &Neighbor::stencil_half_3d_newton_tri;
-	  else
-	    half_stencil = &Neighbor::stencil_half_2d_newton_tri;
-	} else {
-	  half_build = &Neighbor::respa_bin_newton;
-	  if (dimension == 3)
-	    half_stencil = &Neighbor::stencil_half_3d_newton;
-	  else
-	    half_stencil = &Neighbor::stencil_half_2d_newton;
+      if (requests[i]->pair && requests[i]->half && requests[i]->skip == 0) {
+	for (j = 0; j < nlist; j++)
+	  if (requests[i]->pair && requests[j]->full && 
+	      requests[j]->skip == 0) break;
+	if (j < nlist) {
+	  requests[i]->half = 0;
+	  requests[i]->half_from_full = 1;
+	  lists[i]->listfull = lists[j];
 	}
-      } else error->all("Neighbor multi not allowed with rRESPA");
+      }
 
-    } else {
-      if (style == NSQ) {
-	if (force->newton_pair == 0) {
-	  if (full_every) half_build = &Neighbor::half_full_no_newton;
-	  else half_build = &Neighbor::half_nsq_no_newton;
-	} else {
-	  if (full_every) half_build = &Neighbor::half_full_newton;
-	  else half_build = &Neighbor::half_nsq_newton;
+      if (requests[i]->fix || requests[i]->compute) {
+	for (j = 0; j < nlist; j++) {
+	  if (requests[j]->pair && requests[j]->skip == 0 &&
+	      requests[j]->half && requests[i]->half) break;
+	  if (requests[j]->pair && requests[j]->skip == 0 &&
+	      requests[j]->full && requests[i]->full) break;
 	}
-      } else if (style == BIN) {
-	if (force->newton_pair == 0) {
-	  if (full_every) {
-	    half_build = &Neighbor::half_full_no_newton;
-	    half_stencil = &Neighbor::stencil_none;
-	  } else {
-	    half_build = &Neighbor::half_bin_no_newton;
-	    if (dimension == 3)
-	      half_stencil = &Neighbor::stencil_half_3d_no_newton;
-	    else
-	      half_stencil = &Neighbor::stencil_half_2d_no_newton;
+	if (j < nlist) {
+	  requests[i]->copy = 1;
+	  lists[i]->listcopy = lists[j];
+	} else {
+	  for (j = 0; j < nlist; j++) {
+	    if (requests[j]->pair && requests[j]->skip == 0 &&
+		requests[j]->full && requests[i]->half) break;
 	  }
-	} else {
-	  if (full_every) {
-	    half_build = &Neighbor::half_full_newton;
-	    half_stencil = &Neighbor::stencil_none;
-	  } else if (triclinic) {
-	    half_build = &Neighbor::half_bin_newton_tri;
-	    if (dimension == 3)
-	      half_stencil = &Neighbor::stencil_half_3d_newton_tri;
-	    else
-	      half_stencil = &Neighbor::stencil_half_2d_newton_tri;
-	  } else {
-	    half_build = &Neighbor::half_bin_newton;
-	    if (dimension == 3)
-	      half_stencil = &Neighbor::stencil_half_3d_newton;
-	    else
-	      half_stencil = &Neighbor::stencil_half_2d_newton;
-	  }
-	}
-      } else if (style == MULTI) {
-	if (force->newton_pair == 0) {
-	  if (full_every) {
-	    half_build = &Neighbor::half_full_no_newton;
-	    half_stencil = &Neighbor::stencil_none;
-	  } else {
-	    half_build = &Neighbor::half_bin_no_newton_multi;
-	    if (dimension == 3)
-	      half_stencil = &Neighbor::stencil_half_3d_no_newton_multi;
-	    else
-	      half_stencil = &Neighbor::stencil_half_2d_no_newton_multi;
-	  }
-	} else {
-	  if (full_every) {
-	    half_build = &Neighbor::half_full_newton;
-	    half_stencil = &Neighbor::stencil_none;
-	  } else if (triclinic) {
-	    half_build = &Neighbor::half_bin_newton_multi_tri;
-	    if (dimension == 3)
-	      half_stencil = &Neighbor::stencil_half_3d_newton_multi_tri;
-	    else
-	      half_stencil = &Neighbor::stencil_half_2d_newton_multi_tri;
-	  } else {
-	    half_build = &Neighbor::half_bin_newton_multi;
-	    if (dimension == 3)
-	      half_stencil = &Neighbor::stencil_half_3d_newton_multi;
-	    else
-	      half_stencil = &Neighbor::stencil_half_2d_newton_multi;
+	  if (j < nlist) {
+	    requests[i]->half = 0;
+	    requests[i]->half_from_full = 1;
+	    lists[i]->listfull = lists[j];
 	  }
 	}
       }
     }
 
-  } else half_build = NULL;
+    // set ptrs to pair_build and stencil_create functions for each list
+    // ptrs set to NULL if not set explicitly
 
-  if (full) {
-    if (style == NSQ) full_build = &Neighbor::full_nsq;
-    else if (style == BIN) {
-      full_build = &Neighbor::full_bin;
-      if (dimension == 3)
-	full_stencil = &Neighbor::stencil_full_3d;
-      else
-	full_stencil = &Neighbor::stencil_full_2d;
-    } else {
-      full_build = &Neighbor::full_bin_multi;
-      if (dimension == 3)
-	full_stencil = &Neighbor::stencil_full_3d_multi;
-      else
-	full_stencil = &Neighbor::stencil_full_2d_multi;
+    for (i = 0; i < nlist; i++) {
+      choose_build(i,requests[i]);
+      if (style != NSQ) choose_stencil(i,requests[i]);
+      else stencil_create[i] = NULL;
     }
-  } else full_build = NULL;
+
+    // set each list's build/grow/stencil flags based on neigh request
+    // buildflag = 1 if its pair_build() invoked every reneighbor
+    // growflag = 1 if it stores atom-based arrays and pages
+    // stencilflag = 1 if it stores stencil arrays
+
+    for (i = 0; i < nlist; i++) {
+      lists[i]->buildflag = 1;
+      if (pair_build[i] == NULL) lists[i]->buildflag = 0;
+      if (requests[i]->occasional) lists[i]->buildflag = 0;
+
+      lists[i]->growflag = 1;
+      if (requests[i]->copy) lists[i]->growflag = 0;
+
+      lists[i]->stencilflag = 1;
+      if (style == NSQ) lists[i]->stencilflag = 0;
+      if (stencil_create[i] == NULL) lists[i]->stencilflag = 0;
+    }
+
+    // DEBUG: print list attributes
+
+    for (i = 0; i < nlist; i++) lists[i]->print_attributes();
+    
+    // allocate atom arrays and 1st pages of lists that store them
+
+    for (i = 0; i < nlist; i++)
+      if (lists[i]->growflag) {
+	lists[i]->grow(maxlocal);
+	lists[i]->add_pages();
+      }
+
+    // setup 3 vectors of pairwise neighbor lists
+    // blist = lists whose pair_build() is invoked every reneighbor
+    // glist = lists who store atom arrays which are used every reneighbor
+    // slist = lists who store stencil arrays which are used every reneighbor
+    // blist and glist vectors are used by neighbor::build()
+    // slist vector is used by neighbor::setup_bins()
+
+    nblist = nglist = nslist = 0;
+    delete [] blist;
+    delete [] glist;
+    delete [] slist;
+    blist = new int[nlist];
+    glist = new int[nlist];
+    slist = new int[nlist];
+
+    for (i = 0; i < nlist; i++) {
+      if (lists[i]->buildflag) blist[nblist++] = i;
+      if (lists[i]->growflag && requests[i]->occasional == 0)
+	glist[nglist++] = i;
+      if (lists[i]->stencilflag && requests[i]->occasional == 0)
+	slist[nslist++] = i;
+    }
+
+    // DEBUG: print lists of lists
+
+    if (comm->me == 0) {
+      printf("Build lists = %d: ",nblist);
+      for (i = 0; i < nblist; i++) printf("%d ",blist[i]);
+      printf("\n");
+      printf("Grow lists = %d: ",nglist);
+      for (i = 0; i < nglist; i++) printf("%d ",glist[i]);
+      printf("\n");
+      printf("Stencil lists = %d: ",nslist);
+      for (i = 0; i < nslist; i++) printf("%d ",slist[i]);
+      printf("\n");
+    }
+
+    // reorder build vector if necessary
+    // relevant for lists that copy/skip/half-full from parent
+    // the derived lst must appear in blist after the parent list
+    // no occasional lists are in build vector
+    // swap two lists within blist when dependency is mis-ordered
+    // done when entire pass thru blist results in no swaps
+
+    int done = 0;
+    while (!done) {
+      done = 1;
+      for (i = 0; i < nblist; i++) {
+	NeighList *ptr = NULL;
+	if (lists[blist[i]]->listfull) ptr = lists[blist[i]]->listfull;
+	if (lists[blist[i]]->listcopy) ptr = lists[blist[i]]->listcopy;
+	if (lists[blist[i]]->listskip) ptr = lists[blist[i]]->listskip;
+	if (ptr == NULL) continue;
+	for (m = 0; m < nlist; m++)
+	  if (ptr == lists[m]) break;
+	for (j = 0; j < nblist; j++)
+	  if (m == blist[j]) break;
+	if (j < i) continue;
+	int tmp = blist[i];
+	blist[i] = blist[j];
+	blist[j] = tmp;
+	done = 0;
+	break;
+      }
+    }
+
+    // DEBUG: print lists of lists
+
+    if (comm->me == 0) {
+      printf("Build lists = %d: ",nblist);
+      for (i = 0; i < nblist; i++) printf("%d ",blist[i]);
+      printf("\n");
+      printf("Grow lists = %d: ",nglist);
+      for (i = 0; i < nglist; i++) printf("%d ",glist[i]);
+      printf("\n");
+      printf("Stencil lists = %d: ",nslist);
+      for (i = 0; i < nslist; i++) printf("%d ",slist[i]);
+      printf("\n");
+    }
+  }
+
+  // delete old requests
+  // copy current requests and style to old for next run
+  
+  for (i = 0; i < old_nrequest; i++) delete old_requests[i];
+  memory->sfree(old_requests);
+  old_nrequest = nrequest;
+  old_requests = requests;
+  nrequest = maxrequest = 0;
+  requests = NULL;
+  old_style = style;
 
   // ------------------------------------------------------------------
-  // bond neighbor lists
+  // topology lists
 
-  // 1st time allocation of bond lists
+  // 1st time allocation of topology lists
 
   if (atom->molecular && atom->nbonds && maxbond == 0) {
     if (nprocs == 1) maxbond = atom->nbonds;
@@ -692,7 +667,7 @@ void Neighbor::init()
       memory->create_2d_int_array(maximproper,5,"neigh:improperlist");
   }
 
-  // set flags that determine which bond neighboring routines to use
+  // set flags that determine which topology neighboring routines to use
   // SHAKE sets bonds and angles negative
   // bond_quartic sets bonds to 0
   // delete_bonds sets all interactions negative
@@ -738,7 +713,7 @@ void Neighbor::init()
     }
   }
 
-  // set ptrs to intra-molecular build functions
+  // set ptrs to topology build functions
 
   if (bond_off) bond_build = &Neighbor::bond_partial;
   else bond_build = &Neighbor::bond_all;
@@ -752,10 +727,153 @@ void Neighbor::init()
   if (improper_off) improper_build = &Neighbor::improper_partial;
   else improper_build = &Neighbor::improper_all;
 
-  // set intra-molecular neighbor list counts to 0
+  // set topology neighbor list counts to 0
   // in case all are turned off but potential is still defined
 
   nbondlist = nanglelist = ndihedrallist = nimproperlist = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int Neighbor::request(void *requestor)
+{
+  if (nrequest == maxrequest) {
+    maxrequest += RQDELTA;
+    requests = (NeighRequest **) 
+      memory->srealloc(requests,maxrequest*sizeof(NeighRequest *),
+		       "neighbor:requests");
+  }
+
+  requests[nrequest] = new NeighRequest(lmp);
+  requests[nrequest]->requestor = requestor;
+  nrequest++;
+  return nrequest-1;
+}
+
+
+/* ----------------------------------------------------------------------
+   determine which pair_build function each neigh list needs
+   based on settings of neigh request
+   skip or copy -> single function
+   half_from_full, half, full, gran, respaouter -> choose by newton and tri
+     style NSQ options = newton off, newton on
+     style BIN options = newton off, newton on and not tri, newton on and tri
+     stlye MULTI options = same options as BIN
+   if none of these, ptr = NULL since pair_build is not invoked for this list
+   use "else if" b/c skip,copy can be set in addition to half,full,etc
+------------------------------------------------------------------------- */
+
+void Neighbor::choose_build(int index, NeighRequest *rq)
+{
+  PairPtr pb = NULL;
+
+  if (rq->skip) pb = &Neighbor::skip_from;
+
+  else if (rq->copy) pb = &Neighbor::copy_from;
+
+  else if (rq->half_from_full) {
+    if (newton_pair == 0) pb = &Neighbor::half_full_no_newton;
+    else if (newton_pair == 1) pb = &Neighbor::half_full_newton;
+
+  } else if (rq->half) {
+    if (style == NSQ) {
+      if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton;
+      else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
+    } else if (style == BIN) {
+      if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
+      else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
+      else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+    } else if (style == MULTI) {
+      if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
+      else if (triclinic == 0) pb = &Neighbor::half_multi_newton;
+      else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
+    }
+
+  } else if (rq->full) {
+    if (style == NSQ) pb = &Neighbor::full_nsq;
+    else if (style == BIN) pb = &Neighbor::full_bin;
+    else if (style == MULTI) pb = &Neighbor::full_multi;
+
+  } else if (rq->gran) {
+    if (style == NSQ) {
+      if (newton_pair == 0) pb = &Neighbor::granular_nsq_no_newton;
+      else if (newton_pair == 1) pb = &Neighbor::granular_nsq_newton;
+    } else if (style == BIN) {
+      if (newton_pair == 0) pb = &Neighbor::granular_bin_no_newton;
+      else if (triclinic == 0) pb = &Neighbor::granular_bin_newton;
+      else if (triclinic == 1) pb = &Neighbor::granular_bin_newton_tri;
+    } else if (style == MULTI)
+      error->all("Neighbor multi not yet enabled for granular");
+
+  } else if (rq->respaouter) {
+    if (style == NSQ) {
+      if (newton_pair == 0) pb = &Neighbor::respa_nsq_no_newton;
+      else if (newton_pair == 1) pb = &Neighbor::respa_nsq_newton;
+    } else if (style == BIN) {
+      if (newton_pair == 0) pb = &Neighbor::respa_bin_no_newton;
+      else if (triclinic == 0) pb = &Neighbor::respa_bin_newton;
+      else if (triclinic == 1) pb = &Neighbor::respa_bin_newton_tri;
+    } else if (style == MULTI)
+      error->all("Neighbor multi not yet enabled for rRESPA");
+  }
+
+  pair_build[index] = pb;
+}
+
+/* ----------------------------------------------------------------------
+   determine which stencil_create function each neigh list needs
+   based on settings of neigh request, only called if style != NSQ
+   skip or copy or half_from_full -> no stencil
+   half, gran, respaouter, full -> choose by newton and tri and dimension
+   if none of these, ptr = NULL since this list needs no stencils
+   use "else if" b/c skip,copy can be set in addition to half,full,etc
+------------------------------------------------------------------------- */
+
+void Neighbor::choose_stencil(int index, NeighRequest *rq)
+{
+  StencilPtr sc = NULL;
+
+  if (rq->skip || rq->copy || rq->half_from_full) sc = NULL;
+
+  else if (rq->half || rq->gran || rq->respaouter) {
+    if (style == BIN) {
+      if (newton_pair == 0) {
+	if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_no_newton;
+	else if (dimension == 3) sc = &Neighbor::stencil_half_bin_3d_no_newton;
+      } else if (triclinic == 0) {
+	if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_newton;
+	else if (dimension == 3) sc = &Neighbor::stencil_half_bin_3d_newton;
+      } else if (triclinic == 1) {
+	if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_newton_tri;
+	else if (dimension == 3) 
+	  sc = &Neighbor::stencil_half_bin_3d_newton_tri;
+      }
+    } else if (style == MULTI) {
+      if (newton_pair == 0) {
+	if (dimension == 2) sc = &Neighbor::stencil_half_multi_2d_no_newton;
+	else if (dimension == 3)
+	  sc = &Neighbor::stencil_half_multi_3d_no_newton;
+      } else if (triclinic == 0) {
+	if (dimension == 2) sc = &Neighbor::stencil_half_multi_2d_newton;
+	else if (dimension == 3) sc = &Neighbor::stencil_half_multi_3d_newton;
+      } else if (triclinic == 1) {
+	if (dimension == 2) sc = &Neighbor::stencil_half_multi_2d_newton_tri;
+	else if (dimension == 3) 
+	  sc = &Neighbor::stencil_half_multi_3d_newton_tri;
+      }
+    }
+
+  } else if (rq->full) {
+    if (style == BIN) {
+      if (dimension == 2) sc = &Neighbor::stencil_full_bin_2d;
+      else if (dimension == 3) sc = &Neighbor::stencil_full_bin_3d;
+    } else if (style == MULTI) {
+      if (dimension == 2) sc = &Neighbor::stencil_full_multi_2d;
+      else if (dimension == 3) sc = &Neighbor::stencil_full_multi_3d;
+    }
+  }
+
+  stencil_create[index] = sc;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -800,18 +918,16 @@ int Neighbor::check_distance()
 }
 
 /* ----------------------------------------------------------------------
-   build all needed neighbor lists every few timesteps
-   half, full, bond lists are created as needed
+   build all perpetual neighbor lists every few timesteps
+   pairwise & topology lists are created as needed
 ------------------------------------------------------------------------- */
 
 void Neighbor::build()
 {
+  int i;
+
   ago = 0;
   ncalls++;
-
-  // store current nlocal used on this build (used by fix shear/history)
-
-  nlocal_neighbor = atom->nlocal;
 
   // store current atom positions if needed
 
@@ -823,66 +939,22 @@ void Neighbor::build()
       memory->destroy_2d_double_array(xhold);
       xhold = memory->create_2d_double_array(maxhold,3,"neigh:xhold");
     }
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       xhold[i][0] = x[i][0];
       xhold[i][1] = x[i][1];
       xhold[i][2] = x[i][2];
     }
   }
 
-  // extend atom arrays if necessary
-  // check half/full instead of half_every/full_every so memory will be
-  //   allocated correctly whenever build_half() and build_full() are called
+  // if necessary, extend atom arrays in pairwise lists
+  // only done for lists with growflag set which are used every reneighbor
 
   if (atom->nlocal > maxlocal) {
     maxlocal = atom->nmax;
-
-    if (half) {
-      memory->sfree(numneigh);
-      memory->sfree(firstneigh);
-      numneigh = (int *)
-	memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh");
-      firstneigh = (int **)
-	memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh");
-    }
-
-    if (full) {
-      memory->sfree(numneigh_full);
-      memory->sfree(firstneigh_full);
-      numneigh_full = (int *)
-	memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh_full");
-      firstneigh_full = (int **)
-      memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_full");
-    }
-
-    if (fix_history) {
-      memory->sfree(firsttouch);
-      memory->sfree(firstshear);
-      firsttouch = (int **) 
-	memory->smalloc(maxlocal*sizeof(int *),"neigh:firsttouch");
-      firstshear = (double **)
-	memory->smalloc(maxlocal*sizeof(double *),"neigh:firstshear");
-    }
-
-    if (respa) {
-      memory->sfree(numneigh_inner);
-      memory->sfree(firstneigh_inner);
-      numneigh_inner = (int *)
-	memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh_inner");
-      firstneigh_inner = (int **)
-	memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_inner");
-      if (respa == 2) {
-	memory->sfree(numneigh_middle);
-	memory->sfree(firstneigh_middle);
-	numneigh_middle = (int *)
-	  memory->smalloc(maxlocal*sizeof(int),"neigh:numneigh_middle");
-	firstneigh_middle = (int **)
-	  memory->smalloc(maxlocal*sizeof(int *),"neigh:firstneigh_middle");
-      }
-    }
+    for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxlocal);
   }
 
-  // extend bin list if necessary
+  // extend atom bin list if necessary
 
   if (style != NSQ && atom->nmax > maxbin) {
     maxbin = atom->nmax;
@@ -890,11 +962,22 @@ void Neighbor::build()
     bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
   }
 
-  // list construction for pairs and bonds
-  // full comes first in case half is built from full
+  // invoke building of pair and molecular neighbor lists
+  // only done for pairwise lists with buildflag set
 
-  if (full_every) (this->*full_build)();
-  if (half_every) (this->*half_build)();
+  for (i = 0; i < nblist; i++)
+    (this->*pair_build[blist[i]])(lists[blist[i]]);
+
+  /*
+  if (comm->me == 0) {
+    for (int m = 0; m < nlist; m++) {
+      int num = 0;
+      for (i = 0; i < lists[m]->inum; i++) 
+	num += lists[m]->numneigh[lists[m]->ilist[i]];
+      printf("List %d length = %d\n",m,num);
+    }
+  }
+  */
 
   if (atom->molecular) {
     if (atom->nbonds) (this->*bond_build)();
@@ -905,21 +988,21 @@ void Neighbor::build()
 }
 
 /* ----------------------------------------------------------------------
-   one-time call to build a half neighbor list made by other classes
+   build a single non-active pairwise neighbor list indexed by I
+   called by other classes when needed occasionally
 ------------------------------------------------------------------------- */
 
-void Neighbor::build_half()
+void Neighbor::build_one(int i)
 {
-  (this->*half_build)();
-}
+  // grow atom arrays and update stencils depending on growflag & stencilflag
 
-/* ----------------------------------------------------------------------
-   one-time call to build a full neighbor list made by other classes
-------------------------------------------------------------------------- */
+  if (lists[i]->growflag) lists[i]->grow(maxlocal);
+  if (lists[i]->stencilflag) {
+    lists[i]->stencil_allocate(smax,style);
+    (this->*stencil_create[i])(lists[i],sx,sy,sz);
+  }
 
-void Neighbor::build_full()
-{
-  (this->*full_build)();
+  (this->*pair_build[i])(lists[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -941,8 +1024,6 @@ void Neighbor::build_full()
    mbinlo = lowest global bin any of my ghost atoms could fall into
    mbinhi = highest global bin any of my ghost atoms could fall into
    mbin = number of bins I need in a dimension
-   stencil() = bin offsets in 1d sense for stencil of surrounding bins
-   stencil_full() = bin offsets in 1d sense for stencil for full neighbor list
 ------------------------------------------------------------------------- */
 
 void Neighbor::setup_bins()
@@ -1089,23 +1170,25 @@ void Neighbor::setup_bins()
 
   // create stencil of bins to search over in neighbor list construction
   // sx,sy,sz = max range of stencil extent
+  // smax = 
   // stencil is empty if cutneighmax = 0.0
 
-  int sx = static_cast<int> (cutneighmax*bininvx);
+  sx = static_cast<int> (cutneighmax*bininvx);
   if (sx*binsizex < cutneighmax) sx++;
-  int sy = static_cast<int> (cutneighmax*bininvy);
+  sy = static_cast<int> (cutneighmax*bininvy);
   if (sy*binsizey < cutneighmax) sy++;
-  int sz = static_cast<int> (cutneighmax*bininvz);
+  sz = static_cast<int> (cutneighmax*bininvz);
   if (sz*binsizez < cutneighmax) sz++;
   if (dimension == 2) sz = 0;
+  smax = (2*sx+1) * (2*sy+1) * (2*sz+1);
 
-  // allocate stencil memory and create stencil(s)
-  // check half/full instead of half_every/full_every so stencils will be
-  //   allocated correctly whenever build_half() and build_full() are called
+  // create stencils for pairwise neighbor lists
+  // only done for lists with stencilflag and buildflag set
 
-  stencil_allocate(sx,sy,sz);
-  if (half) (this->*half_stencil)(sx,sy,sz);
-  if (full) (this->*full_stencil)(sx,sy,sz);
+  for (int i = 0; i < nslist; i++) {
+    lists[slist[i]]->stencil_allocate(smax,style);
+    (this->*stencil_create[slist[i]])(lists[slist[i]],sx,sy,sz);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1218,7 +1301,7 @@ void Neighbor::modify_params(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"molecule") == 0) {
 	if (iarg+3 > narg) error->all("Illegal neigh_modify command");
 	if (atom->molecular == 0) {
-	  char *str =
+	  char *str = (char *)
 	    "Must use molecular atom style with neigh_modify exclude molecule";
 	  error->all(str);
 	}
@@ -1241,170 +1324,6 @@ void Neighbor::modify_params(int narg, char **arg)
 
     } else error->all("Illegal neigh_modify command");
   }
-}
-
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory
-------------------------------------------------------------------------- */
-
-int Neighbor::memory_usage()
-{
-  int bytes = 0;
-
-  bytes += maxhold*3 * sizeof(double);
-
-  if (style == NSQ) {
-    bytes += maxbin * sizeof(int);
-    bytes += maxhead * sizeof(int);
-    bytes += maxstencil * sizeof(int);
-    bytes += maxstencil_full * sizeof(int);
-  }
-
-  if (half) {
-    bytes += maxlocal * sizeof(int);
-    bytes += maxlocal * sizeof(int *);
-    bytes += maxpage*pgsize * sizeof(int);
-  }
-
-  if (full) {
-    bytes += maxlocal * sizeof(int);
-    bytes += maxlocal * sizeof(int *);
-    bytes += maxpage_full*pgsize * sizeof(int);
-  }
-
-  if (fix_history) {
-    bytes += maxlocal * sizeof(int *);
-    bytes += maxlocal * sizeof(double *);
-    bytes += maxpage_history*pgsize * sizeof(int);
-    bytes += maxpage_history*pgsize*3 * sizeof(double);
-  }
-
-  if (respa) {
-    bytes += maxlocal * sizeof(int);
-    bytes += maxlocal * sizeof(int *);
-    bytes += maxpage_inner*pgsize * sizeof(int);
-    if (respa == 2) {
-      bytes += maxlocal * sizeof(int);
-      bytes += maxlocal * sizeof(int *);
-      bytes += maxpage_middle*pgsize * sizeof(int);
-    }
-  }
-
-  bytes += maxbond*3 * sizeof(int);
-  bytes += maxangle*4 * sizeof(int);
-  bytes += maxdihedral*5 * sizeof(int);
-  bytes += maximproper*5 * sizeof(int);
-
-  return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   add pages to half/full/granular/rRESPA neighbor lists, starting at npage
-------------------------------------------------------------------------- */
-
-void Neighbor::add_pages(int npage)
-{
-  maxpage += PGDELTA;
-  pages = (int **) 
-    memory->srealloc(pages,maxpage*sizeof(int *),"neigh:pages");
-  for (int i = npage; i < maxpage; i++)
-    pages[i] = (int *) memory->smalloc(pgsize*sizeof(int),"neigh:pages[i]");
-}
-
-void Neighbor::add_pages_full(int npage)
-{
-  maxpage_full += PGDELTA;
-  pages_full = (int **) 
-    memory->srealloc(pages_full,maxpage_full*sizeof(int *),"neigh:pages_full");
-  for (int i = npage; i < maxpage_full; i++)
-    pages_full[i] =
-      (int *) memory->smalloc(pgsize*sizeof(int),"neigh:pages_full[i]");
-}
-
-void Neighbor::add_pages_history(int npage)
-{
-  maxpage_history += PGDELTA;
-  pages_touch = (int **)
-    memory->srealloc(pages_touch,maxpage_history*sizeof(int *),
-		     "neigh:pages_touch");
-  pages_shear = (double **)
-    memory->srealloc(pages_shear,maxpage_history*sizeof(double *),
-		     "neigh:pages_shear");
-  for (int i = npage; i < maxpage_history; i++) {
-    pages_touch[i] = (int *)
-      memory->smalloc(pgsize*sizeof(int),"neigh:pages_touch[i]");
-    pages_shear[i] = (double *)
-      memory->smalloc(3*pgsize*sizeof(double),"neigh:pages_shear[i]");
-  }
-}
-
-void Neighbor::add_pages_inner(int npage_inner)
-{
-  maxpage_inner += PGDELTA;
-  pages_inner = (int **) 
-    memory->srealloc(pages_inner,maxpage_inner*sizeof(int *),
-		     "neigh:pages_inner");
-  for (int i = npage_inner; i < maxpage_inner; i++)
-    pages_inner[i] = 
-      (int *) memory->smalloc(pgsize*sizeof(int),"neigh:pages_inner[i]");
-}
-
-void Neighbor::add_pages_middle(int npage_middle)
-{
-  maxpage_middle += PGDELTA;
-  pages_middle = (int **) 
-    memory->srealloc(pages_middle,maxpage_middle*sizeof(int *),
-		     "neigh:pages_middle");
-  for (int i = npage_middle; i < maxpage_middle; i++)
-    pages_middle[i] = 
-      (int *) memory->smalloc(pgsize*sizeof(int),"neigh:pages_middle[i]");
-}
-
-/* ----------------------------------------------------------------------
-   clear half/full/granular/rRESPA neighbor lists
-------------------------------------------------------------------------- */
-
-void Neighbor::clear_pages()
-{
-  for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
-  memory->sfree(pages);
-  pages = NULL;
-  maxpage = 0;
-}
-
-void Neighbor::clear_pages_full()
-{
-  for (int i = 0; i < maxpage_full; i++) memory->sfree(pages_full[i]);
-  memory->sfree(pages_full);
-  pages_full = NULL;
-  maxpage_full = 0;
-}
-
-void Neighbor::clear_pages_history()
-{
-  for (int i = 0; i < maxpage_history; i++) memory->sfree(pages_touch[i]);
-  for (int i = 0; i < maxpage_history; i++) memory->sfree(pages_shear[i]);
-  memory->sfree(pages_touch);
-  memory->sfree(pages_shear);
-  pages_touch = NULL;
-  pages_shear = NULL;
-  maxpage_history = 0;
-}
-
-void Neighbor::clear_pages_inner()
-{
-  for (int i = 0; i < maxpage_inner; i++) memory->sfree(pages_inner[i]);
-  memory->sfree(pages_inner);
-  pages_inner = NULL;
-  maxpage_inner = 0;
-}
-
-void Neighbor::clear_pages_middle()
-{
-  for (int i = 0; i < maxpage_middle; i++) memory->sfree(pages_middle[i]);
-  memory->sfree(pages_middle);
-  pages_middle = NULL;
-  maxpage_middle = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1526,11 +1445,12 @@ int Neighbor::coord2bin(double *x)
    return 1 if should be excluded, 0 if included
 ------------------------------------------------------------------------- */
 
-int Neighbor::exclusion(int i, int j, int *type, int *mask, int *molecule)
+int Neighbor::exclusion(int i, int j, int itype, int jtype, 
+			int *mask, int *molecule)
 {
   int m;
 
-  if (nex_type && ex_type[type[i]][type[j]]) return 1;
+  if (nex_type && ex_type[itype][jtype]) return 1;
 
   if (nex_group) {
     for (m = 0; m < nex_group; m++) {
@@ -1546,4 +1466,29 @@ int Neighbor::exclusion(int i, int j, int *type, int *mask, int *molecule)
   }
 
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory
+------------------------------------------------------------------------- */
+
+int Neighbor::memory_usage()
+{
+  int bytes = 0;
+
+  bytes += maxhold*3 * sizeof(double);
+
+  if (style != NSQ) {
+    bytes += maxbin * sizeof(int);
+    bytes += maxhead * sizeof(int);
+  }
+
+  for (int i = 0; i < nlist; i++) bytes += lists[i]->memory_usage();
+
+  bytes += maxbond*3 * sizeof(int);
+  bytes += maxangle*4 * sizeof(int);
+  bytes += maxdihedral*5 * sizeof(int);
+  bytes += maximproper*5 * sizeof(int);
+
+  return bytes;
 }

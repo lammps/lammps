@@ -16,7 +16,9 @@
 #include "fix_shear_history.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "force.h"
+#include "pair.h"
 #include "update.h"
 #include "modify.h"
 #include "memory.h"
@@ -89,7 +91,10 @@ void FixShearHistory::init()
 
 void FixShearHistory::pre_exchange()
 {
-  int i,j,k,m;
+  int i,j,ii,jj,m,inum,jnum;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *touch,**firsttouch;
+  double *shear,*allshear,**firstshear;
 
   // zero npartners for all current atoms
 
@@ -97,24 +102,28 @@ void FixShearHistory::pre_exchange()
   for (i = 0; i < nlocal; i++) npartner[i] = 0;
 
   // copy shear info from neighbor list atoms to atom arrays
-  // nlocal = nlocal_neighbor = nlocal when neighbor list last built,
-  //   which might be pre-insert on this step
 
-  int numneigh;
-  int *neighs,*touch;
-  double *firstshear,*shear;
   int *tag = atom->tag;
-  nlocal = neighbor->nlocal_neighbor;
 
-  for (i = 0; i < nlocal; i++) {
-    neighs = neighbor->firstneigh[i];
-    touch = neighbor->firsttouch[i];
-    firstshear = neighbor->firstshear[i];
-    numneigh = neighbor->numneigh[i];
-    for (k = 0; k < numneigh; k++) {
-      if (touch[k]) {
-	shear = &firstshear[3*k];
-	j = neighs[k];
+  NeighList *list = pair->list;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  firsttouch = list->listgranhistory->firstneigh;
+  firstshear = list->listgranhistory->firstdouble;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
+    allshear = firstshear[i];
+    jnum = numneigh[i];
+    touch = firsttouch[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      if (touch[jj]) {
+	shear = &allshear[3*jj];
+	j = jlist[jj];
 	if (npartner[i] < MAXTOUCH) {
 	  m = npartner[i];
 	  partner[i][m] = tag[j];

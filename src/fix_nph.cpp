@@ -162,8 +162,8 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
 
   char **newarg = new char*[3];
   newarg[0] = id_temp;
-  newarg[1] = "all";
-  newarg[2] = "temp";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -179,8 +179,8 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
 
   newarg = new char*[4];
   newarg[0] = id_press;
-  newarg[1] = "all";
-  newarg[2] = "pressure";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pressure";
   newarg[3] = id_temp;
   modify->add_compute(4,newarg);
   delete [] newarg;
@@ -231,7 +231,7 @@ void FixNPH::init()
     error->all("Cannot use fix nph without per-type mass defined");
 
   // set temperature and pressure ptrs
-  // set ptemperature only if pressure's id_pre is not id_temp
+  // set ptemperature only if pressure's id_pre[0] is not id_temp
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Temp ID for fix nph does not exist");
@@ -241,9 +241,9 @@ void FixNPH::init()
   if (icompute < 0) error->all("Press ID for fix nph does not exist");
   pressure = modify->compute[icompute];
 
-  if (strcmp(id_temp,pressure->id_pre) == 0) ptemperature = NULL;
+  if (strcmp(id_temp,pressure->id_pre[0]) == 0) ptemperature = NULL;
   else {
-    icompute = modify->find_compute(pressure->id_pre);
+    icompute = modify->find_compute(pressure->id_pre[0]);
     if (icompute < 0)
       error->all("Temp ID of press ID for fix nph does not exist");
     ptemperature = modify->compute[icompute];
@@ -733,13 +733,13 @@ int FixNPH::modify_param(int narg, char **arg)
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for NPH is not for group all");
 
-    // reset id_pre of pressure to new temp ID
+    // reset id_pre[0] of pressure to new temp ID
     
     icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all("Press ID for fix npt does not exist");
-    delete [] modify->compute[icompute]->id_pre;
-    modify->compute[icompute]->id_pre = new char[n];
-    strcpy(modify->compute[icompute]->id_pre,id_temp);
+    delete [] modify->compute[icompute]->id_pre[0];
+    modify->compute[icompute]->id_pre[0] = new char[n];
+    strcpy(modify->compute[icompute]->id_pre[0],id_temp);
 
     return 2;
 

@@ -29,22 +29,22 @@ class FixAveSpatial : public Fix {
 
  private:
   int me;
-  int nfreq;
+  int nrepeat,nfreq,irepeat,nvalid;
   int dim,originflag,which,normflag;
   double origin,delta;
-  char *id_compute;
+  char *id_compute,*id_fix;
   FILE *fp;
 
-  int nlayers,nvalues,nsum,maxlayer,scaleflag;
-  int compute_size_peratom;
+  int nlayers,nvalues,maxlayer,scaleflag,size_peratom;
   double xscale,yscale,zscale;
   double layer_volume;
   double *coord;
   double *count_one,*count_many,*count_total;
   double **values_one,**values_many,**values_total;
   double offset,invdelta; 
-  class Compute *compute;
-  class Compute *precompute;
+  int ncompute;
+  class Compute **compute;
+  class Fix *fix;
 };
 
 }

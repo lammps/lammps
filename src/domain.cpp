@@ -811,7 +811,7 @@ void Domain::set_boundary(int narg, char **arg)
    print box info, orthogonal or triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::print_box(char *str)
+void Domain::print_box(const char *str)
 {
   if (comm->me == 0) {
     if (screen) {
@@ -819,7 +819,7 @@ void Domain::print_box(char *str)
 	fprintf(screen,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
 		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
       else {
-	char *format = 
+	char *format = (char *)
 	  "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
 	fprintf(screen,format,
 		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
@@ -831,7 +831,7 @@ void Domain::print_box(char *str)
 	fprintf(logfile,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
 		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
       else {
-	char *format = 
+	char *format = (char *)
 	  "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
 	fprintf(logfile,format,
 		str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],

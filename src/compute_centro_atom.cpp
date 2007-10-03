@@ -17,6 +17,8 @@
 #include "modify.h"
 #include "update.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
@@ -34,7 +36,6 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
   peratom_flag = 1;
   size_peratom = 0;
-  neigh_full_once = 1;
 
   nmax = 0;
   centro = NULL;
@@ -61,15 +62,31 @@ void ComputeCentroAtom::init()
     if (strcmp(modify->compute[i]->style,"centro/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
     error->warning("More than one compute centro/atom");
+
+  // need an occasional full neighbor list
+
+  int irequest = neighbor->request((void *) this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->compute = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->occasional = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeCentroAtom::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeCentroAtom::compute_peratom()
 {
-  int j,k,jj,kk,n,numneigh;
+  int i,j,k,ii,jj,kk,n,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,value;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   double pairs[66];
 
   // grow centro array if necessary
@@ -82,9 +99,14 @@ void ComputeCentroAtom::compute_peratom()
     scalar_atom = centro;
   }
 
-  // if needed, build a full neighbor list
+  // invoke full neighbor list (will copy or build if necessary)
 
-  if (!neighbor->full_every) neighbor->build_full();
+  neighbor->build_one(list->index);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // compute centro-symmetry parameter for each atom in group
   // use full neighbor list
@@ -95,20 +117,21 @@ void ComputeCentroAtom::compute_peratom()
   int nall = atom->nlocal + atom->nghost;
   double cutsq = force->pair->cutforce * force->pair->cutforce;
 
-  for (int i = 0; i < nlocal; i++)
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     if (mask[i] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
-      neighs = neighbor->firstneigh_full[i];
-      numneigh = neighbor->numneigh_full[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
       // insure distsq and nearest arrays are long enough
 
-      if (numneigh > maxneigh) {
+      if (jnum > maxneigh) {
 	memory->sfree(distsq);
 	memory->sfree(nearest);
-	maxneigh = numneigh;
+	maxneigh = jnum;
 	distsq = (double *) memory->smalloc(maxneigh*sizeof(double),
 					    "compute/centro/atom:distsq");
 	nearest = (int *) memory->smalloc(maxneigh*sizeof(int),
@@ -120,8 +143,8 @@ void ComputeCentroAtom::compute_peratom()
       // nearest[] = atom indices of neighbors
 
       n = 0;
-      for (k = 0; k < numneigh; k++) {
-	j = neighs[k];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
 	if (j >= nall) j %= nall;
 
 	delx = xtmp - x[j][0];
@@ -169,7 +192,8 @@ void ComputeCentroAtom::compute_peratom()
       value = 0.0;
       for (j = 0; j < 6; j++) value += pairs[j];
       centro[i] = value;
-    }
+    } else centro[i] = 0.0;
+  }
 }
 
 /* ----------------------------------------------------------------------

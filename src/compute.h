@@ -39,18 +39,19 @@ class Compute : protected Pointers {
                       // must have both compute_scalar, compute_vector
   int pressflag;      // 1 if Compute can be used as pressure (uses virial)
                       // must have both compute_scalar, compute_vector
-  char *id_pre;       // ID of Compute that needs to be computed before this
   double dof;         // degrees-of-freedom for temperature
+
+  int npre;           // # of computes to compute before this one
+  char **id_pre;      // IDs of Computes to compute before this one
 
   int comm_forward;     // size of forward communication (0 if none)
   int comm_reverse;     // size of reverse communication (0 if none)
-  int neigh_half_once;  // 1 if requires half neighbor lists
-  int neigh_full_once;  // 1 if requires full neighbor lists
 
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);
   virtual void init() = 0;
+  virtual void init_list(int, class NeighList *) {}
   virtual double compute_scalar() {return 0.0;}
   virtual void compute_vector() {}
   virtual void compute_peratom() {}

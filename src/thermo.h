@@ -100,13 +100,13 @@ class Thermo : protected Pointers {
   void deallocate();
 
   void parse_fields(char *);
-  int add_compute(char *, int);
-  int add_fix(char *);
-  int add_variable(char *);
+  int add_compute(const char *, int);
+  int add_fix(const char *);
+  int add_variable(const char *);
   void create_compute(char *, char *, char *);
 
   typedef void (Thermo::*FnPtr)();
-  void addfield(char *, FnPtr, int);
+  void addfield(const char *, FnPtr, int);
   FnPtr *vfunc;                // list of ptrs to functions
 
   void compute_compute();      // functions that compute a single value

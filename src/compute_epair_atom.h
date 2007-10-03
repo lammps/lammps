@@ -23,6 +23,7 @@ class ComputeEpairAtom : public Compute {
   ComputeEpairAtom(class LAMMPS *, int, char **);
   ~ComputeEpairAtom();
   void init();
+  void init_list(int, class NeighList *);
   void compute_peratom();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
@@ -30,6 +31,7 @@ class ComputeEpairAtom : public Compute {
 
  private:
   int nmax,eamstyle;
+  class NeighList *list;
   double *energy;
 };
 

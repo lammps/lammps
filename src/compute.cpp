@@ -49,9 +49,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   
   scalar_flag = vector_flag = peratom_flag = 0;
   tempflag = pressflag = 0;
+  npre = 0;
   id_pre = NULL;
   comm_forward = comm_reverse = 0;
-  neigh_half_once = neigh_full_once = 0;
 
   // set modify defaults
 
@@ -65,6 +65,9 @@ Compute::~Compute()
 {
   delete [] id;
   delete [] style;
+
+  for (int i = 0; i < npre; i++) delete [] id_pre[i];
+  delete [] id_pre;
 }
 
 /* ---------------------------------------------------------------------- */

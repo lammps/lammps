@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// add a style class to LAMMPS by adding 2 lines to this file
 // add new include files in appropriate Include ifdef
 // add new style keywords and class names in appropriate Class ifdef
 // see style.h for examples
@@ -73,7 +74,7 @@
 #endif
 
 #ifdef IntegrateClass
-#endif
+# endif
 
 #ifdef KSpaceInclude
 #endif
@@ -85,7 +86,7 @@
 #endif
 
 #ifdef MinimizeClass
-# endif
+#endif
 
 #ifdef PairInclude
 #endif

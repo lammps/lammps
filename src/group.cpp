@@ -52,7 +52,7 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 
   // create "all" group
 
-  char *str = "all";
+  char *str = (char *) "all";
   int n = strlen(str) + 1;
   names[0] = (char *) memory->smalloc(n*sizeof(char),"group:names[]");
   strcpy(names[0],str);
@@ -352,7 +352,7 @@ void Group::create(char *name, int *flag)
    return group index if name matches existing group, -1 if no such group
 ------------------------------------------------------------------------- */
 
-int Group::find(char *name)
+int Group::find(const char *name)
 {
   for (int igroup = 0; igroup < ngroup; igroup++)
     if (strcmp(name,names[igroup]) == 0) return igroup;

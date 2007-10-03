@@ -131,9 +131,9 @@ void Velocity::create(int narg, char **arg)
   int tflag = 0;
   if (temperature == NULL) {
     char **arg = new char*[3];
-    arg[0] = "velocity_temp";
+    arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup];
-    arg[2] = "temp";
+    arg[2] = (char *) "temp";
     temperature = new ComputeTemp(lmp,3,arg);
     tflag = 1;
     delete [] arg;
@@ -215,7 +215,7 @@ void Velocity::create(int narg, char **arg)
     MPI_Allreduce(&idmax,&idmaxall,1,MPI_INT,MPI_MAX,world);
 
     if (idminall != 1 || idmaxall != natoms) {
-      char *str = "Cannot use velocity create loop all with non-contiguous atom IDs";
+      char *str = (char *) "Cannot use velocity create loop all with non-contiguous atom IDs";
       error->all(str);
     }
     
@@ -390,9 +390,9 @@ void Velocity::scale(int narg, char **arg)
   int tflag = 0;
   if (temperature == NULL) {
     char **arg = new char*[3];
-    arg[0] = "velocity_temp";
+    arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup];
-    arg[2] = "temp";
+    arg[2] = (char *) "temp";
     temperature = new ComputeTemp(lmp,3,arg);
     tflag = 1;
     delete [] arg;

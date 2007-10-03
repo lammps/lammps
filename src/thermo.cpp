@@ -120,10 +120,10 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   index_temp = index_press = index_drot = index_grot = -1;
   internal_drot = internal_grot = 0;
 
-  id_temp = "thermo_temp";
-  id_press = "thermo_pressure";
-  id_drot = "thermo_rotate_dipole";
-  id_grot = "thermo_rotate_gran";
+  id_temp = (char *) "thermo_temp";
+  id_press = (char *) "thermo_pressure";
+  id_drot = (char *) "thermo_rotate_dipole";
+  id_grot = (char *) "thermo_rotate_gran";
 
   // count fields in line
   // allocate per-field memory
@@ -137,22 +137,22 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // temperature and pressure always exist b/c Output class created them
 
   if (index_drot >= 0) {
-    create_compute(id_drot,"rotate/dipole",NULL);
+    create_compute(id_drot,(char *) "rotate/dipole",NULL);
     internal_drot = 1;
   }
   if (index_grot >= 0) {
-    create_compute(id_grot,"rotate/gran",NULL);
+    create_compute(id_grot,(char *) "rotate/gran",NULL);
     internal_grot = 1;
   }
 
   // format strings
 
-  format_multi = "---------------- Step %8d ----- "
-                 "CPU = %11.4f (sec) ----------------";
-  format_int_one_def = "%8d";
-  format_int_multi_def = "%14d";
-  format_g_def = "%12.8g";
-  format_f_def = "%14.4f";
+  format_multi = (char *) "---------------- Step %8d ----- "
+                          "CPU = %11.4f (sec) ----------------";
+  format_int_one_def = (char *) "%8d";
+  format_int_multi_def = (char *) "%14d";
+  format_g_def = (char *) "%12.8g";
+  format_f_def = (char *) "%14.4f";
   format_int_user = NULL;
   format_float_user = NULL;
 
@@ -398,17 +398,17 @@ void Thermo::modify_params(int narg, char **arg)
       if (temperature->igroup != 0 && comm->me == 0)
 	error->warning("Temperature for thermo pressure is not for group all");
 
-      // reset id_pre of pressure to new temp ID
+      // reset id_pre[0] of pressure to new temp ID
       // either pressure currently being used by thermo or "thermo_pressure"
 
       if (index_press >= 0) {
 	icompute = modify->find_compute(id_compute[index_press]);
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
-      } else icompute = modify->find_compute("thermo_pressure");
+      } else icompute = modify->find_compute((char *) "thermo_pressure");
 
-      delete [] modify->compute[icompute]->id_pre;
-      modify->compute[icompute]->id_pre = new char[n];
-      strcpy(modify->compute[icompute]->id_pre,arg[iarg+1]);
+      delete [] modify->compute[icompute]->id_pre[0];
+      modify->compute[icompute]->id_pre[0] = new char[n];
+      strcpy(modify->compute[icompute]->id_pre[0],arg[iarg+1]);
 
       iarg += 2;
 
@@ -427,13 +427,13 @@ void Thermo::modify_params(int narg, char **arg)
       if (pressure->pressflag == 0)
 	error->all("Thermo_modify press ID does not compute pressure");
 
-      // if id_pre of new pressure is not being computed, add to compute list
-      // swap it with pressure in list so id_pre will be computed first
+      // if id_pre[0] of new pressure not being computed, add to compute list
+      // swap it with pressure in list so id_pre[0] will be computed first
       // OK to call add_compute with "which" acting as index
 
       int which = compute_which[index_press];
       int ncompute_current = ncompute;
-      icompute = add_compute(pressure->id_pre,which);
+      icompute = add_compute(pressure->id_pre[0],which);
       if (icompute == ncompute_current) {
 	int iswap = compute_which[index_press];
 	compute_which[index_press] = compute_which[icompute];
@@ -554,7 +554,6 @@ void Thermo::modify_params(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    allocate all per-field memory
-   allow each c_ID to imply 2 Compute objects (if it has id_pre)
 ------------------------------------------------------------------------- */
 
 void Thermo::allocate()
@@ -577,9 +576,9 @@ void Thermo::allocate()
   arg_object = new int[n];
 
   ncompute = 0;
-  id_compute = new char*[2*n];
-  compute_which = new int[2*n];
-  computes = new Compute*[2*n];
+  id_compute = NULL;
+  compute_which = NULL;
+  computes = NULL;
 
   nfix = 0;
   id_fix = new char*[n];
@@ -611,9 +610,9 @@ void Thermo::deallocate()
   delete [] arg_object;
 
   for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
-  delete [] id_compute;
-  delete [] compute_which;
-  delete [] computes;
+  memory->sfree(id_compute);
+  memory->sfree(compute_which);
+  memory->sfree(computes);
 
   for (int i = 0; i < nfix; i++) delete [] id_fix[i];
   delete [] id_fix;
@@ -760,7 +759,7 @@ void Thermo::parse_fields(char *str)
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // if no trailing [], then arg is set to 0, else arg is between []
     // copy = at most 8 chars of ID to pass to addfield
-    // for compute, if has pre-compute object, first add it to list
+    // if Compute has pre-computes, first add them to list
 
     } else if ((strncmp(word,"c_",2) == 0) || (strncmp(word,"f_",2) == 0) ||
 	       (strncmp(word,"v_",2) == 0)) {
@@ -790,8 +789,10 @@ void Thermo::parse_fields(char *str)
 	if (arg_object[nfield] > 0 && 
 	    arg_object[nfield] > modify->compute[n]->size_vector)
 	  error->all("Thermo compute ID vector is not large enough");
-	if (modify->compute[n]->id_pre)
-	  int tmp = add_compute(modify->compute[n]->id_pre,arg_object[nfield]);
+	if (modify->compute[n]->npre)
+	  for (int ic = 0; ic < modify->compute[n]->npre; ic++)
+	    int tmp = add_compute(modify->compute[n]->id_pre[ic],
+				  arg_object[nfield]);
 	field2object[nfield] = add_compute(id,arg_object[nfield]);
 	addfield(copy,&Thermo::compute_compute,FLOAT);
 
@@ -820,7 +821,7 @@ void Thermo::parse_fields(char *str)
    add field to list of quantities to print
 ------------------------------------------------------------------------- */
 
-void Thermo::addfield(char *key, FnPtr func, int typeflag)
+void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 {
   strcpy(keyword[nfield],key);
   vfunc[nfield] = func;
@@ -830,13 +831,15 @@ void Thermo::addfield(char *key, FnPtr func, int typeflag)
 
 /* ----------------------------------------------------------------------
    add compute ID to list of Compute objects to call
-   if already in list, do not add, just return location, else add to list
+   return index of where this Compute is in list
+   if already in list, do not add, just return index, else add to list
    convert index into which param
      index = 0 -> scalar, index >= 1 -> vector
      which = 1 -> scalar only, which = 2 -> vector only, which = 3 -> both
+   change which param if Compute is in list with different which param
 ------------------------------------------------------------------------- */
 
-int Thermo::add_compute(char *id, int index)
+int Thermo::add_compute(const char *id, int index)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -848,6 +851,16 @@ int Thermo::add_compute(char *id, int index)
       break;
     }
   if (icompute < ncompute) return icompute;
+
+  id_compute = (char **)
+    memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),
+		     "thermo:id_compute");
+  compute_which = (int *)
+    memory->srealloc(compute_which,(ncompute+1)*sizeof(int),
+		     "thermo:compute_which");
+  computes = (Compute **) 
+    memory->srealloc(computes,(ncompute+1)*sizeof(Compute *),
+		     "thermo:computes");
 
   int n = strlen(id) + 1;
   id_compute[ncompute] = new char[n];
@@ -862,7 +875,7 @@ int Thermo::add_compute(char *id, int index)
    add fix ID to list of Fix objects to call
 ------------------------------------------------------------------------- */
 
-int Thermo::add_fix(char *id)
+int Thermo::add_fix(const char *id)
 {
   int n = strlen(id) + 1;
   id_fix[nfix] = new char[n];
@@ -875,7 +888,7 @@ int Thermo::add_fix(char *id)
    add variable ID to list of Variables to evaluate
 ------------------------------------------------------------------------- */
 
-int Thermo::add_variable(char *id)
+int Thermo::add_variable(const char *id)
 {
   int n = strlen(id) + 1;
   id_variable[nvariable] = new char[n];
@@ -892,7 +905,7 @@ void Thermo::create_compute(char *id, char *cstyle, char *extra)
 {
   char **newarg = new char*[4];
   newarg[0] = id;
-  newarg[1] = "all";
+  newarg[1] = (char *) "all";
   newarg[2] = cstyle;
   if (extra) newarg[3] = extra;
   if (extra) modify->add_compute(4,newarg);

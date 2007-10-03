@@ -35,12 +35,14 @@ class Fix : protected Pointers {
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
 
+  int peratom_flag;              // 0/1 if per-atom data is stored
+  int size_peratom;              // 0 = scalar_atom, N = size of vector_atom
+  double *scalar_atom;           // computed per-atom scalar
+  double **vector_atom;          // computed per-atom vector
+  int peratom_freq;              // frequency per-atom data is available at
+
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
-  int neigh_half_once;           // 0/1 if needs half neigh list occasionally
-  int neigh_half_every;          // 0/1 if needs half neigh list every step
-  int neigh_full_once;           // 0/1 if needs full neigh list occasionally
-  int neigh_full_every;          // 0/1 if needs full neigh list every step
 
   double virial[6];              // fix contribution to pressure virial
 
@@ -56,6 +58,7 @@ class Fix : protected Pointers {
   virtual int setmask() = 0;
 
   virtual void init() {}
+  virtual void init_list(int, class NeighList *) {}
   virtual void setup() {}
   virtual void min_setup() {}
   virtual void initial_integrate() {}

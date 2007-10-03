@@ -15,7 +15,12 @@ OBJ = 	$(SRC:.cpp=.o)
 
 PACKAGE = asphere class2 colloid dipole dpd granular \
 	  kspace manybody meam molecule opt poems xtc
+
+PACKUSER = user-ackland user-ewaldn
+
 PACKUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
+PACKUSERUC = $(shell perl -e 'printf("%s", uc("$(PACKUSER)"));')
+
 YESDIR = $(shell perl -e 'printf("%s", uc("$(@:yes-%=%)"));')
 NODIR  = $(shell perl -e 'printf("%s", uc("$(@:no-%=%)"));')
 
@@ -31,10 +36,15 @@ help:
 	@echo ''
 	@echo 'make package             list available packages'
 	@echo 'make package-status      status of all packages'
-	@echo 'make yes-package         install a package in src dir'
-	@echo 'make no-package          remove package files from src dir'
+	@echo 'make yes-package         install a single package in src dir'
+	@echo 'make no-package          remove a single package from src dir'
 	@echo 'make yes-all             install all packages in src dir'
-	@echo 'make no-all              remove all package files from src dir'
+	@echo 'make no-all              remove all packages from src dir'
+	@echo 'make yes-standard        install all standard packages'
+	@echo 'make no-standard         remove all standard packages'
+	@echo 'make yes-user            install all user packages'
+	@echo 'make no-user             remove all user packages'
+	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo ''
@@ -86,27 +96,45 @@ makelist:
 	@csh Make.csh Makefile.list
 
 # Package management
-# status =    list differences between src and package files
-# update =    replace src files with newer package files
-# overwrite = overwrite package files with newer src files
 
 package:
-	@echo 'Available packages:'
-	@echo $(PACKAGE)
+	@echo 'Standard packages:' $(PACKAGE)
 	@echo ''
+	@echo 'User-contributed packages:' $(PACKUSER)
+	@echo ''
+	@echo 'make package             list available packages'
 	@echo 'make package-status      status of all packages'
-	@echo 'make yes-package         install a package in src dir'
-	@echo 'make no-package          remove package files from src dir'
+	@echo 'make yes-package         install a single package in src dir'
+	@echo 'make no-package          remove a single package from src dir'
 	@echo 'make yes-all             install all packages in src dir'
-	@echo 'make no-all              remove all package files from src dir'
+	@echo 'make no-all              remove all packages from src dir'
+	@echo 'make yes-standard        install all standard packages'
+	@echo 'make no-standard         remove all standard packages'
+	@echo 'make yes-user            install all user packages'
+	@echo 'make no-user             remove all user packages'
+	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
 
 yes-all:
 	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
+	@for p in $(PACKUSER); do $(MAKE) yes-$$p; done
 
 no-all:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
+	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
+
+yes-standard:
+	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
+
+no-standard:
+	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
+
+yes-user:
+	@for p in $(PACKUSER); do $(MAKE) yes-$$p; done
+
+no-user:
+	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
 
 yes-%:
 	@if [ ! -e $(YESDIR) ]; then \
@@ -124,11 +152,21 @@ no-%:
 	  cd $(NODIR); csh -f Install.csh 0; cd ..; $(MAKE) clean-all; \
         fi;
 
+# status = list differences between src and package files
+# update = replace src files with newer package files
+# overwrite = overwrite package files with newer src files
+
 package-status:
 	@for p in $(PACKUC); do csh -f Package.csh $$p status; done
+	@echo ''
+	@for p in $(PACKUSERUC); do csh -f Package.csh $$p status; done
 
 package-update:
 	@for p in $(PACKUC); do csh -f Package.csh $$p update; done
+	@echo ''
+	@for p in $(PACKUSERUC); do csh -f Package.csh $$p update; done
 
 package-overwrite:
 	@for p in $(PACKUC); do csh -f Package.csh $$p overwrite; done
+	@echo ''
+	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite; done

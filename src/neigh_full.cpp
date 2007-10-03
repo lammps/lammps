@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "atom.h"
 #include "error.h"
 
@@ -22,7 +23,7 @@ using namespace LAMMPS_NS;
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void Neighbor::full_nsq()
+void Neighbor::full_nsq(NeighList *list)
 {
   int i,j,n,itype,jtype,which;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -36,6 +37,12 @@ void Neighbor::full_nsq()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
 
@@ -44,10 +51,10 @@ void Neighbor::full_nsq()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage_full) add_pages_full(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &pages_full[npage][npnt];
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -60,9 +67,10 @@ void Neighbor::full_nsq()
 
     for (j = 0; j < nall; j++) {
       if (i == j) continue;
-      if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
       jtype = type[j];
+      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -75,12 +83,16 @@ void Neighbor::full_nsq()
       }
     }
 
-    firstneigh_full[i] = neighptr;
-    numneigh_full[i] = n;
+    ilist[inum] = i;
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -88,7 +100,7 @@ void Neighbor::full_nsq()
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void Neighbor::full_bin()
+void Neighbor::full_bin(NeighList *list)
 {
   int i,j,k,n,itype,jtype,ibin,which;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -108,6 +120,14 @@ void Neighbor::full_bin()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+  int nstencil = list->nstencil;
+  int *stencil = list->stencil;
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
 
@@ -116,10 +136,10 @@ void Neighbor::full_bin()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage_full) add_pages_full(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &pages_full[npage][npnt];
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -132,12 +152,13 @@ void Neighbor::full_bin()
 
     ibin = coord2bin(x[i]);
 
-    for (k = 0; k < nstencil_full; k++) {
-      for (j = binhead[ibin+stencil_full[k]]; j >= 0; j = bins[j]) {
+    for (k = 0; k < nstencil; k++) {
+      for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 	if (i == j) continue;
-	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	jtype = type[j];
+	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
@@ -152,12 +173,16 @@ void Neighbor::full_bin()
       }
     }
 
-    firstneigh_full[i] = neighptr;
-    numneigh_full[i] = n;
+    ilist[inum] = i;
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -166,7 +191,7 @@ void Neighbor::full_bin()
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void Neighbor::full_bin_multi()
+void Neighbor::full_multi(NeighList *list)
 {
   int i,j,k,n,itype,jtype,ibin,which,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -187,6 +212,15 @@ void Neighbor::full_bin_multi()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+  int *nstencil_multi = list->nstencil_multi;
+  int **stencil_multi = list->stencil_multi;
+  double **distsq_multi = list->distsq_multi;
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
 
@@ -195,10 +229,10 @@ void Neighbor::full_bin_multi()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage_full) add_pages_full(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
 
-    neighptr = &pages_full[npage][npnt];
+    neighptr = &pages[npage][npnt];
     n = 0;
 
     itype = type[i];
@@ -211,16 +245,17 @@ void Neighbor::full_bin_multi()
     // skip i = j
 
     ibin = coord2bin(x[i]);
-    s = stencil_full_multi[itype];
-    distsq = distsq_full_multi[itype];
+    s = stencil_multi[itype];
+    distsq = distsq_multi[itype];
     cutsq = cutneighsq[itype];
-    ns = nstencil_full_multi[itype];
+    ns = nstencil_multi[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
 	jtype = type[j];
 	if (cutsq[jtype] < distsq[k]) continue;
 	if (i == j) continue;
-	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
+
+	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
@@ -236,10 +271,14 @@ void Neighbor::full_bin_multi()
       }
     }
 
-    firstneigh_full[i] = neighptr;
-    numneigh_full[i] = n;
+    ilist[inum] = i;
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
+
+  list->inum = inum;
 }

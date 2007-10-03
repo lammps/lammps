@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "atom.h"
 #include "error.h"
 
@@ -24,14 +25,11 @@ using namespace LAMMPS_NS;
    pair added if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
-void Neighbor::respa_nsq_no_newton()
+void Neighbor::respa_nsq_no_newton(NeighList *list)
 {
-  int i,j,itype,jtype,which;
-  int n_inner,n_middle,n;
+  int i,j,n,itype,jtype,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr_inner;
-  int *neighptr_middle;
-  int *neighptr;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -41,6 +39,27 @@ void Neighbor::respa_nsq_no_newton()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+
+  NeighList *listinner = list->listinner;
+  int *numneigh_inner = listinner->numneigh;
+  int **firstneigh_inner = listinner->firstneigh;
+  int **pages_inner = listinner->pages;
+
+  NeighList *listmiddle;
+  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    numneigh_middle = listmiddle->numneigh;
+    firstneigh_middle = listmiddle->firstneigh;
+    pages_middle = listmiddle->pages;
+  }
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
   int npage_inner = 0;
@@ -53,7 +72,7 @@ void Neighbor::respa_nsq_no_newton()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -61,16 +80,18 @@ void Neighbor::respa_nsq_no_newton()
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner++;
-      if (npage_inner == maxpage_inner) add_pages_inner(npage_inner);
+      if (npage_inner == listinner->maxpage)
+	pages_inner = listinner->add_pages();
     }
     neighptr_inner = &pages_inner[npage_inner][npnt_inner];
     n_inner = 0;
 
-    if (respa == 2) {
+    if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle++;
-	if (npage_middle == maxpage_middle) add_pages_middle(npage_middle);
+	if (npage_middle == listmiddle->maxpage)
+	  pages_middle = listmiddle->add_pages();
       }
       neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
@@ -84,9 +105,9 @@ void Neighbor::respa_nsq_no_newton()
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
-      if (exclude && exclusion(i,j,type,mask,molecule)) continue;
-
       jtype = type[j];
+      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -103,15 +124,17 @@ void Neighbor::respa_nsq_no_newton()
 	  else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
         }
 
-        if (respa == 2 && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
+        if (respamiddle && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	  if (which == 0) neighptr_middle[n_middle++] = j;
 	  else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
         }
       }
     }
 
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
@@ -122,7 +145,7 @@ void Neighbor::respa_nsq_no_newton()
     if (npnt_inner >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
-    if (respa == 2) {
+    if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
@@ -130,6 +153,8 @@ void Neighbor::respa_nsq_no_newton()
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
   }
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -140,14 +165,11 @@ void Neighbor::respa_nsq_no_newton()
    decision based on itag,jtag tests
 ------------------------------------------------------------------------- */
 
-void Neighbor::respa_nsq_newton()
+void Neighbor::respa_nsq_newton(NeighList *list)
 {
-  int i,j,itype,jtype,itag,jtag,which;
-  int n_inner,n_middle,n;
+  int i,j,n,itype,jtype,itag,jtag,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr_inner;
-  int *neighptr_middle;
-  int *neighptr;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   double **x = atom->x;
   int *tag = atom->tag;
@@ -158,6 +180,27 @@ void Neighbor::respa_nsq_newton()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+
+  NeighList *listinner = list->listinner;
+  int *numneigh_inner = listinner->numneigh;
+  int **firstneigh_inner = listinner->firstneigh;
+  int **pages_inner = listinner->pages;
+
+  NeighList *listmiddle;
+  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    numneigh_middle = listmiddle->numneigh;
+    firstneigh_middle = listmiddle->firstneigh;
+    pages_middle = listmiddle->pages;
+  }
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
   int npage_inner = 0;
@@ -170,7 +213,7 @@ void Neighbor::respa_nsq_newton()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -178,16 +221,18 @@ void Neighbor::respa_nsq_newton()
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner++;
-      if (npage_inner == maxpage_inner) add_pages_inner(npage_inner);
+      if (npage_inner == listinner->maxpage)
+	pages_inner = listinner->add_pages();
     }
     neighptr_inner = &pages_inner[npage_inner][npnt_inner];
     n_inner = 0;
 
-    if (respa == 2) {
+    if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle++;
-	if (npage_middle == maxpage_middle) add_pages_middle(npage_middle);
+	if (npage_middle == listmiddle->maxpage)
+	  pages_middle = listmiddle->add_pages();
       }
       neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
@@ -216,9 +261,9 @@ void Neighbor::respa_nsq_newton()
 	}
       }
 
-      if (exclude && exclusion(i,j,type,mask,molecule)) continue;
-
       jtype = type[j];
+      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -235,15 +280,18 @@ void Neighbor::respa_nsq_newton()
 	  else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
         }
 
-        if (respa == 2 && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
+        if (respamiddle && 
+	    rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	  if (which == 0) neighptr_middle[n_middle++] = j;
 	  else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
         }
       }
     }
 
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
@@ -254,7 +302,7 @@ void Neighbor::respa_nsq_newton()
     if (npnt_inner >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
-    if (respa == 2) {
+    if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
@@ -262,6 +310,8 @@ void Neighbor::respa_nsq_newton()
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
   }
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -272,14 +322,11 @@ void Neighbor::respa_nsq_newton()
    pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
-void Neighbor::respa_bin_no_newton()
+void Neighbor::respa_bin_no_newton(NeighList *list)
 {
-  int i,j,k,itype,jtype,ibin,which;
-  int n_inner,n_middle,n;
+  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr_inner;
-  int *neighptr_middle;
-  int *neighptr;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   // bin local & ghost atoms
 
@@ -295,6 +342,29 @@ void Neighbor::respa_bin_no_newton()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+  int nstencil = list->nstencil;
+  int *stencil = list->stencil;
+
+  NeighList *listinner = list->listinner;
+  int *numneigh_inner = listinner->numneigh;
+  int **firstneigh_inner = listinner->firstneigh;
+  int **pages_inner = listinner->pages;
+
+  NeighList *listmiddle;
+  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    numneigh_middle = listmiddle->numneigh;
+    firstneigh_middle = listmiddle->firstneigh;
+    pages_middle = listmiddle->pages;
+  }
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
   int npage_inner = 0;
@@ -307,7 +377,7 @@ void Neighbor::respa_bin_no_newton()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -315,16 +385,18 @@ void Neighbor::respa_bin_no_newton()
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner++;
-      if (npage_inner == maxpage_inner) add_pages_inner(npage_inner);
+      if (npage_inner == listinner->maxpage)
+	pages_inner = listinner->add_pages();
     }
     neighptr_inner = &pages_inner[npage_inner][npnt_inner];
     n_inner = 0;
 
-    if (respa == 2) {
+    if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle++;
-	if (npage_middle == maxpage_middle) add_pages_middle(npage_middle);
+	if (npage_middle == listmiddle->maxpage)
+	  pages_middle = listmiddle->add_pages();
       }
       neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
@@ -344,9 +416,10 @@ void Neighbor::respa_bin_no_newton()
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 	if (j <= i) continue;
-	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	jtype = type[j];
+	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
@@ -363,7 +436,8 @@ void Neighbor::respa_bin_no_newton()
 	    else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
 	  }
 
-	  if (respa == 2 && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
+	  if (respamiddle && 
+	      rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	    if (which == 0) neighptr_middle[n_middle++] = j;
 	    else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
 	  }
@@ -371,8 +445,10 @@ void Neighbor::respa_bin_no_newton()
       }
     }
 
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
@@ -383,7 +459,7 @@ void Neighbor::respa_bin_no_newton()
     if (npnt_inner >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
-    if (respa == 2) {
+    if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
@@ -391,6 +467,8 @@ void Neighbor::respa_bin_no_newton()
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
   }
+
+  list->inum = inum;
 }
       
 /* ----------------------------------------------------------------------
@@ -400,14 +478,11 @@ void Neighbor::respa_bin_no_newton()
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void Neighbor::respa_bin_newton()
+void Neighbor::respa_bin_newton(NeighList *list)
 {
-  int i,j,k,itype,jtype,ibin,which;
-  int n_inner,n_middle,n;
+  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr_inner;
-  int *neighptr_middle;
-  int *neighptr;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   // bin local & ghost atoms
 
@@ -423,6 +498,29 @@ void Neighbor::respa_bin_newton()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+  int nstencil = list->nstencil;
+  int *stencil = list->stencil;
+
+  NeighList *listinner = list->listinner;
+  int *numneigh_inner = listinner->numneigh;
+  int **firstneigh_inner = listinner->firstneigh;
+  int **pages_inner = listinner->pages;
+
+  NeighList *listmiddle;
+  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    numneigh_middle = listmiddle->numneigh;
+    firstneigh_middle = listmiddle->firstneigh;
+    pages_middle = listmiddle->pages;
+  }
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
   int npage_inner = 0;
@@ -435,7 +533,7 @@ void Neighbor::respa_bin_newton()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -443,16 +541,18 @@ void Neighbor::respa_bin_newton()
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner++;
-      if (npage_inner == maxpage_inner) add_pages_inner(npage_inner);
+      if (npage_inner == listinner->maxpage)
+	pages_inner = listinner->add_pages();
     }
     neighptr_inner = &pages_inner[npage_inner][npnt_inner];
     n_inner = 0;
 
-    if (respa == 2) {
+    if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle++;
-	if (npage_middle == maxpage_middle) add_pages_middle(npage_middle);
+	if (npage_middle == listmiddle->maxpage)
+	  pages_middle = listmiddle->add_pages();
       }
       neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
@@ -472,10 +572,11 @@ void Neighbor::respa_bin_newton()
 	if (x[j][2] < ztmp) continue;
 	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
 	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
       }
 
       jtype = type[j];
+      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -492,7 +593,8 @@ void Neighbor::respa_bin_newton()
 	  else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
         }
 
-        if (respa == 2 && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
+        if (respamiddle && 
+	    rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	  if (which == 0) neighptr_middle[n_middle++] = j;
 	  else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
         }
@@ -504,9 +606,9 @@ void Neighbor::respa_bin_newton()
     ibin = coord2bin(x[i]);
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
-	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
-
 	jtype = type[j];
+	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
@@ -523,7 +625,8 @@ void Neighbor::respa_bin_newton()
 	    else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
 	  }
 
-	  if (respa == 2 && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
+	  if (respamiddle && 
+	      rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	    if (which == 0) neighptr_middle[n_middle++] = j;
 	    else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
 	  }
@@ -531,8 +634,10 @@ void Neighbor::respa_bin_newton()
       }
     }
 
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
@@ -543,7 +648,7 @@ void Neighbor::respa_bin_newton()
     if (npnt_inner >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
-    if (respa == 2) {
+    if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
@@ -551,6 +656,8 @@ void Neighbor::respa_bin_newton()
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
   }
+
+  list->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -560,14 +667,11 @@ void Neighbor::respa_bin_newton()
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void Neighbor::respa_bin_newton_tri()
+void Neighbor::respa_bin_newton_tri(NeighList *list)
 {
-  int i,j,k,itype,jtype,ibin,which;
-  int n_inner,n_middle,n;
+  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr_inner;
-  int *neighptr_middle;
-  int *neighptr;
+  int *neighptr,*neighptr_inner,*neighptr_middle;
 
   // bin local & ghost atoms
 
@@ -583,6 +687,29 @@ void Neighbor::respa_bin_newton_tri()
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+  int nstencil = list->nstencil;
+  int *stencil = list->stencil;
+
+  NeighList *listinner = list->listinner;
+  int *numneigh_inner = listinner->numneigh;
+  int **firstneigh_inner = listinner->firstneigh;
+  int **pages_inner = listinner->pages;
+
+  NeighList *listmiddle;
+  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int respamiddle = list->respamiddle;
+  if (respamiddle) {
+    listmiddle = list->listmiddle;
+    numneigh_middle = listmiddle->numneigh;
+    firstneigh_middle = listmiddle->firstneigh;
+    pages_middle = listmiddle->pages;
+  }
+
+  int inum = 0;
   int npage = 0;
   int npnt = 0;
   int npage_inner = 0;
@@ -595,7 +722,7 @@ void Neighbor::respa_bin_newton_tri()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == list->maxpage) pages = list->add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -603,16 +730,18 @@ void Neighbor::respa_bin_newton_tri()
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner++;
-      if (npage_inner == maxpage_inner) add_pages_inner(npage_inner);
+      if (npage_inner == listinner->maxpage)
+	pages_inner = listinner->add_pages();
     }
     neighptr_inner = &pages_inner[npage_inner][npnt_inner];
     n_inner = 0;
 
-    if (respa == 2) {
+    if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
 	npnt_middle = 0;
 	npage_middle++;
-	if (npage_middle == maxpage_middle) add_pages_middle(npage_middle);
+	if (npage_middle == listmiddle->maxpage)
+	  pages_middle = listmiddle->add_pages();
       }
       neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
@@ -634,9 +763,10 @@ void Neighbor::respa_bin_newton_tri()
 	if (x[j][2] < ztmp) continue;
 	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
 	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] <= xtmp) continue;
-	if (exclude && exclusion(i,j,type,mask,molecule)) continue;
 
 	jtype = type[j];
+	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];
 	delz = ztmp - x[j][2];
@@ -653,7 +783,8 @@ void Neighbor::respa_bin_newton_tri()
 	    else if (which > 0) neighptr_inner[n_inner++] = which*nall + j;
 	  }
 
-	  if (respa == 2 && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
+	  if (respamiddle &&
+	      rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
 	    if (which == 0) neighptr_middle[n_middle++] = j;
 	    else if (which > 0) neighptr_middle[n_middle++] = which*nall + j;
 	  }
@@ -661,8 +792,10 @@ void Neighbor::respa_bin_newton_tri()
       }
     }
 
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
+    inum++;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
@@ -673,7 +806,7 @@ void Neighbor::respa_bin_newton_tri()
     if (npnt_inner >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
-    if (respa == 2) {
+    if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
@@ -681,4 +814,6 @@ void Neighbor::respa_bin_newton_tri()
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
   }
+
+  list->inum = inum;
 }

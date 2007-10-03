@@ -245,7 +245,7 @@ void DumpDCD::write_frame()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpDCD::write_dcd_header(char *remarks)
+void DumpDCD::write_dcd_header(const char *remarks)
 {
   uint32_t out_integer;
   float out_float;

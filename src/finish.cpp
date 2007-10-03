@@ -23,6 +23,8 @@
 #include "update.h"
 #include "min.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "output.h"
 #include "memory.h"
 
@@ -36,7 +38,7 @@ Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Finish::end(int flag)
 {
-  int i;
+  int i,m;
   int histo[10];
   double time,tmp,ave,max,min;
 
@@ -291,11 +293,17 @@ void Finish::end(int flag)
     }
   }
 
+  // find a half non-skip neighbor list
+
+  for (m = 0; m < neighbor->old_nrequest; m++)
+    if ((neighbor->old_requests[m]->half || 
+	neighbor->old_requests[m]->half_from_full) &&
+	neighbor->old_requests[m]->skip == 0) break;
+
   int nneigh = 0;
-  if (neighbor->half_every)
-    for (i = 0; i < atom->nlocal; i++) nneigh += neighbor->numneigh[i];
-  else if (neighbor->full_every)
-    for (i = 0; i < atom->nlocal; i++) nneigh += neighbor->numneigh_full[i];
+  if (m < neighbor->old_nrequest)
+    for (i = 0; i < atom->nlocal; i++)
+      nneigh += neighbor->lists[m]->numneigh[i];
 
   tmp = nneigh;
   stats(1,&tmp,&ave,&max,&min,10,histo);
@@ -314,10 +322,17 @@ void Finish::end(int flag)
     }
   }
 
-  if (neighbor->half_every && neighbor->full_every) {
+  // find a full non-skip neighbor list
+
+  for (m = 0; m < neighbor->old_nrequest; m++)
+    if (neighbor->old_requests[m]->full &&
+	neighbor->old_requests[m]->skip == 0) break;
+
+  if (m < neighbor->old_nrequest) {
 
     nneigh = 0;
-    for (i = 0; i < atom->nlocal; i++) nneigh += neighbor->numneigh_full[i];
+    for (i = 0; i < atom->nlocal; i++)
+      nneigh += neighbor->lists[m]->numneigh[i];
 
     tmp = nneigh;
     stats(1,&tmp,&ave,&max,&min,10,histo);

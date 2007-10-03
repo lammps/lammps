@@ -25,6 +25,8 @@
 #include "pair.h"
 #include "pair_soft.h"
 #include "atom.h"
+#include "neighbor.h"
+#include "neigh_list.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
@@ -46,8 +48,6 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   eng_vdwl = eng_coul = 0.0;
 
   comm_forward = comm_reverse = 0;
-  neigh_half_every = 1;
-  neigh_full_every = 0;
 
   single_enable = 1;
   respa_enable = 0;
@@ -123,10 +123,20 @@ void Pair::init()
     error->warning("Using pair tail corrections with nonperiodic system");
 
   if (!allocated) error->all("All pair coeffs are not set");
+
+  // I,I coeffs must be set
+  // init_one() will check if I,J is set explicitly or inferred by mixing
+
   for (i = 1; i <= atom->ntypes; i++)
     if (setflag[i][i] == 0) error->all("All pair coeffs are not set");
 
+  // style-specific initialization
+
   init_style();
+
+  // call init_one() for each I,J
+  // set cutsq for each I,J, used to neighbor
+  // cutforce = max of all I,J cutoffs
 
   double cut;
   cutforce = 0.0;
@@ -145,6 +155,29 @@ void Pair::init()
 	}
       }
     }
+}
+
+/* ----------------------------------------------------------------------
+   init specific to a pair style
+   specific pair style can override this function
+     if needs its own error checks
+     if needs another kind of neighbor list
+   request default neighbor list = half list
+------------------------------------------------------------------------- */
+
+void Pair::init_style()
+{
+  int irequest = neighbor->request(this);
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   specific pair style can override this function
+------------------------------------------------------------------------- */
+
+void Pair::init_list(int which, NeighList *ptr)
+{
+  list = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -181,34 +214,25 @@ double Pair::mix_distance(double sig1, double sig2)
 }
 
 /* ----------------------------------------------------------------------
-   compute pair virial via pair own/ghost forces 
+   compute pair virial via own/ghost forces
+   at this point, only pairwise forces have been accumulated in atom->f
 ------------------------------------------------------------------------- */
 
 void Pair::virial_compute()
 {
   double **x = atom->x;
-  double **f_pair = update->f_pair;
+  double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
 
   // sum over own & ghost atoms
 
   for (int i = 0; i < nall; i++) {
-    virial[0] += f_pair[i][0]*x[i][0];
-    virial[1] += f_pair[i][1]*x[i][1];
-    virial[2] += f_pair[i][2]*x[i][2];
-    virial[3] += f_pair[i][1]*x[i][0];
-    virial[4] += f_pair[i][2]*x[i][0];
-    virial[5] += f_pair[i][2]*x[i][1];
-  }
-
-  // add pair forces into total force
-
-  double **f = atom->f;
-
-  for (int i = 0; i < nall; i++) {
-    f[i][0] += f_pair[i][0];
-    f[i][1] += f_pair[i][1];
-    f[i][2] += f_pair[i][2];
+    virial[0] += f[i][0]*x[i][0];
+    virial[1] += f[i][1]*x[i][1];
+    virial[2] += f[i][2]*x[i][2];
+    virial[3] += f[i][1]*x[i][0];
+    virial[4] += f[i][2]*x[i][0];
+    virial[5] += f[i][2]*x[i][1];
   }
 }
 

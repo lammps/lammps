@@ -15,6 +15,8 @@
 #include "compute_stress_atom.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "modify.h"
 #include "comm.h"
 #include "update.h"
@@ -40,7 +42,6 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom = 6;
   comm_reverse = 6;
-  neigh_half_once = 1;
 
   // process args
 
@@ -85,6 +86,14 @@ void ComputeStressAtom::init()
     if (force->pair == NULL || force->pair->single_enable == 0)
       error->all("Pair style does not support computing per-atom stress");
     pairflag = 1;
+
+    // need an occasional half neighbor list
+
+    int irequest = neighbor->request((void *) this);
+    neighbor->requests[irequest]->pair = 0;
+    neighbor->requests[irequest]->compute = 1;
+    neighbor->requests[irequest]->occasional = 1;
+
   } else pairflag = 0;
 
   if (bondrequest && force->bond) bondflag = 1;
@@ -99,12 +108,19 @@ void ComputeStressAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeStressAtom::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeStressAtom::compute_peratom()
 {
-  int i,j,k,n,i1,i2,itype,jtype,numneigh,iflag;
+  int i,j,ii,jj,n,i1,i2,inum,jnum,itype,jtype,iflag,jflag;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,eng;
   double factor_coul,factor_lj,fforce,rmass;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   Pair::One one;
 
   // grow stress array if necessary
@@ -136,12 +152,18 @@ void ComputeStressAtom::compute_peratom()
 
   // compute pairwise stress for atoms via pair->single()
   // if neither atom is in compute group, skip that pair
+  // only add stress to atoms in group
 
   if (pairflag) {
 
-    // if needed, build a half neighbor list
+    // invoke half neighbor list (will copy or build if necessary)
 
-    if (!neighbor->half_every) neighbor->build_half();
+    neighbor->build_one(list->index);
+
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
 
     double *special_coul = force->special_coul;
     double *special_lj = force->special_lj;
@@ -153,18 +175,20 @@ void ComputeStressAtom::compute_peratom()
     int *type = atom->type;
     int nall = nlocal + atom->nghost;
 
-    for (i = 0; i < nlocal; i++) {
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
       itype = type[i];
       iflag = mask[i] & groupbit;
-      neighs = neighbor->firstneigh[i];
-      numneigh = neighbor->numneigh[i];
-      
-      for (k = 0; k < numneigh; k++) {
-	j = neighs[k];
-	if (iflag == 0 && (mask[j] & groupbit) == 0) continue;
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+	jflag = mask[j] & groupbit;
+	if (iflag == 0 && jflag == 0) continue;
 
 	if (j < nall) factor_coul = factor_lj = 1.0;
 	else {
@@ -183,13 +207,15 @@ void ComputeStressAtom::compute_peratom()
 	  force->pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,0,one);
 	  fforce = one.fforce;
 	  
-	  stress[i][0] -= delx*delx*fforce;
-	  stress[i][1] -= dely*dely*fforce;
-	  stress[i][2] -= delz*delz*fforce;
-	  stress[i][3] -= delx*dely*fforce;
-	  stress[i][4] -= delx*delz*fforce;
-	  stress[i][5] -= dely*delz*fforce;
-	  if (newton_pair || j < nlocal) {
+	  if (iflag) {
+	    stress[i][0] -= delx*delx*fforce;
+	    stress[i][1] -= dely*dely*fforce;
+	    stress[i][2] -= delz*delz*fforce;
+	    stress[i][3] -= delx*dely*fforce;
+	    stress[i][4] -= delx*delz*fforce;
+	    stress[i][5] -= dely*delz*fforce;
+	  }
+	  if (jflag && (newton_pair || j < nlocal)) {
 	    stress[j][0] -= delx*delx*fforce;
 	    stress[j][1] -= dely*dely*fforce;
 	    stress[j][2] -= delz*delz*fforce;
@@ -205,6 +231,7 @@ void ComputeStressAtom::compute_peratom()
 
   // compute bond stress for atoms via bond->single()
   // if neither atom is in compute group, skip that bond
+  // only add stress to atoms in group
 
   if (bondflag) {
     double **x = atom->x;
@@ -218,7 +245,9 @@ void ComputeStressAtom::compute_peratom()
       i1 = bondlist[n][0];
       i2 = bondlist[n][1];
       type = bondlist[n][2];
-      if ((mask[i1] & groupbit) == 0 && (mask[i2] & groupbit) == 0) continue;
+      iflag = mask[i1] & groupbit;
+      jflag = mask[i2] & groupbit;
+      if (iflag == 0 && jflag == 0) continue;
       
       delx = x[i1][0] - x[i2][0];
       dely = x[i1][1] - x[i2][1];
@@ -228,14 +257,16 @@ void ComputeStressAtom::compute_peratom()
       rsq = delx*delx + dely*dely + delz*delz;
       force->bond->single(type,rsq,i1,i2,0,fforce,eng);
       
-      stress[i1][0] -= delx*delx*fforce;
-      stress[i1][1] -= dely*dely*fforce;
-      stress[i1][2] -= delz*delz*fforce;
-      stress[i1][3] -= delx*dely*fforce;
-      stress[i1][4] -= delx*delz*fforce;
-      stress[i1][5] -= dely*delz*fforce;
-      
-      if (newton_bond || i2 < nlocal) {
+      if (iflag) {
+	stress[i1][0] -= delx*delx*fforce;
+	stress[i1][1] -= dely*dely*fforce;
+	stress[i1][2] -= delz*delz*fforce;
+	stress[i1][3] -= delx*dely*fforce;
+	stress[i1][4] -= delx*delz*fforce;
+	stress[i1][5] -= dely*delz*fforce;
+      }
+
+      if (jflag && (newton_bond || i2 < nlocal)) {
 	stress[i2][0] -= delx*delx*fforce;
 	stress[i2][1] -= dely*dely*fforce;
 	stress[i2][2] -= delz*delz*fforce;

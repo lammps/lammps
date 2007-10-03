@@ -86,20 +86,20 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
   if (type == STANDARD) {
-    newarg[2] = "temp";
+    newarg[2] = (char *) "temp";
     modify->add_compute(3,newarg);
   } else if (type == REGION) {
-    newarg[2] = "temp/region";
+    newarg[2] = (char *) "temp/region";
     newarg[3] = domain->regions[iregion]->id;
     modify->add_compute(4,newarg);
   } else if (type == PARTIAL) {
-    newarg[2] = "temp/partial";
-    if (xflag) newarg[3] = "1";
-    else newarg[3] = "0";
-    if (yflag) newarg[4] = "1";
-    else newarg[4] = "0";
-    if (zflag) newarg[5] = "1";
-    else newarg[5] = "0";
+    newarg[2] = (char *) "temp/partial";
+    if (xflag) newarg[3] = (char *) "1";
+    else newarg[3] = (char *) "0";
+    if (yflag) newarg[4] = (char *) "1";
+    else newarg[4] = (char *) "0";
+    if (zflag) newarg[5] = (char *) "1";
+    else newarg[5] = (char *) "0";
     modify->add_compute(6,newarg);
   }
   delete [] newarg;

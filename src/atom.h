@@ -97,17 +97,17 @@ class Atom : protected Pointers {
   Atom(class LAMMPS *);
   ~Atom();
 
-  void create_avec(char *, int, char **);
-  class AtomVec *new_avec(char *, int, char **);
+  void create_avec(const char *, int, char **);
+  class AtomVec *new_avec(const char *, int, char **);
   void init();
 
-  int style_match(char *);
+  int style_match(const char *);
   void modify_params(int, char **);
   void tag_extend();
   int tag_consecutive();
 
-  int parse_data(char *);
-  int count_words(char *);
+  int parse_data(const char *);
+  int count_words(const char *);
 
   void data_atoms(int, char *);
   void data_vels(int, char *);
@@ -117,22 +117,22 @@ class Atom : protected Pointers {
   void data_impropers(int, char *);
 
   void allocate_type_arrays();
-  void set_mass(char *);
+  void set_mass(const char *);
   void set_mass(int, double);
   void set_mass(int, char **);
   void set_mass(double *);
   void check_mass();
-  void set_shape(char *);
+  void set_shape(const char *);
   void set_shape(int, char **);
   void set_shape(double **);
   void check_shape();
-  void set_dipole(char *);
+  void set_dipole(const char *);
   void set_dipole(int, char **);
   void set_dipole(double *);
   void check_dipole();
 
   void add_callback(int);
-  void delete_callback(char *, int);
+  void delete_callback(const char *, int);
   void update_callback(int);
 
   int memory_usage();

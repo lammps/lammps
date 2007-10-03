@@ -26,6 +26,7 @@ class DumpCustom : public Dump {
   int memory_usage();
 
  private:
+  int nevery;                // dump frequency to check Fix against
   int iregion;               // -1 if no region, else which region
   int nthresh;               // # of defined threshholds
   int *thresh_array;         // array to threshhhold on for each nthresh
@@ -41,18 +42,20 @@ class DumpCustom : public Dump {
   double *dchoose;           // value for each atom to threshhold against
 
   int nfield;                // # of keywords listed by user
-  int ncompute;              // # of Compute objects called by dump
+
+  int ncompute;              // # of Compute objects used by dump
   char **id_compute;         // their IDs
   class Compute **compute;   // list of ptrs to the Compute objects
-  int *field2compute;        // which Compute computes this field
+  int *field2compute;        // which Compute calculates this field
   int *arg_compute;          // index into Compute scalar_atom,vector_atom
                              // 0 for scalar_atom, 1-N for vector_atom values
 
-                             // index = where keyword's Compute is in list
-                             // style = style of Compute object
-  int index_epair,index_ebond,index_ke,index_etotal,index_centro,index_stress;
-  char *style_epair,*style_ebond,*style_ke,*style_etotal;
-  char *style_centro,*style_stress;
+  int nfix;                  // # of Fix objects used by dump
+  char **id_fix;             // their IDs
+  class Fix **fix;           // list of ptrs to the Fix objects
+  int *field2fix;            // which Fix calculates this field
+  int *arg_fix;              // index into Fix scalar_atom,vector_atom
+                             // 0 for scalar_atom, 1-N for vector_atom values
 
   // private methods
 
@@ -62,8 +65,8 @@ class DumpCustom : public Dump {
   void write_data(int, double *);
 
   void parse_fields(int, char **);
-  int add_compute(char *, int);
-  void create_compute(char *, char *);
+  int add_compute(char *);
+  int add_fix(char *);
   int modify_param(int, char **);
 
   typedef void (DumpCustom::*FnPtrHeader)(int);
@@ -80,8 +83,6 @@ class DumpCustom : public Dump {
 
   typedef void (DumpCustom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
-
-  void pack_compute(int);
 
   void pack_tag(int);
   void pack_molecule(int);
@@ -115,17 +116,9 @@ class DumpCustom : public Dump {
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
-  void pack_etotal(int);
-  void pack_ke(int);
-  void pack_epair(int);
-  void pack_ebond(int);
-  void pack_centro(int);
-  void pack_sxx(int);
-  void pack_syy(int);
-  void pack_szz(int);
-  void pack_sxy(int);
-  void pack_sxz(int);
-  void pack_syz(int);
+
+  void pack_compute(int);
+  void pack_fix(int);
 };
 
 }

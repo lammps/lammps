@@ -22,12 +22,12 @@ class Error : protected Pointers {
  public:
   Error(class LAMMPS *);
 
-  void universe_all(char *);
-  void universe_one(char *);
+  void universe_all(const char *);
+  void universe_one(const char *);
 
-  void all(char *);
-  void one(char *);
-  void warning(char *);
+  void all(const char *);
+  void one(const char *);
+  void warning(const char *);
 };
 
 }

@@ -42,10 +42,9 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   rigid_flag = 0;
   virial_flag = 0;
   no_change_box = 0;
+  peratom_flag = 0;
 
   comm_forward = comm_reverse = 0;
-  neigh_half_once = neigh_half_every = 0;
-  neigh_full_once = neigh_full_every = 0;
 
   // mask settings - same as in modify.cpp
 

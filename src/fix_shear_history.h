@@ -20,6 +20,7 @@ namespace LAMMPS_NS {
 
 class FixShearHistory : public Fix {
   friend class Neighbor;
+  friend class PairGranHistory;
   friend class FixPour;
 
  public:
@@ -43,6 +44,8 @@ class FixShearHistory : public Fix {
   int *npartner;                // # of touching partners of each atom
   int **partner;                // tags for the partners
   double ***shearpartner;       // 3 shear values with the partner
+
+  class Pair *pair;
 };
 
 }

@@ -59,8 +59,8 @@ void DumpAtom::init()
     strcat(format,"\n");
   } else {
     char *str;
-    if (image_flag == 0) str = "%d %d %g %g %g";
-    else str = "%d %d %g %g %g %d %d %d";
+    if (image_flag == 0) str = (char *) "%d %d %g %g %g";
+    else str = (char *) "%d %d %g %g %g %d %d %d";
     int n = strlen(str) + 2;
     format = new char[n];
     strcpy(format,str);

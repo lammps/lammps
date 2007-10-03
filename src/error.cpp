@@ -29,7 +29,7 @@ Error::Error(LAMMPS *lmp) : Pointers(lmp) {}
    close all output, screen, and log files in world and universe
 ------------------------------------------------------------------------- */
 
-void Error::universe_all(char *str)
+void Error::universe_all(const char *str)
 {
   MPI_Barrier(universe->uworld);
 
@@ -53,7 +53,7 @@ void Error::universe_all(char *str)
    called by one proc in universe
 ------------------------------------------------------------------------- */
 
-void Error::universe_one(char *str)
+void Error::universe_one(const char *str)
 {
   if (universe->uscreen)
     fprintf(universe->uscreen,"ERROR on proc %d: %s\n",universe->me,str);
@@ -65,7 +65,7 @@ void Error::universe_one(char *str)
    close all output, screen, and log files in world
 ------------------------------------------------------------------------- */
 
-void Error::all(char *str)
+void Error::all(const char *str)
 {
   MPI_Barrier(world);
 
@@ -91,7 +91,7 @@ void Error::all(char *str)
    always write to universe screen 
 ------------------------------------------------------------------------- */
 
-void Error::one(char *str)
+void Error::one(const char *str)
 {
   int me;
   MPI_Comm_rank(world,&me);
@@ -106,7 +106,7 @@ void Error::one(char *str)
    only write to screen if non-NULL on this proc since could be file 
 ------------------------------------------------------------------------- */
 
-void Error::warning(char *str)
+void Error::warning(const char *str)
 {
   if (screen) fprintf(screen,"WARNING: %s\n",str);
 }

@@ -27,6 +27,8 @@
 #include "group.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "pair.h"
 #include "force.h"
 #include "memory.h"
@@ -40,8 +42,6 @@ FixRDF::FixRDF(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 8 || (narg-6) % 2) error->all("Illegal fix rdf command");
-
-  neigh_half_once = 1;
 
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix rdf command");
@@ -129,6 +129,13 @@ void FixRDF::init()
   if (force->pair) delr = force->pair->cutforce / maxbin;
   else error->all("Fix rdf requires a pair style be defined");
 
+  // need an occasional half neighbor list
+
+  int irequest = neighbor->request((void *) this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->fix = 1;
+  neighbor->requests[irequest]->occasional = 1;
+  
   delrinv = 1.0/delr;
   nframes = 0;
 
@@ -143,6 +150,14 @@ void FixRDF::init()
 	for (bin = 0; bin < maxbin; bin++)
           gr_ave[irdf][bin] = ncoord_ave[irdf][bin] = 0.0;         
       }
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRDF::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,13 +181,18 @@ void FixRDF::end_of_step()
   int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
-  int i,j,k,numneigh,itype,jtype,ipair,jpair,bin;
+  int i,j,ii,jj,inum,jnum,itype,jtype,ipair,jpair,bin;
   double xtmp,ytmp,ztmp,delx,dely,delz,r;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
-  // if needed, build a half neighbor list
+  // invoke half neighbor list (will copy or build if necessary)
 
-  if (!neighbor->half_every) neighbor->build_half();
+  neighbor->build_one(list->index);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // zero the histogram counts
 
@@ -188,17 +208,19 @@ void FixRDF::end_of_step()
   // count the interaction once even if neighbor pair is stored on 2 procs
   // if itype = jtype, count the interaction twice
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     if (mask[i] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
       itype = type[i];
-      neighs = neighbor->firstneigh[i];
-      numneigh = neighbor->numneigh[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-      for (k = 0; k < numneigh; k++) {
-        j = neighs[k];
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+
 	if (j >= nall) {
 	  if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0)
 	    continue;

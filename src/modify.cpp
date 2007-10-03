@@ -406,8 +406,8 @@ void Modify::add_fix(int narg, char **arg)
 	strcmp(style_restart_global[i],fix[ifix]->style) == 0) {
       fix[ifix]->restart(state_restart_global[i]);
       if (comm->me == 0) {
-	char *str = "Resetting global state of Fix %s Style %s "
-	  "from restart file info\n";
+	char *str = (char *) ("Resetting global state of Fix %s Style %s "
+			      "from restart file info\n");
 	if (screen) fprintf(screen,str,fix[ifix]->id,fix[ifix]->style);
 	if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
       }
@@ -422,8 +422,8 @@ void Modify::add_fix(int narg, char **arg)
       for (int j = 0; j < atom->nlocal; j++)
 	fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       if (comm->me == 0) {
-	char *str = "Resetting per-atom state of Fix %s Style %s "
-	  "from restart file info\n";
+	char *str = (char *) ("Resetting per-atom state of Fix %s Style %s "
+		     "from restart file info\n");
 	if (screen) fprintf(screen,str,fix[ifix]->id,fix[ifix]->style);
 	if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
       }
@@ -453,7 +453,7 @@ void Modify::modify_fix(int narg, char **arg)
    Atom class must update indices in its list of callbacks to fixes
 ------------------------------------------------------------------------- */
 
-void Modify::delete_fix(char *id)
+void Modify::delete_fix(const char *id)
 {
   int ifix = find_fix(id);
   if (ifix < 0) error->all("Could not find fix ID to delete");
@@ -472,7 +472,7 @@ void Modify::delete_fix(char *id)
    return index of fix or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_fix(char *id)
+int Modify::find_fix(const char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)

@@ -217,7 +217,7 @@ void Variable::set(char *name, char *value)
 {
   char **newarg = new char*[3];
   newarg[0] = name;
-  newarg[1] = "index";
+  newarg[1] = (char *) "index";
   newarg[2] = value;
   set(3,newarg);
   delete [] newarg;
@@ -697,28 +697,32 @@ double Variable::evaluate(char *str, Tree *tree)
       modify->compute[icompute]->init();
 
       // call compute() if index = 0, else compute_vector()
-      // make pre-call to Compute object's id_pre if it is defined
+      // make pre-call to Compute object's pre-compute(s) if defined
 
       int index = atoi(arg);
       if (index == 0) {
 	if (modify->compute[icompute]->scalar_flag == 0)
 	  error->all("Variable compute ID does not compute scalar info");
-	if (modify->compute[icompute]->id_pre) {
-	  int ipre = modify->find_compute(modify->compute[icompute]->id_pre);
-	  if (ipre < 0) error->all("Could not pre-compute in variable");
-	  answer = modify->compute[ipre]->compute_scalar();
-	}
+	if (modify->compute[icompute]->npre)
+	  for (int ic = 0; ic < modify->compute[icompute]->npre; ic++) {
+	    int ipre = 
+	      modify->find_compute(modify->compute[icompute]->id_pre[ic]);
+	    if (ipre < 0) error->all("Could not pre-compute in variable");
+	    double tmp = modify->compute[ipre]->compute_scalar();
+	  }
 	answer = modify->compute[icompute]->compute_scalar();
       } else if (index > 0) {
 	if (modify->compute[icompute]->vector_flag == 0)
 	  error->all("Variable compute ID does not compute scalar info");
 	if (index > modify->compute[icompute]->size_vector)
 	  error->all("Variable compute ID vector is not large enough");
-	if (modify->compute[icompute]->id_pre) {
-	  int ipre = modify->find_compute(modify->compute[icompute]->id_pre);
-	  if (ipre < 0) error->all("Could not pre-compute in variable");
-	  modify->compute[ipre]->compute_vector();
-	}
+	if (modify->compute[icompute]->npre)
+	  for (int ic = 0; ic < modify->compute[icompute]->npre; ic++) {
+	    int ipre = 
+	      modify->find_compute(modify->compute[icompute]->id_pre[ic]);
+	    if (ipre < 0) error->all("Could not pre-compute in variable");
+	    modify->compute[ipre]->compute_vector();
+	  }
 	modify->compute[icompute]->compute_vector();
 	answer = modify->compute[icompute]->vector[index-1];
       } else error->all("Invalid compute ID index in variable");

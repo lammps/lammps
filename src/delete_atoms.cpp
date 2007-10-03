@@ -22,6 +22,8 @@
 #include "group.h"
 #include "region.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
@@ -53,15 +55,15 @@ void DeleteAtoms::command(int narg, char **arg)
   // allocate and initialize deletion list
   
   int nlocal = atom->nlocal;
-  int *list = new int[nlocal];
+  int *dlist = new int[nlocal];
 
-  for (int i = 0; i < nlocal; i++) list[i] = 0;
+  for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   // delete the atoms
 
-  if (strcmp(arg[0],"group") == 0) delete_group(narg,arg,list);
-  else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg,list);
-  else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg,list);
+  if (strcmp(arg[0],"group") == 0) delete_group(narg,arg,dlist);
+  else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg,dlist);
+  else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg,dlist);
   else error->all("Illegal delete_atoms command");
 
   // delete local atoms in list
@@ -71,14 +73,14 @@ void DeleteAtoms::command(int narg, char **arg)
 
   int i = 0;
   while (i < nlocal) {
-    if (list[i]) {
+    if (dlist[i]) {
       avec->copy(nlocal-1,i);
-      list[i] = list[nlocal-1];
+      dlist[i] = dlist[nlocal-1];
       nlocal--;
     } else i++;
   }
   atom->nlocal = nlocal;
-  delete [] list;
+  delete [] dlist;
 
   // if non-molecular system, reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
@@ -120,7 +122,7 @@ void DeleteAtoms::command(int narg, char **arg)
    group will still exist
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_group(int narg, char **arg, int *list)
+void DeleteAtoms::delete_group(int narg, char **arg, int *dlist)
 {
   if (narg != 2) error->all("Illegal delete_atoms command");
 
@@ -132,14 +134,14 @@ void DeleteAtoms::delete_group(int narg, char **arg, int *list)
   int groupbit = group->bitmask[igroup];
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) list[i] = 1;
+    if (mask[i] & groupbit) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
    delete all atoms in region
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_region(int narg, char **arg, int *list)
+void DeleteAtoms::delete_region(int narg, char **arg, int *dlist)
 {
   if (narg != 2) error->all("Illegal delete_atoms command");
   
@@ -150,7 +152,7 @@ void DeleteAtoms::delete_region(int narg, char **arg, int *list)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) list[i] = 1;
+    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -160,7 +162,7 @@ void DeleteAtoms::delete_region(int narg, char **arg, int *list)
    no guarantee that minimium number of atoms will be deleted
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
+void DeleteAtoms::delete_overlap(int narg, char **arg, int *dlist)
 {
   if (narg < 2) error->all("Illegal delete_atoms command");
     
@@ -180,19 +182,29 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
     type2 = atoi(arg[3]);
   } else error->all("Illegal delete_atoms command");
 
-  // init entire system since comm->borders and neighbor->build is done
-  // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
-  // set half_command since will require half neigh list even if
-  //   neighbor would otherwise not create one, then unset it
-
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for delete_atoms ...\n");
-  neighbor->half_command = 1;
+
+  // request a half neighbor list for use by this command
+
+  int irequest = neighbor->request((void *) this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->command = 1;
+  neighbor->requests[irequest]->occasional = 1;
+
+  // init entire system since comm->borders and neighbor->build is done
+  // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+  
   lmp->init();
-  neighbor->half_command = 0;
+
+  // error check on cutoff
+
+  if (cut > neighbor->cutghost) 
+    error->all("Delete_atoms cutoff > ghost cutoff");
 
   // setup domain, communication and neighboring
   // acquire ghosts
+  // build neighbor list based on earlier request
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
@@ -203,16 +215,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
-  // call to build() forces memory allocation for neighbor lists
-  // build half list explicitly if build() doesn't do it
-
-  neighbor->build();
-  if (!neighbor->half_every) neighbor->build_half();
-
-  // error check on cutoff
-
-  if (cut > neighbor->cutghost) 
-    error->all("Delete_atoms cutoff > ghost cutoff");
+  NeighList *list = neighbor->lists[irequest];
+  neighbor->build_one(irequest);
 
   // create an atom map if one doesn't exist already
 
@@ -245,30 +249,37 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
-  int i,j,k,m,itype,jtype,numneigh;
+  int i,j,ii,jj,m,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
-  for (i = 0; i < nlocal; i++) {
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
-    
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+
       if (j >= nall) {
 	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0) continue;
 	j %= nall;
       }
 
       if (j < nlocal) {
-	if (list[j]) continue;
+	if (dlist[j]) continue;
       } else {
 	m = atom->map(tag[j]);
-	if (m < nlocal && list[m]) continue;
+	if (m < nlocal && dlist[m]) continue;
       }
 
       delx = xtmp - x[j][0];
@@ -286,7 +297,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *list)
 
       if (j >= nlocal && newton_pair == 0 && tag[j] < tag[i]) continue;
 
-      list[i] = 1;
+      dlist[i] = 1;
       break;
     }
   }

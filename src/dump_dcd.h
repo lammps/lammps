@@ -38,7 +38,7 @@ class DumpDCD : public Dump {
   void write_data(int, double *);
 
   void write_frame();
-  void write_dcd_header(char *);
+  void write_dcd_header(const char *);
   void fwrite_int32(FILE *, uint32_t);
 };
 

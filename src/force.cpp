@@ -65,7 +65,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   improper = NULL;
   kspace = NULL;
 
-  char *str = "none";
+  char *str = (char *) "none";
   int n = strlen(str) + 1;
   pair_style = new char[n];
   strcpy(pair_style,str);
@@ -120,7 +120,7 @@ void Force::init()
    create a pair style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_pair(char *style)
+void Force::create_pair(const char *style)
 {
   delete [] pair_style;
   if (pair) delete pair;
@@ -135,7 +135,7 @@ void Force::create_pair(char *style)
    generate a pair class
 ------------------------------------------------------------------------- */
 
-Pair *Force::new_pair(char *style)
+Pair *Force::new_pair(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
@@ -154,14 +154,21 @@ Pair *Force::new_pair(char *style)
    else return NULL
 ------------------------------------------------------------------------- */
 
-Pair *Force::pair_match(char *word)
+Pair *Force::pair_match(const char *word)
 {
   if (strstr(pair_style,word)) return pair;
   else if (strcmp(pair_style,"hybrid") == 0) {
-    PairHybrid *pair_hybrid = (PairHybrid *) pair;
-    for (int i = 0; i < pair_hybrid->nstyles; i++)
-      if (strstr(pair_hybrid->keywords[i],word))
-	return pair_hybrid->styles[i];
+    PairHybrid *hybrid = (PairHybrid *) pair;
+    for (int i = 0; i < hybrid->nstyles; i++) {
+      if (strstr(hybrid->keywords[i],word))
+	return hybrid->styles[i];
+    }
+  } else if (strcmp(pair_style,"hybrid/overlay") == 0) {
+    PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
+    for (int i = 0; i < hybrid->nstyles; i++) {
+      if (strstr(hybrid->keywords[i],word))
+	return hybrid->styles[i];
+    }
   }
   return NULL;
 }
@@ -170,7 +177,7 @@ Pair *Force::pair_match(char *word)
    create a bond style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_bond(char *style)
+void Force::create_bond(const char *style)
 {
   delete [] bond_style;
   if (bond) delete bond;
@@ -185,7 +192,7 @@ void Force::create_bond(char *style)
    generate a bond class
 ------------------------------------------------------------------------- */
 
-Bond *Force::new_bond(char *style)
+Bond *Force::new_bond(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
@@ -203,13 +210,13 @@ Bond *Force::new_bond(char *style)
    return ptr to current bond class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
-Bond *Force::bond_match(char *style)
+Bond *Force::bond_match(const char *style)
 {
   if (strcmp(bond_style,style) == 0) return bond;
   else if (strcmp(bond_style,"hybrid") == 0) {
-    BondHybrid *hbond = (BondHybrid *) bond;
-    for (int i = 0; i < hbond->nstyles; i++)
-      if (strcmp(hbond->keywords[i],style) == 0) return hbond->styles[i];
+    BondHybrid *hybrid = (BondHybrid *) bond;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
   }
   return NULL;
 }
@@ -218,7 +225,7 @@ Bond *Force::bond_match(char *style)
    create an angle style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_angle(char *style)
+void Force::create_angle(const char *style)
 {
   delete [] angle_style;
   if (angle) delete angle;
@@ -233,7 +240,7 @@ void Force::create_angle(char *style)
    generate an angle class
 ------------------------------------------------------------------------- */
 
-Angle *Force::new_angle(char *style)
+Angle *Force::new_angle(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
@@ -251,7 +258,7 @@ Angle *Force::new_angle(char *style)
    create a dihedral style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_dihedral(char *style)
+void Force::create_dihedral(const char *style)
 {
   delete [] dihedral_style;
   if (dihedral) delete dihedral;
@@ -266,7 +273,7 @@ void Force::create_dihedral(char *style)
    generate a dihedral class
 ------------------------------------------------------------------------- */
 
-Dihedral *Force::new_dihedral(char *style)
+Dihedral *Force::new_dihedral(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
@@ -284,7 +291,7 @@ Dihedral *Force::new_dihedral(char *style)
    create an improper style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_improper(char *style)
+void Force::create_improper(const char *style)
 {
   delete [] improper_style;
   if (improper) delete improper;
@@ -299,7 +306,7 @@ void Force::create_improper(char *style)
    generate a improper class
 ------------------------------------------------------------------------- */
 
-Improper *Force::new_improper(char *style)
+Improper *Force::new_improper(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 

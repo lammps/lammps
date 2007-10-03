@@ -27,7 +27,7 @@
 #   just longer than the other (has new stuff added)
 
 set glob
-set style = `echo $1 | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`
+set style = `echo $1 | sed 'y/-ABCDEFGHIJKLMNOPQRSTUVWXYZ/_abcdefghijklmnopqrstuvwxyz/'`
 cd $1
 
 if ($2 == "status") then

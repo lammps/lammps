@@ -25,6 +25,7 @@ class FixRDF : public Fix {
   ~FixRDF();
   int setmask();
   void init();
+  void init_list(int, class NeighList *);
   void setup();
   void end_of_step();
 
@@ -39,6 +40,7 @@ class FixRDF : public Fix {
   int **hist,**hist_all;	 // histogram bins
   int *nrdfatoms;             	 // # of atoms of each type in the group
   double **gr_ave,**ncoord_ave;  // accumulators for average rdf statistics
+  class NeighList *list;         // half neighbor list
 };
 
 }

@@ -29,8 +29,6 @@ class Pair : protected Pointers {
 
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
-  int neigh_half_every;          // 0/1 = if needs half neighbor list
-  int neigh_full_every;          // 0/1 = if needs full neighbor list
 
   int single_enable;             // 1 if single() routine exists
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
@@ -40,11 +38,17 @@ class Pair : protected Pointers {
   double etail,ptail;            // energy/pressure tail corrections
   double etail_ij,ptail_ij;
 
+  class NeighList *list;         // standard neighbor list used by most pairs
+  class NeighList *listhalf;     // half list used by some pairs
+  class NeighList *listfull;     // full list used by some pairs
+  class NeighList *listgranhistory;  // granular history list used by some
+  class NeighList *listinner;    // rRESPA lists used by some pairs
+  class NeighList *listmiddle;
+  class NeighList *listouter;
+
   struct One {                   // single interaction between 2 atoms
     double fforce;
     double eng_vdwl,eng_coul;
-    double fx,fy,fz;
-    double tix,tiy,tiz,tjx,tjy,tjz;
   };
 
   Pair(class LAMMPS *);
@@ -63,16 +67,19 @@ class Pair : protected Pointers {
   // general child-class methods
 
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) = 0;
-  virtual void coeff(int, char **) = 0;
-
-  virtual double init_one(int, int) {return 0.0;}
-  virtual void init_style() {}
   virtual void compute_inner() {}
   virtual void compute_middle() {}
   virtual void compute_outer(int, int) {}
+
   virtual void single(int, int, int, int,
 		      double, double, double, int, One &) {}
+
+  virtual void settings(int, char **) = 0;
+  virtual void coeff(int, char **) = 0;
+
+  virtual void init_style();
+  virtual void init_list(int, class NeighList *);
+  virtual double init_one(int, int) {return 0.0;}
 
   virtual void write_restart(FILE *) {}
   virtual void read_restart(FILE *) {}
@@ -88,6 +95,9 @@ class Pair : protected Pointers {
   // specific child-class methods for certain Pair styles
   
   virtual void single_embed(int, int, double &) {}
+
+  virtual void *extract_ptr(char *) {return NULL;}
+
   virtual void extract_charmm(double ***, double ***,
 			      double ***, double ***, int *) {}
   virtual void extract_dipole(double ***) {}

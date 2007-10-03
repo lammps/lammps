@@ -11,25 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_ETOTAL_ATOM_H
-#define COMPUTE_ETOTAL_ATOM_H
+#ifndef PAIR_COUL_CUT_H
+#define PAIR_COUL_CUT_H
 
-#include "compute.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class ComputeEtotalAtom : public Compute {
+class PairCoulCut : public Pair {
  public:
-  ComputeEtotalAtom(class LAMMPS *, int, char **);
-  ~ComputeEtotalAtom();
-  void init();
-  void compute_peratom();
-  int memory_usage();
+  PairCoulCut(class LAMMPS *);
+  ~PairCoulCut();
+  void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  void init_style();
+  double init_one(int, int);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  void single(int, int, int, int, double, double, double, int, One &);
 
  private:
-  int nmax;
-  double *etotal;
-  Compute *compute_epair;
+  double cut_global;
+  double **cut;
+
+  void allocate();
 };
 
 }

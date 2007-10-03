@@ -23,6 +23,7 @@ class ComputeCoordAtom : public Compute {
   ComputeCoordAtom(class LAMMPS *, int, char **);
   ~ComputeCoordAtom();
   void init();
+  void init_list(int, class NeighList *);
   void compute_peratom();
   int memory_usage();
 
@@ -30,6 +31,7 @@ class ComputeCoordAtom : public Compute {
   int nmax;
   double cutoff;
   double *coordination;
+  class NeighList *list;
 };
 
 }

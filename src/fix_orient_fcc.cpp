@@ -24,6 +24,8 @@
 #include "update.h"
 #include "respa.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "comm.h"
 #include "output.h"
 #include "error.h"
@@ -43,8 +45,6 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
 
   if (narg != 11) error->all("Illegal fix orient/fcc command");
-
-  neigh_full_every = 1;
 
   nstats = atoi(arg[3]);
   direction_of_motion = atoi(arg[4]);
@@ -173,6 +173,21 @@ void FixOrientFCC::init()
 {
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  // need a full neighbor list, built when ever re-neighboring occurs
+
+  int irequest = neighbor->request((void *) this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->fix = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixOrientFCC::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -194,8 +209,8 @@ void FixOrientFCC::setup()
 
 void FixOrientFCC::post_force(int vflag)
 {
-  int i,j,k,m,n,nn,nsort,id_self;
-  int *neighs;
+  int i,j,k,ii,jj,inum,jnum,m,n,nn,nsort,id_self;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   double edelta,added_energy,omega;
   double dx,dy,dz,rsq,xismooth,xi_sq,duxi,duxi_other;
   double dxi[3];
@@ -215,6 +230,11 @@ void FixOrientFCC::post_force(int vflag)
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
   // insure nbr data structure is adequate size
 
   if (nall > nmax) {
@@ -231,15 +251,16 @@ void FixOrientFCC::post_force(int vflag)
   int mincount = BIG;
   int maxcount = 0;
 
-  for (i = 0; i < nlocal; i++) {
-    neighs = neighbor->firstneigh_full[i];
-    n = neighbor->numneigh_full[i];
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    if (n < mincount) mincount = n;
-    if (n > maxcount) {
+    if (jnum < mincount) mincount = jnum;
+    if (jnum > maxcount) {
       if (maxcount) delete [] sort;
-      sort = new Sort[n];
-      maxcount = n;
+      sort = new Sort[jnum];
+      maxcount = jnum;
     }
 
     // loop over all neighbors of atom i
@@ -247,8 +268,8 @@ void FixOrientFCC::post_force(int vflag)
     // store local id, rsq, delta vector, xismooth (if included)
 
     nsort = 0;
-    for (k = 0; k < n; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       count++;
 
       dx = x[i][0] - x[j][0];
@@ -319,7 +340,8 @@ void FixOrientFCC::post_force(int vflag)
   // compute grain boundary force on each owned atom
   // skip atoms not in group
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
     n = nbr[i].n;
     duxi = nbr[i].duxi;

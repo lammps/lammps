@@ -23,6 +23,7 @@ class ComputeCentroAtom : public Compute {
   ComputeCentroAtom(class LAMMPS *, int, char **);
   ~ComputeCentroAtom();
   void init();
+  void init_list(int, class NeighList *);
   void compute_peratom();
   int memory_usage();
 
@@ -31,6 +32,7 @@ class ComputeCentroAtom : public Compute {
   double *distsq;
   int *nearest;
   double *centro;
+  class NeighList *list;
 
   void select(int, int, double *);
   void select2(int, int, double *, int *);

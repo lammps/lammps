@@ -24,6 +24,8 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "update.h"
 #include "integrate.h"
 #include "respa.h"
@@ -65,36 +67,40 @@ PairLJCut::~PairLJCut()
 
 void PairLJCut::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r2inv,r6inv,forcelj,fforce,factor_lj,philj;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_lj = 1.0;
       else {
@@ -149,21 +155,24 @@ void PairLJCut::compute(int eflag, int vflag)
 
 void PairLJCut::compute_inner()
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r2inv,r6inv,forcelj,fforce,factor_lj;
-  double rsw;
-  int *neighs;
-  double **f;
+  double rsq,r2inv,r6inv,forcelj,fforce,factor_lj,rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
-  f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   
+  inum = listinner->inum;
+  ilist = listinner->ilist;
+  numneigh = listinner->numneigh;
+  firstneigh = listinner->firstneigh;
+
   double cut_out_on = cut_respa[0];
   double cut_out_off = cut_respa[1];
   
@@ -173,16 +182,17 @@ void PairLJCut::compute_inner()
   
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh_inner[i];
-    numneigh = neighbor->numneigh_inner[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       
       if (j < nall) factor_lj = 1.0;
       else {
@@ -223,20 +233,23 @@ void PairLJCut::compute_inner()
 
 void PairLJCut::compute_middle()
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r2inv,r6inv,forcelj,fforce,factor_lj;
-  double rsw;
-  int *neighs;
-  double **f;
+  double rsq,r2inv,r6inv,forcelj,fforce,factor_lj,rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
-  f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
+
+  inum = listmiddle->inum;
+  ilist = listmiddle->ilist;
+  numneigh = listmiddle->numneigh;
+  firstneigh = listmiddle->firstneigh;
 
   double cut_in_off = cut_respa[0];
   double cut_in_on = cut_respa[1];
@@ -252,16 +265,17 @@ void PairLJCut::compute_middle()
 
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh_middle[i];
-    numneigh = neighbor->numneigh_middle[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_lj = 1.0;
       else {
@@ -306,23 +320,26 @@ void PairLJCut::compute_middle()
 
 void PairLJCut::compute_outer(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r2inv,r6inv,forcelj,fforce,factor_lj,philj;
-  double rsw;
-  int *neighs;
-  double **f;
+  double rsq,r2inv,r6inv,forcelj,fforce,factor_lj,philj,rsw;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
+
+  inum = listouter->inum;
+  ilist = listouter->ilist;
+  numneigh = listouter->numneigh;
+  firstneigh = listouter->firstneigh;
 
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
@@ -333,16 +350,17 @@ void PairLJCut::compute_outer(int eflag, int vflag)
 
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_lj = 1.0;
       else {
@@ -485,6 +503,62 @@ void PairLJCut::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all("Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLJCut::init_style()
+{
+  // request regular or rRESPA neighbor lists
+
+  int irequest;
+
+  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+    int respa = 0;
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+
+    if (respa == 0) irequest = neighbor->request(this);
+    else if (respa == 1) {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    } else {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 2;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respamiddle = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    }
+
+  } else irequest = neighbor->request(this);
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   regular or rRESPA
+------------------------------------------------------------------------- */
+
+void PairLJCut::init_list(int id, NeighList *ptr)
+{
+  if (id == 0) list = ptr;
+  else if (id == 1) listinner = ptr;
+  else if (id == 2) listmiddle = ptr;
+  else if (id == 3) listouter = ptr;
 }
 
 /* ----------------------------------------------------------------------

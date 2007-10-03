@@ -15,10 +15,9 @@
 #include "stdlib.h"
 #include "pair_lj_cut_coul_debye.h"
 #include "atom.h"
-#include "neighbor.h"
+#include "neigh_list.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -31,20 +30,18 @@ PairLJCutCoulDebye::PairLJCutCoulDebye(LAMMPS *lmp) : PairLJCutCoulCut(lmp) {}
 
 void PairLJCutCoulDebye::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
   double factor,phicoul,philj;
   double r,rinv,screening;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = eng_coul = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -54,19 +51,25 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_coul = factor_lj = 1.0;
       else {

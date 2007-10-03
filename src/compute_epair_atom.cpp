@@ -15,6 +15,8 @@
 #include "compute_epair_atom.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "modify.h"
 #include "comm.h"
 #include "update.h"
@@ -38,7 +40,6 @@ ComputeEpairAtom::ComputeEpairAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom = 0;
   comm_reverse = 1;
-  neigh_half_once = 1;
 
   nmax = 0;
   energy = NULL;
@@ -58,6 +59,13 @@ void ComputeEpairAtom::init()
   if (force->pair == NULL || force->pair->single_enable == 0)
     error->all("Pair style does not support computing per-atom energy");
 
+  // need an occasional half neighbor list
+
+  int irequest = neighbor->request((void *) this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->compute = 1;
+  neighbor->requests[irequest]->occasional = 1;
+
   if (force->pair_match("eam")) eamstyle = 1;
   else eamstyle = 0;
 
@@ -70,12 +78,19 @@ void ComputeEpairAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeEpairAtom::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeEpairAtom::compute_peratom()
 {
-  int i,j,k,n,itype,jtype,numneigh,iflag;
+  int i,j,ii,jj,n,inum,jnum,itype,jtype,iflag,jflag;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double factor_coul,factor_lj,eng;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   Pair::One one;
 
   // grow energy array if necessary
@@ -99,12 +114,18 @@ void ComputeEpairAtom::compute_peratom()
 
   for (i = 0; i < n; i++) energy[i] = 0.0;
 
-  // if needed, build a half neighbor list
+  // invoke half neighbor list (will copy or build if necessary)
 
-  if (!neighbor->half_every) neighbor->build_half();
+  neighbor->build_one(list->index);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // compute pairwise energy for atoms via pair->single()
   // if neither atom is in compute group, skip that pair
+  // only add energy to atoms in group
 
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -115,18 +136,20 @@ void ComputeEpairAtom::compute_peratom()
   int *type = atom->type;
   int nall = nlocal + atom->nghost;
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
     iflag = mask[i] & groupbit;
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
-    
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
-      if (iflag == 0 && (mask[j] & groupbit) == 0) continue;
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      jflag = mask[j] & groupbit;
+      if (iflag == 0 && jflag == 0) continue;
 
       if (j < nall) factor_coul = factor_lj = 1.0;
       else {
@@ -144,8 +167,8 @@ void ComputeEpairAtom::compute_peratom()
       if (rsq < cutsq[itype][jtype]) {
 	force->pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,1,one);
 	eng = one.eng_coul + one.eng_vdwl;
-	energy[i] += eng;
-	if (newton_pair || j < nlocal) energy[j] += eng;
+	if (iflag) energy[i] += eng;
+	if (jflag && (newton_pair || j < nlocal)) energy[j] += eng;
       }
     }
   }
@@ -162,7 +185,8 @@ void ComputeEpairAtom::compute_peratom()
   // only for atoms in compute group
 
   if (eamstyle) {
-    for (i = 0; i < nlocal; i++) {
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
       if (mask[i] & groupbit) {
 	force->pair->single_embed(i,type[i],eng);
 	energy[i] += eng;

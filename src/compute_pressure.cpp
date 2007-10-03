@@ -42,11 +42,13 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
 
+  npre = 1;
+  id_pre = new char*[1];
   int n = strlen(arg[3]) + 1;
-  id_pre = new char[n];
-  strcpy(id_pre,arg[3]);
+  id_pre[0] = new char[n];
+  strcpy(id_pre[0],arg[3]);
 
-  int icompute = modify->find_compute(id_pre);
+  int icompute = modify->find_compute(id_pre[0]);
 
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   if (modify->compute[icompute]->tempflag == 0)
@@ -66,7 +68,6 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePressure::~ComputePressure()
 {
-  delete [] id_pre;
   delete [] vector;
   delete [] vptr;
 }
@@ -81,7 +82,7 @@ void ComputePressure::init()
 
   // set temperature used by pressure
 
-  int icompute = modify->find_compute(id_pre);
+  int icompute = modify->find_compute(id_pre[0]);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   temperature = modify->compute[icompute];
 

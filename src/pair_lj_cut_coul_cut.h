@@ -25,8 +25,8 @@ class PairLJCutCoulCut : public Pair {
   virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  double init_one(int, int);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);

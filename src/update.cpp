@@ -41,19 +41,16 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   firststep = laststep = 0;
   beginstep = endstep = 0;
 
-  maxpair = 0;
-  f_pair = NULL;
-
   unit_style = NULL;
   set_units("lj");
 
-  str = "verlet";
+  str = (char *) "verlet";
   n = strlen(str) + 1;
   integrate_style = new char[n];
   strcpy(integrate_style,str);
   integrate = new Verlet(lmp,0,NULL);
 
-  str = "cg";
+  str = (char *) "cg";
   n = strlen(str) + 1;
   minimize_style = new char[n];
   strcpy(minimize_style,str);
@@ -64,8 +61,6 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 
 Update::~Update()
 {
-  memory->destroy_2d_double_array(f_pair);
-
   delete [] unit_style;
 
   delete [] integrate_style;
@@ -93,7 +88,7 @@ void Update::init()
 
 /* ---------------------------------------------------------------------- */
 
-void Update::set_units(char *style)
+void Update::set_units(const char *style)
 {
   // physical constants from:
   // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
@@ -190,7 +185,7 @@ void Update::create_minimize(int narg, char **arg)
 
 int Update::memory_usage()
 {
-  int bytes = maxpair*3 * sizeof(double);
+  int bytes = 0;
   if (whichflag == 0) bytes += integrate->memory_usage();
   else if (whichflag == 1) bytes += minimize->memory_usage();
   return bytes;

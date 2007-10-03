@@ -21,11 +21,13 @@
 #include "string.h"
 #include "pair_sw.h"
 #include "atom.h"
+#include "neighbor.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 
@@ -38,8 +40,6 @@ using namespace LAMMPS_NS;
 
 PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
 {
-  neigh_half_every = 0;
-  neigh_full_every = 1;
   single_enable = 0;
   one_coeff = 1;
 
@@ -74,22 +74,25 @@ PairSW::~PairSW()
 
 void PairSW::compute(int eflag, int vflag)
 {
-  int i,j,k,m,n,itag,jtag,itype,jtype,ktype,iparam,numneigh;
+  int i,j,k,ii,jj,kk,inum,jnum,jnumm1,itag,jtag,itype,jtype,ktype,iparam;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,rsq1,rsq2,eng,fforce;
   double delr1[3],delr2[3],fj[3],fk[3];
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // loop over full neighbor list of my atoms
 
@@ -102,11 +105,11 @@ void PairSW::compute(int eflag, int vflag)
 
     // two-body interactions, skip half of them
 
-    neighs = neighbor->firstneigh_full[i];
-    numneigh = neighbor->numneigh_full[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (m = 0; m < numneigh; m++) {
-      j = neighs[m];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -145,12 +148,14 @@ void PairSW::compute(int eflag, int vflag)
     // cannot test I-J distance against cutoff outside of 2nd loop
     // b/c must use I-J-K cutoff for both rij and rik
 
-    for (m = 0; m < numneigh-1; m++) {
-      j = neighs[m];
+    jnumm1 = jnum - 1;
+
+    for (jj = 0; jj < jnumm1; jj++) {
+      j = jlist[jj];
       jtype = map[type[j]];
 
-      for (n = m+1; n < numneigh; n++) {
-	k = neighs[n];
+      for (kk = jj+1; kk < jnum; kk++) {
+	k = jlist[kk];
 	ktype = map[type[k]];
 	iparam = elem2param[itype][jtype][ktype];
 
@@ -279,6 +284,24 @@ void PairSW::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairSW::init_style()
+{
+  if (atom->tag_enable == 0)
+    error->all("Pair style Stillinger-Weber requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all("Pair style Stillinger-Weber requires newton pair on");
+
+  // need a full neighbor list
+
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -287,16 +310,6 @@ double PairSW::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
 
   return cutmax;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairSW::init_style()
-{
-  if (atom->tag_enable == 0)
-    error->all("Pair style Stillinger-Weber requires atom IDs");
-  if (force->newton_pair == 0)
-    error->all("Pair style Stillinger-Weber requires newton pair on");
 }
 
 /* ---------------------------------------------------------------------- */

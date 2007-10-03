@@ -22,10 +22,13 @@
 #include "mpi.h"
 #include "pair_airebo.h"
 #include "atom.h"
+#include "neighbor.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
 
@@ -43,8 +46,6 @@ using namespace LAMMPS_NS;
 
 PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 {
-  neigh_half_every = 0;
-  neigh_full_every = 1;
   single_enable = 0;
   one_coeff = 1;
 
@@ -89,9 +90,7 @@ void PairAIREBO::compute(int eflag, int vflag)
   eng_vdwl = 0.0;
   if (vflag) for (int i = 0; i < 6; i++) virial[i] = 0.0;
 
-  double **f;
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
+  double **f = atom->f;
 	
   REBO_neigh();
   FREBO(eflag,f);
@@ -201,6 +200,30 @@ void PairAIREBO::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairAIREBO::init_style()
+{
+  if (atom->tag_enable == 0)
+    error->all("Pair style AIREBO requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all("Pair style AIREBO requires newton pair on");
+
+  // need a full neighbor list
+
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+
+  // local REBO neighbor list memory
+
+  pgsize = neighbor->pgsize;
+  oneatom = neighbor->oneatom;
+  if (maxlocal == 0) add_pages(0);
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -263,30 +286,16 @@ double PairAIREBO::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairAIREBO::init_style()
-{
-  if (atom->tag_enable == 0)
-    error->all("Pair style AIREBO requires atom IDs");
-  if (force->newton_pair == 0)
-    error->all("Pair style AIREBO requires newton pair on");
-
-  pgsize = neighbor->pgsize;
-  oneatom = neighbor->oneatom;
-  if (maxlocal == 0) add_pages(0);
-}
-
-/* ----------------------------------------------------------------------
    create REBO neighbor list from main neighbor list
+   REBO neighbor list stores neighbors of ghost atoms
 ------------------------------------------------------------------------- */
 
 void PairAIREBO::REBO_neigh()
 {
-  int i,j,k,n,itype,jtype,m,numneigh;
+  int i,j,ii,jj,m,n,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
-  int *neighptr,*neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *neighptr;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -307,6 +316,11 @@ void PairAIREBO::REBO_neigh()
     nH = new double[maxlocal];
   }
   
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
   // initialize ghost atom references to -1
 
   for (i = nlocal; i < nall; i++) REBO_numneigh[i] = -1;
@@ -320,7 +334,9 @@ void PairAIREBO::REBO_neigh()
   npage = 0;
   int npnt = 0;
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
@@ -334,11 +350,11 @@ void PairAIREBO::REBO_neigh()
     ztmp = x[i][2];
     itype = map[type[i]];
     nC[i] = nH[i] = 0.0;
-    neighs = neighbor->firstneigh_full[i];
-    numneigh = neighbor->numneigh_full[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -399,11 +415,11 @@ void PairAIREBO::REBO_neigh()
     else
       nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
 
-    neighs = neighbor->firstneigh_full[m];
-    numneigh = neighbor->numneigh_full[m];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       if (j == i) continue;
       jtype = map[type[j]];
       delx = xtmp - x[j][0];
@@ -503,14 +519,15 @@ void PairAIREBO::FREBO(int eflag, double **f)
 
 void PairAIREBO::FLJ(int eflag, double **f)
 {
-  int i,j,k,m,jj,kk,mm,itype,jtype,ktype,mtype;
-  int numneigh,atomi,atomj,atomk,atomm;
+  int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype;
+  int atomi,atomj,atomk,atomm;
   int testpath,npath,done;
   double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
   double delij[3],rijsq,delik[3],rik,delkj[3];
   double rkj,wkj,dC,VLJ,dVLJ,fforce,VA,Str,dStr,Stb;
   double delkm[3],rkm,delmj[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
-  int *neighs,*REBO_neighs_i,*REBO_neighs_k;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *REBO_neighs_i,*REBO_neighs_k;
   double delikS[3],delkjS[3],delkmS[3],delmjS[3];
   double rikS,rkjS,rkmS,rmjS,wikS,dwikS;
   double wkjS,dwkjS,wkmS,dwkmS,wmjS,dwmjS;
@@ -523,14 +540,23 @@ void PairAIREBO::FLJ(int eflag, double **f)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   
-  for (i = 0; i < nlocal; i++) {
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     itype = map[type[i]];
-    neighs = neighbor->firstneigh_full[i];
-    numneigh = neighbor->numneigh_full[i];
-    atomi=i;
-    for (jj = 0; jj < numneigh; jj++) {
-      j = neighs[jj];
-      atomj=j;
+    atomi = i;
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      atomj = j;
       if (tag[i] > tag[j]) continue;
       jtype = map[type[j]];
 

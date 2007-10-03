@@ -25,8 +25,8 @@ class PairEAM : public Pair {
   void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  double init_one(int, int);
   void single(int, int, int, int, double, double, double, int, One &);
 
   void single_embed(int, int, double &);

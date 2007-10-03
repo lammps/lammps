@@ -22,9 +22,9 @@
 #include "pair_eam.h"
 #include "atom.h"
 #include "force.h"
-#include "update.h"
 #include "comm.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 
@@ -124,12 +124,11 @@ PairEAM::~PairEAM()
 
 void PairEAM::compute(int eflag, int vflag)
 {
-  int i,j,k,m,numneigh,itype,jtype;
+  int i,j,ii,jj,m,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r,p,fforce,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   // grow energy array if necessary
 
@@ -144,13 +143,17 @@ void PairEAM::compute(int eflag, int vflag)
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // zero out density
 
   if (newton_pair) {
@@ -161,16 +164,17 @@ void PairEAM::compute(int eflag, int vflag)
   // rho = density at each atom
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -201,7 +205,8 @@ void PairEAM::compute(int eflag, int vflag)
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     p = rho[i]*rdrho + 1.0;
     m = static_cast<int> (p);
     m = MAX(1,MIN(m,nrho-1));
@@ -219,16 +224,18 @@ void PairEAM::compute(int eflag, int vflag)
   // compute forces on each atom
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -383,6 +390,20 @@ void PairEAM::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairEAM::init_style()
+{
+  // convert read-in file(s) to arrays and spline them
+
+  file2array();
+  array2spline();
+
+  int irequest = neighbor->request(this);
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -402,18 +423,6 @@ double PairEAM::init_one(int i, int j)
   cutforcesq = cutmax*cutmax;
 
   return cutmax;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairEAM::init_style()
-{
-  // convert read-in file(s) to arrays and spline them
-
-  file2array();
-  array2spline();
 }
 
 /* ----------------------------------------------------------------------

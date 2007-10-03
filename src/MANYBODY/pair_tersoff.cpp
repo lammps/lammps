@@ -21,11 +21,11 @@
 #include "string.h"
 #include "pair_tersoff.h"
 #include "atom.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
-#include "memory.h"
-#include "neighbor.h"
 #include "memory.h"
 #include "error.h"
 
@@ -38,8 +38,6 @@ using namespace LAMMPS_NS;
 
 PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
 {
-  neigh_half_every = 0;
-  neigh_full_every = 1;
   single_enable = 0;
   one_coeff = 1;
 
@@ -77,27 +75,32 @@ PairTersoff::~PairTersoff()
 
 void PairTersoff::compute(int eflag, int vflag)
 {
-  int i,j,k,m,n,itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk,numneigh;
+  int i,j,k,ii,jj,kk,inum,jnum;
+  int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,rsq1,rsq2,eng,fforce;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
   // loop over full neighbor list of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     itag = tag[i];
     itype = map[type[i]];
     xtmp = x[i][0];
@@ -106,11 +109,11 @@ void PairTersoff::compute(int eflag, int vflag)
 
     // two-body interactions, skip half of them
 
-    neighs = neighbor->firstneigh_full[i];
-    numneigh = neighbor->numneigh_full[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (m = 0; m < numneigh; m++) {
-      j = neighs[m];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -148,8 +151,8 @@ void PairTersoff::compute(int eflag, int vflag)
     // three-body interactions
     // skip immediately if I-J is not within cutoff
 
-    for (m = 0; m < numneigh; m++) {
-      j = neighs[m];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -162,9 +165,10 @@ void PairTersoff::compute(int eflag, int vflag)
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
       zeta_ij = 0.0;
-      for (n = 0; n < numneigh; n++) {
-	if (n == m) continue;
-	k = neighs[n];
+
+      for (kk = 0; kk < jnum; kk++) {
+	if (jj == kk) continue;
+	k = jlist[kk];
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -191,9 +195,9 @@ void PairTersoff::compute(int eflag, int vflag)
 
       // attractive term via loop over k
 
-      for (n = 0; n < numneigh; n++) {
-	if (n == m) continue;
-	k = neighs[n];
+      for (kk = 0; kk < jnum; kk++) {
+	if (jj == kk) continue;
+	k = jlist[kk];
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -316,6 +320,24 @@ void PairTersoff::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairTersoff::init_style()
+{
+  if (atom->tag_enable == 0)
+    error->all("Pair style Tersoff requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all("Pair style Tersoff requires newton pair on");
+
+  // need a full neighbor list
+
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -324,16 +346,6 @@ double PairTersoff::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
 
   return cutmax;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairTersoff::init_style()
-{
-  if (atom->tag_enable == 0)
-    error->all("Pair style Tersoff requires atom IDs");
-  if (force->newton_pair == 0)
-    error->all("Pair style Tersoff requires newton pair on");
 }
 
 /* ---------------------------------------------------------------------- */

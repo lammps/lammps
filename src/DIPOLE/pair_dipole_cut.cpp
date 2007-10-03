@@ -16,9 +16,9 @@
 #include "pair_dipole_cut.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "comm.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 
@@ -29,7 +29,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairDipoleCut::PairDipoleCut(LAMMPS *lmp) : Pair(lmp) {}
+PairDipoleCut::PairDipoleCut(LAMMPS *lmp) : Pair(lmp)
+{
+  single_enable = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,7 +60,7 @@ PairDipoleCut::~PairDipoleCut()
 
 void PairDipoleCut::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,rinv,r2inv,r6inv,r3inv,r5inv,r7inv;
   double forcecoulx,forcecouly,forcecoulz,fforce,crossx,crossy,crossz;
@@ -66,15 +69,13 @@ void PairDipoleCut::compute(int eflag, int vflag)
   double pdotp,pidotr,pjdotr,pre1,pre2,pre3,pre4;
   double forcelj,factor_coul,factor_lj;
   double factor,phicoul,philj;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = eng_coul = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   double *q = atom->q;
   double **mu = atom->mu;
   double **torque = atom->torque;
@@ -87,19 +88,25 @@ void PairDipoleCut::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_coul = factor_lj = 1.0;
       else {
@@ -362,6 +369,20 @@ void PairDipoleCut::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairDipoleCut::init_style()
+{
+  if (!atom->q_flag || !atom->mu_flag || 
+      !atom->torque_flag || atom->dipole == NULL)
+    error->all("Pair dipole/cut requires atom attributes "
+	       "q, mu, torque, dipole");
+
+  int irequest = neighbor->request(this);
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -398,18 +419,6 @@ double PairDipoleCut::init_one(int i, int j)
   offset[j][i] = offset[i][j];
 
   return cut;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairDipoleCut::init_style()
-{
-  if (!atom->q_flag || !atom->mu_flag || 
-      !atom->torque_flag || atom->dipole == NULL)
-    error->all("Pair dipole/cut requires atom attributes "
-	       "q, mu, torque, dipole");
 }
 
 /* ----------------------------------------------------------------------
@@ -492,134 +501,4 @@ void PairDipoleCut::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_coul_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairDipoleCut::single(int i, int j, int itype, int jtype, double rsq,
-			   double factor_coul, double factor_lj, int eflag,
-			   One &one)
-{
-  double rinv,r2inv,r6inv,r3inv,r5inv,r7inv;
-  double forcecoulx,forcecouly,forcecoulz,fforce,crossx,crossy,crossz;
-  double tixcoul,tiycoul,tizcoul,tjxcoul,tjycoul,tjzcoul;
-  double pdotp,pdotr,pidotr,pjdotr,pre1,pre2,pre3,pre4;
-  double fq,forcelj,phicoul,philj;
-
-  double delx = atom->x[i][0] - atom->x[j][0];
-  double dely = atom->x[i][1] - atom->x[j][1];
-  double delz = atom->x[i][2] - atom->x[j][2];
-
-  r2inv = 1.0/rsq;
-  rinv = sqrt(r2inv);
-
-  forcecoulx = forcecouly = forcecoulz = 0.0;
-  tixcoul = tiycoul = tizcoul = 0.0;
-  tjxcoul = tjycoul = tjzcoul = 0.0;
-  
-  if (rsq < cut_coulsq[itype][jtype]) {
-    double **mu = atom->mu;
-
-    if (atom->q[i] != 0.0 && atom->q[j] != 0.0) {
-      r3inv = r2inv*rinv;
-      pre1 = atom->q[i]*atom->q[j]*r3inv;
-      
-      forcecoulx += pre1*delx;
-      forcecouly += pre1*dely;
-      forcecoulz += pre1*delz;
-    }
-
-    if (atom->dipole[itype] > 0.0 && atom->dipole[jtype] > 0.0) { 
-      r3inv = r2inv*rinv;
-      r5inv = r3inv*r2inv;
-      r7inv = r5inv*r2inv;
-      
-      pdotp = mu[i][0]*mu[j][0] + mu[i][1]*mu[j][1] + mu[i][2]*mu[j][2];
-      pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
-      pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
-      
-      pre1 = 3.0*r5inv*pdotp - 15.0*r7inv*pidotr*pjdotr;
-      pre2 = 3.0*r5inv*pjdotr;
-      pre3 = 3.0*r5inv*pidotr;
-      pre4 = -1.0*r3inv;
-      
-      forcecoulx += pre1*delx + pre2*mu[i][0] + pre3*mu[j][0];
-      forcecouly += pre1*dely + pre2*mu[i][1] + pre3*mu[j][1];
-      forcecoulz += pre1*delz + pre2*mu[i][2] + pre3*mu[j][2];
-      
-      crossx = pre4 * (mu[i][1]*mu[j][2] - mu[i][2]*mu[j][1]);
-      crossy = pre4 * (mu[i][2]*mu[j][0] - mu[i][0]*mu[j][2]);
-      crossz = pre4 * (mu[i][0]*mu[j][1] - mu[i][1]*mu[j][0]);
-      
-      tixcoul += crossx + pre2 * (mu[i][1]*delz - mu[i][2]*dely);
-      tiycoul += crossy + pre2 * (mu[i][2]*delx - mu[i][0]*delz);
-      tizcoul += crossz + pre2 * (mu[i][0]*dely - mu[i][1]*delx);
-      tjxcoul += -crossx + pre3 * (mu[j][1]*delz - mu[j][2]*dely);
-      tjycoul += -crossy + pre3 * (mu[j][2]*delx - mu[j][0]*delz);
-      tjzcoul += -crossz + pre3 * (mu[j][0]*dely - mu[j][1]*delx);
-      
-    } else if (atom->dipole[itype] > 0.0 && atom->q[j] != 0.0) { 
-      r3inv = r2inv*rinv;
-      r5inv = r3inv*r2inv;
-      pdotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
-      pre1 = 3.0*atom->q[j]*r5inv * pdotr;
-      pre2 = atom->q[j]*r3inv;
-      
-      forcecoulx += pre2*mu[i][0] - pre1*delx;
-      forcecouly += pre2*mu[i][1] - pre1*dely;
-      forcecoulz += pre2*mu[i][2] - pre1*delz;
-      tixcoul += pre2 * (mu[i][1]*delz - mu[i][2]*dely);
-      tiycoul += pre2 * (mu[i][2]*delx - mu[i][0]*delz);
-      tizcoul += pre2 * (mu[i][0]*dely - mu[i][1]*delx);
-      
-    } else if (atom->dipole[jtype] > 0.0 && atom->q[i] != 0.0) { 
-      r3inv = r2inv*rinv;
-      r5inv = r3inv*r2inv;
-      pdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
-      pre1 = 3.0*atom->q[i]*r5inv * pdotr;
-      pre2 = atom->q[i]*r3inv;
-      
-      forcecoulx += pre1*delx - pre2*mu[j][0];
-      forcecouly += pre1*dely - pre2*mu[j][1];
-      forcecoulz += pre1*delz - pre2*mu[j][2];
-      tjxcoul += -pre2 * (mu[j][1]*delz - mu[j][2]*dely);
-      tjycoul += -pre2 * (mu[j][2]*delx - mu[j][0]*delz);
-	    tjzcoul += -pre2 * (mu[j][0]*dely - mu[j][1]*delx);
-    }
-  }
-
-  if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-    fforce = factor_lj * forcelj*r2inv;
-  } else fforce = 0.0;
-	  
-  fq = factor_coul*force->qqrd2e;
-  one.fx = fq*forcecoulx + delx*fforce;
-  one.fy = fq*forcecouly + dely*fforce;
-  one.fz = fq*forcecoulz + delz*fforce;
-  one.tix = fq*tixcoul;
-  one.tiy = fq*tiycoul;
-  one.tiz = fq*tizcoul;
-  one.tjx = fq*tjxcoul;
-  one.tjy = fq*tjycoul;
-  one.tjz = fq*tjzcoul;
-	
-  if (eflag) {
-    if (rsq < cut_coulsq[itype][jtype]) {
-      phicoul = atom->q[i]*atom->q[j]*rinv;
-      if (atom->dipole[itype] > 0.0 && atom->dipole[jtype] > 0.0)
-	phicoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
-      else if (atom->dipole[itype] > 0.0 && atom->q[j] != 0.0)
-	phicoul += -pre2*pdotr;
-      else if (atom->dipole[jtype] > 0.0 && atom->q[i] != 0.0)
-	phicoul += pre2*pdotr;
-      one.eng_coul = factor_coul*force->qqrd2e*phicoul;
-    } else one.eng_coul = 0.0;
-    if (rsq < cut_ljsq[itype][jtype]) {
-      philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	offset[itype][jtype];
-      one.eng_vdwl = factor_lj*philj;
-    } else one.eng_vdwl = 0.0;
-  }
 }

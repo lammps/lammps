@@ -25,13 +25,12 @@ class PairDipoleCut : public Pair {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  void single(int, int, int, int, double, double, double, int, One &);
 
  private:
   double cut_lj_global,cut_coul_global;

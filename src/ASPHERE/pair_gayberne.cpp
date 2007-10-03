@@ -25,9 +25,8 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "update.h"
+#include "neigh_list.h"
 #include "integrate.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
 
@@ -75,20 +74,18 @@ PairGayBerne::~PairGayBerne()
 
 void PairGayBerne::compute(int eflag, int vflag)
 {
-  int i,j,k,m,numneigh,itype,jtype;
+  int i,j,ii,jj,m,inum,jnum,itype,jtype;
   double one_eng,rsq,r2inv,r6inv,forcelj;
   double fforce[3],ttor[3],rtor[3],r12[3];
   double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_lj;
-  double **f;
 
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   double **quat = atom->quat;
   double **tor = atom->torque;
   int *type = atom->type;
@@ -97,12 +94,16 @@ void PairGayBerne::compute(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
 
     MathExtra::quat_to_mat_trans(quat[i],a1);
     MathExtra::diag_times3(well[itype],a1,temp);
@@ -110,8 +111,11 @@ void PairGayBerne::compute(int eflag, int vflag)
     MathExtra::diag_times3(shape[itype],a1,temp);
     MathExtra::transpose_times3(a1,temp,g1);
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_lj = 1.0;
       else {
@@ -315,6 +319,31 @@ void PairGayBerne::coeff(int narg, char **arg)
   if (count == 0) error->all("Incorrect args for pair coefficients");
 }
 
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairGayBerne::init_style()
+{
+  if (!atom->quat_flag || !atom->torque_flag)
+    error->all("Pair gayberne requires atom attributes quat, torque");
+
+  int irequest = neighbor->request(this);
+
+  // per-type shape precalculations
+
+  for (int i = 1; i <= atom->ntypes; i++) {
+    if (setwell[i]) {
+      double *one = atom->shape[i];
+      shape[i][0] = one[0]*one[0];
+      shape[i][1] = one[1]*one[1];
+      shape[i][2] = one[2]*one[2];
+      lshape[i] = (one[0]*one[1]+one[2]*one[2])*sqrt(one[0]*one[1]);
+    }
+  }
+}
+
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
@@ -367,28 +396,6 @@ double PairGayBerne::init_one(int i, int j)
   offset[j][i] = offset[i][j];
 
   return cut[i][j];
-}
-
-/* ----------------------------------------------------------------------
-   check for necessary atom arrays
-------------------------------------------------------------------------- */
-
-void PairGayBerne::init_style()
-{
-  if (!atom->quat_flag || !atom->torque_flag)
-    error->all("Pair gayberne requires atom attributes quat, torque");
-
-  // per-type shape precalculations
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    if (setwell[i]) {
-      double *one = atom->shape[i];
-      shape[i][0] = one[0]*one[0];
-      shape[i][1] = one[1]*one[1];
-      shape[i][2] = one[2]*one[2];
-      lshape[i] = (one[0]*one[1]+one[2]*one[2])*sqrt(one[0]*one[1]);
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

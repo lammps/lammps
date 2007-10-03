@@ -23,8 +23,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
-#include "update.h"
+#include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 
@@ -69,38 +68,42 @@ PairColloid::~PairColloid()
 
 void PairColloid::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r,fforce,forcelj,factor_lj,phi;
   double r2inv,r6inv,c1,c2,fR,dUR,dUA;
   double K[9],h[4],g[4];
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; ++i) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
-    
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_lj = 1.0;
       else {

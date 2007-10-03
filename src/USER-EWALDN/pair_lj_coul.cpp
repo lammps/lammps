@@ -1,0 +1,1159 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   www.cs.sandia.gov/~sjplimp/lammps.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Pieter J. in 't Veld (SNL)
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   module:	pair_lj_coul.cpp
+   author:	Pieter J. in 't Veld for SNL
+   date:	September 21, 2006.
+   purpose:	definition of short and long range lj and coulombic pair
+		potentials.
+   usage:	pair_style lj/coul
+		  long|cut|off		control r^-6 contribution
+		  long|cut|off		control r^-1 contribution
+		  rcut6			set r^-6 cut off
+		  [rcut1]		set r^-1 cut off
+   remarks:	- rcut1 cannot be set when both contributions are set to long,
+		  rcut1 = rcut6 when ommited
+		- coulombics from Macromolecules 1989, 93, 7320
+*  ---------------------------------------------------------------------- */
+
+#include "math.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+#include "math_vector.h"
+#include "pair_lj_coul.h"
+#include "atom.h"
+#include "comm.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "force.h"
+#include "kspace.h"
+#include "update.h"
+#include "integrate.h"
+#include "respa.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+#define EWALD_F   1.12837917
+#define EWALD_P   0.3275911
+#define A1        0.254829592
+#define A2       -0.284496736
+#define A3        1.421413741
+#define A4       -1.453152027
+#define A5        1.061405429
+
+/* ---------------------------------------------------------------------- */
+
+PairLJCoul::PairLJCoul(LAMMPS *lmp) : Pair(lmp)
+{
+  respa_enable = 1;
+  ftable = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+#define PAIR_ILLEGAL	"Illegal pair_style lj/coul command"
+#define PAIR_CUTOFF	"Only one cut-off allowed when requesting all long"
+#define PAIR_MISSING	"Cut-offs missing in pair_style lj/coul"
+#define PAIR_COUL_CUT	"Coulombic cut not supported in pair_style lj/coul"
+#define PAIR_MANY	"Too many pair_style lj/coul commands"
+#define PAIR_LARGEST	"Using largest cut-off for lj/coul long long"
+#define PAIR_MIX	"Mixing forced for lj coefficients"
+
+void PairLJCoul::options(char **arg, int order)
+{
+  char *option[] = {"long", "cut", "off", NULL};
+  int i;
+
+  if (!*arg) error->all(PAIR_ILLEGAL);
+  for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
+  switch (i) {
+    default: error->all(PAIR_ILLEGAL);
+    case 0: ewald_order |= 1<<order; break;		// set kspace r^-order
+    case 2: ewald_off |= 1<<order;			// turn r^-order off
+    case 1: break;
+  }
+}
+
+
+void PairLJCoul::settings(int narg, char **arg)
+{
+  ewald_off = 0;
+  ewald_order = 0;
+  options(arg, 6);
+  options(++arg, 1);
+  if (!comm->me && ewald_order&(1<<6)) error->warning(PAIR_MIX);
+  if (!comm->me && ewald_order==((1<<1)|(1<<6))) error->warning(PAIR_LARGEST);
+  if (!*(++arg)) error->all(PAIR_MISSING);
+  if (!((ewald_order^ewald_off)&(1<<1))) error->all(PAIR_COUL_CUT);
+  cut_lj_global = atof(*(arg++));
+  if (*arg&&(ewald_order&0x42==0x42)) error->all(PAIR_CUTOFF);
+  cut_coul = *arg ? atof(*(arg++)) : cut_lj_global;
+  if (*arg) error->all(PAIR_MANY);
+
+  if (allocated) {					// reset explicit cuts
+    int i,j;
+    for (i = 1; i <= atom->ntypes; i++)
+      for (j = i+1; j <= atom->ntypes; j++)
+	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free all arrays
+------------------------------------------------------------------------- */
+
+PairLJCoul::~PairLJCoul()
+{
+  if (allocated) {
+    memory->destroy_2d_int_array(setflag);
+    memory->destroy_2d_double_array(cutsq);
+
+    memory->destroy_2d_double_array(cut_lj_read);
+    memory->destroy_2d_double_array(cut_lj);
+    memory->destroy_2d_double_array(cut_ljsq);
+    memory->destroy_2d_double_array(epsilon_read);
+    memory->destroy_2d_double_array(epsilon);
+    memory->destroy_2d_double_array(sigma_read);
+    memory->destroy_2d_double_array(sigma);
+    memory->destroy_2d_double_array(lj1);
+    memory->destroy_2d_double_array(lj2);
+    memory->destroy_2d_double_array(lj3);
+    memory->destroy_2d_double_array(lj4);
+    memory->destroy_2d_double_array(offset);
+  }
+  if (ftable) free_tables();
+}
+
+/* ----------------------------------------------------------------------
+   allocate all arrays
+------------------------------------------------------------------------- */
+
+void PairLJCoul::allocate()
+{
+  allocated = 1;
+  int n = atom->ntypes;
+
+  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+
+  cut_lj_read = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj_read");
+  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
+  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
+  epsilon_read = memory->create_2d_double_array(n+1,n+1,"pair:epsilon_read");
+  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
+  sigma_read = memory->create_2d_double_array(n+1,n+1,"pair:sigma_read");
+  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
+  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
+  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
+  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
+  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
+  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+}
+
+/* ----------------------------------------------------------------------
+   extract protected data from object
+------------------------------------------------------------------------- */
+
+void *PairLJCoul::extract_ptr(char *id)
+{
+  char *ids[] = {
+    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix", NULL};
+  void *ptrs[] = {
+    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, NULL};
+  int i;
+
+  for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
+  return ptrs[i];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCoul::extract_long(double *p_cut_coul)
+{
+  *p_cut_coul = cut_coul;
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairLJCoul::coeff(int narg, char **arg)
+{
+  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (!allocated) allocate();
+
+  int ilo,ihi,jlo,jhi;
+  force->bounds(arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+
+  double epsilon_one = atof(arg[2]);
+  double sigma_one = atof(arg[3]);
+
+  double cut_lj_one = cut_lj_global;
+  if (narg == 5) cut_lj_one = atof(arg[4]);
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      epsilon_read[i][j] = epsilon_one;
+      sigma_read[i][j] = sigma_one;
+      cut_lj_read[i][j] = cut_lj_one;
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all("Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairLJCoul::init_one(int i, int j)
+{
+  if ((ewald_order&(1<<6))||(setflag[i][j] == 0)) {
+    epsilon[i][j] = mix_energy(epsilon_read[i][i],epsilon_read[j][j],
+			       sigma_read[i][i],sigma_read[j][j]);
+    sigma[i][j] = mix_distance(sigma_read[i][i],sigma_read[j][j]);
+    if (ewald_order&(1<<6))
+      cut_lj[i][j] = cut_lj_global;
+    else
+      cut_lj[i][j] = mix_distance(cut_lj_read[i][i],cut_lj_read[j][j]);
+  }
+  else {
+    sigma[i][j] = sigma_read[i][j];
+    epsilon[i][j] = epsilon_read[i][j];
+    cut_lj[i][j] = cut_lj_read[i][j];
+  }
+
+  double cut = MAX(cut_lj[i][j], cut_coul);
+  cutsq[i][j] = cut*cut;
+  cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
+
+  lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
+  lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
+  lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+     
+  if (offset_flag) {
+    double ratio = sigma[i][j] / cut_lj[i][j];
+    offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
+  } else offset[i][j] = 0.0;
+
+  cutsq[j][i] = cutsq[i][j];
+  cut_ljsq[j][i] = cut_ljsq[i][j];
+  lj1[j][i] = lj1[i][j];
+  lj2[j][i] = lj2[i][j];
+  lj3[j][i] = lj3[i][j];
+  lj4[j][i] = lj4[i][j];
+  offset[j][i] = offset[i][j];
+
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLJCoul::init_style()
+{
+  char *style1[] = {"ewald", "ewald/n", "pppm", NULL};
+  char *style6[] = {"ewald/n", NULL};
+  int i,j;
+
+  // require an atom style with charge defined
+
+  //if (atom->charge_allow == 0)
+    //error->all("Must use charged atom style with this pair style");
+  if (!atom->q_flag && (ewald_order&(1<<1)))
+    error->all(
+	"Invoking coulombic in pair style lj/coul requires atom attribute q");
+
+  cut_coulsq = cut_coul * cut_coul;
+
+  // set & error check interior rRESPA cutoffs
+
+  if (strcmp(update->integrate_style,"respa") == 0) {
+    if (((Respa *) update->integrate)->level_inner >= 0) {
+      cut_respa = ((Respa *) update->integrate)->cutoff;
+      for (i = 1; i <= atom->ntypes; i++)
+	for (j = i; j <= atom->ntypes; j++)
+	  if (MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
+	    error->all("Pair cutoff < Respa interior cutoff");
+    }
+  } else cut_respa = NULL;
+
+  // ensure use of KSpace long-range solver, set g_ewald
+
+  if (ewald_order&(1<<1)) {				// r^-1 kspace
+    if (force->kspace == NULL) 
+      error->all("Pair style is incompatible with KSpace style");
+    for (i=0; style1[i]&&strcmp(force->kspace_style, style1[i]); ++i);
+    if (!style1[i]) error->all("Pair style is incompatible with KSpace style");
+  }
+  if (ewald_order&(1<<6)) {				// r^-6 kspace
+    if (force->kspace == NULL) 
+      error->all("Pair style is incompatible with KSpace style");
+    for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
+    if (!style6[i]) error->all("Pair style is incompatible with KSpace style");
+  }
+  if (force->kspace) g_ewald = force->kspace->g_ewald;
+
+  // setup force tables
+
+  if (ncoultablebits) init_tables();
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairLJCoul::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+
+  int i,j;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      if (setflag[i][j]) {
+	fwrite(&epsilon_read[i][j],sizeof(double),1,fp);
+	fwrite(&sigma_read[i][j],sizeof(double),1,fp);
+	fwrite(&cut_lj_read[i][j],sizeof(double),1,fp);
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairLJCoul::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+
+  allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (setflag[i][j]) {
+	if (me == 0) {
+	  fread(&epsilon_read[i][j],sizeof(double),1,fp);
+	  fread(&sigma_read[i][j],sizeof(double),1,fp);
+	  fread(&cut_lj_read[i][j],sizeof(double),1,fp);
+	}
+	MPI_Bcast(&epsilon_read[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&sigma_read[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&cut_lj_read[i][j],1,MPI_DOUBLE,0,world);
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairLJCoul::write_restart_settings(FILE *fp)
+{
+  fwrite(&cut_lj_global,sizeof(double),1,fp);
+  fwrite(&cut_coul,sizeof(double),1,fp);
+  fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&ewald_order,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairLJCoul::read_restart_settings(FILE *fp)
+{
+  if (comm->me == 0) {
+    fread(&cut_lj_global,sizeof(double),1,fp);
+    fread(&cut_coul,sizeof(double),1,fp);
+    fread(&offset_flag,sizeof(int),1,fp);
+    fread(&mix_flag,sizeof(int),1,fp);
+    fread(&ewald_order,sizeof(int),1,fp);
+  }
+  MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   compute pair interactions
+------------------------------------------------------------------------- */
+
+void PairLJCoul::compute(int eflag, int vflag)
+{
+  double **x = atom->x, *x0 = x[0];
+  double **f = atom->f, *f0 = f[0], *fi = f0;
+  double *q = atom->q;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
+  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
+  double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double rsq, r2inv, force_coul, force_lj, fforce, factor;
+  double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
+  vector xi, d;
+
+  eng_vdwl = eng_coul = 0.0;				// reset energy&virial
+  if (vflag) memset(virial, 0, sizeof(shape));
+  ineighn = (ineigh = list->ilist)+list->inum;
+
+  for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
+    i = *ineigh; fi = f0+3*i;
+    if (order1) qri = (qi = q[i])*qqrd2e;		// initialize constants
+    offseti = offset[typei = type[i]];
+    lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
+    cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
+    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+
+    for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
+      if ((j = *jneigh) < nall) ni = -1;
+      else { ni = j/nall; j %= nall; }			// special index
+      
+      { register double *xj = x0+(j+(j<<1));
+	d[0] = xi[0] - xj[0];				// pair vector
+	d[1] = xi[1] - xj[1];
+	d[2] = xi[2] - xj[2]; }
+
+      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      r2inv = 1.0/rsq;
+
+      factor = newton_pair || j<nlocal ? 1.0 : 0.5;
+
+      if (order1 && (rsq < cut_coulsq)) {		// coulombic
+	if (!ncoultablebits || rsq <= tabinnersq) {	// series real space
+	  register double r = sqrt(rsq), x = g_ewald*r;
+	  register double s = qri*q[j], t = 1.0/(1.0+EWALD_P*x);
+	  if (ni < 0) {
+	    s *= g_ewald*exp(-x*x);
+	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
+	    if (eflag) eng_coul += factor*t;
+	  }
+	  else {					// special case
+	    r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
+	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
+	    if (eflag) eng_coul += factor*(t-r);
+	  }
+	}						// table real space
+	else {
+	  register float t = rsq;
+	  register int k = (((int *) &t)[0] & ncoulmask)>>ncoulshiftbits;
+	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
+	  if (ni < 0) {
+	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
+	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]);
+	  }
+	  else {					// special case
+	    t = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
+	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
+	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]-t);
+	  }
+	}
+      }
+      else force_coul = 0.0;
+
+      if (rsq < cut_ljsqi[typej]) {			// lj
+       	if (order6) {					// long-range lj
+	  register double rn = r2inv*r2inv*r2inv;
+	  register double x2 = g2*rsq, a2 = 1.0/x2;
+	  x2 = a2*exp(-x2)*lj4i[typej];
+	  if (ni < 0) {
+	    force_lj =
+	      (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
+	    if (eflag) eng_vdwl += 
+	      factor*(rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2);
+	  }
+	  else {					// special case
+	    register double f = special_lj[ni], t = rn*(1.0-f);
+	    force_lj = f*(rn *= rn)*lj1i[typej]-
+	      g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
+	    if (eflag) eng_vdwl += factor*(
+		f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej]);
+	  }
+	}
+	else {						// cut lj
+	  register double rn = r2inv*r2inv*r2inv;
+	  if (ni < 0) {
+	    force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
+	    if (eflag) eng_vdwl += factor*(
+		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	  }
+	  else {					// special case
+	    register double f = special_lj[ni];
+	    force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
+	    if (eflag) eng_vdwl += f*factor*(
+		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	  }
+	}
+      }
+      else force_lj = 0.0;
+
+      fforce = (force_coul+force_lj)*r2inv;		// force and virial
+      if (vflag==1) {
+	if (newton_pair || j < nlocal) {
+	  register double f = d[0]*fforce, *fj = f0+(j+(j<<1));
+	  fi[0] += f; fj[0] -= f;
+	  virial[0] += f*d[0]; virial[3] += f*d[1];
+	  fi[1] += f = d[1]*fforce; fj[1] -= f;
+	  virial[1] += f*d[1]; virial[5] += f*d[2];
+	  fi[2] += f = d[2]*fforce; fj[2] -= f;
+	  virial[2] += f*d[2]; virial[4] += f*d[0];
+	}
+	else {
+	  register double f = d[0]*fforce;
+	  fi[0] += f; virial[0] += (f *= 0.5)*d[0]; virial[3] += f*d[1];
+	  fi[1] += f = d[1]*fforce; virial[1] += 0.5*f*d[1];
+	  fi[2] += f = d[2]*fforce; virial[2] += (f *= 0.5)*d[2]; 
+	  virial[4] += f*d[0]; virial[5] += f*d[1];
+	}
+      }
+      else if (newton_pair || j < nlocal) {
+	register double *fj = f0+(j+(j<<1)), f;
+	fi[0] += f = d[0]*fforce; fj[0] -= f;
+	fi[1] += f = d[1]*fforce; fj[1] -= f;
+	fi[2] += f = d[2]*fforce; fj[2] -= f;
+      }
+      else {
+	fi[0] += d[0]*fforce;
+	fi[1] += d[1]*fforce;
+	fi[2] += d[2]*fforce;
+      }
+    }
+  }
+  if (vflag == 2) virial_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCoul::compute_inner()
+{
+  double rsq, r2inv, force_coul, force_lj, fforce;
+
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  double *x0 = atom->x[0], *f0 = atom->f[0], *fi = f0, *q = atom->q;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  double cut_out_on = cut_respa[0];
+  double cut_out_off = cut_respa[1];
+  
+  double cut_out_diff = cut_out_off - cut_out_on;
+  double cut_out_on_sq = cut_out_on*cut_out_on;
+  double cut_out_off_sq = cut_out_off*cut_out_off;
+
+  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
+  int i, j, order1 = (ewald_order|(ewald_off^-1))&(1<<1);
+  double qri, *cut_ljsqi, *lj1i, *lj2i, *offseti;
+  vector xi, d;
+
+  ineighn = (ineigh = list->ilist)+list->inum;
+
+  for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
+    i = *ineigh; fi = f0+3*i;
+    qri = qqrd2e*q[i];
+    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    offseti = offset[typei = type[i]];
+    cut_ljsqi = cut_ljsq[typei];
+    lj1i = lj1[typei]; lj2i = lj2[typei];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+
+    for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
+      if ((j = *jneigh) < nall) ni = -1;
+      else { ni = j/nall; j %= nall; }
+      
+      { register double *xj = x0+(j+(j<<1));
+	d[0] = xi[0] - xj[0];				// pair vector
+	d[1] = xi[1] - xj[1];
+	d[2] = xi[2] - xj[2]; }
+
+      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      r2inv = 1.0/rsq;
+
+      if (order1 && (rsq < cut_coulsq))			// coulombic
+	force_coul = ni<0 ?
+	  qri*q[j]*sqrt(r2inv) : qri*q[j]*sqrt(r2inv)*special_coul[ni];
+
+      if (rsq < cut_ljsqi[typej = type[j]]) {		// lennard-jones
+	register double rn = r2inv*r2inv*r2inv;
+	force_lj = ni<0 ?
+	  rn*(rn*lj1i[typej]-lj2i[typej]) :
+	  rn*(rn*lj1i[typej]-lj2i[typej])*special_lj[ni];
+      }
+      else force_lj = 0.0;
+
+      fforce = (force_coul + force_lj) * r2inv;
+      
+      if (rsq > cut_out_on_sq) {			// switching
+        register double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+	fforce  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
+      }
+
+      if (newton_pair || j < nlocal) {			// force update
+	register double *fj = f0+(j+(j<<1)), f;
+	fi[0] += f = d[0]*fforce; fj[0] -= f;
+	fi[1] += f = d[1]*fforce; fj[1] -= f;
+	fi[2] += f = d[2]*fforce; fj[2] -= f;
+      }
+      else {
+	fi[0] += d[0]*fforce;
+	fi[1] += d[1]*fforce;
+	fi[2] += d[2]*fforce;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCoul::compute_middle()
+{
+  double rsq, r2inv, force_coul, force_lj, fforce;
+
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  double *x0 = atom->x[0], *f0 = atom->f[0], *fi = f0, *q = atom->q;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  double cut_in_off = cut_respa[0];
+  double cut_in_on = cut_respa[1];
+  double cut_out_on = cut_respa[2];
+  double cut_out_off = cut_respa[3];
+
+  double cut_in_diff = cut_in_on - cut_in_off;
+  double cut_out_diff = cut_out_off - cut_out_on;
+  double cut_in_off_sq = cut_in_off*cut_in_off;
+  double cut_in_on_sq = cut_in_on*cut_in_on;
+  double cut_out_on_sq = cut_out_on*cut_out_on;
+  double cut_out_off_sq = cut_out_off*cut_out_off;
+
+  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
+  int i, j, order1 = (ewald_order|(ewald_off^-1))&(1<<1);
+  double qri, *cut_ljsqi, *lj1i, *lj2i, *offseti;
+  vector xi, d;
+
+  ineighn = (ineigh = list->ilist)+list->inum;
+
+  for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
+    i = *ineigh; fi = f0+3*i;
+    qri = qqrd2e*q[i];
+    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    offseti = offset[typei = type[i]];
+    cut_ljsqi = cut_ljsq[typei];
+    lj1i = lj1[typei]; lj2i = lj2[typei];
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+
+    for (; jneigh<jneighn; ++jneigh) {
+      if ((j = *jneigh) < nall) ni = -1;
+      else { ni = j/nall; j %= nall; }
+      
+      { register double *xj = x0+(j+(j<<1));
+	d[0] = xi[0] - xj[0];				// pair vector
+	d[1] = xi[1] - xj[1];
+	d[2] = xi[2] - xj[2]; }
+
+      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if (rsq <= cut_in_off_sq) continue;
+      r2inv = 1.0/rsq;
+
+      if (order1 && (rsq < cut_coulsq))			// coulombic
+	force_coul = ni<0 ?
+	  qri*q[j]*sqrt(r2inv) : qri*q[j]*sqrt(r2inv)*special_coul[ni];
+
+      if (rsq < cut_ljsqi[typej = type[j]]) {		// lennard-jones
+	register double rn = r2inv*r2inv*r2inv;
+	force_lj = ni<0 ?
+	  rn*(rn*lj1i[typej]-lj2i[typej]) :
+	  rn*(rn*lj1i[typej]-lj2i[typej])*special_lj[ni];
+      }
+      else force_lj = 0.0;
+
+      fforce = (force_coul + force_lj) * r2inv;
+      
+      if (rsq < cut_in_on_sq) {				// switching
+        register double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
+	fforce  *= rsw*rsw*(3.0 - 2.0*rsw);
+      }
+      if (rsq > cut_out_on_sq) {
+        register double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+	fforce  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
+      }
+
+      if (newton_pair || j < nlocal) {			// force update
+	register double *fj = f0+(j+(j<<1)), f;
+	fi[0] += f = d[0]*fforce; fj[0] -= f;
+	fi[1] += f = d[1]*fforce; fj[1] -= f;
+	fi[2] += f = d[2]*fforce; fj[2] -= f;
+      }
+      else {
+	fi[0] += d[0]*fforce;
+	fi[1] += d[1]*fforce;
+	fi[2] += d[2]*fforce;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCoul::compute_outer(int eflag, int vflag)
+{
+  double **x = atom->x, *x0 = x[0];
+  double **f = atom->f, *f0 = f[0], *fi = f0;
+  double *q = atom->q;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+  double qqrd2e = force->qqrd2e;
+
+  int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
+  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni, respa_flag;
+  double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double rsq, r2inv, force_coul, force_lj, fforce, factor;
+  double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
+  double respa_lj, respa_coul, frespa;
+  vector xi, d;
+
+  double cut_in_off = cut_respa[2];
+  double cut_in_on = cut_respa[3];
+
+  double cut_in_diff = cut_in_on - cut_in_off;
+  double cut_in_off_sq = cut_in_off*cut_in_off;
+  double cut_in_on_sq = cut_in_on*cut_in_on;
+
+  eng_vdwl = eng_coul = 0.0;				// reset energy&virial
+  if (vflag) memset(virial, 0, sizeof(shape));
+
+  ineighn = (ineigh = list->ilist)+list->inum;
+
+  for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
+    i = *ineigh; fi = f0+3*i;
+    if (order1) qri = (qi = q[i])*qqrd2e;		// initialize constants
+    offseti = offset[typei = type[i]];
+    lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
+    cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
+    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+
+    for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
+      if ((j = *jneigh) < nall) ni = -1;
+      else { ni = j/nall; j %= nall; }			// special index
+      
+      { register double *xj = x0+(j+(j<<1));
+	d[0] = xi[0] - xj[0];				// pair vector
+	d[1] = xi[1] - xj[1];
+	d[2] = xi[2] - xj[2]; }
+
+      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      r2inv = 1.0/rsq;
+
+      factor = newton_pair || j<nlocal ? 1.0 : 0.5;
+
+      if ((respa_flag = (rsq>cut_in_off_sq)&&(rsq<cut_in_on_sq))) {
+	register double rsw = (sqrt(rsq)-cut_in_off)/cut_in_diff;
+	frespa = rsw*rsw*(3.0-2.0*rsw);
+      }
+
+      if (order1 && (rsq < cut_coulsq)) {		// coulombic
+	if (!ncoultablebits || rsq <= tabinnersq) {	// series real space
+	  register double r = sqrt(rsq), s = qri*q[j];
+	  if (respa_flag)				// correct for respa
+	    respa_coul = ni<0 ? frespa*s/r : frespa*s/r*special_coul[ni];
+	  register double x = g_ewald*r, t = 1.0/(1.0+EWALD_P*x);
+	  if (ni < 0) {
+	    s *= g_ewald*exp(-x*x);
+	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
+	    if (eflag) eng_coul += factor*t;
+	  }
+	  else {					// correct for special
+	    r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
+	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
+	    if (eflag) eng_coul += factor*(t-r);
+	  }
+	}						// table real space
+	else {
+	  if (respa_flag) respa_coul = ni<0 ?		// correct for respa
+	      frespa*qri*q[j]/sqrt(rsq) :
+	      frespa*qri*q[j]/sqrt(rsq)*special_coul[ni];
+	  register float t = rsq;
+	  register int k = (((int *) &t)[0] & ncoulmask)>>ncoulshiftbits;
+	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
+	  if (ni < 0) {
+	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
+	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]);
+	  }
+	  else {					// correct for special
+	    t = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
+	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
+	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]-t);
+	  }
+	}
+      }
+      else force_coul = respa_coul = 0.0;
+
+      if (rsq < cut_ljsqi[typej]) {			// lennard-jones
+	register double rn = r2inv*r2inv*r2inv;
+	if (respa_flag) respa_lj = ni<0 ? 		// correct for respa
+	    frespa*rn*(rn*lj1i[typej]-lj2i[typej]) :
+	    frespa*rn*(rn*lj1i[typej]-lj2i[typej])*special_lj[ni];
+	if (order6) {					// long-range form
+	  register double x2 = g2*rsq, a2 = 1.0/x2;
+	  x2 = a2*exp(-x2)*lj4i[typej];
+	  if (ni < 0) {
+	    force_lj =
+	      (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
+	    if (eflag) eng_vdwl += 
+	      factor*(rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2);
+	  }
+	  else {					// correct for special
+	    register double f = special_lj[ni], t = rn*(1.0-f);
+	    force_lj = f*(rn *= rn)*lj1i[typej]-
+	      g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
+	    if (eflag) eng_vdwl += factor*(
+		f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej]);
+	  }
+	}
+	else {						// cut form
+	  if (ni < 0) {
+	    force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
+	    if (eflag) eng_vdwl += factor*(
+		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	  }
+	  else {					// correct for special
+	    register double f = special_lj[ni];
+	    force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
+	    if (eflag) eng_vdwl += f*factor*(
+		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	  }
+	}
+      }
+      else force_lj = respa_lj = 0.0;
+
+      fforce = (force_coul+force_lj)*r2inv;		// force and virial
+      frespa = fforce-(respa_coul+respa_lj)*r2inv;
+      if (newton_pair || j < nlocal) {
+	register double *fj = f0+(j+(j<<1)), f;
+	fi[0] += f = d[0]*frespa; fj[0] -= f;
+	fi[1] += f = d[1]*frespa; fj[1] -= f;
+	fi[2] += f = d[2]*frespa; fj[2] -= f;
+	if (vflag==1) {
+	  virial[0] += (f = d[0]*fforce)*d[0]; virial[3] += f*d[1];
+	  virial[1] += (f = d[1]*fforce)*d[1]; virial[5] += f*d[2];
+	  virial[2] += (f = d[2]*fforce)*d[2]; virial[4] += f*d[0];
+	}
+      }
+      else {
+	fi[0] += d[0]*frespa;
+	fi[1] += d[1]*frespa;
+	fi[2] += d[2]*frespa;
+	if (vflag==1) {
+	  register double f;
+	  virial[0] += (f = 0.5*d[0]*fforce)*d[0]; virial[3] += f*d[1];
+	  virial[1] += (f = 0.5*d[1]*fforce)*d[1]; virial[5] += f*d[2];
+	  virial[2] += (f = 0.5*d[2]*fforce)*d[2]; virial[4] += f*d[0];
+	}
+      }
+    }
+  }
+  if (vflag == 2) virial_compute();
+}
+
+/* ----------------------------------------------------------------------
+   setup force tables used in compute routines
+------------------------------------------------------------------------- */
+
+void PairLJCoul::init_tables()
+{
+  int masklo,maskhi;
+  double r,grij,expm2,derfc,rsw;
+  double qqrd2e = force->qqrd2e;
+
+  tabinnersq = tabinner*tabinner;
+  init_bitmap(tabinner,cut_coul,ncoultablebits,
+	      masklo,maskhi,ncoulmask,ncoulshiftbits);
+  
+  int ntable = 1;
+  for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
+  
+  // linear lookup tables of length N = 2^ncoultablebits
+  // stored value = value at lower edge of bin
+  // d values = delta from lower edge to upper edge of bin
+
+  if (ftable) free_tables();
+  
+  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
+  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
+  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
+  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
+  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
+  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
+  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
+  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+
+  if (cut_respa == NULL) {
+    vtable = ptable = dvtable = dptable = NULL;
+  } else {
+    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
+    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
+    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
+    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+  }
+
+  float rsq;
+  int *int_rsq = (int *) &rsq;  
+  float minrsq;
+  int *int_minrsq = (int *) &minrsq;
+  int itablemin;
+  *int_minrsq = 0 << ncoulshiftbits;
+  *int_minrsq = *int_minrsq | maskhi;
+    
+  for (int i = 0; i < ntable; i++) {
+    *int_rsq = i << ncoulshiftbits;
+    *int_rsq = *int_rsq | masklo;
+    if (rsq < tabinnersq) {
+      *int_rsq = i << ncoulshiftbits;
+      *int_rsq = *int_rsq | maskhi;
+    }
+    r = sqrt(rsq);
+    grij = g_ewald * r;
+    expm2 = exp(-grij*grij);
+    derfc = erfc(grij);
+    if (cut_respa == NULL) {
+      rtable[i] = rsq;
+      ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+      ctable[i] = qqrd2e/r;
+      etable[i] = qqrd2e/r * derfc;
+    } else {
+      rtable[i] = rsq;
+      ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2 - 1.0);
+      ctable[i] = 0.0;
+      etable[i] = qqrd2e/r * derfc;
+      ptable[i] = qqrd2e/r;
+      vtable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+      if (rsq > cut_respa[2]*cut_respa[2]) {
+	if (rsq < cut_respa[3]*cut_respa[3]) {
+	  rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]); 
+	  ftable[i] += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+	  ctable[i] = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+	} else {
+	  ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+	  ctable[i] = qqrd2e/r;
+	}
+      }
+    }
+    minrsq = MIN(minrsq,rsq);
+  }
+
+  tabinnersq = minrsq;
+  
+  int ntablem1 = ntable - 1;
+  
+  for (int i = 0; i < ntablem1; i++) {
+    drtable[i] = 1.0/(rtable[i+1] - rtable[i]);
+    dftable[i] = ftable[i+1] - ftable[i];
+    dctable[i] = ctable[i+1] - ctable[i];
+    detable[i] = etable[i+1] - etable[i];
+  }
+
+  if (cut_respa) {
+    for (int i = 0; i < ntablem1; i++) {
+      dvtable[i] = vtable[i+1] - vtable[i];
+      dptable[i] = ptable[i+1] - ptable[i];
+    }
+  }
+  
+  // get the delta values for the last table entries 
+  // tables are connected periodically between 0 and ntablem1
+    
+  drtable[ntablem1] = 1.0/(rtable[0] - rtable[ntablem1]);
+  dftable[ntablem1] = ftable[0] - ftable[ntablem1];
+  dctable[ntablem1] = ctable[0] - ctable[ntablem1];
+  detable[ntablem1] = etable[0] - etable[ntablem1];
+  if (cut_respa) {
+    dvtable[ntablem1] = vtable[0] - vtable[ntablem1];
+    dptable[ntablem1] = ptable[0] - ptable[ntablem1];
+  }
+
+  // get the correct delta values at itablemax    
+  // smallest r is in bin itablemin
+  // largest r is in bin itablemax, which is itablemin-1,
+  //   or ntablem1 if itablemin=0
+  // deltas at itablemax only needed if corresponding rsq < cut*cut
+  // if so, compute deltas between rsq and cut*cut 
+	
+  double f_tmp,c_tmp,e_tmp,p_tmp,v_tmp;
+  itablemin = *int_minrsq & ncoulmask;
+  itablemin >>= ncoulshiftbits;  
+  int itablemax = itablemin - 1; 
+  if (itablemin == 0) itablemax = ntablem1;     
+  *int_rsq = itablemax << ncoulshiftbits;
+  *int_rsq = *int_rsq | maskhi;
+
+  if (rsq < cut_coulsq) {
+    rsq = cut_coulsq;  
+    r = sqrt(rsq);
+    grij = g_ewald * r;
+    expm2 = exp(-grij*grij);
+    derfc = erfc(grij);
+
+    if (cut_respa == NULL) {
+      f_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+      c_tmp = qqrd2e/r;
+      e_tmp = qqrd2e/r * derfc;
+    } else {
+      f_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2 - 1.0);
+      c_tmp = 0.0;
+      e_tmp = qqrd2e/r * derfc;
+      p_tmp = qqrd2e/r;
+      v_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+      if (rsq > cut_respa[2]*cut_respa[2]) {
+        if (rsq < cut_respa[3]*cut_respa[3]) {
+          rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]); 
+          f_tmp += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+          c_tmp = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+        } else {
+          f_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+          c_tmp = qqrd2e/r;
+        }
+      }
+    }
+
+    drtable[itablemax] = 1.0/(rsq - rtable[itablemax]);   
+    dftable[itablemax] = f_tmp - ftable[itablemax];
+    dctable[itablemax] = c_tmp - ctable[itablemax];
+    detable[itablemax] = e_tmp - etable[itablemax];
+    if (cut_respa) {
+      dvtable[itablemax] = v_tmp - vtable[itablemax];
+      dptable[itablemax] = p_tmp - ptable[itablemax];
+    }   
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free memory for tables used in pair computations
+------------------------------------------------------------------------- */
+
+void PairLJCoul::free_tables()
+{
+  memory->sfree(rtable);
+  memory->sfree(drtable);
+  memory->sfree(ftable);
+  memory->sfree(dftable);
+  memory->sfree(ctable);
+  memory->sfree(dctable);
+  memory->sfree(etable);
+  memory->sfree(detable);
+  memory->sfree(vtable);
+  memory->sfree(dvtable);
+  memory->sfree(ptable);
+  memory->sfree(dptable);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCoul::single(int i, int j, int itype, int jtype,
+			       double rsq,
+			       double factor_coul, double factor_lj,
+			       int eflag, One &one)
+{
+  double r2inv, r6inv, force_coul, force_lj;
+  double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2, *q = atom->q;
+
+  r2inv = 1.0/rsq;
+  one.eng_coul = 0.0;
+  if ((ewald_order&2) && (rsq < cut_coulsq)) {		// coulombic
+    if (!ncoultablebits || rsq <= tabinnersq) {		// series real space
+      register double r = sqrt(rsq), x = g_ewald*r;
+      register double s = force->qqrd2e*q[i]*q[j], t = 1.0/(1.0+EWALD_P*x);
+      r = s*(1.0-factor_coul)/r; s *= g_ewald*exp(-x*x);
+      force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
+      if (eflag) one.eng_coul = t-r;
+    }
+    else {						// table real space
+      register float t = rsq;
+      register int k = (((int *) &t)[0] & ncoulmask)>>ncoulshiftbits;
+      register double f = (rsq-rtable[k])*drtable[k], qiqj = q[i]*q[j];
+      t = (1.0-factor_coul)*(ctable[k]+f*dctable[k]);
+      force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
+      if (eflag) one.eng_coul = qiqj*(etable[k]+f*detable[k]-t);
+    }
+  }
+  else force_coul = 0.0;
+  
+  one.eng_vdwl = 0.0;
+  if (rsq < cut_ljsq[itype][jtype]) {			// lennard-jones
+    r6inv = r2inv*r2inv*r2inv;
+    if (ewald_order&64) {				// long-range
+      register double x2 = g2*rsq, a2 = 1.0/x2, t = r6inv*(1.0-factor_lj);
+      x2 = a2*exp(-x2)*lj4[itype][jtype];
+      force_lj = factor_lj*(r6inv *= r6inv)*lj1[itype][jtype]-
+       	g8*(((6.0*a2+6.0)*a2+3.0)*a2+a2)*x2*rsq+t*lj2[itype][jtype];
+      if (eflag) one.eng_vdwl = factor_lj*r6inv*lj3[itype][jtype]-
+	g6*((a2+1.0)*a2+0.5)*x2+t*lj4[itype][jtype];
+    }
+    else {						// cut
+      force_lj = factor_lj*r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+      if (eflag) one.eng_vdwl = factor_lj*(r6inv*(r6inv*lj3[itype][jtype]-
+	    lj4[itype][jtype])-offset[itype][jtype]);
+    }
+  } 
+  else force_lj = 0.0;
+
+  one.fforce = (force_coul+force_lj)*r2inv;
+}
+

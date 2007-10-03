@@ -1,0 +1,22 @@
+The files in this directory are a user-contributed package for LAMMPS.
+
+The person who created these files is Pieter in' t Veld at Sandia
+(pjintve@sandia.gov).  Contact him directly if you have questions.
+
+This package implements 3 commands which can be used in a LAMMPS input
+script: pair_style lj/coul, pair_style buck/coul, and kspace_style
+ewald/n.  See the documentation files for these commands for details.
+
+The "kspace_style ewald/n" command is similar to standard Ewald for
+charges, but also enables the Lennard-Jones interaction, or any 1/r^N
+interaction to be of infinite extent, instead of being cutoff.  LAMMPS
+pair potentials for long-range Coulombic interactions, such as
+lj/cut/coul/long can be used with ewald/n.  The two new pair_style
+commands provide the modifications for the short-range LJ and
+Buckingham interactions that can also be used with ewald/n.
+
+Another advantage of kspace_style ewald/n is that it can be used with
+non-orthogonal (triclinic symmetry) simulation boxes, either for just
+long-range Coulombic interactions, or for both Coulombic and 1/r^N LJ
+or Buckingham, which is not currently possible for other kspace styles
+such as PPPM and ewald.

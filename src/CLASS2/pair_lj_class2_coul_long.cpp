@@ -20,9 +20,9 @@
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "memory.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -66,20 +66,18 @@ PairLJClass2CoulLong::~PairLJClass2CoulLong()
 
 void PairLJClass2CoulLong::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,r,rinv,r2inv,r3inv,r6inv,forcecoul,forcelj,fforce;
   double grij,expm2,prefactor,t,erfc;
   double factor_coul,factor_lj,factor,phicoul,philj;
-  int *neighs;
-  double **f;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   eng_vdwl = eng_coul = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -89,19 +87,25 @@ void PairLJClass2CoulLong::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_coul = factor_lj = 1.0;
       else {
@@ -261,6 +265,30 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLJClass2CoulLong::init_style()
+{
+  if (!atom->q_flag)
+    error->all("Pair style lj/class2/coul/long requires atom attribute q");
+
+  int irequest = neighbor->request(this);
+
+  cut_coulsq = cut_coul * cut_coul;
+
+  // insure use of KSpace long-range solver, set g_ewald
+
+ if (force->kspace == NULL) 
+    error->all("Pair style is incompatible with KSpace style");
+  else if (strcmp(force->kspace_style,"ewald") == 0)
+    g_ewald = force->kspace->g_ewald;
+  else if (strcmp(force->kspace_style,"pppm") == 0)
+    g_ewald = force->kspace->g_ewald;
+  else error->all("Pair style is incompatible with KSpace style");
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -325,28 +353,6 @@ double PairLJClass2CoulLong::init_one(int i, int j)
   } 
 
   return cut;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairLJClass2CoulLong::init_style()
-{
-  if (!atom->q_flag)
-    error->all("Pair style lj/class2/coul/long requires atom attribute q");
-
-  cut_coulsq = cut_coul * cut_coul;
-
-  // insure use of KSpace long-range solver, set g_ewald
-
- if (force->kspace == NULL) 
-    error->all("Pair style is incompatible with KSpace style");
-  else if (strcmp(force->kspace_style,"ewald") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else if (strcmp(force->kspace_style,"pppm") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else error->all("Pair style is incompatible with KSpace style");
 }
 
 /* ----------------------------------------------------------------------

@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_BUCK_COUL_LONG_H
-#define PAIR_BUCK_COUL_LONG_H
+#ifndef PAIR_COUL_LONG_H
+#define PAIR_COUL_LONG_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairBuckCoulLong : public Pair {
+class PairCoulLong : public Pair {
  public:
-  PairBuckCoulLong(class LAMMPS *);
-  ~PairBuckCoulLong();
+  PairCoulLong(class LAMMPS *);
+  ~PairCoulLong();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -36,14 +36,18 @@ class PairBuckCoulLong : public Pair {
   void extract_long(double *);
 
  private:
-  double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
   double cut_coul,cut_coulsq;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
+  double *cut_respa;
   double g_ewald;
 
+  double tabinnersq;
+  double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
+  double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
+  int ncoulshiftbits,ncoulmask;
+
   void allocate();
+  void init_tables();
+  void free_tables();
 };
 
 }

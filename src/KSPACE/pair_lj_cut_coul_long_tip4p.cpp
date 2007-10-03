@@ -29,8 +29,10 @@
 #include "kspace.h"
 #include "update.h"
 #include "respa.h"
-#include "memory.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -58,7 +60,7 @@ PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) :
 
 void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fraction,table;
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
   double r,r2inv,r6inv,forcecoul,forcelj,cforce,negforce;
@@ -69,7 +71,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double xiM[3],xjM[3];
   double *x1,*x2;
   double fO[3],fH[3]; 
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
   double **f;
   float rsq;
   int *int_rsq = (int *) &rsq;
@@ -78,7 +80,8 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   if (vflag) for (i = 0; i < 6; i++) virial[i] = tvirial[i] = 0.0;
 
   if (vflag == 2) {
-    f = update->f_pair;
+    //f = update->f_pair;
+    f = atom->f;
     tf = atom->f;
   }
   else f = atom->f;
@@ -91,9 +94,15 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -103,11 +112,11 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
       find_M(i,iH1,iH2,xiM);
       x1 = xiM;
     } else x1 = x[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       if (j < nall) factor_coul = factor_lj = 1.0;
       else {
@@ -281,12 +290,12 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      tf[j][1] -= dely * cforce;
 	      tf[j][2] -= delz * cforce;
 
-	      tvirial[0] += 0.5 * (delx * delx * cforce);
-	      tvirial[1] += 0.5 * (dely * dely * cforce);
-	      tvirial[2] += 0.5 * (delz * delz * cforce);
-	      tvirial[3] += 0.5 * (dely * delx * cforce);
-	      tvirial[4] += 0.5 * (delz * delx * cforce);
-	      tvirial[5] += 0.5 * (delz * dely * cforce);
+	      tvirial[0] += 0.5 * delx * delx * cforce;
+	      tvirial[1] += 0.5 * dely * dely * cforce;
+	      tvirial[2] += 0.5 * delz * delz * cforce;
+	      tvirial[3] += 0.5 * dely * delx * cforce;
+	      tvirial[4] += 0.5 * delz * delx * cforce;
+	      tvirial[5] += 0.5 * delz * dely * cforce;
 	    }
 
 	  } else {
@@ -412,6 +421,42 @@ void PairLJCutCoulLongTIP4P::init_style()
     error->all("Pair style lj/cut/coul/long/tip4p requires newton pair on");
   if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long/tip4p requires atom attribute q");
+
+  // request regular or rRESPA neighbor lists
+
+  int irequest;
+
+  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+    int respa = 0;
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+
+    if (respa == 0) irequest = neighbor->request(this);
+    else if (respa == 1) {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    } else {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 2;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respamiddle = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    }
+
+  } else irequest = neighbor->request(this);
 
   cut_coulsq = cut_coul * cut_coul;
 

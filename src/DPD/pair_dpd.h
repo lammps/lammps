@@ -25,8 +25,8 @@ class PairDPD : public Pair {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);

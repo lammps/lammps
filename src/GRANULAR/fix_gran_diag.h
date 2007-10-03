@@ -45,6 +45,9 @@ class FixGranDiag : public Fix {
   double *velfxx,*velfyy,*velfzz,*velfxy,*velfxz,*velfyz;
   double *sigx2,*sigy2,*sigz2,*sigxy2,*sigxz2,*sigyz2;
 
+  class Pair *pair;
+  class NeighList *list,*listgran;
+
   void allocate();
   void deallocate();
   void stress_no_history();

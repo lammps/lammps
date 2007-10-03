@@ -21,7 +21,7 @@
 #include "pair_gran_no_history.h"
 #include "atom.h"
 #include "force.h"
-#include "neighbor.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +39,7 @@ PairGranNoHistory::PairGranNoHistory(LAMMPS *lmp) : PairGranHistory(lmp)
 
 void PairGranNoHistory::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,radj,radsum,rsq,r,rinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -47,7 +47,7 @@ void PairGranNoHistory::compute(int eflag, int vflag)
   double vtr1,vtr2,vtr3,vrel;
   double xmeff,damp,ccel,ccelx,ccely,ccelz,tor1,tor2,tor3;
   double fn,fs,ft,fs1,fs2,fs3;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **f = atom->f;
   double **x = atom->x;
@@ -60,18 +60,24 @@ void PairGranNoHistory::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

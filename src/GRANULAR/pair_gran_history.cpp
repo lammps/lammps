@@ -27,9 +27,12 @@
 #include "modify.h"
 #include "fix.h"
 #include "fix_pour.h"
+#include "fix_shear_history.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -64,7 +67,7 @@ PairGranHistory::~PairGranHistory()
 
 void PairGranHistory::compute(int eflag, int vflag)
 {
-  int i,j,k,numneigh;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,radj,radsum,rsq,r,rinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -73,8 +76,9 @@ void PairGranHistory::compute(int eflag, int vflag)
   double xmeff,damp,ccel,ccelx,ccely,ccelz,tor1,tor2,tor3;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht;
-  int *neighs,*touch;
-  double *firstshear,*shear;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *touch,**firsttouch;
+  double *shear,*allshear,**firstshear;
 
   double **f = atom->f;
   double **x = atom->x;
@@ -87,20 +91,28 @@ void PairGranHistory::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  firsttouch = listgranhistory->firstneigh;
+  firstshear = listgranhistory->firstdouble;
+ 
   // loop over neighbors of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    neighs = neighbor->firstneigh[i];
-    touch = neighbor->firsttouch[i];
-    firstshear = neighbor->firstshear[i];
-    numneigh = neighbor->numneigh[i];
+    touch = firsttouch[i];
+    allshear = firstshear[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -113,8 +125,8 @@ void PairGranHistory::compute(int eflag, int vflag)
 
 	// unset touching neighbors
 
-        touch[k] = 0;
-	shear = &firstshear[3*k];
+        touch[jj] = 0;
+	shear = &allshear[3*jj];
         shear[0] = 0.0;
         shear[1] = 0.0;
         shear[2] = 0.0;
@@ -175,8 +187,8 @@ void PairGranHistory::compute(int eflag, int vflag)
 	// shear history effects
 	// shrmag = magnitude of shear
 
-	touch[k] = 1;
-	shear = &firstshear[3*k];
+	touch[jj] = 1;
+	shear = &allshear[3*jj];
         shear[0] += vtr1;
         shear[1] += vtr2;
         shear[2] += vtr3;
@@ -274,8 +286,6 @@ void PairGranHistory::allocate()
 
 void PairGranHistory::settings(int narg, char **arg)
 {
-  if (domain->box_exist == 0)
-    error->all("Pair_style granular command before simulation box is defined");
   if (narg != 4) error->all("Illegal pair_style command");
 
   xkk = atof(arg[0]);
@@ -303,21 +313,6 @@ void PairGranHistory::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-double PairGranHistory::init_one(int i, int j)
-{
-  if (!allocated) allocate();
-
-  // return dummy value used in neighbor setup,
-  // but not in actual neighbor calculation
-  // since particles have variable radius
-
-  return 1.0;
-}
-
-/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
@@ -327,6 +322,19 @@ void PairGranHistory::init_style()
 
   if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Pair granular requires atom attributes radius, omega, torque");
+
+  // need a half neigh list and optionally a granular history neigh list
+
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->gran = 1;
+  if (history) {
+    irequest = neighbor->request(this);
+    neighbor->requests[irequest]->id = 1;
+    neighbor->requests[irequest]->half = 0;
+    neighbor->requests[irequest]->granhistory = 1;
+    neighbor->requests[irequest]->dnum = 3;
+  }
 
   xkkt = xkk * 2.0/7.0;
   dt = update->dt;
@@ -344,12 +352,13 @@ void PairGranHistory::init_style()
 
   if (history && fix_history == NULL) {
     char **fixarg = new char*[3];
-    fixarg[0] = "SHEAR_HISTORY";
-    fixarg[1] = "all";
-    fixarg[2] = "SHEAR_HISTORY";
+    fixarg[0] = (char *) "SHEAR_HISTORY";
+    fixarg[1] = (char *) "all";
+    fixarg[2] = (char *) "SHEAR_HISTORY";
     modify->add_fix(3,fixarg);
     delete [] fixarg;
     fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
+    fix_history->pair = this;
   }
 
   // check for freeze Fix and set freeze_group_bit
@@ -391,6 +400,32 @@ void PairGranHistory::init_style()
   MPI_Allreduce(&mine,&maxrad_frozen,1,MPI_DOUBLE,MPI_MAX,world);
 
   cutforce = maxrad_dynamic + MAX(maxrad_dynamic,maxrad_frozen);
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   optional granular history list
+------------------------------------------------------------------------- */
+
+void PairGranHistory::init_list(int id, NeighList *ptr)
+{
+  if (id == 0) list = ptr;
+  else if (id == 1) listgranhistory = ptr;
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairGranHistory::init_one(int i, int j)
+{
+  if (!allocated) allocate();
+
+  // return dummy value used in neighbor setup,
+  // but not in actual neighbor calculation
+  // since particles have variable radius
+
+  return 1.0;
 }
 
 /* ----------------------------------------------------------------------

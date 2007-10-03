@@ -24,6 +24,7 @@
 #include "pair.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "modify.h"
 #include "comm.h"
 #include "domain.h"
@@ -116,13 +117,13 @@ void FixGranDiag::init()
   // insure use of granular pair_style
   // set local values from Pair values
 
-  Pair *pair = force->pair_match("gran");
+  pair = force->pair_match("gran");
   if (pair == NULL)
     error->all("Fix gran/diag is incompatible with Pair style");
   int dampflag;
   double gamman;
   pair->extract_gran(&xkk,&gamman,&xmu,&dampflag);
-
+  
   // same initialization as in pair_gran_history::init_style()
 
   xkkt = xkk * 2.0/7.0;
@@ -151,6 +152,11 @@ void FixGranDiag::init()
 
 void FixGranDiag::setup()
 {
+  // get neighbor list from Pair class
+  // can't do this until setup since lists are setup by neighbor::init()
+
+  list = pair->list;
+
   if (first) end_of_step();
   first = 0;
 }
@@ -462,7 +468,7 @@ void FixGranDiag::deallocate()
 
 void FixGranDiag::stress_no_history()
 {
-  int i,j,k,m,numneigh;
+  int i,j,ii,jj,m,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,radj,radsum,rsq,r;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -470,7 +476,7 @@ void FixGranDiag::stress_no_history()
   double vtr1,vtr2,vtr3,vrel;
   double xmeff,damp,ccel,ccelx,ccely,ccelz;
   double fn,fs,ft,fs1,fs2,fs3;
-  int *neighs;
+  int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -481,19 +487,25 @@ void FixGranDiag::stress_no_history()
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
   // loop over all neighbors of my atoms
   // store stress for both atoms i and j
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    neighs = neighbor->firstneigh[i];
-    numneigh = neighbor->numneigh[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       // skip if neither atom is in fix group
 
@@ -613,7 +625,7 @@ void FixGranDiag::stress_no_history()
 
 void FixGranDiag::stress_history()
 {
-  int i,j,k,m,numneigh;
+  int i,j,ii,jj,m,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,radj,radsum,rsq,r;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -622,8 +634,8 @@ void FixGranDiag::stress_history()
   double xmeff,damp,ccel,ccelx,ccely,ccelz;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht;
-  int *neighs;
-  double *firstshear,*shear;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  double *shear,*allshear,**firstshear;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -634,20 +646,27 @@ void FixGranDiag::stress_history()
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->listgranhistory->firstneigh;
+  firstshear = list->listgranhistory->firstdouble;
+
   // loop over all neighbors of my atoms
   // store stress on both atoms i and j
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    neighs = neighbor->firstneigh[i];
-    firstshear = neighbor->firstshear[i];
-    numneigh = neighbor->numneigh[i];
+    allshear = firstshear[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       // skip if neither atom is in fix group
 
@@ -718,7 +737,7 @@ void FixGranDiag::stress_history()
 	// shrmag = magnitude of shear
 	// do not update shear history since not timestepping
 
-	shear = &firstshear[3*k];
+	shear = &allshear[3*jj];
 	shrx = shear[0] + vtr1;
 	shry = shear[1] + vtr2;
 	shrz = shear[2] + vtr3;
@@ -796,7 +815,7 @@ void FixGranDiag::stress_history()
 
 void FixGranDiag::stress_hertzian()
 {
-  int i,j,k,m,numneigh;
+  int i,j,ii,jj,m,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,radj,radsum,rsq,r;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -805,8 +824,8 @@ void FixGranDiag::stress_hertzian()
   double xmeff,damp,ccel,ccelx,ccely,ccelz;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht,rhertz;
-  int *neighs;
-  double *firstshear,*shear;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  double *shear,*allshear,**firstshear;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -817,20 +836,27 @@ void FixGranDiag::stress_hertzian()
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  firstshear = listgran->firstdouble;
+
   // loop over all neighbors of my atoms
   // store stress on both atoms i and j
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    neighs = neighbor->firstneigh[i];
-    firstshear = neighbor->firstshear[i];
-    numneigh = neighbor->numneigh[i];
+    allshear = firstshear[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-    for (k = 0; k < numneigh; k++) {
-      j = neighs[k];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
       // skip if neither atom is in fix group
 
@@ -903,7 +929,7 @@ void FixGranDiag::stress_hertzian()
 	// shrmag = magnitude of shear
 	// do not update shear history since not timestepping
 
-	shear = &firstshear[3*k];
+	shear = &allshear[3*jj];
 	shrx = shear[0] + vtr1;
 	shry = shear[1] + vtr2;
 	shrz = shear[2] + vtr3;

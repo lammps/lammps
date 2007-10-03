@@ -25,8 +25,9 @@ class PairGranHistory : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  void init_list(int, class NeighList *);
+  double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);

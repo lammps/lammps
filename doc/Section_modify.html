@@ -564,11 +564,11 @@ us.  See existing package files for examples of these details.
 </P>
 <P>Your user package will be a directory with a name like USER-FOO.  In
 addition to your new files, the directory should contain a README,
-Install.csh and style_user_foo.h file.
+Install.csh and style_user_foo.h file.  Send us a tarball of this
+USER-FOO directory.
 </P>
 <P>The README text file should contain your name and contact information
-and a brief description of what your new package does.  This is for
-users to look at.
+and a brief description of what your new package does.
 </P>
 <P>The Install.csh and style_user_foo.h files enable LAMMPS to include
 and exclude your package.
@@ -580,13 +580,19 @@ necessary to implement the new features.  They don't have to be
 written in the same style and syntax as other LAMMPS files, thought
 that would be nice.
 </P>
-<P>Finally, you also need to send us a documentation file for each new
-command or style you are adding to LAMMPS.  These are text files which
-we will convert to HTML.  Use one of the *.txt files in the doc dir as
-a starting point for the new file you create, since it should look
-similar to the doc files for existing commands and styles.  Note that
-the more clear and self-exaplantory you make your documentation, the
-more likely it is that users will try out your new feature.
+<P>Finally, in addition to the USER-FOO tarball, you also need to send us
+a documentation file for each new command or style you are adding to
+LAMMPS.  These are text files which we will convert to HTML.  Use one
+of the *.txt files in the doc dir as a starting point for the new file
+you create, since it should look similar to the doc files for existing
+commands and styles.  The "Restrictions" section of the doc page
+should indicate that your feature is only available if LAMMPS is built
+with the "user-foo" package.  See other user package files for an
+example of how to do this.
+</P>
+<P>Note that the more clear and self-exaplantory you make your doc and
+README files, the more likely it is that users will try out your new
+feature.
 </P>
 <HR>
 

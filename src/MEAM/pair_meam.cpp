@@ -23,9 +23,10 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
 
@@ -46,7 +47,6 @@ char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 
 PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 {
-  neigh_half_every = neigh_full_every = 1;
   single_enable = 0;
   one_coeff = 1;
 
@@ -118,8 +118,9 @@ PairMEAM::~PairMEAM()
 
 void PairMEAM::compute(int eflag, int vflag)
 {
-  int i,j,n,errorflag;
-  double **f;
+  int i,j,ii,n,inum_half,itype,jtype,errorflag;
+  int *ilist_half,*jlist_half,*numneigh_half,**firstneigh_half;
+  int *numneigh_full,*firstneigh_full;
 
   // grow local arrays if necessary
 
@@ -163,17 +164,23 @@ void PairMEAM::compute(int eflag, int vflag)
     strssa = memory->create_3d_double_array(nmax,3,3,"pair:strssa");
   }
 
+  // neighbor list info
+
+  inum_half = listhalf->inum;
+  ilist_half = listhalf->ilist;
+  numneigh_half = listhalf->numneigh;
+  firstneigh_half = listhalf->firstneigh;
+  numneigh_full = listfull->numneigh;
+  firstneigh_full = listfull->firstneigh;
+
   // check size of scrfcn based on half neighbor list
 
-  int **firstneigh = neighbor->firstneigh;
-  int *numneigh = neighbor->numneigh;
-  int **firstneigh_full = neighbor->firstneigh_full;
-  int *numneigh_full = neighbor->numneigh_full;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
 
   n = 0;
-  for (i = 0; i < nlocal; i++) n += numneigh[i];
+  for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
+
   if (n > maxneigh) {
     memory->sfree(scrfcn);
     memory->sfree(dscrfcn);
@@ -202,26 +209,28 @@ void PairMEAM::compute(int eflag, int vflag)
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
   }
 
-  if (vflag == 2) f = update->f_pair;
-  else f = atom->f;
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int ntype = atom->ntypes;
 
   // change neighbor list indices to Fortran indexing
 
-  neigh_c2f(numneigh,firstneigh);
-  neigh_c2f(numneigh_full,firstneigh_full);
+  neigh_c2f(inum_half,ilist_half,numneigh_half,firstneigh_half);
+  neigh_c2f(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
   // 3 stages of MEAM calculation
   // loop over my atoms followed by communication
 
-  errorflag = 0;
+  int ifort;
   int offset = 0;
-  for (i = 0; i < nlocal; i++) {
-    int ifort = i+1;
+  errorflag = 0;
+
+  for (ii = 0; ii < inum_half; ii++) {
+    i = ilist[ii];
+    ifort = i+1;
     meam_dens_init_(&ifort,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
-		    &numneigh[i],firstneigh[i],
+		    &numneigh_half[i],firstneigh_half[i],
 		    &numneigh_full[i],firstneigh_full[i],
 		    &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 		    rho0,&arho1[0][0],&arho2[0][0],arho2b,
@@ -250,10 +259,12 @@ void PairMEAM::compute(int eflag, int vflag)
   comm->comm_pair(this);
 
   offset = 0;
-  for (i = 0; i < nlocal; i++) {
-    int ifort = i+1;
+
+  for (ii = 0; ii < inum_half; ii++) {
+    i = ilist[ii];
+    ifort = i+1;
     meam_force_(&ifort,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
-		&numneigh[i],firstneigh[i],
+		&numneigh_half[i],firstneigh_half[i],
 		&numneigh_full[i],firstneigh_full[i],
 		&scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 		dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
@@ -272,8 +283,8 @@ void PairMEAM::compute(int eflag, int vflag)
 
   // change neighbor list indices back to C indexing
 
-  neigh_f2c(numneigh,firstneigh);
-  neigh_f2c(numneigh_full,firstneigh_full);
+  neigh_f2c(inum_half,ilist_half,numneigh_half,firstneigh_half);
+  neigh_f2c(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
   if (vflag == 2) virial_compute();
 }
@@ -380,26 +391,51 @@ void PairMEAM::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
+   init specific to this pair style
 ------------------------------------------------------------------------- */
-
-double PairMEAM::init_one(int i, int j)
-{
-  return cutmax;
-}
-
-/* ---------------------------------------------------------------------- */
 
 void PairMEAM::init_style()
 {
   if (force->newton_pair == 0)
     error->all("Pair style MEAM requires newton pair on");
 
+  // need full and half neighbor list
+
+  int irequest_full = neighbor->request(this);
+  neighbor->requests[irequest_full]->id = 1;
+  neighbor->requests[irequest_full]->half = 0;
+  neighbor->requests[irequest_full]->full = 1;
+  int irequest_half = neighbor->request(this);
+  neighbor->requests[irequest_half]->id = 2;
+  neighbor->requests[irequest_half]->half = 0;
+  neighbor->requests[irequest_half]->half_from_full = 1;
+  neighbor->requests[irequest_half]->otherlist = irequest_full;
+
   // setup Fortran-style mapping array needed by MEAM package
   // fmap is indexed from 1:ntypes by Fortran and stores a Fortran index
   // if type I is not a MEAM atom, fmap stores a 0
 
   for (int i = 1; i <= atom->ntypes; i++) fmap[i-1] = map[i] + 1;
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   half or full
+------------------------------------------------------------------------- */
+
+void PairMEAM::init_list(int id, NeighList *ptr)
+{
+  if (id == 1) listfull = ptr;
+  else if (id == 2) listhalf = ptr;
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairMEAM::init_one(int i, int j)
+{
+  return cutmax;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -868,22 +904,28 @@ int PairMEAM::memory_usage()
    needed for access by MEAM Fortran library
 ------------------------------------------------------------------------- */
 
-void PairMEAM::neigh_f2c(int *numn, int **firstn)
+void PairMEAM::neigh_f2c(int inum, int *nlist, int *numneigh, int **firstneigh)
 {
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) {
-    int *neigh = firstn[i];
-    int nsize = numn[i];
-    for (int j = 0; j < nsize; j++) neigh[j] -= 1;
+  int i,j,ii,jnum;
+  int *jlist;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = list[ii];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    for (j = 0; j < jnum; j++) jlist[j]--;
   }
 }
 
-void PairMEAM::neigh_c2f(int *numn, int **firstn)
+void PairMEAM::neigh_c2f(int inum, int *nlist, int *numneigh, int **firstneigh)
 {
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) {
-    int *neigh = firstn[i];
-    int nsize = numn[i];
-    for (int j = 0; j < nsize; j++) neigh[j] += 1;
+  int i,j,ii,jnum;
+  int *jlist;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = list[ii];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    for (j = 0; j < jnum; j++) jlist[j]++;
   }
 }

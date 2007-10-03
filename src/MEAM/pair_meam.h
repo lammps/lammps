@@ -56,8 +56,9 @@ class PairMEAM : public Pair {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  void init_list(int, class NeighList *);
+  double init_one(int, int);
 
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);

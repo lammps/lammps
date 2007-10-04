@@ -537,7 +537,7 @@ not want to make those changes.
 
 Here is what you need to do to submit a user package for our
 consideration.  Following these steps will save time for both you and
-us.  See existing package files for examples of these details.
+us.  See existing package files for examples.
 
 Your user package will be a directory with a name like USER-FOO.  In
 addition to your new files, the directory should contain a README,

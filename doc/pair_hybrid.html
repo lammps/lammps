@@ -124,8 +124,8 @@ potentials.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info</B>:
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
 </P>
 <P>Any pair potential settings made via the
 <A HREF = "pair_modify.html">pair_modify</A> command are passed along to all
@@ -157,6 +157,11 @@ files</A>, so a pair_style command does not need to
 specified in an input script that reads a restart file.  However, the
 coefficient information is not stored in the restart file.  Thus,
 pair_coeff commands need to be specified in the restart input script.
+</P>
+<P>These pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+command</A>, even if their sub-styles do.
 </P>
 <P><B>Restrictions:</B>
 </P>

@@ -120,8 +120,8 @@ potentials.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
+[Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info]:
 
 Any pair potential settings made via the
 "pair_modify"_pair_modify.html command are passed along to all
@@ -153,6 +153,11 @@ files"_restart.html, so a pair_style command does not need to
 specified in an input script that reads a restart file.  However, the
 coefficient information is not stored in the restart file.  Thus,
 pair_coeff commands need to be specified in the restart input script.
+
+These pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  They do not support the
+{inner}, {middle}, {outer} keywords of the "run_style
+command"_run_style.html, even if their sub-styles do.
 
 [Restrictions:]
 

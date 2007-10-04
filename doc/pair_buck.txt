@@ -66,14 +66,14 @@ C (energy-distance^6 units)
 cutoff (distance units)
 cutoff2 (distance units) :ul
 
+The second coefficient, rho, must be greater than zero.
+
 The latter 2 coefficients are optional.  If not specified, the global
 LJ and Coulombic cutoffs are used.  If only one cutoff is specified,
 it is used as the cutoff for both LJ and Coulombic interactions for
 this type pair.  If both coefficients are specified, they are used as
 the LJ and Coulombic cutoffs for this type pair.  You cannot specify 2
 cutoffs for style {buck}, since it has no Coulombic terms.
-
-The second coefficient, rho, must be greater than zero.
 
 For {buck/coul/long} only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
@@ -100,14 +100,19 @@ None of the Buckingham pair styles support the
 "pair_modify"_pair_modify.html tail option for adding long-range tail
 corrections to energy and pressure.
 
-All of the Buckinham pair styles can calculate per-atom energy and
+All of the Buckingham pair styles can calculate per-atom energy and
 stress, as used by the "compute epair/atom"_compute_epair_atom.html,
 "compute stress/atom"_compute_stress_atom.html, and "dump
 custom"_dump.html commands.
 
-All of the Buckinham pair styles write their information to "binary
+All of the Buckingham pair styles write their information to "binary
 restart files"_restart.html, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
+
+All of the Buckingham pair styles can only be used via the {pair}
+keyword of the "run_style respa"_run_style.html command.  They do not
+support the {inner}, {middle}, {outer} keywords of the "run_style
+command"_run_style.html.
 
 [Restrictions:]
 

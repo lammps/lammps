@@ -80,7 +80,7 @@ pair_coeff 1 1 100.0 3.5 9.0
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>lj/cut</I> styles compute the standard 6/12 Lennard-Jones potential,
+<P>The <I>lj/cut</I> styles compute the standard 12/6 Lennard-Jones potential,
 given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj.jpg">
@@ -165,8 +165,8 @@ Coulombic cutoff specified in the pair_style command.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info</B>:
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, and rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
@@ -195,6 +195,13 @@ custom</A> commands.
 <P>All of the lj/cut pair styles write their information to <A HREF = "restart.html">binary
 restart files</A>, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
+</P>
+<P>The lj/cut and lj/cut/coul/long pair styles support the use of the
+<I>inner</I>, <I>middle</I>, and <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+respa</A> command, meaning the pairwise forces can be
+partitioned by distance at different levels of the rRESPA hierarchy.
+The other styles only support the <I>pair</I> keyword of run_style respa.
+See the <A HREF = "run_style.html">run_style</A> command for details.
 </P>
 <HR>
 

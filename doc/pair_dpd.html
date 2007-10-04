@@ -58,8 +58,8 @@ command so it does not need to be specified.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info</B>:
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
 </P>
 <P>Thsi pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -90,6 +90,11 @@ re-initialize its random number generator the same way it did
 intially.  This means the random forces will be random, but will not
 be the same as they would have been if the original simulation had
 continued past the restart time.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+command</A>.
 </P>
 <HR>
 

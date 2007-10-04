@@ -74,20 +74,25 @@ global settings are made via the pair_style command.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info</B>:
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> mix, shift, table, and tail options
 are not relevant for granular pair styles.
 </P>
-<P>This pair style does not calculate per-atom energy and stress, as used
+<P>These pair styles do not calculate per-atom energy and stress, as used
 by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
 stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
 commands.
 </P>
-<P>This pair style writes its information to <A HREF = "restart.html">binary restart
-files</A>, so a pair_style commands does not need to be
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so a pair_style command does not need to be
 specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+command</A>.
 </P>
 <HR>
 

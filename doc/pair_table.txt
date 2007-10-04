@@ -139,8 +139,8 @@ one that matches the specified keyword.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
+[Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info]:
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -159,6 +159,11 @@ not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
 file, since it is tabulated in the potential files.  Thus, pair_coeff
 commands do need to be specified in the restart input script.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords of the "run_style
+command"_run_style.html.
 
 :line
 

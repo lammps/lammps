@@ -90,8 +90,8 @@ mix"_pair_modify.html setting is thus ignored for class2 potentials
 for epsilon and sigma.  However it is still followed for mixing the
 cutoff distance.
 
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
+[Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, and rRESPA info]:
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/class2 pair styles can be mixed.
@@ -121,6 +121,11 @@ custom"_dump.html commands.
 All of the lj/class2 pair styles write their information to "binary
 restart files"_restart.html, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
+
+All of the lj/class2 pair styles can only be used via the {pair}
+keyword of the "run_style respa"_run_style.html command.  They do not
+support the {inner}, {middle}, {outer} keywords of the "run_style
+command"_run_style.html.
 
 [Restrictions:]
 

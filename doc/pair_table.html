@@ -142,8 +142,8 @@ one that matches the specified keyword.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info</B>:
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
 </P>
 <P>This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -162,6 +162,11 @@ not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
 file, since it is tabulated in the potential files.  Thus, pair_coeff
 commands do need to be specified in the restart input script.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+command</A>.
 </P>
 <HR>
 

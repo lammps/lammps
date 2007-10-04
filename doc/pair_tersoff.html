@@ -115,8 +115,8 @@ are not used for anything and can be set to 0.0 if desired.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info</B>:
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -134,6 +134,11 @@ commands.
 files</A>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+command</A>.
 </P>
 <HR>
 

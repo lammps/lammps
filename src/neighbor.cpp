@@ -470,7 +470,7 @@ void Neighbor::init()
 
       if (requests[i]->pair && requests[i]->half && requests[i]->skip == 0) {
 	for (j = 0; j < nlist; j++)
-	  if (requests[i]->pair && requests[j]->full && 
+	  if (requests[j]->pair && requests[j]->full && 
 	      requests[j]->skip == 0) break;
 	if (j < nlist) {
 	  requests[i]->half = 0;

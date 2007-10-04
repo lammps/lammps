@@ -23,6 +23,7 @@ class ComputeAcklandAtom : public Compute {
   ComputeAcklandAtom(class LAMMPS *, int, char **);
   ~ComputeAcklandAtom();
   void init();
+  void init_list(int, class NeighList *);
   void compute_peratom();
   double memory_usage();
 

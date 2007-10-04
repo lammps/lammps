@@ -28,7 +28,7 @@ class ImproperHybrid : public Improper {
   void coeff(int, int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nstyles;                  // # of different improper styles

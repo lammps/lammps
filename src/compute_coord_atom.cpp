@@ -146,8 +146,8 @@ void ComputeCoordAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeCoordAtom::memory_usage()
+double ComputeCoordAtom::memory_usage()
 {
-  int bytes = nmax * sizeof(double);
+  double bytes = nmax * sizeof(double);
   return bytes;
 }

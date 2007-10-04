@@ -1002,9 +1002,9 @@ int DumpCustom::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and choose and local arrays
 ------------------------------------------------------------------------- */
 
-int DumpCustom::memory_usage()
+double DumpCustom::memory_usage()
 {
-  int bytes = maxbuf * sizeof(double);
+  double bytes = maxbuf * sizeof(double);
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(double);
   return bytes;

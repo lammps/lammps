@@ -25,7 +25,7 @@ class DumpXTC : public Dump {
   DumpXTC(class LAMMPS *, int, char**);
   ~DumpXTC();
   void init();
-  int memory_usage();
+  double memory_usage();
 	
  private:
   int natoms,ntotal;

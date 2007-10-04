@@ -26,7 +26,7 @@ class PPPM : public KSpace {
   void setup();
   void compute(int, int);
   void timing(int, double &, double &);
-  int memory_usage();
+  double memory_usage();
 
  protected:
   int me,nprocs;

@@ -577,13 +577,12 @@ void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4P::extract_tip4p(double *p_qdist, 
-					   int *p_typeO, int *p_typeH,
-					   int *p_typeA, int *p_typeB)
+void *PairLJCutCoulLongTIP4P::extract(char *str)
 {
-  *p_qdist = qdist;
-  *p_typeO = typeO;
-  *p_typeH = typeH;
-  *p_typeA = typeA;
-  *p_typeB = typeB;
+  if (strcmp(str,"qdist") == 0) return (void *) &qdist;
+  else if (strcmp(str,"typeO") == 0) return (void *) &typeO;
+  else if (strcmp(str,"typeH") == 0) return (void *) &typeH;
+  else if (strcmp(str,"typeA") == 0) return (void *) &typeA;
+  else if (strcmp(str,"typeB") == 0) return (void *) &typeB;
+  return NULL;
 }

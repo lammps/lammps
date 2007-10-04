@@ -32,8 +32,7 @@ class PairGranHistory : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-
-  void extract_gran(double *, double *, double *, int *);
+  void *extract(char *);
 
  protected:
   double xkk,xkkt,xmu;

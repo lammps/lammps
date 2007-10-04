@@ -25,7 +25,7 @@ class Ewald : public KSpace {
   void init();
   void setup();
   void compute(int, int);
-  int memory_usage();
+  double memory_usage();
 
  private:
   double PI;

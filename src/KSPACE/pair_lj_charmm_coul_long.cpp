@@ -52,6 +52,7 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   ftable = NULL;
+  implicit = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -799,16 +800,10 @@ void PairLJCharmmCoulLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL) 
+  if (force->kspace == NULL)
     error->all("Pair style is incompatible with KSpace style");
-  else if (strcmp(force->kspace_style,"ewald") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else if (strcmp(force->kspace_style,"pppm") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else if (strcmp(force->kspace_style,"pppm2") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else error->all("Pair style is incompatible with KSpace style");
-
+  g_ewald = force->kspace->g_ewald;
+  
   // setup force tables
 
   if (ncoultablebits) init_tables();
@@ -1217,22 +1212,13 @@ void PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulLong::extract_charmm(double ***p_lj14_1, 
-					  double ***p_lj14_2,
-					  double ***p_lj14_3,
-					  double ***p_lj14_4,
-					  int *p_implicit_flag)
+void *PairLJCharmmCoulLong::extract(char *str)
 {
-  *p_lj14_1 = lj14_1;
-  *p_lj14_2 = lj14_2;
-  *p_lj14_3 = lj14_3;
-  *p_lj14_4 = lj14_4;
-  *p_implicit_flag = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairLJCharmmCoulLong::extract_long(double *p_cut_coul)
-{
-  *p_cut_coul = cut_coul;
+  if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;
+  else if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
+  else if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;
+  else if (strcmp(str,"lj14_4") == 0) return (void *) lj14_4;
+  else if (strcmp(str,"implicit") == 0) return (void *) &implicit;
+  else if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  return NULL;
 }

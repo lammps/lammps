@@ -32,11 +32,10 @@ class PairLJCharmmCoulCharmm : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   virtual void single(int, int, int, int, double, double, double, int, One &);
-
-  virtual void extract_charmm(double ***, double ***,
-			      double ***, double ***, int *);
+  virtual void *extract(char *);
 
  protected:
+  int implicit;
   double cut_lj_inner,cut_lj,cut_coul_inner,cut_coul;
   double cut_lj_innersq,cut_ljsq,cut_coul_innersq,cut_coulsq,cut_bothsq;
   double denom_lj,denom_coul;

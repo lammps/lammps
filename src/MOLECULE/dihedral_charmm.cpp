@@ -275,7 +275,7 @@ void DihedralCharmm::compute(int eflag, int vflag)
       r2inv = 1.0/rsq;
       r6inv = r2inv*r2inv*r2inv;
 
-      if (implicit_flag) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
+      if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
       else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
       forcelj = r6inv * (lj14_1[itype][jtype]*r6inv - lj14_2[itype][jtype]);
       fforce = weight[type] * (forcelj+forcecoul)*r2inv;
@@ -391,10 +391,16 @@ void DihedralCharmm::init_style()
     if (weight[i] > 0.0) weightflag = 1;
 
   if (weightflag) {
-    Pair *pair = force->pair_match("charmm");
-    if (pair == NULL)
+    if (force->pair == NULL)
       error->all("Dihedral charmm is incompatible with Pair style");
-    pair->extract_charmm(&lj14_1,&lj14_2,&lj14_3,&lj14_4,&implicit_flag);
+    lj14_1 = (double **) force->pair->extract("lj14_1");
+    lj14_2 = (double **) force->pair->extract("lj14_2");
+    lj14_3 = (double **) force->pair->extract("lj14_3");
+    lj14_4 = (double **) force->pair->extract("lj14_4");
+    int *ptr = (int *) force->pair->extract("implicit");
+    if (!lj14_1 || !lj14_2 || !lj14_3 || !lj14_4 || !ptr)
+      error->all("Dihedral charmm is incompatible with Pair style");
+    implicit = *ptr;
   }
 }
 

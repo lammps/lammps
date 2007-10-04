@@ -80,9 +80,9 @@ void DumpXYZ::init()
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-int DumpXYZ::memory_usage()
+double DumpXYZ::memory_usage()
 {
-  int bytes = maxbuf * sizeof(double);
+  double bytes = maxbuf * sizeof(double);
   if (igroup == 0) {
     bytes += natoms * sizeof(int);
     bytes += 3*natoms * sizeof(float);

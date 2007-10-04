@@ -30,7 +30,7 @@ class FixShearHistory : public Fix {
   void init();
   void pre_exchange();
 
-  int memory_usage();
+  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

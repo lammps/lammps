@@ -2055,10 +2055,10 @@ int FixShake::anglefind(int i, int n1, int n2)
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixShake::memory_usage()
+double FixShake::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += nmax*4 * sizeof(int);
   bytes += nmax*3 * sizeof(int);
   bytes += nmax*3 * sizeof(double);

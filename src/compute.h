@@ -61,7 +61,7 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
-  virtual int memory_usage() {return 0;}
+  virtual double memory_usage() {return 0.0;}
 
  protected:
   int extra_dof,dynamic;

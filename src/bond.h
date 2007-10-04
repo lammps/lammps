@@ -39,7 +39,7 @@ class Bond : protected Pointers {
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
   virtual void single(int, double, int, int, int, double &, double &) = 0;
-  virtual int memory_usage() {return 0;}
+  virtual double memory_usage() {return 0.0;}
 };
 
 }

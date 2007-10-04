@@ -30,7 +30,7 @@ class FixRigid : public Fix {
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
 
-  int memory_usage();
+  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

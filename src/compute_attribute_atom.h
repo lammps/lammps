@@ -24,7 +24,7 @@ class ComputeAttributeAtom : public Compute {
   ~ComputeAttributeAtom();
   void init() {}
   void compute_peratom();
-  int memory_usage();
+  double memory_usage();
 
  private:
   int which,allocate,nmax;

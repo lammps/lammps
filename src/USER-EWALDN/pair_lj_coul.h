@@ -36,8 +36,7 @@ class PairLJCoul : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   void single(int, int, int, int, double, double, double, int, One &);
-  void *extract_ptr(char *);
-  void extract_long(double *);
+  void *extract(char *);
 
   void compute_inner();
   void compute_middle();

@@ -33,7 +33,7 @@ class BondHybrid : public Bond {
   void write_restart(FILE *);
   void read_restart(FILE *);
   void single(int, double, int, int, int, double &, double &);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nstyles;                  // # of different bond styles

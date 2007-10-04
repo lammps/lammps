@@ -25,7 +25,7 @@ class DumpDCD : public Dump {
   DumpDCD(LAMMPS *, int, char**);
   ~DumpDCD();
   void init();
-  int memory_usage();
+  double memory_usage();
 
  private:
   int natoms,ntotal,headerflag,nevery_save,nframes;

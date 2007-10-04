@@ -484,9 +484,9 @@ int AtomVecCharge::data_atom_hybrid(int nlocal, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-int AtomVecCharge::memory_usage()
+double AtomVecCharge::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
 
   if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
   if (atom->memcheck("type")) bytes += nmax * sizeof(int);

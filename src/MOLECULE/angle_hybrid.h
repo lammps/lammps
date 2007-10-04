@@ -30,7 +30,7 @@ class AngleHybrid : public Angle {
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, int, int, int);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nstyles;                  // # of different angle styles

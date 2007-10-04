@@ -29,7 +29,7 @@ class DihedralHybrid : public Dihedral {
   void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nstyles;                  // # of different dihedral styles

@@ -160,10 +160,10 @@ void FixShearHistory::pre_exchange()
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-int FixShearHistory::memory_usage()
+double FixShearHistory::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += nmax*MAXTOUCH * sizeof(int);
   bytes += nmax*MAXTOUCH*3 * sizeof(double);
   return bytes;

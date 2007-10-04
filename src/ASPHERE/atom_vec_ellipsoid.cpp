@@ -583,9 +583,9 @@ int AtomVecEllipsoid::data_vel_hybrid(int m, char **values)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-int AtomVecEllipsoid::memory_usage()
+double AtomVecEllipsoid::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
 
   if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
   if (atom->memcheck("type")) bytes += nmax * sizeof(int);

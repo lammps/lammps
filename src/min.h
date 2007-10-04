@@ -30,7 +30,7 @@ class Min : protected Pointers {
   virtual ~Min() {}
   virtual void init() = 0;
   virtual void run() = 0;
-  virtual int memory_usage() {return 0;}
+  virtual double memory_usage() {return 0.0;}
 
   void modify_params(int, char **);
 };

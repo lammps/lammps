@@ -103,9 +103,9 @@ void DumpDCD::init()
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-int DumpDCD::memory_usage()
+double DumpDCD::memory_usage()
 {
-  int bytes = maxbuf * sizeof(double);
+  double bytes = maxbuf * sizeof(double);
   bytes += 3*natoms * sizeof(float);
   return bytes;
 }

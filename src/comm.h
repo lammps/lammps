@@ -53,7 +53,7 @@ class Comm : protected Pointers {
   void irregular();                 // irregular communication across all procs
 
   void set(int, char **);           // set communication style
-  int memory_usage();               // tally memory usage
+  double memory_usage();
 
  private:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic

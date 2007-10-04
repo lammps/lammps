@@ -25,7 +25,7 @@ class ComputeCoordAtom : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_peratom();
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nmax;

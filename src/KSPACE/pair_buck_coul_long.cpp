@@ -311,13 +311,9 @@ void PairBuckCoulLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
- if (force->kspace == NULL) 
+  if (force->kspace == NULL)
     error->all("Pair style is incompatible with KSpace style");
-  else if (strcmp(force->kspace_style,"ewald") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else if (strcmp(force->kspace_style,"pppm") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else error->all("Pair style is incompatible with KSpace style");
+  g_ewald = force->kspace->g_ewald;
 
   int irequest = neighbor->request(this);
 }
@@ -448,8 +444,9 @@ void PairBuckCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckCoulLong::extract_long(double *p_cut_coul)
+void *PairBuckCoulLong::extract(char *str)
 {
-  *p_cut_coul = cut_coul;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  return NULL;
 }
 

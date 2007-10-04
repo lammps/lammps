@@ -329,9 +329,9 @@ void FixTMD::initial_integrate_respa(int ilevel, int flag)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-int FixTMD::memory_usage()
+double FixTMD::memory_usage()
 {
-  int bytes = 2*atom->nmax*3 * sizeof(double);
+  double bytes = 2*atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

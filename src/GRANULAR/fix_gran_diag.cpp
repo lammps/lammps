@@ -114,15 +114,20 @@ int FixGranDiag::setmask()
 
 void FixGranDiag::init()
 {
-  // insure use of granular pair_style
   // set local values from Pair values
 
-  pair = force->pair_match("gran");
-  if (pair == NULL)
+  if (force->pair == NULL)
     error->all("Fix gran/diag is incompatible with Pair style");
-  int dampflag;
-  double gamman;
-  pair->extract_gran(&xkk,&gamman,&xmu,&dampflag);
+  double *p_xkk = (double *) force->pair->extract("xkk");
+  double *p_gamman = (double *) force->pair->extract("gamman");
+  double *p_xmu = (double *) force->pair->extract("xmu");
+  int *p_dampflag = (int *) force->pair->extract("dampflag");
+  if (!p_xkk || !p_gamman || !p_xmu || !p_dampflag)
+    error->all("Fix gran/diag is incompatible with Pair style");
+  xkk = *p_xkk;
+  double gamman = *p_gamman;
+  xmu = *p_xmu;
+  int dampflag = *p_dampflag;
   
   // same initialization as in pair_gran_history::init_style()
 

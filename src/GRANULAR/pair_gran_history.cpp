@@ -479,11 +479,11 @@ void PairGranHistory::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHistory::extract_gran(double *p_xkk, double *p_gamman,
-				   double *p_xmu, int *p_dampflag)
+void *PairGranHistory::extract(char *str)
 {
-  *p_xkk = xkk;
-  *p_gamman = gamman;
-  *p_xmu = xmu;
-  *p_dampflag = dampflag;
+  if (strcmp(str,"xkk") == 0) return (void *) &xkk;
+  else if (strcmp(str,"gamman") == 0) return (void *) &gamman;
+  else if (strcmp(str,"xmu") == 0) return (void *) &xmu;
+  else if (strcmp(str,"dampflag") == 0) return (void *) &dampflag;
+  return NULL;
 }

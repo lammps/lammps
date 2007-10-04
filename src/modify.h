@@ -70,7 +70,7 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate();
 
-  int memory_usage();
+  double memory_usage();
 
  private:
                              // lists of fixes to apply at different times

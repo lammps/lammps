@@ -48,7 +48,7 @@ class FixOrientFCC : public Fix {
   double thermo(int);
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int me;

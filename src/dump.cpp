@@ -255,9 +255,9 @@ void Dump::modify_params(int narg, char **arg)
    return # of bytes of allocated memory in buf
 ------------------------------------------------------------------------- */
 
-int Dump::memory_usage()
+double Dump::memory_usage()
 {
-  int bytes = maxbuf * sizeof(double);
+  double bytes = maxbuf * sizeof(double);
   return bytes;
 }
 

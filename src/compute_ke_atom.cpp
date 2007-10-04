@@ -98,8 +98,8 @@ void ComputeKEAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeKEAtom::memory_usage()
+double ComputeKEAtom::memory_usage()
 {
-  int bytes = nmax * sizeof(double);
+  double bytes = nmax * sizeof(double);
   return bytes;
 }

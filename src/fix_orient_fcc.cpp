@@ -563,8 +563,8 @@ int FixOrientFCC::compare(const void *pi, const void *pj)
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixOrientFCC::memory_usage()
+double FixOrientFCC::memory_usage()
 {
-  int bytes = atom->nmax * sizeof(Nbr);
+  double bytes = atom->nmax * sizeof(Nbr);
   return bytes;
 }

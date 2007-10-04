@@ -37,7 +37,8 @@ class PairHybrid : public Pair {
   void single(int, int, int, int, double, double, double, int, One &);
   void single_embed(int, int, double &);
   void modify_params(int narg, char **arg);
-  int memory_usage();
+  double memory_usage();
+  void *extract(char *);
 
  protected:
   int **nmap;                   // # of sub-styles itype,jtype points to

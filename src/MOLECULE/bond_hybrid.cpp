@@ -261,9 +261,9 @@ void BondHybrid::single(int type, double rsq, int i, int j,
    memory usage
 ------------------------------------------------------------------------- */
 
-int BondHybrid::memory_usage()
+double BondHybrid::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   for (int m = 0; m < nstyles; m++) bytes += maxbond[m]*3 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();

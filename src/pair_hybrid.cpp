@@ -540,9 +540,38 @@ void PairHybrid::modify_params(int narg, char **arg)
    memory usage of each sub-style
 ------------------------------------------------------------------------- */
 
-int PairHybrid::memory_usage()
+double PairHybrid::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   extract a ptr to a particular quantity stored by pair
+   pass request thru to sub-styles
+   return first non-NULL result except for cut_coul request
+   for cut_coul, insure all non-NULL results are equal since required by Kspace
+------------------------------------------------------------------------- */
+
+void *PairHybrid::extract(char *str)
+{
+  void *cutptr = NULL;
+  void *ptr;
+  double cutvalue;
+
+  for (int m = 0; m < nstyles; m++) {
+    ptr = styles[m]->extract(str);
+    if (ptr && strcmp(str,"cut_coul") == 0) {
+      double *p_newvalue = (double *) ptr;
+      double newvalue = *p_newvalue;
+      if (cutptr && newvalue != cutvalue)
+	error->all("Coulomb cutoffs of pair hybrid sub-styles do not match");
+      cutptr = ptr;
+      cutvalue = newvalue;
+    } else if (ptr) return ptr;
+  }
+
+  if (strcmp(str,"cut_coul") == 0) return cutptr;
+  return NULL;
 }

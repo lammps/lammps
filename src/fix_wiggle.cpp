@@ -131,9 +131,9 @@ void FixWiggle::post_force_respa(int vflag, int ilevel, int iloop)
    memory usage of local atom-based array 
 ------------------------------------------------------------------------- */
 
-int FixWiggle::memory_usage()
+double FixWiggle::memory_usage()
 {
-  int bytes = atom->nmax * sizeof(double);
+  double bytes = atom->nmax * sizeof(double);
   return bytes;
 }
 

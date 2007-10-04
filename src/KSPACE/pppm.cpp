@@ -129,29 +129,37 @@ void PPPM::init()
 
   deallocate();
 
-  // insure use of long (or table) pair_style with long-range Coulombics
-  // set cutoff to Pair's short-range Coulombic cutoff
+  // extract short-range Coulombic cutoff from pair style
 
   qqrd2e = force->qqrd2e;
 
-  Pair *pair = force->pair_match("long");
-  if (pair == NULL) pair = force->pair_match("table");
-  if (pair == NULL) error->all("KSpace style is incompatible with Pair style");
-  pair->extract_long(&cutoff);
+  if (force->pair == NULL)
+    error->all("KSpace style is incompatible with Pair style");
+  double *p_cutoff = (double *) force->pair->extract("cut_coul");
+  if (p_cutoff == NULL)
+    error->all("KSpace style is incompatible with Pair style");
+  cutoff = *p_cutoff;
 
-  // insure use of TIP4P pair_style with TIP4P long-range Coulombics
-  // set TIP4P params from Pair's params
+  // if kspace is TIP4P, extract TIP4P params from pair style
 
   qdist = 0.0;
 
-  pair = force->pair_match("tip4p");
-  if (strcmp(force->kspace_style,"pppm/tip4p") != 0 && pair != NULL)
-    error->all("KSpace style is incompatible with Pair style");
-  if (strcmp(force->kspace_style,"pppm/tip4p") == 0 && pair == NULL)
-    error->all("KSpace style is incompatible with Pair style");
-  if (pair) {
-    int typeA,typeB;
-    pair->extract_tip4p(&qdist,&typeO,&typeH,&typeA,&typeB);
+  if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
+    if (force->pair == NULL)
+      error->all("KSpace style is incompatible with Pair style");
+    double *p_qdist = (double *) force->pair->extract("qdist");
+    int *p_typeO = (int *) force->pair->extract("typeO");
+    int *p_typeH = (int *) force->pair->extract("typeH");
+    int *p_typeA = (int *) force->pair->extract("typeA");
+    int *p_typeB = (int *) force->pair->extract("typeB");
+    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
+      error->all("KSpace style is incompatible with Pair style");
+    qdist = *p_qdist;
+    typeO = *p_typeO;
+    typeH = *p_typeH;
+    int typeA = *p_typeA;
+    int typeB = *p_typeB;
+
     if (force->angle == NULL || force->bond == NULL)
       error->all("Bond and angle potentials must be defined for TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
@@ -1881,9 +1889,9 @@ void PPPM::timing(int n, double &time3d, double &time1d)
    memory usage of local arrays 
 ------------------------------------------------------------------------- */
 
-int PPPM::memory_usage()
+double PPPM::memory_usage()
 {
-  int bytes = nmax*3 * sizeof(double);
+  double bytes = nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
     (nzhi_out-nzlo_out+1);
   bytes += 4 * nbrick * sizeof(double);

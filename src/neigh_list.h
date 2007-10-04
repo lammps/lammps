@@ -77,7 +77,7 @@ class NeighList : protected Pointers {
   void stencil_allocate(int, int); // allocate stencil arrays
   int **add_pages();               // add pages to neigh list
   void print_attributes();         // debug routine
-  int memory_usage();
+  double memory_usage();
 
  private:
   int maxlocal;                    // size of allocated atom arrays

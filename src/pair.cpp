@@ -301,7 +301,7 @@ void Pair::write_file(int narg, char **arg)
   double *eamfp_hold;
 
   Pair *epair = force->pair_match("eam");
-  if (epair) epair->extract_eam(eamfp,&eamfp_hold);
+  if (epair) epair->swap_eam(eamfp,&eamfp_hold);
 
   // if atom style defines charge, swap in dummy q vec
 
@@ -363,7 +363,7 @@ void Pair::write_file(int narg, char **arg)
   // restore original vecs that were swapped in for
 
   double *tmp;
-  if (epair) epair->extract_eam(eamfp_hold,&tmp);
+  if (epair) epair->swap_eam(eamfp_hold,&tmp);
   if (atom->q) atom->q = q_hold;
   
   if (me == 0) fclose(fp);

@@ -23,7 +23,7 @@ class DumpCustom : public Dump {
   DumpCustom(class LAMMPS *, int, char **);
   ~DumpCustom();
   void init();
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nevery;                // dump frequency to check Fix against

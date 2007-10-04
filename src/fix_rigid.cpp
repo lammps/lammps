@@ -1417,10 +1417,10 @@ void FixRigid::set_v(int vflag)
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixRigid::memory_usage()
+double FixRigid::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += nmax*3 * sizeof(double);
   return bytes;
 } 

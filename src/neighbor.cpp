@@ -1378,28 +1378,14 @@ void Neighbor::bin_atoms()
 
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 
-  // bin ghost atoms 1st, so will be at end of linked list
-  // then bin owned atoms
+  // bin in reverse order so linked list will be in forward order
+  // also puts ghost atoms at end of list, which is necessary
 
-  for (i = nlocal; i < nall; i++) {
-    ibin = coord2bin(x[i]);
-    bins[i] = binhead[ibin];
-    binhead[ibin] = i;
-  }
-
-  for (i = 0; i < nlocal; i++) {
-    ibin = coord2bin(x[i]);
-    bins[i] = binhead[ibin];
-    binhead[ibin] = i;
-  }
-
-  /*
   for (i = nall-1; i >= 0; i--) {
     ibin = coord2bin(x[i]);
     bins[i] = binhead[ibin];
     binhead[ibin] = i;
   }
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -1472,10 +1458,9 @@ int Neighbor::exclusion(int i, int j, int itype, int jtype,
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-int Neighbor::memory_usage()
+double Neighbor::memory_usage()
 {
-  int bytes = 0;
-
+  double bytes = 0.0;
   bytes += maxhold*3 * sizeof(double);
 
   if (style != NSQ) {

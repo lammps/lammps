@@ -111,9 +111,9 @@ void DumpXTC::init()
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-int DumpXTC::memory_usage()
+double DumpXTC::memory_usage()
 {
-  int bytes = maxbuf * sizeof(double);
+  double bytes = maxbuf * sizeof(double);
   bytes += 3*natoms * sizeof(float);
   return bytes;
 }

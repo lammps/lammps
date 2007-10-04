@@ -27,7 +27,7 @@ class FixMinimize : public Fix {
   int setmask();
   void init() {}
 
-  int memory_usage();
+  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

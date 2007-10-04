@@ -523,9 +523,9 @@ void AtomVecHybrid::data_vel(int m, char **values)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-int AtomVecHybrid::memory_usage()
+double AtomVecHybrid::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

@@ -870,9 +870,9 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int PairEAM::memory_usage()
+double PairEAM::memory_usage()
 {
-  int bytes = 2 * nmax * sizeof(double);
+  double bytes = 2 * nmax * sizeof(double);
   return bytes;
 }
 
@@ -880,7 +880,7 @@ int PairEAM::memory_usage()
    swap fp array with one passed in by caller
 ------------------------------------------------------------------------- */
 
-void PairEAM::extract_eam(double *fp_caller, double **fp_caller_hold)
+void PairEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
 {
   double *tmp = fp;
   fp = fp_caller;

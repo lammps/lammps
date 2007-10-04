@@ -37,10 +37,10 @@ class PairLJCharmmCoulLong : public Pair {
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
-  void extract_charmm(double ***, double ***, double ***, double ***, int *);
-  void extract_long(double *);
+  void *extract(char *);
 
  protected:
+  int implicit;
   double cut_lj_inner,cut_lj;
   double cut_lj_innersq,cut_ljsq;
   double cut_coul,cut_coulsq;

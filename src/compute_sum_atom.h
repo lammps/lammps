@@ -24,7 +24,7 @@ class ComputeSumAtom : public Compute {
   ~ComputeSumAtom();
   void init();
   void compute_peratom();
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nmax;

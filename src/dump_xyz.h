@@ -23,7 +23,7 @@ class DumpXYZ : public Dump {
   DumpXYZ(class LAMMPS *, int, char**);
   ~DumpXYZ();
   void init();
-  int memory_usage();
+  double memory_usage();
 	
  private:
   int natoms,ntotal;

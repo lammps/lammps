@@ -135,7 +135,7 @@ class Atom : protected Pointers {
   void delete_callback(const char *, int);
   void update_callback(int);
 
-  int memory_usage();
+  double memory_usage();
   int memcheck(const char *);
 
   // functions for global to local ID mapping

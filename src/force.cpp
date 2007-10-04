@@ -414,9 +414,9 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
    memory usage of force classes
 ------------------------------------------------------------------------- */
 
-int Force::memory_usage()
+double Force::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   if (pair) bytes += pair->memory_usage();
   if (bond) bytes += bond->memory_usage();
   if (angle) bytes += angle->memory_usage();

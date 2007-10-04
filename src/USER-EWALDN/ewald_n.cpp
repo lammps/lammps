@@ -15,17 +15,6 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   module:	ewald_n.cpp
-   author:	Pieter J. in 't Veld for SNL
-   date:	September 13, 2006.
-   usage:	kspace ewald/n precision
-   		  precision 			set precision of all orders
-   remarks:	- cut off and precision are assumed identical for all orders
-		- coulombics from Macromolecules 1989, 93, 7320
-		- dipoles from J. Chem. Phys. 2000, 113, 10913
-*  ---------------------------------------------------------------------- */
-
 #include "mpi.h"
 #include "string.h"
 #include "stdio.h"
@@ -78,9 +67,10 @@ EwaldN::~EwaldN()
 
 void EwaldN::init()
 {
-  nkvec = nkvec_max = nevec = nevec_max = bytes = 0;
+  nkvec = nkvec_max = nevec = nevec_max = 0;
   nfunctions = nsums = sums = 0;
   nbox = -1;
+  bytes = 0.0;
 
   if (!comm->me) {					// output message
     if (screen) fprintf(screen,"EwaldN initialization ...\n");
@@ -103,11 +93,12 @@ void EwaldN::init()
   mumurd2e = dielectric = 1.0;
   
   Pair *pair = force->pair;
-  void *ptr = pair ? pair->extract_ptr("ewald_order") : NULL;
-  if (!ptr) error->all("KSpace style is incompatible with Pair style");
-  int ewald_order = *((int *) ptr);
-  int ewald_mix = *((int *) pair->extract_ptr("ewald_mix"));
-  double cutoff = *((double *) pair->extract_ptr("ewald_cut"));
+  int *ptr = pair ? (int *) pair->extract("ewald_order") : NULL;
+  double *cutoff = pair ? (double *) pair->extract("cut_coul") : NULL;
+  if (!(ptr||cutoff)) 
+    error->all("KSpace style is incompatible with Pair style");
+  int ewald_order = ptr ? *((int *) ptr) : 1<<1;
+  int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix")) : GEOMETRIC;
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
   for (int i=0; i<=EWALD_NORDER; ++i)			// transcribe order
     if (ewald_order&(1<<i)) {				// from pair_style
@@ -131,7 +122,7 @@ void EwaldN::init()
       nsums += n[k];
     }
   
-  g_ewald = (1.35 - 0.15*log(precision))/cutoff;	// determine resolution
+  g_ewald = (1.35 - 0.15*log(precision))/ *cutoff;	// determine resolution
   g2_max = -4.0*g_ewald*g_ewald*log(precision);
 
   if (!comm->me) {					// output results
@@ -305,15 +296,15 @@ void EwaldN::init_coeffs()				// local pair coeffs
   int n = atom->ntypes;
 
   if (function[1]) {					// geometric 1/r^6
-    double **b = (double **) force->pair->extract_ptr("B");
+    double **b = (double **) force->pair->extract("B");
     delete [] B;
     B = new double[n+1];
     bytes += (n+1)*sizeof(double);
     for (int i=0; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {					// arithmetic 1/r^6
-    double **epsilon = (double **) force->pair->extract_ptr("epsilon");
-    double **sigma = (double **) force->pair->extract_ptr("sigma");
+    double **epsilon = (double **) force->pair->extract("epsilon");
+    double **sigma = (double **) force->pair->extract("sigma");
     if (!(epsilon&&sigma))
       error->all("epsilon or sigma reference not set by pair style in ewald/n");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];

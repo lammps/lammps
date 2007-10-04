@@ -37,7 +37,7 @@ class Angle : protected Pointers {
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
   virtual double single(int, int, int, int) = 0;
-  virtual int memory_usage() {return 0;}
+  virtual double memory_usage() {return 0.0;}
 };
 
 }

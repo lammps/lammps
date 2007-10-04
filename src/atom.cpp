@@ -1282,13 +1282,13 @@ void Atom::update_callback(int ifix)
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
-int Atom::memory_usage()
+double Atom::memory_usage()
 {
   memlength = DELTA_MEMSTR;
   memstr = (char *) memory->smalloc(memlength*sizeof(char),"atom:memstr");
   memstr[0] = '\0';
 
-  int bytes = avec->memory_usage();
+  double bytes = avec->memory_usage();
   if (map_style == 1)
     bytes += map_tag_max * sizeof(int);
   else if (map_style == 2) {

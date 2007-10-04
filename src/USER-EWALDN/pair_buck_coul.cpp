@@ -15,21 +15,6 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   module:	pair_buck_coul.cpp
-   author:	Pieter J. in 't Veld for SNL
-   date:	October 2, 2006.
-   purpose:	definition of short and long range buckingham and coulombic
-		pair potentials.
-   usage:	pair_style buck/coul
-		  long|cut|off		control r^-6 contribution
-		  long|cut|off		control r^-1 contribution
-		  rcut6			set r^-6 cut off
-		  [rcut1]		set r^-1 cut off
-   remarks:	rcut1 cannot be set when both contributions are set to long,
-		rcut1 = rcut6 when ommited.
-*  ---------------------------------------------------------------------- */
-
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -40,6 +25,7 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
@@ -184,23 +170,17 @@ void PairBuckCoul::allocate()
    extract protected data from object
 ------------------------------------------------------------------------- */
 
-void *PairBuckCoul::extract_ptr(char *id)
+void *PairBuckCoul::extract(char *id)
 {
   char *ids[] = {
-    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix", NULL};
+    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
+    "cut_coul", NULL};
   void *ptrs[] = {
-    buck_c, NULL, NULL, &ewald_order, &cut_coul, &mix_flag, NULL};
+    buck_c, NULL, NULL, &ewald_order, &cut_coul, &mix_flag, &cut_coul, NULL};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
   return ptrs[i];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairBuckCoul::extract_long(double *p_cut_coul)
-{
-  *p_cut_coul = cut_coul;
 }
 
 /* ----------------------------------------------------------------------
@@ -307,18 +287,12 @@ void PairBuckCoul::init_style()
   if (ewald_order&(1<<1)) {				// r^-1 kspace
     if (force->kspace == NULL) 
       error->all("Pair style is incompatible with KSpace style");
-    else if (strcmp(force->kspace_style,"ewald") == 0)
-      g_ewald = force->kspace->g_ewald;
-    else if (strcmp(force->kspace_style,"ewald/n") == 0)
-      g_ewald = force->kspace->g_ewald;
-    else if (strcmp(force->kspace_style,"pppm") == 0)
-      g_ewald = force->kspace->g_ewald;
-    else error->all("Pair style is incompatible with KSpace style");
+    g_ewald = force->kspace->g_ewald;
   }
   if (ewald_order&(1<<6)) {				// r^-6 kspace
     if (!force->kspace && strcmp(force->kspace_style,"ewald/n"))
       error->all("Pair style is incompatible with KSpace style");
-    else g_ewald = force->kspace->g_ewald;
+    g_ewald = force->kspace->g_ewald;
   }
 
   // setup force tables

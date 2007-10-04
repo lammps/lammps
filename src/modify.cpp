@@ -800,9 +800,9 @@ void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
    return # of bytes of allocated memory from all fixes
 ------------------------------------------------------------------------- */
 
-int Modify::memory_usage()
+double Modify::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   for (int i = 0; i < nfix; i++) bytes += fix[i]->memory_usage();
   for (int i = 0; i < ncompute; i++) bytes += compute[i]->memory_usage();
   return bytes;

@@ -39,7 +39,7 @@ class AtomVecCharge : public AtomVec {
   void create_atom(int, double *);
   void data_atom(double *, int, char **);
   int data_atom_hybrid(int, char **);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int *tag,*type,*mask,*image;

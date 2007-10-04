@@ -48,7 +48,7 @@ class Dump : protected Pointers {
   virtual void init() {}
   void write();
   void modify_params(int, char **);
-  virtual int memory_usage();
+  virtual double memory_usage();
 
  protected:
   double boxxlo,boxxhi;      // local copies of domain values

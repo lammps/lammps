@@ -18,6 +18,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
 #include "pair_lj_charmm_coul_charmm.h"
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +35,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp) {}
+PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
+{
+  implicit = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -496,15 +500,12 @@ void PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulCharmm::extract_charmm(double ***p_lj14_1, 
-					    double ***p_lj14_2,
-					    double ***p_lj14_3,
-					    double ***p_lj14_4,
-					    int *p_implicit_flag)
+void *PairLJCharmmCoulCharmm::extract(char *str)
 {
-  *p_lj14_1 = lj14_1;
-  *p_lj14_2 = lj14_2;
-  *p_lj14_3 = lj14_3;
-  *p_lj14_4 = lj14_4;
-  *p_implicit_flag = 0;
+  if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;
+  else if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
+  else if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;
+  else if (strcmp(str,"lj14_4") == 0) return (void *) lj14_4;
+  else if (strcmp(str,"implicit") == 0) return (void *) &implicit;
+  return NULL;
 }

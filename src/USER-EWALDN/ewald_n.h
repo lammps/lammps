@@ -35,14 +35,15 @@ class EwaldN : public KSpace {
   void init();
   void setup();
   void compute(int, int);
-  int memory_usage() { return bytes; }
+  double memory_usage() {return bytes;}
 
  private:
   double unit[6];
   int function[EWALD_NFUNCS], first_output;
 
   int nkvec, nkvec_max, nevec, nevec_max,
-      nbox, nfunctions, nsums, bytes, sums;
+      nbox, nfunctions, nsums, sums;
+  double bytes;
   double precision, g2_max;
   double *kenergy, energy_self[EWALD_NFUNCS];
   double *kvirial, virial_self[EWALD_NFUNCS];

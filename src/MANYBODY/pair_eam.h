@@ -35,9 +35,8 @@ class PairEAM : public Pair {
   void unpack_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  int memory_usage();
-
-  void extract_eam(double *, double **);
+  double memory_usage();
+  void swap_eam(double *, double **);
 
  protected:
   double cutforcesq,cutmax;

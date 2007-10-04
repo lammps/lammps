@@ -171,15 +171,13 @@ int FixWallGran::setmask()
 
 void FixWallGran::init()
 {
-  // insure use of granular pair_style
   // set local values from Pair values
 
-  Pair *pair = force->pair_match("gran");
-  if (pair == NULL)
+  if (force->pair == NULL)
     error->all("Fix wall/gran is incompatible with Pair style");
-  int itmp;
-  double tmp1,tmp2;
-  pair->extract_gran(&xkk,&tmp1,&tmp2,&itmp);
+  double *p_xkk = (double *) force->pair->extract("xkk");
+  if (!p_xkk)  error->all("Fix wall/gran is incompatible with Pair style");
+  xkk = *p_xkk;
 
   // same initialization as in pair_gran_history::init_style()
 
@@ -648,10 +646,10 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixWallGran::memory_usage()
+double FixWallGran::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += 3*nmax * sizeof(double);
   return bytes;
 }

@@ -281,11 +281,7 @@ void PairLJClass2CoulLong::init_style()
 
  if (force->kspace == NULL) 
     error->all("Pair style is incompatible with KSpace style");
-  else if (strcmp(force->kspace_style,"ewald") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else if (strcmp(force->kspace_style,"pppm") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else error->all("Pair style is incompatible with KSpace style");
+  g_ewald = force->kspace->g_ewald;
 }
 
 /* ----------------------------------------------------------------------
@@ -477,7 +473,8 @@ void PairLJClass2CoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJClass2CoulLong::extract_long(double *p_cut_coul)
+void *PairLJClass2CoulLong::extract(char *str)
 {
-  *p_cut_coul = cut_coul;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  return NULL;
 }

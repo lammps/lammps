@@ -27,7 +27,7 @@ class FixWiggle : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
 
-  int memory_usage();
+  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

@@ -157,9 +157,9 @@ void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int FixSpringSelf::memory_usage()
+double FixSpringSelf::memory_usage()
 {
-  int bytes = atom->nmax*3 * sizeof(double);
+  double bytes = atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

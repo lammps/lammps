@@ -66,7 +66,7 @@ class Neighbor : protected Pointers {
   void build_one(int);        // create a single neighbor list
   void set(int, char **);     // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
-  int memory_usage();         // tally memory usage
+  double memory_usage();
   
  private:
   int me,nprocs;

@@ -71,7 +71,7 @@ class AtomVec : protected Pointers {
   virtual void data_vel(int, char **);
   virtual int data_vel_hybrid(int, char **) {return 0;}
 
-  virtual int memory_usage() = 0;
+  virtual double memory_usage() = 0;
 
  protected:
   int nmax;                             // local copy of atom->nmax

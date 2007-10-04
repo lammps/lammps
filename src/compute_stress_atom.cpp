@@ -369,8 +369,8 @@ void ComputeStressAtom::unpack_reverse_comm(int n, int *list, double *buf)
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeStressAtom::memory_usage()
+double ComputeStressAtom::memory_usage()
 {
-  int bytes = nmax*6 * sizeof(double);
+  double bytes = nmax*6 * sizeof(double);
   return bytes;
 }

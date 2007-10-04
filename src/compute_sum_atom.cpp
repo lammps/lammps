@@ -149,9 +149,9 @@ void ComputeSumAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeSumAtom::memory_usage()
+double ComputeSumAtom::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   if (size_peratom == 0) bytes = nmax * sizeof(double);
   else bytes = nmax*size_peratom * sizeof(double);
   return bytes;

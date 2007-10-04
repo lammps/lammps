@@ -60,9 +60,9 @@ int FixRespa::setmask()
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixRespa::memory_usage()
+double FixRespa::memory_usage()
 {
-  int bytes = atom->nmax*nlevels*3 * sizeof(double);
+  double bytes = atom->nmax*nlevels*3 * sizeof(double);
   return bytes;
 }
 

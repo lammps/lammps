@@ -711,9 +711,9 @@ int AtomVecGranular::data_vel_hybrid(int m, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-int AtomVecGranular::memory_usage()
+double AtomVecGranular::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
 
   if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
   if (atom->memcheck("type")) bytes += nmax * sizeof(int);

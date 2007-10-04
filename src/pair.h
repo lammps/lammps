@@ -90,21 +90,13 @@ class Pair : protected Pointers {
   virtual void unpack_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
-  virtual int memory_usage() {return 0;}
+  virtual double memory_usage() {return 0.0;}
 
   // specific child-class methods for certain Pair styles
   
+  virtual void *extract(char *) {return NULL;}
   virtual void single_embed(int, int, double &) {}
-
-  virtual void *extract_ptr(char *) {return NULL;}
-
-  virtual void extract_charmm(double ***, double ***,
-			      double ***, double ***, int *) {}
-  virtual void extract_dipole(double ***) {}
-  virtual void extract_eam(double *, double **) {}
-  virtual void extract_gran(double *, double *, double *, int *) {}
-  virtual void extract_long(double *) {}
-  virtual void extract_tip4p(double *, int *, int *, int *, int *) {}
+  virtual void swap_eam(double *, double **) {}
 
  protected:
   int allocated;                       // 0/1 = whether arrays are allocated

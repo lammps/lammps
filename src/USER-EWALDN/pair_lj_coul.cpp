@@ -15,22 +15,6 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   module:	pair_lj_coul.cpp
-   author:	Pieter J. in 't Veld for SNL
-   date:	September 21, 2006.
-   purpose:	definition of short and long range lj and coulombic pair
-		potentials.
-   usage:	pair_style lj/coul
-		  long|cut|off		control r^-6 contribution
-		  long|cut|off		control r^-1 contribution
-		  rcut6			set r^-6 cut off
-		  [rcut1]		set r^-1 cut off
-   remarks:	- rcut1 cannot be set when both contributions are set to long,
-		  rcut1 = rcut6 when ommited
-		- coulombics from Macromolecules 1989, 93, 7320
-*  ---------------------------------------------------------------------- */
-
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -41,6 +25,7 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
@@ -181,23 +166,17 @@ void PairLJCoul::allocate()
    extract protected data from object
 ------------------------------------------------------------------------- */
 
-void *PairLJCoul::extract_ptr(char *id)
+void *PairLJCoul::extract(char *id)
 {
   char *ids[] = {
-    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix", NULL};
+    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
+    "cut_coul", NULL};
   void *ptrs[] = {
-    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, NULL};
+    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul, NULL};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
   return ptrs[i];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairLJCoul::extract_long(double *p_cut_coul)
-{
-  *p_cut_coul = cut_coul;
 }
 
 /* ----------------------------------------------------------------------

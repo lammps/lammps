@@ -234,10 +234,9 @@ void NeighList::print_attributes()
    if stencilflag = 0, maxstencil * maxstencil_multi will also be 0
 ------------------------------------------------------------------------- */
 
-int NeighList::memory_usage()
+double NeighList::memory_usage()
 {
-  int bytes = 0;
-
+  double bytes = 0.0;
   bytes += 2 * maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(int *);
   bytes += maxpage*pgsize * sizeof(int);

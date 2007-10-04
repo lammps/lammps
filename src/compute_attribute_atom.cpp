@@ -180,9 +180,9 @@ void ComputeAttributeAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeAttributeAtom::memory_usage()
+double ComputeAttributeAtom::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   if (allocate) {
     if (size_peratom == 0) bytes = nmax * sizeof(double);
     else bytes = size_peratom * nmax * sizeof(double);

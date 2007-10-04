@@ -390,8 +390,7 @@ void Output::create_restart(int narg, char **arg)
 
 void Output::memory_usage()
 {
-  int bytes = 0;
-
+  double bytes = 0.0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();
   bytes += comm->memory_usage();

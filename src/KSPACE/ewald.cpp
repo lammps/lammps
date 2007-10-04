@@ -93,18 +93,16 @@ void Ewald::init()
       error->all("Incorrect boundaries with slab Ewald");
   }
 
-  // insure use of long (or table) pair_style with long-range Coulombics
-  // set cutoff to Pair's short-range Coulombic cutoff
+  // extract short-range Coulombic cutoff from pair style
 
   qqrd2e = force->qqrd2e;
 
-  Pair *pair = force->pair_match("long");
-  if (pair == NULL) pair = force->pair_match("table");
-  if (pair == NULL) error->all("KSpace style is incompatible with Pair style");
-  double cutoff;
-  pair->extract_long(&cutoff);
-
-  // compute qsum & qsqsum and warn if not charge-neutral
+  if (force->pair == NULL)
+    error->all("KSpace style is incompatible with Pair style");
+  double *p_cutoff = (double *) force->pair->extract("cut_coul");
+  if (p_cutoff == NULL)
+    error->all("KSpace style is incompatible with Pair style");
+  double cutoff = *p_cutoff;
 
   qsum = qsqsum = 0.0;
   for (int i = 0; i < atom->nlocal; i++) {
@@ -835,9 +833,9 @@ void Ewald::slabcorr(int eflag)
    memory usage of local arrays 
 ------------------------------------------------------------------------- */
 
-int Ewald::memory_usage()
+double Ewald::memory_usage()
 {
-  int bytes = 3 * kmax3d * sizeof(int);
+  double bytes = 3 * kmax3d * sizeof(int);
   bytes += (1 + 3 + 6) * kmax3d * sizeof(double);
   bytes += 4 * kmax3d * sizeof(double);
   bytes += nmax*3 * sizeof(double);

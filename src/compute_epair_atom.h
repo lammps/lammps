@@ -27,7 +27,7 @@ class ComputeEpairAtom : public Compute {
   void compute_peratom();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nmax,eamstyle;

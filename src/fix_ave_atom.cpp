@@ -199,9 +199,9 @@ void FixAveAtom::end_of_step()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int FixAveAtom::memory_usage()
+double FixAveAtom::memory_usage()
 {
-  int bytes;
+  double bytes;
   if (size_peratom == 0) bytes = atom->nmax * sizeof(double);
   else bytes = atom->nmax*size_peratom * sizeof(double);
   return bytes;

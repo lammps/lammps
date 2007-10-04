@@ -57,9 +57,9 @@ int FixMinimize::setmask()
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixMinimize::memory_usage()
+double FixMinimize::memory_usage()
 {
-  int bytes = 2 * atom->nmax*3 * sizeof(double);
+  double bytes = 2 * atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

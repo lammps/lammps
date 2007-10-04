@@ -26,8 +26,7 @@ class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
   void init_style();
   void write_restart_settings(FILE *fp);
   void read_restart_settings(FILE *fp);
-
-  void extract_tip4p(double *, int *, int *, int *, int *);
+  void *extract(char *);
 
  private:
   int typeH,typeO;             // atom types of TIP4P water H and O atoms

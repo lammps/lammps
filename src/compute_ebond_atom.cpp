@@ -159,8 +159,8 @@ void ComputeEbondAtom::unpack_reverse_comm(int n, int *list, double *buf)
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeEbondAtom::memory_usage()
+double ComputeEbondAtom::memory_usage()
 {
-  int bytes = nmax * sizeof(double);
+  double bytes = nmax * sizeof(double);
   return bytes;
 }

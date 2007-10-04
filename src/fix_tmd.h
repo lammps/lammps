@@ -28,7 +28,7 @@ class FixTMD : public Fix {
   void initial_integrate();
   void initial_integrate_respa(int,int);
 
-  int memory_usage();
+  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

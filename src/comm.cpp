@@ -1476,9 +1476,9 @@ void Comm::set(int narg, char **arg)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-int Comm::memory_usage()
+double Comm::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
 
   for (int i = 0; i < nswap; i++) bytes += maxsendlist[i] * sizeof(int);
   bytes += maxsend * sizeof(double);

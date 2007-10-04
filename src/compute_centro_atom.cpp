@@ -307,8 +307,8 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int ComputeCentroAtom::memory_usage()
+double ComputeCentroAtom::memory_usage()
 {
-  int bytes = nmax * sizeof(double);
+  double bytes = nmax * sizeof(double);
   return bytes;
 }

@@ -183,9 +183,9 @@ void Update::create_minimize(int narg, char **arg)
    memory usage of update and integrate/minimize
 ------------------------------------------------------------------------- */
 
-int Update::memory_usage()
+double Update::memory_usage()
 {
-  int bytes = 0;
+  double bytes = 0.0;
   if (whichflag == 0) bytes += integrate->memory_usage();
   else if (whichflag == 1) bytes += minimize->memory_usage();
   return bytes;

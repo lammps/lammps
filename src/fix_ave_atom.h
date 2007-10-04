@@ -27,7 +27,7 @@ class FixAveAtom : public Fix {
   void init();
   void end_of_step();
 
-  int memory_usage();
+  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
   int pack_exchange(int, double *);

@@ -186,9 +186,9 @@ void FixMSD::end_of_step()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-int FixMSD::memory_usage()
+double FixMSD::memory_usage()
 {
-  int bytes = atom->nmax*3 * sizeof(double);
+  double bytes = atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

@@ -293,11 +293,12 @@ void Finish::end(int flag)
     }
   }
 
-  // find a half non-skip neighbor list
+  // find a non-skip neighbor list containing half the pairwise interactions
 
   for (m = 0; m < neighbor->old_nrequest; m++)
-    if ((neighbor->old_requests[m]->half || 
-	neighbor->old_requests[m]->half_from_full) &&
+    if ((neighbor->old_requests[m]->half || neighbor->old_requests[m]->gran ||
+	 neighbor->old_requests[m]->respaouter ||
+	 neighbor->old_requests[m]->half_from_full) &&
 	neighbor->old_requests[m]->skip == 0) break;
 
   int nneigh = 0;
@@ -322,7 +323,7 @@ void Finish::end(int flag)
     }
   }
 
-  // find a full non-skip neighbor list
+  // find a non-skip neighbor list containing full pairwise interactions
 
   for (m = 0; m < neighbor->old_nrequest; m++)
     if (neighbor->old_requests[m]->full &&

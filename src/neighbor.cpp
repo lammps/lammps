@@ -54,6 +54,8 @@ using namespace LAMMPS_NS;
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
+// #define NEIGH_LIST_DEBUG 1
+
 /* ---------------------------------------------------------------------- */
 
 Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
@@ -196,7 +198,11 @@ void Neighbor::init()
   //   set to 0 if cutforce = 0
   // cutneighmin/max used for neighbor bin sizes
   // cutghost determines comm distance = max of cutneigh & skin
-  //   may need ghosts for bonds even if all cutneigh = 0 (pair = NULL)
+  //   skin is only > cutneighmax when cutneighmax = 0.0 due to pair = NULL
+  //   in this case, are running a bond-only simulation
+  //   still need ghost atom communication for bonds and atom exchange
+  //     triggered by atoms moving 1/2 skin distance, but no neigh lists formed
+  //   user should set skin big enough to find all bonds
 
   triggersq = 0.25*skin*skin;
 
@@ -382,7 +388,9 @@ void Neighbor::init()
     for (i = 0; i < nrequest; i++)
       if (requests[i]->identical(old_requests[i]) == 0) same = 0;
 
-  printf("SAME %d\n",same);
+#ifdef NEIGH_LIST_DEBUG
+  if (comm->me == 0) printf("SAME flag %d\n",same);
+#endif
 
   // if old and new are not the same, create new pairwise lists
 
@@ -422,42 +430,47 @@ void Neighbor::init()
     }
 
     // detect lists that are connected to other lists
+    // if-the-else sequence is important
+    //   since don't want to re-process skip or copy lists further down
     // skip: point this list at request->otherlist, copy skip ptrs from request
     // copy: point this list at request->otherlist
     // half_from_full: point this list at preceeding full list
     // granhistory: set preceeding list's listgranhistory to this list
     //   also set precedding list's ptr to FixShearHistory
     // respaouter: point this list at preceeding 1/2 inner/middle lists
-    // pair and half and non-skip: if there is a pair full non-skip list,
+    // pair and half: if there is a full non-occasional non-skip list
     //   change this list to half_from_full and point at the full list
+    //   parent could be copy list or pair or fix
     // fix/compute requests:
-    //   kind of request = half or full
-    //   occasional or not doesn't matter
-    //   if non-skip pair list of same kind exists, become copy of that list
-    //   else if request is half and non-skip pair full exists,
+    //   kind of request = half or full, occasional or not doesn't matter
+    //   if request = half and non-skip pair half/respaouter exists,
+    //     become copy of that list
+    //   if request = full and non-skip pair full exists,
+    //     become copy of that list
+    //   if request = half and non-skip pair full exists,
     //     become half_from_full of that list
-    //   else do nothing and the fix/compute list will be built directly
+    //   if no matches, do nothing, fix/compute list will be built directly
+    //   ok if parent is copy list
 
     for (i = 0; i < nlist; i++) {
       if (requests[i]->skip) {
 	lists[i]->listskip = lists[requests[i]->otherlist];
 	lists[i]->iskip = requests[i]->iskip;
 	lists[i]->ijskip = requests[i]->ijskip;
-      }
 
-      if (requests[i]->copy)
+      } else if (requests[i]->copy)
 	lists[i]->listcopy = lists[requests[i]->otherlist];
 
-      if (requests[i]->half_from_full) lists[i]->listfull = lists[i-1];
+      else if (requests[i]->half_from_full)
+	lists[i]->listfull = lists[i-1];
 
-      if (requests[i]->granhistory) {
+      else if (requests[i]->granhistory) {
 	lists[i-1]->listgranhistory = lists[i];
 	for (int ifix = 0; ifix < modify->nfix; ifix++)
 	  if (strcmp(modify->fix[ifix]->style,"SHEAR_HISTORY") == 0) 
 	    lists[i-1]->fix_history = (FixShearHistory *) modify->fix[ifix];
-      }
-
-      if (requests[i]->respaouter) {
+ 
+      } else if (requests[i]->respaouter) {
 	if (requests[i-1]->respainner) {
 	  lists[i]->respamiddle = 0;
 	  lists[i]->listinner = lists[i-1];
@@ -466,33 +479,33 @@ void Neighbor::init()
 	  lists[i]->listmiddle = lists[i-1];
 	  lists[i]->listinner = lists[i-2];
 	}
-      }
 
-      if (requests[i]->pair && requests[i]->half && requests[i]->skip == 0) {
+      } else if (requests[i]->pair && requests[i]->half) {
 	for (j = 0; j < nlist; j++)
-	  if (requests[j]->pair && requests[j]->full && 
+	  if (requests[j]->full && requests[j]->occasional == 0 &&
 	      requests[j]->skip == 0) break;
 	if (j < nlist) {
 	  requests[i]->half = 0;
 	  requests[i]->half_from_full = 1;
 	  lists[i]->listfull = lists[j];
 	}
-      }
 
-      if (requests[i]->fix || requests[i]->compute) {
+      } else if (requests[i]->fix || requests[i]->compute) {
 	for (j = 0; j < nlist; j++) {
-	  if (requests[j]->pair && requests[j]->skip == 0 &&
-	      requests[j]->half && requests[i]->half) break;
-	  if (requests[j]->pair && requests[j]->skip == 0 &&
-	      requests[j]->full && requests[i]->full) break;
+	  if (requests[i]->half && requests[j]->pair &&
+	      requests[j]->skip == 0 && requests[j]->half) break;
+	  if (requests[i]->full && requests[j]->pair &&
+	      requests[j]->skip == 0 && requests[j]->full) break;
+	  if (requests[i]->half && requests[j]->pair &&
+	      requests[j]->skip == 0 && requests[j]->respaouter) break;
 	}
 	if (j < nlist) {
 	  requests[i]->copy = 1;
 	  lists[i]->listcopy = lists[j];
 	} else {
 	  for (j = 0; j < nlist; j++) {
-	    if (requests[j]->pair && requests[j]->skip == 0 &&
-		requests[j]->full && requests[i]->half) break;
+	    if (requests[i]->half && requests[j]->pair &&
+		requests[j]->skip == 0 && requests[j]->full) break;
 	  }
 	  if (j < nlist) {
 	    requests[i]->half = 0;
@@ -530,10 +543,10 @@ void Neighbor::init()
       if (stencil_create[i] == NULL) lists[i]->stencilflag = 0;
     }
 
-    // DEBUG: print list attributes
-
+#ifdef NEIGH_LIST_DEBUG
     for (i = 0; i < nlist; i++) lists[i]->print_attributes();
-    
+#endif
+
     // allocate atom arrays and 1st pages of lists that store them
 
     for (i = 0; i < nlist; i++)
@@ -565,23 +578,13 @@ void Neighbor::init()
 	slist[nslist++] = i;
     }
 
-    // DEBUG: print lists of lists
-
-    if (comm->me == 0) {
-      printf("Build lists = %d: ",nblist);
-      for (i = 0; i < nblist; i++) printf("%d ",blist[i]);
-      printf("\n");
-      printf("Grow lists = %d: ",nglist);
-      for (i = 0; i < nglist; i++) printf("%d ",glist[i]);
-      printf("\n");
-      printf("Stencil lists = %d: ",nslist);
-      for (i = 0; i < nslist; i++) printf("%d ",slist[i]);
-      printf("\n");
-    }
+#ifdef NEIGH_LIST_DEBUG
+    print_lists_of_lists();
+#endif
 
     // reorder build vector if necessary
     // relevant for lists that copy/skip/half-full from parent
-    // the derived lst must appear in blist after the parent list
+    // the derived list must appear in blist after the parent list
     // no occasional lists are in build vector
     // swap two lists within blist when dependency is mis-ordered
     // done when entire pass thru blist results in no swaps
@@ -608,19 +611,9 @@ void Neighbor::init()
       }
     }
 
-    // DEBUG: print lists of lists
-
-    if (comm->me == 0) {
-      printf("Build lists = %d: ",nblist);
-      for (i = 0; i < nblist; i++) printf("%d ",blist[i]);
-      printf("\n");
-      printf("Grow lists = %d: ",nglist);
-      for (i = 0; i < nglist; i++) printf("%d ",glist[i]);
-      printf("\n");
-      printf("Stencil lists = %d: ",nslist);
-      for (i = 0; i < nslist; i++) printf("%d ",slist[i]);
-      printf("\n");
-    }
+#ifdef NEIGH_LIST_DEBUG
+    print_lists_of_lists();
+#endif
   }
 
   // delete old requests
@@ -750,11 +743,13 @@ int Neighbor::request(void *requestor)
   return nrequest-1;
 }
 
-
 /* ----------------------------------------------------------------------
    determine which pair_build function each neigh list needs
    based on settings of neigh request
-   skip or copy -> single function
+   copy -> copy_from function
+   skip -> granular function if gran with granhistory
+           respa function if respaouter
+	   skip_from function for everything else
    half_from_full, half, full, gran, respaouter -> choose by newton and tri
      style NSQ options = newton off, newton on
      style BIN options = newton off, newton on and not tri, newton on and tri
@@ -767,13 +762,17 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 {
   PairPtr pb = NULL;
 
-  if (rq->skip) pb = &Neighbor::skip_from;
+  if (rq->copy) pb = &Neighbor::copy_from;
 
-  else if (rq->copy) pb = &Neighbor::copy_from;
+  else if (rq->skip) {
+    if (rq->gran && lists[index]->listgranhistory)
+      pb = &Neighbor::skip_from_granular;
+    else if (rq->respaouter) pb = &Neighbor::skip_from_respa;
+    else pb = &Neighbor::skip_from;
 
-  else if (rq->half_from_full) {
-    if (newton_pair == 0) pb = &Neighbor::half_full_no_newton;
-    else if (newton_pair == 1) pb = &Neighbor::half_full_newton;
+  } else if (rq->half_from_full) {
+    if (newton_pair == 0) pb = &Neighbor::half_from_full_no_newton;
+    else if (newton_pair == 1) pb = &Neighbor::half_from_full_newton;
 
   } else if (rq->half) {
     if (style == NSQ) {
@@ -878,6 +877,23 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
 
 /* ---------------------------------------------------------------------- */
 
+void Neighbor::print_lists_of_lists()
+{
+  if (comm->me == 0) {
+    printf("Build lists = %d: ",nblist);
+    for (int i = 0; i < nblist; i++) printf("%d ",blist[i]);
+    printf("\n");
+    printf("Grow lists = %d: ",nglist);
+    for (int i = 0; i < nglist; i++) printf("%d ",glist[i]);
+    printf("\n");
+    printf("Stencil lists = %d: ",nslist);
+    for (int i = 0; i < nslist; i++) printf("%d ",slist[i]);
+    printf("\n");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 int Neighbor::decide()
 {
   if (must_check) {
@@ -967,17 +983,6 @@ void Neighbor::build()
 
   for (i = 0; i < nblist; i++)
     (this->*pair_build[blist[i]])(lists[blist[i]]);
-
-  /*
-  if (comm->me == 0) {
-    for (int m = 0; m < nlist; m++) {
-      int num = 0;
-      for (i = 0; i < lists[m]->inum; i++) 
-	num += lists[m]->numneigh[lists[m]->ilist[i]];
-      printf("List %d length = %d\n",m,num);
-    }
-  }
-  */
 
   if (atom->molecular) {
     if (atom->nbonds) (this->*bond_build)();

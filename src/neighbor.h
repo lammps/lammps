@@ -58,13 +58,14 @@ class Neighbor : protected Pointers {
   Neighbor(class LAMMPS *);
   ~Neighbor();
   void init();
-  int request(void *);        // another class requests a neighbor list
-  int decide();               // decide whether to build or not
-  int check_distance();       // check max distance moved since last build
-  void setup_bins();          // setup bins based on box and cutoff
-  void build();               // create all neighbor lists (pair,bond)
-  void build_one(int);        // create a single neighbor list
-  void set(int, char **);     // set neighbor style and skin distance
+  int request(void *);         // another class requests a neighbor list
+  void print_lists_of_lists(); // debug print out
+  int decide();                // decide whether to build or not
+  int check_distance();        // check max distance moved since last build
+  void setup_bins();           // setup bins based on box and cutoff
+  void build();                // create all neighbor lists (pair,bond)
+  void build_one(int);         // create a single neighbor list
+  void set(int, char **);      // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   double memory_usage();
   
@@ -169,9 +170,11 @@ class Neighbor : protected Pointers {
   void full_bin(class NeighList *);
   void full_multi(class NeighList *);
 
-  void half_full_no_newton(class NeighList *);
-  void half_full_newton(class NeighList *);
+  void half_from_full_no_newton(class NeighList *);
+  void half_from_full_newton(class NeighList *);
   void skip_from(class NeighList *);
+  void skip_from_granular(class NeighList *);
+  void skip_from_respa(class NeighList *);
   void copy_from(class NeighList *);
 
   void granular_nsq_no_newton(class NeighList *);

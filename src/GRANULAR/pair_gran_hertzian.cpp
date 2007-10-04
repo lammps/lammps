@@ -95,7 +95,7 @@ void PairGranHertzian::compute(int eflag, int vflag)
 
       if (rsq >= radsum*radsum) {
 
-	// unset touching neighbors
+	// unset non-touching neighbors
 
         touch[jj] = 0;
 	shear = &allshear[3*jj];

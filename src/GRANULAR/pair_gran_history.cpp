@@ -123,7 +123,7 @@ void PairGranHistory::compute(int eflag, int vflag)
 
       if (rsq >= radsum*radsum) {
 
-	// unset touching neighbors
+	// unset non-touching neighbors
 
         touch[jj] = 0;
 	shear = &allshear[3*jj];
@@ -421,11 +421,19 @@ double PairGranHistory::init_one(int i, int j)
 {
   if (!allocated) allocate();
 
-  // return dummy value used in neighbor setup,
-  // but not in actual neighbor calculation
-  // since particles have variable radius
+  // return max diameter of any particle
+  // not used in granular neighbor calculation since particles have radius
+  // but will insure cutoff is big enough for any other neighbor lists built
 
-  return 1.0;
+  double *radius = atom->radius;
+  int nlocal = atom->nlocal;
+
+  double maxrad = 0.0;
+  for (int m = 0; m < nlocal; m++) maxrad = MAX(maxrad,radius[m]);
+  double mine = maxrad;
+  MPI_Allreduce(&mine,&maxrad,1,MPI_DOUBLE,MPI_MAX,world);
+
+  return 2.0*maxrad;
 }
 
 /* ----------------------------------------------------------------------

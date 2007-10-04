@@ -32,7 +32,7 @@ class NeighRequest : protected Pointers {
   int command;
 
   // kind of list requested, one flag is 1, others are 0
-  // set by reqeusting class
+  // set by requesting class
 
   int half;              // 1 if half neigh list
   int full;              // 1 if full neigh list

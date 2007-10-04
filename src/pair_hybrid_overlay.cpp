@@ -103,7 +103,8 @@ void PairHybridOverlay::modify_requests()
   // loop over pair requests
   // if a previous list is same kind with same skip attributes
   // then make this one a copy list of that one
-  // NOTE: SHOULD I SKIP granhistory, respamiddle, halffromfull ??
+  // works whether both lists are no-skip or yes-skip
+  // will not point a list at a copy list, but at copy list's parent
 
   for (i = 0; i < neighbor->nrequest; i++) {
     irq = neighbor->requests[i];
@@ -117,24 +118,7 @@ void PairHybridOverlay::modify_requests()
     }
   }
 
-  // if list is skip list and not copy, look for non-skip list of same kind
-  // if one exists, point at that one
-  // else make new non-skip request of same kind and point at that one
+  // perform same operations on skip lists as pair style = hybrid
 
-  for (i = 0; i < neighbor->nrequest; i++) {
-    irq = neighbor->requests[i];
-    if (irq->skip == 0 || irq->copy) continue;
-
-    for (j = 0; j < neighbor->nrequest; j++) {
-      jrq = neighbor->requests[j];
-      if (irq->same_kind(jrq) && jrq->skip == 0) break;
-    }
-
-    if (j < neighbor->nrequest) irq->otherlist = j;
-    else {
-      int newrequest = neighbor->request(this);
-      neighbor->requests[newrequest]->copy_kind(irq);
-      irq->otherlist = newrequest;
-    }
-  }
+  PairHybrid::modify_requests();
 }

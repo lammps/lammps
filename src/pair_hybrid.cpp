@@ -316,15 +316,9 @@ void PairHybrid::init_style()
   for (istyle = 0; istyle < nstyles; istyle++) styles[istyle]->init_style();
 
   // create skip lists for each neigh request
+  // any kind of list can have its skip flag set at this stage
 
   for (i = 0; i < neighbor->nrequest; i++) {
-
-    // only relevant for half, full, gran, respaouter lists
-
-    if (neighbor->requests[i]->granhistory) continue;
-    if (neighbor->requests[i]->respamiddle) continue;
-    if (neighbor->requests[i]->respainner) continue;
-    if (neighbor->requests[i]->half_from_full) continue;
 
     // find associated sub-style
 
@@ -435,23 +429,44 @@ double PairHybrid::init_one(int i, int j)
 void PairHybrid::modify_requests()
 {
   int i,j;
+  NeighRequest *irq,*jrq;
 
-  // if list is skip list, look for non-skip list of same kind
+  // if list is skip list and not copy, look for non-skip list of same kind
   // if one exists, point at that one
   // else make new non-skip request of same kind and point at that one
+  //   don't bother to set ID for new request, since pair hybrid ignores list
+  // only exception is half_from_full:
+  //   ignore it, turn off skip, since it will derive from its skip parent
+  // after possible new request creation, unset skip flag and otherlist
+  //   for these derived lists: granhistory, rRESPA inner/middle
+  //   this prevents neighbor from treating them as skip lists
+  // copy list check is for pair style = hybrid/overlay
+  //   which invokes this routine
 
   for (i = 0; i < neighbor->nrequest; i++) {
-    if (neighbor->requests[i]->skip == 0) continue;
+    irq = neighbor->requests[i];
+    if (irq->skip == 0 || irq->copy) continue;
+    if (irq->half_from_full) {
+      irq->skip = 0;
+      continue;
+    }
 
-    for (j = 0; j < neighbor->nrequest; j++)
-      if (neighbor->requests[i]->same_kind(neighbor->requests[j]) &&
-	  neighbor->requests[j]->skip == 0) break;
+    for (j = 0; j < neighbor->nrequest; j++) {
+      jrq = neighbor->requests[j];
+      if (irq->same_kind(jrq) && jrq->skip == 0) break;
+    }
 
-    if (j < neighbor->nrequest) neighbor->requests[i]->otherlist = j;
+    if (j < neighbor->nrequest) irq->otherlist = j;
     else {
-      int irequest = neighbor->request(this);
-      neighbor->requests[irequest]->copy_kind(neighbor->requests[i]);
-      neighbor->requests[i]->otherlist = irequest;
+      int newrequest = neighbor->request(this);
+      neighbor->requests[newrequest]->copy_kind(irq);
+      neighbor->requests[newrequest]->dnum = irq->dnum;
+      irq->otherlist = newrequest;
+    }
+
+    if (irq->granhistory || irq->respainner || irq->respamiddle) {
+      irq->skip = 0;
+      irq->otherlist = -1;
     }
   }
 }

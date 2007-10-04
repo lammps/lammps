@@ -28,16 +28,17 @@ class PairBuckCoul : public Pair {
 
   virtual void settings(int, char **);
   void coeff(int, char **);
+  void init_style();
+  void init_list(int, class NeighList *);
   double init_one(int, int);
-  virtual void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
   
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual void single(int, int, int, int, double, double, double, int, One &);
-  virtual void *extract_ptr(char *);
-  virtual void extract_long(double *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  void single(int, int, int, int, double, double, double, int, One &);
+  void *extract_ptr(char *);
+  void extract_long(double *);
 
   void compute_inner();
   void compute_middle();

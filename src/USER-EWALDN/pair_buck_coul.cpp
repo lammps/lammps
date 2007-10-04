@@ -239,44 +239,6 @@ void PairBuckCoul::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-double PairBuckCoul::init_one(int i, int j)
-{
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
-
-  cut_buck[i][j] = cut_buck_read[i][j];
-  buck_a[i][j] = buck_a_read[i][j];
-  buck_c[i][j] = buck_c_read[i][j];
-  buck_rho[i][j] = buck_rho_read[i][j];
-
-  double cut = MAX(cut_buck[i][j], cut_coul);
-  cutsq[i][j] = cut*cut;
-  cut_bucksq[i][j] = cut_buck[i][j] * cut_buck[i][j];
-
-  buck1[i][j] = buck_a[i][j]/buck_rho[i][j];
-  buck2[i][j] = 6.0*buck_c[i][j];
-  rhoinv[i][j] = 1.0/buck_rho[i][j];
-     
-  if (offset_flag) {
-    double rexp = exp(-cut_buck[i][j]/buck_rho[i][j]);
-    offset[i][j] = buck_a[i][j]*rexp - buck_c[i][j]/pow(cut_buck[i][j],6.0);
-  } else offset[i][j] = 0.0;
-
-  cutsq[j][i] = cutsq[i][j];
-  cut_bucksq[j][i] = cut_bucksq[i][j];
-  buck_a[j][i] = buck_a[i][j];
-  buck_c[j][i] = buck_c[i][j];
-  rhoinv[j][i] = rhoinv[i][j];
-  buck1[j][i] = buck1[i][j];
-  buck2[j][i] = buck2[i][j];
-  offset[j][i] = offset[i][j];
-
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
@@ -286,11 +248,45 @@ void PairBuckCoul::init_style()
 
   // require an atom style with charge defined
 
-  //if (atom->charge_allow == 0)
-    //error->all("Must use charged atom style with this pair style");
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(
 	"Invoking coulombic in pair style lj/coul requires atom attribute q");
+
+  // request regular or rRESPA neighbor lists
+
+  int irequest;
+
+  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+    int respa = 0;
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+
+    if (respa == 0) irequest = neighbor->request(this);
+    else if (respa == 1) {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    } else {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 2;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respamiddle = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    }
+
+  } else irequest = neighbor->request(this);
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -328,6 +324,57 @@ void PairBuckCoul::init_style()
   // setup force tables
 
   if (ncoultablebits) init_tables();
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   regular or rRESPA
+------------------------------------------------------------------------- */
+
+void PairBuckCoul::init_list(int id, NeighList *ptr)
+{
+  if (id == 0) list = ptr;
+  else if (id == 1) listinner = ptr;
+  else if (id == 2) listmiddle = ptr;
+  else if (id == 3) listouter = ptr;
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairBuckCoul::init_one(int i, int j)
+{
+  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+
+  cut_buck[i][j] = cut_buck_read[i][j];
+  buck_a[i][j] = buck_a_read[i][j];
+  buck_c[i][j] = buck_c_read[i][j];
+  buck_rho[i][j] = buck_rho_read[i][j];
+
+  double cut = MAX(cut_buck[i][j], cut_coul);
+  cutsq[i][j] = cut*cut;
+  cut_bucksq[i][j] = cut_buck[i][j] * cut_buck[i][j];
+
+  buck1[i][j] = buck_a[i][j]/buck_rho[i][j];
+  buck2[i][j] = 6.0*buck_c[i][j];
+  rhoinv[i][j] = 1.0/buck_rho[i][j];
+     
+  if (offset_flag) {
+    double rexp = exp(-cut_buck[i][j]/buck_rho[i][j]);
+    offset[i][j] = buck_a[i][j]*rexp - buck_c[i][j]/pow(cut_buck[i][j],6.0);
+  } else offset[i][j] = 0.0;
+
+  cutsq[j][i] = cutsq[i][j];
+  cut_bucksq[j][i] = cut_bucksq[i][j];
+  buck_a[j][i] = buck_a[i][j];
+  buck_c[j][i] = buck_c[i][j];
+  rhoinv[j][i] = rhoinv[i][j];
+  buck1[j][i] = buck1[i][j];
+  buck2[j][i] = buck2[i][j];
+  offset[j][i] = offset[i][j];
+
+  return cut;
 }
 
 /* ----------------------------------------------------------------------
@@ -601,7 +648,7 @@ void PairBuckCoul::compute_inner()
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi, *offseti;
   vector xi, d;
 
-  ineighn = (ineigh = list->ilist)+list->inum;
+  ineighn = (ineigh = listinner->ilist)+listinner->inum;
 
   for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -610,7 +657,7 @@ void PairBuckCoul::compute_inner()
     offseti = offset[typei = type[i]];
     cut_bucksqi = cut_bucksq[typei];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
       if ((j = *jneigh) < nall) ni = -1;
@@ -692,7 +739,7 @@ void PairBuckCoul::compute_middle()
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi, *offseti;
   vector xi, d;
 
-  ineighn = (ineigh = list->ilist)+list->inum;
+  ineighn = (ineigh = listmiddle->ilist)+listmiddle->inum;
 
   for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -701,7 +748,7 @@ void PairBuckCoul::compute_middle()
     offseti = offset[typei = type[i]];
     cut_bucksqi = cut_bucksq[typei];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
       if ((j = *jneigh) < nall) ni = -1;
@@ -790,7 +837,7 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
   eng_vdwl = eng_coul = 0.0;				// reset energy&virial
   if (vflag) memset(virial, 0, sizeof(shape));
 
-  ineighn = (ineigh = list->ilist)+list->inum;
+  ineighn = (ineigh = listouter->ilist)+listouter->inum;
 
   for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -800,7 +847,7 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
     buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {			// loop over neighbors
       if ((j = *jneigh) < nall) ni = -1;

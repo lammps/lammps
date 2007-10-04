@@ -234,6 +234,106 @@ void PairLJCoul::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLJCoul::init_style()
+{
+  char *style1[] = {"ewald", "ewald/n", "pppm", NULL};
+  char *style6[] = {"ewald/n", NULL};
+  int i,j;
+
+  // require an atom style with charge defined
+
+  if (!atom->q_flag && (ewald_order&(1<<1)))
+    error->all(
+	"Invoking coulombic in pair style lj/coul requires atom attribute q");
+
+  // request regular or rRESPA neighbor lists
+
+  int irequest;
+
+  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
+    int respa = 0;
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+
+    if (respa == 0) irequest = neighbor->request(this);
+    else if (respa == 1) {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    } else {
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respainner = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 2;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respamiddle = 1;
+      irequest = neighbor->request(this);
+      neighbor->requests[irequest]->id = 3;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->respaouter = 1;
+    }
+
+  } else irequest = neighbor->request(this);
+
+  cut_coulsq = cut_coul * cut_coul;
+
+  // set & error check interior rRESPA cutoffs
+
+  if (strcmp(update->integrate_style,"respa") == 0) {
+    if (((Respa *) update->integrate)->level_inner >= 0) {
+      cut_respa = ((Respa *) update->integrate)->cutoff;
+      for (i = 1; i <= atom->ntypes; i++)
+	for (j = i; j <= atom->ntypes; j++)
+	  if (MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
+	    error->all("Pair cutoff < Respa interior cutoff");
+    }
+  } else cut_respa = NULL;
+
+  // ensure use of KSpace long-range solver, set g_ewald
+
+  if (ewald_order&(1<<1)) {				// r^-1 kspace
+    if (force->kspace == NULL) 
+      error->all("Pair style is incompatible with KSpace style");
+    for (i=0; style1[i]&&strcmp(force->kspace_style, style1[i]); ++i);
+    if (!style1[i]) error->all("Pair style is incompatible with KSpace style");
+  }
+  if (ewald_order&(1<<6)) {				// r^-6 kspace
+    if (force->kspace == NULL) 
+      error->all("Pair style is incompatible with KSpace style");
+    for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
+    if (!style6[i]) error->all("Pair style is incompatible with KSpace style");
+  }
+  if (force->kspace) g_ewald = force->kspace->g_ewald;
+
+  // setup force tables
+
+  if (ncoultablebits) init_tables();
+}
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   regular or rRESPA
+------------------------------------------------------------------------- */
+
+void PairLJCoul::init_list(int id, NeighList *ptr)
+{
+  if (id == 0) list = ptr;
+  else if (id == 1) listinner = ptr;
+  else if (id == 2) listmiddle = ptr;
+  else if (id == 3) listouter = ptr;
+}
+
+/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -277,59 +377,6 @@ double PairLJCoul::init_one(int i, int j)
   offset[j][i] = offset[i][j];
 
   return cut;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairLJCoul::init_style()
-{
-  char *style1[] = {"ewald", "ewald/n", "pppm", NULL};
-  char *style6[] = {"ewald/n", NULL};
-  int i,j;
-
-  // require an atom style with charge defined
-
-  //if (atom->charge_allow == 0)
-    //error->all("Must use charged atom style with this pair style");
-  if (!atom->q_flag && (ewald_order&(1<<1)))
-    error->all(
-	"Invoking coulombic in pair style lj/coul requires atom attribute q");
-
-  cut_coulsq = cut_coul * cut_coul;
-
-  // set & error check interior rRESPA cutoffs
-
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      for (i = 1; i <= atom->ntypes; i++)
-	for (j = i; j <= atom->ntypes; j++)
-	  if (MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-	    error->all("Pair cutoff < Respa interior cutoff");
-    }
-  } else cut_respa = NULL;
-
-  // ensure use of KSpace long-range solver, set g_ewald
-
-  if (ewald_order&(1<<1)) {				// r^-1 kspace
-    if (force->kspace == NULL) 
-      error->all("Pair style is incompatible with KSpace style");
-    for (i=0; style1[i]&&strcmp(force->kspace_style, style1[i]); ++i);
-    if (!style1[i]) error->all("Pair style is incompatible with KSpace style");
-  }
-  if (ewald_order&(1<<6)) {				// r^-6 kspace
-    if (force->kspace == NULL) 
-      error->all("Pair style is incompatible with KSpace style");
-    for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
-    if (!style6[i]) error->all("Pair style is incompatible with KSpace style");
-  }
-  if (force->kspace) g_ewald = force->kspace->g_ewald;
-
-  // setup force tables
-
-  if (ncoultablebits) init_tables();
 }
 
 /* ----------------------------------------------------------------------

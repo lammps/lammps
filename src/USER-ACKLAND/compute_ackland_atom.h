@@ -24,7 +24,7 @@ class ComputeAcklandAtom : public Compute {
   ~ComputeAcklandAtom();
   void init();
   void compute_peratom();
-  int memory_usage();
+  double memory_usage();
 
  private:
   int nmax,maxneigh;

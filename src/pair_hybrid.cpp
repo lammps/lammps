@@ -87,6 +87,30 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag == 2) virial_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::compute_inner()
+{
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]->respa_enable) styles[m]->compute_inner();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::compute_middle()
+{
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]->respa_enable) styles[m]->compute_middle();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::compute_outer(int eflag, int vflag)
+{
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]->respa_enable) styles[m]->compute_outer(eflag,vflag);
+}
+
 /* ----------------------------------------------------------------------
    allocate all arrays 
 ------------------------------------------------------------------------- */
@@ -187,9 +211,12 @@ void PairHybrid::settings(int narg, char **arg)
   }
 
   // single_enable = 0 if any sub-style = 0
+  // respa_enable = 1 if any sub-style is set
 
   for (m = 0; m < nstyles; m++)
-    if (styles[m] && styles[m]->single_enable == 0) single_enable = 0;
+    if (styles[m]->single_enable == 0) single_enable = 0;
+  for (m = 0; m < nstyles; m++)
+    if (styles[m]->respa_enable) respa_enable = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -380,8 +407,8 @@ double PairHybrid::init_one(int i, int j)
   // call init/mixing for all sub-styles of I,J
   // set cutsq in sub-style just as pair::init_one() does
   // sum tail corrections for I,J
-  // compute max cutoff
-  // if sub-style = none, cutmax of 0.0 will be returned
+  // return max cutoff of all sub-styles assigned to I,J
+  // if no sub-styles assigned to I,J (pair_coeff none), cutmax = 0.0 returned
 
   double cutmax = 0.0;
   if (tail_flag) etail_ij = ptail_ij = 0.0;

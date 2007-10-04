@@ -64,7 +64,7 @@ class PairMEAM : public Pair {
   void unpack_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  int memory_usage();
+  double memory_usage();
 
  private:
   double cutmax;                // max cutoff for all elements

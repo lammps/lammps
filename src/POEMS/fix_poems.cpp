@@ -1540,10 +1540,10 @@ void FixPOEMS::copy_arrays(int i, int j)
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
-int FixPOEMS::memory_usage()
+double FixPOEMS::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  int double = nmax * sizeof(int);
   bytes += nmax*MAXBODY * sizeof(int);
   bytes += nmax*3 * sizeof(double);
   return bytes;

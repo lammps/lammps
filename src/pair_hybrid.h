@@ -38,6 +38,10 @@ class PairHybrid : public Pair {
   void single_embed(int, int, double &);
   void modify_params(int narg, char **arg);
   double memory_usage();
+
+  void compute_inner();
+  void compute_middle();
+  void compute_outer(int, int);
   void *extract(char *);
 
  protected:

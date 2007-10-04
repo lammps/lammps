@@ -34,9 +34,9 @@ class FixPOEMS : public Fix  {
 
   void grow_arrays(int);
   void copy_arrays(int, int);
-  int memory_usage();
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
+  double memory_usage();
 
   void pre_neighbor();
   int dof(int);

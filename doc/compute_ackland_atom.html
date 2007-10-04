@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute ackland/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID ackland/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>ackland/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ackland/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Defines a computation that calculates the local lattice structure
+according to <A HREF = "#Ackland">(Ackland)</A>.
+</P>
+<P>In contrast to the <A HREF = "compute_centro_atom.html">centro-symmetry
+parameter</A> this method is stable against
+temperature boost, because it is based not on the distance between
+particles but the angles.  Therefore statistical fluctuations are
+averaged out a little more.  A comparison with the Common Neighbor
+Analysis metric is made in the paper..
+</P>
+<P>The result is a number which is mapped to the following different
+lattice structures:
+</P>
+<UL><LI>1 = UNKNOWN
+<LI>2 = BCC
+<LI>3 = FCC
+<LI>4 = HCP
+<LI>5 = ICO 
+</UL>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently or to have multiple compute/dump commands, each of
+which computes this quantity.-
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_centro_atom.html">compute centro/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Ackland"></A>
+
+<P><B>(Ackland)</B> Ackland, Jones, Phys Rev B, 73, 054104 (2006).
+</P>
+</HTML>

@@ -54,7 +54,7 @@ using namespace LAMMPS_NS;
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
-// #define NEIGH_LIST_DEBUG 1
+//#define NEIGH_LIST_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -1391,6 +1391,20 @@ void Neighbor::bin_atoms()
     bins[i] = binhead[ibin];
     binhead[ibin] = i;
   }
+
+  /*
+  for (i = nlocal; i < nall; i++) {
+    ibin = coord2bin(x[i]);
+    bins[i] = binhead[ibin];
+    binhead[ibin] = i;
+  }
+
+  for (i = 0; i < nlocal; i++) {
+    ibin = coord2bin(x[i]);
+    bins[i] = binhead[ibin];
+    binhead[ibin] = i;
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------

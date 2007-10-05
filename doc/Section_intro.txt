@@ -130,7 +130,7 @@ commands)
   improper potentials: harmonic, cvff, class 2 (COMPASS)
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simlulation
-  overlayed potentials: multiple pair potentials can be superposed
+  overlayed potentials: superposition of multiple pair potentials
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   long-range Coulombics and dispersion: Ewald, \

@@ -424,16 +424,20 @@ double PairGranHistory::init_one(int i, int j)
   // return max diameter of any particle
   // not used in granular neighbor calculation since particles have radius
   // but will insure cutoff is big enough for any other neighbor lists built
+  // if no particles, return 1.0
 
   double *radius = atom->radius;
   int nlocal = atom->nlocal;
 
   double maxrad = 0.0;
   for (int m = 0; m < nlocal; m++) maxrad = MAX(maxrad,radius[m]);
-  double mine = maxrad;
-  MPI_Allreduce(&mine,&maxrad,1,MPI_DOUBLE,MPI_MAX,world);
+  double mine = 2.0*maxrad;
 
-  return 2.0*maxrad;
+  double maxdiam;
+  MPI_Allreduce(&mine,&maxdiam,1,MPI_DOUBLE,MPI_MAX,world);
+  if (maxdiam == 0.0) maxdiam = 1.0;
+
+  return maxdiam;
 }
 
 /* ----------------------------------------------------------------------

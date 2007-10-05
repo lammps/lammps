@@ -376,7 +376,7 @@ void ReadRestart::header()
 
     if (flag == VERSION) {
       char *version = read_char();
-      if (strcmp(version,universe->version) != 0) {
+      if (strcmp(version,universe->version) != 0 && me == 0) {
 	error->warning("Restart file version does not match LAMMPS version");
 	if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
 			    version,universe->version);

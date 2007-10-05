@@ -1543,7 +1543,7 @@ void FixPOEMS::copy_arrays(int i, int j)
 double FixPOEMS::memory_usage()
 {
   int nmax = atom->nmax;
-  int double = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += nmax*MAXBODY * sizeof(int);
   bytes += nmax*3 * sizeof(double);
   return bytes;

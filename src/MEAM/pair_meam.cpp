@@ -120,7 +120,7 @@ void PairMEAM::compute(int eflag, int vflag)
 {
   int i,j,ii,n,inum_half,itype,jtype,errorflag;
   int *ilist_half,*jlist_half,*numneigh_half,**firstneigh_half;
-  int *numneigh_full,*firstneigh_full;
+  int *numneigh_full,**firstneigh_full;
 
   // grow local arrays if necessary
 
@@ -227,7 +227,7 @@ void PairMEAM::compute(int eflag, int vflag)
   errorflag = 0;
 
   for (ii = 0; ii < inum_half; ii++) {
-    i = ilist[ii];
+    i = ilist_half[ii];
     ifort = i+1;
     meam_dens_init_(&ifort,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
 		    &numneigh_half[i],firstneigh_half[i],
@@ -240,7 +240,7 @@ void PairMEAM::compute(int eflag, int vflag)
       sprintf(str,"MEAM library error %d",errorflag);
       error->one(str);
     }
-    offset += numneigh[i];
+    offset += numneigh_half[i];
   }
 
   reverse_flag = 0;
@@ -261,7 +261,7 @@ void PairMEAM::compute(int eflag, int vflag)
   offset = 0;
 
   for (ii = 0; ii < inum_half; ii++) {
-    i = ilist[ii];
+    i = ilist_half[ii];
     ifort = i+1;
     meam_force_(&ifort,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
 		&numneigh_half[i],firstneigh_half[i],
@@ -275,7 +275,7 @@ void PairMEAM::compute(int eflag, int vflag)
       sprintf(str,"MEAM library error %d",errorflag);
       error->one(str);
     }
-    offset += numneigh[i];
+    offset += numneigh_half[i];
   }
 
   reverse_flag = 1;
@@ -904,26 +904,26 @@ double PairMEAM::memory_usage()
    needed for access by MEAM Fortran library
 ------------------------------------------------------------------------- */
 
-void PairMEAM::neigh_f2c(int inum, int *nlist, int *numneigh, int **firstneigh)
+void PairMEAM::neigh_f2c(int inum, int *ilist, int *numneigh, int **firstneigh)
 {
   int i,j,ii,jnum;
   int *jlist;
 
   for (ii = 0; ii < inum; ii++) {
-    i = list[ii];
+    i = ilist[ii];
     jlist = firstneigh[i];
     jnum = numneigh[i];
     for (j = 0; j < jnum; j++) jlist[j]--;
   }
 }
 
-void PairMEAM::neigh_c2f(int inum, int *nlist, int *numneigh, int **firstneigh)
+void PairMEAM::neigh_c2f(int inum, int *ilist, int *numneigh, int **firstneigh)
 {
   int i,j,ii,jnum;
   int *jlist;
 
   for (ii = 0; ii < inum; ii++) {
-    i = list[ii];
+    i = ilist[ii];
     jlist = firstneigh[i];
     jnum = numneigh[i];
     for (j = 0; j < jnum; j++) jlist[j]++;

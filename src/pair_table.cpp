@@ -982,5 +982,5 @@ void *PairTable::extract(char *str)
   for (int m = 1; m < ntables; m++)
     if (tables[m].cut != cut_coul)
       error->all("Pair table cutoffs must all be equal to use with KSpace");
-  return &cut_coul;
+  return &tables[0].cut;
 }

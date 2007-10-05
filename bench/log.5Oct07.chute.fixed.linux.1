@@ -1,4 +1,4 @@
-LAMMPS (22 June 2007)
+LAMMPS (5 Oct 2007)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -9,7 +9,7 @@ newton		off
 
 read_data	data.chute
   orthogonal box = (0 0 0) to (40 20 37.2886)
-  2 by 2 by 2 processor grid
+  1 by 1 by 1 processor grid
   32000 atoms
   32000 velocities
 
@@ -26,7 +26,7 @@ group		active subtract all bottom
 31088 atoms in group active
 neigh_modify	exclude group bottom bottom
 
-fix		1 all gravity chute 26.0
+fix		1 all gravity 1.0 chute 26.0
 fix		2 bottom freeze
 fix		3 active nve/gran
 
@@ -34,26 +34,26 @@ thermo_style	granular
 thermo		100
 
 run		100
-Memory usage per processor = 9.4635 Mbytes
+Memory usage per processor = 32.9693 Mbytes
 Step Atoms KinEng RotKEgrn Volume 
        0    32000    784139.13    1601.1263     29830.88 
      100    32000    784289.99    1571.0137    29831.804 
-Loop time of 0.672613 on 8 procs for 100 steps with 32000 atoms
+Loop time of 1.91739 on 1 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 0.302915 (45.0355)
-Neigh time (%) = 0.0175665 (2.61168)
-Comm  time (%) = 0.158755 (23.6026)
-Outpt time (%) = 0.000497788 (0.0740081)
-Other time (%) = 0.19288 (28.6762)
+Pair  time (%) = 1.09812 (57.2715)
+Neigh time (%) = 0.0856261 (4.46577)
+Comm  time (%) = 0.0961592 (5.01512)
+Outpt time (%) = 0.000524998 (0.0273809)
+Other time (%) = 0.63696 (33.2202)
 
-Nlocal:    4000 ave 4005 max 3995 min
-Histogram: 4 0 0 0 0 0 0 0 0 4
-Nghost:    1736.5 ave 1739 max 1734 min
-Histogram: 4 0 0 0 0 0 0 0 0 4
-Neighs:    15093 ave 15610 max 14576 min
-Histogram: 4 0 0 0 0 0 0 0 0 4
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5463 ave 5463 max 5463 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    115133 ave 115133 max 115133 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 120744
-Ave neighs/atom = 3.77325
+Total # of neighbors = 115133
+Ave neighs/atom = 3.59791
 Neighbor list builds = 2
 Dangerous builds = 0

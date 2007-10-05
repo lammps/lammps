@@ -1294,7 +1294,10 @@ void Thermo::compute_etail()
 
 void Thermo::compute_vol()
 {
-  dvalue = domain->xprd * domain->yprd * domain->zprd;
+  if (domain->dimension == 3)
+    dvalue = domain->xprd * domain->yprd * domain->zprd;
+  else
+    dvalue = domain->xprd * domain->yprd;
 }
 
 /* ---------------------------------------------------------------------- */

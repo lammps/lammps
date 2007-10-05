@@ -377,6 +377,11 @@ bond_coeff command. :dd
 
 Cannot use fix shake unless bond potential is defined. :dd
 
+{Bond style does not support computing per-atom bond energy} :dt
+
+The bond style does not have a single() function, so it can not be
+used to compute per-atom bond energy. :dd
+
 {Bond style hybrid cannot have hybrid as an argument} :dt
 
 Self-explanatory. :dd
@@ -441,13 +446,22 @@ The Self-explanatory. :dd
 
 This feature is not yet supported. :dd
 
-{Cannot (yet) use fix ave/spatial with triclinic box} :dt
-
-This feature is not yet supported. :dd
-
 {Cannot build parse tree for variable that is not atom style} :dt
 
 Only atom style variables can be evaluated once per atom. :dd
+
+{Cannot change box to orthogonal when tilt is non-zero} :dt
+
+Self-explanatory :dd
+
+{Cannot change box with certain fixes defined} :dt
+
+The change_box command cannot be used when fix ave/spatial or
+fix/deform are defined . :dd
+
+{Cannot change box with dumps defined} :dt
+
+Self-explanatory. :dd
 
 {Cannot change dump_modify every for dump dcd} :dt
 
@@ -485,6 +499,10 @@ command. :dd
 The create_box command cannot be used after a read_data, read_restart,
 or create_box command. :dd
 
+{Cannot displace_box on a non-periodic boundary} :dt
+
+Self-explantory. :dd
+
 {Cannot dump scaled coords with triclinic box} :dt
 
 Use dump custom with x,y,z instead. :dd
@@ -504,6 +522,10 @@ Only a periodiic boundary can be modified. :dd
 {Cannot have both pair_modify shift and tail set to yes} :dt
 
 These 2 options are contradictory. :dd
+
+{Cannot open AIREBO potential file %s} :dt
+
+Self-explanatory. :dd
 
 {Cannot open EAM potential file %s} :dt
 
@@ -647,6 +669,11 @@ read_restart, or create_box command. :dd
 The read_restart command cannot be used after a read_data,
 read_restart, or create_box command. :dd
 
+{Cannot redefine variable as a different style} :dt
+
+An equal-style variable can be re-defined but only if it was
+originally an equal-style variable. :dd
+
 {Cannot replicate 2d simulation in z dimension} :dt
 
 The replicate command cannot replicate a 2d simulation in the z
@@ -715,14 +742,14 @@ This feature is not yet supported. :dd
 The kspace style pppm cannot be used in 2d simulations.  You can use
 2d PPPM in a 3d simulation; see the kspace_modify command. :dd
 
-{Cannot use atom style ellipsoid for 2d simulation} :dt
-
-2d ellipsoids are not yet suppported. :dd
-
 {Cannot use atom vector in variable unless atom map exists} :dt
 
 Atom maps are on by default, but can be turned off be the atom_modify
 command. :dd
+
+{Cannot use both region, partial options in fix temp/rescale} :dt
+
+Self-explanatory. :dd
 
 {Cannot use delete_atoms unless atoms have IDs} :dt
 
@@ -737,13 +764,14 @@ Your choice of atom style does not have bonds. :dd
 
 Your choice of atom style does not have bonds. :dd
 
-{Cannot use fix deform for 0 timestep run} :dt
-
-Cannot reshape or resize the box in 0 timesteps. :dd
-
 {Cannot use fix deform trate on a box with zero tilt} :dt
 
 The trate style alters the current strain. :dd
+
+{Cannot use fix langevin without per-type mass defined} :dt
+
+Some atom styles use a per-atom mass which is incompatible with fix
+langevin. :dd
 
 {Cannot use fix nph on a non-periodic dimension} :dt
 
@@ -773,10 +801,6 @@ The defined atom style uses per-atom mass, not per-type mass. :dd
 
 The defined atom style uses per-atom mass, not per-type mass. :dd
 
-{Cannot use fix poems with atom style granular} :dt
-
-This fix is not yet enabled for this atom style. :dd
-
 {Cannot use fix pour with triclinic box} :dt
 
 This feature is not yet supported. :dd
@@ -788,6 +812,12 @@ Your choice of atom style does not have bonds. :dd
 {Cannot use kspace solver on system with no charge} :dt
 
 No atoms in system have a non-zero charge. :dd
+
+{Cannot use neighbor bins - box size << cutoff} :dt
+
+Too many neighbor bins will be created.  This typically happens when
+the simulation box is very small in some dimension, compared to the
+neighbor cutoff.  Use the "nsq" style instead of "bin" style. :dd
 
 {Cannot use nonperiodic boundaries with Ewald} :dt
 
@@ -805,13 +835,7 @@ non-periodic z dimension. :dd
 
 The correction factors are only currently defined for 3d systems. :dd
 
-{Cannot use rRESPA with full neighbor lists} :dt
-
-Defined pair style uses full neighbor lists (as opposed to
-half neighbor lists), which are incompatible with the current
-implementation of rRESPA. :dd
-
-{Cannot use region INF when box does not exist} :dt
+{Cannot use region INF or EDGE when box does not exist} :dt
 
 Regions that extend to the box boundaries can only be used after the
 create_box command has been used. :dd
@@ -839,6 +863,19 @@ Self-explanatory. :dd
 The collection of atoms for which momentum is being computed has no
 atoms. :dd
 
+{Change_box command before simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{Change_box operation is invalid} :dt
+
+Cannot change orthogonal box to orthogonal or a triclinic box to
+triclinic. :dd
+
+{Compute ID for fix ave/atom does not exist} :dt
+
+Self-explanatory. :dd
+
 {Compute ID for fix ave/spatial does not exist} :dt
 
 Self-explanatory. :dd
@@ -865,6 +902,10 @@ temperature. :dd
 
 The atom style defined does not have these attributes. :dd
 
+{Compute sum/atom compute does not compute vector per atom} :dt
+
+If one compute in list calculates a vector, all of them must. :dd
+
 {Compute temp/asphere requires atom attributes quat, angmom} :dt
 
 The atom style defined does not have these attributes. :dd
@@ -885,11 +926,6 @@ The FFT setup in pppm failed. :dd
 
 Self-explanatory. :dd
 
-{Could not find compute etotal/atom pre-compute ID} :dt
-
-The compute ID for calculating per-atom pairwise energy
-does not exist. :dd
-
 {Could not find compute group ID} :dt
 
 Self-explanatory. :dd
@@ -897,6 +933,11 @@ Self-explanatory. :dd
 {Could not find compute pressure temp ID} :dt
 
 The compute ID for calculating temperature does not exist. :dd
+
+{Could not find compute sum/atom pre-compute ID} :dt
+
+The compute ID for calculating the requested per-atom quantity does
+not exist. :dd
 
 {Could not find compute variable name} :dt
 
@@ -922,10 +963,18 @@ Region ID used in the delete_atoms command does not exist. :dd
 
 A group ID used in the displace_atoms command does not exist. :dd
 
+{Could not find displace_box group ID} :dt
+
+Self-explanatory. :dd
+
 {Could not find dump custom compute ID} :dt
 
 The compute ID needed by dump custom to compute a per-atom quantity
 does not exist. :dd
+
+{Could not find dump custom fix ID} :dt
+
+Self-explanatory. :dd
 
 {Could not find dump group ID} :dt
 
@@ -1032,6 +1081,11 @@ does not exist. :dd
 A compute required to evaulate a variable does not have its pre-compute
 defined. :dd
 
+{Coulomb cutoffs of pair hybrid sub-styles do not match} :dt
+
+If using a Kspace solver, all Coulomb cutoffs of long pair styles must
+be the same. :dd
+
 {Cound not find dump_modify ID} :dt
 
 Self-explanatory. :dd
@@ -1080,6 +1134,10 @@ read_restart, or create_box command. :dd
 {Delete_bonds command with no atoms existing} :dt
 
 No atoms are yet defined so the delete_bonds command cannot be used. :dd
+
+{Deposition region extends outside simulation box} :dt
+
+Self-explatory. :dd
 
 {Did not assign all atoms correctly} :dt
 
@@ -1188,11 +1246,25 @@ read_restart, or create_box command. :dd
 The displace_atoms command cannot be used before a read_data,
 read_restart, or create_box command. :dd
 
+{Displace_box command before simulation box is defined} :dt
+
+Self-explanatory. :dd
+
+{Displace_box tilt factors require triclinic box} :dt
+
+Cannot use tilt factors unless the simulation box is
+non-orthogonal. :dd
+
 {Domain too large for neighbor bins} :dt
 
 The domain has become extremely large so that neighbor bins cannot be
 used.  Most likely, one or more atoms have been blown out of the
 simulation box to a great distance. :dd
+
+{Dump custom and fix not computed at compatible times} :dt
+
+The fix must produce per-atom quantities on timesteps that dump custom
+needs them. :dd
 
 {Dump custom compute ID does not compute peratom info} :dt
 
@@ -1211,6 +1283,23 @@ The compute ID used must compute a vector of peratom data. :dd
 
 The compute ID vector of peratom data is not as large as is
 being accessed. :dd
+
+{Dump custom fix ID does not compute peratom info} :dt
+
+The specified fix does not calculate per-atom values. :dd
+
+{Dump custom fix ID does not compute scalar per atom} :dt
+
+The dump custom command is attempting to access a scalar quantity. :dd
+
+{Dump custom fix ID does not compute vector per atom} :dt
+
+The dump custom command is attempting to access a vector quantity. :dd
+
+{Dump custom fix ID vector is not large enough} :dt
+
+The dump custom command is attempting to access an out-of-range vector
+value. :dd
 
 {Dump dcd must use group all} :dt
 
@@ -1251,10 +1340,46 @@ smaller simulation or on more processors. :dd
 
 Self-explanatory. :dd
 
+{Fix ID for fix ave/spatial does not exist} :dt
+
+Self-explanatory. :dd
+
+{Fix ave/atom cannot be started on this timestep} :dt
+
+The first timestep on which data needs to be accumulated for
+the average is before the current timestep. :dd
+
+{Fix ave/atom compute does not calculate per-atom info} :dt
+
+The specified compute does not calculate per-atom values. :dd
+
+{Fix ave/spatial and fix not computed at compatible times} :dt
+
+The fix must produce per-atom quantities on timesteps that fix
+ave/spatial needs them. :dd
+
+{Fix ave/spatial cannot be started on this timestep} :dt
+
+The first timestep on which data needs to be accumulated for
+the average is before the current timestep. :dd
+
 {Fix ave/spatial compute does not calculate per-atom info} :dt
 
 Only computes that calculate a per-atom quantity (not a scalar or
 vector quantity can be used with fix ave/spatial. :dd
+
+{Fix ave/spatial fix does not calculate per-atom info} :dt
+
+The specified fix does not calculate per-atom values. :dd
+
+{Fix ave/spatial for triclinic boxes requires units reduced} :dt
+
+Self-explanatory. :dd
+
+{Fix ave/time cannot be started on this timestep} :dt
+
+The first timestep on which data needs to be accumulated for
+the average is before the current timestep. :dd
 
 {Fix ave/time compute does not calculate a scalar} :dt
 
@@ -1518,6 +1643,10 @@ definitions. :dd
 
 The data file header lists improper but no improper types. :dd
 
+{Inconsistent sizes of compute sum/atom compute vectors} :dt
+
+All vectors of the computes in the list must be the same length. :dd
+
 {Incorrect args for angle coefficients} :dt
 
 Self-explanatory.  Check the input script or data file. :dd
@@ -1593,6 +1722,11 @@ of the data file.  The read-in lines do not match. :dd
 {Incorrect weight arg for dihedral coefficients} :dt
 
 Self-explanatory.  Check the input script or data file. :dd
+
+{Induced tilt by displace_box is too large} :dt
+
+The final tilt value must be between -1/2 and 1/2 of the perpendicular
+box length. :dd
 
 {Input line too long after variable substitution} :dt
 
@@ -1845,6 +1979,14 @@ to be written by each processor. :dd
 
 Operator keyword used for threshhold specification in not recognized. :dd
 
+{Invalid fix nph command for a 2d simulation} :dt
+
+Cannot use style xy, yz, or xz for a 2d simulation. :dd
+
+{Invalid fix npt command for a 2d simulation} :dt
+
+Cannot use style xy, yz, or xz for a 2d simulation. :dd
+
 {Invalid fix style} :dt
 
 The choice of fix style is unknown. :dd
@@ -1860,6 +2002,10 @@ Unrecognized entry in restart file. :dd
 {Invalid flag in type arrays section of restart file} :dt
 
 Unrecognized entry in restart file. :dd
+
+{Invalid frequency in temper command} :dt
+
+Nevery must be > 0. :dd
 
 {Invalid group ID in neigh_modify command} :dt
 
@@ -2055,9 +2201,13 @@ Each x,y,z spacing must be > 0. :dd
 2d simulation can use sq, sq2, or hex lattice.  3d simulation can use
 sc, bcc, or fcc lattice. :dd
 
-{Lost atoms via displacement: original %.15g current %.15g} :dt
+{Lost atoms via displace_atoms: original %.15g current %.15g} :dt
 
-Moving atoms via the displace_atoms command lost one or more atoms. :dd
+The displace_atoms command lost one or more atoms. :dd
+
+{Lost atoms via displace_box: original %.15g current %.15g} :dt
+
+The displace_box command lost one or more atoms. :dd
 
 {Lost atoms: original %.15g current %.15g} :dt
 
@@ -2277,11 +2427,11 @@ There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the neighbor page size and the max number of
 neighbors allowed for one atom. :dd
 
-{Neighbor multi not allowed with granular} :dt
+{Neighbor multi not yet enabled for granular} :dt
 
 Self-explanatory. :dd
 
-{Neighbor multi not allowed with rRESPA} :dt
+{Neighbor multi not yet enabled for rRESPA} :dt
 
 Self-explanatory. :dd
 
@@ -2401,6 +2551,11 @@ The atom style defined does not have these attributes. :dd
 
 The atom style defined does not have these attributes. :dd
 
+{Pair hybrid sub-style is not used} :dt
+
+No pair_coeff command used a sub-style specified in the pair_style
+command. :dd
+
 {Pair inner cutoff < Respa interior cutoff} :dt
 
 One or more pairwise cutoffs are too short to use with the specified
@@ -2409,6 +2564,14 @@ rRESPA cutoffs. :dd
 {Pair inner cutoff >= Pair outer cutoff} :dt
 
 The specified cutoffs for the pair style are inconsistent. :dd
+
+{Pair style AIREBO requires atom IDs} :dt
+
+Self-explanatory. :dd
+
+{Pair style AIREBO requires newton pair on} :dt
+
+Self-explanatory. :dd
 
 {Pair style MEAM requires newton pair on} :dt
 
@@ -2441,6 +2604,10 @@ The atom style defined does not have this attribute. :dd
 
 The atom style defined does not have these attributes. :dd
 
+{Pair style coul/cut requires atom attribute q} :dt
+
+The atom style defined does not have these attributes. :dd
+
 {Pair style does not support bond_style quartic} :dt
 
 The pair style does not have a single() function, so it can
@@ -2449,12 +2616,12 @@ not be invoked by bond_style quartic. :dd
 {Pair style does not support computing per-atom energy} :dt
 
 The pair style does not have a single() function, so it can
-not be used to dump per-atom energy. :dd
+not be used to compute per-atom energy. :dd
 
 {Pair style does not support computing per-atom stress} :dt
 
 The pair style does not have a single() function, so it can
-not be used to dump per-atom stress. :dd
+not be used to compute per-atom stress. :dd
 
 {Pair style does not support pair_write} :dt
 
@@ -2477,6 +2644,10 @@ Atoms in the simulation do not have IDs, so history effects
 cannot be tracked by the granular pair potential. :dd
 
 {Pair style hybrid cannot have hybrid as an argument} :dt
+
+Self-explanatory. :dd
+
+{Pair style hybrid cannot have none as an argument} :dt
 
 Self-explanatory. :dd
 
@@ -2551,10 +2722,6 @@ read_restart, or create_box command. :dd
 
 Self-explanatory. :dd
 
-{Pair_style granular command before simulation box is defined} :dt
-
-This pair style cannot be used before a simulation box is defined. :dd
-
 {Pair_write command before pair_style is defined} :dt
 
 Self-explanatory. :dd
@@ -2583,6 +2750,11 @@ compute, which isn't defined. :dd
 
 The compute used by fix ave/time requires a second pre-computation
 compute, which isn't defined. :dd
+
+{Precompute ID of compute for fix ave/atom does not exist} :dt
+
+The compute specified for fix ave/atom has other pre-computed computes
+defined.  One of them does not exist. :dd
 
 {Press ID for fix nph does not exist} :dt
 
@@ -2898,7 +3070,7 @@ The specified compute ID does not compute temperature. :dd
 The thermo_style command cannot be used before a read_data,
 read_restart, or create_box command. :dd
 
-{Thermodynamics must compute PE for temper} :dt
+{Thermodynamics must compute PE for temper command} :dt
 
 The thermo style must insure that thermodynamics computations include
 potential energy when tempering is performed. :dd
@@ -3026,6 +3198,11 @@ option is set to lattice. :dd
 
 Must use lattice command with displace_atoms command if units option
 is set to lattice. :dd
+
+{Use of displace_box with undefined lattice} :dt
+
+Must use lattice command with displace_box command if units option is
+set to lattice. :dd
 
 {Use of fix ave/spatial with undefined lattice} :dt
 
@@ -3179,13 +3356,13 @@ It is not efficient to use compute centro/atom  more than once. :dd
 
 It is not efficient to use compute coord/atom more than once. :dd
 
+{More than one compute ebond/atom} :dt
+
+It is not efficient to use compute ebond/atom more than once. :dd
+
 {More than one compute epair/atom} :dt
 
 It is not efficient to use compute epair/atom more than once. :dd
-
-{More than one compute etotal/atom} :dt
-
-It is not efficient to use compute etotal/atom more than once. :dd
 
 {More than one compute ke/atom} :dt
 

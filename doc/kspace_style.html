@@ -69,13 +69,16 @@ The 1/r^N capability means that Lennard-Jones or Buckingham potentials
 can be used with <I>ewald/n</I> without a cutoff, i.e. they become full
 long-range potentials.
 </P>
+<P>Currently, only the <I>ewald/n</I> style can be used with non-orthogonal
+(triclinic symmetry) simulation boxes.
+</P>
 <P>When a kspace style is used, a pair style that includes the
 short-range correction to the pairwise Coulombic or other 1/r^N forces
 must also be selected.  For Coulombic interactions, these styles are
-ones that have a <I>coul/long</I> in their style name.  For Lennard-Jones
-or Buckingham interactions, see the <A HREF = "pair_lj_coul.html">pair_style
-lj/coul</A> or <A HREF = "pair_buck_coul.html">pair_style
-buck/coul</A> potentials.
+ones that have a <I>coul/long</I> in their style name.  For 1/r^6
+dispersion forces in a Lennard-Jones or Buckingham potential, see the
+<A HREF = "pair_lj_coul.html">pair_style lj/coul</A> or <A HREF = "pair_buck_coul.html">pair_style
+buck/coul</A> commands.
 </P>
 <P>A precision value of 1.0e-4 means one part in 10000.  This setting is
 used in conjunction with the pairwise cutoff to determine the number

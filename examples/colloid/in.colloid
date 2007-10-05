@@ -39,4 +39,4 @@ thermo		1000
 
 timestep	0.005
 
-run		10000
+run		50000

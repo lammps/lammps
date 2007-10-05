@@ -1,0 +1,134 @@
+LAMMPS (5 Oct 2007)
+# 2d LJ obstacle flow
+
+dimension	2
+boundary	p s p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		hex 0.7
+Lattice spacing in x,y,z = 1.28436 2.22457 1.28436
+region		box block 0 40 0 10 -0.25 0.25
+create_box	3 box
+Created orthogonal box = (0 0 -0.321089) to (51.3743 22.2457 0.321089)
+  1 by 1 by 1 processor grid
+create_atoms	1 box
+Created 840 atoms
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+
+# LJ potentials
+
+pair_style	lj/cut 1.12246
+pair_coeff	* * 1.0 1.0 1.12246
+
+# define groups
+
+region	        1 block INF INF INF 1.25 INF INF
+group		lower region 1
+120 atoms in group lower
+region		2 block INF INF 8.75 INF INF INF
+group		upper region 2
+120 atoms in group upper
+group		boundary union lower upper
+240 atoms in group boundary
+group		flow subtract all boundary
+600 atoms in group flow
+
+set		group lower type 2
+  120 settings made for type
+set		group upper type 3
+  120 settings made for type
+
+# initial velocities
+
+compute	        mobile flow temp
+velocity	flow create 1.0 482748 temp mobile
+fix		1 all nve
+fix		2 flow temp/rescale 200 1.0 1.0 0.02 1.0
+fix_modify	2 temp mobile
+
+# Poiselle flow
+
+velocity	boundary set 0.0 0.0 0.0
+fix		3 lower setforce 0.0 0.0 0.0
+fix		4 upper setforce 0.0 NULL 0.0
+fix		5 upper aveforce 0.0 -0.5 0.0
+fix		6 flow addforce 1.0 0.0 0.0
+
+# 2 obstacles
+
+region		void1 sphere 10 4 0 3
+delete_atoms	region void1
+Deleted 36 atoms, new total = 804
+region		void2 sphere 20 7 0 3
+delete_atoms	region void2
+Deleted 35 atoms, new total = 769
+
+fix		7 flow indent 100 sphere 10 4 0 4
+fix		8 flow indent 100 sphere 20 7 0 4
+fix		9 all enforce2d
+
+# Run
+
+timestep	0.003
+thermo		1000
+thermo_modify	temp mobile
+
+dump		1 all atom 100 dump.obstacle
+#dump		1 all custom 100 dump.custom tag type x y z vx vy 
+
+run		25000
+Memory usage per processor = 1.36032 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0    1.0028598            0            0   0.68791746    0.4628783    1142.8674 
+    1000            1  -0.37328511            0   0.31267068    1.3684627     1268.502 
+    2000            1  -0.37505949            0    0.3108963    1.1534403    1304.1442 
+    3000            1  -0.47919489            0   0.20676089    1.4549832    1322.0606 
+    4000            1  -0.48849092            0   0.19746486    1.4619445    1361.4653 
+    5000            1   -0.5158306            0   0.17012519    1.3415433    1399.8571 
+    6000            1  -0.46839183            0   0.21756396    1.1363632    1433.3799 
+    7000            1   -0.4934634            0   0.19249239    1.1974639    1438.8597 
+    8000            1  -0.43365481            0   0.25230098    1.1237932    1444.8858 
+    9000            1  -0.38250014            0   0.30345564    1.0808676    1445.4458 
+   10000            1  -0.41296265            0   0.27299313    1.0868711    1444.8934 
+   11000            1   -0.3906263            0   0.29532949    1.0008831    1443.6394 
+   12000            1  -0.41935827            0   0.26659752    1.0104839     1435.183 
+   13000            1  -0.35477192            0   0.33118387   0.94488941    1440.5498 
+   14000            1  -0.39497861            0   0.29097718     1.072787    1435.3595 
+   15000            1  -0.38656691            0   0.29938888      1.05116    1442.1287 
+   16000            1  -0.37132523            0   0.31463056    1.0827132    1450.8796 
+   17000            1  -0.37146616            0   0.31448963    1.1724883    1450.3808 
+   18000            1  -0.38747606            0   0.29847973    1.0753661    1455.6913 
+   19000            1  -0.37206204            0   0.31389375    1.0665364    1450.8326 
+   20000            1  -0.39878843            0   0.28716736    1.0958347    1453.0454 
+   21000            1  -0.36006462            0   0.32589117   0.92452983    1459.3281 
+   22000            1  -0.36787908            0    0.3180767    0.9659935    1465.6707 
+   23000            1  -0.36909747            0   0.31685831    0.9769748    1470.1647 
+   24000            1  -0.38163837            0   0.30431741   0.99582238    1458.5709 
+   25000            1  -0.38524202            0   0.30071376   0.96693615     1458.596 
+Loop time of 3.18151 on 1 procs for 25000 steps with 769 atoms
+
+Pair  time (%) = 0.885881 (27.8447)
+Neigh time (%) = 0.198662 (6.24426)
+Comm  time (%) = 0.052001 (1.63448)
+Outpt time (%) = 0.45079 (14.1691)
+Other time (%) = 1.59418 (50.1075)
+
+Nlocal:    769 ave 769 max 769 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    43 ave 43 max 43 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1642 ave 1642 max 1642 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1642
+Ave neighs/atom = 2.13524
+Neighbor list builds = 1639
+Dangerous builds = 0

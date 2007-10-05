@@ -1,0 +1,129 @@
+LAMMPS (5 Oct 2007)
+# 2d LJ crack simulation
+
+dimension	2
+boundary	s s p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		hex 0.93
+Lattice spacing in x,y,z = 1.11428 1.92998 1.11428
+region		box block 0 100 0 40 -0.25 0.25
+create_box	5 box
+Created orthogonal box = (0 0 -0.278569) to (111.428 77.1994 0.278569)
+  2 by 2 by 1 processor grid
+create_atoms	1 box
+Created 8141 atoms
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+mass		4 1.0
+mass		5 1.0
+
+# LJ potentials
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+
+# define groups
+
+region	        1 block INF INF INF 1.25 INF INF
+group		lower region 1
+302 atoms in group lower
+region		2 block INF INF 38.75 INF INF INF
+group		upper region 2
+302 atoms in group upper
+group		boundary union lower upper
+604 atoms in group boundary
+group		mobile subtract all boundary
+7537 atoms in group mobile
+
+region		leftupper block INF 20 20 INF INF INF
+region		leftlower block INF 20 INF 20 INF INF
+group		leftupper region leftupper
+841 atoms in group leftupper
+group		leftlower region leftlower
+841 atoms in group leftlower
+
+set		group leftupper type 2
+  841 settings made for type
+set		group leftlower type 3
+  841 settings made for type
+set		group lower type 4
+  302 settings made for type
+set		group upper type 5
+  302 settings made for type
+
+# initial velocities
+
+compute	  	new mobile temp
+velocity	mobile create 0.01 887723 temp new
+velocity	upper set 0.0 0.3 0.0
+velocity	mobile ramp vy 0.0 0.3 y 1.25 38.75 sum yes
+
+# fixes
+
+fix		1 all nve
+fix		2 boundary setforce NULL 0.0 0.0
+
+# run
+
+timestep	0.003
+thermo		200
+thermo_modify	temp new
+
+neigh_modify	exclude type 2 3
+dump		1 all atom 500 dump.crack
+run		5000
+Memory usage per processor = 1.48887 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0  0.065997177   -3.2595015            0   -3.1984129 -0.035954718    8602.1883 
+     200  0.060038948    -3.253189            0   -3.1976155  -0.22766954    8635.1229 
+     400  0.060546481   -3.2510709            0   -3.1950277  -0.42828826    8674.4108 
+     600  0.060580716   -3.2468162            0   -3.1907413  -0.60041431    8714.1872 
+     800  0.060806514    -3.241348            0    -3.185064  -0.74528707    8753.0176 
+    1000   0.06181595   -3.2349944            0   -3.1777762   -0.8716433    8793.5158 
+    1200  0.063175404   -3.2277554            0   -3.1692788  -0.98049057    8819.7019 
+    1400  0.065129472   -3.2198034            0    -3.159518   -1.0694359    8855.3817 
+    1600  0.067258319   -3.2111274            0   -3.1488716   -1.1445455    8889.1999 
+    1800  0.069393919   -3.2019692            0   -3.1377365   -1.1995445    8930.2901 
+    2000   0.07128093   -3.1921624            0   -3.1261831   -1.2400341    8965.5702 
+    2200  0.073248099   -3.1818812            0    -3.114081   -1.2653291    8994.1741 
+    2400  0.075068232   -3.1711705            0   -3.1016856   -1.2777213    9035.0033 
+    2600  0.076794061    -3.160066            0   -3.0889837   -1.2759869    9070.0027 
+    2800   0.07876477   -3.1487145            0    -3.075808   -1.2642785     9102.721 
+    3000  0.080596945   -3.1372363            0   -3.0626339   -1.2393574    9139.2753 
+    3200  0.082282083   -3.1254232            0    -3.049261   -1.2059897    9165.9158 
+    3400  0.084294646   -3.1136555            0   -3.0356304   -1.1676855     9201.297 
+    3600  0.086725204    -3.102118            0   -3.0218431   -1.1268035    9229.7361 
+    3800  0.089269145    -3.090924            0   -3.0082944   -1.0904239    9261.5209 
+    4000  0.091383162   -3.0795096            0   -2.9949232   -1.0585032    9293.4417 
+    4200  0.092671959   -3.0678751            0   -2.9820957   -1.0394459    9327.7894 
+    4400   0.09056253   -3.0560492            0   -2.9722224   -1.0327842    9358.5052 
+    4600  0.088770595   -3.0446045            0   -2.9624363   -1.0281074    9387.8048 
+    4800  0.089473674   -3.0337454            0   -2.9509265    -1.023674    9423.1942 
+    5000  0.089916902    -3.023759            0   -2.9405298   -1.0178836    9448.3239 
+Loop time of 5.34534 on 4 procs for 5000 steps with 8141 atoms
+
+Pair  time (%) = 2.82892 (52.923)
+Neigh time (%) = 0.103983 (1.9453)
+Comm  time (%) = 1.56182 (29.2182)
+Outpt time (%) = 0.110218 (2.06195)
+Other time (%) = 0.740409 (13.8515)
+
+Nlocal:    2035.25 ave 2064 max 2015 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Nghost:    198.25 ave 249 max 150 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:    17849.5 ave 18249 max 17601 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 71398
+Ave neighs/atom = 8.77018
+Neighbor list builds = 106
+Dangerous builds = 0

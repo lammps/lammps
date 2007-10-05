@@ -35,17 +35,22 @@
   sub initialize
   {
     my $k		= 0;
-    my @options		= ("-help", "-nstart", "-dn", "-cut", "-pbc", 
-			   "-repair", "-quiet", "-focus", "-center");
+    my @options		= ("-help", "-nstart", "-dn", "-cut", "-repair", 
+			   "-units", "-quiet", "-nodetect", "-data", "-pbc", 
+			   "-focus", "-center", "-exclude");
     my @remarks		= ("display this message",
 			   "starting frame [-1]",
 			   "frames to skip when creating multiple frames [0]",
 			   "cut bonds crossing over box edge [off]",
-			   "apply periodic boundary conditions [off]",
 			   "repair bonds [off]",
+			   "dump file entries have units [off]",
 			   "turn display information off",
+			   "turn auto-detection of masses off",
+			   "use data file other than project.data",
+			   "apply periodic boundary to molecules []",
 			   "molecules to focus on []",
-			   "molecules to use as center of mass []");
+			   "molecules to use as center of mass []",
+			   "exclude molecules from output []");
     my @notes		= (
       "* Multiple frames are processed when dn > 0.",
       "* Only the last frame is converted when nstart < 0.",
@@ -59,14 +64,15 @@
     
 
     $program		= "lammps2pdb";
-    $version		= "2.1";
-    $year		= "2005";
+    $version		= "2.2.5";
+    $year		= "2007";
     $cut		= 0;
-    $pbc		= 0;
     $repair		= 0;
+    $units		= 0;
     $info		= 1;
     $nstart		= -1;
     $dn			= 0;
+    $detect		= 1;
 
     foreach (@ARGV)
     {
@@ -74,7 +80,7 @@
       {
 	my $k		= 0;
 	my @arg		= split("=");
-	my $switch	= ($arg[1] eq "")||($arg[1] eq "on")||($arg[1]!=0);
+	my $switch	= (($arg[1] eq "")||($arg[1] eq "on")||($arg[1]!=0));
 	$arg[0]		= lc($arg[0]);
 	foreach (@options)
 	{
@@ -85,11 +91,17 @@
 	$nstart		= $arg[1] if (!$k--);
 	$dn		= $arg[1] if (!$k--);
 	$cut		= $switch if (!$k--);
-	$pbc		= $switch if (!$k--);
 	$repair		= $switch if (!$k--);
-	$info		= !$switch if (!$k--);
-	if (!$k--) { foreach (split(" ",$arg[1])) { $focus{uc($_)} = uc($_);}}
-	if (!$k--) { foreach (split(" ",$arg[1])) { $center{uc($_)} = uc($_);}}
+	$units		= $switch if (!$k--);
+	$info		= $switch ? 0 : 1 if (!$k--);
+	$detect		= $switch ? 0 : 1 if (!$k--);
+	$data_name	= $arg[1] if (!$k--);
+	if (!$k--) { 
+	  if ($switch) { $pbc{ALL} = 1; }
+	  else { foreach (split(",",$arg[1])) { $pbc{uc($_)} = 1; }}}
+	if (!$k--) { foreach (split(",",$arg[1])) { $focus{uc($_)} = uc($_);}}
+	if (!$k--) { foreach (split(",",$arg[1])) { $center{uc($_)} = uc($_);}}
+	if (!$k--) { foreach (split(",",$arg[1])) { $exclude{uc($_)}=uc($_);}}
       }
       else { $project	= $_ if (!$k++); }
     }
@@ -110,14 +122,15 @@
     }
     printf("%s v%s (c)%s\n\n", $program, $version, $year) if ($info);   
 
-    $data_name		= $project.".data";
+    $data_name		= $project.".data" if ($data_name eq "");
     $traject_name	= $project.".dump";
     $pdb_name		= $project."_trj.pdb";
     $psf_name		= $project."_trj.psf";
     $psf_ctrl_name	= $project."_ctrl.psf";
     $psf_ctrl		= scalar(stat($psf_ctrl_name));
 
-    my $flag		= test($data_name)||test($traject_name);
+    $traject_flag	= scalar(stat($traject_name));
+    my $flag		= test($data_name);
     printf("Conversion aborted\n\n") if ($flag);
     exit(-1) if ($flag);
     
@@ -125,7 +138,7 @@
 
     create_atom_ids();
     create_bonds();
-    open(TRAJECT, "<".$traject_name);
+    open(TRAJECT, "<".$traject_name) if ($traject_flag);
     open(PSF_CTRL, "<".$psf_ctrl_name) if ($psf_ctrl);
 
     # open output
@@ -195,7 +208,7 @@
   {
     my $x		= @_[0]/@_[1]+0.5;
     
-    return @_[0]-@_[1]*($x<0 ? int($x)-1 : int($x));;
+    return @_[0]-@_[1]*($x<0 ? int($x)-1 : int($x));
   }
 
 
@@ -483,6 +496,27 @@
   }
 
 
+# general read file operators
+
+  sub advance_read
+  {
+    my $input		= shift;
+    my $dlines		= shift;
+    my $read;
+    
+    while ($dlines--) { $read = <$input>; }
+    return $read;
+  }
+
+  
+  sub rewind_read
+  {
+    my $input		= shift;
+    
+    seek($input, 0, SEEK_SET);
+  }
+
+
 # create crossreference tables 
 
   sub create_psf_index					# make an index of id
@@ -555,6 +589,13 @@
 					if (join(" ",@tmp[2,3]) eq "zlo zhi");
       if (($id = $hash{$tmp[1]}) ne "") { $size{$id}	= $tmp[0]; }
     }
+    @l			= ();
+    for (my $i=0; $i<3; ++$i)
+    {
+      @tmp		= split(" ", $L[$i]);
+      $l[$i]		= $tmp[0];
+      $l[$i+3]		= $tmp[1];
+    }
     while (!eof(DATA))					# interpret data
     {
       @tmp		= split(" ", <DATA>);
@@ -589,9 +630,10 @@
     my $n		= goto_data(masses);
     my @mass		= (1, 12, 14, 16, 32.1, 4, 20.2, 40.1, 65.4,
 			   55.8, 31, 35.5, 23, 24.3, 39.1, 28.1);
-    my @name 		= (H, C, N, O, S, HE, NE, CA,
-			   ZN, FE, P, CL, NA, MG, K, SI);
-    my @unknown		= (X, Y, Z);
+    my @name 		= ("H", "C", "N", "O", "S", "HE", "NE", "CA",
+			   "ZN", "FE", "P", "CL", "NA", "MG", "K", "SI");
+    my @unknown		= ("X", "Y", "Z");
+    my @letter		= ("X", "Y", "Z", "P", "Q", "R", "S", "A", "B", "C");
     my $k		= 0;
     my %atom;
     
@@ -600,10 +642,11 @@
     for (my $i=1; $i<=$n; ++$i)
     {
       my @tmp		= split(" ", <DATA>);
+      my $j		= $tmp[0];
       $tmp[1]		= int($tmp[1]*10+0.5)/10;
-      if (($names[$i] = $atom{$masses[$i] = $tmp[1]}) eq "")
+      if ((($names[$j] = $atom{$masses[$j] = $tmp[1]}) eq "")||!$detect)
       {
-	$names[$i]	= $unknown[0].$k;
+	$names[$j]	= $letter[$k].$unknown[0];
 	if (++$k>9) { $k = 0; shift(@unknown); }
       }
     }
@@ -613,7 +656,7 @@
   sub create_position
   {
     my @data		= @_;
-    my $p		= $data[0]." ".$data[1];
+    my $p		= $data[1]." ".$data[2];
     my $k;
     
     for ($k=0; ($k<scalar(@data))&&(substr($data[$k],0,1) ne "#"); ++$k) { }
@@ -621,7 +664,8 @@
     foreach (@L)
     {
       my @l		= split(" ");
-      $p		= join(" ", $p, (shift(@data)-$l[0])/$l[-1]+$data[3]);
+      $p		= join(" ", $p, ($data[0]-$l[0])/$l[-1]+$data[3]);
+      shift(@data);
     }
     return $p;
   }
@@ -668,7 +712,6 @@
     }
   }
 
-  $ntmp			= 0;
   
   sub crossover
   {
@@ -688,7 +731,7 @@
     my $n		= scalar(@bonds);
     my $i		= 0;
 
-    printf("Info: deleting crossovers\n") if ($info);
+    printf("Info: deleting crossover bonds\n") if ($info);
     while ($i<$n)					# take out crossovers
     {
       if (crossover(split(" ", $bonds[$i]))) { splice(@bonds, $i, 1); --$n; }
@@ -696,6 +739,22 @@
     }
   }
 
+
+  sub delete_exclude
+  {
+    my $n		= scalar(@bonds);
+    my $i		= 0;
+    
+    printf("Info: deleting excluded bonds\n") if ($info);
+    while ($i<$n)
+    {
+      my $m		= $mol[(split(" ", $bonds[$i]))[0]+1];
+      if (($exclude{$m} ne "")||($exclude{$residue[$m]} ne "")
+	||($exclude{$cluster[$m]} ne "")) { splice(@bonds, $i, 1); --$n; }
+      else { ++$i; }
+    }
+  }
+  
   
   sub create_bonds
   {
@@ -709,7 +768,7 @@
     }
   }
 
- 
+
 # traject operators
 
   sub advance_traject
@@ -734,7 +793,7 @@
     for (my $i=0; $i<3; ++$i)
     { 
       my @data		= split(" ", <TRAJECT>);
-      $box[$i]		= 0.5*($data[0]+$data[1]);	# box edge
+      $box[$i]		= $data[0];			# box edge
       $l[$i]		= $data[1]-$data[0];		# box length
     }
     advance_traject("atoms");
@@ -828,7 +887,9 @@
     foreach (@position)
     {
       my @p		= split(" ");
-      $_		= join(" ", V_PBC(@p[0,1,2], @l[3,4,5]), @p[3,4]);
+      my $m		= $mol[$p[3]];
+      $_		= join(" ", V_PBC(@p[0,1,2], @l[3,4,5]), @p[3,4])
+            if ($pbc{ALL}||$pbc{$m}||$pbc{$residue[$m]}||$pbc{$cluster[$m]});
     }
   }
 
@@ -856,14 +917,25 @@
     my $mass;
     my @p;
     my $d;
-    
+  
     foreach (@traject)
     {
       my @arg		= split(" ");
       my $m		= $mol[$arg[0]];
-      $p[0]		= ($arg[2]+$arg[5]-0.5)*$l[3];
-      $p[1]		= ($arg[3]+$arg[6]-0.5)*$l[4];
-      $p[2]		= ($arg[4]+$arg[7]-0.5)*$l[5];
+      next if (($exclude{$m} ne "")||($exclude{$residue[$m]} ne "")
+	||($exclude{$cluster[$m]} ne ""));
+      if ($units)
+      {
+	$p[0]		= $arg[2]+$arg[5]*$l[3];
+	$p[1]		= $arg[3]+$arg[6]*$l[4];
+	$p[2]		= $arg[4]+$arg[7]*$l[5];
+      }
+      else
+      {
+	$p[0]		= $l[0]+($arg[2]+$arg[5])*$l[3];
+	$p[1]		= $l[1]+($arg[3]+$arg[6])*$l[4];
+	$p[2]		= $l[2]+($arg[4]+$arg[7])*$l[5];
+      }
       $position[$i++]	= join(" ", @p, $arg[0], $arg[1]);
       next if (($center{$m} eq "")&&($center{$cluster[$m]} eq ""));
       $nmass		+= $mass = $masses[$arg[1]];	# inertia necessities:
@@ -879,7 +951,7 @@
     }
     pdb_center(M_Mult(1/$nmass, @m)) if ($nmass);
     pdb_focus(M_Mult(1/$nmass, @m)) if ($nmass && scalar(%focus));
-    pdb_pbc() if ($pbc);
+    pdb_pbc() if (scalar(%pbc));
     pdb_repair_bonds() if ($repair);
   }
 
@@ -891,12 +963,22 @@
       ($psf_ctrl ? "_ctrl.psf" : ".data")." AND $project.dump\n");
     printf(PDB "REMARK  CREATED BY $program v$version ON %s", `date`);
     printf(PDB "REMARK  \n");
+    printf(PDB "CRYST1 ");
+    printf(PDB "%8.8s ", $l[3]);
+    printf(PDB "%8.8s ", $l[4]);
+    printf(PDB "%8.8s ", $l[5]);
+    printf(PDB "%6.6s ", "90");
+    printf(PDB "%6.6s ", "90");
+    printf(PDB "%6.6s ", "90");
+    printf(PDB "%-11.11s", "P 1");
+    printf(PDB "%3.3s\n", "1");
   }
   
 
   sub pdb_atoms
   {
     my $n		= 0;
+    my $l		= 0;
     my $last		= 0;
     my @base;
 
@@ -907,14 +989,15 @@
     foreach (@position)
     {
       my @p		= split(" ");
-      my @psf		= split(" ", <PSF_CTRL>) if ($psf_ctrl);
       my $nres		= $mol[$p[3]];
+      my @psf		= split(" ", advance_read(PSF_CTRL, $p[3]-$l))
+							      if ($psf_ctrl);
       @base		= @p[0,1,2] if ($last!=$nres);
       #@p		= V_Add(V_PBC(V_Subtr(@p, @base), @l[3,4,5]), @l);
       foreach (@p) { $_ = 0 if (abs($_)<1e-4); }
       printf(PDB "ATOM  ");				# pdb command
       printf(PDB "%6.6s ", ++$n);			# atom number
-      printf(PDB "%-4.4s", 
+      printf(PDB "%-3.3s ", 
 	$psf_ctrl ? $psf[4] : $names[$p[4]]);		# atom name
       printf(PDB "%-3.3s ", 
 	$psf_ctrl ? $psf[3] : $residue[$nres]);		# residue name
@@ -927,6 +1010,7 @@
       printf(PDB "%-4.4s\n",
        	$psf_ctrl ? $psf[1] : $cluster[$nres]);		# cluster name
       $last		= $nres;
+      $l		= $p[3];
     };
     printf(PDB "END\n");
   }
@@ -957,25 +1041,34 @@
   {
     my $n		= goto_data(atoms);
     my $natom		= 0;
-    my @arg;
-    my $k;
+    my $l		= 0;
+    my $k		= 0;
+    my @extra;
     
-    printf(PSF "%8.8s !NATOM\n", scalar(@position));
     for (my $i=0; $i<$n; ++$i)
     {
-      @arg		= split(" ", <DATA>);
-      #next if (($omit{$arg[1]} ne "")||($omit{$cluster[$arg[1]]} ne ""));
-      for ($k=0; ($k<scalar(@arg))&&(substr($arg[$k],0,1) ne "#"); ++$k) {}
+      my @arg		= split(" ", <DATA>);
+      if (!$k) {
+	for ($k=0; ($k<scalar(@arg))&&(substr($arg[$k],0,1) ne "#"); ++$k) {} }
+      $extra[$arg[0]-1]	= $arg[1]." ".$arg[2]." ".$arg[3];
+    }
+    printf(PSF "%8.8s !NATOM\n", scalar(@position));
+    foreach (@position)
+    {
+      my @p		= split(" ");
+      my @arg		= split(" ", $extra[$natom]);
       printf(PSF "%8.8s ", ++$natom);			# atom number
-      printf(PSF "%-4.4s ", $cluster[$arg[1]]);		# cluster name
-      printf(PSF "%-4.4s ", $arg[1]);			# residue number
-      printf(PSF "%-4.4s ", $residue[$arg[1]]);		# residue name
-      printf(PSF "%-4.4s ", $names[$arg[2]]);		# atom name
-      printf(PSF "%4.4s ", $arg[2]);			# atom number
-      printf(PSF "%10.10s ", $k%3 ? $arg[3] : 0);	# atom charge
+      printf(PSF "%-4.4s ", $cluster[$arg[0]]);		# cluster name
+      printf(PSF "%-4.4s ", $arg[0]);			# residue number
+      printf(PSF "%-4.4s ", $residue[$arg[0]]);		# residue name
+      printf(PSF "%-4.4s ", $names[$p[4]]);		# atom name
+      printf(PSF "%4.4s ", $arg[1]);			# atom number
+      printf(PSF "%10.10s ", $k%3 ? $arg[2] : 0);	# atom charge
       printf(PSF "%4.4s ", "");				# blank entry
-      printf(PSF "%8.8s ", $masses[$arg[2]]);		# atom mass
+      printf(PSF "%8.8s ", $masses[$arg[1]]);		# atom mass
       printf(PSF "%11.11s\n", "0");			# trailing variable
+      $l		= $p[3];
+      last if ($natom>=$n)
     }
     printf(PSF "\n");
   }
@@ -984,7 +1077,8 @@
   sub psf_bonds
   {
     my $npairs		= 0;
-   
+  
+    delete_exclude() if (scalar(%exclude)>0); 
     delete_crossovers() if ($cut);
     printf(PSF "%8.8s !NBOND\n", scalar(@bonds));
     foreach (@bonds)
@@ -1005,7 +1099,7 @@
   # create .pdb file
  
   $ncurrent		= -1;
-  while (!eof(TRAJECT))
+  while ($traject_flag&&!eof(TRAJECT))
   {
     @description	= read_traject();
     @l			= splice(@description, -6, 6);
@@ -1026,7 +1120,7 @@
   }
   else
   {
-    system("rm ".$psf_name);
+    system("rm -f ".$psf_name);
     system("ln -s ".$psf_ctrl_name." ".$psf_name);
   }
 

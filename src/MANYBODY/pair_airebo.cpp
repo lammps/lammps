@@ -477,6 +477,7 @@ void PairAIREBO::FREBO(int eflag, double **f)
       rsq = delx*delx + dely*dely + delz*delz;
       rij = sqrt(rsq);
       wij = Sp(rij,rcmin[itype][jtype],rcmax[itype][jtype],dwij);
+      if (wij <= TOL) continue;
       
       Qij = Q[itype][jtype];
       Aij = A[itype][jtype];

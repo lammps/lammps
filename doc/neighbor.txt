@@ -30,6 +30,13 @@ need to be built, but more pairs must be checked for possible force
 interactions every timestep.  The default value for {skin} depends on
 the choice of units for the simulation (see below).
 
+For simulations without pairwise interactions (see "pair_style none"
+command), and just bonded interactions, you still need to set the
+neighbor skin distance.  Pairwise neighbor lists will not be formed
+but the skin distance also determines which atoms are communicated
+from nearby processors, so it should be slightly large enough that all
+bond, angle, etc atoms are acquired.
+
 The {style} value selects what algorithm is used to build the list.
 The {bin} style creates the list by binning which is an operation that
 scales linearly with N/P, the number of atoms per processor where N =

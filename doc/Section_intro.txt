@@ -130,9 +130,11 @@ commands)
   improper potentials: harmonic, cvff, class 2 (COMPASS)
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simlulation
+  overlayed potentials: multiple pair potentials can be superposed
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
-  long-range Coulombics: Ewald, PPPM (similar to particle-mesh Ewald)
+  long-range Coulombics and dispersion: Ewald, \
+    PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
   CHARMM, AMBER, OPLS force-field compatibility :ul
 
 Creation of atoms: :h4
@@ -178,8 +180,10 @@ Output: :h4
   log file of thermodynanmic info
   text dump files of atom coords, velocities, other per-atom quantities
   binary restart files
-  per-atom energy, stress, centro-symmetry parameter
+  per-atom quantities (energy, stress, centro-symmetry parameter, etc)
   user-defined system-wide (log file) or per-atom (dump file) calculations
+  spatial and time averaging of per-atom quantities
+  time averaging of system-wide quantities
   atom snapshots in native, XYZ, XTC, DCD formats :ul
 
 Pre- and post-processing: :h4

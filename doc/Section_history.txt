@@ -28,12 +28,13 @@ These are new features we'd like to eventually add to LAMMPS.  Some
 are being worked on; some haven't been implemented because of lack of
 time or interest; others are just a lot of work!
 
+more complete per-atom energy and stress computations
 Monte Carlo bond-swapping for polymers (was in Fortran LAMMPS)
 torsional shear boundary conditions and temperature calculation
 NPT with changing box shape (Parinello-Rahman)
 bond creation potentials
 long-range point dipole solver
-REBO bond-order potential
+charge equilibration
 ReaxFF force field from Bill Goddard's group :ul
 
 :line

@@ -70,68 +70,68 @@ for individual fixes for info on which ones can be restarted.
 
 Here is an alphabetic list of fix styles available in LAMMPS:
 
-"fix addforce"_fix_addforce.html - add a force to each atom
-"fix aveforce"_fix_aveforce.html - add an averaged force to each atom
-"fix ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
-"fix ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
-"fix ave/time"_fix_ave_time.html - output time-averaged compute quantities
-"fix com"_fix_com.html - compute a center-of-mass
-"fix deform"_fix_deform.html - change the simulation box size/shape
-"fix deposit"_fix_deposit.html - add new atoms above a surface
-"fix drag"_fix_drag.html - drag atoms towards a defined coordinate
-"fix efield"_fix_efield.html - impose electric field on system
-"fix enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
-"fix freeze"_fix_freeze.html - freeze atoms in a granular simulation
-"fix gran/diag"_fix_gran_diag.html - compute granular diagnostics
-"fix gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
-"fix gyration"_fix_gyration.html - compute radius of gyration
-"fix heat"_fix_gyration.html - add/subtract momentum-conserving heat
-"fix indent"_fix_indent.html - impose force due to an indenter
-"fix langevin"_fix_langevin.html - Langevin temperature control
-"fix lineforce"_fix_lineforce.html - constrain atoms to move in a line
-"fix msd"_fix_msd.html - compute mean-squared displacement \
+"addforce"_fix_addforce.html - add a force to each atom
+"aveforce"_fix_aveforce.html - add an averaged force to each atom
+"ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
+"ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
+"ave/time"_fix_ave_time.html - output time-averaged compute quantities
+"com"_fix_com.html - compute a center-of-mass
+"deform"_fix_deform.html - change the simulation box size/shape
+"deposit"_fix_deposit.html - add new atoms above a surface
+"drag"_fix_drag.html - drag atoms towards a defined coordinate
+"efield"_fix_efield.html - impose electric field on system
+"enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
+"freeze"_fix_freeze.html - freeze atoms in a granular simulation
+"gran/diag"_fix_gran_diag.html - compute granular diagnostics
+"gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
+"gyration"_fix_gyration.html - compute radius of gyration
+"heat"_fix_gyration.html - add/subtract momentum-conserving heat
+"indent"_fix_indent.html - impose force due to an indenter
+"langevin"_fix_langevin.html - Langevin temperature control
+"lineforce"_fix_lineforce.html - constrain atoms to move in a line
+"msd"_fix_msd.html - compute mean-squared displacement \
      (i.e. diffusion coefficient)
-"fix momentum"_fix_momentum.html - zero the linear and/or angular momentum \
+"momentum"_fix_momentum.html - zero the linear and/or angular momentum \
   of a group of atoms
-"fix nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
-"fix npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
-"fix npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
-"fix nve"_fix_nve.html - constant NVE time integration
-"fix nve/asphere"_fix_nve_asphere.html - NVT for aspherical particles
-"fix nve/dipole"_fix_nve_dipole.html - NVE for point dipolar particles
-"fix nve/gran"_fix_nve_gran.html - NVE for granular particles
-"fix nve/limit"_fix_nve_limit.html - NVE with limited step length
-"fix nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
-"fix nvt"_fix_nvt.html - constant NVT time integration via Nose/Hoover
-"fix nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
-"fix nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
-"fix orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
-"fix planeforce"_fix_planeforce.html - constrain atoms to move in a plane
-"fix poems"_fix_poems.html - constrain clusters of atoms to move \
+"nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
+"npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
+"npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
+"nve"_fix_nve.html - constant NVE time integration
+"nve/asphere"_fix_nve_asphere.html - NVT for aspherical particles
+"nve/dipole"_fix_nve_dipole.html - NVE for point dipolar particles
+"nve/gran"_fix_nve_gran.html - NVE for granular particles
+"nve/limit"_fix_nve_limit.html - NVE with limited step length
+"nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
+"nvt"_fix_nvt.html - constant NVT time integration via Nose/Hoover
+"nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
+"nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
+"orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
+"planeforce"_fix_planeforce.html - constrain atoms to move in a plane
+"poems"_fix_poems.html - constrain clusters of atoms to move \
   as coupled rigid bodies
-"fix pour"_fix_pour.html - pour new atoms into a granular simulation domain
-"fix print"_fix_print.html - print text and variables during a simulation
-"fix rdf"_fix_rdf.html - compute radial distribution functions
-"fix recenter"_fix_recenter.html - constrain the center-of-mass position \
+"pour"_fix_pour.html - pour new atoms into a granular simulation domain
+"print"_fix_print.html - print text and variables during a simulation
+"rdf"_fix_rdf.html - compute radial distribution functions
+"recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
-"fix rigid"_fix_rigid.html - constrain one or more clusters of atoms to \
+"rigid"_fix_rigid.html - constrain one or more clusters of atoms to \
      move as a rigid body
-"fix setforce"_fix_setforce.html - set the force on each atom
-"fix shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
-"fix spring"_fix_spring.html - apply harmonic spring force to group of atoms
-"fix spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
+"setforce"_fix_setforce.html - set the force on each atom
+"shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
+"spring"_fix_spring.html - apply harmonic spring force to group of atoms
+"spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
-"fix spring/self"_fix_spring_self.html - spring from each atom to its origin
-"fix temp/rescale"_fix_temp_rescale.html - temperature control by \
+"spring/self"_fix_spring_self.html - spring from each atom to its origin
+"temp/rescale"_fix_temp_rescale.html - temperature control by \
      velocity rescaling
-"fix tmd"_fix_tmd.html - guide a group of atoms to a new configuration
-"fix viscous"_fix_viscous.html - viscous damping for granular simulations
-"fix wall/gran"_fix_wall_gran.html - frictional wall(s) for \
+"tmd"_fix_tmd.html - guide a group of atoms to a new configuration
+"viscous"_fix_viscous.html - viscous damping for granular simulations
+"wall/gran"_fix_wall_gran.html - frictional wall(s) for \
      granular simulations
-"fix wall/lj126"_fix_wall_lj126.html - Lennard-Jones 12-6 wall
-"fix wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall
-"fix wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
-"fix wiggle"_fix_wiggle.html - oscillate walls and frozen atoms :ul
+"wall/lj126"_fix_wall_lj126.html - Lennard-Jones 12-6 wall
+"wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall
+"wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
+"wiggle"_fix_wiggle.html - oscillate walls and frozen atoms :ul
 
 There are also additional fix styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

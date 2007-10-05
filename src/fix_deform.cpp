@@ -523,7 +523,7 @@ void FixDeform::end_of_step()
   }
 
   // set new box size for VOLUME dims that are linked to other dims
-  // also need to set h_rate for these dims
+  // NOTE: still need to set h_rate for these dims
 
   for (int i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;

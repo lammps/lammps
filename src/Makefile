@@ -18,7 +18,9 @@ PACKAGE = asphere class2 colloid dipole dpd granular \
 
 PACKUSER = user-ackland user-ewaldn
 
-PACKUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
+PACKALL = $(PACKAGE) $(PACKUSER)
+
+PACKAGEUC = $(shell perl -e 'printf("%s", uc("$(PACKAGE)"));')
 PACKUSERUC = $(shell perl -e 'printf("%s", uc("$(PACKUSER)"));')
 
 YESDIR = $(shell perl -e 'printf("%s", uc("$(@:yes-%=%)"));')
@@ -83,7 +85,8 @@ tar:
 	@cd STUBS; make clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
 	  src/Make* src/Package.csh src/MAKE src/*.cpp src/*.h src/STUBS \
-	  $(patsubst %,src/%,$(PACKUC)) --exclude=*/.svn
+	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
+          --exclude=*/.svn
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
 
@@ -117,12 +120,10 @@ package:
 	@echo 'make package-overwrite   replace package files with src files'
 
 yes-all:
-	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
-	@for p in $(PACKUSER); do $(MAKE) yes-$$p; done
+	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
 
 no-all:
-	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
-	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
+	@for p in $(PACKALL); do $(MAKE) no-$$p; done
 
 yes-standard:
 	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
@@ -157,16 +158,16 @@ no-%:
 # overwrite = overwrite package files with newer src files
 
 package-status:
-	@for p in $(PACKUC); do csh -f Package.csh $$p status; done
+	@for p in $(PACKAGEUC); do csh -f Package.csh $$p status; done
 	@echo ''
 	@for p in $(PACKUSERUC); do csh -f Package.csh $$p status; done
 
 package-update:
-	@for p in $(PACKUC); do csh -f Package.csh $$p update; done
+	@for p in $(PACKAGEUC); do csh -f Package.csh $$p update; done
 	@echo ''
 	@for p in $(PACKUSERUC); do csh -f Package.csh $$p update; done
 
 package-overwrite:
-	@for p in $(PACKUC); do csh -f Package.csh $$p overwrite; done
+	@for p in $(PACKAGEUC); do csh -f Package.csh $$p overwrite; done
 	@echo ''
 	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite; done

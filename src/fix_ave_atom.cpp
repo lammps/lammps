@@ -125,7 +125,7 @@ void FixAveAtom::init()
     for (int i = 0; i < modify->compute[icompute]->npre; i++) {
       int ic = modify->find_compute(modify->compute[icompute]->id_pre[i]);
       if (ic < 0)
-	error->all("Precompute ID for fix ave/atom does not exist");
+	error->all("Precompute ID of compute for fix ave/atom does not exist");
       compute[ncompute++] = modify->compute[ic];
     }
 

@@ -779,7 +779,8 @@ void Modify::list_init_end_of_step(int mask, int &n, int *&list)
 
 /* ----------------------------------------------------------------------
    create list of fix indices for thermo energy fixes
-   only added to list if its thermo_energy flag was set via fix_modify
+   only added to list if fix has THERMO_ENERGY mask
+   and its thermo_energy flag was set via fix_modify
 ------------------------------------------------------------------------- */
 
 void Modify::list_init_thermo_energy(int mask, int &n, int *&list)

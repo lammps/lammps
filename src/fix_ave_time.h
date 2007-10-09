@@ -29,8 +29,8 @@ class FixAveTime : public Fix {
 
  private:
   int me;
-  int nrepeat,nfreq,nvalid,irepeat;
-  char *id_compute;
+  int nrepeat,nfreq,nvalid,irepeat,which,ifix;
+  char *id;
   FILE *fp;
 
   int sflag,vflag;
@@ -38,6 +38,7 @@ class FixAveTime : public Fix {
   double scalar,*vector;
   int ncompute;
   class Compute **compute;
+  class Fix *fix;
 };
 
 }

@@ -25,7 +25,7 @@ class FixTempRescale : public Fix {
   int setmask();
   void init();
   void end_of_step();
-  double thermo(int);
+  double compute_scalar();
   int modify_param(int, char **);
 
  private:

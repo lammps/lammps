@@ -26,29 +26,35 @@
 
 using namespace LAMMPS_NS;
 
+enum{COMPUTE,FIX};
+
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 9) error->all("Illegal fix ave/time command");
+  if (narg != 10) error->all("Illegal fix ave/time command");
 
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
   nfreq = atoi(arg[5]);
 
-  int n = strlen(arg[6]) + 1;
-  id_compute = new char[n];
-  strcpy(id_compute,arg[6]);
+  if (strcmp(arg[6],"compute") == 0) which = COMPUTE;
+  else if (strcmp(arg[6],"fix") == 0) which = FIX;
+  else error->all("Illegal fix ave/time command");
 
-  int flag = atoi(arg[7]);
+  int n = strlen(arg[7]) + 1;
+  id = new char[n];
+  strcpy(id,arg[7]);
+
+  int flag = atoi(arg[8]);
 
   MPI_Comm_rank(world,&me);
   if (me == 0) {
-    fp = fopen(arg[8],"w");
+    fp = fopen(arg[9],"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix ave/time file %s",arg[8]);
+      sprintf(str,"Cannot open fix ave/time file %s",arg[9]);
       error->one(str);
     }
   }
@@ -59,31 +65,52 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all("Illegal fix ave/time command");
 
-  int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all("Compute ID for fix ave/time does not exist");
+  int icompute,ifix;
+  if (which == COMPUTE) {
+    icompute = modify->find_compute(id);
+    if (icompute < 0) error->all("Compute ID for fix ave/time does not exist");
+  } else {
+    ifix = modify->find_fix(id);
+    if (ifix < 0) error->all("Fix ID for fix ave/time does not exist");
+  }
 
   if (flag < 0 || flag > 2) error->all("Illegal fix ave/time command");
   sflag = vflag = 0;
   if (flag == 0 || flag == 2) sflag = 1;
   if (flag == 1 || flag == 2) vflag = 1;
 
-  if (sflag && modify->compute[icompute]->scalar_flag == 0)
-    error->all("Fix ave/time compute does not calculate a scalar");
-  if (vflag && modify->compute[icompute]->vector_flag == 0)
-    error->all("Fix ave/time compute does not calculate a vector");
+  if (which == COMPUTE) {
+    if (sflag && modify->compute[icompute]->scalar_flag == 0)
+      error->all("Fix ave/time compute does not calculate a scalar");
+    if (vflag && modify->compute[icompute]->vector_flag == 0)
+      error->all("Fix ave/time compute does not calculate a vector");
+  } else {
+    if (sflag && modify->fix[ifix]->scalar_flag == 0)
+      error->all("Fix ave/time fix does not calculate a scalar");
+    if (vflag && modify->fix[ifix]->vector_flag == 0)
+      error->all("Fix ave/time fix does not calculate a vector");
+  }
 
-  if (modify->compute[icompute]->pressflag) pressure_every = nevery;
+  if (which == COMPUTE &&
+      modify->compute[icompute]->pressflag) pressure_every = nevery;
 
   // setup list of computes to call, including pre-computes
 
-  ncompute = 1 + modify->compute[icompute]->npre;
-  compute = new Compute*[ncompute];
+  compute = NULL;
+  if (which == COMPUTE) {
+    ncompute = 1 + modify->compute[icompute]->npre;
+    compute = new Compute*[ncompute];
+  } else ncompute = 0;
 
   // print header into file
 
   if (me == 0) {
-    fprintf(fp,"Time-averaged data for fix %s, group %s, and compute %s\n",
-	    id,group->names[modify->compute[icompute]->igroup],id_compute);
+    if (which == COMPUTE)
+      fprintf(fp,"Time-averaged data for fix %s, group %s, and compute %s\n",
+	      id,group->names[modify->compute[icompute]->igroup],id);
+    else
+      fprintf(fp,"Time-averaged data for fix %s, group %s, and fix %s\n",
+	      id,group->names[modify->fix[ifix]->igroup],id);
     if (sflag and !vflag)
       fprintf(fp,"TimeStep Value\n");
     else if (!sflag and vflag)
@@ -94,7 +121,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   vector = NULL;
   if (vflag) {
-    size_vector = modify->compute[icompute]->size_vector;
+    if (which == COMPUTE) size_vector = modify->compute[icompute]->size_vector;
+    else size_vector = modify->fix[ifix]->size_vector;
     vector = new double[size_vector];
   }
 
@@ -111,7 +139,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveTime::~FixAveTime()
 {
-  delete [] id_compute;
+  delete [] id;
   if (me == 0) fclose(fp);
   delete [] compute;
   delete [] vector;
@@ -132,20 +160,34 @@ void FixAveTime::init()
 {
   // set ptrs to one or more computes called each end-of-step
 
-  int icompute = modify->find_compute(id_compute);
-  if (icompute < 0)
-    error->all("Compute ID for fix ave/time does not exist");
+  if (which == COMPUTE) {
+    int icompute = modify->find_compute(id);
+    if (icompute < 0)
+      error->all("Compute ID for fix ave/time does not exist");
   
-  ncompute = 0;
-  if (modify->compute[icompute]->npre)
-    for (int i = 0; i < modify->compute[icompute]->npre; i++) {
-      int ic = modify->find_compute(modify->compute[icompute]->id_pre[i]);
-      if (ic < 0)
-	error->all("Precompute ID for fix ave/time does not exist");
-      compute[ncompute++] = modify->compute[ic];
-    }
-  
-  compute[ncompute++] = modify->compute[icompute];
+    ncompute = 0;
+    if (modify->compute[icompute]->npre)
+      for (int i = 0; i < modify->compute[icompute]->npre; i++) {
+	int ic = modify->find_compute(modify->compute[icompute]->id_pre[i]);
+	if (ic < 0)
+	  error->all("Precompute ID for fix ave/time does not exist");
+	compute[ncompute++] = modify->compute[ic];
+      }
+    
+    compute[ncompute++] = modify->compute[icompute];
+  }
+
+  // set ptr to fix ID
+  // check that fix frequency is acceptable
+
+  if (which == FIX) {
+    int ifix = modify->find_fix(id);
+    if (ifix < 0) 
+      error->all("Fix ID for fix ave/time does not exist");
+    fix = modify->fix[ifix];
+    if (nevery % fix->scalar_vector_freq)
+      error->all("Fix ave/time and fix not computed at compatible times");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,17 +208,25 @@ void FixAveTime::end_of_step()
       for (i = 0; i < size_vector; i++) vector[i] = 0.0;
   }
 
-  // accumulate results of compute to local copy
+  // accumulate results of compute or fix to local copy
   
-  if (sflag) {
-    double value;
-    for (i = 0; i < ncompute; i++) value = compute[i]->compute_scalar();
-    scalar += value;
-  }
-  if (vflag) {
-    for (i = 0; i < ncompute; i++) compute[i]->compute_vector();
-    double *cvector = compute[ncompute-1]->vector;
-    for (i = 0; i < size_vector; i++) vector[i] += cvector[i];
+  if (which == COMPUTE) {
+    if (sflag) {
+      double value;
+      for (i = 0; i < ncompute; i++) value = compute[i]->compute_scalar();
+      scalar += value;
+    }
+    if (vflag) {
+      for (i = 0; i < ncompute; i++) compute[i]->compute_vector();
+      double *cvector = compute[ncompute-1]->vector;
+      for (i = 0; i < size_vector; i++) vector[i] += cvector[i];
+    }
+
+  } else {
+    if (sflag) scalar += fix->compute_scalar();
+    if (vflag)
+      for (i = 0; i < size_vector; i++)
+	vector[i] += fix->compute_vector(i);
   }
 
   irepeat++;

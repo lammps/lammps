@@ -30,9 +30,9 @@ class Compute : protected Pointers {
 
   int scalar_flag;          // 0/1 if compute_scalar() function exists
   int vector_flag;          // 0/1 if compute_vector() function exists
-  int peratom_flag;         // 0/1 if compute_peratom() function exists
   int size_vector;          // N = size of global vector
-  int size_peratom;         // 0 = just scalar_atom, N = size of vector_atom
+  int peratom_flag;         // 0/1 if compute_peratom() function exists
+  int size_peratom;         // 0 = scalar_atom, N = size of vector_atom
 
   int extensive;      // 0/1 if scalar,vector are intensive/extensive values
   int tempflag;       // 1 if Compute can be used as temperature

@@ -35,6 +35,11 @@ class Fix : protected Pointers {
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
 
+  int scalar_flag;               // 0/1 if compute_scalar() function exists
+  int vector_flag;               // 0/1 if compute_vector() function exists
+  int size_vector;               // N = size of global vector
+  int scalar_vector_freq;        // frequency compute s/v data is available at
+
   int peratom_flag;              // 0/1 if per-atom data is stored
   int size_peratom;              // 0 = scalar_atom, N = size of vector_atom
   double *scalar_atom;           // computed per-atom scalar
@@ -93,7 +98,8 @@ class Fix : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
-  virtual double thermo(int) {return 0.0;}
+  virtual double compute_scalar() {return 0.0;}
+  virtual double compute_vector(int) {return 0.0;}
 
   virtual int dof(int) {return 0;}
   virtual void deform(int) {}

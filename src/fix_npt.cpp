@@ -45,6 +45,8 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   pressure_every = 1;
   box_change = 1;
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -307,7 +309,7 @@ void FixNPT::init()
 
 void FixNPT::setup()
 {
-  t_target = t_start;                      // used by thermo()
+  t_target = t_start;                      // used by compute_scalar()
   p_target[0] = p_start[0];
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];
@@ -796,7 +798,7 @@ int FixNPT::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double FixNPT::thermo(int n)
+double FixNPT::compute_scalar()
 {
   double ke = temperature->dof * boltz * t_target;
   double keplus = atom->natoms * boltz * t_target;
@@ -812,6 +814,5 @@ double FixNPT::thermo(int n)
       energy += 0.5*keplus*omega_dot[i]*omega_dot[i] / 
 	(p_freq[i]*p_freq[i]) + p_target[i]*(volume-vol0) / (pdim*nktv2p);
 
-  if (n == 0) return energy;
-  else return 0.0;
+  return energy;
 }

@@ -36,8 +36,12 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 8) error->all("Illegal fix temp/rescale command");
+
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix temp/rescale command");
+
+  scalar_flag = 1;
+  scalar_vector_freq = nevery;
 
   t_start = atof(arg[4]);
   t_end = atof(arg[5]);
@@ -223,8 +227,7 @@ int FixTempRescale::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double FixTempRescale::thermo(int n)
+double FixTempRescale::compute_scalar()
 {
-  if (n == 0) return energy;
-  else return 0.0;
+  return energy;
 }

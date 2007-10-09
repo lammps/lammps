@@ -28,6 +28,10 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix setforce command");
 
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+
   flagx = flagy = flagz = 1;
   if (strcmp(arg[3],"NULL") == 0) flagx = 0;
   else xvalue = atof(arg[3]);
@@ -86,6 +90,7 @@ void FixSetForce::post_force(int vflag)
   int nlocal = atom->nlocal;
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+  force_flag = 0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -111,6 +116,7 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
     int nlocal = atom->nlocal;
 
     foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+    force_flag = 0;
     
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -132,15 +138,16 @@ void FixSetForce::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allow setforce values to be printed with thermo output
-   n = 1,2,3 = components of total force on fix group before reset
+   return components of total force on fix group before reset
 ------------------------------------------------------------------------- */
 
-double FixSetForce::thermo(int n)
+double FixSetForce::compute_vector(int n)
 {
-  if (n >= 1 && n <= 3) {
-    double ftotal;
-    MPI_Allreduce(&foriginal[n-1],&ftotal,1,MPI_DOUBLE,MPI_SUM,world);
-    return ftotal;
-  } else return 0.0;
+  // only sum across procs one time
+
+  if (force_flag == 0) {
+    MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return foriginal_all[n];
 }

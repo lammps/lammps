@@ -46,6 +46,8 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   pressure_every = 1;
   box_change = 1;
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
 
   double p_period[3];
   if (strcmp(arg[3],"xyz") == 0) {
@@ -306,7 +308,7 @@ void FixNPH::init()
 
 void FixNPH::setup()
 {
-  p_target[0] = p_start[0];                 // needed by thermo() method
+  p_target[0] = p_start[0];                 // used by compute_scalar()
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];
 
@@ -767,7 +769,7 @@ int FixNPH::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double FixNPH::thermo(int n)
+double FixNPH::compute_scalar()
 {
   double volume;
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
@@ -781,6 +783,5 @@ double FixNPH::thermo(int n)
       energy += 0.5*nkt*omega_dot[i]*omega_dot[i] / 
 	(p_freq[i]*p_freq[i]) + p_target[i]*(volume-vol0) / (pdim*nktv2p);
 
-  if (n == 0) return energy;
-  else return 0.0;
+  return energy;
 }

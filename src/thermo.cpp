@@ -793,12 +793,20 @@ void Thermo::parse_fields(char *str)
 	  for (int ic = 0; ic < modify->compute[n]->npre; ic++)
 	    int tmp = add_compute(modify->compute[n]->id_pre[ic],
 				  arg_object[nfield]);
+
 	field2object[nfield] = add_compute(id,arg_object[nfield]);
 	addfield(copy,&Thermo::compute_compute,FLOAT);
 
       } else if (word[0] == 'f') {
 	n = modify->find_fix(id);
 	if (n < 0) error->all("Could not find thermo custom fix ID");
+	if (arg_object[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
+	  error->all("Thermo fix ID does not compute scalar info");
+	if (arg_object[nfield] > 0 && modify->fix[n]->vector_flag == 0)
+	  error->all("Thermo fix ID does not compute vector info");
+	if (arg_object[nfield] > 0 && 
+	    arg_object[nfield] > modify->fix[n]->size_vector)
+	  error->all("Thermo fix ID vector is not large enough");
 	field2object[nfield] = add_fix(id);
 	addfield(copy,&Thermo::compute_fix,FLOAT);
 
@@ -1027,7 +1035,8 @@ void Thermo::compute_compute()
 void Thermo::compute_fix()
 {
   int index = field2object[ifield];
-  dvalue = fixes[index]->thermo(arg_object[ifield]);
+  if (arg_object[ifield] == 0) dvalue = fixes[index]->compute_scalar();
+  else dvalue = fixes[index]->compute_vector(arg_object[ifield]-1);
   if (normflag) dvalue /= natoms;
 }
 

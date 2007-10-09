@@ -260,10 +260,9 @@ void FixAveSpatial::init()
     if (ifix < 0) 
       error->all("Fix ID for fix ave/spatial does not exist");
     fix = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
+    if (nevery % fix->peratom_freq)
       error->all("Fix ave/spatial and fix not computed at compatible times");
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

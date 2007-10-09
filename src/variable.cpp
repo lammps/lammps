@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "modify.h"
 #include "compute.h"
+#include "fix.h"
 #include "output.h"
 #include "thermo.h"
 #include "memory.h"
@@ -407,6 +408,7 @@ void Variable::copy(int narg, char **from, char **to)
      group function = mass(group), xcm(group,x), ...
      atom vector = x[123], y[3], vx[34], ...
      compute vector = c_mytemp[0], c_thermo_press[3], ...
+     fix vector = f_indent[0], f_setforce[3], ...
    numbers start with a digit or "." or "-" (no parens or brackets)
    keywords start with a lowercase letter (no parens or brackets)
    functions contain ()
@@ -414,7 +416,7 @@ void Variable::copy(int narg, char **from, char **to)
    vectors contain []
      single arg must be integer
      for atom vectors, arg is global ID of atom
-     for compute vectors, 0 is the scalar value, 1-N are vector values
+     for compute/fix vectors, 0 is the scalar value, 1-N are vector values
    see lists of valid functions & vectors below
    return answer = value of string
 ------------------------------------------------------------------------- */
@@ -662,6 +664,8 @@ double Variable::evaluate(char *str, Tree *tree)
   // index = everything between [] evaluated as integer
   // if vector name starts with "c_", trailing chars are compute ID
   //   check if compute ID exists, invoke it with index as arg
+  // if vector name starts with "cf_", trailing chars are fix ID
+  //   check if fix ID exists, call its scalar or vector fn with index as arg
   // else is atom vector
   //   find which proc owns atom via atom->map()
   //   grab atom-based value with index as global atom ID
@@ -696,7 +700,7 @@ double Variable::evaluate(char *str, Tree *tree)
       delete [] id;
       modify->compute[icompute]->init();
 
-      // call compute() if index = 0, else compute_vector()
+      // call compute_scalar() if index = 0, else compute_vector()
       // make pre-call to Compute object's pre-compute(s) if defined
 
       int index = atoi(arg);
@@ -713,7 +717,7 @@ double Variable::evaluate(char *str, Tree *tree)
 	answer = modify->compute[icompute]->compute_scalar();
       } else if (index > 0) {
 	if (modify->compute[icompute]->vector_flag == 0)
-	  error->all("Variable compute ID does not compute scalar info");
+	  error->all("Variable compute ID does not compute vector info");
 	if (index > modify->compute[icompute]->size_vector)
 	  error->all("Variable compute ID vector is not large enough");
 	if (modify->compute[icompute]->npre)
@@ -726,6 +730,33 @@ double Variable::evaluate(char *str, Tree *tree)
 	modify->compute[icompute]->compute_vector();
 	answer = modify->compute[icompute]->vector[index-1];
       } else error->all("Invalid compute ID index in variable");
+
+    } else if (strncmp(vector,"f_",2) == 0) {
+      n = strlen(vector) - 2 + 1;
+      char *id = new char[n];
+      strcpy(id,&vector[2]);
+
+      int ifix;
+      for (ifix = 0; ifix < modify->nfix; ifix++)
+	if (strcmp(id,modify->fix[ifix]->id) == 0) break;
+      if (ifix == modify->nfix)
+	error->all("Invalid fix ID in variable");
+      delete [] id;
+
+      // call compute_scalar() if index = 0, else compute_vector()
+
+      int index = atoi(arg);
+      if (index == 0) {
+	if (modify->fix[ifix]->scalar_flag == 0)
+	  error->all("Variable fix ID does not compute scalar info");
+	answer = modify->fix[ifix]->compute_scalar();
+      } else if (index > 0) {
+	if (modify->fix[ifix]->vector_flag == 0)
+	  error->all("Variable fix ID does not compute vector info");
+	if (index > modify->fix[ifix]->size_vector)
+	  error->all("Variable fix ID vector is not large enough");
+	answer = modify->fix[ifix]->compute_vector(index-1);
+      } else error->all("Invalid fix ID index in variable");
 
     } else if (tree) {
 

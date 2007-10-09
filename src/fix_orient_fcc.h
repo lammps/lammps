@@ -45,7 +45,7 @@ class FixOrientFCC : public Fix {
   void setup();
   void post_force(int);
   void post_force_respa(int, int, int);
-  double thermo(int);
+  double compute_scalar();
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   double memory_usage();
@@ -64,9 +64,8 @@ class FixOrientFCC : public Fix {
   char *xifilename, *chifilename;  // file names for 2 crystal orientations
 
   bool use_xismooth;
-  int eflag_enable;
   double Rxi[12][3],Rchi[12][3],half_xi_chi_vec[2][6][3];
-  double xiid,xi0,xi1,xicutoffsq,cutsq,total_added_e;
+  double xiid,xi0,xi1,xicutoffsq,cutsq,added_energy,total_added_e;
   int half_fcc_nn,nmax;
 
   Nbr *nbr;

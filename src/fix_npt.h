@@ -29,7 +29,7 @@ class FixNPT : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
-  double thermo(int);
+  double compute_scalar();
   void write_restart(FILE *);
   void restart(char *);
   int modify_param(int, char **);

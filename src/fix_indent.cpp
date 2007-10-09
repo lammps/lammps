@@ -37,6 +37,12 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all("Illegal fix indent command");
+
+  scalar_flag = 1;
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+
   k = atof(arg[3]);
 
   // set defaults
@@ -122,7 +128,6 @@ void FixIndent::init()
 
 void FixIndent::setup()
 {
-  eflag_enable = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(1);
   else {
@@ -130,14 +135,12 @@ void FixIndent::setup()
     post_force_respa(1,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  eflag_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixIndent::min_setup()
 {
-  eflag_enable = 1;
   post_force(1);
 }
 
@@ -145,10 +148,6 @@ void FixIndent::min_setup()
 
 void FixIndent::post_force(int vflag)
 {
-  bool eflag = false;
-  if (eflag_enable) eflag = true;
-  else if (output->next_thermo == update->ntimestep) eflag = true;
-
   // set current r0
   // for minimization, always set to r0_stop
 
@@ -160,8 +159,10 @@ void FixIndent::post_force(int vflag)
     r0 = r0_start + delta * (r0_stop-r0_start);
   }
 
-  double eng;
-  if (eflag) eng = 0.0;
+  // indenter values, 0 = energy, 1-3 = force components
+
+  indenter_flag = 0;
+  indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
 
   // spherical indenter
 
@@ -179,7 +180,7 @@ void FixIndent::post_force(int vflag)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    double delx,dely,delz,r,dr,fmag;
+    double delx,dely,delz,r,dr,fmag,fx,fy,fz;
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -190,10 +191,16 @@ void FixIndent::post_force(int vflag)
 	dr = r - r0;
 	if (dr >= 0.0) continue;
 	fmag = k*dr*dr;
-	f[i][0] += delx*fmag/r;
-	f[i][1] += dely*fmag/r;
-	f[i][2] += delz*fmag/r;
-	if (eflag) eng -= k3 * dr*dr*dr;
+	fx = delx*fmag/r;
+	fy = dely*fmag/r;
+	fz = delz*fmag/r;
+	f[i][0] += fx;
+	f[i][1] += fy;
+	f[i][2] += fz;
+	indenter[0] -= k3 * dr*dr*dr;
+	indenter[1] -= fx;
+	indenter[2] -= fy;
+	indenter[3] -= fz;
       }
 
   // cylindrical indenter
@@ -220,7 +227,7 @@ void FixIndent::post_force(int vflag)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
     
-    double delx,dely,delz,r,dr,fmag;
+    double delx,dely,delz,r,dr,fmag,fx,fy,fz;
     
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -241,14 +248,18 @@ void FixIndent::post_force(int vflag)
 	dr = r - r0;
 	if (dr >= 0.0) continue;
 	fmag = k*dr*dr;
-	f[i][0] += delx*fmag/r;
-	f[i][1] += dely*fmag/r;
-	f[i][2] += delz*fmag/r;
-	if (eflag) eng -= k3 * dr*dr*dr;
+	fx = delx*fmag/r;
+	fy = dely*fmag/r;
+	fz = delz*fmag/r;
+	f[i][0] += fx;
+	f[i][1] += fy;
+	f[i][2] += fz;
+	indenter[0] -= k3 * dr*dr*dr;
+	indenter[1] -= fx;
+	indenter[2] -= fy;
+	indenter[3] -= fz;
       }
   }
-
-  if (eflag) MPI_Allreduce(&eng,&etotal,1,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -265,12 +276,34 @@ void FixIndent::min_post_force(int vflag)
   post_force(vflag);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   energy of indenter interaction
+------------------------------------------------------------------------- */
 
-double FixIndent::thermo(int n)
+double FixIndent::compute_scalar()
 {
-  if (n == 0) return etotal;
-  else return 0.0;
+  // only sum across procs one time
+
+  if (indenter_flag == 0) {
+    MPI_Allreduce(indenter,indenter_all,4,MPI_DOUBLE,MPI_SUM,world);
+    indenter_flag = 1;
+  }
+  return indenter_all[0];
+}
+
+/* ----------------------------------------------------------------------
+   components of force on indenter
+------------------------------------------------------------------------- */
+
+double FixIndent::compute_vector(int n)
+{
+  // only sum across procs one time
+
+  if (indenter_flag == 0) {
+    MPI_Allreduce(indenter,indenter_all,4,MPI_DOUBLE,MPI_SUM,world);
+    indenter_flag = 1;
+  }
+  return indenter_all[n];
 }
 
 /* ----------------------------------------------------------------------

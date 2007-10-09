@@ -29,13 +29,15 @@ class FixWallLJ93 : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
-  double thermo(int);
+  double compute_scalar();
+  double compute_vector(int);
 
  private:
   int dim,side,thermo_flag,eflag_enable;
   double coord,epsilon,sigma,cutoff;
   double coeff1,coeff2,coeff3,coeff4,offset;
-  double etotal;
+  double wall[4],wall_all[4];
+  int wall_flag;
   int nlevels_respa;
 };
 

@@ -39,6 +39,8 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 6) error->all("Illegal fix nvt command");
 
   restart_global = 1;
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -129,7 +131,7 @@ void FixNVT::init()
 
 void FixNVT::setup()
 {
-  t_target = t_start;                         // needed by thermo() method
+  t_target = t_start;                         // used by compute_scalar()
   t_current = temperature->compute_scalar();
 }
 
@@ -377,11 +379,9 @@ void FixNVT::reset_target(double t_new)
 
 /* ---------------------------------------------------------------------- */
 
-double FixNVT::thermo(int n)
+double FixNVT::compute_scalar()
 {
   double ke = temperature->dof * force->boltz * t_target;
   double energy = ke * (eta + 0.5*eta_dot*eta_dot/(t_freq*t_freq));
-
-  if (n == 0) return energy;
-  else return 0.0;
+  return energy;
 }

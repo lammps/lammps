@@ -46,6 +46,9 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg != 11) error->all("Illegal fix orient/fcc command");
 
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
+
   nstats = atoi(arg[3]);
   direction_of_motion = atoi(arg[4]);
   a = atof(arg[5]);
@@ -194,7 +197,6 @@ void FixOrientFCC::init_list(int id, NeighList *ptr)
 
 void FixOrientFCC::setup()
 {
-  eflag_enable = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(1);
   else {
@@ -202,7 +204,6 @@ void FixOrientFCC::setup()
     post_force_respa(1,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  eflag_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -211,15 +212,11 @@ void FixOrientFCC::post_force(int vflag)
 {
   int i,j,k,ii,jj,inum,jnum,m,n,nn,nsort,id_self;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double edelta,added_energy,omega;
+  double edelta,omega;
   double dx,dy,dz,rsq,xismooth,xi_sq,duxi,duxi_other;
   double dxi[3];
   double *dxiptr;
   bool found_myself;
-
-  bool eflag = false;
-  if (eflag_enable) eflag = true;
-  else if (output->next_thermo == update->ntimestep) eflag = true;
 
   // set local ptrs
 
@@ -246,7 +243,7 @@ void FixOrientFCC::post_force(int vflag)
   // loop over owned atoms and build Nbr data structure of neighbors
   // use full neighbor list
 
-  if (eflag) added_energy = 0.0;
+  added_energy = 0.0;
   int count = 0;
   int mincount = BIG;
   int maxcount = 0;
@@ -319,16 +316,16 @@ void FixOrientFCC::post_force(int vflag)
 
     if (xi_total < xi0) {
       nbr[i].duxi = 0.0;
-      if (eflag) edelta = 0.0;
+      edelta = 0.0;
     } else if (xi_total > xi1) {
       nbr[i].duxi = 0.0;
-      if (eflag) edelta = Vxi;
+      edelta = Vxi;
     } else {
       omega = (0.5*PI)*(xi_total-xi0) / (xi1-xi0);
       nbr[i].duxi = PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
-      if (eflag) edelta = Vxi*(1 - cos(2.0*omega)) / 2.0;
+      edelta = Vxi*(1 - cos(2.0*omega)) / 2.0;
     }
-    if (eflag) added_energy += edelta;
+    added_energy += edelta;
   }
   
   if (maxcount) delete [] sort;
@@ -391,11 +388,6 @@ void FixOrientFCC::post_force(int vflag)
     }
   }
 
-  // sum energy across procs
-
-  if (eflag)
-    MPI_Allreduce(&added_energy,&total_added_e,1,MPI_DOUBLE,MPI_SUM,world);
-
   // print statistics every nstats timesteps
 
   if (nstats && update->ntimestep % nstats == 0) {
@@ -433,10 +425,10 @@ void FixOrientFCC::post_force_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-double FixOrientFCC::thermo(int n)
+double FixOrientFCC::compute_scalar()
 {
-  if (n == 0) return total_added_e;
-  else return 0.0;
+  MPI_Allreduce(&added_energy,&total_added_e,1,MPI_DOUBLE,MPI_SUM,world);
+  return total_added_e;
 }
 
 /* ---------------------------------------------------------------------- */

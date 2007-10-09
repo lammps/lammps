@@ -235,14 +235,14 @@ void Modify::end_of_step()
 /* ----------------------------------------------------------------------
    thermo energy call only for relevant fixes
    called by Thermo class
-   arg to Fix thermo() is 0, so fix will return its energy contribution
+   compute_scalar() is fix call to return energy
 ------------------------------------------------------------------------- */
 
 double Modify::thermo_energy()
 {
   double energy = 0.0;
   for (int i = 0; i < n_thermo_energy; i++)
-    energy += fix[list_thermo_energy[i]]->thermo(0);
+    energy += fix[list_thermo_energy[i]]->compute_scalar();
   return energy;
 }
 

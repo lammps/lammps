@@ -35,6 +35,11 @@ FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 8) error->all("Illegal fix wall/lj126 command");
 
+  scalar_flag = 1;
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+
   if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
     side = -1;
@@ -101,7 +106,6 @@ void FixWallLJ126::init()
 
 void FixWallLJ126::setup()
 {
-  eflag_enable = 1;
   if (strcmp(update->integrate_style,"verlet") == 0)
     post_force(1);
   else {
@@ -109,14 +113,12 @@ void FixWallLJ126::setup()
     post_force_respa(1,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
-  eflag_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallLJ126::min_setup()
 {
-  eflag_enable = 1;
   post_force(1);
 }
 
@@ -124,17 +126,14 @@ void FixWallLJ126::min_setup()
 
 void FixWallLJ126::post_force(int vflag)
 {
-  bool eflag = false;
-  if (eflag_enable) eflag = true;
-  else if (output->next_thermo == update->ntimestep) eflag = true;
-
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double delta,rinv,r2inv,r6inv,eng;
-  if (eflag) eng = 0.0;
+  double delta,rinv,r2inv,r6inv,fwall;
+  wall[0] = wall[1] = wall[2] = wall[3] = 0.0;
+  wall_flag = 0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -145,11 +144,11 @@ void FixWallLJ126::post_force(int vflag)
       rinv = 1.0/delta;
       r2inv = rinv*rinv;
       r6inv = r2inv*r2inv*r2inv;
-      f[i][dim] -= r6inv*(coeff1*r6inv - coeff2) * side;
-      if (eflag) eng += r6inv*(coeff3*r6inv - coeff4) - offset;
+      fwall = r6inv*(coeff1*r6inv - coeff2) * side;
+      f[i][dim] -= fwall;
+      wall[0] += r6inv*(coeff3*r6inv - coeff4) - offset;
+      wall[dim] += fwall;
     }
-
-  if (eflag) MPI_Allreduce(&eng,&etotal,1,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,10 +165,32 @@ void FixWallLJ126::min_post_force(int vflag)
   post_force(vflag);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   energy of wall interaction
+------------------------------------------------------------------------- */
 
-double FixWallLJ126::thermo(int n)
+double FixWallLJ126::compute_scalar()
 {
-  if (n == 0) return etotal;
-  else return 0.0;
+  // only sum across procs one time
+
+  if (wall_flag == 0) {
+    MPI_Allreduce(wall,wall_all,4,MPI_DOUBLE,MPI_SUM,world);
+    wall_flag = 1;
+  }
+  return wall_all[0];
+}
+
+/* ----------------------------------------------------------------------
+   components of force on wall
+------------------------------------------------------------------------- */
+
+double FixWallLJ126::compute_vector(int n)
+{
+  // only sum across procs one time
+
+  if (wall_flag == 0) {
+    MPI_Allreduce(wall,wall_all,4,MPI_DOUBLE,MPI_SUM,world);
+    wall_flag = 1;
+  }
+  return wall_all[n];
 }

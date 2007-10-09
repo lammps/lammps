@@ -83,11 +83,11 @@ hi-viscosity solvent and vice versa.  See the discussion about gamma
 and viscosity in the documentation for the <A HREF = "fix_viscous.html">fix
 viscous</A> command for more details.
 </P>
-<P>The random # <I>seed</I> should be a non-zero integer with 1 to 8 digits.
-A Marsaglia random number generator is used.  Each processor uses the
-input seed to generate its own unique seed and its own stream of
-random numbers.  Thus the dynamics of the system will not be identical
-on two runs on different numbers of processors. 
+<P>The random # <I>seed</I> must be a positive integer.  A Marsaglia random
+number generator is used.  Each processor uses the input seed to
+generate its own unique seed and its own stream of random numbers.
+Thus the dynamics of the system will not be identical on two runs on
+different numbers of processors.
 </P>
 <P>The keyword <I>axes</I> can be used to specify which dimensions to add Ff
 and Fr to.  A flag of 0 means skip that dimension; a flag of 1 means

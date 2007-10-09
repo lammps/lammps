@@ -81,7 +81,8 @@ void Ewald::init()
   // error check
 
   if (domain->triclinic) error->all("Cannot use Ewald with triclinic box");
-  if (domain->dimension == 2) error->all("Cannot use Ewald with 2d simulation");
+  if (domain->dimension == 2) 
+    error->all("Cannot use Ewald with 2d simulation");
 
   if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
 
@@ -133,6 +134,17 @@ void Ewald::init()
     if (screen) fprintf(screen,"  G vector = %g\n",g_ewald);
     if (logfile) fprintf(logfile,"  G vector = %g\n",g_ewald);
   }
+
+  // compute K-space coefficients
+
+  setup();
+
+  if (comm->me == 0) {
+    if (screen) fprintf(screen,"  vectors: actual 1d max = %d %d %d\n",
+			kcount,kmax,kmax3d);
+    if (logfile) fprintf(logfile,"  vectors: actual 1d max = %d %d %d\n",
+			 kcount,kmax,kmax3d);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -162,7 +174,8 @@ void Ewald::setup()
 
   int nkxmx = static_cast<int> ((g_ewald*xprd/PI) * sqrt(-log(precision)));
   int nkymx = static_cast<int> ((g_ewald*yprd/PI) * sqrt(-log(precision)));
-  int nkzmx = static_cast<int> ((g_ewald*zprd_slab/PI) * sqrt(-log(precision)));
+  int nkzmx = 
+    static_cast<int> ((g_ewald*zprd_slab/PI) * sqrt(-log(precision)));
 
   int kmax_old = kmax;
   kmax = MAX(nkxmx,nkymx);
@@ -187,19 +200,7 @@ void Ewald::setup()
 
   // pre-compute Ewald coefficients
 
-  int kcount_old = kcount;
   coeffs();
-
-  // if array sizes changed, print out new sizes
-
-  if (kmax != kmax_old || kcount != kcount_old) {
-    if (comm->me == 0) {
-      if (screen) fprintf(screen,"  vectors: actual 1d max = %d %d %d\n",
-			  kcount,kmax,kmax3d);
-      if (logfile) fprintf(logfile,"  vectors: actual 1d max = %d %d %d\n",
-			   kcount,kmax,kmax3d);
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

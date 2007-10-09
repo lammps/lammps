@@ -175,6 +175,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     double dy = yscale*atof(arg[3]);
     double dz = zscale*atof(arg[4]);
     int seed = atoi(arg[5]);
+    if (seed <= 0) error->all("Illegal displace_atoms random command");
 
     double **x = atom->x;
     int *mask = atom->mask;

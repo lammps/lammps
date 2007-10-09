@@ -126,6 +126,8 @@ void Velocity::create(int narg, char **arg)
   double t_desired = atof(arg[0]);
   int seed = atoi(arg[1]);
 
+  if (seed <= 0) error->all("Illegal velocity create command");
+
   // if temperature = NULL, create a new ComputeTemp with the velocity group
 
   int tflag = 0;

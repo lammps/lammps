@@ -51,6 +51,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   ntype = atoi(arg[4]);
   seed = atoi(arg[5]);
 
+  if (seed <= 0) error->all("Illegal fix pour command");
+
   PI = 4.0*atan(1.0);
 
   // option defaults

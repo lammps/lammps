@@ -41,8 +41,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   int seed = atoi(arg[6]);
 
   if (t_period <= 0.0) error->all("Fix langevin period must be > 0.0");
-  if (seed <= 0 || seed > 900000000)
-    error->all("Illegal fix langevin command");
+  if (seed <= 0) error->all("Illegal fix langevin command");
 
   // initialize Marsaglia RNG with processor-unique seed
 

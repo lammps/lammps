@@ -25,13 +25,13 @@ class FixIndent : public Fix {
   void init();
   void setup();
   void min_setup();
-  void post_force(int);
+  virtual void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_scalar();
   double compute_vector(int);
 
- private:
+ protected:
   int istyle,scaleflag,radflag,thermo_flag,eflag_enable;
   double k,k3;
   double x0,y0,z0,r0_stop,r0_start;

@@ -202,8 +202,7 @@ void PairDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 || seed > 900000000)
-    error->all("Illegal fix pair_style command");
+  if (seed <= 0) error->all("Illegal fix pair_style command");
   if (random) delete random;
   random = new RanMars(lmp,seed + comm->me);
 

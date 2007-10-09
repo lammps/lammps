@@ -43,6 +43,8 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   nfreq = atoi(arg[5]);
   seed = atoi(arg[6]);
 
+  if (seed <= 0) error->all("Illegal fix deposit command");
+
   // set defaults
 
   iregion = -1;

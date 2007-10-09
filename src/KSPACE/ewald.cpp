@@ -135,7 +135,7 @@ void Ewald::init()
     if (logfile) fprintf(logfile,"  G vector = %g\n",g_ewald);
   }
 
-  // compute K-space coefficients
+  // setup Ewald coefficients so can print stats
 
   setup();
 

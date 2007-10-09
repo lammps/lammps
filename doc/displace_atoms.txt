@@ -23,7 +23,7 @@ style = {move} or {ramp} or {random} :l
     clo,chi = lower and upper bound of domain to displace (distance units)
   {random} args = dx dy dz seed
     dx,dy,dz = random displacement magnitude in each dimension (distance units)
-    seed = random # seed (8 digits or less) :pre
+    seed = random # seed (positive integer) :pre
 zero or more keyword/value pairs may be appended :l
   keyword = {units}
     value = {box} or {lattice} :pre

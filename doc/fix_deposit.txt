@@ -17,7 +17,7 @@ deposit = style name of this fix command :l
 N = # of atoms to insert :l
 type = atom type to assign to inserted atoms :l
 M = insert a single particle every M steps :l
-seed = random # seed :l
+seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
 keyword = {region} or {global} or {local} or {near} or {attempt} or {rate} or {vx} or {vy} or {vz} or {units} :l
   {region} value = region-ID

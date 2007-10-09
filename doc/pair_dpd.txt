@@ -14,7 +14,7 @@ pair_style dpd T cutoff seed :pre
 
 T = temperature (temperature units)
 cutoff = global cutoff for DPD interactions (distance units)
-seed = random # seed (integer > 0 and < 900000000) :ul
+seed = random # seed (positive integer) :ul
 
 [Examples:]
 

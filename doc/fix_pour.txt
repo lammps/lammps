@@ -16,7 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 pour = style name of this fix command :l
 N = # of atoms to insert :l
 type = atom type to assign to inserted atoms :l
-seed = random # seed :l
+seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
 keyword = {region} or {diam} or {dens} or {vol} or {rate} or {vel} :l
   {region} value = region-ID

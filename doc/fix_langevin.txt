@@ -16,7 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 langevin = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
 damp = damping parameter (time units) :l
-seed = random # seed to use for white noise (8 digits or less) :l
+seed = random # seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
 keyword = {axes} or {scale} or {region}
   {axes} values = xflag yflag zflag

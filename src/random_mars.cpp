@@ -25,10 +25,11 @@ RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp)
 {
   int ij,kl,i,j,k,l,ii,jj,m;
   double s,t;
-      
-  if (seed == 0) error->all("Marsaglia RNG cannot use 0 seed");
-  save = 0;
 
+  if (seed <= 0 || seed > 900000000)
+    error->all("Invalid seed for Marsaglia random # generator");
+
+  save = 0;
   u = new double[97+1];
 
   ij = (seed-1)/30082;

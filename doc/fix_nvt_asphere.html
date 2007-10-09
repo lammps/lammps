@@ -100,9 +100,9 @@ fix to add the energy change induced by Nose/Hoover thermostatting to
 the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
 output</A>.
 </P>
-<P>The energy change can be printed as part of thermodynamic output via
-the keyword f_ID, where ID is the fix-ID of this fix.  See the
-<A HREF = "thermo_style.html">thermo_style custom</A> command for details.
+<P>The potential energy change due to this fix is stored as a scalar
+quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.
 </P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the

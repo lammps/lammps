@@ -55,10 +55,9 @@ fix to add the energy of interaction between atoms and the wall to the
 system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
 output</A>.
 </P>
-<P>The atom/wall interaction energy can be printed as part of
-thermodynamic output via the keyword f_ID, where ID is the fix-ID of
-this fix.  See the <A HREF = "thermo_style.html">thermo_style custom</A> command for
-details.
+<P>This fix computes a scalar energy and a 3-vector of forces (on the
+wall), which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.

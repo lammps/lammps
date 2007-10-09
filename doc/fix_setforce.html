@@ -41,15 +41,10 @@ alter the force component in that dimension.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>The total vector force on the group of atoms before it is reset is
-stored by the fix and its components can be printed as part of
-thermodynamic output via the keywords f_ID[N] where ID is the fix-ID
-of this fix and N = 1,2,3.  See the <A HREF = "thermo_style.html">thermo_style
-custom</A> command for details.  Note that the fix
-stores the total force on the group of atoms, but the printed value
-may be normalized by the total number of atoms in the simulation
-depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A> option being
-used.
+<P>This fix computes a 3-vector of forces, which can be accessed by
+various <A HREF = "Section_howto.html#4_15">output commands</A>.  This is the total
+force on the group of atoms before the forces on individual atoms are
+reset by the fix.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.

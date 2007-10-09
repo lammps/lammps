@@ -41,7 +41,7 @@ run 100000 every 1000 NULL :pre
 
 Run or continue dynamics for a specified number of timesteps.
 
-When the "run style"_doc/run_style.html is {respa}, N refers to outer
+When the "run style"_run_style.html is {respa}, N refers to outer
 loop (largest) timesteps.
 
 A value of N = 0 is acceptable; only the thermodynamics of the system

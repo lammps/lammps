@@ -107,8 +107,11 @@ fix to add the energy change implied by a velocity rescaling to the
 system's potential energy as part of "thermodynamic
 output"_thermo_style.html.  Note that because this fix is invoked
 every N steps and thermodynamic info is printed every M steps, that
-unless M is a multiple of N, the energy contribution will not be for
-the current timestep.
+unless M is a multiple of N, the energy contribution will be zero.
+
+The potential energy change due to this fix is stored as a scalar
+quantity, which can be accessed by various "output
+commands"_Section_howto.html#4_15.
 
 The energy change can be printed as part of thermodynamic output via
 the keyword f_ID, where ID is the fix-ID of this fix.  See the

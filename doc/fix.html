@@ -63,6 +63,14 @@ made to the old fix via the <A HREF = "fix_modify.html">fix_modify</A> command.
 <P>The <A HREF = "fix_modify.html">fix modify</A> command allows settings for some
 fixes to be reset.  See the doc page for individual fixes for details.
 </P>
+<P>Some fixes calculate a global scalar or vector quantity which can be
+accessed by various output commands, including
+<A HREF = "variable.html">variables</A>, <A HREF = "thermo_style.html">thermo_style custom</A>,
+and <A HREF = "fix_ave_time.html">fix ave/time</A>.  See this <A HREF = "Section_howto.html#4_15">howto
+section</A> for a summary of various LAMMPS
+output options.  See the doc pages for individual fixes for info on
+which ones calculate these quantities.
+</P>
 <P>Some fixes store an internal "state" which is written to binary
 restart files via the <A HREF = "restart.html">restart</A> or
 <A HREF = "write_restart.html">write_restart</A> commands.  This allows the fix to

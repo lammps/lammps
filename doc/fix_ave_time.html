@@ -13,43 +13,51 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ave/time Nevery Nrepeat Nfreq compute-ID flag file 
+<PRE>fix ID group-ID ave/time Nevery Nrepeat Nfreq style ID flag file 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>ave/time = style name of this fix command
 <LI>Nevery = calculate property every this many timesteps
 <LI>Nrepeat = # of times to repeat the Nevery calculation before averaging
 <LI>Nfreq = timestep frequency at which the average value is written to file
-<LI>compute-ID = ID of compute that performs the calculation
+<LI>style = <I>compute</I> or <I>fix</I>
+<LI>ID = ID of compute or fix that performs the calculation
 <LI>flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
 <LI>file = filename to write results to 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all ave/time 100 5 1000 myTemp 0 temp.stats 
+<PRE>fix 1 all ave/time 100 5 1000 compute myTemp 0 temp.stats 
+</PRE>
+<PRE>fix 1 all ave/time 1 100 1000 fix indenter 0 temp.indent 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Calculate one or more instantaneous quantities every few timesteps,
 average them over a longer timescale, and print the results to a file.
-This can be used to time-average any "compute" entity in LAMMPS which
-calculates a global quantity such as a temperature or pressure.
-Per-atom computes cannot be used with this fix.
+This can be used to time-average a <A HREF = "compute.html">compute</A> which
+calculates a global quantity such as a temperature or pressure or a
+<A HREF = "fix.html">fix</A> which calculates such a global quantity.  Note that
+per-atom computes cannot be used with this fix; their values can be
+averaged by the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> or <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> commands.
 </P>
-<P>The <I>compute-ID</I> specifies a <A HREF = "compute.html">compute</A> which calculates
-the desired property.  The compute must be a "global" compute that
-calculates one or more global properties rather than a "per-atom"
-compute.  The compute can be previously defined in the input script.
-Or it can be a compute defined by <A HREF = "thermo_style.html">thermodynamic
+<P>For style <I>compute</I> the <I>ID</I> specifies a <A HREF = "compute.html">compute</A> which
+calculates the desired property.  The compute must be a "global"
+compute that calculates one or more global properties rather than a
+"per-atom" compute.  The fix must be previously defined in the input
+script.  Or it can be a compute defined by <A HREF = "thermo_style.html">thermodynamic
 output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
 nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  Users
-can also write code for their own compute styles and <A HREF = "Section_modify.html">add them to
+can write code for their own compute styles and <A HREF = "Section_modify.html">add them to
 LAMMPS</A>.
 </P>
-<P>In all these cases, the fix ave/time command uses the global scalar or
-vector calculated by the compute.  See the <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A> command if you wish to average
-spatially, e.g. via a compute that calculates per-atom quantities.
+<P>For style <I>fix</I> the <I>ID</I> specifies a <A HREF = "fix.html">fix</A> which calculates
+the desired property.  The fix must calculate a global scalar or
+vector quantity, which only a few fixes do.  See the doc page for
+individual fix commands for details.  The fix must be previously
+defined in the input script.  Users can write code for their own fix
+styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
 </P>
 <P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify how the
 property will be time-averaged.  The final averaged value(s) are
@@ -61,22 +69,23 @@ final average written to the file on timestep 100.  Similary for
 timesteps 190,192,194,196,198,200 on timestep 200, etc.
 </P>
 <P>The <I>flag</I> argument chooses whether the scalar and/or vector
-calculation of the compute is invoked.  The former computes a single
-global value.  The latter computes N global values, where N is defined
-by the compute, e.g. 6 pressure tensor components.  In the vector
-case, each of the N values is averaged independently and N values are
-written to the file at each output.
+calculation of the compute or fix is invoked.  The former computes a
+single global value.  The latter computes N global values, where N is
+defined by the compute or fix, e.g. 6 pressure tensor components.  In
+the vector case, each of the N values is averaged independently and N
+values are written to the file at each output.
 </P>
-<P>Since the calculation is performed by the compute which stores its own
-"group" definition, the group specified for this fix is ignored.
+<P>Since the calculation is performed by the compute or fix which stores
+its own "group" definition, the group specified for with the fix
+ave/time command is ignored.
 </P>
-<P>If the compute calculates pressure, it will cause the force
-computations performed by LAMMPS (pair, bond, angle, etc) to calculate
-virial terms each Nevery timesteps.  If this is more frequent than
-thermodynamic output, this adds extra cost to a simulation.  However,
-if a constant pressure simulation is being run (<A HREF = "fix_npt.html">fix npt</A>
-or <A HREF = "fix_nph.html">fix nph</A>), LAMMPS is already calculating virial terms
-for the pressure every timestep.
+<P>If the style is <I>compute</I> and the compute calculates pressure, it will
+cause the force computations performed by LAMMPS (pair, bond, angle,
+etc) to calculate virial terms each Nevery timesteps.  If this is more
+frequent than thermodynamic output, this adds extra cost to a
+simulation.  However, if a constant pressure simulation is being run
+(<A HREF = "fix_npt.html">fix npt</A> or <A HREF = "fix_nph.html">fix nph</A>), LAMMPS is already
+calculating virial terms for the pressure every timestep.
 </P>
 <P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
 </P>
@@ -92,7 +101,8 @@ minimization</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A>
 </P>
 <P><B>Default:</B> none
 </P>

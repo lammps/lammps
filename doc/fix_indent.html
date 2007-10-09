@@ -105,10 +105,9 @@ the system's potential energy as part of <A HREF = "thermo_style.html">thermodyn
 output</A>.  The energy of each particle interacting
 with the indenter is K/3 (r - R)^3.
 </P>
-<P>The atom/indenter interaction energy can be printed as part of
-thermodynamic output via the keyword f_ID, where ID is the fix-ID of
-this fix.  See the <A HREF = "thermo_style.html">thermo_style custom</A> command for
-details.
+<P>This fix computes a scalar energy and a 3-vector of forces (on the
+indenter), which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.
 </P>
 <P>This fix can adjust the indenter position and radius over multiple
 runs, using the <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A>

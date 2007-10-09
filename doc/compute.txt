@@ -47,6 +47,9 @@ be time-averaged via the "fix ave/atom"_fix_ave_atom.html command and
 then output via the "dump custom"_dump.html or "fix
 ave/spatial"_fix_ave_spatial.html commands.
 
+See this "howto section"_Section_howto.html#4_15 for a summary of
+various LAMMPS output options.
+
 LAMMPS creates its own global computes for thermodynamic output.  Two
 computes are always created, named "thermo_temp" and
 "thermo_pressure", as if these commands had been invoked:

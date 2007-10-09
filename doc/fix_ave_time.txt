@@ -10,43 +10,50 @@ fix ave/time command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/time Nevery Nrepeat Nfreq compute-ID flag file :pre
+fix ID group-ID ave/time Nevery Nrepeat Nfreq style ID flag file :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 ave/time = style name of this fix command
 Nevery = calculate property every this many timesteps
 Nrepeat = # of times to repeat the Nevery calculation before averaging
 Nfreq = timestep frequency at which the average value is written to file
-compute-ID = ID of compute that performs the calculation
+style = {compute} or {fix}
+ID = ID of compute or fix that performs the calculation
 flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
 file = filename to write results to :ul
 
 [Examples:]
 
-fix 1 all ave/time 100 5 1000 myTemp 0 temp.stats :pre
+fix 1 all ave/time 100 5 1000 compute myTemp 0 temp.stats :pre
+fix 1 all ave/time 1 100 1000 fix indenter 0 temp.indent :pre
 
 [Description:]
 
 Calculate one or more instantaneous quantities every few timesteps,
 average them over a longer timescale, and print the results to a file.
-This can be used to time-average any "compute" entity in LAMMPS which
-calculates a global quantity such as a temperature or pressure.
-Per-atom computes cannot be used with this fix.
+This can be used to time-average a "compute"_compute.html which
+calculates a global quantity such as a temperature or pressure or a
+"fix"_fix.html which calculates such a global quantity.  Note that
+per-atom computes cannot be used with this fix; their values can be
+averaged by the "fix ave/spatial"_fix_ave_spatial.html or "fix
+ave/atom"_fix_ave_atom.html commands.
 
-The {compute-ID} specifies a "compute"_compute.html which calculates
-the desired property.  The compute must be a "global" compute that
-calculates one or more global properties rather than a "per-atom"
-compute.  The compute can be previously defined in the input script.
-Or it can be a compute defined by "thermodynamic
+For style {compute} the {ID} specifies a "compute"_compute.html which
+calculates the desired property.  The compute must be a "global"
+compute that calculates one or more global properties rather than a
+"per-atom" compute.  The fix must be previously defined in the input
+script.  Or it can be a compute defined by "thermodynamic
 output"_thermo_style.html or other fixes such as "fix
 nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.  Users
-can also write code for their own compute styles and "add them to
+can write code for their own compute styles and "add them to
 LAMMPS"_Section_modify.html.
 
-In all these cases, the fix ave/time command uses the global scalar or
-vector calculated by the compute.  See the "fix
-ave/spatial"_fix_ave_spatial.html command if you wish to average
-spatially, e.g. via a compute that calculates per-atom quantities.
+For style {fix} the {ID} specifies a "fix"_fix.html which calculates
+the desired property.  The fix must calculate a global scalar or
+vector quantity, which only a few fixes do.  See the doc page for
+individual fix commands for details.  The fix must be previously
+defined in the input script.  Users can write code for their own fix
+styles and "add them to LAMMPS"_Section_modify.html.
 
 The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify how the
 property will be time-averaged.  The final averaged value(s) are
@@ -58,22 +65,23 @@ final average written to the file on timestep 100.  Similary for
 timesteps 190,192,194,196,198,200 on timestep 200, etc.
 
 The {flag} argument chooses whether the scalar and/or vector
-calculation of the compute is invoked.  The former computes a single
-global value.  The latter computes N global values, where N is defined
-by the compute, e.g. 6 pressure tensor components.  In the vector
-case, each of the N values is averaged independently and N values are
-written to the file at each output.
+calculation of the compute or fix is invoked.  The former computes a
+single global value.  The latter computes N global values, where N is
+defined by the compute or fix, e.g. 6 pressure tensor components.  In
+the vector case, each of the N values is averaged independently and N
+values are written to the file at each output.
 
-Since the calculation is performed by the compute which stores its own
-"group" definition, the group specified for this fix is ignored.
+Since the calculation is performed by the compute or fix which stores
+its own "group" definition, the group specified for with the fix
+ave/time command is ignored.
 
-If the compute calculates pressure, it will cause the force
-computations performed by LAMMPS (pair, bond, angle, etc) to calculate
-virial terms each Nevery timesteps.  If this is more frequent than
-thermodynamic output, this adds extra cost to a simulation.  However,
-if a constant pressure simulation is being run ("fix npt"_fix_npt.html
-or "fix nph"_fix_nph.html), LAMMPS is already calculating virial terms
-for the pressure every timestep.
+If the style is {compute} and the compute calculates pressure, it will
+cause the force computations performed by LAMMPS (pair, bond, angle,
+etc) to calculate virial terms each Nevery timesteps.  If this is more
+frequent than thermodynamic output, this adds extra cost to a
+simulation.  However, if a constant pressure simulation is being run
+("fix npt"_fix_npt.html or "fix nph"_fix_nph.html), LAMMPS is already
+calculating virial terms for the pressure every timestep.
 
 [Restart, fix_modify, thermo output, run start/stop, minimize info:]
 
@@ -89,6 +97,7 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"compute"_compute.html, "fix ave/spatial"_fix_ave_spatial.html
+"compute"_compute.html, "fix ave/atom"_fix_ave_atom.html, "fix
+ave/spatial"_fix_ave_spatial.html
 
 [Default:] none

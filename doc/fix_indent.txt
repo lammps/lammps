@@ -96,10 +96,9 @@ the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.  The energy of each particle interacting
 with the indenter is K/3 (r - R)^3.
 
-The atom/indenter interaction energy can be printed as part of
-thermodynamic output via the keyword f_ID, where ID is the fix-ID of
-this fix.  See the "thermo_style custom"_thermo_style.html command for
-details.
+This fix computes a scalar energy and a 3-vector of forces (on the
+indenter), which can be accessed by various "output
+commands"_Section_howto.html#4_15.
 
 This fix can adjust the indenter position and radius over multiple
 runs, using the {start} and {stop} keywords of the "run"_run.html

@@ -39,6 +39,7 @@
                                vx[], vy[], vz[],
 			       fx[], fy[], fz[]
     compute references = c_ID[0], c_ID[N]
+    fix references = f_ID[0], f_ID[N]
     other variables = v_abc, v_x, etc 
 </PRE>
 
@@ -211,6 +212,7 @@ variables; the syntax of Atom vector references is different.
 <TR><TD >Atom vectors for <I>equal</I></TD><TD > mass[N], x[N], y[N], z[N],                           vx[N], vy[N], vz[N],                           fx[N], fy[N], fz[N]</TD></TR>
 <TR><TD >Atom vectors for <I>atom</I></TD><TD >  mass[], x[], y[], z[],                           vx[], vy[], vz[],                           fx[], fy[], fz[]</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID[0], c_ID[N]</TD></TR>
+<TR><TD >Fix references</TD><TD > f_ID[0], f_ID[N]</TD></TR>
 <TR><TD >Other variables</TD><TD > v_abc, v_x, etc 
 </TD></TR></TABLE></DIV>
 
@@ -252,9 +254,26 @@ per-atom quantities calculated by a compute cannot be accessed this
 way, but only global scalar or vector quantities.
 </P>
 <P>If <I>c_ID[0]</I> is used as a keyword, then the scalar quantity
-calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N
-in the range from 1-M will print the Mth component of the N-length
-vector calculated by the compute.
+calculated by the compute is used.  If <I>c_ID[N]</I> is used, then one
+component of the vector quantity calculated by the compute is used.  N
+should be an integer from 1-M, where M is the length of the vector
+calculated by the compute.
+</P>
+<P>Fix references access scalar or vector quantities calculated by a
+<A HREF = "fix.html">fix</A>.  See the doc pages for individual fixes to see which
+ones compute a scalar or vector quantity.  Since the fix may not be
+invoked every timestep and compute its quantities, you should insure
+the variable is only evaluated on appropriate timesteps.  The ID in
+the reference should be replaced by the actual ID of the fix defined
+elsewhere in the input script.  See the <A HREF = "fix.html">fix</A> command for
+details.  Note that per-atom quantities calculated by a fix cannot be
+accessed this way, but only global scalar or vector quantities.
+</P>
+<P>If <I>f_ID[0]</I> is used as a keyword, then the scalar quantity
+calculated by the fix is used.  If <I>f_ID[N]</I> is used, then one
+component of the vector quantity calculated by the fix is used.  N
+should be an integer from 1-M, where M is the length of the vector
+calculated by the fix.
 </P>
 <P>The current values of other variables can be accessed by prepending a
 "v_" to the variable name.  This will cause the other variable to be

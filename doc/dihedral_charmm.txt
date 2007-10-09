@@ -41,7 +41,7 @@ weighting factor (0.0 to 1.0) :ul
 The weighting factor is applied to pairwise interaction between the
 1st and 4th atoms in the dihedral.  Note that this weighting factor is
 unrelated to the weighting factor specified by the "special
-bonds"_doc/special_bonds.html command which applies to all 1-4
+bonds"_special_bonds.html command which applies to all 1-4
 interactions in the system.
 
 For CHARMM force fields, the special_bonds 1-4 weighting factor should

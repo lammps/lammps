@@ -194,33 +194,44 @@ timesteps), where N is the value set by the {window} option of the
 
 :line
 
-The {c_ID} and {c_ID\[N\]} keywords allow scalar or vector quantities
-calculated by a compute to be output.  The ID in the keyword should be
-replaced by the actual ID of the compute that has been defined
-elsewhere in the input script.  See the "compute"_compute.html command
-for details.  Note that only global scalar or vector quantites
-calculated by a compute can be output as thermodynamic data; per-atom
-quantities calcalated by a compute are output by the "dump
-custom"_dump.html command.
+The {c_ID} and {c_ID\[N\]} keywords allow global scalar or vector
+quantities calculated by a compute to be output.  The ID in the
+keyword should be replaced by the actual ID of the compute that has
+been defined elsewhere in the input script.  See the
+"compute"_compute.html command for details.  Note that only global
+scalar or vector quantites calculated by a compute can be output as
+thermodynamic data; per-atom quantities calcalated by a compute are
+output by the "dump custom"_dump.html command.  Note that computes
+typically calculate global quantities that are summed over all atoms
+in the compute group.  However the value printed by thermo_style
+custom may be normalized by the total number of atoms in the
+simulation depending on the "thermo_modify norm"_thermo_modify.html
+option being used.
 
 If {c_ID} is used as a keyword, then the scalar quantity calculated by
-the compute is printed.  If {c_ID\[N\]} is used, then N in the range
-from 1-M will print the Nth component of the M-length vector
-calculated by the compute.  See the doc pages for individual compute
-styles for info on what these quantities are.
+the compute is printed.  If {c_ID\[N\]} is used, then the compute must
+calculate a vector quantity and N must be an index from 1 to M where M
+is the length of the vector calculated by the compute.  See the doc
+pages for individual compute styles for info on what these quantities
+are.
 
-The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector quantities
-calculated by a fix to be output.  The ID in the keyword should be
-replaced by the actual ID of the fix that has been defined elsewhere
-in the input script.
+The {f_ID} and {f_ID\[N\]} keywords allow global scalar or vector
+quantities calculated by a fix to be output.  The ID in the keyword
+should be replaced by the actual ID of the fix that has been defined
+elsewhere in the input script.  Note that fixes typically calculate
+global quantities that are summed over all atoms in the fix group.
+However the value printed by thermo_style custom may be normalized by
+the total number of atoms in the simulation depending on the
+"thermo_modify norm"_thermo_modify.html option being used.
 
 If {f_ID} is used as a keyword, then the scalar quantity calculated by
-the fix is printed.  If {f_ID\[N\]} is used, then N in the range from
-1-M will print the Nth component of the M-length vector calculated by
-the fix.  See the doc pages for individual fix styles for info on what
-these quantities are.  For fixes that compute a contribution to the
-potential energy of the system, the scalar quantity f_ID is typically
-that quantity.
+the fix is printed.  If {f_ID\[N\]} is used, then the fix must
+calculate a vector quantity and N must be an index from 1 to M where M
+is the length of the vector calculated by the fix.  See the doc pages
+for individual fix styles for info on which fixes calculate these
+global quantities and what they quantities are.  For fixes that
+compute a contribution to the potential energy of the system, the
+scalar quantity f_ID is typically that quantity.
 
 The {v_name} keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the actual namd

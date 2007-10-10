@@ -153,6 +153,12 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   options(narg-iarg,&arg[iarg]);
 
+  // setup dimflags used by other classes to check for volume-change conflicts
+
+  for (int i = 0; i < 6; i++)
+    if (set[i].style == NONE) dimflag[i] = 0;
+    else dimflag[i] = 1;
+
   // check periodicity
 
   if ((set[0].style && domain->xperiodic == 0) ||

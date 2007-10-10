@@ -20,7 +20,8 @@ namespace LAMMPS_NS {
 
 class FixDeform : public Fix {
  public:
-  int remapflag;
+  int remapflag;                   // whether x,v are remapped across PBC
+  int dimflag[6];                  // which dims are deformed
 
   FixDeform(class LAMMPS *, int, char **);
   ~FixDeform();

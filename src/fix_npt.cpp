@@ -23,6 +23,7 @@
 #include "force.h"
 #include "comm.h"
 #include "modify.h"
+#include "fix_deform.h"
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
@@ -241,6 +242,14 @@ void FixNPT::init()
   if (domain->triclinic) error->all("Cannot use fix npt with triclinic box");
   if (atom->mass == NULL)
     error->all("Cannot use fix npt without per-type mass defined");
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+      int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+      if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
+	  (p_flag[2] && dimflag[2]))
+	error->all("Cannot use fix npt and fix deform on same dimension");
+    }
 
   // set temperature and pressure ptrs
   // set ptemperature only if pressure's id_pre[0] is not id_temp

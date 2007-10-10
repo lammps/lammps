@@ -117,7 +117,7 @@ should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. a <A HREF = "fix_nvt.html">nvt</A> or
 <A HREF = "fix_temp_rescale.html">temp/rescale</A> fix.
 </P>
-<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  Because the state of the random number generator
@@ -126,9 +126,10 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 </P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No quantities calculated by this fix can be
-output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.  No global scalar or vector or per-atom quantities are stored by
+this fix for access by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.
 </P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the

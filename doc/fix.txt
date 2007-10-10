@@ -87,6 +87,7 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 "deform"_fix_deform.html - change the simulation box size/shape
 "deposit"_fix_deposit.html - add new atoms above a surface
 "drag"_fix_drag.html - drag atoms towards a defined coordinate
+"dt/reset"_fix_dt_reset.html - reset the timestep based on velocity, forces
 "efield"_fix_efield.html - impose electric field on system
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation

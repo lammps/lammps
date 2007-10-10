@@ -384,6 +384,7 @@ of each style or click on the style itself for a full description:
 "deform"_fix_deform.html,
 "deposit"_fix_deposit.html,
 "drag"_fix_drag.html,
+"dt/reset"_fix_dt_reset.html,
 "efield"_fix_efield.html,
 "enforce2d"_fix_enforce2d.html,
 "freeze"_fix_freeze.html,

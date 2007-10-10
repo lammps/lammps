@@ -39,7 +39,7 @@ MSD of rigid bodies as they cross periodic boundaries, you will need
 to post-process a "dump file"_dump.html containing coordinates of the
 atomss in the bodies.
 
-[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+[Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the original coordinates of diffusing atoms to "binary
 restart files"_restart.html, so that the mean-squared displacement
@@ -49,11 +49,11 @@ a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
-fix.  No quantities calculated by this fix can be output by the
-"thermo_style custom"_thermo_style.html command.  No parameter of this
-fix can be used with the {start/stop} keywords of the "run"_run.html
-command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+fix.  No global scalar or vector or per-atom quantities are stored by
+this fix for access by various "output
+commands"_Section_howto.html#4_15.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
 

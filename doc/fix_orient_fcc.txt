@@ -113,7 +113,7 @@ symmetry, so the list must include one from each pair of
 equal-and-opposite neighbors.  A pair of orientation files for a
 Sigma=5 tilt boundary are show below.
 
-[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+[Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
 files"_restart.html.

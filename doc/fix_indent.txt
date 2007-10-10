@@ -85,7 +85,7 @@ choice affects not only the indenter's physical geometry, but also its
 velocity and force constant since they are defined in terms of
 distance as well.
 
-[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+[Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
 files"_restart.html.

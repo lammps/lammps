@@ -42,7 +42,7 @@ wall/lj126"_fix_wall_lj126.html command.
 The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
 
-[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+[Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
 files"_restart.html.

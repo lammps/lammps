@@ -38,15 +38,15 @@ this formula
 <P>where M is the total mass of the group and Rcm is the center-of-mass
 position of the group.
 </P>
-<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No quantities calculated by this fix can be
-output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
-parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
+are relevant to this fix.  No global scalar or vector or per-atom
+quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  No parameter of this fix can be
+used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

@@ -67,7 +67,7 @@ the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the
 elapsed time since the fix was specified.  The velocity of the wall is
 also set to the derivative of this expression.
 
-[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+[Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the shear friction state of atoms interacting with the
 wall to "binary restart files"_restart.html, so that a simulation can
@@ -78,11 +78,11 @@ restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
-fix.  No quantities calculated by this fix can be output by the
-"thermo_style custom"_thermo_style.html command.  No parameter of this
-fix can be used with the {start/stop} keywords of the "run"_run.html
-command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+fix.  No global scalar or vector or per-atom quantities are stored by
+this fix for access by various "output
+commands"_Section_howto.html#4_15.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 

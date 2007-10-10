@@ -60,13 +60,20 @@ quantities per atom.  This makes a difference in how the quantities
 are referenced in a <A HREF = "dump.html">dump custom</A> command, e.g. c_ID versus
 c_ID[2].
 </P>
-<P><B>Restart, fix_modify, thermo output, run start/stop, minimize info:</B>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No quantities calculated by this fix can be
-output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.  No
-parameter of this fix can be used with the <I>start/stop</I> keywords of
+are relevant to this fix.  No global scalar or vector quantities are
+stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.
+</P>
+<P>This fix computes a scalar per-atom quantity or a vector of per-atom
+quantities which can be accessed by the <A HREF = "dump.html">dump custom</A> or
+<A HREF = "fix_ave_spatial.html">fix ave/spatial</A> commands, as discussed in <A HREF = "Section_howto.html#4_15">this
+section</A>.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
 </P>

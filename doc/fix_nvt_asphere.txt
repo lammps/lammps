@@ -73,7 +73,7 @@ custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
 effect on this fix.
 
-[Restart, fix_modify, thermo output, run start/stop, minimize info:]
+[Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the state of the Nose/Hoover thermostat to "binary
 restart files"_restart.html.  See the "read_restart"_read_restart.html

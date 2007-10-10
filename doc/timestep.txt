@@ -26,8 +26,8 @@ See the "units"_units.html command for a discussion of time units.
 Note that using the units command also sets the timestep to its
 default value in the chosen units.
 
-When the run style is {respa}, dt is the timestep for the outer loop
-(largest) timestep.
+When the "run style"_run_style.html is {respa}, dt is the timestep for
+the outer loop (largest) timestep.
 
 [Restrictions:] none
 

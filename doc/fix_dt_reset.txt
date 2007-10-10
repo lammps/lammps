@@ -1,0 +1,88 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix dt/reset command :h3
+
+[Syntax:]
+
+fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+dt/reset = style name of this fix command
+N = recompute dt every N timesteps
+Tmin = minimum dt allowed (can be INF) (time units)
+Tmax = maximum dt allowed (can be INF) (time units)
+Xmax = maximum distance for an atom to move in one timestep (distance units)
+zero or more keyword/value pairs may be appended
+keyword = {units} :ul
+  {units} value = {lattice} or {box}
+    lattice = Xmax is defined in lattice units
+    box = Xmax is defined in simulation box units :pre
+
+[Examples:]
+
+fix 5 all dt/reset 10 1.0e-5 0.01 0.1
+fix 5 all dt/reset 10 0.01 2.0 0.2 units box :pre
+
+[Description:]
+
+Reset the timestep size every N steps during a run, based on current
+atom velocities and forces.  This can be useful when starting from a
+configuration with overlapping atoms, where forces will be large.  Or
+it can be useful when running an impact simulation where one or more
+high-energy atoms collide with a solid, causing a damage cascade.
+
+This fix overrides the timestep size setting made by the
+"timestep"_timestep.html command.  The new timestep size {dt} is
+computed in the following way.
+
+compute Vmax of any atom in group
+compute Amax of any atom in group
+dt1 = Xmax/Vmax
+dt2 = sqrt(2 Xmax/Amax)
+new dt = MIN(dt1,dt2)
+if dt < Tmin, dt = Tmin
+if dt > Tmax, dt = Tmax :ul
+
+Vmax is the maximum velocity; Amax is the maximum acceleration =
+force/mass.  Note that Tmin or Tmax can be specified as INF, in which
+case one or both of the last 2 checks will not be performed.
+
+When the "run style"_run_style.html is {respa}, this fix resets the
+outer loop (largest) timestep, which is the same timestep that the
+"timestep"_timestep.html command sets.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+The current timestep size is stored as a scalar quantity by this fix.
+The cummulative simulation time (in time units) is stored as the first
+element of a vector.  Both these quantities can be accessed by various
+"output commands"_Section_howto.html#4_15.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+The cummulative time is zeroed when the fix is created and
+continuously accrues thereafter.  Using the
+"reset_timestep"_reset_timestep.html command while this fix is defined
+will mess up the time accumulation.
+
+[Related commands:]
+
+"timestep"_timestep.html
+
+[Default:]
+
+The option defaults is units = lattice.

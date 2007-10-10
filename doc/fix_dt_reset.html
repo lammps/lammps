@@ -1,0 +1,94 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix dt/reset command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>dt/reset = style name of this fix command
+<LI>N = recompute dt every N timesteps
+<LI>Tmin = minimum dt allowed (can be INF) (time units)
+<LI>Tmax = maximum dt allowed (can be INF) (time units)
+<LI>Xmax = maximum distance for an atom to move in one timestep (distance units)
+<LI>zero or more keyword/value pairs may be appended
+<LI>keyword = <I>units</I> 
+</UL>
+<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
+    lattice = Xmax is defined in lattice units
+    box = Xmax is defined in simulation box units 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 5 all dt/reset 10 1.0e-5 0.01 0.1
+fix 5 all dt/reset 10 0.01 2.0 0.2 units box 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Reset the timestep size every N steps during a run, based on current
+atom velocities and forces.  This can be useful when starting from a
+configuration with overlapping atoms, where forces will be large.  Or
+it can be useful when running an impact simulation where one or more
+high-energy atoms collide with a solid, causing a damage cascade.
+</P>
+<P>This fix overrides the timestep size setting made by the
+<A HREF = "timestep.html">timestep</A> command.  The new timestep size <I>dt</I> is
+computed in the following way.
+</P>
+<UL><LI>compute Vmax of any atom in group
+<LI>compute Amax of any atom in group
+<LI>dt1 = Xmax/Vmax
+<LI>dt2 = sqrt(2 Xmax/Amax)
+<LI>new dt = MIN(dt1,dt2)
+<LI>if dt < Tmin, dt = Tmin
+<LI>if dt > Tmax, dt = Tmax 
+</UL>
+<P>Vmax is the maximum velocity; Amax is the maximum acceleration =
+force/mass.  Note that Tmin or Tmax can be specified as INF, in which
+case one or both of the last 2 checks will not be performed.
+</P>
+<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, this fix resets the
+outer loop (largest) timestep, which is the same timestep that the
+<A HREF = "timestep.html">timestep</A> command sets.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>The current timestep size is stored as a scalar quantity by this fix.
+The cummulative simulation time (in time units) is stored as the first
+element of a vector.  Both these quantities can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The cummulative time is zeroed when the fix is created and
+continuously accrues thereafter.  Using the
+<A HREF = "reset_timestep.html">reset_timestep</A> command while this fix is defined
+will mess up the time accumulation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "timestep.html">timestep</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults is units = lattice.
+</P>
+</HTML>

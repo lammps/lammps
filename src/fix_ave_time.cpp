@@ -35,6 +35,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 10) error->all("Illegal fix ave/time command");
 
+  MPI_Comm_rank(world,&me);
+
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
   nfreq = atoi(arg[5]);
@@ -49,8 +51,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   int flag = atoi(arg[8]);
 
-  MPI_Comm_rank(world,&me);
-  if (me == 0) {
+  if (strcmp(arg[9],"NULL") == 0) fp = NULL;
+  else if (me == 0) {
     fp = fopen(arg[9],"w");
     if (fp == NULL) {
       char str[128];
@@ -104,7 +106,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   // print header into file
 
-  if (me == 0) {
+  if (fp && me == 0) {
     if (which == COMPUTE)
       fprintf(fp,"Time-averaged data for fix %s, group %s, and compute %s\n",
 	      id,group->names[modify->compute[icompute]->igroup],id);
@@ -126,6 +128,18 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     vector = new double[size_vector];
   }
 
+  // enable this fix to produce a global scalar and/or vector
+  // initialize values to 0.0 since thermo may call them on first step
+
+  if (sflag) scalar_flag = 1;
+  if (vflag) vector_flag = 1;
+  scalar_vector_freq = nfreq;
+  if (which == COMPUTE) extensive = modify->compute[icompute]->extensive;
+  else extensive = modify->fix[ifix]->extensive;
+
+  scalar = 0.0;
+  for (int i = 0; i < size_vector; i++) vector[i] = 0.0;
+
   // nvalid = next step on which end_of_step does something
 
   irepeat = 0;
@@ -140,7 +154,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 FixAveTime::~FixAveTime()
 {
   delete [] id;
-  if (me == 0) fclose(fp);
+  if (fp && me == 0) fclose(fp);
   delete [] compute;
   delete [] vector;
 }
@@ -237,12 +251,14 @@ void FixAveTime::end_of_step()
 
   if (irepeat == nrepeat) {
     double repeat = nrepeat;
+    if (sflag) scalar /= repeat;
+    if (vflag) for (i = 0; i < size_vector; i++) vector[i] /= repeat;
 
-    if (me == 0) {
+    if (fp && me == 0) {
       fprintf(fp,"%d",update->ntimestep);
-      if (sflag) fprintf(fp," %g",scalar/repeat);
+      if (sflag) fprintf(fp," %g",scalar);
       if (vflag)
-	for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector[i]/repeat);
+	for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector[i]);
       fprintf(fp,"\n");
       fflush(fp);
     }
@@ -250,4 +266,22 @@ void FixAveTime::end_of_step()
     irepeat = 0;
     nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
   }
+}
+
+/* ----------------------------------------------------------------------
+   return scalar value
+------------------------------------------------------------------------- */
+
+double FixAveTime::compute_scalar()
+{
+  return scalar;
+}
+
+/* ----------------------------------------------------------------------
+   return Nth vector value
+------------------------------------------------------------------------- */
+
+double FixAveTime::compute_vector(int n)
+{
+  return vector[n];
 }

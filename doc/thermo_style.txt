@@ -201,14 +201,16 @@ been defined elsewhere in the input script.  See the
 "compute"_compute.html command for details.  Note that only global
 scalar or vector quantites calculated by a compute can be output as
 thermodynamic data; per-atom quantities calcalated by a compute are
-output by the "dump custom"_dump.html command.  Note that some
-computes calculate "intensive" global quantities like temperature;
-others calculate "extensive" global quantities like kinetic energy
-that are summed over all atoms in the compute group.  Intensive
-quantities are printed directly by thermo_style custom.  Extensive
-quantites may be normalized by the total number of atoms in the
-simulation (NOT the number of atoms in the compute group) depending on
-the "thermo_modify norm"_thermo_modify.html option being used.
+output by the "dump custom"_dump.html command.
+
+Note that some computes calculate "intensive" global quantities like
+temperature; others calculate "extensive" global quantities like
+kinetic energy that are summed over all atoms in the compute group.
+Intensive quantities are printed directly by thermo_style custom.
+Extensive quantites may be normalized by the total number of atoms in
+the simulation (NOT the number of atoms in the compute group)
+depending on the "thermo_modify norm"_thermo_modify.html option being
+used.
 
 If {c_ID} is used as a keyword, then the scalar quantity calculated by
 the compute is printed.  If {c_ID\[N\]} is used, then the compute must
@@ -220,14 +222,20 @@ are.
 The {f_ID} and {f_ID\[N\]} keywords allow global scalar or vector
 quantities calculated by a fix to be output.  The ID in the keyword
 should be replaced by the actual ID of the fix that has been defined
-elsewhere in the input script.  Note that some fixes calculate
-"intensive" global quantities like timestep size; others calculate
-"extensive" global quantities like energy that are summed over all
-atoms in the fix group.  Intensive quantities are printed directly by
-thermo_style custom.  Extensive quantites may be normalized by the
-total number of atoms in the simulation (NOT the number of atoms in
-the compute group) depending on the "thermo_modify
-norm"_thermo_modify.html option being used.
+elsewhere in the input script.  See the doc pages for individual "fix
+commands"_fix.html for details of which fixes generate global values.
+One particularly useful fix to use in this context is the "fix
+ave/time"_fix_ave_time.html command, which calculates time-averages of
+global scalar and vector quantities calculated by other
+"computes"_compute.html and "fixes"_fix.html.
+
+Note that some fixes calculate "intensive" global quantities like
+timestep size; others calculate "extensive" global quantities like
+energy that are summed over all atoms in the fix group.  Intensive
+quantities are printed directly by thermo_style custom.  Extensive
+quantites may be normalized by the total number of atoms in the
+simulation (NOT the number of atoms in the fix group) depending on the
+"thermo_modify norm"_thermo_modify.html option being used.
 
 If {f_ID} is used as a keyword, then the scalar quantity calculated by
 the fix is printed.  If {f_ID\[N\]} is used, then the fix must

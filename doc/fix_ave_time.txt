@@ -20,7 +20,7 @@ Nfreq = timestep frequency at which the average value is written to file
 style = {compute} or {fix}
 ID = ID of compute or fix that performs the calculation
 flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
-file = filename to write results to :ul
+file = filename to write results to (NULL = no file) :ul
 
 [Examples:]
 
@@ -30,12 +30,16 @@ fix 1 all ave/time 1 100 1000 fix indenter 0 temp.indent :pre
 [Description:]
 
 Calculate one or more instantaneous quantities every few timesteps,
-average them over a longer timescale, and print the results to a file.
-This can be used to time-average a "compute"_compute.html which
+and average them over a longer timescale.  The resulting averages can
+be written to a file and/or used by other "output
+commands"_Section_howto.html#4_15 such as "thermo_style
+custom"_thermo_style.html.
+
+This fix can be used to time-average a "compute"_compute.html which
 calculates a global quantity such as a temperature or pressure or a
-"fix"_fix.html which calculates such a global quantity.  Note that
-per-atom computes cannot be used with this fix; their values can be
-averaged by the "fix ave/spatial"_fix_ave_spatial.html or "fix
+"fix"_fix.html which calculates a global quantity.  Note that per-atom
+computes cannot be used with this fix; their values can be averaged by
+the "fix ave/spatial"_fix_ave_spatial.html or "fix
 ave/atom"_fix_ave_atom.html commands.
 
 For style {compute} the {ID} specifies a "compute"_compute.html which

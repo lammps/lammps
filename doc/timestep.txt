@@ -33,7 +33,8 @@ the outer loop (largest) timestep.
 
 [Related commands:]
 
-"run"_run.html, "run_style"_run_style.html respa, "units"_units.html
+"fix dt/reset"_fix_dt_reset.html, "run"_run.html,
+"run_style"_run_style.html respa, "units"_units.html
 
 [Default:]
 

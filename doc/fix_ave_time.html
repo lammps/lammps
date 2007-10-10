@@ -23,7 +23,7 @@
 <LI>style = <I>compute</I> or <I>fix</I>
 <LI>ID = ID of compute or fix that performs the calculation
 <LI>flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
-<LI>file = filename to write results to 
+<LI>file = filename to write results to (NULL = no file) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -33,12 +33,16 @@ fix 1 all ave/time 1 100 1000 fix indenter 0 temp.indent
 <P><B>Description:</B>
 </P>
 <P>Calculate one or more instantaneous quantities every few timesteps,
-average them over a longer timescale, and print the results to a file.
-This can be used to time-average a <A HREF = "compute.html">compute</A> which
+and average them over a longer timescale.  The resulting averages can
+be written to a file and/or used by other <A HREF = "Section_howto.html#4_15">output
+commands</A> such as <A HREF = "thermo_style.html">thermo_style
+custom</A>.
+</P>
+<P>This fix can be used to time-average a <A HREF = "compute.html">compute</A> which
 calculates a global quantity such as a temperature or pressure or a
-<A HREF = "fix.html">fix</A> which calculates such a global quantity.  Note that
-per-atom computes cannot be used with this fix; their values can be
-averaged by the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> or <A HREF = "fix_ave_atom.html">fix
+<A HREF = "fix.html">fix</A> which calculates a global quantity.  Note that per-atom
+computes cannot be used with this fix; their values can be averaged by
+the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> or <A HREF = "fix_ave_atom.html">fix
 ave/atom</A> commands.
 </P>
 <P>For style <I>compute</I> the <I>ID</I> specifies a <A HREF = "compute.html">compute</A> which

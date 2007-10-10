@@ -25,6 +25,7 @@ class FixNVENoforce : public Fix {
   void init();
   void initial_integrate();
   void initial_integrate_respa(int, int);
+  void reset_dt();
 
  private:
   double dtv;

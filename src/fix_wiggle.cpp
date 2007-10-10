@@ -175,3 +175,11 @@ int FixWiggle::unpack_exchange(int nlocal, double *buf)
   original[nlocal] = buf[0];
   return 1;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixWiggle::reset_dt()
+{
+  dt = update->dt;
+}
+

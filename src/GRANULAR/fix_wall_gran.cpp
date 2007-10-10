@@ -748,3 +748,13 @@ int FixWallGran::size_restart(int nlocal)
 {
   return 4;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixWallGran::reset_dt()
+{
+  dt = update->dt;
+  double gammas = 0.5*gamman;
+  gamman_dl = gamman/dt;
+  gammas_dl = gammas/dt;
+}

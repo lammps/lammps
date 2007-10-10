@@ -77,3 +77,10 @@ void FixNVENoforce::initial_integrate_respa(int ilevel, int flag)
 
   if (ilevel == 0) initial_integrate();
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVENoforce::reset_dt()
+{
+  dtv = update->dt;
+}

@@ -22,12 +22,10 @@ class FixNPTASphere : public FixNPT {
  public:
   FixNPTASphere(class LAMMPS *, int, char **);
   ~FixNPTASphere() {}
-  void init();
   void initial_integrate();
   void final_integrate();
 
  private:
-  double dtq;
   double ang_factor;
 
   void richardson(double *, double *, double *);

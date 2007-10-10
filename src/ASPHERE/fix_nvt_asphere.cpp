@@ -43,14 +43,6 @@ FixNVTASphere::FixNVTASphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVTASphere::init()
-{
-  FixNVT::init();
-  dtq = 0.5 * update->dt;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNVTASphere::initial_integrate()
 {
   double dtfm;

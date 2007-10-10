@@ -34,9 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 FixNVEASphere::FixNVEASphere(LAMMPS *lmp, int narg, char **arg) : 
-  Fix(lmp, narg, arg)
+  FixNVE(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal fix nve/asphere command");
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag)
     error->all("Fix nve/asphere requires atom attributes "
 	       "quat, angmom, torque");
@@ -53,22 +52,9 @@ FixNVEASphere::~FixNVEASphere()
 
 /* ---------------------------------------------------------------------- */
 
-int FixNVEASphere::setmask()
-{
-  int mask = 0;
-  mask |= INITIAL_INTEGRATE;
-  mask |= FINAL_INTEGRATE;
-  return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNVEASphere::init()
 {
-  dtv = update->dt;
-  dtf = 0.5 * update->dt * force->ftm2v;
-  dtq = 0.5 * update->dt;
-
+  FixNVE::init();
   calculate_inertia();
 }
 

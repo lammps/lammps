@@ -550,3 +550,10 @@ void FixPour::xyz_random(double h, double *coord)
     coord[2] = 0.0;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixPour::reset_dt()
+{
+  error->all("Cannot change timestep with fix pour");
+}

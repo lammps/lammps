@@ -48,6 +48,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   box_change = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
+  extensive = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -273,8 +274,8 @@ void FixNPT::init()
   // set timesteps and frequencies
 
   dtv = update->dt;
-  dtq = 0.5 * update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
   dthalf = 0.5 * update->dt;
 
   double freq = MAX(p_freq[0],p_freq[1]);
@@ -824,4 +825,18 @@ double FixNPT::compute_scalar()
 	(p_freq[i]*p_freq[i]) + p_target[i]*(volume-vol0) / (pdim*nktv2p);
 
   return energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNPT::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
+  dthalf = 0.5 * update->dt;
+
+  double freq = MAX(p_freq[0],p_freq[1]);
+  freq = MAX(freq,p_freq[2]);
+  drag_factor = 1.0 - (update->dt * freq * drag);
 }

@@ -27,6 +27,7 @@ class Integrate : protected Pointers {
   virtual void iterate(int) = 0;
   virtual void cleanup() {}
   virtual double memory_usage() {return 0.0;}
+  virtual void reset_dt() {}
 };
 
 }

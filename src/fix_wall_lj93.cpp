@@ -35,6 +35,7 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
+  extensive = 1;
 
   if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
@@ -192,5 +193,3 @@ double FixWallLJ93::compute_vector(int n)
   }
   return wall_all[n];
 }
-
-

@@ -39,6 +39,7 @@ class Fix : protected Pointers {
   int vector_flag;               // 0/1 if compute_vector() function exists
   int size_vector;               // N = size of global vector
   int scalar_vector_freq;        // frequency compute s/v data is available at
+  int extensive;                 // 0/1 if s/v are intensive/extensive values
 
   int peratom_flag;              // 0/1 if per-atom data is stored
   int size_peratom;              // 0 = scalar_atom, N = size of vector_atom
@@ -103,6 +104,7 @@ class Fix : protected Pointers {
 
   virtual int dof(int) {return 0;}
   virtual void deform(int) {}
+  virtual void reset_dt() {}
 
   virtual int modify_param(int, char **) {return 0;}
 

@@ -126,3 +126,14 @@ void FixNVEGran::final_integrate()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVEGran::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  if (domain->dimension == 3) dtfrotate = dtf / INERTIA3D;
+  else dtfrotate = dtf / INERTIA2D;
+}
+

@@ -36,6 +36,7 @@ class FixWallGran : public Fix {
   void unpack_restart(int, int);
   int size_restart(int);
   int maxsize_restart();
+  void reset_dt();
 
  private:
   int wallstyle,pairstyle,wiggle,axis;

@@ -499,3 +499,14 @@ void *PairGranHistory::extract(char *str)
   else if (strcmp(str,"dampflag") == 0) return (void *) &dampflag;
   return NULL;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void PairGranHistory::reset_dt()
+{
+  dt = update->dt;
+  double gammas = 0.5*gamman;
+  if (dampflag == 0) gammas = 0.0;
+  gamman_dl = gamman/dt;
+  gammas_dl = gammas/dt;
+}

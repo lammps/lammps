@@ -33,6 +33,7 @@ class PairGranHistory : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   void *extract(char *);
+  void reset_dt();
 
  protected:
   double xkk,xkkt,xmu;

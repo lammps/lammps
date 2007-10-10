@@ -48,6 +48,7 @@ void FixNVE::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     step_respa = ((Respa *) update->integrate)->step;
@@ -153,4 +154,13 @@ void FixNVE::final_integrate_respa(int ilevel)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVE::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
 }

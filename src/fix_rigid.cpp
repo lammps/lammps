@@ -1472,3 +1472,12 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
   displace[nlocal][2] = buf[3];
   return 4;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigid::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
+}

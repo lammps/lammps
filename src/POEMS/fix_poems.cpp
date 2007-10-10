@@ -1580,3 +1580,12 @@ int FixPOEMS::unpack_exchange(int nlocal, double *buf)
   displace[nlocal][2] = buf[m++];
   return m;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixPOEMS::reset_dt()
+{
+  dtv = update->dt;  
+  dtf = 0.5 * update->dt * force->ftm2v;  
+  dthalf = 0.5 * update->dt;
+}

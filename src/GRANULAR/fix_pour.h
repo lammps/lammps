@@ -29,6 +29,7 @@ class FixPour : public Fix {
   int setmask();
   void init();
   void pre_exchange();
+  void reset_dt();
 
  private:
   int ninsert,ntype,seed;

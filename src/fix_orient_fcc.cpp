@@ -48,6 +48,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   scalar_vector_freq = 1;
+  extensive = 1;
 
   nstats = atoi(arg[3]);
   direction_of_motion = atoi(arg[4]);

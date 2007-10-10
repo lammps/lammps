@@ -39,6 +39,7 @@ class Respa : public Integrate {
   void setup();
   void iterate(int);
   void cleanup();
+  void reset_dt();
 
   void copy_f_flevel(int);
   void copy_flevel_f(int);

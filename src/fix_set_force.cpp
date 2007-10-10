@@ -31,6 +31,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
+  extensive = 1;
 
   flagx = flagy = flagz = 1;
   if (strcmp(arg[3],"NULL") == 0) flagx = 0;

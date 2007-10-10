@@ -33,13 +33,15 @@ class FixTMD : public Fix {
   void copy_arrays(int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
+  void reset_dt();
 
  private:
   int me;
   int nfileevery,previous_stat;
   FILE *fp;
   double rho_start,rho_stop,rho_old,masstotal;
-  double dtv,dtf,dtfm;
+  double dtv,dtf;
+  double *step_respa;
   double work_lambda,work_analytical;
   double **xf,**xold;
 

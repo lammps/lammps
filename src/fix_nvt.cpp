@@ -41,6 +41,7 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
+  extensive = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -71,9 +72,12 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
-  if (strcmp(style,"nvt") == 0) newarg[2] = (char *) "temp";
-  else if (strcmp(style,"nvt/asphere") == 0) newarg[2] = (char *) "temp/asphere";
-  else if (strcmp(style,"nvt/sllod") == 0) newarg[2] = (char *) "temp/deform";
+  if (strcmp(style,"nvt") == 0) 
+    newarg[2] = (char *) "temp";
+  else if (strcmp(style,"nvt/asphere") == 0) 
+    newarg[2] = (char *) "temp/asphere";
+  else if (strcmp(style,"nvt/sllod") == 0) 
+    newarg[2] = (char *) "temp/deform";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -117,6 +121,7 @@ void FixNVT::init()
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
   dthalf = 0.5 * update->dt;
 
   drag_factor = 1.0 - (update->dt * t_freq * drag);
@@ -375,6 +380,18 @@ int FixNVT::modify_param(int narg, char **arg)
 void FixNVT::reset_target(double t_new)
 {
   t_start = t_stop = t_new;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVT::reset_dt()
+{
+  dtv = update->dt;
+  dtf = 0.5 * update->dt * force->ftm2v;
+  dtq = 0.5 * update->dt;
+  dthalf = 0.5 * update->dt;
+
+  drag_factor = 1.0 - (update->dt * t_freq * drag);
 }
 
 /* ---------------------------------------------------------------------- */

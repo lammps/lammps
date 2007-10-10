@@ -97,6 +97,7 @@ class Pair : protected Pointers {
   virtual void *extract(char *) {return NULL;}
   virtual void single_embed(int, int, double &) {}
   virtual void swap_eam(double *, double **) {}
+  virtual void reset_dt() {}
 
  protected:
   int allocated;                       // 0/1 = whether arrays are allocated

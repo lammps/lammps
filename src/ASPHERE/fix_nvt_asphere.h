@@ -22,13 +22,10 @@ class FixNVTASphere : public FixNVT {
  public:
   FixNVTASphere(class LAMMPS *, int, char **);
   ~FixNVTASphere() {}
-  void init();
   void initial_integrate();
   void final_integrate();
 
  private:
-  double dtq;
-
   void richardson(double *, double *, double *);
   void omega_from_mq(double *, double *, double *, double *);
   void calculate_inertia(double mass, double *shape, double *inertia);

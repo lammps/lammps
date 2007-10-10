@@ -25,6 +25,7 @@ class FixNVEGran : public Fix {
   void init();
   void initial_integrate();
   void final_integrate();
+  void reset_dt();
 
  private:
   double dtv,dtf,dtfrotate;

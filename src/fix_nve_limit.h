@@ -27,6 +27,7 @@ class FixNVELimit : public Fix {
   void final_integrate();
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
+  void reset_dt();
 
  private:
   double dtv,dtf;

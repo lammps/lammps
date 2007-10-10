@@ -22,14 +22,15 @@ class FixNVE : public Fix {
  public:
   FixNVE(class LAMMPS *, int, char **);
   int setmask();
-  void init();
-  void initial_integrate();
-  void final_integrate();
+  virtual void init();
+  virtual void initial_integrate();
+  virtual void final_integrate();
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
+  void reset_dt();
 
- private:
-  double dtv,dtf;
+ protected:
+  double dtv,dtf,dtq;
   double *step_respa;
   int mass_require;
 };

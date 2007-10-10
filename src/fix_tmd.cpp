@@ -169,11 +169,8 @@ void FixTMD::init()
 
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    double *step_respa = ((Respa *) update->integrate)->step;
-    dtv = step_respa[0];
-    dtf = step_respa[0] * force->ftm2v;
-  }
+  if (strcmp(update->integrate_style,"respa") == 0)
+    step_respa = ((Respa *) update->integrate)->step;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,7 +181,7 @@ void FixTMD::initial_integrate()
   double dx,dy,dz,dxkt,dykt,dzkt;
   double dxold,dyold,dzold,xback,yback,zback;
   double gamma_forward,gamma_back,gamma_max,lambda;
-  double kt,fr,kttotal,frtotal;
+  double kt,fr,kttotal,frtotal,dtfm;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -322,6 +319,10 @@ void FixTMD::initial_integrate()
 void FixTMD::initial_integrate_respa(int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
+
+  dtv = step_respa[ilevel];
+  dtf = step_respa[ilevel] * force->ftm2v;
+
   if (ilevel == 0) initial_integrate();
 }
 
@@ -537,4 +538,12 @@ void FixTMD::open(char *file)
     sprintf(str,"Cannot open file %s",file);
     error->one(str);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTMD::reset_dt()
+{
+  dtv = update->dt;
+  dtf = update->dt * force->ftm2v;
 }

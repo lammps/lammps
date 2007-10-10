@@ -38,6 +38,7 @@ class FixShake : public Fix {
   void unpack_comm(int, int, double *);
 
   int dof(int);
+  void reset_dt();
 
  private:
   int me,nprocs;

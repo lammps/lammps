@@ -443,6 +443,15 @@ void Respa::cleanup()
 
 /* ---------------------------------------------------------------------- */
 
+void Respa::reset_dt()
+{
+  step[nlevels-1] = update->dt;
+  for (int ilevel = nlevels-2; ilevel >= 0; ilevel--) 
+    step[ilevel] = step[ilevel+1]/loop[ilevel];
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Respa::recurse(int ilevel)
 {
   copy_flevel_f(ilevel);

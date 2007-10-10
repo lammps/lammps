@@ -617,3 +617,10 @@ void *PairHybrid::extract(char *str)
   if (strcmp(str,"cut_coul") == 0) return cutptr;
   return NULL;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::reset_dt()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->reset_dt();
+}

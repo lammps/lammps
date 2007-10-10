@@ -1015,8 +1015,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
    extraction of Compute, Fix, Variable results
    ignore thermoflag, since these 3 routines only called by Thermo::compute(),
      not by variable evaluation
-   compute value is normalized by atoms if returning extensive quantities
-   fix value is normalized (so should return extensive quantity)
+   compute/fix are normalized by atoms if returning extensive value(s)
    variable value is not normalized (so formula should normalize if desired)
 ------------------------------------------------------------------------- */
 
@@ -1027,7 +1026,7 @@ void Thermo::compute_compute()
   int index = field2object[ifield];
   if (arg_object[ifield] == 0) dvalue = computes[index]->scalar;
   else dvalue = computes[index]->vector[arg_object[ifield]-1];
-  if (computes[index]->extensive && normflag) dvalue /= natoms;
+  if (normflag && computes[index]->extensive) dvalue /= natoms;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1037,7 +1036,7 @@ void Thermo::compute_fix()
   int index = field2object[ifield];
   if (arg_object[ifield] == 0) dvalue = fixes[index]->compute_scalar();
   else dvalue = fixes[index]->compute_vector(arg_object[ifield]-1);
-  if (normflag) dvalue /= natoms;
+  if (normflag && fixes[index]->extensive) dvalue /= natoms;
 }
 
 /* ---------------------------------------------------------------------- */

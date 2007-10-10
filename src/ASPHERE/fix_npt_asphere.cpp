@@ -39,14 +39,6 @@ FixNPTASphere::FixNPTASphere(LAMMPS *lmp, int narg, char **arg) :
 	       "quat, angmom, torque");
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixNPTASphere::init() 
-{
-  FixNPT::init();
-  dtq = 0.5 * update->dt;
-}
-
 /* ----------------------------------------------------------------------
    1st half of Verlet update 
 ------------------------------------------------------------------------- */

@@ -144,9 +144,10 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
 #include "fix_com.h"
-#include "fix_drag.h"
 #include "fix_deform.h"
 #include "fix_deposit.h"
+#include "fix_drag.h"
+#include "fix_dt_reset.h"
 #include "fix_efield.h"
 #include "fix_enforce2d.h"
 #include "fix_gravity.h"
@@ -194,9 +195,10 @@ FixStyle(aveforce,FixAveForce)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
 FixStyle(com,FixCOM)
-FixStyle(drag,FixDrag)
 FixStyle(deform,FixDeform)
 FixStyle(deposit,FixDeposit)
+FixStyle(drag,FixDrag)
+FixStyle(dt/reset,FixDtReset)
 FixStyle(efield,FixEfield)
 FixStyle(enforce2d,FixEnforce2D)
 FixStyle(gravity,FixGravity)

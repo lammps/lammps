@@ -41,6 +41,7 @@ class FixPOEMS : public Fix  {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void reset_dt();
 
  private:
   int me;

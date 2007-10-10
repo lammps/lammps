@@ -14,21 +14,19 @@
 #ifndef FIX_NVE_ASPHERE_H
 #define FIX_NVE_ASPHERE_H
 
-#include "fix.h"
+#include "fix_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixNVEASphere : public Fix {
+class FixNVEASphere : public FixNVE {
  public:
   FixNVEASphere(class LAMMPS *, int, char **);
   ~FixNVEASphere();
-  int setmask();
   void init();
   void initial_integrate();
   void final_integrate();
 
  private:
-  double dtv,dtf,dtq;
   double **inertia;
 
   void richardson(double *, double *, double *);

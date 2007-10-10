@@ -2306,3 +2306,17 @@ void FixShake::unpack_comm(int n, int first, double *buf)
     xshake[i][2] = buf[m++];
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixShake::reset_dt()
+{
+  if (strcmp(update->integrate_style,"verlet") == 0) {
+    dtv = update->dt;
+    dtfsq = update->dt * update->dt * force->ftm2v;
+  } else {
+    dtv = step_respa[0];
+    dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
+    dtf_inner = step_respa[0] * force->ftm2v;
+  }
+}

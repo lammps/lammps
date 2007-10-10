@@ -39,6 +39,7 @@ class FixRigid : public Fix {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void reset_dt();
 
  private:
   double dtv,dtf,dtq;

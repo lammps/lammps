@@ -49,6 +49,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   box_change = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
+  extensive = 1;
 
   double p_period[3];
   if (strcmp(arg[3],"xyz") == 0) {

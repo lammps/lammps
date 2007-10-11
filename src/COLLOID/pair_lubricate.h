@@ -11,12 +11,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PairInclude
-#include "pair_colloid.h"
-#include "pair_lubricate.h"
+#ifndef PAIR_LUBRICATE_H
+#define PAIR_LUBRICATE_H
+
+#include "pair.h"
+
+namespace LAMMPS_NS {
+
+class PairLubricate : public Pair {
+ public:
+  PairLubricate(class LAMMPS *);
+  ~PairLubricate();
+  void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  double init_one(int, int);
+  void init_style();
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+
+ protected:
+  double cut_inner_global,cut_global;
+  double **cut_inner,**cut;
+  double mu;
+  int flag1,flag2,flag3,flag4;
+
+  void allocate();
+};
+
+}
+
 #endif
 
-#ifdef PairClass
-PairStyle(colloid,PairColloid)
-PairStyle(lubricate,PairLubricate)
-#endif

@@ -57,7 +57,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"shift") == 0) {
-      int igroup2 = group->find(arg[iarg]);
+      int igroup2 = group->find(arg[iarg+1]);
       if (igroup2 < 0) error->all("Could not find fix recenter group ID");
       group2bit = group->bitmask[igroup2];
       iarg += 2;

@@ -116,7 +116,7 @@ Force fields: :h4
 commands)
 
   pairwise potentials: Lennard-Jones, Buckingham, Morse, \
-    Yukawa, Debye, soft, class 2 (COMPASS), tabulated
+    Yukawa, soft, class 2 (COMPASS), tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     Stillinger-Weber, Tersoff, AI-REBO
@@ -133,6 +133,7 @@ commands)
   overlayed potentials: superposition of multiple pair potentials
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
+  implicit solvent potentials: hydrodynamic lubrication, Debye
   long-range Coulombics and dispersion: Ewald, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
   CHARMM, AMBER, OPLS force-field compatibility :ul

@@ -111,8 +111,7 @@ not need to be specified in an input script that reads a restart file.
 
 All of the Buckingham pair styles can only be used via the {pair}
 keyword of the "run_style respa"_run_style.html command.  They do not
-support the {inner}, {middle}, {outer} keywords of the "run_style
-command"_run_style.html.
+support the {inner}, {middle}, {outer} keywords.
 
 [Restrictions:]
 

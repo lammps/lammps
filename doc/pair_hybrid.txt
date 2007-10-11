@@ -154,10 +154,9 @@ specified in an input script that reads a restart file.  However, the
 coefficient information is not stored in the restart file.  Thus,
 pair_coeff commands need to be specified in the restart input script.
 
-These pair style can only be used via the {pair} keyword of the
-"run_style respa"_run_style.html command.  They do not support the
-{inner}, {middle}, {outer} keywords of the "run_style
-command"_run_style.html, even if their sub-styles do.
+These pair styles support the use of the {inner}, {middle}, and
+{outer} keywords of the "run_style respa"_run_style.html command, if
+their sub-styles do.
 
 [Restrictions:]
 

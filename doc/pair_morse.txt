@@ -79,8 +79,7 @@ not need to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
-{inner}, {middle}, {outer} keywords of the "run_style
-command"_run_style.html.
+{inner}, {middle}, {outer} keywords.
 
 :line
 

@@ -506,6 +506,7 @@ full description:
 "lj/cut/coul/long/tip4p"_pair_lj.html,
 "lj/expand"_pair_lj_expand.html,
 "lj/smooth"_pair_lj_smooth.html,
+"lubricate"_pair_lubricate.html,
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
 "morse/opt"_pair_morse.html,

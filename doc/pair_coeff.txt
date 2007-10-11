@@ -118,6 +118,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/cut/coul/long/tip4p"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
+"pair_style lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
 "pair_style morse"_pair_morse.html - optimized version of Morse potential

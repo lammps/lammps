@@ -1,0 +1,118 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style lubricate command :h3
+
+[Syntax:]
+
+pair_style lubricate mu squeeze shear pump twist cutinner cutoff :pre
+
+mu = viscosity (mass/length/time units)
+squeeze = 0/1 for squeeze force off/on
+shear = 0/1 for shear force off/on
+pump = 0/1 for pump force off/on
+twist = 0/1 for twist force off/on
+cutinner = (distance units)
+cutoff = outer cutoff for interactions (distance units) :ul
+
+[Examples:]
+
+pair_style lubricate 1.5 1 1 1 0 2.3 2.4
+pair_coeff 1 1 1.8 2.0
+pair_coeff * * :pre
+
+[Description:]
+
+Style {lubricate} computes pairwise interactions between mono-disperse
+spherical particles with the formula in Appendix A of "(Ball and
+Melrose)"_#Ball which has 4 terms describing different types of
+lubrication forces between pairs of particles in a background implicit
+solvent, each of which is proportional in strength to the viscosity of
+the solvent {mu}.
+
+These pair-wise forces and torques are a combination of four modes of
+pair-wise interaction: squeezing, shearing, pumping, and twisting.
+Each of these modes can be turned on or off with flags in the
+pair_style command.
+
+Unlike most pair potentials, the two specified cutoffs (cutinner and
+cutoff) refer to the surface-to-surface separation between two
+particles, not center-to-center distance.  Currently, this pair style
+can only be used for mono-disperse spheres (same radii), so that
+separation is r_ij - 2*radius, where r_ij is the center-to-center
+distance between the particles.  Within the inner cutoff {cutinner},
+the forces and torques are evaluated at a separation of cutinner.  The
+outer {cutoff} is the separation distance beyond which the pair-wise
+forces are zero.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+cutinner (distance units)
+cutoff (distance units) :ul
+
+The two coefficients are optional.  If neither is specified, the two
+cutoffs specified in the pair_style command are used.  Otherwise both
+must be specified.
+
+:line
+
+[Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info]:
+
+For atom type pairs I,J and I != J, the two cutoff distances for this
+pair style can be mixed.  The default mix value is {geometric}.  See
+the "pair_modify" command for details.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift option for the energy of the pair interaction.
+
+The "pair_modify"_pair_modify.html table option is not relevant
+for this pair style.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
+
+This pair style does not calculate per-atom energy and stress, as used
+by the "compute epair/atom"_compute_epair_atom.html, "compute
+stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
+commands.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+Because this poential computes forces and torques on particles, the
+atom style must support particles whose size is set via the
+"shape"_shape.html command.  This is "atom_style"_atom_style.html
+ellipsoid and dipole.  Since only spherical mono-disperse particles
+are currently allowed for pair_style lubricate, this means the 3 shape
+radii for all particle types must be the same.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Ball)
+[(Ball)] Ball and Melrose, Physica A, 247, 444-472 (1997).

@@ -1,0 +1,124 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lubricate command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style lubricate mu squeeze shear pump twist cutinner cutoff 
+</PRE>
+<UL><LI>mu = viscosity (mass/length/time units)
+<LI>squeeze = 0/1 for squeeze force off/on
+<LI>shear = 0/1 for shear force off/on
+<LI>pump = 0/1 for pump force off/on
+<LI>twist = 0/1 for twist force off/on
+<LI>cutinner = (distance units)
+<LI>cutoff = outer cutoff for interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lubricate 1.5 1 1 1 0 2.3 2.4
+pair_coeff 1 1 1.8 2.0
+pair_coeff * * 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>lubricate</I> computes pairwise interactions between mono-disperse
+spherical particles with the formula in Appendix A of <A HREF = "#Ball">(Ball and
+Melrose)</A> which has 4 terms describing different types of
+lubrication forces between pairs of particles in a background implicit
+solvent, each of which is proportional in strength to the viscosity of
+the solvent <I>mu</I>.
+</P>
+<P>These pair-wise forces and torques are a combination of four modes of
+pair-wise interaction: squeezing, shearing, pumping, and twisting.
+Each of these modes can be turned on or off with flags in the
+pair_style command.
+</P>
+<P>Unlike most pair potentials, the two specified cutoffs (cutinner and
+cutoff) refer to the surface-to-surface separation between two
+particles, not center-to-center distance.  Currently, this pair style
+can only be used for mono-disperse spheres (same radii), so that
+separation is r_ij - 2*radius, where r_ij is the center-to-center
+distance between the particles.  Within the inner cutoff <I>cutinner</I>,
+the forces and torques are evaluated at a separation of cutinner.  The
+outer <I>cutoff</I> is the separation distance beyond which the pair-wise
+forces are zero.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cutinner (distance units)
+<LI>cutoff (distance units) 
+</UL>
+<P>The two coefficients are optional.  If neither is specified, the two
+cutoffs specified in the pair_style command are used.  Otherwise both
+must be specified.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the two cutoff distances for this
+pair style can be mixed.  The default mix value is <I>geometric</I>.  See
+the "pair_modify" command for details.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style does not calculate per-atom energy and stress, as used
+by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>Because this poential computes forces and torques on particles, the
+atom style must support particles whose size is set via the
+<A HREF = "shape.html">shape</A> command.  This is <A HREF = "atom_style.html">atom_style</A>
+ellipsoid and dipole.  Since only spherical mono-disperse particles
+are currently allowed for pair_style lubricate, this means the 3 shape
+radii for all particle types must be the same.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Ball"></A>
+
+<P><B>(Ball)</B> Ball and Melrose, Physica A, 247, 444-472 (1997).
+</P>
+</HTML>

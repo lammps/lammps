@@ -432,7 +432,7 @@ void Neighbor::init()
     // detect lists that are connected to other lists
     // if-the-else sequence is important
     //   since don't want to re-process skip or copy lists further down
-    // skip: point this list at request->otherlist, copy skip ptrs from request
+    // skip: point this list at request->otherlist, copy skip info from request
     // copy: point this list at request->otherlist
     // half_from_full: point this list at preceeding full list
     // granhistory: set preceeding list's listgranhistory to this list
@@ -455,8 +455,7 @@ void Neighbor::init()
     for (i = 0; i < nlist; i++) {
       if (requests[i]->skip) {
 	lists[i]->listskip = lists[requests[i]->otherlist];
-	lists[i]->iskip = requests[i]->iskip;
-	lists[i]->ijskip = requests[i]->ijskip;
+	lists[i]->copy_skip_info(requests[i]->iskip,requests[i]->ijskip);
 
       } else if (requests[i]->copy)
 	lists[i]->listcopy = lists[requests[i]->otherlist];

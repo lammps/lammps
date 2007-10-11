@@ -83,6 +83,9 @@ NeighList::~NeighList()
     }
   }
 
+  delete [] iskip;
+  memory->destroy_2d_int_array(ijskip);
+
   if (maxstencil) memory->sfree(stencil);
   if (maxstencil_multi) {
     for (int i = 1; i <= atom->ntypes; i++) {
@@ -188,6 +191,23 @@ int **NeighList::add_pages()
   }
 
   return pages;
+}
+
+/* ----------------------------------------------------------------------
+   copy skip info from request rq into list's iskip,ijskip
+------------------------------------------------------------------------- */
+
+void NeighList::copy_skip_info(int *rq_iskip, int **rq_ijskip)
+{
+  int ntypes = atom->ntypes;
+  iskip = new int[ntypes+1];
+  ijskip = memory->create_2d_int_array(ntypes+1,ntypes+1,
+				       "neigh_list:ijskip");
+  int i,j;
+  for (i = 1; i <= ntypes; i++) iskip[i] = rq_iskip[i];
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++)
+      ijskip[i][j] = rq_ijskip[i][j];
 }
 
 /* ----------------------------------------------------------------------

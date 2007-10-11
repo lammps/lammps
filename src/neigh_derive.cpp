@@ -192,7 +192,7 @@ void Neighbor::skip_from(NeighList *list)
   for (ii = 0; ii < inum_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
-    if (iskip[type[i]]) continue;
+    if (iskip[itype]) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -273,7 +273,7 @@ void Neighbor::skip_from_granular(NeighList *list)
   for (ii = 0; ii < inum_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
-    if (iskip[type[i]]) continue;
+    if (iskip[itype]) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -384,7 +384,7 @@ void Neighbor::skip_from_respa(NeighList *list)
   for (ii = 0; ii < inum_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
-    if (iskip[type[i]]) continue;
+    if (iskip[itype]) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;

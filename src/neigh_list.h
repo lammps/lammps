@@ -73,10 +73,11 @@ class NeighList : protected Pointers {
 
   NeighList(class LAMMPS *, int);
   ~NeighList();
-  void grow(int);                  // grow maxlocal
-  void stencil_allocate(int, int); // allocate stencil arrays
-  int **add_pages();               // add pages to neigh list
-  void print_attributes();         // debug routine
+  void grow(int);                       // grow maxlocal
+  void stencil_allocate(int, int);      // allocate stencil arrays
+  int **add_pages();                    // add pages to neigh list
+  void copy_skip_info(int *, int **);   // copy skip info from a neigh request
+  void print_attributes();              // debug routine
   double memory_usage();
 
  private:

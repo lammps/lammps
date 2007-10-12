@@ -48,6 +48,7 @@ own sub-directories with their own Makefiles.
 <LI><A HREF = "#charmm">ch2lmp</A>
 <LI><A HREF = "#chain">chain</A>
 <LI><A HREF = "#data">data2xmovie</A>
+<LI><A HREF = "#eam">eam generate</A>
 <LI><A HREF = "#arc">lmp2arc</A>
 <LI><A HREF = "#cfg">lmp2cfg</A>
 <LI><A HREF = "#traj">lmp2traj</A>
@@ -133,6 +134,18 @@ running the tool is
 <PRE>data2xmovie <B>options</B> < infile > outfile 
 </PRE>
 <P>See the top of the data2xmovie.c file for a discussion of the options.
+</P>
+<HR>
+
+<H4><A NAME = "eam"></A>eam generate tool 
+</H4>
+<P>The tools/eam_generate directory contains several one-file C programs
+that convert an analytic formula into a tabulated <A HREF = "pair_eam.html">embedded atom
+method (EAM)</A> setfl potential file.  The potentials they
+produce are in the potentials directory.
+</P>
+<P>The source files and potentials were provided by Gerolf Ziegenhain
+(gerolf at ziegenhain.com).
 </P>
 <HR>
 

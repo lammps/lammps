@@ -67,7 +67,7 @@ void PairLubricate::compute(int eflag, int vflag)
   double vt1,vt2,vt3,w1,w2,w3,v_shear1,v_shear2,v_shear3;
   double omega_t_1,omega_t_2,omega_t_3;
   double n_cross_omega_t_1,n_cross_omega_t_2,n_cross_omega_t_3;
-  double wr1,wr2,wr3,wnnr,wn1,wn2,wn3;
+  double wr1,wr2,wr3,wnnr,wn1,wn2,wn3,inv_inertia;
   double P_dot_wrel_1,P_dot_wrel_2,P_dot_wrel_3;
   double a_squeeze,a_shear,a_pump,a_twist;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -80,11 +80,13 @@ void PairLubricate::compute(int eflag, int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double **omega = atom->omega;
   double **angmom = atom->angmom;
   double **torque = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  int omega_flag = atom->omega_flag;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -138,15 +140,20 @@ void PairLubricate::compute(int eflag, int vflag)
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
 
-        // additive rotational velocity = omega_1 + omega_2 (if radi = radj)
-	// angular momentum = I*omega = 2/5*M*R^2*omega
+        // additive rotational velocity = omega_1 + omega_2
+	// use omega directly if it exists, else angmom
+	// angular momentum = I*omega = 2/5 * M*R^2 * omega
 
-	w1 = angmom[i][0] + angmom[j][0];
-	w2 = angmom[i][1] + angmom[j][1];
-	w3 = angmom[i][2] + angmom[j][2];
-	w1 *= 2.5/atom->mass[itype]/radi/radi;
-	w2 *= 2.5/atom->mass[itype]/radi/radi;
-	w3 *= 2.5/atom->mass[itype]/radi/radi;
+	if (omega_flag) {
+	  w1 = omega[i][0] + omega[j][0];
+	  w2 = omega[i][1] + omega[j][1];
+	  w3 = omega[i][2] + omega[j][2];
+	} else {
+	  inv_inertia = 1.0 / (0.4*atom->mass[itype]*radi*radi);
+	  w1 = inv_inertia * (angmom[i][0] + angmom[j][0]);
+	  w1 = inv_inertia * (angmom[i][0] + angmom[j][0]);
+	  w1 = inv_inertia * (angmom[i][0] + angmom[j][0]);
+	}
 
         // relative velocities n X P . (v1-v2) = n X (I-nn) . (v1-v2)
 
@@ -168,12 +175,15 @@ void PairLubricate::compute(int eflag, int vflag)
 
         // N.(w1-w2) and P.(w1-w2)
 
-	wr1 = angmom[i][0] - angmom[j][0];
-        wr2 = angmom[i][1] - angmom[j][1];
-        wr3 = angmom[i][2] - angmom[j][2];
-	wr1 *= 5./2./atom->mass[itype]/radi/radi;
-	wr2 *= 5./2./atom->mass[itype]/radi/radi;
-	wr3 *= 5./2./atom->mass[itype]/radi/radi;
+	if (omega_flag) {
+	  wr1 = omega[i][0] - omega[j][0];
+	  wr2 = omega[i][1] - omega[j][1];
+	  wr3 = omega[i][2] - omega[j][2];
+	} else {
+	  wr1 = inv_inertia * (angmom[i][0] - angmom[j][0]);
+	  wr1 = inv_inertia * (angmom[i][0] - angmom[j][0]);
+	  wr1 = inv_inertia * (angmom[i][0] - angmom[j][0]);
+	}
  
 	wnnr = wr1*delx + wr2*dely + wr3*delz;
 	wn1 =  delx*wnnr / rsq;
@@ -351,8 +361,12 @@ void PairLubricate::coeff(int narg, char **arg)
 
 void PairLubricate::init_style()
 {
-  if (!atom->angmom_flag || !atom->torque_flag)
-    error->all("Pair lubricate requires atom attributes omega, torque");
+  if (!atom->torque_flag || atom->shape == NULL)
+    error->all("Pair lubricate requires atom attributes torque, shape");
+  if (domain->dimension != 3)
+    error->all("Pair lubricate only available for 3d");
+
+  // insure all particle shapes are spherical
 
   for (int i = 1; i <= atom->ntypes; i++)
     if ((atom->shape[i][0] != atom->shape[i][1]) ||
@@ -360,8 +374,11 @@ void PairLubricate::init_style()
 	(atom->shape[i][1] != atom->shape[i][2]) )
       error->all("Pair lubricate requires spherical particles");
 
-  if (domain->dimension != 3)
-    error->all("Pair lubricate only available for 3d");
+  // insure mono-dispersity
+  
+  for (int i = 2; i <= atom->ntypes; i++)
+    if (atom->shape[i][0] != atom->shape[1][1])
+      error->all("Pair lubricate requires mono-disperse particles");
 
   int irequest = neighbor->request(this);
 }

@@ -13,8 +13,10 @@
 
 #ifdef PairInclude
 #include "pair_colloid.h"
+#include "pair_lubricate.h"
 #endif
 
 #ifdef PairClass
 PairStyle(colloid,PairColloid)
+PairStyle(lubricate,PairLubricate)
 #endif

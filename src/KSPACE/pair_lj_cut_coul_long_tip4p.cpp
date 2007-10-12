@@ -584,5 +584,6 @@ void *PairLJCutCoulLongTIP4P::extract(char *str)
   else if (strcmp(str,"typeH") == 0) return (void *) &typeH;
   else if (strcmp(str,"typeA") == 0) return (void *) &typeA;
   else if (strcmp(str,"typeB") == 0) return (void *) &typeB;
+  else if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
 }

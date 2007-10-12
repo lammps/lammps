@@ -43,6 +43,7 @@ latex pair_granular
 latex pair_lj
 latex pair_lj_expand
 latex pair_lj_smooth
+latex pair_lubricate
 latex pair_meam
 latex pair_morse
 latex pair_soft

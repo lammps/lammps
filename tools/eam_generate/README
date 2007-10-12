@@ -1,0 +1,8 @@
+These are one-file C programs that generate tabulated embedded atom
+method (EAM) potentials from analytic formulas.  They each write out a
+file in the DYNAMO setfl format which can be input by LAMMPS via the
+pair_style eam/alloy command.
+
+The source files and potentials were provided by Gerolf Ziegenhain
+(gerolf at ziegenhain.com).  You could modify these programs to write
+out your own EAM potentials in LAMMPS-compatible format.

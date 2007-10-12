@@ -133,20 +133,13 @@ units of distance or velocity.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  This means you must be careful when restarting a
-deposition simulation, when the restart file was written in the middle
-of the deposition operation.  Specifically, you should use a new fix
-deposit command in the input script for the restarted simulation that
-continues the operation.  You will need to adjust the arguments of the
-original fix deposit command to do this.
-</P>
-<P>Also note that because the state of the random number generator is not
-saved in restart files, you cannot do "exact" restarts with this fix,
-where the simulation continues on the same as if no restart had taken
-place.  However, in a statistical sense, a restarted simulation should
-produce the same behavior if you adjust the fix deposit parameters
-appropriately.
+<P>This fix writes the state of the deposition to <A HREF = "restart.html">binary restart
+files</A>.  This includes information about how many atoms
+have been depositied, the random number generator seed, the next
+timestep for deposition, etc.  See the
+<A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.
 </P>
 <P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
 fix.  No global scalar or vector or per-atom quantities are stored by

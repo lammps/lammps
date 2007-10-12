@@ -24,6 +24,8 @@ class FixDeposit : public Fix {
   ~FixDeposit();
   int setmask();
   void pre_exchange();
+  void write_restart(FILE *);
+  void restart(char *);
 
  private:
   int ninsert,ntype,nfreq,seed;

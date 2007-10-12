@@ -36,6 +36,8 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all("Illegal fix deposit command");
 
+  restart_global = 1;
+
   // required args
 
   ninsert = atoi(arg[3]);
@@ -315,6 +317,7 @@ void FixDeposit::pre_exchange()
   }
 
   // next timestep to insert
+  // next_reneighbor = 0 if done
 
   if (success) ninserted++;
   if (ninserted < ninsert) next_reneighbor += nfreq;
@@ -387,4 +390,41 @@ void FixDeposit::options(int narg, char **arg)
       iarg += 2;
     } else error->all("Illegal fix deposit command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write 
+------------------------------------------------------------------------- */
+
+void FixDeposit::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[4];
+  list[n++] = random->state();
+  list[n++] = ninserted;
+  list[n++] = nfirst;
+  list[n++] = next_reneighbor;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(&list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix 
+------------------------------------------------------------------------- */
+
+void FixDeposit::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  seed = static_cast<int> (list[n++]);
+  ninserted = static_cast<int> (list[n++]);
+  nfirst = static_cast<int> (list[n++]);
+  next_reneighbor = static_cast<int> (list[n++]);
+
+  random->reset(seed);
 }

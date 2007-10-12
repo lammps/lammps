@@ -85,6 +85,15 @@ double RanPark::gaussian()
   return first;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void RanPark::reset(int seed_init)
+{
+  if (seed_init <= 0) error->all("Invalid seed for Park random # generator");
+  seed = seed_init;
+  save = 0;
+}
+
 /* ----------------------------------------------------------------------
    reset the seed based on atom position within box and ibase = caller seed
    combine 3 RNGs based on fractional position in box into one new seed
@@ -134,4 +143,11 @@ void RanPark::reset(int ibase, double *coord)
 
   uniform();
   uniform();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int RanPark::state()
+{
+  return seed;
 }

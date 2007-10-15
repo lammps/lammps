@@ -115,7 +115,7 @@ void PairYukawa::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  phi = asq[itype][jtype] * screening * rinv - offset[itype][jtype];
+	  phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
 	  if (newton_pair || j < nlocal) eng_coul += factor_coul*phi;
 	  else eng_coul += 0.5*factor_coul*phi;
 	}
@@ -325,7 +325,7 @@ void PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
   one.fforce = factor_coul*forceyukawa * r2inv;
 
   if (eflag) {
-    phi = asq[itype][jtype] * screening * rinv;
+    phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
     one.eng_coul = factor_coul*phi;
     one.eng_vdwl = 0.0;
   }

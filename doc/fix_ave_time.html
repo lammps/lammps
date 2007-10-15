@@ -13,16 +13,16 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ave/time Nevery Nrepeat Nfreq style ID flag file 
+<PRE>fix ID group-ID ave/time Nevery Nrepeat Nfreq style ID type file 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>ave/time = style name of this fix command
 <LI>Nevery = calculate property every this many timesteps
 <LI>Nrepeat = # of times to repeat the Nevery calculation before averaging
-<LI>Nfreq = timestep frequency at which the average value is written to file
+<LI>Nfreq = timestep frequency at which the average value is computed
 <LI>style = <I>compute</I> or <I>fix</I>
 <LI>ID = ID of compute or fix that performs the calculation
-<LI>flag = 0 for scalar quantity, 1 for vector quantity, 2 for both
+<LI>type = 0 for scalar quantity, 1 for vector quantity, 2 for both
 <LI>file = filename to write results to (NULL = no file) 
 </UL>
 <P><B>Examples:</B>
@@ -68,15 +68,16 @@ computed every <I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I>
 values, computed in the preceeding portion of the simulation every
 <I>Nevery</I> timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
 values on timesteps 90,92,94,96,98,100 will be used to compute the
-final average written to the file on timestep 100.  Similary for
-timesteps 190,192,194,196,198,200 on timestep 200, etc.
+final average on timestep 100.  Similary for timesteps
+190,192,194,196,198,200 on timestep 200, etc.
 </P>
-<P>The <I>flag</I> argument chooses whether the scalar and/or vector
+<P>The <I>type</I> argument chooses whether the scalar and/or vector
 calculation of the compute or fix is invoked.  The former computes a
 single global value.  The latter computes N global values, where N is
 defined by the compute or fix, e.g. 6 pressure tensor components.  In
-the vector case, each of the N values is averaged independently and N
-values are written to the file at each output.
+the vector case, each of the N values is averaged independently.  If
+file output is specified, all N values are written to the file at each
+output.
 </P>
 <P>Since the calculation is performed by the compute or fix which stores
 its own "group" definition, the group specified for with the fix
@@ -94,11 +95,17 @@ calculating virial terms for the pressure every timestep.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+are relevant to this fix.
+</P>
+<P>Depending on the setting of the <I>type</I> parameter, this fix computes a
+scalar and/or a vector of quantities which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The values should only be
+accessed on timesteps that are multiples of <I>Nfreq</I> since that is when
+averaging is complete.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

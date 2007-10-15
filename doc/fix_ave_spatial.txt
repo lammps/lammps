@@ -16,25 +16,21 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/spatial = style name of this fix command :l
 Nevery = calculate property every this many timesteps :l
 Nrepeat = # of times to repeat the Nevery calculation before averaging :l
-Nfreq = timestep frequency at which the average value is written to file :l
+Nfreq = timestep frequency at which the average value is computed :l
 dim = {x} or {y} or {z} :l
 origin = {lower} or {center} or {upper} or coordinate value (distance units) :l
 delta = thickness of spatial layers in dim (distance units) :l
-file = filename to write results to :l
+file = filename to write results to (NULL = no file) :l
 style = {density} or {compute} or {fix} :l
   {density} arg = {mass} or {number}
     {mass} = compute mass density
     {number} = compute number density
   {compute} arg = compute-ID that stores or calculates per-atom quantities
   {fix} arg = fix-ID that stores or calculates per-atom quantities :pre
-
-:pre
-
 zero or more keyword/value pairs may be appended :l
 keyword = {norm} or {units}
   {norm} value = {all} or {sample}
   {units} value = {box} or {lattice} or {reduced} :pre
-  
 :ule
 
 [Examples:]
@@ -47,11 +43,15 @@ fix 1 flow ave/spatial 100 5 1000 y 0.0 2.5 dens.profile density mass :pre
 
 Calculate one or more instantaneous per-atom quantities every few
 timesteps, average them by layer in a chosen dimension and over a
-longer timescale, and print the results to a file.  This can be used
-to spatially average per-atom properties (velocity, force) or per-atom
-quantities calculated by a "compute"_compute.html (energy, stress) or
-by another fix (see the "fix ave/atom"_fix_ave_atom.html command) or
-by a variable via an equation you define (see the "compute
+longer timescale.  The resulting averages can be written to a file
+and/or used by other "output commands"_Section_howto.html#4_15 such as
+"thermo_style custom"_thermo_style.html.
+
+This fix can be used to spatially average per-atom properties
+(velocity, force) or per-atom quantities calculated by a
+"compute"_compute.html (energy, stress) or by another fix (see the
+"fix ave/atom"_fix_ave_atom.html command) or by a variable via an
+equation you define (see the "compute
 variable/atom"_compute_variable_atom.html command).
 
 The {density} styles means to simply count the number of atoms in each
@@ -139,8 +139,8 @@ computed every {Nfreq} timesteps.  The average is over {Nrepeat}
 values, computed in the preceeding portion of the simulation every
 {Nevery} timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
 values on timesteps 90,92,94,96,98,100 will be used to compute the
-final average written to the file on timestep 100.  Similary for
-timesteps 190,192,194,196,198,200 on timestep 200, etc.
+final average on timestep 100.  Similary for timesteps
+190,192,194,196,198,200 on timestep 200, etc.
 
 The {norm} keyword also affects how time-averaging is done.  For an
 {all} setting, a layer quantity is summed over all atoms in all
@@ -154,15 +154,15 @@ computed, i.e. Sample-quantity / Sample-count.  The printed value for
 the layer is the average of the M "average sample values", where M =
 Nfreq/Nevery.  In other words it is an average of an average.
 
-Each time info is written to the file, it is in the following format.
-A line with the timestep and number of layers is written.  Then one
-line per layer is written, containing the layer ID (1-N), the
-coordinate of the center of the layer, the number of atoms in the
-layer, and one or more calculated values.  The number of atoms and the
-value(s) are average quantities.  If the value of the {units} keyword
-is {box} or {lattice}, the "coord" is printed in box units.  If the
-value of the {units} keyword is {reduced}, the "coord" is printed in
-reduced units (0-1).
+If file output is specified, each time info is written to the file, it
+is in the following format.  A line with the timestep and number of
+layers is written.  Then one line per layer is written, containing the
+layer ID (1-N), the coordinate of the center of the layer, the number
+of atoms in the layer, and one or more calculated values.  The number
+of atoms and the value(s) are average quantities.  If the value of the
+{units} keyword is {box} or {lattice}, the "coord" is printed in box
+units.  If the value of the {units} keyword is {reduced}, the "coord"
+is printed in reduced units (0-1).
 
 If the {density} keyword is used, or the {compute} or {fix} keyword
 with a compute/fix that calculates a single quantity per atom, then a
@@ -183,11 +183,22 @@ fix ave/spatial, it can slow down a simulation.
 
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various "output
-commands"_Section_howto.html#4_15.  No parameter of this fix can be
-used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+are relevant to this fix.
+
+This fix computes a vector of quantities which can be accessed by
+various "output commands"_Section_howto.html#4_15.  The values should
+only be accessed on timesteps that are multiples of {Nfreq} since that
+is when averaging is complete.  The vector is of length N =
+nlayers*nvalues where nvalues is the number of per-atom quantities
+produced by the compute or fix that fix ave/spatial accesses.  Nvalues
+= 1 if the style is {density}.  If nvalues > 1 and vector value N is
+accessed by another output command, then the average quantity for the
+Ith layer and Jth value in that layer is accessed, where I = N /
+nvalues + 1 and J = N % nvalues + 1.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:] none
 

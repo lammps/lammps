@@ -35,12 +35,16 @@ enum{DENSITY_MASS,DENSITY_NUM,COMPUTE,FIX};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 
+#define BIG 1000000000
+
 /* ---------------------------------------------------------------------- */
 
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 12) error->all("Illegal fix ave/spatial command");
+
+  MPI_Comm_rank(world,&me);
 
   no_change_box = 1;
 
@@ -61,8 +65,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   delta = atof(arg[8]);
 
-  MPI_Comm_rank(world,&me);
-  if (me == 0) {
+  if (strcmp(arg[9],"NULL") == 0) fp = NULL;
+  else if (me == 0) {
     fp = fopen(arg[9],"w");
     if (fp == NULL) {
       char str[128];
@@ -180,7 +184,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   // print header into file
 
-  if (me == 0) {
+  if (fp && me == 0) {
     fprintf(fp,"Spatial-averaged data for fix %s, group %s, and %s %s\n",
 	    id,group->names[igroup],arg[10],arg[11]);
     fprintf(fp,"TimeStep Number-of-layers (one per snapshot)\n");
@@ -191,6 +195,15 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   coord = NULL;
   count_one = count_many = count_total = NULL;
   values_one = values_many = values_total = NULL;
+
+  // enable this fix to produce a global vector
+  // set size_vector to BIG since compute_vector() will check bounds
+  // no need to initialize vector to 0.0, since compute_vector() returns 0.0
+
+  vector_flag = 1;
+  size_vector = BIG;
+  scalar_vector_freq = nfreq;
+  extensive = 0;
 
   // nvalid = next step on which end_of_step does something
 
@@ -207,7 +220,7 @@ FixAveSpatial::~FixAveSpatial()
 {
   if (which == COMPUTE) delete [] id_compute;
   if (which == FIX) delete [] id_fix;
-  if (me == 0) fclose(fp);
+  if (fp && me == 0) fclose(fp);
 
   delete [] compute;
 
@@ -510,7 +523,7 @@ void FixAveSpatial::end_of_step()
 	values_total[m][0] *= count_total[m] / layer_volume;
     }
 
-    if (me == 0) {
+    if (fp && me == 0) {
       fprintf(fp,"%d %d\n",update->ntimestep,nlayers);
       for (m = 0; m < nlayers; m++) {
 	fprintf(fp,"  %d %g %g",m+1,coord[m],count_total[m]);
@@ -523,4 +536,18 @@ void FixAveSpatial::end_of_step()
     irepeat = 0;
     nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
  }
+}
+
+/* ----------------------------------------------------------------------
+   return Nth vector value
+   since values_total is 2d array, map N into ilayer and ivalue
+   if ilayer >= nlayers, just return 0, since nlayers can vary with time
+------------------------------------------------------------------------- */
+
+double FixAveSpatial::compute_vector(int n)
+{
+  int ivalue = n % nvalues;
+  int ilayer = n / nvalues;
+  if (ilayer < nlayers) return values_total[ilayer][ivalue];
+  return 0.0;
 }

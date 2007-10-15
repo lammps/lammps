@@ -31,6 +31,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "output.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
@@ -249,12 +250,15 @@ void Thermo::init()
   }
 
   // find current ptr for each Fix ID
+  // check that fix frequency is acceptable with thermo output frequency
 
   int ifix;
   for (i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all("Could not find thermo fix ID");
     fixes[i] = modify->fix[ifix];
+    if (output->thermo_every % fixes[i]->scalar_vector_freq)
+      error->all("Thermo and fix not computed at compatible times");
   }
 
   // set ptrs to keyword-specific Compute objects

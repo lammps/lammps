@@ -35,7 +35,7 @@ above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands, or by mixing as described below:
 
-A (energy units)
+A (energy*distance units)
 cutoff (distance units) :ul
 
 The last coefficient is optional.  If not specified, the global yukawa

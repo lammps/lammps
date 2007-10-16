@@ -80,11 +80,11 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>The cummulative momentum transferred between the bottom and middle of
-the simulatoin box (in the <I>pdim</I> direction) is stored as a scalar
+the simulation box (in the <I>pdim</I> direction) is stored as a scalar
 quantity by this fix.  This quantity is zeroed when the fix is defined
 and accumlates thereafter, once every N steps.  The units of the
-quantity are momentum = mass*velocity.  This quantity can be
-accessed by various <A HREF = "Section_howto.html#4_15">output commands</A>, such as
+quantity are momentum = mass*velocity.  This quantity can be accessed
+by various <A HREF = "Section_howto.html#4_15">output commands</A>, such as
 <A HREF = "thermo_style.html">thermo_style custom</A>.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
@@ -93,10 +93,10 @@ minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>If the masses of the atom pairs are the same, the swaps conserve both
-momentum and kinetic energy.  Thus you should not need to thermostat
-the system.  If you do use a thermostat, you may want to apply it only
-to the non-swapped dimensions (other than <I>vdim</I>).
+<P>If the masses of all exchange partners are the same, then swaps
+conserve both momentum and kinetic energy.  Thus you should not need
+to thermostat the system.  If you do use a thermostat, you may want to
+apply it only to the non-swapped dimensions (other than <I>vdim</I>).
 </P>
 <P>LAMMPS does not check, but you should not use this fix to swap
 velocities of atoms that are in constrained molecules, e.g. via <A HREF = "fix_shake.html">fix

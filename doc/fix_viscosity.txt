@@ -95,12 +95,13 @@ momentum and kinetic energy.  Thus you should not need to thermostat
 the system.  If you do use a thermostat, you may want to apply it only
 to the non-swapped dimensions (other than {vdim}).
 
-You should not swap velocities of atoms that are in constrained
-molecules, e.g. via "fix shake"_fix_shake.html or "fix
-rigid"_fix_rigid.html, since application of the constraints will alter
-the amount of transferred momentum.  You should, however, be able to
-use flexible molecules with this approach.  LAMMPS does not check that
-this advice is followed.
+LAMMPS does not check, but you should not use this fix to swap
+velocities of atoms that are in constrained molecules, e.g. via "fix
+shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  This is because
+application of the constraints will alter the amount of transferred
+momentum.  You should, however, be able to use flexible molecules.
+See the "Maginn paper"_#Maginn for an example of using this algorithm
+in a computation of alcohol molecule properties.
 
 When running a simulation with large, massive particles or molecules
 in a background solvent, you may want to only exchange momenta bewteen
@@ -117,3 +118,7 @@ nvt/sllod"_fix_nvt_sllod.html
 
 :link(Muller-Plathe)
 [(Muller-Plathe)] Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).
+
+:link(Maginn)
+[(Maginn)] Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
+260, 218-231 (2007).

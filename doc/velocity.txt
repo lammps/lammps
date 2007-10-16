@@ -46,7 +46,7 @@ keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {loop} or {units} :l
 velocity all create 300.0 4928459 rot yes dist gaussian
 velocity border set NULL 4.0 3.0 sum yes units box
 velocity flow scale 300.0
-velocity flow ramp lattice vx 0.0 5.0 y 5 20 temp mytemp
+velocity flow ramp lattice vx 0.0 5.0 y 5 25 temp mytemp
 velocity all zero linear :pre
 
 [Description:]
@@ -66,14 +66,14 @@ not set.
 The {scale} style computes the current temperature of the group of
 atoms and then rescales the velocities to the specified temperature.
 
-The {ramp} style is similar to that used by the
-"temperature"_temperature.html ramp command.  Velocities ramped
+The {ramp} style is similar to that used by the "compute
+temp/ramp"_compute_temp_ramp.html ramp command.  Velocities ramped
 uniformly from vlo to vhi are applied to dimension vx, or vy, or vz.
 The value assigned to a particular atom depends on its relative
 coordinate value (in dim) from clo to chi.  For the example above, an
-atom with y-coordinate of 10 (1/4 of the way from 5 to 20), would be
+atom with y-coordinate of 10 (1/4 of the way from 5 to 25), would be
 assigned a x-velocity of 1.25 (1/4 of the way from 0.0 to 5.0).  Atoms
-outside the coordinate bounds (less than 5 or greater than 20 in this
+outside the coordinate bounds (less than 5 or greater than 25 in this
 case), are assigned velocities equal to vlo or vhi (0.0 or 5.0 in this
 case).
 

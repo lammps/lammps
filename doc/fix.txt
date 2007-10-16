@@ -134,6 +134,8 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 "temp/rescale"_fix_temp_rescale.html - temperature control by \
      velocity rescaling
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration
+"viscosity"_fix_viscosity.html - Muller-Plathe momentum exchange for \
+     viscosity calculation
 "viscous"_fix_viscous.html - viscous damping for granular simulations
 "wall/gran"_fix_wall_gran.html - frictional wall(s) for \
      granular simulations

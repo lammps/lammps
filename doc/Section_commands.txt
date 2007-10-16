@@ -424,6 +424,7 @@ of each style or click on the style itself for a full description:
 "spring/self"_fix_spring_self.html,
 "temp/rescale"_fix_temp_rescale.html,
 "tmd"_fix_tmd.html,
+"viscosity"_fix_viscosity.html,
 "viscous"_fix_viscous.html,
 "wall/gran"_fix_wall_gran.html,
 "wall/lj126"_fix_wall_lj126.html,

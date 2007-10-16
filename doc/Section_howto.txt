@@ -744,6 +744,9 @@ deform"_fix_deform.html should be set to "remap v", since that is what
 "fix nvt/sllod"_fix_nvt_sllod.html assumes to generate a velocity
 profile consistent with the applied shear strain rate.
 
+An alternative method for calculating viscosities is provided via the
+"fix viscosity"_fix_viscosity.html command.
+
 :line
 
 4.14 Aspherical particles :link(4_14),h4

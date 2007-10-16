@@ -1,0 +1,119 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix viscosity command :h3
+
+[Syntax:]
+
+fix ID group-ID viscosity N vdim pdim Nbin :pre
+  
+ID, group-ID are documented in "fix"_fix.html command
+viscosity = style name of this fix command
+N = perform momentum exchange every N steps
+vdim = {x} or {y} or {z} = which momentum component to exchange
+pdim = {x} or {y} or {z} = direction of momentum transfer
+Nbin = # of layers in pdim direction :ul
+
+[Examples:]
+
+fix 1 all viscosity 100 x z 20 :pre
+
+[Description:]
+
+Use the Muller-Plathe algorithm described in "this
+paper"_#Muller-Plathe to exchange momenta between two particles in
+different regions of the simulation box every N steps.  This induces a
+shear velocity profile in the system.  As described below this enables
+a viscosity of the fluid to be calculated.  This algorithm is
+sometimes called a reverse non-equilibrium MD (reverse NEMD) approach
+to computing viscosity.  This is because the usual NEMD approach is to
+impose a shear velocity profile on the system and measure the response
+via an off-diagonal component of the stress tensor, which is
+proportional to the momentum flux.  In the Muller-Plathe method, the
+momentum flux is imposed, and the shear velocity profile is the
+system's response.
+
+The simulation box is divided into {Nbin} layers in the {pdim}
+direction.  Every N steps, two atoms are chosen in the following
+manner.  Only atoms in the fix group are considered.  The atom in the
+bottom layer with the most positive momentum component in the {vdim}
+direction is the first atom.  The atom in the middle later with the
+most negative momentum component in the {vdim} direction is the second
+atom.  The {vdim} momenta components of these two atoms are swapped,
+which resets their velocities, typically in opposite directions.  Over
+time, this induces a shear velocity profile in the system which can be
+measured using commands such as the following, which writes the
+profile to the file tmp.profile:
+
+compute		c1 all attribute/atom vx
+fix		f1 all ave/spatial 100 10 1000 z lower 0.05 tmp.profile &
+		compute c1 units reduced :pre
+
+As described below, the total momentum transferred by these velocity
+swaps is computed by the fix and can be output.  Dividing this
+quantity by time and the cross-sectional area of the simulation box
+yields a momentum flux.  The ratio of momentum flux to the slope of
+the shear velocity profile is the viscosity of the fluid, in
+appopriate units.  See the "Muller-Plathe paper"_#Muller-Plathe for
+details.
+
+An alternative method for calculating a viscosity is to run a NEMD
+simulation, as described in "this section"_Section_howto.html#4_13 of
+the manual.  NEMD simulations deform the simmulation box via the "fix
+deform"_fix_deform.html command.  Thus they cannot be run on a charged
+system using a "PPPM solver"_kspace_style.html since PPPM does not
+currently support non-orthogonal boxes.  Using fix viscosity keeps the
+box orthogonal; thus it does not suffer from this limitation.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+The cummulative momentum transferred between the bottom and middle of
+the simulatoin box (in the {pdim} direction) is stored as a scalar
+quantity by this fix.  This quantity is zeroed when the fix is defined
+and accumlates thereafter, once every N steps.  The units of the
+quantity are momentum = mass*velocity.  This quantity can be
+accessed by various "output commands"_Section_howto.html#4_15, such as
+"thermo_style custom"_thermo_style.html.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+If the masses of the atom pairs are the same, the swaps conserve both
+momentum and kinetic energy.  Thus you should not need to thermostat
+the system.  If you do use a thermostat, you may want to apply it only
+to the non-swapped dimensions (other than {vdim}).
+
+You should not swap velocities of atoms that are in constrained
+molecules, e.g. via "fix shake"_fix_shake.html or "fix
+rigid"_fix_rigid.html, since application of the constraints will alter
+the amount of transferred momentum.  You should, however, be able to
+use flexible molecules with this approach.  LAMMPS does not check that
+this advice is followed.
+
+When running a simulation with large, massive particles or molecules
+in a background solvent, you may want to only exchange momenta bewteen
+solvent particles.
+
+[Related commands:]
+
+"fix ave/spatial"_fix_ave_spatial.html, "fix
+nvt/sllod"_fix_nvt_sllod.html
+
+[Default:] none
+
+:line
+
+:link(Muller-Plathe)
+[(Muller-Plathe)] Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).

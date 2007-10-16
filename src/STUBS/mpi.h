@@ -23,10 +23,13 @@
 #define MPI_DOUBLE 3
 #define MPI_CHAR 4
 #define MPI_BYTE 5
+#define MPI_DOUBLE_INT 6
 
 #define MPI_SUM 1
 #define MPI_MAX 2
 #define MPI_MIN 3
+#define MPI_MAXLOC 4
+#define MPI_MINLOC 5
 
 #define MPI_ANY_SOURCE -1
 

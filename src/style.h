@@ -181,6 +181,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_spring_self.h"
 #include "fix_temp_rescale.h"
 #include "fix_tmd.h"
+#include "fix_viscosity.h"
 #include "fix_viscous.h"
 #include "fix_wall_lj126.h"
 #include "fix_wall_lj93.h"
@@ -232,6 +233,7 @@ FixStyle(spring/rg,FixSpringRG)
 FixStyle(spring/self,FixSpringSelf)
 FixStyle(temp/rescale,FixTempRescale)
 FixStyle(tmd,FixTMD)
+FixStyle(viscosity,FixViscosity)
 FixStyle(viscous,FixViscous)
 FixStyle(wall/lj126,FixWallLJ126)
 FixStyle(wall/lj93,FixWallLJ93)

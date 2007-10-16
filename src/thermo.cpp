@@ -228,7 +228,8 @@ void Thermo::init()
     if (format_user[i]) ptr = format_user[i];
     else if (vtype[i] == INT && format_int_user) ptr = format_int_user;
     else if (vtype[i] == INT && lineflag == ONELINE) ptr = format_int_one_def;
-    else if (vtype[i] == INT && lineflag == MULTILINE) ptr = format_int_multi_def;
+    else if (vtype[i] == INT && lineflag == MULTILINE) 
+      ptr = format_int_multi_def;
     else if (vtype[i] == FLOAT && format_float_user) ptr = format_float_user;
     else if (lineflag == ONELINE) ptr = format_g_def;
     else if (lineflag == MULTILINE) ptr = format_f_def;

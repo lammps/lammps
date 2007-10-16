@@ -306,7 +306,7 @@ void LAMMPS::init()
                          //   atom deletes extra array
                          //   used by fix shear_history::unpack_restart()
                          //   when force->pair->gran_history creates fix ??
-  modify->init();        // modify must come after update, force, atom
+  modify->init();        // modify must come after update, force, atom, domain
   neighbor->init();      // neighbor must come after force, modify
   output->init();        // output must come after domain, force, modify
   comm->init();          // comm must come after force, modify

@@ -14,6 +14,7 @@
 /* Single-processor "stub" versions of MPI routines */
 
 #include "stdlib.h"
+#include "string.h"
 #include "stdio.h"
 #include <sys/time.h>
 #include "mpi.h"
@@ -26,26 +27,45 @@ void mpi_copy_double(void *, void *, int);
 void mpi_copy_char(void *, void *, int);
 void mpi_copy_byte(void *, void *, int);
 
+/* lo-level data structure */
+
+struct {
+  double value;
+  int proc;
+} double_int;
+
+/* ---------------------------------------------------------------------- */
 /* MPI Functions */
+/* ---------------------------------------------------------------------- */
 
 void MPI_Init(int *argc, char ***argv) {}
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Comm_rank(MPI_Comm comm, int *me)
 {
   *me = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Comm_size(MPI_Comm comm, int *nprocs)
 {
   *nprocs = 1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Abort(MPI_Comm comm, int errorcode)
 {
   exit(1);
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Finalize() {}
+
+/* ---------------------------------------------------------------------- */
 
 double MPI_Wtime()
 {
@@ -57,11 +77,15 @@ double MPI_Wtime()
   return time;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Send(void *buf, int count, MPI_Datatype datatype,
 	      int dest, int tag, MPI_Comm comm)
 {
   printf("MPI Stub WARNING: Should not send message to self\n");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
 	       int dest, int tag, MPI_Comm comm)
@@ -69,11 +93,15 @@ void MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
   printf("MPI Stub WARNING: Should not rsend message to self\n");
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Recv(void *buf, int count, MPI_Datatype datatype,
 	      int source, int tag, MPI_Comm comm, MPI_Status *status)
 {
   printf("MPI Stub WARNING: Should not recv message from self\n");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
 	       int source, int tag, MPI_Comm comm, MPI_Request *request)
@@ -81,21 +109,29 @@ void MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
   printf("MPI Stub WARNING: Should not recv message from self\n");
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Wait(MPI_Request *request, MPI_Status *status)
 {
   printf("MPI Stub WARNING: Should not wait on message from self\n");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Waitall(int n, MPI_Request *request, MPI_Status *status)
 {
   printf("MPI Stub WARNING: Should not wait on message from self\n");
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Waitany(int count, MPI_Request *request, int *index, 
 		 MPI_Status *status)
 {
   printf("MPI Stub WARNING: Should not wait on message from self\n");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
 		  int dest, int stag, void *rbuf, int rcount,
@@ -105,28 +141,40 @@ void MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
   printf("MPI Stub WARNING: Should not send message to self\n");
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 {
   printf("MPI Stub WARNING: Should not get count of message to self\n");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out)
 {
   *comm_out = comm;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Comm_dup(MPI_Comm comm, MPI_Comm *comm_out)
 {
   *comm_out = comm;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Comm_free(MPI_Comm *comm) { }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims, int *periods,
 		     int reorder, MPI_Comm *comm_cart)
 {
   *comm_cart = comm_old;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods,
 		  int *coords)
@@ -136,53 +184,65 @@ void MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods,
   coords[0] = coords[1] = coords[2] = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
 		    int *source, int *dest)
 {
   *source = *dest = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 {
   *rank = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MPI_Barrier(MPI_Comm comm) {}
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Bcast(void *buf, int count, MPI_Datatype datatype,
 	       int root, MPI_Comm comm) {}
+
+/* ---------------------------------------------------------------------- */
 
 /* copy values from data1 to data2 */
 
 void MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
 		   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-  if (datatype == MPI_INT)
-    mpi_copy_int(sendbuf,recvbuf,count);
-  else if (datatype == MPI_FLOAT)
-    mpi_copy_float(sendbuf,recvbuf,count);
-  else if (datatype == MPI_DOUBLE)
-    mpi_copy_double(sendbuf,recvbuf,count);
-  else if (datatype == MPI_CHAR)
-    mpi_copy_char(sendbuf,recvbuf,count);
-  else if (datatype == MPI_BYTE)
-    mpi_copy_byte(sendbuf,recvbuf,count);
+  int n;
+  if (datatype == MPI_INT) n = count*sizeof(int);
+  else if (datatype == MPI_FLOAT) n = count*sizeof(float);
+  else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
+  else if (datatype == MPI_CHAR) n = count*sizeof(char);
+  else if (datatype == MPI_BYTE) n = count*sizeof(char);
+  else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MPI_Scan(void *sendbuf, void *recvbuf, int count,
 	      MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-  if (datatype == MPI_INT)
-    mpi_copy_int(sendbuf,recvbuf,count);
-  else if (datatype == MPI_FLOAT)
-    mpi_copy_float(sendbuf,recvbuf,count);
-  else if (datatype == MPI_DOUBLE)
-    mpi_copy_double(sendbuf,recvbuf,count);
-  else if (datatype == MPI_CHAR)
-    mpi_copy_char(sendbuf,recvbuf,count);
-  else if (datatype == MPI_BYTE)
-    mpi_copy_byte(sendbuf,recvbuf,count);
+  int n;
+  if (datatype == MPI_INT) n = count*sizeof(int);
+  else if (datatype == MPI_FLOAT) n = count*sizeof(float);
+  else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
+  else if (datatype == MPI_CHAR) n = count*sizeof(char);
+  else if (datatype == MPI_BYTE) n = count*sizeof(char);
+  else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /* copy values from data1 to data2 */
 
@@ -190,17 +250,18 @@ void MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		   void *recvbuf, int recvcount, MPI_Datatype recvtype,
 		   MPI_Comm comm)
 {
-  if (sendtype == MPI_INT)
-    mpi_copy_int(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_FLOAT)
-    mpi_copy_float(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_DOUBLE)
-    mpi_copy_double(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_CHAR)
-    mpi_copy_char(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_BYTE)
-    mpi_copy_byte(sendbuf,recvbuf,sendcount);
+  int n;
+  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
+  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
+  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
+  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /* copy values from data1 to data2 */
 
@@ -208,34 +269,36 @@ void MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		    void *recvbuf, int *recvcounts, int *displs,
 		    MPI_Datatype recvtype, MPI_Comm comm)
 {
-  if (sendtype == MPI_INT)
-    mpi_copy_int(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_FLOAT)
-    mpi_copy_float(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_DOUBLE)
-    mpi_copy_double(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_CHAR)
-    mpi_copy_char(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_BYTE)
-    mpi_copy_byte(sendbuf,recvbuf,sendcount);
+  int n;
+  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
+  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
+  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
+  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /* copy values from data1 to data2 */
 
 void MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
 			MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-  if (datatype == MPI_INT)
-    mpi_copy_int(sendbuf,recvbuf,*recvcounts);
-  else if (datatype == MPI_FLOAT)
-    mpi_copy_float(sendbuf,recvbuf,*recvcounts);
-  else if (datatype == MPI_DOUBLE)
-    mpi_copy_double(sendbuf,recvbuf,*recvcounts);
-  else if (datatype == MPI_CHAR)
-    mpi_copy_char(sendbuf,recvbuf,*recvcounts);
-  else if (datatype == MPI_BYTE)
-    mpi_copy_byte(sendbuf,recvbuf,*recvcounts);
+  int n;
+  if (datatype == MPI_INT) n = *recvcounts*sizeof(int);
+  else if (datatype == MPI_FLOAT) n = *recvcounts*sizeof(float);
+  else if (datatype == MPI_DOUBLE) n = *recvcounts*sizeof(double);
+  else if (datatype == MPI_CHAR) n = *recvcounts*sizeof(char);
+  else if (datatype == MPI_BYTE) n = *recvcounts*sizeof(char);
+  else if (datatype == MPI_DOUBLE_INT) n = *recvcounts*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /* copy values from data1 to data2 */
 
@@ -243,62 +306,13 @@ void MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		   void *recvbuf, int recvcount, MPI_Datatype recvtype,
 		   int root, MPI_Comm comm)
 {
-  if (sendtype == MPI_INT)
-    mpi_copy_int(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_FLOAT)
-    mpi_copy_float(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_DOUBLE)
-    mpi_copy_double(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_CHAR)
-    mpi_copy_char(sendbuf,recvbuf,sendcount);
-  else if (sendtype == MPI_BYTE)
-    mpi_copy_byte(sendbuf,recvbuf,sendcount);
-}
+  int n;
+  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
+  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
+  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
+  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
-/* ------------------------------------------------------------------------ */
-/* Added routines for data copying */
-
-void mpi_copy_int(void *data1, void *data2, int n)
-{
-  int i;
-  int *pdata1 = (int *) data1;
-  int *pdata2 = (int *) data2;
-
-  for (i = 0; i < n; i++) pdata2[i] = pdata1[i];
-}
-
-void mpi_copy_float(void *data1, void *data2, int n)
-{
-  int i;
-  float *pdata1 = (float *) data1;
-  float *pdata2 = (float *) data2;
-
-  for (i = 0; i < n; i++) pdata2[i] = pdata1[i];
-}
-
-void mpi_copy_double(void *data1, void *data2, int n)
-{
-  int i;
-  double *pdata1 = (double *) data1;
-  double *pdata2 = (double *) data2;
-
-  for (i = 0; i < n; i++) pdata2[i] = pdata1[i];
-}
-
-void mpi_copy_char(void *data1, void *data2, int n)
-{
-  int i;
-  char *pdata1 = (char *) data1;
-  char *pdata2 = (char *) data2;
-
-  for (i = 0; i < n; i++) pdata2[i] = pdata1[i];
-}
-
-void mpi_copy_byte(void *data1, void *data2, int n)
-{
-  int i;
-  char *pdata1 = (char *) data1;
-  char *pdata2 = (char *) data2;
-
-  for (i = 0; i < n; i++) pdata2[i] = pdata1[i];
+  memcpy(recvbuf,sendbuf,n);
 }

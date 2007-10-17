@@ -75,7 +75,7 @@ not set.
 atoms and then rescales the velocities to the specified temperature.
 </P>
 <P>The <I>ramp</I> style is similar to that used by the <A HREF = "compute_temp_ramp.html">compute
-temp/ramp</A> ramp command.  Velocities ramped
+temp/ramp</A> command.  Velocities ramped
 uniformly from vlo to vhi are applied to dimension vx, or vy, or vz.
 The value assigned to a particular atom depends on its relative
 coordinate value (in dim) from clo to chi.  For the example above, an
@@ -117,10 +117,16 @@ linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 </P>
 <P>The <I>temp</I> option is used by <I>create</I> and <I>scale</I> to specify a
-user-defined way of computing temperature.  If this option is not
-used, <I>create</I> and <I>scale</I> compute temperature with the style "full"
-for the group of atoms whose velocity is being altered.  See the
-<A HREF = "temperature.html">temperature</A> command for details.  If the computed
+<A HREF = "compute.html">compute</A> that calculates temperature in a desired way.
+If this option is not specified, <I>create</I> and <I>scale</I> calculate
+temperature using a compute that is defined as follows:
+</P>
+<PRE>compute velocity_temp group-ID temp 
+</PRE>
+<P>where group-ID is the same ID used in the velocity command. i.e. the
+group of aotms whose velocity is being altered.  This compute is
+deleted when the velocity command is finished.  See the <A HREF = "compute_temp.html">compute
+temp</A> command for details.  If the computed
 temperature should have degrees-of-freedom removed due to fix
 constraints (e.g. SHAKE or rigid-body constraints), then the
 appropriate fix command must be specified before the velocity command

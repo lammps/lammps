@@ -45,7 +45,6 @@ using namespace LAMMPS_NS;
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi
 // pxx, pyy, pzz, pxy, pxz, pyz
 // drot, grot (rotational KE for dipole and granular particles)
-// tave, pave, eave, peave (time-averaged quantities)
 
 // customize a new thermo style by adding a DEFINE to this list
 
@@ -80,9 +79,6 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   lostflag = ERROR;
   lostbefore = 0;
   flushflag = 0;
-  nwindow = 10;
-  ncurrent_t = ncurrent_p = ncurrent_e = ncurrent_pe = -1;
-  npartial_t = npartial_p = npartial_e = npartial_pe = 0;
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords
@@ -156,14 +152,6 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_f_def = (char *) "%14.4f";
   format_int_user = NULL;
   format_float_user = NULL;
-
-  // average quantities
-
-  tsum = psum = esum = pesum = 0.0;
-  tpast = new double[nwindow];
-  ppast = new double[nwindow];
-  epast = new double[nwindow];
-  pepast = new double[nwindow];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,13 +174,6 @@ Thermo::~Thermo()
 
   delete [] format_int_user;
   delete [] format_float_user;
-
-  // average arrays
-
-  delete [] tpast;
-  delete [] ppast;
-  delete [] epast;
-  delete [] pepast;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -536,23 +517,6 @@ void Thermo::modify_params(int narg, char **arg)
       }
       iarg += 3;
 
-    } else if (strcmp(arg[iarg],"window") == 0) {
-      if (iarg+2 > narg) error->all("Illegal thermo_modify command");
-      nwindow = atoi(arg[iarg+1]);
-      if (nwindow <= 0) error->all("Illegal thermo_modify command");
-      ncurrent_t = ncurrent_p = ncurrent_e = ncurrent_pe = -1;
-      npartial_t = npartial_p = npartial_e = npartial_pe = 0;
-      tsum = psum  = esum = pesum = 0.0;
-      delete [] tpast;
-      delete [] ppast;
-      delete [] epast;
-      delete [] pepast;
-      tpast = new double[nwindow];
-      ppast = new double[nwindow];
-      epast = new double[nwindow];
-      pepast = new double[nwindow];
-      iarg += 2;
-
     } else error->all("Illegal thermo_modify command");
   }
 }
@@ -745,21 +709,6 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"grot") == 0) {
       addfield("RotKEgrn",&Thermo::compute_grot,FLOAT);
       index_grot = add_compute(id_grot,0);
-
-    } else if (strcmp(word,"tave") == 0) {
-      addfield("T_ave",&Thermo::compute_tave,FLOAT);
-      index_temp = add_compute(id_temp,0);
-    } else if (strcmp(word,"pave") == 0) {
-      addfield("P_ave",&Thermo::compute_pave,FLOAT);
-      index_temp = add_compute(id_temp,0);
-      index_press = add_compute(id_press,0);
-    } else if (strcmp(word,"eave") == 0) {
-      addfield("E_ave",&Thermo::compute_eave,FLOAT);
-      peflag = 1;
-      index_temp = add_compute(id_temp,0);
-    } else if (strcmp(word,"peave") == 0) {
-      addfield("PE_ave",&Thermo::compute_peave,FLOAT);
-      peflag = 1;
 
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // if no trailing [], then arg is set to 0, else arg is between []
@@ -1004,10 +953,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"drot") == 0) compute_drot();
   else if (strcmp(word,"grot") == 0) compute_grot();
 
-  else if (strcmp(word,"tave") == 0) compute_tave();
-  else if (strcmp(word,"pave") == 0) compute_pave();
-  else if (strcmp(word,"eave") == 0) compute_eave();
-  else if (strcmp(word,"peave") == 0) compute_peave();
   else return 1;
 
   thermoflag = 1;
@@ -1458,100 +1403,4 @@ void Thermo::compute_grot()
   if (thermoflag) dvalue = rotate_gran->scalar;
   else dvalue = rotate_gran->compute_scalar();
   if (normflag) dvalue /= natoms;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_tave()
-{
-  compute_temp();
-
-  if (firststep == 0) {
-    if (npartial_t == 0) {
-      ncurrent_t = 0;
-      npartial_t = 1;
-      tsum = tpast[0] = dvalue;
-    }
-    dvalue = tsum/npartial_t;
-  } else {
-    ncurrent_t++;
-    if (ncurrent_t == nwindow) ncurrent_t = 0;
-    if (npartial_t == nwindow) tsum -= tpast[ncurrent_t];
-    else npartial_t++;
-    tpast[ncurrent_t] = dvalue;
-    tsum += tpast[ncurrent_t];
-    dvalue = tsum/npartial_t;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_pave()
-{
-  compute_press();
-
-  if (firststep == 0) {
-    if (npartial_p == 0) {
-      ncurrent_p = 0;
-      npartial_p = 1;
-      psum = ppast[0] = dvalue;
-    }
-    dvalue = psum/npartial_p;
-  } else {
-    ncurrent_p++;
-    if (ncurrent_p == nwindow) ncurrent_p = 0;
-    if (npartial_p == nwindow) psum -= ppast[ncurrent_p];
-    else npartial_p++;
-    ppast[ncurrent_p] = dvalue;
-    psum += ppast[ncurrent_p];
-    dvalue = psum/npartial_p;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_eave()
-{
-  compute_etotal();
-
-  if (firststep == 0) {
-    if (npartial_e == 0) {
-      ncurrent_e = 0;
-      npartial_e = 1;
-      esum = epast[0] = dvalue;
-    }
-    dvalue = esum/npartial_e;
-  } else {
-    ncurrent_e++;
-    if (ncurrent_e == nwindow) ncurrent_e = 0;
-    if (npartial_e == nwindow) esum -= epast[ncurrent_e];
-    else npartial_e++;
-    epast[ncurrent_e] = dvalue;
-    esum += epast[ncurrent_e];
-    dvalue = esum/npartial_e;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_peave()
-{
-  compute_pe();
-
-  if (firststep == 0) {
-    if (npartial_pe == 0) {
-      ncurrent_pe = 0;
-      npartial_pe = 1;
-      pesum = pepast[0] = dvalue;
-    }
-    dvalue = pesum/npartial_pe;
-  } else {
-    ncurrent_pe++;
-    if (ncurrent_pe == nwindow) ncurrent_pe = 0;
-    if (npartial_pe == nwindow) pesum -= pepast[ncurrent_pe];
-    else npartial_pe++;
-    pepast[ncurrent_pe] = dvalue;
-    pesum += pepast[ncurrent_pe];
-    dvalue = pesum/npartial_pe;
-  }
 }

@@ -22,18 +22,21 @@
 #include "modify.h"
 #include "compute.h"
 #include "group.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 enum{COMPUTE,FIX};
+enum{SCALAR,VECTOR,BOTH};
+enum{ONE,RUNNING,WINDOW};
 
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 10) error->all("Illegal fix ave/time command");
+  if (narg < 8) error->all("Illegal fix ave/time command");
 
   MPI_Comm_rank(world,&me);
 
@@ -49,16 +52,53 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   id = new char[n];
   strcpy(id,arg[7]);
 
-  int flag = atoi(arg[8]);
+  // option defaults
 
-  if (strcmp(arg[9],"NULL") == 0) fp = NULL;
-  else if (me == 0) {
-    fp = fopen(arg[9],"w");
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open fix ave/time file %s",arg[9]);
-      error->one(str);
-    }
+  sflag = 1;
+  vflag = 0;
+  fp = NULL;
+  ave = ONE;
+
+  // optional args
+
+  int iarg = 8;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"type") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/time command");
+      if (strcmp(arg[iarg+1],"scalar") == 0) {
+	sflag = 1;
+	vflag = 0;
+      } else if (strcmp(arg[iarg+1],"vector") == 0) {
+	sflag = 0;
+	vflag = 1;
+      } else if (strcmp(arg[iarg+1],"both") == 0) sflag = vflag = 1;
+      else error->all("Illegal fix ave/time command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/time command");
+      if (me == 0) {
+	fp = fopen(arg[iarg+1],"w");
+	if (fp == NULL) {
+	  char str[128];
+	  sprintf(str,"Cannot open fix ave/time file %s",arg[iarg+1]);
+	  error->one(str);
+	}
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ave") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/time command");
+      if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
+      else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
+      else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
+      else error->all("Illegal fix ave/time command");
+      if (ave == WINDOW) {
+	if (iarg+3 > narg) error->all("Illegal fix ave/time command");
+	nwindow = atoi(arg[iarg+2]);
+	if (nwindow <= 0) error->all("Illegal fix ave/time command");
+      }
+      iarg += 2;
+      if (ave == WINDOW) iarg++;
+    } else error->all("Illegal fix ave/time command");
   }
 
   // setup and error check
@@ -75,11 +115,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     ifix = modify->find_fix(id);
     if (ifix < 0) error->all("Fix ID for fix ave/time does not exist");
   }
-
-  if (flag < 0 || flag > 2) error->all("Illegal fix ave/time command");
-  sflag = vflag = 0;
-  if (flag == 0 || flag == 2) sflag = 1;
-  if (flag == 1 || flag == 2) vflag = 1;
 
   if (which == COMPUTE) {
     if (sflag && modify->compute[icompute]->scalar_flag == 0)
@@ -121,15 +156,25 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       fprintf(fp,"TimeStep Scalar-value Vector-values\n");
   }
 
-  vector = NULL;
+  // allocate memory for averaging
+
+  vector = vector_total = NULL;
   if (vflag) {
     if (which == COMPUTE) size_vector = modify->compute[icompute]->size_vector;
     else size_vector = modify->fix[ifix]->size_vector;
     vector = new double[size_vector];
+    vector_total = new double[size_vector];
+    for (int i = 0; i < size_vector; i++) vector_total[i] = 0.0;
   }
 
+  scalar_list = NULL;
+  vector_list = NULL;
+  if (sflag && ave == WINDOW) scalar_list = new double[nwindow];
+  if (vflag && ave == WINDOW)
+    vector_list = memory->create_2d_double_array(nwindow,size_vector,
+						 "fix ave/time:vector_list");
+
   // enable this fix to produce a global scalar and/or vector
-  // initialize values to 0.0 since thermo may call them on first step
 
   if (sflag) scalar_flag = 1;
   if (vflag) vector_flag = 1;
@@ -137,15 +182,23 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (which == COMPUTE) extensive = modify->compute[icompute]->extensive;
   else extensive = modify->fix[ifix]->extensive;
 
-  scalar = 0.0;
-  for (int i = 0; i < size_vector; i++) vector[i] = 0.0;
-
-  // nvalid = next step on which end_of_step does something
+  // initializations
 
   irepeat = 0;
+  iwindow = window_limit = 0;
+  norm = 0;
+
+  // nvalid = next step on which end_of_step does something
+  // can be this timestep if multiple of nfreq and nrepeat = 1
+  // else backup from next multiple of nfreq
+
   nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
-  nvalid -= (nrepeat-1)*nevery;
-  if (nvalid <= update->ntimestep)
+  if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+
+  if (nvalid < update->ntimestep)
     error->all("Fix ave/time cannot be started on this timestep");
 }
 
@@ -157,6 +210,9 @@ FixAveTime::~FixAveTime()
   if (fp && me == 0) fclose(fp);
   delete [] compute;
   delete [] vector;
+  delete [] vector_total;
+  delete [] scalar_list;
+  memory->destroy_2d_double_array(vector_list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,6 +260,15 @@ void FixAveTime::init()
   }
 }
 
+/* ----------------------------------------------------------------------
+   only does something if nvalid = current timestep
+------------------------------------------------------------------------- */
+
+void FixAveTime::setup()
+{
+  end_of_step();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixAveTime::end_of_step()
@@ -243,45 +308,89 @@ void FixAveTime::end_of_step()
 	vector[i] += fix->compute_vector(i);
   }
 
+  // done if irepeat < nrepeat
+
   irepeat++;
   nvalid += nevery;
+  if (irepeat < nrepeat) return;
 
-  // output the results
+  // average the final result for the Nfreq timestep
   // reset irepeat and nvalid
 
-  if (irepeat == nrepeat) {
-    double repeat = nrepeat;
-    if (sflag) scalar /= repeat;
-    if (vflag) for (i = 0; i < size_vector; i++) vector[i] /= repeat;
+  double repeat = nrepeat;
+  if (sflag) scalar /= repeat;
+  if (vflag) for (i = 0; i < size_vector; i++) vector[i] /= repeat;
 
-    if (fp && me == 0) {
-      fprintf(fp,"%d",update->ntimestep);
-      if (sflag) fprintf(fp," %g",scalar);
-      if (vflag)
-	for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector[i]);
-      fprintf(fp,"\n");
-      fflush(fp);
+  irepeat = 0;
+  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+
+  // if ave = ONE, only single Nfreq timestep value is needed
+  // if ave = RUNNING, combine with all previous Nfreq timestep values
+  // if ave = WINDOW, comine with nwindow most recent Nfreq timestep values
+
+  if (ave == ONE) {
+    if (sflag) scalar_total = scalar;
+    if (vflag) for (i = 0; i < size_vector; i++) vector_total[i] = vector[i];
+    norm = 1;
+
+  } else if (ave == RUNNING) {
+    if (sflag) scalar_total += scalar;
+    if (vflag) for (i = 0; i < size_vector; i++) vector_total[i] += vector[i];
+    norm++;
+
+  } else if (ave == WINDOW) {
+    if (sflag) {
+      scalar_total += scalar;
+      if (window_limit) scalar_total -= scalar_list[iwindow];
+      scalar_list[iwindow] = scalar;
+    }
+    if (vflag) {
+      for (i = 0; i < size_vector; i++) {
+	vector_total[i] += vector[i];
+	if (window_limit) vector_total[i] -= vector_list[iwindow][i];
+	vector_list[iwindow][i] = vector[i];
+      }
     }
 
-    irepeat = 0;
-    nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+    iwindow++;
+    if (iwindow == nwindow) {
+      iwindow = 0;
+      window_limit = 1;
+    }
+    if (window_limit) norm = nwindow;
+    else norm = iwindow;
+  }
+
+  // output result to file
+
+  if (fp && me == 0) {
+    fprintf(fp,"%d",update->ntimestep);
+    if (sflag) fprintf(fp," %g",scalar_total/norm);
+    if (vflag)
+      for (i = 0; i < size_vector; i++) fprintf(fp," %g",vector_total[i]/norm);
+    fprintf(fp,"\n");
+    fflush(fp);
   }
 }
 
 /* ----------------------------------------------------------------------
    return scalar value
+   could be ONE, RUNNING, or WINDOW value
 ------------------------------------------------------------------------- */
 
 double FixAveTime::compute_scalar()
 {
-  return scalar;
+  if (norm) return scalar_total/norm;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
    return Nth vector value
+   could be ONE, RUNNING, or WINDOW value
 ------------------------------------------------------------------------- */
 
 double FixAveTime::compute_vector(int n)
 {
-  return vector[n];
+  if (norm) return vector_total[n]/norm;
+  else return 0.0;
 }

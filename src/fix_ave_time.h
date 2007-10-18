@@ -25,6 +25,7 @@ class FixAveTime : public Fix {
   ~FixAveTime();
   int setmask();
   void init();
+  void setup();
   void end_of_step();
   double compute_scalar();
   double compute_vector(int);
@@ -35,11 +36,17 @@ class FixAveTime : public Fix {
   char *id;
   FILE *fp;
 
-  int sflag,vflag,nsum;
+  int sflag,vflag,ave,nwindow,nsum;
   double scalar,*vector;
   int ncompute;
   class Compute **compute;
   class Fix *fix;
+
+  int norm,iwindow,window_limit;
+  double scalar_total;
+  double *scalar_list;
+  double *vector_total;
+  double **vector_list;
 };
 
 }

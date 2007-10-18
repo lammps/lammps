@@ -88,12 +88,6 @@ class Thermo : protected Pointers {
   int nvariable;         // # of variables evaulated by thermo
   char **id_variable;    // list of variable names
 
-  int nwindow;           // time averaged values
-  int npartial_t,ncurrent_t,npartial_p,ncurrent_p;
-  int npartial_e,ncurrent_e,npartial_pe,ncurrent_pe;
-  double tsum,psum,esum,pesum;
-  double *tpast,*ppast,*epast,*pepast;
-
   // private methods
 
   void allocate();
@@ -159,11 +153,6 @@ class Thermo : protected Pointers {
 
   void compute_drot();
   void compute_grot();
-
-  void compute_tave();
-  void compute_pave();
-  void compute_eave();
-  void compute_peave();
 };
 
 }

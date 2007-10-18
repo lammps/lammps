@@ -26,8 +26,6 @@ keyword = {type} or {file} or {ave} :l
     scalar = single scalar value from fix or compute
     vector = vector of values from fix or compute
     both = both a single value and vector of values from fix or compute
-  {file} arg = filename
-    filename = file to write results to
   {ave} args = {one} or {running} or {window M}
     one = output new average value every Nfreq steps
     running = output cummulative average of all previous Nfreq steps
@@ -90,7 +88,7 @@ timestep 200, etc.
 
 :line
 
-Additional optional keywords also affect the averaging.
+Additional optional keywords also affect the operation of this fix.
 
 The {type} keyword chooses whether the scalar and/or vector quantities
 produced by the compute or fix are used.  For a setting of {scalar} a
@@ -105,8 +103,9 @@ and/or N vector quantities are written to the file in a
 self-explanatory text format.
 
 The {ave} keyword determines how the scalar and/or vector values
-produced every {Nfreq} steps are averaged with each other before they
-are accessed by another output command or written to a file.
+produced every {Nfreq} steps are averaged with values produced on
+previous steps that were multiples of {Nfreq}, before they are
+accessed by another output command or written to a file.
 
 If the {ave} setting is {one}, then the values produced on timesteps
 that are multiples of {Nfreq} are independent of each other; they are
@@ -115,10 +114,10 @@ output as-is without further averaging.
 If the {ave} setting is {running}, then the values produced on
 timesteps that are multiples of {Nfreq} are summed and averaged in a
 cummulative sense before being output.  Each output value is thus the
-average of the value on that timestep with all preceeding values.
-This running average begins when the fix is defined; it can only be
-restarted by deleting the fix via the "unfix"_unfix.html command, or
-re-defining the fix by re-specifying it.
+average of the value produced on that timestep with all preceeding
+values.  This running average begins when the fix is defined; it can
+only be restarted by deleting the fix via the "unfix"_unfix.html
+command, or re-defining the fix by re-specifying it.
 
 If the {ave} setting is {window}, then the values produced on
 timesteps that are multiples of {Nfreq} are summed and averaged within
@@ -164,4 +163,4 @@ ave/spatial"_fix_ave_spatial.html
 
 [Default:] none
 
-The option defaults are style = scalar, no file output, and ave = one.
+The option defaults are type = scalar, no file output, and ave = one.

@@ -20,7 +20,6 @@ Nfreq = timestep frequency at which the average value is computed :l
 dim = {x} or {y} or {z} :l
 origin = {lower} or {center} or {upper} or coordinate value (distance units) :l
 delta = thickness of spatial layers in dim (distance units) :l
-file = filename to write results to (NULL = no file) :l
 style = {density} or {compute} or {fix} :l
   {density} arg = {mass} or {number}
     {mass} = compute mass density
@@ -28,24 +27,30 @@ style = {density} or {compute} or {fix} :l
   {compute} arg = compute-ID that stores or calculates per-atom quantities
   {fix} arg = fix-ID that stores or calculates per-atom quantities :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {norm} or {units}
+keyword = {norm} or {units} or {file} or {ave} :l
+  {units} value = {box} or {lattice} or {reduced}
   {norm} value = {all} or {sample}
-  {units} value = {box} or {lattice} or {reduced} :pre
+  {file} arg = filename
+    filename = file to write results to
+  {ave} args = {one} or {running} or {window M}
+    one = output new average value every Nfreq steps
+    running = output cummulative average of all previous Nfreq steps
+    window M = output average of M most recent Nfreq steps :pre
 :ule
 
 [Examples:]
 
-fix 1 all ave/spatial 10000 1 10000 z lower 2.0 centro.profile compute myCentro
-fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vel.profile compute Vx norm sample
-fix 1 flow ave/spatial 100 5 1000 y 0.0 2.5 dens.profile density mass :pre
+fix 1 all ave/spatial 10000 1 10000 z lower 0.02 compute myCentro units reduced
+fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 compute Vx norm sample file vel.profile
+fix 1 flow ave/spatial 100 5 1000 y 0.0 2.5 density mass ave running :pre
 
 [Description:]
 
 Calculate one or more instantaneous per-atom quantities every few
 timesteps, average them by layer in a chosen dimension and over a
-longer timescale.  The resulting averages can be written to a file
-and/or used by other "output commands"_Section_howto.html#4_15 such as
-"thermo_style custom"_thermo_style.html.
+longer timescale.  The resulting averages can be used by other "output
+commands"_Section_howto.html#4_15 such as "thermo_style
+custom"_thermo_style.html, and also written to a file.
 
 This fix can be used to spatially average per-atom properties
 (velocity, force) or per-atom quantities calculated by a
@@ -54,14 +59,14 @@ This fix can be used to spatially average per-atom properties
 equation you define (see the "compute
 variable/atom"_compute_variable_atom.html command).
 
-The {density} styles means to simply count the number of atoms in each
-layer, either by mass or number.  The {compute} style allows
-specification of a "compute"_compute.html which will be invoked to
-calculate the desired property.  The compute can be previously defined
-in the input script or it can be a compute defined by a "dump
-custom"_dump.html command.
+For style {density}, the number of atoms in each layer is counted,
+either by mass or by number.  The {compute} style allows specification
+of a "compute"_compute.html which will be invoked to calculate the
+desired property.  The compute can be previously defined in the input
+script or it can be a compute defined by a "dump custom"_dump.html
+command.
 
-For the {compute} style, the fix ave/spatial command accesses the
+For style {compute}, the fix ave/spatial command accesses the
 per-atom scalar or vector values stored by the compute.  Thus it must
 be a "per-atom" compute with the word "atom" in its style name, rather
 than a "global" compute.  See the "fix ave/time"_fix_ave_time.html
@@ -79,28 +84,41 @@ per-atom compute styles and "add them to LAMMPS"_Section_modify.html.
 Note that the "dump custom"_dump.html command can also be used to
 directly output per-atom quantities calculated by a per-atom compute.
 
-For the {fix} style, the fix ave/spatial command accesses the per-atom
+For style {fix}, the fix ave/spatial command accesses the per-atom
 scalar or vector values stored by another fix.  The "fix
 ave/atom"_fix_ave_atom.html command is an example of such a fix.
 
-In all cases, the calculated property is averaged over atoms in each
-layer, where the layers are in a particular {dim} and have a thickness
-given by {delta}.  Every Nfreq steps, when a property is calculated
-for the first time (after a previous write), the number of layers and
-the layer boundaries are computed.  Thus if the simlation box changes
-size during a simulation, the number of layers and their boundaries
-may also change.  Layers are defined relative to a specified {origin},
-which may be the lower/upper edge of the box (in {dim}) or its center
-point, or a specified coordinate value.  Starting at the origin,
-sufficient layers are created in both directions to completely cover
-the box.  On subsequent timesteps every atom is mapped to one of the
-layers.  Atoms beyond the lowermost/uppermost layer are counted in the
-first/last layer.
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
+timesteps the per-atom property will be evaluated in order to
+contribute to the average.  The final averaged values are computed
+every {Nfreq} timesteps.  The average is over {Nrepeat} values,
+computed in the preceeding portion of the simulation every {Nevery}
+timesteps.  {Nfreq} must be a multiple of {Nevery} and {Nevery} must
+be non-zero even if {Nrepeat} is 1.
+
+For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
+timesteps 90,92,94,96,98,100 will be used to compute the final average
+on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+timestep 200, etc.
+
+The per-atom property is also averaged over atoms in each layer, where
+the layers are in a particular {dim} and have a thickness given by
+{delta}.  Every Nfreq steps, when an averaging is being performed and
+the per-atom property is calculated for the first time, the number of
+layers and the layer boundaries are computed.  Thus if the simlation
+box changes size during a simulation, the number of layers and their
+boundaries may also change.  Layers are defined relative to a
+specified {origin}, which may be the lower/upper edge of the box (in
+{dim}) or its center point, or a specified coordinate value.  Starting
+at the origin, sufficient layers are created in both directions to
+completely cover the box.  On subsequent timesteps every atom is
+mapped to one of the layers.  Atoms beyond the lowermost/uppermost
+layer are counted in the first/last layer.
 
 For orthogonal simulation boxes, the layers are "slices" aligned with
 the xyz coordinate axes.  For non-orthogonal (triclinic) simulation
-boxes, the layers are "tilted slices" that align with the tilted faces
-of the box.  See the "region prism"_region.html command for a
+boxes, the layers are "tilted slices" that are parallel to the tilted
+faces of the box.  See the "region prism"_region.html command for a
 discussion of the geometry of tilted boxes in LAMMPS.  As described
 there, a tilted simulation box has edge vectors a,b,c.  In that
 nomenclature, layers in the x dimension have faces with normals in the
@@ -108,12 +126,26 @@ nomenclature, layers in the x dimension have faces with normals in the
 cross "c" direction.  And layers in z have faces normal to the "a"
 cross "b" direction.  Note that in order to define the thickness and
 position of these tilted layers in an unambiguous fashion, the {units}
-option must be set to {reduced}.
+option must be set to {reduced} when using a non-orthogonal simulation
+box, as discussed below.
+
+For the {compute} and {fix} keywords, the per-atom calculation
+performed by the compute or fix is on the group defined by that
+command.  However, only atoms in the fix group are included in the
+layer averaging.
+
+Note that some computes perform costly calculations, involving the
+creation or use of neighbor lists.  If the compute is invoked too
+often by fix ave/spatial, it can slow down a simulation.
+
+:line
+
+Additional optional keywords also affect the operation of this fix.
 
 The {units} keyword determines the meaning of the distance units used
 for the layer thickness {delta} and for {origin} if it is a coordinate
 value.  For orthogonal simulation boxes, any of the 3 options may be
-used.  For non-orthongal (triclinic) simulation boxes, only the
+used.  For non-orthogonal (triclinic) simulation boxes, only the
 {reduced} option may be used.
 
 A {box} value selects standard distance units as defined by the
@@ -133,51 +165,63 @@ the lower "b" cross "c" plane of the simulation box and an {origin} of
 A {delta} value of 0.1 means there will be 10 layers from 0.0 to 1.0,
 regardless of the current size or shape of the simulation box.
 
-The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify how the
-property will be time-averaged.  The final averaged value(s) are
-computed every {Nfreq} timesteps.  The average is over {Nrepeat}
-values, computed in the preceeding portion of the simulation every
-{Nevery} timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
-values on timesteps 90,92,94,96,98,100 will be used to compute the
-final average on timestep 100.  Similary for timesteps
-190,192,194,196,198,200 on timestep 200, etc.
-
-The {norm} keyword also affects how time-averaging is done.  For an
-{all} setting, a layer quantity is summed over all atoms in all
-Nfreq/Nevery samples, as is the count of atoms in the layer.  The
-printed value for the layer is Total-quantity / Total-count.
-In other words it is an average over the entire Nfreq timescale.
+The {norm} keyword affects how time-averaging is done within for the
+output produced every {Nfreq} timesteps.  For an {all} setting, a
+layer quantity is summed over all atoms in all {Nrepeat} samples, as
+is the count of atoms in the layer.  The printed value for the layer
+is Total-quantity / Total-count.  In other words it is an average over
+the entire {Nfreq} timescale.
 
 For a {sample} setting, the quantity is summed over atoms for only a
 single sample, as is the count, and a "average sample value" is
 computed, i.e. Sample-quantity / Sample-count.  The printed value for
-the layer is the average of the M "average sample values", where M =
-Nfreq/Nevery.  In other words it is an average of an average.
+the layer is the average of the {Nrepeat} "average sample values", In
+other words it is an average of an average.
 
-If file output is specified, each time info is written to the file, it
-is in the following format.  A line with the timestep and number of
-layers is written.  Then one line per layer is written, containing the
-layer ID (1-N), the coordinate of the center of the layer, the number
-of atoms in the layer, and one or more calculated values.  The number
-of atoms and the value(s) are average quantities.  If the value of the
-{units} keyword is {box} or {lattice}, the "coord" is printed in box
-units.  If the value of the {units} keyword is {reduced}, the "coord"
-is printed in reduced units (0-1).
+The {file} keyword allows a filename to be specified.  Every {Nfreq}
+timesteps, layer info will be written to a text file in the following
+format.  A line with the timestep and number of layers is written.
+Then one line per layer is written, containing the layer ID (1-N), the
+coordinate of the center of the layer, the number of atoms in the
+layer, and one or more calculated values.  The number of atoms and the
+value(s) are average quantities.  If the value of the {units} keyword
+is {box} or {lattice}, the "coord" is printed in box units.  If the
+value of the {units} keyword is {reduced}, the "coord" is printed in
+reduced units (0-1).
 
-If the {density} keyword is used, or the {compute} or {fix} keyword
-with a compute/fix that calculates a single quantity per atom, then a
-single value will be printed for each layer.  If the {compute} or
-{fix} keyword is used with a compute/fix that calculates N quantities
-per atom, then N values per line will be written, each of them
-averaged independently.
+If the style is {density}, or the style is {compute} or {fix} with a
+compute/fix that calculates a single quantity per atom, then a single
+value will be printed for each layer.  If the style is {compute} or
+{fix} with a compute/fix that calculates N quantities per atom, then N
+values per line will be written, each of them averaged independently.
 
-For the {compute} and {fix} keywords, the calculation performed by the
-compute or fix is on the group defined by the that command.  However,
-only atoms in the fix group are included in the layer averaging.
+The {ave} keyword determines how the layer values produced every
+{Nfreq} steps are averaged with layer values produced on previous
+steps that were multiples of {Nfreq}, before they are accessed by
+another output command or written to a file.
 
-Note that some computes perform costly calculations, involving use of
-or creation of neighbor lists.  If the compute is invoked too often by
-fix ave/spatial, it can slow down a simulation.
+If the {ave} setting is {one}, then the layuer values produced on
+timesteps that are multiples of {Nfreq} are independent of each other;
+they are output as-is without further averaging.
+
+If the {ave} setting is {running}, then the layer values produced on
+timesteps that are multiples of {Nfreq} are summed and averaged in a
+cummulative sense before being output.  Each output layer value is
+thus the average of the layer value produced on that timestep with all
+preceeding values for the same layer.  This running average begins
+when the fix is defined; it can only be restarted by deleting the fix
+via the "unfix"_unfix.html command, or re-defining the fix by
+re-specifying it.
+
+If the {ave} setting is {window}, then the layer values produced on
+timesteps that are multiples of {Nfreq} are summed and averaged within
+a moving "window" of time, so that the last M values for the same
+layer are used to produce the output.  E.g. if M = 3 and Nfreq = 1000,
+then the output on step 10000 will be the average of the individual
+layer values on steps 8000,9000,10000.  Outputs on early steps will
+average over less than M values if they are not available.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -208,4 +252,5 @@ minimization"_minimize.html.
 
 [Default:]
 
-The option defaults are norm = all and units = lattice.
+The option defaults are units = lattice, norm = all, no file output,
+and ave = one.

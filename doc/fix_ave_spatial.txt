@@ -22,8 +22,8 @@ origin = {lower} or {center} or {upper} or coordinate value (distance units) :l
 delta = thickness of spatial layers in dim (distance units) :l
 style = {density} or {compute} or {fix} :l
   {density} arg = {mass} or {number}
-    {mass} = compute mass density
-    {number} = compute number density
+    {mass} = calculate mass density
+    {number} = calculate number density
   {compute} arg = compute-ID that stores or calculates per-atom quantities
   {fix} arg = fix-ID that stores or calculates per-atom quantities :pre
 zero or more keyword/value pairs may be appended :l
@@ -75,14 +75,15 @@ compute without the word atom in its style name, e.g. a compute that
 calculates a temperature or pressure.
 
 See the "compute"_compute.html command for a list of pre-defined
-per-atom computes.  Two special computes are as follows.  The "compute
-attribute/atom"_compute_attribute_atom.html command selects one or
-more atom attributes like vx or fz.  The "compute variable/atom" style
-can calculate a value for an atom that can be specified by a "variable
-atom"_variable.html equation.  Users can also write code for their own
-per-atom compute styles and "add them to LAMMPS"_Section_modify.html.
-Note that the "dump custom"_dump.html command can also be used to
-directly output per-atom quantities calculated by a per-atom compute.
+per-atom computes.  Two special computes of note are as follows.  The
+"compute attribute/atom"_compute_attribute_atom.html command selects
+one or more atom attributes like vx or fz.  The "compute
+variable/atom" style can calculate a value for an atom that can be
+specified by a "variable atom"_variable.html equation.  Users can also
+write code for their own per-atom compute styles and "add them to
+LAMMPS"_Section_modify.html.  Note that the "dump custom"_dump.html
+command can also be used to directly output quantities calculated by a
+per-atom compute in a per-atom fashion.
 
 For style {fix}, the fix ave/spatial command accesses the per-atom
 scalar or vector values stored by another fix.  The "fix

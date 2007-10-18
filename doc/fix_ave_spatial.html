@@ -34,8 +34,8 @@
 <LI>style = <I>density</I> or <I>compute</I> or <I>fix</I> 
 
 <PRE>  <I>density</I> arg = <I>mass</I> or <I>number</I>
-    <I>mass</I> = compute mass density
-    <I>number</I> = compute number density
+    <I>mass</I> = calculate mass density
+    <I>number</I> = calculate number density
   <I>compute</I> arg = compute-ID that stores or calculates per-atom quantities
   <I>fix</I> arg = fix-ID that stores or calculates per-atom quantities 
 </PRE>
@@ -91,14 +91,15 @@ compute without the word atom in its style name, e.g. a compute that
 calculates a temperature or pressure.
 </P>
 <P>See the <A HREF = "compute.html">compute</A> command for a list of pre-defined
-per-atom computes.  Two special computes are as follows.  The <A HREF = "compute_attribute_atom.html">compute
-attribute/atom</A> command selects one or
-more atom attributes like vx or fz.  The "compute variable/atom" style
-can calculate a value for an atom that can be specified by a <A HREF = "variable.html">variable
-atom</A> equation.  Users can also write code for their own
-per-atom compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
-Note that the <A HREF = "dump.html">dump custom</A> command can also be used to
-directly output per-atom quantities calculated by a per-atom compute.
+per-atom computes.  Two special computes of note are as follows.  The
+<A HREF = "compute_attribute_atom.html">compute attribute/atom</A> command selects
+one or more atom attributes like vx or fz.  The "compute
+variable/atom" style can calculate a value for an atom that can be
+specified by a <A HREF = "variable.html">variable atom</A> equation.  Users can also
+write code for their own per-atom compute styles and <A HREF = "Section_modify.html">add them to
+LAMMPS</A>.  Note that the <A HREF = "dump.html">dump custom</A>
+command can also be used to directly output quantities calculated by a
+per-atom compute in a per-atom fashion.
 </P>
 <P>For style <I>fix</I>, the fix ave/spatial command accesses the per-atom
 scalar or vector values stored by another fix.  The <A HREF = "fix_ave_atom.html">fix

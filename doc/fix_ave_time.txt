@@ -10,43 +10,59 @@ fix ave/time command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/time Nevery Nrepeat Nfreq style ID type file :pre
+fix ID group-ID ave/time Nevery Nrepeat Nfreq style ID keyword args ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-ave/time = style name of this fix command
-Nevery = calculate property every this many timesteps
-Nrepeat = # of times to repeat the Nevery calculation before averaging
-Nfreq = timestep frequency at which the average value is computed
-style = {compute} or {fix}
-ID = ID of compute or fix that performs the calculation
-type = 0 for scalar quantity, 1 for vector quantity, 2 for both
-file = filename to write results to (NULL = no file) :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+ave/time = style name of this fix command :l
+Nevery = calculate property every this many timesteps :l
+Nrepeat = # of times to repeat the Nevery calculation before averaging :l
+Nfreq = timestep frequency at which the average value is computed :l
+style = {compute} or {fix} :l
+ID = ID of compute or fix that performs the calculation :l
+
+zero or more keyword/arg pairs may be appended :l
+keyword = {type} or {file} or {ave} :l
+  {type} arg = {scalar} or {vector} or {both}
+    scalar = single scalar value from fix or compute
+    vector = vector of values from fix or compute
+    both = both a single value and vector of values from fix or compute
+  {file} arg = filename
+    filename = file to write results to
+  {ave} args = {one} or {running} or {window M}
+    one = output new average value every Nfreq steps
+    running = output cummulative average of all previous Nfreq steps
+    window M = output average of M most recent Nfreq steps :pre
+:ule
 
 [Examples:]
 
-fix 1 all ave/time 100 5 1000 compute myTemp 0 temp.stats
-fix 1 all ave/time 1 100 1000 fix indenter 0 temp.indent :pre
+fix 1 all ave/time 100 5 1000 compute myTemp
+fix 1 all ave/time 100 5 1000 compute myTemp ave window 20
+fix 1 all ave/time 1 100 1000 fix indenter value both file temp.indent :pre
 
 [Description:]
 
 Calculate one or more instantaneous quantities every few timesteps,
 and average them over a longer timescale.  The resulting averages can
-be written to a file and/or used by other "output
-commands"_Section_howto.html#4_15 such as "thermo_style
-custom"_thermo_style.html.
+be used by other "output commands"_Section_howto.html#4_15 such as
+"thermo_style custom"_thermo_style.html, and also written to a file.
 
 This fix can be used to time-average a "compute"_compute.html which
 calculates a global quantity such as a temperature or pressure or a
 "fix"_fix.html which calculates a global quantity.  Note that per-atom
-computes cannot be used with this fix; their values can be averaged by
-the "fix ave/spatial"_fix_ave_spatial.html or "fix
+quantities cannot be averaged with this fix; their values can be
+averaged by the "fix ave/spatial"_fix_ave_spatial.html or "fix
 ave/atom"_fix_ave_atom.html commands.
+
+Since the calculation is performed by the compute or fix which stores
+its own "group" definition, the group specified as part of the fix
+ave/time command is ignored.
 
 For style {compute} the {ID} specifies a "compute"_compute.html which
 calculates the desired property.  The compute must be a "global"
 compute that calculates one or more global properties rather than a
-"per-atom" compute.  The fix must be previously defined in the input
-script.  Or it can be a compute defined by "thermodynamic
+"per-atom" compute.  The compute must be previously defined in the
+input script.  Or it can be a compute defined by "thermodynamic
 output"_thermo_style.html or other fixes such as "fix
 nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.  Users
 can write code for their own compute styles and "add them to
@@ -59,34 +75,60 @@ individual fix commands for details.  The fix must be previously
 defined in the input script.  Users can write code for their own fix
 styles and "add them to LAMMPS"_Section_modify.html.
 
-The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify how the
-property will be time-averaged.  The final averaged value(s) are
-computed every {Nfreq} timesteps.  The average is over {Nrepeat}
-values, computed in the preceeding portion of the simulation every
-{Nevery} timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
-values on timesteps 90,92,94,96,98,100 will be used to compute the
-final average on timestep 100.  Similary for timesteps
-190,192,194,196,198,200 on timestep 200, etc.
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
+timesteps the property will be evaluated in order to contribute to the
+average.  The final averaged value(s) are computed every {Nfreq}
+timesteps.  The average is over {Nrepeat} values, computed in the
+preceeding portion of the simulation every {Nevery} timesteps.
+{Nfreq} must be a multiple of {Nevery} and {Nevery} must be non-zero
+even if {Nrepeat} is 1.
 
-The {type} argument chooses whether the scalar and/or vector
-calculation of the compute or fix is invoked.  The former computes a
-single global value.  The latter computes N global values, where N is
-defined by the compute or fix, e.g. 6 pressure tensor components.  In
-the vector case, each of the N values is averaged independently.  If
-file output is specified, all N values are written to the file at each
-output.
+For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
+timesteps 90,92,94,96,98,100 will be used to compute the final average
+on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+timestep 200, etc.
 
-Since the calculation is performed by the compute or fix which stores
-its own "group" definition, the group specified for with the fix
-ave/time command is ignored.
+:line
 
-If the style is {compute} and the compute calculates pressure, it will
-cause the force computations performed by LAMMPS (pair, bond, angle,
-etc) to calculate virial terms each Nevery timesteps.  If this is more
-frequent than thermodynamic output, this adds extra cost to a
-simulation.  However, if a constant pressure simulation is being run
-("fix npt"_fix_npt.html or "fix nph"_fix_nph.html), LAMMPS is already
-calculating virial terms for the pressure every timestep.
+Additional optional keywords also affect the averaging.
+
+The {type} keyword chooses whether the scalar and/or vector quantities
+produced by the compute or fix are used.  For a setting of {scalar} a
+single global value is used.  For a setting of {vector} N global
+values are used, where N is defined by the compute or fix, e.g. 6
+pressure tensor components.  For a setting of {both}, both a scalar
+the vector values are used.  When vectors are used, each of the N
+values is averaged independently.
+
+The {file} keyword allows a filename to be specified.  The scalar
+and/or N vector quantities are written to the file in a
+self-explanatory text format.
+
+The {ave} keyword determines how the scalar and/or vector values
+produced every {Nfreq} steps are averaged with each other before they
+are accessed by another output command or written to a file.
+
+If the {ave} setting is {one}, then the values produced on timesteps
+that are multiples of {Nfreq} are independent of each other; they are
+output as-is without further averaging.
+
+If the {ave} setting is {running}, then the values produced on
+timesteps that are multiples of {Nfreq} are summed and averaged in a
+cummulative sense before being output.  Each output value is thus the
+average of the value on that timestep with all preceeding values.
+This running average begins when the fix is defined; it can only be
+restarted by deleting the fix via the "unfix"_unfix.html command, or
+re-defining the fix by re-specifying it.
+
+If the {ave} setting is {window}, then the values produced on
+timesteps that are multiples of {Nfreq} are summed and averaged within
+a moving "window" of time, so that the last M values are used to
+produce the output.  E.g. if M = 3 and Nfreq = 1000, then the output
+on step 10000 will be the average of the individual values on steps
+8000,9000,10000.  Outputs on early steps will average over less than M
+values if they are not available.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -98,13 +140,22 @@ Depending on the setting of the {type} parameter, this fix computes a
 scalar and/or a vector of quantities which can be accessed by various
 "output commands"_Section_howto.html#4_15.  The values should only be
 accessed on timesteps that are multiples of {Nfreq} since that is when
-averaging is complete.
+averaging is performed.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+If the style is {compute} and the specified compute calculates
+pressure, it will cause the force computations performed by LAMMPS
+(pair, bond, angle, etc) to calculate virial terms each Nevery
+timesteps.  If this is more frequent than thermodynamic output, this
+adds extra cost to a simulation.  However, if a constant pressure
+simulation is being run ("fix npt"_fix_npt.html or "fix
+nph"_fix_nph.html), LAMMPS is already calculating virial terms for the
+pressure every timestep.
 
 [Related commands:]
 
@@ -112,3 +163,5 @@ minimization"_minimize.html.
 ave/spatial"_fix_ave_spatial.html
 
 [Default:] none
+
+The option defaults are style = scalar, no file output, and ave = one.

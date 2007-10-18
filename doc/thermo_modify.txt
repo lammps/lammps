@@ -21,8 +21,6 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
   {format} values = {int} string or {float} string or M string
     M = integer from 1 to N, where N = # of quantities being printed
     string = C-style format string
-  {window} value = N
-    N = number of previous print-outs to average over
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
   {drot} value = compute ID that calculates rotational energy for dipolar atoms
@@ -78,10 +76,6 @@ printed in each output line, the 5th column of output in this case.
 If the format for a specific column has been set, it will take
 precedent over the {int} or {float} setting.
 
-The {window} keyword sets the number of previous thermodynamic screen
-outputs over which "thermo_style custom"_thermo_style.html {ave}
-quantities are averaged when printed.
-
 The {temp} keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a
 temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
@@ -130,8 +124,7 @@ default.
 
 The option defaults are lost = error, norm = yes for unit style of
 {lj}, norm = no for unit style of {real} and {metal}, flush = no,
-window = 10, temp/press/drot/grot = compute IDs defined by
-thermo_style.
+temp/press/drot/grot = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo
 style.  For styles "one", "granular", and "custom" the line and format

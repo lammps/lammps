@@ -65,6 +65,12 @@ the shear velocity profile is the viscosity of the fluid, in
 appopriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
 details.
 </P>
+<P>IMPORTANT NOTE: After equilibration, if the velocity profile you
+observe is not linear, then you are likely swapping momentum too
+frequently and are not in a regime of linear response.  In this case
+you cannot accurately infer a viscosity and should try increasing
+the Nevery parameter.
+</P>
 <P>An alternative method for calculating a viscosity is to run a NEMD
 simulation, as described in <A HREF = "Section_howto.html#4_13">this section</A> of
 the manual.  NEMD simulations deform the simmulation box via the <A HREF = "fix_deform.html">fix

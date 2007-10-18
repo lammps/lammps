@@ -25,7 +25,6 @@ args = list of arguments for a particular style :l
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
 			  pxx, pyy, pzz, pxy, pxz, pyz
                           drot, grot,
-			  tave, pave, eave, peave,
 			  c_ID, c_ID\[n\], f_ID, f_ID\[n\], v_name
       step = timestep
       atoms = # of atoms
@@ -52,7 +51,6 @@ args = list of arguments for a particular style :l
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       drot = rotational energy of dipolar atoms
       grot = rotational energy of granular atoms
-      tave, pave, eave, peave = time-averaged temp, press, etotal, pe
       c_ID = scalar quantity calculated by a compute identified by its ID
       c_ID\[N\] = Nth vector quantity calculated by a compute identified by its ID
       f_ID = scalar quantity calculated by a fix identified by its ID
@@ -97,6 +95,12 @@ outputting essentially any desired quantity as a simulation proceeds.
 All styles except {custom} have {vol} appended to their list of
 outputs if the simulation box volume changes during the simulation.
 
+The values printed by the various keywords are instantaneous values,
+calculated on the current timestep.  Time-averaged quantities, which
+include values from previous timesteps, can be output by using the
+f_ID keyword and accessing a fix that does time-averaging such as the
+"fix ave/time"_fix_ave_time.html command.
+
 Options invoked by the "thermo_modify"_thermo_modify.html command can
 be used to set the one- or multi-line format of the print-out, the
 normalization of energy quantities (total or per-atom), and the
@@ -111,9 +115,9 @@ use the thermo_modify command after it.
 :line
 
 Several of the thermodynamic quantities require a temperature to be
-computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
-"tave", "pave".  By default this is done by using the "thermo_temp"
-compute which is created by LAMMPS as if this command had been issued:
+computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc".  By
+default this is done by using the "thermo_temp" compute which is
+created by LAMMPS as if this command had been issued:
 
 compute thermo_temp all temp :pre
 
@@ -186,11 +190,6 @@ tail"_pair_modify.html option is turned on.  The {etail} contribution
 is included in {evdwl}, {pe}, and {etotal}, and the corresponding tail
 correction to the pressure is included in {press} and {pxx}, {pyy},
 etc.
-
-The time-averaged keywords {tave, pave, eave, peave} are averaged over
-the last N thermodynamic outputs to the screen (not the last N
-timesteps), where N is the value set by the {window} option of the
-"thermo_modify"_thermo_modify.html command (N = 10 by default).
 
 :line
 

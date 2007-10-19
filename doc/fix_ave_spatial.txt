@@ -10,7 +10,7 @@ fix ave/spatial command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/spatial Nevery Nrepeat Nfreq dim origin delta file style args keyword value ... :pre
+fix ID group-ID ave/spatial Nevery Nrepeat Nfreq dim origin delta style arg keyword args ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/spatial = style name of this fix command :l
@@ -26,10 +26,10 @@ style = {density} or {compute} or {fix} :l
     {number} = calculate number density
   {compute} arg = compute-ID that stores or calculates per-atom quantities
   {fix} arg = fix-ID that stores or calculates per-atom quantities :pre
-zero or more keyword/value pairs may be appended :l
+zero or more keyword/arg pairs may be appended :l
 keyword = {norm} or {units} or {file} or {ave} :l
-  {units} value = {box} or {lattice} or {reduced}
-  {norm} value = {all} or {sample}
+  {units} arg = {box} or {lattice} or {reduced}
+  {norm} arg = {all} or {sample}
   {file} arg = filename
     filename = file to write results to
   {ave} args = {one} or {running} or {window M}
@@ -245,7 +245,13 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+When the {ave} keyword is set to {running} or {window} then the number
+of layers must remain the same during the simulation, so that the
+appropriate averaging can be done.  This will be the case if the
+simulation box size doesn't change or if the {units} keyword is set to
+{reduced}.
 
 [Related commands:]
 

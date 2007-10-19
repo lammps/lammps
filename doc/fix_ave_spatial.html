@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ave/spatial Nevery Nrepeat Nfreq dim origin delta file style args keyword value ... 
+<PRE>fix ID group-ID ave/spatial Nevery Nrepeat Nfreq dim origin delta style arg keyword args ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
@@ -39,12 +39,12 @@
   <I>compute</I> arg = compute-ID that stores or calculates per-atom quantities
   <I>fix</I> arg = fix-ID that stores or calculates per-atom quantities 
 </PRE>
-<LI>zero or more keyword/value pairs may be appended 
+<LI>zero or more keyword/arg pairs may be appended 
 
 <LI>keyword = <I>norm</I> or <I>units</I> or <I>file</I> or <I>ave</I> 
 
-<PRE>  <I>units</I> value = <I>box</I> or <I>lattice</I> or <I>reduced</I>
-  <I>norm</I> value = <I>all</I> or <I>sample</I>
+<PRE>  <I>units</I> arg = <I>box</I> or <I>lattice</I> or <I>reduced</I>
+  <I>norm</I> arg = <I>all</I> or <I>sample</I>
   <I>file</I> arg = filename
     filename = file to write results to
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
@@ -261,7 +261,13 @@ nvalues + 1 and J = N % nvalues + 1.
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>When the <I>ave</I> keyword is set to <I>running</I> or <I>window</I> then the number
+of layers must remain the same during the simulation, so that the
+appropriate averaging can be done.  This will be the case if the
+simulation box size doesn't change or if the <I>units</I> keyword is set to
+<I>reduced</I>.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -25,6 +25,7 @@ class FixAveSpatial : public Fix {
   ~FixAveSpatial();
   int setmask();
   void init();
+  void setup();
   void end_of_step();
   double compute_vector(int);
 
@@ -36,16 +37,23 @@ class FixAveSpatial : public Fix {
   char *id_compute,*id_fix;
   FILE *fp;
 
-  int nlayers,nvalues,maxlayer,scaleflag,size_peratom;
+  int nlayers,nvalues,ave,nwindow;
+  int maxlayer,scaleflag,size_peratom;
   double xscale,yscale,zscale;
   double layer_volume;
   double *coord;
-  double *count_one,*count_many,*count_total;
-  double **values_one,**values_many,**values_total;
+  double *count_one,*count_many,*count_sum;
+  double **values_one,**values_many,**values_sum;
   double offset,invdelta; 
   int ncompute;
   class Compute **compute;
   class Fix *fix;
+
+  int norm,iwindow,window_limit;
+  double *count_total;
+  double **count_list;
+  double **values_total;
+  double ***values_list;
 };
 
 }

@@ -34,6 +34,7 @@ enum{LOWER,CENTER,UPPER,COORD};
 enum{DENSITY_MASS,DENSITY_NUM,COMPUTE,FIX};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
+enum{ONE,RUNNING,WINDOW};
 
 #define BIG 1000000000
 
@@ -42,7 +43,7 @@ enum{BOX,LATTICE,REDUCED};
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 12) error->all("Illegal fix ave/spatial command");
+  if (narg < 11) error->all("Illegal fix ave/spatial command");
 
   MPI_Comm_rank(world,&me);
 
@@ -65,38 +66,30 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   delta = atof(arg[8]);
 
-  if (strcmp(arg[9],"NULL") == 0) fp = NULL;
-  else if (me == 0) {
-    fp = fopen(arg[9],"w");
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open fix ave/spatial file %s",arg[9]);
-      error->one(str);
-    }
-  }
-
-  if (strcmp(arg[10],"density") == 0) {
-    if (strcmp(arg[11],"mass") == 0) which = DENSITY_MASS;
-    else if (strcmp(arg[11],"number") == 0) which = DENSITY_NUM;
+  if (strcmp(arg[9],"density") == 0) {
+    if (strcmp(arg[10],"mass") == 0) which = DENSITY_MASS;
+    else if (strcmp(arg[10],"number") == 0) which = DENSITY_NUM;
     else error->all("Illegal fix ave/spatial command");
-  } else if (strcmp(arg[10],"compute") == 0) {
+  } else if (strcmp(arg[9],"compute") == 0) {
     which = COMPUTE;
-    int n = strlen(arg[11]) + 1;
+    int n = strlen(arg[10]) + 1;
     id_compute = new char[n];
-    strcpy(id_compute,arg[11]);
-  } else if (strcmp(arg[10],"fix") == 0) {
+    strcpy(id_compute,arg[10]);
+  } else if (strcmp(arg[9],"fix") == 0) {
     which = FIX;
-    int n = strlen(arg[11]) + 1;
+    int n = strlen(arg[10]) + 1;
     id_fix = new char[n];
-    strcpy(id_fix,arg[11]);
+    strcpy(id_fix,arg[10]);
   } else error->all("Illegal fix ave/spatial command");
 
   // parse optional args
 
   normflag = ALL;
   scaleflag = BOX;
+  fp = NULL;
+  ave = ONE;
 
-  int iarg = 12;
+  int iarg = 11;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
@@ -111,6 +104,30 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
       else error->all("Illegal fix ave/spatial command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (me == 0) {
+	fp = fopen(arg[iarg+1],"w");
+	if (fp == NULL) {
+	  char str[128];
+	  sprintf(str,"Cannot open fix ave/spatial file %s",arg[iarg+1]);
+	  error->one(str);
+	}
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ave") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
+      else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
+      else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
+      else error->all("Illegal fix ave/spatial command");
+      if (ave == WINDOW) {
+	if (iarg+3 > narg) error->all("Illegal fix ave/spatial command");
+	nwindow = atoi(arg[iarg+2]);
+	if (nwindow <= 0) error->all("Illegal fix ave/spatial command");
+      }
+      iarg += 2;
+      if (ave == WINDOW) iarg++;
     } else error->all("Illegal fix ave/spatial command");
   }
 
@@ -191,26 +208,35 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     fprintf(fp,"Layer Coord Atoms Value(s) (one per layer)\n");
   }
   
-  nlayers = maxlayer = 0;
-  coord = NULL;
-  count_one = count_many = count_total = NULL;
-  values_one = values_many = values_total = NULL;
-
   // enable this fix to produce a global vector
   // set size_vector to BIG since compute_vector() will check bounds
-  // no need to initialize vector to 0.0, since compute_vector() returns 0.0
 
   vector_flag = 1;
   size_vector = BIG;
   scalar_vector_freq = nfreq;
   extensive = 0;
 
-  // nvalid = next step on which end_of_step does something
+  // initializations
 
   irepeat = 0;
+  nlayers = maxlayer = 0;
+  coord = NULL;
+  count_one = count_many = count_sum = NULL;
+  count_list = NULL;
+  values_one = values_many = values_sum = values_total = NULL;
+  values_list = NULL;
+
+  // nvalid = next step on which end_of_step does something
+  // can be this timestep if multiple of nfreq and nrepeat = 1
+  // else backup from next multiple of nfreq
+
   nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
-  nvalid -= (nrepeat-1)*nevery;
-  if (nvalid <= update->ntimestep)
+  if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+
+  if (nvalid < update->ntimestep)
     error->all("Fix ave/spatial cannot be started on this timestep");
 }
 
@@ -227,10 +253,14 @@ FixAveSpatial::~FixAveSpatial()
   memory->sfree(coord);
   memory->sfree(count_one);
   memory->sfree(count_many);
+  memory->sfree(count_sum);
   memory->sfree(count_total);
+  memory->destroy_2d_double_array(count_list);
   memory->destroy_2d_double_array(values_one);
   memory->destroy_2d_double_array(values_many);
+  memory->destroy_2d_double_array(values_sum);
   memory->destroy_2d_double_array(values_total);
+  memory->destroy_3d_double_array(values_list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,6 +276,13 @@ int FixAveSpatial::setmask()
 
 void FixAveSpatial::init()
 {
+  // # of layers cannot vary for ave = RUNNING or WINDOW
+
+  if (ave == RUNNING || ave == WINDOW) {
+    if (scaleflag != REDUCED && domain->box_change)
+      error->all("Fix ave/spatial settings invalid with changing box");
+  }
+
   // set ptrs to one or more computes called each end-of-step
 
   if (which == COMPUTE) {
@@ -276,6 +313,15 @@ void FixAveSpatial::init()
     if (nevery % fix->peratom_freq)
       error->all("Fix ave/spatial and fix not computed at compatible times");
   }
+}
+
+/* ----------------------------------------------------------------------
+   only does something if nvalid = current timestep
+------------------------------------------------------------------------- */
+
+void FixAveSpatial::setup()
+{
+  end_of_step();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -343,20 +389,45 @@ void FixAveSpatial::end_of_step()
       count_many = (double *) 
 	memory->srealloc(count_many,nlayers*sizeof(double),
 			 "ave/spatial:count_many");
+      count_sum = (double *) 
+	memory->srealloc(count_sum,nlayers*sizeof(double),
+			 "ave/spatial:count_sum");
       count_total = (double *) 
 	memory->srealloc(count_total,nlayers*sizeof(double),
 			 "ave/spatial:count_total");
+
       values_one = memory->grow_2d_double_array(values_one,nlayers,nvalues,
 						"ave/spatial:values_one");
       values_many = memory->grow_2d_double_array(values_many,nlayers,nvalues,
 						 "ave/spatial:values_many");
+      values_sum = memory->grow_2d_double_array(values_sum,nlayers,nvalues,
+						"ave/spatial:values_sum");
       values_total = memory->grow_2d_double_array(values_total,nlayers,nvalues,
-						"ave/spatial:values_total");
+						  "ave/spatial:values_total");
+
+      // initialize count and values total to zero since they accumulate
+
+      for (m = 0; m < nlayers; m++) {
+	for (i = 0; i < nvalues; i++) values_total[m][i] = 0.0;
+	count_total[m] = 0.0;
+      }
+
+      // only allocate count and values list for ave = RUNNING or WINDOW
+      // only happens once since nlayers never changes for these ave settings
+      
+      if (ave == RUNNING || ave == WINDOW) {
+	count_list =
+	  memory->create_2d_double_array(nwindow,nlayers,
+					 "ave/spatial:count_list");
+	values_list =
+	  memory->create_3d_double_array(nwindow,nlayers,nvalues,
+					 "ave/spatial:values_list");
+      }
     }
 
     for (m = 0; m < nlayers; m++) {
       coord[m] = offset + (m+0.5)*delta;
-      count_many[m] = count_total[m] = 0.0;
+      count_many[m] = count_sum[m] = 0.0;
       for (i = 0; i < nvalues; i++) values_many[m][i] = 0.0;
     }
   }
@@ -481,66 +552,108 @@ void FixAveSpatial::end_of_step()
       if (count_many[m] > 0.0)
 	for (j = 0; j < nvalues; j++)
 	  values_many[m][j] += values_one[m][j]/count_many[m];
-      count_total[m] += count_many[m];
+      count_sum[m] += count_many[m];
     }
   }
 
-  // update counters
+  // done if irepeat < nrepeat
 
   irepeat++;
   nvalid += nevery;
+  if (irepeat < nrepeat) return;
 
-  // output the results
   // time average across samples
   // if density, also normalize by volume
+
+  double repeat = nrepeat;
+
+  if (normflag == ALL) {
+    MPI_Allreduce(count_many,count_sum,nlayers,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nlayers*nvalues,
+		  MPI_DOUBLE,MPI_SUM,world);
+    for (m = 0; m < nlayers; m++) {
+      if (count_sum[m] > 0.0)
+	for (j = 0; j < nvalues; j++)
+	  values_sum[m][j] /= count_sum[m];
+      count_sum[m] /= repeat;
+    }
+  } else {
+    MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nlayers*nvalues,
+		  MPI_DOUBLE,MPI_SUM,world);
+    for (m = 0; m < nlayers; m++) {
+      for (j = 0; j < nvalues; j++)
+	values_sum[m][j] /= repeat;
+      count_sum[m] /= repeat;
+    }
+  }
+
+  if (which == DENSITY_MASS || which == DENSITY_NUM) {
+    for (m = 0; m < nlayers; m++)
+      values_sum[m][0] *= count_sum[m] / layer_volume;
+  }
+
   // reset irepeat and nvalid
 
-  if (irepeat == nrepeat) {
-    double repeat = nrepeat;
+  irepeat = 0;
+  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
 
-    if (normflag == ALL) {
-      MPI_Allreduce(count_many,count_total,nlayers,MPI_DOUBLE,MPI_SUM,world);
-      MPI_Allreduce(&values_many[0][0],&values_total[0][0],nlayers*nvalues,
-		    MPI_DOUBLE,MPI_SUM,world);
-      for (m = 0; m < nlayers; m++) {
-	if (count_total[m] > 0.0)
-	  for (j = 0; j < nvalues; j++)
-	    values_total[m][j] /= count_total[m];
-	count_total[m] /= repeat;
+  // if ave = ONE, only single Nfreq timestep value is needed
+  // if ave = RUNNING, combine with all previous Nfreq timestep values
+  // if ave = WINDOW, comine with nwindow most recent Nfreq timestep values
+
+  if (ave == ONE) {
+    for (m = 0; m < nlayers; m++) {
+      for (i = 0; i < nvalues; i++) 
+	values_total[m][i] = values_sum[m][i];
+      count_total[m] = count_sum[m];
+    }
+    norm = 1;
+
+  } else if (ave == RUNNING) {
+    for (m = 0; m < nlayers; m++) {
+      for (i = 0; i < nvalues; i++)
+	values_total[m][i] += values_sum[m][i];
+      count_total[m] += count_sum[m];
+    }
+    norm++;
+
+  } else if (ave == WINDOW) {
+    for (m = 0; m < nlayers; m++) {
+      for (i = 0; i < nvalues; i++) {
+	values_total[m][i] += values_sum[m][i];
+	if (window_limit) values_total[m][i] -= values_list[iwindow][m][i];
+	values_list[iwindow][m][i] = values_sum[m][i];
       }
-    } else {
-      MPI_Allreduce(&values_many[0][0],&values_total[0][0],nlayers*nvalues,
-		    MPI_DOUBLE,MPI_SUM,world);
-      for (m = 0; m < nlayers; m++) {
-	for (j = 0; j < nvalues; j++)
-	  values_total[m][j] /= repeat;
-	count_total[m] /= repeat;
-      }
+      count_total[m] += count_sum[m];
+      if (window_limit) count_total[m] -= count_list[iwindow][m];
+      count_list[iwindow][m] = count_sum[m];
     }
 
-    if (which == DENSITY_MASS || which == DENSITY_NUM) {
-      for (m = 0; m < nlayers; m++)
-	values_total[m][0] *= count_total[m] / layer_volume;
+    iwindow++;
+    if (iwindow == nwindow) {
+      iwindow = 0;
+      window_limit = 1;
     }
+    if (window_limit) norm = nwindow;
+    else norm = iwindow;
+  }
 
-    if (fp && me == 0) {
-      fprintf(fp,"%d %d\n",update->ntimestep,nlayers);
-      for (m = 0; m < nlayers; m++) {
-	fprintf(fp,"  %d %g %g",m+1,coord[m],count_total[m]);
-	for (i = 0; i < nvalues; i++) fprintf(fp," %g",values_total[m][i]);
-	fprintf(fp,"\n");
-      }
-      fflush(fp);
+  // output result to file
+  
+  if (fp && me == 0) {
+    fprintf(fp,"%d %d\n",update->ntimestep,nlayers);
+    for (m = 0; m < nlayers; m++) {
+      fprintf(fp,"  %d %g %g",m+1,coord[m],count_total[m]/norm);
+      for (i = 0; i < nvalues; i++) fprintf(fp," %g",values_total[m][i]/norm);
+      fprintf(fp,"\n");
     }
-
-    irepeat = 0;
-    nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
- }
+    fflush(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
    return Nth vector value
-   since values_total is 2d array, map N into ilayer and ivalue
+   since values_sum is 2d array, map N into ilayer and ivalue
    if ilayer >= nlayers, just return 0, since nlayers can vary with time
 ------------------------------------------------------------------------- */
 
@@ -548,6 +661,6 @@ double FixAveSpatial::compute_vector(int n)
 {
   int ivalue = n % nvalues;
   int ilayer = n / nvalues;
-  if (ilayer < nlayers) return values_total[ilayer][ivalue];
+  if (ilayer < nlayers && norm) return values_total[ilayer][ivalue]/norm;
   return 0.0;
 }

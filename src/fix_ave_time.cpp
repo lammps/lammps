@@ -164,7 +164,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     else size_vector = modify->fix[ifix]->size_vector;
     vector = new double[size_vector];
     vector_total = new double[size_vector];
-    for (int i = 0; i < size_vector; i++) vector_total[i] = 0.0;
   }
 
   scalar_list = NULL;
@@ -172,7 +171,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (sflag && ave == WINDOW) scalar_list = new double[nwindow];
   if (vflag && ave == WINDOW)
     vector_list = memory->create_2d_double_array(nwindow,size_vector,
-						 "fix ave/time:vector_list");
+						 "ave/time:vector_list");
 
   // enable this fix to produce a global scalar and/or vector
 
@@ -183,10 +182,13 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   else extensive = modify->fix[ifix]->extensive;
 
   // initializations
+  // set scalar and vector total to zero since they accumulate
 
   irepeat = 0;
   iwindow = window_limit = 0;
   norm = 0;
+  scalar_total = 0.0;
+  if (vflag) for (int i = 0; i < size_vector; i++) vector_total[i] = 0.0;
 
   // nvalid = next step on which end_of_step does something
   // can be this timestep if multiple of nfreq and nrepeat = 1
@@ -315,11 +317,12 @@ void FixAveTime::end_of_step()
   if (irepeat < nrepeat) return;
 
   // average the final result for the Nfreq timestep
-  // reset irepeat and nvalid
 
   double repeat = nrepeat;
   if (sflag) scalar /= repeat;
   if (vflag) for (i = 0; i < size_vector; i++) vector[i] /= repeat;
+
+  // reset irepeat and nvalid
 
   irepeat = 0;
   nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;

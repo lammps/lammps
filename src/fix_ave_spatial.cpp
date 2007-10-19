@@ -219,9 +219,11 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // initializations
 
   irepeat = 0;
+  iwindow = window_limit = 0;
+  norm = 0;
   nlayers = maxlayer = 0;
   coord = NULL;
-  count_one = count_many = count_sum = NULL;
+  count_one = count_many = count_sum = count_total = NULL;
   count_list = NULL;
   values_one = values_many = values_sum = values_total = NULL;
   values_list = NULL;
@@ -412,10 +414,10 @@ void FixAveSpatial::end_of_step()
 	count_total[m] = 0.0;
       }
 
-      // only allocate count and values list for ave = RUNNING or WINDOW
+      // only allocate count and values list for ave = WINDOW
       // only happens once since nlayers never changes for these ave settings
       
-      if (ave == RUNNING || ave == WINDOW) {
+      if (ave == WINDOW) {
 	count_list =
 	  memory->create_2d_double_array(nwindow,nlayers,
 					 "ave/spatial:count_list");

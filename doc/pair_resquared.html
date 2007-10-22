@@ -1,0 +1,201 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style resquared command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style resquared cutoff 
+</PRE>
+<UL><LI>cutoff = global cutoff for interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style resquared 10.0
+pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>resquared</I> computes the RE-squared anisotropic interaction
+<A HREF = "#Everaers">(Everaers,Babadi)</A> between pairs of ellipsoidal and/or
+spherical Lennard-Jones particles. For ellipsoidal interactions,
+the potential considers the ellipsoid as being comprised of small
+spheres of size sigma. LJ particles are a single sphere of size
+sigma. The distinction is made to allow the pair style to make
+efficient calculations of ellipsoid/solvent interactions.
+</P>
+
+
+<P>Details for the equations used are given in the references below
+and <A HREF = "#redoc">this document</A>.
+</P>
+<P>Use of this pair style requires the NVE, NVT, or NPT fixes 
+with the <I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix 
+nve/asphere</A>) in order to integrate particle
+rotation.  Additionally, <A HREF = "atom_style.html">atom_style ellipsoid</A> should
+be used since it defines the rotational state of the ellipsoidal
+particles and the <A HREF = "shape.html">shape</A> command should be used to
+specify ellipsoid diameters.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>A12 = Energy Prefactor/Hamaker constant (energy units)
+<LI>sigma = atomic interaction diameter (distance units)
+<LI>epsilon_i_a = relative well depth of type I for side-to-side interactions
+<LI>epsilon_i_b = relative well depth of type I for face-to-face interactions
+<LI>epsilon_i_c = relative well depth of type I for end-to-end interactions
+<LI>epsilon_j_a = relative well depth of type J for side-to-side interactions
+<LI>epsilon_j_b = relative well depth of type J for face-to-face interactions
+<LI>epsilon_j_c = relative well depth of type J for end-to-end interactions
+<LI>cutoff (distance units) 
+</UL>
+<P>The parameters used depend on the type of particles interacting -
+ellipsoid or LJ sphere. The type of particle is determined by
+the diameters specified with the <A HREF = "shape.html">shape</A>
+command. LJ spheres have diameters equal to zero and thus
+represent a single particle with size sigma. The epsilon_i_* or
+epsilon_j_* parameters are ignored for LJ sphere interactions.
+The interactions between two LJ sphere particles are computed
+using the standard Lennard-Jones formula.
+</P>
+<P>A12 specifies the energy prefactor which depends on 
+the type of particles interacting. For ellipsoid-ellipsoid
+interactions, A12 is the Hamaker constant as described in 
+<A HREF = "#Everaers">(Everaers)</A>. In LJ units:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_resquared.jpg">
+</CENTER>
+<P>where rho gives the number density of the spherical particles
+composing the ellipsoids and epsilon_LJ determines the
+interaction strength of the spherical particles.
+</P>
+<P>For ellipsoid-LJ sphere interactions, A12 gives the energy
+prefactor (see <A HREF = "Eqs/pair_resquared_extra.pdf">here</A> for details:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_resquared2.jpg">
+</CENTER>
+<P>For LJ sphere-LJ sphere interactions, A12 is the standard
+epsilon used in Lennard-Jones pair styles:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_resquared3.jpg">
+</CENTER>
+<P>sigma specifies the diameter of the continuous distribution of 
+constituent particles within each ellipsoid used to model
+the RE-squared potential. Therefore, the effective shape
+of an ellipsoid is given by the specified diameters 
+(see the <A HREF = "shape.html">shape</A> command) plus sigma.
+</P>
+<P>For large uniform molecules it has been shown that the epsilon_*_* 
+energy parameters are approximately representable in terms of 
+local contact curvatures <A HREF = "#Everaers">(Everaers)</A>:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_resquared4.jpg">
+</CENTER>
+<P>where a, b, and c give the particle diameters.
+</P>
+<P>The last coefficient is optional.  If not specified, the global
+cutoff specified in the pair_style command is used.
+</P>
+<P>The epsilon_i and epsilon_j coefficients are actually defined for atom
+types, not for pairs of atom types.  Thus, in a series of pair_coeff
+commands, they only need to be specified once for each atom type.
+</P>
+<P>Specifically, if any of epsilon_i_a, epsilon_i_b, epsilon_i_c are
+non-zero, the three values are assigned to atom type I.  If all the
+epsilon_i values are zero, they are ignored.  If any of epsilon_j_a,
+epsilon_j_b, epsilon_j_c are non-zero, the three values are assigned
+to atom type J.  If all three epsilon_i values are zero, they are
+ignored.  Thus the typical way to define the epsilon_i and epsilon_j
+coefficients is to list their values in "pair_coeff I J" commands when
+I = J, but set them to 0.0 when I != J.  If you do list them when I !=
+J, you should insure they are consistent with their values in other
+pair_coeff commands.
+</P>
+<P>Note that if this potential is being used as a sub-style of
+<A HREF = "pair_hybrid.html">pair_style hybrid</A>, and there is no "pair_coeff I I"
+setting made for RE-squared for a particular type I (because I-I
+interactions are computed by another hybrid pair potential), then you
+still need to insure the epsilon a,b,c coefficients are assigned to
+that type in a "pair_coeff I J" command.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, rRESPA info</B>:
+</P>
+<P>Automatic mixing is supported only between LJ sphere
+pairs due to the different meanings of the energy prefactors used 
+to calculate the interactions and the implicit dependance of
+the ellipsoid-LJ sphere interaction on the equation for the
+Hamaker constant presented here. Mixing of sigma and epsilon
+followed by calculation of the energy prefactors using the
+equations above is recommended.
+</P>
+<P>This pair styles supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Lennard-Jones portion of the pair
+interaction, but only for sphere-sphere interactions.  There is no
+shifting performed for ellipsoidal interactions due to the anisotropic
+dependence of the interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style does not calculate per-atom energy and stress, as used
+by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
+commands.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+command</A>.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This style is part of the "asphere" package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The distance-of-closest-approach approximation used by LAMMPS becomes 
+less accurate when high-aspect ratio ellipsoids are used.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>,
+<A HREF = "compute_temp_asphere.html">compute temp/asphere</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Everaers"></A>
+
+<P><B>(Everaers)</B> Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
+</P>
+<A NAME = "Babadi"></A>
+
+<P><B>(Berardi)</B> Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
+</P>
+</HTML>

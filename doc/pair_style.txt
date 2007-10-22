@@ -127,6 +127,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
 "pair_style morse"_pair_morse.html - optimized version of Morse potential
+"pair_style resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential
 "pair_style soft"_pair_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "pair_style table"_pair_table.html - tabulated pair potential

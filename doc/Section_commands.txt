@@ -511,6 +511,7 @@ full description:
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
 "morse/opt"_pair_morse.html,
+"resquared"_pair_resquared.html,
 "soft"_pair_soft.html,
 "sw"_pair_sw.html,
 "table"_pair_table.html,

@@ -1,0 +1,33 @@
+# mac_mpi = Apple PowerBook G4 laptop, Finked LAM/MPI, Finked FFTW 2.1.5
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+FFTW =	/sw
+
+CC =		mpic++
+CCFLAGS =	-O -MMD	-DFFT_FFTW  -I${FFTW}/include -DOMPI_SKIP_MPICXX
+LINK =		mpic++
+LINKFLAGS =	-O  -L${FFTW}/lib
+
+USRLIB =	-lfftw 
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+-include $(DEPENDS)

@@ -38,14 +38,18 @@ namespace MathExtra {
                           double ans[3][3]);
   inline void plus3(const double m[3][3], const double m2[3][3],
                     double ans[3][3]);
+  inline void times3(const double m[3][3], const double m2[3][3],
+                     double ans[3][3]);
   inline void transpose_times3(const double mat1[3][3], 
-			       const double mat2[3][3],
+                               const double mat2[3][3],
                                double ans[3][3]);
   inline void invert3(const double mat[3][3], double ans[3][3]);
   inline void times_column3(const double mat[3][3], const double*vec,
                             double *ans);
   inline void transpose_times_column3(const double mat[3][3],const double*vec,
                                       double *ans);
+  inline void transpose_times_diag3(const double mat[3][3],const double*vec,
+                                    double ans[3][3]);
   inline void row_times3(const double *v, const double m[3][3],
                          double *ans);
   inline void mldivide3(const double mat[3][3], const double *vec,
@@ -60,14 +64,20 @@ namespace MathExtra {
   inline void axisangle_to_quat(const double *v, const double angle,
                                 double *quat);
   inline void multiply_quat_quat(const double *one, const double *two,
-				 double *ans);
+                                 double *ans);
   inline void multiply_vec_quat(const double *one, const double *two,
-				double *ans);
+                                double *ans);
 
+  // rotation operations
+  
+  inline void rotation_generator_x(const double m[3][3], double ans[3][3]);
+  inline void rotation_generator_y(const double m[3][3], double ans[3][3]);
+  inline void rotation_generator_z(const double m[3][3], double ans[3][3]);
+  
   // shape matrix operations
 
   inline void multiply_shape_shape(const double *one, const double *two,
-				   double *ans);
+                                   double *ans);
 };
 
 /* ----------------------------------------------------------------------
@@ -151,11 +161,29 @@ void MathExtra::plus3(const double m[3][3], const double m2[3][3],
 }
 
 /* ----------------------------------------------------------------------
+   multiply mat1 times mat2
+------------------------------------------------------------------------- */
+
+void MathExtra::times3(const double m[3][3], const double m2[3][3],
+                       double ans[3][3])
+{
+  ans[0][0] = m[0][0]*m2[0][0]+m[0][1]*m2[1][0]+m[0][2]*m2[2][0];
+  ans[0][1] = m[0][0]*m2[0][1]+m[0][1]*m2[1][1]+m[0][2]*m2[2][1];
+  ans[0][2] = m[0][0]*m2[0][2]+m[0][1]*m2[1][2]+m[0][2]*m2[2][2];
+  ans[1][0] = m[1][0]*m2[0][0]+m[1][1]*m2[1][0]+m[1][2]*m2[2][0];
+  ans[1][1] = m[1][0]*m2[0][1]+m[1][1]*m2[1][1]+m[1][2]*m2[2][1];
+  ans[1][2] = m[1][0]*m2[0][2]+m[1][1]*m2[1][2]+m[1][2]*m2[2][2];
+  ans[2][0] = m[2][0]*m2[0][0]+m[2][1]*m2[1][0]+m[2][2]*m2[2][0];
+  ans[2][1] = m[2][0]*m2[0][1]+m[2][1]*m2[1][1]+m[2][2]*m2[2][1];
+  ans[2][2] = m[2][0]*m2[0][2]+m[2][1]*m2[1][2]+m[2][2]*m2[2][2];
+}
+
+/* ----------------------------------------------------------------------
    multiply the transpose of mat1 times mat2
 ------------------------------------------------------------------------- */
 
 void MathExtra::transpose_times3(const double m[3][3], const double m2[3][3],
-				 double ans[3][3])
+                                 double ans[3][3])
 {
   ans[0][0] = m[0][0]*m2[0][0]+m[1][0]*m2[1][0]+m[2][0]*m2[2][0];
   ans[0][1] = m[0][0]*m2[0][1]+m[1][0]*m2[1][1]+m[2][0]*m2[2][1];
@@ -212,6 +240,24 @@ void MathExtra::transpose_times_column3(const double m[3][3], const double *v,
   ans[0] = m[0][0]*v[0]+m[1][0]*v[1]+m[2][0]*v[2];
   ans[1] = m[0][1]*v[0]+m[1][1]*v[1]+m[2][1]*v[2];
   ans[2] = m[0][2]*v[0]+m[1][2]*v[1]+m[2][2]*v[2];
+}
+
+/* ----------------------------------------------------------------------
+   transposed matrix times diagonal matrix
+------------------------------------------------------------------------- */
+
+void MathExtra::transpose_times_diag3(const double m[3][3],
+                                      const double *d, double ans[3][3])
+{
+  ans[0][0] = m[0][0]*d[0];
+  ans[0][1] = m[1][0]*d[1];
+  ans[0][2] = m[2][0]*d[2];
+  ans[1][0] = m[0][1]*d[0];
+  ans[1][1] = m[1][1]*d[1];
+  ans[1][2] = m[2][1]*d[2];
+  ans[2][0] = m[0][2]*d[0];
+  ans[2][1] = m[1][2]*d[1];
+  ans[2][2] = m[2][2]*d[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -422,7 +468,7 @@ void MathExtra::multiply_vec_quat(const double *one, const double *two,
 ------------------------------------------------------------------------- */
 
 void MathExtra::multiply_shape_shape(const double *one, const double *two,
-				     double *ans)
+                                     double *ans)
 {
   ans[0] = one[0]*two[0];
   ans[1] = one[1]*two[1];
@@ -432,4 +478,55 @@ void MathExtra::multiply_shape_shape(const double *one, const double *two,
   ans[5] = one[0]*two[5] + one[5]*two[1];
 }
 
+/* ----------------------------------------------------------------------
+   Apply principal rotation generator about x to rotation matrix m
+------------------------------------------------------------------------- */
+
+void MathExtra::rotation_generator_x(const double m[3][3], double ans[3][3])
+{
+  ans[0][0]=0;
+  ans[0][1]=-m[0][2];
+  ans[0][2]=m[0][1];
+  ans[1][0]=0;
+  ans[1][1]=-m[1][2];
+  ans[1][2]=m[1][1];
+  ans[2][0]=0;
+  ans[2][1]=-m[2][2];
+  ans[2][2]=m[2][1];
+}
+
+/* ----------------------------------------------------------------------
+   Apply principal rotation generator about y to rotation matrix m
+------------------------------------------------------------------------- */
+
+void MathExtra::rotation_generator_y(const double m[3][3], double ans[3][3])
+{
+  ans[0][0]=m[0][2];
+  ans[0][1]=0;
+  ans[0][2]=-m[0][0];
+  ans[1][0]=m[1][2];
+  ans[1][1]=0;
+  ans[1][2]=-m[1][0];
+  ans[2][0]=m[2][2];
+  ans[2][1]=0;
+  ans[2][2]=-m[2][0];
+}
+
+/* ----------------------------------------------------------------------
+   Apply principal rotation generator about z to rotation matrix m
+------------------------------------------------------------------------- */
+
+void MathExtra::rotation_generator_z(const double m[3][3], double ans[3][3])
+{
+  ans[0][0]=-m[0][1];
+  ans[0][1]=m[0][0];
+  ans[0][2]=0;
+  ans[1][0]=-m[1][1];
+  ans[1][1]=m[1][0];
+  ans[1][2]=0;
+  ans[2][0]=-m[2][1];
+  ans[2][1]=m[2][0];
+  ans[2][2]=0;
+}
+ 
 #endif

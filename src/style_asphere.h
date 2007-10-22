@@ -41,8 +41,10 @@ FixStyle(npt/asphere,FixNPTASphere)
 
 #ifdef PairInclude
 #include "pair_gayberne.h"
+#include "pair_resquared.h"
 #endif
 
 #ifdef PairClass
 PairStyle(gayberne,PairGayBerne)
+PairStyle(resquared,PairRESquared)
 #endif

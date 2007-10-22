@@ -214,7 +214,8 @@ double FixAveAtom::memory_usage()
 void FixAveAtom::grow_arrays(int nmax)
 {
   if (size_peratom == 0) {
-    scalar = (double *) memory->srealloc(scalar,nmax,"fix_ave/atom:scalar");
+    scalar = (double *) memory->srealloc(scalar,nmax*sizeof(double),
+					 "fix_ave/atom:scalar");
     scalar_atom = scalar;
   } else {
     vector = memory->grow_2d_double_array(vector,nmax,size_peratom,

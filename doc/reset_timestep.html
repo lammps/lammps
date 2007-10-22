@@ -35,6 +35,16 @@ was written.
 </P>
 <P><B>Restrictions:</B> none
 </P>
+<P>This command cannot be used when a dump file is defined via the
+<A HREF = "dump.html">dump</A> command and has already been written to.  It also
+cannot be used when a <A HREF = "restart.html">restart frequency</A> has been set,
+and a restart file has already been written.  This is because the
+changed timestep can mess up the planned timestep for the next file
+write.  See the <A HREF = "undump.html">undump</A> command or <A HREF = "restart.html">restart
+0</A> command for info on how to turn off these definitions
+if necessary.  New specifications for dump and restart files can be
+given after the reset_timestep command is used.
+</P>
 <P><B>Related commands:</B> none
 </P>
 <P><B>Default:</B> none

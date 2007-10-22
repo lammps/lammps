@@ -33,7 +33,7 @@ The colloid-colloid interaction energy is given by
 
 :c,image(Eqs/pair_colloid_cc.jpg)
 
-A is the Hamaker constant, a1 and a2 are the radii of the two
+A_cc is the Hamaker constant, a1 and a2 are the radii of the two
 colloidal particles, and Rc is the cutoff.  This equation results from
 describing each colloidal particle as an integrated collection of
 Lennard-Jones particles of size sigma and is derived in
@@ -43,8 +43,8 @@ The colloid-solvent interaction energy is given by
 
 :c,image(Eqs/pair_colloid_cs.jpg)
 
-A is the Hamaker constant, a is the radius of the colloidal particle,
-and Rc is the cutoff.  This formula is derived from the
+A_cs is the Hamaker constant, a is the radius of the colloidal
+particle, and Rc is the cutoff.  This formula is derived from the
 colloid-colloid interaction, letting one of the particle sizes go to
 zero.
 
@@ -53,7 +53,8 @@ Lennard-Jones formula
 
 :c,image(Eqs/pair_colloid_ss.jpg)
 
-which results from letting both particle sizes go to zero.
+with A_ss set appropriately, which results from letting both particle
+sizes go to zero.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -67,19 +68,20 @@ d1 (distance units)
 d2 (distance units)
 cutoff (distance units) :ul
 
-A is the energy prefactor and should typically be set as follows:
+A is the Hamaker energy prefactor and should typically be set as
+follows:
 
 A_cc = colloid/colloid = 4 pi^2 = 39.5
-A_ss = solvent/solvent = 144 (assuming epsilon = 1, so that 144/36 = 4)
-A_cs = colloid/solvent = sqrt(A_cc*A_ss) :ul
+A_cs = colloid/solvent = sqrt(A_cc*A_ss)
+A_ss = solvent/solvent = 144 (assuming epsilon = 1, so that 144/36 = 4) :ul
 
 Sigma is the size of the solvent particle or the constituent particles
 integrated over in the colloidal particle and should typically be set
 as follows:
 
 Sigma_cc = colloid/colloid = 1.0
-Sigma_ss = solvent/solvent = 1.0 or whatever size the solvent particle is
-Sigma_cs = colloid/solvent = arithmetic mixing between colloid sigma and solvent sigma :ul
+Sigma_cs = colloid/solvent = arithmetic mixing between colloid sigma and solvent sigma
+Sigma_ss = solvent/solvent = 1.0 or whatever size the solvent particle is :ul
 
 Thus typically Sigma_cs = 1.0, unless the solvent particle's size !=
 1.0.

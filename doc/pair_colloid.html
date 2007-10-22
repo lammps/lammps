@@ -36,7 +36,7 @@ Lennard-Jones particle of size sigma.
 </P>
 <CENTER><IMG SRC = "Eqs/pair_colloid_cc.jpg">
 </CENTER>
-<P>A is the Hamaker constant, a1 and a2 are the radii of the two
+<P>A_cc is the Hamaker constant, a1 and a2 are the radii of the two
 colloidal particles, and Rc is the cutoff.  This equation results from
 describing each colloidal particle as an integrated collection of
 Lennard-Jones particles of size sigma and is derived in
@@ -46,8 +46,8 @@ Lennard-Jones particles of size sigma and is derived in
 </P>
 <CENTER><IMG SRC = "Eqs/pair_colloid_cs.jpg">
 </CENTER>
-<P>A is the Hamaker constant, a is the radius of the colloidal particle,
-and Rc is the cutoff.  This formula is derived from the
+<P>A_cs is the Hamaker constant, a is the radius of the colloidal
+particle, and Rc is the cutoff.  This formula is derived from the
 colloid-colloid interaction, letting one of the particle sizes go to
 zero.
 </P>
@@ -56,7 +56,8 @@ Lennard-Jones formula
 </P>
 <CENTER><IMG SRC = "Eqs/pair_colloid_ss.jpg">
 </CENTER>
-<P>which results from letting both particle sizes go to zero.
+<P>with A_ss set appropriately, which results from letting both particle
+sizes go to zero.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -70,19 +71,20 @@ commands, or by mixing as described below:
 <LI>d2 (distance units)
 <LI>cutoff (distance units) 
 </UL>
-<P>A is the energy prefactor and should typically be set as follows:
+<P>A is the Hamaker energy prefactor and should typically be set as
+follows:
 </P>
 <UL><LI>A_cc = colloid/colloid = 4 pi^2 = 39.5
-<LI>A_ss = solvent/solvent = 144 (assuming epsilon = 1, so that 144/36 = 4)
-<LI>A_cs = colloid/solvent = sqrt(A_cc*A_ss) 
+<LI>A_cs = colloid/solvent = sqrt(A_cc*A_ss)
+<LI>A_ss = solvent/solvent = 144 (assuming epsilon = 1, so that 144/36 = 4) 
 </UL>
 <P>Sigma is the size of the solvent particle or the constituent particles
 integrated over in the colloidal particle and should typically be set
 as follows:
 </P>
 <UL><LI>Sigma_cc = colloid/colloid = 1.0
-<LI>Sigma_ss = solvent/solvent = 1.0 or whatever size the solvent particle is
-<LI>Sigma_cs = colloid/solvent = arithmetic mixing between colloid sigma and solvent sigma 
+<LI>Sigma_cs = colloid/solvent = arithmetic mixing between colloid sigma and solvent sigma
+<LI>Sigma_ss = solvent/solvent = 1.0 or whatever size the solvent particle is 
 </UL>
 <P>Thus typically Sigma_cs = 1.0, unless the solvent particle's size !=
 1.0.

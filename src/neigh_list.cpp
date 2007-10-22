@@ -105,7 +105,7 @@ NeighList::~NeighList()
 
 void NeighList::grow(int nmax)
 {
-  // skip if grow not needed (don't think this should happen)
+  // skip if grow not needed
 
   if (nmax <= maxlocal) return;
   maxlocal = nmax;

@@ -548,6 +548,7 @@ void Neighbor::init()
 
     // allocate atom arrays and 1st pages of lists that store them
 
+    maxlocal = atom->nmax;
     for (i = 0; i < nlist; i++)
       if (lists[i]->growflag) {
 	lists[i]->grow(maxlocal);
@@ -962,7 +963,7 @@ void Neighbor::build()
   }
 
   // if necessary, extend atom arrays in pairwise lists
-  // only done for lists with growflag set which are used every reneighbor
+  // only for lists with growflag set and which are used every reneighbor
 
   if (atom->nlocal > maxlocal) {
     maxlocal = atom->nmax;
@@ -978,7 +979,7 @@ void Neighbor::build()
   }
 
   // invoke building of pair and molecular neighbor lists
-  // only done for pairwise lists with buildflag set
+  // only for pairwise lists with buildflag set
 
   for (i = 0; i < nblist; i++)
     (this->*pair_build[blist[i]])(lists[blist[i]]);
@@ -998,12 +999,21 @@ void Neighbor::build()
 
 void Neighbor::build_one(int i)
 {
-  // grow atom arrays and update stencils depending on growflag & stencilflag
+  // update stencils and grow atom arrays and bins
+  // only for relevant settings of stencilflag and growflag
+  // do not reset maxlocal to atom->nmax, since not all lists are being grown
 
-  if (lists[i]->growflag) lists[i]->grow(maxlocal);
   if (lists[i]->stencilflag) {
     lists[i]->stencil_allocate(smax,style);
     (this->*stencil_create[i])(lists[i],sx,sy,sz);
+  }
+
+  if (lists[i]->growflag) lists[i]->grow(maxlocal);
+
+  if (style != NSQ && atom->nmax > maxbin) {
+    maxbin = atom->nmax;
+    memory->sfree(bins);
+    bins = (int *) memory->smalloc(maxbin*sizeof(int),"bins");
   }
 
   (this->*pair_build[i])(lists[i]);

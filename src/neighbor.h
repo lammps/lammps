@@ -72,7 +72,7 @@ class Neighbor : protected Pointers {
  private:
   int me,nprocs;
 
-  int maxlocal;                    // size of numneigh, firstneigh arrays
+  int maxlocal;                    // size of atom-based NeighList arrays
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
 
   int must_check;                  // 1 if must check other classes to reneigh

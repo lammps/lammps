@@ -17,7 +17,7 @@
 # The Si(D), C and Ge potentials can be used pure silicon, pure carbon, pure germanium, 
 # binary SiC, and binary SiGe, but not binary GeC or ternary SiGeC. LAMMPS will generate an error
 # if this file is used with any combination involving C and Ge, since there are no entries for
-the GeC interactions (Tersoff did not publish parameters for this cross-interaction.) 
+# the GeC interactions (Tersoff did not publish parameters for this cross-interaction.) 
 
 # format of a single entry (one or more lines):
 #   element 1, element 2, element 3, 

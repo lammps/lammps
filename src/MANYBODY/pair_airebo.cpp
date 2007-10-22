@@ -378,7 +378,7 @@ void PairAIREBO::REBO_neigh()
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
-  // store REBO neighs of ghost atoms that have been flagged
+  // store REBO neighs of ghost atoms that have been flagged in REBO_numneigh
   // find by scanning full neighbor list of owned atom M that is neighbor of I
 
   for (i = nlocal; i < nall; i++) {
@@ -415,8 +415,8 @@ void PairAIREBO::REBO_neigh()
     else
       nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
 
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+    jlist = firstneigh[m];
+    jnum = numneigh[m];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

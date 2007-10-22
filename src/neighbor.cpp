@@ -993,13 +993,13 @@ void Neighbor::build()
 }
 
 /* ----------------------------------------------------------------------
-   build a single non-active pairwise neighbor list indexed by I
-   called by other classes when needed occasionally
+   build a single occasional pairwise neighbor list indexed by I
+   called by other classes
 ------------------------------------------------------------------------- */
 
 void Neighbor::build_one(int i)
 {
-  // update stencils and grow atom arrays and bins
+  // update stencils and grow atom arrays and bins as needed
   // only for relevant settings of stencilflag and growflag
   // do not reset maxlocal to atom->nmax, since not all lists are being grown
 

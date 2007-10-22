@@ -79,6 +79,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   restart = NULL;
   restart1 = restart2 = NULL;
   restart_every = 0;
+  last_restart = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -357,6 +358,7 @@ void Output::create_restart(int narg, char **arg)
   delete [] restart2;
   restart = NULL;
   restart1 = restart2 = NULL;
+  last_restart = -1;
 
   restart_every = atoi(arg[0]);
   if (restart_every == 0) {
@@ -365,7 +367,6 @@ void Output::create_restart(int narg, char **arg)
   }
 
   restart = new WriteRestart(lmp);
-  last_restart = -1;
 
   int n = strlen(arg[1]) + 3;
   restart1 = new char[n];

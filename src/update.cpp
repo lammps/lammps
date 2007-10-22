@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
+#include "stdlib.h"
 #include "update.h"
 #include "neighbor.h"
 #include "force.h"
@@ -177,6 +178,25 @@ void Update::create_minimize(int narg, char **arg)
   int n = strlen(arg[0]) + 1;
   minimize_style = new char[n];
   strcpy(minimize_style,arg[0]);
+}
+
+/* ----------------------------------------------------------------------
+   reset timestep from input script
+   do not allow dump files or a restart to be defined
+------------------------------------------------------------------------- */
+
+void Update::reset_timestep(int narg, char **arg)
+{
+  if (narg != 1) error->all("Illegal reset_timestep command");
+
+  for (int i = 0; i < output->ndump; i++)
+    if (output->last_dump[i] >= 0)
+      error->all("Cannot reset timestep with dump file already written to");
+  if (output->restart && output->last_restart >= 0)
+    error->all("Cannot reset timestep with restart file already written");
+
+  ntimestep = atoi(arg[0]);
+  if (ntimestep < 0) error->all("Timestep must be >= 0");
 }
 
 /* ----------------------------------------------------------------------

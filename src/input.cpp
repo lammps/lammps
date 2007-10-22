@@ -1039,9 +1039,7 @@ void Input::region()
 
 void Input::reset_timestep()
 {
-  if (narg != 1) error->all("Illegal reset_timestep command");
-  update->ntimestep = atoi(arg[0]);
-  if (update->ntimestep < 0) error->all("Timestep must be >= 0");
+  update->reset_timestep(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

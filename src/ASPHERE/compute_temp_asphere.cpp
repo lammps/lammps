@@ -114,6 +114,7 @@ double ComputeTempAsphere::compute_scalar()
   double **quat = atom->quat;
   double **angmom = atom->angmom;
   double *mass = atom->mass;
+  double **shape = atom->shape;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -133,17 +134,21 @@ double ComputeTempAsphere::compute_scalar()
 
       // wbody = angular velocity in body frame
 
-      MathExtra::quat_to_mat(quat[i],rot);
-      MathExtra::transpose_times_column3(rot,angmom[i],wbody);
-      wbody[0] /= inertia[itype][0];
-      wbody[1] /= inertia[itype][1];
-      wbody[2] /= inertia[itype][2];
+      if (!(shape[itype][0] == shape[itype][1] && 
+            shape[itype][1] == shape[itype][2])) {
 
-      // rotational kinetic energy
+        MathExtra::quat_to_mat(quat[i],rot);
+        MathExtra::transpose_times_column3(rot,angmom[i],wbody);
+        wbody[0] /= inertia[itype][0];
+        wbody[1] /= inertia[itype][1];
+        wbody[2] /= inertia[itype][2];
 
-      t += inertia[itype][0]*wbody[0]*wbody[0]+
-           inertia[itype][1]*wbody[1]*wbody[1]+
-           inertia[itype][2]*wbody[2]*wbody[2];
+        // rotational kinetic energy
+
+        t += inertia[itype][0]*wbody[0]*wbody[0]+
+             inertia[itype][1]*wbody[1]*wbody[1]+
+             inertia[itype][2]*wbody[2]*wbody[2];
+      }
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);

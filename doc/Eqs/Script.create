@@ -46,6 +46,10 @@ latex pair_lj_smooth
 latex pair_lubricate
 latex pair_meam
 latex pair_morse
+latex pair_resquared
+latex pair_resquared2
+latex pair_resquared3
+latex pair_resquared4
 latex pair_soft
 latex pair_sw
 latex pair_tersoff

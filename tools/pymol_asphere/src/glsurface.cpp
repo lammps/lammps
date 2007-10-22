@@ -535,6 +535,7 @@ void GLSurface::add_super_ellipsoid(const cPt &cen, const cPt &rad,
   Vertex ver;
   ver.color=color;
   ver.transparency=alpha;
+  ver.valid_normal=true;
   double dU=(u2-u1)/u_segs;
   double dV=(v2-v1)/v_segs;
   double U=u1;

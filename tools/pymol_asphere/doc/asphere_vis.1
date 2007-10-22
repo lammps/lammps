@@ -1,7 +1,7 @@
 .if !'\*(.T'ps' .if !'\*(.T'html' .tm warning: eqn should have been given a `-T\*(.T' option
 .if '\*(.T'html' .if !'ps'ps' .tm warning: eqn should have been given a `-Tps' option
 .if '\*(.T'html' .if !'ps'ps' .tm warning: (it is advisable to invoke groff via: groff -Thtml -e)
-.lf 1 /usr/share/groff/1.18.1/tmac/eqnrc
+.lf 1 /usr/share/groff/1.18.1.1/tmac/eqnrc
 .\" Startup file for eqn.
 .EQ
 .nr 0C \n(.C
@@ -11,52 +11,85 @@
 .lf 63
 .EN
 .lf 1 asphere_vis.manpage
-.TH asphere_vis 1 "June 22, 2007" "asphere_vis (Graphics Utilities) 0.1" "Graphics Utilities"
+.TH asphere_vis 1 "October 22, 2007" "asphere_vis (Graphics Utilities) 0.2" "Graphics Utilities"
 .SH NAME
 \fBasphere_vis\fR - Tools for ellipsoid visualization in PyMol of a LAMMPS trajectory.
 .PD 2
 .SH VERSION
 .PD 1
-Version 0.1
+Version 0.2
 .PD 2
 .SH SYNOPSIS
 .PD 1
 .TP
-\fBasphere_vis\fR input_file dump_file output_py_file [\fB-b\fR] [\fB-c\fR \fIcolor_file\fR] [\fB-d\fR] [\fB-f\fR \fImax_frame\fR] [\fB-h\fR] [\fB-i\fR \fIstart_frame\fR \fIskip\fR \fIend_frame\fR] [\fB-n\fR \fInotice_level\fR] [\fB-r\fR \fIellip_res\fR] [\fB-s\fR]
+\fBasphere_vis\fR flavor_file dump_file output_py_file [\fB-b\fR] [\fB-f\fR \fImax_frame\fR] [\fB-h\fR] [\fB-i\fR \fIstart_frame\fR \fIskip\fR \fIend_frame\fR] [\fB-n\fR \fInotice_level\fR] [\fB-o\fR] [\fB-r\fR \fIellip_res\fR] [\fB-s\fR]
 .br
 .PD 2
 .SH DESCRIPTION
 .PD 1
-Tool for ellipsoid visualization in PyMol of a LAMMPS trajectory. The \fIinput_file\fR is a LAMMPS data file with a 'Shapes' section or a LAMMPS input script file with ellipsoid diameters specified using the 'shape' command.  The trajectory is input from \fIdump_file\fR that must be generated using a LAMMPS dump_style custom command with the following arguments in order:
+Tool for converting LAMMPS trajectories into compiled graphics objects for visualization in PyMol. The \fIflavor_file\fR is an input file that describes the color, transparency, and size/shape of each atom type. The \fIflavor_file\fR consists of two possible line formats. For spherical particles, the format is:
 .PD 0
 .PP
 .PD 1
 
 .PD 0
-.TP
 .PP
 .PD 1
-\fItag type x y z quatw quati quatj quatk\fR
+	\fIatom_type color alpha diameter\fR
 .PD 0
 .PP
 .PD 1
 
+.PD 0
+.PP
+.PD 1
+where alpha is used to adjust the transparency of the particle. For ellipsoidal particles, the format is:
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	\fIatom_type color alpha diameter_x diameter_y diameter_z\fR
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+Ellipsoidal and spherical line formats can be mixed in the same \fIflavor_file\fR For any atom type not listed in the \fIflavor_file\fR a blue sphere of size 1 is assumed.
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+The \fIdump_file\fR is a LAMMPS trajectory. For atom types specified as spherical in the \fIflavor_file\fR, the \fIdump_file\fR must contain \fItag type x y z\fR as the first columns. For atom types specified as ellipsoidal in the \fIflavor_file\fR, the columns are \fItag type x y z quatw quati quatj quatk\fR.The latter can be gerenated, for example, with the LAMMPS dump_style custom command with the following arguments in order:
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	\fItag type x y z quatw quati quatj quatk\fR
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+The output file is a python file for input to Pymol. This can be viewed from the command line using \fIpymol output.py\fR or by using the \fIrun\fR command from within Pymol.
 .PD 2
 .SH PARAMETERS
 .PD 1
 .TP
 \fB-b\fR
 When used with \fB-s\fR, the option will number the filenames based on the frame number. By default, they are numbered consequtively from zero.
-.TP
-\fB-c\fR \fIcolor_file\fR
-.PD 0
-.TP
-.PP
-.PD 1
-Color the atom_types and set transparency based on the color file. The color file contains a space delimited set sequence of the color for an atom followed by the alpha. The color should be the string name and the alpha should be between 0 and 1.
-.TP
-\fB-d\fR
-Use a LAMMPS input script rather than a data file for extracting atom shape information. The input script is specified as \fIinput_file\fR.
 .TP
 \fB-f\fR \fImax_frame\fR
 .PD 0
@@ -101,6 +134,9 @@ Set the degree of program output.  Use:
 .PP
 .PD 1
 	\fB-n\fR 30	All output
+.TP
+\fB-o\fR
+Do not output the outline for the simulation box.
 .TP
 \fB-r\fR \fIellip_res\fR
 .PD 0
@@ -199,10 +235,6 @@ Output the results into separate .py files. The filename and extension for the o
 .PP
 .PD 1
 
-.PD 2
-.SH KNOWN BUGS
-.PD 1
-Comments are not allowed at any point between a section header and the end of the contents for a section in either the data file or the input file.
 .PD 2
 .SH AUTHORS
 .PD 1

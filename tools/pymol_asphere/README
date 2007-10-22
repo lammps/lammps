@@ -8,10 +8,7 @@ make       # may need to edit Makefile for your system
 
 This will place the asphere_vis executable in the bin directory.
 
-Documentation is in the doc directory.  Note that the doc file says
-the ellipsoid axes are specified by an "Ellipsoid" section in the data
-file.  In the current version of LAMPS, this is now a "Shapes"
-section.
+Documentation is in the doc directory. 
 
 See instructions on how to run an example ellipsoid viz in the
 examples dir.

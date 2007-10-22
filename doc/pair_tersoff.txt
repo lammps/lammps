@@ -20,14 +20,14 @@ pair_coeff * * SiC.tersoff Si C Si :pre
 
 [Description:]
 
-The {tersoff} style computes a 3-body "Tersoff"_#Tersoff potential
+The {tersoff} style computes a 3-body "Tersoff"_#Tersoff_1 potential
 for the energy E of a system of atoms as
 
-:c,image(Eqs/pair_tersoff.jpg)
+:c,image(Eqs/pair_tersoff_1.jpg)
 
 where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = R + D.
+within a cutoff distance = R + D. 
 
 Only a single pair_coeff command is used with the {tersoff} style
 which specifies a Tersoff potential file with parameters for all
@@ -63,6 +63,8 @@ above:
 element 1 (the center atom in a 3-body interaction)
 element 2 (the atom bonded to the center atom)
 element 3 (the atom influencing the 1-2 bond in a bond-order sense)
+m
+gamma
 lambda3 (1/distance units)
 c
 d
@@ -77,7 +79,7 @@ lambda1 (1/distance units)
 A (energy units) :ul
 
 The n, beta, lambda2, B, lambda1, and A parameters are only used for
-two-body interactions.  The lambda3, c, d, and costheta0 parameters
+two-body interactions.  The m, gamma, lambda3, c, d, and costheta0 parameters
 are only used for three-body interactions. The R and D parameters 
 are used for both two-body and three-body interactions. The 
 non-annotated parameters are unitless.
@@ -109,6 +111,38 @@ The parameters used only for two-body interactions
 (n, beta, lambda2, B, lambda1, and A) 
 in entries whose 2nd and 3rd element are different (e.g. SiCSi) 
 are not used for anything and can be set to 0.0 if desired.
+
+We chose the above form so as to enable users to define
+all commonly used variants of the Tersoff potential. 
+In particular, our form reduces to the original
+Tersoff form when m = 3 and gamma = 1, while it reduces to the form of "Albe
+et al."_#Albe when beta = 1 and m = 1. Tersoff used a slightly 
+different but equivalent form for alloys, which we will refer to
+as "Tersoff_2"_#Tersoff_2.
+
+LAMMPS parameter values for Tersoff_2 can be obtained as follows. 
+The parameters for species i and j can be calculated 
+using the Tersoff_2 mixing rules:
+
+:c,image(Eqs/pair_tersoff_2.jpg)
+
+Values not shown are determined by the first atom type. Finally, the 
+Tersoff_2 parameters R and S must be converted to the LAMMPS parameters 
+R and D (R is different in both forms), using the following relations:
+R=(R'+S')/2 and D=(S'-R')/2, where the primes indicate the Tersoff_2 parameters.
+
+In the potentials directory, the file SiCGe.tersoff 
+provides the LAMMPS parameters for Tersoff's various versions of Si, as well
+as his alloy paramters for Si, C, and Ge. This file can be
+used for pure Si, (three different versions), pure C, pure Ge, binary SiC, and binary SiGe. 
+LAMMPS will generate an error
+if this file is used with any combination involving C and Ge, since there are no entries for
+the GeC interactions (Tersoff did not publish parameters for this cross-interaction.) 
+Tersoff files are also provided for the SiC alloy (SiC.tersoff) and the GaN (GaN.tersoff) 
+alloys.
+
+Many thanks to Rutuparna Narulkar, David Farrell, and Xiaowang Zhou for helping clarify
+how Tersoff parameters for alloys have been defined in various papers.
 
 :line
 
@@ -161,5 +195,9 @@ appropriate units if your simulation doesn't use "metal" units.
 
 :line
 
-:link(Tersoff)
-[(Tersoff)] Tersoff, Phys Rev B, 37, 6991 (1988).
+:link(Tersoff_1)
+[(Tersoff_1)] J. Tersoff, Phys Rev B, 37, 6991 (1988).
+:link(Albe)
+[(Albe)] J. Nord, K. Albe, P. Erhartand K. Nordlund, J. Phys.: Condens. Matter, 15, 5649(2003).
+:link(Tersoff_2)
+[(Tersoff_2)] J. Tersoff, Phys Rev B, 39, 5566 (1989)

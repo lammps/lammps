@@ -55,10 +55,9 @@ rotation.  Additionally, "atom_style ellipsoid"_atom_style.html should
 be used since it defines the rotational state of the ellipsoidal
 particles.
 
-:link(gbdoc,Eqs/pair_gayberne_extra.pdf)
-
 More details of the Gay-Berne formulation are given in the references
-listed below and in "this document"_Eqs/pair_gayberne_extra.pdf.
+listed below and in "this supplementary
+document"_Eqs/pair_gayberne_extra.pdf.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

@@ -352,10 +352,10 @@ double PairTersoff::init_one(int i, int j)
 
 void PairTersoff::read_file(char *file)
 {
-  int params_per_line = 15;
+  int params_per_line = 17;
   char **words = new char*[params_per_line+1];
 
-  memory->sfree(params);
+  if (params) delete [] params;
   params = NULL;
   nparams = 0;
 
@@ -450,26 +450,31 @@ void PairTersoff::read_file(char *file)
     params[nparams].ielement = ielement;
     params[nparams].jelement = jelement;
     params[nparams].kelement = kelement;
-    params[nparams].lam3 = atof(words[3]);
-    params[nparams].c = atof(words[4]);
-    params[nparams].d = atof(words[5]);
-    params[nparams].h = atof(words[6]);
-    params[nparams].powern = atof(words[7]);
-    params[nparams].beta = atof(words[8]);
-    params[nparams].lam2 = atof(words[9]);
-    params[nparams].bigb = atof(words[10]);
-    params[nparams].bigr = atof(words[11]);
-    params[nparams].bigd = atof(words[12]);
-    params[nparams].lam1 = atof(words[13]);
-    params[nparams].biga = atof(words[14]);
+    params[nparams].powerm = atof(words[3]);
+    params[nparams].gamma = atof(words[4]);
+    params[nparams].lam3 = atof(words[5]);
+    params[nparams].c = atof(words[6]);
+    params[nparams].d = atof(words[7]);
+    params[nparams].h = atof(words[8]);
+    params[nparams].powern = atof(words[9]);
+    params[nparams].beta = atof(words[10]);
+    params[nparams].lam2 = atof(words[11]);
+    params[nparams].bigb = atof(words[12]);
+    params[nparams].bigr = atof(words[13]);
+    params[nparams].bigd = atof(words[14]);
+    params[nparams].lam1 = atof(words[15]);
+    params[nparams].biga = atof(words[16]);
 
-    if (params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 || 
+    if (
+	params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 || 
 	params[nparams].d < 0.0 || params[nparams].powern < 0.0 || 
 	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 || 
 	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
 	params[nparams].bigd < 0.0 ||
 	params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0)
+	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+	params[nparams].powerm - int(params[nparams].powerm) != 0.0 ||
+        params[nparams].powerm < 0.0 || params[nparams].gamma < 0.0)
       error->all("Illegal Tersoff parameter");
 
     nparams++;
@@ -555,7 +560,7 @@ double PairTersoff::zeta(Param *param, double rsqij, double rsqik,
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] + 
 	      delrij[2]*delrik[2]) / (rij*rik);
 
-  arg = pow(param->lam3 * (rij-rik),3);
+  arg = pow(param->lam3 * (rij-rik),param->powerm);
   if (arg > 69.0776) ex_delr = 1.e30;
   else if (arg < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(arg);
@@ -685,8 +690,8 @@ double PairTersoff::ters_gijk(double costheta, Param *param)
   double ters_c = param->c;
   double ters_d = param->d;
 
-  return 1.0 + pow(ters_c/ters_d,2.0) -
-    pow(ters_c,2.0) / (pow(ters_d,2.0) + pow(param->h - costheta,2.0));
+  return param->gamma*(1.0 + pow(ters_c/ters_d,2.0) -
+    pow(ters_c,2.0) / (pow(ters_d,2.0) + pow(param->h - costheta,2.0)));
 };
 
 /* ---------------------------------------------------------------------- */
@@ -696,7 +701,7 @@ double PairTersoff::ters_gijk_d(double costheta, Param *param)
   double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
   double denominator = pow(pow(param->d,2.0) + 
 			   pow(param->h - costheta,2.0),2.0);
-  return numerator/denominator;
+  return param->gamma*numerator/denominator;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -712,13 +717,14 @@ void PairTersoff::ters_zetaterm_d(double prefactor,
 
   fc = ters_fc(rik,param);
   dfc = ters_fc_d(rik,param);
-  tmp = pow(param->lam3 * (rij-rik),3.0);
+  tmp = pow(param->lam3 * (rij-rik),param->powerm);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  ex_delr_d = (3.0*pow(param->lam3,3.0)) * pow(rij-rik,2.0)*ex_delr;
+  ex_delr_d = (param->powerm*pow(param->lam3,param->powerm)) *
+              pow(rij-rik,param->powerm-1.0)*ex_delr;
   cos_theta = vec3_dot(rij_hat,rik_hat);
   gijk = ters_gijk(cos_theta,param);
   gijk_d = ters_gijk_d(cos_theta,param);

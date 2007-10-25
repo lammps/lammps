@@ -32,6 +32,7 @@ class PairTersoff : public Pair {
   struct Param {
     double lam1,lam2,lam3;
     double c,d,h;
+    double gamma,powerm;
     double powern,beta;
     double biga,bigb,bigd,bigr;
     double cut,cutsq;

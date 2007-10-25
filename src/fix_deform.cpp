@@ -327,9 +327,11 @@ void FixDeform::init()
     if (update->firststep == update->beginstep) {
       set[i].lo_start = domain->boxlo[i];
       set[i].hi_start = domain->boxhi[i];
+      set[i].vol_start = domain->xprd * domain->yprd * domain->zprd;
     } else {
       set[i].lo_start = set[i].lo_initial;
       set[i].hi_start = set[i].hi_initial;
+      set[i].vol_start = set[i].vol_initial;
     }
 
     if (set[i].style == FINAL) {
@@ -366,11 +368,7 @@ void FixDeform::init()
       if (i == 5) set[i].tilt_start = domain->xy;
       else if (i == 4) set[i].tilt_start = domain->xz;
       else if (i == 3) set[i].tilt_start = domain->yz;
-      set[i].vol_start = domain->xprd * domain->yprd * domain->zprd;
-    } else {
-      set[i].tilt_start = set[i].tilt_initial;
-      set[i].vol_start = set[i].vol_initial;
-    }
+    } else set[i].tilt_start = set[i].tilt_initial;
 
     if (set[i].style == FINAL) {
       set[i].tilt_stop = set[i].ftilt;
@@ -535,6 +533,7 @@ void FixDeform::end_of_step()
     if (set[i].style != VOLUME) continue;
 
     if (set[i].substyle == ONE_FROM_ONE) {
+      if (i == 1)
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
 	0.5*(set[i].vol_start /
 	     (set[set[i].dynamic1].hi_target -

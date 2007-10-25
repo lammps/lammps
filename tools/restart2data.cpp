@@ -2279,7 +2279,7 @@ void Data::write(FILE *fp)
       
     } else if (strcmp(pair_style,"gayberne") == 0) {
       for (int i = 1; i <= ntypes; i++)
-	fprintf(fp,"%d %g %g %g %g %g %g %g %g %g\n",i,
+	fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
 		pair_gb_epsilon[i],pair_gb_sigma[i],
 		pair_gb_epsa[i],pair_gb_epsb[i],pair_gb_epsc[i],
 		pair_gb_epsa[i],pair_gb_epsb[i],pair_gb_epsc[i]);

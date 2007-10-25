@@ -259,15 +259,14 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   for (int i = 0; i < 3; i++) {
     set[i].lo_initial = domain->boxlo[i];
     set[i].hi_initial = domain->boxhi[i];
+    set[i].vol_initial = domain->xprd * domain->yprd * domain->zprd;
   }
   for (int i = 3; i < 6; i++) {
     if (i == 5) set[i].tilt_initial = domain->xy;
     else if (i == 4) set[i].tilt_initial = domain->xz;
     else if (i == 3) set[i].tilt_initial = domain->yz;
-    set[i].vol_initial = domain->xprd * domain->yprd * domain->zprd;
   }
 
-  // initial settings
   // reneighboring only forced if flips will occur due to shape changes
 
   if (set[3].style || set[4].style || set[5].style) force_reneighbor = 1;
@@ -533,7 +532,6 @@ void FixDeform::end_of_step()
     if (set[i].style != VOLUME) continue;
 
     if (set[i].substyle == ONE_FROM_ONE) {
-      if (i == 1)
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
 	0.5*(set[i].vol_start /
 	     (set[set[i].dynamic1].hi_target -

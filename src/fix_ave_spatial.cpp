@@ -285,7 +285,8 @@ void FixAveSpatial::init()
       error->all("Fix ave/spatial settings invalid with changing box");
   }
 
-  // set ptrs to one or more computes called each end-of-step
+  // set ptrs to compute and its pre-computes called each end-of-step
+  // put pre-computes in list before compute
 
   if (which == COMPUTE) {
     int icompute = modify->find_compute(id_compute);

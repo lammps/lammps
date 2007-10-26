@@ -115,7 +115,8 @@ int FixAveAtom::setmask()
 
 void FixAveAtom::init()
 {
-  // set ptrs to one or more computes called each end-of-step
+  // set ptrs to compute and its pre-computes called each end-of-step
+  // put pre-computes in list before compute
 
   int icompute = modify->find_compute(id_compute);
   if (icompute < 0) error->all("Compute ID for fix ave/atom does not exist");

@@ -793,7 +793,7 @@ void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 
 /* ----------------------------------------------------------------------
    add compute ID to list of Compute objects to call
-   return index of where this Compute is in list
+   return location of where this Compute is in list
    if already in list, do not add, just return index, else add to list
    convert index into which param
      index = 0 -> scalar, index >= 1 -> vector

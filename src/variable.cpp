@@ -701,7 +701,7 @@ double Variable::evaluate(char *str, Tree *tree)
       modify->compute[icompute]->init();
 
       // call compute_scalar() if index = 0, else compute_vector()
-      // make pre-call to Compute object's pre-compute(s) if defined
+      // if defined, first call Compute object's pre-compute(s)
 
       int index = atoi(arg);
       if (index == 0) {

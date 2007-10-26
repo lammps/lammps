@@ -86,6 +86,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_rotate_dipole.h"
 #include "compute_rotate_gran.h"
 #include "compute_stress_atom.h"
+#include "compute_sum.h"
 #include "compute_sum_atom.h"
 #include "compute_temp.h"
 #include "compute_temp_deform.h"
@@ -107,6 +108,7 @@ ComputeStyle(pressure,ComputePressure)
 ComputeStyle(rotate/dipole,ComputeRotateDipole)
 ComputeStyle(rotate/gran,ComputeRotateGran)
 ComputeStyle(stress/atom,ComputeStressAtom)
+ComputeStyle(sum,ComputeSum)
 ComputeStyle(sum/atom,ComputeSumAtom)
 ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/deform,ComputeTempDeform)

@@ -35,7 +35,7 @@ other computes that it invokes.  E.g. if the other computes each
 generate a scalar value per atom, so will this compute.  If the other
 computes each generate a vector of values per atom, so will this
 compute.  In the latter case, all the other computes must generate
-vectors of the same size.
+per-atom vectors of the same size.
 
 [Restrictions:] none
 

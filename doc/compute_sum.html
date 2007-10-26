@@ -34,13 +34,15 @@ be accessed by any command that uses global computes, e.g. the <A HREF = "therml
 custom</A> command or <A HREF = "fix_ave_time.html">fix ave/time</A>
 command or by a <A HREF = "variable.html">variable</A> command.
 </P>
-<P>Unlike the "compute sum/atom" command, the result of this is not a
-per-atom quantity, but a global scalar or vector.  If the other
-computes each generate a scalar value per atom, this compute will
-generate a single scalar value.  If the other computes each generate a
-vector of values per atom, this compute will generate a vector of
-values.  In the latter case, all the other computes must generate
-vectors of the same size.
+<P>Unlike the <A HREF = "compute_sum_atom.html">compute sum/atom</A> command, the
+result of this is not a per-atom quantity, but a global scalar or
+vector.  If the other computes each generate a scalar value per atom,
+this compute will generate a single scalar value.  If the other
+computes each generate a vector of values per atom, this compute will
+generate a vector of values where each value is the sum across atoms
+of the corresponding value produced by the other computes.  In the
+latter case, all the other computes must generate per-atom vectors of
+the same size.
 </P>
 <P><B>Restrictions:</B> none
 </P>

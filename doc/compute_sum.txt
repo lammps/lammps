@@ -31,13 +31,15 @@ be accessed by any command that uses global computes, e.g. the "thermo
 custom"_therml_style.html command or "fix ave/time"_fix_ave_time.html
 command or by a "variable"_variable.html command.
 
-Unlike the "compute sum/atom" command, the result of this is not a
-per-atom quantity, but a global scalar or vector.  If the other
-computes each generate a scalar value per atom, this compute will
-generate a single scalar value.  If the other computes each generate a
-vector of values per atom, this compute will generate a vector of
-values.  In the latter case, all the other computes must generate
-vectors of the same size.
+Unlike the "compute sum/atom"_compute_sum_atom.html command, the
+result of this is not a per-atom quantity, but a global scalar or
+vector.  If the other computes each generate a scalar value per atom,
+this compute will generate a single scalar value.  If the other
+computes each generate a vector of values per atom, this compute will
+generate a vector of values where each value is the sum across atoms
+of the corresponding value produced by the other computes.  In the
+latter case, all the other computes must generate per-atom vectors of
+the same size.
 
 [Restrictions:] none
 

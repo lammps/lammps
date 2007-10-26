@@ -1,0 +1,48 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute sum command :h3
+
+[Syntax:]
+
+compute ID group-ID sum compute-ID1 compute-ID2 ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+sum/ = style name of this compute command
+compute-ID1, 2, ...  = IDs of computes that calculate per-atom quantities :ul
+
+[Examples:]
+
+compute 1 all sum c_force
+compute 1 all sum atomKE atomEpair atomEbond :pre
+
+[Description:]
+
+Define a computation that sums the results of one or more per-atom
+computes across all atoms in the group to yield a global scalar or
+vector quantity.  For example, the forces on a group of atoms could be
+summed to yield a net force on the group.  The resulting value(s) can
+be accessed by any command that uses global computes, e.g. the "thermo
+custom"_therml_style.html command or "fix ave/time"_fix_ave_time.html
+command or by a "variable"_variable.html command.
+
+Unlike the "compute sum/atom" command, the result of this is not a
+per-atom quantity, but a global scalar or vector.  If the other
+computes each generate a scalar value per atom, this compute will
+generate a single scalar value.  If the other computes each generate a
+vector of values per atom, this compute will generate a vector of
+values.  In the latter case, all the other computes must generate
+vectors of the same size.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute sum/atom"_compute_sum_atom.html
+
+[Default:] none

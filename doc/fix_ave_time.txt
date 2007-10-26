@@ -59,12 +59,15 @@ ave/time command is ignored.
 For style {compute} the {ID} specifies a "compute"_compute.html which
 calculates the desired property.  The compute must be a "global"
 compute that calculates one or more global properties rather than a
-"per-atom" compute.  The compute must be previously defined in the
-input script.  Or it can be a compute defined by "thermodynamic
-output"_thermo_style.html or other fixes such as "fix
-nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.  Users
-can write code for their own compute styles and "add them to
-LAMMPS"_Section_modify.html.
+"per-atom" compute.  However, there is a "compute
+sum"_compute_sum.html command which sums per-atom quantities into a
+global scalar or vector which can be accessed by fix ave/time.
+
+The compute must be previously defined in the input script.  Or it can
+be a compute defined by "thermodynamic output"_thermo_style.html or
+other fixes such as "fix nvt"_fix_nvt.html or "fix
+temp/rescale"_fix_temp_rescale.html.  Users can write code for their
+own compute styles and "add them to LAMMPS"_Section_modify.html.
 
 For style {fix} the {ID} specifies a "fix"_fix.html which calculates
 the desired property.  The fix must calculate a global scalar or

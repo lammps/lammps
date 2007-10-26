@@ -94,7 +94,7 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 "gran/diag"_fix_gran_diag.html - compute granular diagnostics
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "gyration"_fix_gyration.html - compute radius of gyration
-"heat"_fix_gyration.html - add/subtract momentum-conserving heat
+"heat"_fix_heat.html - add/subtract momentum-conserving heat
 "indent"_fix_indent.html - impose force due to an indenter
 "langevin"_fix_langevin.html - Langevin temperature control
 "lineforce"_fix_lineforce.html - constrain atoms to move in a line

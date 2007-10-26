@@ -1,0 +1,53 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute sum command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID sum compute-ID1 compute-ID2 ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>sum/ = style name of this compute command
+<LI>compute-ID1, 2, ...  = IDs of computes that calculate per-atom quantities 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all sum c_force
+compute 1 all sum atomKE atomEpair atomEbond 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that sums the results of one or more per-atom
+computes across all atoms in the group to yield a global scalar or
+vector quantity.  For example, the forces on a group of atoms could be
+summed to yield a net force on the group.  The resulting value(s) can
+be accessed by any command that uses global computes, e.g. the <A HREF = "therml_style.html">thermo
+custom</A> command or <A HREF = "fix_ave_time.html">fix ave/time</A>
+command or by a <A HREF = "variable.html">variable</A> command.
+</P>
+<P>Unlike the "compute sum/atom" command, the result of this is not a
+per-atom quantity, but a global scalar or vector.  If the other
+computes each generate a scalar value per atom, this compute will
+generate a single scalar value.  If the other computes each generate a
+vector of values per atom, this compute will generate a vector of
+values.  In the latter case, all the other computes must generate
+vectors of the same size.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_sum_atom.html">compute sum/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

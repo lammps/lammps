@@ -39,6 +39,8 @@ vectors of the same size.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"compute sum"_compute_sum.html
 
 [Default:] none

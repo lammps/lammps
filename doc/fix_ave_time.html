@@ -71,12 +71,15 @@ ave/time command is ignored.
 <P>For style <I>compute</I> the <I>ID</I> specifies a <A HREF = "compute.html">compute</A> which
 calculates the desired property.  The compute must be a "global"
 compute that calculates one or more global properties rather than a
-"per-atom" compute.  The compute must be previously defined in the
-input script.  Or it can be a compute defined by <A HREF = "thermo_style.html">thermodynamic
-output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
-nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  Users
-can write code for their own compute styles and <A HREF = "Section_modify.html">add them to
-LAMMPS</A>.
+"per-atom" compute.  However, there is a <A HREF = "compute_sum.html">compute
+sum</A> command which sums per-atom quantities into a
+global scalar or vector which can be accessed by fix ave/time.
+</P>
+<P>The compute must be previously defined in the input script.  Or it can
+be a compute defined by <A HREF = "thermo_style.html">thermodynamic output</A> or
+other fixes such as <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>.  Users can write code for their
+own compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
 </P>
 <P>For style <I>fix</I> the <I>ID</I> specifies a <A HREF = "fix.html">fix</A> which calculates
 the desired property.  The fix must calculate a global scalar or

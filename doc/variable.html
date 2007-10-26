@@ -251,7 +251,9 @@ variable.
 the actual ID of the compute defined elsewhere in the input script.
 See the <A HREF = "compute.html">compute</A> command for details.  Note that
 per-atom quantities calculated by a compute cannot be accessed this
-way, but only global scalar or vector quantities.
+way, but only global scalar or vector quantities.  However, there is a
+<A HREF = "compute_sum.html">compute sum</A> command which sums per-atom quantities
+into a global scalar or vector which can be accessed by a variable.
 </P>
 <P>If <I>c_ID[0]</I> is used as a keyword, then the scalar quantity
 calculated by the compute is used.  If <I>c_ID[N]</I> is used, then one

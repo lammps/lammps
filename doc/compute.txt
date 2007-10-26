@@ -93,7 +93,8 @@ defined in LAMMPS:
 "rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
-"sum/atom"_compute_sum_atom.html - sum 2 or more quantities for each atom
+"sum"_compute_sum.html - sum per-atom quantities to a global value
+"sum/atom"_compute_sum_atom.html - sum per-atom quantities to per-atom values
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
@@ -113,6 +114,8 @@ page"_Section_commands.html#3_5.
 
 [Related commands:]
 
-"uncompute"_uncompute.html, "compute_modify"_compute_modify.html
+"uncompute"_uncompute.html, "compute_modify"_compute_modify.html, "fix
+ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html,
+"fix ave/time"_fix_ave_time.html
 
 [Default:] none

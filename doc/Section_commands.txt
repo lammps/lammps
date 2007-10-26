@@ -448,6 +448,7 @@ description:
 "rotate/dipole"_compute_rotate_dipole.html,
 "rotate/gran"_compute_rotate_gran.html,
 "stress/atom"_compute_stress_atom.html,
+"sum"_compute_sum.html,
 "sum/atom"_compute_sum_atom.html,
 "temp"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,

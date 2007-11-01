@@ -464,7 +464,7 @@ description:
 These are compute styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
-"ackland"_compute_ackland_atom.html :tb(c=6,ea=c)
+"ackland/atom"_compute_ackland_atom.html :tb(c=6,ea=c)
 
 :line
 

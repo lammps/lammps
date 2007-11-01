@@ -25,13 +25,13 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that calculates the pressure of atoms averaged
-over the entire system.  The specified group must be "all".  See the
-<A HREF = "dump.html">dump custom</A> command for how to dump the per-atom stress
-tensor if you want more localized information about pressure (stress)
-in your system.
+<P>Define a computation that calculates the pressure of the entire system
+of atoms.  The specified group must be "all".  See the <A HREF = "compute_stress_atom.html">compute
+stress/atom</A> command if you want per-atom
+pressure (stress).  These per-atom values could be summed for a group
+of atoms via the <A HREF = "compute_sum.html">compute sum</A> command.
 </P>
-<P>The pressure is computed by the standard formula
+<P>The pressure is computed by the formula
 </P>
 <CENTER><IMG SRC = "Eqs/pressure.jpg">
 </CENTER>
@@ -61,6 +61,14 @@ excludes frozen atoms or other degrees of freedom.
 <P>Note that the N is the above formula is really degrees-of-freedom/d
 where the DOF is specified by the temperature compute.  See the
 various <A HREF = "compute.html">compute temperature</A> styles for details.
+</P>
+<P>A compute of this style with the ID of "thermo_press" is created when
+LAMMPS starts up, as if this command were in the input script:
+</P>
+<PRE>compute thermo_press all pressure thermo_temp 
+</PRE>
+<P>where "thermo_temp" is the ID of a similarly defined compute of style
+"temp".  See the "thermo_style" command for more details.
 </P>
 <P><B>Restrictions:</B> none
 </P>

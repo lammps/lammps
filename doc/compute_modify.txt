@@ -18,7 +18,9 @@ keyword = {extra} or {dynamic} :l
   {extra} value = N
     N = # of extra degrees of freedom to subtract
   {dynamic} value = {yes} or {no}
-    yes/no = do or do not recompute the number of atoms contributing to the temperature :pre
+    yes/no = do or do not recompute the number of atoms contributing to the temperature
+  {thermo} value = {yes} or {no}
+    yes/no = do or do not add contributions from fixes to the potential energy :pre
 :ule
 
 [Examples:]
@@ -46,6 +48,12 @@ deposit"_fix_deposit.html commands) or expect atoms to be lost
 (e.g. due to evaporation), then this option can be used to insure the
 temperature is correctly normalized.
 
+The {thermo} keyword determines whether the potential energy
+contribution calculated by some "fixes"_fix.html is added to the
+potential energy calculated by the compute.  Only the compute of style
+{pe} uses this option.  See the doc pages for "individual
+fixes"_fix.html for details.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -54,4 +62,6 @@ temperature is correctly normalized.
 
 [Default:]
 
-The option defaults are extra = 3 and dynamic = no.
+The option defaults are extra = 3 and dynamic = no.  Thermo is {yes} if
+the compute of style {pe} was defined with no extra keywords; otherwise
+it is {no}.

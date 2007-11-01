@@ -50,12 +50,14 @@ ave/spatial"_fix_ave_spatial.html commands.
 See this "howto section"_Section_howto.html#4_15 for a summary of
 various LAMMPS output options.
 
-LAMMPS creates its own global computes for thermodynamic output.  Two
-computes are always created, named "thermo_temp" and
-"thermo_pressure", as if these commands had been invoked:
+LAMMPS creates its own global computes for thermodynamic output.
+Three computes are always created, named "thermo_temp",
+"thermo_pressure", and"thermo_pe", as if these commands had been
+invoked in the input script:
 
 compute thermo_temp all temp
-compute thermo_pressure all pressure thermo_temp :pre
+compute thermo_pressure all pressure thermo_temp
+compute thermo_pe all pe :pre
 
 Additional computes are created if the thermo style requires it.  See
 the documentation for the "thermo_style"_thermo_style.html command.
@@ -89,6 +91,7 @@ defined in LAMMPS:
 "ebond/atom"_compute_ebond_atom.html - bond energy for each atom
 "epair/atom"_compute_epair_atom.html - pairwise energy for each atom
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
+"pe"_compute_pe.html - potential energy
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms

@@ -444,6 +444,7 @@ description:
 "ebond/atom"_compute_ebond_atom.html,
 "epair/atom"_compute_epair_atom.html,
 "ke/atom"_compute_ke_atom.html,
+"pe"_compute_pe.html,
 "pressure"_compute_pressure.html,
 "rotate/dipole"_compute_rotate_dipole.html,
 "rotate/gran"_compute_rotate_gran.html,

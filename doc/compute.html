@@ -53,12 +53,14 @@ ave/spatial</A> commands.
 <P>See this <A HREF = "Section_howto.html#4_15">howto section</A> for a summary of
 various LAMMPS output options.
 </P>
-<P>LAMMPS creates its own global computes for thermodynamic output.  Two
-computes are always created, named "thermo_temp" and
-"thermo_pressure", as if these commands had been invoked:
+<P>LAMMPS creates its own global computes for thermodynamic output.
+Three computes are always created, named "thermo_temp",
+"thermo_pressure", and"thermo_pe", as if these commands had been
+invoked in the input script:
 </P>
 <PRE>compute thermo_temp all temp
-compute thermo_pressure all pressure thermo_temp 
+compute thermo_pressure all pressure thermo_temp
+compute thermo_pe all pe 
 </PRE>
 <P>Additional computes are created if the thermo style requires it.  See
 the documentation for the <A HREF = "thermo_style.html">thermo_style</A> command.
@@ -92,6 +94,7 @@ defined in LAMMPS:
 <LI><A HREF = "compute_ebond_atom.html">ebond/atom</A> - bond energy for each atom
 <LI><A HREF = "compute_epair_atom.html">epair/atom</A> - pairwise energy for each atom
 <LI><A HREF = "compute_ke_atom.html">ke/atom</A> - kinetic energy for each atom
+<LI><A HREF = "compute_pe.html">pe</A> - potential energy
 <LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
 <LI><A HREF = "compute_rotate_dipole.html">rotate/dipole</A> - rotational energy of dipolar atoms
 <LI><A HREF = "compute_rotate_gran.html">rotate/gran</A> - rotational energy of granular atoms

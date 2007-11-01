@@ -51,6 +51,13 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 <I>extra</I> option of the <A HREF = "compute_modify.html">compute_modify</A> command.
 </P>
+<P>A compute of this style with the ID of "thermo_temp" is created when
+LAMMPS starts up, as if this command were in the input script:
+</P>
+<PRE>compute thermo_temp all temp 
+</PRE>
+<P>See the "thermo_style" command for more details.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>

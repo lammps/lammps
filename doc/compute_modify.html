@@ -24,7 +24,9 @@
 <PRE>  <I>extra</I> value = N
     N = # of extra degrees of freedom to subtract
   <I>dynamic</I> value = <I>yes</I> or <I>no</I>
-    yes/no = do or do not recompute the number of atoms contributing to the temperature 
+    yes/no = do or do not recompute the number of atoms contributing to the temperature
+  <I>thermo</I> value = <I>yes</I> or <I>no</I>
+    yes/no = do or do not add contributions from fixes to the potential energy 
 </PRE>
 
 </UL>
@@ -53,6 +55,12 @@ deposit</A> commands) or expect atoms to be lost
 (e.g. due to evaporation), then this option can be used to insure the
 temperature is correctly normalized.
 </P>
+<P>The <I>thermo</I> keyword determines whether the potential energy
+contribution calculated by some <A HREF = "fix.html">fixes</A> is added to the
+potential energy calculated by the compute.  Only the compute of style
+<I>pe</I> uses this option.  See the doc pages for <A HREF = "fix.html">individual
+fixes</A> for details.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -61,6 +69,8 @@ temperature is correctly normalized.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are extra = 3 and dynamic = no.
+<P>The option defaults are extra = 3 and dynamic = no.  Thermo is <I>yes</I> if
+the compute of style <I>pe</I> was defined with no extra keywords; otherwise
+it is <I>no</I>.
 </P>
 </HTML>

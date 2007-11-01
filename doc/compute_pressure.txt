@@ -22,13 +22,13 @@ compute 1 all pressure myTemp :pre
 
 [Description:]
 
-Define a computation that calculates the pressure of atoms averaged
-over the entire system.  The specified group must be "all".  See the
-"dump custom"_dump.html command for how to dump the per-atom stress
-tensor if you want more localized information about pressure (stress)
-in your system.
+Define a computation that calculates the pressure of the entire system
+of atoms.  The specified group must be "all".  See the "compute
+stress/atom"_compute_stress_atom.html command if you want per-atom
+pressure (stress).  These per-atom values could be summed for a group
+of atoms via the "compute sum"_compute_sum.html command.
 
-The pressure is computed by the standard formula
+The pressure is computed by the formula
 
 :c,image(Eqs/pressure.jpg)
 
@@ -58,6 +58,14 @@ excludes frozen atoms or other degrees of freedom.
 Note that the N is the above formula is really degrees-of-freedom/d
 where the DOF is specified by the temperature compute.  See the
 various "compute temperature"_compute.html styles for details.
+
+A compute of this style with the ID of "thermo_press" is created when
+LAMMPS starts up, as if this command were in the input script:
+
+compute thermo_press all pressure thermo_temp :pre
+
+where "thermo_temp" is the ID of a similarly defined compute of style
+"temp".  See the "thermo_style" command for more details.
 
 [Restrictions:] none
 

@@ -117,7 +117,7 @@ use the thermo_modify command after it.
 Several of the thermodynamic quantities require a temperature to be
 computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc".  By
 default this is done by using the "thermo_temp" compute which is
-created by LAMMPS as if this command had been issued:
+created when LAMMPS starts up, as if this command had been issued:
 
 compute thermo_temp all temp :pre
 
@@ -131,9 +131,9 @@ calculating any thermodynamic quantity that requires a temperature.
 This is done via the "thermo_modify"_thermo_modify.html command.
 
 Several of the thermodynamic quantities require a pressure to be
-computed: "press", "enthalpy", "pxx etc", "pave".  By default this is
-done by using the "thermo_pressure" compute which is created by LAMMPS
-as if this command had been issued:
+computed: "press", "enthalpy", "pxx", etc.  By default this is done by
+using the "thermo_pressure" compute which is created when LAMMPS
+starts up, as if this command had been issued:
 
 compute thermo_pressure all pressure thermo_temp :pre
 
@@ -145,6 +145,18 @@ directly assign a new compute (that calculates pressure) which you
 have defined, to be used for calculating any thermodynamic quantity
 that requires a pressure.  This is done via the
 "thermo_modify"_thermo_modify.html command.
+
+Several of the thermodynamic quantities require a potential energy to
+be computed: "pe", "etotal", "ebond", etc.  This is done by using the
+"thermo_pe" compute which is created when LAMMPS starts up, as if this
+command had been issued:
+
+compute thermo_pe all pe :pre
+
+See the "compute pe"_compute_pe.html command for details.  Note that
+the ID of this compute is {thermo_pe} and the group is {all}.  You can
+change the attributes of this potential energy via the
+"compute_modify"_compute_modify.html command.
 
 The {drot} keyword requires a rotational energy to be computed for
 point dipole particles.  To do this, a compute of style
@@ -180,9 +192,11 @@ be useful if you wish to exclude frozen particles from the compuation.
 :line
 
 The potential energy of the system {pe} will include contributions
-from fixes if the "fix_modify thermo"_fix_modify.html option was set
-for each fix.  For example, the "fix wall/lj93"_fix_wall_lj93 fix will
-contribute the energy of atoms interacting with the wall.
+from fixes if the "fix_modify thermo"_fix_modify.html option is set
+for a fix that calculates such a contribution.  For example, the "fix
+wall/lj93"_fix_wall_lj93 fix calculates the energy of atoms
+interacting with the wall.  See the doc pages for "individual fixes"
+to see which ones contribute.
 
 A long-range tail correction {etail} for the VanderWaal pairwise
 energy will be non-zero only if the "pair_modify

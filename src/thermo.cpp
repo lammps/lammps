@@ -907,8 +907,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   // check if Compute pointers exist for keywords that need them
   // error if thermo style does not use the Compute
-  // all energy-related keywords require PE, even if they don't call it
-  // this is b/c Verlet::eflag is triggered by compute_pe invocation schedule
 
   if (strcmp(word,"temp") == 0 || strcmp(word,"press") == 0 ||
       strcmp(word,"ke") == 0 || strcmp(word,"etotal") == 0 ||
@@ -916,32 +914,27 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       strcmp(word,"pzz") == 0 || strcmp(word,"pxy") == 0 ||
       strcmp(word,"pxz") == 0 || strcmp(word,"pyz") == 0)
     if (!temperature)
-      error->all("Variable uses compute via thermo keyword unused by thermo");
+      error->all("Variable uses compute via thermo keyword that thermo does not");
 
   if (strcmp(word,"press") == 0 ||
       strcmp(word,"pxx") == 0 || strcmp(word,"pyy") == 0 ||
       strcmp(word,"pzz") == 0 || strcmp(word,"pxy") == 0 ||
       strcmp(word,"pxz") == 0 || strcmp(word,"pyz") == 0)
     if (!pressure)
-      error->all("Variable uses compute via thermo keyword unused by thermo");
+      error->all("Variable uses compute via thermo keyword that thermo does not");
 
   if (strcmp(word,"pe") == 0 || strcmp(word,"etotal") == 0 ||
-      strcmp(word,"enthalpy") == 0 || strcmp(word,"evdwl") == 0 ||
-      strcmp(word,"ecoul") == 0 || strcmp(word,"epair") == 0 ||
-      strcmp(word,"ebond") == 0 || strcmp(word,"eangle") == 0 ||
-      strcmp(word,"edihed") == 0 || strcmp(word,"eimp") == 0 ||
-      strcmp(word,"emol") == 0 || strcmp(word,"elong") == 0 ||
-      strcmp(word,"etail") == 0)
+      strcmp(word,"enthalpy") == 0)
     if (!pe)
-      error->all("Variable uses compute via thermo keyword unused by thermo");
+      error->all("Variable uses compute via thermo keyword that thermo does not");
 
   if (strcmp(word,"drot") == 0)
     if (!rotate_dipole)
-      error->all("Variable uses compute via thermo keyword unused by thermo");
+      error->all("Variable uses compute via thermo keyword that thermo does not");
 
   if (strcmp(word,"grot") == 0)
     if (!rotate_gran)
-      error->all("Variable uses compute via thermo keyword unused by thermo");
+      error->all("Variable uses compute via thermo keyword that thermo does not");
 
   // set compute_pe invocation flag for keywords that use energy
   // but don't call compute_pe explicitly
@@ -950,8 +943,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       strcmp(word,"epair") == 0 || strcmp(word,"ebond") == 0 ||
       strcmp(word,"eangle") == 0 || strcmp(word,"edihed") == 0 ||
       strcmp(word,"eimp") == 0 || strcmp(word,"emol") == 0 ||
-      strcmp(word,"elong") == 0 || strcmp(word,"etail") == 0)
+      strcmp(word,"elong") == 0 || strcmp(word,"etail") == 0) {
+    if (!pe)
+      error->all("Variable uses compute via thermo keyword that thermo does not");
     pe->invoked = 1;
+  }
 
   // toggle thermoflag off/on
   // so individual compute routines know they are not being called from

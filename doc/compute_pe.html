@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>pe = style name of this compute command
-<LI>zero of more keywords may be appended
+<LI>zero or more keywords may be appended
 <LI>keyword = <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> 
 </UL>
 <P><B>Examples:</B>
@@ -29,8 +29,8 @@ compute molPE all bond angle dihedral improper
 </P>
 <P>Define a computation that calculates the potential energy of the
 entire system of atoms.  The specified group must be "all".  See the
-<A HREF = "compute_epair_atom.html">compute epair/atom</A> <A HREF = "compute_ebond_atom.html">compute
-ebond/atom</A> or commands if you want per-atom
+<A HREF = "compute_epair_atom.html">compute epair/atom</A> and <A HREF = "compute_ebond_atom.html">compute
+ebond/atom</A> commands if you want per-atom
 energies.  These per-atom values could be summed for a group of atoms
 via the <A HREF = "compute_sum.html">compute sum</A> command.
 </P>

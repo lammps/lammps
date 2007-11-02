@@ -14,7 +14,7 @@ compute ID group-ID pe keyword ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 pe = style name of this compute command
-zero of more keywords may be appended
+zero or more keywords may be appended
 keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} :ul
 
 [Examples:]
@@ -26,8 +26,8 @@ compute molPE all bond angle dihedral improper :pre
 
 Define a computation that calculates the potential energy of the
 entire system of atoms.  The specified group must be "all".  See the
-"compute epair/atom"_compute_epair_atom.html "compute
-ebond/atom"_compute_ebond_atom.html or commands if you want per-atom
+"compute epair/atom"_compute_epair_atom.html and "compute
+ebond/atom"_compute_ebond_atom.html commands if you want per-atom
 energies.  These per-atom values could be summed for a group of atoms
 via the "compute sum"_compute_sum.html command.
 

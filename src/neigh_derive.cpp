@@ -82,18 +82,19 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
 /* ----------------------------------------------------------------------
    build half list from full list
    pair stored once if i,j are both owned and i < j
-   pair stored by me if j is ghost (also stored by proc owning j)
+   if j is ghost, only store if j coords are "above and to the right" of i
    works if full list is a skip list
 ------------------------------------------------------------------------- */
 
 void Neighbor::half_from_full_newton(NeighList *list)
 {
-  int i,j,ii,jj,n,jnum;
+  int i,j,ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
   double xtmp,ytmp,ztmp;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -132,15 +133,16 @@ void Neighbor::half_from_full_newton(NeighList *list)
     jnum = numneigh_full[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      j = joriginal = jlist[jj];
       if (j < nlocal) {
 	if (i > j) continue;
       } else {
+	if (j >= nall) j %= nall;
 	if (x[j][2] < ztmp) continue;
 	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
 	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
-      neighptr[n++] = j;
+      neighptr[n++] = joriginal;
     }
 
     ilist[inum] = i;

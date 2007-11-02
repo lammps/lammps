@@ -40,7 +40,6 @@ PairYukawa::~PairYukawa()
 
     memory->destroy_2d_double_array(cut);
     memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(asq);
     memory->destroy_2d_double_array(offset);
   }
 }
@@ -101,7 +100,7 @@ void PairYukawa::compute(int eflag, int vflag)
 	r = sqrt(rsq);
 	rinv = 1.0/r;
 	screening = exp(-kappa*r);
-	forceyukawa = asq[itype][jtype] * screening * (kappa + rinv);
+	forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
 	fforce = factor_coul*forceyukawa * r2inv;
 
@@ -153,7 +152,6 @@ void PairYukawa::allocate()
 
   cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
   a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  asq = memory->create_2d_double_array(n+1,n+1,"pair:asq");
   offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
 }
 
@@ -220,14 +218,11 @@ double PairYukawa::init_one(int i, int j)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
-  asq[i][j] = a[i][j]*a[i][j];
-
   if (offset_flag) {
     double screening = exp(-kappa * cut[i][j]);
     offset[i][j] = a[i][j] * screening / cut[i][j];
   } else offset[i][j] = 0.0;
 
-  asq[j][i] = asq[i][j];
   offset[j][i] = offset[i][j];
 
   return cut[i][j];
@@ -321,7 +316,7 @@ void PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
   r = sqrt(rsq);
   rinv = 1.0/r;
   screening = exp(-kappa*r);
-  forceyukawa = asq[itype][jtype] * screening * (kappa + rinv);
+  forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
   one.fforce = factor_coul*forceyukawa * r2inv;
 
   if (eflag) {

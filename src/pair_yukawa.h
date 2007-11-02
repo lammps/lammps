@@ -35,7 +35,7 @@ class PairYukawa : public Pair {
  private:
   double cut_global;
   double kappa;
-  double **cut,**a,**asq,**offset;
+  double **cut,**a,**offset;
 
   void allocate();
 };

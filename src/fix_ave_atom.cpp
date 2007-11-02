@@ -51,8 +51,6 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   if (modify->compute[icompute]->peratom_flag == 0)
     error->all("Fix ave/atom compute does not calculate per-atom info");
 
-  if (modify->compute[icompute]->pressflag) pressure_every = nevery;
-
   peratom_flag = 1;
 
   // setup list of computes to call, including pre-computes

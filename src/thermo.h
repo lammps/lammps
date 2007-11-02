@@ -24,9 +24,7 @@ class Thermo : protected Pointers {
 
  public:
   char *style;
-  int peflag;
   int normflag;          // 0 if do not normalize by atoms, 1 if normalize
-  double potential_energy;
 
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();
@@ -71,10 +69,10 @@ class Thermo : protected Pointers {
                          // internal = 1/0 if Thermo created them or not
                          // id = ID of Compute objects
                          // Compute * = ptrs to the Compute objects
-  int index_temp,index_press,index_drot,index_grot;
+  int index_temp,index_press,index_pe,index_drot,index_grot;
   int internal_drot,internal_grot;
-  char *id_temp,*id_press,*id_drot,*id_grot;
-  class Compute *temperature,*pressure,*rotate_dipole,*rotate_gran;
+  char *id_temp,*id_press,*id_pe,*id_drot,*id_grot;
+  class Compute *temperature,*pressure,*pe,*rotate_dipole,*rotate_gran;
 
   int ncompute;          // # of Compute objects called by thermo
   char **id_compute;     // their IDs

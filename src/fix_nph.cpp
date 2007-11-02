@@ -45,7 +45,6 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all("Illegal fix nph command");
 
   restart_global = 1;
-  pressure_every = 1;
   box_change = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
@@ -332,6 +331,10 @@ void FixNPH::setup()
     pressure->compute_vector();
   }
   couple();
+
+  // trigger virial computation on next timestep
+
+  pressure->add_step(update->ntimestep+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -443,6 +446,10 @@ void FixNPH::final_integrate()
     pressure->compute_vector();
   }
   couple();
+
+  // trigger virial computation on next timestep
+
+  pressure->add_step(update->ntimestep+1);
 
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change

@@ -44,7 +44,6 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all("Illegal fix npt command");
 
   restart_global = 1;
-  pressure_every = 1;
   box_change = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
@@ -334,6 +333,10 @@ void FixNPT::setup()
     pressure->compute_vector();
   }
   couple();
+
+  // trigger virial computation on next timestep
+
+  pressure->add_step(update->ntimestep+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -453,6 +456,10 @@ void FixNPT::final_integrate()
     pressure->compute_vector();
   }
   couple();
+
+  // trigger virial computation on next timestep
+
+  pressure->add_step(update->ntimestep+1);
 
   // update eta_dot
 

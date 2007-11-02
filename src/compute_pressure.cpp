@@ -36,7 +36,6 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 4) error->all("Illegal compute pressure command");
-
   if (igroup) error->all("Compute pressure must use group all");
 
   // store temperature ID used by pressure computation
@@ -54,10 +53,13 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   if (modify->compute[icompute]->tempflag == 0)
     error->all("Compute pressure temp ID does not compute temperature");
 
+  // settings
+
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extensive = 0;
   pressflag = 1;
+  timeflag = 1;
 
   vector = new double[6];
   nvirial = 0;
@@ -175,6 +177,7 @@ void ComputePressure::virial_compute(int n)
   int i,j;
   double v[6],*vcomponent;
 
+  invoked = 1;
   for (i = 0; i < n; i++) v[i] = 0.0;
 
   // sum contributions to virial from forces and fixes

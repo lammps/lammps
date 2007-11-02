@@ -21,9 +21,11 @@
 #include "temper.h"
 #include "universe.h"
 #include "domain.h"
+#include "atom.h"
 #include "update.h"
 #include "integrate.h"
 #include "modify.h"
+#include "compute.h"
 #include "force.h"
 #include "output.h"
 #include "thermo.h"
@@ -93,15 +95,6 @@ void Temper::command(int narg, char **arg)
   if (nswaps*nevery != nsteps) 
     error->universe_all("Non integer # of swaps in temper command");
 
-  // thermodynamics must be computed on swap steps
-  // potential energy must be computed by thermo
-
-  if (nevery % output->thermo_every)
-    error->universe_all("Thermodynamics not computed on tempering swap steps");
-
-  if (output->thermo->peflag == 0)
-    error->universe_all("Thermodynamics must compute PE for temper command");
-
   // fix style must be appropriate for temperature control
 
   if (strcmp(modify->fix[whichfix]->style,"nvt") == 0) fixstyle = NVT;
@@ -125,6 +118,14 @@ void Temper::command(int narg, char **arg)
   nworlds = universe->nworlds;
   iworld = universe->iworld;
   boltz = force->boltz;
+
+  // pe_compute = ptr to thermo_pe compute
+  // notify compute it will be called at first swap
+
+  int id = modify->find_compute("thermo_pe");
+  if (id < 0) error->all("Tempering could not find thermo_pe compute");
+  Compute *pe_compute = modify->compute[id];
+  pe_compute->add_step(update->ntimestep + nevery);
 
   // create MPI communicator for root proc from each world
 
@@ -203,6 +204,13 @@ void Temper::command(int narg, char **arg)
 
     update->integrate->iterate(nevery);
 
+    // compute PE, normalize if thermo PE does
+    // notify compute it will be called at next swap
+
+    pe = pe_compute->compute_scalar();
+    if (output->thermo->normflag) pe /= atom->natoms;
+    pe_compute->add_step(update->ntimestep + nevery);
+
     // which = which of 2 kinds of swaps to do (0,1)
 
     if (!ranswap) which = iswap % 2;
@@ -235,7 +243,6 @@ void Temper::command(int narg, char **arg)
 
     swap = 0;
     if (partner != -1) {
-      pe = output->thermo->potential_energy;
       if (me_universe > partner) 
 	MPI_Send(&pe,1,MPI_DOUBLE,partner,0,universe->uworld);
       else

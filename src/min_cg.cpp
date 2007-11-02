@@ -36,7 +36,9 @@
 #include "thermo.h"
 #include "update.h"
 #include "modify.h"
+#include "compute.h"
 #include "fix_minimize.h"
+#include "thermo.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
@@ -55,7 +57,17 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MinCG::MinCG(LAMMPS *lmp) : Min(lmp) {}
+MinCG::MinCG(LAMMPS *lmp) : Min(lmp)
+{
+  vlist = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+MinCG::~MinCG()
+{
+  delete [] vlist;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,11 +89,27 @@ void MinCG::init()
   setup_vectors();
   for (int i = 0; i < ndof; i++) h[i] = g[i] = 0.0;
 
-  // virial_thermo is how virial should be computed on thermo timesteps
-  // 1 = computed explicity by pair, 2 = computed implicitly by pair
+  // virial_style:
+  // 1 if computed explicitly by pair->compute via sum over pair interactions
+  // 2 if computed implicitly by pair->virial_compute via sum over ghost atoms
 
-  if (force->newton_pair) virial_thermo = 2;
-  else virial_thermo = 1;
+  if (force->newton_pair) virial_style = 2;
+  else virial_style = 1;
+
+  // vlist = list of computes for pressure
+
+  delete [] vlist;
+  vlist = NULL;
+
+  nvlist = 0;
+  for (int i = 0; i < modify->ncompute; i++)
+    if (modify->compute[i]->pressflag) nvlist++;
+
+  if (nvlist) vlist = new Compute*[nvlist];
+
+  nvlist = 0;
+  for (int i = 0; i < modify->ncompute; i++)
+    if (modify->compute[i]->pressflag) vlist[nvlist++] = modify->compute[i];
 
   // set flags for what arrays to clear in force_clear()
   // need to clear torques if array exists
@@ -123,11 +151,17 @@ void MinCG::run()
   double tmp,*f;
 
   // set initial force & energy
+  // normalize energy if thermo PE does
 
   setup();
   setup_vectors();
-  output->thermo->compute_pe();
-  ecurrent = output->thermo->potential_energy;
+
+  int id = modify->find_compute("thermo_pe");
+  if (id < 0) error->all("Minimization could not find thermo_pe compute");
+  pe_compute = modify->compute[id];
+
+  ecurrent = pe_compute->compute_scalar();
+  if (output->thermo->normflag) ecurrent /= atom->natoms;
 
   // stats for Finish to print
 	
@@ -221,8 +255,7 @@ void MinCG::setup()
 
   // compute all forces
 
-  int eflag = 1;
-  int vflag = virial_thermo;
+  ev_set(update->ntimestep);
   force_clear(vflag);
   
   if (force->pair) force->pair->compute(eflag,vflag);
@@ -252,7 +285,7 @@ void MinCG::setup()
 
 void MinCG::iterate(int n)
 {
-  int i,gradsearch,fail;
+  int i,gradsearch,fail,ntimestep;
   double alpha,beta,gg,dot[2],dotall[2];
   double *f;
 
@@ -268,7 +301,7 @@ void MinCG::iterate(int n)
 
   for (niter = 0; niter < n; niter++) {
 
-    update->ntimestep++;
+    ntimestep = ++update->ntimestep;
 
     // line minimization along direction h from current atom->x
 
@@ -317,9 +350,9 @@ void MinCG::iterate(int n)
 
     // output for thermo, dump, restart files
 
-    if (output->next == update->ntimestep) {
+    if (output->next == ntimestep) {
       timer->stamp();
-      output->write(update->ntimestep);
+      output->write(ntimestep);
       timer->stamp(TIME_OUTPUT);
     }
   }
@@ -375,11 +408,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
     setup_vectors();
   }
 
-  // eflag is always set, since minimizer needs potential energy
-
-  int eflag = 1;
-  int vflag = 0;
-  if (output->next_thermo == update->ntimestep) vflag = virial_thermo;
+  ev_set(update->ntimestep);
   force_clear(vflag);
 
   timer->stamp();
@@ -411,10 +440,11 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
 
   if (modify->n_min_post_force) modify->min_post_force(vflag);
 
-  // compute potential energy of system via Thermo
+  // compute potential energy of system
+  // normalize if thermo PE does
 
-  output->thermo->compute_pe();
-  ecurrent = output->thermo->potential_energy;
+  ecurrent = pe_compute->compute_scalar();
+  if (output->thermo->normflag) ecurrent /= atom->natoms;
 
   // return updated ptrs to caller since atoms may have migrated
 
@@ -422,6 +452,22 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
   *px = atom->x[0];
   *ph = h;
   *peng = ecurrent;
+}
+
+/* ----------------------------------------------------------------------
+   eflag is always set, since minimizer needs potential energy
+   set vflag if a pressure compute is called this timestep
+------------------------------------------------------------------------- */
+
+void MinCG::ev_set(int ntimestep)
+{
+  int i;
+
+  eflag = 1;
+  vflag = 0;
+  for (i = 0; i < nvlist; i++)
+    if (vlist[i]->match_step(ntimestep)) break;
+  if (i < nvlist) vflag = virial_style;
 }
 
 /* ----------------------------------------------------------------------

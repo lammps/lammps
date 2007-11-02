@@ -82,6 +82,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_ebond_atom.h"
 #include "compute_epair_atom.h"
 #include "compute_ke_atom.h"
+#include "compute_pe.h"
 #include "compute_pressure.h"
 #include "compute_rotate_dipole.h"
 #include "compute_rotate_gran.h"
@@ -104,6 +105,7 @@ ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(ebond/atom,ComputeEbondAtom)
 ComputeStyle(epair/atom,ComputeEpairAtom)
 ComputeStyle(ke/atom,ComputeKEAtom)
+ComputeStyle(pe,ComputePE)
 ComputeStyle(pressure,ComputePressure)
 ComputeStyle(rotate/dipole,ComputeRotateDipole)
 ComputeStyle(rotate/gran,ComputeRotateGran)

@@ -128,9 +128,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       error->all("Fix ave/time fix does not calculate a vector");
   }
 
-  if (which == COMPUTE &&
-      modify->compute[icompute]->pressflag) pressure_every = nevery;
-
   // setup list of computes to call, including pre-computes
 
   compute = NULL;
@@ -293,6 +290,8 @@ void FixAveTime::end_of_step()
   // accumulate results of compute or fix to local copy
   
   if (which == COMPUTE) {
+    modify->clearstep_compute();
+
     if (sflag) {
       double value;
       for (i = 0; i < ncompute; i++) value = compute[i]->compute_scalar();
@@ -312,21 +311,24 @@ void FixAveTime::end_of_step()
   }
 
   // done if irepeat < nrepeat
+  // else reset irepeat and nvalid
 
   irepeat++;
-  nvalid += nevery;
-  if (irepeat < nrepeat) return;
+  if (irepeat < nrepeat) {
+    nvalid += nevery;
+    if (which == COMPUTE) modify->addstep_compute(nvalid);
+    return;
+  }
+
+  irepeat = 0;
+  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+  if (which == COMPUTE) modify->addstep_compute(nvalid);
 
   // average the final result for the Nfreq timestep
 
   double repeat = nrepeat;
   if (sflag) scalar /= repeat;
   if (vflag) for (i = 0; i < size_vector; i++) vector[i] /= repeat;
-
-  // reset irepeat and nvalid
-
-  irepeat = 0;
-  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values

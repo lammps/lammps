@@ -11,26 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef VERLET_H
-#define VERLET_H
+#ifndef COMPUTE_PE_H
+#define COMPUTE_PE_H
 
-#include "integrate.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class Verlet : public Integrate {
+class ComputePE : public Compute {
  public:
-  Verlet(class LAMMPS *, int, char **);
-  ~Verlet() {}
-  void init();
-  void setup();
-  void iterate(int);
+  ComputePE(class LAMMPS *, int, char **);
+  ~ComputePE() {}
+  void init() {}
+  double compute_scalar();
 
  private:
-  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
-  int torqueflag;                   // arrays to zero out every step
-
-  void force_clear(int);
+  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag;
 };
 
 }

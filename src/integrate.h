@@ -20,14 +20,24 @@ namespace LAMMPS_NS {
 
 class Integrate : protected Pointers {
  public:
-  Integrate(class LAMMPS *lmp, int, char **) : Pointers(lmp) {}
-  virtual ~Integrate() {}
+  Integrate(class LAMMPS *, int, char **);
+  virtual ~Integrate();
   virtual void init() = 0;
   virtual void setup() = 0;
   virtual void iterate(int) = 0;
   virtual void cleanup() {}
-  virtual double memory_usage() {return 0.0;}
   virtual void reset_dt() {}
+  virtual double memory_usage() {return 0.0;}
+
+ protected:
+  int eflag,vflag;                  // flags for energy/virial computation
+  int virial_style;                 // compute virial explicitly or implicitly
+
+  int nelist,nvlist;                // # of PE,virial coputes for eflag,vflag
+  class Compute **elist;            // list of Computes to check
+  class Compute **vlist;
+
+  void ev_set(int);
 };
 
 }

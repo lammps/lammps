@@ -111,14 +111,16 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   temperature = NULL;
   pressure = NULL;
+  pe = NULL;
   rotate_dipole = NULL;
   rotate_gran = NULL;
 
-  index_temp = index_press = index_drot = index_grot = -1;
+  index_temp = index_press = index_pe = index_drot = index_grot = -1;
   internal_drot = internal_grot = 0;
 
   id_temp = (char *) "thermo_temp";
   id_press = (char *) "thermo_pressure";
+  id_pe = (char *) "thermo_pe";
   id_drot = (char *) "thermo_rotate_dipole";
   id_grot = (char *) "thermo_rotate_gran";
 
@@ -131,7 +133,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   parse_fields(line);
 
   // create the requested compute styles
-  // temperature and pressure always exist b/c Output class created them
+  // temperature,pressure,pe always exist b/c Output class created them
 
   if (index_drot >= 0) {
     create_compute(id_drot,(char *) "rotate/dipole",NULL);
@@ -247,6 +249,7 @@ void Thermo::init()
 
   if (index_temp >= 0) temperature = computes[index_temp];
   if (index_press >= 0) pressure = computes[index_press];
+  if (index_pe >= 0) pe = computes[index_pe];
   if (index_drot >= 0) rotate_dipole = computes[index_drot];
   if (index_grot >= 0) rotate_gran = computes[index_grot];
 }
@@ -593,13 +596,12 @@ void Thermo::deallocate()
 
 /* ----------------------------------------------------------------------
    parse list of thermo keywords from str
-   set compute flags (temp, press, etc)
+   set compute flags (temp, press, pe, etc)
 ------------------------------------------------------------------------- */
 
 void Thermo::parse_fields(char *str)
 {
   nfield = 0;
-  peflag = 0;
 
   // customize a new keyword by adding to if statement
 
@@ -622,39 +624,50 @@ void Thermo::parse_fields(char *str)
       index_press = add_compute(id_press,0);
     } else if (strcmp(word,"pe") == 0) {
       addfield("PotEng",&Thermo::compute_pe,FLOAT);
-      peflag = 1;
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"ke") == 0) {
       addfield("KinEng",&Thermo::compute_ke,FLOAT);
       index_temp = add_compute(id_temp,0);
     } else if (strcmp(word,"etotal") == 0) {
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
-      peflag = 1;
       index_temp = add_compute(id_temp,0);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"enthalpy") == 0) {
       addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
       index_temp = add_compute(id_temp,0);
       index_press = add_compute(id_press,0);
+      index_pe = add_compute(id_pe,0);
 
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"ecoul") == 0) {
       addfield("E_coul",&Thermo::compute_ecoul,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"epair") == 0) {
       addfield("E_pair",&Thermo::compute_epair,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"ebond") == 0) {
       addfield("E_bond",&Thermo::compute_ebond,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"eangle") == 0) {
       addfield("E_angle",&Thermo::compute_eangle,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"edihed") == 0) {
       addfield("E_dihed",&Thermo::compute_edihed,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"eimp") == 0) {
       addfield("E_impro",&Thermo::compute_eimp,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"emol") == 0) {
       addfield("E_mol",&Thermo::compute_emol,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"elong") == 0) {
       addfield("E_long",&Thermo::compute_elong,FLOAT);
+      index_pe = add_compute(id_pe,0);
     } else if (strcmp(word,"etail") == 0) {
       addfield("E_tail",&Thermo::compute_etail,FLOAT);
+      index_pe = add_compute(id_pe,0);
 
     } else if (strcmp(word,"vol") == 0) {
       addfield("Volume",&Thermo::compute_vol,FLOAT);
@@ -876,33 +889,77 @@ void Thermo::create_compute(char *id, char *cstyle, char *extra)
 }
 
 /* ----------------------------------------------------------------------
-   compute a single thermodyanmic value matching word to custom list
-   called when a variable is evaluated in input script
+   compute a single thermodyanmic value
+   word is any supported keyword in custom list
+   called when a variable is evaluated by Variable class
    return value as double in answer
    return 0 if OK, 1 if str is invalid
-   customize a new keyword by adding to if statement
+   customize a new keyword by adding to if statement and error tests
 ------------------------------------------------------------------------- */
 
 int Thermo::evaluate_keyword(char *word, double *answer)
 {
-  // could do tests to insure user does not invoke variable at wrong time
+  // don't allow use of thermo keyword before first run
+  // since system is not setup (e.g. no forces have been called for energy)
 
-  // all keywords:
-  //   if (domain->box_exist == 0)
-  //   error->all("Variable equal keyword used before simulation box defined");
-  // keywords except step,atoms,vol,ly,ly,lz
-  //   if (update->first_update == 0)
-  //     error->all("Variable equal keyword used before initial run");
-  //   if (update->ntimestep != output->next_thermo && me == 0)
-  //     error->warning("Variable equal keyword used with non-current thermo");
-  // keywords that require Compute objects like T,P
-  //   ptrs like temperature will not be set if init() hasn't been called
-  //   Compute objects will not exist if thermo style isn't using them
+  if (update->first_update == 0)
+    error->all("Variable equal thermo keyword used before initial run");
 
-  // toggle thermoflag off/on so inidividual compute routines don't assume
-  //   they are being called from compute() which pre-calls Compute objects
+  // check if Compute pointers exist for keywords that need them
+  // error if thermo style does not use the Compute
+  // all energy-related keywords require PE, even if they don't call it
+  // this is b/c Verlet::eflag is triggered by compute_pe invocation schedule
+
+  if (strcmp(word,"temp") == 0 || strcmp(word,"press") == 0 ||
+      strcmp(word,"ke") == 0 || strcmp(word,"etotal") == 0 ||
+      strcmp(word,"pxx") == 0 || strcmp(word,"pyy") == 0 ||
+      strcmp(word,"pzz") == 0 || strcmp(word,"pxy") == 0 ||
+      strcmp(word,"pxz") == 0 || strcmp(word,"pyz") == 0)
+    if (!temperature)
+      error->all("Variable uses compute via thermo keyword unused by thermo");
+
+  if (strcmp(word,"press") == 0 ||
+      strcmp(word,"pxx") == 0 || strcmp(word,"pyy") == 0 ||
+      strcmp(word,"pzz") == 0 || strcmp(word,"pxy") == 0 ||
+      strcmp(word,"pxz") == 0 || strcmp(word,"pyz") == 0)
+    if (!pressure)
+      error->all("Variable uses compute via thermo keyword unused by thermo");
+
+  if (strcmp(word,"pe") == 0 || strcmp(word,"etotal") == 0 ||
+      strcmp(word,"enthalpy") == 0 || strcmp(word,"evdwl") == 0 ||
+      strcmp(word,"ecoul") == 0 || strcmp(word,"epair") == 0 ||
+      strcmp(word,"ebond") == 0 || strcmp(word,"eangle") == 0 ||
+      strcmp(word,"edihed") == 0 || strcmp(word,"eimp") == 0 ||
+      strcmp(word,"emol") == 0 || strcmp(word,"elong") == 0 ||
+      strcmp(word,"etail") == 0)
+    if (!pe)
+      error->all("Variable uses compute via thermo keyword unused by thermo");
+
+  if (strcmp(word,"drot") == 0)
+    if (!rotate_dipole)
+      error->all("Variable uses compute via thermo keyword unused by thermo");
+
+  if (strcmp(word,"grot") == 0)
+    if (!rotate_gran)
+      error->all("Variable uses compute via thermo keyword unused by thermo");
+
+  // set compute_pe invocation flag for keywords that use energy
+  // but don't call compute_pe explicitly
+
+  if (strcmp(word,"evdwl") == 0 || strcmp(word,"ecoul") == 0 ||
+      strcmp(word,"epair") == 0 || strcmp(word,"ebond") == 0 ||
+      strcmp(word,"eangle") == 0 || strcmp(word,"edihed") == 0 ||
+      strcmp(word,"eimp") == 0 || strcmp(word,"emol") == 0 ||
+      strcmp(word,"elong") == 0 || strcmp(word,"etail") == 0)
+    pe->invoked = 1;
+
+  // toggle thermoflag off/on
+  // so individual compute routines know they are not being called from
+  // Thermo::compute() which pre-calls Computes
 
   thermoflag = 0;
+
+  // invoke the lo-level thermo routine to compute the variable value
 
   if (strcmp(word,"step") == 0) {
     compute_step();
@@ -914,12 +971,13 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"cpu") == 0) compute_cpu();
 
   else if (strcmp(word,"temp") == 0) compute_temp();
+
   else if (strcmp(word,"press") == 0) compute_press();
   else if (strcmp(word,"pe") == 0) compute_pe();
   else if (strcmp(word,"ke") == 0) compute_ke();
   else if (strcmp(word,"etotal") == 0) compute_etotal();
   else if (strcmp(word,"enthalpy") == 0) compute_enthalpy();
-
+  
   else if (strcmp(word,"evdwl") == 0) compute_evdwl();
   else if (strcmp(word,"ecoul") == 0) compute_ecoul();
   else if (strcmp(word,"epair") == 0) compute_epair();
@@ -930,7 +988,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"emol") == 0) compute_emol();
   else if (strcmp(word,"elong") == 0) compute_elong();
   else if (strcmp(word,"etail") == 0) compute_etail();
-
+  
   else if (strcmp(word,"vol") == 0) compute_vol();
   else if (strcmp(word,"lx") == 0) compute_lx();
   else if (strcmp(word,"ly") == 0) compute_ly();
@@ -949,7 +1007,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"pxy") == 0) compute_pxy();
   else if (strcmp(word,"pxz") == 0) compute_pxz();
   else if (strcmp(word,"pyz") == 0) compute_pyz();
-
+  
   else if (strcmp(word,"drot") == 0) compute_drot();
   else if (strcmp(word,"grot") == 0) compute_grot();
 
@@ -1049,33 +1107,9 @@ void Thermo::compute_press()
 
 void Thermo::compute_pe()
 {
-  double tmp = 0.0;
-  if (force->pair) tmp += force->pair->eng_vdwl + force->pair->eng_coul;
-  if (force->bond) tmp += force->bond->eng_vdwl;
-  if (force->dihedral) 
-    tmp += force->dihedral->eng_vdwl + force->dihedral->eng_coul;
-
-  if (atom->molecular) {
-    if (force->bond) tmp += force->bond->energy;
-    if (force->angle) tmp += force->angle->energy;
-    if (force->dihedral) tmp += force->dihedral->energy;
-    if (force->improper) tmp += force->improper->energy;
-  }
-
-  MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
-
-  if (force->kspace) dvalue += force->kspace->energy;
-  if (force->pair && force->pair->tail_flag) {
-    double volume = domain->xprd * domain->yprd * domain->zprd;
-    dvalue += force->pair->etail / volume;
-  }
-  if (modify->n_thermo_energy) dvalue += modify->thermo_energy();
-
+  if (thermoflag) dvalue = pe->scalar;
+  else dvalue = pe->compute_scalar();
   if (normflag) dvalue /= natoms;
-
-  // also store PE in potential_energy so other classes can grab it
-
-  potential_energy = dvalue;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1093,6 +1127,7 @@ void Thermo::compute_ke()
 void Thermo::compute_etotal()
 {
   compute_pe();
+
   double ke;
   if (thermoflag) ke = temperature->scalar;
   else ke = temperature->compute_scalar();

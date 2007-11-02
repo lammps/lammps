@@ -16,6 +16,7 @@
 #include "fix_print.h"
 #include "update.h"
 #include "input.h"
+#include "modify.h"
 #include "variable.h"
 #include "error.h"
 
@@ -67,10 +68,15 @@ void FixPrint::end_of_step()
   // make a copy of line to work on
   // substitute for $ variables (no printing)
   // append a newline and print final copy
+  // variable evaluation may invoke a compute that affects Verlet::eflag,vflag
+
+  modify->clearstep_compute();
 
   strcpy(copy,line);
   input->substitute(copy,0);
   strcat(copy,"\n");
+
+  modify->addstep_compute(update->ntimestep + nevery);
 
   if (me == 0) {
     if (screen) fprintf(screen,copy);

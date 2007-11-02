@@ -18,9 +18,12 @@
 #include "group.h"
 #include "domain.h"
 #include "lattice.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define DELTA 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,7 +51,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   vector_atom = NULL;
   
   scalar_flag = vector_flag = peratom_flag = 0;
-  tempflag = pressflag = 0;
+  tempflag = pressflag = peflag = 0;
+  timeflag = 0;
+  invoked = 0;
   npre = 0;
   id_pre = NULL;
   comm_forward = comm_reverse = 0;
@@ -57,6 +62,11 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   extra_dof = 3;
   dynamic = 0;
+
+  // setup list of timesteps
+
+  ntime = maxtime = 0;
+  tlist = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,6 +78,8 @@ Compute::~Compute()
 
   for (int i = 0; i < npre; i++) delete [] id_pre[i];
   delete [] id_pre;
+
+  memory->sfree(tlist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,7 +88,8 @@ void Compute::modify_params(int narg, char **arg)
 {
   if (narg == 0) error->all("Illegal compute_modify command");
 
-  int iarg = 0;  while (iarg < narg) {
+  int iarg = 0;
+  while (iarg < narg) {
     if (strcmp(arg[iarg],"extra") == 0) {
       if (iarg+2 > narg) error->all("Illegal compute_modify command");
       extra_dof = atoi(arg[iarg+1]);
@@ -87,6 +100,60 @@ void Compute::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"yes") == 0) dynamic = 1;
       else error->all("Illegal compute_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"thermo") == 0) {
+      if (iarg+2 > narg) error->all("Illegal compute_modify command");
+      if (strcmp(arg[iarg+1],"no") == 0) thermoflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) thermoflag = 1;
+      else error->all("Illegal compute_modify command");
+      iarg += 2;
     } else error->all("Illegal compute_modify command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   add ntimestep to list of timesteps the compute will be called on
+   do not add if already in list
+   search from top downward, since list of times is in decreasing order
+------------------------------------------------------------------------- */
+
+void Compute::add_step(int ntimestep)
+{
+  // i = location in list to insert ntimestep
+
+  int i;
+  for (i = ntime-1; i >= 0; i--) {
+    if (ntimestep == tlist[i]) return;
+    if (ntimestep < tlist[i]) break;
+  }
+  i++;
+
+  // extend list as needed
+
+  if (ntime == maxtime) {
+    maxtime += DELTA;
+    tlist = (int *)
+      memory->srealloc(tlist,maxtime*sizeof(int),"compute:tlist");
+  }
+
+  // move remainder of list upward and insert ntimestep
+
+  for (int j = ntime-1; j >= i; j--) tlist[j+1] = tlist[j];
+  tlist[i] = ntimestep;
+  ntime++;
+}
+
+/* ----------------------------------------------------------------------
+   return 1/0 if ntimestep is or is not in list of calling timesteps
+   if value(s) on top of list are less than ntimestep, delete them
+   search from top downward, since list of times is in decreasing order
+------------------------------------------------------------------------- */
+
+int Compute::match_step(int ntimestep)
+{
+  for (int i = ntime-1; i >= 0; i--) {
+    if (ntimestep < tlist[i]) return 0;
+    if (ntimestep == tlist[i]) return 1;
+    if (ntimestep > tlist[i]) ntime--;
+  }
+  return 0;
 }

@@ -154,8 +154,12 @@ void Modify::init()
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
   // init each compute
+  // notify relevant computes they may be called on this timestep
 
-  for (i = 0; i < ncompute; i++) compute[i]->init();
+  for (i = 0; i < ncompute; i++) {
+    compute[i]->init();
+    if (compute[i]->timeflag) compute[i]->add_step(update->ntimestep);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -566,6 +570,28 @@ int Modify::find_compute(char *id)
     if (strcmp(id,compute[icompute]->id) == 0) break;
   if (icompute == ncompute) return -1;
   return icompute;
+}
+
+/* ----------------------------------------------------------------------
+   clear the invoked flag of computes that stores their next invocation
+   called by classes that are invoking computes
+------------------------------------------------------------------------- */
+
+void Modify::clearstep_compute()
+{
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (compute[icompute]->timeflag) compute[icompute]->invoked = 0;
+}
+
+/* ----------------------------------------------------------------------
+   schedule the next invocation of computes that were invoked
+   called by classes that invoked computes to schedule the next invocation
+------------------------------------------------------------------------- */
+
+void Modify::addstep_compute(int ntimestep)
+{
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (compute[icompute]->invoked) compute[icompute]->add_step(ntimestep);
 }
 
 /* ----------------------------------------------------------------------

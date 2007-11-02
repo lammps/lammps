@@ -46,18 +46,25 @@ using namespace LAMMPS_NS;
 
 Output::Output(LAMMPS *lmp) : Pointers(lmp)
 {
-  // create 2 default computes for temp and pressure
+  // create default computes for temp,pressure,pe
 
   char **newarg = new char*[4];
   newarg[0] = (char *) "thermo_temp";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
+
   newarg[0] = (char *) "thermo_pressure";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
   newarg[3] = (char *) "thermo_temp";
   modify->add_compute(4,newarg);
+
+  newarg[0] = (char *) "thermo_pe";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pe";
+  modify->add_compute(3,newarg);
+
   delete [] newarg;
 
   // create default Thermo class
@@ -157,6 +164,8 @@ void Output::setup(int flag)
   // set next_thermo to multiple of every or last step of run (if smaller)
   // if every = 0, set next_thermo to last step of run
 
+  modify->clearstep_compute();
+
   thermo->header();
   thermo->compute(0);
   last_thermo = ntimestep;
@@ -165,6 +174,8 @@ void Output::setup(int flag)
     next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
     next_thermo = MYMIN(next_thermo,update->laststep);
   } else next_thermo = update->laststep;
+
+  modify->addstep_compute(next_thermo);
 
   // next = next timestep any output will be done
 
@@ -220,10 +231,12 @@ void Output::write(int ntimestep)
   // insure next_thermo forces output on last step of run
 
   if (next_thermo == ntimestep && last_thermo != ntimestep) {
+    modify->clearstep_compute();
     thermo->compute(1);
     last_thermo = ntimestep;
     next_thermo += thermo_every;
     next_thermo = MYMIN(next_thermo,update->laststep);
+    modify->addstep_compute(next_thermo);
   }
 
   // next = next timestep any output will be done

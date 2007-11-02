@@ -39,6 +39,14 @@ class Compute : protected Pointers {
                       // must have both compute_scalar, compute_vector
   int pressflag;      // 1 if Compute can be used as pressure (uses virial)
                       // must have both compute_scalar, compute_vector
+  int peflag;         // 1 if Compute calculates PE (uses Force energies)
+
+  int timeflag;       // 1 if Compute stores list of timesteps it's called on
+  int ntime;          // # of entries in time list
+  int maxtime;        // max # of entries time list can hold
+  int *tlist;         // time list of steps the Compute is called on
+  int invoked;        // 1 if Compute was invoked (e.g. by a variable)
+
   double dof;         // degrees-of-freedom for temperature
 
   int npre;           // # of computes to compute before this one
@@ -61,10 +69,15 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
+  void add_step(int);
+  int match_step(int);
+
   virtual double memory_usage() {return 0.0;}
 
  protected:
-  int extra_dof,dynamic;
+  int extra_dof;               // extra DOF for temperature computes
+  int dynamic;                 // recount atoms for temperature computes
+  int thermoflag;              // 1 if include fix PE for PE computes
 };
 
 }

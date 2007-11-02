@@ -17,6 +17,7 @@
 #include "domain.h"
 #include "update.h"
 #include "integrate.h"
+#include "modify.h"
 #include "output.h"
 #include "finish.h"
 #include "input.h"
@@ -182,7 +183,13 @@ void Run::command(int narg, char **arg)
       if (postflag || nleft == 0) finish.end(1);
       else finish.end(0);
 
-      if (commandstr) char *command = input->one(commandstr);
+      // command string may invoke a compute that affects Verlet::eflag,vflag
+
+      if (commandstr) {
+	modify->clearstep_compute();
+	char *command = input->one(commandstr);
+	modify->addstep_compute(update->ntimestep + nevery);
+      }
 
       nleft -= nsteps;
       iter++;

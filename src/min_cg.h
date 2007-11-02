@@ -21,21 +21,26 @@ namespace LAMMPS_NS {
 class MinCG : public Min {
  public:
   MinCG(class LAMMPS *);
+  virtual ~MinCG();
   void init();
   void run();
-
   virtual void iterate(int);
 
  protected:
-  int virial_thermo;          // what vflag should be on thermo steps (1,2)
+  int eflag,vflag;            // flags for energy/virial computation
+  int virial_style;           // compute virial explicitly or implicitly
   int pairflag,torqueflag;
   int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
+
+  int nvlist;                 // # of PE,virial coputes for eflag,vflag
+  class Compute **vlist;      // list of Computes to check
 
   int maxpair;                // copies of Update quantities
   double **f_pair;
 
   class FixMinimize *fix_minimize;  // fix that stores gradient vecs
+  class Compute *pe_compute;  // compute for potential energy
   double ecurrent;            // current potential energy
   double mindist,maxdist;     // min/max dist for coord delta in line search
 
@@ -54,6 +59,7 @@ class MinCG : public Min {
   void setup();
   void setup_vectors();
   void eng_force(int *, double **, double **, double *);
+  void ev_set(int);
   void force_clear(int);
 };
 

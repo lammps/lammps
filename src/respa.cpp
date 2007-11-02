@@ -33,15 +33,13 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
+#include "compute.h"
 #include "fix_respa.h"
 #include "memory.h"
 #include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
@@ -225,7 +223,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     cutoff[3] = cutoff[1];
   }
 
-  // allocate other needed level arrays
+  // allocate other needed arrays
 
   newton = new int[nlevels];
   step = new double[nlevels];
@@ -271,28 +269,29 @@ void Respa::init()
     if (force->pair && force->pair->respa_enable == 0)
       error->all("Pair style does not support rRESPA inner/middle/outer");
 
-  // setup virial computations for timestepping
   // virial_style = 1 (explicit) since never computed implicitly like Verlet
-  // virial_every = 1 if computed every timestep (NPT,NPH)
-  // fix arrays store info on fixes that need virial computed occasionally
 
   virial_style = 1;
 
-  virial_every = 0;
-  nfix_virial = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->pressure_every == 1) virial_every = 1;
-    else if (modify->fix[i]->pressure_every > 1) nfix_virial++;
+  // elist,vlist = list of computes for PE and pressure
 
-  if (nfix_virial) {
-    delete [] fix_virial_every;
-    delete [] next_fix_virial;
-    fix_virial_every = new int[nfix_virial];
-    next_fix_virial = new int[nfix_virial];
-    nfix_virial = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->pressure_every > 1)
-	fix_virial_every[nfix_virial++] = modify->fix[i]->pressure_every;
+  delete [] elist;
+  delete [] vlist;
+  elist = vlist = NULL;
+
+  nelist = nvlist = 0;
+  for (int i = 0; i < modify->ncompute; i++) {
+    if (modify->compute[i]->peflag) nelist++;
+    if (modify->compute[i]->pressflag) nvlist++;
+  }
+
+  if (nelist) elist = new Compute*[nelist];
+  if (nvlist) vlist = new Compute*[nvlist];
+
+  nelist = nvlist = 0;
+  for (int i = 0; i < modify->ncompute; i++) {
+    if (modify->compute[i]->peflag) elist[nelist++] = modify->compute[i];
+    if (modify->compute[i]->pressflag) vlist[nvlist++] = modify->compute[i];
   }
 
   // step[] = timestep for each level
@@ -347,8 +346,7 @@ void Respa::setup()
 
   // compute all forces
 
-  eflag = 1;
-  vflag = virial_style;
+  ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
@@ -379,21 +377,6 @@ void Respa::setup()
   modify->setup();
   sum_flevel_f();
   output->setup(1);
-
-  // setup virial computations for timestepping
-
-  int ntimestep = update->ntimestep;
-  next_virial = 0;
-  if (virial_every) next_virial = ntimestep + 1;
-  else {
-    for (int ivirial = 0; ivirial < nfix_virial; ivirial++) {
-      next_fix_virial[ivirial] = 
-	(ntimestep/fix_virial_every[ivirial])*fix_virial_every[ivirial] + 
-	fix_virial_every[ivirial];
-      if (ivirial) next_virial = MIN(next_virial,next_fix_virial[ivirial]);
-      else next_virial = next_fix_virial[0];
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -408,16 +391,7 @@ void Respa::iterate(int n)
 
     ntimestep = ++update->ntimestep;
 
-    // eflag/vflag = 0/1 for energy/virial computation
-
-    if (ntimestep == output->next_thermo) eflag = 1;
-    else eflag = 0;
-
-    if (ntimestep == output->next_thermo || ntimestep == next_virial) {
-      vflag = virial_style;
-      if (virial_every) next_virial++;
-      else next_virial = fix_virial(ntimestep);
-    } else vflag = 0;
+    ev_set(ntimestep);
 
     recurse(nlevels-1);
 
@@ -541,7 +515,8 @@ void Respa::recurse(int ilevel)
       timer->stamp(TIME_COMM);
     }
   
-    if (modify->n_post_force_respa) modify->post_force_respa(vflag,ilevel,iloop);
+    if (modify->n_post_force_respa)
+      modify->post_force_respa(vflag,ilevel,iloop);
     modify->final_integrate_respa(ilevel);
   }
 
@@ -622,21 +597,4 @@ void Respa::sum_flevel_f()
       f[i][2] += f_level[i][ilevel][2];
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   return next timestep virial should be computed
-   based on one or more fixes that need virial computed periodically
-------------------------------------------------------------------------- */
-
-int Respa::fix_virial(int ntimestep)
-{
-  int next;
-  for (int ivirial = 0; ivirial < nfix_virial; ivirial++) {
-    if (ntimestep == next_fix_virial[ivirial])
-      next_fix_virial[ivirial] += fix_virial_every[ivirial];
-    if (ivirial) next = MIN(next,next_fix_virial[ivirial]);
-    else next = next_fix_virial[0];
-  }
-  return next;
 }

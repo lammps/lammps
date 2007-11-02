@@ -184,7 +184,6 @@ void Verlet::iterate(int n)
     // force computations
 
     ev_set(ntimestep);
-    ///printf("AAA %d %d %d\n",ntimestep,eflag,vflag);
     force_clear(vflag);
 
     timer->stamp();

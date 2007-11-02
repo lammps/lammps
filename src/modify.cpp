@@ -72,6 +72,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   end_of_step_every = NULL;
 
+  list_timeflag = NULL;
+
   nfix_restart_global = 0;
   id_restart_global = style_restart_global = state_restart_global = NULL;
   nfix_restart_peratom = 0;
@@ -107,6 +109,8 @@ Modify::~Modify()
   delete [] list_min_energy;
 
   delete [] end_of_step_every;
+
+  delete [] list_timeflag;
 
   restart_deallocate();
 
@@ -153,8 +157,12 @@ void Modify::init()
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
+  // create list of computes that store invocation times
+
+  list_init_compute();
+
   // init each compute
-  // notify relevant computes they may be called on this timestep
+  // for computes that store invocation times, add initial step to their list
 
   for (i = 0; i < ncompute; i++) {
     compute[i]->init();
@@ -573,25 +581,28 @@ int Modify::find_compute(char *id)
 }
 
 /* ----------------------------------------------------------------------
-   clear the invoked flag of computes that stores their next invocation
-   called by classes that are invoking computes
+   loop over computes that store invocation times
+   clear their invoked flag
+   called by classes that invoke computes
 ------------------------------------------------------------------------- */
 
 void Modify::clearstep_compute()
 {
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (compute[icompute]->timeflag) compute[icompute]->invoked = 0;
+  for (int icompute = 0; icompute < n_timeflag; icompute++)
+    compute[list_timeflag[icompute]]->invoked = 0;
 }
 
 /* ----------------------------------------------------------------------
-   schedule the next invocation of computes that were invoked
-   called by classes that invoked computes to schedule the next invocation
+   loop over computes that store invocation times
+   if it was invoked, schedule the next invocation
+   called by classes that invoke computes
 ------------------------------------------------------------------------- */
 
 void Modify::addstep_compute(int ntimestep)
 {
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (compute[icompute]->invoked) compute[icompute]->add_step(ntimestep);
+  for (int icompute = 0; icompute < n_timeflag; icompute++)
+    if (compute[list_timeflag[icompute]]->invoked)
+      compute[list_timeflag[icompute]]->add_step(ntimestep);
 }
 
 /* ----------------------------------------------------------------------
@@ -821,6 +832,24 @@ void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
   n = 0;
   for (int i = 0; i < nfix; i++)
     if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of compute indices for computes which store invocation times
+------------------------------------------------------------------------- */
+
+void Modify::list_init_compute()
+{
+  delete [] list_timeflag;
+
+  n_timeflag = 0;
+  for (int i = 0; i < ncompute; i++)
+    if (compute[i]->timeflag) n_timeflag++;
+  list_timeflag = new int[n_timeflag];
+
+  n_timeflag = 0;
+  for (int i = 0; i < ncompute; i++)
+    if (compute[i]->timeflag) list_timeflag[n_timeflag++] = i;
 }
 
 /* ----------------------------------------------------------------------

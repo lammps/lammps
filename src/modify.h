@@ -86,6 +86,9 @@ class Modify : protected Pointers {
 
   int *end_of_step_every;
 
+  int n_timeflag;            // list of computes that store time invocation
+  int *list_timeflag;
+
   int nfix_restart_global;
   char **id_restart_global;
   char **style_restart_global;
@@ -98,6 +101,7 @@ class Modify : protected Pointers {
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
   void list_init_thermo_energy(int, int &, int *&);
+  void list_init_compute();
 };
 
 }

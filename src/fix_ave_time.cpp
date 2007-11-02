@@ -199,6 +199,13 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   if (nvalid < update->ntimestep)
     error->all("Fix ave/time cannot be started on this timestep");
+
+  // must set timestep for all computes that store invocation times
+  // since don't know a priori which are invoked by this fix
+  // once in end_of_step() can just set timestep for ones actually invoked
+
+  for (int i = 0; i < modify->ncompute; i++)
+    if (modify->compute[i]->timeflag) modify->compute[i]->add_step(nvalid);
 }
 
 /* ---------------------------------------------------------------------- */

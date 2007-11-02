@@ -181,6 +181,10 @@ void FixNPTASphere::final_integrate()
   }
   couple();
 
+  // trigger virial computation on next timestep
+
+  pressure->add_step(update->ntimestep+1);
+
   // update eta_dot
 
   f_eta = t_freq*t_freq * (t_current/t_target - 1.0);

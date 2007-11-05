@@ -931,7 +931,6 @@ void FixRigid::pre_neighbor()
   // adjust image flags of any atom in a rigid body whose xcm was remapped
 
   int *atomimage = atom->image;
-  double **x = atom->x;
   int nlocal = atom->nlocal;
 
   int ibody,idim,otherdims;
@@ -1335,7 +1334,7 @@ void FixRigid::set_v(int vflag)
 
   int ibody;
   double xunwrap,yunwrap,zunwrap,dx,dy,dz;
-  double vold0,vold1,vold2,fc0,fc1,fc2,massone,x0,x1,x2;
+  double vold0,vold1,vold2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
 
   double *mass = atom->mass; 

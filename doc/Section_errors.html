@@ -747,8 +747,10 @@ setting in order to use a middle setting.
 
 <DT><I>Cannot use atom vector in variable unless atom map exists</I> 
 
-<DD>Atom maps are on by default, but can be turned off be the atom_modify
-command. 
+<DD>Atom vectors require the ability to lookup an atom index, which
+is provided by an atom map.  An atom map does not exist (by default)
+for non-molecular problems.  Using the atom_modify map command will
+force an atom map to be created. 
 
 <DT><I>Cannot use both region, partial options in fix temp/rescale</I> 
 

@@ -58,6 +58,10 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
+  // make sure an atom map exists before reading in target coordinates
+  if (atom->map_style == 0) 
+    error->all("Cannot use fix TMD unless atom map exists");
+
   // read from arg[4] and store coordinates of final target in xf
 
   readfile(arg[4]);

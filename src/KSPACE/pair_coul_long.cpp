@@ -71,7 +71,7 @@ void PairCoulLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fraction,table;
   double r,r2inv,forcecoul,fforce,factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double factor,phicoul;
+  double phicoul;
   int *ilist,*jlist,*numneigh,**firstneigh;
   float rsq;
   int *int_rsq = (int *) &rsq;

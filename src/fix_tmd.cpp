@@ -59,6 +59,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
 
   // make sure an atom map exists before reading in target coordinates
+
   if (atom->map_style == 0) 
     error->all("Cannot use fix TMD unless atom map exists");
 

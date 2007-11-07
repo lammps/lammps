@@ -96,7 +96,8 @@ void PairSW::compute(int eflag, int vflag)
 
   // loop over full neighbor list of my atoms
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     itag = tag[i];
     itype = map[type[i]];
     xtmp = x[i][0];

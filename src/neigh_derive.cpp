@@ -62,7 +62,7 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     jlist = firstneigh_full[i];
     jnum = numneigh_full[i];
 
-    for (j = 0; jj < jnum; jj++) {
+    for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       if (j > i) neighptr[n++] = j;
     }

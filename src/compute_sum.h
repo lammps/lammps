@@ -27,6 +27,7 @@ class ComputeSum : public Compute {
   void compute_vector();
 
  private:
+  double *onevec;
   class Compute **compute;
 };
 

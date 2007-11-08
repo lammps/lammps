@@ -62,10 +62,12 @@ ComputeSum::ComputeSum(LAMMPS *lmp, int narg, char **arg) :
   if (size == 0) {
     scalar_flag = 1;
     vector = NULL;
+    onevec = NULL;
   } else {
     vector_flag = 1;
     size_vector = size;
     vector = new double[size_vector];
+    onevec = new double[size_vector];
   }
 
   for (int i = 1; i < npre; i++) {
@@ -81,6 +83,7 @@ ComputeSum::~ComputeSum()
 {
   delete [] compute;
   delete [] vector;
+  delete [] onevec;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,13 +118,15 @@ double ComputeSum::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  scalar = 0.0;
+  double one = 0.0;
 
   for (int icompute = 0; icompute < npre; icompute++) {
     double *scalar_atom = compute[icompute]->scalar_atom;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) scalar += scalar_atom[i];
+      if (mask[i] & groupbit) one += scalar_atom[i];
   }
+
+  MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
 
   return scalar;
 }
@@ -144,13 +149,15 @@ void ComputeSum::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (j = 0; j < size_vector; j++) vector[j] = 0.0;
+  for (j = 0; j < size_vector; j++) onevec[j] = 0.0;
 
   for (int icompute = 0; icompute < npre; icompute++) {
     double **vector_atom = compute[icompute]->vector_atom;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) 
 	for (j = 0; j < size_vector; j++)
-	  vector[j] += vector_atom[i][j];
+	  onevec[j] += vector_atom[i][j];
   }
+
+  MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
 }

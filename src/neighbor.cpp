@@ -67,7 +67,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   every = 1;
   delay = 10;
   dist_check = 1;
-  pgsize = 10000;
+  pgsize = 100000;
   oneatom = 2000;
 
   cutneighsq = NULL;
@@ -188,6 +188,9 @@ void Neighbor::init()
 
   if (delay > 0 && (delay % every) != 0)
     error->all("Neighbor delay must be 0 or multiple of every setting");
+
+  if (pgsize < 10*oneatom)
+    error->all("Neighbor page size must be >= 10x the one atom setting");
 
   // ------------------------------------------------------------------
   // settings

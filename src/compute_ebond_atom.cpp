@@ -116,7 +116,7 @@ void ComputeEbondAtom::compute_peratom()
     domain->minimum_image(delx,dely,delz);
       
     rsq = delx*delx + dely*dely + delz*delz;
-    force->bond->single(type,rsq,i1,i2,0,fforce,eng);
+    force->bond->single(type,rsq,i1,i2,1,fforce,eng);
     if (iflag) energy[i1] += eng;
     if (jflag && (newton_bond || i2 < nlocal)) energy[i2] += eng;
   }

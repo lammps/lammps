@@ -148,7 +148,7 @@ void FixWallLJ126::post_force(int vflag)
       fwall = r6inv*(coeff1*r6inv - coeff2) * side;
       f[i][dim] -= fwall;
       wall[0] += r6inv*(coeff3*r6inv - coeff4) - offset;
-      wall[dim] += fwall;
+      wall[dim+1] += fwall;
     }
 }
 

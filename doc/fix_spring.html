@@ -95,11 +95,17 @@ last example holds the ion a distance 5 away from the pore axis
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+are relevant to this fix.
+</P>
+<P>This fix computes a 3-vector of forces, which can be accessed by
+various <A HREF = "Section_howto.html#4_15">output commands</A>.  This is the total
+force on the group of atoms by the spring.  In the case of the
+<I>couple</I> style, it is the force on the fix group (group-ID) or the
+negative of the force on the 2nd group (group-ID2).
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

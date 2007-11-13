@@ -191,5 +191,5 @@ double FixWallLJ93::compute_vector(int n)
     MPI_Allreduce(wall,wall_all,4,MPI_DOUBLE,MPI_SUM,world);
     wall_flag = 1;
   }
-  return wall_all[n];
+  return wall_all[n+1];
 }

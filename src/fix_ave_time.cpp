@@ -405,5 +405,5 @@ double FixAveTime::compute_scalar()
 double FixAveTime::compute_vector(int n)
 {
   if (norm) return vector_total[n]/norm;
-  else return 0.0;
+  return 0.0;
 }

@@ -304,7 +304,7 @@ double FixIndent::compute_vector(int n)
     MPI_Allreduce(indenter,indenter_all,4,MPI_DOUBLE,MPI_SUM,world);
     indenter_flag = 1;
   }
-  return indenter_all[n];
+  return indenter_all[n+1];
 }
 
 /* ----------------------------------------------------------------------

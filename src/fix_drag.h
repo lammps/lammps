@@ -26,6 +26,7 @@ class FixDrag : public Fix {
   void setup();
   void post_force(int);
   void post_force_respa(int, int, int);
+  double compute_vector(int);
 
  private:
   double xc,yc,zc;
@@ -33,6 +34,8 @@ class FixDrag : public Fix {
   int xflag,yflag,zflag;
   double delta;
   int nlevels_respa;
+  double ftotal[3],ftotal_all[3];
+  int force_flag;
 };
 
 }

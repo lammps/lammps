@@ -30,6 +30,11 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 8) error->all("Illegal fix drag command");
 
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+  extensive = 1;
+
   xflag = yflag = zflag = 1;
 
   if (strcmp(arg[3],"NULL") == 0) xflag = 0;
@@ -85,8 +90,11 @@ void FixDrag::post_force(int vflag)
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
+  force_flag = 0;
   
-  double dx,dy,dz,r,prefactor;
+  double dx,dy,dz,r,prefactor,fx,fy,fz;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -100,9 +108,15 @@ void FixDrag::post_force(int vflag)
       r = sqrt(dx*dx + dy*dy + dz*dz);
       if (r > delta) {
 	prefactor = f_mag/r;
-	f[i][0] -= prefactor*dx;
-	f[i][1] -= prefactor*dy;
-	f[i][2] -= prefactor*dz;
+	fx = prefactor*dx;
+	fy = prefactor*dy;
+	fz = prefactor*dz;
+	f[i][0] -= fx;
+	f[i][1] -= fy;
+	f[i][2] -= fz;
+	ftotal[0] -= fx;
+	ftotal[1] -= fy;
+	ftotal[2] -= fz;
       }
     }
 }
@@ -112,4 +126,19 @@ void FixDrag::post_force(int vflag)
 void FixDrag::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   return components of total drag force on fix group
+------------------------------------------------------------------------- */
+
+double FixDrag::compute_vector(int n)
+{
+  // only sum across procs one time
+
+  if (force_flag == 0) {
+    MPI_Allreduce(ftotal,ftotal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return ftotal_all[n];
 }

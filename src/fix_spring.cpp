@@ -38,6 +38,11 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 9) error->all("Illegal fix spring command");
 
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+  extensive = 1;
+
   if (strcmp(arg[3],"tether") == 0) {
     if (narg != 9) error->all("Illegal fix spring command");
     styleflag = TETHER;
@@ -147,13 +152,22 @@ void FixSpring::spring_tether()
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
   
+  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
+  force_flag = 0;
+
   double massfrac;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       massfrac = mass[type[i]]/masstotal;
-      f[i][0] -= fx*massfrac;
-      f[i][1] -= fy*massfrac;
-      f[i][2] -= fz*massfrac;
+      fx *= massfrac;
+      fy *= massfrac;
+      fz *= massfrac;
+      f[i][0] -= fx;
+      f[i][1] -= fy;
+      f[i][2] -= fz;
+      ftotal[0] -= fx;
+      ftotal[1] -= fy;
+      ftotal[2] -= fz;
     }
 }
 
@@ -190,7 +204,10 @@ void FixSpring::spring_couple()
   int *type = atom->type;
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
-  
+
+  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
+  force_flag = 0;
+
   double massfrac;
   for (int i = 0; i < nlocal; i++) {         
     if (mask[i] & groupbit) {
@@ -198,6 +215,9 @@ void FixSpring::spring_couple()
       f[i][0] += fx*massfrac;
       f[i][1] += fy*massfrac;
       f[i][2] += fz*massfrac;
+      ftotal[0] += fx*massfrac;
+      ftotal[1] += fy*massfrac;
+      ftotal[2] += fz*massfrac;
     }
     if (mask[i] & group2bit) {
       massfrac = mass[type[i]]/masstotal2;
@@ -213,4 +233,19 @@ void FixSpring::spring_couple()
 void FixSpring::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   return components of total spring force on fix group
+------------------------------------------------------------------------- */
+
+double FixSpring::compute_vector(int n)
+{
+  // only sum across procs one time
+
+  if (force_flag == 0) {
+    MPI_Allreduce(ftotal,ftotal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return ftotal_all[n];
 }

@@ -26,6 +26,7 @@ class FixSpring : public Fix {
   void setup();
   void post_force(int);
   void post_force_respa(int, int, int);
+  double compute_vector(int);
 
  private:
   double xc,yc,zc,r0;
@@ -35,6 +36,8 @@ class FixSpring : public Fix {
   int igroup2,group2bit;
   double masstotal,masstotal2;
   int nlevels_respa;
+  double ftotal[3],ftotal_all[3];
+  int force_flag;
 
   void spring_tether();
   void spring_couple();

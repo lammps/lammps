@@ -28,7 +28,6 @@ KSpaceStyle(pppm/tip4p,PPPMTIP4P)
 #include "pair_coul_long.h"
 #include "pair_lj_cut_coul_long.h"
 #include "pair_lj_cut_coul_long_tip4p.h"
-#include "pair_new.h"
 #include "pair_lj_charmm_coul_long.h"
 #endif
 
@@ -37,6 +36,5 @@ PairStyle(buck/coul/long,PairBuckCoulLong)
 PairStyle(coul/long,PairCoulLong)
 PairStyle(lj/cut/coul/long,PairLJCutCoulLong)
 PairStyle(lj/cut/coul/long/tip4p,PairLJCutCoulLongTIP4P)
-PairStyle(lj/cut/coul/long/tip4p2,PairLJCutCoulLongTIP4P2)
 PairStyle(lj/charmm/coul/long,PairLJCharmmCoulLong)
 #endif

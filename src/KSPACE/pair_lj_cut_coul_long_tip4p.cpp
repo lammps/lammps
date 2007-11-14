@@ -54,6 +54,16 @@ PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp)
 {
   single_enable = 0;
+
+  nmax = 0;
+  ftmp = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairLJCutCoulLongTIP4P::~PairLJCutCoulLongTIP4P()
+{
+  memory->destroy_2d_double_array(ftmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,24 +82,34 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double *x1,*x2;
   double fO[3],fH[3]; 
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double **f;
   float rsq;
   int *int_rsq = (int *) &rsq;
 
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = tvirial[i] = 0.0;
+  // grow temporary force array if necessary
 
-  if (vflag == 2) {
-    //f = update->f_pair;
-    f = atom->f;
-    tf = atom->f;
+  if (atom->nmax > nmax) {
+    memory->destroy_2d_double_array(ftmp);
+    nmax = atom->nmax;
+    ftmp = memory->create_2d_double_array(nmax,3,"pair:ftmp");
   }
-  else f = atom->f;
+
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+
+  eng_vdwl = eng_coul = 0.0;
+  if (vflag) {
+    for (i = 0; i < 6; i++) virial[i] = virialtmp[i] = 0.0;
+    for (i = 0; i < nall; ++i) {
+      ftmp[i][0] = 0.0;
+      ftmp[i][1] = 0.0;
+      ftmp[i][2] = 0.0;
+    }
+  }
+
+  double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
@@ -208,17 +228,18 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      f[i][0] += delx * cforce;
 	      f[i][1] += dely * cforce;
 	      f[i][2] += delz * cforce;
-	    } else {
-	      tf[i][0] += delx * cforce;
-	      tf[i][1] += dely * cforce;
-	      tf[i][2] += delz * cforce;
 
-	      tvirial[0] += 0.5 * delx * delx * cforce;
-	      tvirial[1] += 0.5 * dely * dely * cforce;
-	      tvirial[2] += 0.5 * delz * delz * cforce;
-	      tvirial[3] += 0.5 * dely * delx * cforce;
-	      tvirial[4] += 0.5 * delz * delx * cforce;
-	      tvirial[5] += 0.5 * delz * dely * cforce;
+	    } else {
+	      ftmp[i][0] += delx * cforce;
+	      ftmp[i][1] += dely * cforce;
+	      ftmp[i][2] += delz * cforce;
+
+	      virialtmp[0] += 0.5 * delx * delx * cforce;
+	      virialtmp[1] += 0.5 * dely * dely * cforce;
+	      virialtmp[2] += 0.5 * delz * delz * cforce;
+	      virialtmp[3] += 0.5 * dely * delx * cforce;
+	      virialtmp[4] += 0.5 * delz * delx * cforce;
+	      virialtmp[5] += 0.5 * delz * dely * cforce;
 	    }
 
 	  } else {
@@ -244,17 +265,17 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      f[iH2][2] += fH[2];
 
 	    } else {
-	      tf[i][0] += fO[0];
-	      tf[i][1] += fO[1];
-	      tf[i][2] += fO[2];
+	      ftmp[i][0] += fO[0];
+	      ftmp[i][1] += fO[1];
+	      ftmp[i][2] += fO[2];
 
-	      tf[iH1][0] += fH[0];
-	      tf[iH1][1] += fH[1];
-	      tf[iH1][2] += fH[2];
+	      ftmp[iH1][0] += fH[0];
+	      ftmp[iH1][1] += fH[1];
+	      ftmp[iH1][2] += fH[2];
 	       
-	      tf[iH2][0] += fH[0];
-	      tf[iH2][1] += fH[1];
-	      tf[iH2][2] += fH[2];
+	      ftmp[iH2][0] += fH[0];
+	      ftmp[iH2][1] += fH[1];
+	      ftmp[iH2][2] += fH[2];
 
 	      delx1 = x[i][0] - x2[0];
 	      dely1 = x[i][1] - x2[1];
@@ -271,12 +292,12 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delz3 = x[iH2][2] - x2[2];
 	      domain->minimum_image(delx3,dely3,delz3);
 
-	      tvirial[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
-	      tvirial[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
-	      tvirial[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
-	      tvirial[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
-	      tvirial[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
-	      tvirial[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+	      virialtmp[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
+	      virialtmp[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
+	      virialtmp[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
+	      virialtmp[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
+	      virialtmp[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
+	      virialtmp[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
 	    }
 	  }
 
@@ -285,17 +306,18 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      f[j][0] -= delx * cforce;
 	      f[j][1] -= dely * cforce;
 	      f[j][2] -= delz * cforce;
-	    } else {
-	      tf[j][0] -= delx * cforce;
-	      tf[j][1] -= dely * cforce;
-	      tf[j][2] -= delz * cforce;
 
-	      tvirial[0] += 0.5 * delx * delx * cforce;
-	      tvirial[1] += 0.5 * dely * dely * cforce;
-	      tvirial[2] += 0.5 * delz * delz * cforce;
-	      tvirial[3] += 0.5 * dely * delx * cforce;
-	      tvirial[4] += 0.5 * delz * delx * cforce;
-	      tvirial[5] += 0.5 * delz * dely * cforce;
+	    } else {
+	      ftmp[j][0] -= delx * cforce;
+	      ftmp[j][1] -= dely * cforce;
+	      ftmp[j][2] -= delz * cforce;
+
+	      virialtmp[0] += 0.5 * delx * delx * cforce;
+	      virialtmp[1] += 0.5 * dely * dely * cforce;
+	      virialtmp[2] += 0.5 * delz * delz * cforce;
+	      virialtmp[3] += 0.5 * dely * delx * cforce;
+	      virialtmp[4] += 0.5 * delz * delx * cforce;
+	      virialtmp[5] += 0.5 * delz * dely * cforce;
 	    }
 
 	  } else {
@@ -323,17 +345,17 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      f[jH2][2] += fH[2];
 
 	    } else {
-	      tf[j][0] += fO[0];
-	      tf[j][1] += fO[1];
-	      tf[j][2] += fO[2];
+	      ftmp[j][0] += fO[0];
+	      ftmp[j][1] += fO[1];
+	      ftmp[j][2] += fO[2];
 
-	      tf[jH1][0] += fH[0];
-	      tf[jH1][1] += fH[1];
-	      tf[jH1][2] += fH[2];
+	      ftmp[jH1][0] += fH[0];
+	      ftmp[jH1][1] += fH[1];
+	      ftmp[jH1][2] += fH[2];
 	      
-	      tf[jH2][0] += fH[0];
-	      tf[jH2][1] += fH[1];
-	      tf[jH2][2] += fH[2];
+	      ftmp[jH2][0] += fH[0];
+	      ftmp[jH2][1] += fH[1];
+	      ftmp[jH2][2] += fH[2];
 
 	      delx1 = x[j][0] - x1[0];
 	      dely1 = x[j][1] - x1[1];
@@ -350,12 +372,12 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delz3 = x[jH2][2] - x1[2];
 	      domain->minimum_image(delx3,dely3,delz3);
 
-	      tvirial[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
-	      tvirial[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
-	      tvirial[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
-	      tvirial[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
-	      tvirial[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
-	      tvirial[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+	      virialtmp[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
+	      virialtmp[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
+	      virialtmp[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
+	      virialtmp[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
+	      virialtmp[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
+	      virialtmp[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
 	    }
 	  }
  
@@ -373,9 +395,15 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
       }
     }
   }
+
   if (vflag == 2) {
     virial_compute();
-    for (int i = 0; i < 6; i++) virial[i] += tvirial[i];
+    for (int i = 0; i < 6; i++) virial[i] += virialtmp[i];
+    for (int i = 0; i < nall; i++) {
+      f[i][0] += ftmp[i][0];
+      f[i][1] += ftmp[i][1];
+      f[i][2] += ftmp[i][2];
+    }
   }
 }
 
@@ -586,4 +614,14 @@ void *PairLJCutCoulLongTIP4P::extract(char *str)
   else if (strcmp(str,"typeB") == 0) return (void *) &typeB;
   else if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays 
+------------------------------------------------------------------------- */
+
+double PairLJCutCoulLongTIP4P::memory_usage()
+{
+  double bytes = 3 * nmax * sizeof(double);
+  return bytes;
 }

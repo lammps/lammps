@@ -21,20 +21,24 @@ namespace LAMMPS_NS {
 class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
  public:
   PairLJCutCoulLongTIP4P(class LAMMPS *);
+  ~PairLJCutCoulLongTIP4P();
   void compute(int, int);
   void settings(int, char **);
   void init_style();
   void write_restart_settings(FILE *fp);
   void read_restart_settings(FILE *fp);
   void *extract(char *);
+  double memory_usage();
 
  private:
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
   int typeA,typeB;             // angle and bond types of TIP4P water
   double qdist;                // distance from O site to negative charge
   double alpha;                // geometric constraint parameter for TIP4P
-  double **tf;
-  double tvirial[6];
+
+  int nmax;
+  double **ftmp;
+  double virialtmp[6];
 
   void find_M(int, int &, int &, double *);
 };

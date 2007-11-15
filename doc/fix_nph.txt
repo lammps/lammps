@@ -43,10 +43,11 @@ fix 2 all nph aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 :pre
 
 Perform constant NPH integration to update positions and velocities
 each timestep for atoms in the group using a Nose/Hoover pressure
-barostat.  P is pressure.  This creates a system trajectory consistent
-with the isobaric ensemble.  Unlike "fix npt"_fix_npt.html,
-temperature will not be controlled if no other fix is used.
-Temperature can be controlled independently by using ""fix
+barostat "(Hoover)"_#Hoover, implemented as described in
+"(Melchionna)"_#Melchionna.  P is pressure.  This creates a system
+trajectory consistent with the isobaric ensemble.  Unlike "fix
+npt"_fix_npt.html, temperature will not be controlled if no other fix
+is used.  Temperature can be controlled independently by using ""fix
 langevin"_fix_langevin.html or "fix
 temp/rescale"_fix_temp_rescale.html.
 
@@ -186,3 +187,12 @@ pressure via Nose/Hoover.
 [Default:]
 
 The keyword defaults are drag = 0.0 and dilate = all.
+
+:line
+
+:link(Hoover)
+[(Hoover)] Hoover, Phys Rev A, 34, 2499 (1986).
+
+:link(Melchionna)
+[(Melchionna)] Melchionna, Ciccotti, Holian, Molecular Physics, 78,
+533-44 (1993).

@@ -41,9 +41,11 @@ fix 2 water npt 300.0 300.0 100.0 aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 dilate 
 
 Perform constant NPT integration to update positions and velocities
 each timestep for atoms in the group using a Nose/Hoover temperature
-thermostat and Nose/Hoover pressure barostat.  P is pressure; T is
-temperature.  This creates a system trajectory consistent with the
-isothermal-isobaric ensemble.
+thermostat "(Hoover1)"_#Hoover1 and Nose/Hoover pressure barostat
+"(Hoover2)"_#Hoover2, implemented as described in
+"(Melchionna)"_#Melchionna.  P is pressure; T is temperature.  This
+creates a system trajectory consistent with the isothermal-isobaric
+ensemble.
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.  The {Tdamp} parameter is specified in
@@ -189,3 +191,15 @@ the Nose/Hoover formulation.
 [Default:]
 
 The keyword defaults are drag = 0.0 and dilate = all.
+
+:line
+
+:link(Hoover1)
+[(Hoover1)] Hoover, Phys Rev A, 31, 1695 (1985).
+
+:link(Hoover2)
+[(Hoover2)] Hoover, Phys Rev A, 34, 2499 (1986).
+
+:link(Melchionna)
+[(Melchionna)] Melchionna, Ciccotti, Holian, Molecular Physics, 78,
+533-44 (1993).

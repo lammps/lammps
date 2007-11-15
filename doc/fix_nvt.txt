@@ -31,8 +31,8 @@ fix 1 all nvt 300.0 300.0 100.0 drag 0.2 :pre
 
 Perform constant NVT integration to update positions and velocities
 each timestep for atoms in the group using a Nose/Hoover temperature
-thermostat.  V is volume; T is temperature.  This creates a system
-trajectory consistent with the canonical ensemble.
+thermostat "(Hoover)"_#Hoover.  V is volume; T is temperature.  This
+creates a system trajectory consistent with the canonical ensemble.
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.  The {Tdamp} parameter is specified in
@@ -115,3 +115,8 @@ temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
 [Default:]
 
 The keyword defaults are drag = 0.0.
+
+:line
+
+:link(Hoover)
+[(Hoover)] Hoover, Phys Rev A, 31, 1695 (1985).

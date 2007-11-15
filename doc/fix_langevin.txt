@@ -58,7 +58,9 @@ into the particle.  As derived from the fluctuation/dissipation
 theorum, its magnitude is proportional to sqrt(T m / dt damp), where T
 is the desired temperature, m is the mass of the particle, dt is the
 timestep size, and damp is the damping factor.  Random numbers are
-used to randomize the direction and magnitude of this force.
+used to randomize the direction and magnitude of this force as
+described in "(Dunweg)"_#Dunweg, where a uniform random number is used
+(instead of a Gaussian random number) for speed.
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.
@@ -135,3 +137,6 @@ This fix is not invoked during "energy minimization"_minimize.html.
 viscous"_fix_viscous.html
 
 [Default:] none
+
+:link(Dunweg)
+[(Dunweg)] Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).

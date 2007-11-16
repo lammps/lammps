@@ -92,6 +92,7 @@ class Data {
   double *pair_gb_epsa,*pair_gb_epsb,*pair_gb_epsc;
   double *pair_lj_epsilon,*pair_lj_sigma;
   double *pair_ljexpand_epsilon,*pair_ljexpand_sigma,*pair_ljexpand_shift;
+  double *pair_ljsmooth_epsilon,*pair_ljsmooth_sigma;
   double *pair_morse_d0,*pair_morse_alpha,*pair_morse_r0;
   double *pair_soft_start,*pair_soft_stop;
   double *pair_yukawa_A;
@@ -1614,6 +1615,40 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"lj/smooth") == 0) {
+
+    double cut_inner_global = read_double(fp);
+    double cut_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_ljsmooth_epsilon = new double[data.ntypes+1];
+    data.pair_ljsmooth_sigma = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_ljsmooth_epsilon[i] = read_double(fp);
+	    data.pair_ljsmooth_sigma[i] = read_double(fp);
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double ljsmooth_epsilon = read_double(fp);
+	    double ljsmooth_sigma = read_double(fp);
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if ((strcmp(style,"morse") == 0) ||
 	     (strcmp(style,"morse/opt") == 0)) {
 
@@ -2315,6 +2350,11 @@ void Data::write(FILE *fp)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_ljexpand_epsilon[i],pair_ljexpand_sigma[i],
 		pair_ljexpand_shift[i]);
+
+    } else if (strcmp(pair_style,"lj/smooth") == 0) {
+      for (int i = 1; i <= ntypes; i++)
+	fprintf(fp,"%d %g %g\n",i,
+		pair_ljsmooth_epsilon[i],pair_ljsmooth_sigma[i]);
       
     } else if ((strcmp(pair_style,"morse") == 0) ||
 	       (strcmp(pair_style,"morse/opt") == 0)) {

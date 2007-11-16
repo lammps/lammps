@@ -106,6 +106,7 @@ void Variable::set(int narg, char **arg)
   // num = N, index = 1st value, data = list of NULLS since never used
 
   } else if (strcmp(arg[1],"loop") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
     style[nvar] = LOOP;
     num[nvar] = atoi(arg[2]);
     index[nvar] = 0;
@@ -118,6 +119,7 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
     if (find(arg[0]) >= 0) {
       if (style[find(arg[0])] != EQUAL)
 	error->all("Cannot redefine variable as a different style");
@@ -157,6 +159,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
     } else {
+      if (narg != 3) error->all("Illegal variable command");
       style[nvar] = ULOOP;
       num[nvar] = atoi(arg[2]);
       data[nvar] = new char*[num[nvar]];
@@ -194,6 +197,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"atom") == 0) {
+    if (narg != 3) error->all("Illegal variable command");
     style[nvar] = ATOM;
     num[nvar] = 1;
     index[nvar] = 0;

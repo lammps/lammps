@@ -393,6 +393,8 @@ void Finish::end(int flag)
       fprintf(logfile,"Dangerous builds = %d\n",neighbor->ndanger);
     }
   }
+
+  if (logfile) fflush(logfile);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -28,6 +28,9 @@ per-atom computes, e.g. the "dump custom"_dump.html command or "fix
 ave/spatial"_fix_ave_spatial.html command or "fix
 ave/atom"_fix_ave_atom.html command.
 
+The value of the variable evaluation will be 0.0 for atoms not in the
+specified compute group.
+
 The formula is defined by the "variable atom"_variable.html command.
 A variable of style {atom} can access properties of the system, such
 as volume or temperature, and also reference individual atom

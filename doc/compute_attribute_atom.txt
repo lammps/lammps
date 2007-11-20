@@ -32,6 +32,9 @@ can also be output directly by the "dump custom"_dump.html command,
 but it has keywords that output these quantities without the need to
 define an additional compute.
 
+The value of the attribute will be 0.0 for atoms not in the specified
+compute group.
+
 The styles {x}, {y}, {z}, {xu}, {yu}, {zu}, {vx}, {vy}, {vz}, {fx},
 {fy}, and {fz} each store a single scalar value per atom.
 
@@ -55,7 +58,7 @@ atom.
 
 Note that the various commands that reference this compute use a
 different syntax for accessing scalar versus vector values, e.g. c_ID
-versus c_ID[2].
+versus c_ID\[2\].
 
 [Restrictions:] none
 

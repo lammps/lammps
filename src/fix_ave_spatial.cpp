@@ -237,9 +237,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     nvalid = update->ntimestep;
   else
     nvalid -= (nrepeat-1)*nevery;
-
-  if (nvalid < update->ntimestep)
-    error->all("Fix ave/spatial cannot be started on this timestep");
+  if (nvalid < update->ntimestep) nvalid += nfreq;
 }
 
 /* ---------------------------------------------------------------------- */

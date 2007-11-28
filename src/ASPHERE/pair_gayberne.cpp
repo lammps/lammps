@@ -196,12 +196,12 @@ void PairGayBerne::compute(int eflag, int vflag)
         if (vflag == 1) {
 	  if (newton_pair == 0 && j >= nlocal) 
 	    for (m = 0; m < 6; m++) fforce[m] *= 0.5;
-	  virial[0] += r12[0]*r12[0]*fforce[0];
-	  virial[1] += r12[1]*r12[1]*fforce[1];
-	  virial[2] += r12[2]*r12[2]*fforce[2];
-	  virial[3] += r12[0]*r12[1]*fforce[0];
-	  virial[4] += r12[0]*r12[2]*fforce[1];
-	  virial[5] += r12[1]*r12[2]*fforce[2];
+	  virial[0] -= r12[0]*fforce[0];
+	  virial[1] -= r12[1]*fforce[1];
+	  virial[2] -= r12[2]*fforce[2];
+	  virial[3] -= r12[0]*fforce[1];
+	  virial[4] -= r12[0]*fforce[2];
+	  virial[5] -= r12[1]*fforce[2];
 	}
       }
     }

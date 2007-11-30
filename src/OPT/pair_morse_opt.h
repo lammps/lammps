@@ -36,10 +36,10 @@ class PairMorseOpt : public PairMorse {
   void compute(int, int);
 
  private:
-  template < int EFLAG, int VFLAG, int NEWTON_PAIR > void eval();
+  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
 };
 
-template < int EFLAG, int VFLAG, int NEWTON_PAIR >
+template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairMorseOpt::eval()
 {
   typedef struct { double x,y,z; } vec3_t;
@@ -50,9 +50,7 @@ void PairMorseOpt::eval()
   } fast_alpha_t;
   
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  
-  eng_vdwl = 0.0;
-  if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  double evdwl = 0.0;
   
   double** __restrict__ x = atom->x;
   double** __restrict__ f = atom->f;
@@ -119,35 +117,23 @@ void PairMorseOpt::eval()
 	  double r = sqrt(rsq);
 	  double dr = r - a.r0;
 	  double dexp = exp(-a.alpha * dr);
-	  double fforce = a.morse1 * (dexp*dexp - dexp) / r;
-	  if (EFLAG) {
-	    double phi = a.d0 * (dexp*dexp - 2.0*dexp) - a.offset;
-	    if (NEWTON_PAIR || j < nlocal) {
-	      eng_vdwl += phi;
-	    } else {
-	      eng_vdwl += 0.5*phi;
-	    }
-	  }
-	  
-	  tmpfx += delx*fforce;
-	  tmpfy += dely*fforce;
-	  tmpfz += delz*fforce;
+	  double fpair = a.morse1 * (dexp*dexp - dexp) / r;
+
+	  tmpfx += delx*fpair;
+	  tmpfy += dely*fpair;
+	  tmpfz += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fforce;
-	    ff[j].y -= dely*fforce;
-	    ff[j].z -= delz*fforce;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
-	  
-	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  }
+
+	  if (EFLAG) evdwl = a.d0 * (dexp*dexp - 2.0*dexp) - a.offset;
+
+	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,0.0,fpair,delx,dely,delz);
 	}
+
       } else {
 	factor_lj = special_lj[j/nall];
 	j = j % nall;
@@ -164,46 +150,36 @@ void PairMorseOpt::eval()
 	  double r = sqrt(rsq);
 	  double dr = r - a.r0;
 	  double dexp = exp(-a.alpha * dr);
-	  double fforce = factor_lj * a.morse1 * (dexp*dexp - dexp) / r;
-	  if (EFLAG) {
-	    double phi = a.d0 * (dexp*dexp - 2.0*dexp) - a.offset;
-	    if (NEWTON_PAIR || j < nlocal) {
-	      eng_vdwl += factor_lj*phi;
-	    } else {
-	      eng_vdwl += 0.5*factor_lj*phi;
-	    }
-	  }
-	  
-	  tmpfx += delx*fforce;
-	  tmpfy += dely*fforce;
-	  tmpfz += delz*fforce;
+	  double fpair = factor_lj * a.morse1 * (dexp*dexp - dexp) / r;
+
+	  tmpfx += delx*fpair;
+	  tmpfy += dely*fpair;
+	  tmpfz += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fforce;
-	    ff[j].y -= dely*fforce;
-	    ff[j].z -= delz*fforce;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
+	  }
+
+	  if (EFLAG) {
+	    evdwl = a.d0 * (dexp*dexp - 2.0*dexp) - a.offset;
+	    evdwl *= factor_lj;
 	  }
 	  
-	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  }
+	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,0.0,fpair,delx,dely,delz);
 	}
       }
     }
+
     ff[i].x += tmpfx;
     ff[i].y += tmpfy;
     ff[i].z += tmpfz;
   }
-  
-  if (VFLAG == 2) virial_compute();
-  
+
   free(fast_alpha); fast_alpha = 0;
-  
+
+  if (vflag_fdotr) virial_compute();
 }
 
 }

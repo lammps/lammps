@@ -57,17 +57,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MinCG::MinCG(LAMMPS *lmp) : Min(lmp)
-{
-  vlist = NULL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-MinCG::~MinCG()
-{
-  delete [] vlist;
-}
+MinCG::MinCG(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -96,20 +86,9 @@ void MinCG::init()
   if (force->newton_pair) virial_style = 2;
   else virial_style = 1;
 
-  // vlist = list of computes for pressure
+  // setup lists of computes for global and per-atom PE and pressure
 
-  delete [] vlist;
-  vlist = NULL;
-
-  nvlist = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->pressflag) nvlist++;
-
-  if (nvlist) vlist = new Compute*[nvlist];
-
-  nvlist = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->pressflag) vlist[nvlist++] = modify->compute[i];
+  ev_setup();
 
   // set flags for what arrays to clear in force_clear()
   // need to clear torques if array exists
@@ -256,7 +235,7 @@ void MinCG::setup()
   // compute all forces
 
   ev_set(update->ntimestep);
-  force_clear(vflag);
+  force_clear();
   
   if (force->pair) force->pair->compute(eflag,vflag);
 
@@ -409,7 +388,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
   }
 
   ev_set(update->ntimestep);
-  force_clear(vflag);
+  force_clear();
 
   timer->stamp();
 
@@ -455,27 +434,11 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
 }
 
 /* ----------------------------------------------------------------------
-   eflag is always set, since minimizer needs potential energy
-   set vflag if a pressure compute is called this timestep
-------------------------------------------------------------------------- */
-
-void MinCG::ev_set(int ntimestep)
-{
-  int i;
-
-  eflag = 1;
-  vflag = 0;
-  for (i = 0; i < nvlist; i++)
-    if (vlist[i]->match_step(ntimestep)) break;
-  if (i < nvlist) vflag = virial_style;
-}
-
-/* ----------------------------------------------------------------------
    clear force on own & ghost atoms
    setup and clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-void MinCG::force_clear(int vflag)
+void MinCG::force_clear()
 {
   int i;
 

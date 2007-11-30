@@ -35,10 +35,10 @@ class PairLJCutOpt : public PairLJCut {
   void compute(int, int);
 
  private:
-  template < int EFLAG, int VFLAG, int NEWTON_PAIR > void eval();
+  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
 };
 
-template < int EFLAG, int VFLAG, int NEWTON_PAIR >
+template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairLJCutOpt::eval()
 {
   typedef struct { double x,y,z; } vec3_t;
@@ -49,9 +49,7 @@ void PairLJCutOpt::eval()
   } fast_alpha_t;
   
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  
-  eng_vdwl = 0.0;
-  if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  double evdwl = 0.0;
   
   double** __restrict__ x = atom->x;
   double** __restrict__ f = atom->f;
@@ -119,37 +117,28 @@ void PairLJCutOpt::eval()
 	  double r2inv = 1.0/rsq;
 	  double r6inv = r2inv*r2inv*r2inv;
 	  double forcelj = r6inv * (a.lj1*r6inv - a.lj2);
-	  if (EFLAG) {
-	    double philj = r6inv*(a.lj3*r6inv-a.lj4) - a.offset;
-	    if (NEWTON_PAIR || j < nlocal) eng_vdwl += philj;
-	    else eng_vdwl += 0.5*philj;
-	  }
-	  double fforce = forcelj*r2inv;
+	  double fpair = forcelj*r2inv;
 	  
-	  tmpfx += delx*fforce;
-	  tmpfy += dely*fforce;
-	  tmpfz += delz*fforce;
+	  tmpfx += delx*fpair;
+	  tmpfy += dely*fpair;
+	  tmpfz += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fforce;
-	    ff[j].y -= dely*fforce;
-	    ff[j].z -= delz*fforce;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
-	  
-	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  }
+
+	  if (EFLAG) evdwl = r6inv*(a.lj3*r6inv-a.lj4) - a.offset;
+
+	  if (EVFLAG)
+	    ev_tally(i,j,nlocal,NEWTON_PAIR,
+		     evdwl,0.0,fpair,delx,dely,delz);
 	}
 
       } else {
-	
 	factor_lj = special_lj[j/nall];
 	j = j % nall;
+
 	double delx = xtmp - xx[j].x;
 	double dely = ytmp - xx[j].y;
 	double delz = ztmp - xx[j].z;
@@ -160,49 +149,40 @@ void PairLJCutOpt::eval()
 	
 	fast_alpha_t& a = tabsixi[jtype];
 	if (rsq < a.cutsq) {
-	  
 	  double r2inv = 1.0/rsq;
 	  double r6inv = r2inv*r2inv*r2inv;
-	  
 	  fast_alpha_t& a = tabsixi[jtype];
 	  double forcelj = r6inv * (a.lj1*r6inv - a.lj2);
-	  if (EFLAG) {
-	    double philj = r6inv*(a.lj3*r6inv-a.lj4) - a.offset;
-	    if (NEWTON_PAIR || j < nlocal) eng_vdwl += factor_lj*philj;
-	    else eng_vdwl += 0.5*factor_lj*philj;
-	  }
+	  double fpair = factor_lj*forcelj*r2inv;
 	  
-	  double fforce = factor_lj*forcelj*r2inv;
-	  
-	  tmpfx += delx*fforce;
-	  tmpfy += dely*fforce;
-	  tmpfz += delz*fforce;
+	  tmpfx += delx*fpair;
+	  tmpfy += dely*fpair;
+	  tmpfz += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fforce;
-	    ff[j].y -= dely*fforce;
-	    ff[j].z -= delz*fforce;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
+	  }
+
+	  if (EFLAG) {
+	    evdwl = r6inv*(a.lj3*r6inv-a.lj4) - a.offset;
+	    evdwl *= factor_lj;
 	  }
 	  
-	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  }
+	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,0.0,fpair,delx,dely,delz);
 	}
       }
     }
+
     ff[i].x += tmpfx;
     ff[i].y += tmpfy;
     ff[i].z += tmpfz;
   }
-  
-  if (VFLAG == 2) virial_compute();
-  
+
   free(fast_alpha); fast_alpha = 0;
+  
+  if (vflag_fdotr) virial_compute();
 }
 
 }

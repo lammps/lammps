@@ -50,12 +50,14 @@ BondFENEExpand::~BondFENEExpand()
 
 void BondFENEExpand::compute(int eflag, int vflag)
 {
-  int i1,i2,n,type,factor;
-  double delx,dely,delz,rsq,r0sq,rlogarg,fforce,sr2,sr6,rfactor;
+  int i1,i2,n,type;
+  double delx,dely,delz,ebond,fbond;
+  double rsq,r0sq,rlogarg,sr2,sr6;
   double r,rshift,rshiftsq;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  ebond = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -65,18 +67,9 @@ void BondFENEExpand::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nbondlist; n++) {
-
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-
-    if (newton_bond) factor = 2;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-    }
-    rfactor = 0.5*factor;
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -105,50 +98,39 @@ void BondFENEExpand::compute(int eflag, int vflag)
       rlogarg = 0.1;
     }
 
-    fforce = -k[type]*rshift/rlogarg/r;
+    fbond = -k[type]*rshift/rlogarg/r;
 
     // force from LJ term
 
     if (rshiftsq < TWO_1_3*sigma[type]*sigma[type]) {
       sr2 = sigma[type]*sigma[type]/rshiftsq;
       sr6 = sr2*sr2*sr2;
-      fforce += 48.0*epsilon[type]*sr6*(sr6-0.5)/rshift/r;
+      fbond += 48.0*epsilon[type]*sr6*(sr6-0.5)/rshift/r;
     }
 
     // energy
 
     if (eflag) {
-      energy -= 0.5*rfactor * k[type]*r0sq*log(rlogarg);
+      ebond = -0.5 * k[type]*r0sq*log(rlogarg);
       if (rshiftsq < TWO_1_3*sigma[type]*sigma[type])
-	energy += 0.5*factor * 
-	  (4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type]);
+	ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
-
 
     // apply force to each of 2 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fforce;
-      f[i1][1] += dely*fforce;
-      f[i1][2] += delz*fforce;
+      f[i1][0] += delx*fbond;
+      f[i1][1] += dely*fbond;
+      f[i1][2] += delz*fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fforce;
-      f[i2][1] -= dely*fforce;
-      f[i2][2] -= delz*fforce;
+      f[i2][0] -= delx*fbond;
+      f[i2][1] -= dely*fbond;
+      f[i2][2] -= delz*fbond;
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] += rfactor * delx*delx*fforce;
-      virial[1] += rfactor * dely*dely*fforce;
-      virial[2] += rfactor * delz*delz*fforce;
-      virial[3] += rfactor * delx*dely*fforce;
-      virial[4] += rfactor * delx*delz*fforce;
-      virial[5] += rfactor * dely*delz*fforce;
-    }
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
   }
 }
 
@@ -246,8 +228,7 @@ void BondFENEExpand::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondFENEExpand::single(int type, double rsq, int i, int j,
-			    int eflag, double &fforce, double &eng)
+void BondFENEExpand::single(int type, double rsq, int i, int j, double &eng)
 {
   double r = sqrt(rsq);
   double rshift = r - shift[type];
@@ -267,22 +248,11 @@ void BondFENEExpand::single(int type, double rsq, int i, int j,
     rlogarg = 0.1;
   }
 
-  fforce = -k[type]*rshift/rlogarg/r;
-
-  // force from LJ term
-
-  double sr2,sr6;
+  eng = -0.5 * k[type]*r0sq*log(rlogarg);
   if (rshiftsq < TWO_1_3*sigma[type]*sigma[type]) {
+    double sr2,sr6;
     sr2 = sigma[type]*sigma[type]/rshiftsq;
     sr6 = sr2*sr2*sr2;
-    fforce += 48.0*epsilon[type]*sr6*(sr6-0.5)/rshift/r;
-  }
-
-  // energy
-
-  if (eflag) {
-    eng = -0.5 * k[type]*r0sq*log(rlogarg);
-    if (rshiftsq < TWO_1_3*sigma[type]*sigma[type])
-      eng += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
+    eng += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
   }
 }

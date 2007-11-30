@@ -23,12 +23,12 @@ class Bond : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  double energy;
-  double eng_vdwl;
-  double virial[6];
+  double energy;                  // accumulated energies
+  double virial[6];               // accumlated virial
+  double *eatom,**vatom;          // accumulated per-atom energy/virial
 
   Bond(class LAMMPS *);
-  virtual ~Bond() {}
+  virtual ~Bond();
   virtual void init();
   virtual void init_style() {}
 
@@ -38,8 +38,17 @@ class Bond : protected Pointers {
   virtual double equilibrium_distance(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
-  virtual void single(int, double, int, int, int, double &, double &) = 0;
-  virtual double memory_usage() {return 0.0;}
+  virtual void single(int, double, int, int, double &) = 0;
+  virtual double memory_usage();
+
+ protected:
+  int evflag;
+  int eflag_either,eflag_global,eflag_atom;
+  int vflag_either,vflag_global,vflag_atom;
+  int maxeatom,maxvatom;
+
+  void ev_setup(int, int);
+  void ev_tally(int, int, int, int, double, double, double, double, double);
 };
 
 }

@@ -55,13 +55,19 @@ BondQuartic::~BondQuartic()
 
 void BondQuartic::compute(int eflag, int vflag)
 {
-  int i1,i2,n,m,type,factor,itype,jtype;
-  double delx,dely,delz,r,rsq,dr,r2,ra,rb,fforce,sr2,sr6,rfactor;
+  int i1,i2,n,m,type,itype,jtype;
+  double delx,dely,delz,ebond,fbond,evdwl,fpair;
+  double r,rsq,dr,r2,ra,rb,sr2,sr6;
   Pair::One one;
 
-  energy = 0.0;
-  eng_vdwl = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  ebond = evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
+
+  // insure pair->ev_tally() will use bond virial contribution
+
+  if (vflag_global == 2)
+    force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **cutsq = force->pair->cutsq;
   double **x = atom->x;
@@ -80,14 +86,6 @@ void BondQuartic::compute(int eflag, int vflag)
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-
-    if (newton_bond) factor = 2;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-    }
-    rfactor = 0.5*factor;
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -114,18 +112,6 @@ void BondQuartic::compute(int eflag, int vflag)
       continue;
     }
 
-    // subtract out pairwise contribution from 2 atoms via pair->single()
-    // required since special_bond = 1,1,1
-
-    itype = atom->type[i1];
-    jtype = atom->type[i2];
-
-    if (rsq < cutsq[itype][jtype]) {
-      force->pair->single(i1,i2,itype,jtype,rsq,1.0,1.0,eflag,one);
-      fforce = -one.fforce;
-      if (eflag) eng_vdwl -= one.eng_vdwl + one.eng_coul;
-    } else fforce = 0.0;
-
     // quartic bond
     // 1st portion is from quartic term
     // 2nd portion is from LJ term cut at 2^(1/6) with eps = sigma = 1.0
@@ -135,42 +121,60 @@ void BondQuartic::compute(int eflag, int vflag)
     r2 = dr*dr;
     ra = dr - b1[type];
     rb = dr - b2[type];
-    fforce += -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
+    fbond = -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
     
     if (rsq < TWO_1_3) {
       sr2 = 1.0/rsq;
       sr6 = sr2*sr2*sr2;
-      fforce += 48.0*sr6*(sr6-0.5)/rsq;
+      fbond += 48.0*sr6*(sr6-0.5)/rsq;
     }
 
     if (eflag) {
-      energy += rfactor*(k[type]*r2*ra*rb + u0[type]);
-      if (rsq < TWO_1_3) energy += rfactor * (4.0*sr6*(sr6-1.0) + 1.0);
+      ebond = k[type]*r2*ra*rb + u0[type];
+      if (rsq < TWO_1_3) ebond += 4.0*sr6*(sr6-1.0) + 1.0;
     }
 
     // apply force to each of 2 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fforce;
-      f[i1][1] += dely*fforce;
-      f[i1][2] += delz*fforce;
+      f[i1][0] += delx*fbond;
+      f[i1][1] += dely*fbond;
+      f[i1][2] += delz*fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fforce;
-      f[i2][1] -= dely*fforce;
-      f[i2][2] -= delz*fforce;
+      f[i2][0] -= delx*fbond;
+      f[i2][1] -= dely*fbond;
+      f[i2][2] -= delz*fbond;
     }
 
-    // virial contribution
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
 
-    if (vflag) {
-      virial[0] += rfactor * delx*delx*fforce;
-      virial[1] += rfactor * dely*dely*fforce;
-      virial[2] += rfactor * delz*delz*fforce;
-      virial[3] += rfactor * delx*dely*fforce;
-      virial[4] += rfactor * delx*delz*fforce;
-      virial[5] += rfactor * dely*delz*fforce;
+    // subtract out pairwise contribution from 2 atoms via pair->single()
+    // required since special_bond = 1,1,1
+    // tally energy/virial in pair, using newton_bond as newton flag
+
+    itype = atom->type[i1];
+    jtype = atom->type[i2];
+
+    if (rsq < cutsq[itype][jtype]) {
+      force->pair->single(i1,i2,itype,jtype,rsq,1.0,1.0,eflag,one);
+      fpair = -one.fforce;
+      if (eflag) evdwl = -(one.eng_vdwl + one.eng_coul);
+
+      if (newton_bond || i1 < nlocal) {
+	f[i1][0] += delx*fpair;
+	f[i1][1] += dely*fpair;
+	f[i1][2] += delz*fpair;
+      }
+      if (newton_bond || i2 < nlocal) {
+	f[i2][0] -= delx*fpair;
+	f[i2][1] -= dely*fpair;
+	f[i2][2] -= delz*fpair;
+      }
+
+      if (evflag) force->pair->ev_tally(i1,i2,nlocal,newton_bond,
+					evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 }
@@ -295,12 +299,11 @@ void BondQuartic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondQuartic::single(int type, double rsq, int i, int j,
-			 int eflag, double &fforce, double &eng)
+void BondQuartic::single(int type, double rsq, int i, int j, double &eng)
 {
   double r,dr,r2,ra,rb,sr2,sr6;
 
-  fforce = eng = 0.0;
+  eng = 0.0;
   if (type <= 0) return;
 
   // subtract out pairwise contribution from 2 atoms via pair->single()
@@ -311,9 +314,8 @@ void BondQuartic::single(int type, double rsq, int i, int j,
   
   if (rsq < force->pair->cutsq[itype][jtype]) {
     Pair::One one;
-    force->pair->single(i,j,itype,jtype,rsq,1.0,1.0,eflag,one);
-    fforce = -one.fforce;
-    if (eflag) eng = -one.eng_coul - one.eng_vdwl;
+    force->pair->single(i,j,itype,jtype,rsq,1.0,1.0,1,one);
+    eng = -one.eng_coul - one.eng_vdwl;
   }
 
   // quartic bond
@@ -325,16 +327,11 @@ void BondQuartic::single(int type, double rsq, int i, int j,
   r2 = dr*dr;
   ra = dr - b1[type];
   rb = dr - b2[type];
-  fforce += -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
-  
+
+  eng += k[type]*r2*ra*rb + u0[type];
   if (rsq < TWO_1_3) {
     sr2 = 1.0/rsq;
     sr6 = sr2*sr2*sr2;
-    fforce += 48.0*sr6*(sr6-0.5)/rsq;
-  }
-    
-  if (eflag) {
-    eng += k[type]*r2*ra*rb + u0[type];
-    if (rsq < TWO_1_3) eng += 4.0*sr6*(sr6-1.0) + 1.0;
+    eng += 4.0*sr6*(sr6-1.0) + 1.0;
   }
 }

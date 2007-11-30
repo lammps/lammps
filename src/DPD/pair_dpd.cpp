@@ -65,19 +65,21 @@ PairDPD::~PairDPD()
 void PairDPD::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,fforce,factor_dpd,phi;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
+  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double dtinvsqrt = 1.0/sqrt(update->dt);
@@ -131,39 +133,32 @@ void PairDPD::compute(int eflag, int vflag)
 	// drag force = -gamma * wd^2 * (delx dot delv) / r
 	// random force = sigma * wd * rnd * dtinvsqrt;
 
-	fforce = a0[itype][jtype]*wd;
-	fforce -= gamma[itype][jtype]*wd*wd*dot*rinv;
-	fforce += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-	fforce *= factor_dpd*rinv;	
+	fpair = a0[itype][jtype]*wd;
+	fpair -= gamma[itype][jtype]*wd*wd*dot*rinv;
+	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
+	fpair *= factor_dpd*rinv;	
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
 	if (eflag) {
-	  phi = a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
-	  if (newton_pair || j < nlocal) eng_vdwl += factor_dpd*phi;
-	  else eng_vdwl += 0.5*factor_dpd*phi;
+	  evdwl = a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+	  evdwl *= factor_dpd;
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

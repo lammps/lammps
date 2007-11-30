@@ -61,8 +61,8 @@ PairLubricate::~PairLubricate()
 void PairLubricate::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r,h_sep,radi,fforce,f1,f2,f3;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz;
+  double rsq,r,h_sep,radi;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3,w1,w2,w3,v_shear1,v_shear2,v_shear3;
   double omega_t_1,omega_t_2,omega_t_3;
@@ -71,11 +71,10 @@ void PairLubricate::compute(int eflag, int vflag)
   double P_dot_wrel_1,P_dot_wrel_2,P_dot_wrel_3;
   double a_squeeze,a_shear,a_pump,a_twist;
   int *ilist,*jlist,*numneigh,**firstneigh;
-
   double PI = 4.0*atan(1.0);
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -212,11 +211,11 @@ void PairLubricate::compute(int eflag, int vflag)
 	    (h_sep/2.0/radi) * log(2.0/(2.0*h_sep));
 
         if (h_sep >= cut_inner[itype][jtype]) {
-          f1 = -a_squeeze*vn1 - a_shear*(2.0/r)*(2.0/r)*vt1 + 
+          fx = -a_squeeze*vn1 - a_shear*(2.0/r)*(2.0/r)*vt1 + 
 	    (2.0/r)*a_shear*n_cross_omega_t_1;
-          f2 = -a_squeeze*vn2 - a_shear*(2.0/r)*(2.0/r)*vt2 + 
+          fy = -a_squeeze*vn2 - a_shear*(2.0/r)*(2.0/r)*vt2 + 
 	    (2.0/r)*a_shear*n_cross_omega_t_2;
-          f3 = -a_squeeze*vn3 - a_shear*(2.0/r)*(2.0/r)*vt3 +
+          fz = -a_squeeze*vn3 - a_shear*(2.0/r)*(2.0/r)*vt3 +
 	    (2.0/r)*a_shear*n_cross_omega_t_3;
 
 	  torque[i][0] += -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 - 
@@ -227,20 +226,20 @@ void PairLubricate::compute(int eflag, int vflag)
 	    a_pump*P_dot_wrel_3 - a_twist*wn3;
 
         } else {
-	  fforce = -vnnr*(3.0*PI*mu*radi/2.0)*radi/4.0/cut_inner[itype][jtype];
-	  f1 = fforce*delx/r;
-	  f2 = fforce*dely/r;
-	  f3 = fforce*delz/r;
+	  fpair = -vnnr*(3.0*PI*mu*radi/2.0)*radi/4.0/cut_inner[itype][jtype];
+	  fx = fpair*delx/r;
+	  fy = fpair*dely/r;
+	  fz = fpair*delz/r;
 	}
 
-	f[i][0] += f1;
-	f[i][1] += f2;
-	f[i][2] += f3;
+	f[i][0] += fx;
+	f[i][1] += fy;
+	f[i][2] += fz;
 
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= f1;
-	  f[j][1] -= f2;
-	  f[j][2] -= f3;
+	  f[j][0] -= fx;
+	  f[j][1] -= fy;
+	  f[j][2] -= fz;
 
 	  if (h_sep >= cut_inner[itype][jtype]) {
 	    torque[j][0] += -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 + 
@@ -252,23 +251,13 @@ void PairLubricate::compute(int eflag, int vflag)
 	  }
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) {
-	    f1 *= 0.5;
-	    f2 *= 0.5;
-	    f3 *= 0.5;
-	  }
-	  virial[0] += delx*f1;
-	  virial[1] += dely*f2;
-	  virial[2] += delz*f3;
-	  virial[3] += delx*f2;
-	  virial[4] += delx*f3;
-	  virial[5] += dely*f3;
-	}
+	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+				 0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

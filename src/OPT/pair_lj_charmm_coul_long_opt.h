@@ -47,10 +47,10 @@ class PairLJCharmmCoulLongOpt : public PairLJCharmmCoulLong {
   void compute(int, int);
 
  private:
-  template < int EFLAG, int VFLAG, int NEWTON_PAIR > void eval();
+  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
 };
 
-template < int EFLAG, int VFLAG, int NEWTON_PAIR >
+template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairLJCharmmCoulLongOpt::eval()
 {
   typedef struct { double x,y,z; } vec3_t;
@@ -64,13 +64,13 @@ void PairLJCharmmCoulLongOpt::eval()
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double factor,phicoul,philj,switch1,switch2;
+  double philj,switch1,switch2;
   
   float rsq;
   int *int_rsq = (int *) &rsq;
   
-  eng_vdwl = eng_coul = 0.0;
-  if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  double evdwl = 0.0;
+  double ecoul = 0.0;
   
   double** __restrict__ x = atom->x;
   double** __restrict__ f = atom->f;
@@ -174,51 +174,42 @@ void PairLJCharmmCoulLongOpt::eval()
 	    }
 	  } 
 	  
-	  fforce = (forcecoul + forcelj) * r2inv;
+	  double fpair = (forcecoul + forcelj) * r2inv;
 	  
-	  tmpfx += delx*fforce;
-	  tmpfy += dely*fforce;
-	  tmpfz += delz*fforce;
+	  tmpfx += delx*fpair;
+	  tmpfy += dely*fpair;
+	  tmpfz += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fforce;
-	    ff[j].y -= dely*fforce;
-	    ff[j].z -= delz*fforce;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
 	  
 	  if (EFLAG) {
-	    if (NEWTON_PAIR || j < nlocal) factor = 1.0;
-	    else factor = 0.5;
 	    if (rsq < cut_coulsq) {
 	      if (!ncoultablebits || rsq <= tabinnersq)
-		phicoul = prefactor*erfc;
+		ecoul = prefactor*erfc;
 	      else {
 		table = etable[itable] + fraction*detable[itable];
-		phicoul = tmp_coef3 * table;
+		ecoul = tmp_coef3 * table;
 	      }
-	      eng_coul += factor*phicoul;
-	    }
+	    } else ecoul = 0.0;
+
 	    if (rsq < cut_ljsq) {
 	      fast_alpha_t& a = tabsixi[jtype];
-	      philj = r6inv*(a.lj3*r6inv-a.lj4);
+	      evdwl = r6inv*(a.lj3*r6inv-a.lj4);
 	      if (rsq > cut_lj_innersq) {
 		switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
 		  (tmp_coef2 + 2.0*rsq) * tmp_coef1;
-		philj *= switch1;
+		evdwl *= switch1;
 	      }
-	      eng_vdwl += factor*philj;
-	    }
+	    } else evdwl = 0.0;
 	  }
-	  
-	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  }
+
+	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,ecoul,fpair,delx,dely,delz);
 	}
+
       } else {
 	factor_coul = special_coul[j/nall];
 	factor_lj = special_lj[j/nall];
@@ -276,61 +267,54 @@ void PairLJCharmmCoulLongOpt::eval()
 	    }
 	  }  
 	  
-	  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
+	  double fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 	  
-	  tmpfx += delx*fforce;
-	  tmpfy += dely*fforce;
-	  tmpfz += delz*fforce;
+	  tmpfx += delx*fpair;
+	  tmpfy += dely*fpair;
+	  tmpfz += delz*fpair;
 	  if (NEWTON_PAIR || j < nlocal) {
-	    ff[j].x -= delx*fforce;
-	    ff[j].y -= dely*fforce;
-	    ff[j].z -= delz*fforce;
+	    ff[j].x -= delx*fpair;
+	    ff[j].y -= dely*fpair;
+	    ff[j].z -= delz*fpair;
 	  }
 	  
 	  if (EFLAG) {
-	    if (NEWTON_PAIR || j < nlocal) factor = 1.0;
-	    else factor = 0.5;
 	    if (rsq < cut_coulsq) {
 	      if (!ncoultablebits || rsq <= tabinnersq)
-		phicoul = prefactor*erfc;
+		ecoul = prefactor*erfc;
 	      else {
 		table = etable[itable] + fraction*detable[itable];
-		phicoul = tmp_coef3 * table;
+		ecoul = tmp_coef3 * table;
 	      }
-	      if (factor_coul < 1.0)
-		phicoul -= (1.0-factor_coul)*prefactor;
-	      eng_coul += factor*phicoul;
-	    }
+	      if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+	    } else ecoul = 0.0;
+
 	    if (rsq < cut_ljsq) {
 	      fast_alpha_t& a = tabsixi[jtype];
-	      philj = r6inv*(a.lj3*r6inv-a.lj4);
+	      evdwl = r6inv*(a.lj3*r6inv-a.lj4);
 	      if (rsq > cut_lj_innersq) {
 		switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
 		  (tmp_coef2 + 2.0*rsq) * tmp_coef1;
-		philj *= switch1;
+		evdwl *= switch1;
 	      }
-	      eng_vdwl += factor*factor_lj*philj;
-	    }
+	      evdwl *= factor_lj;
+	    } else evdwl = 0.0;
 	  }
 	  
-	  if (VFLAG == 1) {
-	    if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	    virial[0] += delx*delx*fforce;
-	    virial[1] += dely*dely*fforce;
-	    virial[2] += delz*delz*fforce;
-	    virial[3] += delx*dely*fforce;
-	    virial[4] += delx*delz*fforce;
-	    virial[5] += dely*delz*fforce;
-	  }
+	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,ecoul,fpair,delx,dely,delz);
 	}
       }
     }
+
     ff[i].x += tmpfx;
     ff[i].y += tmpfy;
     ff[i].z += tmpfz;
   }
-  if (VFLAG == 2) virial_compute();
+
   free(fast_alpha); fast_alpha = 0;
+
+  if (vflag_fdotr) virial_compute();
 }
  
 }

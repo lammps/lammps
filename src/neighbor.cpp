@@ -1386,10 +1386,9 @@ int Neighbor::find_special(int i, int j)
 
 void Neighbor::bin_atoms()
 {
-  int i,ibin,nlocal,nall;
+  int i,ibin,nall;
   double **x;
 
-  nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   x = atom->x;
 

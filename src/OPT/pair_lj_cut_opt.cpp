@@ -30,34 +30,19 @@ PairLJCutOpt::PairLJCutOpt(LAMMPS *lmp) : PairLJCut(lmp) {}
 
 void PairLJCutOpt::compute(int eflag, int vflag)
 {
-  if (eflag) {
-    if (force->newton_pair) {
-      switch (vflag) {
-      case 0: return eval<1,0,1>();
-      case 1: return eval<1,1,1>();
-      case 2: return eval<1,2,1>();
-      }
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+
+  if (evflag) {
+    if (eflag) {
+      if (force->newton_pair) return eval<1,1,1>();
+      else return eval<1,1,0>();
     } else {
-      switch (vflag) {
-      case 0: return eval<1,0,0>();
-      case 1: return eval<1,1,0>();
-      case 2: return eval<1,2,0>();
-      }
+      if (force->newton_pair) return eval<1,0,1>();
+      else return eval<1,0,0>();
     }
-    
   } else {
-    if (force->newton_pair) {
-      switch (vflag) {
-      case 0: return eval<0,0,1>();
-      case 1: return eval<0,1,1>();
-      case 2: return eval<0,2,1>();
-      }
-    } else {
-      switch (vflag) {
-      case 0: return eval<0,0,0>();
-      case 1: return eval<0,1,0>();
-      case 2: return eval<0,2,0>();
-      }
-    }
+    if (force->newton_pair) return eval<0,0,1>();
+    else return eval<0,0,0>();
   }
 }

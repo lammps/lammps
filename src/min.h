@@ -27,12 +27,25 @@ class Min : protected Pointers {
   int linestyle,lineiter;
 
   Min(class LAMMPS *);
-  virtual ~Min() {}
+  virtual ~Min();
   virtual void init() = 0;
   virtual void run() = 0;
   virtual double memory_usage() {return 0.0;}
 
   void modify_params(int, char **);
+
+ protected:
+  int eflag,vflag;            // flags for energy/virial computation
+  int virial_style;           // compute virial explicitly or implicitly
+
+  int nelist_atom;                   // # of PE,virial computes to check
+  int nvlist_global,nvlist_atom;
+  class Compute **elist_atom;       // list of PE,virial Computes
+  class Compute **vlist_global;
+  class Compute **vlist_atom;
+
+  void ev_setup();
+  void ev_set(int);
 };
 
 }

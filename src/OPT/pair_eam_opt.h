@@ -45,10 +45,10 @@ class PairEAMOpt : virtual public PairEAM {
   void compute(int, int);
 
  private:
-  template < int EFLAG, int VFLAG, int NEWTON_PAIR > void eval();
+  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
 };
 
-template < int EFLAG, int VFLAG, int NEWTON_PAIR >
+template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairEAMOpt::eval()
 {
   typedef struct { double x,y,z; } vec3_t;
@@ -71,8 +71,9 @@ void PairEAMOpt::eval()
   } fast_gamma_t;
   
   int i,j,ii,jj,inum,jnum,itype,jtype;
+  double evdwl = 0.0;
   double* __restrict__ coeff;
-  
+
   // grow energy array if necessary
   
   if (atom->nmax > nmax) {
@@ -82,9 +83,6 @@ void PairEAMOpt::eval()
     rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
     fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
   }
-  
-  eng_vdwl = 0.0;
-  if (VFLAG) for (i = 0; i < 6; i++) virial[i] = 0.0;
   
   double** __restrict__ x = atom->x;
   double** __restrict__ f = atom->f;
@@ -179,7 +177,6 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
       
       if (rsq < tmp_cutforcesq) {
-	
 	jtype = type[j] - 1;
 	
 	double p = sqrt(rsq)*tmp_rdr;
@@ -197,9 +194,7 @@ void PairEAMOpt::eval()
 	  if (NEWTON_PAIR || j < nlocal) {
 	    rho[j] += a.rhor3i+a.rhor2i+a.rhor1i+a.rhor0i;
 	  }
-	  
 	}
-	
       }
     }
     rho[i] = tmprho;
@@ -220,7 +215,11 @@ void PairEAMOpt::eval()
     ++m;
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
-    if (EFLAG) eng_vdwl += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    if (EFLAG) {
+      double phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (eflag_global) eng_vdwl += phi;
+      if (eflag_atom) eatom[i] += phi;
+    }
   }
   
   // communicate derivative of embedding function
@@ -291,33 +290,24 @@ void PairEAMOpt::eval()
 	double phi = z2*recip;
 	double phip = z2p*recip - phi*recip;
 	double psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-	double fforce = -psip*recip;
+	double fpair = -psip*recip;
 	
-	tmpfx += delx*fforce;
-	tmpfy += dely*fforce;
-	tmpfz += delz*fforce;
+	tmpfx += delx*fpair;
+	tmpfy += dely*fpair;
+	tmpfz += delz*fpair;
 	if (NEWTON_PAIR || j < nlocal) {
-	  ff[j].x -= delx*fforce;
-	  ff[j].y -= dely*fforce;
-	  ff[j].z -= delz*fforce;
+	  ff[j].x -= delx*fpair;
+	  ff[j].y -= dely*fpair;
+	  ff[j].z -= delz*fpair;
 	}
 	
-	if (EFLAG) {
-	  if (NEWTON_PAIR || j < nlocal) eng_vdwl += phi;
-	  else eng_vdwl += 0.5*phi;
-	}
+	if (EFLAG) evdwl = phi;
 	
-	if (VFLAG == 1) {
-	  if (NEWTON_PAIR == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
+
     ff[i].x += tmpfx;
     ff[i].y += tmpfy;
     ff[i].z += tmpfz;
@@ -326,7 +316,7 @@ void PairEAMOpt::eval()
   free(fast_alpha); fast_alpha = 0;
   free(fast_gamma); fast_gamma = 0;
   
-  if (VFLAG == 2) virial_compute();
+  if (vflag_fdotr) virial_compute();
 }
 
 }

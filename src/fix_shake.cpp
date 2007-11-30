@@ -321,6 +321,8 @@ void FixShake::init()
 
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
+    if (force->angle == NULL)
+      error->all("Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
     // extract bond types for the 2 bonds in the cluster

@@ -63,8 +63,9 @@ ImproperClass2::~ImproperClass2()
 
 void ImproperClass2::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,i4,i,j,k,n,type,factor;
-  double rfactor;
+  int i1,i2,i3,i4,i,j,k,n,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
+  double eimproper,f1[3],f2[3],f3[3],f4[3];
   double delr[3][3],rmag[3],rinvmag[3],rmag2[3];
   double theta[3],costheta[3],sintheta[3];
   double cossqtheta[3],sinsqtheta[3],invstheta[3];
@@ -75,7 +76,7 @@ void ImproperClass2::compute(int eflag, int vflag)
   double drCBxrDB[3],rCBxdrDB[3],drDBxrAB[3],rDBxdrAB[3];
   double drABxrCB[3],rABxdrCB[3];
   double dot1,dot2,dd[3];
-  double fdot[3][4][3],f2[3][4][3],invs3r[3],inv3r;
+  double fdot[3][4][3],ftmp,invs3r[3],inv3r;
   double t,tt1,tt3,sc1;
   double dotCBDBAB,dotDBABCB,dotABCBDB;
   double chi,deltachi,d2chi,cossin2;
@@ -84,8 +85,9 @@ void ImproperClass2::compute(int eflag, int vflag)
   double schiABCD,chiABCD,schiCBDA,chiCBDA,schiDBAC,chiDBAC;
   double fabcd[4][3];
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  eimproper = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   for (i = 0; i < 3; i++)
     for (j = 0; j < 4; j++)
@@ -104,7 +106,6 @@ void ImproperClass2::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nimproperlist; n++) {
-
     i1 = improperlist[n][0];
     i2 = improperlist[n][1];
     i3 = improperlist[n][2];
@@ -112,16 +113,6 @@ void ImproperClass2::compute(int eflag, int vflag)
     type = improperlist[n][4];
 
     if (k0[type] == 0.0) continue;
-
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
 
     // difference vectors
 
@@ -222,7 +213,7 @@ void ImproperClass2::compute(int eflag, int vflag)
 
     // energy
 
-    if (eflag) energy += rfactor * k0[type] * d2chi;
+    if (eflag) eimproper = k0[type]*d2chi;
 
     // forces
     // define d(delr)
@@ -443,15 +434,15 @@ void ImproperClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++) {
-	f2[0][i][j] = (fdot[0][i][j] * invs3r[0]) + 
+	ftmp = (fdot[0][i][j] * invs3r[0]) + 
 	  (dinvs3r[0][i][j] * dotCBDBAB);
-	dchi[0][i][j] = f2[0][i][j] / cos(chiABCD);
-	f2[1][i][j] = (fdot[1][i][j] * invs3r[1]) + 
+	dchi[0][i][j] = ftmp / cos(chiABCD);
+	ftmp = (fdot[1][i][j] * invs3r[1]) + 
 	  (dinvs3r[1][i][j] * dotDBABCB);
-	dchi[1][i][j] = f2[1][i][j] / cos(chiCBDA);
-	f2[2][i][j] = (fdot[2][i][j] * invs3r[2]) + 
+	dchi[1][i][j] = ftmp / cos(chiCBDA);
+	ftmp = (fdot[2][i][j] * invs3r[2]) + 
 	  (dinvs3r[2][i][j] * dotABCBDB);
-	dchi[2][i][j] = f2[2][i][j] / cos(chiDBAC);
+	dchi[2][i][j] = ftmp / cos(chiDBAC);
 	dtotalchi[i][j] = (dchi[0][i][j]+dchi[1][i][j]+dchi[2][i][j]) / 3.0;
       }
 
@@ -485,22 +476,13 @@ void ImproperClass2::compute(int eflag, int vflag)
       f[i4][2] += fabcd[3][2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] += rfactor * (delr[0][0]*fabcd[0][0] + 
-			      delr[1][0]*fabcd[2][0] + delr[2][0]*fabcd[3][0]);
-      virial[1] += rfactor * (delr[0][1]*fabcd[0][1] + 
-			      delr[1][1]*fabcd[2][1] + delr[2][1]*fabcd[3][1]);
-      virial[2] += rfactor * (delr[0][2]*fabcd[0][2] + 
-			      delr[1][2]*fabcd[2][2] + delr[2][2]*fabcd[3][2]);
-      virial[3] += rfactor * (delr[0][0]*fabcd[0][1] + 
-			      delr[1][0]*fabcd[2][1] + delr[2][0]*fabcd[3][1]);
-      virial[4] += rfactor * (delr[0][0]*fabcd[0][2] + 
-			      delr[1][0]*fabcd[2][2] + delr[2][0]*fabcd[3][2]);
-      virial[5] += rfactor * (delr[0][1]*fabcd[0][2] + 
-			      delr[1][1]*fabcd[2][2] + delr[2][1]*fabcd[3][2]);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,
+	       fabcd[i1],fabcd[i3],fabcd[i4],
+	       delr[0][0],delr[0][1],delr[0][2],
+	       delr[1][0],delr[1][1],delr[1][2],
+	       delr[2][0]-delr[1][0],delr[2][1]-delr[1][1],
+	       delr[2][2]-delr[1][2]);
   }
 
   // compute angle-angle interactions
@@ -655,8 +637,8 @@ void ImproperClass2::read_restart(FILE *fp)
 
 void ImproperClass2::angleangle(int eflag, int vflag)
 {
-  int i1,i2,i3,i4,i,j,k,n,type,factor;
-  double rfactor;
+  int i1,i2,i3,i4,i,j,k,n,type;
+  double eimproper;
   double delxAB,delyAB,delzAB,rABmag2,rAB;
   double delxBC,delyBC,delzBC,rBCmag2,rBC;
   double delxBD,delyBD,delzBD,rBDmag2,rBD;
@@ -673,22 +655,11 @@ void ImproperClass2::angleangle(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nimproperlist; n++) {
-
     i1 = improperlist[n][0];
     i2 = improperlist[n][1];
     i3 = improperlist[n][2];
     i4 = improperlist[n][3];
     type = improperlist[n][4];
-
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
 
     // difference vectors
 
@@ -739,9 +710,9 @@ void ImproperClass2::angleangle(int eflag, int vflag)
 
     // energy
 
-    if (eflag) energy += rfactor * ((aa_k2[type] * dthABC * dthABD) + 
-				    (aa_k1[type] * dthABC * dthCBD) +
-				    (aa_k3[type] * dthABD * dthCBD));
+    if (eflag) eimproper = aa_k2[type] * dthABC * dthABD + 
+		 aa_k1[type] * dthABC * dthCBD +
+		 aa_k3[type] * dthABD * dthCBD;
 
     // d(theta)/d(r) array
     // angle i, atom j, coordinate k
@@ -849,22 +820,10 @@ void ImproperClass2::angleangle(int eflag, int vflag)
       f[i4][2] += fabcd[3][2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] += rfactor * (delxAB*fabcd[0][0] + 
-			      delxBC*fabcd[2][0] + delxBD*fabcd[3][0]);
-      virial[1] += rfactor * (delyAB*fabcd[0][1] + 
-			      delyBC*fabcd[2][1] + delyBD*fabcd[3][1]);
-      virial[2] += rfactor * (delzAB*fabcd[0][2] + 
-			      delzBC*fabcd[2][2] + delzBD*fabcd[3][2]);
-      virial[3] += rfactor * (delxAB*fabcd[0][1] + 
-			      delxBC*fabcd[2][1] + delxBD*fabcd[3][1]);
-      virial[4] += rfactor * (delxAB*fabcd[0][2] + 
-			      delxBC*fabcd[2][2] + delxBD*fabcd[3][2]);
-      virial[5] += rfactor * (delyAB*fabcd[0][2] + 
-			      delyBC*fabcd[2][2] + delyBD*fabcd[3][2]);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,
+	       fabcd[i1],fabcd[i3],fabcd[i4],
+	       delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,delxBD,delyBD,delzBD);
   }
 }
 

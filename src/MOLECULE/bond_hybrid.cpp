@@ -59,7 +59,7 @@ BondHybrid::~BondHybrid()
 
 void BondHybrid::compute(int eflag, int vflag)
 {
-  int i,m,n;
+  int i,j,m,n;
 
   // save ptrs to original bondlist
 
@@ -95,23 +95,36 @@ void BondHybrid::compute(int eflag, int vflag)
   }
   
   // call each sub-style's compute function
-  // must set neighbor->bondlist to sub-style bondlist before call
-  // accumulate sub-style energy,virial in hybrid's energy,virial
+  // set neighbor->bondlist to sub-style bondlist before call
+  // accumulate sub-style global/peratom energy/virial in hybrid
 
-  energy = 0.0;
-  eng_vdwl = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   for (m = 0; m < nstyles; m++) {
     if (styles[m] == NULL) continue;
     neighbor->nbondlist = nbondlist[m];
     neighbor->bondlist = bondlist[m];
+
     styles[m]->compute(eflag,vflag);
-    if (eflag) {
-      energy += styles[m]->energy;
-      eng_vdwl += styles[m]->eng_vdwl;
+
+    if (eflag_global) energy += styles[m]->energy;
+    if (vflag_global)
+      for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    if (eflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double *eatom_substyle = styles[m]->eatom;
+      for (i = 0; i < n; i++) eatom[i] += eatom_substyle[i];
     }
-    if (vflag) for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    if (vflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **vatom_substyle = styles[m]->vatom;
+      for (i = 0; i < n; i++)
+	for (j = 0; j < 6; j++)
+	  vatom[i][j] += vatom_substyle[i][j];
+    }
   }
 
   // restore ptrs to original bondlist
@@ -250,11 +263,9 @@ void BondHybrid::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondHybrid::single(int type, double rsq, int i, int j,
-			int eflag, double &fforce, double &eng)
+void BondHybrid::single(int type, double rsq, int i, int j, double &eng)
 {
-  if (styles[map[type]]) 
-    styles[map[type]]->single(type,rsq,i,j,eflag,fforce,eng);
+  if (styles[map[type]]) styles[map[type]]->single(type,rsq,i,j,eng);
 }
 
 /* ----------------------------------------------------------------------
@@ -263,7 +274,8 @@ void BondHybrid::single(int type, double rsq, int i, int j,
 
 double BondHybrid::memory_usage()
 {
-  double bytes = 0.0;
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maxbond[m]*3 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();

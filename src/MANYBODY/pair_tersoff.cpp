@@ -77,20 +77,22 @@ void PairTersoff::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum;
   int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,rsq1,rsq2,eng,fforce;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -129,23 +131,25 @@ void PairTersoff::compute(int eflag, int vflag)
 
       jtype = map[type[j]];
 
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
       iparam_ij = elem2param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
-      repulsive(&params[iparam_ij],rsq,fforce,eflag,eng);
+      repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
 
-      if (eflag) eng_vdwl += eng;
-      f[i][0] += fforce*delx;
-      f[i][1] += fforce*dely;
-      f[i][2] += fforce*delz;
-      f[j][0] -= fforce*delx;
-      f[j][1] -= fforce*dely;
-      f[j][2] -= fforce*delz;
+      f[i][0] += delx*fpair;
+      f[i][1] += dely*fpair;
+      f[i][2] += delz*fpair;
+      f[j][0] -= delx*fpair;
+      f[j][1] -= dely*fpair;
+      f[j][2] -= delz*fpair;
+
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
     // three-body interactions
@@ -183,15 +187,17 @@ void PairTersoff::compute(int eflag, int vflag)
 
       // pairwise force due to zeta
 
-      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fforce,prefactor,eflag,eng);
+      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl);
 
-      if (eflag) eng_vdwl += eng;
-      f[i][0] += fforce*delr1[0];
-      f[i][1] += fforce*delr1[1];
-      f[i][2] += fforce*delr1[2];
-      f[j][0] -= fforce*delr1[0];
-      f[j][1] -= fforce*delr1[1];
-      f[j][2] -= fforce*delr1[2];
+      f[i][0] += delr1[0]*fpair;
+      f[i][1] += delr1[1]*fpair;
+      f[i][2] += delr1[2]*fpair;
+      f[j][0] -= delr1[0]*fpair;
+      f[j][1] -= delr1[1]*fpair;
+      f[j][2] -= delr1[2]*fpair;
+
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
 
       // attractive term via loop over k
 
@@ -219,10 +225,13 @@ void PairTersoff::compute(int eflag, int vflag)
 	f[k][0] += fk[0];
 	f[k][1] += fk[1];
 	f[k][2] += fk[2];
+
+	if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -543,8 +552,7 @@ void PairTersoff::repulsive(Param *param, double rsq, double &fforce,
   tmp_fc = ters_fc(r,param);
   tmp_fc_d = ters_fc_d(r,param);
   tmp_exp = exp(-param->lam1 * r);
-  fforce = param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1) / r;
-
+  fforce = -param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1) / r;
   if (eflag) eng = tmp_fc * param->biga * tmp_exp;
 }
 

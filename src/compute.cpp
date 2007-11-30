@@ -52,6 +52,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   
   scalar_flag = vector_flag = peratom_flag = 0;
   tempflag = pressflag = peflag = 0;
+  pressatomflag = peatomflag = 0;
   timeflag = 0;
   invoked = 0;
   npre = 0;

@@ -96,9 +96,8 @@ void ComputeAcklandAtom::init_list(int id, NeighList *ptr)
 void ComputeAcklandAtom::compute_peratom()
 {
   int i,j,ii,jj,k,n,inum,jnum;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,value;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double pairs[66];
   int chi[8];
 
   // grow structure array if necessary
@@ -125,7 +124,6 @@ void ComputeAcklandAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double cutsq = force->pair->cutforce * force->pair->cutforce;
 
@@ -270,7 +268,7 @@ void ComputeAcklandAtom::compute_peratom()
       else 
          structure[i] = HCP; 
 
-    } // end loop over all particles
+    } else structure[i] = 0.0;
   }
 }
 

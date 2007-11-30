@@ -29,8 +29,6 @@ class PairEAM : public Pair {
   double init_one(int, int);
   void single(int, int, int, int, double, double, double, int, One &);
 
-  void single_embed(int, int, double &);
-
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);

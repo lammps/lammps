@@ -19,9 +19,13 @@
 namespace LAMMPS_NS {
 
 class Pair : protected Pointers {
+  friend class BondQuartic;
+  friend class DihedralCharmm;
+
  public:
   double eng_vdwl,eng_coul;      // accumulated energies
   double virial[6];              // accumulated virial
+  double *eatom,**vatom;         // accumulated per-atom energy/virial
 
   double cutforce;               // max cutoff for all atom pairs
   double **cutsq;                // max cutoff sq for each atom pair
@@ -52,14 +56,13 @@ class Pair : protected Pointers {
   };
 
   Pair(class LAMMPS *);
-  virtual ~Pair() {}
+  virtual ~Pair();
 
   // top-level Pair methods
 
   void init();
   double mix_energy(double, double, double, double);
   double mix_distance(double, double);
-  void virial_compute();
   void write_file(int, char **);
   void init_bitmap(double, double, int, int &, int &, int &, int &);
   virtual void modify_params(int, char **);
@@ -90,12 +93,11 @@ class Pair : protected Pointers {
   virtual void unpack_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
-  virtual double memory_usage() {return 0.0;}
+  virtual double memory_usage();
 
   // specific child-class methods for certain Pair styles
   
   virtual void *extract(char *) {return NULL;}
-  virtual void single_embed(int, int, double &) {}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
 
@@ -106,6 +108,26 @@ class Pair : protected Pointers {
   int offset_flag,mix_flag;            // flags for offset and mixing
   int ncoultablebits;                  // size of Coulomb table
   double tabinner;                     // inner cutoff for Coulomb table
+
+  double THIRD;
+
+  int evflag;                          // energy,virial settings
+  int eflag_either,eflag_global,eflag_atom;
+  int vflag_either,vflag_global,vflag_atom;
+  int vflag_fdotr;
+  int maxeatom,maxvatom;
+
+  void ev_setup(int, int);
+  void ev_tally(int, int, int, int, double, double, double,
+		double, double, double);
+  void ev_tally_xyz(int, int, int, int, double, double,
+		    double, double, double, double, double, double);
+  void ev_tally3(int, int, int, double, double,
+		 double *, double *, double *, double *);
+  void v_tally3(int, int, int, double, double, double *, double *);
+  void v_tally4(int, int, int, int, double, double, double,
+		double *, double *, double *);
+  void virial_compute();
 };
 
 }

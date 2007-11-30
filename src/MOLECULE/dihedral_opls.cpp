@@ -57,18 +57,18 @@ DihedralOPLS::~DihedralOPLS()
 
 void DihedralOPLS::compute(int eflag, int vflag)
 {
-  int n,i1,i2,i3,i4,type,factor;
-  double rfactor;
-  double vb1x,vb1y,vb1z,vb2x,vb2y;
-  double vb2z,vb2xm,vb2ym,vb2zm,vb3x,vb3y,vb3z,sb1;
-  double sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
+  int i1,i2,i3,i4,n,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double edihedral,f1[3],f2[3],f3[3],f4[3];
+  double sb1,sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
   double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
   double c2mag,sc1,sc2,s1,s12,c,p,pd,a,a11,a22;
-  double a33,a12,a13,a23,sx1,sx2,sx12,sy1,sy2,sy12;
-  double sz1,sz2,sz12,s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
+  double a33,a12,a13,a23,sx2,sy2,sz2;
+  double s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  edihedral = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -78,22 +78,11 @@ void DihedralOPLS::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < ndihedrallist; n++) {
-
     i1 = dihedrallist[n][0];
     i2 = dihedrallist[n][1];
     i3 = dihedrallist[n][2];
     i4 = dihedrallist[n][3];
     type = dihedrallist[n][4];
-
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
 
     // 1st bond
 
@@ -208,64 +197,67 @@ void DihedralOPLS::compute(int eflag, int vflag)
     pd = k1[type] - 2.0*k2[type]*sin(2.0*phi)*siinv + 
       3.0*k3[type]*sin(3.0*phi)*siinv - 4.0*k4[type]*sin(4.0*phi)*siinv;
 
-    if (eflag) energy += rfactor * p; 
+    if (eflag) edihedral = p; 
 
     a = pd;
     c = c * a;
     s12 = s12 * a;
-    a11 = -c*sb1*s1;
-    a22 = sb2 * (2.0*c0*s12 - c*(s1+s2));
-    a33 = -c*sb3*s2;
-    a12 = r12c1 * (c1mag*c*s1 + c2mag*s12);
-    a13 = rb1*rb3*s12;
-    a23 = r12c2 * (-c2mag*c*s2 - c1mag*s12);
+    a11 = c*sb1*s1;
+    a22 = -sb2 * (2.0*c0*s12 - c*(s1+s2));
+    a33 = c*sb3*s2;
+    a12 = -r12c1 * (c1mag*c*s1 + c2mag*s12);
+    a13 = -rb1*rb3*s12;
+    a23 = r12c2 * (c2mag*c*s2 + c1mag*s12);
 
-    sx1  = a11*vb1x + a12*vb2x + a13*vb3x;
     sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
-    sx12 = a13*vb1x + a23*vb2x + a33*vb3x;
-    sy1  = a11*vb1y + a12*vb2y + a13*vb3y;
     sy2  = a12*vb1y + a22*vb2y + a23*vb3y;
-    sy12 = a13*vb1y + a23*vb2y + a33*vb3y;
-    sz1  = a11*vb1z + a12*vb2z + a13*vb3z;
     sz2  = a12*vb1z + a22*vb2z + a23*vb3z;
-    sz12 = a13*vb1z + a23*vb2z + a33*vb3z;
+
+    f1[0] = a11*vb1x + a12*vb2x + a13*vb3x;
+    f1[1] = a11*vb1y + a12*vb2y + a13*vb3y;
+    f1[2] = a11*vb1z + a12*vb2z + a13*vb3z;
+
+    f2[0] = -sx2 - f1[0];
+    f2[1] = -sy2 - f1[1];
+    f2[2] = -sz2 - f1[2];
+
+    f4[0] = a13*vb1x + a23*vb2x + a33*vb3x;
+    f4[1] = a13*vb1y + a23*vb2y + a33*vb3y;
+    f4[2] = a13*vb1z + a23*vb2z + a33*vb3z;
+
+    f3[0] = sx2 - f4[0];
+    f3[1] = sy2 - f4[1];
+    f3[2] = sz2 - f4[2];
 
     // apply force to each of 4 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= sx1;
-      f[i1][1] -= sy1;
-      f[i1][2] -= sz1;
+      f[i1][0] += f1[0];
+      f[i1][1] += f1[1];
+      f[i1][2] += f1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += sx2 + sx1;
-      f[i2][1] += sy2 + sy1;
-      f[i2][2] += sz2 + sz1;
+      f[i2][0] += f2[0];
+      f[i2][1] += f2[1];
+      f[i2][2] += f2[2];
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] += sx12 - sx2;
-      f[i3][1] += sy12 - sy2;
-      f[i3][2] += sz12 - sz2;
+      f[i3][0] += f3[0];
+      f[i3][1] += f3[1];
+      f[i3][2] += f3[2];
     }
 
     if (newton_bond || i4 < nlocal) {
-      f[i4][0] -= sx12;
-      f[i4][1] -= sy12;
-      f[i4][2] -= sz12;
+      f[i4][0] += f4[0];
+      f[i4][1] += f4[1];
+      f[i4][2] += f4[2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] -= rfactor * (vb1x*sx1 + vb2x*sx2 + vb3x*sx12);
-      virial[1] -= rfactor * (vb1y*sy1 + vb2y*sy2 + vb3y*sy12);
-      virial[2] -= rfactor * (vb1z*sz1 + vb2z*sz2 + vb3z*sz12);
-      virial[3] -= rfactor * (vb1x*sy1 + vb2x*sy2 + vb3x*sy12);
-      virial[4] -= rfactor * (vb1x*sz1 + vb2x*sz2 + vb3x*sz12);
-      virial[5] -= rfactor * (vb1y*sz1 + vb2y*sz2 + vb3y*sz12);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,f1,f3,f4,
+	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }
 

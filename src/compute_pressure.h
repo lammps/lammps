@@ -30,10 +30,11 @@ class ComputePressure : public Compute {
   double boltz,nktv2p,inv_volume;
   int nvirial,dimension;
   double **vptr;
-  int kspaceflag;
   double *kspace_virial;
   Compute *temperature;
   double virial[6];
+  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
+  int fixflag,kspaceflag;
 
   void virial_compute(int, int);
 };

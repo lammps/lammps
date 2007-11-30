@@ -19,22 +19,18 @@
 namespace LAMMPS_NS {
 
 class ComputeStressAtom : public Compute {
-
  public:
   ComputeStressAtom(class LAMMPS *, int, char **);
   ~ComputeStressAtom();
-  void init();
-  void init_list(int, class NeighList *);
+  void init() {}
   void compute_peratom();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
  private:
-  int pairrequest,bondrequest,kerequest;
-  int pairflag,bondflag;
+  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
   int nmax;
-  class NeighList *list;
   double **stress;
 };
 

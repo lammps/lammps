@@ -39,7 +39,9 @@ class Compute : protected Pointers {
                       // must have both compute_scalar, compute_vector
   int pressflag;      // 1 if Compute can be used as pressure (uses virial)
                       // must have both compute_scalar, compute_vector
+  int pressatomflag;  // 1 if Compute calculates per-atom virial
   int peflag;         // 1 if Compute calculates PE (uses Force energies)
+  int peatomflag;     // 1 if Compute calculates per-atom PE
 
   int timeflag;       // 1 if Compute stores list of timesteps it's called on
   int ntime;          // # of entries in time list

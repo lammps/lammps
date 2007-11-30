@@ -114,6 +114,7 @@ double ComputeSum::compute_scalar()
     compute[icompute]->compute_peratom();
 
   // compute scalar quantity by summing over atom scalars
+  // only include atoms in group
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -145,6 +146,7 @@ void ComputeSum::compute_vector()
     compute[icompute]->compute_peratom();
 
   // compute vector quantity by summing over atom vectors
+  // only include atoms in group
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

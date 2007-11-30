@@ -58,7 +58,7 @@ PairHybrid::~PairHybrid()
 
 /* ----------------------------------------------------------------------
   call each sub-style's compute function
-  accumulate sub-style energy/virial in hybrid's energy/virial
+  accumulate sub-style global/peratom energy/virial in hybrid
   for vflag = 1:
     each sub-style computes own virial[6]
     sum sub-style virial[6] to hybrid's virial[6]
@@ -70,21 +70,47 @@ PairHybrid::~PairHybrid()
 
 void PairHybrid::compute(int eflag, int vflag)
 {
-  int m,n;
+  int i,j,m,n;
 
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
+
+  // don't allow substyle to invoke virial_compute()
+  // if vflag has that setting, change vflag passed to substyle
+  // preserve vflag_atom option in what is passed to substyle
+
+  int vflag_substyle;
+  int vflag_global_substyle = vflag % 4;
+  if (vflag_global_substyle == 2) {
+    vflag_substyle = vflag/4 * 4;
+  } else vflag_substyle = vflag;
 
   for (m = 0; m < nstyles; m++) {
-    styles[m]->compute(eflag,vflag % 2);
-    if (eflag) {
+    styles[m]->compute(eflag,vflag_substyle);
+
+    if (eflag_global) {
       eng_vdwl += styles[m]->eng_vdwl;
       eng_coul += styles[m]->eng_coul;
     }
-    if (vflag == 1) for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    if (vflag_global)
+      for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    if (eflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_pair) n += atom->nghost;
+      double *eatom_substyle = styles[m]->eatom;
+      for (i = 0; i < n; i++) eatom[i] += eatom_substyle[i];
+    }
+    if (vflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_pair) n += atom->nghost;
+      double **vatom_substyle = styles[m]->vatom;
+      for (i = 0; i < n; i++)
+	for (j = 0; j < 6; j++)
+	  vatom[i][j] += vatom_substyle[i][j];
+    }
   }
 
-  if (vflag == 2) virial_compute();
+  if (vflag_fdotr == 2) virial_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -531,39 +557,20 @@ void PairHybrid::single(int i, int j, int itype, int jtype,
     error->one("Invoked pair single on pair style none");
 
   double fforce = 0.0;
-  double eng_vdwl = 0.0;
-  double eng_coul = 0.0;
+  double evdwl = 0.0;
+  double ecoul = 0.0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     styles[map[itype][jtype][m]]->
       single(i,j,itype,jtype,rsq,factor_coul,factor_lj,eflag,one);
     fforce += one.fforce;
-    eng_vdwl += one.eng_vdwl;
-    eng_coul += one.eng_coul;
+    evdwl += one.eng_vdwl;
+    ecoul += one.eng_coul;
   }
 
   one.fforce = fforce;
-  one.eng_vdwl = eng_vdwl;
-  one.eng_coul = eng_coul;
-}
-
-/* ----------------------------------------------------------------------
-   call sub-style to compute single embedding interaction
-   since overlay could have multiple sub-styles, sum results explicitly
-------------------------------------------------------------------------- */
-
-void PairHybrid::single_embed(int i, int itype, double &phi)
-{
-  if (nmap[itype][itype] == 0)
-    error->one("Invoked pair single on pair style none");
-  
-  phi = 0.0;
-  double phi_single;
-
-  for (int m = 0; m < nmap[itype][itype]; m++) {
-    styles[map[itype][itype][m]]->single_embed(i,itype,phi_single);
-    phi += phi_single;
-  }
+  one.eng_vdwl = evdwl;
+  one.eng_coul = ecoul;
 }
 
 /* ----------------------------------------------------------------------
@@ -584,7 +591,8 @@ void PairHybrid::modify_params(int narg, char **arg)
 
 double PairHybrid::memory_usage()
 {
-  double bytes = 0.0;
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
 }

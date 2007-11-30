@@ -82,9 +82,9 @@ class PairAIREBO : public Pair {
   double Tf[5][5][10],Tdfdx[5][5][10],Tdfdy[5][5][10],Tdfdz[5][5][10];
 
   void REBO_neigh();
-  void FREBO(int, double **);
-  void FLJ(int, double **);
-  void TORSION(int, double **);
+  void FREBO(int, int);
+  void FLJ(int, int);
+  void TORSION(int, int);
 
   double bondorder(int, int, double *, double, double, double **);
   double bondorderLJ(int, int, double *, double, double,
@@ -114,4 +114,3 @@ class PairAIREBO : public Pair {
 }
 
 #endif
-

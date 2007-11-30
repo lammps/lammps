@@ -40,21 +40,24 @@ PairGranHertzian::PairGranHertzian(LAMMPS *lmp) : PairGranHistory(lmp)
 void PairGranHertzian::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double xmeff,damp,ccel,ccelx,ccely,ccelz,tor1,tor2,tor3;
+  double xmeff,damp,ccel,tor1,tor2,tor3;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht,rhertz;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
-  double **f = atom->f;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+
   double **x = atom->x;
   double **v = atom->v;
+  double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
@@ -209,12 +212,12 @@ void PairGranHertzian::compute(int eflag, int vflag)
 
 	// forces & torques
 
-	ccelx = delx*ccel + fs1;
-	ccely = dely*ccel + fs2;
-	ccelz = delz*ccel + fs3;
-	f[i][0] += ccelx;
-	f[i][1] += ccely;
-	f[i][2] += ccelz;
+	fx = delx*ccel + fs1;
+	fy = dely*ccel + fs2;
+	fz = delz*ccel + fs3;
+	f[i][0] += fx;
+	f[i][1] += fy;
+	f[i][2] += fz;
 
 	rinv = 1/r;
 	tor1 = rinv * (dely*fs3 - delz*fs2);
@@ -225,13 +228,16 @@ void PairGranHertzian::compute(int eflag, int vflag)
 	torque[i][2] -= radi*tor3;
 
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= ccelx;
-	  f[j][1] -= ccely;
-	  f[j][2] -= ccelz;
+	  f[j][0] -= fx;
+	  f[j][1] -= fy;
+	  f[j][2] -= fz;
 	  torque[j][0] -= radj*tor1;
 	  torque[j][1] -= radj*tor2;
 	  torque[j][2] -= radj*tor3;
 	}
+
+	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+				 0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }
   }

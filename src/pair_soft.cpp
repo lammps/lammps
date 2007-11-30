@@ -55,9 +55,13 @@ PairSoft::~PairSoft()
 void PairSoft::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double r,rsq,arg,fforce,factor_lj,philj;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double r,rsq,arg,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
+
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   // set current prefactor
   // for minimization, set to prestop
@@ -74,14 +78,11 @@ void PairSoft::compute(int eflag, int vflag)
       prefactor[i][j] = prestart[i][j] + 
 	delta * (prestop[i][j] - prestart[i][j]);
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
-
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -119,38 +120,29 @@ void PairSoft::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
 	r = sqrt(rsq);
 	arg = PI*r/cut[itype][jtype];
-	if (r == 0.0) fforce = 0.0;
-	else fforce = factor_lj * prefactor[itype][jtype] * 
-	       sin(arg) * PI/cut[itype][jtype]/r;
+	if (r > 0.0) fpair = factor_lj * prefactor[itype][jtype] * 
+		       sin(arg) * PI/cut[itype][jtype]/r;
+	else fpair = 0.0;
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
-	if (eflag) {
-	  philj = prefactor[itype][jtype] * (1.0+cos(arg));
-	  if (newton_pair || j < nlocal) eng_vdwl += factor_lj*philj;
-	  else eng_vdwl += 0.5*factor_lj*philj;
-	}
+	if (eflag)
+	  evdwl = factor_lj * prefactor[itype][jtype] * (1.0+cos(arg));
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

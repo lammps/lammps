@@ -55,17 +55,17 @@ DihedralHarmonic::~DihedralHarmonic()
 
 void DihedralHarmonic::compute(int eflag, int vflag)
 {
-  int i,m,n,i1,i2,i3,i4,type,factor;
-  double rfactor;
-  double vb1x,vb1y,vb1z,vb2x,vb2y;
-  double vb2z,vb2xm,vb2ym,vb2zm,vb3x,vb3y,vb3z;
+  int i1,i2,i3,i4,i,m,n,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double edihedral,f1[3],f2[3],f3[3],f4[3];
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
   double df,df1,ddf1,fg,hg,fga,hgb,gaa,gbb;
   double dtfx,dtfy,dtfz,dtgx,dtgy,dtgz,dthx,dthy,dthz;  
-  double c,s,p,sx1,sx2,sx12,sy1,sy2,sy12,sz1,sz2,sz12;
+  double c,s,p,sx2,sy2,sz2;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  edihedral = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -75,22 +75,11 @@ void DihedralHarmonic::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < ndihedrallist; n++) {
-
     i1 = dihedrallist[n][0];
     i2 = dihedrallist[n][1];
     i3 = dihedrallist[n][2];
     i4 = dihedrallist[n][3];
     type = dihedrallist[n][4];
-
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
 
     // 1st bond
 
@@ -184,7 +173,7 @@ void DihedralHarmonic::compute(int eflag, int vflag)
       df1 = 0.0;
     }
 
-    if (eflag) energy += rfactor * k[type] * p; 
+    if (eflag) edihedral = k[type] * p; 
        
     fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
     hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
@@ -203,54 +192,57 @@ void DihedralHarmonic::compute(int eflag, int vflag)
     dthy = gbb*by;
     dthz = gbb*bz;
     
-    df = k[type] * df1;
+    df = -k[type] * df1;
     
-    sx1 = df*dtfx;
-    sy1 = df*dtfy;
-    sz1 = df*dtfz;
-    sx2 = -df*dtgx;
-    sy2 = -df*dtgy;
-    sz2 = -df*dtgz;
-    sx12 = df*dthx;
-    sy12 = df*dthy;
-    sz12 = df*dthz; 
+    sx2 = df*dtgx;
+    sy2 = df*dtgy;
+    sz2 = df*dtgz;
+
+    f1[0] = df*dtfx;
+    f1[1] = df*dtfy;
+    f1[2] = df*dtfz;
+
+    f2[0] = sx2 - f1[0];
+    f2[1] = sy2 - f1[1];
+    f2[2] = sz2 - f1[2];
+
+    f4[0] = df*dthx;
+    f4[1] = df*dthy;
+    f4[2] = df*dthz;
+
+    f3[0] = -sx2 - f4[0];
+    f3[1] = -sy2 - f4[1];
+    f3[2] = -sz2 - f4[2];
     
     // apply force to each of 4 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= sx1;
-      f[i1][1] -= sy1;
-      f[i1][2] -= sz1;
+      f[i1][0] += f1[0];
+      f[i1][1] += f1[1];
+      f[i1][2] += f1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += sx2 + sx1;
-      f[i2][1] += sy2 + sy1;
-      f[i2][2] += sz2 + sz1;
+      f[i2][0] += f2[0];
+      f[i2][1] += f2[1];
+      f[i2][2] += f2[2];
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] += sx12 - sx2;
-      f[i3][1] += sy12 - sy2;
-      f[i3][2] += sz12 - sz2;
+      f[i3][0] += f3[0];
+      f[i3][1] += f3[1];
+      f[i3][2] += f3[2];
     }
 
     if (newton_bond || i4 < nlocal) {
-      f[i4][0] -= sx12;
-      f[i4][1] -= sy12;
-      f[i4][2] -= sz12;
+      f[i4][0] += f4[0];
+      f[i4][1] += f4[1];
+      f[i4][2] += f4[2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] -= rfactor * (vb1x*sx1 + vb2x*sx2 + vb3x*sx12);
-      virial[1] -= rfactor * (vb1y*sy1 + vb2y*sy2 + vb3y*sy12);
-      virial[2] -= rfactor * (vb1z*sz1 + vb2z*sz2 + vb3z*sz12);
-      virial[3] -= rfactor * (vb1x*sy1 + vb2x*sy2 + vb3x*sy12);
-      virial[4] -= rfactor * (vb1x*sz1 + vb2x*sz2 + vb3x*sz12);
-      virial[5] -= rfactor * (vb1y*sz1 + vb2y*sz2 + vb3y*sz12);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,f1,f3,f4,
+	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }
 

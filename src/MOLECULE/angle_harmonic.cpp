@@ -45,12 +45,15 @@ AngleHarmonic::~AngleHarmonic()
 
 void AngleHarmonic::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,n,type,factor;
-  double delx1,dely1,delz1,delx2,dely2,delz2,rfactor,dtheta,tk;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
+  int i1,i2,i3,n,type;
+  double delx1,dely1,delz1,delx2,dely2,delz2;
+  double eangle,f1[3],f3[3];
+  double dtheta,tk;
+  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  eangle = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -60,20 +63,10 @@ void AngleHarmonic::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nanglelist; n++) {
-
     i1 = anglelist[n][0];
     i2 = anglelist[n][1];
     i3 = anglelist[n][2];
     type = anglelist[n][3];
-
-    if (newton_bond) factor = 3;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-    }
-    rfactor = factor/3.0;
 
     // 1st bond
 
@@ -112,51 +105,42 @@ void AngleHarmonic::compute(int eflag, int vflag)
     dtheta = acos(c) - theta0[type];
     tk = k[type] * dtheta;
 
-    if (eflag) energy += rfactor * tk*dtheta;
+    if (eflag) eangle = tk*dtheta;
 
-    a = 2.0 * tk * s;
-        
+    a = -2.0 * tk * s;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
-        
-    vx1 = a11*delx1 + a12*delx2;
-    vx2 = a22*delx2 + a12*delx1;
-    vy1 = a11*dely1 + a12*dely2;
-    vy2 = a22*dely2 + a12*dely1;
-    vz1 = a11*delz1 + a12*delz2;
-    vz2 = a22*delz2 + a12*delz1;
+
+    f1[0] = a11*delx1 + a12*delx2;
+    f1[1] = a11*dely1 + a12*dely2;
+    f1[2] = a11*delz1 + a12*delz2;
+    f3[0] = a22*delx2 + a12*delx1;
+    f3[1] = a22*dely2 + a12*dely1;
+    f3[2] = a22*delz2 + a12*delz1;
 
     // apply force to each of 3 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= vx1;
-      f[i1][1] -= vy1;
-      f[i1][2] -= vz1;
+      f[i1][0] += f1[0];
+      f[i1][1] += f1[1];
+      f[i1][2] += f1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += vx1 + vx2;
-      f[i2][1] += vy1 + vy2;
-      f[i2][2] += vz1 + vz2;
+      f[i2][0] -= f1[0] + f3[0];
+      f[i2][1] -= f1[1] + f3[1];
+      f[i2][2] -= f1[2] + f3[2];
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] -= vx2;
-      f[i3][1] -= vy2;
-      f[i3][2] -= vz2;
+      f[i3][0] += f3[0];
+      f[i3][1] += f3[1];
+      f[i3][2] += f3[2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] -= rfactor * (delx1*vx1 + delx2*vx2);
-      virial[1] -= rfactor * (dely1*vy1 + dely2*vy2);
-      virial[2] -= rfactor * (delz1*vz1 + delz2*vz2);
-      virial[3] -= rfactor * (delx1*vy1 + delx2*vy2);
-      virial[4] -= rfactor * (delx1*vz1 + delx2*vz2);
-      virial[5] -= rfactor * (dely1*vz1 + dely2*vz2);
-    }
+    if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
+			 delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }
 

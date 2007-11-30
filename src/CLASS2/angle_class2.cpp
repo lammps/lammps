@@ -64,15 +64,17 @@ AngleClass2::~AngleClass2()
 
 void AngleClass2::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,n,type,factor;
-  double delx1,dely1,delz1,delx2,dely2,delz2,rfactor;
+  int i1,i2,i3,n,type;
+  double delx1,dely1,delz1,delx2,dely2,delz2;
+  double eangle,f1[3],f3[3];
   double dtheta,dtheta2,dtheta3,dtheta4,de_angle;
   double dr1,dr2,tk1,tk2,aa1,aa2,aa11,aa12,aa21,aa22;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2,vx1,vx2,vy1,vy2,vz1,vz2;
+  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
   double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  eangle = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -82,20 +84,10 @@ void AngleClass2::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nanglelist; n++) {
-
     i1 = anglelist[n][0];
     i2 = anglelist[n][1];
     i3 = anglelist[n][2];
     type = anglelist[n][3];
-
-    if (newton_bond) factor = 3;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-    }
-    rfactor = factor/3.0;
 
     // 1st bond
 
@@ -139,22 +131,20 @@ void AngleClass2::compute(int eflag, int vflag)
     de_angle = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 + 
       4.0*k4[type]*dtheta3;
 
-    a = de_angle*s;
-        
+    a = -de_angle*s;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
         
-    vx1 = a11*delx1 + a12*delx2;
-    vy1 = a11*dely1 + a12*dely2;
-    vz1 = a11*delz1 + a12*delz2;
+    f1[0] = a11*delx1 + a12*delx2;
+    f1[1] = a11*dely1 + a12*dely2;
+    f1[2] = a11*delz1 + a12*delz2;
 
-    vx2 = a22*delx2 + a12*delx1;
-    vy2 = a22*dely2 + a12*dely1;
-    vz2 = a22*delz2 + a12*delz1;
+    f3[0] = a22*delx2 + a12*delx1;
+    f3[1] = a22*dely2 + a12*dely1;
+    f3[2] = a22*delz2 + a12*delz1;
 
-    if (eflag) energy += rfactor * 
-      (k2[type]*dtheta2 + k3[type]*dtheta3 + k4[type]*dtheta4);
+    if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + k4[type]*dtheta4;
 
     // force & energy for bond-bond term
 
@@ -163,15 +153,15 @@ void AngleClass2::compute(int eflag, int vflag)
     tk1 = bb_k[type] * dr1;
     tk2 = bb_k[type] * dr2;
 
-    vx1 += delx1*tk2/r1;
-    vy1 += dely1*tk2/r1;
-    vz1 += delz1*tk2/r1;
+    f1[0] -= delx1*tk2/r1;
+    f1[2] -= dely1*tk2/r1;
+    f1[2] -= delz1*tk2/r1;
 
-    vx2 += delx2*tk1/r2;
-    vy2 += dely2*tk1/r2;
-    vz2 += delz2*tk1/r2;
+    f3[0] -= delx2*tk1/r2;
+    f3[1] -= dely2*tk1/r2;
+    f3[2] -= delz2*tk1/r2;
 
-    if (eflag) energy += rfactor * bb_k[type]*dr1*dr2;
+    if (eflag) eangle += bb_k[type]*dr1*dr2;
 
     // force & energy for bond-angle term
 
@@ -203,47 +193,38 @@ void AngleClass2::compute(int eflag, int vflag)
     b1 = ba_k1[type] * dtheta / r1;
     b2 = ba_k2[type] * dtheta / r2;
 
-    vx1 += vx11 + b1*delx1 + vx12;
-    vy1 += vy11 + b1*dely1 + vy12;
-    vz1 += vz11 + b1*delz1 + vz12;
+    f1[0] -= vx11 + b1*delx1 + vx12;
+    f1[2] -= vy11 + b1*dely1 + vy12;
+    f1[2] -= vz11 + b1*delz1 + vz12;
 
-    vx2 += vx21 + b2*delx2 + vx22;
-    vy2 += vy21 + b2*dely2 + vy22;
-    vz2 += vz21 + b2*delz2 + vz22;
+    f3[0] -= vx21 + b2*delx2 + vx22;
+    f3[1] -= vy21 + b2*dely2 + vy22;
+    f3[2] -= vz21 + b2*delz2 + vz22;
 
-    if (eflag) energy += rfactor * 
-		 ((ba_k1[type]*dr1*dtheta) + (ba_k2[type]*dr2*dtheta));
+    if (eflag) eangle += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
 
     // apply force to each of 3 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= vx1;
-      f[i1][1] -= vy1;
-      f[i1][2] -= vz1;
+      f[i1][0] += f1[0];
+      f[i1][1] += f1[1];
+      f[i1][2] += f1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += vx1 + vx2;
-      f[i2][1] += vy1 + vy2;
-      f[i2][2] += vz1 + vz2;
+      f[i2][0] -= f1[0] + f3[0];
+      f[i2][1] -= f1[1] + f3[1];
+      f[i2][2] -= f1[2] + f3[2];
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] -= vx2;
-      f[i3][1] -= vy2;
-      f[i3][2] -= vz2;
+      f[i3][0] += f3[0];
+      f[i3][1] += f3[1];
+      f[i3][2] += f3[2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] -= rfactor * (delx1*vx1 + delx2*vx2);
-      virial[1] -= rfactor * (dely1*vy1 + dely2*vy2);
-      virial[2] -= rfactor * (delz1*vz1 + delz2*vz2);
-      virial[3] -= rfactor * (delx1*vy1 + delx2*vy2);
-      virial[4] -= rfactor * (delx1*vz1 + delx2*vz2);
-      virial[5] -= rfactor * (dely1*vz1 + dely2*vz2);
-    }
+    if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
+			 delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }
 

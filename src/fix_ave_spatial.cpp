@@ -238,6 +238,14 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   else
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
+
+  // must set timestep for all computes that store invocation times
+  // since don't know a priori which are invoked by this fix
+  // once in end_of_step() can just set timestep for ones actually invoked
+
+  if (which == COMPUTE)
+    for (int i = 0; i < modify->ncompute; i++)
+      if (modify->compute[i]->timeflag) modify->compute[i]->add_step(nvalid);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -492,6 +500,7 @@ void FixAveSpatial::end_of_step()
   // COMPUTE adds its scalar or vector quantity to values
 
   } else if (which == COMPUTE) {
+    modify->clearstep_compute();
     for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
     double *scalar = compute[ncompute-1]->scalar_atom;
     double **vector = compute[ncompute-1]->vector_atom;
@@ -558,10 +567,18 @@ void FixAveSpatial::end_of_step()
   }
 
   // done if irepeat < nrepeat
+  // else reset irepeat and nvalid
 
   irepeat++;
-  nvalid += nevery;
-  if (irepeat < nrepeat) return;
+  if (irepeat < nrepeat) {
+    nvalid += nevery;
+    if (which == COMPUTE) modify->addstep_compute(nvalid);
+    return;
+  }
+
+  irepeat = 0;
+  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+  if (which == COMPUTE) modify->addstep_compute(nvalid);
 
   // time average across samples
   // if density, also normalize by volume
@@ -592,11 +609,6 @@ void FixAveSpatial::end_of_step()
     for (m = 0; m < nlayers; m++)
       values_sum[m][0] *= count_sum[m] / layer_volume;
   }
-
-  // reset irepeat and nvalid
-
-  irepeat = 0;
-  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values

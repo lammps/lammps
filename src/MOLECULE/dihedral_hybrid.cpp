@@ -59,7 +59,7 @@ DihedralHybrid::~DihedralHybrid()
 
 void DihedralHybrid::compute(int eflag, int vflag)
 {
-  int i,m,n;
+  int i,j,m,n;
 
   // save ptrs to original dihedrallist
 
@@ -98,24 +98,36 @@ void DihedralHybrid::compute(int eflag, int vflag)
   }
   
   // call each sub-style's compute function
-  // must set neighbor->dihedrallist to sub-style dihedrallist before call
-  // accumulate sub-style energy,virial in hybrid's energy,virial
+  // set neighbor->dihedrallist to sub-style dihedrallist before call
+  // accumulate sub-style global/peratom energy/virial in hybrid
 
-  energy = 0.0;
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   for (m = 0; m < nstyles; m++) {
     if (styles[m] == NULL) continue;
     neighbor->ndihedrallist = ndihedrallist[m];
     neighbor->dihedrallist = dihedrallist[m];
+
     styles[m]->compute(eflag,vflag);
-    if (eflag) {
-      energy += styles[m]->energy;
-      eng_vdwl += styles[m]->eng_vdwl;
-      eng_coul += styles[m]->eng_coul;
+
+    if (eflag_global) energy += styles[m]->energy;
+    if (vflag_global)
+      for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    if (eflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double *eatom_substyle = styles[m]->eatom;
+      for (i = 0; i < n; i++) eatom[i] += eatom_substyle[i];
     }
-    if (vflag) for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    if (vflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **vatom_substyle = styles[m]->vatom;
+      for (i = 0; i < n; i++)
+	for (j = 0; j < 6; j++)
+	  vatom[i][j] += vatom_substyle[i][j];
+    }
   }
 
   // restore ptrs to original dihedrallist
@@ -250,7 +262,8 @@ void DihedralHybrid::read_restart(FILE *fp)
 
 double DihedralHybrid::memory_usage()
 {
-  double bytes = 0.0;
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maxdihedral[m]*5 * sizeof(int);
   for (int m = 0; m < nstyles; m++) 
     if (styles[m]) bytes += styles[m]->memory_usage();

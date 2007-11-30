@@ -113,7 +113,6 @@ void ComputeCentroAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double cutsq = force->pair->cutforce * force->pair->cutforce;
 

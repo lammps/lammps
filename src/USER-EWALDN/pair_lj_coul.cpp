@@ -446,12 +446,17 @@ void PairLJCoul::read_restart_settings(FILE *fp)
 
 void PairLJCoul::compute(int eflag, int vflag)
 {
+  double evdwl,ecoul,fpair;
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+  
   double **x = atom->x, *x0 = x[0];
   double **f = atom->f, *f0 = f[0], *fi = f0;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -460,12 +465,10 @@ void PairLJCoul::compute(int eflag, int vflag)
   int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
   double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
-  double rsq, r2inv, force_coul, force_lj, fforce, factor;
+  double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   vector xi, d;
 
-  eng_vdwl = eng_coul = 0.0;				// reset energy&virial
-  if (vflag) memset(virial, 0, sizeof(shape));
   ineighn = (ineigh = list->ilist)+list->inum;
 
   for (; ineigh<ineighn; ++ineigh) {			// loop over my atoms
@@ -489,8 +492,6 @@ void PairLJCoul::compute(int eflag, int vflag)
       if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
-      factor = newton_pair || j<nlocal ? 1.0 : 0.5;
-
       if (order1 && (rsq < cut_coulsq)) {		// coulombic
 	if (!ncoultablebits || rsq <= tabinnersq) {	// series real space
 	  register double r = sqrt(rsq), x = g_ewald*r;
@@ -498,12 +499,12 @@ void PairLJCoul::compute(int eflag, int vflag)
 	  if (ni < 0) {
 	    s *= g_ewald*exp(-x*x);
 	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
-	    if (eflag) eng_coul += factor*t;
+	    if (eflag) ecoul = t;
 	  }
 	  else {					// special case
 	    r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
 	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
-	    if (eflag) eng_coul += factor*(t-r);
+	    if (eflag) ecoul = t-r;
 	  }
 	}						// table real space
 	else {
@@ -512,16 +513,16 @@ void PairLJCoul::compute(int eflag, int vflag)
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
 	  if (ni < 0) {
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
-	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]);
+	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
 	  }
 	  else {					// special case
 	    t = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]-t);
+	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t);
 	  }
 	}
       }
-      else force_coul = 0.0;
+      else force_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {			// lj
        	if (order6) {					// long-range lj
@@ -531,78 +532,64 @@ void PairLJCoul::compute(int eflag, int vflag)
 	  if (ni < 0) {
 	    force_lj =
 	      (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-	    if (eflag) eng_vdwl += 
-	      factor*(rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2);
+	    if (eflag)
+	      evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
 	  }
 	  else {					// special case
 	    register double f = special_lj[ni], t = rn*(1.0-f);
 	    force_lj = f*(rn *= rn)*lj1i[typej]-
 	      g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
-	    if (eflag) eng_vdwl += factor*(
-		f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej]);
+	    if (eflag) 
+	      evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
 	  }
 	}
 	else {						// cut lj
 	  register double rn = r2inv*r2inv*r2inv;
 	  if (ni < 0) {
 	    force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
-	    if (eflag) eng_vdwl += factor*(
-		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	    if (eflag) evdwl = rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej];
 	  }
 	  else {					// special case
 	    register double f = special_lj[ni];
 	    force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
-	    if (eflag) eng_vdwl += f*factor*(
-		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	    if (eflag)
+	      evdwl = f * (rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
 	  }
 	}
       }
-      else force_lj = 0.0;
+      else force_lj = evdwl = 0.0;
 
-      fforce = (force_coul+force_lj)*r2inv;		// force and virial
-      if (vflag==1) {
-	if (newton_pair || j < nlocal) {
-	  register double f = d[0]*fforce, *fj = f0+(j+(j<<1));
-	  fi[0] += f; fj[0] -= f;
-	  virial[0] += f*d[0]; virial[3] += f*d[1];
-	  fi[1] += f = d[1]*fforce; fj[1] -= f;
-	  virial[1] += f*d[1]; virial[5] += f*d[2];
-	  fi[2] += f = d[2]*fforce; fj[2] -= f;
-	  virial[2] += f*d[2]; virial[4] += f*d[0];
-	}
-	else {
-	  register double f = d[0]*fforce;
-	  fi[0] += f; virial[0] += (f *= 0.5)*d[0]; virial[3] += f*d[1];
-	  fi[1] += f = d[1]*fforce; virial[1] += 0.5*f*d[1];
-	  fi[2] += f = d[2]*fforce; virial[2] += (f *= 0.5)*d[2]; 
-	  virial[4] += f*d[0]; virial[5] += f*d[1];
-	}
-      }
-      else if (newton_pair || j < nlocal) {
+      fpair = (force_coul+force_lj)*r2inv;
+
+      if (newton_pair || j < nlocal) {
 	register double *fj = f0+(j+(j<<1)), f;
-	fi[0] += f = d[0]*fforce; fj[0] -= f;
-	fi[1] += f = d[1]*fforce; fj[1] -= f;
-	fi[2] += f = d[2]*fforce; fj[2] -= f;
+	fi[0] += f = d[0]*fpair; fj[0] -= f;
+	fi[1] += f = d[1]*fpair; fj[1] -= f;
+	fi[2] += f = d[2]*fpair; fj[2] -= f;
       }
       else {
-	fi[0] += d[0]*fforce;
-	fi[1] += d[1]*fforce;
-	fi[2] += d[2]*fforce;
+	fi[0] += d[0]*fpair;
+	fi[1] += d[1]*fpair;
+	fi[2] += d[2]*fpair;
       }
+      
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,ecoul,fpair,d[0],d[1],d[2]);
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairLJCoul::compute_inner()
 {
-  double rsq, r2inv, force_coul, force_lj, fforce;
+  double rsq, r2inv, force_coul, force_lj, fpair;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *x0 = atom->x[0], *f0 = atom->f[0], *fi = f0, *q = atom->q;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -618,7 +605,7 @@ void PairLJCoul::compute_inner()
 
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
   int i, j, order1 = (ewald_order|(ewald_off^-1))&(1<<1);
-  double qri, *cut_ljsqi, *lj1i, *lj2i, *offseti;
+  double qri, *cut_ljsqi, *lj1i, *lj2i;
   vector xi, d;
 
   ineighn = (ineigh = list->ilist)+list->inum;
@@ -627,7 +614,6 @@ void PairLJCoul::compute_inner()
     i = *ineigh; fi = f0+3*i;
     qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    offseti = offset[typei = type[i]];
     cut_ljsqi = cut_ljsq[typei];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
@@ -656,23 +642,23 @@ void PairLJCoul::compute_inner()
       }
       else force_lj = 0.0;
 
-      fforce = (force_coul + force_lj) * r2inv;
+      fpair = (force_coul + force_lj) * r2inv;
       
       if (rsq > cut_out_on_sq) {			// switching
         register double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	fforce  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
+	fpair  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
       }
 
       if (newton_pair || j < nlocal) {			// force update
 	register double *fj = f0+(j+(j<<1)), f;
-	fi[0] += f = d[0]*fforce; fj[0] -= f;
-	fi[1] += f = d[1]*fforce; fj[1] -= f;
-	fi[2] += f = d[2]*fforce; fj[2] -= f;
+	fi[0] += f = d[0]*fpair; fj[0] -= f;
+	fi[1] += f = d[1]*fpair; fj[1] -= f;
+	fi[2] += f = d[2]*fpair; fj[2] -= f;
       }
       else {
-	fi[0] += d[0]*fforce;
-	fi[1] += d[1]*fforce;
-	fi[2] += d[2]*fforce;
+	fi[0] += d[0]*fpair;
+	fi[1] += d[1]*fpair;
+	fi[2] += d[2]*fpair;
       }
     }
   }
@@ -682,11 +668,11 @@ void PairLJCoul::compute_inner()
 
 void PairLJCoul::compute_middle()
 {
-  double rsq, r2inv, force_coul, force_lj, fforce;
+  double rsq, r2inv, force_coul, force_lj, fpair;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *x0 = atom->x[0], *f0 = atom->f[0], *fi = f0, *q = atom->q;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -707,7 +693,7 @@ void PairLJCoul::compute_middle()
 
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
   int i, j, order1 = (ewald_order|(ewald_off^-1))&(1<<1);
-  double qri, *cut_ljsqi, *lj1i, *lj2i, *offseti;
+  double qri, *cut_ljsqi, *lj1i, *lj2i;
   vector xi, d;
 
   ineighn = (ineigh = list->ilist)+list->inum;
@@ -716,7 +702,6 @@ void PairLJCoul::compute_middle()
     i = *ineigh; fi = f0+3*i;
     qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    offseti = offset[typei = type[i]];
     cut_ljsqi = cut_ljsq[typei];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
@@ -746,27 +731,27 @@ void PairLJCoul::compute_middle()
       }
       else force_lj = 0.0;
 
-      fforce = (force_coul + force_lj) * r2inv;
+      fpair = (force_coul + force_lj) * r2inv;
       
       if (rsq < cut_in_on_sq) {				// switching
         register double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
-	fforce  *= rsw*rsw*(3.0 - 2.0*rsw);
+	fpair  *= rsw*rsw*(3.0 - 2.0*rsw);
       }
       if (rsq > cut_out_on_sq) {
         register double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	fforce  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
+	fpair  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
       }
 
       if (newton_pair || j < nlocal) {			// force update
 	register double *fj = f0+(j+(j<<1)), f;
-	fi[0] += f = d[0]*fforce; fj[0] -= f;
-	fi[1] += f = d[1]*fforce; fj[1] -= f;
-	fi[2] += f = d[2]*fforce; fj[2] -= f;
+	fi[0] += f = d[0]*fpair; fj[0] -= f;
+	fi[1] += f = d[1]*fpair; fj[1] -= f;
+	fi[2] += f = d[2]*fpair; fj[2] -= f;
       }
       else {
-	fi[0] += d[0]*fforce;
-	fi[1] += d[1]*fforce;
-	fi[2] += d[2]*fforce;
+	fi[0] += d[0]*fpair;
+	fi[1] += d[1]*fpair;
+	fi[2] += d[2]*fpair;
       }
     }
   }
@@ -776,12 +761,17 @@ void PairLJCoul::compute_middle()
 
 void PairLJCoul::compute_outer(int eflag, int vflag)
 {
+  double evdwl,ecoul,fpair;
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
+
   double **x = atom->x, *x0 = x[0];
   double **f = atom->f, *f0 = f[0], *fi = f0;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -790,7 +780,7 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
   int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni, respa_flag;
   double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
-  double rsq, r2inv, force_coul, force_lj, fforce, factor;
+  double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_lj, respa_coul, frespa;
   vector xi, d;
@@ -801,9 +791,6 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
   double cut_in_diff = cut_in_on - cut_in_off;
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
-
-  eng_vdwl = eng_coul = 0.0;				// reset energy&virial
-  if (vflag) memset(virial, 0, sizeof(shape));
 
   ineighn = (ineigh = list->ilist)+list->inum;
 
@@ -828,8 +815,6 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
       if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
-      factor = newton_pair || j<nlocal ? 1.0 : 0.5;
-
       if ((respa_flag = (rsq>cut_in_off_sq)&&(rsq<cut_in_on_sq))) {
 	register double rsw = (sqrt(rsq)-cut_in_off)/cut_in_diff;
 	frespa = rsw*rsw*(3.0-2.0*rsw);
@@ -844,12 +829,12 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
 	  if (ni < 0) {
 	    s *= g_ewald*exp(-x*x);
 	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
-	    if (eflag) eng_coul += factor*t;
+	    if (eflag) ecoul = t;
 	  }
 	  else {					// correct for special
 	    r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
 	    force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
-	    if (eflag) eng_coul += factor*(t-r);
+	    if (eflag) ecoul = t-r;
 	  }
 	}						// table real space
 	else {
@@ -861,16 +846,16 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
 	  if (ni < 0) {
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
-	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]);
+	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
 	  }
 	  else {					// correct for special
 	    t = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-	    if (eflag) eng_coul += factor*qiqj*(etable[k]+f*detable[k]-t);
+	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t);
 	  }
 	}
       }
-      else force_coul = respa_coul = 0.0;
+      else force_coul = respa_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {			// lennard-jones
 	register double rn = r2inv*r2inv*r2inv;
@@ -883,60 +868,50 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
 	  if (ni < 0) {
 	    force_lj =
 	      (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-	    if (eflag) eng_vdwl += 
-	      factor*(rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2);
+	    if (eflag) evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
 	  }
 	  else {					// correct for special
 	    register double f = special_lj[ni], t = rn*(1.0-f);
 	    force_lj = f*(rn *= rn)*lj1i[typej]-
 	      g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
-	    if (eflag) eng_vdwl += factor*(
-		f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej]);
+	    if (eflag)
+	      evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
 	  }
 	}
 	else {						// cut form
 	  if (ni < 0) {
 	    force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
-	    if (eflag) eng_vdwl += factor*(
-		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	    if (eflag) evdwl = rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej];
 	  }
 	  else {					// correct for special
 	    register double f = special_lj[ni];
 	    force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
-	    if (eflag) eng_vdwl += f*factor*(
-		rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+	    if (eflag)
+	      evdwl = f*(rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
 	  }
 	}
       }
-      else force_lj = respa_lj = 0.0;
+      else force_lj = respa_lj = evdwl = 0.0;
 
-      fforce = (force_coul+force_lj)*r2inv;		// force and virial
-      frespa = fforce-(respa_coul+respa_lj)*r2inv;
+      fpair = (force_coul+force_lj)*r2inv;
+      frespa = fpair-(respa_coul+respa_lj)*r2inv;
+
       if (newton_pair || j < nlocal) {
 	register double *fj = f0+(j+(j<<1)), f;
 	fi[0] += f = d[0]*frespa; fj[0] -= f;
 	fi[1] += f = d[1]*frespa; fj[1] -= f;
 	fi[2] += f = d[2]*frespa; fj[2] -= f;
-	if (vflag==1) {
-	  virial[0] += (f = d[0]*fforce)*d[0]; virial[3] += f*d[1];
-	  virial[1] += (f = d[1]*fforce)*d[1]; virial[5] += f*d[2];
-	  virial[2] += (f = d[2]*fforce)*d[2]; virial[4] += f*d[0];
-	}
       }
       else {
 	fi[0] += d[0]*frespa;
 	fi[1] += d[1]*frespa;
 	fi[2] += d[2]*frespa;
-	if (vflag==1) {
-	  register double f;
-	  virial[0] += (f = 0.5*d[0]*fforce)*d[0]; virial[3] += f*d[1];
-	  virial[1] += (f = 0.5*d[1]*fforce)*d[1]; virial[5] += f*d[2];
-	  virial[2] += (f = 0.5*d[2]*fforce)*d[2]; virial[4] += f*d[0];
-	}
       }
+
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,ecoul,fpair,d[0],d[1],d[2]);
     }
   }
-  if (vflag == 2) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

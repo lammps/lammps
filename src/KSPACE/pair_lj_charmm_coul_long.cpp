@@ -84,23 +84,25 @@ PairLJCharmmCoulLong::~PairLJCharmmCoulLong()
 void PairLJCharmmCoulLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
+  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double factor,phicoul,philj,switch1,switch2;
+  double philj,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   float rsq;
   int *int_rsq = (int *) &rsq;
 
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -179,54 +181,46 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
 	  }
 	} else forcelj = 0.0;
 
-	fforce = (forcecoul + factor_lj*forcelj) * r2inv;
+	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
 	if (eflag) {
-	  if (newton_pair || j < nlocal) factor = 1.0;
-	  else factor = 0.5;
 	  if (rsq < cut_coulsq) {
 	    if (!ncoultablebits || rsq <= tabinnersq)
-	      phicoul = prefactor*erfc;
+	      ecoul = prefactor*erfc;
 	    else {
 	      table = etable[itable] + fraction*detable[itable];
-	      phicoul = qtmp*q[j] * table;
+	      ecoul = qtmp*q[j] * table;
 	    }
-	    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-	    eng_coul += factor*phicoul;
-	  }
+	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+	  } else ecoul = 0.0;
+
 	  if (rsq < cut_ljsq) {
-	    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 	    if (rsq > cut_lj_innersq) {
 	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
 		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      philj *= switch1;
+	      evdwl *= switch1;
 	    }
-	    eng_vdwl += factor*factor_lj*philj;
-	  }
+	    evdwl *= factor_lj;
+	  } else evdwl = 0.0;
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,8 +228,8 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
 void PairLJCharmmCoulLong::compute_inner()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double rsw;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -244,7 +238,7 @@ void PairLJCharmmCoulLong::compute_inner()
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -298,20 +292,20 @@ void PairLJCharmmCoulLong::compute_inner()
 	jtype = type[j];
 	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
 
-	fforce = (forcecoul + factor_lj*forcelj) * r2inv;
+	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
         if (rsq > cut_out_on_sq) {
           rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	  fforce  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
+	  fpair *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
         }
 
-        f[i][0] += delx*fforce;
-        f[i][1] += dely*fforce;
-        f[i][2] += delz*fforce;
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fforce;
-          f[j][1] -= dely*fforce;
-          f[j][2] -= delz*fforce;
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
         }
       }
     }
@@ -323,8 +317,8 @@ void PairLJCharmmCoulLong::compute_inner()
 void PairLJCharmmCoulLong::compute_middle()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double philj,switch1,switch2;
   double rsw;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -334,7 +328,7 @@ void PairLJCharmmCoulLong::compute_middle()
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -402,23 +396,23 @@ void PairLJCharmmCoulLong::compute_middle()
 	  forcelj = forcelj*switch1 + philj*switch2;
 	}
 
-	fforce = (forcecoul + factor_lj*forcelj) * r2inv;
+	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
         if (rsq < cut_in_on_sq) {
 	  rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
-	  fforce *= rsw*rsw*(3.0 - 2.0*rsw);
+	  fpair *= rsw*rsw*(3.0 - 2.0*rsw);
 	}
         if (rsq > cut_out_on_sq) {
 	  rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	  fforce *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
+	  fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
 	}
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
       }
     }
@@ -430,24 +424,26 @@ void PairLJCharmmCoulLong::compute_middle()
 void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
+  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double factor,phicoul,philj,switch1,switch2;
+  double philj,switch1,switch2;
   double rsw;
   int *ilist,*jlist,*numneigh,**firstneigh;
   float rsq;
   int *int_rsq = (int *) &rsq;
 
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -548,46 +544,44 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
 	    forcelj *= rsw*rsw*(3.0 - 2.0*rsw);
 	  }
 	} else forcelj = 0.0;
+
+	fpair = (forcecoul + forcelj) * r2inv;
 	
-	fforce = (forcecoul + forcelj) * r2inv;
-	
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 	
 	if (eflag) {
-	  if (newton_pair || j < nlocal) factor = 1.0;
-	  else factor = 0.5;
 	  if (rsq < cut_coulsq) {
 	    if (!ncoultablebits || rsq <= tabinnersq) {
-	      phicoul = prefactor*erfc;
-	      if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+	      ecoul = prefactor*erfc;
+	      if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	    } else {
 	      table = etable[itable] + fraction*detable[itable];
-	      phicoul = qtmp*q[j] * table;
+	      ecoul = qtmp*q[j] * table;
 	      if (factor_coul < 1.0) {
 		table = ptable[itable] + fraction*dptable[itable];
 		prefactor = qtmp*q[j] * table;
-		phicoul -= (1.0-factor_coul)*prefactor;
+		ecoul -= (1.0-factor_coul)*prefactor;
 	      }
 	    }
-	    eng_coul += factor*phicoul;
-	  }
+	  } else ecoul = 0.0;
+
 	  if (rsq < cut_ljsq) {
 	    r6inv = r2inv*r2inv*r2inv;
-	    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 	    if (rsq > cut_lj_innersq) {
 	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
 		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      philj *= switch1;
+	      evdwl *= switch1;
 	    }
-	    eng_vdwl += factor*factor_lj*philj;
-	  }
+	    evdwl *= factor_lj;
+	  } else evdwl = 0.0;
 	}
 	
 	if (vflag) {
@@ -629,16 +623,11 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
 	    }
 	  }
 	  
-	  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
-
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
+	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 	}
+
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }

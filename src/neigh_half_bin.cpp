@@ -142,7 +142,6 @@ void Neighbor::half_bin_newton(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int **pages = list->pages;
-  int skip = list->skip;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
   

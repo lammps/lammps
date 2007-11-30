@@ -78,12 +78,23 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 	vector[i][m] = 0.0;
 
   // nvalid = next step on which end_of_step does something
+  // can be this timestep if multiple of peratom_freq and nrepeat = 1
+  // else backup from next multiple of peratom_freq
 
   irepeat = 0;
   nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
-  nvalid -= (nrepeat-1)*nevery;
-  if (nvalid <= update->ntimestep)
-    error->all("Fix ave/atom cannot be started on this timestep");
+  if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+  if (nvalid < update->ntimestep) nvalid += peratom_freq;
+
+  // must set timestep for all computes that store invocation times
+  // since don't know a priori which are invoked by this fix
+  // once in end_of_step() can just set timestep for ones actually invoked
+
+  for (int i = 0; i < modify->ncompute; i++)
+    if (modify->compute[i]->timeflag) modify->compute[i]->add_step(nvalid);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,6 +167,7 @@ void FixAveAtom::end_of_step()
   
   // accumulate results of compute to local copy
   
+  modify->clearstep_compute();
   for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
   
   int *mask = atom->mask;
@@ -172,26 +184,30 @@ void FixAveAtom::end_of_step()
 	  vector[i][m] += compute_vector[i][m];
   }
 
+  // done if irepeat < nrepeat
+  // else reset irepeat and nvalid
+
   irepeat++;
-  nvalid += nevery;
-
-  // divide by nrepeat if final step
-  // reset irepeat and nvalid
-
-  if (irepeat == nrepeat) {
-    double repeat = nrepeat;
-
-    if (size_peratom == 0)
-      for (i = 0; i < nlocal; i++)
-	scalar[i] /= repeat;
-    else
-      for (i = 0; i < nlocal; i++)
-	for (m = 0; m < size_peratom; m++)
-	  vector[i][m] /= repeat;
-
-    irepeat = 0;
-    nvalid = update->ntimestep+peratom_freq - (nrepeat-1)*nevery;
+  if (irepeat < nrepeat) {
+    nvalid += nevery;
+    modify->addstep_compute(nvalid);
+    return;
   }
+
+  irepeat = 0;
+  nvalid = update->ntimestep+peratom_freq - (nrepeat-1)*nevery;
+  modify->addstep_compute(nvalid);
+
+  // average the final result for the Nfreq timestep
+
+  double repeat = nrepeat;
+  if (size_peratom == 0)
+    for (i = 0; i < nlocal; i++)
+      scalar[i] /= repeat;
+  else
+    for (i = 0; i < nlocal; i++)
+      for (m = 0; m < size_peratom; m++)
+	vector[i][m] /= repeat;
 }
 
 /* ----------------------------------------------------------------------

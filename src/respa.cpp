@@ -273,26 +273,9 @@ void Respa::init()
 
   virial_style = 1;
 
-  // elist,vlist = list of computes for PE and pressure
+  // setup lists of computes for global and per-atom PE and pressure
 
-  delete [] elist;
-  delete [] vlist;
-  elist = vlist = NULL;
-
-  nelist = nvlist = 0;
-  for (int i = 0; i < modify->ncompute; i++) {
-    if (modify->compute[i]->peflag) nelist++;
-    if (modify->compute[i]->pressflag) nvlist++;
-  }
-
-  if (nelist) elist = new Compute*[nelist];
-  if (nvlist) vlist = new Compute*[nvlist];
-
-  nelist = nvlist = 0;
-  for (int i = 0; i < modify->ncompute; i++) {
-    if (modify->compute[i]->peflag) elist[nelist++] = modify->compute[i];
-    if (modify->compute[i]->pressflag) vlist[nvlist++] = modify->compute[i];
-  }
+  ev_setup();
 
   // step[] = timestep for each level
 

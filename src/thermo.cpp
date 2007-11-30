@@ -276,7 +276,6 @@ void Thermo::header()
 void Thermo::compute(int flag)
 {
   int i;
-  double tmp;
 
   firststep = flag;
 
@@ -291,7 +290,7 @@ void Thermo::compute(int flag)
   // call compute_scalar() if which = 0, else compute_vector()
 
   for (i = 0; i < ncompute; i++) {
-    if (compute_which[i] % 2 == 0) tmp = computes[i]->compute_scalar();
+    if (compute_which[i] % 2 == 0) double tmp = computes[i]->compute_scalar();
     if (compute_which[i] > 0) computes[i]->compute_vector();
   }
 
@@ -1155,9 +1154,6 @@ void Thermo::compute_evdwl()
 {
   double tmp = 0.0;
   if (force->pair) tmp += force->pair->eng_vdwl;
-  if (force->bond) tmp += force->bond->eng_vdwl;
-  if (force->dihedral) tmp += force->dihedral->eng_vdwl;
-
   MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (force->pair && force->pair->tail_flag) {
@@ -1174,7 +1170,6 @@ void Thermo::compute_ecoul()
 {
   double tmp = 0.0;
   if (force->pair) tmp += force->pair->eng_coul;
-  if (force->dihedral) tmp += force->dihedral->eng_coul;
   MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
   if (normflag) dvalue /= natoms;
 }
@@ -1185,9 +1180,6 @@ void Thermo::compute_epair()
 {
   double tmp = 0.0;
   if (force->pair) tmp += force->pair->eng_vdwl + force->pair->eng_coul;
-  if (force->bond) tmp += force->bond->eng_vdwl;
-  if (force->dihedral) 
-    tmp += force->dihedral->eng_vdwl + force->dihedral->eng_coul;
   MPI_Allreduce(&tmp,&dvalue,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (force->kspace) dvalue += force->kspace->energy;

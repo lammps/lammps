@@ -70,21 +70,22 @@ PairTable::~PairTable()
 void PairTable::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double fforce,factor_lj,phi,fraction,value,a,b;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,factor_lj,fraction,value,a,b;
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
   float rsq_single;
   int *int_rsq = (int *) &rsq_single;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -128,14 +129,14 @@ void PairTable::compute(int eflag, int vflag)
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= nm1)
 	    error->one("Pair distance > table outer cutoff");
-	  fforce = factor_lj * tb->f[itable];
+	  fpair = factor_lj * tb->f[itable];
 	} else if (tabstyle == LINEAR) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= nm1)
 	    error->one("Pair distance > table outer cutoff");
 	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fforce = factor_lj * value;
+	  fpair = factor_lj * value;
 	} else if (tabstyle == SPLINE) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= nm1)
@@ -145,51 +146,44 @@ void PairTable::compute(int eflag, int vflag)
 	  value = a * tb->f[itable] + b * tb->f[itable+1] + 
 	    ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
             tb->deltasq6;
-	  fforce = factor_lj * value;
+	  fpair = factor_lj * value;
 	} else {
 	  rsq_single = rsq;
 	  itable = *int_rsq & tb->nmask;
 	  itable >>= tb->nshiftbits;
 	  fraction = (rsq_single - tb->rsq[itable]) * tb->drsq[itable];
 	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fforce = factor_lj * value;
+	  fpair = factor_lj * value;
 	}
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
 	if (eflag) {
 	  if (tabstyle == LOOKUP)
-	    phi = tb->e[itable];
+	    evdwl = tb->e[itable];
 	  else if (tabstyle == LINEAR || tabstyle == BITMAP)
-	    phi = tb->e[itable] + fraction*tb->de[itable];
+	    evdwl = tb->e[itable] + fraction*tb->de[itable];
 	  else
-	    phi = a * tb->e[itable] + b * tb->e[itable+1] + 
+	    evdwl = a * tb->e[itable] + b * tb->e[itable+1] + 
 	      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
 	      tb->deltasq6;
-	  if (newton_pair || j < nlocal) eng_vdwl += factor_lj*phi;
-	  else eng_vdwl += 0.5*factor_lj*phi;
+	  evdwl *= factor_lj;
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

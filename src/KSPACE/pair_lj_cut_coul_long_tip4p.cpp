@@ -71,7 +71,8 @@ PairLJCutCoulLongTIP4P::~PairLJCutCoulLongTIP4P()
 void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fraction,table;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
   double r,r2inv,r6inv,forcecoul,forcelj,cforce,negforce;
   double factor_coul,factor_lj;
@@ -85,34 +86,42 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   float rsq;
   int *int_rsq = (int *) &rsq;
 
-  // grow temporary force array if necessary
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
-  if (atom->nmax > nmax) {
-    memory->destroy_2d_double_array(ftmp);
-    nmax = atom->nmax;
-    ftmp = memory->create_2d_double_array(nmax,3,"pair:ftmp");
-  }
+  // error check (for now)
 
-  int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
-
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) {
-    for (i = 0; i < 6; i++) virial[i] = virialtmp[i] = 0.0;
-    for (i = 0; i < nall; ++i) {
-      ftmp[i][0] = 0.0;
-      ftmp[i][1] = 0.0;
-      ftmp[i][2] = 0.0;
-    }
-  }
+  if (eflag_atom || vflag_atom)
+    error->all("Pair style lj/cut/coul/long/tip4p does not yet support peratom energy/virial");
 
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
+
+  // grow and zero temporary force array if necessary
+
+  if (vflag && atom->nmax > nmax) {
+    memory->destroy_2d_double_array(ftmp);
+    nmax = atom->nmax;
+    ftmp = memory->create_2d_double_array(nmax,3,"pair:ftmp");
+  }
+
+  if (vflag) {
+    for (i = 0; i < 6; i++) virialtmp[i] = 0.0;
+    for (i = 0; i < nall; i++) {
+      ftmp[i][0] = 0.0;
+      ftmp[i][1] = 0.0;
+      ftmp[i][2] = 0.0;
+    }
+  }
 
   inum = list->inum;
   ilist = list->ilist;
@@ -168,11 +177,11 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	  f[j][2] -= delz*forcelj;
 
 	  if (eflag) {
-	    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
 	      offset[itype][jtype];
-	    eng_vdwl += factor_lj*philj;
+	    evdwl *= factor_lj*philj;
 	  }
-	}
+	} else evdwl = 0.0;
 
 	// adjust rsq for off-site O charge(s)
 
@@ -380,23 +389,25 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      virialtmp[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
 	    }
 	  }
- 
+
 	  if (eflag) {
 	    if (!ncoultablebits || rsq <= tabinnersq)
-	      phicoul = prefactor*erfc;
+	      ecoul = prefactor*erfc;
 	    else {
 	      table = etable[itable] + fraction*detable[itable];
-	      phicoul = qtmp*q[j] * table;
+	      ecoul = qtmp*q[j] * table;
 	    }
-	    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-	    eng_coul += phicoul;
+	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	  }
-	}
+	} else ecoul = 0.0;
+
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
 
-  if (vflag == 2) {
+  if (vflag_fdotr) {
     virial_compute();
     for (int i = 0; i < 6; i++) virial[i] += virialtmp[i];
     for (int i = 0; i < nall; i++) {
@@ -622,6 +633,8 @@ void *PairLJCutCoulLongTIP4P::extract(char *str)
 
 double PairLJCutCoulLongTIP4P::memory_usage()
 {
-  double bytes = 3 * nmax * sizeof(double);
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  bytes += 3 * nmax * sizeof(double);
   return bytes;
 }

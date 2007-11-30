@@ -55,19 +55,20 @@ PairBuck::~PairBuck()
 void PairBuck::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r2inv,r6inv,forcebuck,fforce,factor_lj;
-  double phibuck,r,rexp;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r2inv,r6inv,forcebuck,factor_lj;
+  double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -108,37 +109,30 @@ void PairBuck::compute(int eflag, int vflag)
 	r = sqrt(rsq);
 	rexp = exp(-r*rhoinv[itype][jtype]);
 	forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-	fforce = factor_lj*forcebuck*r2inv;
+	fpair = factor_lj*forcebuck*r2inv;
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
 	if (eflag) {
-	  phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
+	  evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
 	    offset[itype][jtype];
-	  if (newton_pair || j < nlocal) eng_vdwl += factor_lj*phibuck;
-	  else eng_vdwl += 0.5*factor_lj*phibuck;
+	  evdwl *= factor_lj;
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

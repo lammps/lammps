@@ -23,6 +23,7 @@
 #include "domain.h"
 #include "thermo.h"
 #include "modify.h"
+#include "compute.h"
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"
@@ -137,11 +138,15 @@ void Output::setup(int flag)
     for (int idump = 0; idump < ndump; idump++) {
       if (ntimestep % dump_every[idump] == 0 && 
 	  last_dump[idump] != ntimestep) {
+        if (strcmp(dump[idump]->style,"custom") == 0)
+          modify->clearstep_compute();
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }
       next_dump[idump] = 
 	(ntimestep/dump_every[idump])*dump_every[idump] + dump_every[idump];
+      if (strcmp(dump[idump]->style,"custom") == 0)
+	modify->addstep_compute(next_dump[idump]);
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
     }
@@ -196,9 +201,13 @@ void Output::write(int ntimestep)
   if (next_dump_any == ntimestep) {
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep && last_dump[idump] != ntimestep) {
+        if (strcmp(dump[idump]->style,"custom") == 0)
+          modify->clearstep_compute();
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
 	next_dump[idump] += dump_every[idump];
+        if (strcmp(dump[idump]->style,"custom") == 0)
+	  modify->addstep_compute(next_dump[idump]);
       }
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];

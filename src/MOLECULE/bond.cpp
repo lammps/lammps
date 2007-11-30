@@ -14,6 +14,8 @@
 #include "string.h"
 #include "bond.h"
 #include "atom.h"
+#include "force.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -25,8 +27,21 @@ using namespace LAMMPS_NS;
 
 Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 {
+  energy = 0.0;
+
   allocated = 0;
-  eng_vdwl = 0.0;
+
+  maxeatom = maxvatom = 0;
+  eatom = NULL;
+  vatom = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+Bond::~Bond()
+{
+  memory->sfree(eatom);
+  memory->destroy_2d_double_array(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -39,4 +54,151 @@ void Bond::init()
   for (int i = 1; i <= atom->nbondtypes; i++)
     if (setflag[i] == 0) error->all("All bond coeffs are not set");
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   setup for energy, virial computation
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+------------------------------------------------------------------------- */
+
+void Bond::ev_setup(int eflag, int vflag)
+{
+  int i,n;
+
+  evflag = 1;
+
+  eflag_either = eflag;
+  eflag_global = eflag % 2;
+  eflag_atom = eflag / 2;
+
+  vflag_either = vflag;
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+  
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom && atom->nmax > maxeatom) {
+    maxeatom = atom->nmax;
+    memory->sfree(eatom);
+    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"bond:eatom");
+  }
+  if (vflag_atom && atom->nmax > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->destroy_2d_double_array(vatom);
+    vatom = memory->create_2d_double_array(maxvatom,6,"bond:vatom");
+  }
+
+  // zero accumulators
+
+  if (eflag_global) energy = 0.0;
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag_atom) {
+    n = atom->nlocal;
+    if (force->newton_bond) n += atom->nghost;
+    for (i = 0; i < n; i++) eatom[i] = 0.0;
+  }
+  if (vflag_atom) {
+    n = atom->nlocal;
+    if (force->newton_bond) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      vatom[i][0] = 0.0;
+      vatom[i][1] = 0.0;
+      vatom[i][2] = 0.0;
+      vatom[i][3] = 0.0;
+      vatom[i][4] = 0.0;
+      vatom[i][5] = 0.0;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally energy and virial into global and per-atom accumulators
+------------------------------------------------------------------------- */
+
+void Bond::ev_tally(int i, int j, int nlocal, int newton_bond,
+		    double ebond, double fbond,
+		    double delx, double dely, double delz)
+{
+  double ebondhalf,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) energy += ebond;
+      else {
+	ebondhalf = 0.5*ebond;
+	if (i < nlocal) energy += ebondhalf;
+	if (j < nlocal) energy += ebondhalf;
+      }
+    }
+    if (eflag_atom) {
+      ebondhalf = 0.5*ebond;
+      if (newton_bond || i < nlocal) eatom[i] += ebondhalf;
+      if (newton_bond || j < nlocal) eatom[j] += ebondhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*delx*fbond;
+    v[1] = dely*dely*fbond;
+    v[2] = delz*delz*fbond;
+    v[3] = delx*dely*fbond;
+    v[4] = delx*delz*fbond;
+    v[5] = dely*delz*fbond;
+
+    if (vflag_global) {
+      if (newton_bond) {
+	virial[0] += v[0];
+	virial[1] += v[1];
+	virial[2] += v[2];
+	virial[3] += v[3];
+	virial[4] += v[4];
+	virial[5] += v[5];
+      } else {
+	if (i < nlocal) {
+	  virial[0] += 0.5*v[0];
+	  virial[1] += 0.5*v[1];
+	  virial[2] += 0.5*v[2];
+	  virial[3] += 0.5*v[3];
+	  virial[4] += 0.5*v[4];
+	  virial[5] += 0.5*v[5];
+	}
+	if (j < nlocal) {
+	  virial[0] += 0.5*v[0];
+	  virial[1] += 0.5*v[1];
+	  virial[2] += 0.5*v[2];
+	  virial[3] += 0.5*v[3];
+	  virial[4] += 0.5*v[4];
+	  virial[5] += 0.5*v[5];
+	}
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+	vatom[i][0] += 0.5*v[0];
+	vatom[i][1] += 0.5*v[1];
+	vatom[i][2] += 0.5*v[2];
+	vatom[i][3] += 0.5*v[3];
+	vatom[i][4] += 0.5*v[4];
+	vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_bond || j < nlocal) {
+	vatom[j][0] += 0.5*v[0];
+	vatom[j][1] += 0.5*v[1];
+	vatom[j][2] += 0.5*v[2];
+	vatom[j][3] += 0.5*v[3];
+	vatom[j][4] += 0.5*v[4];
+	vatom[j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Bond::memory_usage()
+{
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  return bytes;
 }

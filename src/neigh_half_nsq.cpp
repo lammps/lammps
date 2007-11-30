@@ -42,8 +42,6 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int **pages = list->pages;
-  int nstencil = list->nstencil;
-  int *stencil = list->stencil;
 
   int inum = 0;
   int npage = 0;
@@ -121,8 +119,6 @@ void Neighbor::half_nsq_newton(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int **pages = list->pages;
-  int nstencil = list->nstencil;
-  int *stencil = list->stencil;
 
   int inum = 0;
   int npage = 0;

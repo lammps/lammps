@@ -57,21 +57,25 @@ DihedralCharmm::~DihedralCharmm()
 
 void DihedralCharmm::compute(int eflag, int vflag)
 {
-  int i,m,n,i1,i2,i3,i4,type,factor;
-  double rfactor;
-  double vb1x,vb1y,vb1z,vb2x,vb2y;
-  double vb2z,vb2xm,vb2ym,vb2zm,vb3x,vb3y,vb3z;
+  int i1,i2,i3,i4,i,m,n,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double edihedral,f1[3],f2[3],f3[3],f4[3];
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
   double df,df1,ddf1,fg,hg,fga,hgb,gaa,gbb;
   double dtfx,dtfy,dtfz,dtgx,dtgy,dtgz,dthx,dthy,dthz;  
-  double c,s,p,sx1,sx2,sx12,sy1,sy2,sy12,sz1,sz2,sz12;
+  double c,s,p,sx2,sy2,sz2;
   int itype,jtype;
   double delx,dely,delz,rsq,r2inv,r6inv;
-  double fforce,forcecoul,forcelj,phicoul,philj;
+  double forcecoul,forcelj,fpair,ecoul,evdwl;
 
-  energy = 0.0;
-  eng_coul = eng_vdwl = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  edihedral = evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
+
+  // insure pair->ev_tally() will use 1-4 virial contribution
+
+  if (vflag_global == 2)
+    force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -84,22 +88,11 @@ void DihedralCharmm::compute(int eflag, int vflag)
   double qqrd2e = force->qqrd2e;
 
   for (n = 0; n < ndihedrallist; n++) {
-
     i1 = dihedrallist[n][0];
     i2 = dihedrallist[n][1];
     i3 = dihedrallist[n][2];
     i4 = dihedrallist[n][3];
     type = dihedrallist[n][4];
-
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
 
     // 1st bond
 
@@ -191,7 +184,7 @@ void DihedralCharmm::compute(int eflag, int vflag)
       df1 = 0.0;
     }
 
-    if (eflag) energy += rfactor * k[type] * p; 
+    if (eflag) edihedral = k[type] * p; 
        
     fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
     hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
@@ -210,60 +203,62 @@ void DihedralCharmm::compute(int eflag, int vflag)
     dthy = gbb*by;
     dthz = gbb*bz;
     
-    df = k[type] * df1;
-    
-    sx1 = df*dtfx;
-    sy1 = df*dtfy;
-    sz1 = df*dtfz;
-    sx2 = -df*dtgx;
-    sy2 = -df*dtgy;
-    sz2 = -df*dtgz;
-    sx12 = df*dthx;
-    sy12 = df*dthy;
-    sz12 = df*dthz; 
-    
+    df = -k[type] * df1;
+ 
+    sx2 = df*dtgx;
+    sy2 = df*dtgy;
+    sz2 = df*dtgz;
+
+    f1[0] = df*dtfx;
+    f1[1] = df*dtfy;
+    f1[2] = df*dtfz;
+
+    f2[0] = sx2 - f1[0];
+    f2[1] = sy2 - f1[1];
+    f2[2] = sz2 - f1[2];
+
+    f4[0] = df*dthx;
+    f4[1] = df*dthy;
+    f4[2] = df*dthz;
+
+    f3[0] = -sx2 - f4[0];
+    f3[1] = -sy2 - f4[1];
+    f3[2] = -sz2 - f4[2];
+
     // apply force to each of 4 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= sx1;
-      f[i1][1] -= sy1;
-      f[i1][2] -= sz1;
+      f[i1][0] += f1[0];
+      f[i1][1] += f1[1];
+      f[i1][2] += f1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += sx2 + sx1;
-      f[i2][1] += sy2 + sy1;
-      f[i2][2] += sz2 + sz1;
+      f[i2][0] += f2[0];
+      f[i2][1] += f2[1];
+      f[i2][2] += f2[2];
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] += sx12 - sx2;
-      f[i3][1] += sy12 - sy2;
-      f[i3][2] += sz12 - sz2;
+      f[i3][0] += f3[0];
+      f[i3][1] += f3[1];
+      f[i3][2] += f3[2];
     }
 
     if (newton_bond || i4 < nlocal) {
-      f[i4][0] -= sx12;
-      f[i4][1] -= sy12;
-      f[i4][2] -= sz12;
+      f[i4][0] += f4[0];
+      f[i4][1] += f4[1];
+      f[i4][2] += f4[2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] -= rfactor * (vb1x*sx1 + vb2x*sx2 + vb3x*sx12);
-      virial[1] -= rfactor * (vb1y*sy1 + vb2y*sy2 + vb3y*sy12);
-      virial[2] -= rfactor * (vb1z*sz1 + vb2z*sz2 + vb3z*sz12);
-      virial[3] -= rfactor * (vb1x*sy1 + vb2x*sy2 + vb3x*sy12);
-      virial[4] -= rfactor * (vb1x*sz1 + vb2x*sz2 + vb3x*sz12);
-      virial[5] -= rfactor * (vb1y*sz1 + vb2y*sz2 + vb3y*sz12);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,f1,f3,f4,
+	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
 
     // 1-4 LJ and Coulomb interactions
-    // force, energy, and virial
+    // tally energy/virial in pair, using newton_bond as newton flag
 
     if (weight[type] > 0.0) {
-
       itype = atomtype[i1];
       jtype = atomtype[i4];
 
@@ -278,35 +273,27 @@ void DihedralCharmm::compute(int eflag, int vflag)
       if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
       else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
       forcelj = r6inv * (lj14_1[itype][jtype]*r6inv - lj14_2[itype][jtype]);
-      fforce = weight[type] * (forcelj+forcecoul)*r2inv;
+      fpair = weight[type] * (forcelj+forcecoul)*r2inv;
 
       if (eflag) {
-	phicoul = weight[type] * rfactor * forcecoul;
-	philj = r6inv * (lj14_3[itype][jtype]*r6inv - lj14_4[itype][jtype]);
-	philj = weight[type] * rfactor * philj;
-	eng_coul += phicoul;
-	eng_vdwl += philj;
+	ecoul = weight[type] * forcecoul;
+	evdwl = r6inv * (lj14_3[itype][jtype]*r6inv - lj14_4[itype][jtype]);
+	evdwl *= weight[type];
       }
 
       if (newton_bond || i1 < nlocal) {
-	f[i1][0] += delx*fforce;
-	f[i1][1] += dely*fforce;
-	f[i1][2] += delz*fforce;
+	f[i1][0] += delx*fpair;
+	f[i1][1] += dely*fpair;
+	f[i1][2] += delz*fpair;
       }
       if (newton_bond || i4 < nlocal) {
-	f[i4][0] -= delx*fforce;
-	f[i4][1] -= dely*fforce;
-	f[i4][2] -= delz*fforce;
+	f[i4][0] -= delx*fpair;
+	f[i4][1] -= dely*fpair;
+	f[i4][2] -= delz*fpair;
       }
 
-      if (vflag) {
-	virial[0] += rfactor * delx*delx*fforce;
-	virial[1] += rfactor * dely*dely*fforce;
-	virial[2] += rfactor * delz*delz*fforce;
-	virial[3] += rfactor * delx*dely*fforce;
-	virial[4] += rfactor * delx*delz*fforce;
-	virial[5] += rfactor * dely*delz*fforce;
-      }
+      if (evflag) force->pair->ev_tally(i1,i4,nlocal,newton_bond,
+					evdwl,ecoul,fpair,delx,dely,delz);
     }
   }
 }

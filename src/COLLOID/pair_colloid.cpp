@@ -69,20 +69,21 @@ PairColloid::~PairColloid()
 void PairColloid::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r,fforce,forcelj,factor_lj,phi;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r,forcelj,factor_lj;
   double r2inv,r6inv,c1,c2,fR,dUR,dUA;
   double K[9],h[4],g[4];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -124,8 +125,8 @@ void PairColloid::compute(int eflag, int vflag)
 	r2inv = 1.0/rsq;
 	r6inv = r2inv*r2inv*r2inv;
 	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fforce = factor_lj*forcelj*r2inv;
-	if (eflag) phi = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+	fpair = factor_lj*forcelj*r2inv;
+	if (eflag) evdwl = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
 		     offset[itype][jtype];
 	break;
 	
@@ -139,11 +140,11 @@ void PairColloid::compute(int eflag, int vflag)
 	K[3] *= K[3]*K[3];
 	K[6] = K[3]*K[3];
 	fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-	fforce = 4.0/15.0*sqrt(rsq)*fR*factor_lj * 
+	fpair = 4.0/15.0*sqrt(rsq)*fR*factor_lj * 
 	  (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
 	   sigma6[itype][jtype]/K[6]-5.0) / K[0];
 	if (eflag) 
-	  phi = 2.0/9.0*fR * 
+	  evdwl = 2.0/9.0*fR * 
 	    (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
 	     sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
 	break;
@@ -175,43 +176,34 @@ void PairColloid::compute(int eflag, int vflag)
 	g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
 	
 	fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
-	phi = fR * (h[0]-h[1]-h[2]+h[3]);
-	dUR = phi/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
+	evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
+	dUR = evdwl/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
 	dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] + 
 					(2.0*K[0]*K[8]-1.0)*K[8]);
-	fforce = factor_lj * (dUR+dUA)/r;
+	fpair = factor_lj * (dUR+dUA)/r;
 	if (eflag)
-	  phi += a12[itype][jtype]/6.0*(2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - 
-	    offset[itype][jtype];
+	  evdwl += a12[itype][jtype]/6.0 * 
+	    (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
 	break;
       }
       
-      if (eflag) {
-	if (newton_pair || j < nlocal) eng_vdwl += factor_lj*phi;
-	else eng_vdwl += 0.5*factor_lj*phi;
-      }
+      if (eflag) evdwl *= factor_lj;
 
-      f[i][0] += delx*fforce;
-      f[i][1] += dely*fforce;
-      f[i][2] += delz*fforce;
+      f[i][0] += delx*fpair;
+      f[i][1] += dely*fpair;
+      f[i][2] += delz*fpair;
       if (newton_pair || j < nlocal) {
-	f[j][0] -= delx*fforce;
-	f[j][1] -= dely*fforce;
-	f[j][2] -= delz*fforce;
+	f[j][0] -= delx*fpair;
+	f[j][1] -= dely*fpair;
+	f[j][2] -= delz*fpair;
       }
 
-      if (vflag == 1) {
-	if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	virial[0] += delx*delx*fforce;
-	virial[1] += dely*dely*fforce;
-	virial[2] += delz*delz*fforce;
-	virial[3] += delx*dely*fforce;
-	virial[4] += delx*delz*fforce;
-	virial[5] += dely*delz*fforce;
-      }
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,0.0,fpair,delx,dely,delz);
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

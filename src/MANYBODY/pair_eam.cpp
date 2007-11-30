@@ -125,10 +125,14 @@ PairEAM::~PairEAM()
 void PairEAM::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,m,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,r,p,fforce,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
+
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   // grow energy array if necessary
 
@@ -139,9 +143,6 @@ void PairEAM::compute(int eflag, int vflag)
     rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
     fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
   }
-
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -214,7 +215,11 @@ void PairEAM::compute(int eflag, int vflag)
     p = MIN(p,1.0);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
-    if (eflag) eng_vdwl += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    if (eflag) {
+      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (eflag_global) eng_vdwl += phi;
+      if (eflag_atom) eatom[i] += phi;
+    }
   }
 
   // communicate derivative of embedding function
@@ -273,35 +278,26 @@ void PairEAM::compute(int eflag, int vflag)
 	phi = z2*recip;
 	phip = z2p*recip - phi*recip;
 	psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-	fforce = -psip*recip;
+	fpair = -psip*recip;
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
-	if (eflag) {
-	  if (newton_pair || j < nlocal) eng_vdwl += phi;
-	  else eng_vdwl += 0.5*phi;
-	}
+	if (eflag) evdwl = phi;
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -805,19 +801,6 @@ void PairEAM::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void PairEAM::single_embed(int i, int itype, double &phi)
-{
-  double p = rho[i]*rdrho + 1.0;
-  int m = static_cast<int> (p);
-  m = MAX(1,MIN(m,nrho-1));
-  p -= m;
-  
-  double *coeff = frho_spline[type2frho[itype]][m];
-  phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-}
-
-/* ---------------------------------------------------------------------- */
-
 int PairEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -872,7 +855,9 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEAM::memory_usage()
 {
-  double bytes = 2 * nmax * sizeof(double);
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  bytes += 2 * nmax * sizeof(double);
   return bytes;
 }
 

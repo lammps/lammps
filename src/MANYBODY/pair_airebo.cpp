@@ -87,17 +87,20 @@ PairAIREBO::~PairAIREBO()
 
 void PairAIREBO::compute(int eflag, int vflag)
 {
-  eng_vdwl = 0.0;
-  if (vflag) for (int i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
-  double **f = atom->f;
-	
+  // error check (for now)
+
+  if (eflag_atom || vflag_atom)
+    error->all("Pair style airebo does not yet support peratom energy/virial");
+
   REBO_neigh();
-  FREBO(eflag,f);
-  if (ljflag) FLJ(eflag,f);
-  if (torflag) TORSION(eflag,f);
+  FREBO(eflag,vflag);
+  if (ljflag) FLJ(eflag,vflag);
+  if (torflag) TORSION(eflag,vflag);
   
-  if (vflag == 2) virial_compute();
+  if (vflag_fdotr == 2) virial_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -448,24 +451,30 @@ void PairAIREBO::REBO_neigh()
    REBO forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::FREBO(int eflag, double **f)
+void PairAIREBO::FREBO(int eflag, int vflag)
 {
   int i,j,k,m,itype,jtype;
-  double delx,dely,delz,rsq,rij,wij;
+  double delx,dely,delz,evdwl,fpair;
+  double rsq,rij,wij;
   double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
-  double dwij,fforce,del[3];
+  double dwij,del[3];
   int *REBO_neighs;
 
+  evdwl = 0.0;
+
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   // two-body interactions from REBO neighbor list, skip half of them
 
   for (i = 0; i < nlocal; i++) {
     itype = map[type[i]];
     REBO_neighs = REBO_firstneigh[i];
+
     for (k = 0; k < REBO_numneigh[i]; k++) {
       j = REBO_neighs[k];
       if (tag[i] > tag[j]) continue;
@@ -501,14 +510,17 @@ void PairAIREBO::FREBO(int eflag, double **f)
       bij = bondorder(i,j,del,rij,VA,f);
       dVAdi = bij*dVA;
 
-      fforce = (dVRdi+dVAdi) / rij;
-      f[i][0] -= delx*fforce;
-      f[i][1] -= dely*fforce;
-      f[i][2] -= delz*fforce;
-      f[j][0] += delx*fforce;
-      f[j][1] += dely*fforce;
-      f[j][2] += delz*fforce;
-      if (eflag) eng_vdwl += VR + bij*VA;
+      fpair = -(dVRdi+dVAdi) / rij;
+      f[i][0] += delx*fpair;
+      f[i][1] += dely*fpair;
+      f[i][2] += delz*fpair;
+      f[j][0] -= delx*fpair;
+      f[j][1] -= dely*fpair;
+      f[j][2] -= delz*fpair;
+
+      if (eflag) evdwl = VR + bij*VA;
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 }
@@ -518,29 +530,35 @@ void PairAIREBO::FREBO(int eflag, double **f)
    find 3- and 4-step paths between atoms I,J via REBO neighbor lists
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::FLJ(int eflag, double **f)
+void PairAIREBO::FLJ(int eflag, int vflag)
 {
   int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype;
   int atomi,atomj,atomk,atomm;
   int testpath,npath,done;
+  double evdwl,fpair;
   double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
   double delij[3],rijsq,delik[3],rik,delkj[3];
-  double rkj,wkj,dC,VLJ,dVLJ,fforce,VA,Str,dStr,Stb;
+  double rkj,wkj,dC,VLJ,dVLJ,VA,Str,dStr,Stb;
   double delkm[3],rkm,delmj[3],rmj,wmj,r2inv,r6inv,scale,delscale[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *REBO_neighs_i,*REBO_neighs_k;
   double delikS[3],delkjS[3],delkmS[3],delmjS[3];
   double rikS,rkjS,rkmS,rmjS,wikS,dwikS;
   double wkjS,dwkjS,wkmS,dwkmS,wmjS,dwmjS;
+  double fpair1,fpair2,fpair3;
 
   // I-J interaction from full neighbor list
   // skip 1/2 of interactions since only consider each pair once
 
+  evdwl = 0.0;
+
   double **x = atom->x;
+  double **f = atom->f;
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  
+  int newton_pair = force->newton_pair;
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -723,65 +741,75 @@ void PairAIREBO::FLJ(int eflag, double **f)
 	delscale[2] = scale * delij[2];
 	Stb = bondorderLJ(i,j,delscale,rcmin[itype][jtype],VA,delij,rij,f);
       } else Stb = 0.0;
-      VA = VA*Stb + (1.0-Str)*cij*VLJ;
-      fforce = (dStr * (Stb*cij*VLJ - cij*VLJ) +
+
+      fpair = -(dStr * (Stb*cij*VLJ - cij*VLJ) +
 		dVLJ * (Str*Stb*cij + cij - Str*cij)) / rij;
       
-      f[i][0] -= delij[0]*fforce;
-      f[i][1] -= delij[1]*fforce;
-      f[i][2] -= delij[2]*fforce;
-      f[j][0] += delij[0]*fforce;
-      f[j][1] += delij[1]*fforce;
-      f[j][2] += delij[2]*fforce;
+      f[i][0] += delij[0]*fpair;
+      f[i][1] += delij[1]*fpair;
+      f[i][2] += delij[2]*fpair;
+      f[j][0] -= delij[0]*fpair;
+      f[j][1] -= delij[1]*fpair;
+      f[j][2] -= delij[2]*fpair;
       
-      if (eflag) eng_vdwl += VA;
+      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,0.0,fpair,delij[0],delij[1],delij[2]);
+
       if (cij < 1.0) {
-	dC = -1.0*((Str*Stb*VLJ) + ((1.0-Str)*VLJ));
+	dC = Str*Stb*VLJ + (1.0-Str)*VLJ;
 	if (npath == 2) {
-	  fforce = dC*dwij / rij;
-	  f[atomi][0] -= delij[0]*fforce;
-	  f[atomi][1] -= delij[1]*fforce;
-	  f[atomi][2] -= delij[2]*fforce;
-	  f[atomj][0] += delij[0]*fforce;
-	  f[atomj][1] += delij[1]*fforce;
-	  f[atomj][2] += delij[2]*fforce;
+	  fpair = dC*dwij / rij;
+	  f[atomi][0] += delij[0]*fpair;
+	  f[atomi][1] += delij[1]*fpair;
+	  f[atomi][2] += delij[2]*fpair;
+	  f[atomj][0] -= delij[0]*fpair;
+	  f[atomj][1] -= delij[1]*fpair;
+	  f[atomj][2] -= delij[2]*fpair;
+	  if (vflag_atom) ev_tally(atomi,atomj,nlocal,newton_pair,
+				   0.0,0.0,fpair,delij[0],delij[1],delij[2]);
 	} else if (npath == 3) {
-	  fforce = dC*dwikS*wkjS / rikS;
-	  f[atomi][0] -= delikS[0]*fforce;
-	  f[atomi][1] -= delikS[1]*fforce;
-	  f[atomi][2] -= delikS[2]*fforce;
-	  f[atomk][0] += delikS[0]*fforce;
-	  f[atomk][1] += delikS[1]*fforce;
-	  f[atomk][2] += delikS[2]*fforce;
-	  fforce = dC*wikS*dwkjS / rkjS;
-	  f[atomk][0] -= delkjS[0]*fforce;
-	  f[atomk][1] -= delkjS[1]*fforce;
-	  f[atomk][2] -= delkjS[2]*fforce;
-	  f[atomj][0] += delkjS[0]*fforce;
-	  f[atomj][1] += delkjS[1]*fforce;
-	  f[atomj][2] += delkjS[2]*fforce;
+	  fpair1 = dC*dwikS*wkjS / rikS;
+	  f[atomi][0] += delikS[0]*fpair1;
+	  f[atomi][1] += delikS[1]*fpair1;
+	  f[atomi][2] += delikS[2]*fpair1;
+	  f[atomk][0] -= delikS[0]*fpair1;
+	  f[atomk][1] -= delikS[1]*fpair1;
+	  f[atomk][2] -= delikS[2]*fpair1;
+	  fpair2 = dC*wikS*dwkjS / rkjS;
+	  f[atomk][0] += delkjS[0]*fpair2;
+	  f[atomk][1] += delkjS[1]*fpair2;
+	  f[atomk][2] += delkjS[2]*fpair2;
+	  f[atomj][0] -= delkjS[0]*fpair2;
+	  f[atomj][1] -= delkjS[1]*fpair2;
+	  f[atomj][2] -= delkjS[2]*fpair2;
+	  if (vflag_atom) 
+	    v_tally3(atomi,atomj,atomk,fpair1,fpair2,delikS,delkjS);
 	} else {
-	  fforce = dC*dwikS*wkmS*wmjS / rikS;
-	  f[atomi][0] -= delikS[0]*fforce;
-	  f[atomi][1] -= delikS[1]*fforce;
-	  f[atomi][2] -= delikS[2]*fforce;
-	  f[atomk][0] += delikS[0]*fforce;
-	  f[atomk][1] += delikS[1]*fforce;
-	  f[atomk][2] += delikS[2]*fforce;
-	  fforce = dC*wikS*dwkmS*wmjS / rkmS;
-	  f[atomk][0] -= delkmS[0]*fforce;
-	  f[atomk][1] -= delkmS[1]*fforce;
-	  f[atomk][2] -= delkmS[2]*fforce;
-	  f[atomm][0] += delkmS[0]*fforce;
-	  f[atomm][1] += delkmS[1]*fforce;
-	  f[atomm][2] += delkmS[2]*fforce;
-	  fforce = dC*wikS*wkmS*dwmjS / rmjS;
-	  f[atomm][0] -= delmjS[0]*fforce;
-	  f[atomm][1] -= delmjS[1]*fforce;
-	  f[atomm][2] -= delmjS[2]*fforce;
-	  f[atomj][0] += delmjS[0]*fforce;
-	  f[atomj][1] += delmjS[1]*fforce;
-	  f[atomj][2] += delmjS[2]*fforce;
+	  fpair1 = dC*dwikS*wkmS*wmjS / rikS;
+	  f[atomi][0] += delikS[0]*fpair1;
+	  f[atomi][1] += delikS[1]*fpair1;
+	  f[atomi][2] += delikS[2]*fpair1;
+	  f[atomk][0] -= delikS[0]*fpair1;
+	  f[atomk][1] -= delikS[1]*fpair1;
+	  f[atomk][2] -= delikS[2]*fpair1;
+	  fpair2 = dC*wikS*dwkmS*wmjS / rkmS;
+	  f[atomk][0] += delkmS[0]*fpair2;
+	  f[atomk][1] += delkmS[1]*fpair2;
+	  f[atomk][2] += delkmS[2]*fpair2;
+	  f[atomm][0] -= delkmS[0]*fpair2;
+	  f[atomm][1] -= delkmS[1]*fpair2;
+	  f[atomm][2] -= delkmS[2]*fpair2;
+	  fpair3 = dC*wikS*wkmS*dwmjS / rmjS;
+	  f[atomm][0] += delmjS[0]*fpair3;
+	  f[atomm][1] += delmjS[1]*fpair3;
+	  f[atomm][2] += delmjS[2]*fpair3;
+	  f[atomj][0] -= delmjS[0]*fpair3;
+	  f[atomj][1] -= delmjS[1]*fpair3;
+	  f[atomj][2] -= delmjS[2]*fpair3;
+	  if (vflag_atom) 
+	    v_tally4(atomi,atomj,atomk,atomm,
+		     fpair1,fpair2,fpair3,delikS,delkmS,delmjS);
 	}
       } 
     }
@@ -792,10 +820,10 @@ void PairAIREBO::FLJ(int eflag, double **f)
    Torsional forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::TORSION(int eflag, double **f)
+void PairAIREBO::TORSION(int eflag, int vflag)
 {
   int i,j,k,l;
-
+  double evdwl,fpair;
   double cos321;
   double w21,dw21,cos234,w34,dw34;
   double cross321[3],cross321mag,cross234[3],cross234mag;
@@ -811,11 +839,15 @@ void PairAIREBO::TORSION(int eflag, double **f)
   double dxidij,dxidik,dxidjk,dxjdji,dxjdjl,dxjdil;
   double ddndij,ddndik,ddndjk,ddndjl,ddndil,dcwddn,dcwdn,dvpdcw,Ftmp[3];
   double del32[3],rsq,r32,del23[3],del21[3],r21;
-  double deljk[3],del34[3],delil[3],fforce,r23,r34;
+  double deljk[3],del34[3],delil[3],r23,r34;
+  double fi[3],fj[3],fk[3],fl[3];
   int itype,jtype,ktype,ltype,kk,ll,jj;
   int *REBO_neighs_i,*REBO_neighs_j;
 
+  evdwl = 0.0;
+
   double **x = atom->x;
+  double **f = atom->f;
   int *type = atom->type;
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -923,7 +955,8 @@ void PairAIREBO::TORSION(int eflag, double **f)
 	  ekijl = epsilonT[ktype][ltype];
 	  Ec = 256.0*ekijl/405.0;
 	  Vtors = (Ec*(pow(cw2,5.0)))-(ekijl/10.0);
-	  if (eflag) eng_vdwl += Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+
+	  if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 	  
 	  dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
 	  dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);
@@ -977,134 +1010,143 @@ void PairAIREBO::TORSION(int eflag, double **f)
 	  dcwdn = 1.0/cwnom;
 	  dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) * 
 	    w23*w21*w34*(1.0-tspjik)*(1.0-tspijl);
-	  
+
 	  Ftmp[0] = dvpdcw*((dcwdn*dndij[0])+(dcwddn*ddndij*del23[0]/r23));
 	  Ftmp[1] = dvpdcw*((dcwdn*dndij[1])+(dcwddn*ddndij*del23[1]/r23));
 	  Ftmp[2] = dvpdcw*((dcwdn*dndij[2])+(dcwddn*ddndij*del23[2]/r23));
-	  f[i][0] += Ftmp[0];
-	  f[i][1] += Ftmp[1];
-	  f[i][2] += Ftmp[2];
-	  f[j][0] -= Ftmp[0];
-	  f[j][1] -= Ftmp[1];
-	  f[j][2] -= Ftmp[2];
+	  fi[0] = Ftmp[0];
+	  fi[1] = Ftmp[1];
+	  fi[2] = Ftmp[2];
+	  fj[0] = -Ftmp[0];
+	  fj[1] = -Ftmp[1];
+	  fj[2] = -Ftmp[2];
 	  
 	  Ftmp[0] = dvpdcw*((dcwdn*dndik[0])+(dcwddn*ddndik*del21[0]/r21));
 	  Ftmp[1] = dvpdcw*((dcwdn*dndik[1])+(dcwddn*ddndik*del21[1]/r21));
 	  Ftmp[2] = dvpdcw*((dcwdn*dndik[2])+(dcwddn*ddndik*del21[2]/r21));
-	  f[i][0] += Ftmp[0];
-	  f[i][1] += Ftmp[1];
-	  f[i][2] += Ftmp[2];
-	  f[k][0] -= Ftmp[0];
-	  f[k][1] -= Ftmp[1];
-	  f[k][2] -= Ftmp[2];
+	  fi[0] += Ftmp[0];
+	  fi[1] += Ftmp[1];
+	  fi[2] += Ftmp[2];
+	  fk[0] = -Ftmp[0];
+	  fk[1] = -Ftmp[1];
+	  fk[2] = -Ftmp[2];
 	  
 	  Ftmp[0] = (dvpdcw*dcwddn*ddndjk*deljk[0])/rjk;
 	  Ftmp[1] = (dvpdcw*dcwddn*ddndjk*deljk[1])/rjk;
 	  Ftmp[2] = (dvpdcw*dcwddn*ddndjk*deljk[2])/rjk;
-	  f[j][0] += Ftmp[0];
-	  f[j][1] += Ftmp[1];
-	  f[j][2] += Ftmp[2];
-	  f[k][0] -= Ftmp[0];
-	  f[k][1] -= Ftmp[1];
-	  f[k][2] -= Ftmp[2];
+	  fj[0] += Ftmp[0];
+	  fj[1] += Ftmp[1];
+	  fj[2] += Ftmp[2];
+	  fk[0] -= Ftmp[0];
+	  fk[1] -= Ftmp[1];
+	  fk[2] -= Ftmp[2];
 	  
 	  Ftmp[0] = dvpdcw*((dcwdn*dndjl[0])+(dcwddn*ddndjl*del34[0]/r34));
 	  Ftmp[1] = dvpdcw*((dcwdn*dndjl[1])+(dcwddn*ddndjl*del34[1]/r34));
 	  Ftmp[2] = dvpdcw*((dcwdn*dndjl[2])+(dcwddn*ddndjl*del34[2]/r34));
-	  f[j][0] += Ftmp[0];
-	  f[j][1] += Ftmp[1];
-	  f[j][2] += Ftmp[2];
-	  f[l][0] -= Ftmp[0];
-	  f[l][1] -= Ftmp[1];
-	  f[l][2] -= Ftmp[2];
+	  fj[0] += Ftmp[0];
+	  fj[1] += Ftmp[1];
+	  fj[2] += Ftmp[2];
+	  fl[0] = -Ftmp[0];
+	  fl[1] = -Ftmp[1];
+	  fl[2] = -Ftmp[2];
 	  
 	  Ftmp[0] = (dvpdcw*dcwddn*ddndil*delil[0])/ril;
 	  Ftmp[1] = (dvpdcw*dcwddn*ddndil*delil[1])/ril;
 	  Ftmp[2] = (dvpdcw*dcwddn*ddndil*delil[2])/ril;
-	  f[i][0] += Ftmp[0];
-	  f[i][1] += Ftmp[1];
-	  f[i][2] += Ftmp[2];
-	  f[l][0] -= Ftmp[0];
-	  f[l][1] -= Ftmp[1];
-	  f[l][2] -= Ftmp[2];
+	  fi[0] += Ftmp[0];
+	  fi[1] += Ftmp[1];
+	  fi[2] += Ftmp[2];
+	  fl[0] -= Ftmp[0];
+	  fl[1] -= Ftmp[1];
+	  fl[2] -= Ftmp[2];
 	  
 	  // coordination forces
 	  
-	  fforce = Vtors*dw21*w23*w34*(1.0-tspjik)*(1.0-tspijl) / r21;
-	  f[i][0] -= del21[0]*fforce;
-	  f[i][1] -= del21[1]*fforce;
-	  f[i][2] -= del21[2]*fforce;
-	  f[k][0] += del21[0]*fforce;
-	  f[k][1] += del21[1]*fforce;
-	  f[k][2] += del21[2]*fforce;
+	  fpair = Vtors*dw21*w23*w34*(1.0-tspjik)*(1.0-tspijl) / r21;
+	  fi[0] -= del21[0]*fpair;
+	  fi[1] -= del21[1]*fpair;
+	  fi[2] -= del21[2]*fpair;
+	  fk[0] += del21[0]*fpair;
+	  fk[1] += del21[1]*fpair;
+	  fk[2] += del21[2]*fpair;
 	  
-	  fforce = Vtors*w21*dw23*w34*(1.0-tspjik)*(1.0-tspijl) / r23;
-	  f[i][0] -= del23[0]*fforce;
-	  f[i][1] -= del23[1]*fforce;
-	  f[i][2] -= del23[2]*fforce;
-	  f[j][0] += del23[0]*fforce;
-	  f[j][1] += del23[1]*fforce;
-	  f[j][2] += del23[2]*fforce;
+	  fpair = Vtors*w21*dw23*w34*(1.0-tspjik)*(1.0-tspijl) / r23;
+	  fi[0] -= del23[0]*fpair;
+	  fi[1] -= del23[1]*fpair;
+	  fi[2] -= del23[2]*fpair;
+	  fj[0] += del23[0]*fpair;
+	  fj[1] += del23[1]*fpair;
+	  fj[2] += del23[2]*fpair;
 	  
-	  fforce = Vtors*w21*w23*dw34*(1.0-tspjik)*(1.0-tspijl) / r34;
-	  f[j][0] -= del34[0]*fforce;
-	  f[j][1] -= del34[1]*fforce;
-	  f[j][2] -= del34[2]*fforce;
-	  f[l][0] += del34[0]*fforce;
-	  f[l][1] += del34[1]*fforce;
-	  f[l][2] += del34[2]*fforce;
+	  fpair = Vtors*w21*w23*dw34*(1.0-tspjik)*(1.0-tspijl) / r34;
+	  fj[0] -= del34[0]*fpair;
+	  fj[1] -= del34[1]*fpair;
+	  fj[2] -= del34[2]*fpair;
+	  fl[0] += del34[0]*fpair;
+	  fl[1] += del34[1]*fpair;
+	  fl[2] += del34[2]*fpair;
 
 	  // additional cut off function forces
 
 	  fcpc = -Vtors*w21*w23*w34*dtsjik*(1.0-tspijl);
-	  fforce = fcpc*dcidij/rij;
-	  f[i][0] += fforce*del23[0];
-	  f[i][1] += fforce*del23[1];
-	  f[i][2] += fforce*del23[2];
-	  f[j][0] -= fforce*del23[0];
-	  f[j][1] -= fforce*del23[1];
-	  f[j][2] -= fforce*del23[2];
+	  fpair = fcpc*dcidij/rij;
+	  fi[0] += fpair*del23[0];
+	  fi[1] += fpair*del23[1];
+	  fi[2] += fpair*del23[2];
+	  fj[0] -= fpair*del23[0];
+	  fj[1] -= fpair*del23[1];
+	  fj[2] -= fpair*del23[2];
 
-	  fforce = fcpc*dcidik/rik;
-	  f[i][0] += fforce*del21[0];
-	  f[i][1] += fforce*del21[1];
-	  f[i][2] += fforce*del21[2];
-	  f[k][0] -= fforce*del21[0];
-	  f[k][1] -= fforce*del21[1];
-	  f[k][2] -= fforce*del21[2];
+	  fpair = fcpc*dcidik/rik;
+	  fi[0] += fpair*del21[0];
+	  fi[1] += fpair*del21[1];
+	  fi[2] += fpair*del21[2];
+	  fk[0] -= fpair*del21[0];
+	  fk[1] -= fpair*del21[1];
+	  fk[2] -= fpair*del21[2];
 
-	  fforce = fcpc*dcidjk/rjk;
-	  f[j][0] += fforce*deljk[0];
-	  f[j][1] += fforce*deljk[1];
-	  f[j][2] += fforce*deljk[2];
-	  f[k][0] -= fforce*deljk[0];
-	  f[k][1] -= fforce*deljk[1];
-	  f[k][2] -= fforce*deljk[2];
+	  fpair = fcpc*dcidjk/rjk;
+	  fj[0] += fpair*deljk[0];
+	  fj[1] += fpair*deljk[1];
+	  fj[2] += fpair*deljk[2];
+	  fk[0] -= fpair*deljk[0];
+	  fk[1] -= fpair*deljk[1];
+	  fk[2] -= fpair*deljk[2];
 	  
 	  fcpc = -Vtors*w21*w23*w34*(1.0-tspjik)*dtsijl;
-	  fforce = fcpc*dcjdji/rij;
-	  f[i][0] += fforce*del23[0];
-	  f[i][1] += fforce*del23[1];
-	  f[i][2] += fforce*del23[2];
-	  f[j][0] -= fforce*del23[0];
-	  f[j][1] -= fforce*del23[1];
-	  f[j][2] -= fforce*del23[2];
+	  fpair = fcpc*dcjdji/rij;
+	  fi[0] += fpair*del23[0];
+	  fi[1] += fpair*del23[1];
+	  fi[2] += fpair*del23[2];
+	  fj[0] -= fpair*del23[0];
+	  fj[1] -= fpair*del23[1];
+	  fj[2] -= fpair*del23[2];
 
-	  fforce = fcpc*dcjdjl/rjl;
-	  f[j][0] += fforce*del34[0];
-	  f[j][1] += fforce*del34[1];
-	  f[j][2] += fforce*del34[2];
-	  f[l][0] -= fforce*del34[0];
-	  f[l][1] -= fforce*del34[1];
-	  f[l][2] -= fforce*del34[2];
+	  fpair = fcpc*dcjdjl/rjl;
+	  fj[0] += fpair*del34[0];
+	  fj[1] += fpair*del34[1];
+	  fj[2] += fpair*del34[2];
+	  fl[0] -= fpair*del34[0];
+	  fl[1] -= fpair*del34[1];
+	  fl[2] -= fpair*del34[2];
 
-	  fforce = fcpc*dcjdil/ril;
-	  f[i][0] += fforce*delil[0];
-	  f[i][1] += fforce*delil[1];
-	  f[i][2] += fforce*delil[2];
-	  f[l][0] -= fforce*delil[0];
-	  f[l][1] -= fforce*delil[1];
-	  f[l][2] -= fforce*delil[2];
+	  fpair = fcpc*dcjdil/ril;
+	  fi[0] += fpair*delil[0];
+	  fi[1] += fpair*delil[1];
+	  fi[2] += fpair*delil[2];
+	  fl[0] -= fpair*delil[0];
+	  fl[1] -= fpair*delil[1];
+	  fl[2] -= fpair*delil[2];
+
+	  // sum per-atom forces into atom force array
+
+	  f[i][0] += fi[0]; f[i][1] += fi[1]; f[i][2] += fi[2];
+	  f[j][0] += fj[0]; f[j][1] += fj[1]; f[j][2] += fj[2];
+	  f[k][0] += fk[0]; f[k][1] += fk[1]; f[k][2] += fk[2];
+	  f[l][0] += fl[0]; f[l][1] += fl[1]; f[l][2] += fl[2];
+
+	  //if (evflag) ev_tally4(i,j,k,l,fi,fj,fk,fl);
 	}
       }
     }
@@ -2030,8 +2072,8 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   tmp3pij = tmp3;
   tmp = 0.0;
   tmp2 = 0.0;
-  tmp3  =  0.0;
-  Etmp=0.0;
+  tmp3 = 0.0;
+  Etmp = 0.0;
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -3979,4 +4021,3 @@ void PairAIREBO::spline_init()
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
 }
-

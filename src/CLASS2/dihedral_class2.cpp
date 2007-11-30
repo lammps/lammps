@@ -101,23 +101,23 @@ DihedralClass2::~DihedralClass2()
 
 void DihedralClass2::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,i4,i,j,k,n,type,factor;
-  double rfactor;
-  double delx1,dely1,delz1,dely2,delz2,delx2m,dely2m,delz2m;
-  double delx2,dely3,delz3,r1mag2,r1,r2mag2,r2,r3mag2,r3;
+  int i1,i2,i3,i4,i,j,k,n,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double edihedral;
+  double r1mag2,r1,r2mag2,r2,r3mag2,r3;
   double sb1,rb1,sb2,rb2,sb3,rb3,c0,r12c1;
   double r12c2,costh12,costh13,costh23,sc1,sc2,s1,s2,c;
   double cosphi,phi,sinphi,a11,a22,a33,a12,a13,a23,sx1,sx2;
   double sx12,sy1,sy2,sy12,sz1,sz2,sz12,dphi1,dphi2,dphi3;
   double de_dihedral,t1,t2,t3,t4,cos2phi,cos3phi,bt1,bt2;
   double bt3,sumbte,db,sumbtf,at1,at2,at3,da,da1,da2,r1_0;
-  double r3_0,dr1,dr2,tk1,tk2,vx1,vx2,vx3,vy1,vy2,vy3,vz1;
-  double vz2,vz3,delx3,s12,sin2;
+  double r3_0,dr1,dr2,tk1,tk2,s12,sin2;
   double dcosphidr[4][3],dphidr[4][3],dbonddr[3][4][3],dthetadr[2][4][3];
   double fabcd[4][3];
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  edihedral = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -127,76 +127,63 @@ void DihedralClass2::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < ndihedrallist; n++) {
-
     i1 = dihedrallist[n][0];
     i2 = dihedrallist[n][1];
     i3 = dihedrallist[n][2];
     i4 = dihedrallist[n][3];
     type = dihedrallist[n][4];
 
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
-
     // 1st bond
 
-    delx1 = x[i1][0] - x[i2][0];
-    dely1 = x[i1][1] - x[i2][1];
-    delz1 = x[i1][2] - x[i2][2];
-    domain->minimum_image(delx1,dely1,delz1);
+    vb1x = x[i1][0] - x[i2][0];
+    vb1y = x[i1][1] - x[i2][1];
+    vb1z = x[i1][2] - x[i2][2];
+    domain->minimum_image(vb1x,vb1y,vb1z);
 
     // 2nd bond
 
-    delx2 = x[i3][0] - x[i2][0];
-    dely2 = x[i3][1] - x[i2][1];
-    delz2 = x[i3][2] - x[i2][2];
-    domain->minimum_image(delx2,dely2,delz2);
+    vb2x = x[i3][0] - x[i2][0];
+    vb2y = x[i3][1] - x[i2][1];
+    vb2z = x[i3][2] - x[i2][2];
+    domain->minimum_image(vb2x,vb2y,vb2z);
 
-    delx2m = -delx2;
-    dely2m = -dely2;
-    delz2m = -delz2;
-    domain->minimum_image(delx2m,dely2m,delz2m);
+    vb2xm = -vb2x;
+    vb2ym = -vb2y;
+    vb2zm = -vb2z;
+    domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
     // 3rd bond
 
-    delx3 = x[i4][0] - x[i3][0];
-    dely3 = x[i4][1] - x[i3][1];
-    delz3 = x[i4][2] - x[i3][2];
-    domain->minimum_image(delx3,dely3,delz3);
+    vb3x = x[i4][0] - x[i3][0];
+    vb3y = x[i4][1] - x[i3][1];
+    vb3z = x[i4][2] - x[i3][2];
+    domain->minimum_image(vb3x,vb3y,vb3z);
 
     // distances
 
-    r1mag2 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+    r1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
     r1 = sqrt(r1mag2);
-    r2mag2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+    r2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
     r2 = sqrt(r2mag2);
-    r3mag2 = delx3*delx3 + dely3*dely3 + delz3*delz3;
+    r3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
     r3 = sqrt(r3mag2);
 
     sb1 = 1.0/r1mag2;
     rb1 = 1.0/r1;
-          
     sb2 = 1.0/r2mag2;
     rb2 = 1.0/r2;
-
     sb3 = 1.0/r3mag2;
     rb3 = 1.0/r3;
 
-    c0 = (delx1*delx3 + dely1*dely3 + delz1*delz3) * rb1*rb3;
+    c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
 
     // angles
 
     r12c1 = rb1*rb2;
     r12c2 = rb2*rb3;
-    costh12 = (delx1*delx2 + dely1*dely2 + delz1*delz2) * r12c1;
+    costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
     costh13 = c0;
-    costh23 = (delx2m*delx3 + dely2m*dely3 + delz2m*delz3) * r12c2;
+    costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
           
     // cos and sin of 2 angles and final c
 
@@ -250,15 +237,15 @@ void DihedralClass2::compute(int eflag, int vflag)
     a13 = rb1*rb3*s12;
     a23 = r12c2 * (-costh23*c*s2 - costh12*s12);
           
-    sx1  = a11*delx1 + a12*delx2 + a13*delx3;
-    sx2  = a12*delx1 + a22*delx2 + a23*delx3;
-    sx12 = a13*delx1 + a23*delx2 + a33*delx3;
-    sy1  = a11*dely1 + a12*dely2 + a13*dely3;
-    sy2  = a12*dely1 + a22*dely2 + a23*dely3;
-    sy12 = a13*dely1 + a23*dely2 + a33*dely3;
-    sz1  = a11*delz1 + a12*delz2 + a13*delz3;
-    sz2  = a12*delz1 + a22*delz2 + a23*delz3;
-    sz12 = a13*delz1 + a23*delz2 + a33*delz3;
+    sx1  = a11*vb1x + a12*vb2x + a13*vb3x;
+    sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
+    sx12 = a13*vb1x + a23*vb2x + a33*vb3x;
+    sy1  = a11*vb1y + a12*vb2y + a13*vb3y;
+    sy2  = a12*vb1y + a22*vb2y + a23*vb3y;
+    sy12 = a13*vb1y + a23*vb2y + a33*vb3y;
+    sz1  = a11*vb1z + a12*vb2z + a13*vb3z;
+    sz2  = a12*vb1z + a22*vb2z + a23*vb3z;
+    sz12 = a13*vb1z + a23*vb2z + a33*vb3z;
 
     // set up d(cos(phi))/d(r) and dphi/dr arrays
 
@@ -285,10 +272,10 @@ void DihedralClass2::compute(int eflag, int vflag)
     dphi2 = 2.0*phi - phi2[type];
     dphi3 = 3.0*phi - phi3[type];
     
-    if (eflag) energy += rfactor * (k1[type]*(1.0 - cos(dphi1)) +
-				    k2[type]*(1.0 - cos(dphi2)) +
-				    k3[type]*(1.0 - cos(dphi3)));
-          
+    if (eflag) edihedral = k1[type]*(1.0 - cos(dphi1)) +
+		 k2[type]*(1.0 - cos(dphi2)) +
+		 k3[type]*(1.0 - cos(dphi3));
+    
     de_dihedral = k1[type]*sin(dphi1) + 2.0*k2[type]*sin(dphi2) +
       3.0*k3[type]*sin(dphi3);
 
@@ -308,30 +295,30 @@ void DihedralClass2::compute(int eflag, int vflag)
     
     // bond1
     
-    dbonddr[0][0][0] = delx1 / r1;
-    dbonddr[0][0][1] = dely1 / r1;
-    dbonddr[0][0][2] = delz1 / r1;
-    dbonddr[0][1][0] = -delx1 / r1;
-    dbonddr[0][1][1] = -dely1 / r1;
-    dbonddr[0][1][2] = -delz1 / r1;
+    dbonddr[0][0][0] = vb1x / r1;
+    dbonddr[0][0][1] = vb1y / r1;
+    dbonddr[0][0][2] = vb1z / r1;
+    dbonddr[0][1][0] = -vb1x / r1;
+    dbonddr[0][1][1] = -vb1y / r1;
+    dbonddr[0][1][2] = -vb1z / r1;
 
     // bond2
 
-    dbonddr[1][1][0] = delx2 / r2;
-    dbonddr[1][1][1] = dely2 / r2;
-    dbonddr[1][1][2] = delz2 / r2;
-    dbonddr[1][2][0] = -delx2 / r2;
-    dbonddr[1][2][1] = -dely2 / r2;
-    dbonddr[1][2][2] = -delz2 / r2;
+    dbonddr[1][1][0] = vb2x / r2;
+    dbonddr[1][1][1] = vb2y / r2;
+    dbonddr[1][1][2] = vb2z / r2;
+    dbonddr[1][2][0] = -vb2x / r2;
+    dbonddr[1][2][1] = -vb2y / r2;
+    dbonddr[1][2][2] = -vb2z / r2;
 
     // bond3
     
-    dbonddr[2][2][0] = delx3 / r3;
-    dbonddr[2][2][1] = dely3 / r3;
-    dbonddr[2][2][2] = delz3 / r3;
-    dbonddr[2][3][0] = -delx3 / r3;
-    dbonddr[2][3][1] = -dely3 / r3;
-    dbonddr[2][3][2] = -delz3 / r3;
+    dbonddr[2][2][0] = vb3x / r3;
+    dbonddr[2][2][1] = vb3y / r3;
+    dbonddr[2][2][2] = vb3z / r3;
+    dbonddr[2][3][0] = -vb3x / r3;
+    dbonddr[2][3][1] = -vb3y / r3;
+    dbonddr[2][3][2] = -vb3z / r3;
 
     // set up d(theta)/d(r) array
     // dthetadr(i,j,k) = angle i, atom j, coordinate k
@@ -348,37 +335,37 @@ void DihedralClass2::compute(int eflag, int vflag)
     
     // angle12
     
-    dthetadr[0][0][0] = sc1 * ((t1 * delx1) - (delx2 * r12c1));
-    dthetadr[0][0][1] = sc1 * ((t1 * dely1) - (dely2 * r12c1));
-    dthetadr[0][0][2] = sc1 * ((t1 * delz1) - (delz2 * r12c1));
+    dthetadr[0][0][0] = sc1 * ((t1 * vb1x) - (vb2x * r12c1));
+    dthetadr[0][0][1] = sc1 * ((t1 * vb1y) - (vb2y * r12c1));
+    dthetadr[0][0][2] = sc1 * ((t1 * vb1z) - (vb2z * r12c1));
     
-    dthetadr[0][1][0] = sc1 * ((-t1 * delx1) + (delx2 * r12c1) +
-			       (-t3 * delx2) + (delx1 * r12c1));
-    dthetadr[0][1][1] = sc1 * ((-t1 * dely1) + (dely2 * r12c1) +
-			       (-t3 * dely2) + (dely1 * r12c1));
-    dthetadr[0][1][2] = sc1 * ((-t1 * delz1) + (delz2 * r12c1) +
-			       (-t3 * delz2) + (delz1 * r12c1));
+    dthetadr[0][1][0] = sc1 * ((-t1 * vb1x) + (vb2x * r12c1) +
+			       (-t3 * vb2x) + (vb1x * r12c1));
+    dthetadr[0][1][1] = sc1 * ((-t1 * vb1y) + (vb2y * r12c1) +
+			       (-t3 * vb2y) + (vb1y * r12c1));
+    dthetadr[0][1][2] = sc1 * ((-t1 * vb1z) + (vb2z * r12c1) +
+			       (-t3 * vb2z) + (vb1z * r12c1));
     
-    dthetadr[0][2][0] = sc1 * ((t3 * delx2) - (delx1 * r12c1)); 
-    dthetadr[0][2][1] = sc1 * ((t3 * dely2) - (dely1 * r12c1));
-    dthetadr[0][2][2] = sc1 * ((t3 * delz2) - (delz1 * r12c1));
+    dthetadr[0][2][0] = sc1 * ((t3 * vb2x) - (vb1x * r12c1)); 
+    dthetadr[0][2][1] = sc1 * ((t3 * vb2y) - (vb1y * r12c1));
+    dthetadr[0][2][2] = sc1 * ((t3 * vb2z) - (vb1z * r12c1));
     
     // angle23
     
-    dthetadr[1][1][0] = sc2 * ((t2 * delx2) + (delx3 * r12c2));
-    dthetadr[1][1][1] = sc2 * ((t2 * dely2) + (dely3 * r12c2));
-    dthetadr[1][1][2] = sc2 * ((t2 * delz2) + (delz3 * r12c2));
+    dthetadr[1][1][0] = sc2 * ((t2 * vb2x) + (vb3x * r12c2));
+    dthetadr[1][1][1] = sc2 * ((t2 * vb2y) + (vb3y * r12c2));
+    dthetadr[1][1][2] = sc2 * ((t2 * vb2z) + (vb3z * r12c2));
     
-    dthetadr[1][2][0] = sc2 * ((-t2 * delx2) - (delx3 * r12c2) +
-			       (t4 * delx3) + (delx2 * r12c2));
-    dthetadr[1][2][1] = sc2 * ((-t2 * dely2) - (dely3 * r12c2) +
-			       (t4 * dely3) + (dely2 * r12c2));
-    dthetadr[1][2][2] = sc2 * ((-t2 * delz2) - (delz3 * r12c2) +
-			       (t4 * delz3) + (delz2 * r12c2));
+    dthetadr[1][2][0] = sc2 * ((-t2 * vb2x) - (vb3x * r12c2) +
+			       (t4 * vb3x) + (vb2x * r12c2));
+    dthetadr[1][2][1] = sc2 * ((-t2 * vb2y) - (vb3y * r12c2) +
+			       (t4 * vb3y) + (vb2y * r12c2));
+    dthetadr[1][2][2] = sc2 * ((-t2 * vb2z) - (vb3z * r12c2) +
+			       (t4 * vb3z) + (vb2z * r12c2));
     
-    dthetadr[1][3][0] = -sc2 * ((t4 * delx3) + (delx2 * r12c2));
-    dthetadr[1][3][1] = -sc2 * ((t4 * dely3) + (dely2 * r12c2));
-    dthetadr[1][3][2] = -sc2 * ((t4 * delz3) + (delz2 * r12c2));
+    dthetadr[1][3][0] = -sc2 * ((t4 * vb3x) + (vb2x * r12c2));
+    dthetadr[1][3][1] = -sc2 * ((t4 * vb3y) + (vb2y * r12c2));
+    dthetadr[1][3][2] = -sc2 * ((t4 * vb3z) + (vb2z * r12c2));
     
     // mid-bond/torsion coupling
     // energy on bond2 (middle bond)
@@ -391,7 +378,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     bt3 = mbt_f3[type] * cos3phi;
     sumbte = bt1 + bt2 + bt3;
     db = r2 - mbt_r0[type];
-    if (eflag) energy += rfactor * db * sumbte;
+    if (eflag) edihedral += db * sumbte;
     
     // force on bond2
     
@@ -413,7 +400,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     sumbte = bt1 + bt2 + bt3;
 
     db = r1 - ebt_r0_1[type];
-    if (eflag) energy += rfactor * db * (bt1+bt2+bt3);
+    if (eflag) edihedral += db * (bt1+bt2+bt3);
 
     // force on bond1
 
@@ -435,7 +422,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     sumbte = bt1 + bt2 + bt3;
 
     db = r3 - ebt_r0_2[type];
-    if (eflag) energy += rfactor * db * (bt1+bt2+bt3);
+    if (eflag) edihedral += db * (bt1+bt2+bt3);
 
     // force on bond3
 
@@ -457,7 +444,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     sumbte = at1 + at2 + at3;
 
     da = acos(costh12) - at_theta0_1[type];
-    if (eflag) energy += rfactor * da * (at1+at2+at3);
+    if (eflag) edihedral += da * (at1+at2+at3);
 
     // force on angle1
 
@@ -478,7 +465,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     sumbte = at1 + at2 + at3;
 
     da = acos(costh23) - at_theta0_2[type];
-    if (eflag) energy += rfactor *da * (at1+at2+at3);
+    if (eflag) edihedral += da * (at1+at2+at3);
 
     // force on angle2
 
@@ -496,11 +483,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     da1 = acos(costh12) - aat_theta0_1[type];
     da2 = acos(costh23) - aat_theta0_2[type];
           
-    // energy
-
-    if (eflag) energy += rfactor * aat_k[type]*da1*da2*cosphi;
-
-    // force
+    if (eflag) edihedral += aat_k[type]*da1*da2*cosphi;
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
@@ -519,23 +502,23 @@ void DihedralClass2::compute(int eflag, int vflag)
       tk1 = -bb13t_k[type] * dr1 / r3;
       tk2 = -bb13t_k[type] * dr2 / r1;
 
-      if (eflag) energy += rfactor * bb13t_k[type]*dr1*dr2;
+      if (eflag) edihedral += bb13t_k[type]*dr1*dr2;
         
-      fabcd[0][0] += tk2 * delx1;
-      fabcd[0][1] += tk2 * dely1;
-      fabcd[0][2] += tk2 * delz1;
+      fabcd[0][0] += tk2 * vb1x;
+      fabcd[0][1] += tk2 * vb1y;
+      fabcd[0][2] += tk2 * vb1z;
 
-      fabcd[1][0] -= tk2 * delx1;
-      fabcd[1][1] -= tk2 * dely1;
-      fabcd[1][2] -= tk2 * delz1;
+      fabcd[1][0] -= tk2 * vb1x;
+      fabcd[1][1] -= tk2 * vb1y;
+      fabcd[1][2] -= tk2 * vb1z;
         
-      fabcd[2][0] -= tk1 * delx3;
-      fabcd[2][1] -= tk1 * dely3;
-      fabcd[2][2] -= tk1 * delz3;
+      fabcd[2][0] -= tk1 * vb3x;
+      fabcd[2][1] -= tk1 * vb3y;
+      fabcd[2][2] -= tk1 * vb3z;
 
-      fabcd[3][0] += tk1 * delx3;
-      fabcd[3][1] += tk1 * dely3;
-      fabcd[3][2] += tk1 * delz3;
+      fabcd[3][0] += tk1 * vb3x;
+      fabcd[3][1] += tk1 * vb3y;
+      fabcd[3][2] += tk1 * vb3z;
     }
 
     // apply force to each of 4 atoms
@@ -564,28 +547,10 @@ void DihedralClass2::compute(int eflag, int vflag)
       f[i4][2] += fabcd[3][2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      vx1 = fabcd[0][0];
-      vx2 = fabcd[2][0] + fabcd[3][0];
-      vx3 = fabcd[3][0];
-
-      vy1 = fabcd[0][1];
-      vy2 = fabcd[2][1] + fabcd[3][1];
-      vy3 = fabcd[3][1];
-
-      vz1 = fabcd[0][2];
-      vz2 = fabcd[2][2] + fabcd[3][2];
-      vz3 = fabcd[3][2];
-
-      virial[0] += rfactor * (delx1*vx1 + delx2*vx2 + delx3*vx3);
-      virial[1] += rfactor * (dely1*vy1 + dely2*vy2 + dely3*vy3);
-      virial[2] += rfactor * (delz1*vz1 + delz2*vz2 + delz3*vz3);
-      virial[3] += rfactor * (delx1*vy1 + delx2*vy2 + delx3*vy3);
-      virial[4] += rfactor * (delx1*vz1 + delx2*vz2 + delx3*vz3);
-      virial[5] += rfactor * (dely1*vz1 + dely2*vz2 + dely3*vz3);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,
+	       fabcd[i1],fabcd[i3],fabcd[i4],
+	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }
 

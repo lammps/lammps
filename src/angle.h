@@ -23,12 +23,12 @@ class Angle : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  double energy;
-  double virial[6];
-  double PI;
+  double energy;                  // accumulated energies
+  double virial[6];               // accumlated virial
+  double *eatom,**vatom;          // accumulated per-atom energy/virial
 
   Angle(class LAMMPS *);
-  virtual ~Angle() {}
+  virtual ~Angle();
   virtual void init();
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **) {}
@@ -37,7 +37,19 @@ class Angle : protected Pointers {
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
   virtual double single(int, int, int, int) = 0;
-  virtual double memory_usage() {return 0.0;}
+  virtual double memory_usage();
+
+ protected:
+  double PI,THIRD;
+
+  int evflag;
+  int eflag_either,eflag_global,eflag_atom;
+  int vflag_either,vflag_global,vflag_atom;
+  int maxeatom,maxvatom;
+
+  void ev_setup(int, int);
+  void ev_tally(int, int, int, int, int, double, double *, double *,
+		double, double, double, double, double, double);
 };
 
 }

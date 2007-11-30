@@ -48,11 +48,13 @@ BondMorse::~BondMorse()
 
 void BondMorse::compute(int eflag, int vflag)
 {
-  int i1,i2,n,type,factor;
-  double delx,dely,delz,rsq,r,dr,fforce,rfactor,ralpha;
+  int i1,i2,n,type;
+  double delx,dely,delz,ebond,fbond;
+  double rsq,r,dr,ralpha;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  ebond = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -62,18 +64,9 @@ void BondMorse::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nbondlist; n++) {
-    
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-
-    if (newton_bond) factor = 2;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-    }
-    rfactor = 0.5 * factor;
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -87,35 +80,26 @@ void BondMorse::compute(int eflag, int vflag)
 
     // force & energy
 
-    if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
-    else fforce = 0.0;
+    if (r > 0.0) fbond = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
+    else fbond = 0.0;
 
-    if (eflag) energy += rfactor * d0[type]*(1-ralpha)*(1-ralpha);
+    if (eflag) ebond = d0[type]*(1-ralpha)*(1-ralpha);
 
     // apply force to each of 2 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fforce;
-      f[i1][1] += dely*fforce;
-      f[i1][2] += delz*fforce;
+      f[i1][0] += delx*fbond;
+      f[i1][1] += dely*fbond;
+      f[i1][2] += delz*fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fforce;
-      f[i2][1] -= dely*fforce;
-      f[i2][2] -= delz*fforce;
+      f[i2][0] -= delx*fbond;
+      f[i2][1] -= dely*fbond;
+      f[i2][2] -= delz*fbond;
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] += rfactor*delx*delx*fforce;
-      virial[1] += rfactor*dely*dely*fforce;
-      virial[2] += rfactor*delz*delz*fforce;
-      virial[3] += rfactor*delx*dely*fforce;
-      virial[4] += rfactor*delx*delz*fforce;
-      virial[5] += rfactor*dely*delz*fforce;
-    }
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
   }
 }
 
@@ -203,16 +187,10 @@ void BondMorse::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondMorse::single(int type, double rsq, int i, int j,
-		       int eflag, double &fforce, double &eng)
+void BondMorse::single(int type, double rsq, int i, int j, double &eng)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double ralpha = exp(-alpha[type]*dr);
-
-  // force & energy
-
-  if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
-  else fforce = 0.0;
-  if (eflag) eng = d0[type]*(1-ralpha)*(1-ralpha);
+  eng = d0[type]*(1-ralpha)*(1-ralpha);
 }

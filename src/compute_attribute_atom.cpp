@@ -31,7 +31,6 @@ ComputeAttributeAtom::ComputeAttributeAtom(LAMMPS *lmp, int narg, char **arg) :
 
   peratom_flag = 1;
   size_peratom = 0;
-  allocate = 1;
 
   if (strcmp(arg[3],"x") == 0) which = X;
   else if (strcmp(arg[3],"y") == 0) which = Y;
@@ -49,15 +48,12 @@ ComputeAttributeAtom::ComputeAttributeAtom(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[3],"xyz") == 0) {
     which = XYZ;
     size_peratom = 3;
-    allocate = 0;
   } else if (strcmp(arg[3],"v") == 0) {
     which = V;
     size_peratom = 3;
-    allocate = 0;
   } else if (strcmp(arg[3],"f") == 0) {
     which = F;
     size_peratom = 3;
-    allocate = 0;
   } else error->all("Illegal compute attribute/atom command");
 
   nmax = 0;
@@ -69,10 +65,8 @@ ComputeAttributeAtom::ComputeAttributeAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeAttributeAtom::~ComputeAttributeAtom()
 {
-  if (allocate) {
-    memory->sfree(s_attribute);
-    memory->destroy_2d_double_array(v_attribute);
-  }
+  memory->sfree(s_attribute);
+  memory->destroy_2d_double_array(v_attribute);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,19 +75,21 @@ void ComputeAttributeAtom::compute_peratom()
 {
   // grow attribute array if necessary
 
-  if (allocate && atom->nlocal > nmax) {
+  if (atom->nlocal > nmax) {
     if (size_peratom == 0) {
       memory->sfree(s_attribute);
       nmax = atom->nmax;
       s_attribute = (double *) 
 	memory->smalloc(nmax*sizeof(double),
 			"compute/attribute/atom:s_attribute");
+      scalar_atom = s_attribute;
     } else {
       memory->destroy_2d_double_array(v_attribute);
       nmax = atom->nmax;
       v_attribute =  
 	memory->create_2d_double_array(nmax,size_peratom,
 				       "compute/attribute/atom:v_attribute");
+      vector_atom = v_attribute;
     }
   }
 
@@ -166,14 +162,40 @@ void ComputeAttributeAtom::compute_peratom()
       if (mask[i] & groupbit) s_attribute[i] = f[i][2];
       else s_attribute[i] = 0.0;
 
-  } else if (which == XYZ) v_attribute = x;
-  else if (which == V) v_attribute = v;
-  else if (which == F) v_attribute = f;
-
-  // set appropriate compute ptr to local array
-
-  if (size_peratom == 0) scalar_atom = s_attribute;
-  else vector_atom = v_attribute;
+  } else if (which == XYZ) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	v_attribute[i][0] = x[i][0];
+	v_attribute[i][1] = x[i][1];
+	v_attribute[i][2] = x[i][2];
+      } else {
+	v_attribute[i][0] = 0.0;
+	v_attribute[i][1] = 0.0;
+	v_attribute[i][2] = 0.0;
+      }
+  } else if (which == V) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	v_attribute[i][0] = v[i][0];
+	v_attribute[i][1] = v[i][1];
+	v_attribute[i][2] = v[i][2];
+      } else {
+	v_attribute[i][0] = 0.0;
+	v_attribute[i][1] = 0.0;
+	v_attribute[i][2] = 0.0;
+      }
+  } else if (which == F) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	v_attribute[i][0] = f[i][0];
+	v_attribute[i][1] = f[i][1];
+	v_attribute[i][2] = f[i][2];
+      } else {
+	v_attribute[i][0] = 0.0;
+	v_attribute[i][1] = 0.0;
+	v_attribute[i][2] = 0.0;
+      }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -183,9 +205,7 @@ void ComputeAttributeAtom::compute_peratom()
 double ComputeAttributeAtom::memory_usage()
 {
   double bytes = 0.0;
-  if (allocate) {
-    if (size_peratom == 0) bytes = nmax * sizeof(double);
-    else bytes = size_peratom * nmax * sizeof(double);
-  }
+  if (size_peratom == 0) bytes = nmax * sizeof(double);
+  else bytes = size_peratom * nmax * sizeof(double);
   return bytes;
 }

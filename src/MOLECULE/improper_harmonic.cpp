@@ -48,15 +48,16 @@ ImproperHarmonic::~ImproperHarmonic()
 
 void ImproperHarmonic::compute(int eflag, int vflag)
 {
-  int n,i1,i2,i3,i4,type,factor;
-  double rfactor;
-  double v1x,v1y,v1z,v2x,v2y,v2z,v3x;
-  double v3y,v3z,ss1,ss2,ss3,r1,r2,r3,c0,c1,c2,s1,s2;
-  double s12,c,s,domega,a,a11,a22,a33,a12,a13,a23,sx1;
-  double sx2,sx12,sy1,sy2,sy12,sz1,sz2,sz12;
+  int i1,i2,i3,i4,n,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
+  double eimproper,f1[3],f2[3],f3[3],f4[3];
+  double ss1,ss2,ss3,r1,r2,r3,c0,c1,c2,s1,s2;
+  double s12,c,s,domega,a,a11,a22,a33,a12,a13,a23;
+  double sx2,sy2,sz2;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  eimproper = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -66,43 +67,32 @@ void ImproperHarmonic::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nimproperlist; n++) {
-
     i1 = improperlist[n][0];
     i2 = improperlist[n][1];
     i3 = improperlist[n][2];
     i4 = improperlist[n][3];
     type = improperlist[n][4];
 
-    if (newton_bond) factor = 4;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-      if (i3 < nlocal) factor++;
-      if (i4 < nlocal) factor++;
-      }
-    rfactor = 0.25 * factor;
-
     // geometry of 4-body
 
-    v1x = x[i2][0] - x[i1][0];
-    v1y = x[i2][1] - x[i1][1];
-    v1z = x[i2][2] - x[i1][2];
-    domain->minimum_image(v1x,v1y,v1z);
+    vb1x = x[i1][0] - x[i2][0];
+    vb1y = x[i1][1] - x[i2][1];
+    vb1z = x[i1][2] - x[i2][2];
+    domain->minimum_image(vb1x,vb1y,vb1z);
 
-    v2x = x[i3][0] - x[i2][0];
-    v2y = x[i3][1] - x[i2][1];
-    v2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(v2x,v2y,v2z);
+    vb2x = x[i3][0] - x[i2][0];
+    vb2y = x[i3][1] - x[i2][1];
+    vb2z = x[i3][2] - x[i2][2];
+    domain->minimum_image(vb2x,vb2y,vb2z);
 
-    v3x = x[i4][0] - x[i3][0];
-    v3y = x[i4][1] - x[i3][1];
-    v3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(v3x,v3y,v3z);
+    vb3x = x[i4][0] - x[i3][0];
+    vb3y = x[i4][1] - x[i3][1];
+    vb3z = x[i4][2] - x[i3][2];
+    domain->minimum_image(vb3x,vb3y,vb3z);
 
-    ss1 = 1.0 / (v1x*v1x + v1y*v1y + v1z*v1z);
-    ss2 = 1.0 / (v2x*v2x + v2y*v2y + v2z*v2z);
-    ss3 = 1.0 / (v3x*v3x + v3y*v3y + v3z*v3z);
+    ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+    ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+    ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
         
     r1 = sqrt(ss1);
     r2 = sqrt(ss2);
@@ -110,9 +100,9 @@ void ImproperHarmonic::compute(int eflag, int vflag)
         
     // sin and cos of angle
         
-    c0 = -(v1x * v3x + v1y * v3y + v1z * v3z) * r1 * r3;
-    c1 = -(v1x * v2x + v1y * v2y + v1z * v2z) * r1 * r2;
-    c2 = -(v3x * v2x + v3y * v2y + v3z * v2z) * r3 * r2;
+    c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
+    c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
+    c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
 
     s1 = 1.0 - c1*c1;
     if (s1 < SMALL) s1 = SMALL;
@@ -156,65 +146,67 @@ void ImproperHarmonic::compute(int eflag, int vflag)
     domega = acos(c) - chi[type];
     a = k[type] * domega;
 
-    if (eflag) energy += rfactor * a * domega;
+    if (eflag) eimproper = a*domega;
 
     a = -a * 2.0/s;
     c = c * a;
-
     s12 = s12 * a;
-    a11 = (-c * ss1 * s1);
-    a22 = ss2 * (2.0 * c0 * s12 - c * (s1 + s2));
-    a33 = (-c * ss3 * s2);
-    a12 = r1 * r2 * (c1 * c * s1 + c2 * s12);
-    a13 = r1 * r3 * s12;
-    a23 = r2 * r3 * (-c2 * c * s2 - c1 * s12);
+    a11 = c*ss1*s1;
+    a22 = -ss2 * (2.0*c0*s12 - c*(s1+s2));
+    a33 = c*ss3*s2;
+    a12 = -r1*r2*(c1*c*s1 + c2*s12);
+    a13 = -r1*r3*s12;
+    a23 = r2*r3*(c2*c*s2 + c1*s12);
 
-    sx1  = a12*v2x + a13*v3x - a11*v1x;
-    sx2  = a22*v2x + a23*v3x - a12*v1x;
-    sx12 = a23*v2x + a33*v3x - a13*v1x;
-    sy1  = a12*v2y + a13*v3y - a11*v1y;
-    sy2  = a22*v2y + a23*v3y - a12*v1y;
-    sy12 = a23*v2y + a33*v3y - a13*v1y;
-    sz1  = a12*v2z + a13*v3z - a11*v1z;
-    sz2  = a22*v2z + a23*v3z - a12*v1z;
-    sz12 = a23*v2z + a33*v3z - a13*v1z;
+    sx2  = a22*vb2x + a23*vb3x + a12*vb1x;
+    sy2  = a22*vb2y + a23*vb3y + a12*vb1y;
+    sz2  = a22*vb2z + a23*vb3z + a12*vb1z;
+
+    f1[0]  = a12*vb2x + a13*vb3x + a11*vb1x;
+    f1[1]  = a12*vb2y + a13*vb3y + a11*vb1y;
+    f1[2]  = a12*vb2z + a13*vb3z + a11*vb1z;
+
+    f2[0] = -sx2 - f1[0];
+    f2[1] = -sy2 - f1[1];
+    f2[2] = -sz2 - f1[2];
+
+    f4[0] = a23*vb2x + a33*vb3x + a13*vb1x;
+    f4[1] = a23*vb2y + a33*vb3y + a13*vb1y;
+    f4[2] = a23*vb2z + a33*vb3z + a13*vb1z;
+
+    f3[0] = sx2 - f4[0];
+    f3[1] = sy2 - f4[1];
+    f3[2] = sz2 - f4[2];
 
     // apply force to each of 4 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= sx1;
-      f[i1][1] -= sy1;
-      f[i1][2] -= sz1;
+      f[i1][0] += f1[0];
+      f[i1][1] += f1[1];
+      f[i1][2] += f1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += sx2 + sx1;
-      f[i2][1] += sy2 + sy1;
-      f[i2][2] += sz2 + sz1;
+      f[i2][0] += f2[0];
+      f[i2][1] += f2[1];
+      f[i2][2] += f2[2];
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] += sx12 - sx2;
-      f[i3][1] += sy12 - sy2;
-      f[i3][2] += sz12 - sz2;
+      f[i3][0] += f3[0];
+      f[i3][1] += f3[1];
+      f[i3][2] += f3[2];
     }
 
     if (newton_bond || i4 < nlocal) {
-      f[i4][0] -= sx12;
-      f[i4][1] -= sy12;
-      f[i4][2] -= sz12;
+      f[i4][0] += f4[0];
+      f[i4][1] += f4[1];
+      f[i4][2] += f4[2];
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] += rfactor * (v1x*sx1 - v2x*sx2 - v3x*sx12);
-      virial[1] += rfactor * (v1y*sy1 - v2y*sy2 - v3y*sy12);
-      virial[2] += rfactor * (v1z*sz1 - v2z*sz2 - v3z*sz12);
-      virial[3] += rfactor * (v1x*sy1 - v2x*sy2 - v3x*sy12);
-      virial[4] += rfactor * (v1x*sz1 - v2x*sz2 - v3x*sz12);
-      virial[5] += rfactor * (v1y*sz1 - v2y*sz2 - v3y*sz12);
-    }
+    if (evflag)
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f3,f4,
+	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }
 

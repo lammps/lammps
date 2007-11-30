@@ -74,12 +74,8 @@ double ComputePE::compute_scalar()
   invoked = 1;
   double one = 0.0;
 
-  if (pairflag) {
-    if (force->pair) one += force->pair->eng_vdwl + force->pair->eng_coul;
-    if (force->bond) one += force->bond->eng_vdwl;
-    if (force->dihedral) 
-      one += force->dihedral->eng_vdwl + force->dihedral->eng_coul;
-  }
+  if (pairflag && force->pair)
+    one += force->pair->eng_vdwl + force->pair->eng_coul;
 
   if (atom->molecular) {
     if (bondflag && force->bond) one += force->bond->energy;

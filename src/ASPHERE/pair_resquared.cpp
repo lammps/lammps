@@ -80,23 +80,23 @@ PairRESquared::~PairRESquared()
 
 void PairRESquared::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
-  double one_eng,rsq,r2inv,r6inv,forcelj;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fx,fy,fz;
+  double one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
   double fforce[3],ttor[3],rtor[3],r12[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double factor_lj;
   RE2Vars wi,wj;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **tor = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -155,7 +155,7 @@ void PairRESquared::compute(int eflag, int vflag)
 
          case SPHERE_ELLIPSE:
           precompute_i(j,wj);
-          if (newton_pair || j<nlocal) {
+          if (newton_pair || j < nlocal) {
             one_eng = resquared_lj(j,i,wj,r12,rsq,fforce,rtor,true);
             tor[j][0] += rtor[0]*factor_lj;
             tor[j][1] += rtor[1]*factor_lj;
@@ -177,7 +177,7 @@ void PairRESquared::compute(int eflag, int vflag)
           tor[i][0] += ttor[0]*factor_lj;
           tor[i][1] += ttor[1]*factor_lj;
           tor[i][2] += ttor[2]*factor_lj;
-          if (newton_pair || j<nlocal) {
+          if (newton_pair || j < nlocal) {
             tor[j][0] += rtor[0]*factor_lj;
             tor[j][1] += rtor[1]*factor_lj;
             tor[j][2] += rtor[2]*factor_lj;
@@ -198,25 +198,16 @@ void PairRESquared::compute(int eflag, int vflag)
           f[j][2] -= fforce[2];
         }
 
-        if (eflag) {
-          if (newton_pair || j < nlocal) eng_vdwl += factor_lj*one_eng;
-          else eng_vdwl += 0.5*factor_lj*one_eng;
-        }
+        if (eflag) evdwl = factor_lj*one_eng;
 
-        if (vflag == 1) {
-          if (newton_pair == 0 && j >= nlocal)
-            for (m = 0; m < 6; m++) fforce[m] *= 0.5;
-	  virial[0] -= r12[0]*fforce[0];
-	  virial[1] -= r12[1]*fforce[1];
-	  virial[2] -= r12[2]*fforce[2];
-	  virial[3] -= r12[0]*fforce[1];
-	  virial[4] -= r12[0]*fforce[2];
-	  virial[5] -= r12[1]*fforce[2];
-        }
+	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+				 evdwl,0.0,fforce[0],fforce[1],fforce[2],
+				 -r12[0],-r12[1],-r12[2]);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

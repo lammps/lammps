@@ -35,8 +35,14 @@ using namespace LAMMPS_NS;
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute pressure command");
+  if (narg < 4) error->all("Illegal compute pressure command");
   if (igroup) error->all("Compute pressure must use group all");
+
+  scalar_flag = vector_flag = 1;
+  size_vector = 6;
+  extensive = 0;
+  pressflag = 1;
+  timeflag = 1;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
@@ -53,13 +59,32 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   if (modify->compute[icompute]->tempflag == 0)
     error->all("Compute pressure temp ID does not compute temperature");
 
-  // settings
+  // process optional args
 
-  scalar_flag = vector_flag = 1;
-  size_vector = 6;
-  extensive = 0;
-  pressflag = 1;
-  timeflag = 1;
+  if (narg == 4) {
+    keflag = 1;
+    pairflag = 1;
+    bondflag = angleflag = dihedralflag = improperflag = 1;
+    fixflag = kspaceflag = 1;
+  } else {
+    keflag = 0;
+    pairflag = 0;
+    bondflag = angleflag = dihedralflag = improperflag = 0;
+    fixflag = kspaceflag = 0;
+    int iarg = 4;
+    while (iarg < narg) {
+      if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
+      else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
+      else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
+      else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
+      else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
+      else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
+      else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
+      else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
+      else error->all("Illegal compute stress/atom command");
+      iarg++;
+    }
+  }
 
   vector = new double[6];
   nvirial = 0;
@@ -95,34 +120,35 @@ void ComputePressure::init()
   nvirial = 0;
   vptr = NULL;
 
-  if (force->pair) nvirial++;
-  if (atom->molecular && force->bond) nvirial++;
-  if (atom->molecular && force->angle) nvirial++;
-  if (atom->molecular && force->dihedral) nvirial++;
-  if (atom->molecular && force->improper) nvirial++;
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->virial_flag) nvirial++;
+  if (pairflag && force->pair) nvirial++;
+  if (bondflag && atom->molecular && force->bond) nvirial++;
+  if (angleflag && atom->molecular && force->angle) nvirial++;
+  if (dihedralflag && atom->molecular && force->dihedral) nvirial++;
+  if (improperflag && atom->molecular && force->improper) nvirial++;
+  if (fixflag)
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->virial_flag) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
-    if (force->pair) vptr[nvirial++] = force->pair->virial;
-    if (force->bond) vptr[nvirial++] = force->bond->virial;
-    if (force->angle) vptr[nvirial++] = force->angle->virial;
-    if (force->dihedral) vptr[nvirial++] = force->dihedral->virial;
-    if (force->improper) vptr[nvirial++] = force->improper->virial;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->virial_flag)
-	vptr[nvirial++] = modify->fix[i]->virial;
+    if (pairflag && force->pair) vptr[nvirial++] = force->pair->virial;
+    if (bondflag && force->bond) vptr[nvirial++] = force->bond->virial;
+    if (angleflag && force->angle) vptr[nvirial++] = force->angle->virial;
+    if (dihedralflag && force->dihedral)
+      vptr[nvirial++] = force->dihedral->virial;
+    if (improperflag && force->improper)
+      vptr[nvirial++] = force->improper->virial;
+    if (fixflag)
+      for (int i = 0; i < modify->nfix; i++)
+	if (modify->fix[i]->virial_flag)
+	  vptr[nvirial++] = modify->fix[i]->virial;
   }
 
   // flag Kspace contribution separately, since not summed across procs
 
-  kspaceflag = 0;
-  if (force->kspace) {
-    kspaceflag = 1;
-    kspace_virial = force->kspace->virial;
-  }
+  if (kspaceflag && force->kspace) kspace_virial = force->kspace->virial;
+  else kspace_virial = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -135,13 +161,19 @@ double ComputePressure::compute_scalar()
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(3,3);
-    scalar = (temperature->dof * boltz * temperature->scalar + 
-	      virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
+    if (keflag)
+      scalar = (temperature->dof * boltz * temperature->scalar + 
+		virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
+    else
+      scalar = (virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
   } else {
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(2,2);
-    scalar = (temperature->dof * boltz * temperature->scalar + 
-	      virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
+    if (keflag)
+      scalar = (temperature->dof * boltz * temperature->scalar + 
+		virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
+    else
+      scalar = (virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
   }
 
   return scalar;
@@ -157,16 +189,26 @@ void ComputePressure::compute_vector()
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(6,3);
-    double *ke_tensor = temperature->vector;
-    for (int i = 0; i < 6; i++)
-      vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
+    if (keflag) {
+      double *ke_tensor = temperature->vector;
+      for (int i = 0; i < 6; i++)
+	vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
+    } else
+      for (int i = 0; i < 6; i++)
+	vector[i] = virial[i] * inv_volume * nktv2p;
   } else {
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(4,2);
-    double *ke_tensor = temperature->vector;
-    vector[0] = (ke_tensor[0] + virial[0]) * inv_volume * nktv2p;
-    vector[1] = (ke_tensor[1] + virial[1]) * inv_volume * nktv2p;
-    vector[3] = (ke_tensor[3] + virial[3]) * inv_volume * nktv2p;
+    if (keflag) {
+      double *ke_tensor = temperature->vector;
+      vector[0] = (ke_tensor[0] + virial[0]) * inv_volume * nktv2p;
+      vector[1] = (ke_tensor[1] + virial[1]) * inv_volume * nktv2p;
+      vector[3] = (ke_tensor[3] + virial[3]) * inv_volume * nktv2p;
+    } else {
+      vector[0] = virial[0] * inv_volume * nktv2p;
+      vector[1] = virial[1] * inv_volume * nktv2p;
+      vector[3] = virial[3] * inv_volume * nktv2p;
+    }
   }
 }
 
@@ -193,7 +235,7 @@ void ComputePressure::virial_compute(int n, int ndiag)
 
   // KSpace virial contribution is already summed across procs
 
-  if (force->kspace)
+  if (kspace_virial)
     for (i = 0; i < n; i++) virial[i] += kspace_virial[i];
 
   // LJ long-range tail correction

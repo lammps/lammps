@@ -33,10 +33,14 @@ class Integrate : protected Pointers {
   int eflag,vflag;                  // flags for energy/virial computation
   int virial_style;                 // compute virial explicitly or implicitly
 
-  int nelist,nvlist;                // # of PE,virial coputes for eflag,vflag
-  class Compute **elist;            // list of Computes to check
-  class Compute **vlist;
+  int nelist_global,nelist_atom;    // # of PE,virial computes to check
+  int nvlist_global,nvlist_atom;
+  class Compute **elist_global;     // list of PE,virial Computes
+  class Compute **elist_atom;
+  class Compute **vlist_global;
+  class Compute **vlist_atom;
 
+  void ev_setup();
   void ev_set(int);
 };
 

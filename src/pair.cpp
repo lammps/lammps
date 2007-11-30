@@ -31,6 +31,7 @@
 #include "comm.h"
 #include "force.h"
 #include "update.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -45,6 +46,8 @@ enum{R,RSQ,BMP};
 
 Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 {
+  THIRD = 1.0/3.0;
+
   eng_vdwl = eng_coul = 0.0;
 
   comm_forward = comm_reverse = 0;
@@ -63,6 +66,18 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tabinner = sqrt(2.0);
 
   allocated = 0;
+
+  maxeatom = maxvatom = 0;
+  eatom = NULL;
+  vatom = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+Pair::~Pair()
+{
+  memory->sfree(eatom);
+  memory->destroy_2d_double_array(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -214,7 +229,356 @@ double Pair::mix_distance(double sig1, double sig2)
 }
 
 /* ----------------------------------------------------------------------
-   compute pair virial via own/ghost forces
+   setup for energy, virial computation
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+------------------------------------------------------------------------- */
+
+void Pair::ev_setup(int eflag, int vflag)
+{
+  int i,n;
+
+  evflag = 1;
+
+  eflag_either = eflag;
+  eflag_global = eflag % 2;
+  eflag_atom = eflag / 2;
+
+  vflag_either = vflag;
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom && atom->nmax > maxeatom) {
+    maxeatom = atom->nmax;
+    memory->sfree(eatom);
+    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"pair:eatom");
+  }
+  if (vflag_atom && atom->nmax > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->destroy_2d_double_array(vatom);
+    vatom = memory->create_2d_double_array(maxvatom,6,"pair:vatom");
+  }
+
+  // zero accumulators
+  // use force->newton instead of newton_pair
+  //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
+
+  if (eflag_global) eng_vdwl = eng_coul = 0.0;
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag_atom) {
+    n = atom->nlocal;
+    if (force->newton) n += atom->nghost;
+    for (i = 0; i < n; i++) eatom[i] = 0.0;
+  }
+  if (vflag_atom) {
+    n = atom->nlocal;
+    if (force->newton) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      vatom[i][0] = 0.0;
+      vatom[i][1] = 0.0;
+      vatom[i][2] = 0.0;
+      vatom[i][3] = 0.0;
+      vatom[i][4] = 0.0;
+      vatom[i][5] = 0.0;
+    }
+  }
+
+  // if vflag_global = 2
+  // compute global virial via (F dot r) instead of via pairwise summation
+  // unset other flags as appropriate
+
+  if (vflag_global == 2) {
+    vflag_fdotr = 1;
+    vflag_global = 0;
+    if (vflag_atom == 0) vflag_either = 0;
+    if (vflag_either == 0 && eflag_either == 0) evflag = 0;
+  } else vflag_fdotr = 0;
+}
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   need i < nlocal test since called by bond_quartic and dihedral_charmm
+------------------------------------------------------------------------- */
+
+void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
+		    double evdwl, double ecoul, double fpair,
+		    double delx, double dely, double delz)
+{
+  double evdwlhalf,ecoulhalf,epairhalf,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_pair) {
+	eng_vdwl += evdwl;
+	eng_coul += ecoul;
+      } else {
+	evdwlhalf = 0.5*evdwl;
+	ecoulhalf = 0.5*ecoul;
+	if (i < nlocal) {
+	  eng_vdwl += evdwlhalf;
+	  eng_coul += ecoulhalf;
+	}
+	if (j < nlocal) {
+	  eng_vdwl += evdwlhalf;
+	  eng_coul += ecoulhalf;
+	}
+      }
+    }
+    if (eflag_atom) {
+      epairhalf = 0.5 * (evdwl + ecoul);
+      if (newton_pair || i < nlocal) eatom[i] += epairhalf;
+      if (newton_pair || j < nlocal) eatom[j] += epairhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (newton_pair) {
+	virial[0] += v[0];
+	virial[1] += v[1];
+	virial[2] += v[2];
+	virial[3] += v[3];
+	virial[4] += v[4];
+	virial[5] += v[5];
+      } else {
+	if (i < nlocal) {
+	  virial[0] += 0.5*v[0];
+	  virial[1] += 0.5*v[1];
+	  virial[2] += 0.5*v[2];
+	  virial[3] += 0.5*v[3];
+	  virial[4] += 0.5*v[4];
+	  virial[5] += 0.5*v[5];
+	}
+	if (j < nlocal) {
+	  virial[0] += 0.5*v[0];
+	  virial[1] += 0.5*v[1];
+	  virial[2] += 0.5*v[2];
+	  virial[3] += 0.5*v[3];
+	  virial[4] += 0.5*v[4];
+	  virial[5] += 0.5*v[5];
+	}
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_pair || i < nlocal) {
+	vatom[i][0] += 0.5*v[0];
+	vatom[i][1] += 0.5*v[1];
+	vatom[i][2] += 0.5*v[2];
+	vatom[i][3] += 0.5*v[3];
+	vatom[i][4] += 0.5*v[4];
+	vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_pair || j < nlocal) {
+	vatom[j][0] += 0.5*v[0];
+	vatom[j][1] += 0.5*v[1];
+	vatom[j][2] += 0.5*v[2];
+	vatom[j][3] += 0.5*v[3];
+	vatom[j][4] += 0.5*v[4];
+	vatom[j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+------------------------------------------------------------------------- */
+
+void Pair::ev_tally_xyz(int i, int j, int nlocal, int newton_pair,
+			double evdwl, double ecoul,
+			double fx, double fy, double fz,
+			double delx, double dely, double delz)
+{
+  double evdwlhalf,ecoulhalf,epairhalf,v[6];
+  
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_pair) {
+	eng_vdwl += evdwl;
+	eng_coul += ecoul;
+      } else {
+	evdwlhalf = 0.5*evdwl;
+	ecoulhalf = 0.5*ecoul;
+	if (i < nlocal) {
+	  eng_vdwl += evdwlhalf;
+	  eng_coul += ecoulhalf;
+	}
+	if (j < nlocal) {
+	  eng_vdwl += evdwlhalf;
+	  eng_coul += ecoulhalf;
+	}
+      }
+    }
+    if (eflag_atom) {
+      epairhalf = 0.5 * (evdwl + ecoul);
+      if (newton_pair || i < nlocal) eatom[i] += epairhalf;
+      if (newton_pair || j < nlocal) eatom[j] += epairhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+
+    if (vflag_global) {
+      if (newton_pair) {
+	virial[0] += v[0];
+	virial[1] += v[1];
+	virial[2] += v[2];
+	virial[3] += v[3];
+	virial[4] += v[4];
+	virial[5] += v[5];
+      } else {
+	if (i < nlocal) {
+	  virial[0] += 0.5*v[0];
+	  virial[1] += 0.5*v[1];
+	  virial[2] += 0.5*v[2];
+	  virial[3] += 0.5*v[3];
+	  virial[4] += 0.5*v[4];
+	  virial[5] += 0.5*v[5];
+	}
+	if (j < nlocal) {
+	  virial[0] += 0.5*v[0];
+	  virial[1] += 0.5*v[1];
+	  virial[2] += 0.5*v[2];
+	  virial[3] += 0.5*v[3];
+	  virial[4] += 0.5*v[4];
+	  virial[5] += 0.5*v[5];
+	}
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_pair || i < nlocal) {
+	vatom[i][0] += 0.5*v[0];
+	vatom[i][1] += 0.5*v[1];
+	vatom[i][2] += 0.5*v[2];
+	vatom[i][3] += 0.5*v[3];
+	vatom[i][4] += 0.5*v[4];
+	vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_pair || j < nlocal) {
+	vatom[j][0] += 0.5*v[0];
+	vatom[j][1] += 0.5*v[1];
+	vatom[j][2] += 0.5*v[2];
+	vatom[j][3] += 0.5*v[3];
+	vatom[j][4] += 0.5*v[4];
+	vatom[j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   called by SW and Tersoff potentials, newton_pair is always on
+   virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drij*fj + drik*fk
+ ------------------------------------------------------------------------- */
+
+void Pair::ev_tally3(int i, int j, int k, double evdwl, double ecoul,
+		     double *fj, double *fk, double *drij, double *drik)
+{
+  double epairthird,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      eng_vdwl += evdwl;
+      eng_coul += ecoul;
+    }
+    if (eflag_atom) {
+      epairthird = THIRD * (evdwl + ecoul);
+      eatom[i] += epairthird;
+      eatom[j] += epairthird;
+      eatom[k] += epairthird;
+    }
+  }
+
+  if (vflag_atom) {
+    v[0] = THIRD * (drij[0]*fj[0] + drik[0]*fk[0]);
+    v[1] = THIRD * (drij[1]*fj[1] + drik[1]*fk[1]);
+    v[2] = THIRD * (drij[2]*fj[2] + drik[2]*fk[2]);
+    v[3] = THIRD * (drij[0]*fj[1] + drik[0]*fk[1]);
+    v[4] = THIRD * (drij[0]*fj[2] + drik[0]*fk[2]);
+    v[5] = THIRD * (drij[1]*fj[2] + drik[1]*fk[2]);
+
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by airebo potential, newton_pair is always on
+------------------------------------------------------------------------- */
+
+void Pair::v_tally3(int i, int j, int k,
+		    double f1, double f2, double *drik, double *drkj)
+{
+  double v[6];
+  
+  v[0] = 0.0;
+  v[1] = 0.0;
+  v[2] = 0.0;
+  v[3] = 0.0;
+  v[4] = 0.0;
+  v[5] = 0.0;
+
+  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
+   called by airebo potential, newton_pair is always on
+------------------------------------------------------------------------- */
+
+void Pair::v_tally4(int i, int j, int k, int m,
+		    double f1, double f2, double f3,
+		    double *drik, double *drkm, double *drmj)
+{
+  double v[6];
+
+  v[0] = 0.0;
+  v[1] = 0.0;
+  v[2] = 0.0;
+  v[3] = 0.0;
+  v[4] = 0.0;
+  v[5] = 0.0;
+
+  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
+  vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   compute global pair virial via summing F dot r over own & ghost atoms
    at this point, only pairwise forces have been accumulated in atom->f
 ------------------------------------------------------------------------- */
 
@@ -420,4 +784,13 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   maskhi = *int_rsq & ~(nmask);
   rsq = inner*inner;
   masklo = *int_rsq & ~(nmask);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Pair::memory_usage()
+{
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  return bytes;
 }

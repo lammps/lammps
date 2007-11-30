@@ -68,22 +68,23 @@ PairCoulLong::~PairCoulLong()
 void PairCoulLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,fraction,table;
-  double r,r2inv,forcecoul,fforce,factor_coul;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
+  double r,r2inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double phicoul;
   int *ilist,*jlist,*numneigh,**firstneigh;
   float rsq;
   int *int_rsq = (int *) &rsq;
 
-  eng_coul = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
@@ -142,43 +143,36 @@ void PairCoulLong::compute(int eflag, int vflag)
 	  }
 	}
 
-	fforce = forcecoul * r2inv;
+	fpair = forcecoul * r2inv;
 
-	f[i][0] += delx*fforce;
-	f[i][1] += dely*fforce;
-	f[i][2] += delz*fforce;
+	f[i][0] += delx*fpair;
+	f[i][1] += dely*fpair;
+	f[i][2] += delz*fpair;
 	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fforce;
-	  f[j][1] -= dely*fforce;
-	  f[j][2] -= delz*fforce;
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
 	}
 
 	if (eflag) {
 	  if (!ncoultablebits || rsq <= tabinnersq)
-	    phicoul = prefactor*erfc;
+	    ecoul = prefactor*erfc;
 	  else {
 	    table = etable[itable] + fraction*detable[itable];
-	    phicoul = qtmp*q[j] * table;
+	    ecoul = qtmp*q[j] * table;
 	  }
-	  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-	  if (newton_pair || j < nlocal) eng_coul += phicoul;
-	  else eng_coul += 0.5*phicoul;
+	  if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) fforce *= 0.5;
-	  virial[0] += delx*delx*fforce;
-	  virial[1] += dely*dely*fforce;
-	  virial[2] += delz*delz*fforce;
-	  virial[3] += delx*dely*fforce;
-	  virial[4] += delx*delz*fforce;
-	  virial[5] += dely*delz*fforce;
-	}
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			     0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
+
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */

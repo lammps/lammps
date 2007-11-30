@@ -44,11 +44,13 @@ BondNonlinear::~BondNonlinear()
 
 void BondNonlinear::compute(int eflag, int vflag)
 {
-  int i1,i2,n,type,factor;
-  double delx,dely,delz,rsq,r,dr,drsq,lamdasq,denom,denomsq,fforce,rfactor;
+  int i1,i2,n,type;
+  double delx,dely,delz,ebond,fbond;
+  double rsq,r,dr,drsq,lamdasq,denom,denomsq;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  ebond = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -58,18 +60,9 @@ void BondNonlinear::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   for (n = 0; n < nbondlist; n++) {
-    
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-
-    if (newton_bond) factor = 2;
-    else {
-      factor = 0;
-      if (i1 < nlocal) factor++;
-      if (i2 < nlocal) factor++;
-    }
-    rfactor = 0.5 * factor;
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -86,33 +79,24 @@ void BondNonlinear::compute(int eflag, int vflag)
 
     // force & energy
 
-    fforce = -epsilon[type]/r * 2.0*dr*lamdasq/denomsq;
-    if (eflag) energy += rfactor * epsilon[type] * drsq / denom;
+    fbond = -epsilon[type]/r * 2.0*dr*lamdasq/denomsq;
+    if (eflag) ebond = epsilon[type] * drsq / denom;
 
     // apply force to each of 2 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fforce;
-      f[i1][1] += dely*fforce;
-      f[i1][2] += delz*fforce;
+      f[i1][0] += delx*fbond;
+      f[i1][1] += dely*fbond;
+      f[i1][2] += delz*fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fforce;
-      f[i2][1] -= dely*fforce;
-      f[i2][2] -= delz*fforce;
+      f[i2][0] -= delx*fbond;
+      f[i2][1] -= dely*fbond;
+      f[i2][2] -= delz*fbond;
     }
 
-    // virial contribution
-
-    if (vflag) {
-      virial[0] += rfactor*delx*delx*fforce;
-      virial[1] += rfactor*dely*dely*fforce;
-      virial[2] += rfactor*delz*delz*fforce;
-      virial[3] += rfactor*delx*dely*fforce;
-      virial[4] += rfactor*delx*delz*fforce;
-      virial[5] += rfactor*dely*delz*fforce;
-    }
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
   }
 }
 
@@ -198,18 +182,12 @@ void BondNonlinear::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondNonlinear::single(int type, double rsq, int i, int j,
-			   int eflag, double &fforce, double &eng)
+void BondNonlinear::single(int type, double rsq, int i, int j, double &eng)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double drsq = dr*dr;
   double lamdasq = lamda[type]*lamda[type];
   double denom = lamdasq - drsq;
-  double denomsq = denom*denom;
-
-  // force & energy
-
-  fforce = -epsilon[type]/r * 2.0*dr*lamdasq/denomsq;
-  if (eflag) eng = epsilon[type] * drsq / denom;
+  eng = epsilon[type] * drsq / denom;
 }

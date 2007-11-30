@@ -75,19 +75,21 @@ PairSW::~PairSW()
 void PairSW::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1,itag,jtag,itype,jtype,ktype,iparam;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq,rsq1,rsq2,eng,fforce;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -134,15 +136,17 @@ void PairSW::compute(int eflag, int vflag)
       iparam = elem2param[itype][jtype][jtype];
       if (rsq > params[iparam].cutsq) continue;
 
-      twobody(&params[iparam],rsq,fforce,eflag,eng);
+      twobody(&params[iparam],rsq,fpair,eflag,evdwl);
 
-      if (eflag) eng_vdwl += eng;
-      f[i][0] += fforce*delx;
-      f[i][1] += fforce*dely;
-      f[i][2] += fforce*delz;
-      f[j][0] -= fforce*delx;
-      f[j][1] -= fforce*dely;
-      f[j][2] -= fforce*delz;
+      f[i][0] += delx*fpair;
+      f[i][1] += dely*fpair;
+      f[i][2] += delz*fpair;
+      f[j][0] -= delx*fpair;
+      f[j][1] -= dely*fpair;
+      f[j][2] -= delz*fpair;
+
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
     // three-body interactions
@@ -172,9 +176,8 @@ void PairSW::compute(int eflag, int vflag)
 	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 	if (rsq2 > params[iparam].cutsq) continue;
 
-	threebody(&params[iparam],rsq1,rsq2,delr1,delr2,fj,fk,eflag,eng);
+	threebody(&params[iparam],rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
-	if (eflag) eng_vdwl += eng;
 	f[i][0] -= fj[0] + fk[0];
 	f[i][1] -= fj[1] + fk[1];
 	f[i][2] -= fj[2] + fk[2];
@@ -184,10 +187,13 @@ void PairSW::compute(int eflag, int vflag)
 	f[k][0] += fk[0];
 	f[k][1] += fk[1];
 	f[k][2] += fk[2];
+
+	if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ---------------------------------------------------------------------- */

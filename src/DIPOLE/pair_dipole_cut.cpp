@@ -61,18 +61,17 @@ PairDipoleCut::~PairDipoleCut()
 void PairDipoleCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fx,fy,fz;
   double rsq,rinv,r2inv,r6inv,r3inv,r5inv,r7inv;
-  double forcecoulx,forcecouly,forcecoulz,fforce,crossx,crossy,crossz;
+  double forcecoulx,forcecouly,forcecoulz,crossx,crossy,crossz;
   double tixcoul,tiycoul,tizcoul,tjxcoul,tjycoul,tjzcoul;
-  double fq,fx,fy,fz;
-  double pdotp,pidotr,pjdotr,pre1,pre2,pre3,pre4;
+  double fq,pdotp,pidotr,pjdotr,pre1,pre2,pre3,pre4;
   double forcelj,factor_coul,factor_lj;
-  double factor,phicoul,philj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  eng_vdwl = eng_coul = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  evdwl = ecoul = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -82,7 +81,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
   int *type = atom->type;
   double *dipole = atom->dipole;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -209,15 +208,15 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
 	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  fforce = factor_lj * forcelj*r2inv;
-	} else fforce = 0.0;
+	  forcelj *= factor_lj * r2inv;
+	} else forcelj = 0.0;
 	  
 	// total force
 
 	fq = factor_coul*qqrd2e;
-	fx = fq*forcecoulx + delx*fforce;
-	fy = fq*forcecouly + dely*fforce;
-	fz = fq*forcecoulz + delz*fforce;
+	fx = fq*forcecoulx + delx*forcelj;
+	fy = fq*forcecouly + dely*forcelj;
+	fz = fq*forcecoulz + delz*forcelj;
 	
 	// force & torque accumulation
 
@@ -238,42 +237,31 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  if (newton_pair || j < nlocal) factor = 1.0;
-	  else factor = 0.5;
-
 	  if (rsq < cut_coulsq[itype][jtype]) {
-	    phicoul = qtmp*q[j]*rinv;
+	    ecoul = qtmp*q[j]*rinv;
 	    if (dipole[itype] > 0.0 && dipole[jtype] > 0.0)
-	      phicoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
+	      ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
 	    if (dipole[itype] > 0.0 && q[j] != 0.0) 
-	      phicoul += -q[j]*r3inv*pidotr;
+	      ecoul += -q[j]*r3inv*pidotr;
 	    if (dipole[jtype] > 0.0 && qtmp != 0.0)
-	      phicoul += qtmp*r3inv*pjdotr;
-	    eng_coul += factor*factor_coul*qqrd2e*phicoul;
-	  }
+	      ecoul += qtmp*r3inv*pjdotr;
+	    ecoul *= factor_coul*qqrd2e;
+	  } else ecoul = 0.0;
 
 	  if (rsq < cut_ljsq[itype][jtype]) {
-	    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
 	      offset[itype][jtype];
-	    eng_vdwl += factor*factor_lj*philj;
-	  }
+	    evdwl *= factor_lj;
+	  } else evdwl = 0.0;
 	}
 
-	if (vflag == 1) {
-	  if (newton_pair == 0 && j >= nlocal) {
-	    fx *= 0.5; fy *= 0.5; fz *= 0.5;
-	  }
-	  virial[0] += delx*fx;
-	  virial[1] += dely*fy;
-	  virial[2] += delz*fz;
-	  virial[3] += delx*fy;
-	  virial[4] += delx*fz;
-	  virial[5] += dely*fz;
-	}
+	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+				 evdwl,ecoul,fx,fy,fz,delx,dely,delz);
       }
     }
   }
-  if (vflag == 2) virial_compute();
+
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

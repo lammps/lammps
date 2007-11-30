@@ -1,0 +1,62 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute pe/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID pe/atom keyword ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+pe/atom = style name of this compute command
+zero or more keywords may be appended
+keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} :ul
+
+[Examples:]
+
+compute 1 all pe/atom
+compute 1 all pe/atom pair
+compute 1 all pe/atom pair bond :pre
+
+[Description:]
+
+Define a computation that computes the per-atom potential energy for
+each atom in a group.  See the "compute pe"_compute_pe.html command if
+you want the potential energy of the entire system.  The per-atom
+energies can be accessed as scalar values by any command that uses
+per-atom computes, e.g. the "dump custom"_dump.html command or "fix
+ave/spatial"_fix_ave_spatial.html command or "fix
+ave/atom"_fix_ave_atom.html command.  See "this
+section"_Section_howto.html#4_15 for an overview.
+
+The per-atom energy is calulated by the various pair, bond, etc
+potentials defined for the simulation.  If no extra keywords are
+listed, then the potential energy is the sum of pair, bond, angle,
+dihedral, and improper energy.  If any extra keywords are listed, then
+only those components are summed to compute the potential energy.
+
+Note that the energy of each atom is due to its interaction with all
+other atoms in the simulation, not just with other atoms in the group.
+
+For an energy contribution produced by a small set of atoms (e.g. 4
+atoms in a dihedral or 3 atoms in a Tersoff 3-body interaction), that
+energy is assigned in equal portions to each atom in the set.
+E.g. 1/4 of the dihedral energy to each of the 4 atoms.
+
+The "dihedral_style charmm"_dihedral_charmm.html style calculates
+pairwise interactions between 1-4 atoms.  The energy contribution of
+these terms is included in the pair energy, not the dihedral energy.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute pe"_compute_pe.html, "compute
+stress/atom"_compute_stress_atom.html
+
+[Default:] none

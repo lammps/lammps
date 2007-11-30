@@ -90,10 +90,9 @@ defined in LAMMPS:
 "attribute/atom"_compute_attribute_atom.html - attribute (x,v,f,etc) of each atom
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
-"ebond/atom"_compute_ebond_atom.html - bond energy for each atom
-"epair/atom"_compute_epair_atom.html - pairwise energy for each atom
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "pe"_compute_pe.html - potential energy
+"pe"_compute_pe.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms

@@ -91,7 +91,6 @@ Here is an alphabetic list of fix styles available in LAMMPS:
 "efield"_fix_efield.html - impose electric field on system
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
-"gran/diag"_fix_gran_diag.html - compute granular diagnostics
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "gyration"_fix_gyration.html - compute radius of gyration
 "heat"_fix_heat.html - add/subtract momentum-conserving heat

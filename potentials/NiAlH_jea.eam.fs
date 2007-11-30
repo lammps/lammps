@@ -1,6 +1,6 @@
-testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest
-THIS IS THE PAIR EAM FS VERSION OF NIALHJEA
-testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest
+see James E Angelo, Neville R Moody, Michael I Baskes
+"Trapping of hydrogen to lattice defects in nickel", Modelling and
+Simulation in Materials Science & Engineering, vol. 3, pp. 289-307 (1995)
     3   Ni  Al  H
  1000  0.1300722995578975E-01 1000  0.5678391959798995E-02  0.5650000000000000E+01
    28     58.710         3.5200        fcc 

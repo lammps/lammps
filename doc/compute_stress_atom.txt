@@ -95,8 +95,9 @@ See the Restrictions below.
 
 [Restrictions:]
 
-These pair styles do not yet work with this compute: "airebo", "meam",
-and "TIP4P".
+These pair styles do not yet tabulate per-atom virial information to
+allow them to work with this compute: "airebo"_pair_airebo.html,
+"meam"_pair_meam.html, and "TIP4P"_pair_lj.html.
 
 [Related commands:]
 

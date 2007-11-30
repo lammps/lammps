@@ -38,25 +38,26 @@ custom</A> command or <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
 command or <A HREF = "fix_ave_atom.html">fix ave/atom</A> command.  See <A HREF = "Section_howto.html#4_15">this
 section</A> for an overview.
 </P>
-<P>The stress tensor for each atom is given by the following formula.
-where the ab component of stress on atom <I>I</I> is as shown where <I>a</I> and
-<I>b</I> take on values x,y,z to generate the 6 components of the symmetric
-tensor:
+<P>The stress tensor for atom <I>I</I> is given by the following formula,
+where <I>a</I> and <I>b</I> take on values x,y,z to generate the 6 components of
+the symmetric tensor:
 </P>
 <CENTER><IMG SRC = "Eqs/stress_tensor.jpg">
 </CENTER>
 <P>The first term is a kinetic energy contribution for atom <I>I</I>.  The
-second term is a pairwise energy contribution where <I>N</I> loops over the
+second term is a pairwise energy contribution where <I>n</I> loops over the
 <I>Np</I> neighbors of atom <I>I</I>, <I>r1</I> and <I>r2</I> are the positions of the 2
-atoms, and <I>F1</I> and <I>F2</I> are the forces on the 2 atoms.  The third
-term is a bond contribution for the <I>Nb</I> bonds whihc atom <I>I</I> is part
-of.  And similarly for the <I>Na</I> angle, <I>Nd</I> dihedral, and <I>Ni</I>
-improper interactions atom <I>I</I> is part of.
+atoms in the pairwise interaction, and <I>F1</I> and <I>F2</I> are the forces on
+the 2 atoms resulting from the pairwise interaction.  The third term
+is a bond contribution of similar form for the <I>Nb</I> bonds which atom
+<I>I</I> is part of.  The remaining terms are for the <I>Na</I> angle, <I>Nd</I>
+dihedral, and <I>Ni</I> improper interactions atom <I>I</I> is part of.
 </P>
-<P>As the formula implies, a virial contribution produced by a small set
-of atoms (e.g. 4 atoms in a dihedral or 3 atoms in a Tersoff 3-body
-interaction) is assigned in equal portions to each atom in the set.
-E.g. 1/4 of the dihedral virial to each of the 4 atoms.
+<P>As the coefficients in the formula imply, a virial contribution
+produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
+atoms in a Tersoff 3-body interaction) is assigned in equal portions
+to each atom in the set.  E.g. 1/4 of the dihedral virial to each of
+the 4 atoms.
 </P>
 <P>If no extra keywords are listed, all of the terms in this formula are
 included in the per-atom stress tensor.  If any extra keywords are

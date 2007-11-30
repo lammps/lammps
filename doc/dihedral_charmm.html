@@ -28,8 +28,8 @@ dihedral_coeff 1 120.0 1 60 0.5
 </CENTER>
 <P>See <A HREF = "#MacKerell">(MacKerell)</A> for a description of the CHARMM force
 field.  This dihedral style can also be used for the AMBER force field
-(see the comment on weighting factors below).  See
-<A HREF = "#Cornell">(Cornell)</A> for a description of the AMBER force field.
+(see comment on weighting factors below).  See <A HREF = "#Cornell">(Cornell)</A>
+for a description of the AMBER force field.
 </P>
 <P>The following coefficients must be defined for each dihedral type via the
 <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above, or in
@@ -42,9 +42,11 @@ or <A HREF = "read_restart.html">read_restart</A> commands:
 <LI>weighting factor (0.0 to 1.0) 
 </UL>
 <P>The weighting factor is applied to pairwise interaction between the
-1st and 4th atoms in the dihedral.  Note that this weighting factor is
-unrelated to the weighting factor specified by the <A HREF = "special_bonds.html">special
-bonds</A> command which applies to all 1-4
+1st and 4th atoms in the dihedral, which are computed by a CHARMM
+<A HREF = "pair_charmm.html">pair_style</A> with epsilon and sigma values specified
+with a <A HREF = "pair_charmm.html">pair_coeff</A> command.  Note that this
+weighting factor is unrelated to the weighting factor specified by the
+<A HREF = "special_bonds.html">special bonds</A> command which applies to all 1-4
 interactions in the system.
 </P>
 <P>For CHARMM force fields, the special_bonds 1-4 weighting factor should

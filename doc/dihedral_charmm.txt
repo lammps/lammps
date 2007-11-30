@@ -25,8 +25,8 @@ The {charmm} dihedral style uses the potential
 
 See "(MacKerell)"_#MacKerell for a description of the CHARMM force
 field.  This dihedral style can also be used for the AMBER force field
-(see the comment on weighting factors below).  See
-"(Cornell)"_#Cornell for a description of the AMBER force field.
+(see comment on weighting factors below).  See "(Cornell)"_#Cornell
+for a description of the AMBER force field.
 
 The following coefficients must be defined for each dihedral type via the
 "dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
@@ -39,9 +39,11 @@ d (integer value of degrees)
 weighting factor (0.0 to 1.0) :ul
 
 The weighting factor is applied to pairwise interaction between the
-1st and 4th atoms in the dihedral.  Note that this weighting factor is
-unrelated to the weighting factor specified by the "special
-bonds"_special_bonds.html command which applies to all 1-4
+1st and 4th atoms in the dihedral, which are computed by a CHARMM
+"pair_style"_pair_charmm.html with epsilon and sigma values specified
+with a "pair_coeff"_pair_charmm.html command.  Note that this
+weighting factor is unrelated to the weighting factor specified by the
+"special bonds"_special_bonds.html command which applies to all 1-4
 interactions in the system.
 
 For CHARMM force fields, the special_bonds 1-4 weighting factor should

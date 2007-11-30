@@ -122,6 +122,15 @@ void PairMEAM::compute(int eflag, int vflag)
   int *ilist_half,*jlist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
+  evdwl = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+
+  // error check (for now)
+
+  if (eflag_atom || vflag_atom)
+    error->all("Pair style meam does not yet support peratom energy/virial");
+
   // grow local arrays if necessary
 
   if (atom->nmax > nmax) {
@@ -176,7 +185,7 @@ void PairMEAM::compute(int eflag, int vflag)
   // check size of scrfcn based on half neighbor list
 
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
 
   n = 0;
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
@@ -193,9 +202,6 @@ void PairMEAM::compute(int eflag, int vflag)
     fcpair = 
       (double *) memory->smalloc(maxneigh*sizeof(double),"pair:fcpair");
   }
-
-  eng_vdwl = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
   // zero out local arrays
 
@@ -229,7 +235,7 @@ void PairMEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_dens_init_(&ifort,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
+    meam_dens_init_(&ifort,&nmax,&eflag,&evdwl,&ntype,type,fmap,&x[0][0],
 		    &numneigh_half[i],firstneigh_half[i],
 		    &numneigh_full[i],firstneigh_full[i],
 		    &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
@@ -246,7 +252,7 @@ void PairMEAM::compute(int eflag, int vflag)
   reverse_flag = 0;
   comm->reverse_comm_pair(this);
 
-  meam_dens_final_(&nlocal,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,
+  meam_dens_final_(&nlocal,&nmax,&eflag,&evdwl,&ntype,type,fmap,
 		   &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
 		   &arho3b[0][0],&t_ave[0][0],gamma,dgamma1,
 		   dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
@@ -263,7 +269,7 @@ void PairMEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_force_(&ifort,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
+    meam_force_(&ifort,&nmax,&eflag,&evdwl,&ntype,type,fmap,&x[0][0],
 		&numneigh_half[i],firstneigh_half[i],
 		&numneigh_full[i],firstneigh_full[i],
 		&scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
@@ -286,7 +292,10 @@ void PairMEAM::compute(int eflag, int vflag)
   neigh_f2c(inum_half,ilist_half,numneigh_half,firstneigh_half);
   neigh_f2c(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
-  if (vflag == 2) virial_compute();
+  // just sum global energy (for now)
+
+  if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0);
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ---------------------------------------------------------------------- */

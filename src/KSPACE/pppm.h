@@ -78,6 +78,7 @@ class PPPM : public KSpace {
   void deallocate();
   int factorable(int);
   double rms(double, double, double, double, double **);
+  double diffpr(double, double, double, double, double **);
   void compute_gf_denom();
   double gf_denom(double, double, double);
   virtual void particle_map();

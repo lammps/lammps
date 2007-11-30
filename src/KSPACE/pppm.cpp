@@ -795,7 +795,7 @@ void PPPM::deallocate()
 
 void PPPM::set_grid()
 {
-  // see JCP 109, pg. 7698 for derivation of coefficients
+  // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
   double **acons = memory->create_2d_double_array(8,7,"pppm:acons");
@@ -846,119 +846,91 @@ void PPPM::set_grid()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
+  double hx,hy,hz;
+
   if (!gewaldflag)
     g_ewald = sqrt(-log(precision*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
 			(2.0*q2))) / cutoff;
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and precision
   // nz_pppm uses extended zprd_slab instead of zprd
-
-  double h,h1,h2,err,er1,er2,lpr;
-  int ncount;
+  // h = 1/g_ewald is upper bound on h such that h*g_ewald <= 1
+  // reduce it until precision target is met
 
   if (!gridflag) {
-    h = 1.0;
-    h1 = 2.0;
+    double err;
+    hx = hy = hz = 1/g_ewald;  
 
-    ncount = 0;
-    err = LARGE;
-    er1 = 0.0;
-    while (fabs(err) > SMALL) {
-      lpr = rms(h,xprd,natoms,q2,acons);
-      err = log(lpr) - log(precision);
-      er2 = er1;
-      er1 = err;
-      h2 = h1;
-      h1 = h;
-      if ((er1 - er2) == 0.0) h = h1 + er1;
-      else h = h1 + er1*(h2 - h1)/(er1 - er2);
-      ncount++;
-      if (ncount > LARGE) error->all("Cannot compute PPPM X grid spacing");
+    nx_pppm = static_cast<int> (xprd/hx + 1);
+    ny_pppm = static_cast<int> (yprd/hy + 1);
+    nz_pppm = static_cast<int> (zprd_slab/hz + 1);
+
+    err = rms(hx,xprd,natoms,q2,acons);
+    while (err > precision) {
+      err = rms(hx,xprd,natoms,q2,acons);
+      nx_pppm++;
+      hx = xprd/nx_pppm;
     }
-    nx_pppm = static_cast<int> (xprd/h + 1);
 
-    ncount = 0;
-    err = LARGE;
-    er1 = 0.0;
-    while (fabs(err) > SMALL) {
-      lpr = rms(h,yprd,natoms,q2,acons);
-      err = log(lpr) - log(precision);
-      er2 = er1;
-      er1 = err;
-      h2 = h1;
-      h1 = h;
-      if ((er1 - er2) == 0.0) h = h1 + er1;
-      else h = h1 + er1*(h2 - h1)/(er1 - er2);
-      ncount++;
-      if (ncount > LARGE) error->all("Cannot compute PPPM Y grid spacing");
+    err = rms(hy,yprd,natoms,q2,acons);
+    while (err > precision) {
+      err = rms(hy,yprd,natoms,q2,acons);
+      ny_pppm++;
+      hy = yprd/ny_pppm;
     }
-    ny_pppm = static_cast<int> (yprd/h + 1);
 
-    ncount = 0;
-    err = LARGE;
-    er1 = 0.0;
-    while (fabs(err) > SMALL) {
-      lpr = rms(h,zprd_slab,natoms,q2,acons);
-      err = log(lpr) - log(precision);
-      er2 = er1;
-      er1 = err;
-      h2 = h1;
-      h1 = h;
-      if ((er1 - er2) == 0.0) h = h1 + er1;
-      else h = h1 + er1*(h2 - h1)/(er1 - er2);
-      ncount++;
-      if (ncount > LARGE) error->all("Cannot compute PPPM Z grid spacing");
+    err = rms(hz,zprd_slab,natoms,q2,acons);
+    while (err > precision) {
+      err = rms(hz,zprd_slab,natoms,q2,acons);
+      nz_pppm++;
+      hz = zprd_slab/nz_pppm;
     }
-    nz_pppm = static_cast<int> (zprd_slab/h + 1);
-
   }
 
-  // convert grid into sizes that are factorable
+  // boost grid size until it is factorable
 
   while (!factorable(nx_pppm)) nx_pppm++;
   while (!factorable(ny_pppm)) ny_pppm++;
   while (!factorable(nz_pppm)) nz_pppm++;
 
-  // adjust g_ewald for new grid
+  // adjust g_ewald for new grid size
 
-  double dx = xprd/nx_pppm;
-  double dy = yprd/ny_pppm;
-  double dz = zprd_slab/nz_pppm;
+  hx = xprd/nx_pppm;
+  hy = yprd/ny_pppm;
+  hz = zprd_slab/nz_pppm;
 
   if (!gewaldflag) {
-    double gew1,gew2,lprx,lpry,lprz,spr;
+    double gew1,gew2,dgew,f,fmid,hmin,rtb;
+    int ncount;
 
-    gew1 = g_ewald + 0.01;
+    gew1 = 0.0;
+    g_ewald = gew1;
+    f = diffpr(hx,hy,hz,q2,acons);
+
+    hmin = MIN(hx,MIN(hy,hz));
+    gew2 = 10/hmin;
+    g_ewald = gew2;
+    fmid = diffpr(hx,hy,hz,q2,acons);
+
+    if (f*fmid >= 0.0) error->all("Cannot compute PPPM G");
+    rtb = f < 0.0 ? (dgew=gew2-gew1,gew1) : (dgew=gew1-gew2,gew2);
     ncount = 0;
-    err = LARGE;
-    er1 = 0.0;
-
-    while (fabs(err) > SMALL) {
-      lprx = rms(dx,xprd,natoms,q2,acons);
-      lpry = rms(dy,yprd,natoms,q2,acons);
-      lprz = rms(dz,zprd_slab,natoms,q2,acons);
-      lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-      spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
-	sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
-      
-      err = log(lpr) - log(spr);
-      er2 = er1;
-      er1 = err;
-      gew2 = gew1;
-      gew1 = g_ewald;
-      if ((er1 - er2) == 0.0) g_ewald = gew1 + er1;
-      else g_ewald = gew1 + er1*(gew2 - gew1)/(er1 - er2);
+    while (fabs(dgew) > SMALL && fmid != 0.0) {
+      dgew *= 0.5;
+      g_ewald = rtb + dgew;
+      fmid = diffpr(hx,hy,hz,q2,acons);      
+      if (fmid <= 0.0) rtb = g_ewald;
       ncount++;
       if (ncount > LARGE) error->all("Cannot compute PPPM G");
     }
   }
 
-  // compute final RMS precision
+  // final RMS precision
 
-  double lprx = rms(dx,xprd,natoms,q2,acons);
-  double lpry = rms(dy,yprd,natoms,q2,acons);
-  double lprz = rms(dz,zprd_slab,natoms,q2,acons);
-  lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
+  double lprx = rms(hx,xprd,natoms,q2,acons);
+  double lpry = rms(hy,yprd,natoms,q2,acons);
+  double lprz = rms(hz,zprd_slab,natoms,q2,acons);
+  double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
     sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
 
@@ -1016,6 +988,28 @@ double PPPM::rms(double h, double prd, double natoms,
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
   double value = q2 * pow(h*g_ewald,order) *
     sqrt(g_ewald*prd*sqrt(2.0*PI)*sum/natoms) / (prd*prd);
+  return value;
+}
+
+/* ----------------------------------------------------------------------
+   compute difference in real-space and kspace RMS precision
+------------------------------------------------------------------------- */
+
+double PPPM::diffpr(double hx, double hy, double hz, double q2, double **acons)
+{
+  double lprx,lpry,lprz,kspace_prec,real_prec;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double natoms = atom->natoms;
+
+  lprx = rms(hx,xprd,natoms,q2,acons);
+  lpry = rms(hy,yprd,natoms,q2,acons);
+  lprz = rms(hz,zprd*slab_volfactor,natoms,q2,acons);
+  kspace_prec = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
+  real_prec = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
+   sqrt(natoms*cutoff*xprd*yprd*zprd);
+  double value = kspace_prec - real_prec;
   return value;
 }
 

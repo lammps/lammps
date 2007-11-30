@@ -134,12 +134,12 @@ double ComputePressure::compute_scalar()
 {
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-    virial_compute(3);
+    virial_compute(3,3);
     scalar = (temperature->dof * boltz * temperature->scalar + 
 	      virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
   } else {
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
-    virial_compute(2);
+    virial_compute(2,2);
     scalar = (temperature->dof * boltz * temperature->scalar + 
 	      virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
   }
@@ -156,13 +156,13 @@ void ComputePressure::compute_vector()
 {
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-    virial_compute(6);
+    virial_compute(6,3);
     double *ke_tensor = temperature->vector;
     for (int i = 0; i < 6; i++)
       vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
   } else {
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
-    virial_compute(4);
+    virial_compute(4,2);
     double *ke_tensor = temperature->vector;
     vector[0] = (ke_tensor[0] + virial[0]) * inv_volume * nktv2p;
     vector[1] = (ke_tensor[1] + virial[1]) * inv_volume * nktv2p;
@@ -172,7 +172,7 @@ void ComputePressure::compute_vector()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressure::virial_compute(int n)
+void ComputePressure::virial_compute(int n, int ndiag)
 {
   int i,j;
   double v[6],*vcomponent;
@@ -199,5 +199,5 @@ void ComputePressure::virial_compute(int n)
   // LJ long-range tail correction
 
   if (force->pair && force->pair->tail_flag)
-    for (i = 0; i < n; i++) virial[i] += force->pair->ptail * inv_volume;
+    for (i = 0; i < ndiag; i++) virial[i] += force->pair->ptail * inv_volume;
 }

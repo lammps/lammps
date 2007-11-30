@@ -35,7 +35,7 @@ class ComputePressure : public Compute {
   Compute *temperature;
   double virial[6];
 
-  void virial_compute(int);
+  void virial_compute(int, int);
 };
 
 }

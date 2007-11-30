@@ -13,15 +13,18 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID pressure compute-ID 
+<PRE>compute ID group-ID pressure temp-ID keyword ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>pressure = style name of this compute command
-<LI>compute-ID = ID of compute that calculates temperature 
+<LI>temp-ID = ID of compute that calculates temperature
+<LI>zero or more keywords may be appended
+<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> or <I>fix</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all pressure myTemp 
+<PRE>compute 1 all pressure myTemp
+compute 1 all pressure thermo_temp pair bond 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -39,26 +42,35 @@ of atoms via the <A HREF = "compute_sum.html">compute sum</A> command.
 below), Kb is the Boltzmann constant, T is the temperature, d is the
 dimensionality of the system (2 or 3 for 2d/3d), V is the system
 volume (or area in 2d), and the second term is the virial, computed
-within LAMMPS for all pairwise as well as 2-body, 3-body, 4-body, and
-long-range interactions.  <A HREF = "fix.html">Fixes</A> that impose constraints
+within LAMMPS for all pairwise as well as 2-body, 3-body, and 4-body,
+and long-range interactions.  <A HREF = "fix.html">Fixes</A> that impose constraints
 (e.g. the <A HREF = "fix_shake.html">fix shake</A> command) also contribute to the
 virial term.
 </P>
-<P>A 6-component pressure tensor is also calculated by this compute which
-can be output by the <A HREF = "thermo_style.html">thermo_style custom</A> command.
-The formula for the components of the tensor is the same as in above
-formula, except that the first term uses the components of the kinetic
-energy tensor (vx * vy instead of v^2 for temperature) and the second
-term uses Rx * Fy for the Wxy component of the virial tensor, etc.
+<P>A 6-component pressure tensor is also calculated by this compute whose
+componenents can be output by the <A HREF = "thermo_style.html">thermo_style
+custom</A> command or accessed by other
+<A HREF = "compute.html">compute</A> and <A HREF = "fix.html">fix</A> commands.  The equation for
+the components of the tensor is the same as in above formula, except
+that the first term uses the components of the kinetic energy tensor
+(vx * vy instead of v^2 for temperature) and the second term uses Rx *
+Fy for the Wxy component of the virial tensor, etc.
+</P>
+<P>If no extra keywords are listed, the entire equation above is
+calculated which includes a temperature term (or kinetic energy
+tensor) and the virial as the sum of pair, bond, angle, dihedral,
+improper, kspace (long-range), and fix contributions.  If any extra
+keywords are listed, then only those components are summed to compute
+ke and/or the virial.
 </P>
 <P>The temperature and kinetic energy tensor is not calculated by this
-compute, but rather by the temperature compute specified as the last
-argument of the command.  Normally this compute should calculate the
-temperature of all atoms for consistency with the virial term, but any
-compute style that calculates temperature can be used, e.g. one that
-excludes frozen atoms or other degrees of freedom.
+compute, but rather by the temperature compute specified with the
+command.  Normally this compute should calculate the temperature of
+all atoms for consistency with the virial term, but any compute style
+that calculates temperature can be used, e.g. one that excludes frozen
+atoms or other degrees of freedom.
 </P>
-<P>Note that the N is the above formula is really degrees-of-freedom/d
+<P>Note that the N is the above formula is really degrees-of-freedom
 where the DOF is specified by the temperature compute.  See the
 various <A HREF = "compute.html">compute temperature</A> styles for details.
 </P>
@@ -74,7 +86,9 @@ LAMMPS starts up, as if this command were in the input script:
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "themo_style.html">thermo_style</A>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>,
+<A HREF = "themo_style.html">thermo_style</A>,
 </P>
 <P><B>Default:</B> none
 </P>

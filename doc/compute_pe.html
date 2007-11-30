@@ -23,14 +23,13 @@
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all pe
-compute molPE all bond angle dihedral improper 
+compute molPE all pe bond angle dihedral improper 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the potential energy of the
 entire system of atoms.  The specified group must be "all".  See the
-<A HREF = "compute_epair_atom.html">compute epair/atom</A> and <A HREF = "compute_ebond_atom.html">compute
-ebond/atom</A> commands if you want per-atom
+<A HREF = "compute_pe_atom.html">compute pe/atom</A> command if you want per-atom
 energies.  These per-atom values could be summed for a group of atoms
 via the <A HREF = "compute_sum.html">compute sum</A> command.
 </P>
@@ -57,7 +56,9 @@ LAMMPS starts up, as if this command were in the input script:
 </P>
 <P><B>Restrictions:</B> none
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_pe_atom.html">compute pe/atom</A>
 </P>
 <P><B>Default:</B> none
 </P>

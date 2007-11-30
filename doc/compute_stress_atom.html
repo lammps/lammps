@@ -13,97 +13,99 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID stress/atom keyword value ... 
+<PRE>compute ID group-ID stress/atom keyword ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>stress/atom = style name of this compute command 
-
-<LI>zero or more keyword/arg pairs may be appended 
-
-<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> 
-
-<PRE>  <I>ke</I> arg = <I>yes</I> or <I>no</I>
-    yes/no = include/exclude kinetic energy contribution to stress
-  <I>pair</I> arg = <I>yes</I> or <I>no</I>
-    yes/no = include/exclude pairwise energy contribution to stress
-  <I>bond</I> arg = <I>yes</I> or <I>no</I>
-    yes/no = include/exclude bond energy contribution to stress 
-</PRE>
-
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>stress/atom = style name of this compute command
+<LI>zero or more keywords may be appended
+<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 mobile stress/atom 
 </PRE>
-<PRE>compute 1 all stress/atom ke no 
+<PRE>compute 1 all stress/atom pair bond 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that computes the per-atom stress tensor for each
-atom in a group.  The tensor for each atom has 6 components: xx, yy,
-zz, xy, xz, yz.  The resulting values can be accessed by indices 1-6
-by any command that uses per-atom computes, e.g. the <A HREF = "dump.html">dump
+<P>Define a computation that computes the symmetric per-atom stress
+tensor for each atom in a group.  The tensor for each atom has 6
+components: xx, yy, zz, xy, xz, yz.  See the <A HREF = "compute_pressure.html">compute
+pressure</A> command if you want the stress tensor
+(pressure) of the entire system.  The 6 components can be accessed by
+indices 1-6 by any command that uses per-atom computes, e.g. the <A HREF = "dump.html">dump
 custom</A> command or <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
-command or <A HREF = "fix_ave_atom.html">fix ave/atom</A> command.
+command or <A HREF = "fix_ave_atom.html">fix ave/atom</A> command.  See <A HREF = "Section_howto.html#4_15">this
+section</A> for an overview.
 </P>
-<P>The stress tensor for each atom is the sum of 3 terms in the following
-formula.  Any of the terms can be excluded by setting the <I>ke</I>,
-<I>pair</I>, or <I>bond</I> keywords to <I>no</I>.  The ab component of stress on
-atom <I>I</I> is as follows, where <I>a</I> and <I>b</I> take on values x,y,z to
-generate the 6 components of the symmetric tensor:
+<P>The stress tensor for each atom is given by the following formula.
+where the ab component of stress on atom <I>I</I> is as shown where <I>a</I> and
+<I>b</I> take on values x,y,z to generate the 6 components of the symmetric
+tensor:
 </P>
 <CENTER><IMG SRC = "Eqs/stress_tensor.jpg">
 </CENTER>
 <P>The first term is a kinetic energy contribution for atom <I>I</I>.  The
-second term is a pairwise energy contribution where <I>J</I> loops over the
-<I>Np</I> neighbors of atom <I>I</I>, and <I>Fp</I> is one of 3 components of force
-on atom <I>I</I> due to the pairwise interaction with atom <I>J</I>.  The third
-term is a bond energy contribution where <I>J</I> loops over the <I>Nb</I> bonds
-which atom <I>I</I> is part of, and <I>Fb</I> is one of 3 components of force on
-atom <I>I</I> due to the bonded interaction with atom <I>J</I>.
+second term is a pairwise energy contribution where <I>N</I> loops over the
+<I>Np</I> neighbors of atom <I>I</I>, <I>r1</I> and <I>r2</I> are the positions of the 2
+atoms, and <I>F1</I> and <I>F2</I> are the forces on the 2 atoms.  The third
+term is a bond contribution for the <I>Nb</I> bonds whihc atom <I>I</I> is part
+of.  And similarly for the <I>Na</I> angle, <I>Nd</I> dihedral, and <I>Ni</I>
+improper interactions atom <I>I</I> is part of.
 </P>
-<P>If two atoms interact, either pairwise or in a bond, and only one of
-them is in the compute group, the interaction is included in the
-per-atom stress of the atom in the group.
+<P>As the formula implies, a virial contribution produced by a small set
+of atoms (e.g. 4 atoms in a dihedral or 3 atoms in a Tersoff 3-body
+interaction) is assigned in equal portions to each atom in the set.
+E.g. 1/4 of the dihedral virial to each of the 4 atoms.
 </P>
-<P>For force fields that include a contribution to the pairwise
-interaction that is computed as part of dihedral terms (i.e. 1-4
-interactions), this contribution is NOT included in the per-atom
-pairwise stress.
+<P>If no extra keywords are listed, all of the terms in this formula are
+included in the per-atom stress tensor.  If any extra keywords are
+listed, only those terms are summed to compute the tensor.
 </P>
-<P>IMPORTANT NOTE: The per-atom stress does NOT include contributions due
-to angles, dihedrals, impropers that the atom is part of, or a
-long-range Coulombic contribution.  Currently, there is no way in
-LAMMPS to calculate per-atom stress from angles, dihedrals, improper,
-or long-range interactions.
+<P>Note that the stress for each atom is due to its interaction with all
+other atoms in the simulation, not just with other atoms in the group.
 </P>
-<P>Note that as defined above, per-atom stress is the negative of the
-per-atom pressure tensor.  It is also really a stress-volume
+<P>The <A HREF = "dihedral_charmm.html">dihedral_style charmm</A> style calculates
+pairwise interactions between 1-4 atoms.  The virial contribution of
+these terms is included in the pair virial, not the dihedral virial.
+</P>
+<P>Note that as defined in the formula, per-atom stress is the negative
+of the per-atom pressure tensor.  It is also really a stress-volume
 formulation.  It would need to be divided by a per-atom volume to have
 units of stress, but an individual atom's volume is not easy to
-compute in a deformed solid.  Thus, if you sum the diagonal components
-of the per-atom stress tensor for all atoms in the system and divide
-the sum by 3V, where V is the volume of the system, you should get -P,
-where P is the total pressure of the system (assuming there is no
-angle, dihedral, improper, or long-range contribution to the total
-pressure).
+compute in a deformed solid or a liquid.  Thus, if the diagonal
+components of the per-atom stress tensor are summed for all atoms in
+the system and the sum is divided by 3V, where V is the volume of the
+system, the result should be -P, where P is the total pressure of the
+system.
 </P>
-<P>Computation of per-atom stress tensor components requires a loop thru
-the pairwise and bond neighbor lists and inter-processor
-communication, so it can be inefficient to compute/dump this quantity
-too frequently or to have multiple compute/dump commands, each of a
-<I>stress/atom</I> style.
+<P>These lines in an input script should yield that result (assuming
+there is no fix or long-range contribution to the stress):
+</P>
+<PRE>compute		global all pressure thermo_temp
+compute		peratom all stress/atom
+compute		p all sum peratom
+variable	p equal div(add(add(c_p<B>1</B>,c_p<B>2</B>),c_p<B>3</B>),mult(3.0,vol))
+thermo_style	custom step temp etotal c_global v_p 
+</PRE>
+<P>IMPORTANT NOTE: The per-atom stress does NOT include contributions due
+to fixes (e.g. <A HREF = "fix_shake.html">SHAKE</A>) or long-range Coulombic
+interactions (via the <A HREF = "kspace_style.html">kspace_style</A> command).  The
+former needs to be added to LAMMPS.  We're not sure if the latter is
+possible to compute.  There are also a few pair styles for manybody
+potentials that are not yet instrumented to yield per-atom stress.
+See the Restrictions below.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Some pair potentials do not allow the calculation of per-atom stress
-via this command.  An error will be generated if this is the case.
+<P>These pair styles do not yet work with this compute: "airebo", "meam",
+and "TIP4P".
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
 </P>
-<P><B>Default:</B>
+<P><A HREF = "compute_pe.html">compute pe</A>, <A HREF = "compute_stress_atom.html">compute
+stress/atom</A>
 </P>
-<P>The option defaults are ke = yes, pair = yes, bond = yes.
+<P><B>Default:</B> none
 </P>
 </HTML>

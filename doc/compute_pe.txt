@@ -20,14 +20,13 @@ keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} :u
 [Examples:]
 
 compute 1 all pe
-compute molPE all bond angle dihedral improper :pre
+compute molPE all pe bond angle dihedral improper :pre
 
 [Description:]
 
 Define a computation that calculates the potential energy of the
 entire system of atoms.  The specified group must be "all".  See the
-"compute epair/atom"_compute_epair_atom.html and "compute
-ebond/atom"_compute_ebond_atom.html commands if you want per-atom
+"compute pe/atom"_compute_pe_atom.html command if you want per-atom
 energies.  These per-atom values could be summed for a group of atoms
 via the "compute sum"_compute_sum.html command.
 
@@ -54,6 +53,8 @@ See the "thermo_style" command for more details.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"compute pe/atom"_compute_pe_atom.html
 
 [Default:] none

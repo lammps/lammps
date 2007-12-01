@@ -71,10 +71,10 @@ Note that the N is the above formula is really degrees-of-freedom
 where the DOF is specified by the temperature compute.  See the
 various "compute temperature"_compute.html styles for details.
 
-A compute of this style with the ID of "thermo_press" is created when
-LAMMPS starts up, as if this command were in the input script:
+A compute of this style with the ID of "thermo_pressure" is created
+when LAMMPS starts up, as if this command were in the input script:
 
-compute thermo_press all pressure thermo_temp :pre
+compute thermo_pressure all pressure thermo_temp :pre
 
 where "thermo_temp" is the ID of a similarly defined compute of style
 "temp".  See the "thermo_style" command for more details.

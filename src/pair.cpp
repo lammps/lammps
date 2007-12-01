@@ -487,6 +487,7 @@ void Pair::ev_tally_xyz(int i, int j, int nlocal, int newton_pair,
    tally eng_vdwl and virial into global and per-atom accumulators
    called by SW and Tersoff potentials, newton_pair is always on
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drij*fj + drik*fk
+   could just pass ri,rj,rk since coords are already unwrapped by PBC
  ------------------------------------------------------------------------- */
 
 void Pair::ev_tally3(int i, int j, int k, double evdwl, double ecoul,
@@ -527,6 +528,7 @@ void Pair::ev_tally3(int i, int j, int k, double evdwl, double ecoul,
 /* ----------------------------------------------------------------------
    tally virial into per-atom accumulators
    called by airebo potential, newton_pair is always on
+   could just pass ri,rj,rk since coords are already unwrapped by PBC
 ------------------------------------------------------------------------- */
 
 void Pair::v_tally3(int i, int j, int k,
@@ -552,6 +554,7 @@ void Pair::v_tally3(int i, int j, int k,
 /* ----------------------------------------------------------------------
    tally virial into per-atom accumulators
    called by airebo potential, newton_pair is always on
+   could just pass ri,rj,rk,rm since coords are already unwrapped by PBC
 ------------------------------------------------------------------------- */
 
 void Pair::v_tally4(int i, int j, int k, int m,

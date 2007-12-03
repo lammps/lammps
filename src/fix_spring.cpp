@@ -63,6 +63,8 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     igroup2 = group->find(arg[4]);
     if (igroup2 == -1) 
       error->all("Could not find fix spring couple group ID"); 
+    if (igroup2 == igroup) 
+      error->all("Two groups cannot be the same in fix spring couple"); 
     group2bit = group->bitmask[igroup2];
     k_spring = atof(arg[5]);
     xflag = yflag = zflag = 1;

@@ -119,6 +119,7 @@ PairMEAM::~PairMEAM()
 void PairMEAM::compute(int eflag, int vflag)
 {
   int i,j,ii,n,inum_half,itype,jtype,errorflag;
+  double evdwl;
   int *ilist_half,*jlist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
@@ -130,6 +131,8 @@ void PairMEAM::compute(int eflag, int vflag)
 
   if (eflag_atom || vflag_atom)
     error->all("Pair style meam does not yet support peratom energy/virial");
+
+  int newton_pair = force->newton_pair;
 
   // grow local arrays if necessary
 
@@ -294,7 +297,7 @@ void PairMEAM::compute(int eflag, int vflag)
 
   // just sum global energy (for now)
 
-  if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0);
+  if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
   if (vflag_fdotr) virial_compute();
 }
 

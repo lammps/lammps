@@ -100,7 +100,7 @@ void PairAIREBO::compute(int eflag, int vflag)
   if (ljflag) FLJ(eflag,vflag);
   if (torflag) TORSION(eflag,vflag);
   
-  if (vflag_fdotr == 2) virial_compute();
+  if (vflag_fdotr) virial_compute();
 }
 
 /* ----------------------------------------------------------------------

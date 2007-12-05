@@ -150,7 +150,6 @@ void FixRDF::init()
 	for (bin = 0; bin < maxbin; bin++)
           gr_ave[irdf][bin] = ncoord_ave[irdf][bin] = 0.0;         
       }
-
 }
 
 /* ---------------------------------------------------------------------- */

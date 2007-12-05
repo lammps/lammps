@@ -164,17 +164,25 @@ void MinCG::run()
   // account for early exit from iterate loop due to convergence
   // set niter/nsteps for Finish stats to print
   // set output->next values to this timestep
+  // set timestep for all computes that store invocation times
+  //   since don't know a priori which are invoked by thermo and dumps
   // call eng_force to insure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
 
   if (niter < update->nsteps) {
     niter++;
     update->nsteps = niter;
+
     for (int idump = 0; idump < output->ndump; idump++)
       output->next_dump[idump] = update->ntimestep;
     output->next_dump_any = update->ntimestep;
     if (output->restart_every) output->next_restart = update->ntimestep;
     output->next_thermo = update->ntimestep;
+
+    for (int i = 0; i < modify->ncompute; i++)
+      if (modify->compute[i]->timeflag)
+	modify->compute[i]->add_step(update->ntimestep);
+
     int ntmp;
     double *xtmp,*htmp,etmp;
     eng_force(&ntmp,&xtmp,&htmp,&etmp);

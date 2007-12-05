@@ -136,10 +136,10 @@ void Output::setup(int flag)
 
   if (ndump) {
     for (int idump = 0; idump < ndump; idump++) {
+      if (strcmp(dump[idump]->style,"custom") == 0)
+	modify->clearstep_compute();
       if (ntimestep % dump_every[idump] == 0 && 
 	  last_dump[idump] != ntimestep) {
-        if (strcmp(dump[idump]->style,"custom") == 0)
-          modify->clearstep_compute();
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }

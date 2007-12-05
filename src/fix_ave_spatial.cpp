@@ -239,8 +239,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
 
-  // must set timestep for all computes that store invocation times
-  // since don't know a priori which are invoked by this fix
+  // set timestep for all computes that store invocation times
+  //   since don't know a priori which are invoked by this fix
   // once in end_of_step() can just set timestep for ones actually invoked
 
   if (which == COMPUTE)

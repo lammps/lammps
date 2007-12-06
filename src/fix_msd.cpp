@@ -72,14 +72,8 @@ FixMSD::FixMSD(LAMMPS *lmp, int narg, char **arg) :
   int xbox,ybox,zbox;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
-      xoriginal[i][0] = x[i][0] + xbox*xprd;
-      xoriginal[i][1] = x[i][1] + ybox*yprd;
-      xoriginal[i][2] = x[i][2] + zbox*zprd;
-    } else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
+    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+    else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   // nmsd = # of atoms in group
@@ -149,6 +143,7 @@ void FixMSD::end_of_step()
   int *image = atom->image;
   int nlocal = atom->nlocal;
 
+  double *h = domain->h;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
@@ -157,19 +152,39 @@ void FixMSD::end_of_step()
   double msd[4];
   msd[0] = msd[1] = msd[2] = msd[3] = 0.0;
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
-      dx = x[i][0] + xbox*xprd - xoriginal[i][0];
-      dy = x[i][1] + ybox*yprd - xoriginal[i][1];
-      dz = x[i][2] + zbox*zprd - xoriginal[i][2];
-      msd[0] += dx*dx;
-      msd[1] += dy*dy;
-      msd[2] += dz*dz;
-      msd[3] += dx*dx + dy*dy + dz*dz;
-    }
+  // dx,dy,dz = displacement of atom from original position
+  // for triclinic, need to unwrap current atom coord via h matrix
+
+  if (domain->triclinic == 0) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	xbox = (image[i] & 1023) - 512;
+	ybox = (image[i] >> 10 & 1023) - 512;
+	zbox = (image[i] >> 20) - 512;
+	dx = x[i][0] + xbox*xprd - xoriginal[i][0];
+	dy = x[i][1] + ybox*yprd - xoriginal[i][1];
+	dz = x[i][2] + zbox*zprd - xoriginal[i][2];
+	msd[0] += dx*dx;
+	msd[1] += dy*dy;
+	msd[2] += dz*dz;
+	msd[3] += dx*dx + dy*dy + dz*dz;
+      }
+
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	xbox = (image[i] & 1023) - 512;
+	ybox = (image[i] >> 10 & 1023) - 512;
+	zbox = (image[i] >> 20) - 512;
+	dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
+	dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
+	dz = x[i][2] + h[2]*zbox - xoriginal[i][2];
+	msd[0] += dx*dx;
+	msd[1] += dy*dy;
+	msd[2] += dz*dz;
+	msd[3] += dx*dx + dy*dy + dz*dz;
+      }
+  }
 
   double msd_all[4];
   MPI_Allreduce(msd,msd_all,4,MPI_DOUBLE,MPI_SUM,world);

@@ -678,7 +678,7 @@ void Domain::remap(double *x, int &image)
 
 /* ----------------------------------------------------------------------
    unmap the point via image flags
-   don't reset image flag
+   x overwritten with result, don't reset image flag
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
@@ -696,6 +696,29 @@ void Domain::unmap(double *x, int image)
     x[0] += h[0]*xbox + h[5]*ybox + h[4]*zbox;
     x[1] += h[1]*ybox + h[3]*zbox;
     x[2] += h[2]*zbox;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unmap the point via image flags
+   result returned in y, don't reset image flag
+   for triclinic, use h[] to add in tilt factors in other dims as needed
+------------------------------------------------------------------------- */
+
+void Domain::unmap(double *x, int image, double *y)
+{
+  int xbox = (image & 1023) - 512;
+  int ybox = (image >> 10 & 1023) - 512;
+  int zbox = (image >> 20) - 512;
+
+  if (triclinic == 0) {
+    y[0] = x[0] + xbox*xprd;
+    y[1] = x[1] + ybox*yprd;
+    y[2] = x[2] + zbox*zprd;
+  } else {
+    y[0] = x[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+    y[1] = x[1] + h[1]*ybox + h[3]*zbox;
+    y[2] = x[2] + h[2]*zbox;
   }
 }
 

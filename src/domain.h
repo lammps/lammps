@@ -91,6 +91,7 @@ class Domain : protected Pointers {
   void pbc();
   void remap(double *, int &);
   void unmap(double *, int);
+  void unmap(double *, int, double *);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
   void set_lattice(int, char **);

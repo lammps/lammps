@@ -13,7 +13,7 @@ neigh_modify command :h3
 neigh_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {delay} or {every} or {check} or {exclude} or {page} or {one}
+keyword = {delay} or {every} or {check} or {exclude} or {page} or {one} or {binsize}
   {delay} value = N
     N = delay building until this many steps since last build
   {every} value = M
@@ -34,6 +34,8 @@ keyword = {delay} or {every} or {check} or {exclude} or {page} or {one}
     N = number of pairs stored in a single neighbor page
   {one} value = N
     N = max number of neighbors of one atom :pre
+  {binsize} value = size
+    size = bin size for neighbor list construction (distance units) :pre
 :ule
 
 [Examples:]
@@ -107,6 +109,19 @@ could potentially overflow the list.  This threshhold is set by the
 {one} value which tells LAMMPS the maximum number of neighbor's one
 atom can have.
 
+The {binsize} option allows you to specify what size of bins will be
+used in neighbor list construction to sort and find neighboring atoms.
+By default, for "neighbor style bin"_neighbor.html, LAMMPS uses bins
+that are 1/2 the size of the maximum pair cutoff.  For "neighbor style
+multi"_neighbor.html, the bins are 1/2 the size of the minimum pair
+cutoff.  Typically these are good values values for minimizing the
+time for neighbor list construction.  This setting overrides the
+default.  If you make it too big, there is little overhead due to
+looping over bins, but more atoms are checked.  If you make it too
+small, the optimal number of atoms is checked, but bin overhead goes
+up.  If you set the binsize to 0.0, LAMMPS will use the default
+binsize of 1/2 the cutoff.
+
 [Restrictions:]
 
 If the "delay" setting is non-zero, then it must be a multiple of the
@@ -115,6 +130,10 @@ If the "delay" setting is non-zero, then it must be a multiple of the
 The exclude molecule option can only be used with atom styles that
 define molecule IDs.
 
+The value of the {page} setting must be at least 10x larger than the
+{one} setting.  This insures neighbor pages are not mostly empty
+space.
+
 [Related commands:]
 
 "neighbor"_neighbor.html, "delete_bonds"_delete_bonds.html
@@ -122,4 +141,4 @@ define molecule IDs.
 [Default:]
 
 The option defaults are delay = 10, every = 1, check = yes, exclude =
-none, page = 100000, and one = 2000.
+none, page = 100000, one = 2000, and binsize = 0.0.

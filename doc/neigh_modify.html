@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>exclude</I> or <I>page</I> or <I>one</I>
+<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
   <I>delay</I> value = N
     N = delay building until this many steps since last build
   <I>every</I> value = M
@@ -38,6 +38,9 @@
     N = number of pairs stored in a single neighbor page
   <I>one</I> value = N
     N = max number of neighbors of one atom 
+</PRE>
+<PRE>  <I>binsize</I> value = size
+    size = bin size for neighbor list construction (distance units) 
 </PRE>
 
 </UL>
@@ -112,6 +115,19 @@ could potentially overflow the list.  This threshhold is set by the
 <I>one</I> value which tells LAMMPS the maximum number of neighbor's one
 atom can have.
 </P>
+<P>The <I>binsize</I> option allows you to specify what size of bins will be
+used in neighbor list construction to sort and find neighboring atoms.
+By default, for <A HREF = "neighbor.html">neighbor style bin</A>, LAMMPS uses bins
+that are 1/2 the size of the maximum pair cutoff.  For <A HREF = "neighbor.html">neighbor style
+multi</A>, the bins are 1/2 the size of the minimum pair
+cutoff.  Typically these are good values values for minimizing the
+time for neighbor list construction.  This setting overrides the
+default.  If you make it too big, there is little overhead due to
+looping over bins, but more atoms are checked.  If you make it too
+small, the optimal number of atoms is checked, but bin overhead goes
+up.  If you set the binsize to 0.0, LAMMPS will use the default
+binsize of 1/2 the cutoff.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>If the "delay" setting is non-zero, then it must be a multiple of the
@@ -120,6 +136,10 @@ atom can have.
 <P>The exclude molecule option can only be used with atom styles that
 define molecule IDs.
 </P>
+<P>The value of the <I>page</I> setting must be at least 10x larger than the
+<I>one</I> setting.  This insures neighbor pages are not mostly empty
+space.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "neighbor.html">neighbor</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
@@ -127,6 +147,6 @@ define molecule IDs.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are delay = 10, every = 1, check = yes, exclude =
-none, page = 100000, and one = 2000.
+none, page = 100000, one = 2000, and binsize = 0.0.
 </P>
 </HTML>

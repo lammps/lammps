@@ -102,7 +102,10 @@ class Neighbor : protected Pointers {
   int mbinx,mbiny,mbinz;
   int mbinxlo,mbinylo,mbinzlo;
 
-  double binsizex,binsizey,binsizez;  // bin sizes and inverse sizes
+  int binsizeflag;                 // user-chosen bin size
+  double binsize_user;
+
+  double binsizex,binsizey,binsizez;  // actual bin sizes and inverse sizes
   double bininvx,bininvy,bininvz;
 
   int sx,sy,sz,smax;               // bin stencil extents

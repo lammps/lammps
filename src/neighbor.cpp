@@ -69,6 +69,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   dist_check = 1;
   pgsize = 100000;
   oneatom = 2000;
+  binsizeflag = 0;
 
   cutneighsq = NULL;
   cuttype = NULL;
@@ -1088,7 +1089,8 @@ void Neighbor::setup_bins()
   // special case of all cutoffs = 0.0, binsize = box size
 
   double binsize_optimal;
-  if (style == BIN) binsize_optimal = 0.5*cutneighmax;
+  if (binsizeflag) binsize_optimal = binsize_user;
+  else if (style == BIN) binsize_optimal = 0.5*cutneighmax;
   else binsize_optimal = 0.5*cutneighmin;
   if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
   double binsizeinv = 1.0/binsize_optimal;
@@ -1279,6 +1281,12 @@ void Neighbor::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"one") == 0) {
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");
       oneatom = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"binsize") == 0) {
+      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      binsize_user = atof(arg[iarg+1]);
+      if (binsize_user <= 0.0) binsizeflag = 0;
+      else binsizeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");

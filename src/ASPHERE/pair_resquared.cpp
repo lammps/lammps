@@ -81,8 +81,7 @@ PairRESquared::~PairRESquared()
 void PairRESquared::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fx,fy,fz;
-  double one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
+  double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
   double fforce[3],ttor[3],rtor[3],r12[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   RE2Vars wi,wj;

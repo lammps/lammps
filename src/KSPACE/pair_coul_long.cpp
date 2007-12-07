@@ -68,7 +68,7 @@ PairCoulLong::~PairCoulLong()
 void PairCoulLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;
   double r,r2inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;

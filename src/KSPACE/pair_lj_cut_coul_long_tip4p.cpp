@@ -77,7 +77,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double r,r2inv,r6inv,forcecoul,forcelj,cforce,negforce;
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double phicoul,philj;
+  double philj;
   int iH1,iH2,jH1,jH2;
   double xiM[3],xjM[3];
   double *x1,*x2;

@@ -64,8 +64,7 @@ ImproperClass2::~ImproperClass2()
 void ImproperClass2::compute(int eflag, int vflag)
 {
   int i1,i2,i3,i4,i,j,k,n,type;
-  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
-  double eimproper,f1[3],f2[3],f3[3],f4[3];
+  double eimproper;
   double delr[3][3],rmag[3],rinvmag[3],rmag2[3];
   double theta[3],costheta[3],sintheta[3];
   double cossqtheta[3],sinsqtheta[3],invstheta[3];

@@ -62,7 +62,7 @@ void PairLJCharmmCoulLongOpt::eval()
   
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,fforce,factor_coul,factor_lj;
+  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double philj,switch1,switch2;
   

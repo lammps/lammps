@@ -208,6 +208,15 @@ Atom::~Atom()
 }
 
 /* ----------------------------------------------------------------------
+   copy modify settings from old Atom class to current Atom class
+------------------------------------------------------------------------- */
+
+void Atom::settings(Atom *old)
+{
+  map_style = old->map_style;
+}
+
+/* ----------------------------------------------------------------------
    create an AtomVec style
    called from input script, restart file, replicate
 ------------------------------------------------------------------------- */

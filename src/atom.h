@@ -97,6 +97,7 @@ class Atom : protected Pointers {
   Atom(class LAMMPS *);
   ~Atom();
 
+  void settings(class Atom *);
   void create_avec(const char *, int, char **);
   class AtomVec *new_avec(const char *, int, char **);
   void init();

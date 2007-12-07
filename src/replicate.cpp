@@ -113,6 +113,7 @@ void Replicate::command(int narg, char **arg)
 
   Atom *old = atom;
   atom = new Atom(lmp);
+  atom->settings(old);
 
   int nstyles = 0;
   char **keywords = NULL;

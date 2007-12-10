@@ -312,6 +312,9 @@ void Thermo::compute(int flag)
     else loc += sprintf(&line[loc],format[ifield],dvalue);
   }
 
+  // kludge for RedStorm timing issue
+  // if (update->ntimestep == 100) return;
+
   // print line to screen and logfile
 
   if (me == 0) {

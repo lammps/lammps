@@ -31,6 +31,13 @@ fashion that should allow for systems with highly overlapped atoms
 (large energies and forces) to still be minimized by pushing the atoms
 off of each other.
 
+Alternate means of relaxing a system are to run dynamics with a small
+or "limited timestep"_fix_nve_limit.html.  Or dynamics can be run
+using "fix viscous"_fix_viscous.html to impose a damping force that
+slowly drains all kinetic energy from the system.  The "pair_style
+soft"_pair_soft.html potential can be used to un-overlap atoms while
+running dynamics.
+
 Following the minimization a statistical summary is printed that
 includes the energy change and convergence criteria information.
 
@@ -97,6 +104,13 @@ minimzation.  Ideally we would allow a fix such as {npt} to impose an
 external pressure that would be included in the minimization
 (i.e. allow the box dimensions to change), but this has not yet been
 implemented.
+
+Pair potentials that produce torque on a particle (e.g. "granular
+potentials"_pair_gran.html or the "GayBerne
+potential"_pair_gayberne.html for ellipsoidal particles) are not
+relaxed by a minimization.  More specifically, radial relaxations are
+induced, but no rotations are induced by a minimization, so such a
+system will not fully relax.
 
 [Related commands:]
 

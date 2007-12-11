@@ -248,7 +248,11 @@ integers (1, not 1.0).
 </UL>
 <P>An <I>Atoms</I> section must appear in the data file if natoms > 0 in the
 header section.  The atoms can be listed in any order.  These are the
-line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
+line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS.  As
+discussed below, each line can optionally have 3 flags (nx,ny,nz)
+appended to it, which indicate which image of a periodic simulation
+box the atom is in.  These may be important to include for some kinds
+of analysis.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >angle</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
@@ -264,7 +268,7 @@ line formats for each <A HREF = "atom_style.html">atom style</A> in LAMMPS:
 <TR><TD >hybrid</TD><TD > atom-ID atom-type x y z sub-style1 sub-style2 ...  
 </TD></TR></TABLE></DIV>
 
-<P>where the keywords have these meanings:
+<P>The keywords have these meanings:
 </P>
 <UL><LI>atom-ID = integer ID of atom
 <LI>molecule-ID = integer ID of molecule the atom belongs to
@@ -327,20 +331,29 @@ listed in the same order they appear as listed above.
 </P>
 <PRE>atom-ID atom-type x y z q diameter density 
 </PRE>
-<P>Atom lines (all lines or none of them) can optionally list 3 final
+<P>Atom lines (all lines or none of them) can optionally list 3 trailing
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
 image of the box the atom is considered to be in.  An image of 0 means
-the box as defined.  A value of 2 means add 2 box lengths to get the
-true value.  A value of -1 means subtract 1 box length to get the true
-value.  LAMMPS updates these flags as atoms cross periodic boundaries
-during the simulation.  The flags can be output with atom snapshots
-via the <A HREF = "dump.html">dump</A> command.  If nx,ny,nz values are not set in
-the data file, LAMMPS initializes them to 0.
+it is inside the box as defined.  A value of 2 means add 2 box lengths
+to get the true value.  A value of -1 means subtract 1 box length to
+get the true value.  LAMMPS updates these flags as atoms cross
+periodic boundaries during the simulation.  The flags can be output
+with atom snapshots via the <A HREF = "dump.html">dump</A> command.
+</P>
+<P>If nx,ny,nz values are not set in the data file, LAMMPS initializes
+them to 0.  If image information is needed for later analysis and they
+are not all initially 0, it's important to set them correctly in the
+data file.  Also, if you plan to use the <A HREF = "replicate.html">replicate</A>
+command to generate a larger system, these flags must be listed
+correctly for bonded atoms when the bond crosses a periodic boundary.
+I.e. the values of the image flags should be different by 1 (in the
+appropriate dimension) for the two atoms in such a bond.
 </P>
 <P>Atom velocities and other atom quantities not defined above are set to
-0.0 when the <I>Atoms</I> section is read.  They may later be set by a
-<I>Velocities</I> section in the data file or by a <A HREF = "velocity.html">velocity</A>
-or <A HREF = "set.html">set</A> command in the input script.
+0.0 when the <I>Atoms</I> section is read.  Velocities can be set later by
+a <I>Velocities</I> section in the data file or by a
+<A HREF = "velocity.html">velocity</A> or <A HREF = "set.html">set</A> command in the input
+script.
 </P>
 <HR>
 

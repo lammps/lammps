@@ -227,7 +227,11 @@ line syntax: depends on atom style :ul
 
 An {Atoms} section must appear in the data file if natoms > 0 in the
 header section.  The atoms can be listed in any order.  These are the
-line formats for each "atom style"_atom_style.html in LAMMPS:
+line formats for each "atom style"_atom_style.html in LAMMPS.  As
+discussed below, each line can optionally have 3 flags (nx,ny,nz)
+appended to it, which indicate which image of a periodic simulation
+box the atom is in.  These may be important to include for some kinds
+of analysis.
 
 angle: atom-ID molecule-ID atom-type x y z
 atomic: atom-ID atom-type x y z
@@ -241,7 +245,7 @@ granular: atom-ID atom-type diameter density x y z
 molecular: atom-ID molecule-ID atom-type x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
-where the keywords have these meanings:
+The keywords have these meanings:
 
 atom-ID = integer ID of atom
 molecule-ID = integer ID of molecule the atom belongs to
@@ -304,20 +308,29 @@ were used in the input script, each atom line would have these fields:
 
 atom-ID atom-type x y z q diameter density :pre
 
-Atom lines (all lines or none of them) can optionally list 3 final
+Atom lines (all lines or none of them) can optionally list 3 trailing
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
 image of the box the atom is considered to be in.  An image of 0 means
-the box as defined.  A value of 2 means add 2 box lengths to get the
-true value.  A value of -1 means subtract 1 box length to get the true
-value.  LAMMPS updates these flags as atoms cross periodic boundaries
-during the simulation.  The flags can be output with atom snapshots
-via the "dump"_dump.html command.  If nx,ny,nz values are not set in
-the data file, LAMMPS initializes them to 0.
+it is inside the box as defined.  A value of 2 means add 2 box lengths
+to get the true value.  A value of -1 means subtract 1 box length to
+get the true value.  LAMMPS updates these flags as atoms cross
+periodic boundaries during the simulation.  The flags can be output
+with atom snapshots via the "dump"_dump.html command.
+
+If nx,ny,nz values are not set in the data file, LAMMPS initializes
+them to 0.  If image information is needed for later analysis and they
+are not all initially 0, it's important to set them correctly in the
+data file.  Also, if you plan to use the "replicate"_replicate.html
+command to generate a larger system, these flags must be listed
+correctly for bonded atoms when the bond crosses a periodic boundary.
+I.e. the values of the image flags should be different by 1 (in the
+appropriate dimension) for the two atoms in such a bond.
 
 Atom velocities and other atom quantities not defined above are set to
-0.0 when the {Atoms} section is read.  They may later be set by a
-{Velocities} section in the data file or by a "velocity"_velocity.html
-or "set"_set.html command in the input script.
+0.0 when the {Atoms} section is read.  Velocities can be set later by
+a {Velocities} section in the data file or by a
+"velocity"_velocity.html or "set"_set.html command in the input
+script.
 
 :line
 

@@ -549,7 +549,7 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,
-	       fabcd[i1],fabcd[i3],fabcd[i4],
+	       fabcd[0],fabcd[2],fabcd[3],
 	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }

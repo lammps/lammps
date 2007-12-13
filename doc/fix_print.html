@@ -15,15 +15,16 @@
 </P>
 <PRE>fix ID group-ID print N string keyword value ... 
 </PRE>
-<P>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-print = style name of this fix command
-N = print every N steps
-string = text string to print with optional variable names
-zero or more keyword/value pairs may be appended
-keyword = <I>file</I> or <I>screen</I>
-  <I>file</I> value = filename
-  <I>screen</I> value = <I>yes</I> or <I>no</I>
-</P>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>print = style name of this fix command
+<LI>N = print every N steps
+<LI>string = text string to print with optional variable names
+<LI>zero or more keyword/value pairs may be appended
+<LI>keyword = <I>file</I> or <I>screen</I> 
+</UL>
+<PRE>  <I>file</I> value = filename
+  <I>screen</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
 <P><B>Examples:</B>
 </P>
 <PRE>fix extra all print 100 "Coords of marker atom = $x $y $z"

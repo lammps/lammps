@@ -17,9 +17,9 @@ print = style name of this fix command
 N = print every N steps
 string = text string to print with optional variable names
 zero or more keyword/value pairs may be appended
-keyword = {file} or {screen}
+keyword = {file} or {screen} :ul
   {file} value = filename
-  {screen} value = {yes} or {no}
+  {screen} value = {yes} or {no} :pre
 
 [Examples:]
 

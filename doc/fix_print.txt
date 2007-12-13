@@ -12,14 +12,15 @@ fix print command :h3
 
 fix ID group-ID print N string keyword value ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-print = style name of this fix command
-N = print every N steps
-string = text string to print with optional variable names
-zero or more keyword/value pairs may be appended
-keyword = {file} or {screen} :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+print = style name of this fix command :l
+N = print every N steps :l
+string = text string to print with optional variable names :l
+zero or more keyword/value pairs may be appended :l
+keyword = {file} or {screen} :l
   {file} value = filename
   {screen} value = {yes} or {no} :pre
+:ule
 
 [Examples:]
 

@@ -13,21 +13,21 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>print args 
+<PRE>print string 
 </PRE>
-<UL><LI>args = a line of text and variables names to print out 
+<UL><LI>string = text string to print with optional variable names 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>print The system volume is now $v 
+<PRE>print "Done with equilibration"
+print "The system volume is now $v" 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Print the list of arguments as a line of text to the screen and/or
-logfile.  If variables are included in the arguments, they will be
-evaluated and their current values printed.  Note that if variables
-are included, the print string should not be enclosed in double
-quotes, else it will prevent the variables from being evaluated.
+<P>Print a text string to the screen and logfile.  The text string must
+be a single argument, so it should be enclosed in double quotes if it
+is more than one word.  If variables are included in the string, they
+will be evaluated and their current values printed.
 </P>
 <P>If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using
@@ -39,9 +39,11 @@ input script that is looped over (see the <A HREF = "jump.html">jump</A> command
 </P>
 <P>See the <A HREF = "variable.html">variable</A> command for a description of <I>equal</I>
 style variables which are typically the most useful ones to use with
-the print command.  Equal-style variables can calculate complex
-formulas involving atom and group properties, mathematical operations,
-other variables, etc.
+the print command.  Equal-style variables can calculate formulas
+involving mathematical operations, atom properties, group properties,
+thermodyanimc properties, global values calculated by a
+<A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A>, or references to other
+<A HREF = "variable.html">variables</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

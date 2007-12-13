@@ -29,6 +29,8 @@ using namespace LAMMPS_NS;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define MAXLINE 2048
+
 /* ---------------------------------------------------------------------- */
 
 Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
@@ -83,16 +85,26 @@ void Run::command(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"yes") == 0) postflag = 1;
       else error->all("Illegal run command");
       iarg += 2;
+
+    // generate commandstr if last arg is not NULL
+    // commandstr = concatenation of all remaining args
+    // if an arg has spaces, enclose in quotes since input parser removed them
+
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) error->all("Illegal run command");
       nevery = atoi(arg[iarg+1]);
       if (nevery <= 0) error->all("Illegal run command");
       if (strcmp(arg[iarg+2],"NULL") != 0) {
-        int n = strlen(arg[iarg+2]) + 1;
-	commandstr = new char[n];
-	strcpy(commandstr,arg[iarg+2]);
+	commandstr = new char[MAXLINE];
+	commandstr[0] = '\0';
+	for (int jarg = iarg+2; jarg < narg; jarg++) {
+	  if (strchr(arg[jarg],' ')) strcat(commandstr,"\"");
+	  strcat(commandstr,arg[jarg]);
+	  if (strchr(arg[jarg],' ')) strcat(commandstr,"\"");
+	  strcat(commandstr," ");
+	}
       }
-      iarg += 3;
+      iarg = narg;
     } else error->all("Illegal run command");
   }
 
@@ -144,7 +156,7 @@ void Run::command(int narg, char **arg)
     Finish finish(lmp);
     finish.end(postflag);
 
-  // perform multiple runs interleaved with invocation of a command
+  // perform multiple runs optionally interleaved with invocation of a command
   // use start/stop to set begin/end step
   // if pre or 1st iteration of multiple runs, do System init/setup,
   //   else just init timer and setup output

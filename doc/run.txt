@@ -24,7 +24,7 @@ keyword = {upto} or {start} or {stop} or {pre} or {post} or {every} :l
   {post} value = {no} or {yes} 
   {every} values = M command
     M = break the run into M-timestep segments and invoke command between them
-    command = a single LAMMPS command (enclosed in double quotes if multiple words)
+    command = a single LAMMPS command listed the same as if on a line by itself
               NULL means no command will be invoked :pre
 :ule
 
@@ -34,7 +34,7 @@ run 10000
 run 1000000 upto
 run 100 start 0 stop 1000
 run 1000 pre no post yes
-run 100000 start 0 stop 1000000 every 1000 "print Protein Rg = $r"
+run 100000 start 0 stop 1000000 every 1000 print "Protein Rg = $r"
 run 100000 every 1000 NULL :pre
 
 [Description:]
@@ -105,20 +105,26 @@ only a one-line summary timing is printed.  Note that if {pre} is set
 to "no" for the 1st run LAMMPS performs, then it is overridden, since
 the initial setup computations must be done.
 
-The {every} option provides a means of interleaving LAMMPS runs with a
-command.  This can be a short-hand abbreviation to avoid listing a
-long series of runs in your input script.  Or it can be useful for
-invoking a command that wraps some other code (e.g. as a library) to
-perform a computation periodically during a long LAMMPS run.  See
+The {every} option provides a means of breaking a LAMMPS run into a
+series of shorter runs.  Optionally a single LAMMPS command can be
+executed in between the short runs.  This is a means to avoid listing
+a long series of runs and commands in your input script.  For example,
+a "print"_print.html command could be invoked or a "fix"_fix.html
+could be redefined, e.g. to reset a thermostat temperature.  Or it
+could be useful for invoking a command you write that wraps some other
+code (e.g. as a library) to perform a computation periodically during
+a long LAMMPS run.  See "this section"_Section_modify.html of the
+documentation for info about how to add new commands to LAMMPS.  See
 "this section"_Section_howto.html#4_10 of the documentation for ideas
 about how to couple LAMMPS to other codes.
 
-N total steps are simulated, in shorter runs of M steps each.  After
-each M-length run, the command is invoked.  If the command is
-specified as NULL, no command is invoked.  Thus these lines:
+With the {every} option, N total steps are simulated, in shorter runs
+of M steps each.  After each M-length run, the command is invoked.  If
+the command is specified as NULL, no command is invoked.  Thus these
+lines:
 
 variable q equal x\[100\]
-run 6000 every 2000 "print Coord = $q" :pre
+run 6000 every 2000 print "Coord = $q" :pre
 
 are the equivalent of:
 
@@ -131,9 +137,16 @@ run 2000
 print Coord = $q :pre
 
 which does 3 runs of 2000 steps and prints the x-coordinate of a
-particular atom between runs.  Note that the command can contain
-"variables"_variable.html of style {equal} which will be evaluated
+particular atom between runs.  Note that, as in this example, the
+command can contain "variables"_variable.html which will be evaluated
 each time the command is invoked.
+
+IMPORTANT NOTE: For the {every} option, all remaining arguments after
+the M value are considerd part of the LAMMPS command (e.g. print
+"Protein Rg = $r" as in the example above).  This means that, if
+specified, the {every} option must be the last keyword used.  The
+command should be listed exactly as it would appear if it were on a
+line by itself in the input script.
 
 If the {pre} and {post} options are set to "no" when {every} is used,
 then the 1st run will do the full setup and the last run will print

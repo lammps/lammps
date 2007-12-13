@@ -636,21 +636,16 @@ void Input::next_command()
 
 void Input::print()
 {
-  if (narg < 1) error->all("Illegal print command");
+  if (narg != 1) error->all("Illegal print command");
 
-  char *str = new char[MAXLINE];
-  str[0] = '\0';
-  for (int iarg = 0; iarg < narg; iarg++) {
-    strcat(str,arg[iarg]);
-    strcat(str," ");
-  }
-  
+  // substitute for $ variables (no printing)
+
+  substitute(arg[0],0);
+
   if (me == 0) {
-    if (screen) fprintf(screen,"%s\n",str);
-    if (logfile) fprintf(logfile,"%s\n",str);
+    if (screen) fprintf(screen,"%s\n",arg[0]);
+    if (logfile) fprintf(logfile,"%s\n",arg[0]);
   }
-
-  delete [] str;
 }
 
 /* ---------------------------------------------------------------------- */

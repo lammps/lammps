@@ -47,7 +47,8 @@ args = list of arguments for a particular style :l
       c_ID = scalar per-atom quantity calculated by a compute identified by its ID
       c_ID\[N\] = Nth per-atom vector quantity calculated by a compute identified by its ID
       f_ID = scalar per-atom quantity calculated by a fix identified by its ID
-      f_ID\[N\] = Nth per-atom vector quantity calculated by a fix identified by its ID :pre
+      f_ID\[N\] = Nth per-atom vector quantity calculated by a fix identified by its ID
+      v_name = variable of atom style that calculates a per-atom quantity :pre
 :ule
 
 [Examples:]
@@ -55,7 +56,7 @@ args = list of arguments for a particular style :l
 dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* tag type x y vx fx
-dump 4b flow custom 100 dump.%.myforce tag type c_myF\[3\]
+dump 4b flow custom 100 dump.%.myforce tag type c_myF\[3\] v_ke
 dump 1 all xtc 1000 file.xtc 100.0 :pre
 
 [Description:]
@@ -115,9 +116,9 @@ file.
 
 Style {custom} allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
-listed above and will appear in the order specified.  Be careful not
-to specify a quantity that is not defined for a particular simulation
-- such as {q} for atom style {bond}, since that atom style doesn't
+listed above and will appear in the order specified.  You cannot
+specify a quantity that is not defined for a particular simulation -
+such as {q} for atom style {bond}, since that atom style doesn't
 assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
 the timestep.  An explanation of the dump custom quantities is given
@@ -226,20 +227,17 @@ define the orientiation of the particle.  The final 3 give the
 rotational torque on the particle.
 
 The {c_ID} and {c_ID\[N\]} keywords allow scalar or vector per-atom
-quantities calculated by a compute to be output.  The ID in the
-keyword should be replaced by the actual ID of the compute that has
-been defined previously in the input script.  See the
-"compute"_compute.html command for details.  There are pre-defined
-computes for calculating the energy, stress, centro-symmetry
-parameter, and coordination number of individual atoms.  The "compute
-variable/atom" command will evaluate a per-atom formula you define via
-the "variable atom"_variable.html command, for each atom, which can
-then be dumped.
+quantities calculated by a "compute"_compute.html to be output.  The
+ID in the keyword should be replaced by the actual ID of the compute
+that has been defined previously in the input script.  See the
+"compute"_compute.html command for details.  There are computes for
+calculating the energy, stress, centro-symmetry parameter, and
+coordination number of individual atoms.
 
-Note that scalar and vector quantities that are not calculated on a
-per-atom basis by a compute (e.g. global temperature or pressure)
-cannot be output in a dump.  Rather, these quantities can be output by
-the "thermo_style custom"_thermo_style.html command.
+Note that computes which calculate global scalar and vector
+quantities, as opposed to per-atom quantities, cannot be output in a
+dump.  Instead, these quantities can be output by the "thermo_style
+custom"_thermo_style.html command.
 
 If {c_ID} is used as a keyword, then the scalar per-atom quantity
 calculated by the compute is printed.  If {c_ID\[N\]} is used, then N
@@ -247,23 +245,33 @@ in the range from 1-M will print the Nth component of the M-length
 per-atom vector calculated by the compute.
 
 The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector per-atom
-quantities calculated by a fix to be output.  The ID in the keyword
-should be replaced by the actual ID of the fix that has been defined
-previously in the input script.  Currently the "fix
+quantities calculated by a "fix"_fix.html to be output.  The ID in the
+keyword should be replaced by the actual ID of the fix that has been
+defined previously in the input script.  Currently the "fix
 ave/atom"_fix_ave_atom.html command is the only fix that calculates
-per-atom quantities.  Since it takes a per-atom "compute"_compute.html
-as an argument it effectively time-averages any of the previously
-described compute quantities so the time-averaged result can be
-written to a dump file.
+per-atom quantities.  Since it can time-average per-atom quantities
+produced by any "compute"_compute.html, "fix"_fix.html, or atom-style
+"variable"_variable.html, this allows those time-averaged results to
+be written to a dump file.
 
 If {f_ID} is used as a keyword, then the scalar per-atom quantity
 calculated by the fix is printed.  If {f_ID\[N\]} is used, then N
 in the range from 1-M will print the Nth component of the M-length
 per-atom vector calculated by the fix.
 
+The {v_name} keyword allows per-atom quantities calculated by a
+"variable"_variable.html to be output.  The name in the keyword should
+be replaced by the actual name of the variable that has been defined
+previously in the input script.  Only an atom-style variable can be
+referenced, since it is the only one that generates per-atom values.
+Variables of style {atom} can reference individual atom attributes,
+per-atom atom attributes, thermodynamic keywords, or invoke other
+computes, fixes, or variables when they are evaluated, so this is a
+very general means of generating quantities to output to a dump file.
+
 See "this section"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS that calculate
-per-atom quantities which could then be output with these keywords.
+per-atom quantities which could then be output into dump files.
 
 :line
 

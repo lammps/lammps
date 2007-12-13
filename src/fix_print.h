@@ -14,6 +14,7 @@
 #ifndef FIX_PRINT_H
 #define FIX_PRINT_H
 
+#include "stdio.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -26,8 +27,9 @@ class FixPrint : public Fix {
   void end_of_step();
 
  private:
-  int me;
-  char *line,*copy,*work;
+  int me,screenflag;
+  FILE *fp;
+  char *string,*copy,*work;
 };
 
 }

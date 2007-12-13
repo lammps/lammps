@@ -368,6 +368,16 @@ int Variable::find(char *name)
 }
 
 /* ----------------------------------------------------------------------
+   return 1 if variable calculates a per-atom quantity, 0 if not
+------------------------------------------------------------------------- */
+  
+int Variable::peratom(int ivar)
+{
+  if (style[ivar] == ATOM) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    remove Nth variable from list and compact list
 ------------------------------------------------------------------------- */
   

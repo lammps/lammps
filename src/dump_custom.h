@@ -37,25 +37,28 @@ class DumpCustom : public Dump {
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element
 
-  int maxlocal;              // size of choose and local-compute arrays
+  int maxlocal;              // size of atom selection and variable arrays
   int *choose;               // 1 if output this atom, 0 if no
   double *dchoose;           // value for each atom to threshhold against
 
   int nfield;                // # of keywords listed by user
 
+  int *field2index;          // which compute,fix,variable calcs this field
+  int *argindex;             // index into compute,fix scalar_atom,vector_atom
+                             // 0 for scalar_atom, 1-N for vector_atom values
+
   int ncompute;              // # of Compute objects used by dump
   char **id_compute;         // their IDs
   class Compute **compute;   // list of ptrs to the Compute objects
-  int *field2compute;        // which Compute calculates this field
-  int *arg_compute;          // index into Compute scalar_atom,vector_atom
-                             // 0 for scalar_atom, 1-N for vector_atom values
 
   int nfix;                  // # of Fix objects used by dump
   char **id_fix;             // their IDs
   class Fix **fix;           // list of ptrs to the Fix objects
-  int *field2fix;            // which Fix calculates this field
-  int *arg_fix;              // index into Fix scalar_atom,vector_atom
-                             // 0 for scalar_atom, 1-N for vector_atom values
+
+  int nvariable;             // # of Variables used by dump
+  char **id_variable;        // their names
+  int *variable;             // list of indices for the Variables
+  double **vbuf;             // local storage for variable evaluation
 
   // private methods
 
@@ -67,6 +70,7 @@ class DumpCustom : public Dump {
   void parse_fields(int, char **);
   int add_compute(char *);
   int add_fix(char *);
+  int add_variable(char *);
   int modify_param(int, char **);
 
   typedef void (DumpCustom::*FnPtrHeader)(int);
@@ -119,6 +123,7 @@ class DumpCustom : public Dump {
 
   void pack_compute(int);
   void pack_fix(int);
+  void pack_variable(int);
 };
 
 }

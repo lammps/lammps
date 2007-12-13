@@ -19,6 +19,8 @@
 #include "domain.h"
 #include "region.h"
 #include "group.h"
+#include "input.h"
+#include "variable.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -34,7 +36,7 @@ enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
      Q,MUX,MUY,MUZ,
      QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
-     COMPUTE,FIX};
+     COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
@@ -57,20 +59,23 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   thresh_op = NULL;
   thresh_value = NULL;
 
-  // compute and fix objects dump may create
+  // compute, fix, variables the dump accesses
+
+  field2index = (int *) memory->smalloc(nfield*sizeof(int),"dump:field2index");
+  argindex = (int *) memory->smalloc(nfield*sizeof(int),"dump:argindex");
 
   ncompute = 0;
   id_compute = NULL;
   compute = NULL;
-  field2compute = (int *) memory->smalloc(nfield*sizeof(int),
-					  "dump:field2compute");
-  arg_compute = (int *) memory->smalloc(nfield*sizeof(int),"dump:arg_compute");
 
   nfix = 0;
   id_fix = NULL;
   fix = NULL;
-  field2fix = (int *) memory->smalloc(nfield*sizeof(int),"dump:field2fix");
-  arg_fix = (int *) memory->smalloc(nfield*sizeof(int),"dump:arg_fix");
+
+  nvariable = 0;
+  id_variable = NULL;
+  variable = NULL;
+  vbuf = NULL;
 
   // process keywords
 
@@ -111,20 +116,25 @@ DumpCustom::~DumpCustom()
   memory->sfree(thresh_op);
   memory->sfree(thresh_value);
 
+  memory->sfree(field2index);
+  memory->sfree(argindex);
+
   for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
   memory->sfree(id_compute);
-  memory->sfree(compute);
-  memory->sfree(field2compute);
-  memory->sfree(arg_compute);
+  delete [] compute;
 
   for (int i = 0; i < nfix; i++) delete [] id_fix[i];
   memory->sfree(id_fix);
-  memory->sfree(fix);
-  memory->sfree(field2fix);
-  memory->sfree(arg_fix);
+  delete [] fix;
 
-  delete [] choose;
-  delete [] dchoose;
+  for (int i = 0; i < nvariable; i++) delete [] id_variable[i];
+  memory->sfree(id_variable);
+  delete [] variable;
+  for (int i = 0; i < nvariable; i++) memory->sfree(vbuf[i]);
+  delete [] vbuf;
+
+  memory->sfree(choose);
+  memory->sfree(dchoose);
 
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
@@ -163,7 +173,7 @@ void DumpCustom::init()
   if (binary) write_choice = &DumpCustom::write_binary;
   else write_choice = &DumpCustom::write_text;
 
-  // find current ptr for each compute and fix ID
+  // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
   int icompute;
@@ -180,6 +190,13 @@ void DumpCustom::init()
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
       error->all("Dump custom and fix not computed at compatible times");
+  }
+
+  int ivariable;
+  for (int i = 0; i < nvariable; i++) {
+    ivariable = input->variable->find(id_variable[i]);
+    if (ivariable < 0) error->all("Could not find dump custom variable name");
+    variable[i] = ivariable;
   }
 }
 
@@ -230,21 +247,41 @@ int DumpCustom::count()
 {
   int i;
 
-  // grow choose arrays if needed
+  // grow choose and variable storage arrays if needed
 
   int nlocal = atom->nlocal;
   if (nlocal > maxlocal) {
-    delete [] choose;
-    delete [] dchoose;
     maxlocal = atom->nmax;
-    choose = new int[maxlocal];
-    dchoose = new double[maxlocal];
+
+    memory->sfree(choose);
+    memory->sfree(dchoose);
+    choose = (int *) memory->smalloc(maxlocal*sizeof(int),"dump:choose");
+    dchoose = (double *) 
+      memory->smalloc(maxlocal*sizeof(double),"dump:dchoose");
+
+    for (i = 0; i < nvariable; i++) {
+      memory->sfree(vbuf[i]);
+      vbuf[i] = (double *) 
+	memory->smalloc(maxlocal*sizeof(double),"dump:vbuf");
+    }
   }
 
   // invoke Computes for per-atom dump quantities
 
   if (ncompute)
     for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
+
+  // invoke Variables for per-atom dump quantities
+  // parse variable once to create parse tree
+  // evaluate tree for all atoms, will be zero for atoms not in group
+  // free parse tree memory stored by Variable
+
+  if (nvariable)
+    for (i = 0; i < nvariable; i++) {
+      input->variable->build_parse_tree(variable[i]);
+      input->variable->evaluate_parse_tree(igroup,vbuf[i]);
+      input->variable->free_parse_tree();
+    }
 
   // choose all local atoms for output
 
@@ -430,23 +467,28 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == COMPUTE) {
 	i = nfield + ithresh;
-	if (arg_compute[i] == 0) {
-	  ptr = compute[field2compute[i]]->scalar_atom;
+	if (argindex[i] == 0) {
+	  ptr = compute[field2index[i]]->scalar_atom;
 	  nstride = 1;
 	} else {
-	  ptr = &compute[field2compute[i]]->vector_atom[0][arg_compute[i]-1];
-	  nstride = compute[field2compute[i]]->size_peratom;
+	  ptr = &compute[field2index[i]]->vector_atom[0][argindex[i]-1];
+	  nstride = compute[field2index[i]]->size_peratom;
 	}
 
       } else if (thresh_array[ithresh] == FIX) {
 	i = nfield + ithresh;
-	if (arg_fix[i] == 0) {
-	  ptr = fix[field2fix[i]]->scalar_atom;
+	if (argindex[i] == 0) {
+	  ptr = fix[field2index[i]]->scalar_atom;
 	  nstride = 1;
 	} else {
-	  ptr = &fix[field2fix[i]]->vector_atom[0][arg_fix[i]-1];
-	  nstride = fix[field2fix[i]]->size_peratom;
+	  ptr = &fix[field2index[i]]->vector_atom[0][argindex[i]-1];
+	  nstride = fix[field2index[i]]->size_peratom;
 	}
+
+      } else if (thresh_array[ithresh] == VARIABLE) {
+	i = nfield + ithresh;
+	ptr = vbuf[field2index[i]];
+	nstride = 1;
       }
 
       // unselect atoms that don't meet threshhold criterion
@@ -694,25 +736,26 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
 	  error->all("Invalid keyword in dump custom command");
-	arg_compute[i] = atoi(ptr+1);
+	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
-      } else arg_compute[i] = 0;
+      } else argindex[i] = 0;
 
       n = modify->find_compute(suffix);
       if (n < 0) error->all("Could not find dump custom compute ID");
       if (modify->compute[n]->peratom_flag == 0)
 	error->all("Dump custom compute ID does not compute peratom info");
-      if (arg_compute[i] == 0 && modify->compute[n]->size_peratom > 0)
+      if (argindex[i] == 0 && modify->compute[n]->size_peratom > 0)
 	error->all("Dump custom compute ID does not compute scalar per atom");
-      if (arg_compute[i] > 0 && modify->compute[n]->size_peratom == 0)
+      if (argindex[i] > 0 && modify->compute[n]->size_peratom == 0)
 	error->all("Dump custom compute ID does not compute vector per atom");
-      if (arg_compute[i] > 0 && 
-	  arg_compute[i] > modify->compute[n]->size_peratom)
+      if (argindex[i] > 0 && 
+	  argindex[i] > modify->compute[n]->size_peratom)
 	error->all("Dump custom compute ID vector is not large enough");
+
       if (modify->compute[n]->npre)
 	for (int ic = 0; ic < modify->compute[n]->npre; ic++)
 	  int tmp = add_compute(modify->compute[n]->id_pre[ic]);
-      field2compute[i] = add_compute(suffix);
+      field2index[i] = add_compute(suffix);
       delete [] suffix;
       
     // fix value = f_ID
@@ -730,22 +773,43 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
 	  error->all("Invalid keyword in dump custom command");
-	arg_fix[i] = atoi(ptr+1);
+	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
-      } else arg_fix[i] = 0;
+      } else argindex[i] = 0;
 
       n = modify->find_fix(suffix);
       if (n < 0) error->all("Could not find dump custom fix ID");
       if (modify->fix[n]->peratom_flag == 0)
 	error->all("Dump custom fix ID does not compute peratom info");
-      if (arg_fix[i] == 0 && modify->fix[n]->size_peratom > 0)
+      if (argindex[i] == 0 && modify->fix[n]->size_peratom > 0)
 	error->all("Dump custom fix ID does not compute scalar per atom");
-      if (arg_fix[i] > 0 && modify->fix[n]->size_peratom == 0)
+      if (argindex[i] > 0 && modify->fix[n]->size_peratom == 0)
 	error->all("Dump custom fix ID does not compute vector per atom");
-      if (arg_fix[i] > 0 && 
-	  arg_fix[i] > modify->fix[n]->size_peratom)
+      if (argindex[i] > 0 && 
+	  argindex[i] > modify->fix[n]->size_peratom)
 	error->all("Dump custom fix ID vector is not large enough");
-      field2fix[i] = add_fix(suffix);
+
+      field2index[i] = add_fix(suffix);
+      delete [] suffix;
+
+    // variable value = v_name
+
+    } else if (strncmp(arg[iarg],"v_",2) == 0) {
+      pack_choice[i] = &DumpCustom::pack_variable;
+      vtype[i] = DOUBLE;
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][2]);
+
+      argindex[i] = 0;
+
+      n = input->variable->find(suffix);
+      if (n < 0) error->all("Could not find dump custom variable name");
+      if (input->variable->peratom(n) == 0)
+	error->all("Dump custom variable does not compute peratom info");
+
+      field2index[i] = add_variable(suffix);
       delete [] suffix;
 
     } else error->all("Invalid keyword in dump custom command");
@@ -767,8 +831,8 @@ int DumpCustom::add_compute(char *id)
   
   id_compute = (char **)
     memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
-  compute = (Compute **) 
-    memory->srealloc(compute,(ncompute+1)*sizeof(Compute *),"dump:compute");
+  delete [] compute;
+  compute = new Compute*[ncompute+1];
 
   int n = strlen(id) + 1;
   id_compute[ncompute] = new char[n];
@@ -792,14 +856,43 @@ int DumpCustom::add_fix(char *id)
   
   id_fix = (char **)
     memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
-  fix = (Fix **)
-    memory->srealloc(fix,(nfix+1)*sizeof(Fix *),"dump:fix");
+  delete [] fix;
+  fix = new Fix*[nfix+1];
 
   int n = strlen(id) + 1;
   id_fix[nfix] = new char[n];
   strcpy(id_fix[nfix],id);
   nfix++;
   return nfix-1;
+}
+
+/* ----------------------------------------------------------------------
+   add Variable to list of Variables used by dump
+   return index of where this Variable is in list
+   if already in list, do not add, just return index, else add to list
+------------------------------------------------------------------------- */
+
+int DumpCustom::add_variable(char *id)
+{
+  int ivariable;
+  for (ivariable = 0; ivariable < nvariable; ivariable++)
+    if (strcmp(id,id_variable[ivariable]) == 0) break;
+  if (ivariable < nvariable) return ivariable;
+  
+  id_variable = (char **)
+    memory->srealloc(id_variable,(nvariable+1)*sizeof(char *),
+		     "dump:id_variable");
+  delete [] variable;
+  variable = new int[nvariable+1];
+  delete [] vbuf;
+  vbuf = new double*[nvariable+1];
+  for (int i = 0; i <= nvariable; i++) vbuf[i] = NULL;
+
+  int n = strlen(id) + 1;
+  id_variable[nvariable] = new char[n];
+  strcpy(id_variable[nvariable],id);
+  nvariable++;
+  return nvariable-1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -889,18 +982,17 @@ int DumpCustom::modify_param(int narg, char **arg)
     
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
-    // must grow field2compute and arg_compute arrays,
-    //   since access is beyond nfield
+    // must grow field2index and argindex arrays, since access is beyond nfield
     // if Compute has pre-computes, first add them to list
 
     else if (strncmp(arg[1],"c_",2) == 0) {
       thresh_array[nthresh] = COMPUTE;
-      field2compute = (int *) memory->srealloc(field2compute,
-					       (nfield+nthresh+1)*sizeof(int),
-					       "dump:field2compute");
-      arg_compute = (int *) memory->srealloc(arg_compute,
+      field2index = (int *) memory->srealloc(field2index,
 					     (nfield+nthresh+1)*sizeof(int),
-					     "dump:arg_compute");
+					     "dump:field2index");
+      argindex = (int *) memory->srealloc(argindex,
+					  (nfield+nthresh+1)*sizeof(int),
+					  "dump:argindex");
       int n = strlen(arg[1]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[1][2]);
@@ -909,43 +1001,43 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
 	  error->all("Invalid keyword in dump custom command");
-	arg_compute[nfield+nthresh] = atoi(ptr+1);
+	argindex[nfield+nthresh] = atoi(ptr+1);
 	*ptr = '\0';
-      } else arg_compute[nfield+nthresh] = 0;
+      } else argindex[nfield+nthresh] = 0;
       
       n = modify->find_compute(suffix);
       if (n < 0) error->all("Could not find dump custom compute ID");
 
       if (modify->compute[n]->peratom_flag == 0)
 	error->all("Dump custom compute ID does not compute peratom info");
-      if (arg_compute[nfield+nthresh] == 0 && 
+      if (argindex[nfield+nthresh] == 0 && 
 	  modify->compute[n]->size_peratom > 0)
 	error->all("Dump custom compute ID does not compute scalar per atom");
-      if (arg_compute[nfield+nthresh] > 0 && 
+      if (argindex[nfield+nthresh] > 0 && 
 	  modify->compute[n]->size_peratom == 0)
 	error->all("Dump custom compute ID does not compute vector per atom");
-      if (arg_compute[nfield+nthresh] > 0 && 
-	  arg_compute[nfield+nthresh] > modify->compute[n]->size_peratom)
+      if (argindex[nfield+nthresh] > 0 && 
+	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom)
 	error->all("Dump custom compute ID vector is not large enough");
+
       if (modify->compute[n]->npre)
 	for (int ic = 0; ic < modify->compute[n]->npre; ic++)
 	  int tmp = add_compute(modify->compute[n]->id_pre[ic]);
-      field2compute[nfield+nthresh] = add_compute(suffix);
+      field2index[nfield+nthresh] = add_compute(suffix);
       delete [] suffix;
 
     // fix value = f_ID
     // if no trailing [], then arg is set to 0, else arg is between []
-    // must grow field2compute and arg_compute arrays,
-    //   since access is beyond nfield
+    // must grow field2index and argindex arrays, since access is beyond nfield
 
     } else if (strncmp(arg[1],"f_",2) == 0) {
       thresh_array[nthresh] = FIX;
-      field2fix = (int *) memory->srealloc(field2fix,
-					   (nfield+nthresh+1)*sizeof(int),
-					   "dump:field2fix");
-      arg_fix = (int *) memory->srealloc(arg_fix,
-					 (nfield+nthresh+1)*sizeof(int),
-					 "dump:arg_fix");
+      field2index = (int *) memory->srealloc(field2index,
+					     (nfield+nthresh+1)*sizeof(int),
+					     "dump:field2index");
+      argindex = (int *) memory->srealloc(argindex,
+					  (nfield+nthresh+1)*sizeof(int),
+					  "dump:argindex");
       int n = strlen(arg[1]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[1][2]);
@@ -954,25 +1046,51 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
 	  error->all("Invalid keyword in dump custom command");
-	arg_fix[nfield+nthresh] = atoi(ptr+1);
+	argindex[nfield+nthresh] = atoi(ptr+1);
 	*ptr = '\0';
-      } else arg_fix[nfield+nthresh] = 0;
+      } else argindex[nfield+nthresh] = 0;
       
       n = modify->find_fix(suffix);
       if (n < 0) error->all("Could not find dump custom fix ID");
 
       if (modify->fix[n]->peratom_flag == 0)
 	error->all("Dump custom fix ID does not compute peratom info");
-      if (arg_fix[nfield+nthresh] == 0 && 
+      if (argindex[nfield+nthresh] == 0 && 
 	  modify->fix[n]->size_peratom > 0)
 	error->all("Dump custom fix ID does not compute scalar per atom");
-      if (arg_fix[nfield+nthresh] > 0 && 
+      if (argindex[nfield+nthresh] > 0 && 
 	  modify->fix[n]->size_peratom == 0)
 	error->all("Dump custom fix ID does not compute vector per atom");
-      if (arg_fix[nfield+nthresh] > 0 && 
-	  arg_fix[nfield+nthresh] > modify->fix[n]->size_peratom)
+      if (argindex[nfield+nthresh] > 0 && 
+	  argindex[nfield+nthresh] > modify->fix[n]->size_peratom)
 	error->all("Dump custom fix ID vector is not large enough");
-      field2fix[nfield+nthresh] = add_fix(suffix);
+
+      field2index[nfield+nthresh] = add_fix(suffix);
+      delete [] suffix;
+
+    // variable value = v_ID
+    // must grow field2index and argindex arrays, since access is beyond nfield
+
+    } else if (strncmp(arg[1],"v_",2) == 0) {
+      thresh_array[nthresh] = VARIABLE;
+      field2index = (int *) memory->srealloc(field2index,
+					     (nfield+nthresh+1)*sizeof(int),
+					     "dump:field2index");
+      argindex = (int *) memory->srealloc(argindex,
+					  (nfield+nthresh+1)*sizeof(int),
+					  "dump:argindex");
+      int n = strlen(arg[1]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[1][2]);
+    
+      argindex[nfield+nthresh] = 0;
+      
+      n = input->variable->find(suffix);
+      if (n < 0) error->all("Could not find dump custom variable name");
+      if (input->variable->peratom(n) == 0)
+	error->all("Dump custom variable does not compute peratom info");
+
+      field2index[nfield+nthresh] = add_variable(suffix);
       delete [] suffix;
 
     } else error->all("Invalid dump_modify threshhold operator");
@@ -999,7 +1117,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf and choose and local arrays
+   return # of bytes of allocated memory in buf, choose, variable arrays
 ------------------------------------------------------------------------- */
 
 double DumpCustom::memory_usage()
@@ -1007,6 +1125,7 @@ double DumpCustom::memory_usage()
   double bytes = maxbuf * sizeof(double);
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(double);
+  bytes += maxlocal * nvariable * sizeof(double);
   return bytes;
 }
 
@@ -1483,9 +1602,10 @@ void DumpCustom::pack_tqz(int n)
 
 void DumpCustom::pack_compute(int n)
 {
-  double *vector = compute[field2compute[n]]->scalar_atom;
-  double **array = compute[field2compute[n]]->vector_atom;
-  int index = arg_compute[n];
+  double *vector = compute[field2index[n]]->scalar_atom;
+  double **array = compute[field2index[n]]->vector_atom;
+  int index = argindex[n];
+
   int nlocal = atom->nlocal;
 
   if (index == 0) {
@@ -1508,9 +1628,10 @@ void DumpCustom::pack_compute(int n)
 
 void DumpCustom::pack_fix(int n)
 {
-  double *vector = fix[field2fix[n]]->scalar_atom;
-  double **array = fix[field2fix[n]]->vector_atom;
-  int index = arg_fix[n];
+  double *vector = fix[field2index[n]]->scalar_atom;
+  double **array = fix[field2index[n]]->vector_atom;
+  int index = argindex[n];
+
   int nlocal = atom->nlocal;
 
   if (index == 0) {
@@ -1527,4 +1648,19 @@ void DumpCustom::pack_fix(int n)
 	n += size_one;
       }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_variable(int n)
+{
+  double *vector = vbuf[field2index[n]];
+
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = vector[i];
+      n += size_one;
+    }
 }

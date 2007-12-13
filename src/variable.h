@@ -26,6 +26,7 @@ class Variable : protected Pointers {
   void set(char *, char *);
   int next(int, char **);
   int find(char *);
+  int peratom(int);
   char *retrieve(char *);
 
   void build_parse_tree(int);

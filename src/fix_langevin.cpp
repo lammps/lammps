@@ -197,3 +197,14 @@ void FixLangevin::reset_target(double t_new)
 {
   t_start = t_stop = t_new;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevin::reset_dt()
+{
+  for (int i = 1; i <= atom->ntypes; i++) {
+    gfactor2[i] = sqrt(atom->mass[i]) * 
+      sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / force->ftm2v;
+    gfactor2[i] *= 1.0/sqrt(ratio[i]);
+  }
+}

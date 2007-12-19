@@ -344,8 +344,8 @@ int AtomVecMolecular::pack_border(int n, int *list, double *buf,
 
 int AtomVecMolecular::pack_border_one(int i, double *buf)
 {
-  buf[1] = molecule[i];
-  return 2;
+  buf[0] = molecule[i];
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -372,8 +372,8 @@ void AtomVecMolecular::unpack_border(int n, int first, double *buf)
 
 int AtomVecMolecular::unpack_border_one(int i, double *buf)
 {
-  molecule[i] = static_cast<int> (buf[1]);
-  return 2;
+  molecule[i] = static_cast<int> (buf[0]);
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

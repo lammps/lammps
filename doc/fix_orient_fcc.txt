@@ -125,7 +125,9 @@ boundary driving force to the system's potential energy as part of
 
 The potential energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.
+commands"_Section_howto.html#4_15.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

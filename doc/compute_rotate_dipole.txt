@@ -28,6 +28,11 @@ The rotational energy is calculated as the sum of 1/2 I w^2 over all
 the atoms in the group, where I is the moment of inertia of a
 disk/spherical (2d/3d) particle, and w is its angular velocity.
 
+[Output info:]
+
+The scalar value calculated by this compute is "extensive", meaning it
+it scales with the number of atoms in the simulation.
+
 [Restrictions:] none
 
 [Related commands:] none

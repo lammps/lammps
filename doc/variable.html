@@ -24,22 +24,19 @@
   <I>world</I> args = one string for each partition of processors
   <I>universe</I> args = one or more strings
   <I>uloop</I> args = N = integer size of loop
-  <I>equal</I> or <I>atom</I> args = one equation containing numbers, thermo keywords, math functions, group functions, atom vectors, compute references, other variables
+  <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute and fix references, other variables
     numbers = 0.0, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
-    math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
-                     neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-    group functions = mass(group), charge(group),
+    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
+    group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group)
-    atom vectors for <I>equal</I> = mass[N], x[N], y[N], z[N],
-                               vx[N], vy[N], vz[N],
-			       fx[N], fy[N], fz[N]
-    atom vectors for <I>atom</I> =  mass[], x[], y[], z[],
-                               vx[], vy[], vz[],
-			       fx[], fy[], fz[]
-    compute references = c_ID[0], c_ID[N]
-    fix references = f_ID[0], f_ID[N]
+    atom value = mass[N], x[N], y[N], z[N],
+                 vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]
+    atom vector = mass[], x[], y[], z[],
+                  vx[], vy[], vz[], fx[], fy[], fz[]
+    compute references = c_ID, c_ID[N]
+    fix references = f_ID, f_ID[N]
     other variables = v_abc, v_x, etc 
 </PRE>
 
@@ -48,37 +45,43 @@
 </P>
 <PRE>variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop $n
-variable beta equal div(temp,3.0)
-variable b1 equal add(x[234],mult(0.5,vol))
-variable b equal div(xcm(mol1,x),2.0)
-variable b equal c_myTemp[0]
-variable b atom div(mult(x<B></B>,y<B></B>),vol)
+variable beta equal temp/3.0
+variable b1 equal "x[234] + 0.5*vol"
+variable b equal xcm(mol1,x)/2.0
+variable b equal c_myTemp
+variable b atom x<B></B>*y<B></B>/vol
 variable temp world 300.0 310.0 320.0 $<I>Tfinal</I>
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command assigns one or more strings to a variable name.
-Variables can be used in several ways in LAMMPS.  A variable can be
-referenced elsewhere in an input script.  For variable styles that
-store multiple strings, the <A HREF = "next.html">next</A> command can be used to
-increment which string is assigned to the variable.  Variables can be
-evaluated to produce a numeric value which can be output either
-directly (see the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix print</A>, and
-<A HREF = "run.html">run every</A> commands) or as part of thermodynamic output (see
-the <A HREF = "thermo_style.html">thermo_style</A> command), fix output (see the
-<A HREF = "fix_ave_spatial.html">fix ave/spatial</A> and <A HREF = "compute_variable_atom.html">compute
-variable/atom</A> commands), or dump output
-(see the <A HREF = "dump.html">dump custom</A> and <A HREF = "compute_variable_atom.html">compute
-variable/atom</A> commands).
+<P>This command assigns one or more strings to a variable name for
+evaluation later in the input script or during a simulation.
+</P>
+<P>Variables can be used in several ways in LAMMPS.  A variable can be
+referenced elsewhere in an input script to become part of a new input
+command.  For variable styles that store multiple strings, the
+<A HREF = "next.html">next</A> command can be used to increment which string is
+assigned to the variable.  Variables of style <I>equal</I> can be evaluated
+to produce a single numeric value which can be output either directly
+(see the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix print</A>, and <A HREF = "run.html">run
+every</A> commands) or as part of thermodynamic output (see the
+<A HREF = "thermo_style.html">thermo_style</A> command), or used as input to an
+averaging fix (see the <A HREF = "fix_ave/time">fix ave/time</A> command).
+Variables of style <I>atom</I> can be evaluated to produce one numeric
+value per atom which can be output to a dump file (see the <A HREF = "dump.html">dump
+custom</A> command) or used as input to an averaging fix (see
+the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> and <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> commands).
 </P>
 <P>In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
+This name can only contain alphanumeric characters and underscores.
 The "string" is one or more of the subsequent arguments.  The "string"
 can be simple text as in the 1st example above, it can contain other
-variables as in the 2nd example, or it can be an equation as in the
-3rd example.  The "value" is the numeric quantity resulting from
+variables as in the 2nd example, or it can be a formula as in the 3rd
+example.  The "value" is the numeric quantity resulting from
 evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.
@@ -89,14 +92,16 @@ is ignored.  This means variables can NOT be re-defined in an input
 script (with 2 exceptions, read further).  This is to allow an input
 script to be processed multiple times without resetting the variables;
 see the <A HREF = "jump.html">jump</A> or <A HREF = "include.html">include</A> commands.  It also
-means that using a command-line switch -var will override a
-corresponding variable setting in the input script.
+means that using the <A HREF = "Section_start.html#2_6">command-line switch</A> -var
+will override a corresponding variable setting in the input script.
 </P>
 <P>There are two exceptions to this rule.  First, variables of style
-<I>equal</I> ARE redefined each time the command is encountered.  This
-allow them to be reset, e.g. in a loop.  This means an <I>equal</I>-style
-variable will re-define a command-line swich -var setting, so use an
-<I>index</I>-style variable for these settings instead, as in bench/in.lj.
+<I>equal</I> and <I>atom</I> ARE redefined each time the command is encountered.
+This allows them to be reset, when their formulas contain a
+substitution for another variable, e.g. $x.  This can be useful in a
+loop.  This also means an <I>equal</I>-style variable will re-define a
+command-line switch -var setting, so an <I>index</I>-style variable should
+be used for such settings instead, as in bench/in.lj.
 </P>
 <P>Second, as described below, if a variable is iterated on to the end of
 its list of strings via the <A HREF = "next.html">next</A> command, it is removed
@@ -114,10 +119,10 @@ the name "x" is a single character, or as ${LoopVar} if the name
 <P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>universe</I>,
 and <I>uloop</I>, which string is assigned to a variable can be incremented
 via the <A HREF = "next.html">next</A> command.  When there are no more strings to
-assign, the variable is "exhausted" and a flag is set that causes the
+assign, the variable is exhausted and a flag is set that causes the
 next <A HREF = "jump.html">jump</A> command encountered in the input script to be
 skipped.  This enables the construction of simple loops in the input
-script that are iterated over and exited from.
+script that are iterated over and then exited from.
 </P>
 <HR>
 
@@ -175,12 +180,13 @@ script.
 <HR>
 
 <P>For the <I>equal</I> and <I>atom</I> styles, a single string is specified which
-represents an equation that will be evaluated afresh each time the
-variable is used.  For <I>equal</I> style variables this equation computes
-a scalar quantity, which becomes the value of the variable whenever it
-is evaluated.  For <I>atom</I> style variables it computes a quantity for
-each atom, which is used by the "compute variable/atom" command and
-its associated output.
+represents a formula that will be evaluated afresh each time the
+variable is used.  If you want spaces in the string, enclose it in
+double quotes so the parser will treat it as a single argument.  For
+<I>equal</I> style variables the formula computes a scalar quantity, which
+becomes the value of the variable whenever it is evaluated.  For
+<I>atom</I> style variables the formula computes one quantity for each
+atom whenever it is evaluated.
 </P>
 <P>Note that <I>equal</I> and <I>atom</I> variables can produce different values at
 different stages of the input script or at different times during a
@@ -191,121 +197,159 @@ timestep it was invoked.
 <P>The next command cannot be used with <I>equal</I> or <I>atom</I> style
 variables, since there is only one string.
 </P>
-<P>The equation for an <I>equal</I> or <I>atom</I> variable can contain a variety
+<P>The formula for an <I>equal</I> or <I>atom</I> variable can contain a variety
 of quantities.  The syntax for each kind of quantity is simple, but
 multiple quantities can be nested and combined in various ways to
 build up formulas of arbitrary complexity.  For example, this is a
-valid (though strange) variable equation:
+valid (though strange) variable formula:
 </P>
-<PRE>variable x equal div(add(pe,c_MyTemp[0]),pow(vol,div(1,3))) 
+<PRE>variable x equal "pe + c_MyTemp / vol^(1/3)" 
 </PRE>
-<P>Specifically, an equation can contain numbers, thermo keywords, math
-functions, group functions, atom vectors, compute references, and
-other variables.  There is one difference between <I>equal</I> and <I>atom</I>
-variables; the syntax of Atom vector references is different.
+<P>Specifically, an formula can contain numbers, thermo keywords, math
+operations, group functions, atom values, atom vectors, compute
+references, fix references, and references to other variables.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
-<TR><TD >Math functions</TD><TD > add(x,y), sub(x,y), mult(x,y), div(x,y),   neg(x), pow(x,y), exp(x), ln(x), sqrt(x)</TD></TR>
-<TR><TD >Group functions</TD><TD > mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim)   bound(ID,dir), gyration(ID)</TD></TR>
-<TR><TD >Atom vectors for <I>equal</I></TD><TD > mass[N], x[N], y[N], z[N],                           vx[N], vy[N], vz[N],                           fx[N], fy[N], fz[N]</TD></TR>
-<TR><TD >Atom vectors for <I>atom</I></TD><TD >  mass[], x[], y[], z[],                           vx[], vy[], vz[],                           fx[], fy[], fz[]</TD></TR>
-<TR><TD >Compute references</TD><TD > c_ID[0], c_ID[N]</TD></TR>
-<TR><TD >Fix references</TD><TD > f_ID[0], f_ID[N]</TD></TR>
+<TR><TD >Math operations</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)</TD></TR>
+<TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID)</TD></TR>
+<TR><TD >Atom values</TD><TD > mass[N], x[N], y[N], z[N],              vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]</TD></TR>
+<TR><TD >Atom vectors</TD><TD > mass[], x[], y[], z[],               vx[], vy[], vz[], fx[], fy[], fz[]</TD></TR>
+<TR><TD >Compute references</TD><TD > c_ID, c_ID[N]</TD></TR>
+<TR><TD >Fix references</TD><TD > f_ID, f_ID[N]</TD></TR>
 <TR><TD >Other variables</TD><TD > v_abc, v_x, etc 
 </TD></TR></TABLE></DIV>
 
-<P>The thermo keywords allowed in the equation are those defined by the
-"thermo_style custom" command.  Note that many thermodyanmic
-quantities are only computable after the first simulation has begun.
-Likewise, many thermodynamic quantities (such as energies) are only
-computed on timesteps when thermodyanmic output is being performed.
-If the variable equation these quantities at other times, out-of-date
-or invalid values may be used.
+<P>Note that the formula for equal-style variables cannot use any formula
+element that produces per-atom values, namely atom vectors, a compute
+that produces per-atom values, a fix that produces per-atoms values,
+or an atom-style variable.  The formula for atom-style variables can
+use these quantities, as well as quantities that produce a global
+scalar or vector, e.g. a compute or fix that produces global
+quantities.
 </P>
-<P>Math functions take one or two arguments, each of which may be an
-equation containing any of the quantities defined above.  This allows
-equations to be nested, as in the examples above.
+<P>The thermo keywords allowed in a formula are those defined by the
+"thermo_style custom" command.  Since many thermodyanmic quantities
+are only computable after the a simulation has begun, these keywords
+cannot be used if a variable is evaluated before the first simulation
+begins.
 </P>
-<P>Group functions take one or two arguments.  The first argument is the
-group-ID.  The <I>dim</I> argument is <I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I>
-argument is <I>xmin</I>, <I>xmax</I>, <I>ymin</I>, <I>ymax</I>, <I>zmin</I>, or <I>zmax</I>.  The
-group functions mass() and charge() are the total mass and charge of
-the group of atoms.  Xcm() and vcm() return components of the position
-and velocity of the center of mass of the group.  Fcm() returns a
-component of the total force on the group of atoms.  Bound() returns
-the min/max of a particular coordinate for all atoms in the group.
-Gyration() computes the radius-of-gyration of the group of atoms.  See
-the <A HREF = "fix_gyration.html">fix gyration</A> command for the formula.
+<P>Math operations are written in the usual way, where the "x" and "y" in
+the examples above can be another section of the formula.  Operators
+are evaluated left to right and have the usual precedence: unary minus
+before exponentiation, exponentiation before multiplication and
+division, and multiplication and division before addition and
+subtraction.  Parenthesis can be used to group one or more portions of
+a formula and enforce a desired order of operations.  Additional math
+operations can be specified as keywords followed by a parenthesized
+argument, e.g. sqrt(v_ke).
 </P>
-<P>For <I>equal</I> style variables, atom vectors take a single integer
-argument from 1-N, which is the desired atom-ID, e.g. x[243].  For
-<I>atom</I> style variables, atom vectors take no argument.  Since <I>atom</I>
-style variables compute one value per atom, a reference like x[]
-means the x-coord of each atom will be used when evaluating the
-variable.
+<P>Group functions take one or two arguments in a specific format.  The
+first argument is the group-ID.  The <I>dim</I> argument, if it exists, is
+<I>x</I> or <I>y</I> or <I>z</I>.  The <I>dir</I> argument, if it exists, is <I>xmin</I>,
+<I>xmax</I>, <I>ymin</I>, <I>ymax</I>, <I>zmin</I>, or <I>zmax</I>.  The group function count()
+is the number of atoms in the group.  The group functions mass() and
+charge() are the total mass and charge of the group.  Xcm() and vcm()
+return components of the position and velocity of the center of mass
+of the group.  Fcm() returns a component of the total force on the
+group of atoms.  Bound() returns the min/max of a particular
+coordinate for all atoms in the group.  Gyration() computes the
+radius-of-gyration of the group of atoms.  See the <A HREF = "fix_gyration.html">fix
+gyration</A> command for a definition of the formula.
 </P>
-<P>Compute references access scalar or vector quantities calculated by a
+<P>Atom values take a single integer argument from 1-N, which is the
+desired atom-ID, e.g. x[243]., which means use the x coordinate of
+the atom with ID=243.
+</P>
+<P>Atom vectors take no argument.  They generate one value per atom, so
+that a reference like x[] means the x-coord of each atom will be
+used when evaluating the variable.
+</P>
+<P>Compute references access global scalar or vector quantities or
+per-atom scalar or vector quantities calculated by a
 <A HREF = "compute.html">compute</A>.  The ID in the reference should be replaced by
 the actual ID of the compute defined elsewhere in the input script.
-See the <A HREF = "compute.html">compute</A> command for details.  Note that
-per-atom quantities calculated by a compute cannot be accessed this
-way, but only global scalar or vector quantities.  However, there is a
-<A HREF = "compute_sum.html">compute sum</A> command which sums per-atom quantities
-into a global scalar or vector which can be accessed by a variable.
+See the <A HREF = "compute.html">compute</A> command for details.  Any specific
+compute will either generate global or per-atom values, so there
+is no amiguity as to which is used.
 </P>
-<P>If <I>c_ID[0]</I> is used as a keyword, then the scalar quantity
-calculated by the compute is used.  If <I>c_ID[N]</I> is used, then one
-component of the vector quantity calculated by the compute is used.  N
-should be an integer from 1-M, where M is the length of the vector
-calculated by the compute.
+<P>If <I>c_ID</I> is used as a keyword, then the scalar quantity calculated by
+the compute is used (global or per-atom).  If <I>c_ID[N]</I> is used,
+then one component of the vector quantity calculated by the compute is
+used (global or per-atom).  N should be an integer from 1-M, where M
+is the length of the vector calculated by the compute.
 </P>
-<P>Fix references access scalar or vector quantities calculated by a
-<A HREF = "fix.html">fix</A>.  See the doc pages for individual fixes to see which
-ones compute a scalar or vector quantity.  Since the fix may not be
-invoked every timestep and compute its quantities, you should insure
-the variable is only evaluated on appropriate timesteps.  The ID in
+<P>Fix references access global scalar or vector quantities or per-atom
+scalar or vector quantities calculated by a <A HREF = "fix.html">fix</A>.  The ID in
 the reference should be replaced by the actual ID of the fix defined
-elsewhere in the input script.  See the <A HREF = "fix.html">fix</A> command for
-details.  Note that per-atom quantities calculated by a fix cannot be
-accessed this way, but only global scalar or vector quantities.
+elsewhere in the input script.  See the doc pages for individual fixes
+to see which ones compute what kind of quantities.  Any specific fix
+compute will either generate global or per-atom values, so there is no
+amiguity as to which is used.  Some fixes only generate quantities on
+certain timesteps.  If a variable attempts to access the fix on
+non-allowed timesteps, an error is generated.  For example, the <A HREF = "fix_ave_time.html">fix
+ave/time</A> command may only generate averaged
+quantities every 100 steps.  See the <A HREF = "fix.html">fix</A> command for
+details.
 </P>
-<P>If <I>f_ID[0]</I> is used as a keyword, then the scalar quantity
-calculated by the fix is used.  If <I>f_ID[N]</I> is used, then one
-component of the vector quantity calculated by the fix is used.  N
-should be an integer from 1-M, where M is the length of the vector
-calculated by the fix.
+<P>If <I>f_ID</I> is used as a keyword, then the scalar quantity calculated by
+the fix is used (global or per-atom).  If <I>f_ID[N]</I> is used, then
+one component of the vector quantity calculated by the fix is used
+(global or per-atom).  N should be an integer from 1-M, where M is the
+length of the vector calculated by the fix.
 </P>
 <P>The current values of other variables can be accessed by prepending a
-"v_" to the variable name.  This will cause the other variable to be
-evaulated.  Note that if you do something circular like this:
+"v_" to the variable name.  This will cause that variable to be
+evaulated.  Note that <I>equal</I> style variables generate single values
+and <I>atom</I> style variables generate one value per atom.  Thus an
+atom-style variable cannot be referenced by the formula for an
+equal-style variable, but the converse is allowed.
+</P>
+<P>IMPORTANT NOTE: If you define variables in circular manner like this:
 </P>
 <PRE>variable a equal v_b
 variable b equal v_a
 print $a 
 </PRE>
-<P>then LAMMPS will run for a while when the print statement is invoked.
+<P>then LAMMPS will run for a while when the print statement is invoked!
 </P>
-<P>Note that there is a subtle difference between using a variable in a
-<I>equal</I> or <I>atom</I> style equation in the form $x versus v_x.
+<P>Another way to reference a variable in a formula is using the $x form
+instead of v_x.  There is a subtle difference between the two
+references that has to do with when the evaluation of the included
+variable is done.
 </P>
-<P>In the former case, as with any other input script command, the
-variable's value is substituted for immediately when the line is read
-from the input script.  Thus if the current simulation box volume was
-1000.0, then these lines:
+<P>Using a $x, the value of the include variable is substituted for
+immediately when the line is read from the input script, just as it
+would be in other input script command.  This could be the desired
+behavior if a static value is desired.  Or it could be the desired
+behavior for an equal-style variable if the variable command appears
+in a loop (see the <A HREF = "jump.html">jump</A> and <A HREF = "next.html">next</A> commmands),
+since the substitution will be performed anew each time thru the loop
+as the command is re-read.  Note that if the variable formula is
+enclosed in double quotes, this prevents variable substitution and
+thus an error will be generated when the variable formula is
+evaluated.
+</P>
+<P>Using a v_x, the value of the included variable will not be accessed
+until the variable formula is evaluated.  Thus the value may change
+each time the evaluation is performed.  This may also be desired
+behavior.
+</P>
+<P>As an example, if the current simulation box volume is 1000.0, then
+these lines:
 </P>
 <PRE>variable x equal vol
-variable y equal mult($x,2) 
+variable y equal 2*$x 
 </PRE>
-<P>would associate the equation string "mult(1000.0,2)" with variable y.
+<P>will associate the equation string "2*1000.0" with variable y.
 </P>
 <P>By contrast, these lines:
 </P>
 <PRE>variable x equal vol
-variable y equal mult(v_x,2) 
+variable y equal 2*v_x 
 </PRE>
-<P>would associate the equation string "mult(v_x,2)" with variable y.
+<P>wlll associate the equation string "2*v_x" with variable y.
 </P>
 <P>Thus if the variable y were evaluated periodically during a run where
 the box volume changed, the resulting value would always be 2000.0 for
@@ -315,13 +359,14 @@ the first case, but would change dynamically for the second case.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The use of atom vectors in <I>equal</I> style variables requires the atom
-style to use a global mapping in order to look up the vector indices.
-Only atom styles with molecular information create global maps unless
-the <A HREF = "atom_modify.html">atom_modify map</A> command is used.
+<P>The use of atom values in <I>equal</I> or <I>atom</I> style variables requires
+the atom style to use a global mapping in order to look up the vector
+indices.  By default, only atom styles with molecular information
+create global maps.  The <A HREF = "atom_modify.html">atom_modify map</A> command
+can override the default.
 </P>
-<P>All <I>universe</I>- and <I>uloop</I>-style variables must have the same number
-of values.
+<P>All <I>universe</I>- and <I>uloop</I>-style variables defined in an input script
+must have the same number of values.
 </P>
 <P><B>Related commands:</B>
 </P>

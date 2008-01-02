@@ -10,44 +10,79 @@ compute sum command :h3
 
 [Syntax:]
 
-compute ID group-ID sum compute-ID1 compute-ID2 ... :pre
+compute ID group-ID sum value1 value2 ... :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-sum/ = style name of this compute command
-compute-ID1, 2, ...  = IDs of computes that calculate per-atom quantities :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+sum = style name of this compute command :l
+one or more values can be listed :l
+value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+  c_ID = per-atom scalar value calculated by a compute with ID
+  c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
+  f_ID = per-atom scalar value calculated by a fix with ID
+  f_ID\[N\] = Nth component of per-atom vector calculated by a fix with ID
+  v_name = per-atom value calculated by an atom-style variable with name :pre
+:ule
 
 [Examples:]
 
 compute 1 all sum c_force
-compute 1 all sum atomKE atomEpair atomEbond :pre
+compute 2 all sum c_press[2] f_ave v_myKE :pre
 
 [Description:]
 
-Define a computation that sums the results of one or more per-atom
-computes across all atoms in the group to yield a global scalar or
-vector quantity.  For example, the forces on a group of atoms could be
-summed to yield a net force on the group.  The resulting value(s) can
-be accessed by any command that uses global computes, e.g. the "thermo
+Define a calculation that sums the results of one or more per-atom
+quantities across all atoms in the group to yield a global scalar or
+vector quantity.  The resulting value(s) can be accessed by any
+command that uses global computes, e.g. the "thermo
 custom"_therml_style.html command or "fix ave/time"_fix_ave_time.html
-command or by a "variable"_variable.html command.
+command or by a "variable"_variable.html command.  See "this
+section"_Section_howto.html#4_15 of the documentation for an overview
+of output options.
 
-Unlike the "compute sum/atom"_compute_sum_atom.html command, the
-result of this is not a per-atom quantity, but a global scalar or
-vector.  If the other computes each generate a scalar value per atom,
-this compute will generate a single scalar value.  If the other
-computes each generate a vector of values per atom, this compute will
-generate a vector of values where each value is the sum across atoms
-of the corresponding value produced by the other computes.  In the
-latter case, all the other computes must generate per-atom vectors of
-the same size.
+Each listed value is summed independently.  The group specified with
+the command means only atoms within the group contribute to the sum.
+Note that the value that produces the per-atom quantities may define
+its own group which affects the values it returns.  For example, if a
+per-atom compute is used as a value, it will generate values of 0.0
+for atoms that are not in the group specified for that compute.
 
-Note that all per-atom computes generate values of 0.0 for atoms that
-are not in the group specified for that compute.
+Each listed value can be an atom attribute (position, velocity, force
+component) or can be the result of a "compute"_compute.html or
+"fix"_fix.html or the evaluation of an atom-style
+"variable"_variable.html.  In the latter cases, the compute, fix, or
+variable must produce a per-atom quantity, not a global quantity.
+
+"Computes"_compute.html that produce per-atom quantities are those
+which have the word {atom} in their style name.  Currently the only
+fix that produces per-atom quantities is the "fix
+ave/atom"_fix_ave_atom.html command.  "Variables"_variable.html of
+style {atom} are the only ones that can be used with this compute
+since all other variable stylse produce global quantities.
+
+If a single value is specified this compute produces a global scalar
+value.  If multiple values are specified, this compute produces a
+vector of global values, the length of which is equal to the
+number of values specified.
+
+The value(s) produced by this compute are all "extensive", meaning
+their value scales linearly with the number of atoms involved.  If
+normalized values are desired, this compute can be accessed by the
+"thermo_style custom"_thermo_style.html command with "thermo_modify
+norm yes"_thermo_modify.html set as an option.  Or it can be accessed
+by a "variable"_variable.html that divides by the appropriate atom
+count.
+
+[Output info:]
+
+The scalar and vector values calculated by this compute are
+"extensive", meaning they scale with the number of atoms in the
+simulation.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"compute sum/atom"_compute_sum_atom.html
+"compute"_compute.html, "fix"_fix.html, "variable"_variable.html
 
 [Default:] none

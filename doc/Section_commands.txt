@@ -437,7 +437,6 @@ Compute styles.  See the "compute"_compute.html command for one-line
 descriptions of each style or click on the style itself for a full
 description:
 
-"attribute/atom"_compute_attribute_atom.html,
 "centro/atom"_compute_centro_atom.html,
 "coord/atom"_compute_coord_atom.html,
 "ke/atom"_compute_ke_atom.html,
@@ -448,16 +447,13 @@ description:
 "rotate/gran"_compute_rotate_gran.html,
 "stress/atom"_compute_stress_atom.html,
 "sum"_compute_sum.html,
-"sum/atom"_compute_sum_atom.html,
 "temp"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,
 "temp/deform"_compute_temp_deform.html,
 "temp/dipole"_compute_temp_dipole.html,
 "temp/partial"_compute_temp_partial.html,
 "temp/ramp"_compute_temp_ramp.html,
-"temp/region"_compute_temp_region.html,
-"variable"_compute_variable.html,
-"variable/atom"_compute_variable_atom.html :tb(c=6,ea=c)
+"temp/region"_compute_temp_region.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.

@@ -63,6 +63,13 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 {extra} option of the "compute_modify"_compute_modify.html command.
 
+[Output info:]
+
+The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.  The vector
+values are "extensive", meaning they scale with the number of atoms in
+the simulation.
+
 [Restrictions:] none
 
 [Related commands:]

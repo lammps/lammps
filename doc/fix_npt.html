@@ -135,11 +135,11 @@ as if these commands had been issued:
 <PRE>compute fix-ID_temp group-ID temp
 compute fix-ID_press group-ID pressure fix-ID_temp 
 </PRE>
-<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
+<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html<A HREF = "temp"<A HREF = "press"">>>compute
 pressure</A> commands for details.  Note that the
-IDs of the new computes are the fix-ID with underscore + "temp" or
-"press" appended and the group for the new computes is the same as the
-fix group.
+IDs of the new computes are the fix-ID with </A> or </A>
+appended and the group for the new computes is the same as the fix
+group.
 </P>
 <P>Note that these are NOT the computes used by thermodynamic output (see
 the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
@@ -175,7 +175,9 @@ barostatting to the system's potential energy as part of
 </P>
 <P>The potential energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.
+commands</A>.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.
 </P>
 <P>This fix can ramp its target temperature and pressure over multiple
 runs, using the <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A>

@@ -19,22 +19,19 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
   {world} args = one string for each partition of processors
   {universe} args = one or more strings
   {uloop} args = N = integer size of loop
-  {equal} or {atom} args = one equation containing numbers, thermo keywords, math functions, group functions, atom vectors, compute references, other variables
+  {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute and fix references, other variables
     numbers = 0.0, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
-    math functions = add(x,y), sub(x,y), mult(x,y), div(x,y),
-                     neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-    group functions = mass(group), charge(group),
+    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
+    group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group)
-    atom vectors for {equal} = mass\[N\], x\[N\], y\[N\], z\[N\],
-                               vx\[N\], vy\[N\], vz\[N\],
-			       fx\[N\], fy\[N\], fz\[N\]
-    atom vectors for {atom} =  mass\[\], x\[\], y\[\], z\[\],
-                               vx\[\], vy\[\], vz\[\],
-			       fx\[\], fy\[\], fz\[\]
-    compute references = c_ID\[0\], c_ID\[N\]
-    fix references = f_ID\[0\], f_ID\[N\]
+    atom value = mass\[N\], x\[N\], y\[N\], z\[N\],
+                 vx\[N\], vy\[N\], vz\[N\], fx\[N\], fy\[N\], fz\[N\]
+    atom vector = mass\[\], x\[\], y\[\], z\[\],
+                  vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
+    compute references = c_ID, c_ID\[N\]
+    fix references = f_ID, f_ID\[N\]
     other variables = v_abc, v_x, etc :pre
 :ule
 
@@ -42,37 +39,43 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
 
 variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop $n
-variable beta equal div(temp,3.0)
-variable b1 equal add(x\[234\],mult(0.5,vol))
-variable b equal div(xcm(mol1,x),2.0)
-variable b equal c_myTemp\[0\]
-variable b atom div(mult(x[],y[]),vol)
+variable beta equal temp/3.0
+variable b1 equal "x\[234\] + 0.5*vol"
+variable b equal xcm(mol1,x)/2.0
+variable b equal c_myTemp
+variable b atom x[]*y[]/vol
 variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 :pre
 
 [Description:]
 
-This command assigns one or more strings to a variable name.
+This command assigns one or more strings to a variable name for
+evaluation later in the input script or during a simulation.
+
 Variables can be used in several ways in LAMMPS.  A variable can be
-referenced elsewhere in an input script.  For variable styles that
-store multiple strings, the "next"_next.html command can be used to
-increment which string is assigned to the variable.  Variables can be
-evaluated to produce a numeric value which can be output either
-directly (see the "print"_print.html, "fix print"_fix_print.html, and
-"run every"_run.html commands) or as part of thermodynamic output (see
-the "thermo_style"_thermo_style.html command), fix output (see the
-"fix ave/spatial"_fix_ave_spatial.html and "compute
-variable/atom"_compute_variable_atom.html commands), or dump output
-(see the "dump custom"_dump.html and "compute
-variable/atom"_compute_variable_atom.html commands).
+referenced elsewhere in an input script to become part of a new input
+command.  For variable styles that store multiple strings, the
+"next"_next.html command can be used to increment which string is
+assigned to the variable.  Variables of style {equal} can be evaluated
+to produce a single numeric value which can be output either directly
+(see the "print"_print.html, "fix print"_fix_print.html, and "run
+every"_run.html commands) or as part of thermodynamic output (see the
+"thermo_style"_thermo_style.html command), or used as input to an
+averaging fix (see the "fix ave/time"_fix_ave/time command).
+Variables of style {atom} can be evaluated to produce one numeric
+value per atom which can be output to a dump file (see the "dump
+custom"_dump.html command) or used as input to an averaging fix (see
+the "fix ave/spatial"_fix_ave_spatial.html and "fix
+ave/atom"_fix_ave_atom.html commands).
 
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
+This name can only contain alphanumeric characters and underscores.
 The "string" is one or more of the subsequent arguments.  The "string"
 can be simple text as in the 1st example above, it can contain other
-variables as in the 2nd example, or it can be an equation as in the
-3rd example.  The "value" is the numeric quantity resulting from
+variables as in the 2nd example, or it can be a formula as in the 3rd
+example.  The "value" is the numeric quantity resulting from
 evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.
@@ -83,14 +86,16 @@ is ignored.  This means variables can NOT be re-defined in an input
 script (with 2 exceptions, read further).  This is to allow an input
 script to be processed multiple times without resetting the variables;
 see the "jump"_jump.html or "include"_include.html commands.  It also
-means that using a command-line switch -var will override a
-corresponding variable setting in the input script.
+means that using the "command-line switch"_Section_start.html#2_6 -var
+will override a corresponding variable setting in the input script.
 
 There are two exceptions to this rule.  First, variables of style
-{equal} ARE redefined each time the command is encountered.  This
-allow them to be reset, e.g. in a loop.  This means an {equal}-style
-variable will re-define a command-line swich -var setting, so use an
-{index}-style variable for these settings instead, as in bench/in.lj.
+{equal} and {atom} ARE redefined each time the command is encountered.
+This allows them to be reset, when their formulas contain a
+substitution for another variable, e.g. $x.  This can be useful in a
+loop.  This also means an {equal}-style variable will re-define a
+command-line switch -var setting, so an {index}-style variable should
+be used for such settings instead, as in bench/in.lj.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed
@@ -108,10 +113,10 @@ the name "x" is a single character, or as $\{LoopVar\} if the name
 As described below, for variable styles {index}, {loop}, {universe},
 and {uloop}, which string is assigned to a variable can be incremented
 via the "next"_next.html command.  When there are no more strings to
-assign, the variable is "exhausted" and a flag is set that causes the
+assign, the variable is exhausted and a flag is set that causes the
 next "jump"_jump.html command encountered in the input script to be
 skipped.  This enables the construction of simple loops in the input
-script that are iterated over and exited from.
+script that are iterated over and then exited from.
 
 :line
 
@@ -169,12 +174,13 @@ script.
 :line
 
 For the {equal} and {atom} styles, a single string is specified which
-represents an equation that will be evaluated afresh each time the
-variable is used.  For {equal} style variables this equation computes
-a scalar quantity, which becomes the value of the variable whenever it
-is evaluated.  For {atom} style variables it computes a quantity for
-each atom, which is used by the "compute variable/atom" command and
-its associated output.
+represents a formula that will be evaluated afresh each time the
+variable is used.  If you want spaces in the string, enclose it in
+double quotes so the parser will treat it as a single argument.  For
+{equal} style variables the formula computes a scalar quantity, which
+becomes the value of the variable whenever it is evaluated.  For
+{atom} style variables the formula computes one quantity for each
+atom whenever it is evaluated.
 
 Note that {equal} and {atom} variables can produce different values at
 different stages of the input script or at different times during a
@@ -185,125 +191,160 @@ timestep it was invoked.
 The next command cannot be used with {equal} or {atom} style
 variables, since there is only one string.
 
-The equation for an {equal} or {atom} variable can contain a variety
+The formula for an {equal} or {atom} variable can contain a variety
 of quantities.  The syntax for each kind of quantity is simple, but
 multiple quantities can be nested and combined in various ways to
 build up formulas of arbitrary complexity.  For example, this is a
-valid (though strange) variable equation:
+valid (though strange) variable formula:
 
-variable x equal div(add(pe,c_MyTemp\[0\]),pow(vol,div(1,3))) :pre
+variable x equal "pe + c_MyTemp / vol^(1/3)" :pre
 
-Specifically, an equation can contain numbers, thermo keywords, math
-functions, group functions, atom vectors, compute references, and
-other variables.  There is one difference between {equal} and {atom}
-variables; the syntax of Atom vector references is different.
+Specifically, an formula can contain numbers, thermo keywords, math
+operations, group functions, atom values, atom vectors, compute
+references, fix references, and references to other variables.
 
 Number: 0.2, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
-Math functions: add(x,y), sub(x,y), mult(x,y), div(x,y), \
-  neg(x), pow(x,y), exp(x), ln(x), sqrt(x)
-Group functions: mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim) \
-  bound(ID,dir), gyration(ID)
-Atom vectors for {equal}: mass\[N\], x\[N\], y\[N\], z\[N\], \
-                          vx\[N\], vy\[N\], vz\[N\], \
-                          fx\[N\], fy\[N\], fz\[N\]
-Atom vectors for {atom}:  mass\[\], x\[\], y\[\], z\[\], \
-                          vx\[\], vy\[\], vz\[\], \
-                          fx\[\], fy\[\], fz\[\]
-Compute references: c_ID\[0\], c_ID\[N\]
-Fix references: f_ID\[0\], f_ID\[N\]
+Math operations: (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
+Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
+                 vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID)
+Atom values: mass\[N\], x\[N\], y\[N\], z\[N\], \
+             vx\[N\], vy\[N\], vz\[N\], fx\[N\], fy\[N\], fz\[N\]
+Atom vectors: mass\[\], x\[\], y\[\], z\[\], \
+              vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
+Compute references: c_ID, c_ID\[N\]
+Fix references: f_ID, f_ID\[N\]
 Other variables: v_abc, v_x, etc :tb(s=:)
 
-The thermo keywords allowed in the equation are those defined by the
-"thermo_style custom" command.  Note that many thermodyanmic
-quantities are only computable after the first simulation has begun.
-Likewise, many thermodynamic quantities (such as energies) are only
-computed on timesteps when thermodyanmic output is being performed.
-If the variable equation these quantities at other times, out-of-date
-or invalid values may be used.
+Note that the formula for equal-style variables cannot use any formula
+element that produces per-atom values, namely atom vectors, a compute
+that produces per-atom values, a fix that produces per-atoms values,
+or an atom-style variable.  The formula for atom-style variables can
+use these quantities, as well as quantities that produce a global
+scalar or vector, e.g. a compute or fix that produces global
+quantities.
 
-Math functions take one or two arguments, each of which may be an
-equation containing any of the quantities defined above.  This allows
-equations to be nested, as in the examples above.
+The thermo keywords allowed in a formula are those defined by the
+"thermo_style custom" command.  Since many thermodyanmic quantities
+are only computable after the a simulation has begun, these keywords
+cannot be used if a variable is evaluated before the first simulation
+begins.
 
-Group functions take one or two arguments.  The first argument is the
-group-ID.  The {dim} argument is {x} or {y} or {z}.  The {dir}
-argument is {xmin}, {xmax}, {ymin}, {ymax}, {zmin}, or {zmax}.  The
-group functions mass() and charge() are the total mass and charge of
-the group of atoms.  Xcm() and vcm() return components of the position
-and velocity of the center of mass of the group.  Fcm() returns a
-component of the total force on the group of atoms.  Bound() returns
-the min/max of a particular coordinate for all atoms in the group.
-Gyration() computes the radius-of-gyration of the group of atoms.  See
-the "fix gyration"_fix_gyration.html command for the formula.
+Math operations are written in the usual way, where the "x" and "y" in
+the examples above can be another section of the formula.  Operators
+are evaluated left to right and have the usual precedence: unary minus
+before exponentiation, exponentiation before multiplication and
+division, and multiplication and division before addition and
+subtraction.  Parenthesis can be used to group one or more portions of
+a formula and enforce a desired order of operations.  Additional math
+operations can be specified as keywords followed by a parenthesized
+argument, e.g. sqrt(v_ke).
 
-For {equal} style variables, atom vectors take a single integer
-argument from 1-N, which is the desired atom-ID, e.g. x\[243\].  For
-{atom} style variables, atom vectors take no argument.  Since {atom}
-style variables compute one value per atom, a reference like x\[\]
-means the x-coord of each atom will be used when evaluating the
-variable.
+Group functions take one or two arguments in a specific format.  The
+first argument is the group-ID.  The {dim} argument, if it exists, is
+{x} or {y} or {z}.  The {dir} argument, if it exists, is {xmin},
+{xmax}, {ymin}, {ymax}, {zmin}, or {zmax}.  The group function count()
+is the number of atoms in the group.  The group functions mass() and
+charge() are the total mass and charge of the group.  Xcm() and vcm()
+return components of the position and velocity of the center of mass
+of the group.  Fcm() returns a component of the total force on the
+group of atoms.  Bound() returns the min/max of a particular
+coordinate for all atoms in the group.  Gyration() computes the
+radius-of-gyration of the group of atoms.  See the "fix
+gyration"_fix_gyration.html command for a definition of the formula.
 
-Compute references access scalar or vector quantities calculated by a
+Atom values take a single integer argument from 1-N, which is the
+desired atom-ID, e.g. x\[243\]., which means use the x coordinate of
+the atom with ID=243.
+
+Atom vectors take no argument.  They generate one value per atom, so
+that a reference like x\[\] means the x-coord of each atom will be
+used when evaluating the variable.
+
+Compute references access global scalar or vector quantities or
+per-atom scalar or vector quantities calculated by a
 "compute"_compute.html.  The ID in the reference should be replaced by
 the actual ID of the compute defined elsewhere in the input script.
-See the "compute"_compute.html command for details.  Note that
-per-atom quantities calculated by a compute cannot be accessed this
-way, but only global scalar or vector quantities.  However, there is a
-"compute sum"_compute_sum.html command which sums per-atom quantities
-into a global scalar or vector which can be accessed by a variable.
+See the "compute"_compute.html command for details.  Any specific
+compute will either generate global or per-atom values, so there
+is no amiguity as to which is used.
 
-If {c_ID\[0\]} is used as a keyword, then the scalar quantity
-calculated by the compute is used.  If {c_ID\[N\]} is used, then one
-component of the vector quantity calculated by the compute is used.  N
-should be an integer from 1-M, where M is the length of the vector
-calculated by the compute.
+If {c_ID} is used as a keyword, then the scalar quantity calculated by
+the compute is used (global or per-atom).  If {c_ID\[N\]} is used,
+then one component of the vector quantity calculated by the compute is
+used (global or per-atom).  N should be an integer from 1-M, where M
+is the length of the vector calculated by the compute.
 
-Fix references access scalar or vector quantities calculated by a
-"fix"_fix.html.  See the doc pages for individual fixes to see which
-ones compute a scalar or vector quantity.  Since the fix may not be
-invoked every timestep and compute its quantities, you should insure
-the variable is only evaluated on appropriate timesteps.  The ID in
+Fix references access global scalar or vector quantities or per-atom
+scalar or vector quantities calculated by a "fix"_fix.html.  The ID in
 the reference should be replaced by the actual ID of the fix defined
-elsewhere in the input script.  See the "fix"_fix.html command for
-details.  Note that per-atom quantities calculated by a fix cannot be
-accessed this way, but only global scalar or vector quantities.
+elsewhere in the input script.  See the doc pages for individual fixes
+to see which ones compute what kind of quantities.  Any specific fix
+compute will either generate global or per-atom values, so there is no
+amiguity as to which is used.  Some fixes only generate quantities on
+certain timesteps.  If a variable attempts to access the fix on
+non-allowed timesteps, an error is generated.  For example, the "fix
+ave/time"_fix_ave_time.html command may only generate averaged
+quantities every 100 steps.  See the "fix"_fix.html command for
+details.
 
-If {f_ID\[0\]} is used as a keyword, then the scalar quantity
-calculated by the fix is used.  If {f_ID\[N\]} is used, then one
-component of the vector quantity calculated by the fix is used.  N
-should be an integer from 1-M, where M is the length of the vector
-calculated by the fix.
+If {f_ID} is used as a keyword, then the scalar quantity calculated by
+the fix is used (global or per-atom).  If {f_ID\[N\]} is used, then
+one component of the vector quantity calculated by the fix is used
+(global or per-atom).  N should be an integer from 1-M, where M is the
+length of the vector calculated by the fix.
 
 The current values of other variables can be accessed by prepending a
-"v_" to the variable name.  This will cause the other variable to be
-evaulated.  Note that if you do something circular like this:
+"v_" to the variable name.  This will cause that variable to be
+evaulated.  Note that {equal} style variables generate single values
+and {atom} style variables generate one value per atom.  Thus an
+atom-style variable cannot be referenced by the formula for an
+equal-style variable, but the converse is allowed.
+
+IMPORTANT NOTE: If you define variables in circular manner like this:
 
 variable a equal v_b
 variable b equal v_a
 print $a :pre
 
-then LAMMPS will run for a while when the print statement is invoked.
+then LAMMPS will run for a while when the print statement is invoked!
 
-Note that there is a subtle difference between using a variable in a
-{equal} or {atom} style equation in the form $x versus v_x.
+Another way to reference a variable in a formula is using the $x form
+instead of v_x.  There is a subtle difference between the two
+references that has to do with when the evaluation of the included
+variable is done.
 
-In the former case, as with any other input script command, the
-variable's value is substituted for immediately when the line is read
-from the input script.  Thus if the current simulation box volume was
-1000.0, then these lines:
+Using a $x, the value of the include variable is substituted for
+immediately when the line is read from the input script, just as it
+would be in other input script command.  This could be the desired
+behavior if a static value is desired.  Or it could be the desired
+behavior for an equal-style variable if the variable command appears
+in a loop (see the "jump"_jump.html and "next"_next.html commmands),
+since the substitution will be performed anew each time thru the loop
+as the command is re-read.  Note that if the variable formula is
+enclosed in double quotes, this prevents variable substitution and
+thus an error will be generated when the variable formula is
+evaluated.
+
+Using a v_x, the value of the included variable will not be accessed
+until the variable formula is evaluated.  Thus the value may change
+each time the evaluation is performed.  This may also be desired
+behavior.
+
+As an example, if the current simulation box volume is 1000.0, then
+these lines:
 
 variable x equal vol
-variable y equal mult($x,2) :pre
+variable y equal 2*$x :pre
 
-would associate the equation string "mult(1000.0,2)" with variable y.
+will associate the equation string "2*1000.0" with variable y.
 
 By contrast, these lines:
 
 variable x equal vol
-variable y equal mult(v_x,2) :pre
+variable y equal 2*v_x :pre
 
-would associate the equation string "mult(v_x,2)" with variable y.
+wlll associate the equation string "2*v_x" with variable y.
 
 Thus if the variable y were evaluated periodically during a run where
 the box volume changed, the resulting value would always be 2000.0 for
@@ -313,13 +354,14 @@ the first case, but would change dynamically for the second case.
 
 [Restrictions:]
 
-The use of atom vectors in {equal} style variables requires the atom
-style to use a global mapping in order to look up the vector indices.
-Only atom styles with molecular information create global maps unless
-the "atom_modify map"_atom_modify.html command is used.
+The use of atom values in {equal} or {atom} style variables requires
+the atom style to use a global mapping in order to look up the vector
+indices.  By default, only atom styles with molecular information
+create global maps.  The "atom_modify map"_atom_modify.html command
+can override the default.
 
-All {universe}- and {uloop}-style variables must have the same number
-of values.
+All {universe}- and {uloop}-style variables defined in an input script
+must have the same number of values.
 
 [Related commands:]
 

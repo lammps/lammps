@@ -10,52 +10,98 @@ fix ave/atom command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/atom Nevery Nrepeat Nfreq compute-ID :pre
+fix ID group-ID ave/atom Nevery Nrepeat Nfreq value1 value2 ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-ave/atom = style name of this fix command
-Nevery = calculate property every this many timesteps
-Nrepeat = # of times to repeat the Nevery calculation before averaging
-Nfreq = timestep frequency at which the average value is calculated
-compute-ID = ID of per-atom compute that performs the calculation :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+ave/atom = style name of this fix command :l
+Nevery = calculate property every this many timesteps :l
+Nrepeat = # of times to repeat the Nevery calculation before averaging :l
+Nfreq = timestep frequency at which the average value is calculated :l
+one or more values can be listed :l
+value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+  c_ID = per-atom scalar value calculated by a compute with ID
+  c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
+  f_ID = per-atom scalar value calculated by a fix with ID
+  f_ID\[N\] = Nth component of per-atom vector calculated by a fix with ID
+  v_name = per-atom value calculated by an atom-style variable with name :pre
+:ule
 
 [Examples:]
 
-fix 1 all ave/atom 1 100 100 myVx
-fix 1 all ave/atom 10 20 1000 my_epair :pre
+fix 1 all ave/atom 1 100 100 vx vy vz
+fix 1 all ave/atom 10 20 1000 c_my_stress[1] :pre
 
 [Description:]
 
-Calculate one or more time-averaged per-atom quantities every few
-timesteps.  The results of this calculation can be spatially averaged
-via the "fix ave/spatial"_fix_ave_spatial.html command or output
-to a file via the "dump custom"_dump.html command.
+Calculate one or more instantaneous per-atom quantities every few
+timesteps, and average them over longer timescales.  The resulting
+per-atom averages can be used by other "output
+commands"_Section_howto.html#4_15 such as the "fix
+ave/spatial"_fix_ave_spatial.html or "dump custom"_dump.html commands.
 
-The {compute-ID} specifies a "compute"_compute.html which calculates
-the desired property.  It must be a per-atom compute (one with the
-word "atom" in its style name) that calculates one or more values for
-each atom, as opposed to a global compute.  The compute must be
-previously defined in the input script.  Users can also write code for
-their own compute styles and "add them to LAMMPS"_Section_modify.html.
+Each listed value is averaged independently.  The group specified with
+the command means only atoms within the group have their averages
+computed.  Atoms not in the group have their result set to 0.0.
 
-The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify how the
-property will be time-averaged.  The final averaged value(s) are
-computed every {Nfreq} timesteps.  The average is over {Nrepeat}
-values, computed in the preceeding portion of the simulation every
-{Nevery} timesteps.  Thus if Nevery=2, Nrepeat=6, and Nfreq=100, then
-values on timesteps 90,92,94,96,98,100 will be used to compute the
-final average at timestep 100.  Similary for timesteps
-190,192,194,196,198,200 at timestep 200, etc.
+Each listed value can be an atom attribute (position, velocity, force
+component) or can be the result of a "compute"_compute.html or
+"fix"_fix.html or the evaluation of an atom-style
+"variable"_variable.html.  In the latter cases, the compute, fix, or
+variable must produce a per-atom quantity, not a global quantity.  If
+you wish to time-average global quantities from a compute, fix, or
+variable, then see the "fix ave/time"_fix_ave_time.html command.
 
-If this fix is referenced by a "dump custom"_dump.html or "fix
-ave/spatial"_fix_ave_spatial.html command, the time-averaged values
-can only be accessed every {Nfreq} timesteps.
+"Computes"_compute.html that produce per-atom quantities are those
+which have the word {atom} in their style name.  Currently the only
+fix that produces per-atom quantities is this fix itself, namely fix
+ave/atom.  Thus this fix could be used to produce output that would be
+the input for another fix ave/atom command, though that would be a
+strange mode of use.  "Variables"_variable.html of style {atom} are
+the only ones that can be used with this fix since all other styles of
+variable produce global quantities.
 
-If the compute calculates a single or multiple values per atom, then
-fix ave/atom will also calculate one or multiple time-averaged
-quantities per atom.  This makes a difference in how the quantities
-are referenced in a "dump custom"_dump.html command, e.g. c_ID versus
-c_ID\[2\].
+:line
+
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
+timesteps the values will be generated in order to contribute to the
+average.  The final averaged quantities are generated every {Nfreq}
+timesteps.  The average is over {Nrepeat} quantities, computed in the
+preceeding portion of the simulation every {Nevery} timesteps.
+{Nfreq} must be a multiple of {Nevery} and {Nevery} must be non-zero
+even if {Nrepeat} is 1.
+
+For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
+timesteps 90,92,94,96,98,100 will be used to compute the final average
+on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+timestep 200, etc.
+
+:line
+
+The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
+self-explanatory.
+
+If a value begins with "c_", a compute ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the per-atom scalar calculated by the compute is used.  If a
+bracketed term is appended, the Nth vector per-atom value calculated
+by the compute is used.  Users can also write code for their own
+compute styles and "add them to LAMMPS"_Section_modify.html.
+
+If a value begins with "f_", a fix ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the per-atom scalar calculated by the fix is used.  If a
+bracketed term is appended, the Nth vector per-atom value calculated
+by the fix is used.  Note that some fixes only produce their values on
+certain timesteps, which must be compatible with {Nevery}, else an
+error will results.  Users can also write code for their own fix
+styles and "add them to LAMMPS"_Section_modify.html.
+
+If a value begins with "v_", a variable name must follow which has
+been previously defined in the input script.  Variables of style
+{atom} can reference thermodynamic keywords, or invoke other computes,
+fixes, or variables when they are evaluated, so this is a very general
+means of generating per-atom quantities to time average.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -65,10 +111,12 @@ are relevant to this fix.  No global scalar or vector quantities are
 stored by this fix for access by various "output
 commands"_Section_howto.html#4_15.
 
-This fix computes a scalar per-atom quantity or a vector of per-atom
-quantities which can be accessed by the "dump custom"_dump.html or
-"fix ave/spatial"_fix_ave_spatial.html commands, as discussed in "this
-section"_Section_howto.html#4_15.
+This fix produces a per-atom scalar or vector which can be accessed by
+various "output commands"_Section_howto.html#4_15.  A scalar is
+produced if only a single quantity is averaged by this fix.  If two or
+more quantities are averaged, then a vector of values is produced.
+The per-atom values can only be accessed on timesteps that are
+multiples of {Nfreq} since that is when averaging is performed.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

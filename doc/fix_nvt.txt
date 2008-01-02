@@ -58,9 +58,8 @@ issued:
 compute fix-ID_temp group-ID temp :pre
 
 See the "compute temp"_compute_temp.html command for details.  Note
-that the ID of the new compute is the fix-ID with underscore + "temp"
-appended and the group for the new compute is the same as the fix
-group.
+that the ID of the new compute is the fix-ID with "_temp" appended and
+the group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
@@ -92,7 +91,9 @@ output"_thermo_style.html.
 
 The potential energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.
+commands"_Section_howto.html#4_15.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

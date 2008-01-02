@@ -15,7 +15,7 @@
 </P>
 <PRE>print string 
 </PRE>
-<UL><LI>string = text string to print with optional variable names 
+<UL><LI>string = text string to print. may contain variables 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -31,11 +31,12 @@ will be evaluated and their current values printed.
 </P>
 <P>If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using
-the <A HREF = "fix_print.html">fix print</A> command, which will invoke a print
+the <A HREF = "fix_print.html">fix print</A> command, which will print a string
 periodically during a simulation.  Second, the print command can be
 used as an argument to the <I>every</I> option of the <A HREF = "run.html">run</A>
 command.  Third, the print command could appear in a section of the
-input script that is looped over (see the <A HREF = "jump.html">jump</A> command).
+input script that is looped over (see the <A HREF = "jump.html">jump</A> and
+<A HREF = "next.html">next</A> commands).
 </P>
 <P>See the <A HREF = "variable.html">variable</A> command for a description of <I>equal</I>
 style variables which are typically the most useful ones to use with

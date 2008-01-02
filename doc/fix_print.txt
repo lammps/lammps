@@ -34,15 +34,15 @@ be used for diagnostic purposes or as a debugging tool to monitor some
 quantity during a run.  The text string must be a single argument, so
 it should be enclosed in double quotes if it is more than one word.
 If it contains variables it must be enclosed in double quotes to
-insure they are not evaluated when the input script is read, but will
-instead be evaluated when the string is printed.
+insure they are not evaluated when the input script line is read, but
+will instead be evaluated each time the string is printed.
 
 See the "variable"_variable.html command for a description of {equal}
 style variables which are the most useful ones to use with the fix
 print command, since they are evaluated afresh each timestep that the
-fix print line is output.  Equal-style variables can calculate
-formulas involving mathematical operations, atom properties, group
-properties, thermodyanimc properties, global values calculated by a
+fix print line is output.  Equal-style variables calculate formulas
+involving mathematical operations, atom properties, group properties,
+thermodyanimc properties, global values calculated by a
 "compute"_compute.html or "fix"_fix.html, or references to other
 "variables"_variable.html.
 
@@ -71,4 +71,3 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Default:]
 
 The option defaults are no file output and screen = yes.
-

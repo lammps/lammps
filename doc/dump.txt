@@ -44,11 +44,11 @@ args = list of arguments for a particular style :l
       mux,muy,muz = orientation of dipolar atom
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on aspherical particles
-      c_ID = scalar per-atom quantity calculated by a compute identified by its ID
-      c_ID\[N\] = Nth per-atom vector quantity calculated by a compute identified by its ID
-      f_ID = scalar per-atom quantity calculated by a fix identified by its ID
-      f_ID\[N\] = Nth per-atom vector quantity calculated by a fix identified by its ID
-      v_name = atom-style variable that calculates a per-atom quantity :pre
+      c_ID = per-atom scalar value calculated by a compute with ID
+      c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
+      f_ID = per-atom scalar value calculated by a fix with ID
+      f_ID\[N\] = Nth component of per-atom vector calculated by a fix with ID
+      v_name = per-atom value calculated by an atom-style variable with name :pre
 :ule
 
 [Examples:]
@@ -70,18 +70,19 @@ information for atoms in the specified group is dumped.  The
 included.  Not all styles support all these options; see details
 below.
 
-Note that because periodic boundary conditions are enforced only on
-timesteps when neighbor lists are rebuilt, the coordinates of an atom
-written to a dump file may be slightly outside the simulation box.
+IMPORTANT NOTE: Vecause periodic boundary conditions are enforced only
+on timesteps when neighbor lists are rebuilt, the coordinates of an
+atom written to a dump file may be slightly outside the simulation
+box.
 
-Also note that when LAMMPS is running in parallel, the atom
-information written to dump files (typically one line per atom) may be
-written in an indeterminate order.  This is because data for a single
-snapshot is collected from multiple processors.  This is always the
-case for the {atom}, {bond}, and {custom} styles.  It is also the case
-for the {xyz} style if the dump group is not {all}.  It is not the
-case for the {dcd} and {xtc} styles which always write atoms in sorted
-order.  So does the {xyz} style if the dump group is {all}.
+When LAMMPS is running in parallel, the atom information written to
+dump files (typically one line per atom) may be written in an
+indeterminate order.  This is because data for a single snapshot is
+collected from multiple processors.  This is always the case for the
+{atom}, {bond}, and {custom} styles.  It is also the case for the
+{xyz} style if the dump group is not {all}.  It is not the case for
+the {dcd} and {xtc} styles which always write atoms in sorted order.
+So does the {xyz} style if the dump group is {all}.
 
 :line
 
@@ -230,9 +231,9 @@ The {c_ID} and {c_ID\[N\]} keywords allow scalar or vector per-atom
 quantities calculated by a "compute"_compute.html to be output.  The
 ID in the keyword should be replaced by the actual ID of the compute
 that has been defined previously in the input script.  See the
-"compute"_compute.html command for details.  There are computes for
-calculating the energy, stress, centro-symmetry parameter, and
-coordination number of individual atoms.
+"compute"_compute.html command for details.  There are per-atom
+computes for calculating the energy, stress, centro-symmetry
+parameter, and coordination number of individual atoms.
 
 Note that computes which calculate global scalar and vector
 quantities, as opposed to per-atom quantities, cannot be output in a
@@ -241,8 +242,8 @@ custom"_thermo_style.html command.
 
 If {c_ID} is used as a keyword, then the scalar per-atom quantity
 calculated by the compute is printed.  If {c_ID\[N\]} is used, then N
-in the range from 1-M will print the Nth component of the M-length
-per-atom vector calculated by the compute.
+must be in the range from 1-M, which will print the Nth component of
+the M-length per-atom vector calculated by the compute.
 
 The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector per-atom
 quantities calculated by a "fix"_fix.html to be output.  The ID in the
@@ -255,22 +256,22 @@ produced by any "compute"_compute.html, "fix"_fix.html, or atom-style
 be written to a dump file.
 
 If {f_ID} is used as a keyword, then the scalar per-atom quantity
-calculated by the fix is printed.  If {f_ID\[N\]} is used, then N
-in the range from 1-M will print the Nth component of the M-length
-per-atom vector calculated by the fix.
+calculated by the fix is printed.  If {f_ID\[N\]} is used, then N must
+be in the range from 1-M, which will print the Nth component of the
+M-length per-atom vector calculated by the fix.
 
 The {v_name} keyword allows per-atom quantities calculated by a
 "variable"_variable.html to be output.  The name in the keyword should
 be replaced by the actual name of the variable that has been defined
 previously in the input script.  Only an atom-style variable can be
-referenced, since it is the only one that generates per-atom values.
+referenced, since it is the only style that generates per-atom values.
 Variables of style {atom} can reference individual atom attributes,
 per-atom atom attributes, thermodynamic keywords, or invoke other
 computes, fixes, or variables when they are evaluated, so this is a
-very general means of generating quantities to output to a dump file.
+very general means of creating quantities to output to a dump file.
 
 See "this section"_Section_modify.html of the manual for information
-on how to add new compute and fix styles to LAMMPS that calculate
+on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
 
 :line

@@ -86,8 +86,8 @@ compute fix-ID_temp group-ID temp/deform :pre
 
 See the "compute temp/deform"_compute_temp_deform.html command for
 details.  Note that the ID of the new compute is the fix-ID with
-underscore + "temp" appended and the group for the new compute is the
-same as the fix group.
+"_temp" appended and the group for the new compute is the same as the
+fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.

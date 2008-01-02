@@ -128,7 +128,9 @@ boundary driving force to the system's potential energy as part of
 </P>
 <P>The potential energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.
+commands</A>.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

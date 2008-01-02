@@ -29,7 +29,7 @@
   <I>pre</I> value = <I>no</I> or <I>yes</I>
   <I>post</I> value = <I>no</I> or <I>yes</I> 
   <I>every</I> values = M command
-    M = break the run into M-timestep segments and invoke command between them
+    M = break the run into M-timestep segments and invoke a command between them
     command = a single LAMMPS command listed the same as if on a line by itself
               NULL means no command will be invoked 
 </PRE>
@@ -99,18 +99,19 @@ just a continuation of a previous run (i.e. no settings are changed),
 the initial computation is not necessary; the old neighbor list is
 still valid as are the forces.  So if <I>pre</I> is specified as "no" then
 the initial setup is skipped, except for printing thermodynamic info.
+Note that if <I>pre</I> is set to "no" for the very 1st run LAMMPS
+performs, then it is overridden, since the initial setup computations
+must be done.
 </P>
 <P>IMPORTANT NOTE: If your input script changes settings between 2 runs
 (e.g. adds a <A HREF = "fix.html">fix</A> or <A HREF = "dump.html">dump</A> or
 <A HREF = "compute.html">compute</A> or changes a <A HREF = "neigh_modify.html">neighbor</A> list
 parameter), then the initial setup must be performed.  LAMMPS does not
-check for this, but it would be an error to use the <I>pre</I> option in
+check for this, but it would be an error to use the <I>pre no</I> option in
 this case.
 </P>
 <P>If <I>post</I> is specified as "no", the full timing summary is skipped;
-only a one-line summary timing is printed.  Note that if <I>pre</I> is set
-to "no" for the 1st run LAMMPS performs, then it is overridden, since
-the initial setup computations must be done.
+only a one-line summary timing is printed.
 </P>
 <P>The <I>every</I> option provides a means of breaking a LAMMPS run into a
 series of shorter runs.  Optionally a single LAMMPS command can be
@@ -118,12 +119,13 @@ executed in between the short runs.  This is a means to avoid listing
 a long series of runs and commands in your input script.  For example,
 a <A HREF = "print.html">print</A> command could be invoked or a <A HREF = "fix.html">fix</A>
 could be redefined, e.g. to reset a thermostat temperature.  Or it
-could be useful for invoking a command you write that wraps some other
-code (e.g. as a library) to perform a computation periodically during
-a long LAMMPS run.  See <A HREF = "Section_modify.html">this section</A> of the
-documentation for info about how to add new commands to LAMMPS.  See
-<A HREF = "Section_howto.html#4_10">this section</A> of the documentation for ideas
-about how to couple LAMMPS to other codes.
+could be useful for invoking a command you have added to LAMMPS that
+wraps some other code (e.g. as a library) to perform a computation
+periodically during a long LAMMPS run.  See <A HREF = "Section_modify.html">this
+section</A> of the documentation for info about how
+to add new commands to LAMMPS.  See <A HREF = "Section_howto.html#4_10">this
+section</A> of the documentation for ideas about
+how to couple LAMMPS to other codes.
 </P>
 <P>With the <I>every</I> option, N total steps are simulated, in shorter runs
 of M steps each.  After each M-length run, the command is invoked.  If
@@ -148,17 +150,17 @@ particular atom between runs.  Note that, as in this example, the
 command can contain <A HREF = "variable.html">variables</A> which will be evaluated
 each time the command is invoked.
 </P>
-<P>IMPORTANT NOTE: For the <I>every</I> option, all remaining arguments after
-the M value are considerd part of the LAMMPS command (e.g. print
-"Protein Rg = $r" as in the example above).  This means that, if
-specified, the <I>every</I> option must be the last keyword used.  The
-command should be listed exactly as it would appear if it were on a
-line by itself in the input script.
+<P>IMPORTANT NOTE: For the <I>every</I> option, the command should be listed
+exactly as it would be if it appeared on a line by itself.  Thus all
+remaining arguments after the M value are considerd part of the LAMMPS
+command (e.g. print "Protein Rg = $r" as in the example above).  This
+means that, if specified, the <I>every</I> option must be the last keyword
+used.
 </P>
-<P>If the <I>pre</I> and <I>post</I> options are set to "no" when <I>every</I> is used,
-then the 1st run will do the full setup and the last run will print
-the full timing summary, but these operations will be skipped for
-intermediate runs.
+<P>If the <I>pre</I> and <I>post</I> options are set to "no" when used with the
+<I>every</I> keyword, then the 1st run will do the full setup and the last
+run will print the full timing summary, but these operations will be
+skipped for intermediate runs.
 </P>
 <P><B>Restrictions:</B> none
 </P>

@@ -51,6 +51,11 @@ compute thermo_pe all pe :pre
 
 See the "thermo_style" command for more details.
 
+[Output info:]
+
+The scalar value calculated by this compute is "extensive", meaning it
+it scales with the number of atoms in the simulation.
+
 [Restrictions:] none
 
 [Related commands:]

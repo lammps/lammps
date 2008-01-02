@@ -26,31 +26,50 @@ compute 3 all ke/atom :pre
 [Description:]
 
 Create a computation that will be performed on a group of atoms.
+Quantities calculated by a compute are instantaneous values, meaning
+they are calculated from information about atoms on the current
+timestep or iteration.  There are two kinds of computes, "global"
+computes that calculate one or more values for the entire group of
+atoms, and "per-atom" computes that calculate one or more values for
+each atom in the group.  The latter has the word "atom" in its style
+name.
 
-In LAMMPS, a "compute" is used in several ways.  There are two kinds
-of computes, "global" computes that calculate one or more values for
-the entire group of atoms, and "per-atom" computes that calculate one
-or more values for each atom in the group.  The latter has the word
-"atom" in its style name.
-
-The results of global computes can be output via the "thermo_style
+In LAMMPS, a "compute" can be used in several ways.  The results of
+global computes can be output via the "thermo_style
 custom"_thermo_style.html or "fix ave/time"_fix_ave_time.html command.
-Or the values can be referenced in a "variable equal"_variable.html
-command.  The results of computes that calculate a global temperature
-or pressure can be used by fixes that do thermostatting or
-barostatting and when atom velocities are created.
+Or the values can be referenced in a "variable equal"_variable.html or
+"variable atom"_variable.html command.  The results of computes that
+calculate a global temperature or pressure can be used by fixes that
+do thermostatting or barostatting and when atom velocities are
+created.
 
 The results of per-atom computes can be output via the "dump
 custom"_dump.html command or the "fix
 ave/spatial"_fix_ave_spatial.html command.  Or the per-atom values can
 be time-averaged via the "fix ave/atom"_fix_ave_atom.html command and
 then output via the "dump custom"_dump.html or "fix
-ave/spatial"_fix_ave_spatial.html commands.  Note that the value of
-per-atom computes will be 0.0 for atoms not in the specified compute
-group.
+ave/spatial"_fix_ave_spatial.html commands.  Or the per-atom values
+can be referenced in a "variable atom"_variable.html command.  Note
+that the value of per-atom computes will be 0.0 for atoms not in the
+specified compute group.
 
 See this "howto section"_Section_howto.html#4_15 for a summary of
-various LAMMPS output options.
+various LAMMPS output options, many of which involve computes.
+
+The ID of a compute can only contain alphanumeric characters and
+underscores.
+
+The results of computes that calculate global quantities can be either
+"intensive" or "extensive" values.  Intensive means the value is
+independent of the number of atoms in the simulation,
+e.g. temperature.  Extensive means the value scales with the number of
+atoms in the simulation, e.g. total rotational kinetic energy.
+"Thermodynamic output"_thermo_style.html will normalize extensive
+values depending on the "thermo_modify norm" setting.  But if a
+compute value is accessed in another way, e.g. by a
+"variable"_variable.html, you may need to know whether it is an
+intensive or extensive value.  See the doc page for individual
+computes for further info.
 
 LAMMPS creates its own global computes for thermodynamic output.
 Three computes are always created, named "thermo_temp",
@@ -61,20 +80,20 @@ compute thermo_temp all temp
 compute thermo_pressure all pressure thermo_temp
 compute thermo_pe all pe :pre
 
-Additional computes are created if the thermo style requires it.  See
-the documentation for the "thermo_style"_thermo_style.html command.
+Additional computes for other quantities are created if the thermo
+style requires it.  See the documentation for the
+"thermo_style"_thermo_style.html command.
 
-The dumping of atom snapshots and fixes that compute temperature or
-pressure also create computes as required.  These are discussed in the
-documentation for the "dump custom"_dump.html and specific
-"fix"_fix.html commands.
+Fixes that calculate temperature or pressure, i.e. for thermostatting
+or barostatting, may also create computes.  These are discussed in the
+documentation for specific "fix"_fix.html commands.
 
 In all these cases, the default computes can be replaced by computes
 defined by the user in the input script, as described by the
-"thermo_modify"_thermo_modify.html, "fix modify"_fix_modify.html, and
-"dump"_dump.html commands.
+"thermo_modify"_thermo_modify.html and "fix modify"_fix_modify.html
+commands.
 
-Properties of either a default of user-defined compute can be modified
+Properties of either a default or user-defined compute can be modified
 via the "compute_modify"_compute_modify.html command.
 
 Computes can be deleted with the "uncompute"_uncompute.html command.
@@ -85,29 +104,25 @@ calculations accessed in the various ways described above.
 
 Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
-defined in LAMMPS:
+available in LAMMPS:
 
-"attribute/atom"_compute_attribute_atom.html - attribute (x,v,f,etc) of each atom
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "pe"_compute_pe.html - potential energy
-"pe"_compute_pe.html - potential energy for each atom
+"pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "sum"_compute_sum.html - sum per-atom quantities to a global value
-"sum/atom"_compute_sum_atom.html - sum per-atom quantities to per-atom values
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
 "temp/dipole"_compute_temp_dipole.html - temperature of point dipolar particles
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
 "temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
-"temp/region"_compute_temp_region.html - temperature of a region of atoms
-"variable"_compute_variable.html - calculate a scalar value from a variable
-"variable/atom"_compute_variable_atom.html - calculate a formula for each atom :ul
+"temp/region"_compute_temp_region.html - temperature of a region of atoms :ul
 
 There are also additional compute styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

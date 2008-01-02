@@ -98,7 +98,9 @@ with the indenter is K/3 (r - R)^3.
 
 This fix computes a scalar energy and a 3-vector of forces (on the
 indenter), which can be accessed by various "output
-commands"_Section_howto.html#4_15.
+commands"_Section_howto.html#4_15.  The scalar and vector values
+calculated by this fix are "extensive", meaning they scale with the
+number of atoms in the simulation.
 
 This fix can adjust the indenter position and radius over multiple
 runs, using the {start} and {stop} keywords of the "run"_run.html

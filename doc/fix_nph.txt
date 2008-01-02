@@ -123,9 +123,9 @@ compute fix-ID_press group-ID pressure fix-ID_temp :pre
 
 See the "compute temp"_compute_temp.html and "compute
 pressure"_compute_pressure.html commands for details.  Note that the
-IDs of the new computes are the fix-ID with underscore + "temp" or
-"press" appended and the group for the new computes is the same as the
-fix group.
+IDs of the new computes are the fix-ID with "_temp" or "_press"
+appended and the group for the new computes is the same as the fix
+group.
 
 Note that these are NOT the computes used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}
@@ -161,7 +161,9 @@ output"_thermo_style.html.
 
 The potential energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.
+commands"_Section_howto.html#4_15.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.
 
 This fix can ramp its target pressure over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

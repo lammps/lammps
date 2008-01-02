@@ -51,11 +51,11 @@ args = list of arguments for a particular style :l
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       drot = rotational energy of dipolar atoms
       grot = rotational energy of granular atoms
-      c_ID = scalar quantity calculated by a compute identified by its ID
-      c_ID\[N\] = Nth vector quantity calculated by a compute identified by its ID
-      f_ID = scalar quantity calculated by a fix identified by its ID
-      f_ID\[N\] = Nth vector quantity calculated by a fix identified by its ID
-      v_name = current value of a variable identified by the variable name :pre
+      c_ID = global scalar value calculated by a compute with ID
+      c_ID\[N\] = Nth component of global vector calculated by a compute with ID
+      f_ID = global scalar value calculated by a fix with ID
+      f_ID\[N\] = Nth component of global vector calculated by a fix with ID
+      v_name = global value calculated by an equal-style variable with name :pre
 :ule
 
 [Examples:]
@@ -86,11 +86,12 @@ Style {custom} is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
 thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to "computes"_compute.html, "fixes"_fix.html, and
-"variables"_variable.html" that have been defined elsewhere in the
-input script or can even be new styles which users have added to
-LAMMPS (see the "Section_modify"_Section_modify.html section of the
-documentation).  Thus the {custom} style provides a flexible means of
-outputting essentially any desired quantity as a simulation proceeds.
+equal-style "variables"_variable.html" that have been defined
+elsewhere in the input script or can even be new styles which users
+have added to LAMMPS (see the "Section_modify"_Section_modify.html
+section of the documentation).  Thus the {custom} style provides a
+flexible means of outputting essentially any desired quantity as a
+simulation proceeds.
 
 All styles except {custom} have {vol} appended to their list of
 outputs if the simulation box volume changes during the simulation.
@@ -213,27 +214,25 @@ keyword should be replaced by the actual ID of the compute that has
 been defined elsewhere in the input script.  See the
 "compute"_compute.html command for details.  Note that only global
 scalar or vector quantities calculated by a compute can be output as
-thermodynamic data; per-atom quantities calcalated by a compute are
-output by the "dump custom"_dump.html command.  However, there is a
-"compute sum"_compute_sum.html command which sums per-atom quantities
-into a global scalar or vector which can be output by thermo_style
-custom.
+thermodynamic data; per-atom quantities calcalated by a compute can be
+output by the "dump custom"_dump.html command.  There is a "compute
+sum"_compute_sum.html command which sums per-atom quantities into a
+global scalar or vector which can be output by thermo_style custom.
 
 Note that some computes calculate "intensive" global quantities like
 temperature; others calculate "extensive" global quantities like
 kinetic energy that are summed over all atoms in the compute group.
-Intensive quantities are printed directly by thermo_style custom.
-Extensive quantites may be normalized by the total number of atoms in
-the simulation (NOT the number of atoms in the compute group)
-depending on the "thermo_modify norm"_thermo_modify.html option being
-used.
+Intensive quantities are printed directly as is by thermo_style
+custom.  Extensive quantites may be normalized when output by the
+total number of atoms in the simulation (NOT the number of atoms in
+the compute group) depending on the "thermo_modify
+norm"_thermo_modify.html option being used.
 
 If {c_ID} is used as a keyword, then the scalar quantity calculated by
-the compute is printed.  If {c_ID\[N\]} is used, then the compute must
-calculate a vector quantity and N must be an index from 1 to M where M
-is the length of the vector calculated by the compute.  See the doc
-pages for individual compute styles for info on what these quantities
-are.
+the compute is printed.  If {c_ID\[N\]} is used, then N must be an
+index from 1-M where M is the length of the vector calculated by the
+compute.  See the doc pages for individual compute styles for info on
+what these quantities are.
 
 The {f_ID} and {f_ID\[N\]} keywords allow global scalar or vector
 quantities calculated by a fix to be output.  The ID in the keyword
@@ -243,38 +242,40 @@ commands"_fix.html for details of which fixes generate global values.
 One particularly useful fix to use in this context is the "fix
 ave/time"_fix_ave_time.html command, which calculates time-averages of
 global scalar and vector quantities calculated by other
-"computes"_compute.html and "fixes"_fix.html.
+"computes"_compute.html, "fixes"_fix.html, or
+"variables"_variable.html.
 
 Note that some fixes calculate "intensive" global quantities like
 timestep size; others calculate "extensive" global quantities like
 energy that are summed over all atoms in the fix group.  Intensive
-quantities are printed directly by thermo_style custom.  Extensive
-quantites may be normalized by the total number of atoms in the
-simulation (NOT the number of atoms in the fix group) depending on the
-"thermo_modify norm"_thermo_modify.html option being used.
+quantities are printed directly as is by thermo_style custom.
+Extensive quantites may be normalized when output by the total number
+of atoms in the simulation (NOT the number of atoms in the fix group)
+depending on the "thermo_modify norm"_thermo_modify.html option being
+used.
 
 If {f_ID} is used as a keyword, then the scalar quantity calculated by
-the fix is printed.  If {f_ID\[N\]} is used, then the fix must
-calculate a vector quantity and N must be an index from 1 to M where M
-is the length of the vector calculated by the fix.  See the doc pages
-for individual fix styles for info on which fixes calculate these
-global quantities and what they are.  For fixes that compute a
-contribution to the potential energy of the system, the scalar
-quantity f_ID is typically that quantity.
+the fix is printed.  If {f_ID\[N\]} is used, then N must be an index
+from 1-M where M is the length of the vector calculated by the fix.
+See the doc pages for individual fix styles for info on which fixes
+calculate these global quantities and what they are.  For fixes that
+compute a contribution to the potential energy of the system, the
+scalar quantity referenced by f_ID is typically that quantity.
 
 The {v_name} keyword allow the current value of a variable to be
-output.  The name in the keyword should be replaced by the actual namd
+output.  The name in the keyword should be replaced by the actual name
 of the variable that has been defined elsewhere in the input script.
-See the "variable"_variable.html command for details.  Equal-style
-variables can calculate complex formulas involving atom and group
-properties, mathematical operations, other variables, etc.  This
-keyword enables them to be evaluated and their value printed
-periodically during a simulation.
+Only equal-style variables can be referenced.  See the
+"variable"_variable.html command for details.  Variables of style
+{equal} can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+evaluated, so this is a very general means of creating thermodynamic
+output.
 
 See "this section"_Section_modify.html for information on how to add
-new compute and fix styles as well as variable options to LAMMPS that
-calculate quantities that could then be output with these keywords as
-part of thermodyanmic information.
+new compute and fix styles to LAMMPS to calculate quantities that
+could then be output with these keywords as part of thermodyanmic
+information.
 
 :line
 

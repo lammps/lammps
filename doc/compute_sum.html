@@ -13,45 +13,85 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID sum compute-ID1 compute-ID2 ... 
+<PRE>compute ID group-ID sum value1 value2 ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>sum/ = style name of this compute command
-<LI>compute-ID1, 2, ...  = IDs of computes that calculate per-atom quantities 
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>sum = style name of this compute command 
+
+<LI>one or more values can be listed 
+
+<LI>value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name 
+
+<PRE>  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+  c_ID = per-atom scalar value calculated by a compute with ID
+  c_ID[N] = Nth component of per-atom vector calculated by a compute with ID
+  f_ID = per-atom scalar value calculated by a fix with ID
+  f_ID[N] = Nth component of per-atom vector calculated by a fix with ID
+  v_name = per-atom value calculated by an atom-style variable with name 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all sum c_force
-compute 1 all sum atomKE atomEpair atomEbond 
+compute 2 all sum c_press<B>2</B> f_ave v_myKE 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that sums the results of one or more per-atom
-computes across all atoms in the group to yield a global scalar or
-vector quantity.  For example, the forces on a group of atoms could be
-summed to yield a net force on the group.  The resulting value(s) can
-be accessed by any command that uses global computes, e.g. the <A HREF = "therml_style.html">thermo
+<P>Define a calculation that sums the results of one or more per-atom
+quantities across all atoms in the group to yield a global scalar or
+vector quantity.  The resulting value(s) can be accessed by any
+command that uses global computes, e.g. the <A HREF = "therml_style.html">thermo
 custom</A> command or <A HREF = "fix_ave_time.html">fix ave/time</A>
-command or by a <A HREF = "variable.html">variable</A> command.
+command or by a <A HREF = "variable.html">variable</A> command.  See <A HREF = "Section_howto.html#4_15">this
+section</A> of the documentation for an overview
+of output options.
 </P>
-<P>Unlike the <A HREF = "compute_sum_atom.html">compute sum/atom</A> command, the
-result of this is not a per-atom quantity, but a global scalar or
-vector.  If the other computes each generate a scalar value per atom,
-this compute will generate a single scalar value.  If the other
-computes each generate a vector of values per atom, this compute will
-generate a vector of values where each value is the sum across atoms
-of the corresponding value produced by the other computes.  In the
-latter case, all the other computes must generate per-atom vectors of
-the same size.
+<P>Each listed value is summed independently.  The group specified with
+the command means only atoms within the group contribute to the sum.
+Note that the value that produces the per-atom quantities may define
+its own group which affects the values it returns.  For example, if a
+per-atom compute is used as a value, it will generate values of 0.0
+for atoms that are not in the group specified for that compute.
 </P>
-<P>Note that all per-atom computes generate values of 0.0 for atoms that
-are not in the group specified for that compute.
+<P>Each listed value can be an atom attribute (position, velocity, force
+component) or can be the result of a <A HREF = "compute.html">compute</A> or
+<A HREF = "fix.html">fix</A> or the evaluation of an atom-style
+<A HREF = "variable.html">variable</A>.  In the latter cases, the compute, fix, or
+variable must produce a per-atom quantity, not a global quantity.
+</P>
+<P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
+which have the word <I>atom</I> in their style name.  Currently the only
+fix that produces per-atom quantities is the <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command.  <A HREF = "variable.html">Variables</A> of
+style <I>atom</I> are the only ones that can be used with this compute
+since all other variable stylse produce global quantities.
+</P>
+<P>If a single value is specified this compute produces a global scalar
+value.  If multiple values are specified, this compute produces a
+vector of global values, the length of which is equal to the
+number of values specified.
+</P>
+<P>The value(s) produced by this compute are all "extensive", meaning
+their value scales linearly with the number of atoms involved.  If
+normalized values are desired, this compute can be accessed by the
+<A HREF = "thermo_style.html">thermo_style custom</A> command with <A HREF = "thermo_modify.html">thermo_modify
+norm yes</A> set as an option.  Or it can be accessed
+by a <A HREF = "variable.html">variable</A> that divides by the appropriate atom
+count.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The scalar and vector values calculated by this compute are
+"extensive", meaning they scale with the number of atoms in the
+simulation.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_sum_atom.html">compute sum/atom</A>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, <A HREF = "variable.html">variable</A>
 </P>
 <P><B>Default:</B> none
 </P>

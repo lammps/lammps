@@ -56,11 +56,11 @@
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       drot = rotational energy of dipolar atoms
       grot = rotational energy of granular atoms
-      c_ID = scalar quantity calculated by a compute identified by its ID
-      c_ID[N] = Nth vector quantity calculated by a compute identified by its ID
-      f_ID = scalar quantity calculated by a fix identified by its ID
-      f_ID[N] = Nth vector quantity calculated by a fix identified by its ID
-      v_name = current value of a variable identified by the variable name 
+      c_ID = global scalar value calculated by a compute with ID
+      c_ID[N] = Nth component of global vector calculated by a compute with ID
+      f_ID = global scalar value calculated by a fix with ID
+      f_ID[N] = Nth component of global vector calculated by a fix with ID
+      v_name = global value calculated by an equal-style variable with name 
 </PRE>
 
 </UL>
@@ -92,11 +92,12 @@ and prints a one-line numeric summary that is the equivalent of
 which of the keywords listed above you want printed on each
 thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to <A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and
-<A HREF = "variable.html"">variables</A> that have been defined elsewhere in the
-input script or can even be new styles which users have added to
-LAMMPS (see the <A HREF = "Section_modify.html">Section_modify</A> section of the
-documentation).  Thus the <I>custom</I> style provides a flexible means of
-outputting essentially any desired quantity as a simulation proceeds.
+equal-style <A HREF = "variable.html"">variables</A> that have been defined
+elsewhere in the input script or can even be new styles which users
+have added to LAMMPS (see the <A HREF = "Section_modify.html">Section_modify</A>
+section of the documentation).  Thus the <I>custom</I> style provides a
+flexible means of outputting essentially any desired quantity as a
+simulation proceeds.
 </P>
 <P>All styles except <I>custom</I> have <I>vol</I> appended to their list of
 outputs if the simulation box volume changes during the simulation.
@@ -219,27 +220,25 @@ keyword should be replaced by the actual ID of the compute that has
 been defined elsewhere in the input script.  See the
 <A HREF = "compute.html">compute</A> command for details.  Note that only global
 scalar or vector quantities calculated by a compute can be output as
-thermodynamic data; per-atom quantities calcalated by a compute are
-output by the <A HREF = "dump.html">dump custom</A> command.  However, there is a
-<A HREF = "compute_sum.html">compute sum</A> command which sums per-atom quantities
-into a global scalar or vector which can be output by thermo_style
-custom.
+thermodynamic data; per-atom quantities calcalated by a compute can be
+output by the <A HREF = "dump.html">dump custom</A> command.  There is a <A HREF = "compute_sum.html">compute
+sum</A> command which sums per-atom quantities into a
+global scalar or vector which can be output by thermo_style custom.
 </P>
 <P>Note that some computes calculate "intensive" global quantities like
 temperature; others calculate "extensive" global quantities like
 kinetic energy that are summed over all atoms in the compute group.
-Intensive quantities are printed directly by thermo_style custom.
-Extensive quantites may be normalized by the total number of atoms in
-the simulation (NOT the number of atoms in the compute group)
-depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A> option being
-used.
+Intensive quantities are printed directly as is by thermo_style
+custom.  Extensive quantites may be normalized when output by the
+total number of atoms in the simulation (NOT the number of atoms in
+the compute group) depending on the <A HREF = "thermo_modify.html">thermo_modify
+norm</A> option being used.
 </P>
 <P>If <I>c_ID</I> is used as a keyword, then the scalar quantity calculated by
-the compute is printed.  If <I>c_ID[N]</I> is used, then the compute must
-calculate a vector quantity and N must be an index from 1 to M where M
-is the length of the vector calculated by the compute.  See the doc
-pages for individual compute styles for info on what these quantities
-are.
+the compute is printed.  If <I>c_ID[N]</I> is used, then N must be an
+index from 1-M where M is the length of the vector calculated by the
+compute.  See the doc pages for individual compute styles for info on
+what these quantities are.
 </P>
 <P>The <I>f_ID</I> and <I>f_ID[N]</I> keywords allow global scalar or vector
 quantities calculated by a fix to be output.  The ID in the keyword
@@ -249,38 +248,40 @@ commands</A> for details of which fixes generate global values.
 One particularly useful fix to use in this context is the <A HREF = "fix_ave_time.html">fix
 ave/time</A> command, which calculates time-averages of
 global scalar and vector quantities calculated by other
-<A HREF = "compute.html">computes</A> and <A HREF = "fix.html">fixes</A>.
+<A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, or
+<A HREF = "variable.html">variables</A>.
 </P>
 <P>Note that some fixes calculate "intensive" global quantities like
 timestep size; others calculate "extensive" global quantities like
 energy that are summed over all atoms in the fix group.  Intensive
-quantities are printed directly by thermo_style custom.  Extensive
-quantites may be normalized by the total number of atoms in the
-simulation (NOT the number of atoms in the fix group) depending on the
-<A HREF = "thermo_modify.html">thermo_modify norm</A> option being used.
+quantities are printed directly as is by thermo_style custom.
+Extensive quantites may be normalized when output by the total number
+of atoms in the simulation (NOT the number of atoms in the fix group)
+depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A> option being
+used.
 </P>
 <P>If <I>f_ID</I> is used as a keyword, then the scalar quantity calculated by
-the fix is printed.  If <I>f_ID[N]</I> is used, then the fix must
-calculate a vector quantity and N must be an index from 1 to M where M
-is the length of the vector calculated by the fix.  See the doc pages
-for individual fix styles for info on which fixes calculate these
-global quantities and what they are.  For fixes that compute a
-contribution to the potential energy of the system, the scalar
-quantity f_ID is typically that quantity.
+the fix is printed.  If <I>f_ID[N]</I> is used, then N must be an index
+from 1-M where M is the length of the vector calculated by the fix.
+See the doc pages for individual fix styles for info on which fixes
+calculate these global quantities and what they are.  For fixes that
+compute a contribution to the potential energy of the system, the
+scalar quantity referenced by f_ID is typically that quantity.
 </P>
 <P>The <I>v_name</I> keyword allow the current value of a variable to be
-output.  The name in the keyword should be replaced by the actual namd
+output.  The name in the keyword should be replaced by the actual name
 of the variable that has been defined elsewhere in the input script.
-See the <A HREF = "variable.html">variable</A> command for details.  Equal-style
-variables can calculate complex formulas involving atom and group
-properties, mathematical operations, other variables, etc.  This
-keyword enables them to be evaluated and their value printed
-periodically during a simulation.
+Only equal-style variables can be referenced.  See the
+<A HREF = "variable.html">variable</A> command for details.  Variables of style
+<I>equal</I> can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+evaluated, so this is a very general means of creating thermodynamic
+output.
 </P>
 <P>See <A HREF = "Section_modify.html">this section</A> for information on how to add
-new compute and fix styles as well as variable options to LAMMPS that
-calculate quantities that could then be output with these keywords as
-part of thermodyanmic information.
+new compute and fix styles to LAMMPS to calculate quantities that
+could then be output with these keywords as part of thermodyanmic
+information.
 </P>
 <HR>
 

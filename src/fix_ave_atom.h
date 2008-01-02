@@ -25,6 +25,7 @@ class FixAveAtom : public Fix {
   ~FixAveAtom();
   int setmask();
   void init();
+  void setup();
   void end_of_step();
 
   double memory_usage();
@@ -34,12 +35,11 @@ class FixAveAtom : public Fix {
   int unpack_exchange(int, double *);
 
  private:
-  int nrepeat,irepeat,nvalid;
-  char *id_compute;
-  int ncompute;
-  class Compute **compute;
+  int nvalues;
+  int nrepeat,nvalid,irepeat;
+  int *which,*argindex,*value2index;
+  char **ids;
 
-  double *scalar;
   double **vector;
 };
 

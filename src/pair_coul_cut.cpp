@@ -285,20 +285,17 @@ void PairCoulCut::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulCut::single(int i, int j, int itype, int jtype,
-			      double rsq, double factor_coul, double factor_lj,
-			      int eflag, One &one)
+double PairCoulCut::single(int i, int j, int itype, int jtype,
+			   double rsq, double factor_coul, double factor_lj,
+			   double &fforce)
 {
   double r2inv,rinv,forcecoul,phicoul;
 
   r2inv = 1.0/rsq;
   rinv = sqrt(r2inv);
   forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
-  one.fforce = factor_coul*forcecoul * r2inv;
+  fforce = factor_coul*forcecoul * r2inv;
 
-  if (eflag) {
-    phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
-    one.eng_coul = factor_coul*phicoul;
-    one.eng_vdwl = 0.0;
-  }
+  phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
+  return factor_coul*phicoul;
 }

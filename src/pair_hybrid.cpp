@@ -549,28 +549,24 @@ void PairHybrid::read_restart(FILE *fp)
    since overlay could have multiple sub-styles, sum results explicitly
 ------------------------------------------------------------------------- */
 
-void PairHybrid::single(int i, int j, int itype, int jtype,
-			double rsq, double factor_coul, double factor_lj,
-			int eflag, One &one)
+double PairHybrid::single(int i, int j, int itype, int jtype,
+			  double rsq, double factor_coul, double factor_lj,
+			  double &fforce)
 {
   if (nmap[itype][jtype] == 0)
     error->one("Invoked pair single on pair style none");
 
-  double fforce = 0.0;
-  double evdwl = 0.0;
-  double ecoul = 0.0;
+  double fone;
+  fforce = 0.0;
+  double esum = 0.0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
-    styles[map[itype][jtype][m]]->
-      single(i,j,itype,jtype,rsq,factor_coul,factor_lj,eflag,one);
-    fforce += one.fforce;
-    evdwl += one.eng_vdwl;
-    ecoul += one.eng_coul;
+    esum += styles[map[itype][jtype][m]]->
+      single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
+    fforce += fone;
   }
 
-  one.fforce = fforce;
-  one.eng_vdwl = evdwl;
-  one.eng_coul = ecoul;
+  return esum;
 }
 
 /* ----------------------------------------------------------------------

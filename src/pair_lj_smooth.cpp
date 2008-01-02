@@ -406,9 +406,9 @@ void PairLJSmooth::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSmooth::single(int i, int j, int itype, int jtype, double rsq,
-			  double factor_coul, double factor_lj, int eflag,
-			  One &one)
+double PairLJSmooth::single(int i, int j, int itype, int jtype, double rsq,
+			    double factor_coul, double factor_lj,
+			    double &fforce)
 {
   double r2inv,r6inv,forcelj,philj,r,t,tsq,fskin;
 
@@ -424,17 +424,14 @@ void PairLJSmooth::single(int i, int j, int itype, int jtype, double rsq,
       ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t; 
     forcelj = fskin*r;
   }
-  one.fforce = factor_lj*forcelj*r2inv;
+  fforce = factor_lj*forcelj*r2inv;
     
-  if (eflag) {
-    if (rsq < cut_inner_sq[itype][jtype])
-      philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype])
-	- offset[itype][jtype];
-    else
-      philj = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
-	ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
-	ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
-    one.eng_vdwl = factor_lj*philj;
-    one.eng_coul = 0.0;
-  } 
+  if (rsq < cut_inner_sq[itype][jtype])
+    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) -
+      offset[itype][jtype];
+  else
+    philj = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
+      ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
+      ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
+  return factor_lj*philj;
 }

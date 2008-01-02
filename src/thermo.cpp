@@ -58,7 +58,13 @@ enum{ONELINE,MULTILINE};
 enum{INT,FLOAT};
 
 #define MAXLINE 1024
-#define DELTA   8
+#define DELTA 8
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
+#define INVOKED_SCALAR 1           // same as in computes
+#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -245,6 +251,15 @@ void Thermo::init()
       error->all("Thermo and fix not computed at compatible times");
   }
 
+  // find current ptr for each Variable ID
+
+  int ivariable;
+  for (i = 0; i < nvariable; i++) {
+    ivariable = input->variable->find(id_variable[i]);
+    if (ivariable < 0) error->all("Could not find thermo variable name");
+    variables[i] = ivariable;
+  }
+
   // set ptrs to keyword-specific Compute objects
 
   if (index_temp >= 0) temperature = computes[index_temp];
@@ -287,11 +302,16 @@ void Thermo::compute(int flag)
   else normflag = normvalue;
 
   // invoke Compute methods needed for thermo keywords
-  // call compute_scalar() if which = 0, else compute_vector()
+  // which = 0 is global scalar, which = 1 is global vector
 
   for (i = 0; i < ncompute; i++) {
-    if (compute_which[i] % 2 == 0) double tmp = computes[i]->compute_scalar();
-    if (compute_which[i] > 0) computes[i]->compute_vector();
+    if (compute_which[i] == 0) {
+      if (!(computes[i]->invoked & INVOKED_SCALAR))
+	double tmp = computes[i]->compute_scalar();
+    } else {
+      if (!(computes[i]->invoked & INVOKED_VECTOR))
+	computes[i]->compute_vector();
+    }
   }
 
   // if lineflag = MULTILINE, prepend step/cpu header line
@@ -389,7 +409,7 @@ void Thermo::modify_params(int narg, char **arg)
       if (temperature->igroup != 0 && comm->me == 0)
 	error->warning("Temperature for thermo pressure is not for group all");
 
-      // reset id_pre[0] of pressure to new temp ID
+      // reset id_pre of pressure to new temp ID
       // either pressure currently being used by thermo or "thermo_pressure"
 
       if (index_press >= 0) {
@@ -397,9 +417,9 @@ void Thermo::modify_params(int narg, char **arg)
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_pressure");
 
-      delete [] modify->compute[icompute]->id_pre[0];
-      modify->compute[icompute]->id_pre[0] = new char[n];
-      strcpy(modify->compute[icompute]->id_pre[0],arg[iarg+1]);
+      delete [] modify->compute[icompute]->id_pre;
+      modify->compute[icompute]->id_pre = new char[n];
+      strcpy(modify->compute[icompute]->id_pre,arg[iarg+1]);
 
       iarg += 2;
 
@@ -417,23 +437,6 @@ void Thermo::modify_params(int narg, char **arg)
 
       if (pressure->pressflag == 0)
 	error->all("Thermo_modify press ID does not compute pressure");
-
-      // if id_pre[0] of new pressure not being computed, add to compute list
-      // swap it with pressure in list so id_pre[0] will be computed first
-      // OK to call add_compute with "which" acting as index
-
-      int which = compute_which[index_press];
-      int ncompute_current = ncompute;
-      icompute = add_compute(pressure->id_pre[0],which);
-      if (icompute == ncompute_current) {
-	int iswap = compute_which[index_press];
-	compute_which[index_press] = compute_which[icompute];
-	compute_which[icompute] = iswap;
-	char *cswap = id_compute[index_press];
-	id_compute[index_press] = id_compute[icompute];
-	id_compute[icompute] = cswap;
-	index_press = icompute;
-      }
 
       iarg += 2;
 
@@ -546,13 +549,15 @@ void Thermo::allocate()
   format_user = new char*[n];
   for (int i = 0; i < n; i++) format_user[i] = NULL;
 
-  field2object = new int[n];
-  arg_object = new int[n];
+  field2index = new int[n];
+  argindex = new int[n];
+
+  // factor of 3 is max number of computes a single field can add
 
   ncompute = 0;
-  id_compute = NULL;
-  compute_which = NULL;
-  computes = NULL;
+  id_compute = new char*[3*n];
+  compute_which = new int[3*n];
+  computes = new Compute*[3*n];
 
   nfix = 0;
   id_fix = new char*[n];
@@ -560,6 +565,7 @@ void Thermo::allocate()
 
   nvariable = 0;
   id_variable = new char*[n];
+  variables = new int[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -580,13 +586,13 @@ void Thermo::deallocate()
   for (int i = 0; i < n; i++) delete [] format_user[i];
   delete [] format_user;
 
-  delete [] field2object;
-  delete [] arg_object;
+  delete [] field2index;
+  delete [] argindex;
 
   for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
-  memory->sfree(id_compute);
-  memory->sfree(compute_which);
-  memory->sfree(computes);
+  delete [] id_compute;
+  delete [] compute_which;
+  delete [] computes;
 
   for (int i = 0; i < nfix; i++) delete [] id_fix[i];
   delete [] id_fix;
@@ -594,6 +600,7 @@ void Thermo::deallocate()
 
   for (int i = 0; i < nvariable; i++) delete [] id_variable[i];
   delete [] id_variable;
+  delete [] variables;
 }
 
 /* ----------------------------------------------------------------------
@@ -622,7 +629,6 @@ void Thermo::parse_fields(char *str)
       index_temp = add_compute(id_temp,0);
     } else if (strcmp(word,"press") == 0) {
       addfield("Press",&Thermo::compute_press,FLOAT);
-      index_temp = add_compute(id_temp,0);
       index_press = add_compute(id_press,0);
     } else if (strcmp(word,"pe") == 0) {
       addfield("PotEng",&Thermo::compute_pe,FLOAT);
@@ -695,27 +701,21 @@ void Thermo::parse_fields(char *str)
 
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
-      index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
     } else if (strcmp(word,"pyy") == 0) {
       addfield("Pyy",&Thermo::compute_pyy,FLOAT);
-      index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
     } else if (strcmp(word,"pzz") == 0) {
       addfield("Pzz",&Thermo::compute_pzz,FLOAT);
-      index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
     } else if (strcmp(word,"pxy") == 0) {
       addfield("Pxy",&Thermo::compute_pxy,FLOAT);
-      index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
     } else if (strcmp(word,"pxz") == 0) {
       addfield("Pxz",&Thermo::compute_pxz,FLOAT);
-      index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
     } else if (strcmp(word,"pyz") == 0) {
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
-      index_temp = add_compute(id_temp,1);
       index_press = add_compute(id_press,1);
 
     } else if (strcmp(word,"drot") == 0) {
@@ -728,7 +728,6 @@ void Thermo::parse_fields(char *str)
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // if no trailing [], then arg is set to 0, else arg is between []
     // copy = at most 8 chars of ID to pass to addfield
-    // if Compute has pre-computes, first add them to list
 
     } else if ((strncmp(word,"c_",2) == 0) || (strncmp(word,"f_",2) == 0) ||
 	       (strncmp(word,"v_",2) == 0)) {
@@ -744,45 +743,45 @@ void Thermo::parse_fields(char *str)
       if (ptr) {
 	if (id[strlen(id)-1] != ']')
 	  error->all("Invalid keyword in thermo_style custom command");
-	arg_object[nfield] = atoi(ptr+1);
+	argindex[nfield] = atoi(ptr+1);
 	*ptr = '\0';
-      } else arg_object[nfield] = 0;
+      } else argindex[nfield] = 0;
 
       if (word[0] == 'c') {
 	n = modify->find_compute(id);
 	if (n < 0) error->all("Could not find thermo custom compute ID");
-	if (arg_object[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
+	if (argindex[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
 	  error->all("Thermo compute ID does not compute scalar info");
-	if (arg_object[nfield] > 0 && modify->compute[n]->vector_flag == 0)
+	if (argindex[nfield] > 0 && modify->compute[n]->vector_flag == 0)
 	  error->all("Thermo compute ID does not compute vector info");
-	if (arg_object[nfield] > 0 && 
-	    arg_object[nfield] > modify->compute[n]->size_vector)
+	if (argindex[nfield] > 0 && 
+	    argindex[nfield] > modify->compute[n]->size_vector)
 	  error->all("Thermo compute ID vector is not large enough");
-	if (modify->compute[n]->npre)
-	  for (int ic = 0; ic < modify->compute[n]->npre; ic++)
-	    int tmp = add_compute(modify->compute[n]->id_pre[ic],
-				  arg_object[nfield]);
 
-	field2object[nfield] = add_compute(id,arg_object[nfield]);
+	field2index[nfield] = add_compute(id,MIN(argindex[nfield],1));
 	addfield(copy,&Thermo::compute_compute,FLOAT);
 
       } else if (word[0] == 'f') {
 	n = modify->find_fix(id);
 	if (n < 0) error->all("Could not find thermo custom fix ID");
-	if (arg_object[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
+	if (argindex[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
 	  error->all("Thermo fix ID does not compute scalar info");
-	if (arg_object[nfield] > 0 && modify->fix[n]->vector_flag == 0)
+	if (argindex[nfield] > 0 && modify->fix[n]->vector_flag == 0)
 	  error->all("Thermo fix ID does not compute vector info");
-	if (arg_object[nfield] > 0 && 
-	    arg_object[nfield] > modify->fix[n]->size_vector)
+	if (argindex[nfield] > 0 && 
+	    argindex[nfield] > modify->fix[n]->size_vector)
 	  error->all("Thermo fix ID vector is not large enough");
-	field2object[nfield] = add_fix(id);
+
+	field2index[nfield] = add_fix(id);
 	addfield(copy,&Thermo::compute_fix,FLOAT);
 
-      } else {
+      } else if (word[0] == 'v') {
 	n = input->variable->find(id);
-	if (n < 0) error->all("Could not find thermo custom variable ID");
-	field2object[nfield] = add_variable(id);
+	if (n < 0) error->all("Could not find thermo custom variable name");
+	if (input->variable->equalstyle(n) == 0)
+	  error->all("Thermo custom variable is not equal-style variable");
+
+	field2index[nfield] = add_variable(id);
 	addfield(copy,&Thermo::compute_variable,FLOAT);
       }
 
@@ -809,41 +808,21 @@ void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 /* ----------------------------------------------------------------------
    add compute ID to list of Compute objects to call
    return location of where this Compute is in list
-   if already in list, do not add, just return index, else add to list
-   convert index into which param
-     index = 0 -> scalar, index >= 1 -> vector
-     which = 1 -> scalar only, which = 2 -> vector only, which = 3 -> both
-   change which param if Compute is in list with different which param
+   if already in list with same which, do not add, just return index
 ------------------------------------------------------------------------- */
 
-int Thermo::add_compute(const char *id, int index)
+int Thermo::add_compute(const char *id, int which)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(id,id_compute[icompute]) == 0) {
-      if (index == 0 && compute_which[icompute] == 1)
-	compute_which[icompute] = 2;
-      if (index > 0 && compute_which[icompute] == 0)
-	compute_which[icompute] = 2;
-      break;
-    }
+    if ((strcmp(id,id_compute[icompute]) == 0) && 
+	which == compute_which[icompute]) break;
   if (icompute < ncompute) return icompute;
-
-  id_compute = (char **)
-    memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),
-		     "thermo:id_compute");
-  compute_which = (int *)
-    memory->srealloc(compute_which,(ncompute+1)*sizeof(int),
-		     "thermo:compute_which");
-  computes = (Compute **) 
-    memory->srealloc(computes,(ncompute+1)*sizeof(Compute *),
-		     "thermo:computes");
 
   int n = strlen(id) + 1;
   id_compute[ncompute] = new char[n];
   strcpy(id_compute[ncompute],id);
-  if (index == 0) compute_which[ncompute] = 0;
-  else compute_which[ncompute] = 1;
+  compute_which[ncompute] = which;
   ncompute++;
   return ncompute-1;
 }
@@ -901,12 +880,6 @@ void Thermo::create_compute(char *id, char *cstyle, char *extra)
 
 int Thermo::evaluate_keyword(char *word, double *answer)
 {
-  // don't allow use of thermo keyword before first run
-  // since system is not setup (e.g. no forces have been called for energy)
-
-  if (update->first_update == 0)
-    error->all("Variable equal thermo keyword used before initial run");
-
   // check if Compute pointers exist for keywords that need them
   // error if thermo style does not use the Compute
 
@@ -948,7 +921,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       strcmp(word,"elong") == 0 || strcmp(word,"etail") == 0) {
     if (!pe)
       error->all("Variable uses compute via thermo keyword that thermo does not");
-    pe->invoked = 1;
+    pe->invoked |= INVOKED_SCALAR;
   }
 
   // toggle thermoflag off/on
@@ -1019,42 +992,58 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
 /* ----------------------------------------------------------------------
    extraction of Compute, Fix, Variable results
-   ignore thermoflag, since these 3 routines only called by Thermo::compute(),
-     not by variable evaluation
-   compute/fix are normalized by atoms if returning extensive value(s)
-   variable value is not normalized (so formula should normalize if desired)
+   ignore thermoflag:
+     3 methods only called by Thermo::compute(), not by variable evaluation
+   compute/fix are normalized by atoms if returning extensive value
+   variable value is not normalized (formula should normalize if desired)
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_compute()
 {
-  int index = field2object[ifield];
-  if (arg_object[ifield] == 0) dvalue = computes[index]->scalar;
-  else dvalue = computes[index]->vector[arg_object[ifield]-1];
-  if (normflag && computes[index]->extensive) dvalue /= natoms;
+  Compute *compute = computes[field2index[ifield]];
+  if (argindex[ifield] == 0) {
+    dvalue = compute->scalar;
+    if (normflag && compute->extscalar) dvalue /= natoms;
+  } else {
+    dvalue = compute->vector[argindex[ifield]-1];
+    if (normflag) {
+      if (compute->extvector == 0) return;
+      else if (compute->extvector == 1) dvalue /= natoms;
+      else if (compute->extlist[argindex[ifield]-1]) dvalue /= natoms;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_fix()
 {
-  int index = field2object[ifield];
-  if (arg_object[ifield] == 0) dvalue = fixes[index]->compute_scalar();
-  else dvalue = fixes[index]->compute_vector(arg_object[ifield]-1);
-  if (normflag && fixes[index]->extensive) dvalue /= natoms;
+  Fix *fix = fixes[field2index[ifield]];
+  if (argindex[ifield] == 0) {
+    dvalue = fix->compute_scalar();
+    if (normflag && fix->extscalar) dvalue /= natoms;
+  } else {
+    dvalue = fix->compute_vector(argindex[ifield]-1);
+    if (normflag) {
+      if (fix->extvector == 0) return;
+      else if (fix->extvector == 1) dvalue /= natoms;
+      else if (fix->extlist[argindex[ifield]-1]) dvalue /= natoms;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_variable()
 {
-  int index = field2object[ifield];
-  dvalue = atof(input->variable->retrieve(id_variable[index]));
+  int index = field2index[ifield];
+  dvalue = input->variable->compute_equal(variables[index]);
 }
 
 /* ----------------------------------------------------------------------
-   one routine for every thermo keyword can output
+   one method for every keyword thermo can output
    thermoflag = 1 if called by Thermo::compute()
    thermoflag = 0 if called by evaluate_keyword() via Variable
    set ivalue/dvalue if value is integer/double
@@ -1086,7 +1075,8 @@ void Thermo::compute_cpu()
 
 void Thermo::compute_temp()
 {
-  if (thermoflag) dvalue = temperature->scalar;
+  if (thermoflag || temperature->invoked & INVOKED_SCALAR)
+    dvalue = temperature->scalar;
   else dvalue = temperature->compute_scalar();
 }
 
@@ -1094,18 +1084,17 @@ void Thermo::compute_temp()
 
 void Thermo::compute_press()
 {
-  if (thermoflag) dvalue = pressure->scalar;
-  else {
-    dvalue = temperature->compute_scalar();
-    dvalue = pressure->compute_scalar();
-  }
+  if (thermoflag || pressure->invoked & INVOKED_SCALAR)
+    dvalue = pressure->scalar;
+  else dvalue = pressure->compute_scalar();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_pe()
 {
-  if (thermoflag) dvalue = pe->scalar;
+  if (thermoflag || pe->invoked & INVOKED_SCALAR)
+    dvalue = pe->scalar;
   else dvalue = pe->compute_scalar();
   if (normflag) dvalue /= natoms;
 }
@@ -1114,8 +1103,10 @@ void Thermo::compute_pe()
 
 void Thermo::compute_ke()
 {
-  if (thermoflag) dvalue = temperature->scalar;
+  if (thermoflag || temperature->invoked & INVOKED_SCALAR)
+    dvalue = temperature->scalar;
   else dvalue = temperature->compute_scalar();
+
   dvalue *= 0.5 * temperature->dof * force->boltz;
   if (normflag) dvalue /= natoms;
 }
@@ -1127,8 +1118,10 @@ void Thermo::compute_etotal()
   compute_pe();
 
   double ke;
-  if (thermoflag) ke = temperature->scalar;
+  if (thermoflag || temperature->invoked & INVOKED_SCALAR)
+    ke = temperature->scalar;
   else ke = temperature->compute_scalar();
+
   ke *= 0.5 * temperature->dof * force->boltz;
   if (normflag) ke /= natoms;
   dvalue += ke;
@@ -1351,10 +1344,8 @@ void Thermo::compute_zhi()
 
 void Thermo::compute_pxx()
 {
-  if (!thermoflag) {
-    temperature->compute_vector();
+  if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
-  }
   dvalue = pressure->vector[0];
 }
 
@@ -1362,10 +1353,8 @@ void Thermo::compute_pxx()
 
 void Thermo::compute_pyy()
 {
-  if (!thermoflag) {
-    temperature->compute_vector();
+  if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
-  }
   dvalue = pressure->vector[1];
 }
 
@@ -1373,10 +1362,8 @@ void Thermo::compute_pyy()
 
 void Thermo::compute_pzz()
 {
-  if (!thermoflag) {
-    temperature->compute_vector();
+  if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
-  }
   dvalue = pressure->vector[2];
 }
 
@@ -1384,10 +1371,8 @@ void Thermo::compute_pzz()
 
 void Thermo::compute_pxy()
 {
-  if (!thermoflag) {
-    temperature->compute_vector();
+  if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
-  }
   dvalue = pressure->vector[3];
 }
 
@@ -1395,10 +1380,8 @@ void Thermo::compute_pxy()
 
 void Thermo::compute_pxz()
 {
-  if (!thermoflag) {
-    temperature->compute_vector();
+  if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
-  }
   dvalue = pressure->vector[4];
 }
 
@@ -1406,10 +1389,8 @@ void Thermo::compute_pxz()
 
 void Thermo::compute_pyz()
 {
-  if (!thermoflag) {
-    temperature->compute_vector();
+  if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
-  }
   dvalue = pressure->vector[5];
 }
 
@@ -1417,7 +1398,8 @@ void Thermo::compute_pyz()
 
 void Thermo::compute_drot()
 {
-  if (thermoflag) dvalue = rotate_dipole->scalar;
+  if (thermoflag || rotate_dipole->invoked & INVOKED_SCALAR)
+    dvalue = rotate_dipole->scalar;
   else dvalue = rotate_dipole->compute_scalar();
   if (normflag) dvalue /= natoms;
 }
@@ -1426,7 +1408,8 @@ void Thermo::compute_drot()
 
 void Thermo::compute_grot()
 {
-  if (thermoflag) dvalue = rotate_gran->scalar;
+  if (thermoflag || rotate_gran->invoked & INVOKED_SCALAR)
+    dvalue = rotate_gran->scalar;
   else dvalue = rotate_gran->compute_scalar();
   if (normflag) dvalue /= natoms;
 }

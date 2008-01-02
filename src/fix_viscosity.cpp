@@ -39,7 +39,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   scalar_vector_freq = nevery;
-  extensive = 0;
+  extscalar = 0;
 
   if (strcmp(arg[4],"x") == 0) vdim = 0;
   else if (strcmp(arg[4],"y") == 0) vdim = 1;

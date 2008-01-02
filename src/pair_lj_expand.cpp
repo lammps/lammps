@@ -376,9 +376,9 @@ void PairLJExpand::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJExpand::single(int i, int j, int itype, int jtype, double rsq,
-			  double factor_coul, double factor_lj, int eflag,
-			  One &one)
+double PairLJExpand::single(int i, int j, int itype, int jtype, double rsq,
+			    double factor_coul, double factor_lj,
+			    double &fforce)
 {
   double r,rshift,rshiftsq,r2inv,r6inv,forcelj,philj;
 
@@ -388,12 +388,9 @@ void PairLJExpand::single(int i, int j, int itype, int jtype, double rsq,
   r2inv = 1.0/rshiftsq;
   r6inv = r2inv*r2inv*r2inv;
   forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  one.fforce = factor_lj*forcelj/rshift/r;
+  fforce = factor_lj*forcelj/rshift/r;
 
-  if (eflag) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    one.eng_vdwl = factor_lj*philj;
-    one.eng_coul = 0.0;
-  }
+  philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+    offset[itype][jtype];
+  return factor_lj*philj;
 }

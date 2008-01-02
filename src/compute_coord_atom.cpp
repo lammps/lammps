@@ -27,6 +27,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_PERATOM 4
+
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -87,6 +89,8 @@ void ComputeCoordAtom::compute_peratom()
   int i,j,ii,jj,inum,jnum,n;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
+
+  invoked |= INVOKED_PERATOM;
 
   // grow coordination array if necessary
 

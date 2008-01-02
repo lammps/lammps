@@ -24,26 +24,28 @@
 #include "lattice.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
+#include "input.h"
+#include "variable.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 enum{LOWER,CENTER,UPPER,COORD};
-enum{DENSITY_MASS,DENSITY_NUM,COMPUTE,FIX};
+enum{X,V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
 
 #define BIG 1000000000
+#define INVOKED_PERATOM 4      // same as in computes
 
 /* ---------------------------------------------------------------------- */
 
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 11) error->all("Illegal fix ave/spatial command");
+  if (narg < 10) error->all("Illegal fix ave/spatial command");
 
   MPI_Comm_rank(world,&me);
 
@@ -62,34 +64,96 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[7],"center") == 0) originflag = CENTER;
   if (strcmp(arg[7],"upper") == 0) originflag = UPPER;
   else originflag = COORD;
-  if (originflag == COORD) origin = atof(arg[6]);
+  if (originflag == COORD) origin = atof(arg[7]);
 
   delta = atof(arg[8]);
 
-  if (strcmp(arg[9],"density") == 0) {
-    if (strcmp(arg[10],"mass") == 0) which = DENSITY_MASS;
-    else if (strcmp(arg[10],"number") == 0) which = DENSITY_NUM;
-    else error->all("Illegal fix ave/spatial command");
-  } else if (strcmp(arg[9],"compute") == 0) {
-    which = COMPUTE;
-    int n = strlen(arg[10]) + 1;
-    id_compute = new char[n];
-    strcpy(id_compute,arg[10]);
-  } else if (strcmp(arg[9],"fix") == 0) {
-    which = FIX;
-    int n = strlen(arg[10]) + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,arg[10]);
-  } else error->all("Illegal fix ave/spatial command");
+  // parse values until one isn't recognized
 
-  // parse optional args
+  which = new int[narg-9];
+  argindex = new int[narg-9];
+  ids = new char*[narg-9];
+  value2index = new int[narg-9];
+  nvalues = 0;
+
+  int iarg = 9;
+  while (iarg < narg) {
+    ids[nvalues] = NULL;
+
+    if (strcmp(arg[iarg],"x") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"fx") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"fy") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"fz") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"density/number") == 0) {
+      which[nvalues] = DENSITY_NUMBER;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"density/mass") == 0) {
+      which[nvalues] = DENSITY_MASS;
+      argindex[nvalues++] = 0;
+
+    } else if ((strncmp(arg[iarg],"c_",2) == 0) || 
+	       (strncmp(arg[iarg],"f_",2) == 0) || 
+	       (strncmp(arg[iarg],"v_",2) == 0)) {
+      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
+      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][2]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+	if (suffix[strlen(suffix)-1] != ']')
+	  error->all("Illegal fix ave/spatial command");
+	argindex[nvalues] = atoi(ptr+1);
+	*ptr = '\0';
+      } else argindex[nvalues] = 0;
+
+      n = strlen(suffix) + 1;
+      ids[nvalues] = new char[n];
+      strcpy(ids[nvalues],suffix);
+      nvalues++;
+      delete [] suffix;
+
+    } else break;
+
+    iarg++;
+  }
+
+  // optional args
 
   normflag = ALL;
   scaleflag = BOX;
   fp = NULL;
   ave = ONE;
 
-  int iarg = 11;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
@@ -131,11 +195,71 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix ave/spatial command");
   }
 
-  // if density, no normalization by atom count should be done
-  // thus ALL and SAMPLE should give same answer, but code does normalize
-  // thus only ALL is computed correctly, so force norm to be ALL
+  // setup and error check
 
-  if (which == DENSITY_MASS || which == DENSITY_NUM) normflag = ALL;
+  if (nevery <= 0) error->all("Illegal fix ave/spatial command");
+  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+    error->all("Illegal fix ave/spatial command");
+
+  if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
+  invdelta = 1.0/delta;
+
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/spatial does not exist");
+      if (modify->compute[icompute]->peratom_flag == 0)
+	error->all("Fix ave/spatial compute does not calculate per-atom values");
+      if (argindex[i] == 0 && modify->compute[icompute]->size_peratom != 0)
+	error->all("Fix ave/spatial compute does not calculate a per-atom scalar");
+      if (argindex[i] && modify->compute[icompute]->size_peratom == 0)
+	error->all("Fix ave/spatial compute does not calculate a per-atom vector");
+      if (argindex[i] && argindex[i] > modify->compute[icompute]->size_peratom)
+	error->all("Fix ave/spatial compute vector is accessed out-of-range");
+
+    } else if (which[i] == FIX) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+	error->all("Fix ID for fix ave/spatial does not exist");
+      if (modify->fix[ifix]->peratom_flag == 0)
+	error->all("Fix ave/spatial fix does not calculate per-atom values");
+      if (argindex[i] && modify->fix[ifix]->size_peratom != 0)
+	error->all("Fix ave/spatial fix does not calculate a per-atom scalar");
+      if (argindex[i] && modify->fix[ifix]->size_peratom == 0)
+	error->all("Fix ave/spatial fix does not calculate a per-atom vector");
+      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom)
+	error->all("Fix ave/spatial fix vector is accessed out-of-range");
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+	error->all("Variable name for fix ave/spatial does not exist");
+      if (input->variable->atomstyle(ivariable) == 0)
+	error->all("Fix ave/spatial variable is not atom-style variable");
+    }
+  }
+
+  // print header into file
+
+  if (fp && me == 0) {
+    fprintf(fp,"Spatial-averaged data for fix %s and group %s\n",id,arg[1]);
+    fprintf(fp,"TimeStep Number-of-layers\n");
+    fprintf(fp,"Layer Coordinate Natoms");
+    for (int i = 0; i < nvalues; i++)
+      if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
+      else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
+      else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
+      else fprintf(fp," %s",arg[9+i]);
+    fprintf(fp,"\n");
+  }
+  
+  // this fix produces a global vector
+  // set size_vector to BIG since compute_vector() checks bounds on-the-fly
+
+  vector_flag = 1;
+  size_vector = BIG;
+  scalar_vector_freq = nfreq;
+  extvector = 0;
 
   // setup scaling
 
@@ -162,60 +286,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   delta *= scale;
   if (originflag == COORD) origin *= scale;
 
-  // setup and error check
-
-  if (nevery <= 0) error->all("Illegal fix ave/spatial command");
-  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
-    error->all("Illegal fix ave/spatial command");
-
-  if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
-  invdelta = 1.0/delta;
-
-  // nvalues = # of quantites per line of output file
-  // for COMPUTE, setup list of computes to call, including pre-computes
-
-  nvalues = 1;
-  compute = NULL;
-
-  if (which == COMPUTE) {
-    int icompute = modify->find_compute(id_compute);
-    if (icompute < 0)
-      error->all("Compute ID for fix ave/spatial does not exist");
-    if (modify->compute[icompute]->peratom_flag == 0)
-      error->all("Fix ave/spatial compute does not calculate per-atom info");
-    nvalues = size_peratom = modify->compute[icompute]->size_peratom;
-    if (nvalues == 0) nvalues = 1;
-    ncompute = 1 + modify->compute[icompute]->npre;
-    compute = new Compute*[ncompute];
-  }
-
-  if (which == FIX) {
-    int ifix = modify->find_fix(id_fix);
-    if (ifix < 0)
-      error->all("Fix ID for fix ave/spatial does not exist");
-    if (modify->fix[ifix]->peratom_flag == 0)
-      error->all("Fix ave/spatial fix does not calculate per-atom info");
-    nvalues = size_peratom = modify->fix[ifix]->size_peratom;
-    if (nvalues == 0) nvalues = 1;
-  }
-
-  // print header into file
-
-  if (fp && me == 0) {
-    fprintf(fp,"Spatial-averaged data for fix %s, group %s, and %s %s\n",
-	    id,group->names[igroup],arg[10],arg[11]);
-    fprintf(fp,"TimeStep Number-of-layers (one per snapshot)\n");
-    fprintf(fp,"Layer Coord Atoms Value(s) (one per layer)\n");
-  }
-  
-  // enable this fix to produce a global vector
-  // set size_vector to BIG since compute_vector() will check bounds
-
-  vector_flag = 1;
-  size_vector = BIG;
-  scalar_vector_freq = nfreq;
-  extensive = 0;
-
   // initializations
 
   irepeat = 0;
@@ -228,6 +298,12 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   values_one = values_many = values_sum = values_total = NULL;
   values_list = NULL;
 
+  maxatomvar = 0;
+  varatom = NULL;
+
+  maxatomlayer = 0;
+  layer = NULL;
+
   // nvalid = next step on which end_of_step does something
   // can be this timestep if multiple of nfreq and nrepeat = 1
   // else backup from next multiple of nfreq
@@ -239,24 +315,24 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
 
-  // set timestep for all computes that store invocation times
-  //   since don't know a priori which are invoked by this fix
+  // add nvalid to ALL computes that store invocation times
+  // since don't know a priori which are invoked by this fix
   // once in end_of_step() can just set timestep for ones actually invoked
 
-  if (which == COMPUTE)
-    for (int i = 0; i < modify->ncompute; i++)
-      if (modify->compute[i]->timeflag) modify->compute[i]->add_step(nvalid);
+  modify->addstep_compute_all(nvalid);
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixAveSpatial::~FixAveSpatial()
 {
-  if (which == COMPUTE) delete [] id_compute;
-  if (which == FIX) delete [] id_fix;
-  if (fp && me == 0) fclose(fp);
+  delete [] which;
+  delete [] argindex;
+  for (int i = 0; i < nvalues; i++) delete [] ids[i];
+  delete [] ids;
+  delete [] value2index;
 
-  delete [] compute;
+  if (fp && me == 0) fclose(fp);
 
   memory->sfree(coord);
   memory->sfree(count_one);
@@ -269,6 +345,9 @@ FixAveSpatial::~FixAveSpatial()
   memory->destroy_2d_double_array(values_sum);
   memory->destroy_2d_double_array(values_total);
   memory->destroy_3d_double_array(values_list);
+
+  memory->sfree(varatom);
+  memory->sfree(layer);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -291,36 +370,32 @@ void FixAveSpatial::init()
       error->all("Fix ave/spatial settings invalid with changing box");
   }
 
-  // set ptrs to compute and its pre-computes called each end-of-step
-  // put pre-computes in list before compute
-
-  if (which == COMPUTE) {
-    int icompute = modify->find_compute(id_compute);
-    if (icompute < 0)
-      error->all("Compute ID for fix ave/spatial does not exist");
-    
-    ncompute = 0;
-    if (modify->compute[icompute]->npre)
-      for (int i = 0; i < modify->compute[icompute]->npre; i++) {
-	int ic = modify->find_compute(modify->compute[icompute]->id_pre[i]);
-	if (ic < 0)
-	  error->all("Precompute ID for fix ave/spatial does not exist");
-	compute[ncompute++] = modify->compute[ic];
-      }
-    
-    compute[ncompute++] = modify->compute[icompute];
-  }
-
-  // set ptr to fix ID
+  // set indices and check validity of all computes,fixes,variables
   // check that fix frequency is acceptable
 
-  if (which == FIX) {
-    int ifix = modify->find_fix(id_fix);
-    if (ifix < 0) 
-      error->all("Fix ID for fix ave/spatial does not exist");
-    fix = modify->fix[ifix];
-    if (nevery % fix->peratom_freq)
-      error->all("Fix ave/spatial and fix not computed at compatible times");
+  for (int m = 0; m < nvalues; m++) {
+    if (which[m] == COMPUTE) {
+      int icompute = modify->find_compute(ids[m]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/spatial does not exist");
+      value2index[m] = icompute;
+      
+    } else if (which[m] == FIX) {
+      int ifix = modify->find_fix(ids[m]);
+      if (ifix < 0) 
+	error->all("Fix ID for fix ave/spatial does not exist");
+      value2index[m] = ifix;
+
+      if (nevery % modify->fix[ifix]->peratom_freq)
+	error->all("Fix for fix ave/spatial not computed at compatible time");
+
+    } else if (which[m] == VARIABLE) {
+      int ivariable = input->variable->find(ids[m]);
+      if (ivariable < 0) 
+	error->all("Variable name for fix ave/spatial does not exist");
+      value2index[m] = ivariable;
+
+    } else value2index[m] = -1;
   }
 }
 
@@ -337,7 +412,7 @@ void FixAveSpatial::setup()
 
 void FixAveSpatial::end_of_step()
 {
-  int i,j,m,ilayer;
+  int i,j,m,n,ilayer;
   double lo,hi;
 
   // skip if not step which requires doing something
@@ -448,107 +523,129 @@ void FixAveSpatial::end_of_step()
     for (i = 0; i < nvalues; i++) values_one[m][i] = 0.0;
   }
 
-  // perform the computation for one sample
-  // sum within each layer, only include atoms in fix group
+  // assign each atom to a layer
   // insure array index is within bounds (since atoms can be outside box)
-  // if scaleflag = REDUCED, box coords -> lamda coords before computing layer
+  // if scaleflag = REDUCED, box coords -> lamda coords
 
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  // DENSITY_MASS adds mass to values
-
-  if (which == DENSITY_MASS) {
-    int *type = atom->type;
-    double *mass = atom->mass;
-    double *rmass = atom->rmass;
-
-    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
-
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
-	if (ilayer < 0) ilayer = 0;
-	if (ilayer >= nlayers) ilayer = nlayers-1;
-	count_one[ilayer] += 1.0;
-	if (mass) values_one[ilayer][0] += mass[type[i]];
-	else values_one[ilayer][0] += rmass[i];
-      }
-    }
-
-    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
-
-  // DENSITY_NUM adds 1 to values
-
-  } else if (which == DENSITY_NUM) {
-
-    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
-
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
-	if (ilayer < 0) ilayer = 0;
-	if (ilayer >= nlayers) ilayer = nlayers-1;
-	count_one[ilayer] += 1.0;
-	values_one[ilayer][0] += 1.0;
-      }
-    }
-
-    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
-
-  // COMPUTE adds its scalar or vector quantity to values
-
-  } else if (which == COMPUTE) {
-    modify->clearstep_compute();
-    for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
-    double *scalar = compute[ncompute-1]->scalar_atom;
-    double **vector = compute[ncompute-1]->vector_atom;
-
-    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
-
-    m = 0;
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
-	if (ilayer < 0) ilayer = 0;
-	if (ilayer >= nlayers) ilayer = nlayers-1;
-	count_one[ilayer] += 1.0;
-	if (size_peratom == 0) values_one[ilayer][0] += scalar[i];
-	else
-	  for (j = 0; j < nvalues; j++)
-	    values_one[ilayer][j] += vector[i][j];
-      }
-    }
-
-    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
-
-  // FIX adds its scalar or vector quantity to values
-
-  } else if (which == FIX) {
-    double *scalar = fix->scalar_atom;
-    double **vector = fix->vector_atom;
-
-    if (scaleflag == REDUCED) domain->x2lamda(nlocal);
-
-    m = 0;
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
-	if (ilayer < 0) ilayer = 0;
-	if (ilayer >= nlayers) ilayer = nlayers-1;
-	count_one[ilayer] += 1.0;
-	if (size_peratom == 0) values_one[ilayer][0] += scalar[i];
-	else
-	  for (j = 0; j < nvalues; j++)
-	    values_one[ilayer][j] += vector[i][j];
-      }
-    }
-
-    if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+  if (nlocal > maxatomlayer) {
+    maxatomlayer = atom->nmax;
+    memory->sfree(layer);
+    layer = (int *) 
+      memory->smalloc(maxatomlayer*sizeof(int),"ave/spatial:layer");
   }
 
-  // average a single sample
+  if (scaleflag == REDUCED) domain->x2lamda(nlocal);
+  
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
+      if (ilayer < 0) ilayer = 0;
+      if (ilayer >= nlayers) ilayer = nlayers-1;
+      layer[i] = ilayer;
+      count_one[ilayer] += 1.0;
+    }
+
+  if (scaleflag == REDUCED) domain->lamda2x(nlocal);
+
+  // perform the computation for one sample
+  // accumulate results of attributes,computes,fixes,variables to local copy
+  // sum within each layer, only include atoms in fix group
+  // compute/fix/variable may invoke computes so wrap with clear/add
+
+  modify->clearstep_compute();
+
+  for (m = 0; m < nvalues; m++) {
+    n = value2index[m];
+    j = argindex[m];
+
+    // X,V,F adds coords,velocities,forces to values
+
+    if (which[m] == X || which[m] == V || which[m] == F) {
+      double **attribute;
+      if (which[m] == X) attribute = x;
+      else if (which[m] == V) attribute = atom->v;
+      else attribute = atom->f;
+
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  values_one[layer[i]][m] += attribute[i][j];
+
+    // DENSITY_NUMBER adds 1 to values
+
+    } else if (which[m] == DENSITY_NUMBER) {
+
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  values_one[layer[i]][m] += 1.0;
+
+    // DENSITY_MASS adds mass to values
+
+    } else if (which[m] == DENSITY_MASS) {
+      int *type = atom->type;
+      double *mass = atom->mass;
+      double *rmass = atom->rmass;
+
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  if (mass) values_one[layer[i]][m] += mass[type[i]];
+	  else values_one[layer[i]][m] += rmass[i];
+
+    // COMPUTE adds its scalar or vector component to values
+    // invoke compute if not previously invoked
+
+    } else if (which[m] == COMPUTE) {
+      Compute *compute = modify->compute[n];
+      if (!(compute->invoked & INVOKED_PERATOM)) compute->compute_peratom();
+      double *scalar = compute->scalar_atom;
+      double **vector = compute->vector_atom;
+      int jm1 = j - 1;
+
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  if (j == 0) values_one[layer[i]][m] += scalar[i];
+	  else values_one[layer[i]][m] += vector[i][jm1];
+      
+    // FIX adds its scalar or vector component to values
+    // access fix fields, guaranteed to be ready
+
+    } else if (which[m] == FIX) {
+      double *scalar = modify->fix[n]->scalar_atom;
+      double **vector = modify->fix[n]->vector_atom;
+      int jm1 = j - 1;
+
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) {
+	  if (j == 0) values_one[layer[i]][m] += scalar[i];
+	  else values_one[layer[i]][m] += vector[i][jm1];
+	}
+
+    // VARIABLE adds its per-atom quantities to values
+    // evaluate atom-style variable
+
+    } else if (which[m] == VARIABLE) {
+      if (nlocal > maxatomvar) {
+	maxatomvar = atom->nmax;
+	memory->sfree(varatom);
+	varatom = (double *) 
+	  memory->smalloc(maxatomvar*sizeof(double),"ave/spatial:varatom");
+      }
+
+      input->variable->compute_atom(n,igroup,varatom,1,0);
+
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  values_one[layer[i]][m] += varatom[i];
+    }
+  }
+
+  // process a single sample
+  // if normflag = ALL, accumulate values,count separately to many
+  // if normflag = SAMPLE, one = value/count, accumulate one to many
+  // exception is SAMPLE density: no normalization by atom count
 
   if (normflag == ALL) {
     for (m = 0; m < nlayers; m++) {
@@ -560,8 +657,11 @@ void FixAveSpatial::end_of_step()
     MPI_Allreduce(count_one,count_many,nlayers,MPI_DOUBLE,MPI_SUM,world);
     for (m = 0; m < nlayers; m++) {
       if (count_many[m] > 0.0)
-	for (j = 0; j < nvalues; j++)
-	  values_many[m][j] += values_one[m][j]/count_many[m];
+	for (j = 0; j < nvalues; j++) {
+	  if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
+	    values_many[m][j] += values_one[m][j];
+	  else values_many[m][j] += values_one[m][j]/count_many[m];
+	}
       count_sum[m] += count_many[m];
     }
   }
@@ -572,16 +672,18 @@ void FixAveSpatial::end_of_step()
   irepeat++;
   if (irepeat < nrepeat) {
     nvalid += nevery;
-    if (which == COMPUTE) modify->addstep_compute(nvalid);
+    modify->addstep_compute(nvalid);
     return;
   }
 
   irepeat = 0;
   nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
-  if (which == COMPUTE) modify->addstep_compute(nvalid);
+  modify->addstep_compute(nvalid);
 
   // time average across samples
-  // if density, also normalize by volume
+  // if normflag = ALL, final is total value / total count
+  // if normflag = SAMPLE, final is sum of ave / repeat
+  // exception is ALL density: normalized by repeat, not total count
 
   double repeat = nrepeat;
 
@@ -592,7 +694,9 @@ void FixAveSpatial::end_of_step()
     for (m = 0; m < nlayers; m++) {
       if (count_sum[m] > 0.0)
 	for (j = 0; j < nvalues; j++)
-	  values_sum[m][j] /= count_sum[m];
+	  if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
+	    values_sum[m][j] /= repeat;
+	  else values_sum[m][j] /= count_sum[m];
       count_sum[m] /= repeat;
     }
   } else {
@@ -605,10 +709,12 @@ void FixAveSpatial::end_of_step()
     }
   }
 
-  if (which == DENSITY_MASS || which == DENSITY_NUM) {
-    for (m = 0; m < nlayers; m++)
-      values_sum[m][0] *= count_sum[m] / layer_volume;
-  }
+  // density is additionally normalized by layer volume
+
+  for (j = 0; j < nvalues; j++)
+    if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
+      for (m = 0; m < nlayers; m++)
+	values_sum[m][j] /= layer_volume;
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values
@@ -667,13 +773,24 @@ void FixAveSpatial::end_of_step()
 /* ----------------------------------------------------------------------
    return Nth vector value
    since values_sum is 2d array, map N into ilayer and ivalue
-   if ilayer >= nlayers, just return 0, since nlayers can vary with time
+   if ilayer exceeds current layers, return 0.0 instead of generate an error
 ------------------------------------------------------------------------- */
 
 double FixAveSpatial::compute_vector(int n)
 {
   int ivalue = n % nvalues;
   int ilayer = n / nvalues;
-  if (ilayer < nlayers && norm) return values_total[ilayer][ivalue]/norm;
-  return 0.0;
+  if (ilayer >= nlayers) return 0.0;
+  return values_total[ilayer][ivalue]/norm;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of varatom and layer
+------------------------------------------------------------------------- */
+
+double FixAveSpatial::memory_usage()
+{
+  double bytes = maxatomvar * sizeof(double);
+  bytes += maxatomlayer * sizeof(int);
+  return bytes;
 }

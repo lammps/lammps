@@ -177,10 +177,10 @@ void BondHarmonic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondHarmonic::single(int type, double rsq, int i, int j, double &eng)
+double BondHarmonic::single(int type, double rsq, int i, int j)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double rk = k[type] * dr;
-  eng = rk*dr;
+  return rk*dr;
 }

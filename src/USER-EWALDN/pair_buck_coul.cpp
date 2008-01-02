@@ -1116,24 +1116,24 @@ void PairBuckCoul::free_tables()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckCoul::single(int i, int j, int itype, int jtype,
-			       double rsq,
-			       double factor_coul, double factor_buck,
-			       int eflag, One &one)
+double PairBuckCoul::single(int i, int j, int itype, int jtype,
+			    double rsq, double factor_coul, double factor_buck,
+			    double &fforce)
 {
   double f, r, r2inv, r6inv, force_coul, force_buck;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2, *q = atom->q;
 
   r = sqrt(rsq);
   r2inv = 1.0/rsq;
-  one.eng_coul = 0.0;
+  double eng = 0.0;
+
   if ((ewald_order&2) && (rsq < cut_coulsq)) {		// coulombic
     if (!ncoultablebits || rsq <= tabinnersq) {		// series real space
       register double x = g_ewald*r;
       register double s = force->qqrd2e*q[i]*q[j], t = 1.0/(1.0+EWALD_P*x);
       f = s*(1.0-factor_coul)/r; s *= g_ewald*exp(-x*x);
       force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-f;
-      if (eflag) one.eng_coul = t-f;
+      eng += t-f;
     }
     else {						// table real space
       register float t = rsq;
@@ -1141,12 +1141,10 @@ void PairBuckCoul::single(int i, int j, int itype, int jtype,
       register double f = (rsq-rtable[k])*drtable[k], qiqj = q[i]*q[j];
       t = (1.0-factor_coul)*(ctable[k]+f*dctable[k]);
       force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-      if (eflag) one.eng_coul = qiqj*(etable[k]+f*detable[k]-t);
+      eng += qiqj*(etable[k]+f*detable[k]-t);
     }
-  }
-  else force_coul = 0.0;
+  } else force_coul = 0.0;
   
-  one.eng_vdwl = 0.0;
   if (rsq < cut_bucksq[itype][jtype]) {			// buckingham
     register double expr = factor_buck*exp(-sqrt(rsq)*rhoinv[itype][jtype]);
     r6inv = r2inv*r2inv*r2inv;
@@ -1155,18 +1153,18 @@ void PairBuckCoul::single(int i, int j, int itype, int jtype,
       x2 = a2*exp(-x2)*buck_c[itype][jtype];
       force_buck = buck1[itype][jtype]*r*expr-
        	g8*(((6.0*a2+6.0)*a2+3.0)*a2+a2)*x2*rsq+t*buck2[itype][jtype];
-      if (eflag) one.eng_vdwl = buck_a[itype][jtype]*expr-
+      eng += buck_a[itype][jtype]*expr-
 	g6*((a2+1.0)*a2+0.5)*x2+t*buck_c[itype][jtype];
     }
     else {						// cut
       force_buck = 
 	buck1[itype][jtype]*r*expr-factor_buck*buck_c[itype][jtype]*r6inv;
-      if (eflag) one.eng_vdwl = buck_a[itype][jtype]*expr-
-	    factor_buck*(buck_c[itype][jtype]*r6inv-offset[itype][jtype]);
+      eng += buck_a[itype][jtype]*expr-
+	factor_buck*(buck_c[itype][jtype]*r6inv-offset[itype][jtype]);
     }
-  } 
-  else force_buck = 0.0;
+  } else force_buck = 0.0;
 
-  one.fforce = (force_coul+force_buck)*r2inv;
+  fforce = (force_coul+force_buck)*r2inv;
+  return eng;
 }
 

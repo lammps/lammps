@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class PairAIREBO : public Pair {
  public:
   PairAIREBO(class LAMMPS *);
-  virtual ~PairAIREBO();
+  ~PairAIREBO();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -31,7 +31,6 @@ class PairAIREBO : public Pair {
   void read_restart(FILE *) {}
   void write_restart_settings(FILE *) {}
   void read_restart_settings(FILE *) {}
-  void single(int, int, int, int, double, double, double, int, One &) {}
 
  private:
   int me;

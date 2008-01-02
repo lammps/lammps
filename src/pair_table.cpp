@@ -908,9 +908,9 @@ void PairTable::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTable::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, int eflag,
-		       One &one)
+double PairTable::single(int i, int j, int itype, int jtype, double rsq,
+			 double factor_coul, double factor_lj,
+			 double &fforce)
 {
   int itable;
   double fraction,value,a,b,phi;
@@ -921,13 +921,13 @@ void PairTable::single(int i, int j, int itype, int jtype, double rsq,
   if (tabstyle == LOOKUP) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
     if (itable >= nm1) error->one("Pair distance > table outer cutoff");
-    one.fforce = factor_lj * tb->f[itable];
+    fforce = factor_lj * tb->f[itable];
   } else if (tabstyle == LINEAR) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
     if (itable >= nm1) error->one("Pair distance > table outer cutoff");
     fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
     value = tb->f[itable] + fraction*tb->df[itable];
-    one.fforce = factor_lj * value;
+    fforce = factor_lj * value;
   } else if (tabstyle == SPLINE) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
     if (itable >= nm1) error->one("Pair distance > table outer cutoff");
@@ -936,7 +936,7 @@ void PairTable::single(int i, int j, int itype, int jtype, double rsq,
     value = a * tb->f[itable] + b * tb->f[itable+1] + 
       ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
       tb->deltasq6;
-    one.fforce = factor_lj * value;
+    fforce = factor_lj * value;
   } else {
     float rsq_single = rsq;
     int *int_rsq = (int *) &rsq_single;
@@ -944,20 +944,17 @@ void PairTable::single(int i, int j, int itype, int jtype, double rsq,
     itable >>= tb->nshiftbits;
     fraction = (rsq_single - tb->rsq[itable]) * tb->drsq[itable];
     value = tb->f[itable] + fraction*tb->df[itable];
-    one.fforce = factor_lj * value;
+    fforce = factor_lj * value;
   }
 
-  if (eflag) {
-    if (tabstyle == LOOKUP)
-      phi = tb->e[itable];
-    else if (tabstyle == LINEAR || tabstyle == BITMAP)
-      phi = tb->e[itable] + fraction*tb->de[itable];
-    else
-      phi = a * tb->e[itable] + b * tb->e[itable+1] + 
-	((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
-    one.eng_vdwl = factor_lj*phi;
-    one.eng_coul = 0.0;
-  }
+  if (tabstyle == LOOKUP)
+    phi = tb->e[itable];
+  else if (tabstyle == LINEAR || tabstyle == BITMAP)
+    phi = tb->e[itable] + fraction*tb->de[itable];
+  else
+    phi = a * tb->e[itable] + b * tb->e[itable+1] + 
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
+  return factor_lj*phi;
 }
 
 /* ----------------------------------------------------------------------

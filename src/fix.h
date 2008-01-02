@@ -38,7 +38,9 @@ class Fix : protected Pointers {
   int vector_flag;               // 0/1 if compute_vector() function exists
   int size_vector;               // N = size of global vector
   int scalar_vector_freq;        // frequency compute s/v data is available at
-  int extensive;                 // 0/1 if s/v are intensive/extensive values
+  int extscalar;                 // 0/1 if scalar is intensive/extensive
+  int extvector;                 // 0/1/-1 if vector is all int/ext/extlist
+  int *extlist;                  // list of 0/1 int/ext for each vec component
 
   int peratom_flag;              // 0/1 if per-atom data is stored
   int size_peratom;              // 0 = scalar_atom, N = size of vector_atom

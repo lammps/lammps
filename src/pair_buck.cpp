@@ -325,9 +325,9 @@ void PairBuck::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuck::single(int i, int j, int itype, int jtype,
-		      double rsq, double factor_coul, double factor_lj,
-		      int eflag, One &one)
+double PairBuck::single(int i, int j, int itype, int jtype,
+			double rsq, double factor_coul, double factor_lj,
+			double &fforce)
 {
   double r2inv,r6inv,r,rexp,forcebuck,phibuck;
 
@@ -336,12 +336,9 @@ void PairBuck::single(int i, int j, int itype, int jtype,
   r = sqrt(rsq);
   rexp = exp(-r*rhoinv[itype][jtype]);
   forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-  one.fforce = factor_lj*forcebuck*r2inv;
+  fforce = factor_lj*forcebuck*r2inv;
   
-  if (eflag) {
-    phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
-      offset[itype][jtype];
-    one.eng_vdwl = factor_lj*phibuck;
-    one.eng_coul = 0.0;
-  }
+  phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
+    offset[itype][jtype];
+  return factor_lj*phibuck;
 }

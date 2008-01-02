@@ -41,7 +41,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extvector = 1;
 
   if (strcmp(arg[3],"tether") == 0) {
     if (narg != 9) error->all("Illegal fix spring command");
@@ -78,6 +78,9 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (r0 < 0) error->all("R0 < 0 for fix spring command");
 
   } else error->all("Illegal fix spring command");
+
+  force_flag = 0;
+  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

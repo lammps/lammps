@@ -35,7 +35,8 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extscalar = 1;
+  extvector = 1;
 
   if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
@@ -78,6 +79,9 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
     error->all("Cannot use wall in periodic dimension");
   if (dim == 2 && domain->zperiodic)
     error->all("Cannot use wall in periodic dimension");
+
+  wall_flag = 0;
+  wall[0] = wall[1] = wall[2] = wall[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -386,9 +386,10 @@ void PairBuckCoulCut::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckCoulCut::single(int i, int j, int itype, int jtype,
-			     double rsq, double factor_coul, double factor_lj,
-			     int eflag, One &one)
+double PairBuckCoulCut::single(int i, int j, int itype, int jtype,
+			       double rsq,
+			       double factor_coul, double factor_lj,
+			       double &fforce)
 {
   double r2inv,r6inv,r,rexp,forcecoul,forcebuck,phicoul,phibuck;
 
@@ -402,17 +403,17 @@ void PairBuckCoulCut::single(int i, int j, int itype, int jtype,
     rexp = exp(-r*rhoinv[itype][jtype]);
     forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
   } else forcebuck = 0.0;
-  one.fforce = (factor_coul*forcecoul + factor_lj*forcebuck) * r2inv;
+  fforce = (factor_coul*forcecoul + factor_lj*forcebuck) * r2inv;
   
-  if (eflag) {
-    if (rsq < cut_coulsq[itype][jtype]) {
-      phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
-      one.eng_coul = factor_coul*phicoul;
-    } else one.eng_coul = 0.0;
-    if (rsq < cut_ljsq[itype][jtype]) {
-      phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
-	offset[itype][jtype];
-      one.eng_vdwl = factor_lj*phibuck;
-    } else one.eng_vdwl = 0.0;
+  double eng = 0.0;
+  if (rsq < cut_coulsq[itype][jtype]) {
+    phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
+    eng += factor_coul*phicoul;
   }
+  if (rsq < cut_ljsq[itype][jtype]) {
+    phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
+      offset[itype][jtype];
+    eng += factor_lj*phibuck;
+  }
+  return eng;
 }

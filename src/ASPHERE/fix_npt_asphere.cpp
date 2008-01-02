@@ -172,18 +172,16 @@ void FixNPTASphere::final_integrate()
 
   t_current = temperature->compute_scalar();
   if (press_couple == 0) {
-    if (ptemperature) double ptmp = ptemperature->compute_scalar();
     double tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
-    if (ptemperature) ptemperature->compute_vector();
     pressure->compute_vector();
   }
   couple();
 
   // trigger virial computation on next timestep
 
-  pressure->add_step(update->ntimestep+1);
+  pressure->addstep(update->ntimestep+1);
 
   // update eta_dot
 

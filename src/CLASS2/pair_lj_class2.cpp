@@ -354,9 +354,9 @@ void PairLJClass2::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJClass2::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, int eflag,
-		       One &one)
+double PairLJClass2::single(int i, int j, int itype, int jtype, double rsq,
+			    double factor_coul, double factor_lj,
+			    double &fforce)
 {
   double r2inv,rinv,r3inv,r6inv,forcelj,philj;
 
@@ -365,12 +365,9 @@ void PairLJClass2::single(int i, int j, int itype, int jtype, double rsq,
   r3inv = r2inv*rinv;
   r6inv = r3inv*r3inv;
   forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-  one.fforce = factor_lj*forcelj*r2inv;
+  fforce = factor_lj*forcelj*r2inv;
 
-  if (eflag) {
-    philj = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    one.eng_vdwl = factor_lj*philj;
-    one.eng_coul = 0.0;
-  }
+  philj = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+    offset[itype][jtype];
+  return factor_lj*philj;
 }

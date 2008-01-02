@@ -23,6 +23,9 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+
 /* ---------------------------------------------------------------------- */
 
 ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) : 
@@ -36,7 +39,8 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extensive = 0;
+  extscalar = 0;
+  extvector = 1;
   tempflag = 1;
 
   vector = new double[6];
@@ -74,6 +78,8 @@ void ComputeTempPartial::recount()
 
 double ComputeTempPartial::compute_scalar()
 {
+  invoked |= INVOKED_SCALAR;
+
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -106,6 +112,8 @@ double ComputeTempPartial::compute_scalar()
 void ComputeTempPartial::compute_vector()
 {
   int i;
+
+  invoked |= INVOKED_VECTOR;
 
   double **v = atom->v;
   double *mass = atom->mass;

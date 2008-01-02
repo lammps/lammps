@@ -27,6 +27,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_PERATOM 4
+
 /* ---------------------------------------------------------------------- */
 
 ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) : 
@@ -78,7 +80,7 @@ void ComputeStressAtom::compute_peratom()
 {
   int i,j;
 
-  invoked = 1;
+  invoked |= INVOKED_PERATOM;
 
   // grow local stress array if necessary
 

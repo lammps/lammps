@@ -406,9 +406,10 @@ void PairLJCutCoulCut::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulCut::single(int i, int j, int itype, int jtype,
-			      double rsq, double factor_coul, double factor_lj,
-			      int eflag, One &one)
+double PairLJCutCoulCut::single(int i, int j, int itype, int jtype,
+				double rsq,
+				double factor_coul, double factor_lj,
+				double &fforce)
 {
   double r2inv,r6inv,forcecoul,forcelj,phicoul,philj;
 
@@ -420,17 +421,18 @@ void PairLJCutCoulCut::single(int i, int j, int itype, int jtype,
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
   } else forcelj = 0.0;
-  one.fforce = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+  fforce = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
 
-  if (eflag) {
-    if (rsq < cut_coulsq[itype][jtype]) {
-      phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
-      one.eng_coul = factor_coul*phicoul;
-    } else one.eng_coul = 0.0;
-    if (rsq < cut_ljsq[itype][jtype]) {
-      philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	offset[itype][jtype];
-      one.eng_vdwl = factor_lj*philj;
-    } else one.eng_vdwl = 0.0;
+  double eng = 0.0;
+  if (rsq < cut_coulsq[itype][jtype]) {
+    phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
+    eng += factor_coul*phicoul;
   }
+  if (rsq < cut_ljsq[itype][jtype]) {
+    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+      offset[itype][jtype];
+    eng += factor_lj*philj;
+  }
+
+  return eng;
 }

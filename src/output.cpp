@@ -133,6 +133,7 @@ void Output::setup(int flag)
   // will not write on last step of run unless multiple of every
   // set next_dump_any to smallest next_dump
   // if no dumps, set next_dump_any to last+1 so will not influence next
+  // dump custom may invoke computes so wrap with clear/add
 
   if (ndump) {
     for (int idump = 0; idump < ndump; idump++) {
@@ -168,6 +169,7 @@ void Output::setup(int flag)
   // always do thermo with header at start of run
   // set next_thermo to multiple of every or last step of run (if smaller)
   // if every = 0, set next_thermo to last step of run
+  // thermo may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
 
@@ -197,6 +199,7 @@ void Output::setup(int flag)
 void Output::write(int ntimestep)
 {
   // next_dump does not force output on last step of run
+  // dump custom may invoke computes so wrap with clear/add
 
   if (next_dump_any == ntimestep) {
     for (int idump = 0; idump < ndump; idump++) {
@@ -238,6 +241,7 @@ void Output::write(int ntimestep)
   }
 
   // insure next_thermo forces output on last step of run
+  // thermo may invoke computes so wrap with clear/add
 
   if (next_thermo == ntimestep && last_thermo != ntimestep) {
     modify->clearstep_compute();

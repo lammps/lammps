@@ -30,7 +30,7 @@ class PairBuck : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  void single(int, int, int, int, double, double, double, int, One &);
+  double single(int, int, int, int, double, double, double, double &);
 
  private:
   double cut_global;

@@ -31,7 +31,7 @@ class PairLJCutCoulCut : public Pair {
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
-  virtual void single(int, int, int, int, double, double, double, int, One &);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
   double cut_lj_global,cut_coul_global;

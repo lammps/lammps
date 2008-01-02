@@ -40,6 +40,8 @@ enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
+#define INVOKED_PERATOM 4          // same as in computes
+
 /* ---------------------------------------------------------------------- */
 
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
@@ -247,7 +249,7 @@ int DumpCustom::count()
 {
   int i;
 
-  // grow choose and variable storage arrays if needed
+  // grow choose and variable vbuf arrays if needed
 
   int nlocal = atom->nlocal;
   if (nlocal > maxlocal) {
@@ -267,22 +269,19 @@ int DumpCustom::count()
   }
 
   // invoke Computes for per-atom dump quantities
+  // only if not already invoked
 
   if (ncompute)
-    for (i = 0; i < ncompute; i++) compute[i]->compute_peratom();
+    for (i = 0; i < ncompute; i++)
+      if (!(compute[i]->invoked & INVOKED_PERATOM))
+	compute[i]->compute_peratom();
 
-  // invoke Variables for per-atom dump quantities
-  // parse variable once to create parse tree
-  // evaluate tree for all atoms, will be zero for atoms not in group
-  // free parse tree memory stored by Variable
+  // evaluate atom-style Variables for per-atom dump quantities
 
   if (nvariable)
-    for (i = 0; i < nvariable; i++) {
-      input->variable->build_parse_tree(variable[i]);
-      input->variable->evaluate_parse_tree(igroup,vbuf[i]);
-      input->variable->free_parse_tree();
-    }
-
+    for (i = 0; i < nvariable; i++)
+      input->variable->compute_atom(variable[i],igroup,vbuf[i],1,0);
+  
   // choose all local atoms for output
 
   for (i = 0; i < nlocal; i++) choose[i] = 1;
@@ -722,7 +721,6 @@ void DumpCustom::parse_fields(int narg, char **arg)
 
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
-    // if Compute has pre-computes, first add them to list
 
     } else if (strncmp(arg[iarg],"c_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_compute;
@@ -752,9 +750,6 @@ void DumpCustom::parse_fields(int narg, char **arg)
 	  argindex[i] > modify->compute[n]->size_peratom)
 	error->all("Dump custom compute ID vector is not large enough");
 
-      if (modify->compute[n]->npre)
-	for (int ic = 0; ic < modify->compute[n]->npre; ic++)
-	  int tmp = add_compute(modify->compute[n]->id_pre[ic]);
       field2index[i] = add_compute(suffix);
       delete [] suffix;
       
@@ -806,8 +801,8 @@ void DumpCustom::parse_fields(int narg, char **arg)
 
       n = input->variable->find(suffix);
       if (n < 0) error->all("Could not find dump custom variable name");
-      if (input->variable->peratom(n) == 0)
-	error->all("Dump custom variable does not compute peratom info");
+      if (input->variable->atomstyle(n) == 0)
+	error->all("Dump custom variable is not atom-style variable");
 
       field2index[i] = add_variable(suffix);
       delete [] suffix;
@@ -983,7 +978,6 @@ int DumpCustom::modify_param(int narg, char **arg)
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
     // must grow field2index and argindex arrays, since access is beyond nfield
-    // if Compute has pre-computes, first add them to list
 
     else if (strncmp(arg[1],"c_",2) == 0) {
       thresh_array[nthresh] = COMPUTE;
@@ -1020,9 +1014,6 @@ int DumpCustom::modify_param(int narg, char **arg)
 	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom)
 	error->all("Dump custom compute ID vector is not large enough");
 
-      if (modify->compute[n]->npre)
-	for (int ic = 0; ic < modify->compute[n]->npre; ic++)
-	  int tmp = add_compute(modify->compute[n]->id_pre[ic]);
       field2index[nfield+nthresh] = add_compute(suffix);
       delete [] suffix;
 
@@ -1087,8 +1078,8 @@ int DumpCustom::modify_param(int narg, char **arg)
       
       n = input->variable->find(suffix);
       if (n < 0) error->all("Could not find dump custom variable name");
-      if (input->variable->peratom(n) == 0)
-	error->all("Dump custom variable does not compute peratom info");
+      if (input->variable->atomstyle(n) == 0)
+	error->all("Dump custom variable is not atom-style variable");
 
       field2index[nfield+nthresh] = add_variable(suffix);
       delete [] suffix;
@@ -1129,11 +1120,80 @@ double DumpCustom::memory_usage()
   return bytes;
 }
 
-// ----------------------------------------------------------------------
-// one method for every keyword dump custom can output
-// the atom quantity is packed into buf starting at n with stride size_one
-// customize by adding a method
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+   extraction of Compute, Fix, Variable results
+------------------------------------------------------------------------- */
+
+void DumpCustom::pack_compute(int n)
+{
+  double *vector = compute[field2index[n]]->scalar_atom;
+  double **array = compute[field2index[n]]->vector_atom;
+  int index = argindex[n];
+
+  int nlocal = atom->nlocal;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = vector[i];
+	n += size_one;
+      }
+  } else {
+    index--;
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = array[i][index];
+	n += size_one;
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_fix(int n)
+{
+  double *vector = fix[field2index[n]]->scalar_atom;
+  double **array = fix[field2index[n]]->vector_atom;
+  int index = argindex[n];
+
+  int nlocal = atom->nlocal;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = vector[i];
+	n += size_one;
+      }
+  } else {
+    index--;
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = array[i][index];
+	n += size_one;
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_variable(int n)
+{
+  double *vector = vbuf[field2index[n]];
+
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = vector[i];
+      n += size_one;
+    }
+}
+
+/* ----------------------------------------------------------------------
+   one method for every keyword dump custom can output
+   the atom quantity is packed into buf starting at n with stride size_one
+   customize a new keyword by adding a method
+------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 
@@ -1594,73 +1654,6 @@ void DumpCustom::pack_tqz(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = torque[i][2];
-      n += size_one;
-    }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_compute(int n)
-{
-  double *vector = compute[field2index[n]]->scalar_atom;
-  double **array = compute[field2index[n]]->vector_atom;
-  int index = argindex[n];
-
-  int nlocal = atom->nlocal;
-
-  if (index == 0) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = vector[i];
-	n += size_one;
-      }
-  } else {
-    index--;
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = array[i][index];
-	n += size_one;
-      }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_fix(int n)
-{
-  double *vector = fix[field2index[n]]->scalar_atom;
-  double **array = fix[field2index[n]]->vector_atom;
-  int index = argindex[n];
-
-  int nlocal = atom->nlocal;
-
-  if (index == 0) {
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = vector[i];
-	n += size_one;
-      }
-  } else {
-    index--;
-    for (int i = 0; i < nlocal; i++)
-      if (choose[i]) {
-	buf[n] = array[i][index];
-	n += size_one;
-      }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_variable(int n)
-{
-  double *vector = vbuf[field2index[n]];
-
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (choose[i]) {
-      buf[n] = vector[i];
       n += size_one;
     }
 }

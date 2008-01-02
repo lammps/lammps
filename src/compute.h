@@ -33,8 +33,10 @@ class Compute : protected Pointers {
   int size_vector;          // N = size of global vector
   int peratom_flag;         // 0/1 if compute_peratom() function exists
   int size_peratom;         // 0 = scalar_atom, N = size of vector_atom
+  int extscalar;            // 0/1 if scalar is intensive/extensive
+  int extvector;            // 0/1/-1 if vector is all int/ext/extlist
+  int *extlist;             // list of 0/1 int/ext for each vec component
 
-  int extensive;      // 0/1 if scalar,vector are intensive/extensive values
   int tempflag;       // 1 if Compute can be used as temperature
                       // must have both compute_scalar, compute_vector
   int pressflag;      // 1 if Compute can be used as pressure (uses virial)
@@ -43,16 +45,16 @@ class Compute : protected Pointers {
   int peflag;         // 1 if Compute calculates PE (uses Force energies)
   int peatomflag;     // 1 if Compute calculates per-atom PE
 
+  char *id_pre;       // ID of pre-compute the Compute may store
+
   int timeflag;       // 1 if Compute stores list of timesteps it's called on
   int ntime;          // # of entries in time list
   int maxtime;        // max # of entries time list can hold
   int *tlist;         // time list of steps the Compute is called on
-  int invoked;        // 1 if Compute was invoked (e.g. by a variable)
+
+  int invoked;        // set when Compute is invoked, to avoid re-invoking
 
   double dof;         // degrees-of-freedom for temperature
-
-  int npre;           // # of computes to compute before this one
-  char **id_pre;      // IDs of Computes to compute before this one
 
   int comm_forward;     // size of forward communication (0 if none)
   int comm_reverse;     // size of reverse communication (0 if none)
@@ -71,8 +73,8 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
-  void add_step(int);
-  int match_step(int);
+  void addstep(int);
+  int matchstep(int);
 
   virtual double memory_usage() {return 0.0;}
 

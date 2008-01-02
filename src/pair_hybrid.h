@@ -34,7 +34,7 @@ class PairHybrid : public Pair {
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void single(int, int, int, int, double, double, double, int, One &);
+  double single(int, int, int, int, double, double, double, double &);
   void modify_params(int narg, char **arg);
   double memory_usage();
 

@@ -187,10 +187,10 @@ void BondMorse::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondMorse::single(int type, double rsq, int i, int j, double &eng)
+double BondMorse::single(int type, double rsq, int i, int j)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double ralpha = exp(-alpha[type]*dr);
-  eng = d0[type]*(1-ralpha)*(1-ralpha);
+  return d0[type]*(1-ralpha)*(1-ralpha);
 }

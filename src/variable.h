@@ -26,12 +26,11 @@ class Variable : protected Pointers {
   void set(char *, char *);
   int next(int, char **);
   int find(char *);
-  int peratom(int);
+  int equalstyle(int);
+  int atomstyle(int);
   char *retrieve(char *);
-
-  void build_parse_tree(int);
-  void evaluate_parse_tree(int, double *);
-  void free_parse_tree();
+  double compute_equal(int);
+  void compute_atom(int, int, double *, int, int);
 
  private:
   int me;
@@ -42,8 +41,9 @@ class Variable : protected Pointers {
   int *num;                // # of values for each variable
   int *index;              // next available value for each variable
   char ***data;            // str value of each variable's values
+  int precedence[7];       // precedence level of math operators
 
-  struct Tree {
+  struct Tree {            // parse tree for atom-style variables
     double value;
     double *array;
     int nstride;
@@ -51,13 +51,17 @@ class Variable : protected Pointers {
     Tree *left,*right;
   };
 
-  Tree *ptree;             // parse tree for an ATOM variable
-
   void copy(int, char **, char **);
-  double evaluate(char *, Tree *);
+  double evaluate(char *, Tree **);
   void remove(int);
   double eval_tree(Tree *, int);
   void free_tree(Tree *);
+  int find_matching_paren(char *, int, char *&);
+  int int_between_brackets(char *, int, int &, int);
+  int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
+  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
+  void atom_value(char *, int, Tree **, Tree **, int &, double *, int &);
+  void atom_vector(char *, Tree **, Tree **, int &);
 };
 
 }

@@ -50,11 +50,6 @@ class Pair : protected Pointers {
   class NeighList *listmiddle;
   class NeighList *listouter;
 
-  struct One {                   // single interaction between 2 atoms
-    double fforce;
-    double eng_vdwl,eng_coul;
-  };
-
   Pair(class LAMMPS *);
   virtual ~Pair();
 
@@ -74,8 +69,8 @@ class Pair : protected Pointers {
   virtual void compute_middle() {}
   virtual void compute_outer(int, int) {}
 
-  virtual void single(int, int, int, int,
-		      double, double, double, int, One &) {}
+  virtual double single(int, int, int, int,
+			double, double, double, double &) {return 0.0;}
 
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;

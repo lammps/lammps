@@ -263,9 +263,10 @@ void BondHybrid::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondHybrid::single(int type, double rsq, int i, int j, double &eng)
+double BondHybrid::single(int type, double rsq, int i, int j)
 {
-  if (styles[map[type]]) styles[map[type]]->single(type,rsq,i,j,eng);
+  if (styles[map[type]]) return styles[map[type]]->single(type,rsq,i,j);
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

@@ -31,20 +31,16 @@ class FixAveTime : public Fix {
   double compute_vector(int);
 
  private:
-  int me;
-  int nrepeat,nfreq,nvalid,irepeat,which,ifix;
-  char *id;
+  int me,nvalues;
+  int nrepeat,nfreq,nvalid,irepeat;
+  int *which,*argindex,*value2index;
+  char **ids;
   FILE *fp;
 
-  int sflag,vflag,ave,nwindow,nsum;
-  double scalar,*vector;
-  int ncompute;
-  class Compute **compute;
-  class Fix *fix;
+  int ave,nwindow,nsum;
+  double *vector;
 
   int norm,iwindow,window_limit;
-  double scalar_total;
-  double *scalar_list;
   double *vector_total;
   double **vector_list;
 };

@@ -67,6 +67,7 @@ class Modify : protected Pointers {
   int find_compute(char *);
   void clearstep_compute();
   void addstep_compute(int);
+  void addstep_compute_all(int);
 
   void write_restart(FILE *);
   int read_restart(FILE *);

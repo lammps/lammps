@@ -61,8 +61,8 @@ class Thermo : protected Pointers {
   double dvalue,natoms;  // dvalue = double value to print
   int ifield;            // which field in thermo output is being computed
   int thermoflag;        // 1 when called by compute(), 0 from variable eval
-  int *field2object;     // which object (C,F,v) computes this field
-  int *arg_object;       // integer arg to pass to routine that computes it
+  int *field2index;      // which compute,fix,variable calcs this field
+  int *argindex;         // index into compute,fix scalar,vector
 
                          // data for keyword-specific Compute objects
                          // index = where they are in computes list
@@ -85,6 +85,7 @@ class Thermo : protected Pointers {
 
   int nvariable;         // # of variables evaulated by thermo
   char **id_variable;    // list of variable names
+  int *variables;        // list of Variable indices
 
   // private methods
 

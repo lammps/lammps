@@ -14,6 +14,7 @@
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "compute.h"
 #include "group.h"
 #include "domain.h"
@@ -32,12 +33,18 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (narg < 3) error->all("Illegal compute command");
 
   // compute ID, group, and style
+  // ID must be all alphanumeric chars or underscores
 
   int n = strlen(arg[0]) + 1;
   id = new char[n];
   strcpy(id,arg[0]);
 
+  for (int i = 0; i < n-1; i++)
+    if (!isalnum(id[i]) && id[i] != '_')
+      error->all("Compute ID must be alphanumeric or underscore characters");
+
   igroup = group->find(arg[1]);
+  if (igroup == -1) error->all("Could not find compute group ID");
   groupbit = group->bitmask[igroup];
 
   n = strlen(arg[2]) + 1;
@@ -53,10 +60,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   scalar_flag = vector_flag = peratom_flag = 0;
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;
+  id_pre = NULL;
   timeflag = 0;
   invoked = 0;
-  npre = 0;
-  id_pre = NULL;
   comm_forward = comm_reverse = 0;
 
   // set modify defaults
@@ -76,8 +82,6 @@ Compute::~Compute()
 {
   delete [] id;
   delete [] style;
-
-  for (int i = 0; i < npre; i++) delete [] id_pre[i];
   delete [] id_pre;
 
   memory->sfree(tlist);
@@ -117,7 +121,7 @@ void Compute::modify_params(int narg, char **arg)
    search from top downward, since list of times is in decreasing order
 ------------------------------------------------------------------------- */
 
-void Compute::add_step(int ntimestep)
+void Compute::addstep(int ntimestep)
 {
   // i = location in list to insert ntimestep
 
@@ -149,7 +153,7 @@ void Compute::add_step(int ntimestep)
    search from top downward, since list of times is in decreasing order
 ------------------------------------------------------------------------- */
 
-int Compute::match_step(int ntimestep)
+int Compute::matchstep(int ntimestep)
 {
   for (int i = ntime-1; i >= 0; i--) {
     if (ntimestep < tlist[i]) return 0;

@@ -132,11 +132,6 @@ void Modify::init()
 
   restart_deallocate();
 
-  // init each fix
-
-  comm->maxforward_fix = comm->maxreverse_fix = 0;
-  for (i = 0; i < nfix; i++) fix[i]->init();
-
   // create lists of fixes to call at each stage of run
 
   list_init(INITIAL_INTEGRATE,n_initial_integrate,list_initial_integrate);
@@ -161,13 +156,16 @@ void Modify::init()
 
   list_init_compute();
 
-  // init each compute
-  // for computes that store invocation times, add initial step to their list
+  // init each fix, must come after call to list_init_compute()
 
-  for (i = 0; i < ncompute; i++) {
-    compute[i]->init();
-    if (compute[i]->timeflag) compute[i]->add_step(update->ntimestep);
-  }
+  comm->maxforward_fix = comm->maxreverse_fix = 0;
+  for (i = 0; i < nfix; i++) fix[i]->init();
+
+  // init each compute
+  // add initial step to ALL computes that store invocation times
+
+  for (i = 0; i < ncompute; i++) compute[i]->init();
+  modify->addstep_compute_all(update->ntimestep);
 }
 
 /* ----------------------------------------------------------------------
@@ -352,7 +350,7 @@ void Modify::add_fix(int narg, char **arg)
     error->all("Fix command before simulation box is defined");
   if (narg < 3) error->all("Illegal fix command");
 
-  // find group ID
+  // check group ID
 
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all("Could not find fix group ID");
@@ -501,13 +499,11 @@ void Modify::add_compute(int narg, char **arg)
 {
   if (narg < 3) error->all("Illegal compute command");
 
-  // error checks
+  // error check
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
       error->all("Reuse of compute ID");
-  int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find compute group ID");
 
   // extend Compute list if necessary
 
@@ -581,28 +577,39 @@ int Modify::find_compute(char *id)
 }
 
 /* ----------------------------------------------------------------------
-   loop over computes that store invocation times
-   clear their invoked flag
-   called by classes that invoke computes
+   clear invoked flag of all computes
+   always called before computes are invoked
 ------------------------------------------------------------------------- */
 
 void Modify::clearstep_compute()
 {
-  for (int icompute = 0; icompute < n_timeflag; icompute++)
-    compute[list_timeflag[icompute]]->invoked = 0;
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    compute[icompute]->invoked = 0;
 }
 
 /* ----------------------------------------------------------------------
-   loop over computes that store invocation times
+   loop only over computes that store invocation times
    if it was invoked, schedule the next invocation
-   called by classes that invoke computes
+   always called after computes are invoked
 ------------------------------------------------------------------------- */
 
 void Modify::addstep_compute(int ntimestep)
 {
   for (int icompute = 0; icompute < n_timeflag; icompute++)
     if (compute[list_timeflag[icompute]]->invoked)
-      compute[list_timeflag[icompute]]->add_step(ntimestep);
+      compute[list_timeflag[icompute]]->addstep(ntimestep);
+}
+
+/* ----------------------------------------------------------------------
+   loop only all computes
+   schedule the next invocation for those that store invocation times
+------------------------------------------------------------------------- */
+
+void Modify::addstep_compute_all(int ntimestep)
+{
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (compute[icompute]->timeflag)
+      compute[icompute]->addstep(ntimestep);
 }
 
 /* ----------------------------------------------------------------------

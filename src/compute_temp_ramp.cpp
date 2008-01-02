@@ -29,6 +29,9 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+
 /* ---------------------------------------------------------------------- */
 
 ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) : 
@@ -101,7 +104,8 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extensive = 0;
+  extscalar = 0;
+  extvector = 1;
   tempflag = 1;
 
   vector = new double[6];
@@ -140,6 +144,8 @@ void ComputeTempRamp::recount()
 double ComputeTempRamp::compute_scalar()
 {
   double fraction,vramp,vthermal[3];
+
+  invoked |= INVOKED_SCALAR;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -180,6 +186,8 @@ void ComputeTempRamp::compute_vector()
 {
   int i;
   double fraction,vramp,vthermal[3];
+
+  invoked |= INVOKED_VECTOR;
 
   double **x = atom->x;
   double **v = atom->v;

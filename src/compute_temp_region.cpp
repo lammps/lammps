@@ -22,6 +22,9 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+
 /* ---------------------------------------------------------------------- */
 
 ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) : 
@@ -34,7 +37,8 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extensive = 0;
+  extscalar = 0;
+  extvector = 1;
   tempflag = 1;
 
   vector = new double[6];
@@ -58,6 +62,8 @@ void ComputeTempRegion::init()
 
 double ComputeTempRegion::compute_scalar()
 {
+  invoked |= INVOKED_SCALAR;
+
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
@@ -101,6 +107,8 @@ double ComputeTempRegion::compute_scalar()
 void ComputeTempRegion::compute_vector()
 {
   int i;
+
+  invoked |= INVOKED_VECTOR;
 
   double **x = atom->x;
   double **v = atom->v;

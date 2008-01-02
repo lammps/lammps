@@ -182,12 +182,12 @@ void BondNonlinear::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondNonlinear::single(int type, double rsq, int i, int j, double &eng)
+double BondNonlinear::single(int type, double rsq, int i, int j)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double drsq = dr*dr;
   double lamdasq = lamda[type]*lamda[type];
   double denom = lamdasq - drsq;
-  eng = epsilon[type] * drsq / denom;
+  return epsilon[type] * drsq / denom;
 }

@@ -22,6 +22,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_PERATOM 4
+
 /* ---------------------------------------------------------------------- */
 
 ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -58,6 +60,8 @@ void ComputeKEAtom::init()
 
 void ComputeKEAtom::compute_peratom()
 {
+  invoked |= INVOKED_PERATOM;
+
   // grow ke array if necessary
 
   if (atom->nlocal > nmax) {

@@ -1080,10 +1080,10 @@ void PairLJCutCoulLong::free_tables()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLong::single(int i, int j, int itype, int jtype,
-			       double rsq,
-			       double factor_coul, double factor_lj,
-			       int eflag, One &one)
+double PairLJCutCoulLong::single(int i, int j, int itype, int jtype,
+				 double rsq,
+				 double factor_coul, double factor_lj,
+				 double &fforce)
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
@@ -1115,29 +1115,33 @@ void PairLJCutCoulLong::single(int i, int j, int itype, int jtype,
       }
     }
   } else forcecoul = 0.0;
+
   if (rsq < cut_ljsq[itype][jtype]) {
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
   } else forcelj = 0.0;
-  one.fforce = (forcecoul + factor_lj*forcelj) * r2inv;
-  
-  if (eflag) {
-    if (rsq < cut_coulsq) {
-      if (!ncoultablebits || rsq <= tabinnersq)
-	phicoul = prefactor*erfc;
-      else {
-	table = etable[itable] + fraction*detable[itable];
-	phicoul = atom->q[i]*atom->q[j] * table;
-      }
-      if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-      one.eng_coul = phicoul;
-    } else one.eng_coul = 0.0;
-    if (rsq < cut_ljsq[itype][jtype]) {
-      philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	offset[itype][jtype];
-      one.eng_vdwl = factor_lj*philj;
-    } else one.eng_vdwl = 0.0;
+
+  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
+
+  double eng = 0.0;
+  if (rsq < cut_coulsq) {
+    if (!ncoultablebits || rsq <= tabinnersq)
+      phicoul = prefactor*erfc;
+    else {
+      table = etable[itable] + fraction*detable[itable];
+      phicoul = atom->q[i]*atom->q[j] * table;
+    }
+    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+    eng += phicoul;
   }
+
+  if (rsq < cut_ljsq[itype][jtype]) {
+    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+      offset[itype][jtype];
+    eng += factor_lj*philj;
+  }
+
+  return eng;
 }
 
 /* ---------------------------------------------------------------------- */

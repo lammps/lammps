@@ -262,7 +262,7 @@ char *Input::one(const char *single)
    command = first word
    narg = # of args
    arg[] = individual args
-   treat multiple args between double quotes as one arg
+   treat text between double quotes as one arg
 ------------------------------------------------------------------------- */
 
 void Input::parse()
@@ -311,10 +311,13 @@ void Input::parse()
     arg[narg] = strtok(NULL," \t\n\r\f");
     if (arg[narg] && arg[narg][0] == '\"') {
       arg[narg] = &arg[narg][1];
-      if (strchr(arg[narg],'\"')) error->all("Quotes in a single arg");
-      arg[narg][strlen(arg[narg])] = ' ';
-      ptr = strtok(NULL,"\"");
-      if (ptr == NULL) error->all("Unbalanced quotes in input line");
+      if (arg[narg][strlen(arg[narg])-1] == '\"')
+	arg[narg][strlen(arg[narg])-1] = '\0';
+      else {
+	arg[narg][strlen(arg[narg])] = ' ';
+	ptr = strtok(arg[narg],"\"");
+	if (ptr == NULL) error->all("Unbalanced quotes in input line");
+      }
     }
     if (arg[narg]) narg++;
     else break;
@@ -355,7 +358,7 @@ void Input::substitute(char *str, int flag)
 	beyond = ptr + strlen(var) + 1;
       }
       value = variable->retrieve(var);
-      if (value == NULL) error->one("Substitution for undefined variable");
+      if (value == NULL) error->one("Substitution for illegal variable");
 
       *ptr = '\0';
       strcpy(work,str);

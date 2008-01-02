@@ -101,7 +101,7 @@ void FixPrint::end_of_step()
   // make a copy of string to work on
   // substitute for $ variables (no printing)
   // append a newline and print final copy
-  // variable evaluation may invoke a compute that affects Verlet::eflag,vflag
+  // variable evaluation may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
 

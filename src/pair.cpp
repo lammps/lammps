@@ -699,7 +699,6 @@ void Pair::write_file(int narg, char **arg)
   double r,e,f,rsq;  
   float rsq_float;
   int *int_rsq = (int *) &rsq_float;
-  One one;
 
   for (int i = 0; i < n; i++) {
     if (style == R) {
@@ -720,9 +719,8 @@ void Pair::write_file(int narg, char **arg)
     }
 
     if (rsq < cutsq[itype][jtype]) {
-      single(0,1,itype,jtype,rsq,1.0,1.0,1,one);
-      e = one.eng_coul + one.eng_vdwl;
-      f = r * one.fforce;
+      e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
+      f *= r;
     } else e = f = 0.0;
     if (me == 0) fprintf(fp,"%d %g %g %g\n",i+1,r,e,f);
   }

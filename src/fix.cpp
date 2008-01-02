@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
+#include "ctype.h"
 #include "fix.h"
 #include "group.h"
 #include "error.h"
@@ -22,11 +23,19 @@ using namespace LAMMPS_NS;
 
 Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  // fix ID, group, and style
+  // ID must be all alphanumeric chars or underscores
+
   int n = strlen(arg[0]) + 1;
   id = new char[n];
   strcpy(id,arg[0]);
 
+  for (int i = 0; i < n-1; i++)
+    if (!isalnum(id[i]) && id[i] != '_')
+      error->all("Fix ID must be alphanumeric or underscore characters");
+
   igroup = group->find(arg[1]);
+  if (igroup == -1) error->all("Could not find fix group ID");
   groupbit = group->bitmask[igroup];
 
   n = strlen(arg[2]) + 1;

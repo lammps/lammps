@@ -30,6 +30,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 /* ---------------------------------------------------------------------- */
@@ -41,7 +43,8 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extensive = 0;
+  extscalar = 0;
+  extvector = 1;
   tempflag = 1;
 
   vector = new double[6];
@@ -94,6 +97,8 @@ void ComputeTempDeform::recount()
 double ComputeTempDeform::compute_scalar()
 {
   double lamda[3],vstream[3],vthermal[3];
+
+  invoked |= INVOKED_SCALAR;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -152,6 +157,8 @@ double ComputeTempDeform::compute_scalar()
 void ComputeTempDeform::compute_vector()
 {
   double lamda[3],vstream[3],vthermal[3];
+
+  invoked |= INVOKED_VECTOR;
 
   double **x = atom->x;
   double **v = atom->v;

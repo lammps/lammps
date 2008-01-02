@@ -125,7 +125,7 @@ void Temper::command(int narg, char **arg)
   int id = modify->find_compute("thermo_pe");
   if (id < 0) error->all("Tempering could not find thermo_pe compute");
   Compute *pe_compute = modify->compute[id];
-  pe_compute->add_step(update->ntimestep + nevery);
+  pe_compute->addstep(update->ntimestep + nevery);
 
   // create MPI communicator for root proc from each world
 
@@ -209,7 +209,7 @@ void Temper::command(int narg, char **arg)
 
     pe = pe_compute->compute_scalar();
     if (output->thermo->normflag) pe /= atom->natoms;
-    pe_compute->add_step(update->ntimestep + nevery);
+    pe_compute->addstep(update->ntimestep + nevery);
 
     // which = which of 2 kinds of swaps to do (0,1)
 

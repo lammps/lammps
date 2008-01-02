@@ -23,9 +23,9 @@
 
 using namespace LAMMPS_NS;
 
-// moment of inertia for a sphere
-
-#define INERTIA 0.4
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+#define INERTIA 0.4             // moment of inertia for a sphere
 
 /* ---------------------------------------------------------------------- */
 
@@ -39,7 +39,8 @@ ComputeTempDipole::ComputeTempDipole(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extensive = 0;
+  extscalar = 0;
+  extvector = 1;
   tempflag = 1;
 
   vector = new double[6];
@@ -87,6 +88,8 @@ void ComputeTempDipole::recount()
 
 double ComputeTempDipole::compute_scalar()
 {
+  invoked |= INVOKED_SCALAR;
+
   double **v = atom->v;
   double *mass = atom->mass;
   double **omega = atom->omega;
@@ -115,6 +118,8 @@ double ComputeTempDipole::compute_scalar()
 void ComputeTempDipole::compute_vector()
 {
   int i;
+
+  invoked |= INVOKED_VECTOR;
 
   double **v = atom->v;
   double *mass = atom->mass;

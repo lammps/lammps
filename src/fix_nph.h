@@ -56,7 +56,7 @@ class FixNPH : public Fix {
   double *step_respa;
 
   char *id_temp,*id_press;
-  class Compute *temperature,*pressure,*ptemperature;
+  class Compute *temperature,*pressure;
   int tflag,pflag;
 
   void couple();

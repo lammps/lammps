@@ -28,6 +28,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
+
 /* ---------------------------------------------------------------------- */
 
 ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) : 
@@ -62,7 +64,7 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
   // settings
 
   scalar_flag = 1;
-  extensive = 1;
+  extscalar = 1;
   peflag = 1;
   timeflag = 1;
 }
@@ -71,9 +73,9 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
 
 double ComputePE::compute_scalar()
 {
-  invoked = 1;
-  double one = 0.0;
+  invoked |= INVOKED_SCALAR;
 
+  double one = 0.0;
   if (pairflag && force->pair)
     one += force->pair->eng_vdwl + force->pair->eng_coul;
 

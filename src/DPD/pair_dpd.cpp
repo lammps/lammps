@@ -260,7 +260,7 @@ void PairDPD::init_style()
   // using different random numbers
 
   if (force->newton_pair == 0 && comm->me == 0) error->warning(
-      "DPD potential needs newton pair on for momentum conservation");
+      "Pair style dpd needs newton pair on for momentum conservation");
 
   int irequest = neighbor->request(this);
 }
@@ -370,27 +370,21 @@ void PairDPD::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairDPD::single(int i, int j, int itype, int jtype, double rsq,
-		     double factor_coul, double factor_dpd, int eflag,
-		     One &one)
+double PairDPD::single(int i, int j, int itype, int jtype, double rsq,
+		       double factor_coul, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
 
   r = sqrt(rsq);
   if (r < EPSILON) {
-    one.fforce = 0.0;
-    if (eflag) one.eng_vdwl = one.eng_coul = 0.0;
-    return;
+    fforce = 0.0;
+    return 0.0;
   }
 
   rinv = 1.0/r;
   wd = 1.0 - r/cut[itype][jtype];
-
-  one.fforce = a0[itype][jtype]*wd * factor_dpd*rinv;
+  fforce = a0[itype][jtype]*wd * factor_dpd*rinv;
   
-  if (eflag) {
-    phi = a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
-    one.eng_vdwl = factor_dpd*phi;
-    one.eng_coul = 0.0;
-  }
+  phi = a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+  return factor_dpd*phi;
 }

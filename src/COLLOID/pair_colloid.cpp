@@ -351,9 +351,8 @@ double PairColloid::init_one(int i, int j)
 
   offset[j][i] = offset[i][j] = 0.0;
   if (offset_flag) {
-    One one;
-    single(0,0,i,j,cutsq[i][j],0.0,1.0,1,one);
-    offset[j][i] = offset[i][j] = one.eng_vdwl;
+    double tmp;
+    offset[j][i] = offset[i][j] = single(0,0,i,j,cutsq[i][j],0.0,1.0,tmp);
   }
 
   return cut[i][j];
@@ -443,9 +442,9 @@ void PairColloid::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairColloid::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, int eflag,
-		       One &one)
+double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
+			   double factor_coul, double factor_lj,
+			   double &fforce)
 {
   double K[9],h[4],g[4];
   double r,r2inv,r6inv,forcelj,c1,c2,phi,fR,dUR,dUA;
@@ -455,9 +454,9 @@ void PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     r2inv = 1.0/rsq;
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-    one.fforce = factor_lj*forcelj*r2inv;
-    if (eflag) phi = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
-		     offset[itype][jtype];
+    fforce = factor_lj*forcelj*r2inv;
+    phi = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+      offset[itype][jtype];
     break;
 
   case SMALL_LARGE:
@@ -470,13 +469,12 @@ void PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     K[3] *= K[3]*K[3];
     K[6] = K[3]*K[3];
     fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-    one.fforce = 4.0/15.0*r*fR*factor_lj * 
+    fforce = 4.0/15.0*r*fR*factor_lj * 
       (2.0*(K[1]+K[2])*(K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
        sigma6[itype][jtype]/K[6] - 5.0)/K[0];
-    if (eflag) 
-      phi = 2.0/9.0*fR * 
-	(1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) * 
-	 sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
+    phi = 2.0/9.0*fR * 
+      (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) * 
+       sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
     break;
 
   case LARGE_LARGE:
@@ -510,16 +508,11 @@ void PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     dUR = phi/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
     dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] + 
 				    (2.0*K[0]*K[8]-1.0)*K[8]);
-    one.fforce = factor_lj*(dUR+dUA)/r;
-    
-    if (eflag)
-      phi += a12[itype][jtype]/6.0*(2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - 
-	offset[itype][jtype];
+    fforce = factor_lj*(dUR+dUA)/r;
+    phi += a12[itype][jtype]/6.0*(2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - 
+      offset[itype][jtype];
     break;
   }
 
-  if (eflag) {
-    one.eng_vdwl = factor_lj*phi;
-    one.eng_coul = 0.0;
-  }
+  return factor_lj*phi;
 }

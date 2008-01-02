@@ -21,6 +21,7 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
 #define INERTIA3D 0.4          // moments of inertia for sphere and disk
 #define INERTIA2D 0.5
 
@@ -36,7 +37,7 @@ ComputeRotateGran::ComputeRotateGran(LAMMPS *lmp, int narg, char **arg) :
 	       "radius, rmass, omega");
 
   scalar_flag = 1;
-  extensive = 1;
+  extscalar = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,6 +52,8 @@ void ComputeRotateGran::init()
 
 double ComputeRotateGran::compute_scalar()
 {
+  invoked |= INVOKED_SCALAR;
+
   double **omega = atom->omega;
   double *radius = atom->radius;
   double *rmass = atom->rmass;

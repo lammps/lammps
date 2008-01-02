@@ -162,9 +162,9 @@ void ImproperHarmonic::compute(int eflag, int vflag)
     sy2  = a22*vb2y + a23*vb3y + a12*vb1y;
     sz2  = a22*vb2z + a23*vb3z + a12*vb1z;
 
-    f1[0]  = a12*vb2x + a13*vb3x + a11*vb1x;
-    f1[1]  = a12*vb2y + a13*vb3y + a11*vb1y;
-    f1[2]  = a12*vb2z + a13*vb3z + a11*vb1z;
+    f1[0] = a12*vb2x + a13*vb3x + a11*vb1x;
+    f1[1] = a12*vb2y + a13*vb3y + a11*vb1y;
+    f1[2] = a12*vb2z + a13*vb3z + a11*vb1z;
 
     f2[0] = -sx2 - f1[0];
     f2[1] = -sy2 - f1[1];

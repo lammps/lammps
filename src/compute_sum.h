@@ -25,10 +25,18 @@ class ComputeSum : public Compute {
   void init();
   double compute_scalar();
   void compute_vector();
+  double memory_usage();
 
  private:
+  int nvalues;
+  int *which,*argindex,*value2index;
+  char **ids;
   double *onevec;
-  class Compute **compute;
+
+  int maxatom;
+  double *varatom;
+
+  double compute_one(int);
 };
 
 }

@@ -300,9 +300,9 @@ void PairYukawa::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
-			double factor_coul, double factor_lj,
-			int eflag, One &one)
+double PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
+			  double factor_coul, double factor_lj,
+			  double &fforce)
 {
   double r2inv,r,rinv,screening,forceyukawa,phi;
 
@@ -311,11 +311,8 @@ void PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
   rinv = 1.0/r;
   screening = exp(-kappa*r);
   forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
-  one.fforce = factor_coul*forceyukawa * r2inv;
+  fforce = factor_coul*forceyukawa * r2inv;
 
-  if (eflag) {
-    phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-    one.eng_coul = factor_coul*phi;
-    one.eng_vdwl = 0.0;
-  }
+  phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
+  return factor_coul*phi;
 }

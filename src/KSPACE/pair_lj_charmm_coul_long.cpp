@@ -1127,10 +1127,10 @@ void PairLJCharmmCoulLong::free_tables()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
-				  double rsq,
-				  double factor_coul, double factor_lj,
-				  int eflag, One &one)
+double PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
+				    double rsq,
+				    double factor_coul, double factor_lj,
+				    double &fforce)
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
   double switch1,switch2,fraction,table,forcecoul,forcelj,phicoul,philj;
@@ -1174,29 +1174,31 @@ void PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
       forcelj = forcelj*switch1 + philj*switch2;
     }
   } else forcelj = 0.0;
-  one.fforce = (forcecoul + factor_lj*forcelj) * r2inv;
+  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
   
-  if (eflag) {
-    if (rsq < cut_coulsq) {
-      if (!ncoultablebits || rsq <= tabinnersq)
-	phicoul = prefactor*erfc;
-      else {
-	table = etable[itable] + fraction*detable[itable];
-	phicoul = atom->q[i]*atom->q[j] * table;
-      }
-      if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-      one.eng_coul = phicoul;
-    } else one.eng_coul = 0.0;
-    if (rsq < cut_ljsq) {
-      philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-      if (rsq > cut_lj_innersq) {
-	switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	  (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	philj *= switch1;
-      }
-      one.eng_vdwl = factor_lj*philj;
-    } else one.eng_vdwl = 0.0;
+  double eng = 0.0;
+  if (rsq < cut_coulsq) {
+    if (!ncoultablebits || rsq <= tabinnersq)
+      phicoul = prefactor*erfc;
+    else {
+      table = etable[itable] + fraction*detable[itable];
+      phicoul = atom->q[i]*atom->q[j] * table;
+    }
+    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+    eng += phicoul;
   }
+
+  if (rsq < cut_ljsq) {
+    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+    if (rsq > cut_lj_innersq) {
+      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+	(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+      philj *= switch1;
+    }
+    eng += factor_lj*philj;
+  }
+
+  return eng;
 }
 
 /* ---------------------------------------------------------------------- */

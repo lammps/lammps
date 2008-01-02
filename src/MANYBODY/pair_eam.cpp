@@ -764,9 +764,9 @@ void PairEAM::grab(FILE *fp, int n, double *list)
 
 /* ---------------------------------------------------------------------- */
 
-void PairEAM::single(int i, int j, int itype, int jtype,
-		      double rsq, double factor_coul, double factor_lj,
-		      int eflag, One &one)
+double PairEAM::single(int i, int j, int itype, int jtype,
+		       double rsq, double factor_coul, double factor_lj,
+		       double &fforce)
 {
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
@@ -791,12 +791,9 @@ void PairEAM::single(int i, int j, int itype, int jtype,
   phi = z2*recip;
   phip = z2p*recip - phi*recip;
   psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-  one.fforce = -psip*recip;
+  fforce = -psip*recip;
 
-  if (eflag) {
-    one.eng_vdwl = phi;
-    one.eng_coul = 0.0;
-  }
+  return phi;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -48,7 +48,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extscalar = 1;
 
   nstats = atoi(arg[3]);
   direction_of_motion = atoi(arg[4]);
@@ -149,6 +149,8 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   if (use_xismooth) comm_forward = 62;
   else comm_forward = 50;
+
+  added_energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

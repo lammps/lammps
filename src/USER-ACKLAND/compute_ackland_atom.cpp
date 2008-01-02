@@ -34,6 +34,7 @@
 using namespace LAMMPS_NS;
 
 enum{UNKNOWN,BCC,FCC,HCP,ICO};
+#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -93,12 +94,15 @@ void ComputeAcklandAtom::init_list(int id, NeighList *ptr)
 }
 
 /* ---------------------------------------------------------------------- */
+
 void ComputeAcklandAtom::compute_peratom()
 {
   int i,j,ii,jj,k,n,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int chi[8];
+
+  invoked |= INVOKED_PERATOM;
 
   // grow structure array if necessary
 

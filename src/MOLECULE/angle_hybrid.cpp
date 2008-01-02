@@ -259,9 +259,8 @@ void AngleHybrid::read_restart(FILE *fp)
 
 double AngleHybrid::single(int type, int i1, int i2, int i3)
 {
-  if (styles[map[type]]) 
-    return styles[map[type]]->single(type,i1,i2,i3);
-  else return 0.0;
+  if (styles[map[type]]) return styles[map[type]]->single(type,i1,i2,i3);
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

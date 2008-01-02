@@ -198,12 +198,12 @@ void BondClass2::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondClass2::single(int type, double rsq, int i, int j, double &eng)
+double BondClass2::single(int type, double rsq, int i, int j)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double dr2 = dr*dr;
   double dr3 = dr2*dr;
   double dr4 = dr3*dr;
-  eng = k2[type]*dr2 + k3[type]*dr3 + k4[type]*dr4;
+  return (k2[type]*dr2 + k3[type]*dr3 + k4[type]*dr4);
 }

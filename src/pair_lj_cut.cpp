@@ -697,21 +697,18 @@ void PairLJCut::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCut::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, int eflag,
-		       One &one)
+double PairLJCut::single(int i, int j, int itype, int jtype, double rsq,
+			 double factor_coul, double factor_lj,
+			 double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;
 
   r2inv = 1.0/rsq;
   r6inv = r2inv*r2inv*r2inv;
   forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  one.fforce = factor_lj*forcelj*r2inv;
+  fforce = factor_lj*forcelj*r2inv;
 
-  if (eflag) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    one.eng_vdwl = factor_lj*philj;
-    one.eng_coul = 0.0;
-  }
+  philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+    offset[itype][jtype];
+  return factor_lj*philj;
 }

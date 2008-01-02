@@ -48,7 +48,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   box_change = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extscalar = 1;
 
   double p_period[3];
   if (strcmp(arg[3],"xyz") == 0) {
@@ -242,7 +242,6 @@ void FixNPH::init()
     }
 
   // set temperature and pressure ptrs
-  // set ptemperature only if pressure's id_pre[0] is not id_temp
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Temp ID for fix nph does not exist");
@@ -251,14 +250,6 @@ void FixNPH::init()
   icompute = modify->find_compute(id_press);
   if (icompute < 0) error->all("Press ID for fix nph does not exist");
   pressure = modify->compute[icompute];
-
-  if (strcmp(id_temp,pressure->id_pre[0]) == 0) ptemperature = NULL;
-  else {
-    icompute = modify->find_compute(pressure->id_pre[0]);
-    if (icompute < 0)
-      error->all("Temp ID of press ID for fix nph does not exist");
-    ptemperature = modify->compute[icompute];
-  }
 
   // set timesteps and frequencies
   // Nkt = initial value for piston mass and energy conservation
@@ -323,18 +314,16 @@ void FixNPH::setup()
 
   double tmp = temperature->compute_scalar();
   if (press_couple == 0) {
-    if (ptemperature) tmp = ptemperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
-    if (ptemperature) ptemperature->compute_vector();
     pressure->compute_vector();
   }
   couple();
 
   // trigger virial computation on next timestep
 
-  pressure->add_step(update->ntimestep+1);
+  pressure->addstep(update->ntimestep+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -438,18 +427,16 @@ void FixNPH::final_integrate()
 
   double tmp = temperature->compute_scalar();
   if (press_couple == 0) {
-    if (ptemperature) tmp = ptemperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
-    if (ptemperature) ptemperature->compute_vector();
     pressure->compute_vector();
   }
   couple();
 
   // trigger virial computation on next timestep
 
-  pressure->add_step(update->ntimestep+1);
+  pressure->addstep(update->ntimestep+1);
 
   // update omega_dot
   // for non-varying dims, p_freq is 0.0, so omega_dot doesn't change
@@ -752,13 +739,13 @@ int FixNPH::modify_param(int narg, char **arg)
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for NPH is not for group all");
 
-    // reset id_pre[0] of pressure to new temp ID
+    // reset id_pre of pressure to new temp ID
     
     icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all("Press ID for fix npt does not exist");
-    delete [] modify->compute[icompute]->id_pre[0];
-    modify->compute[icompute]->id_pre[0] = new char[n];
-    strcpy(modify->compute[icompute]->id_pre[0],id_temp);
+    delete [] modify->compute[icompute]->id_pre;
+    modify->compute[icompute]->id_pre = new char[n];
+    strcpy(modify->compute[icompute]->id_pre,id_temp);
 
     return 2;
 

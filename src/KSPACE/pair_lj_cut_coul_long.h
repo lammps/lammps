@@ -32,7 +32,7 @@ class PairLJCutCoulLong : public Pair {
   void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
-  virtual void single(int, int, int, int, double, double, double, int, One &);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
   void compute_inner();
   void compute_middle();

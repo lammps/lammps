@@ -42,7 +42,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   scalar_vector_freq = nevery;
-  extensive = 1;
+  extscalar = 1;
 
   t_start = atof(arg[4]);
   t_end = atof(arg[5]);
@@ -109,6 +109,8 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   }
   delete [] newarg;
   tflag = 1;
+
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

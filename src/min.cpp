@@ -133,19 +133,19 @@ void Min::ev_set(int ntimestep)
 
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
-    if (elist_atom[i]->match_step(ntimestep)) break;
+    if (elist_atom[i]->matchstep(ntimestep)) break;
   if (i < nelist_atom) eflag_atom = 2;
 
   eflag = eflag_global + eflag_atom;
 
   int vflag_global = 0;
   for (i = 0; i < nvlist_global; i++)
-    if (vlist_global[i]->match_step(ntimestep)) break;
+    if (vlist_global[i]->matchstep(ntimestep)) break;
   if (i < nvlist_global) vflag_global = virial_style;
 
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
-    if (vlist_atom[i]->match_step(ntimestep)) break;
+    if (vlist_atom[i]->matchstep(ntimestep)) break;
   if (i < nvlist_atom) vflag_atom = 4;
 
   vflag = vflag_global + vflag_atom;

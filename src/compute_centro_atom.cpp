@@ -27,6 +27,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_PERATOM 4
+
 /* ---------------------------------------------------------------------- */
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -88,6 +90,8 @@ void ComputeCentroAtom::compute_peratom()
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,value;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double pairs[66];
+
+  invoked |= INVOKED_PERATOM;
 
   // grow centro array if necessary
 

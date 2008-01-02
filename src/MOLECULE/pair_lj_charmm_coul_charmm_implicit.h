@@ -22,7 +22,7 @@ class PairLJCharmmCoulCharmmImplicit : public PairLJCharmmCoulCharmm {
  public:
   PairLJCharmmCoulCharmmImplicit(class LAMMPS *);
   void compute(int, int);
-  void single(int, int, int, int, double, double, double, int, One &);
+  double single(int, int, int, int, double, double, double, double &);
   void *extract(char *);
 };
 

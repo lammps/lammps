@@ -20,6 +20,7 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
 #define INERTIA3D 0.4          // moments of inertia for sphere and disk
 #define INERTIA2D 0.5
 
@@ -34,7 +35,7 @@ ComputeRotateDipole::ComputeRotateDipole(LAMMPS *lmp, int narg, char **arg) :
     error->all("Compute rotate/dipole requires atom attributes dipole, omega");
 
   scalar_flag = 1;
-  extensive = 1;
+  extscalar = 1;
 
   inertia = NULL;
 }
@@ -68,6 +69,8 @@ void ComputeRotateDipole::init()
 
 double ComputeRotateDipole::compute_scalar()
 {
+  invoked |= INVOKED_SCALAR;
+
   double *dipole = atom->dipole;
   double **omega = atom->omega;
   int *type = atom->type;

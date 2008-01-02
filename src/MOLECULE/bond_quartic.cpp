@@ -58,7 +58,6 @@ void BondQuartic::compute(int eflag, int vflag)
   int i1,i2,n,m,type,itype,jtype;
   double delx,dely,delz,ebond,fbond,evdwl,fpair;
   double r,rsq,dr,r2,ra,rb,sr2,sr6;
-  Pair::One one;
 
   ebond = evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -158,9 +157,8 @@ void BondQuartic::compute(int eflag, int vflag)
     jtype = atom->type[i2];
 
     if (rsq < cutsq[itype][jtype]) {
-      force->pair->single(i1,i2,itype,jtype,rsq,1.0,1.0,eflag,one);
-      fpair = -one.fforce;
-      if (eflag) evdwl = -(one.eng_vdwl + one.eng_coul);
+      evdwl = -force->pair->single(i1,i2,itype,jtype,rsq,1.0,1.0,fpair);
+      fpair = -fpair;
 
       if (newton_bond || i1 < nlocal) {
 	f[i1][0] += delx*fpair;
@@ -299,12 +297,12 @@ void BondQuartic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void BondQuartic::single(int type, double rsq, int i, int j, double &eng)
+double BondQuartic::single(int type, double rsq, int i, int j)
 {
   double r,dr,r2,ra,rb,sr2,sr6;
 
-  eng = 0.0;
-  if (type <= 0) return;
+  if (type <= 0) return 0.0;
+  double eng = 0.0;
 
   // subtract out pairwise contribution from 2 atoms via pair->single()
   // required since special_bond = 1,1,1
@@ -313,9 +311,8 @@ void BondQuartic::single(int type, double rsq, int i, int j, double &eng)
   int jtype = atom->type[j];
   
   if (rsq < force->pair->cutsq[itype][jtype]) {
-    Pair::One one;
-    force->pair->single(i,j,itype,jtype,rsq,1.0,1.0,1,one);
-    eng = -one.eng_coul - one.eng_vdwl;
+    double tmp;
+    eng = -force->pair->single(i,j,itype,jtype,rsq,1.0,1.0,tmp);
   }
 
   // quartic bond
@@ -334,4 +331,6 @@ void BondQuartic::single(int type, double rsq, int i, int j, double &eng)
     sr6 = sr2*sr2*sr2;
     eng += 4.0*sr6*(sr6-1.0) + 1.0;
   }
+
+  return eng;
 }

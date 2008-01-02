@@ -31,7 +31,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extvector = 1;
 
   flagx = flagy = flagz = 1;
   if (strcmp(arg[3],"NULL") == 0) flagx = 0;
@@ -40,6 +40,9 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   else yvalue = atof(arg[4]);
   if (strcmp(arg[5],"NULL") == 0) flagz = 0;
   else zvalue = atof(arg[5]);
+
+  force_flag = 0;
+  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

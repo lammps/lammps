@@ -47,7 +47,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   box_change = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extscalar = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -252,7 +252,6 @@ void FixNPT::init()
     }
 
   // set temperature and pressure ptrs
-  // set ptemperature only if pressure's id_pre[0] is not id_temp
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Temp ID for fix npt does not exist");
@@ -261,14 +260,6 @@ void FixNPT::init()
   icompute = modify->find_compute(id_press);
   if (icompute < 0) error->all("Press ID for fix npt does not exist");
   pressure = modify->compute[icompute];
-
-  if (strcmp(id_temp,pressure->id_pre[0]) == 0) ptemperature = NULL;
-  else {
-    icompute = modify->find_compute(pressure->id_pre[0]);
-    if (icompute < 0)
-      error->all("Temp ID of press ID for fix npt does not exist");
-    ptemperature = modify->compute[icompute];
-  }
 
   // set timesteps and frequencies
 
@@ -325,18 +316,16 @@ void FixNPT::setup()
 
   t_current = temperature->compute_scalar();
   if (press_couple == 0) {
-    if (ptemperature) double ptmp = ptemperature->compute_scalar();
     double tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
-    if (ptemperature) ptemperature->compute_vector();
     pressure->compute_vector();
   }
   couple();
 
   // trigger virial computation on next timestep
 
-  pressure->add_step(update->ntimestep+1);
+  pressure->addstep(update->ntimestep+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -448,18 +437,16 @@ void FixNPT::final_integrate()
 
   t_current = temperature->compute_scalar();
   if (press_couple == 0) {
-    if (ptemperature) double ptmp = ptemperature->compute_scalar();
     double tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
-    if (ptemperature) ptemperature->compute_vector();
     pressure->compute_vector();
   }
   couple();
 
   // trigger virial computation on next timestep
 
-  pressure->add_step(update->ntimestep+1);
+  pressure->addstep(update->ntimestep+1);
 
   // update eta_dot
 
@@ -781,13 +768,13 @@ int FixNPT::modify_param(int narg, char **arg)
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for NPT is not for group all");
 
-    // reset id_pre[0] of pressure to new temp ID
+    // reset id_pre of pressure to new temp ID
     
     icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all("Press ID for fix npt does not exist");
-    delete [] modify->compute[icompute]->id_pre[0];
-    modify->compute[icompute]->id_pre[0] = new char[n];
-    strcpy(modify->compute[icompute]->id_pre[0],id_temp);
+    delete [] modify->compute[icompute]->id_pre;
+    modify->compute[icompute]->id_pre = new char[n];
+    strcpy(modify->compute[icompute]->id_pre,id_temp);
 
     return 2;
 

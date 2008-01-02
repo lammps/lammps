@@ -192,10 +192,10 @@ void Run::command(int narg, char **arg)
       update->integrate->cleanup();
 
       Finish finish(lmp);
-      if (postflag || nleft == 0) finish.end(1);
+      if (postflag || nleft <= nsteps) finish.end(1);
       else finish.end(0);
 
-      // command string may invoke a compute that affects Verlet::eflag,vflag
+      // command string may invoke computes so wrap with clear/add
 
       if (commandstr) {
 	modify->clearstep_compute();

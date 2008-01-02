@@ -28,26 +28,31 @@ class FixAveSpatial : public Fix {
   void setup();
   void end_of_step();
   double compute_vector(int);
+  double memory_usage();
 
  private:
-  int me;
-  int nrepeat,nfreq,irepeat,nvalid;
-  int dim,originflag,which,normflag;
+  int me,nvalues;
+  int nrepeat,nfreq,nvalid,irepeat;
+  int dim,originflag,normflag;
   double origin,delta;
-  char *id_compute,*id_fix;
+  int *which,*argindex,*value2index;
+  char **ids;
   FILE *fp;
 
-  int nlayers,nvalues,ave,nwindow;
-  int maxlayer,scaleflag,size_peratom;
+  int nlayers,ave,nwindow;
+  int maxlayer,scaleflag;
   double xscale,yscale,zscale;
   double layer_volume;
   double *coord;
   double *count_one,*count_many,*count_sum;
   double **values_one,**values_many,**values_sum;
   double offset,invdelta; 
-  int ncompute;
-  class Compute **compute;
-  class Fix *fix;
+
+  int maxatomvar;
+  double *varatom;
+
+  int maxatomlayer;
+  int *layer;
 
   int norm,iwindow,window_limit;
   double *count_total;

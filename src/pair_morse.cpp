@@ -315,20 +315,17 @@ void PairMorse::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMorse::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, int eflag,
-		       One &one)
+double PairMorse::single(int i, int j, int itype, int jtype, double rsq,
+			 double factor_coul, double factor_lj,
+			 double &fforce)
 {
   double r,dr,dexp,phi;
 
   r = sqrt(rsq);
   dr = r - r0[itype][jtype];
   dexp = exp(-alpha[itype][jtype] * dr);
-  one.fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+  fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
   
-  if (eflag) {
-    phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
-    one.eng_vdwl = factor_lj*phi;
-    one.eng_coul = 0.0;
-  }
+  phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
+  return factor_lj*phi;
 }

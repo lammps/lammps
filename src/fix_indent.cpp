@@ -42,7 +42,8 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extscalar = 1;
+  extvector = 1;
 
   k = atof(arg[3]);
 
@@ -103,6 +104,9 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
       r0_start *= zscale;
     }
   } else error->all("Illegal fix indent command");
+
+  indenter_flag = 0;
+  indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

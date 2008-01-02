@@ -33,7 +33,7 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
-  extensive = 1;
+  extvector = 1;
 
   xflag = yflag = zflag = 1;
 
@@ -46,6 +46,9 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
 
   f_mag = atof(arg[6]);
   delta = atof(arg[7]);
+
+  force_flag = 0;
+  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

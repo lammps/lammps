@@ -1107,23 +1107,23 @@ void PairLJCoul::free_tables()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCoul::single(int i, int j, int itype, int jtype,
-			       double rsq,
-			       double factor_coul, double factor_lj,
-			       int eflag, One &one)
+double PairLJCoul::single(int i, int j, int itype, int jtype,
+			  double rsq, double factor_coul, double factor_lj,
+			  double &fforce)
 {
   double r2inv, r6inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2, *q = atom->q;
 
+  double eng = 0.0;
+
   r2inv = 1.0/rsq;
-  one.eng_coul = 0.0;
   if ((ewald_order&2) && (rsq < cut_coulsq)) {		// coulombic
     if (!ncoultablebits || rsq <= tabinnersq) {		// series real space
       register double r = sqrt(rsq), x = g_ewald*r;
       register double s = force->qqrd2e*q[i]*q[j], t = 1.0/(1.0+EWALD_P*x);
       r = s*(1.0-factor_coul)/r; s *= g_ewald*exp(-x*x);
       force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
-      if (eflag) one.eng_coul = t-r;
+      eng += t-r;
     }
     else {						// table real space
       register float t = rsq;
@@ -1131,12 +1131,10 @@ void PairLJCoul::single(int i, int j, int itype, int jtype,
       register double f = (rsq-rtable[k])*drtable[k], qiqj = q[i]*q[j];
       t = (1.0-factor_coul)*(ctable[k]+f*dctable[k]);
       force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-      if (eflag) one.eng_coul = qiqj*(etable[k]+f*detable[k]-t);
+      eng += qiqj*(etable[k]+f*detable[k]-t);
     }
-  }
-  else force_coul = 0.0;
+  } else force_coul = 0.0;
   
-  one.eng_vdwl = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {			// lennard-jones
     r6inv = r2inv*r2inv*r2inv;
     if (ewald_order&64) {				// long-range
@@ -1144,17 +1142,16 @@ void PairLJCoul::single(int i, int j, int itype, int jtype,
       x2 = a2*exp(-x2)*lj4[itype][jtype];
       force_lj = factor_lj*(r6inv *= r6inv)*lj1[itype][jtype]-
        	g8*(((6.0*a2+6.0)*a2+3.0)*a2+a2)*x2*rsq+t*lj2[itype][jtype];
-      if (eflag) one.eng_vdwl = factor_lj*r6inv*lj3[itype][jtype]-
+      eng += factor_lj*r6inv*lj3[itype][jtype]-
 	g6*((a2+1.0)*a2+0.5)*x2+t*lj4[itype][jtype];
     }
     else {						// cut
       force_lj = factor_lj*r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-      if (eflag) one.eng_vdwl = factor_lj*(r6inv*(r6inv*lj3[itype][jtype]-
-	    lj4[itype][jtype])-offset[itype][jtype]);
+      eng += factor_lj*(r6inv*(r6inv*lj3[itype][jtype]-
+			       lj4[itype][jtype])-offset[itype][jtype]);
     }
-  } 
-  else force_lj = 0.0;
+  } else force_lj = 0.0;
 
-  one.fforce = (force_coul+force_lj)*r2inv;
+  fforce = (force_coul+force_lj)*r2inv;
+  return eng;
 }
-

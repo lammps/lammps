@@ -30,6 +30,9 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
@@ -40,21 +43,19 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extensive = 0;
+  extscalar = 0;
+  extvector = 1;
   pressflag = 1;
   timeflag = 1;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
 
-  npre = 1;
-  id_pre = new char*[1];
   int n = strlen(arg[3]) + 1;
-  id_pre[0] = new char[n];
-  strcpy(id_pre[0],arg[3]);
+  id_pre = new char[n];
+  strcpy(id_pre,arg[3]);
 
-  int icompute = modify->find_compute(id_pre[0]);
-
+  int icompute = modify->find_compute(id_pre);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   if (modify->compute[icompute]->tempflag == 0)
     error->all("Compute pressure temp ID does not compute temperature");
@@ -109,7 +110,7 @@ void ComputePressure::init()
 
   // set temperature used by pressure
 
-  int icompute = modify->find_compute(id_pre[0]);
+  int icompute = modify->find_compute(id_pre);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   temperature = modify->compute[icompute];
 
@@ -153,16 +154,25 @@ void ComputePressure::init()
 
 /* ----------------------------------------------------------------------
    compute total pressure, averaged over Pxx, Pyy, Pzz
-   assume temperature has already been computed
 ------------------------------------------------------------------------- */
 
 double ComputePressure::compute_scalar()
 {
+  invoked |= INVOKED_SCALAR;
+
+  // invoke temperature it it hasn't been already
+
+  double t;
+  if (keflag) {
+    if (temperature->invoked & INVOKED_SCALAR) t = temperature->scalar;
+    else t = temperature->compute_scalar();
+  }
+
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(3,3);
     if (keflag)
-      scalar = (temperature->dof * boltz * temperature->scalar + 
+      scalar = (temperature->dof * boltz * t + 
 		virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
@@ -170,7 +180,7 @@ double ComputePressure::compute_scalar()
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(2,2);
     if (keflag)
-      scalar = (temperature->dof * boltz * temperature->scalar + 
+      scalar = (temperature->dof * boltz * t + 
 		virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
@@ -186,11 +196,21 @@ double ComputePressure::compute_scalar()
 
 void ComputePressure::compute_vector()
 {
+  invoked |= INVOKED_VECTOR;
+
+  // invoke temperature it it hasn't been already
+
+  double *ke_tensor;
+  if (keflag) {
+    if (!(temperature->invoked & INVOKED_VECTOR))
+      temperature->compute_vector();
+    ke_tensor = temperature->vector;
+  }
+
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(6,3);
     if (keflag) {
-      double *ke_tensor = temperature->vector;
       for (int i = 0; i < 6; i++)
 	vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
     } else
@@ -200,7 +220,6 @@ void ComputePressure::compute_vector()
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(4,2);
     if (keflag) {
-      double *ke_tensor = temperature->vector;
       vector[0] = (ke_tensor[0] + virial[0]) * inv_volume * nktv2p;
       vector[1] = (ke_tensor[1] + virial[1]) * inv_volume * nktv2p;
       vector[3] = (ke_tensor[3] + virial[3]) * inv_volume * nktv2p;
@@ -219,7 +238,6 @@ void ComputePressure::virial_compute(int n, int ndiag)
   int i,j;
   double v[6],*vcomponent;
 
-  invoked = 1;
   for (i = 0; i < n; i++) v[i] = 0.0;
 
   // sum contributions to virial from forces and fixes

@@ -512,10 +512,10 @@ void PairCoulLong::free_tables()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulLong::single(int i, int j, int itype, int jtype,
-			       double rsq,
-			       double factor_coul, double factor_lj,
-			       int eflag, One &one)
+double PairCoulLong::single(int i, int j, int itype, int jtype,
+			    double rsq,
+			    double factor_coul, double factor_lj,
+			    double &fforce)
 {
   double r2inv,r,grij,expm2,t,erfc,prefactor;
   double fraction,table,forcecoul,phicoul;
@@ -545,19 +545,17 @@ void PairCoulLong::single(int i, int j, int itype, int jtype,
       forcecoul -= (1.0-factor_coul)*prefactor;
     }
   }
-  one.fforce = forcecoul * r2inv;
+  fforce = forcecoul * r2inv;
   
-  if (eflag) {
-    if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc;
-    else {
-      table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
-    }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    one.eng_coul = phicoul;
-    one.eng_vdwl = 0.0;
+  if (!ncoultablebits || rsq <= tabinnersq)
+    phicoul = prefactor*erfc;
+  else {
+    table = etable[itable] + fraction*detable[itable];
+    phicoul = atom->q[i]*atom->q[j] * table;
   }
+  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+
+  return phicoul;
 }
 
 /* ---------------------------------------------------------------------- */

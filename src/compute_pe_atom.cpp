@@ -26,6 +26,8 @@
 
 using namespace LAMMPS_NS;
 
+#define INVOKED_PERATOM 4
+
 /* ---------------------------------------------------------------------- */
 
 ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) : 
@@ -74,7 +76,7 @@ void ComputePEAtom::compute_peratom()
 {
   int i;
 
-  invoked = 1;
+  invoked |= INVOKED_PERATOM;
 
   // grow local energy array if necessary
 

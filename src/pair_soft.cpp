@@ -326,20 +326,17 @@ void PairSoft::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSoft::single(int i, int j, int itype, int jtype, double rsq,
-		      double factor_coul, double factor_lj, int eflag,
-		      One &one)
+double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
+			double factor_coul, double factor_lj,
+			double &fforce)
 {
   double r,arg,philj;
 
   r = sqrt(rsq);
   arg = PI*r/cut[itype][jtype];
-  one.fforce = factor_lj * prefactor[itype][jtype] * 
+  fforce = factor_lj * prefactor[itype][jtype] * 
     sin(arg) * PI/cut[itype][jtype]/r;
   
-  if (eflag) {
-    philj = prefactor[itype][jtype] * (1.0+cos(arg));
-    one.eng_vdwl = factor_lj*philj;
-    one.eng_coul = 0.0;
-  }
+  philj = prefactor[itype][jtype] * (1.0+cos(arg));
+  return factor_lj*philj;
 }

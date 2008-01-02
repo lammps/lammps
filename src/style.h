@@ -76,7 +76,6 @@ CommandStyle(write_restart,WriteRestart)
 #endif
 
 #ifdef ComputeInclude
-#include "compute_attribute_atom.h"
 #include "compute_centro_atom.h"
 #include "compute_coord_atom.h"
 #include "compute_ke_atom.h"
@@ -87,18 +86,14 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_rotate_gran.h"
 #include "compute_stress_atom.h"
 #include "compute_sum.h"
-#include "compute_sum_atom.h"
 #include "compute_temp.h"
 #include "compute_temp_deform.h"
 #include "compute_temp_partial.h"
 #include "compute_temp_ramp.h"
 #include "compute_temp_region.h"
-#include "compute_variable.h"
-#include "compute_variable_atom.h"
 #endif
 
 #ifdef ComputeClass
-ComputeStyle(attribute/atom,ComputeAttributeAtom)
 ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(ke/atom,ComputeKEAtom)
@@ -109,14 +104,11 @@ ComputeStyle(rotate/dipole,ComputeRotateDipole)
 ComputeStyle(rotate/gran,ComputeRotateGran)
 ComputeStyle(stress/atom,ComputeStressAtom)
 ComputeStyle(sum,ComputeSum)
-ComputeStyle(sum/atom,ComputeSumAtom)
 ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/deform,ComputeTempDeform)
 ComputeStyle(temp/partial,ComputeTempPartial)
 ComputeStyle(temp/ramp,ComputeTempRamp)
 ComputeStyle(temp/region,ComputeTempRegion)
-ComputeStyle(variable,ComputeVariable)
-ComputeStyle(variable/atom,ComputeVariableAtom)
 #endif
 
 #ifdef DihedralInclude

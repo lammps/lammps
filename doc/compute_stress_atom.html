@@ -81,13 +81,13 @@ system, the result should be -P, where P is the total pressure of the
 system.
 </P>
 <P>These lines in an input script should yield that result (assuming
-there is no fix or long-range contribution to the stress):
+there is no fix or long-range contribution to the stress).  I.e. the
+last 2 columns of thermo output will be the same:
 </P>
-<PRE>compute		global all pressure thermo_temp
-compute		peratom all stress/atom
-compute		p all sum peratom
-variable	p equal div(add(add(c_p<B>1</B>,c_p<B>2</B>),c_p<B>3</B>),mult(3.0,vol))
-thermo_style	custom step temp etotal c_global v_p 
+<PRE>compute		peratom all stress/atom
+compute		p all sum peratom<B>1</B> peratom<B>2</B> peratom<B>3</B>
+variable	press equal -(c_p<B>1</B>+c_p<B>2</B>+c_p<B>3</B>)/(3*vol)
+thermo_style	custom step temp etotal press v_press 
 </PRE>
 <P>IMPORTANT NOTE: The per-atom stress does NOT include contributions due
 to fixes (e.g. <A HREF = "fix_shake.html">SHAKE</A>) or long-range Coulombic

@@ -31,6 +31,10 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all("Illegal fix nve/limit command");
 
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
+  extscalar = 1;
+
   xlimit = atof(arg[3]);
 }
 
@@ -53,6 +57,7 @@ void FixNVELimit::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   vlimitsq = (xlimit/dtv) * (xlimit/dtv);
+  ncount = 0;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     step_respa = ((Respa *) update->integrate)->step;
@@ -85,6 +90,7 @@ void FixNVELimit::initial_integrate()
 
 	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
 	if (vsq > vlimitsq) {
+	  ncount++;
 	  scale = sqrt(vlimitsq/vsq);
 	  v[i][0] *= scale;
 	  v[i][1] *= scale;
@@ -107,6 +113,7 @@ void FixNVELimit::initial_integrate()
 
 	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
 	if (vsq > vlimitsq) {
+	  ncount++;
 	  scale = sqrt(vlimitsq/vsq);
 	  v[i][0] *= scale;
 	  v[i][1] *= scale;
@@ -145,6 +152,7 @@ void FixNVELimit::final_integrate()
 
 	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
 	if (vsq > vlimitsq) {
+	  ncount++;
 	  scale = sqrt(vlimitsq/vsq);
 	  v[i][0] *= scale;
 	  v[i][1] *= scale;
@@ -163,6 +171,7 @@ void FixNVELimit::final_integrate()
 
 	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
 	if (vsq > vlimitsq) {
+	  ncount++;
 	  scale = sqrt(vlimitsq/vsq);
 	  v[i][0] *= scale;
 	  v[i][1] *= scale;
@@ -201,4 +210,16 @@ void FixNVELimit::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   vlimitsq = (xlimit/dtv) * (xlimit/dtv);
+}
+
+/* ----------------------------------------------------------------------
+   energy of indenter interaction
+------------------------------------------------------------------------- */
+
+double FixNVELimit::compute_scalar()
+{
+  double one = ncount;
+  double all;
+  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  return all;
 }

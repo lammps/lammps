@@ -434,7 +434,7 @@ void Neighbor::init()
     }
 
     // detect lists that are connected to other lists
-    // if-the-else sequence is important
+    // if-then-else sequence is important
     //   since don't want to re-process skip or copy lists further down
     // skip: point this list at request->otherlist, copy skip info from request
     // copy: point this list at request->otherlist

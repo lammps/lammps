@@ -28,11 +28,12 @@ class FixNVELimit : public Fix {
   void initial_integrate_respa(int, int);
   void final_integrate_respa(int);
   void reset_dt();
+  double compute_scalar();
 
  private:
   double dtv,dtf;
   double *step_respa;
-  int mass_require;
+  int mass_require,ncount;
   double xlimit,vlimitsq;
 };
 

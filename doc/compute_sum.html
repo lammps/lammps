@@ -62,11 +62,11 @@ component) or can be the result of a <A HREF = "compute.html">compute</A> or
 variable must produce a per-atom quantity, not a global quantity.
 </P>
 <P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
-which have the word <I>atom</I> in their style name.  Currently the only
-fix that produces per-atom quantities is the <A HREF = "fix_ave_atom.html">fix
-ave/atom</A> command.  <A HREF = "variable.html">Variables</A> of
-style <I>atom</I> are the only ones that can be used with this compute
-since all other variable stylse produce global quantities.
+which have the word <I>atom</I> in their style name.  See the doc pages for
+individual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
+quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are the only
+ones that can be used with this compute since all other variable
+styles produce global quantities.
 </P>
 <P>If a single value is specified this compute produces a global scalar
 value.  If multiple values are specified, this compute produces a

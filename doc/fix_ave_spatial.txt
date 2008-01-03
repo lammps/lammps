@@ -71,11 +71,11 @@ compute, fix, or variable, then see the "fix
 ave/time"_fix_ave_time.html command.
 
 "Computes"_compute.html that produce per-atom quantities are those
-which have the word {atom} in their style name.  Currently the only
-fix that produces per-atom quantities is "fix
-ave/atom"_fix_ave_atom.html.  "Variables"_variable.html of style
-{atom} are the only ones that can be used with this fix since all
-other styles of variable produce global quantities.
+which have the word {atom} in their style name.  See the doc pages for
+individual "fixes"_fix.html to determine which ones produce per-atom
+quantities.  "Variables"_variable.html of style {atom} are the only
+ones that can be used with this fix since all other styles of variable
+produce global quantities.
 
 :line
 

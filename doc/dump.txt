@@ -248,10 +248,10 @@ the M-length per-atom vector calculated by the compute.
 The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector per-atom
 quantities calculated by a "fix"_fix.html to be output.  The ID in the
 keyword should be replaced by the actual ID of the fix that has been
-defined previously in the input script.  Currently the "fix
-ave/atom"_fix_ave_atom.html command is the only fix that calculates
-per-atom quantities.  Since it can time-average per-atom quantities
-produced by any "compute"_compute.html, "fix"_fix.html, or atom-style
+defined previously in the input script.  The "fix
+ave/atom"_fix_ave_atom.html command is one that calculates per-atom
+quantities.  Since it can time-average per-atom quantities produced by
+any "compute"_compute.html, "fix"_fix.html, or atom-style
 "variable"_variable.html, this allows those time-averaged results to
 be written to a dump file.
 

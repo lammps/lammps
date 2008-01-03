@@ -221,12 +221,12 @@ references, fix references, and references to other variables.
 <TR><TD >Other variables</TD><TD > v_abc, v_x, etc 
 </TD></TR></TABLE></DIV>
 
-<P>Note that the formula for equal-style variables cannot use any formula
-element that produces per-atom values, namely atom vectors, a compute
-that produces per-atom values, a fix that produces per-atoms values,
-or an atom-style variable.  The formula for atom-style variables can
-use these quantities, as well as quantities that produce a global
-scalar or vector, e.g. a compute or fix that produces global
+<P>Note that a formula for equal-style variables cannot use any formula
+element that produces per-atom values.  This includes atom vectors, a
+compute that produces per-atom values, a fix that produces per-atoms
+values, or an atom-style variable.  A formula for an atom-style
+variables can use these elements, as well as elements that produce a
+global scalar or vector, e.g. a compute or fix that produces global
 quantities.
 </P>
 <P>The thermo keywords allowed in a formula are those defined by the

@@ -64,13 +64,11 @@ you wish to time-average global quantities from a compute, fix, or
 variable, then see the <A HREF = "fix_ave_time.html">fix ave/time</A> command.
 </P>
 <P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
-which have the word <I>atom</I> in their style name.  Currently the only
-fix that produces per-atom quantities is this fix itself, namely fix
-ave/atom.  Thus this fix could be used to produce output that would be
-the input for another fix ave/atom command, though that would be a
-strange mode of use.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are
-the only ones that can be used with this fix since all other styles of
-variable produce global quantities.
+which have the word <I>atom</I> in their style name.  See the doc pages for
+inidividual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
+quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are the only
+ones that can be used with this fix since all other styles of variable
+produce global quantities.
 </P>
 <HR>
 

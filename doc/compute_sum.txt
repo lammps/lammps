@@ -54,11 +54,11 @@ component) or can be the result of a "compute"_compute.html or
 variable must produce a per-atom quantity, not a global quantity.
 
 "Computes"_compute.html that produce per-atom quantities are those
-which have the word {atom} in their style name.  Currently the only
-fix that produces per-atom quantities is the "fix
-ave/atom"_fix_ave_atom.html command.  "Variables"_variable.html of
-style {atom} are the only ones that can be used with this compute
-since all other variable stylse produce global quantities.
+which have the word {atom} in their style name.  See the doc pages for
+individual "fixes"_fix.html to determine which ones produce per-atom
+quantities.  "Variables"_variable.html of style {atom} are the only
+ones that can be used with this compute since all other variable
+styles produce global quantities.
 
 If a single value is specified this compute produces a global scalar
 value.  If multiple values are specified, this compute produces a

@@ -95,6 +95,11 @@ Modify::~Modify()
   memory->sfree(fix);
   memory->sfree(fmask);
 
+  // delete all computes
+
+  for (int i = 0; i < ncompute; i++) delete compute[i];
+  memory->sfree(compute);
+
   delete [] list_initial_integrate;
   delete [] list_pre_exchange;
   delete [] list_pre_neighbor;
@@ -109,15 +114,9 @@ Modify::~Modify()
   delete [] list_min_energy;
 
   delete [] end_of_step_every;
-
   delete [] list_timeflag;
 
   restart_deallocate();
-
-  // delete all computes
-
-  for (int i = 0; i < ncompute; i++) delete compute[i];
-  memory->sfree(compute);
 }
 
 /* ----------------------------------------------------------------------

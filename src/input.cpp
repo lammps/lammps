@@ -450,6 +450,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
+  else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
   else if (!strcmp(command,"units")) units();
@@ -1118,6 +1119,14 @@ void Input::timestep()
 {
   if (narg != 1) error->all("Illegal timestep command");
   update->dt = atof(arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::uncompute()
+{
+  if (narg != 1) error->all("Illegal uncompute command");
+  modify->delete_compute(arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */

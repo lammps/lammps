@@ -78,6 +78,7 @@ CommandStyle(write_restart,WriteRestart)
 #ifdef ComputeInclude
 #include "compute_centro_atom.h"
 #include "compute_coord_atom.h"
+#include "compute_displace_atom.h"
 #include "compute_ke_atom.h"
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
@@ -96,6 +97,7 @@ CommandStyle(write_restart,WriteRestart)
 #ifdef ComputeClass
 ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(coord/atom,ComputeCoordAtom)
+ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
@@ -138,6 +140,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
 #include "fix_com.h"
+#include "fix_coord_original.h"
 #include "fix_deform.h"
 #include "fix_deposit.h"
 #include "fix_drag.h"
@@ -190,6 +193,7 @@ FixStyle(aveforce,FixAveForce)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
 FixStyle(com,FixCOM)
+FixStyle(coord/original,FixCoordOriginal)
 FixStyle(deform,FixDeform)
 FixStyle(deposit,FixDeposit)
 FixStyle(drag,FixDrag)

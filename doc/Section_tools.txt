@@ -54,6 +54,7 @@ own sub-directories with their own Makefiles.
 "pymol_asphere"_#pymol
 "restart2data"_#restart
 "thermo_extract"_#thermo_extract
+"vim"_#vim
 "xmovie"_#xmovie :ul
 
 :line
@@ -287,6 +288,17 @@ details.
 
 This tool was written by Vikas Varshney at Wright Patterson AFB
 (vikas.varshney at gmail.com).
+
+:line
+
+vim tool :h4,link(vim)
+
+The files in the tools/vim directory are add-ons to the VIM editor
+that allow easier editing of LAMMPS input scripts.  See the README.txt
+file for details.
+
+These files were provided by Gerolf Ziegenhain (gerolf at
+ziegenhain.com)
 
 :line
 

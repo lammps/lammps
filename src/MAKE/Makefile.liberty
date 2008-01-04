@@ -7,12 +7,14 @@ SHELL = /bin/sh
 
 # Note: this Makefile builds LAMMPS according to what modules you've loaded
 #   by default this is openmpi MPI
-#   if you want to build with mpich MPI instead, do the following:
-#   (1) put these lines in your .cshrc
-#       module switch mpi mpi/mpich-mx-1.2.7..4_intel-10.0-f025-c025
-#       module load libraries/fftw-2.1.5_mpich-mx-1.2.7..4_intel-9.1-f040-c046
-#   (2) your qsub environment also needs these same modules
-#       this will occur if you use qsub -V to inherit from your login shell
+#     you still need this line in your .cshrc to load FFTW
+#     module load libraries/fftw-2.1.5_openmpi-1.2.3_mx_intel-8.1-f034-c038
+#   if you want to build with mpich MPI instead, put this in your .cshrc
+#     module switch mpi mpi/mpich-mx-1.2.7..4_intel-10.0-f025-c025
+#     module load libraries/fftw-2.1.5_mpich-mx-1.2.7..4_intel-9.1-f040-c046
+#   whichever mode you build LAMMPS (openmpi or mpich),
+#     your qsub environment needs these same modules
+#     this will occur if you use qsub -V to inherit from your login shell
 
 #FFTW =		/home/sjplimp/fftw/fftw_liberty
 

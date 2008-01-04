@@ -24,6 +24,7 @@ micelle2d	       create a data file of small lipid chains in solvent
 msi2lmp		       use Accelrys Insight code to setup LAMMPS input
 pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
 restart2data	       convert a binary restart file to an input data file
+vim		       add-ons to VIM editor for editing LAMMPS input scripts
 xmovie		       a quick/simple viz package (2d projections of 3d)
 
 For tools that are single C, C++, or Fortran files, a Makefile for

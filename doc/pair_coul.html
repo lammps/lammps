@@ -11,18 +11,26 @@
 
 <H3>pair_style coul/cut command 
 </H3>
+<H3>pair_style coul/debye command 
+</H3>
 <H3>pair_style coul/long command 
 </H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style coul/cut cutoff
+pair_style coul/debye kappa cutoff
 pair_style coul/long cutoff 
 </PRE>
-<UL><LI>cutoff = global cutoff for Coulombic interactions 
+<UL><LI>cutoff = global cutoff for Coulombic interactions
+<LI>kappa = Debye length (inverse distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style coul/cut 2.5
+pair_coeff * *
+pair_coeff 2 2 3.5 
+</PRE>
+<PRE>pair_style coul/debye 1.4 3.0
 pair_coeff * *
 pair_coeff 2 2 3.5 
 </PRE>
@@ -40,6 +48,14 @@ potential given by
 the 2 atoms, and epsilon is the dielectric constant which can be set
 by the <A HREF = "dielectric.html">dielectric</A> command.  The cutoff Rc truncates
 the interaction distance.
+</P>
+<P>Style <I>coul/debye</I> adds an additional exp() damping factor to the
+Coulombic term, given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_debye.jpg">
+</CENTER>
+<P>where kappa is the Debye length.  This potential is another way to
+mimic the screening effect of a polar solvent.
 </P>
 <P>Style <I>coul/long</I> computes the same Coulombic interactions as style
 <I>coul/cut</I> except that an additional damping factor is applied so it
@@ -63,9 +79,9 @@ commands, or by mixing as described below:
 </P>
 <UL><LI>cutoff (distance units) 
 </UL>
-<P>For <I>coul/cut</I>, the cutoff coefficient is optional.  If it is not used
-(as in som of the examples above), the default global value specified
-in the pair_style command is used.
+<P>For <I>coul/cut</I> and <I>coul/debye</I>, the cutoff coefficient is optional.
+If it is not used (as in some of the examples above), the default
+global value specified in the pair_style command is used.
 </P>
 <P>For <I>coul/long</I> no cutoff can be specified for an individual I,J type
 pair via the pair_coeff command.  All type pairs use the same global

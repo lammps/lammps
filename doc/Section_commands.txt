@@ -477,6 +477,7 @@ full description:
 "buck/coul/long"_pair_buck.html,
 "colloid"_pair_colloid.html,
 "coul/cut"_pair_coul.html,
+"coul/debye"_pair_coul.html,
 "coul/long"_pair_coul.html,
 "dipole/cut"_pair_dipole.html,
 "dpd"_pair_dpd.html,

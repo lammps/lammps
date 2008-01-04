@@ -277,6 +277,7 @@ MinimizeStyle(sd,MinSD)
 #include "pair_buck.h"
 #include "pair_buck_coul_cut.h"
 #include "pair_coul_cut.h"
+#include "pair_coul_debye.h"
 #include "pair_hybrid.h"
 #include "pair_hybrid_overlay.h"
 #include "pair_lj_cut.h"
@@ -294,6 +295,7 @@ MinimizeStyle(sd,MinSD)
 PairStyle(buck,PairBuck)
 PairStyle(buck/coul/cut,PairBuckCoulCut)
 PairStyle(coul/cut,PairCoulCut)
+PairStyle(coul/debye,PairCoulDebye)
 PairStyle(hybrid,PairHybrid)
 PairStyle(hybrid/overlay,PairHybridOverlay)
 PairStyle(lj/cut,PairLJCut)

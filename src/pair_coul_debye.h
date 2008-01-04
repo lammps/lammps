@@ -11,16 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CUT_COUL_DEBYE_H
-#define PAIR_LJ_CUT_COUL_DEBYE_H
+#ifndef PAIR_COUL_DEBYE_H
+#define PAIR_COUL_DEBYE_H
 
-#include "pair_lj_cut_coul_cut.h"
+#include "pair_coul_cut.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutCoulDebye : public PairLJCutCoulCut {
+class PairCoulDebye : public PairCoulCut {
  public:
-  PairLJCutCoulDebye(class LAMMPS *);
+  PairCoulDebye(class LAMMPS *);
+  ~PairCoulDebye();
   void compute(int, int);
   void settings(int, char **);
   void write_restart_settings(FILE *);

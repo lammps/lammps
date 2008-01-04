@@ -12,31 +12,49 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "stdio.h"
 #include "stdlib.h"
-#include "pair_lj_cut_coul_debye.h"
+#include "string.h"
+#include "pair_coul_debye.h"
 #include "atom.h"
-#include "neigh_list.h"
-#include "force.h"
 #include "comm.h"
+#include "force.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulDebye::PairLJCutCoulDebye(LAMMPS *lmp) : PairLJCutCoulCut(lmp) {}
+PairCoulDebye::PairCoulDebye(LAMMPS *lmp) : PairCoulCut(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulDebye::compute(int eflag, int vflag)
+PairCoulDebye::~PairCoulDebye()
+{
+  if (allocated) {
+    memory->destroy_2d_int_array(setflag);
+    memory->destroy_2d_double_array(cutsq);
+
+    memory->destroy_2d_double_array(cut);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairCoulDebye::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double r,rinv,screening;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
+  double rsq,r2inv,r,rinv,forcecoul,factor_coul,screening;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = ecoul = 0.0;
+  ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -47,7 +65,6 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
@@ -71,10 +88,9 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
 
-      if (j < nall) factor_coul = factor_lj = 1.0;
+      if (j < nall) factor_coul = 1.0;
       else {
 	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
 	j %= nall;
       }
 
@@ -86,20 +102,11 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-
-	if (rsq < cut_coulsq[itype][jtype]) {
-	  r = sqrt(rsq);
-	  rinv = 1.0/r;
-	  screening = exp(-kappa*r);
-	  forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
-	} else forcecoul = 0.0;
-
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	} else forcelj = 0.0;
-
-	fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+	r = sqrt(rsq);
+	rinv = 1.0/r;
+	screening = exp(-kappa*r);
+	forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
+	fpair = factor_coul*forcecoul * r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -110,19 +117,10 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
 	  f[j][2] -= delz*fpair;
 	}
 
-	if (eflag) {
-	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
-	  else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+	if (eflag) ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+			     0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -131,59 +129,51 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulDebye::settings(int narg, char **arg)
+void PairCoulDebye::settings(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all("Illegal pair_style command");
+  if (narg != 2) error->all("Illegal pair_style command");
 
   kappa = atof(arg[0]);
-  cut_lj_global = atof(arg[1]);
-  if (narg == 2) cut_coul_global = cut_lj_global;
-  else cut_coul_global = atof(arg[2]);
+  cut_global = atof(arg[1]);
 
-  // reset cutoffs that were previously set from data file
+  // reset cutoffs that have been explicitly set
 
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j] == 1) {
-	  cut_lj[i][j] = cut_lj_global;
-	  cut_coul[i][j] = cut_coul_global;
-	}
+	if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file
+  proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulDebye::write_restart_settings(FILE *fp)
+void PairCoulDebye::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_lj_global,sizeof(double),1,fp);
-  fwrite(&cut_coul_global,sizeof(double),1,fp);
+  fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&kappa,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
+  proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulDebye::read_restart_settings(FILE *fp)
+void PairCoulDebye::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul_global,sizeof(double),1,fp);
+    fread(&cut_global,sizeof(double),1,fp);
     fread(&kappa,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&cut_coul_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&kappa,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -191,37 +181,20 @@ void PairLJCutCoulDebye::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulDebye::single(int i, int j, int itype, int jtype,
-				  double rsq,
-				  double factor_coul, double factor_lj,
-				  double &fforce)
+double PairCoulDebye::single(int i, int j, int itype, int jtype,
+			   double rsq, double factor_coul, double factor_lj,
+			   double &fforce)
 {
-  double r2inv,r6inv,r,rinv,screening,forcecoul,forcelj,phicoul,philj;
+  double r2inv,r,rinv,forcecoul,phicoul,screening;
 
   r2inv = 1.0/rsq;
-  if (rsq < cut_coulsq[itype][jtype]) {
-    r = sqrt(rsq);
-    rinv = 1.0/r;
-    screening = exp(-kappa*r);
-    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] *
-      screening * (kappa + rinv);
-  } else forcecoul = 0.0;
-  if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  } else forcelj = 0.0;
-  fforce = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+  r = sqrt(rsq);
+  rinv = 1.0/r;
+  screening = exp(-kappa*r);
+  forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] *
+    screening * (kappa + rinv);
+  fforce = factor_coul*forcecoul * r2inv;
 
-  double eng = 0.0;
-  if (rsq < cut_coulsq[itype][jtype]) {
-    phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * rinv * screening;
-    eng += factor_coul*phicoul;
-  }
-  if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    eng += factor_lj*philj;
-  }
-
-  return eng;
+  phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * rinv * screening;
+  return factor_coul*phicoul;
 }

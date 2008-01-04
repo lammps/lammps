@@ -381,6 +381,7 @@ of each style or click on the style itself for a full description:
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
 "com"_fix_com.html,
+"coord/original"_fix_coord_original.html,
 "deform"_fix_deform.html,
 "deposit"_fix_deposit.html,
 "drag"_fix_drag.html,
@@ -439,6 +440,7 @@ description:
 
 "centro/atom"_compute_centro_atom.html,
 "coord/atom"_compute_coord_atom.html,
+"displace/atom"_compute_displace_atom.html,
 "ke/atom"_compute_ke_atom.html,
 "pe"_compute_pe.html,
 "pe/atom"_compute_pe_atom.html,

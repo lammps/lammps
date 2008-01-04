@@ -106,6 +106,7 @@ list of fix styles available in LAMMPS:
 "ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
 "ave/time"_fix_ave_time.html - output time-averaged compute quantities
 "com"_fix_com.html - compute a center-of-mass
+"coord/original"_fix_coord_original.html - store original coords of each atom
 "deform"_fix_deform.html - change the simulation box size/shape
 "deposit"_fix_deposit.html - add new atoms above a surface
 "drag"_fix_drag.html - drag atoms towards a defined coordinate

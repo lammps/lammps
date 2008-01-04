@@ -1,0 +1,77 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix coord/original command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID coord/original 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>coord/original = style name of this fix command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all coord/original 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Store the original coordinates of atoms in the group at the time the
+fix command is issued.  This is useful for computing a displacement of
+the atoms at later times, via the <A HREF = "compute_displace_atom.html">compute
+displace/atom</A> command.  Or the original
+coordinates can be accessed by other <A HREF = "Section_howto.html#4_15">output
+commands</A> that use per-atom quantities such as
+the <A HREF = "dump.html">dump custom</A> command.
+</P>
+<P>IMPORTANT NOTE: To enable displacements to be calculated which include
+the effects of atoms passing through periodic boundaries, the original
+coordinates are stored in "unwrapped" form, by using the image flags
+associated with each atom.  See the <A HREF = "dump.html">dump custom</A> command
+for a discussion of "unwrapped" coordinates.  See the Atoms section of
+the <A HREF = "read_data.html">read_data</A> command for a discussion of image flags
+and how they are set for each atom.
+</P>
+<P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
+rigid</A> command), it's periodic image flags are altered,
+and its original coordinates may not be what you expect.  See the
+<A HREF = "fix_rigid.html">fix rigid</A> command for details.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the original coordinates of the atoms to <A HREF = "restart.html">binary
+restart files</A>, so that the values can be restored when a
+simulation is restarted.  See the <A HREF = "read_restart.html">read_restart</A>
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>This fix produces a per-atom vector which can be accessed by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  The length of the vector
+for each atom is 3, and the components store the x,y,z coords of each
+atom.  The per-atom values be accessed on any timestep.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_msd.html">fix msd</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

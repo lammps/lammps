@@ -1,0 +1,72 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix coord/original command :h3
+
+[Syntax:]
+
+fix ID group-ID coord/original :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+coord/original = style name of this fix command :ul
+
+[Examples:]
+
+fix 1 all coord/original :pre
+
+[Description:]
+
+Store the original coordinates of atoms in the group at the time the
+fix command is issued.  This is useful for computing a displacement of
+the atoms at later times, via the "compute
+displace/atom"_compute_displace_atom.html command.  Or the original
+coordinates can be accessed by other "output
+commands"_Section_howto.html#4_15 that use per-atom quantities such as
+the "dump custom"_dump.html command.
+
+IMPORTANT NOTE: To enable displacements to be calculated which include
+the effects of atoms passing through periodic boundaries, the original
+coordinates are stored in "unwrapped" form, by using the image flags
+associated with each atom.  See the "dump custom"_dump.html command
+for a discussion of "unwrapped" coordinates.  See the Atoms section of
+the "read_data"_read_data.html command for a discussion of image flags
+and how they are set for each atom.
+
+IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
+rigid"_fix_rigid.html command), it's periodic image flags are altered,
+and its original coordinates may not be what you expect.  See the
+"fix rigid"_fix_rigid.html command for details.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+This fix writes the original coordinates of the atoms to "binary
+restart files"_restart.html, so that the values can be restored when a
+simulation is restarted.  See the "read_restart"_read_restart.html
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.
+
+This fix produces a per-atom vector which can be accessed by various
+"output commands"_Section_howto.html#4_15.  The length of the vector
+for each atom is 3, and the components store the x,y,z coords of each
+atom.  The per-atom values be accessed on any timestep.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix msd"_fix_msd.html
+
+[Default:] none

@@ -57,12 +57,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"fix coord/original"_fix_coord_original.html
 
 [Default:] none
-
-
-
-
-
-

@@ -25,14 +25,14 @@
 <P><B>Description:</B>
 </P>
 <P>Defines a computation that calculates the local lattice structure
-according to <A HREF = "#Ackland">(Ackland)</A>.
+according to the formulation given in <A HREF = "#Ackland">(Ackland)</A>.
 </P>
 <P>In contrast to the <A HREF = "compute_centro_atom.html">centro-symmetry
 parameter</A> this method is stable against
 temperature boost, because it is based not on the distance between
 particles but the angles.  Therefore statistical fluctuations are
 averaged out a little more.  A comparison with the Common Neighbor
-Analysis metric is made in the paper..
+Analysis metric is made in the paper.
 </P>
 <P>The result is a number which is mapped to the following different
 lattice structures:
@@ -48,6 +48,13 @@ time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.-
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a scalar quantity for each atom, which can be
+accessed by any command that uses per-atom computes as input.  See
+<A HREF = "Section_howto.html#4_15">this section</A> for an overview of LAMMPS
+output options.
 </P>
 <P><B>Restrictions:</B> none
 </P>

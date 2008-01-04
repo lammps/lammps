@@ -29,9 +29,10 @@ tensor for each atom in a group.  The tensor for each atom has 6
 components: xx, yy, zz, xy, xz, yz.  See the "compute
 pressure"_compute_pressure.html command if you want the stress tensor
 (pressure) of the entire system.  The 6 components can be accessed by
-indices 1-6 by any command that uses per-atom computes, e.g. the "dump
-custom"_dump.html command or "fix ave/spatial"_fix_ave_spatial.html
-command or "fix ave/atom"_fix_ave_atom.html command.  See "this
+indices 1-6 by any command that uses per-atom computes as input,
+e.g. the "dump custom"_dump.html command or "fix
+ave/spatial"_fix_ave_spatial.html command or "fix
+ave/atom"_fix_ave_atom.html command.  See "this
 section"_Section_howto.html#4_15 for an overview.
 
 The stress tensor for atom {I} is given by the following formula,
@@ -92,6 +93,14 @@ former needs to be added to LAMMPS.  We're not sure if the latter is
 possible to compute.  There are also a few pair styles for manybody
 potentials that are not yet instrumented to yield per-atom stress.
 See the Restrictions below.
+
+[Output info:]
+
+This compute calculates a vector of length 6 for each atom, which can
+be accessed by indices 1-6 by any command that uses per-atom computes
+as input.  See "this section"_Section_howto.html#4_15 for an overview
+of LAMMPS output options.  The 6 components of the vector are ordered
+xx, yy, zz, xy, xz, yz.
 
 [Restrictions:]
 

@@ -39,6 +39,13 @@ is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each of a
 {coord/atom} style.
 
+[Output info:]
+
+This compute calculates a scalar quantity for each atom, which can be
+accessed by any command that uses per-atom computes as input.  See
+"this section"_Section_howto.html#4_15 for an overview of LAMMPS
+output options.
+
 [Restrictions:] none
 
 [Related commands:] none

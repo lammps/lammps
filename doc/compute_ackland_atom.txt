@@ -22,14 +22,14 @@ compute 1 all ackland/atom :pre
 [Description:]
 
 Defines a computation that calculates the local lattice structure
-according to "(Ackland)"_#Ackland.
+according to the formulation given in "(Ackland)"_#Ackland.
 
 In contrast to the "centro-symmetry
 parameter"_compute_centro_atom.html this method is stable against
 temperature boost, because it is based not on the distance between
 particles but the angles.  Therefore statistical fluctuations are
 averaged out a little more.  A comparison with the Common Neighbor
-Analysis metric is made in the paper..
+Analysis metric is made in the paper.
 
 The result is a number which is mapped to the following different
 lattice structures:
@@ -45,6 +45,13 @@ time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.-
+
+[Output info:]
+
+This compute calculates a scalar quantity for each atom, which can be
+accessed by any command that uses per-atom computes as input.  See
+"this section"_Section_howto.html#4_15 for an overview of LAMMPS
+output options.
 
 [Restrictions:] none
 

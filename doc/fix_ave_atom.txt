@@ -42,7 +42,7 @@ ave/spatial"_fix_ave_spatial.html or "dump custom"_dump.html commands.
 
 Each listed value is averaged independently.  The group specified with
 the command means only atoms within the group have their averages
-computed.  Atoms not in the group have their result set to 0.0.
+computed.  Atoms not in the group have their result(s) set to 0.0.
 
 Each listed value can be an atom attribute (position, velocity, force
 component) or can be the result of a "compute"_compute.html or

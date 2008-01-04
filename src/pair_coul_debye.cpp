@@ -35,18 +35,6 @@ PairCoulDebye::PairCoulDebye(LAMMPS *lmp) : PairCoulCut(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDebye::~PairCoulDebye()
-{
-  if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-
-    memory->destroy_2d_double_array(cut);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairCoulDebye::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;

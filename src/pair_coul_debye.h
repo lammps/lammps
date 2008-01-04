@@ -21,7 +21,6 @@ namespace LAMMPS_NS {
 class PairCoulDebye : public PairCoulCut {
  public:
   PairCoulDebye(class LAMMPS *);
-  ~PairCoulDebye();
   void compute(int, int);
   void settings(int, char **);
   void write_restart_settings(FILE *);

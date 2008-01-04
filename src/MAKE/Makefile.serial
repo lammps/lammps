@@ -5,11 +5,11 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-O -I../STUBS -DFFT_NONE
+CCFLAGS =	-g -O -I../STUBS -DFFT_NONE
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-O -L../STUBS
-USRLIB =	-lmpich
+LINKFLAGS =	-g -O -L../STUBS
+USRLIB =	-lmpi
 SYSLIB =
 ARCHIVE =	ar
 ARFLAGS =	-rc

@@ -1,7 +1,6 @@
 # g++ = RedHat Linux box, g++, MPICH2, FFTW
 
 SHELL = /bin/sh
-#.IGNORE:
 
 # System-specific settings
 

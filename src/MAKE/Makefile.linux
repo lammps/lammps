@@ -1,7 +1,6 @@
 # linux = RedHat Linux box, Intel icc, MPICH2, FFTW
 
 SHELL = /bin/sh
-#.IGNORE:
 
 # System-specific settings
 

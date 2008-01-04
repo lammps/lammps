@@ -76,8 +76,8 @@ were specified with the fix.  See the "compute
 temp"_compute_temp.html, "compute
 temp/region"_compute_temp_region.html, and "compute
 temp/partial"_compute_temp_partial.html commands for details.  Note
-that the ID of the new compute is the fix-ID with "_temp" appended and
-the group for the new compute is the same as the fix group.
+that the ID of the new compute is the fix-ID + underscore + "temp",
+and the group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.

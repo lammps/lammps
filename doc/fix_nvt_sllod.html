@@ -93,10 +93,10 @@ been issued:
 </P>
 <PRE>compute fix-ID_temp group-ID temp/deform 
 </PRE>
-<P>See the <A HREF = "compute_temp_deform.html<A HREF = "temp"">>compute temp/deform</A> command for
-details.  Note that the ID of the new compute is the fix-ID with
-</A> appended and the group for the new compute is the same as the
-fix group.
+<P>See the <A HREF = "compute_temp_deform.html">compute temp/deform</A> command for
+details.  Note that the ID of the new compute is the fix-ID +
+underscore + "temp", and the group for the new compute is the same as
+the fix group.
 </P>
 <P>Note that this is NOT the compute used by thermodynamic output (see
 the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.
@@ -147,7 +147,7 @@ the Nose/Hoover formulation.
 <P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_npt.html">fix npt</A>, <A HREF = "fix_npt.html">fix
 npt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_langevin.html">fix
 langevin</A>, <A HREF = "fix_modify.html">fix_modify</A>,
-<A HREF = "temperature.html">temperature</A>
+<A HREF = "compute_temp.html">compute temp</A>
 </P>
 <P><B>Default:</B>
 </P>

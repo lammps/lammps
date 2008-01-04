@@ -60,8 +60,8 @@ fix-ID of the appropriate fix.
 
 [Related commands:]
 
-"fix"_fix.html, "temperature"_temperature.html,
-"thermo_style"_thermo_style.html
+"fix"_fix.html, "compute temp"_compute_temp.html, "compute
+pressure"_compute_pressure.html, "thermo_style"_thermo_style.html
 
 [Default:]
 

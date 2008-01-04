@@ -59,9 +59,9 @@ had been issued:
 compute fix-ID_temp group-ID temp/asphere :pre
 
 See the "compute temp/asphere"_compute_temp_asphere.html command for
-details.  Note that the ID of the new compute is the fix-ID with
-"_temp" appended and the group for the new compute is the same as the
-fix group.
+details.  Note that the ID of the new compute is the fix-ID +
+underscore + "temp", and the group for the new compute is the same as
+the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.

@@ -58,8 +58,8 @@ issued:
 compute fix-ID_temp group-ID temp :pre
 
 See the "compute temp"_compute_temp.html command for details.  Note
-that the ID of the new compute is the fix-ID with "_temp" appended and
-the group for the new compute is the same as the fix group.
+that the ID of the new compute is the fix-ID + underscore + "temp",
+and the group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
@@ -111,7 +111,7 @@ the Nose/Hoover formulation.
 
 "fix nve"_fix_nve.html, "fix npt"_fix_npt.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
-"fix_modify"_fix_modify.html, "temperature"_temperature.html
+"fix_modify"_fix_modify.html, "compute temp"_compute_temp.html
 
 [Default:]
 

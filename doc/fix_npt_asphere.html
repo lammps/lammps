@@ -134,11 +134,11 @@ this, the fix creates its own computes of style "temp/asphere" and
 <PRE>compute fix-ID_temp group-ID temp/asphere
 compute fix-ID_press group-ID pressure fix-ID_temp 
 </PRE>
-<P>See the <A HREF = "compute_temp_asphere.html">compute temp/asphere</A> and <A HREF = "compute_pressure.html<A HREF = "temp"<A HREF = "press"">>>compute
+<P>See the <A HREF = "compute_temp_asphere.html">compute temp/asphere</A> and <A HREF = "compute_pressure.html">compute
 pressure</A> commands for details.  Note that the
-IDs of the new computes are the fix-ID with </A> or </A>
-appended and the group for the new computes is the same as the fix
-group.
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is the same
+as the fix group.
 </P>
 <P>Note that these are NOT the computes used by thermodynamic output (see
 the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>

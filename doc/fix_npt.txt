@@ -126,9 +126,9 @@ compute fix-ID_press group-ID pressure fix-ID_temp :pre
 
 See the "compute temp"_compute_temp.html and "compute
 pressure"_compute_pressure.html commands for details.  Note that the
-IDs of the new computes are the fix-ID with "_temp" or "_press"
-appended and the group for the new computes is the same as the fix
-group.
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is the same
+as the fix group.
 
 Note that these are NOT the computes used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}

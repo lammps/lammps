@@ -78,10 +78,10 @@ compute fix-ID_temp group-ID temp/partial xflag yflag zflag
 <P>Which is used depends on whether the <I>region</I> or <I>partial</I> keywords
 were specified with the fix.  See the <A HREF = "compute_temp.html">compute
 temp</A>, <A HREF = "compute_temp_region.html">compute
-temp/region</A>, and <A HREF = "compute_temp_partial.html<A HREF = "temp"">>compute
+temp/region</A>, and <A HREF = "compute_temp_partial.html">compute
 temp/partial</A> commands for details.  Note
-that the ID of the new compute is the fix-ID with </A> appended and
-the group for the new compute is the same as the fix group.
+that the ID of the new compute is the fix-ID + underscore + "temp",
+and the group for the new compute is the same as the fix group.
 </P>
 <P>Note that this is NOT the compute used by thermodynamic output (see
 the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.

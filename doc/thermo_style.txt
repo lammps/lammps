@@ -288,7 +288,8 @@ This command must come after the simulation box is defined by a
 [Related commands:]
 
 "thermo"_thermo.html, "thermo_modify"_thermo_modify.html,
-"fix_modify"_fix_modify.html, "temperature"_temperature.html
+"fix_modify"_fix_modify.html, "compute temp"_compute_temp.html,
+"compute pressure"_compute_pressure.html
 
 [Default:]
 

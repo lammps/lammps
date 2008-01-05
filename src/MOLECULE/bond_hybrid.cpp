@@ -191,14 +191,20 @@ void BondHybrid::coeff(int narg, char **arg)
     if (strcmp(arg[1],keywords[m]) == 0) break;
   if (m == nstyles) error->all("Bond coeff for hybrid has invalid style");
 
-  // set low-level coefficients for each bondtype
-  // replace 2nd arg with i, call coeff() with no 1st arg
+  // move 1st arg to 2nd arg
+  // just copy ptrs, since arg[] points into original input line
+
+  arg[1] = arg[0];
+
+  // invoke sub-style coeff() starting with 1st arg
+
+  if (styles[m]) styles[m]->coeff(narg-1,&arg[1]);
+
+  // set setflag and which type maps to which sub-style
   // if sub-style is NULL for "none", still set setflag
 
   for (int i = ilo; i <= ihi; i++) {
-    sprintf(arg[1],"%d",i);
     map[i] = m;
-    if (styles[m]) styles[m]->coeff(narg-1,&arg[1]);
     setflag[i] = 1;
   }
 }

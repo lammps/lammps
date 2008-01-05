@@ -272,9 +272,10 @@ void PairHybrid::coeff(int narg, char **arg)
   }
 
   // move 1st/2nd args to 2nd/3rd args
+  // just copy ptrs, since arg[] points into original input line
 
-  sprintf(arg[2],"%s",arg[1]);
-  sprintf(arg[1],"%s",arg[0]);
+  arg[2] = arg[1];
+  arg[1] = arg[0];
 
   // invoke sub-style coeff() starting with 1st arg
 

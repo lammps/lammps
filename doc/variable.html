@@ -25,7 +25,7 @@
   <I>universe</I> args = one or more strings
   <I>uloop</I> args = N = integer size of loop
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute and fix references, other variables
-    numbers = 0.0, -5.4, 2.8e-4, etc
+    numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
     math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
     group functions = count(group), mass(group), charge(group),
@@ -35,9 +35,9 @@
                  vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]
     atom vector = mass[], x[], y[], z[],
                   vx[], vy[], vz[], fx[], fy[], fz[]
-    compute references = c_ID, c_ID[N]
-    fix references = f_ID, f_ID[N]
-    other variables = v_abc, v_x, etc 
+    compute references = c_ID, c_ID[2], c_ID[N], c_ID[N][2], c_ID[], c_ID[][2]
+    fix references = f_ID, f_ID[2], f_ID[N], f_ID[N][2], f_ID[], f_ID[][2]
+    other variables = v_abc, v_abc[N], v_abc[] 
 </PRE>
 
 </UL>
@@ -210,24 +210,25 @@ operations, group functions, atom values, atom vectors, compute
 references, fix references, and references to other variables.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >Number</TD><TD > 0.2, 1.0e20, -15.4, etc</TD></TR>
+<TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operations</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[N], x[N], y[N], z[N],              vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]</TD></TR>
 <TR><TD >Atom vectors</TD><TD > mass[], x[], y[], z[],               vx[], vy[], vz[], fx[], fy[], fz[]</TD></TR>
-<TR><TD >Compute references</TD><TD > c_ID, c_ID[N]</TD></TR>
-<TR><TD >Fix references</TD><TD > f_ID, f_ID[N]</TD></TR>
-<TR><TD >Other variables</TD><TD > v_abc, v_x, etc 
+<TR><TD >Compute references</TD><TD > c_ID, c_ID[2], c_ID[N], c_ID[N][2], c_ID[], c_ID[][2]</TD></TR>
+<TR><TD >Fix references</TD><TD > f_ID, f_ID[2], f_ID[N], f_ID[N][2], f_ID[], f_ID[][2]</TD></TR>
+<TR><TD >Other variables</TD><TD > v_abc, v_abc[N], v_abc[] 
 </TD></TR></TABLE></DIV>
 
-<P>Note that a formula for equal-style variables cannot use any formula
-element that produces per-atom values.  This includes atom vectors, a
-compute that produces per-atom values, a fix that produces per-atoms
-values, or an atom-style variable.  A formula for an atom-style
-variables can use these elements, as well as elements that produce a
-global scalar or vector, e.g. a compute or fix that produces global
-quantities.
+<P>Note that formula elements that contain empty brackets, such as an
+atom vector, produce per-atom values.  All other formula elements
+produce a global value.
+</P>
+<P>A formula for equal-style variables cannot use any formula element
+that produces per-atom values.  A formula for an atom-style variable
+can use formula elements that produce either global values or per-atom
+values.
 </P>
 <P>The thermo keywords allowed in a formula are those defined by the
 "thermo_style custom" command.  Since many thermodyanmic quantities
@@ -262,50 +263,65 @@ gyration</A> command for a definition of the formula.
 desired atom-ID, e.g. x[243]., which means use the x coordinate of
 the atom with ID=243.
 </P>
-<P>Atom vectors take no argument.  They generate one value per atom, so
-that a reference like x[] means the x-coord of each atom will be
-used when evaluating the variable.
+<P>Atom vectors use empty brackets, i.e. they take no argument.  They
+generate one value per atom, so that a reference like x[] means the
+x-coord of each atom will be used when evaluating the variable.
 </P>
-<P>Compute references access global scalar or vector quantities or
-per-atom scalar or vector quantities calculated by a
+<P>Compute references access one or more quantities calculated by a
 <A HREF = "compute.html">compute</A>.  The ID in the reference should be replaced by
 the actual ID of the compute defined elsewhere in the input script.
-See the <A HREF = "compute.html">compute</A> command for details.  Any specific
-compute will either generate global or per-atom values, so there
-is no amiguity as to which is used.
+See the doc pages for individual computes to see which ones calculate
+global versus per-atom quantities.  If the compute reference contains
+empty brackets, then per-atom values calculated by the compute are
+accessed.  Otherwise a single value (global or per-atom) calculated by
+the compute is accessed.
 </P>
-<P>If <I>c_ID</I> is used as a keyword, then the scalar quantity calculated by
-the compute is used (global or per-atom).  If <I>c_ID[N]</I> is used,
-then one component of the vector quantity calculated by the compute is
-used (global or per-atom).  N should be an integer from 1-M, where M
-is the length of the vector calculated by the compute.
+<P>The different kinds of compute references are as follows.  M is a
+positive integer <= the number of vector values calculated by the
+compute.  N is a global atom ID (positive integer).
 </P>
-<P>Fix references access global scalar or vector quantities or per-atom
-scalar or vector quantities calculated by a <A HREF = "fix.html">fix</A>.  The ID in
-the reference should be replaced by the actual ID of the fix defined
-elsewhere in the input script.  See the doc pages for individual fixes
-to see which ones compute what kind of quantities.  Any specific fix
-compute will either generate global or per-atom values, so there is no
-amiguity as to which is used.  Some fixes only generate quantities on
-certain timesteps.  If a variable attempts to access the fix on
-non-allowed timesteps, an error is generated.  For example, the <A HREF = "fix_ave_time.html">fix
-ave/time</A> command may only generate averaged
-quantities every 100 steps.  See the <A HREF = "fix.html">fix</A> command for
-details.
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >c_ID</TD><TD > scalar value of a global compute</TD></TR>
+<TR><TD >c_ID[2]</TD><TD > vector component of a global compute</TD></TR>
+<TR><TD >c_ID[N]</TD><TD > single atom's scalar value of a per-atom compute</TD></TR>
+<TR><TD >c_ID[N][M]</TD><TD > single atom's vector component of a per-atom compute</TD></TR>
+<TR><TD >c_ID[]</TD><TD > per-atom scalar from a per-atom compute</TD></TR>
+<TR><TD >c_ID[][M]</TD><TD > per-atom vector component from a per-atom compute 
+</TD></TR></TABLE></DIV>
+
+<P>Fix references access one or more quantities calculated by a
+<A HREF = "fix.html">fix</A>.  The ID in the reference should be replaced by
+the actual ID of the fix defined elsewhere in the input script.
+See the doc pages for individual computes to see which ones calculate
+global versus per-atom quantities.  If the compute reference contains
+empty brackets, then per-atom values calculated by the compute are
+accessed.  Otherwise a single value (global or per-atom) calculated by
+the compute is accessed.
 </P>
-<P>If <I>f_ID</I> is used as a keyword, then the scalar quantity calculated by
-the fix is used (global or per-atom).  If <I>f_ID[N]</I> is used, then
-one component of the vector quantity calculated by the fix is used
-(global or per-atom).  N should be an integer from 1-M, where M is the
-length of the vector calculated by the fix.
+<P>Note that some fixes only generate quantities on certain timesteps.
+If a variable attempts to access the fix on non-allowed timesteps, an
+error is generated.  For example, the <A HREF = "fix_ave_time.html">fix ave/time</A>
+command may only generate averaged quantities every 100 steps.  See
+the doc pages for individual fix commands for details.
+</P>
+<P>The different kinds of fix references are exactly the same as the
+compute references listed in the above table, where "c_" is replaced
+by "f_", and the word "compute" is replaced by "fix".
 </P>
 <P>The current values of other variables can be accessed by prepending a
 "v_" to the variable name.  This will cause that variable to be
-evaulated.  Note that <I>equal</I> style variables generate single values
-and <I>atom</I> style variables generate one value per atom.  Thus an
-atom-style variable cannot be referenced by the formula for an
-equal-style variable, but the converse is allowed.
+evaulated.  Atom-style variables generate per-atom values; all other
+styles of variables generate a single scalar value.
 </P>
+<P>The different kinds of variable references are as follows.  N is a
+global atom ID (positive integer).
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >v_ID</TD><TD > scalar value of a non atom-style variable</TD></TR>
+<TR><TD >v_ID[N]</TD><TD > single atom's scalar value from an atom-style variable</TD></TR>
+<TR><TD >v_ID[]</TD><TD > per-atom value from an atom-style variable 
+</TD></TR></TABLE></DIV>
+
 <P>IMPORTANT NOTE: If you define variables in circular manner like this:
 </P>
 <PRE>variable a equal v_b
@@ -359,11 +375,11 @@ the first case, but would change dynamically for the second case.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The use of atom values in <I>equal</I> or <I>atom</I> style variables requires
-the atom style to use a global mapping in order to look up the vector
-indices.  By default, only atom styles with molecular information
-create global maps.  The <A HREF = "atom_modify.html">atom_modify map</A> command
-can override the default.
+<P>Indexing any formula element by global atom ID, such as an atom value,
+requires the atom style to use a global mapping in order to look up
+the vector indices.  By default, only atom styles with molecular
+information create global maps.  The <A HREF = "atom_modify.html">atom_modify
+map</A> command can override the default.
 </P>
 <P>All <I>universe</I>- and <I>uloop</I>-style variables defined in an input script
 must have the same number of values.

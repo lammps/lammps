@@ -20,7 +20,7 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
   {universe} args = one or more strings
   {uloop} args = N = integer size of loop
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute and fix references, other variables
-    numbers = 0.0, -5.4, 2.8e-4, etc
+    numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
     group functions = count(group), mass(group), charge(group),
@@ -30,9 +30,9 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
                  vx\[N\], vy\[N\], vz\[N\], fx\[N\], fy\[N\], fz\[N\]
     atom vector = mass\[\], x\[\], y\[\], z\[\],
                   vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
-    compute references = c_ID, c_ID\[N\]
-    fix references = f_ID, f_ID\[N\]
-    other variables = v_abc, v_x, etc :pre
+    compute references = c_ID, c_ID\[2\], c_ID\[N\], c_ID\[N\]\[2\], c_ID\[\], c_ID\[\]\[2\]
+    fix references = f_ID, f_ID\[2\], f_ID\[N\], f_ID\[N\]\[2\], f_ID\[\], f_ID\[\]\[2\]
+    other variables = v_abc, v_abc\[N\], v_abc\[\] :pre
 :ule
 
 [Examples:]
@@ -203,7 +203,7 @@ Specifically, an formula can contain numbers, thermo keywords, math
 operations, group functions, atom values, atom vectors, compute
 references, fix references, and references to other variables.
 
-Number: 0.2, 1.0e20, -15.4, etc
+Number: 0.2, 100, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
 Math operations: (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
@@ -212,17 +212,18 @@ Atom values: mass\[N\], x\[N\], y\[N\], z\[N\], \
              vx\[N\], vy\[N\], vz\[N\], fx\[N\], fy\[N\], fz\[N\]
 Atom vectors: mass\[\], x\[\], y\[\], z\[\], \
               vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
-Compute references: c_ID, c_ID\[N\]
-Fix references: f_ID, f_ID\[N\]
-Other variables: v_abc, v_x, etc :tb(s=:)
+Compute references: c_ID, c_ID\[2\], c_ID\[N\], c_ID\[N\]\[2\], c_ID\[\], c_ID\[\]\[2\]
+Fix references: f_ID, f_ID\[2\], f_ID\[N\], f_ID\[N\]\[2\], f_ID\[\], f_ID\[\]\[2\]
+Other variables: v_abc, v_abc\[N\], v_abc\[\] :tb(s=:)
 
-Note that a formula for equal-style variables cannot use any formula
-element that produces per-atom values.  This includes atom vectors, a
-compute that produces per-atom values, a fix that produces per-atoms
-values, or an atom-style variable.  A formula for an atom-style
-variables can use these elements, as well as elements that produce a
-global scalar or vector, e.g. a compute or fix that produces global
-quantities.
+Note that formula elements that contain empty brackets, such as an
+atom vector, produce per-atom values.  All other formula elements
+produce a global value.
+
+A formula for equal-style variables cannot use any formula element
+that produces per-atom values.  A formula for an atom-style variable
+can use formula elements that produce either global values or per-atom
+values.
 
 The thermo keywords allowed in a formula are those defined by the
 "thermo_style custom" command.  Since many thermodyanmic quantities
@@ -257,49 +258,60 @@ Atom values take a single integer argument from 1-N, which is the
 desired atom-ID, e.g. x\[243\]., which means use the x coordinate of
 the atom with ID=243.
 
-Atom vectors take no argument.  They generate one value per atom, so
-that a reference like x\[\] means the x-coord of each atom will be
-used when evaluating the variable.
+Atom vectors use empty brackets, i.e. they take no argument.  They
+generate one value per atom, so that a reference like x\[\] means the
+x-coord of each atom will be used when evaluating the variable.
 
-Compute references access global scalar or vector quantities or
-per-atom scalar or vector quantities calculated by a
+Compute references access one or more quantities calculated by a
 "compute"_compute.html.  The ID in the reference should be replaced by
 the actual ID of the compute defined elsewhere in the input script.
-See the "compute"_compute.html command for details.  Any specific
-compute will either generate global or per-atom values, so there
-is no amiguity as to which is used.
+See the doc pages for individual computes to see which ones calculate
+global versus per-atom quantities.  If the compute reference contains
+empty brackets, then per-atom values calculated by the compute are
+accessed.  Otherwise a single value (global or per-atom) calculated by
+the compute is accessed.
 
-If {c_ID} is used as a keyword, then the scalar quantity calculated by
-the compute is used (global or per-atom).  If {c_ID\[N\]} is used,
-then one component of the vector quantity calculated by the compute is
-used (global or per-atom).  N should be an integer from 1-M, where M
-is the length of the vector calculated by the compute.
+The different kinds of compute references are as follows.  M is a
+positive integer <= the number of vector values calculated by the
+compute.  N is a global atom ID (positive integer).
 
-Fix references access global scalar or vector quantities or per-atom
-scalar or vector quantities calculated by a "fix"_fix.html.  The ID in
-the reference should be replaced by the actual ID of the fix defined
-elsewhere in the input script.  See the doc pages for individual fixes
-to see which ones compute what kind of quantities.  Any specific fix
-compute will either generate global or per-atom values, so there is no
-amiguity as to which is used.  Some fixes only generate quantities on
-certain timesteps.  If a variable attempts to access the fix on
-non-allowed timesteps, an error is generated.  For example, the "fix
-ave/time"_fix_ave_time.html command may only generate averaged
-quantities every 100 steps.  See the "fix"_fix.html command for
-details.
+c_ID: scalar value of a global compute
+c_ID\[2\]: vector component of a global compute
+c_ID\[N\]: single atom's scalar value of a per-atom compute
+c_ID\[N\]\[M\]: single atom's vector component of a per-atom compute
+c_ID\[\]: per-atom scalar from a per-atom compute
+c_ID\[\]\[M\]: per-atom vector component from a per-atom compute :tb(s=:)
 
-If {f_ID} is used as a keyword, then the scalar quantity calculated by
-the fix is used (global or per-atom).  If {f_ID\[N\]} is used, then
-one component of the vector quantity calculated by the fix is used
-(global or per-atom).  N should be an integer from 1-M, where M is the
-length of the vector calculated by the fix.
+Fix references access one or more quantities calculated by a
+"fix"_fix.html.  The ID in the reference should be replaced by
+the actual ID of the fix defined elsewhere in the input script.
+See the doc pages for individual computes to see which ones calculate
+global versus per-atom quantities.  If the compute reference contains
+empty brackets, then per-atom values calculated by the compute are
+accessed.  Otherwise a single value (global or per-atom) calculated by
+the compute is accessed.
+
+Note that some fixes only generate quantities on certain timesteps.
+If a variable attempts to access the fix on non-allowed timesteps, an
+error is generated.  For example, the "fix ave/time"_fix_ave_time.html
+command may only generate averaged quantities every 100 steps.  See
+the doc pages for individual fix commands for details.
+
+The different kinds of fix references are exactly the same as the
+compute references listed in the above table, where "c_" is replaced
+by "f_", and the word "compute" is replaced by "fix".
 
 The current values of other variables can be accessed by prepending a
 "v_" to the variable name.  This will cause that variable to be
-evaulated.  Note that {equal} style variables generate single values
-and {atom} style variables generate one value per atom.  Thus an
-atom-style variable cannot be referenced by the formula for an
-equal-style variable, but the converse is allowed.
+evaulated.  Atom-style variables generate per-atom values; all other
+styles of variables generate a single scalar value.
+
+The different kinds of variable references are as follows.  N is a
+global atom ID (positive integer).
+
+v_ID: scalar value of a non atom-style variable
+v_ID\[N\]: single atom's scalar value from an atom-style variable
+v_ID\[\]: per-atom value from an atom-style variable :tb(s=:)
 
 IMPORTANT NOTE: If you define variables in circular manner like this:
 
@@ -354,11 +366,11 @@ the first case, but would change dynamically for the second case.
 
 [Restrictions:]
 
-The use of atom values in {equal} or {atom} style variables requires
-the atom style to use a global mapping in order to look up the vector
-indices.  By default, only atom styles with molecular information
-create global maps.  The "atom_modify map"_atom_modify.html command
-can override the default.
+Indexing any formula element by global atom ID, such as an atom value,
+requires the atom style to use a global mapping in order to look up
+the vector indices.  By default, only atom styles with molecular
+information create global maps.  The "atom_modify
+map"_atom_modify.html command can override the default.
 
 All {universe}- and {uloop}-style variables defined in an input script
 must have the same number of values.

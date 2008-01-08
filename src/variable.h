@@ -60,7 +60,8 @@ class Variable : protected Pointers {
   int int_between_brackets(char *, int, int &, int);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
-  void atom_value(char *, int, Tree **, Tree **, int &, double *, int &);
+  void peratom2global(int, char *, double *, int, int,
+		      Tree **, Tree **, int &, double *, int &);
   void atom_vector(char *, Tree **, Tree **, int &);
 };
 

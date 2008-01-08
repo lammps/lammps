@@ -494,7 +494,7 @@ void Variable::copy(int narg, char **from, char **to)
 }
 
 /* ----------------------------------------------------------------------
-   recursive evaluation of a "string"
+   recursive evaluation of a string str
    string is a equal-style or atom-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
      thermo keyword = ke, vol, atoms, ...
@@ -502,9 +502,9 @@ void Variable::copy(int narg, char **from, char **to)
      group function = count(group), mass(group), xcm(group,x), ...
      atom value = x[123], y[3], vx[34], ...
      atom vector = x[], y[], vx[], ...
-     compute = c_mytemp, c_thermo_pressure[3], ...
-     fix = f_indent, f_setforce[3], ...
-     variable = v_a, v_myvar, ...
+     compute = c_ID, c_ID[2], c_ID[], c_ID[][2], c_ID[N], c_ID[N][2]
+     fix = f_ID, f_ID[2], f_ID[], f_ID[][2], f_ID[N], f_ID[N][2]
+     variable = v_name, v_name[], v_name[N]
    if tree ptr passed in, return ptr to parse tree created for formula
    if no tree ptr passed in, return value of string as double
 ------------------------------------------------------------------------- */
@@ -513,6 +513,7 @@ double Variable::evaluate(char *str, Tree **tree)
 {
   int op,opprevious;
   double value1,value2;
+  char onechar;
 
   double argstack[MAXLEVEL];
   Tree *treestack[MAXLEVEL];
@@ -525,13 +526,15 @@ double Variable::evaluate(char *str, Tree **tree)
   int expect = ARG;
 
   while (1) {
-    char onechar = str[i];
+    onechar = str[i];
 
     // whitespace: just skip
 
     if (isspace(onechar)) i++;
 
+    // ----------------
     // parentheses: recursively evaluate contents of parens
+    // ----------------
 
     else if (onechar == '(') {
       if (expect == OP) error->all("Invalid syntax in variable formula");
@@ -551,7 +554,9 @@ double Variable::evaluate(char *str, Tree **tree)
 
       delete [] contents;
 
+    // ----------------
     // number: push value onto stack
+    // ----------------
 
     } else if (isdigit(onechar) || onechar == '.') {
       if (expect == OP) error->all("Invalid syntax in variable formula");
@@ -578,13 +583,16 @@ double Variable::evaluate(char *str, Tree **tree)
 
       delete [] number;
 
+    // ----------------
     // letter: c_ID, f_ID, v_name, exp(), xcm(,), x[234], x[], vol
+    // ----------------
 
     } else if (islower(onechar)) {
       if (expect == OP) error->all("Invalid syntax in variable formula");
       expect = OP;
 
-      // istop = end of word, assumed to be alphanumeric or underscore
+      // istop = end of word
+      // word = all alphanumeric or underscore
 
       int istart = i;
       while (isalnum(str[i]) || str[i] == '_') i++;
@@ -595,7 +603,9 @@ double Variable::evaluate(char *str, Tree **tree)
       strncpy(word,&str[istart],n);
       word[n] = '\0';
 
+      // ----------------
       // compute
+      // ----------------
 
       if (strncmp(word,"c_",2) == 0) {
 	n = strlen(word) - 2 + 1;
@@ -605,78 +615,119 @@ double Variable::evaluate(char *str, Tree **tree)
 	if (update->first_update == 0)
 	  error->all("Compute in variable formula before initial run");
 
-	int icompute;
-	for (icompute = 0; icompute < modify->ncompute; icompute++)
-	  if (strcmp(id,modify->compute[icompute]->id) == 0) break;
-	if (icompute == modify->ncompute)
-	  error->all("Invalid compute ID in variable formula");
+	int icompute = modify->find_compute(id);
+	if (icompute < 0) error->all("Invalid compute ID in variable formula");
 	Compute *compute = modify->compute[icompute];
 
 	delete [] id;
 
-	int index = 0;
-	if (str[i] == '[') {
-	  i = int_between_brackets(str,i,index,0);
+	// parse zero or one or two trailing brackets
+	// point i beyond last bracket
+	// nbracket = # of bracket pairs
+	// index1,index2 = int inside each bracket pair, 0 if empty
+
+	int nbracket,index1,index2;
+	if (str[i] != '[') nbracket = 0;
+	else {
+	  nbracket = 1;
+	  i = int_between_brackets(str,i,index1,1);
 	  i++;
+	  if (str[i] == '[') {
+	    nbracket = 2;
+	    i = int_between_brackets(str,i,index2,0);
+	    i++;
+	  }
 	}
 
-	// global or per-atom scalar compute
+        // c_ID = global scalar
 
-	if (index == 0) {
-	  if (compute->scalar_flag) {
-	    if (!(compute->invoked & INVOKED_SCALAR))
-	      value1 = compute->compute_scalar();
-	    else value1 = compute->scalar;
-	    if (tree) {
-	      Tree *newtree = new Tree();
-	      newtree->type = VALUE;
-	      newtree->value = value1;
-	      treestack[ntreestack++] = newtree;
-	    } else argstack[nargstack++] = value1;
+	if (nbracket == 0 && compute->scalar_flag) {
 
-	  } else if (compute->peratom_flag && compute->size_peratom == 0) {
-	    if (tree == NULL)
-	      error->all("Per-atom compute in equal-style variable formula");
-	    if (!(compute->invoked & INVOKED_PERATOM))
-	      compute->compute_peratom();
+	  if (!(compute->invoked & INVOKED_SCALAR))
+	    value1 = compute->compute_scalar();
+	  else value1 = compute->scalar;
+	  if (tree) {
 	    Tree *newtree = new Tree();
-	    newtree->type = ATOMARRAY;
-	    newtree->array = compute->scalar_atom;
-	    newtree->nstride = 1;
+	    newtree->type = VALUE;
+	    newtree->value = value1;
 	    treestack[ntreestack++] = newtree;
-	  } else error->all("Mismatched compute in variable formula");
+	  } else argstack[nargstack++] = value1;
 
-	// global or per-atom vector compute
+        // c_ID[2] = global vector
 
-	} else {
-	  if (compute->vector_flag) {
-	    if (index > compute->size_vector)
+	} else if (nbracket == 1 && index1 > 0 && compute->vector_flag) {
+
+	  if (index1 > compute->size_vector)
 	      error->all("Compute vector in variable formula is too small");
-	    if (!(compute->invoked & INVOKED_VECTOR)) compute->compute_vector();
-	    value1 = compute->vector[index-1];
-	    if (tree) {
-	      Tree *newtree = new Tree();
-	      newtree->type = VALUE;
-	      newtree->value = value1;
-	      treestack[ntreestack++] = newtree;
-	    } else argstack[nargstack++] = value1;
-
-	  } else if (compute->peratom_flag && compute->size_peratom) {
-	    if (tree == NULL)
-	      error->all("Per-atom compute in equal-style variable formula");
-	    if (index > compute->size_peratom)
-	      error->all("Compute vector in variable formula is too small");
-	    if (!(compute->invoked & INVOKED_PERATOM))
-	      compute->compute_peratom();
+	  if (!(compute->invoked & INVOKED_VECTOR)) compute->compute_vector();
+	  value1 = compute->vector[index1-1];
+	  if (tree) {
 	    Tree *newtree = new Tree();
-	    newtree->type = ATOMARRAY;
-	    newtree->array = &compute->vector_atom[0][index-1];
-	    newtree->nstride = compute->size_peratom;
+	    newtree->type = VALUE;
+	    newtree->value = value1;
 	    treestack[ntreestack++] = newtree;
-	  } else error->all("Mismatched compute in variable formula");
-	}
+	  } else argstack[nargstack++] = value1;
 
+        // c_ID[] = per-atom scalar
+
+	} else if (nbracket == 1 && index1 == 0 && 
+		   compute->peratom_flag && compute->size_peratom == 0) {
+
+	  if (tree == NULL)
+	    error->all("Per-atom compute in equal-style variable formula");
+	  if (!(compute->invoked & INVOKED_PERATOM))
+	    compute->compute_peratom();
+	  Tree *newtree = new Tree();
+	  newtree->type = ATOMARRAY;
+	  newtree->array = compute->scalar_atom;
+	  newtree->nstride = 1;
+	  treestack[ntreestack++] = newtree;
+
+        // c_ID[N] = global value from per-atom scalar
+
+	} else if (nbracket == 1 && index1 > 0 && 
+		   compute->peratom_flag && compute->size_peratom == 0) {
+
+	  if (!(compute->invoked & INVOKED_PERATOM))
+	    compute->compute_peratom();
+	  peratom2global(1,NULL,compute->scalar_atom,1,index1,
+			 tree,treestack,ntreestack,argstack,nargstack);
+
+        // c_ID[][2] = per-atom vector
+
+	} else if (nbracket == 2 && index1 == 0 && index2 > 0 &&
+		   compute->peratom_flag) {
+
+	  if (tree == NULL)
+	    error->all("Per-atom compute in equal-style variable formula");
+	  if (index2 > compute->size_peratom)
+	    error->all("Compute vector in variable formula is too small");
+	  if (!(compute->invoked & INVOKED_PERATOM))
+	    compute->compute_peratom();
+	  Tree *newtree = new Tree();
+	  newtree->type = ATOMARRAY;
+	  newtree->array = &compute->vector_atom[0][index2-1];
+	  newtree->nstride = compute->size_peratom;
+	  treestack[ntreestack++] = newtree;
+
+        // c_ID[N][2] = global value from per-atom vector
+
+	} else if (nbracket == 2 && index1 > 0 && index2 > 0 &&
+		   compute->peratom_flag) {
+
+	  if (index2 > compute->size_peratom)
+	    error->all("Compute vector in variable formula is too small");
+	  if (!(compute->invoked & INVOKED_PERATOM))
+	    compute->compute_peratom();
+	  peratom2global(1,NULL,&compute->vector_atom[0][index2-1],
+			 compute->size_peratom,index1,
+			 tree,treestack,ntreestack,argstack,nargstack);
+
+	} else error->all("Mismatched compute in variable formula");
+
+      // ----------------
       // fix
+      // ----------------
 
       } else if (strncmp(word,"f_",2) == 0) {
 	n = strlen(word) - 2 + 1;
@@ -686,77 +737,120 @@ double Variable::evaluate(char *str, Tree **tree)
 	if (update->first_update == 0)
 	  error->all("Fix in variable formula before initial run");
 
-	int ifix;
-	for (ifix = 0; ifix < modify->nfix; ifix++)
-	  if (strcmp(id,modify->fix[ifix]->id) == 0) break;
-	if (ifix == modify->nfix)
-	  error->all("Invalid fix ID in variable formula");
+	int ifix = modify->find_fix(id);
+	if (ifix < 0) error->all("Invalid fix ID in variable formula");
 	Fix *fix = modify->fix[ifix];
 
 	delete [] id;
 
-	int index = 0;
-	if (str[i] == '[') {
-	  i = int_between_brackets(str,i,index,0);
+	// parse zero or one or two trailing brackets
+	// point i beyond last bracket
+	// nbracket = # of bracket pairs
+	// index1,index2 = int inside each bracket pair, 0 if empty
+
+	int nbracket,index1,index2;
+	if (str[i] != '[') nbracket = 0;
+	else {
+	  nbracket = 1;
+	  i = int_between_brackets(str,i,index1,1);
 	  i++;
+	  if (str[i] == '[') {
+	    nbracket = 2;
+	    i = int_between_brackets(str,i,index2,0);
+	    i++;
+	  }
 	}
 
-	// global or per-atom scalar fix
+        // f_ID = global scalar
 
-	if (index == 0) {
-	  if (fix->scalar_flag) {
-	    if (update->ntimestep % fix->scalar_vector_freq)
-	      error->all("Fix in variable not computed at compatible time");
-	    value1 = fix->compute_scalar();
-	    if (tree) {
-	      Tree *newtree = new Tree();
-	      newtree->type = VALUE;
-	      newtree->value = value1;
-	      treestack[ntreestack++] = newtree;
-	    } else argstack[nargstack++] = value1;
+	if (nbracket == 0 && fix->scalar_flag) {
 
-	  } else if (fix->peratom_flag && fix->size_peratom == 0) {
-	    if (tree == NULL)
-	      error->all("Per-atom fix in equal-style variable formula");
-	    if (update->ntimestep % fix->peratom_freq)
-	      error->all("Fix in variable not computed at compatible time");
+	  if (update->ntimestep % fix->scalar_vector_freq)
+	    error->all("Fix in variable not computed at compatible time");
+	  value1 = fix->compute_scalar();
+	  if (tree) {
 	    Tree *newtree = new Tree();
-	    newtree->type = ATOMARRAY;
-	    newtree->array = fix->scalar_atom;
-	    newtree->nstride = 1;
+	    newtree->type = VALUE;
+	    newtree->value = value1;
 	    treestack[ntreestack++] = newtree;
-	  } else error->all("Mismatched fix in variable formula");
+	  } else argstack[nargstack++] = value1;
 
-	// global or per-atom vector fix
+        // f_ID[2] = global vector
 
-	} else {
-	  if (fix->vector_flag) {
-	    if (index > fix->size_vector)
+	} else if (nbracket == 1 && index1 > 0 && fix->vector_flag) {
+
+	  if (index1 > fix->size_vector)
 	      error->all("Fix vector in variable formula is too small");
-	    value1 = fix->compute_vector(index-1);
-	    if (tree) {
-	      Tree *newtree = new Tree();
-	      newtree->type = VALUE;
-	      newtree->value = value1;
-	      treestack[ntreestack++] = newtree;
-	    } else argstack[nargstack++] = value1;
-
-	  } else if (fix->peratom_flag && fix->size_peratom) {
-	    if (tree == NULL)
-	      error->all("Per-atom fix in equal-style variable formula");
-	    if (index > fix->size_peratom)
-	      error->all("Fix vector in variable formula is too small");
-	    if (update->ntimestep % fix->peratom_freq)
-	      error->all("Fix in variable not computed at compatible time");
+	  if (update->ntimestep % fix->scalar_vector_freq)
+	    error->all("Fix in variable not computed at compatible time");
+	  value1 = fix->compute_vector(index1-1);
+	  if (tree) {
 	    Tree *newtree = new Tree();
-	    newtree->type = ATOMARRAY;
-	    newtree->array = &fix->vector_atom[0][index-1];
-	    newtree->nstride = fix->size_peratom;
+	    newtree->type = VALUE;
+	    newtree->value = value1;
 	    treestack[ntreestack++] = newtree;
-	  } else error->all("Mismatched fix in variable formula");
-	}
+	  } else argstack[nargstack++] = value1;
 
+        // f_ID[] = per-atom scalar
+
+	} else if (nbracket == 1 && index1 == 0 && 
+		   fix->peratom_flag && fix->size_peratom == 0) {
+
+	  if (tree == NULL)
+	    error->all("Per-atom fix in equal-style variable formula");
+	  if (update->ntimestep % fix->peratom_freq)
+	    error->all("Fix in variable not computed at compatible time");
+	  Tree *newtree = new Tree();
+	  newtree->type = ATOMARRAY;
+	  newtree->array = fix->scalar_atom;
+	  newtree->nstride = 1;
+	  treestack[ntreestack++] = newtree;
+
+        // f_ID[N] = global value from per-atom scalar
+
+	} else if (nbracket == 1 && index1 > 0 && 
+		   fix->peratom_flag && fix->size_peratom == 0) {
+
+	  if (update->ntimestep % fix->peratom_freq)
+	    error->all("Fix in variable not computed at compatible time");
+	  peratom2global(1,NULL,fix->scalar_atom,1,index1,
+			 tree,treestack,ntreestack,argstack,nargstack);
+
+        // f_ID[][2] = per-atom vector
+
+	} else if (nbracket == 2 && index1 == 0 && index2 > 0 &&
+		   fix->peratom_flag) {
+
+	  if (tree == NULL)
+	    error->all("Per-atom fix in equal-style variable formula");
+	  if (index2 > fix->size_peratom)
+	    error->all("Fix vector in variable formula is too small");
+	  if (update->ntimestep % fix->peratom_freq)
+	    error->all("Fix in variable not computed at compatible time");
+	  Tree *newtree = new Tree();
+	  newtree->type = ATOMARRAY;
+	  newtree->array = &fix->vector_atom[0][index2-1];
+	  newtree->nstride = fix->size_peratom;
+	  treestack[ntreestack++] = newtree;
+
+        // f_ID[N][2] = global value from per-atom vector
+
+	} else if (nbracket == 2 && index1 > 0 && index2 > 0 &&
+		   fix->peratom_flag) {
+
+	  if (index2 > fix->size_peratom)
+	    error->all("Fix vector in variable formula is too small");
+	  if (update->ntimestep % fix->peratom_freq)
+	    error->all("Fix in variable not computed at compatible time");
+	  peratom2global(1,NULL,&fix->vector_atom[0][index2-1],
+			 fix->size_peratom,index1,
+			 tree,treestack,ntreestack,argstack,nargstack);
+
+	} else error->all("Mismatched fix in variable formula");
+
+      // ----------------
       // variable
+      // ----------------
 
       } else if (strncmp(word,"v_",2) == 0) {
 	n = strlen(word) - 2 + 1;
@@ -764,29 +858,65 @@ double Variable::evaluate(char *str, Tree **tree)
 	strcpy(id,&word[2]);
 
 	int ivar = find(id);
-	if (ivar == -1) error->all("Invalid variable name in variable formula");
-	char *var = retrieve(id);
-	if (var == NULL && style[ivar] != ATOM)
-	  error->all("Invalid variable evaluation in variable formula");
+	if (ivar < 0) error->all("Invalid variable name in variable formula");
 
-	if (tree) {
-	  Tree *newtree;
-	  if (style[ivar] != ATOM) {
-	    newtree = new Tree();
+	// parse zero or one trailing brackets
+	// point i beyond last bracket
+	// nbracket = # of bracket pairs
+	// index = int inside bracket, 0 if empty
+
+	int nbracket,index;
+	if (str[i] != '[') nbracket = 0;
+	else {
+	  nbracket = 1;
+	  i = int_between_brackets(str,i,index,1);
+	  i++;
+	}
+
+        // v_name = non atom-style variable = global value
+
+	if (nbracket == 0 && style[ivar] != ATOM) {
+
+	  char *var = retrieve(id);
+	  if (var == NULL)
+	    error->all("Invalid variable evaluation in variable formula");
+	  if (tree) {
+	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = atof(var);
-	  } else double tmp = evaluate(data[ivar][0],&newtree);
+	    treestack[ntreestack++] = newtree;
+	  } else argstack[nargstack++] = atof(var);
+
+        // v_name[] = atom-style variable
+
+	} else if (nbracket && index == 0 && style[ivar] == ATOM) {
+
+	  if (tree == NULL)
+	    error->all("Atom-style variable in equal-style variable formula");
+	  Tree *newtree;
+	  double tmp = evaluate(data[ivar][0],&newtree);
 	  treestack[ntreestack++] = newtree;
 
-	} else {
-	  if (style[ivar] == ATOM)
-	    error->all("Atom-style variable in equal-style variable formula");
-	  argstack[nargstack++] = atof(var);
-	}
+        // v_name[N] = global value from atom-style variable
+	// compute the per-atom variable in result
+	// use peratom2global to extract single value from result
+
+	} else if (nbracket && index > 0 && style[ivar] == ATOM) {
+
+	  double *result = (double *)
+	    memory->smalloc(atom->nlocal*sizeof(double),"variable:result");
+	  compute_atom(ivar,0,result,1,0);
+	  peratom2global(1,NULL,result,1,index,
+			 tree,treestack,ntreestack,argstack,nargstack);
+	  memory->sfree(result);
+
+	} else error->all("Mismatched variable in variable formula");
 
 	delete [] id;
 
+      // ----------------
       // math/group function or atom value/vector or thermo keyword
+      // ----------------
 
       } else {
 
@@ -805,22 +935,27 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  delete [] contents;
 
+	// ----------------
 	// atom value or vector
+	// ----------------
 
 	} else if (str[i] == '[') {
 	  int id;
 	  i = int_between_brackets(str,i,id,1);
 	  i++;
 
-	  // ID between brackets exists, atom value
-	  // empty brackets, atom vector
+	  // ID between brackets exists: atom value
+	  // empty brackets: atom vector
 
 	  if (id > 0)
-	    atom_value(word,id,tree,treestack,ntreestack,argstack,nargstack);
+	    peratom2global(0,word,NULL,0,id,
+			   tree,treestack,ntreestack,argstack,nargstack);
 	  else
 	    atom_vector(word,tree,treestack,ntreestack);
 
+	// ----------------
 	// thermo keyword
+	// ----------------
 
 	} else {
 	  if (update->first_update == 0)
@@ -838,7 +973,9 @@ double Variable::evaluate(char *str, Tree **tree)
 
       delete [] word;
 
+    // ----------------
     // math operator, including end-of-string
+    // ----------------
 
     } else if (strchr("+-*/^\0",onechar)) {
       if (onechar == '+') op = ADD;
@@ -1001,8 +1138,8 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
 
 /* ----------------------------------------------------------------------
    find int between brackets and set index to its value
-   if emptyflag and brackets empty, set index to 0
-   else if brackets empty, is an error
+   if emptyflag, then brackets can be empty (index = 0)
+   else if not emptyflag and brackets empty, is an error
    else contents of brackets must be positive int
    i = left bracket
    return loc of right bracket
@@ -1211,40 +1348,45 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 }
 
 /* ----------------------------------------------------------------------
-   process an atom value in formula
+   extract a global value from a per-atom quantity in a formula
+   flag = 0 -> word is an atom vector
+   flag = 1 -> vector is a per-atom compute or fix quantity with nstride
+   id = positive global ID of atom, converted to local index
    push result onto tree or arg stack
-   word = atom vector
-   index = positive global ID of atom
    customize by adding an atom vector: mass,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
-void Variable::atom_value(char *word, int id, Tree **tree,
-			  Tree **treestack, int &ntreestack,
-			  double *argstack, int &nargstack)
+void Variable::peratom2global(int flag, char *word,
+			      double *vector, int nstride, int id,
+			      Tree **tree, Tree **treestack, int &ntreestack,
+			      double *argstack, int &nargstack)
 {
   if (atom->map_style == 0)
-    error->all("Atom value in variable formula without atom map");
+    error->all("Indexed per-atom vector in variable formula without atom map");
 
   int index = atom->map(id);
 
   double mine;
   if (index >= 0 && index < atom->nlocal) {
-	      
-    if (strcmp(word,"mass") == 0) {
-      if (atom->mass) mine = atom->mass[atom->type[index]];
-      else mine = atom->rmass[index];
-    }
-    else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
-    else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
-    else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
-    else if (strcmp(word,"vx") == 0) mine = atom->v[index][0];
-    else if (strcmp(word,"vy") == 0) mine = atom->v[index][1];
-    else if (strcmp(word,"vz") == 0) mine = atom->v[index][2];
-    else if (strcmp(word,"fx") == 0) mine = atom->f[index][0];
-    else if (strcmp(word,"fy") == 0) mine = atom->f[index][1];
-    else if (strcmp(word,"fz") == 0) mine = atom->f[index][2];
-    
-    else error->one("Invalid atom vector in variable formula");
+
+    if (flag == 0) {
+      if (strcmp(word,"mass") == 0) {
+	if (atom->mass) mine = atom->mass[atom->type[index]];
+	else mine = atom->rmass[index];
+      }
+      else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
+      else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
+      else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
+      else if (strcmp(word,"vx") == 0) mine = atom->v[index][0];
+      else if (strcmp(word,"vy") == 0) mine = atom->v[index][1];
+      else if (strcmp(word,"vz") == 0) mine = atom->v[index][2];
+      else if (strcmp(word,"fx") == 0) mine = atom->f[index][0];
+      else if (strcmp(word,"fy") == 0) mine = atom->f[index][1];
+      else if (strcmp(word,"fz") == 0) mine = atom->f[index][2];
+      
+      else error->one("Invalid atom vector in variable formula");
+
+    } else mine = vector[index*nstride];
     
   } else mine = 0.0;
 

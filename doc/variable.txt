@@ -19,7 +19,7 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
   {world} args = one string for each partition of processors
   {universe} args = one or more strings
   {uloop} args = N = integer size of loop
-  {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute and fix references, other variables
+  {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)

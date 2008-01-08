@@ -904,10 +904,10 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairMEAM::memory_usage()
 {
-  double bytes = 7 * nmax * sizeof(double);
+  double bytes = 11 * nmax * sizeof(double);
   bytes += (3 + 6 + 10 + 3 + 3) * nmax * sizeof(double);
   bytes += 3*3 * nmax * sizeof(double);
-  bytes += 2 * maxneigh * sizeof(double);
+  bytes += 3 * maxneigh * sizeof(double);
   return bytes;
 }
 

@@ -27,10 +27,7 @@ class PairAIREBO : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
-  void write_restart(FILE *) {}
-  void read_restart(FILE *) {}
-  void write_restart_settings(FILE *) {}
-  void read_restart_settings(FILE *) {}
+  double memory_usage();
 
  private:
   int me;
@@ -52,7 +49,7 @@ class PairAIREBO : public Pair {
 
   int *REBO_numneigh;              // # of pair neighbors for each atom
   int **REBO_firstneigh;           // ptr to 1st neighbor of each atom
-  double *nC,*nH;                  // sum of weighing fns with REBO neighs
+  double *nC,*nH;                  // sum of weighting fns with REBO neighs
 
   double smin,Nmin,Nmax,NCmin,NCmax,thmin,thmax;
   double rcmin[2][2],rcmax[2][2],rcmaxsq[2][2],rcmaxp[2][2];

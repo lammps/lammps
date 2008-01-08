@@ -67,8 +67,8 @@ PairAIREBO::~PairAIREBO()
   memory->sfree(REBO_firstneigh);
   for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
   memory->sfree(pages);
-  delete [] nC;
-  delete [] nH;
+  memory->sfree(nC);
+  memory->sfree(nH);
 
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
@@ -309,14 +309,14 @@ void PairAIREBO::REBO_neigh()
     maxlocal = atom->nmax;
     memory->sfree(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
-    delete [] nC;
-    delete [] nH;
+    memory->sfree(nC);
+    memory->sfree(nH);
     REBO_numneigh = (int *)
       memory->smalloc(maxlocal*sizeof(int),"AIREBO:numneigh");
     REBO_firstneigh = (int **)
       memory->smalloc(maxlocal*sizeof(int *),"AIREBO:firstneigh");
-    nC = new double[maxlocal];
-    nH = new double[maxlocal];
+    nC = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nC");
+    nH = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nH");
   }
   
   inum = list->inum;
@@ -4020,4 +4020,18 @@ void PairAIREBO::spline_init()
   
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays 
+------------------------------------------------------------------------- */
+
+double PairAIREBO::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += maxlocal * sizeof(int);
+  bytes += maxlocal * sizeof(int *);
+  bytes += maxpage * neighbor->pgsize * sizeof(int);
+  bytes += 2 * maxlocal * sizeof(double);
+  return bytes;
 }

@@ -565,9 +565,13 @@ double Variable::evaluate(char *str, Tree **tree)
       // istop = end of number, including scientific notation
 
       int istart = i;
-      int istop = istart + strspn(&str[i],"0123456789eE.-") - 1;
-      while (str[istop] == '-') istop--;
-      i = istop + 1;
+      while (isdigit(str[i]) || str[i] == '.') i++;
+      if (str[i] == 'e' || str[i] == 'E') {
+	i++;
+	if (str[i] == '+' || str[i] == '-') i++;
+	while (isdigit(str[i])) i++;
+      }
+      int istop = i - 1;
 
       int n = istop - istart + 1;
       char *number = new char[n+1];

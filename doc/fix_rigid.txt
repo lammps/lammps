@@ -61,24 +61,22 @@ For computational efficiency, you should define one fix rigid which
 includes all the desired rigid bodies.  LAMMPS will allow multiple
 rigid fixes to be defined, but it is more expensive.
 
-The degrees-of-freedom removed by rigid bodies are accounted for in
-temperature and pressure computations. Similary, the rigid body
-contribution to the pressure virial is also accounted for. The latter
-is only correct if forces within the bodies have been turned off, and
-there is only a single fix rigid defined. For each linear rigid body
-of three or more atoms, one degree-of-freedom must be subtracted using
-a "compute_modify"_compute_modify.html command (i.e. for a simulation
-of 10 such rigid bodies, use "compute_modify thermo_temp extra 13", 
-after the thermo_style command, where 3 is the default setting and 
-an additional 10 degrees-of-freedom are subtracted).
+This fix uses constant-energy integration, so you may need to impose
+additional constraints to control the temperature of an ensemble of
+rigid bodies.  You can use "fix langevin"_fix_langevin.html for this
+purpose to treat the system as effectively immersed in an implicit
+solvent, i.e. a Brownian dynamics model.  Or you can thermostat
+additional atoms of an explicit solvent directly.
 
-Note that this fix uses constant-energy integration, so you may need
-to impose additional constraints to control the temperature of an
-ensemble of rigid bodies.  You can use "fix
-langevin"_fix_langevin.html for this purpose to treat the system as
-effectively immersed in an implicit solvent, i.e. a Brownian dynamics
-model.  Or you can thermostat additional atoms of an explicit solvent
-directly.
+The degrees-of-freedom removed by rigid bodies are accounted for in
+temperature and pressure computations.  Similarly, the rigid body
+contribution to the pressure of the system (virial) is also accounted
+for.  For linear rigid bodies of three or more atoms, one additional
+degree-of-freedom must be subtracted manually using the
+"compute_modify"_compute_modify.html command.  E.g. for a simulation
+of 10 such rigid bodies, use "compute_modify thermo_temp extra 13",
+after the thermo_style command, where 3 is the default setting and an
+additional 10 degrees-of-freedom are subtracted.
 
 IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
 modified when the center-of-mass of the rigid body moves across a

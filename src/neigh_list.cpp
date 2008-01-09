@@ -42,7 +42,6 @@ NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
   dpages = NULL;
   dnum = 0;
 
-  skip = 0;
   iskip = NULL;
   ijskip = NULL;
 

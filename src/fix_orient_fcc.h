@@ -42,7 +42,7 @@ class FixOrientFCC : public Fix {
   int setmask();
   void init();
   void init_list(int, class NeighList *);
-  void setup();
+  void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   double compute_scalar();

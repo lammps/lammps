@@ -74,7 +74,7 @@ void FixWallReflect::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallReflect::initial_integrate()
+void FixWallReflect::initial_integrate(int vflag)
 {
   double xlo = domain->boxlo[0];
   double xhi = domain->boxhi[0];

@@ -24,10 +24,10 @@ class FixNVT : public Fix {
   virtual ~FixNVT();
   int setmask();
   void init();
-  void setup();
-  virtual void initial_integrate();
+  void setup(int);
+  virtual void initial_integrate(int);
   virtual void final_integrate();
-  virtual void initial_integrate_respa(int,int);
+  virtual void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int);
   double compute_scalar();
   void write_restart(FILE *);

@@ -62,7 +62,7 @@ void FixNVTSlodd::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVTSlodd::initial_integrate()
+void FixNVTSlodd::initial_integrate(int vflag)
 {
   double dtfm;
 
@@ -191,7 +191,7 @@ void FixNVTSlodd::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVTSlodd::initial_integrate_respa(int ilevel, int flag)
+void FixNVTSlodd::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 

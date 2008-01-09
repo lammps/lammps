@@ -51,7 +51,8 @@ class Fix : protected Pointers {
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
 
-  double virial[6];              // fix contribution to pressure virial
+  double virial[6];              // accumlated virial
+  double **vatom;                // accumulated per-atom virial
 
   int INITIAL_INTEGRATE,PRE_EXCHANGE,PRE_NEIGHBOR;    // mask settings
   int POST_FORCE,FINAL_INTEGRATE,END_OF_STEP,THERMO_ENERGY;
@@ -66,9 +67,9 @@ class Fix : protected Pointers {
 
   virtual void init() {}
   virtual void init_list(int, class NeighList *) {}
-  virtual void setup() {}
-  virtual void min_setup() {}
-  virtual void initial_integrate() {}
+  virtual void setup(int) {}
+  virtual void min_setup(int) {}
+  virtual void initial_integrate(int) {}
   virtual void pre_exchange() {}
   virtual void pre_neighbor() {}
   virtual void post_force(int) {}
@@ -86,7 +87,7 @@ class Fix : protected Pointers {
   virtual int size_restart(int) {return 0;}
   virtual int maxsize_restart() {return 0;}
 
-  virtual void initial_integrate_respa(int, int) {}
+  virtual void initial_integrate_respa(int, int, int) {}
   virtual void post_force_respa(int, int, int) {}
   virtual void final_integrate_respa(int) {}
 
@@ -110,6 +111,14 @@ class Fix : protected Pointers {
   virtual int modify_param(int, char **) {return 0;}
 
   virtual double memory_usage() {return 0.0;}
+
+ protected:
+  int evflag;
+  int vflag_global,vflag_atom;
+  int maxvatom;
+
+  void v_setup(int);
+  void v_tally(int, int *, double, double *);
 };
 
 }

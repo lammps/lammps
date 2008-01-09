@@ -403,7 +403,7 @@ void FixAveSpatial::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveSpatial::setup()
+void FixAveSpatial::setup(int vflag)
 {
   end_of_step();
 }

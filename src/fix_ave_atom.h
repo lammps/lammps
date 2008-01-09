@@ -25,7 +25,7 @@ class FixAveAtom : public Fix {
   ~FixAveAtom();
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void end_of_step();
 
   double memory_usage();

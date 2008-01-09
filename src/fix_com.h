@@ -25,7 +25,7 @@ class FixCOM : public Fix {
   ~FixCOM();
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void end_of_step();
 
  private:

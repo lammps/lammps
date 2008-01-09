@@ -23,7 +23,7 @@ class FixNVEASphere : public FixNVE {
   FixNVEASphere(class LAMMPS *, int, char **);
   ~FixNVEASphere();
   void init();
-  void initial_integrate();
+  void initial_integrate(int);
   void final_integrate();
 
  private:

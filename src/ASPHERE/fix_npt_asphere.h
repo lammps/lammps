@@ -22,7 +22,7 @@ class FixNPTASphere : public FixNPT {
  public:
   FixNPTASphere(class LAMMPS *, int, char **);
   ~FixNPTASphere() {}
-  void initial_integrate();
+  void initial_integrate(int);
   void final_integrate();
 
  private:

@@ -25,8 +25,8 @@ class FixTMD : public Fix {
   ~FixTMD();
   int setmask();
   void init();
-  void initial_integrate();
-  void initial_integrate_respa(int,int);
+  void initial_integrate(int);
+  void initial_integrate_respa(int, int, int);
 
   double memory_usage();
   void grow_arrays(int);

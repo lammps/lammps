@@ -379,7 +379,7 @@ void FixShake::init()
    SHAKE as pre-integrator constraint 
 ------------------------------------------------------------------------- */
 
-void FixShake::setup()
+void FixShake::setup(int vflag)
 {
   pre_neighbor();
 
@@ -398,14 +398,14 @@ void FixShake::setup()
   if (strcmp(update->integrate_style,"verlet") == 0) {
     dtv = update->dt;
     dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
-    post_force(1);
+    post_force(vflag);
     dtfsq = update->dt * update->dt * force->ftm2v;
   } else {
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(1,nlevels_respa-1,0);
+    post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
     dtf_inner = step_respa[0] * force->ftm2v;
   }
@@ -490,7 +490,7 @@ void FixShake::pre_neighbor()
    compute the force adjustment for SHAKE constraint 
 ------------------------------------------------------------------------- */
 
-void FixShake::post_force(int vflag_in)
+void FixShake::post_force(int vflag)
 {
   if (update->ntimestep == next_output) stats();
 
@@ -502,10 +502,10 @@ void FixShake::post_force(int vflag_in)
 
   if (nprocs > 1) comm->comm_fix(this);
 
-  // zero out SHAKE contribution to virial
+  // virial setup
 
-  vflag = vflag_in;
-  if (vflag) for (int n = 0; n < 6; n++) virial[n] = 0.0;
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
 
   // loop over clusters
 
@@ -1148,6 +1148,9 @@ void FixShake::unconstrained_update()
 
 void FixShake::shake2(int m)
 {
+  int nlist,list[2];
+  double v[6];
+
   // local atom IDs and constraint distances
 
   int i0 = atom->map(shake_atom[m][0]);
@@ -1218,18 +1221,19 @@ void FixShake::shake2(int m)
     f[i1][2] -= lamda*r01[2];
   }
 
-  if (vflag) {
-    int factor = 0;
-    if (i0 < nlocal) factor++;
-    if (i1 < nlocal) factor++;
-    double rfactor = 0.5 * factor;
+  if (evflag) {
+    nlist = 0;
+    if (i0 < nlocal) list[nlist++] = i0;
+    if (i1 < nlocal) list[nlist++] = i1;
 
-    virial[0] += rfactor*lamda*r01[0]*r01[0];
-    virial[1] += rfactor*lamda*r01[1]*r01[1];
-    virial[2] += rfactor*lamda*r01[2]*r01[2];
-    virial[3] += rfactor*lamda*r01[0]*r01[1];
-    virial[4] += rfactor*lamda*r01[0]*r01[2];
-    virial[5] += rfactor*lamda*r01[1]*r01[2];
+    v[0] = lamda*r01[0]*r01[0];
+    v[1] = lamda*r01[1]*r01[1];
+    v[2] = lamda*r01[2]*r01[2];
+    v[3] = lamda*r01[0]*r01[1];
+    v[4] = lamda*r01[0]*r01[2];
+    v[5] = lamda*r01[1]*r01[2];
+
+    v_tally(nlist,list,2.0,v);
   }
 }
 
@@ -1237,6 +1241,9 @@ void FixShake::shake2(int m)
 
 void FixShake::shake3(int m)
 {
+  int nlist,list[3];
+  double v[6];
+
   // local atom IDs and constraint distances
 
   int i0 = atom->map(shake_atom[m][0]);
@@ -1371,26 +1378,20 @@ void FixShake::shake3(int m)
     f[i2][2] -= lamda02*r02[2];
   }
 
-  if (vflag) {
-    int factor = 0;
-    if (i0 < nlocal) factor++;
-    if (i1 < nlocal) factor++;
-    if (i2 < nlocal) factor++;
-    double rfactor = factor/3.0;
+  if (evflag) {
+    nlist = 0;
+    if (i0 < nlocal) list[nlist++] = i0;
+    if (i1 < nlocal) list[nlist++] = i1;
+    if (i2 < nlocal) list[nlist++] = i2;
 
-    virial[0] += rfactor*lamda01*r01[0]*r01[0];
-    virial[1] += rfactor*lamda01*r01[1]*r01[1];
-    virial[2] += rfactor*lamda01*r01[2]*r01[2];
-    virial[3] += rfactor*lamda01*r01[0]*r01[1];
-    virial[4] += rfactor*lamda01*r01[0]*r01[2];
-    virial[5] += rfactor*lamda01*r01[1]*r01[2];
+    v[0] = lamda01*r01[0]*r01[0] + lamda02*r02[0]*r02[0];
+    v[1] = lamda01*r01[1]*r01[1] + lamda02*r02[1]*r02[1];
+    v[2] = lamda01*r01[2]*r01[2] + lamda02*r02[2]*r02[2];
+    v[3] = lamda01*r01[0]*r01[1] + lamda02*r02[0]*r02[1];
+    v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
+    v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    virial[0] += rfactor*lamda02*r02[0]*r02[0];
-    virial[1] += rfactor*lamda02*r02[1]*r02[1];
-    virial[2] += rfactor*lamda02*r02[2]*r02[2];
-    virial[3] += rfactor*lamda02*r02[0]*r02[1];
-    virial[4] += rfactor*lamda02*r02[0]*r02[2];
-    virial[5] += rfactor*lamda02*r02[1]*r02[2];
+    v_tally(nlist,list,3.0,v);
   }
 }
 
@@ -1398,6 +1399,9 @@ void FixShake::shake3(int m)
 
 void FixShake::shake4(int m)
 {
+  int nlist,list[4];
+  double v[6];
+
   // local atom IDs and constraint distances
 
   int i0 = atom->map(shake_atom[m][0]);
@@ -1608,34 +1612,21 @@ void FixShake::shake4(int m)
     f[i3][2] -= lamda03*r03[2];
   }
 
-  if (vflag) {
-    int factor = 0;
-    if (i0 < nlocal) factor++;
-    if (i1 < nlocal) factor++;
-    if (i2 < nlocal) factor++;
-    if (i3 < nlocal) factor++;
-    double rfactor = 0.25*factor;
+  if (evflag) {
+    nlist = 0;
+    if (i0 < nlocal) list[nlist++] = i0;
+    if (i1 < nlocal) list[nlist++] = i1;
+    if (i2 < nlocal) list[nlist++] = i2;
+    if (i3 < nlocal) list[nlist++] = i3;
 
-    virial[0] += rfactor*lamda01*r01[0]*r01[0];
-    virial[1] += rfactor*lamda01*r01[1]*r01[1];
-    virial[2] += rfactor*lamda01*r01[2]*r01[2];
-    virial[3] += rfactor*lamda01*r01[0]*r01[1];
-    virial[4] += rfactor*lamda01*r01[0]*r01[2];
-    virial[5] += rfactor*lamda01*r01[1]*r01[2];
+    v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda03*r03[0]*r03[0];
+    v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda03*r03[1]*r03[1];
+    v[2] = lamda01*r01[2]*r01[2]+lamda02*r02[2]*r02[2]+lamda03*r03[2]*r03[2];
+    v[3] = lamda01*r01[0]*r01[1]+lamda02*r02[0]*r02[1]+lamda03*r03[0]*r03[1];
+    v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
+    v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    virial[0] += rfactor*lamda02*r02[0]*r02[0];
-    virial[1] += rfactor*lamda02*r02[1]*r02[1];
-    virial[2] += rfactor*lamda02*r02[2]*r02[2];
-    virial[3] += rfactor*lamda02*r02[0]*r02[1];
-    virial[4] += rfactor*lamda02*r02[0]*r02[2];
-    virial[5] += rfactor*lamda02*r02[1]*r02[2];
-
-    virial[0] += rfactor*lamda03*r03[0]*r03[0];
-    virial[1] += rfactor*lamda03*r03[1]*r03[1];
-    virial[2] += rfactor*lamda03*r03[2]*r03[2];
-    virial[3] += rfactor*lamda03*r03[0]*r03[1];
-    virial[4] += rfactor*lamda03*r03[0]*r03[2];
-    virial[5] += rfactor*lamda03*r03[1]*r03[2];
+    v_tally(nlist,list,4.0,v);
   }
 }
 
@@ -1643,6 +1634,9 @@ void FixShake::shake4(int m)
 
 void FixShake::shake3angle(int m)
 {
+  int nlist,list[3];
+  double v[6];
+
   // local atom IDs and constraint distances
 
   int i0 = atom->map(shake_atom[m][0]);
@@ -1845,33 +1839,20 @@ void FixShake::shake3angle(int m)
     f[i2][2] -= lamda02*r02[2] + lamda12*r12[2];
   }
 
-  if (vflag) {
-    int factor = 0;
-    if (i0 < nlocal) factor++;
-    if (i1 < nlocal) factor++;
-    if (i2 < nlocal) factor++;
-    double rfactor = factor/3.0;
+  if (evflag) {
+    nlist = 0;
+    if (i0 < nlocal) list[nlist++] = i0;
+    if (i1 < nlocal) list[nlist++] = i1;
+    if (i2 < nlocal) list[nlist++] = i2;
 
-    virial[0] += rfactor*lamda01*r01[0]*r01[0];
-    virial[1] += rfactor*lamda01*r01[1]*r01[1];
-    virial[2] += rfactor*lamda01*r01[2]*r01[2];
-    virial[3] += rfactor*lamda01*r01[0]*r01[1];
-    virial[4] += rfactor*lamda01*r01[0]*r01[2];
-    virial[5] += rfactor*lamda01*r01[1]*r01[2];
+    v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda12*r12[0]*r12[0];
+    v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda12*r12[1]*r12[1];
+    v[2] = lamda01*r01[2]*r01[2]+lamda02*r02[2]*r02[2]+lamda12*r12[2]*r12[2];
+    v[3] = lamda01*r01[0]*r01[1]+lamda02*r02[0]*r02[1]+lamda12*r12[0]*r12[1];
+    v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
+    v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    virial[0] += rfactor*lamda02*r02[0]*r02[0];
-    virial[1] += rfactor*lamda02*r02[1]*r02[1];
-    virial[2] += rfactor*lamda02*r02[2]*r02[2];
-    virial[3] += rfactor*lamda02*r02[0]*r02[1];
-    virial[4] += rfactor*lamda02*r02[0]*r02[2];
-    virial[5] += rfactor*lamda02*r02[1]*r02[2];
-
-    virial[0] += rfactor*lamda12*r12[0]*r12[0];
-    virial[1] += rfactor*lamda12*r12[1]*r12[1];
-    virial[2] += rfactor*lamda12*r12[2]*r12[2];
-    virial[3] += rfactor*lamda12*r12[0]*r12[1];
-    virial[4] += rfactor*lamda12*r12[0]*r12[2];
-    virial[5] += rfactor*lamda12*r12[1]*r12[2];
+    v_tally(nlist,list,3.0,v);
   }
 }
 
@@ -2064,6 +2045,7 @@ double FixShake::memory_usage()
   bytes += nmax*4 * sizeof(int);
   bytes += nmax*3 * sizeof(int);
   bytes += nmax*3 * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
   return bytes;
 }
 
@@ -2199,7 +2181,7 @@ int FixShake::unpack_exchange(int nlocal, double *buf)
    rRESPA updating of atom coords is done with full v, but only portions of f
 ------------------------------------------------------------------------- */
 
-void FixShake::post_force_respa(int vflag_in, int ilevel, int iloop)
+void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 {
   // call stats only on outermost level
 
@@ -2242,10 +2224,10 @@ void FixShake::post_force_respa(int vflag_in, int ilevel, int iloop)
 
   if (nprocs > 1) comm->comm_fix(this);
 
-  // zero out SHAKE contribution to virial
+  // virial setup
 
-  vflag = vflag_in;
-  if (vflag) for (int n = 0; n < 6; n++) virial[n] = 0.0;
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
 
   // loop over clusters
 

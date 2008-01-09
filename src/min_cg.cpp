@@ -259,7 +259,7 @@ void MinCG::setup()
 
   if (force->newton) comm->reverse_communicate();
 
-  modify->setup();
+  modify->setup(vflag);
   output->setup(1);
 }
 

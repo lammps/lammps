@@ -14,7 +14,9 @@
 #include "string.h"
 #include "ctype.h"
 #include "fix.h"
+#include "atom.h"
 #include "group.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -55,6 +57,9 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   comm_forward = comm_reverse = 0;
 
+  maxvatom = 0;
+  vatom = NULL;
+
   // mask settings - same as in modify.cpp
 
   INITIAL_INTEGRATE = 1;
@@ -77,6 +82,7 @@ Fix::~Fix()
 {
   delete [] id;
   delete [] style;
+  memory->destroy_2d_double_array(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -100,6 +106,81 @@ void Fix::modify_params(int narg, char **arg)
       int n = modify_param(narg-iarg,&arg[iarg]);
       if (n == 0) error->all("Illegal fix_modify command");
       iarg += n;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   setup for virial computation
+   see integrate::ev_set() for values of vflag (0-6)
+------------------------------------------------------------------------- */
+
+void Fix::v_setup(int vflag)
+{
+  int i,n;
+
+  evflag = 1;
+
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+
+  // reallocate per-atom array if necessary
+  
+  if (vflag_atom && atom->nlocal > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->destroy_2d_double_array(vatom);
+    vatom = memory->create_2d_double_array(maxvatom,6,"bond:vatom");
+  }
+
+  // zero accumulators
+
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (vflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) {
+      vatom[i][0] = 0.0;
+      vatom[i][1] = 0.0;
+      vatom[i][2] = 0.0;
+      vatom[i][3] = 0.0;
+      vatom[i][4] = 0.0;
+      vatom[i][5] = 0.0;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   v = total virial for the interaction involving total atoms
+   n = # of local atoms involved, with local indices in list
+   increment global virial by n/total fraction
+   increment per-atom virial of each atom in list by 1/total fraction
+   assumes other procs will tally left-over fractions
+------------------------------------------------------------------------- */
+
+void Fix::v_tally(int n, int *list, double total, double *v)
+{
+  int m;
+
+  if (vflag_global) {
+    double fraction = n/total;
+    virial[0] += fraction*v[0];
+    virial[1] += fraction*v[1];
+    virial[2] += fraction*v[2];
+    virial[3] += fraction*v[3];
+    virial[4] += fraction*v[4];
+    virial[5] += fraction*v[5];
+  }
+
+  if (vflag_atom) {
+    double fraction = 1.0/total;
+    for (int i = 0; i < n; i++) {
+      m = list[i];
+      vatom[m][0] += fraction*v[0];
+      vatom[m][1] += fraction*v[1];
+      vatom[m][2] += fraction*v[2];
+      vatom[m][3] += fraction*v[3];
+      vatom[m][4] += fraction*v[4];
+      vatom[m][5] += fraction*v[5];
     }
   }
 }

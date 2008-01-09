@@ -25,7 +25,7 @@ class FixGravity : public Fix {
   FixGravity(class LAMMPS *, int, char **);
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void post_force(int);
 
  private:

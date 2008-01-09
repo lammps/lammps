@@ -161,7 +161,7 @@ void FixRDF::init_list(int id, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRDF::setup()
+void FixRDF::setup(int vflag)
 {
   if (first) end_of_step();
   first = 0;

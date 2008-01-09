@@ -72,7 +72,7 @@ void FixGyration::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixGyration::setup()
+void FixGyration::setup(int vflag)
 {
   if (first) end_of_step();
   first = 0;

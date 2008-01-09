@@ -79,7 +79,7 @@ void FixNVEDipole::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEDipole::initial_integrate()
+void FixNVEDipole::initial_integrate(int vflag)
 {
   double dtfm,msq,scale;
 
@@ -169,14 +169,14 @@ void FixNVEDipole::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEDipole::initial_integrate_respa(int ilevel, int flag)
+void FixNVEDipole::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
 
-  if (ilevel == 0) initial_integrate();
+  if (ilevel == 0) initial_integrate(vflag);
   else final_integrate();
 }
 

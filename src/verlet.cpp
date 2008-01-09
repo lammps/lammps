@@ -117,7 +117,7 @@ void Verlet::setup()
 
   if (force->newton) comm->reverse_communicate();
 
-  modify->setup();
+  modify->setup(vflag);
   output->setup(1);
 }
 
@@ -132,10 +132,11 @@ void Verlet::iterate(int n)
   for (int i = 0; i < n; i++) {
 
     ntimestep = ++update->ntimestep;
+    ev_set(ntimestep);
 
     // initial time integration
 
-    modify->initial_integrate();
+    modify->initial_integrate(vflag);
 
     // regular communication vs neighbor list rebuild
 
@@ -166,7 +167,6 @@ void Verlet::iterate(int n)
 
     // force computations
 
-    ev_set(ntimestep);
     force_clear();
 
     timer->stamp();

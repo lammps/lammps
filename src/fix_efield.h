@@ -23,7 +23,7 @@ class FixEfield : public Fix {
   FixEfield(class LAMMPS *, int, char **);
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
 

@@ -53,22 +53,22 @@ void FixAddForce::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddForce::setup()
+void FixAddForce::setup(int vflag)
 {
   if (strcmp(update->integrate_style,"verlet") == 0)
-    post_force(1);
+    post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(1,nlevels_respa-1,0);
+    post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddForce::min_setup()
+void FixAddForce::min_setup(int vflag)
 {
-  post_force(1);
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

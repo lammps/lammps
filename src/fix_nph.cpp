@@ -306,7 +306,7 @@ void FixNPH::init()
    compute T,P before integrator starts 
 ------------------------------------------------------------------------- */
 
-void FixNPH::setup()
+void FixNPH::setup(int vflag)
 {
   p_target[0] = p_start[0];                 // used by compute_scalar()
   p_target[1] = p_start[1];
@@ -330,7 +330,7 @@ void FixNPH::setup()
    1st half of Verlet update 
 ------------------------------------------------------------------------- */
 
-void FixNPH::initial_integrate()
+void FixNPH::initial_integrate(int vflag)
 {
   int i;
 
@@ -455,7 +455,7 @@ void FixNPH::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNPH::initial_integrate_respa(int ilevel, int flag)
+void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   // if flag = 1, then is 2nd call at outermost level from rRESPA
   // perform 2nd half of box remap on own + ghost atoms and return

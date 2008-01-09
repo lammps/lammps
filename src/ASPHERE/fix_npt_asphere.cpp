@@ -43,7 +43,7 @@ FixNPTASphere::FixNPTASphere(LAMMPS *lmp, int narg, char **arg) :
    1st half of Verlet update 
 ------------------------------------------------------------------------- */
 
-void FixNPTASphere::initial_integrate()
+void FixNPTASphere::initial_integrate(int vflag)
 {
   int i;
 

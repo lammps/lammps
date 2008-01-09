@@ -60,7 +60,7 @@ void FixNVEASphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEASphere::initial_integrate()
+void FixNVEASphere::initial_integrate(int vflag)
 {
   double dtfm;
 

@@ -24,7 +24,7 @@ class FixWallGran : public Fix {
   ~FixWallGran();
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void post_force(int);
 
   double memory_usage();

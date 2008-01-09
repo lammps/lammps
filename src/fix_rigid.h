@@ -24,10 +24,10 @@ class FixRigid : public Fix {
   ~FixRigid();
   int setmask();
   void init();
-  void setup();
-  void initial_integrate();
+  void setup(int);
+  void initial_integrate(int);
   void final_integrate();
-  void initial_integrate_respa(int, int);
+  void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int);
 
   double memory_usage();
@@ -77,8 +77,8 @@ class FixRigid : public Fix {
   void omega_from_mq(double *, double *, double *,
 		     double *, double *, double *);
   void exyz_from_q(double *, double *, double *, double *);
-  void set_xv(int);
-  void set_v(int);
+  void set_xv();
+  void set_v();
 };
 
 }

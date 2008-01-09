@@ -307,7 +307,7 @@ void FixNPT::init()
    compute T,P before integrator starts 
 ------------------------------------------------------------------------- */
 
-void FixNPT::setup()
+void FixNPT::setup(int vflag)
 {
   t_target = t_start;                      // used by compute_scalar()
   p_target[0] = p_start[0];
@@ -332,7 +332,7 @@ void FixNPT::setup()
    1st half of Verlet update 
 ------------------------------------------------------------------------- */
 
-void FixNPT::initial_integrate()
+void FixNPT::initial_integrate(int vflag)
 {
   int i;
 
@@ -471,7 +471,7 @@ void FixNPT::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNPT::initial_integrate_respa(int ilevel, int flag)
+void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   // if flag = 1, then is 2nd call at outermost level from rRESPA
   // perform 2nd half of box remap on own + ghost atoms and return

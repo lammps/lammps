@@ -255,7 +255,7 @@ void FixAveAtom::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveAtom::setup()
+void FixAveAtom::setup(int vflag)
 {
   end_of_step();
 }

@@ -61,7 +61,7 @@ void FixNVEGran::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEGran::initial_integrate()
+void FixNVEGran::initial_integrate(int vflag)
 {
   double dtfm;
 

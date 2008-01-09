@@ -23,7 +23,7 @@ class FixNVEGran : public Fix {
   FixNVEGran(class LAMMPS *, int, char **);
   int setmask();
   void init();
-  void initial_integrate();
+  void initial_integrate(int);
   void final_integrate();
   void reset_dt();
 

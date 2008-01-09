@@ -23,8 +23,8 @@ class FixSetForce : public Fix {
   FixSetForce(class LAMMPS *, int, char **);
   int setmask();
   void init();
-  void setup();
-  void min_setup();
+  void setup(int);
+  void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);

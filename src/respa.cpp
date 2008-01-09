@@ -357,7 +357,7 @@ void Respa::setup()
     copy_f_flevel(ilevel);
   }
   
-  modify->setup();
+  modify->setup(vflag);
   sum_flevel_f();
   output->setup(1);
 }
@@ -373,7 +373,6 @@ void Respa::iterate(int n)
   for (int i = 0; i < n; i++) {
 
     ntimestep = ++update->ntimestep;
-
     ev_set(ntimestep);
 
     recurse(nlevels-1);
@@ -415,7 +414,7 @@ void Respa::recurse(int ilevel)
 
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
-    modify->initial_integrate_respa(ilevel,0);
+    modify->initial_integrate_respa(vflag,ilevel,0);
 
     if (ilevel) recurse(ilevel-1);
 
@@ -427,7 +426,7 @@ void Respa::recurse(int ilevel)
     // at middle levels, do nothing
 
     if (ilevel == nlevels-1) {
-      modify->initial_integrate_respa(ilevel,1);
+      modify->initial_integrate_respa(vflag,ilevel,1);
       int nflag = neighbor->decide();
       if (nflag) {
 	if (modify->n_pre_exchange) modify->pre_exchange();

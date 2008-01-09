@@ -72,7 +72,7 @@ void FixCOM::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixCOM::setup()
+void FixCOM::setup(int vflag)
 {
   if (first) end_of_step();
   first = 0;

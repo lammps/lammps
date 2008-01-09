@@ -134,7 +134,7 @@ void FixNVT::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVT::setup()
+void FixNVT::setup(int vflag)
 {
   t_target = t_start;                         // used by compute_scalar()
   t_current = temperature->compute_scalar();
@@ -142,7 +142,7 @@ void FixNVT::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVT::initial_integrate()
+void FixNVT::initial_integrate(int vflag)
 {
   double dtfm;
 
@@ -218,7 +218,7 @@ void FixNVT::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVT::initial_integrate_respa(int ilevel, int flag)
+void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 

@@ -180,7 +180,7 @@ void FixTMD::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTMD::initial_integrate()
+void FixTMD::initial_integrate(int vflag)
 {
   double a,b,c,d,e;
   double dx,dy,dz,dxkt,dykt,dzkt;
@@ -321,14 +321,14 @@ void FixTMD::initial_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTMD::initial_integrate_respa(int ilevel, int flag)
+void FixTMD::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 
   dtv = step_respa[ilevel];
   dtf = step_respa[ilevel] * force->ftm2v;
 
-  if (ilevel == 0) initial_integrate();
+  if (ilevel == 0) initial_integrate(vflag);
 }
 
 /* ----------------------------------------------------------------------

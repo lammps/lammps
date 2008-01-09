@@ -26,7 +26,7 @@ class FixRDF : public Fix {
   int setmask();
   void init();
   void init_list(int, class NeighList *);
-  void setup();
+  void setup(int);
   void end_of_step();
 
  private:

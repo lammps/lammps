@@ -37,8 +37,8 @@ class Modify : protected Pointers {
   Modify(class LAMMPS *);
   ~Modify();
   void init();
-  void setup();
-  void initial_integrate();
+  void setup(int);
+  void initial_integrate(int);
   void pre_decide();
   void pre_exchange();
   void pre_neighbor();
@@ -47,7 +47,7 @@ class Modify : protected Pointers {
   void end_of_step();
   double thermo_energy();
 
-  void initial_integrate_respa(int,int);
+  void initial_integrate_respa(int,int,int);
   void post_force_respa(int,int,int);
   void final_integrate_respa(int);
 

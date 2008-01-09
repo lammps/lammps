@@ -55,9 +55,9 @@ void FixFreeze::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixFreeze::setup()
+void FixFreeze::setup(int vflag)
 {
-  post_force(1);
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

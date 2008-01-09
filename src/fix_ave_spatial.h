@@ -25,7 +25,7 @@ class FixAveSpatial : public Fix {
   ~FixAveSpatial();
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void end_of_step();
   double compute_vector(int);
   double memory_usage();

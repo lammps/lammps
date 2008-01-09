@@ -22,8 +22,8 @@ class FixEnforce2D : public Fix {
  public:
   FixEnforce2D(class LAMMPS *, int, char **);
   int setmask();
-  void setup();
-  void min_setup();
+  void setup(int);
+  void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);

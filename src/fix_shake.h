@@ -24,7 +24,7 @@ class FixShake : public Fix {
   ~FixShake();
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void pre_neighbor();
   void post_force(int);
   void post_force_respa(int, int, int);

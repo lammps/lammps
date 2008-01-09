@@ -43,7 +43,7 @@ FixNVTASphere::FixNVTASphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVTASphere::initial_integrate()
+void FixNVTASphere::initial_integrate(int vflag)
 {
   double dtfm;
 

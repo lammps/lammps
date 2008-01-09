@@ -67,7 +67,7 @@ void FixNVELimit::init()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVELimit::initial_integrate()
+void FixNVELimit::initial_integrate(int vflag)
 {
   double dtfm,vsq,scale;
 
@@ -184,14 +184,14 @@ void FixNVELimit::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVELimit::initial_integrate_respa(int ilevel, int flag)
+void FixNVELimit::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
 
-  if (ilevel == 0) initial_integrate();
+  if (ilevel == 0) initial_integrate(vflag);
   else final_integrate();
 }
 

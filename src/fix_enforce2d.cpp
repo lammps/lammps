@@ -41,15 +41,15 @@ int FixEnforce2D::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::setup()
+void FixEnforce2D::setup(int vflag)
 {
   if (strcmp(update->integrate_style,"verlet") == 0)
-    post_force(1);
+    post_force(vflag);
   else {
     int nlevels_respa = ((Respa *) update->integrate)->nlevels;
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
       ((Respa *) update->integrate)->copy_flevel_f(ilevel);
-      post_force_respa(1,ilevel,0);
+      post_force_respa(vflag,ilevel,0);
       ((Respa *) update->integrate)->copy_f_flevel(ilevel);
     }
   }
@@ -57,9 +57,9 @@ void FixEnforce2D::setup()
 
 /* ---------------------------------------------------------------------- */
 
-void FixEnforce2D::min_setup()
+void FixEnforce2D::min_setup(int vflag)
 {
-  post_force(1);
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

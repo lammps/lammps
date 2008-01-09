@@ -123,7 +123,7 @@ void FixMSD::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMSD::setup()
+void FixMSD::setup(int vflag)
 {
   if (first) end_of_step();
   first = 0;

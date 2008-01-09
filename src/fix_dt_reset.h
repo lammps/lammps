@@ -24,7 +24,7 @@ class FixDtReset : public Fix {
   ~FixDtReset() {}
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void end_of_step();
   double compute_scalar();
   double compute_vector(int);

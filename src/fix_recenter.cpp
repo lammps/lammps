@@ -132,7 +132,7 @@ void FixRecenter::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRecenter::initial_integrate()
+void FixRecenter::initial_integrate(int vflag)
 {
   // target COM
   // bounding box around domain works for both orthogonal and triclinic

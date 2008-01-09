@@ -22,6 +22,8 @@
 #include "angle.h"
 #include "dihedral.h"
 #include "improper.h"
+#include "modify.h"
+#include "fix.h"
 #include "memory.h"
 #include "error.h"
 
@@ -46,10 +48,12 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
     keflag = 1;
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
+    fixflag = 1;
   } else {
     keflag = 0;
     pairflag = 0;
     bondflag = angleflag = dihedralflag = improperflag = 0;
+    fixflag = 0;
     int iarg = 3;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
@@ -58,6 +62,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
+      else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
       else error->all("Illegal compute stress/atom command");
       iarg++;
     }
@@ -148,7 +153,19 @@ void ComputeStressAtom::compute_peratom()
 	stress[i][j] += vatom[i][j];
   }
 
-  // communicate ghost energy between neighbor procs
+  // add in per-atom contributions from relevant fixes
+
+  if (fixflag) {
+    for (int i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->virial_flag) {
+	double **vatom = modify->fix[i]->vatom;
+	for (i = 0; i < nlocal; i++)
+	  for (j = 0; j < 6; j++)
+	    stress[i][j] += vatom[i][j];
+      }
+  }
+
+  // communicate ghost atom virials between neighbor procs
 
   if (force->newton) comm->reverse_comm_compute(this);
 

@@ -23,9 +23,9 @@ class FixNVE : public Fix {
   FixNVE(class LAMMPS *, int, char **);
   int setmask();
   virtual void init();
-  virtual void initial_integrate();
+  virtual void initial_integrate(int);
   virtual void final_integrate();
-  void initial_integrate_respa(int, int);
+  void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int);
   void reset_dt();
 

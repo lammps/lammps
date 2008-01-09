@@ -219,10 +219,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (screen) fprintf(screen,"%d rigid bodies with %d atoms\n",nbody,nsum);
     if (logfile) fprintf(logfile,"%d rigid bodies with %d atoms\n",nbody,nsum);
   }
-
-  // zero fix_rigid virial in case pressure uses it before 1st fix_rigid call
-
-  for (int n = 0; n < 6; n++) virial[n] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -560,9 +556,9 @@ void FixRigid::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::setup()
+void FixRigid::setup(int vflag)
 {
-  int i,ibody;
+  int i,n,ibody;
   
   // vcm = velocity of center-of-mass of each rigid body
   // fcm = force on center-of-mass of each rigid body
@@ -660,21 +656,32 @@ void FixRigid::setup()
     torque[ibody][2] = all[ibody][5];
   }
 
+  // virial setup before call to set_v
+
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
+
   // set velocities from angmom & omega
-  // guestimate virial as 2x the set_v contribution
 
   for (ibody = 0; ibody < nbody; ibody++)
     omega_from_mq(angmom[ibody],ex_space[ibody],ey_space[ibody],
 		  ez_space[ibody],inertia[ibody],omega[ibody]);
+  set_v();
 
-  for (int n = 0; n < 6; n++) virial[n] = 0.0;
-  set_v(1);
-  for (int n = 0; n < 6; n++) virial[n] *= 2.0;
+  // guestimate virial as 2x the set_v contribution
+
+  if (vflag_global)
+    for (n = 0; n < 6; n++) virial[n] *= 2.0;
+  if (vflag_atom) {
+    for (i = 0; i < nlocal; i++)
+      for (n = 0; n < 6; n++)
+	vatom[i][n] *= 2.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::initial_integrate()
+void FixRigid::initial_integrate(int vflag)
 {
   double dtfm;
 
@@ -708,12 +715,15 @@ void FixRigid::initial_integrate()
 	       ex_space[ibody],ey_space[ibody],ez_space[ibody]);
   }
 
+  // virial setup before call to set_xv
+
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
+
   // set coords and velocities if atoms in rigid bodies
   // from quarternion and omega
   
-  int vflag = 0;
-  if (pressure_flag || output->next_thermo == update->ntimestep) vflag = 1;
-  set_xv(vflag);
+  set_xv();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -862,19 +872,18 @@ void FixRigid::final_integrate()
   }
 
   // set velocities from angmom & omega
-  
+  // virial is already setup from initial_integrate
+
   for (ibody = 0; ibody < nbody; ibody++) 
     omega_from_mq(angmom[ibody],ex_space[ibody],ey_space[ibody],
 		  ez_space[ibody],inertia[ibody],omega[ibody]);
 
-  int vflag = 0;
-  if (pressure_flag || output->next_thermo == update->ntimestep) vflag = 1;
-  set_v(vflag);
+  set_v();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::initial_integrate_respa(int ilevel, int flag)
+void FixRigid::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 
@@ -882,7 +891,7 @@ void FixRigid::initial_integrate_respa(int ilevel, int flag)
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   dtq = 0.5 * step_respa[ilevel];
 
-  if (ilevel == 0) initial_integrate();
+  if (ilevel == 0) initial_integrate(vflag);
   else final_integrate();
 }
 
@@ -1220,12 +1229,13 @@ void FixRigid::exyz_from_q(double *q, double *ex, double *ey, double *ez)
    v = Vcm + (W cross (x - Xcm))
 ------------------------------------------------------------------------- */
 
-void FixRigid::set_xv(int vflag)
+void FixRigid::set_xv()
 {
   int ibody;
   int xbox,ybox,zbox;
-  double vold0,vold1,vold2,fc0,fc1,fc2,massone,x0,x1,x2;
+  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
+  double vr[6];
 
   int *image = atom->image;
   double **x = atom->x;
@@ -1246,10 +1256,6 @@ void FixRigid::set_xv(int vflag)
   double **f = atom->f;
   int *type = atom->type;
   
-  // zero out fix_rigid virial
-
-  if (vflag) for (int n = 0; n < 6; n++) virial[n] = 0.0;
-
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
@@ -1258,16 +1264,21 @@ void FixRigid::set_xv(int vflag)
     ybox = (image[i] >> 10 & 1023) - 512;
     zbox = (image[i] >> 20) - 512;
 
-    // save old positions and velocities for virial contribution
+    // save old positions and velocities for virial
 
-    if (vflag) {
-      x0 = x[i][0] + xbox*xprd;
-      x1 = x[i][1] + ybox*yprd;
-      x2 = x[i][2] + zbox*zprd;
-
-      vold0 = v[i][0];
-      vold1 = v[i][1];
-      vold2 = v[i][2];
+    if (evflag) {
+      if (triclinic == 0) {
+	x0 = x[i][0] + xbox*xprd;
+	x1 = x[i][1] + ybox*yprd;
+	x2 = x[i][2] + zbox*zprd;
+      } else {
+	x0 = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
+	x1 = x[i][1] + ybox*yprd + zbox*yz;
+	x2 = x[i][2] + zbox*zprd;
+      }
+      v0 = v[i][0];
+      v1 = v[i][1];
+      v2 = v[i][2];
     }
 
     // x = displacement from center-of-mass, based on body orientation
@@ -1304,20 +1315,26 @@ void FixRigid::set_xv(int vflag)
       x[i][2] += xcm[ibody][2] - zbox*zprd;
     }
 
-    // compute body constraint forces for virial
+    // virial = unwrapped coords dotted into body constraint force
+    // body constraint force = implied force due to v change minus f external
+    // assume f does not include forces internal to body
+    // 1/2 factor b/c final_integrate contributes other half
+    // assume per-atom contribution is due to constraint force on that atom
 
-    if (vflag) {
+    if (evflag) {
       massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - vold0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - vold1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - vold2)/dtf - f[i][2]; 
+      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
+      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
+      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2]; 
 
-      virial[0] += 0.5*fc0*x0;
-      virial[1] += 0.5*fc1*x1;
-      virial[2] += 0.5*fc2*x2;
-      virial[3] += 0.5*fc1*x0;
-      virial[4] += 0.5*fc2*x0;
-      virial[5] += 0.5*fc2*x1;
+      vr[0] = 0.5*x0*fc0;
+      vr[1] = 0.5*x1*fc1;
+      vr[2] = 0.5*x2*fc2;
+      vr[3] = 0.5*x0*fc1;
+      vr[4] = 0.5*x0*fc2;
+      vr[5] = 0.5*x1*fc2;
+
+      v_tally(1,&i,1.0,vr);
     }
   }
 }
@@ -1327,22 +1344,22 @@ void FixRigid::set_xv(int vflag)
    v = Vcm + (W cross (x - Xcm))
 ------------------------------------------------------------------------- */
 
-void FixRigid::set_v(int vflag)
+void FixRigid::set_v()
 {
-  double **v = atom->v;
-  int nlocal = atom->nlocal;
-
   int ibody;
+  int xbox,ybox,zbox;
   double xunwrap,yunwrap,zunwrap,dx,dy,dz;
-  double vold0,vold1,vold2,fc0,fc1,fc2,massone;
+  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
+  double vr[6];
 
   double *mass = atom->mass; 
   double **f = atom->f;
+  double **v = atom->v;
   double **x = atom->x;
   int *type = atom->type;
   int *image = atom->image;
-  int xbox,ybox,zbox;
+  int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -1369,45 +1386,50 @@ void FixRigid::set_v(int vflag)
 
     // save old velocities for virial
 
-    if (vflag) {
-      vold0 = v[i][0];
-      vold1 = v[i][1];
-      vold2 = v[i][2];
+    if (evflag) {
+      v0 = v[i][0];
+      v1 = v[i][1];
+      v2 = v[i][2];
     }
 
     v[i][0] = omega[ibody][1]*dz - omega[ibody][2]*dy + vcm[ibody][0];
     v[i][1] = omega[ibody][2]*dx - omega[ibody][0]*dz + vcm[ibody][1];
     v[i][2] = omega[ibody][0]*dy - omega[ibody][1]*dx + vcm[ibody][2];
 
-    // compute body constraint forces for virial
-    // use unwrapped atom positions
+    // virial = unwrapped coords dotted into body constraint force
+    // body constraint force = implied force due to v change minus f external
+    // assume f does not include forces internal to body
+    // 1/2 factor b/c initial_integrate contributes other half
+    // assume per-atom contribution is due to constraint force on that atom
 
-    if (vflag) {
+    if (evflag) {
       massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - vold0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - vold1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - vold2)/dtf - f[i][2]; 
+      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
+      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
+      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2]; 
 
       xbox = (image[i] & 1023) - 512;
       ybox = (image[i] >> 10 & 1023) - 512;
       zbox = (image[i] >> 20) - 512;
 
       if (triclinic == 0) {
-	xunwrap = x[i][0] + xbox*xprd;
-	yunwrap = x[i][1] + ybox*yprd;
-	zunwrap = x[i][2] + zbox*zprd;
+	x0 = x[i][0] + xbox*xprd;
+	x1 = x[i][1] + ybox*yprd;
+	x2 = x[i][2] + zbox*zprd;
       } else {
-	xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-	yunwrap = x[i][1] + ybox*yprd + zbox*yz;
-	zunwrap = x[i][2] + zbox*zprd;
+	x0 = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
+	x1 = x[i][1] + ybox*yprd + zbox*yz;
+	x2 = x[i][2] + zbox*zprd;
       }
 
-      virial[0] += 0.5*fc0*xunwrap;
-      virial[1] += 0.5*fc1*yunwrap;
-      virial[2] += 0.5*fc2*zunwrap;
-      virial[3] += 0.5*fc1*xunwrap;
-      virial[4] += 0.5*fc2*xunwrap;
-      virial[5] += 0.5*fc2*yunwrap;
+      vr[0] = 0.5*x0*fc0;
+      vr[1] = 0.5*x1*fc1;
+      vr[2] = 0.5*x2*fc2;
+      vr[3] = 0.5*x0*fc1;
+      vr[4] = 0.5*x0*fc2;
+      vr[5] = 0.5*x1*fc2;
+
+      v_tally(1,&i,1.0,vr);
     }
   }
 }
@@ -1421,6 +1443,7 @@ double FixRigid::memory_usage()
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
   bytes += nmax*3 * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
   return bytes;
 } 
 

@@ -29,7 +29,7 @@ class ComputeStressAtom : public Compute {
   double memory_usage();
 
  private:
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
+  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag,fixflag;
   int nmax;
   double **stress;
 };

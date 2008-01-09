@@ -51,7 +51,7 @@ void FixNVENoforce::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVENoforce::initial_integrate()
+void FixNVENoforce::initial_integrate(int vflag)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -69,13 +69,13 @@ void FixNVENoforce::initial_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVENoforce::initial_integrate_respa(int ilevel, int flag)
+void FixNVENoforce::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 
   dtv = step_respa[ilevel];
 
-  if (ilevel == 0) initial_integrate();
+  if (ilevel == 0) initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

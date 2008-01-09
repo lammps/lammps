@@ -120,7 +120,7 @@ void FixDtReset::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixDtReset::setup()
+void FixDtReset::setup(int vflag)
 {
   end_of_step();
 }

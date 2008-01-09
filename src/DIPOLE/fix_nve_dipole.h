@@ -24,9 +24,9 @@ class FixNVEDipole : public Fix {
   ~FixNVEDipole();
   int setmask();
   void init();
-  void initial_integrate();
+  void initial_integrate(int);
   void final_integrate();
-  void initial_integrate_respa(int,int);
+  void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int);
   void reset_dt();
 

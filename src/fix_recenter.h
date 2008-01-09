@@ -23,7 +23,7 @@ class FixRecenter : public Fix {
   FixRecenter(class LAMMPS *, int, char **);
   int setmask();
   void init();
-  void initial_integrate();
+  void initial_integrate(int);
 
  private:
   int group2bit,scaleflag;

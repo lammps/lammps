@@ -25,7 +25,7 @@ class FixMSD : public Fix {
   ~FixMSD();
   int setmask();
   void init();
-  void setup();
+  void setup(int);
   void end_of_step();
 
   double memory_usage();

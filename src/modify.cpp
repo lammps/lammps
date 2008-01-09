@@ -171,22 +171,22 @@ void Modify::init()
    setup for run, calls setup() of all fixes
 ------------------------------------------------------------------------- */
 
-void Modify::setup()
+void Modify::setup(int vflag)
 {
   if (update->whichflag == 0)
-    for (int i = 0; i < nfix; i++) fix[i]->setup();
+    for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else
-    for (int i = 0; i < nfix; i++) fix[i]->min_setup();
+    for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
 }
 
 /* ----------------------------------------------------------------------
    1st half of integrate call only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::initial_integrate()
+void Modify::initial_integrate(int vflag)
 {
   for (int i = 0; i < n_initial_integrate; i++)
-    fix[list_initial_integrate[i]]->initial_integrate();
+    fix[list_initial_integrate[i]]->initial_integrate(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -259,10 +259,11 @@ double Modify::thermo_energy()
    1st half of rRESPA integrate call only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::initial_integrate_respa(int ilevel, int flag)
+void Modify::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   for (int i = 0; i < n_initial_integrate_respa; i++)
-    fix[list_initial_integrate_respa[i]]->initial_integrate_respa(ilevel,flag);
+    fix[list_initial_integrate_respa[i]]->
+      initial_integrate_respa(vflag,ilevel,flag);
 }
 
 /* ----------------------------------------------------------------------

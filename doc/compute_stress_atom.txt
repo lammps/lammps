@@ -93,10 +93,10 @@ thermo_style	custom step temp etotal press v_press :pre
 
 IMPORTANT NOTE: The per-atom stress does NOT include contributions due
 to long-range Coulombic interactions (via the
-"kspace_style"_kspace_style.html command).  We're not sure this is
-even possible to compute.  There are also a few pair styles for
-manybody potentials that are not yet instrumented to yield per-atom
-stress.  See the Restrictions below.
+"kspace_style"_kspace_style.html command).  It's not clear this
+contribution can easily be computed.  There are also a few pair styles
+for manybody potentials that are not yet instrumented to yield
+per-atom stress.  See the Restrictions below.
 
 [Output info:]
 

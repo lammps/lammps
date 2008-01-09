@@ -15,7 +15,7 @@ compute ID group-ID stress/atom keyword ... :pre
 ID, group-ID are documented in "compute"_compute.html command
 stress/atom = style name of this compute command
 zero or more keywords may be appended
-keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} :ul
+keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {fix} :ul
 
 [Examples:]
 
@@ -47,14 +47,20 @@ second term is a pairwise energy contribution where {n} loops over the
 atoms in the pairwise interaction, and {F1} and {F2} are the forces on
 the 2 atoms resulting from the pairwise interaction.  The third term
 is a bond contribution of similar form for the {Nb} bonds which atom
-{I} is part of.  The remaining terms are for the {Na} angle, {Nd}
+{I} is part of.  There are similar terms for the {Na} angle, {Nd}
 dihedral, and {Ni} improper interactions atom {I} is part of.
+Finally, there is a term for the {Nf} "fixes"_fix.html that apply
+internal constraint forces to atom {I}.  Currently, only the "fix
+shake"_fix_shake.html and "fix rigid"_fix_rigid.html commands
+contribute to this term.
 
 As the coefficients in the formula imply, a virial contribution
 produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
 atoms in a Tersoff 3-body interaction) is assigned in equal portions
 to each atom in the set.  E.g. 1/4 of the dihedral virial to each of
-the 4 atoms.
+the 4 atoms, or 1/3 of the fix virial due to SHAKE constraints applied
+to atoms in a a water molecule via the "fix shake"_fix_shake.html
+command.
 
 If no extra keywords are listed, all of the terms in this formula are
 included in the per-atom stress tensor.  If any extra keywords are
@@ -77,22 +83,20 @@ the system and the sum is divided by 3V, where V is the volume of the
 system, the result should be -P, where P is the total pressure of the
 system.
 
-These lines in an input script should yield that result (assuming
-there is no fix or long-range contribution to the stress).  I.e. the
+These lines in an input script should yield that result.  I.e. the
 last 2 columns of thermo output will be the same:
 
 compute		peratom all stress/atom
-compute		p all sum peratom[1] peratom[2] peratom[3]
+compute		p all sum c_peratom[1] c_peratom[2] c_peratom[3]
 variable	press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
 thermo_style	custom step temp etotal press v_press :pre
 
 IMPORTANT NOTE: The per-atom stress does NOT include contributions due
-to fixes (e.g. "SHAKE"_fix_shake.html) or long-range Coulombic
-interactions (via the "kspace_style"_kspace_style.html command).  The
-former needs to be added to LAMMPS.  We're not sure if the latter is
-possible to compute.  There are also a few pair styles for manybody
-potentials that are not yet instrumented to yield per-atom stress.
-See the Restrictions below.
+to long-range Coulombic interactions (via the
+"kspace_style"_kspace_style.html command).  We're not sure this is
+even possible to compute.  There are also a few pair styles for
+manybody potentials that are not yet instrumented to yield per-atom
+stress.  See the Restrictions below.
 
 [Output info:]
 

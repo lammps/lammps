@@ -72,7 +72,8 @@ in the bond are in the group specified with the SHAKE fix.
 
 The degrees-of-freedom removed by SHAKE bonds and angles are accounted
 for in temperature and pressure computations.  Similarly, the SHAKE
-contribution to the pressure virial is also accounted for.
+contribution to the pressure of the system (virial) is also accounted
+for.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

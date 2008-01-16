@@ -91,8 +91,8 @@ system.
 last 2 columns of thermo output will be the same:
 </P>
 <PRE>compute		peratom all stress/atom
-compute		p all sum c_peratom<B>1</B> c_peratom<B>2</B> c_peratom<B>3</B>
-variable	press equal -(c_p<B>1</B>+c_p<B>2</B>+c_p<B>3</B>)/(3*vol)
+compute		p all sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable	press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
 thermo_style	custom step temp etotal press v_press 
 </PRE>
 <P>IMPORTANT NOTE: The per-atom stress does NOT include contributions due

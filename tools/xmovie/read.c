@@ -703,14 +703,16 @@ PRIVATE int get_float(char **s, float *f)
 PRIVATE void NewData(void)
 {
 	int	i;
-	DATA	*last_data;
+	DATA	*last_data,*olddataptr;
 
+	olddataptr = Common.dataptr;
 	last_data = current_data;
 
 	if (Common.ndata >= Common.maxdata) {	/* need to realloc */
 		Common.maxdata += 256;
-		Common.dataptr = (DATA *) XtRealloc((char *) Common.dataptr,
-			Common.maxdata * sizeof(DATA));
+		Common.dataptr = (DATA *)
+		  XtMalloc(Common.maxdata * sizeof(DATA));
+		memcpy(Common.dataptr,olddataptr,Common.ndata*sizeof(DATA));
 	}
 
 	current_data = Common.dataptr + Common.ndata;
@@ -764,6 +766,8 @@ PRIVATE void NewData(void)
 		current_data->bonds = NULL;
 		current_data->maxbonds = 0;
 	}
+
+	if (olddataptr != Common.dataptr) XtFree((char *) olddataptr);
 }
 
 PRIVATE void add_point(int index, int type, float x, float y, float z)

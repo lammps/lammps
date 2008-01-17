@@ -94,6 +94,10 @@ choice affects not only the indenter's physical geometry, but also its
 velocity and force constant since they are defined in terms of
 distance as well.
 </P>
+<P>IMPORTANT NOTE: You should insure the indenter's extent does not
+overlap a periodic boundary, either for a fixed indenter, or one that
+moves.  No check for such overlaps is performed by the code.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

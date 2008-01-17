@@ -22,20 +22,22 @@ extern "C" {
   void meam_setup_param_(int *, double *, int *, int *, int *);
   void meam_setup_done_(double *);
 
-  void meam_dens_init_(int *, int *, int *, double *, int *, int *, int *,
+  void meam_dens_init_(int *, int *, int *, int *, int *,
 		       double *, int *, int *, int *, int *,
 		       double *, double *, double *, double *,
 		       double *, double *,
 		       double *, double *, double *, double *, int *);
   
-  void meam_dens_final_(int *, int *, int *, double *, int *, int *, int *,
+  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
+			int *, int *, int *,
 			double *, double *, double *, double *, 
 			double *, double *,
 			double *, double *, double *, double *, 
 			double *, double *, 
 			double *, double *, double *, double *, int *);
  
-  void meam_force_(int *, int *, int *, double *, int *, int *, int *, 
+  void meam_force_(int *, int *, int *, int *, int *, int *,
+		   double *, double *, int *, int *, int *, 
 		   double *, int *, int *, int *, int *, double *, double *,
 		   double *, double *, double *, double *, double *, double *,
 		   double *, double *, double *, double *, double *, double *,
@@ -71,7 +73,6 @@ class PairMEAM : public Pair {
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
   double *mass;                 // mass of each element
-  int reverse_flag;             // which pass of reverse comm is being done
 
   int *map;                     // mapping from atom types to elements
   int *fmap;                    // Fortran version of map array for MEAM lib
@@ -83,7 +84,6 @@ class PairMEAM : public Pair {
   double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
   double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
   double **arho1,**arho2,**arho3,**arho3b,**t_ave;
-  double ***strssa;
 
   void allocate();
   void read_files(char *, char *);

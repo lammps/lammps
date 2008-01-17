@@ -54,7 +54,6 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   rho = rho0 = rho1 = rho2 = rho3 = frhop = NULL;
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = NULL;
   arho1 = arho2 = arho3 = arho3b = t_ave = NULL;
-  strssa = NULL;
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = NULL;
@@ -96,8 +95,6 @@ PairMEAM::~PairMEAM()
   memory->destroy_2d_double_array(arho3b);
   memory->destroy_2d_double_array(t_ave);
 
-  memory->destroy_3d_double_array(strssa);
-
   memory->sfree(scrfcn);
   memory->sfree(dscrfcn);
   memory->sfree(fcpair);
@@ -127,11 +124,6 @@ void PairMEAM::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  // error check (for now)
-
-  if (eflag_atom || vflag_atom)
-    error->all("Pair style meam does not yet support peratom energy/virial");
-
   int newton_pair = force->newton_pair;
 
   // grow local arrays if necessary
@@ -153,7 +145,6 @@ void PairMEAM::compute(int eflag, int vflag)
     memory->destroy_2d_double_array(arho3);
     memory->destroy_2d_double_array(arho3b);
     memory->destroy_2d_double_array(t_ave);
-    memory->destroy_3d_double_array(strssa);
 
     nmax = atom->nmax;
 
@@ -173,7 +164,6 @@ void PairMEAM::compute(int eflag, int vflag)
     arho3 = memory->create_2d_double_array(nmax,10,"pair:arho3");
     arho3b = memory->create_2d_double_array(nmax,3,"pair:arho3b");
     t_ave = memory->create_2d_double_array(nmax,3,"pair:t_ave");
-    strssa = memory->create_3d_double_array(nmax,3,3,"pair:strssa");
   }
 
   // neighbor list info
@@ -238,7 +228,7 @@ void PairMEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_dens_init_(&ifort,&nmax,&eflag,&evdwl,&ntype,type,fmap,&x[0][0],
+    meam_dens_init_(&ifort,&nmax,&ntype,type,fmap,&x[0][0],
 		    &numneigh_half[i],firstneigh_half[i],
 		    &numneigh_full[i],firstneigh_full[i],
 		    &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
@@ -252,10 +242,10 @@ void PairMEAM::compute(int eflag, int vflag)
     offset += numneigh_half[i];
   }
 
-  reverse_flag = 0;
   comm->reverse_comm_pair(this);
 
-  meam_dens_final_(&nlocal,&nmax,&eflag,&evdwl,&ntype,type,fmap,
+  meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
+		   &eng_vdwl,eatom,&ntype,type,fmap,
 		   &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
 		   &arho3b[0][0],&t_ave[0][0],gamma,dgamma1,
 		   dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
@@ -269,16 +259,24 @@ void PairMEAM::compute(int eflag, int vflag)
 
   offset = 0;
 
+  // vptr is first value in vatom if it will be used by meam_force()
+  // else vatom may not exist, so pass dummy ptr
+
+  double *vptr;
+  if (vflag_atom) vptr = &vatom[0][0];
+  else vptr = &cutmax;
+
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     ifort = i+1;
-    meam_force_(&ifort,&nmax,&eflag,&evdwl,&ntype,type,fmap,&x[0][0],
+    meam_force_(&ifort,&nmax,&eflag_either,&eflag_global,&eflag_atom,
+		&vflag_atom,&eng_vdwl,eatom,&ntype,type,fmap,&x[0][0],
 		&numneigh_half[i],firstneigh_half[i],
 		&numneigh_full[i],firstneigh_full[i],
 		&scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 		dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
 		&arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
-		&t_ave[0][0],&f[0][0],&strssa[0][0][0],&errorflag);
+		&t_ave[0][0],&f[0][0],vptr,&errorflag);
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
@@ -287,17 +285,11 @@ void PairMEAM::compute(int eflag, int vflag)
     offset += numneigh_half[i];
   }
 
-  reverse_flag = 1;
-  comm->reverse_comm_pair(this);
-
   // change neighbor list indices back to C indexing
 
   neigh_f2c(inum_half,ilist_half,numneigh_half,firstneigh_half);
   neigh_f2c(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
-  // just sum global energy (for now)
-
-  if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
   if (vflag_fdotr) virial_compute();
 }
 
@@ -811,45 +803,28 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  if (reverse_flag == 0) {
-    for (i = first; i < last; i++) {
-      buf[m++] = rho0[i];
-      buf[m++] = arho2b[i];
-      buf[m++] = arho1[i][0];
-      buf[m++] = arho1[i][1];
-      buf[m++] = arho1[i][2];
-      buf[m++] = arho2[i][0];
-      buf[m++] = arho2[i][1];
-      buf[m++] = arho2[i][2];
-      buf[m++] = arho2[i][3];
-      buf[m++] = arho2[i][4];
-      buf[m++] = arho2[i][5];
-      for (k = 0; k < 10; k++) buf[m++] = arho3[i][k];
-      buf[m++] = arho3b[i][0];
-      buf[m++] = arho3b[i][1];
-      buf[m++] = arho3b[i][2];
-      buf[m++] = t_ave[i][0];
-      buf[m++] = t_ave[i][1];
-      buf[m++] = t_ave[i][2];
-    }
-    size = 27;
-
-  } else {
-    for (i = first; i < last; i++) {
-      buf[m++] = strssa[i][0][0];
-      buf[m++] = strssa[i][0][1];
-      buf[m++] = strssa[i][0][2];
-      buf[m++] = strssa[i][1][0];
-      buf[m++] = strssa[i][1][1];
-      buf[m++] = strssa[i][1][2];
-      buf[m++] = strssa[i][2][0];
-      buf[m++] = strssa[i][2][1];
-      buf[m++] = strssa[i][2][2];
-    }
-    size = 9;
+  for (i = first; i < last; i++) {
+    buf[m++] = rho0[i];
+    buf[m++] = arho2b[i];
+    buf[m++] = arho1[i][0];
+    buf[m++] = arho1[i][1];
+    buf[m++] = arho1[i][2];
+    buf[m++] = arho2[i][0];
+    buf[m++] = arho2[i][1];
+    buf[m++] = arho2[i][2];
+    buf[m++] = arho2[i][3];
+    buf[m++] = arho2[i][4];
+    buf[m++] = arho2[i][5];
+    for (k = 0; k < 10; k++) buf[m++] = arho3[i][k];
+    buf[m++] = arho3b[i][0];
+    buf[m++] = arho3b[i][1];
+    buf[m++] = arho3b[i][2];
+    buf[m++] = t_ave[i][0];
+    buf[m++] = t_ave[i][1];
+    buf[m++] = t_ave[i][2];
   }
 
-  return size;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -859,42 +834,26 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
   int i,j,k,m;
 
   m = 0;
-  if (reverse_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      rho0[j] += buf[m++];
-      arho2b[j] += buf[m++];
-      arho1[j][0] += buf[m++];
-      arho1[j][1] += buf[m++];
-      arho1[j][2] += buf[m++];
-      arho2[j][0] += buf[m++];
-      arho2[j][1] += buf[m++];
-      arho2[j][2] += buf[m++];
-      arho2[j][3] += buf[m++];
-      arho2[j][4] += buf[m++];
-      arho2[j][5] += buf[m++];
-      for (k = 0; k < 10; k++) arho3[j][k] += buf[m++];
-      arho3b[j][0] += buf[m++];
-      arho3b[j][1] += buf[m++];
-      arho3b[j][2] += buf[m++];
-      t_ave[j][0] += buf[m++];
-      t_ave[j][1] += buf[m++];
-      t_ave[j][2] += buf[m++];
-    }
-
-  } else {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      strssa[j][0][0] += buf[m++];
-      strssa[j][0][1] += buf[m++];
-      strssa[j][0][2] += buf[m++];
-      strssa[j][1][0] += buf[m++];
-      strssa[j][1][1] += buf[m++];
-      strssa[j][1][2] += buf[m++];
-      strssa[j][2][0] += buf[m++];
-      strssa[j][2][1] += buf[m++];
-      strssa[j][2][2] += buf[m++];
-    }
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    rho0[j] += buf[m++];
+    arho2b[j] += buf[m++];
+    arho1[j][0] += buf[m++];
+    arho1[j][1] += buf[m++];
+    arho1[j][2] += buf[m++];
+    arho2[j][0] += buf[m++];
+    arho2[j][1] += buf[m++];
+    arho2[j][2] += buf[m++];
+    arho2[j][3] += buf[m++];
+    arho2[j][4] += buf[m++];
+    arho2[j][5] += buf[m++];
+    for (k = 0; k < 10; k++) arho3[j][k] += buf[m++];
+    arho3b[j][0] += buf[m++];
+    arho3b[j][1] += buf[m++];
+    arho3b[j][2] += buf[m++];
+    t_ave[j][0] += buf[m++];
+    t_ave[j][1] += buf[m++];
+    t_ave[j][2] += buf[m++];
   }
 }
 
@@ -906,7 +865,6 @@ double PairMEAM::memory_usage()
 {
   double bytes = 11 * nmax * sizeof(double);
   bytes += (3 + 6 + 10 + 3 + 3) * nmax * sizeof(double);
-  bytes += 3*3 * nmax * sizeof(double);
   bytes += 3 * maxneigh * sizeof(double);
   return bytes;
 }

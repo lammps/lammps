@@ -296,14 +296,6 @@ void FixRigid::init()
 	error->all("Rigid fix must come before NPT/NPH fix");
   }
 
-  // compute rigid contribution to virial every step if fix NPT,NPH exists
-
-  pressure_flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) pressure_flag = 1;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) pressure_flag = 1;
-  }
-
   // timestep info
 
   dtv = update->dt;
@@ -720,7 +712,7 @@ void FixRigid::initial_integrate(int vflag)
   if (vflag) v_setup(vflag);
   else evflag = 0;
 
-  // set coords and velocities if atoms in rigid bodies
+  // set coords and velocities of atoms in rigid bodies
   // from quarternion and omega
   
   set_xv();
@@ -1240,6 +1232,9 @@ void FixRigid::set_xv()
   int *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
+  double **f = atom->f;
+  double *mass = atom->mass; 
+  int *type = atom->type;
   int nlocal = atom->nlocal;
   
   double xprd = domain->xprd;
@@ -1251,10 +1246,8 @@ void FixRigid::set_xv()
     xz = domain->xz;
     yz = domain->yz;
   }
-  
-  double *mass = atom->mass; 
-  double **f = atom->f;
-  int *type = atom->type;
+
+  // set x and v of each atom
   
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
@@ -1340,7 +1333,7 @@ void FixRigid::set_xv()
 }
 
 /* ----------------------------------------------------------------------
-   set space-frame velocity of each atom in rigid body
+   set space-frame velocity of each atom in a rigid body
    v = Vcm + (W cross (x - Xcm))
 ------------------------------------------------------------------------- */
 
@@ -1348,7 +1341,7 @@ void FixRigid::set_v()
 {
   int ibody;
   int xbox,ybox,zbox;
-  double xunwrap,yunwrap,zunwrap,dx,dy,dz;
+  double dx,dy,dz;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
   double vr[6];
@@ -1369,6 +1362,8 @@ void FixRigid::set_v()
     xz = domain->xz;
     yz = domain->yz;
   }
+
+  // set v of each atom
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;

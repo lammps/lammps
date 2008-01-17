@@ -1094,7 +1094,7 @@ double Variable::eval_tree(Tree *tree, int i)
     return exp(eval_tree(tree->left,i));
   if (tree->type == LN) {
     double arg = eval_tree(tree->left,i);
-    if (arg <= 0.0) error->all("Log of negative/zero in variable formula");
+    if (arg <= 0.0) error->all("Log of zero/negative in variable formula");
     return log(arg);
   }
 

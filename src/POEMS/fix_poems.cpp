@@ -57,6 +57,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   rigid_flag = 1;
   virial_flag = 1;
+
   MPI_Comm_rank(world,&me);
 
   // perform initial allocation of atom-based arrays
@@ -254,10 +255,6 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
       fprintf(logfile,"%d clusters, %d bodies, %d joints, %d atoms\n",
 	      ncluster,nbody,njoint,nsum);
   }
-
-  // zero fix_poems virial in case pressure uses it before 1st fix_poems call
-
-  for (int n = 0; n < 6; n++) virial[n] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -344,14 +341,6 @@ void FixPOEMS::init()
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"poems") == 0)
 	error->all("POEMS fix must come before NPT/NPH fix");
-  }
-
-  // compute poems contribution to virial every step if fix NPT,NPH exists
-
-  pressure_flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) pressure_flag = 1;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) pressure_flag = 1;
   }
 
   // timestep info
@@ -597,9 +586,9 @@ void FixPOEMS::init()
    make setup call to POEMS
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::setup()
+void FixPOEMS::setup(int vflag)
 {
-  int i,j,ibody;
+  int i,j,n,ibody;
 
   // vcm = velocity of center-of-mass of each rigid body
   // angmom = angular momentum of each rigid body
@@ -654,29 +643,31 @@ void FixPOEMS::setup()
     angmom[ibody][2] = all[ibody][5];  
   }
 
-  // set omega from angmom
+  // virial setup before call to set_v
+
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
+
+  // set velocities from angmom & omega
 
   for (ibody = 0; ibody < nbody; ibody++)
     omega_from_mq(angmom[ibody],ex_space[ibody],ey_space[ibody],
 		  ez_space[ibody],inertia[ibody],omega[ibody]);
+  set_v();
 
-  // reset velocities from omega
   // guestimate virial as 2x the set_v contribution
-  //   since post_force doesn't compute virial
 
-  for (int n = 0; n < 6; n++) virial[n] = 0.0;
-  set_v(1);
-  for (int n = 0; n < 6; n++) virial[n] *= 2.0;
-
-  double ke = 0.0;
-  for (i = 0; i < nlocal; i++)
-    if (natom2body[i])
-      ke += mass[atom->type[i]] *
-	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+  if (vflag_global)
+    for (n = 0; n < 6; n++) virial[n] *= 2.0;
+  if (vflag_atom) {
+    for (i = 0; i < nlocal; i++)
+      for (n = 0; n < 6; n++)
+	vatom[i][n] *= 2.0;
+  }
 
   // use post_force() to compute initial fcm & torque
 
-  post_force(1);
+  post_force(vflag);
 
   // setup for POEMS
 
@@ -691,17 +682,20 @@ void FixPOEMS::setup()
    set x,v of body atoms accordingly
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::initial_integrate()
+void FixPOEMS::initial_integrate(int vflag)
 {
   // perform POEMS integration
 
   poems->LobattoOne(xcm,vcm,omega,torque,fcm,ex_space,ey_space,ez_space);
 
-  // set coords and velocities of atoms in rigid bodies
+  // virial setup before call to set_xv
 
-  int vflag = 0;
-  if (pressure_flag || output->next_thermo == update->ntimestep) vflag = 1;
-  set_xv(vflag);
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
+
+  // set coords and velocities of atoms in rigid bodies
+  
+  set_xv();
 }
 
 /* ----------------------------------------------------------------------
@@ -712,6 +706,8 @@ void FixPOEMS::initial_integrate()
 void FixPOEMS::post_force(int vflag)
 {
   int i,j,ibody;
+  int xbox,ybox,zbox;
+  double dx,dy,dz;
 
   int *image = atom->image;
   double **x = atom->x;
@@ -722,8 +718,6 @@ void FixPOEMS::post_force(int vflag)
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   
-  int xbox,ybox,zbox;
-  double dx,dy,dz;
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
   
@@ -772,15 +766,14 @@ void FixPOEMS::final_integrate()
   poems->LobattoTwo(vcm,omega,torque,fcm);
 
   // set velocities of atoms in rigid bodies
+  // virial is already setup from initial_integrate
 
-  int vflag = 0;
-  if (pressure_flag || output->next_thermo == update->ntimestep) vflag = 1;
-  set_v(vflag);
+  set_v();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::initial_integrate_respa(int ilevel, int flag)
+void FixPOEMS::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
   if (flag) return;             // only used by NPT,NPH
 
@@ -788,7 +781,7 @@ void FixPOEMS::initial_integrate_respa(int ilevel, int flag)
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   dthalf = 0.5 * step_respa[ilevel];
 
-  if (ilevel == 0) initial_integrate();
+  if (ilevel == 0) initial_integrate(vflag);
   else final_integrate();
 }
 
@@ -1344,30 +1337,26 @@ void FixPOEMS::omega_from_mq(double *m, double *ex, double *ey, double *ez,
    v = Vcm + (W cross (x - Xcm))
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::set_xv(int vflag)
+void FixPOEMS::set_xv()
 {
+  int ibody;
+  int xbox,ybox,zbox;
+  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
+  double vr[6];
+
   int *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
+  double **f = atom->f;
+  double *mass = atom->mass; 
+  int *type = atom->type;
   int nlocal = atom->nlocal;
   
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   
-  int ibody;
-  int xbox,ybox,zbox;
-
-  double vold0,vold1,vold2,fc0,fc1,fc2,massone,x0,x1,x2;
-  double *mass = atom->mass; 
-  double **f = atom->f;
-  int *type = atom->type;
-  
-  // zero out fix_poems virial
-
-  if (vflag) for (int n = 0; n < 6; n++) virial[n] = 0.0;
-
-  // set x and v
+  // set x and v of each atom
   // only set joint atoms for 1st rigid body they belong to
 
   for (int i = 0; i < nlocal; i++) {
@@ -1378,17 +1367,20 @@ void FixPOEMS::set_xv(int vflag)
     ybox = (image[i] >> 10 & 1023) - 512;
     zbox = (image[i] >> 20) - 512;
 
-    // save old positions and velocities for virial contribution
+    // save old positions and velocities for virial
 
-    if (vflag) {
+    if (evflag) {
       x0 = x[i][0] + xbox*xprd;
       x1 = x[i][1] + ybox*yprd;
       x2 = x[i][2] + zbox*zprd;
 
-      vold0 = v[i][0];
-      vold1 = v[i][1];
-      vold2 = v[i][2];
+      v0 = v[i][0];
+      v1 = v[i][1];
+      v2 = v[i][2];
     }
+
+    // x = displacement from center-of-mass, based on body orientation
+    // v = vcm + omega around center-of-mass
 
     x[i][0] = ex_space[ibody][0]*displace[i][0] +
       ey_space[ibody][0]*displace[i][1] + 
@@ -1407,24 +1399,33 @@ void FixPOEMS::set_xv(int vflag)
     v[i][2] = omega[ibody][0]*x[i][1] - omega[ibody][1]*x[i][0] +
       vcm[ibody][2];
     
+    // add center of mass to displacement
+    // map back into periodic box via xbox,ybox,zbox
+
     x[i][0] += xcm[ibody][0] - xbox*xprd;
     x[i][1] += xcm[ibody][1] - ybox*yprd;
     x[i][2] += xcm[ibody][2] - zbox*zprd;
 
-    // compute body constraint forces for virial
+    // virial = unwrapped coords dotted into body constraint force
+    // body constraint force = implied force due to v change minus f external
+    // assume f does not include forces internal to body
+    // 1/2 factor b/c final_integrate contributes other half
+    // assume per-atom contribution is due to constraint force on that atom
 
-    if (vflag) {
+    if (evflag) {
       massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - vold0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - vold1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - vold2)/dtf - f[i][2]; 
+      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
+      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
+      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2]; 
 
-      virial[0] += 0.5*fc0*x0;
-      virial[1] += 0.5*fc1*x1;
-      virial[2] += 0.5*fc2*x2;
-      virial[3] += 0.5*fc1*x0;
-      virial[4] += 0.5*fc2*x0;
-      virial[5] += 0.5*fc2*x1;
+      vr[0] = 0.5*fc0*x0;
+      vr[1] = 0.5*fc1*x1;
+      vr[2] = 0.5*fc2*x2;
+      vr[3] = 0.5*fc1*x0;
+      vr[4] = 0.5*fc2*x0;
+      vr[5] = 0.5*fc2*x1;
+
+      v_tally(1,&i,1.0,vr);
     }
   }
 }
@@ -1434,26 +1435,27 @@ void FixPOEMS::set_xv(int vflag)
    v = Vcm + (W cross (x - Xcm))
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::set_v(int vflag)
+void FixPOEMS::set_v()
 {
-  double **v = atom->v;
-  int nlocal = atom->nlocal;
-
   int ibody;
+  int xbox,ybox,zbox;
   double dx,dy,dz;
+  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
+  double vr[6];
 
-  double vold0,vold1,vold2,fc0,fc1,fc2,massone,x0,x1,x2;
   double *mass = atom->mass; 
   double **f = atom->f;
   double **x = atom->x;
+  double **v = atom->v;
   int *type = atom->type;
   int *image = atom->image;
+  int nlocal = atom->nlocal;
+
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  int xbox,ybox,zbox;
 
-  // set v
+  // set v of each atom
   // only set joint atoms for 1st rigid body they belong to
 
   for (int i = 0; i < nlocal; i++) {
@@ -1472,24 +1474,27 @@ void FixPOEMS::set_v(int vflag)
 
     // save old velocities for virial
 
-    if (vflag) {
-      vold0 = v[i][0];
-      vold1 = v[i][1];
-      vold2 = v[i][2];
+    if (evflag) {
+      v0 = v[i][0];
+      v1 = v[i][1];
+      v2 = v[i][2];
     }
 
     v[i][0] = omega[ibody][1]*dz - omega[ibody][2]*dy + vcm[ibody][0];
     v[i][1] = omega[ibody][2]*dx - omega[ibody][0]*dz + vcm[ibody][1];
     v[i][2] = omega[ibody][0]*dy - omega[ibody][1]*dx + vcm[ibody][2];
 
-    // compute body constraint forces for virial
-    // use unwrapped atom positions
+    // virial = unwrapped coords dotted into body constraint force
+    // body constraint force = implied force due to v change minus f external
+    // assume f does not include forces internal to body
+    // 1/2 factor b/c initial_integrate contributes other half
+    // assume per-atom contribution is due to constraint force on that atom
 
-    if (vflag) {
+    if (evflag) {
       massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - vold0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - vold1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - vold2)/dtf - f[i][2]; 
+      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
+      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
+      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2]; 
 
       xbox = (image[i] & 1023) - 512;
       ybox = (image[i] >> 10 & 1023) - 512;
@@ -1499,12 +1504,14 @@ void FixPOEMS::set_v(int vflag)
       x1 = x[i][1] + ybox*yprd;
       x2 = x[i][2] + zbox*zprd;
 
-      virial[0] += 0.5*fc0*x0;
-      virial[1] += 0.5*fc1*x1;
-      virial[2] += 0.5*fc2*x2;
-      virial[3] += 0.5*fc1*x0;
-      virial[4] += 0.5*fc2*x0;
-      virial[5] += 0.5*fc2*x1;
+      vr[0] = 0.5*fc0*x0;
+      vr[1] = 0.5*fc1*x1;
+      vr[2] = 0.5*fc2*x2;
+      vr[3] = 0.5*fc1*x0;
+      vr[4] = 0.5*fc2*x0;
+      vr[5] = 0.5*fc2*x1;
+
+      v_tally(1,&i,1.0,vr);
     }
   }
 }

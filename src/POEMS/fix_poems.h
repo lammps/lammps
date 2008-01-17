@@ -24,11 +24,11 @@ class FixPOEMS : public Fix  {
   ~FixPOEMS();
   int setmask();
   void init();
-  void setup();
-  void initial_integrate();
+  void setup(int);
+  void initial_integrate(int);
   void post_force(int);
   void final_integrate();
-  void initial_integrate_respa(int, int);
+  void initial_integrate_respa(int, int, int);
   void post_force_respa(int, int, int);
   void final_integrate_respa(int);
 
@@ -48,7 +48,6 @@ class FixPOEMS : public Fix  {
   double dtv,dtf,dthalf;
   double *step_respa;
   int nlevels_respa;
-  int pressure_flag;
   double total_ke;
 
   // atom assignment to rigid bodies
@@ -100,8 +99,8 @@ class FixPOEMS : public Fix  {
   void rotate(double **, int, int, int, int, double, double);
   void omega_from_mq(double *, double *, double *, double *,
 		     double *, double *);
-  void set_v(int);
-  void set_xv(int);
+  void set_v();
+  void set_xv();
 };
 
 }

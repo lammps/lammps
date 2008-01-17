@@ -117,7 +117,7 @@ void ComputeStressAtom::compute_peratom()
       stress[i][j] = 0.0;
 
   // add in per-atom contributions from each force
-  
+
   if (pairflag && force->pair) {
     double **vatom = force->pair->vatom;
     for (i = 0; i < npair; i++)

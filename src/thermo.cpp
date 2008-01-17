@@ -256,7 +256,7 @@ void Thermo::init()
   int ivariable;
   for (i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all("Could not find thermo variable name");
+    if (ivariable < 0) error->all("Could not find thermo custom variable name");
     variables[i] = ivariable;
   }
 

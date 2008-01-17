@@ -44,7 +44,6 @@ class FixRigid : public Fix {
  private:
   double dtv,dtf,dtq;
   double *step_respa;
-  int pressure_flag;
   int triclinic;
 
   int nbody;                // # of rigid bodies

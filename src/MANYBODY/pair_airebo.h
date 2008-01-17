@@ -82,9 +82,9 @@ class PairAIREBO : public Pair {
   void FLJ(int, int);
   void TORSION(int, int);
 
-  double bondorder(int, int, double *, double, double, double **);
+  double bondorder(int, int, double *, double, double, double **, int);
   double bondorderLJ(int, int, double *, double, double,
-		     double *, double, double **);
+		     double *, double, double **, int);
 
   double Sp(double, double, double, double &);
   double Sp2(double, double, double, double &);

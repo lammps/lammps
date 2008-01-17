@@ -44,6 +44,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
+  output = NULL;
 
   // parse input switches
 

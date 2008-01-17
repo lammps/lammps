@@ -71,28 +71,29 @@ PairLJCutCoulLongTIP4P::~PairLJCutCoulLongTIP4P()
 void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int n,vlist[6];
+  int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
   double r,r2inv,r6inv,forcecoul,forcelj,cforce,negforce;
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  int iH1,iH2,jH1,jH2;
-  double xiM[3],xjM[3];
+  double xiM[3],xjM[3],fO[3],fH[3],v[6];
   double *x1,*x2;
-  double fO[3],fH[3]; 
   int *ilist,*jlist,*numneigh,**firstneigh;
   float rsq;
   int *int_rsq = (int *) &rsq;
 
+  // if vflag_global = 2, reset vflag as if vflag_global = 1
+  // necessary since TIP4P cannot compute virial as F dot r
+  // due to find_M() finding bonded H atoms which are not near O atom
+  
+  if (vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
-
-  // error check (for now)
-
-  if (eflag_atom || vflag_atom)
-    error->all("Pair style lj/cut/coul/long/tip4p does not yet support peratom energy/virial");
+  else evflag = 0;
 
   double **f = atom->f;
   double **x = atom->x;
@@ -104,23 +105,6 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-
-  // grow and zero temporary force array if necessary
-
-  if (vflag && atom->nmax > nmax) {
-    memory->destroy_2d_double_array(ftmp);
-    nmax = atom->nmax;
-    ftmp = memory->create_2d_double_array(nmax,3,"pair:ftmp");
-  }
-
-  if (vflag) {
-    for (i = 0; i < 6; i++) virialtmp[i] = 0.0;
-    for (i = 0; i < nall; i++) {
-      ftmp[i][0] = 0.0;
-      ftmp[i][1] = 0.0;
-      ftmp[i][2] = 0.0;
-    }
-  }
 
   inum = list->inum;
   ilist = list->ilist;
@@ -179,8 +163,11 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
 	      offset[itype][jtype];
 	    evdwl *= factor_lj;
-	  }
-	} else evdwl = 0.0;
+	  } else evdwl = 0.0;
+
+	  if (evflag) ev_tally(i,j,nlocal,newton_pair,
+			       evdwl,0.0,forcelj,delx,dely,delz);
+	}
 
 	// adjust rsq for off-site O charge(s)
 
@@ -227,27 +214,25 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	  cforce = forcecoul * r2inv;
 
 	  // if i,j are not O atoms, force is applied directly
-	  // if i or j are O atoms, force is on fictitious atoms
-	  // spread force to all 3 atoms in water molecule
+	  // if i or j are O atoms, force is on fictitious atom
+	  //   and is thus spread to all 3 atoms in water molecule
 	  // formulas due to Feenstra et al, J Comp Chem, 20, 786 (1999)
 
+	  n = 0;
+
 	  if (itype != typeO) {
-	    if (vflag == 0) {
-	      f[i][0] += delx * cforce;
-	      f[i][1] += dely * cforce;
-	      f[i][2] += delz * cforce;
+	    f[i][0] += delx * cforce;
+	    f[i][1] += dely * cforce;
+	    f[i][2] += delz * cforce;
 
-	    } else {
-	      ftmp[i][0] += delx * cforce;
-	      ftmp[i][1] += dely * cforce;
-	      ftmp[i][2] += delz * cforce;
-
-	      virialtmp[0] += 0.5 * delx * delx * cforce;
-	      virialtmp[1] += 0.5 * dely * dely * cforce;
-	      virialtmp[2] += 0.5 * delz * delz * cforce;
-	      virialtmp[3] += 0.5 * dely * delx * cforce;
-	      virialtmp[4] += 0.5 * delz * delx * cforce;
-	      virialtmp[5] += 0.5 * delz * dely * cforce;
+	    if (vflag) {
+	      v[0] = 0.5 * delx * delx * cforce;
+	      v[1] = 0.5 * dely * dely * cforce;
+	      v[2] = 0.5 * delz * delz * cforce;
+	      v[3] = 0.5 * delx * dely * cforce;
+	      v[4] = 0.5 * delx * delz * cforce;
+	      v[5] = 0.5 * dely * delz * cforce;
+	      vlist[n++] = i;
 	    }
 
 	  } else {
@@ -259,32 +244,19 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	    fH[1] = alpha * (dely*cforce);
 	    fH[2] = alpha * (delz*cforce);
 
-	    if (vflag == 0) {
-	      f[i][0] += fO[0];
-	      f[i][1] += fO[1];
-	      f[i][2] += fO[2];
+	    f[i][0] += fO[0];
+	    f[i][1] += fO[1];
+	    f[i][2] += fO[2];
 
-	      f[iH1][0] += fH[0];
-	      f[iH1][1] += fH[1];
-	      f[iH1][2] += fH[2];
+	    f[iH1][0] += fH[0];
+	    f[iH1][1] += fH[1];
+	    f[iH1][2] += fH[2];
 	      
-	      f[iH2][0] += fH[0];
-	      f[iH2][1] += fH[1];
-	      f[iH2][2] += fH[2];
+	    f[iH2][0] += fH[0];
+	    f[iH2][1] += fH[1];
+	    f[iH2][2] += fH[2];
 
-	    } else {
-	      ftmp[i][0] += fO[0];
-	      ftmp[i][1] += fO[1];
-	      ftmp[i][2] += fO[2];
-
-	      ftmp[iH1][0] += fH[0];
-	      ftmp[iH1][1] += fH[1];
-	      ftmp[iH1][2] += fH[2];
-	       
-	      ftmp[iH2][0] += fH[0];
-	      ftmp[iH2][1] += fH[1];
-	      ftmp[iH2][2] += fH[2];
-
+	    if (vflag) {
 	      delx1 = x[i][0] - x2[0];
 	      dely1 = x[i][1] - x2[1];
 	      delz1 = x[i][2] - x2[2];
@@ -300,32 +272,33 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delz3 = x[iH2][2] - x2[2];
 	      domain->minimum_image(delx3,dely3,delz3);
 
-	      virialtmp[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
-	      virialtmp[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
-	      virialtmp[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
-	      virialtmp[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
-	      virialtmp[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
-	      virialtmp[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+	      v[0] = 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
+	      v[1] = 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
+	      v[2] = 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
+	      v[3] = 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
+	      v[4] = 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
+	      v[5] = 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+
+	      vlist[n++] = i;
+	      vlist[n++] = iH1;
+	      vlist[n++] = iH2;
 	    }
 	  }
 
 	  if (jtype != typeO) {
-	    if (vflag == 0) {
-	      f[j][0] -= delx * cforce;
-	      f[j][1] -= dely * cforce;
-	      f[j][2] -= delz * cforce;
+	    f[j][0] -= delx * cforce;
+	    f[j][1] -= dely * cforce;
+	    f[j][2] -= delz * cforce;
 
-	    } else {
-	      ftmp[j][0] -= delx * cforce;
-	      ftmp[j][1] -= dely * cforce;
-	      ftmp[j][2] -= delz * cforce;
+	    if (vflag) {
+	      v[0] += 0.5 * delx * delx * cforce;
+	      v[1] += 0.5 * dely * dely * cforce;
+	      v[2] += 0.5 * delz * delz * cforce;
+	      v[3] += 0.5 * delx * dely * cforce;
+	      v[4] += 0.5 * delx * delz * cforce;
+	      v[5] += 0.5 * dely * delz * cforce;
 
-	      virialtmp[0] += 0.5 * delx * delx * cforce;
-	      virialtmp[1] += 0.5 * dely * dely * cforce;
-	      virialtmp[2] += 0.5 * delz * delz * cforce;
-	      virialtmp[3] += 0.5 * dely * delx * cforce;
-	      virialtmp[4] += 0.5 * delz * delx * cforce;
-	      virialtmp[5] += 0.5 * delz * dely * cforce;
+	      vlist[n++] = j;
 	    }
 
 	  } else {
@@ -339,32 +312,19 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	    fH[1] = alpha * (dely*negforce);
 	    fH[2] = alpha * (delz*negforce);
 
-	    if (vflag != 2) {
-	      f[j][0] += fO[0]; 
-	      f[j][1] += fO[1]; 
-	      f[j][2] += fO[2]; 
+	    f[j][0] += fO[0]; 
+	    f[j][1] += fO[1]; 
+	    f[j][2] += fO[2]; 
 		
-	      f[jH1][0] += fH[0];
-	      f[jH1][1] += fH[1];
-	      f[jH1][2] += fH[2];
+	    f[jH1][0] += fH[0];
+	    f[jH1][1] += fH[1];
+	    f[jH1][2] += fH[2];
 
-	      f[jH2][0] += fH[0];
-	      f[jH2][1] += fH[1];
-	      f[jH2][2] += fH[2];
+	    f[jH2][0] += fH[0];
+	    f[jH2][1] += fH[1];
+	    f[jH2][2] += fH[2];
 
-	    } else {
-	      ftmp[j][0] += fO[0];
-	      ftmp[j][1] += fO[1];
-	      ftmp[j][2] += fO[2];
-
-	      ftmp[jH1][0] += fH[0];
-	      ftmp[jH1][1] += fH[1];
-	      ftmp[jH1][2] += fH[2];
-	      
-	      ftmp[jH2][0] += fH[0];
-	      ftmp[jH2][1] += fH[1];
-	      ftmp[jH2][2] += fH[2];
-
+	    if (vflag) {
 	      delx1 = x[j][0] - x1[0];
 	      dely1 = x[j][1] - x1[1];
 	      delz1 = x[j][2] - x1[2];
@@ -380,12 +340,16 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delz3 = x[jH2][2] - x1[2];
 	      domain->minimum_image(delx3,dely3,delz3);
 
-	      virialtmp[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
-	      virialtmp[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
-	      virialtmp[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
-	      virialtmp[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
-	      virialtmp[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
-	      virialtmp[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+	      v[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
+	      v[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
+	      v[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
+	      v[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
+	      v[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
+	      v[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+
+	      vlist[n++] = j;
+	      vlist[n++] = jH1;
+	      vlist[n++] = jH2;
 	    }
 	  }
 
@@ -397,22 +361,11 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      ecoul = qtmp*q[j] * table;
 	    }
 	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  }
-	} else ecoul = 0.0;
+	  } else ecoul = 0.0;
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+	  if (evflag) ev_tally_list(n,vlist,ecoul,v);
+	}
       }
-    }
-  }
-
-  if (vflag_fdotr) {
-    virial_compute();
-    for (int i = 0; i < 6; i++) virial[i] += virialtmp[i];
-    for (int i = 0; i < nall; i++) {
-      f[i][0] += ftmp[i][0];
-      f[i][1] += ftmp[i][1];
-      f[i][2] += ftmp[i][2];
     }
   }
 }
@@ -459,68 +412,14 @@ void PairLJCutCoulLongTIP4P::init_style()
     error->all("Pair style lj/cut/coul/long/tip4p requires newton pair on");
   if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long/tip4p requires atom attribute q");
-
-  // request regular or rRESPA neighbor lists
-
-  int irequest;
-
-  if (update->whichflag == 0 && strcmp(update->integrate_style,"respa") == 0) {
-    int respa = 0;
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-
-    if (respa == 0) irequest = neighbor->request(this);
-    else if (respa == 1) {
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    } else {
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    }
-
-  } else irequest = neighbor->request(this);
-
-  cut_coulsq = cut_coul * cut_coul;
-
-  // set & error check interior rRESPA cutoffs
-
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      for (i = 1; i <= atom->ntypes; i++)
-	for (j = i; j <= atom->ntypes; j++)
-	  if (MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-	    error->all("Pair cutoff < Respa interior cutoff");
-    }
-  } else cut_respa = NULL;
-
-  // insure use of correct KSpace long-range solver, set g_ewald
-
-  if (force->kspace == NULL) 
+  if (strcmp(force->kspace_style,"pppm/tip4p") != 0)
     error->all("Pair style is incompatible with KSpace style");
-  if (strcmp(force->kspace_style,"pppm/tip4p") == 0)
-    g_ewald = force->kspace->g_ewald;
-  else error->all("Pair style is incompatible with KSpace style");
+  if (force->bond == NULL)
+    error->all("Must use a bond style with TIP4P potential");
+  if (force->angle == NULL)
+    error->all("Must use an angle style with TIP4P potential");
 
-  // setup force tables
-
-  if (ncoultablebits) init_tables();
+  PairLJCutCoulLong::init_style();
 
   // set alpha parameter
 

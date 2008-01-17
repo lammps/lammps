@@ -73,11 +73,11 @@ computes for further info.
 
 LAMMPS creates its own global computes for thermodynamic output.
 Three computes are always created, named "thermo_temp",
-"thermo_pressure", and "thermo_pe", as if these commands had been
-invoked in the input script:
+"thermo_press", and "thermo_pe", as if these commands had been invoked
+in the input script:
 
 compute thermo_temp all temp
-compute thermo_pressure all pressure thermo_temp
+compute thermo_press all pressure thermo_temp
 compute thermo_pe all pe :pre
 
 Additional computes for other quantities are created if the thermo

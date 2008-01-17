@@ -299,9 +299,9 @@ used to change it.  The exception is DCD files which store the tilt
 factors for subsequent visualization by programs like
 "VMD"_http://www.ks.uiuc.edu/Research/vmd.
 
-To write gzipped dump files, you must compile LAMMPS with the -DGZIP
-option - see the "Making LAMMPS"_Section_start.html#2_2 section of the
-documentation.
+To write gzipped dump files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the "Making LAMMPS"_Section_start.html#2_2
+section of the documentation.
 
 The {bond} style is part of the "molecular" package.  It is only
 enabled if LAMMPS was built with that package.  See the "Making

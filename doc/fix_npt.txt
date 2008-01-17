@@ -132,13 +132,13 @@ as the fix group.
 
 Note that these are NOT the computes used by thermodynamic output (see
 the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}
-and {thermo_pressure}.  This means you can change the attributes of
-this fix's temperature or pressure via the
+and {thermo_press}.  This means you can change the attributes of this
+fix's temperature or pressure via the
 "compute_modify"_compute_modify.html command or print this temperature
 or pressure during thermodyanmic output via the "thermo_style
 custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} or
-{thermo_pressure} will have no effect on this fix.
+{thermo_press} will have no effect on this fix.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

@@ -186,15 +186,15 @@ the KSPACE package (see below).
 </P>
 <P>(7) There are a few other -D compiler switches you can set as part of
 CCFLAGS.  The read_data and dump commands will read/write gzipped
-files if you compile with -DGZIP.  It requires that your Unix support
-the "popen" command.  Using one of the -DPACK_ARRAY, -DPACK_POINTER,
-and -DPACK_MEMCPY options can make for faster parallel FFTs (in the
-PPPM solver) on some platforms.  The -DPACK_ARRAY setting is the
-default.  If you compile with -DLAMMPS_XDR, the build will include XDR
-compatability files for doing particle dumps in XTC format.  This is
-only necessary if your platform does have its own XDR files available.
-See the Restrictions section of the <A HREF = "dump.html">dump</A> command for
-details.
+files if you compile with -DLAMMPS_GZIP.  It requires that your Unix
+support the "popen" command.  Using one of the -DPACK_ARRAY,
+-DPACK_POINTER, and -DPACK_MEMCPY options can make for faster parallel
+FFTs (in the PPPM solver) on some platforms.  The -DPACK_ARRAY setting
+is the default.  If you compile with -DLAMMPS_XDR, the build will
+include XDR compatability files for doing particle dumps in XTC
+format.  This is only necessary if your platform does have its own XDR
+files available.  See the Restrictions section of the <A HREF = "dump.html">dump</A>
+command for details.
 </P>
 <P>(8) The DEPFLAGS setting is how the C++ compiler creates a dependency
 file for each source file.  This speeds re-compilation when source

@@ -133,13 +133,13 @@ This is done via the "thermo_modify"_thermo_modify.html command.
 
 Several of the thermodynamic quantities require a pressure to be
 computed: "press", "enthalpy", "pxx", etc.  By default this is done by
-using the "thermo_pressure" compute which is created when LAMMPS
-starts up, as if this command had been issued:
+using the pressure compute which is created when LAMMPS starts up, as
+if this command had been issued:
 
-compute thermo_pressure all pressure thermo_temp :pre
+compute thermo_press all pressure thermo_temp :pre
 
 See the "compute pressure"_compute_pressure.html command for details.
-Note that the ID of this compute is {thermo_pressure} and the group is
+Note that the ID of this compute is {thermo_press} and the group is
 {all}.  You can change the attributes of this pressure via the
 "compute_modify"_compute_modify.html command.  Alternatively, you can
 directly assign a new compute (that calculates pressure) which you

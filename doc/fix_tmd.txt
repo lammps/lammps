@@ -38,7 +38,8 @@ group and the target coordinates listed in file1.  Thus a value of
 rho_final = 0.0 means move the atoms all the way to the final
 structure during the course of the run.
 
-The format of the target file1 is as follows:
+The target file1 can be ASCII text or a gzipped text file (detected by
+a .gz suffix).  The format of the target file1 is as follows:
 
 0.0 25.0 xlo xhi
 0.0 25.0 ylo yhi
@@ -108,6 +109,10 @@ Atoms that have a TMD fix applied should not be part of a group to
 which a SHAKE fix is applied.  This is because LAMMPS assumes there
 are not multiple competing holonomic constraints applied to the same
 atoms.
+
+To read gzipped target files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the "Making LAMMPS"_Section_start.html#2_2
+section of the documentation.
 
 [Related commands:] none
 

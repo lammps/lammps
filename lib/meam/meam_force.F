@@ -8,36 +8,40 @@ c		 double *, double *, double *, double *, double *, int *);
 c     
 c     Call from pair_meam.cpp has the form:
 c     
-c    meam_force_(&i,&nmax,&eflag,&eng_vdwl,&ntype,type,fmap,&x[0][0],
+c    meam_force_(&i,&nmax,&eflag_either,&eflag_global,&eflag_atom,&vflag_atom,
+c              &eng_vdwl,eatom,&ntype,type,fmap,&x[0][0],
 c	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
 c	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 c	       dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
 c	       &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
-c	       &t_ave[0][0],&f[0][0],&strssa[0][0][0],&errorflag);
+c	       &t_ave[0][0],&f[0][0],&vatom[0][0],&errorflag);
 c     
 
-      subroutine meam_force(i, nmax, eflag, eng_vdwl,
-     $     ntype, type, fmap, x,
+      subroutine meam_force(i, nmax,
+     $     eflag_either, eflag_global, eflag_atom, vflag_atom,
+     $     eng_vdwl, eatom, ntype, type, fmap, x,
      $     numneigh, firstneigh, numneigh_full, firstneigh_full,
      $     scrfcn, dscrfcn, fcpair, 
      $     dGamma1, dGamma2, dGamma3, rho0, rho1, rho2, rho3, fp,
-     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, f, strssa,
+     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, f, vatom,
      $     errorflag)
 
       use meam_data
       implicit none
 
-      integer eflag, nmax, ntype, type, fmap
-      real*8  eng_vdwl, x
+      integer eflag_either, eflag_global, eflag_atom, vflag_atom
+      integer nmax, ntype, type, fmap
+      real*8  eng_vdwl, eatom, x
       integer numneigh, firstneigh, numneigh_full, firstneigh_full
       real*8  scrfcn, dscrfcn, fcpair
       real*8  dGamma1, dGamma2, dGamma3
       real*8  rho0, rho1, rho2, rho3, fp
       real*8  Arho1, Arho2, Arho2b
       real*8  Arho3, Arho3b
-      real*8  t_ave, f, strssa
+      real*8  t_ave, f, vatom
       integer errorflag
 
+      dimension eatom(nmax)
       dimension type(nmax), fmap(ntype)
       dimension x(3,nmax)
       dimension firstneigh(numneigh), firstneigh_full(numneigh_full)
@@ -46,13 +50,13 @@ c
       dimension rho0(nmax), rho1(nmax), rho2(nmax), rho3(nmax), fp(nmax)
       dimension Arho1(3,nmax), Arho2(6,nmax), Arho2b(nmax)
       dimension Arho3(10,nmax), Arho3b(3,nmax)
-      dimension t_ave(3,nmax), f(3,nmax), strssa(3,3,nmax)
+      dimension t_ave(3,nmax), f(3,nmax), vatom(6,nmax)
 
-      integer i,j,jn,k,kn,kk,m,n,p,q,strscomp
+      integer i,j,jn,k,kn,kk,m,n,p,q
       integer nv2,nv3,elti,eltj,ind
       real*8 xitmp,yitmp,zitmp,delij(3),delref(3),rij2,rij,rij3
-      real*8 delik(3),deljk(3)
-      real*8 Eu,astar,astarp
+      real*8 delik(3),deljk(3),v(6),fi(3),fj(3)
+      real*8 Eu,astar,astarp,third,sixth
       real*8 pp,phiforce,dUdrij,dUdsij,dUdrijm(3),force,forcem
       real*8 B,r,recip,phi,phip,rhop,a
       real*8 sij,fcij,dfcij,ds(3)
@@ -82,8 +86,8 @@ c
       real*8 t1i,t2i,t3i,t1j,t2j,t3j
 
       errorflag = 0
-
-      strscomp = 0
+      third = 1.0/3.0
+      sixth = 1.0/6.0
 
 c     Compute forces atom i
 
@@ -122,7 +126,13 @@ c     Compute phi and phip
      $           + phirar4(kk,ind)
             recip = 1.0d0/r
 
-            if (eflag.eq.1) eng_vdwl = eng_vdwl + phi*sij
+            if (eflag_either.ne.0) then
+              if (eflag_global.ne.0) eng_vdwl = eng_vdwl + phi*sij
+              if (eflag_atom.ne.0) then
+                eatom(i) = eatom(i) + 0.5*phi*sij
+                eatom(j) = eatom(j) + 0.5*phi*sij
+              endif
+            endif
 
 c     write(1,*) "force_meamf: phi: ",phi
 c     write(1,*) "force_meamf: phip: ",phip
@@ -371,23 +381,43 @@ c     Compute derivatives of energy wrt rij, sij and rij(3)
             enddo
             
 c     Add the part of the force due to dUdrij and dUdsij
+
             force = dUdrij*recip + dUdsij*dscrfcn(jn)
             do m = 1,3
               forcem = delij(m)*force + dUdrijm(m)
               f(m,i) = f(m,i) + forcem
               f(m,j) = f(m,j) - forcem
-              if (strscomp>0) then
-                do n = 1,3
-                  arg = delij(n)*forcem
-                  strssa(n,m,i) = strssa(n,m,i) + arg
-                  strssa(n,m,j) = strssa(n,m,j) + arg
-                enddo
-              endif
             enddo
-c     write(1,*)"forcei1: ",f(1,i)," ",f(2,i)," ",f(3,i)
-c     write(1,*)"forcej1: ",f(1,j)," ",f(2,j)," ",f(3,j)
+
+c     Tabulate per-atom virial as symmetrized stress tensor
+
+            if (vflag_atom.ne.0) then
+              fi(1) = delij(1)*force + dUdrijm(1)
+              fi(2) = delij(2)*force + dUdrijm(2)
+              fi(3) = delij(3)*force + dUdrijm(3)
+              v(1) = -0.5 * (delij(1) * fi(1))
+              v(2) = -0.5 * (delij(2) * fi(2))
+              v(3) = -0.5 * (delij(3) * fi(3))
+              v(4) = -0.25 * (delij(1)*fi(2) + delij(2)*fi(1))
+              v(5) = -0.25 * (delij(1)*fi(3) + delij(3)*fi(1))
+              v(6) = -0.25 * (delij(2)*fi(3) + delij(3)*fi(2))
+
+              vatom(1,i) = vatom(1,i) + v(1)
+              vatom(2,i) = vatom(2,i) + v(2)
+              vatom(3,i) = vatom(3,i) + v(3)
+              vatom(4,i) = vatom(4,i) + v(4)
+              vatom(5,i) = vatom(5,i) + v(5)
+              vatom(6,i) = vatom(6,i) + v(6)
+              vatom(1,j) = vatom(1,j) + v(1)
+              vatom(2,j) = vatom(2,j) + v(2)
+              vatom(3,j) = vatom(3,j) + v(3)
+              vatom(4,j) = vatom(4,j) + v(4)
+              vatom(5,j) = vatom(5,j) + v(5)
+              vatom(6,j) = vatom(6,j) + v(6)
+            endif
 
 c     Now compute forces on other atoms k due to change in sij
+
             if (sij.eq.0.d0.or.sij.eq.1.d0) goto 100
             do kn = 1,numneigh_full
               k = firstneigh_full(kn)
@@ -406,23 +436,46 @@ c     Now compute forces on other atoms k due to change in sij
                     f(m,j) = f(m,j) + force2*deljk(m)
                     f(m,k) = f(m,k) - force1*delik(m)
      $                   - force2*deljk(m)
-                    if (strscomp>0) then
-                      do n = m,3
-                        arg1 = force1*delik(m)*delik(n)
-                        arg2 = force2*deljk(m)*deljk(n)
-                        strssa(m,n,i) = strssa(m,n,i) + arg1
-                        strssa(m,n,j) = strssa(m,n,j) + arg2
-                        strssa(m,n,k) = strssa(m,n,k) + 
-     $                       arg1 + arg2
-                        if (n.ne.m) then
-                          strssa(n,m,i) = strssa(n,m,i) + arg1
-                          strssa(n,m,j) = strssa(n,m,j) + arg2
-                          strssa(n,m,k) = strssa(n,m,k) 
-     $                         + arg1 + arg2
-                        endif
-                      enddo
-                    endif
                   enddo
+
+c     Tabulate per-atom virial as symmetrized stress tensor
+
+                  if (vflag_atom.ne.0) then
+                    fi(1) = force1*delik(1)
+                    fi(2) = force1*delik(2)
+                    fi(3) = force1*delik(3)
+                    fj(1) = force2*deljk(1)
+                    fj(2) = force2*deljk(2)
+                    fj(3) = force2*deljk(3)
+                    v(1) = -third * (delik(1)*fi(1) + deljk(1)*fj(1))
+                    v(2) = -third * (delik(2)*fi(2) + deljk(2)*fj(2))
+                    v(3) = -third * (delik(3)*fi(3) + deljk(3)*fj(3))
+                    v(4) = -sixth * (delik(1)*fi(2) + deljk(1)*fj(2) +
+     $                   delik(2)*fi(1) + deljk(2)*fj(1))
+                    v(5) = -sixth * (delik(1)*fi(3) + deljk(1)*fj(3) +
+     $                   delik(3)*fi(1) + deljk(3)*fj(1))
+                    v(6) = -sixth * (delik(2)*fi(3) + deljk(2)*fj(3) +
+     $                   delik(3)*fi(2) + deljk(3)*fj(2))
+
+                    vatom(1,i) = vatom(1,i) + v(1)
+                    vatom(2,i) = vatom(2,i) + v(2)
+                    vatom(3,i) = vatom(3,i) + v(3)
+                    vatom(4,i) = vatom(4,i) + v(4)
+                    vatom(5,i) = vatom(5,i) + v(5)
+                    vatom(6,i) = vatom(6,i) + v(6)
+                    vatom(1,j) = vatom(1,j) + v(1)
+                    vatom(2,j) = vatom(2,j) + v(2)
+                    vatom(3,j) = vatom(3,j) + v(3)
+                    vatom(4,j) = vatom(4,j) + v(4)
+                    vatom(5,j) = vatom(5,j) + v(5)
+                    vatom(6,j) = vatom(6,j) + v(6)
+                    vatom(1,k) = vatom(1,k) + v(1)
+                    vatom(2,k) = vatom(2,k) + v(2)
+                    vatom(3,k) = vatom(3,k) + v(3)
+                    vatom(4,k) = vatom(4,k) + v(4)
+                    vatom(5,k) = vatom(5,k) + v(5)
+                    vatom(6,k) = vatom(6,k) + v(6)
+                  endif
 
                 endif
               endif

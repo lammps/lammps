@@ -8,14 +8,14 @@ c
 c     
 c     Call from pair_meam.cpp has the form:
 c     
-c    meam_dens_init_(&i,&nmax,&eflag,&eng_vdwl,ntype,type,fmap,&x[0][0],
+c    meam_dens_init_(&i,&nmax,ntype,type,fmap,&x[0][0],
 c	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
 c	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 c	       rho0,&arho1[0][0],&arho2[0][0],arho2b,
 c	       &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&errorflag);
 c     
 
-      subroutine meam_dens_init(i, nmax, eflag, eng_vdwl, 
+      subroutine meam_dens_init(i, nmax,
      $     ntype, type, fmap, x,
      $     numneigh, firstneigh, 
      $     numneigh_full, firstneigh_full,
@@ -25,8 +25,7 @@ c
       use meam_data
       implicit none
 
-      integer i, nmax, eflag, ntype, type, fmap
-      real*8  eng_vdwl
+      integer i, nmax, ntype, type, fmap
       real*8  x
       integer numneigh, firstneigh, numneigh_full, firstneigh_full
       real*8 scrfcn, dscrfcn, fcpair

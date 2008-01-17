@@ -1,19 +1,22 @@
 c Extern "C" declaration has the form:
 c
-c  void meam_dens_final_(int *, int *, int *, double *, int *, int *, int *,
+c  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
+c                int *, int *, int *,
 c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *, 
 c		 double *, double *, double *, double *, int *);
 c
 c Call from pair_meam.cpp has the form:
 c
-c  meam_dens_final_(&nlocal,&nmax,&eflag,&eng_vdwl,ntype,type,fmap,
+c  meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
+c            &eng_vdwl,eatom,ntype,type,fmap,
 c	     &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
 c	     &arho3b[0][0],&t_ave[0][0],gamma,dgamma1,
 c	     dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
 c
 
-      subroutine meam_dens_final(nlocal, nmax, eflag, eng_vdwl, 
+      subroutine meam_dens_final(nlocal, nmax,
+     $     eflag_either, eflag_global, eflag_atom, eng_vdwl, eatom,
      $     ntype, type, fmap,
      $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave,
      $     Gamma, dGamma1, dGamma2, dGamma3,
@@ -22,8 +25,9 @@ c
       use meam_data
       implicit none
 
-      integer nlocal, nmax, eflag, ntype, type, fmap
-      real*8 eng_vdwl, Arho1, Arho2
+      integer nlocal, nmax, eflag_either, eflag_global, eflag_atom
+      integer ntype, type, fmap
+      real*8 eng_vdwl, eatom, Arho1, Arho2
       real*8 Arho2b, Arho3, Arho3b
       real*8 t_ave
       real*8 Gamma, dGamma1, dGamma2, dGamma3
@@ -31,6 +35,7 @@ c
       real*8 fp
       integer errorflag
 
+      dimension eatom(nmax)
       dimension type(nmax), fmap(ntype)
       dimension Arho1(3,nmax), Arho2(6,nmax), Arho2b(nmax)
       dimension Arho3(10,nmax), Arho3b(3,nmax), t_ave(3,nmax)
@@ -48,80 +53,87 @@ c     Complete the calculation of density
 
       do i = 1,nlocal
 
-         elti = fmap(type(i))
-         rho1(i) = 0.d0
-         rho2(i) = -1.d0/3.d0*Arho2b(i)*Arho2b(i)
-         rho3(i) = 0.d0
-         do m = 1,3
-            rho1(i) = rho1(i) + Arho1(m,i)*Arho1(m,i)
-            rho3(i) = rho3(i) - 3.d0/5.d0*Arho3b(m,i)*Arho3b(m,i)
-         enddo
-         do m = 1,6
-            rho2(i) = rho2(i) + v2D(m)*Arho2(m,i)*Arho2(m,i)
-         enddo
-         do m = 1,10
-            rho3(i) = rho3(i) + v3D(m)*Arho3(m,i)*Arho3(m,i)
-         enddo
+        elti = fmap(type(i))
+        rho1(i) = 0.d0
+        rho2(i) = -1.d0/3.d0*Arho2b(i)*Arho2b(i)
+        rho3(i) = 0.d0
+        do m = 1,3
+          rho1(i) = rho1(i) + Arho1(m,i)*Arho1(m,i)
+          rho3(i) = rho3(i) - 3.d0/5.d0*Arho3b(m,i)*Arho3b(m,i)
+        enddo
+        do m = 1,6
+          rho2(i) = rho2(i) + v2D(m)*Arho2(m,i)*Arho2(m,i)
+        enddo
+        do m = 1,10
+          rho3(i) = rho3(i) + v3D(m)*Arho3(m,i)*Arho3(m,i)
+        enddo
+        
+        if( rho0(i) .gt. 0.0 ) then
+          t_ave(1,i) = t_ave(1,i)/rho0(i)
+          t_ave(2,i) = t_ave(2,i)/rho0(i)
+          t_ave(3,i) = t_ave(3,i)/rho0(i)
+        endif
+         
+        Gamma(i) = t_ave(1,i)*rho1(i) 
+     $       + t_ave(2,i)*rho2(i) + t_ave(3,i)*rho3(i)
+        
+        if( rho0(i) .gt. 0.0 ) then
+          Gamma(i) = Gamma(i)/(rho0(i)*rho0(i))
+        end if
+        
+        call G_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,errorflag)
+        if (errorflag.ne.0) return
+        if (ibar_meam(elti).le.0) then
+          Gbar = 1.d0
+        else
+          call get_shpfcn(shp,lattce_meam(elti,elti))
+          gam = (t_ave(1,i)*shp(1)+t_ave(2,i)*shp(2)
+     $         +t_ave(3,i)*shp(3))/(Z_meam(elti)**2)
+          call G_gam(gam,ibar_meam(elti),gsmooth_factor,
+     $         Gbar,errorflag)
+        endif
+        rho(i) = rho0(i) * G
+        rhob = rho(i)/(rho0_meam(elti)*Z_meam(elti)*Gbar)
 
-         if( rho0(i) .gt. 0.0 ) then
-            t_ave(1,i) = t_ave(1,i)/rho0(i)
-            t_ave(2,i) = t_ave(2,i)/rho0(i)
-            t_ave(3,i) = t_ave(3,i)/rho0(i)
-         endif
+        Z = Z_meam(elti)
+        call dG_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,dG)
+        if (ibar_meam(elti).le.0) then
+          Gbar = 1.d0
+          dGbar = 0.d0
+        else
+          call get_shpfcn(shpi,lattce_meam(elti,elti))
+          gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
+     $         +t_ave(3,i)*shpi(3))/(Z*Z)
+          call dG_gam(gam,ibar_meam(elti),gsmooth_factor,
+     $         Gbar,dGbar)
+        endif
+        denom = 1.d0/(rho0_meam(elti)*Z*Gbar)
+        dGamma1(i) = (G - 2*dG*Gamma(i))*denom
          
-         Gamma(i) = t_ave(1,i)*rho1(i) 
-     $        + t_ave(2,i)*rho2(i) + t_ave(3,i)*rho3(i)
+        if( rho0(i) .ne. 0.d0 ) then
+          dGamma2(i) = (dG/rho0(i))*denom
+        else
+          dGamma2(i) = 0.d0
+        end if
          
-         if( rho0(i) .gt. 0.0 ) then
-            Gamma(i) = Gamma(i)/(rho0(i)*rho0(i))
-         end if
+        dGamma3(i) = rho0(i)*G*dGbar/(Gbar*Z*Z)*denom
+        
+        B = A_meam(elti)*Ec_meam(elti,elti)
          
-         call G_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,errorflag)
-         if (errorflag.ne.0) return
-         if (ibar_meam(elti).le.0) then
-            Gbar = 1.d0
-         else
-            call get_shpfcn(shp,lattce_meam(elti,elti))
-            gam = (t_ave(1,i)*shp(1)+t_ave(2,i)*shp(2)
-     $           +t_ave(3,i)*shp(3))/(Z_meam(elti)**2)
-            call G_gam(gam,ibar_meam(elti),gsmooth_factor,
-     $                 Gbar,errorflag)
-         endif
-         rho(i) = rho0(i) * G
-         rhob = rho(i)/(rho0_meam(elti)*Z_meam(elti)*Gbar)
-
-         Z = Z_meam(elti)
-         call dG_gam(Gamma(i),ibar_meam(elti),gsmooth_factor,G,dG)
-         if (ibar_meam(elti).le.0) then
-            Gbar = 1.d0
-            dGbar = 0.d0
-         else
-            call get_shpfcn(shpi,lattce_meam(elti,elti))
-            gam = (t_ave(1,i)*shpi(1)+t_ave(2,i)*shpi(2)
-     $           +t_ave(3,i)*shpi(3))/(Z*Z)
-            call dG_gam(gam,ibar_meam(elti),gsmooth_factor,
-     $                  Gbar,dGbar)
-         endif
-         denom = 1.d0/(rho0_meam(elti)*Z*Gbar)
-         dGamma1(i) = (G - 2*dG*Gamma(i))*denom
-         
-         if( rho0(i) .ne. 0.d0 ) then
-            dGamma2(i) = (dG/rho0(i))*denom
-         else
-            dGamma2(i) = 0.d0
-         end if
-         
-         dGamma3(i) = rho0(i)*G*dGbar/(Gbar*Z*Z)*denom
-
-         B = A_meam(elti)*Ec_meam(elti,elti)
-         
-         if( rhob .ne. 0.d0 ) then
-            fp(i) = B*(log(rhob)+1.d0)
-            if (eflag.eq.1) eng_vdwl = eng_vdwl + B*rhob*log(rhob)
-         else
-            fp(i) = B
-         endif
-
+        if( rhob .ne. 0.d0 ) then
+          fp(i) = B*(log(rhob)+1.d0)
+          if (eflag_either.ne.0) then
+            if (eflag_global.ne.0) then
+              eng_vdwl = eng_vdwl + B*rhob*log(rhob)
+            endif
+            if (eflag_atom.ne.0) then
+              eatom(i) = eatom(i) + B*rhob*log(rhob)
+            endif
+          endif
+        else
+          fp(i) = B
+        endif
+        
       enddo
       
       return

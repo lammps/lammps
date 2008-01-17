@@ -44,8 +44,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg)
+static inline void fwrite_int32(FILE* fd, uint32_t i)
+{
+  fwrite(&i,sizeof(uint32_t),1,fd);
+}
+
+/* ---------------------------------------------------------------------- */
+
+DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   if (narg != 5) error->all("Illegal dump dcd command");
   if (igroup != group->find("all")) error->all("Dump dcd must use group all");
@@ -53,8 +59,9 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) :
     error->all("Invalid dump dcd filename");
 
   size_one = 4;
+  unwrap_flag = 0;
   format_default = NULL;
-
+    
   // allocate global array for atom coords
 
   natoms = static_cast<int> (atom->natoms);
@@ -83,6 +90,9 @@ DumpDCD::~DumpDCD()
 
 void DumpDCD::init()
 {
+  if (unwrap_flag == 1 && domain->triclinic)
+    error->all("Dump dcd cannot dump unwrapped coords with triclinic box");
+  
   // check that dump frequency has not changed
 
   if (nevery_save == 0) {
@@ -97,6 +107,20 @@ void DumpDCD::init()
     if (nevery_save != output->dump_every[idump])
       error->all("Cannot change dump_modify every for dump dcd");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpDCD::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"unwrap") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
+    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
+    else error->all("Illegal dump_modify command");
+    return 2;
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -156,9 +180,10 @@ void DumpDCD::write_header(int n)
   }
   
   uint32_t out_integer = 48;
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
   fwrite(dim,out_integer,1,fp); 
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
+  if (flush_flag) fflush(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,16 +199,31 @@ int DumpDCD::pack()
 {
   int *tag = atom->tag;
   double **x = atom->x;
+  int *image = atom->image;
   int nlocal = atom->nlocal;
 
   // assume group all, so no need to perform mask check
 
   int m = 0;
-  for (int i = 0; i < nlocal; i++) {
-    buf[m++] = tag[i];
-    buf[m++] = x[i][0];
-    buf[m++] = x[i][1];
-    buf[m++] = x[i][2];
+  if (unwrap_flag) {
+    double xprd = domain->xprd;
+    double yprd = domain->yprd;
+    double zprd = domain->zprd;
+
+    for (int i = 0; i < nlocal; i++) {
+      buf[m++] = tag[i];
+      buf[m++] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
+      buf[m++] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
+      buf[m++] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+    }
+
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      buf[m++] = tag[i];
+      buf[m++] = x[i][0];
+      buf[m++] = x[i][1];
+      buf[m++] = x[i][2];
+    }
   }
 
   return m;
@@ -221,25 +261,25 @@ void DumpDCD::write_frame()
   // write coords
 
   uint32_t out_integer = natoms*sizeof(float);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
   fwrite(xf,out_integer,1,fp);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
+  fwrite_int32(fp,out_integer);
   fwrite(yf,out_integer,1,fp);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
+  fwrite_int32(fp,out_integer);
   fwrite(zf,out_integer,1,fp);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
   
   // update NFILE and NSTEP fields in DCD header
 
   nframes++;
   out_integer = nframes;
   fseek(fp,NFILE_POS,SEEK_SET);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
   out_integer = update->ntimestep;
   fseek(fp,NSTEP_POS,SEEK_SET);
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
   fseek(fp,0,SEEK_END);
 }
 
@@ -252,10 +292,9 @@ void DumpDCD::write_dcd_header(const char *remarks)
   char title_string[200];
   time_t cur_time;
   struct tm *tmbuf;
-  char time_str[81];
 
   out_integer = 84;
-  fwrite(&out_integer,sizeof(uint32_t),1,fp);
+  fwrite_int32(fp,out_integer);
   strcpy(title_string,"CORD");
   fwrite(title_string,4,1,fp);
   fwrite_int32(fp,0);                    // NFILE = # of snapshots in file
@@ -287,16 +326,12 @@ void DumpDCD::write_dcd_header(const char *remarks)
   fwrite(title_string,80,1,fp);
   cur_time=time(NULL);
   tmbuf=localtime(&cur_time);
-  strftime(time_str,80,"REMARKS Created %d %B,%Y at %R",tmbuf);
-  fwrite(time_str,80,1,fp);
+  memset(title_string,' ',81);
+  strftime(title_string,80,"REMARKS Created %d %B,%Y at %R",tmbuf);
+  fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);
   fwrite_int32(fp,natoms);                // number of atoms in each snapshot
   fwrite_int32(fp,4);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpDCD::fwrite_int32(FILE* fp, uint32_t i) {
-  fwrite(&i,4,1,fp);
+  if (flush_flag) fflush(fp);
 }

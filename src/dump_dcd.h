@@ -30,6 +30,7 @@ class DumpDCD : public Dump {
  private:
   int natoms,ntotal,headerflag,nevery_save,nframes;
   float *coords,*xf,*yf,*zf;
+  int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
 
   void openfile();
   void write_header(int);
@@ -37,9 +38,9 @@ class DumpDCD : public Dump {
   int pack();
   void write_data(int, double *);
 
+  int modify_param(int, char **);
   void write_frame();
   void write_dcd_header(const char *);
-  void fwrite_int32(FILE *, uint32_t);
 };
 
 }

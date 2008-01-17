@@ -15,8 +15,13 @@
 #define DUMP_XTC_H
 
 #include "dump.h"
+
+#ifdef LAMMPS_XDR
+#include "xdr_compat.h"
+#else
 #include "rpc/rpc.h"
 #include "rpc/xdr.h"
+#endif
 
 namespace LAMMPS_NS {
 
@@ -29,11 +34,13 @@ class DumpXTC : public Dump {
 	
  private:
   int natoms,ntotal;
-  float precision;
+  int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
+  float precision;            // user-adjustable precision setting
   float *coords;
   double sfactor;
   XDR xd;
 
+  int modify_param(int, char **);
   void openfile();
   void write_header(int);
   int count();

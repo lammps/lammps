@@ -23,8 +23,6 @@
 #include "stdlib.h"
 #include "string.h"
 #include "limits.h"
-#include "rpc/rpc.h"
-#include "rpc/xdr.h"
 #include "dump_xtc.h"
 #include "domain.h"
 #include "atom.h"
@@ -42,15 +40,21 @@ using namespace LAMMPS_NS;
 #define MYMAX(a,b) ((a) > (b) ? (a) : (b))
 
 int xdropen(XDR *, const char *, const char *);
-int xdrclose(XDR *) ;
+int xdrclose(XDR *);
 void xdrfreebuf();
 int xdr3dfcoord(XDR *, float *, int *, float *);
+
+// include XDR compatibility code 
+
+#ifdef LAMMPS_USE_XDR_COMPAT
+#include "xdr_compat.c"
+#endif
 
 /* ---------------------------------------------------------------------- */
 
 DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
-  if (narg != 5 && narg != 6) error->all("Illegal dump xtc command");
+  if (narg != 5) error->all("Illegal dump xtc command");
   if (igroup != group->find("all")) error->all("Dump xtc must use group all");
   if (binary || compressed || multifile || multiproc)
     error->all("Invalid dump xtc filename");
@@ -58,17 +62,8 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   size_one = 4;
   format_default = NULL;
   flush_flag = 0;
-
-  // parse extra argument
-
+  unwrap_flag = 0;
   precision = 1000.0;
-  if (narg == 6) {
-    precision = atof(arg[5]);
-    if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) && 
-	(fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) && 
-	(fabs(precision-100000.0) > EPS) && (fabs(precision-1000000.0) > EPS))
-      error->all("Illegal dump xtc command");
-  }
 
   // allocate global array for atom coords
 
@@ -79,6 +74,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
 
   // sfactor = conversion of coords to XTC units
+  // GROMACS standard is nanometers, not Angstroms
 
   sfactor = 0.1;
   if (strcmp(update->unit_style,"lj") == 0) sfactor = 1.0;
@@ -92,6 +88,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 DumpXTC::~DumpXTC()
 {
   memory->sfree(coords);
+
   if (me == 0) {
     xdrclose(&xd);
     xdrfreebuf();
@@ -105,6 +102,29 @@ void DumpXTC::init()
   // check that flush_flag is not set since dump::write() will use it
 
   if (flush_flag) error->all("Cannot set dump_modify flush for dump xtc");
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpXTC::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"unwrap") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
+    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
+    else error->all("Illegal dump_modify command");
+    return 2;
+  } else if (strcmp(arg[0],"precision") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    precision = atof(arg[1]);
+    if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) && 
+	(fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) && 
+	(fabs(precision-100000.0) > EPS) && 
+	(fabs(precision-1000000.0) > EPS)) 
+      error->all("Illegal dump_modify command");
+    return 2;
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -154,9 +174,9 @@ void DumpXTC::write_header(int n)
   // cell basis vectors
 
   float zero = 0.0;
-  float xdim = domain->boxhi[0] - domain->boxlo[0];
-  float ydim = domain->boxhi[1] - domain->boxlo[1];
-  float zdim = domain->boxhi[2] - domain->boxlo[2];
+  float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
+  float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
+  float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
 
   xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
   xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
@@ -176,16 +196,31 @@ int DumpXTC::pack()
 {
   int *tag = atom->tag;
   double **x = atom->x;
+  int *image = atom->image;
   int nlocal = atom->nlocal;
 
   // assume group all, so no need to perform mask check
 
   int m = 0;
-  for (int i = 0; i < nlocal; i++) {
-    buf[m++] = tag[i];
-    buf[m++] = sfactor*x[i][0];
-    buf[m++] = sfactor*x[i][1];
-    buf[m++] = sfactor*x[i][2];
+  if (unwrap_flag == 1) {
+    double xprd = domain->xprd;
+    double yprd = domain->yprd;
+    double zprd = domain->zprd;
+
+    for (int i = 0; i < nlocal; i++) {
+      buf[m++] = tag[i];
+      buf[m++] = sfactor*(x[i][0] + ((image[i] & 1023) - 512) * xprd);
+      buf[m++] = sfactor*(x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd);
+      buf[m++] = sfactor*(x[i][2] + ((image[i] >> 20) - 512) * zprd);
+    }
+
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      buf[m++] = tag[i];
+      buf[m++] = sfactor*x[i][0];
+      buf[m++] = sfactor*x[i][1];
+      buf[m++] = sfactor*x[i][2];
+    }
   }
 
   return m;
@@ -264,7 +299,6 @@ void DumpXTC::write_frame()
 static FILE *xdrfiles[MAXID];
 static XDR *xdridptr[MAXID];
 static char xdrmodes[MAXID];
-static unsigned int cnt;
 static int *ip = NULL;
 static int *buf = NULL;
 
@@ -384,6 +418,7 @@ int xdrclose(XDR *xdrs)
   } 
   fprintf(stderr, "xdrclose: no such open xdr file\n");
   exit(1);
+  return 1;
 }
 
 /*_________________________________________________________________________

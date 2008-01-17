@@ -170,12 +170,6 @@ TwoD<numtyp> TwoD<numtyp>::normal() {
 }
 
 template<class numtyp>
-numtyp TwoD<numtyp>::dist(const TwoD<numtyp> &two) const {
-	TwoD diff=*this-two;
-	return numtyp(sqrt(double(diff.dot(diff))));
-}
-
-template<class numtyp>
 numtyp TwoD<numtyp>::dist2(const TwoD<numtyp> &two) const {
 	TwoD diff=*this-two;
 	return diff.dot(diff);
@@ -294,26 +288,6 @@ ThreeD<numtyp>::ThreeD() {
 }
 
 template<class numtyp>
-numtyp & ThreeD<numtyp>::operator[](unsigned i) {
-  switch(i) {
-   case X: return x;
-   case Y: return y;
-   case Z: return z;
-  }
-  return x;
-}
-
-template<class numtyp>
-numtyp ThreeD<numtyp>::operator[](unsigned i) const {
-  switch(i) {
-   case X: return x;
-   case Y: return y;
-   case Z: return z;
-  }
-  return x;
-}
-
-template<class numtyp>
 void ThreeD<numtyp>::operator = (const ThreeD &two) {
   #ifdef NANCHECK
   //assert(a::not_nan(two.x) && a::not_nan(two.y) && a::not_nan(two.z));
@@ -394,11 +368,6 @@ ThreeD<numtyp> ThreeD<numtyp>::operator / (const ThreeD<numtyp> &two) const {
 template <class numtyp>
 numtyp ThreeD<numtyp>::dot(const ThreeD<numtyp> &two) const {
 	return (x*two.x+y*two.y+z*two.z);
-}
-
-template<class numtyp>
-void ThreeD<numtyp>::operator *= (const numtyp &two) {
-  x*=two; y*=two; z*=two;
 }
 
 // Move coordinates into array
@@ -500,24 +469,9 @@ numtyp ThreeD<numtyp>::norm2() const {
 }
 
 template <class numtyp>
-numtyp ThreeD<numtyp>::dist(const ThreeD<numtyp> &two) {
-  return (*this-two).norm();
-}
-
-template <class numtyp>
 numtyp ThreeD<numtyp>::dist2(const ThreeD<numtyp> &two) {
 	ThreeD diff=*this-two;
 	return diff.dot(diff);
-}
-
-// For normalizing a vector
-template<class numtyp>
-void ThreeD<numtyp>::normalize() {
-  numtyp temp=norm();
-  #ifdef NANCHECK
-  assert(temp!=0);
-  #endif
-  *this/=temp;
 }
 
 // Return unit vector

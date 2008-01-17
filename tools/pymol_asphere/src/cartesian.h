@@ -204,8 +204,23 @@ class ThreeD {
   friend ThreeD<numtyp> operator* <>(const numtyp, const ThreeD<numtyp> &two);
   friend ThreeD<numtyp> operator/ <>(const numtyp, const ThreeD<numtyp> &two);
 
-  numtyp &operator[](unsigned i);
-  numtyp operator[](unsigned i) const;
+  inline numtyp &operator[](unsigned i) {
+    switch(i) {
+    case X: return x;
+    case Y: return y;
+    case Z: return z;
+    }
+    return x;
+  }
+
+  inline numtyp operator[](unsigned i) const {
+    switch(i) {
+    case X: return x;
+    case Y: return y;
+    case Z: return z;
+    }
+    return x;
+  }
 
   bool operator == (const ThreeD<numtyp> &two) const;
   bool operator != (const ThreeD<numtyp> &two) const;
@@ -222,7 +237,10 @@ class ThreeD {
   void operator += (const ThreeD &two);
   void operator -= (const numtyp &two);
   void operator -= (const ThreeD &two);
-  void operator *= (const numtyp &two);
+  inline void operator *= (const numtyp &two) {
+    x*=two; y*=two; z*=two;
+  }
+
   void operator /= (const numtyp &two);
 
   /// Move coordinates into array
@@ -253,11 +271,20 @@ class ThreeD {
   /// Magnitude of vector
   numtyp hypot() const;
   /// Distance between two points
-  numtyp dist(const ThreeD<numtyp> &two);
+  inline numtyp dist(const ThreeD<numtyp> &two) {
+    return (*this-two).norm();
+  }
   /// Distance squared between two points
   numtyp dist2(const ThreeD<numtyp> &two);
   /// Converts \b *this to the unit vector
-  void normalize();
+  inline void normalize() {
+    numtyp temp=norm();
+    #ifdef NANCHECK
+    assert(temp!=0);
+    #endif
+    *this/=temp;
+  }
+
   /// Return the unit vector of \b *this
   ThreeD<numtyp> unit();
 

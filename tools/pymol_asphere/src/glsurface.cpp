@@ -333,7 +333,8 @@ void GLSurface::write_vspheres(ofstream &out, const string &objname,
   writepymolheader(out);
   for (i=0; i<vertices.size(); i++) {
     // Output coords, colors, and normals of points
-//    if (vertices[i].transparency!=1)
+    if (vertices[i].transparency==0)
+      continue;
       out << "ALPHA," << vertices[i].transparency << ",";
     out << "COLOR,";
     for (k=X; k<=Z; k++)
@@ -353,7 +354,8 @@ void GLSurface::writespheres(ofstream &out, const string &objname) {
   writepymolheader(out);
   for (i=0; i<spheres.size(); i++) {
     // Output coords, colors, and normals of points
-//    if (vertices[i].transparency!=1)
+    if (vertices[i].transparency==0)
+      continue;
       out << "ALPHA," << vertices[spheres[i].i].transparency << ",";
     out << "COLOR,";
     for (k=X; k<=Z; k++)

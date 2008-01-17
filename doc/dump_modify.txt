@@ -14,13 +14,15 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {thresh} :l
+keyword = {format} or {scale} or {image} or {flush} or {unwrap} or {every} or {precision} or {region} or {thresh} :l
   {format} arg = C-style format string for one line of output
   {scale} arg = {yes} or {no}
   {image} arg = {yes} or {no}
   {flush} arg = {yes} or {no}
+  {unwrap} arg = {yes} or {no}
   {every} arg = N
     N = dump every this many timesteps
+  {precision} arg = power-of-10 value from 10 to 1000000
   {region} arg = region-ID or "none"
   {thresh} args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
@@ -34,7 +36,8 @@ keyword = {format} or {scale} or {image} or {header} or {flush} or {region} or {
 
 dump_modify 1 format "%d %d %20.15g %g %g" scale yes
 dump_modify myDump image yes scale no flush yes
-dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2 :pre
+dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
+dump_modify xtcdump precision 10000 :pre
 
 [Description:]
 
@@ -69,9 +72,22 @@ the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style {xtc}.
 
+The {unwrap} option only applies to the dump {dcd} and {xtc} styles.
+If set to {yes}, coordinates will be written "unwrapped" by the image
+flags for each atom.  Unwrapped means that if the atom has passed thru
+a periodic boundary one or more times, the value is printed for what
+the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that these coordinates may thus be far outside the
+box size stored with the snapshot.
+
 The {every} option changes the dump frequency originally specified by
 the "dump"_dump.html command to a new value which must be > 0.  The
 dump frequency cannot be changed for the dump {dcd} style.
+
+The {precision} option only applies to the dump {xtc} style.  A
+specified value of N means that coordinates are stored to 1/N
+nanometer accuracy, e.g. for N = 1000, the coordinates are written to
+1/1000 nanometer accuracy.
 
 The {region} keyword only applies to the dump {custom} style.  If
 specified, only atoms in the region will be written to the dump file.
@@ -102,4 +118,6 @@ whose energy is above some threshhold.
 
 The option defaults are format = %d and %g for each integer or
 floating point value, scale = yes, image = no, flush = yes (except for
-dump {xtc} style), region = none, and thresh = none.
+the dump {xtc} style), unwrap = no, every = whatever it was set to via
+the "dump"_dump.html command, precision = 1000, region = none, and
+thresh = none.

@@ -19,14 +19,16 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>format</I> or <I>scale</I> or <I>image</I> or <I>header</I> or <I>flush</I> or <I>region</I> or <I>thresh</I> 
+<LI>keyword = <I>format</I> or <I>scale</I> or <I>image</I> or <I>flush</I> or <I>unwrap</I> or <I>every</I> or <I>precision</I> or <I>region</I> or <I>thresh</I> 
 
 <PRE>  <I>format</I> arg = C-style format string for one line of output
   <I>scale</I> arg = <I>yes</I> or <I>no</I>
   <I>image</I> arg = <I>yes</I> or <I>no</I>
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
+  <I>unwrap</I> arg = <I>yes</I> or <I>no</I>
   <I>every</I> arg = N
     N = dump every this many timesteps
+  <I>precision</I> arg = power-of-10 value from 10 to 1000000
   <I>region</I> arg = region-ID or "none"
   <I>thresh</I> args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
@@ -41,7 +43,8 @@
 </P>
 <PRE>dump_modify 1 format "%d %d %20.15g %g %g" scale yes
 dump_modify myDump image yes scale no flush yes
-dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2 
+dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
+dump_modify xtcdump precision 10000 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -76,9 +79,22 @@ the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style <I>xtc</I>.
 </P>
+<P>The <I>unwrap</I> option only applies to the dump <I>dcd</I> and <I>xtc</I> styles.
+If set to <I>yes</I>, coordinates will be written "unwrapped" by the image
+flags for each atom.  Unwrapped means that if the atom has passed thru
+a periodic boundary one or more times, the value is printed for what
+the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that these coordinates may thus be far outside the
+box size stored with the snapshot.
+</P>
 <P>The <I>every</I> option changes the dump frequency originally specified by
 the <A HREF = "dump.html">dump</A> command to a new value which must be > 0.  The
 dump frequency cannot be changed for the dump <I>dcd</I> style.
+</P>
+<P>The <I>precision</I> option only applies to the dump <I>xtc</I> style.  A
+specified value of N means that coordinates are stored to 1/N
+nanometer accuracy, e.g. for N = 1000, the coordinates are written to
+1/1000 nanometer accuracy.
 </P>
 <P>The <I>region</I> keyword only applies to the dump <I>custom</I> style.  If
 specified, only atoms in the region will be written to the dump file.
@@ -109,6 +125,8 @@ whose energy is above some threshhold.
 </P>
 <P>The option defaults are format = %d and %g for each integer or
 floating point value, scale = yes, image = no, flush = yes (except for
-dump <I>xtc</I> style), region = none, and thresh = none.
+the dump <I>xtc</I> style), unwrap = no, every = whatever it was set to via
+the <A HREF = "dump.html">dump</A> command, precision = 1000, region = none, and
+thresh = none.
 </P>
 </HTML>

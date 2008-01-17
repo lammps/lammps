@@ -56,7 +56,7 @@ dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* tag type x y vx fx
 dump 4b flow custom 100 dump.%.myforce tag type c_myF\[3\] v_ke
-dump 1 all xtc 1000 file.xtc 100.0 :pre
+dump 1 all xtc 1000 file.xtc :pre
 
 [Description:]
 

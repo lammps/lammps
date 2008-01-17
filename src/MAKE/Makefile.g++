@@ -5,7 +5,7 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-g -O -DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
+CCFLAGS =	-g -O -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
 LINKFLAGS =	-g -O

@@ -285,7 +285,7 @@ void Dump::openfile()
 
   if (me == 0 || multiproc) {
     if (compressed) {
-#ifdef GZIP
+#ifdef LAMMPS_GZIP
       char gzip[128];
       sprintf(gzip,"gzip -6 > %s",filecurrent);
       fp = popen(gzip,"w");

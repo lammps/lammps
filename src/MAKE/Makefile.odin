@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-O -I/opt/mpich-mx/include -DFFT_NONE -DGZIP
+CCFLAGS =	-O -I/opt/mpich-mx/include -DFFT_NONE -DLAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		g++
 LINKFLAGS =	-O -L/opt/mpich-mx/lib -L/opt/mx/lib

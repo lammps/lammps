@@ -8,7 +8,7 @@ SHELL = /bin/sh
 CC =		xlc -q64
 CCFLAGS =	-g -O -I/opt/mpich/include  \
 		-I/usr/local/include -L/opt/mpich/lib64 \
-		-DFFT_FFTW -DGZIP
+		-DFFT_FFTW -DLAMMPS_LAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		xlc -q64
 LINKFLAGS =	-g -O -L/opt/mpich/lib64 \

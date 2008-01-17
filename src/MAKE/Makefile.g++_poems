@@ -7,7 +7,7 @@ SHELL = /bin/sh
 
 CC =		g++
 CCFLAGS =	-g -O -I/home/sjplimp/lammps/lib/poems \
-		-DFFT_FFTW -DGZIP -DMPICH_IGNORE_CXX_SEEK
+		-DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
 LINKFLAGS =	-g -O -L/home/sjplimp/lammps/lib/poems

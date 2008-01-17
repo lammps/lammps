@@ -125,7 +125,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   internal_drot = internal_grot = 0;
 
   id_temp = (char *) "thermo_temp";
-  id_press = (char *) "thermo_pressure";
+  id_press = (char *) "thermo_press";
   id_pe = (char *) "thermo_pe";
   id_drot = (char *) "thermo_rotate_dipole";
   id_grot = (char *) "thermo_rotate_gran";
@@ -410,12 +410,12 @@ void Thermo::modify_params(int narg, char **arg)
 	error->warning("Temperature for thermo pressure is not for group all");
 
       // reset id_pre of pressure to new temp ID
-      // either pressure currently being used by thermo or "thermo_pressure"
+      // either pressure currently being used by thermo or "thermo_press"
 
       if (index_press >= 0) {
 	icompute = modify->find_compute(id_compute[index_press]);
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
-      } else icompute = modify->find_compute((char *) "thermo_pressure");
+      } else icompute = modify->find_compute((char *) "thermo_press");
 
       delete [] modify->compute[icompute]->id_pre;
       modify->compute[icompute]->id_pre = new char[n];

@@ -8,7 +8,7 @@ SHELL = /bin/sh
 CC =		pgCC -fast
 CCFLAGS =       -I/usr/local/mpich-1.2.6/pg/include \
                 -I/usr/local/include \
-                -DFFT_FFTW -DGZIP
+                -DFFT_FFTW -DLAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		pgCC
 LINKFLAGS =     -L/usr/local/mpich-1.2.6/pg/lib \

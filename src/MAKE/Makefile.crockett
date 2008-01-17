@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		mpiCC
-CCFLAGS =	-g -O -DFFT_NONE -DGZIP
+CCFLAGS =	-g -O -DFFT_NONE -DLAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		mpiCC
 LINKFLAGS =	-g -O

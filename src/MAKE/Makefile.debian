@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-g -O -I/usr/lib/mpich/include/ -DFFT_FFTW -DGZIP
+CCFLAGS =	-g -O -I/usr/lib/mpich/include/ -DFFT_FFTW -DLAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		g++
 LINKFLAGS =	-g -O 	-L/usr/lib/mpich/lib	

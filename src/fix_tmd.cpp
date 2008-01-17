@@ -529,7 +529,7 @@ void FixTMD::open(char *file)
   if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
   if (!compressed) fp = fopen(file,"r");
   else {
-#ifdef GZIP
+#ifdef LAMMPS_GZIP
     char gunzip[128];
     sprintf(gunzip,"gunzip -c %s",file);
     fp = popen(gunzip,"r");

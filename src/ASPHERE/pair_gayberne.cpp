@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   cetain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,7 +35,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_ELLIPSE};
+enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,11 +105,13 @@ void PairGayBerne::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
 
-    MathExtra::quat_to_mat_trans(quat[i],a1);
-    MathExtra::diag_times3(well[itype],a1,temp);
-    MathExtra::transpose_times3(a1,temp,b1);
-    MathExtra::diag_times3(shape[itype],a1,temp);
-    MathExtra::transpose_times3(a1,temp,g1);
+    if (form[itype][itype] == ELLIPSE_ELLIPSE) {
+      MathExtra::quat_to_mat_trans(quat[i],a1);
+      MathExtra::diag_times3(well[itype],a1,temp);
+      MathExtra::transpose_times3(a1,temp,b1);
+      MathExtra::diag_times3(shape[itype],a1,temp);
+      MathExtra::transpose_times3(a1,temp,g1);
+    }
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -148,6 +150,20 @@ void PairGayBerne::compute(int eflag, int vflag)
 	  fforce[1] = r12[1]*forcelj;
 	  fforce[2] = r12[2]*forcelj;
 	  ttor[0] = ttor[1] = ttor[2] = 0.0;
+	  rtor[0] = rtor[1] = rtor[2] = 0.0;
+	  break;
+
+        case SPHERE_ELLIPSE:
+	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  MathExtra::diag_times3(well[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,b2);
+	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::transpose_times3(a2,temp,g2);
+	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
+	  break;
+
+        case ELLIPSE_SPHERE:
+	  one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
 	  rtor[0] = rtor[1] = rtor[2] = 0.0;
 	  break;
 
@@ -292,14 +308,14 @@ void PairGayBerne::coeff(int narg, char **arg)
 	well[i][0] = pow(eia_one,-1.0/mu);
         well[i][1] = pow(eib_one,-1.0/mu);
 	well[i][2] = pow(eic_one,-1.0/mu);
-	if (eia_one == 1.0 && eib_one == 1.0 && eic_one == 1.0) setwell[i] = 2;
+	if (eia_one == eib_one && eib_one == eic_one) setwell[i] = 2;
 	else setwell[i] = 1;
       }
       if (eja_one != 0.0 || ejb_one != 0.0 || ejc_one != 0.0) {
 	well[j][0] = pow(eja_one,-1.0/mu);
         well[j][1] = pow(ejb_one,-1.0/mu);
 	well[j][2] = pow(ejc_one,-1.0/mu);
-	if (eja_one == 1.0 && ejb_one == 1.0 && ejc_one == 1.0) setwell[j] = 2;
+	if (eja_one == ejb_one && ejb_one == ejc_one) setwell[j] = 2;
 	else setwell[j] = 1;
       }
       setflag[i][j] = 1;
@@ -372,11 +388,17 @@ double PairGayBerne::init_one(int i, int j)
       atom->shape[j][1] != atom->shape[j][2]) jshape = 1;
   if (setwell[j] == 1) jshape = 1;
   
-  if (ishape == 0 && jshape == 0) form[i][j] = SPHERE_SPHERE;
-  else if (ishape == 0 || jshape == 0) form[i][j] = SPHERE_ELLIPSE;
-  else form[i][j] = ELLIPSE_ELLIPSE;
+  if (ishape == 0 && jshape == 0)
+    form[i][i] = form[j][j] = form[i][j] = form[j][i] = SPHERE_SPHERE;
+  else if (ishape == 0) {
+    form[i][i] = SPHERE_SPHERE; form[j][j] = ELLIPSE_ELLIPSE;
+    form[i][j] = SPHERE_ELLIPSE; form[j][i] = ELLIPSE_SPHERE; 
+  } else if (jshape == 0) {
+    form[j][j] = SPHERE_SPHERE; form[i][i] = ELLIPSE_ELLIPSE;
+    form[j][i] = SPHERE_ELLIPSE; form[i][j] = ELLIPSE_SPHERE; 
+  } else 
+    form[i][i] = form[j][j] = form[i][j] = form[j][i] = ELLIPSE_ELLIPSE;
 
-  form[j][i] = form[i][j];
   epsilon[j][i] = epsilon[i][j];
   sigma[j][i] = sigma[i][j];
   cut[j][i] = cut[i][j];
@@ -656,6 +678,156 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
     rtor[1] = (temp1*dchi2[1]+temp2*deta2[1]+temp3*dUr2[1]) * -1.0;
     rtor[2] = (temp1*dchi2[2]+temp2*deta2[2]+temp3*dUr2[2]) * -1.0;
   }
+
+  return temp1*chi;
+}
+
+/* ----------------------------------------------------------------------
+   compute analytic energy, force (fforce), and torque (ttor)
+   between ellipsoid and lj particle
+------------------------------------------------------------------------- */
+
+double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
+				 double b1[3][3],double g1[3][3],
+                                 double *r12,const double rsq,double *fforce,
+				 double *ttor)
+{
+  double tempv[3], tempv2[3];
+  double temp[3][3];
+  double temp1,temp2,temp3;
+
+  int *type = atom->type;
+  int newton_pair = force->newton_pair;
+  int nlocal = atom->nlocal;
+
+  double r12hat[3];
+  MathExtra::normalize3(r12,r12hat);
+  double r = sqrt(rsq);
+
+  // compute distance of closest approach
+
+  double g12[3][3];
+  g12[0][0] = g1[0][0]+shape[type[j]][0];  
+  g12[1][1] = g1[1][1]+shape[type[j]][0];  
+  g12[2][2] = g1[2][2]+shape[type[j]][0];  
+  g12[0][1] = g1[0][1]; g12[1][0] = g1[1][0];
+  g12[0][2] = g1[0][2]; g12[2][0] = g1[2][0];
+  g12[1][2] = g1[1][2]; g12[2][1] = g1[2][1];
+  double kappa[3];
+  MathExtra::mldivide3(g12,r12,kappa,error);
+
+  // tempv = G12^-1*r12hat
+
+  tempv[0] = kappa[0]/r;
+  tempv[1] = kappa[1]/r;
+  tempv[2] = kappa[2]/r;
+  double sigma12 = MathExtra::dot3(r12hat,tempv);
+  sigma12 = pow(0.5*sigma12,-0.5);
+  double h12 = r-sigma12;
+
+  // energy
+  // compute u_r
+
+  double varrho = sigma[type[i]][type[j]]/(h12+gamma*sigma[type[i]][type[j]]);
+  double varrho6 = pow(varrho,6.0);
+  double varrho12 = varrho6*varrho6;
+  double u_r = 4.0*epsilon[type[i]][type[j]]*(varrho12-varrho6);
+
+  // compute eta_12
+
+  double eta = 2.0*lshape[type[i]]*lshape[type[j]];
+  double det_g12 = MathExtra::det3(g12);
+  eta = pow(eta/det_g12,upsilon);
+
+  // compute chi_12
+
+  double b12[3][3];
+  double iota[3];
+  b12[0][0] = b1[0][0] + well[type[j]][0];  
+  b12[1][1] = b1[1][1] + well[type[j]][0];  
+  b12[2][2] = b1[2][2] + well[type[j]][0];  
+  b12[0][1] = b1[0][1]; b12[1][0] = b1[1][0];
+  b12[0][2] = b1[0][2]; b12[2][0] = b1[2][0];
+  b12[1][2] = b1[1][2]; b12[2][1] = b1[2][1];
+  MathExtra::mldivide3(b12,r12,iota,error);
+
+  // tempv = G12^-1*r12hat
+
+  tempv[0] = iota[0]/r;
+  tempv[1] = iota[1]/r;
+  tempv[2] = iota[2]/r;
+  double chi = MathExtra::dot3(r12hat,tempv);
+  chi = pow(chi*2.0,mu);
+
+  // force
+  // compute dUr/dr
+
+  temp1 = (2.0*varrho12*varrho-varrho6*varrho)/sigma[type[i]][type[j]];
+  temp1 = temp1*24.0*epsilon[type[i]][type[j]];
+  double u_slj = temp1*pow(sigma12,3.0)/2.0;
+  double dUr[3];
+  temp2 = MathExtra::dot3(kappa,r12hat);
+  double uslj_rsq = u_slj/rsq;
+  dUr[0] = temp1*r12hat[0]+uslj_rsq*(kappa[0]-temp2*r12hat[0]);
+  dUr[1] = temp1*r12hat[1]+uslj_rsq*(kappa[1]-temp2*r12hat[1]);
+  dUr[2] = temp1*r12hat[2]+uslj_rsq*(kappa[2]-temp2*r12hat[2]);
+
+  // compute dChi_12/dr
+
+  double dchi[3];
+  temp1 = MathExtra::dot3(iota,r12hat);
+  temp2 = -4.0/rsq*mu*pow(chi,(mu-1.0)/mu);
+  dchi[0] = temp2*(iota[0]-temp1*r12hat[0]);
+  dchi[1] = temp2*(iota[1]-temp1*r12hat[1]);
+  dchi[2] = temp2*(iota[2]-temp1*r12hat[2]);
+
+  temp1 = -eta*u_r;
+  temp2 = eta*chi;
+  fforce[0] = temp1*dchi[0]-temp2*dUr[0];
+  fforce[1] = temp1*dchi[1]-temp2*dUr[1];
+  fforce[2] = temp1*dchi[2]-temp2*dUr[2];
+
+  // torque for particle 1 and 2
+  // compute dUr
+
+  tempv[0] = -uslj_rsq*kappa[0];
+  tempv[1] = -uslj_rsq*kappa[1];
+  tempv[2] = -uslj_rsq*kappa[2];
+  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::cross3(tempv,tempv2,dUr);
+
+  // compute d_chi
+
+  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::cross3(tempv,iota,dchi);
+  temp1 = -4.0/rsq;
+  dchi[0] *= temp1;
+  dchi[1] *= temp1;
+  dchi[2] *= temp1;
+
+  // compute d_eta
+
+  double deta[3];
+  deta[0] = deta[1] = deta[2] = 0.0;
+  compute_eta_torque(g12,a1,shape[type[i]],temp);
+  temp1 = -eta*upsilon;
+  for (int m = 0; m < 3; m++) {
+    for (int y = 0; y < 3; y++) tempv[y] = temp1*temp[m][y];
+    MathExtra::cross3(a1[m],tempv,tempv2);
+    deta[0] += tempv2[0];
+    deta[1] += tempv2[1];
+    deta[2] += tempv2[2];
+  }
+
+  // torque
+
+  temp1 = u_r*eta;
+  temp2 = u_r*chi;
+  temp3 = chi*eta;
+
+  ttor[0] = (temp1*dchi[0]+temp2*deta[0]+temp3*dUr[0]) * -1.0;
+  ttor[1] = (temp1*dchi[1]+temp2*deta[1]+temp3*dUr[1]) * -1.0;
+  ttor[2] = (temp1*dchi[2]+temp2*deta[2]+temp3*dUr[2]) * -1.0;
 
   return temp1*chi;
 }

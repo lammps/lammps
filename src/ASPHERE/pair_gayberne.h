@@ -53,6 +53,9 @@ class PairGayBerne : public Pair {
                            double g1[3][3], double g2[3][3], double *r12, 
                            const double rsq, double *fforce, double *ttor, 
                            double *rtor);
+  double gayberne_lj(const int i, const int j, double a1[3][3],
+                     double b1[3][3],double g1[3][3],double *r12, 
+		     const double rsq, double *fforce, double *ttor);
   void compute_eta_torque(double m[3][3], double m2[3][3],
                           double *s, double ans[3][3]);
 };

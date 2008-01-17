@@ -144,7 +144,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for fix ave/time does not exist");
-      if (argindex[i] && modify->fix[ifix]->scalar_flag == 0)
+      if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
 	error->all("Fix ave/time fix does not calculate a scalar");
       if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
 	error->all("Fix ave/time fix does not calculate a vector");

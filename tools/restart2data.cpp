@@ -1187,7 +1187,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"buck") == 0)  ||
 	   (strcmp(style,"buck/coul/cut") == 0) ||
-	   (strcmp(style,"buck/coul/long") == 0)) {
+	   (strcmp(style,"buck/coul/long") == 0) ||
+	   (strcmp(style,"buck/coul") == 0)) {
 
     if (strcmp(style,"buck") == 0) {
       m = 0;
@@ -1206,6 +1207,13 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+    } else if (strcmp(style,"buck/coul") == 0) {
+      m = 0;
+      double cut_buck_global = read_double(fp);
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+      int ewald_order = read_int(fp);
     }
 
     if (!flag) return;
@@ -1516,7 +1524,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	   (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	   (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	   (strcmp(style,"lj/cut/coul/long") == 0) ||
-	   (strcmp(style,"lj/cut/coul/long/tip4p") == 0)) {
+	   (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
+	   (strcmp(style,"lj/coul") == 0)) {
 
     if (strcmp(style,"lj/cut") == 0) {
       m = 0;
@@ -1552,6 +1561,13 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/coul") == 0) {
+      m = 0;
+      double cut_lj_global = read_double(fp);
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+      int ewald_order = read_int(fp);
     }
 
     if (!flag) return;
@@ -2291,7 +2307,8 @@ void Data::write(FILE *fp)
     
     if ((strcmp(pair_style,"buck") == 0) || 
 	(strcmp(pair_style,"buck/coul/cut") == 0) ||
-	(strcmp(pair_style,"buck/coul/long") == 0)) {
+	(strcmp(pair_style,"buck/coul/long") == 0) ||
+	(strcmp(pair_style,"buck/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_buck_A[i],pair_buck_rho[i],pair_buck_C[i]);
@@ -2340,7 +2357,8 @@ void Data::write(FILE *fp)
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0)) {
+	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) |
+	       (strcmp(pair_style,"lj/coul") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_lj_epsilon[i],pair_lj_sigma[i]);

@@ -40,6 +40,7 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
 variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop $n
 variable beta equal temp/3.0
+variable b1 equal x\[234\]+0.5*vol
 variable b1 equal "x\[234\] + 0.5*vol"
 variable b equal xcm(mol1,x)/2.0
 variable b equal c_myTemp

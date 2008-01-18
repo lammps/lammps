@@ -2535,10 +2535,10 @@ void Data::write(FILE *fp)
 		dihedral_multi_a5[i]);
 
     } else if (strcmp(dihedral_style,"opls") == 0) {
-      for (int i = 1; i <= ndihedraltypes; i++)
+      for (int i = 1; i <= ndihedraltypes; i++)        // restore factor of 2
 	fprintf(fp,"%d %g %g %g %g\n",i,
-		dihedral_opls_k1[i],dihedral_opls_k2[i],
-		dihedral_opls_k3[i],dihedral_opls_k4[i]);
+		2.0*dihedral_opls_k1[i],2.0*dihedral_opls_k2[i],
+		2.0*dihedral_opls_k3[i],2.0*dihedral_opls_k4[i]);
     }
   }
 

@@ -1357,6 +1357,10 @@ value. :dd
 Only atom-style variables generate per-atom quantities, needed for
 dump output. :dd
 
+{Dump dcd cannot dump unwrapped coords with triclinic box} :dt
+
+Cannot use unwrap option with non-orthogonal simulation box. :dd
+
 {Dump dcd must use group all} :dt
 
 Self-explanatory. :dd

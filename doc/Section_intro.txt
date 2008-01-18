@@ -120,7 +120,7 @@ commands)
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     Stillinger-Weber, Tersoff, AI-REBO
-  coarse-grain potentials: granular, DPD, GayBerne, colloidal
+  coarse-grain potentials: granular, DPD, GayBerne, REsquared, colloidal
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, \

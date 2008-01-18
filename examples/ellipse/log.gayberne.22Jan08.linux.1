@@ -1,5 +1,5 @@
 LAMMPS (22 Jan 2008)
-# Ellipsoids in LJ background fluid
+# GayBerne ellipsoids in LJ background fluid
 
 units	     lj
 atom_style   ellipsoid
@@ -32,6 +32,11 @@ pair_coeff   1 1 3.0 1.0 1 1 1 1 1 1 2.5
 pair_coeff   1 2 3.0 1.0 1 1 1 0 0 0
 pair_coeff   2 2 1.0 1.0 1 1 0.2 0 0 0
 
+#pair_style   resquared 4.0
+#pair_coeff   1 1 3.0 1 1 1 1 1 1 1 2.5
+#pair_coeff   1 2 3.0 1 1 1 1 0 0 0
+#pair_coeff   2 2 1.0 1 1 1 0.2 0 0 0
+
 neighbor     0.8 bin
 
 thermo_style custom step c_rot epair etotal press vol
@@ -39,7 +44,9 @@ thermo	     100
 
 timestep     0.002
 
-dump	     1 all custom 100 dump.ellipse 	     tag type x y z quatw quati quatj quatk
+dump	     1 all custom 100 dump.gayberne 	     tag type x y z quatw quati quatj quatk
+
+#dump	     1 all custom 100 dump.resquared #	     tag type x y z quatw quati quatj quatk
 
 fix	     1 all npt/asphere 2.0 2.0 0.1 xyz 0.0 1.0 1.0
 fix	     2 all enforce2d
@@ -70,13 +77,13 @@ Step rot E_pair TotEng Press Volume
     1800    2.0251982   -2.9795387  -0.83247158   0.52149705     1215.081 
     1900    2.0206629    -3.159343   -1.0374344   0.72829367    1196.1151 
     2000    1.9665091   -3.2421939   -1.2158182   0.66817261    1162.3788 
-Loop time of 1.24727 on 1 procs for 2000 steps with 400 atoms
+Loop time of 1.24429 on 1 procs for 2000 steps with 400 atoms
 
-Pair  time (%) = 0.9127 (73.1756)
-Neigh time (%) = 0.0137322 (1.10098)
-Comm  time (%) = 0.0217996 (1.74778)
-Outpt time (%) = 0.0341289 (2.73628)
-Other time (%) = 0.264913 (21.2394)
+Pair  time (%) = 0.909927 (73.1284)
+Neigh time (%) = 0.0135996 (1.09297)
+Comm  time (%) = 0.0220442 (1.77163)
+Outpt time (%) = 0.0341184 (2.74201)
+Other time (%) = 0.264597 (21.2649)
 
 Nlocal:    400 ave 400 max 400 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -119,13 +126,13 @@ Step rot E_pair TotEng Press Volume
     3800    1.9107307   -3.1825901   -1.2150398   0.76019944    1162.3788 
     3900    2.0003232   -3.2826031   -1.2144381   0.69551187    1162.3788 
     4000    1.9971268   -3.2783688   -1.2104061   0.67606395    1162.3788 
-Loop time of 1.42325 on 1 procs for 2000 steps with 400 atoms
+Loop time of 1.41674 on 1 procs for 2000 steps with 400 atoms
 
-Pair  time (%) = 1.13466 (79.7228)
-Neigh time (%) = 0.0079174 (0.55629)
-Comm  time (%) = 0.0247726 (1.74057)
-Outpt time (%) = 0.0347703 (2.44301)
-Other time (%) = 0.221135 (15.5373)
+Pair  time (%) = 1.12906 (79.6942)
+Neigh time (%) = 0.00786209 (0.554944)
+Comm  time (%) = 0.0250032 (1.76484)
+Outpt time (%) = 0.0342295 (2.41608)
+Other time (%) = 0.220585 (15.5699)
 
 Nlocal:    400 ave 400 max 400 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -138,4 +145,3 @@ Total # of neighbors = 2941
 Ave neighs/atom = 7.3525
 Neighbor list builds = 46
 Dangerous builds = 0
-

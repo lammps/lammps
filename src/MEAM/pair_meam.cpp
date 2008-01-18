@@ -824,7 +824,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = t_ave[i][2];
   }
 
-  return m;
+  return 27;
 }
 
 /* ---------------------------------------------------------------------- */

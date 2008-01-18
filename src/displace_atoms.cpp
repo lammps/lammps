@@ -167,6 +167,8 @@ void DisplaceAtoms::command(int narg, char **arg)
   }
 
   // move atoms randomly
+  // makes atom result independent of what proc owns it via random->reset()
+
     
   if (style == RANDOM) {
     RanPark *random = new RanPark(lmp,1);

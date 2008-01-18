@@ -170,6 +170,7 @@ void Velocity::create(int narg, char **arg)
   //    will never produce same V, independent of P
   //   GEOM = only loop over my atoms
   //    choose RNG for each atom based on its xyz coord (geometry)
+  //      via random->reset()
   //    will always produce same V, independent of P
   // adjust by factor for atom mass
   // for 2d, set Vz to 0.0

@@ -100,7 +100,7 @@ void Verlet::setup()
 
   ev_set(update->ntimestep);
   force_clear();
-  
+
   if (force->pair) force->pair->compute(eflag,vflag);
 
   if (atom->molecular) {

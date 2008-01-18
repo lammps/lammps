@@ -324,7 +324,7 @@ void Set::set(int keyword)
 /* ----------------------------------------------------------------------
    set an owned atom property randomly
    set seed based on atom tag
-   makes atom's result independent of what proc owns it
+   make atom result independent of what proc owns it
 ------------------------------------------------------------------------- */
 
 void Set::setrandom(int keyword)

@@ -365,8 +365,8 @@ void PairBuckCoul::write_restart(FILE *fp)
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
 	fwrite(&buck_a_read[i][j],sizeof(double),1,fp);
-	fwrite(&buck_c_read[i][j],sizeof(double),1,fp);
 	fwrite(&buck_rho_read[i][j],sizeof(double),1,fp);
+	fwrite(&buck_c_read[i][j],sizeof(double),1,fp);
 	fwrite(&cut_buck_read[i][j],sizeof(double),1,fp);
       }
     }
@@ -391,13 +391,13 @@ void PairBuckCoul::read_restart(FILE *fp)
       if (setflag[i][j]) {
 	if (me == 0) {
 	  fread(&buck_a_read[i][j],sizeof(double),1,fp);
-	  fread(&buck_c_read[i][j],sizeof(double),1,fp);
 	  fread(&buck_rho_read[i][j],sizeof(double),1,fp);
+	  fread(&buck_c_read[i][j],sizeof(double),1,fp);
 	  fread(&cut_buck_read[i][j],sizeof(double),1,fp);
 	}
 	MPI_Bcast(&buck_a_read[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&buck_c_read[i][j],1,MPI_DOUBLE,0,world);
 	MPI_Bcast(&buck_rho_read[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&buck_c_read[i][j],1,MPI_DOUBLE,0,world);
 	MPI_Bcast(&cut_buck_read[i][j],1,MPI_DOUBLE,0,world);
       }
     }

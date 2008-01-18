@@ -95,54 +95,44 @@ void RanPark::reset(int seed_init)
 }
 
 /* ----------------------------------------------------------------------
-   reset the seed based on atom position within box and ibase = caller seed
-   combine 3 RNGs based on fractional position in box into one new seed
+   reset the seed based on atom coords and ibase = caller seed
+   use hash function, treating user seed and coords as sequence of input ints
+   this is Jenkins One-at-a-time hash, see Wikipedia entry on hash tables
 ------------------------------------------------------------------------- */
 
 void RanPark::reset(int ibase, double *coord)
 {
-  // for orthogonal box, lamda = fractional position in box
-  // for triclinic box, convert to lamda coords
+  int i;
 
-  double lamda[3];
+  char *str = (char *) &ibase;
+  int n = sizeof(int);
 
-  if (domain->triclinic == 0) {
-    lamda[0] = (coord[0] - domain->boxlo[0]) / domain->prd[0];
-    lamda[1] = (coord[1] - domain->boxlo[1]) / domain->prd[1];
-    lamda[2] = (coord[2] - domain->boxlo[2]) / domain->prd[2];
-  } else domain->x2lamda(coord,lamda);
+  unsigned int hash = 0;
+  for (i = 0; i < n; i++) {
+    hash += str[i];
+    hash += (hash << 10);
+    hash ^= (hash >> 6);
+  }
 
-  // seed 1,2,3 = combination of atom coord in each dim and user-input seed
-  // map geometric extent into range of each of 3 RNGs
-  // warm-up each RNG by calling it twice
+  str = (char *) coord;
+  n = 3 * sizeof(double);
+  for (i = 0; i < n; i++) {
+    hash += str[i];
+    hash += (hash << 10);
+    hash ^= (hash >> 6);
+  }
 
-  int seed1,seed2,seed3;
+  hash += (hash << 3);
+  hash ^= (hash >> 11);
+  hash += (hash << 15);
 
-  seed1 = static_cast<int> (lamda[0] * IM1);
-  seed1 = (seed1+ibase) % IM1;
-  seed1 = (seed1*IA1+IC1) % IM1;
-  seed1 = (seed1*IA1+IC1) % IM1;
+  // keep 31 bits of unsigned int as new seed
 
-  seed2 = static_cast<int> (lamda[1] * IM2);
-  seed2 = (seed2+ibase) % IM2;
-  seed2 = (seed2*IA2+IC2) % IM2;
-  seed2 = (seed2*IA2+IC2) % IM2;
+  seed = hash & 0x7ffffff;
 
-  seed3 = static_cast<int> (lamda[2] * IM3);
-  seed3 = (seed3+ibase) % IM3;
-  seed3 = (seed3*IA3+IC3) % IM3;
-  seed3 = (seed3*IA3+IC3) % IM3;
+  // warm up the RNG
 
-  // fraction = 0-1 with giving each dim an equal weighting
-  // use fraction to reset Park/Miller RNG seed
-  // warm-up master RNG with new seed by calling it twice
-
-  double fraction = 1.0*seed1/(3*IM1) + 1.0*seed2/(3*IM2) + 1.0*seed3/(3*IM3);
-  seed = static_cast<int> (fraction*IM) + 1;
-  if (seed >= IM) seed = IM-1;
-
-  uniform();
-  uniform();
+  for (i = 0; i < 5; i++) uniform();
 }
 
 /* ---------------------------------------------------------------------- */

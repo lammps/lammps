@@ -123,7 +123,7 @@ commands)
 <UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse,     Yukawa, soft, class 2 (COMPASS), tabulated
 <LI>  charged pairwise potentials: Coulombic, point-dipole
 <LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     Stillinger-Weber, Tersoff, AI-REBO
-<LI>  coarse-grain potentials: granular, DPD, GayBerne, colloidal
+<LI>  coarse-grain potentials: granular, DPD, GayBerne, REsquared, colloidal
 <LI>  bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable)
 <LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared,     class 2 (COMPASS)
 <LI>  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS
@@ -449,71 +449,78 @@ include <A HREF = "http://www.cs.sandia.gov/~sjplimp">Steve Plimpton</A>, Paul C
 be contacted via email: sjplimp, pscrozi, athomps at sandia.gov.
 </P>
 <P>Here are various folks who have made significant contributions to
-features in LAMMPS:
+features in LAMMPS.  The most recent contributions are at the top of
+the list.
 </P>
 
 
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >Ewald and PPPM solvers</TD><TD > Roy Pollock (LLNL)</TD></TR>
-<TR><TD >rRESPA</TD><TD > Mark Stevens & Paul Crozier (Sandia)</TD></TR>
-<TR><TD >NVT/NPT integrators</TD><TD > Mark Stevens (Sandia)</TD></TR>
-<TR><TD >class 2 force fields</TD><TD > Eric Simon (Cray)</TD></TR>
-<TR><TD >HTFN energy minimizer</TD><TD > Todd Plantenga (Sandia)</TD></TR>
-<TR><TD >msi2lmp tool</TD><TD > Steve Lustig (Dupont), Mike Peachey & John Carpenter (Cray)</TD></TR>
-<TR><TD >CHARMM force fields</TD><TD > Paul Crozier (Sandia)</TD></TR>
-<TR><TD >2d Ewald/PPPM</TD><TD > Paul Crozier (Sandia)</TD></TR>
-<TR><TD >granular force fields and BC</TD><TD > Leo Silbert & Gary Grest (Sandia)</TD></TR>
-<TR><TD >multi-harmonic dihedral potential</TD><TD > Mathias Putz (Sandia)</TD></TR>
-<TR><TD >EAM potentials</TD><TD > Stephen Foiles (Sandia)</TD></TR>
-<TR><TD >parallel tempering</TD><TD > Mark Sears (Sandia)</TD></TR>
-<TR><TD >lmp2cfg and lmp2traj tools</TD><TD > Ara Kooser, Jeff Greathouse, Andrey Kalinichev (Sandia)</TD></TR>
-<TR><TD >FFT support for SGI SCLS (Altix)</TD><TD > Jim Shepherd (Ga Tech)</TD></TR>
-<TR><TD >targeted molecular dynamics (TMD)</TD><TD > Paul Crozier (Sandia), Christian Burisch (Bochum University, Germany)</TD></TR>
-<TR><TD >force tables for long-range Coulombics</TD><TD > Paul Crozier (Sandia)</TD></TR>
-<TR><TD >radial distribution functions</TD><TD > Paul Crozier & Jeff Greathouse (Sandia)</TD></TR>
-<TR><TD >Morse bond potential</TD><TD > Jeff Greathouse (Sandia)</TD></TR>
-<TR><TD >CHARMM <-> LAMMPS tool</TD><TD > Pieter in't Veld and Paul Crozier (Sandia)</TD></TR>
-<TR><TD >AMBER <-> LAMMPS tool</TD><TD > Keir Novik (Univ College London) and Vikas Varshney (U Akron)</TD></TR>
-<TR><TD >electric field fix</TD><TD > Christina Payne (Vanderbilt U)</TD></TR>
-<TR><TD >cylindrical indenter fix</TD><TD > Ravi Agrawal (Northwestern U)</TD></TR>
-<TR><TD >compressed dump files</TD><TD > Erik Luijten (U Illinois)</TD></TR>
-<TR><TD >thermodynamics enhanced by fix quantities</TD><TD > Aidan Thompson (Sandia)</TD></TR>
-<TR><TD >uniaxial strain fix</TD><TD > Carsten Svaneborg (Max Planck Institute)</TD></TR>
-<TR><TD >TIP4P potential (4-site water)</TD><TD > Ahmed Ismail and Amalie Frischknecht (Sandia)</TD></TR>
-<TR><TD >dissipative particle dynamics (DPD) potentials</TD><TD > Kurt Smith (U Pitt) and   Frank van Swol (Sandia)</TD></TR>
-<TR><TD >Finnis/Sinclair EAM</TD><TD > Tim Lau (MIT)</TD></TR>
-<TR><TD >helix dihedral potential </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U) and   Mark Stevens (Sandia)</TD></TR>
-<TR><TD >cosine/squared angle potential </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
-<TR><TD >EAM CoAl and AlCu potentials </TD><TD > Kwang-Reoul Lee (KIST, Korea)</TD></TR>
-<TR><TD >self spring fix </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
-<TR><TD >radius-of-gyration spring fix </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U) and   Paul Crozier (Sandia)</TD></TR>
-<TR><TD >lj/smooth pair potential </TD><TD > Craig Maloney (UCSB) </TD></TR>
-<TR><TD >grain boundary orientation fix </TD><TD > Koenraad Janssens and David Olmsted (SNL)</TD></TR>
-<TR><TD >DCD and XTC dump styles</TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
-<TR><TD >breakable bond quartic potential</TD><TD > Chris Lorenz and Mark Stevens (SNL)</TD></TR>
-<TR><TD >faster pair hybrid potential</TD><TD > James Fischer   (High Performance Technologies, Inc), Vincent Natoli and   David Richie (Stone Ridge Technology)</TD></TR>
-<TR><TD >POEMS coupled rigid body integrator</TD><TD > Rudranarayan Mukherjee (RPI)</TD></TR>
-<TR><TD >OPLS dihedral potential</TD><TD > Mark Stevens (Sandia)</TD></TR>
-<TR><TD >multi-letter variable names </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
-<TR><TD >fix momentum and recenter </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
-<TR><TD >LJ tail corrections for energy/pressure </TD><TD > Paul Crozier (Sandia)</TD></TR>
-<TR><TD >region prism </TD><TD > Pieter in't Veld (Sandia)</TD></TR>
-<TR><TD >Stillinger-Weber and Tersoff potentials </TD><TD > Aidan Thompson (Sandia)</TD></TR>
-<TR><TD >fix wall/lj126 </TD><TD > Mark Stevens (Sandia)</TD></TR>
-<TR><TD >optimized pair potentials for lj/cut, charmm/long, eam, morse </TD><TD > James Fischer (High Performance Tech), David Richie and Vincent Natol (Stone Ridge Technologies)</TD></TR>
-<TR><TD >MEAM potential </TD><TD > Greg Wagner (Sandia)</TD></TR>
-<TR><TD >fix ave/time and fix ave/spatial </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
-<TR><TD >thermo_extract tool</TD><TD > Vikas Varshney (Wright Patterson AFB)</TD></TR>
-<TR><TD >triclinic (non-orthogonal) simulation domains </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
-<TR><TD >MATLAB post-processing scripts </TD><TD > Arun Subramaniyan (Purdue)</TD></TR>
-<TR><TD >neighbor multi and communicate multi </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
-<TR><TD >fix heat </TD><TD > Paul Crozier and Ed Webb (Sandia)</TD></TR>
-<TR><TD >colloid potentials </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
-<TR><TD >ellipsoidal particles </TD><TD > Mike Brown (Sandia)</TD></TR>
-<TR><TD >GayBerne potential </TD><TD > Mike Brown (Sandia)</TD></TR>
-<TR><TD >fix deform </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >VIM editor add-ons for LAMMPS input scripts </TD><TD > Gerolf Ziegenhain</TD></TR>
+<TR><TD >pair lubricate </TD><TD > Randy Schunk (Sandia)</TD></TR>
+<TR><TD >compute ackland/atom </TD><TD > Gerolf Zeigenhain</TD></TR>
+<TR><TD >kspace_style ewald/n, pair_style lj/coul, pair_style buck/coul </TD><TD >   Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >AI-REBO bond-order potential </TD><TD > Ase Henry (MIT)</TD></TR>
+<TR><TD >making LAMMPS a true "object" that can be instantiated multiple times,   e.g. as a library </TD><TD > Ben FrantzDale (RPI)</TD></TR>
+<TR><TD >pymol_asphere viz tool </TD><TD > Mike Brown (Sandia)</TD></TR>
 <TR><TD >NEMD SLLOD integration </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
-<TR><TD >pymol_asphere viz tool </TD><TD > Mike Brown (Sandia) 
+<TR><TD >tensile and shear deformations </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >GayBerne potential </TD><TD > Mike Brown (Sandia)</TD></TR>
+<TR><TD >ellipsoidal particles </TD><TD > Mike Brown (Sandia)</TD></TR>
+<TR><TD >colloid potentials </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >fix heat </TD><TD > Paul Crozier and Ed Webb (Sandia)</TD></TR>
+<TR><TD >neighbor multi and communicate multi </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >MATLAB post-processing scripts </TD><TD > Arun Subramaniyan (Purdue)</TD></TR>
+<TR><TD >triclinic (non-orthogonal) simulation domains </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >thermo_extract tool</TD><TD > Vikas Varshney (Wright Patterson AFB)</TD></TR>
+<TR><TD >fix ave/time and fix ave/spatial </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >MEAM potential </TD><TD > Greg Wagner (Sandia)</TD></TR>
+<TR><TD >optimized pair potentials for lj/cut, charmm/long, eam, morse </TD><TD >   James Fischer (High Performance Technologies),   David Richie and Vincent Natoli (Stone Ridge Technologies)</TD></TR>
+<TR><TD >fix wall/lj126 </TD><TD > Mark Stevens (Sandia)</TD></TR>
+<TR><TD >Stillinger-Weber and Tersoff potentials </TD><TD > Aidan Thompson (Sandia)</TD></TR>
+<TR><TD >region prism </TD><TD > Pieter in 't Veld (Sandia)</TD></TR>
+<TR><TD >LJ tail corrections for energy/pressure </TD><TD > Paul Crozier (Sandia)</TD></TR>
+<TR><TD >fix momentum and recenter </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >multi-letter variable names </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >OPLS dihedral potential</TD><TD > Mark Stevens (Sandia)</TD></TR>
+<TR><TD >POEMS coupled rigid body integrator</TD><TD > Rudranarayan Mukherjee (RPI)</TD></TR>
+<TR><TD >faster pair hybrid potential</TD><TD > James Fischer   (High Performance Technologies, Inc), Vincent Natoli and   David Richie (Stone Ridge Technology)</TD></TR>
+<TR><TD >breakable bond quartic potential</TD><TD > Chris Lorenz and Mark Stevens (Sandia)</TD></TR>
+<TR><TD >DCD and XTC dump styles</TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >grain boundary orientation fix </TD><TD > Koenraad Janssens and David Olmsted (Sandia)</TD></TR>
+<TR><TD >lj/smooth pair potential </TD><TD > Craig Maloney (UCSB) </TD></TR>
+<TR><TD >radius-of-gyration spring fix </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U) and   Paul Crozier (Sandia)</TD></TR>
+<TR><TD >self spring fix </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >EAM CoAl and AlCu potentials </TD><TD > Kwang-Reoul Lee (KIST, Korea)</TD></TR>
+<TR><TD >cosine/squared angle potential </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >helix dihedral potential </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U) and   Mark Stevens (Sandia)</TD></TR>
+<TR><TD >Finnis/Sinclair EAM</TD><TD > Tim Lau (MIT)</TD></TR>
+<TR><TD >dissipative particle dynamics (DPD) potentials</TD><TD > Kurt Smith (U Pitt) and   Frank van Swol (Sandia)</TD></TR>
+<TR><TD >TIP4P potential (4-site water)</TD><TD > Ahmed Ismail and Amalie Frischknecht (Sandia)</TD></TR>
+<TR><TD >uniaxial strain fix</TD><TD > Carsten Svaneborg (Max Planck Institute)</TD></TR>
+<TR><TD >thermodynamics enhanced by fix quantities</TD><TD > Aidan Thompson (Sandia)</TD></TR>
+<TR><TD >compressed dump files</TD><TD > Erik Luijten (U Illinois)</TD></TR>
+<TR><TD >cylindrical indenter fix</TD><TD > Ravi Agrawal (Northwestern U)</TD></TR>
+<TR><TD >electric field fix</TD><TD > Christina Payne (Vanderbilt U)</TD></TR>
+<TR><TD >AMBER <-> LAMMPS tool</TD><TD > Keir Novik (Univ College London) and   Vikas Varshney (U Akron)</TD></TR>
+<TR><TD >CHARMM <-> LAMMPS tool</TD><TD > Pieter in 't Veld and Paul Crozier (Sandia)</TD></TR>
+<TR><TD >Morse bond potential</TD><TD > Jeff Greathouse (Sandia)</TD></TR>
+<TR><TD >radial distribution functions</TD><TD > Paul Crozier & Jeff Greathouse (Sandia)</TD></TR>
+<TR><TD >force tables for long-range Coulombics</TD><TD > Paul Crozier (Sandia)</TD></TR>
+<TR><TD >targeted molecular dynamics (TMD)</TD><TD > Paul Crozier (Sandia) and   Christian Burisch (Bochum University, Germany)</TD></TR>
+<TR><TD >FFT support for SGI SCLS (Altix)</TD><TD > Jim Shepherd (Ga Tech)</TD></TR>
+<TR><TD >lmp2cfg and lmp2traj tools</TD><TD > Ara Kooser, Jeff Greathouse,   Andrey Kalinichev (Sandia)</TD></TR>
+<TR><TD >parallel tempering</TD><TD > Mark Sears (Sandia)</TD></TR>
+<TR><TD >embedded atom method (EAM) potential</TD><TD > Stephen Foiles (Sandia)</TD></TR>
+<TR><TD >multi-harmonic dihedral potential</TD><TD > Mathias Putz (Sandia)</TD></TR>
+<TR><TD >granular force fields and BC</TD><TD > Leo Silbert & Gary Grest (Sandia)</TD></TR>
+<TR><TD >2d Ewald/PPPM</TD><TD > Paul Crozier (Sandia)</TD></TR>
+<TR><TD >CHARMM force fields</TD><TD > Paul Crozier (Sandia)</TD></TR>
+<TR><TD >msi2lmp tool</TD><TD > Steve Lustig (Dupont), Mike Peachey & John Carpenter (Cray)</TD></TR>
+<TR><TD >HTFN energy minimizer</TD><TD > Todd Plantenga (Sandia)</TD></TR>
+<TR><TD >class 2 force fields</TD><TD > Eric Simon (Cray)</TD></TR>
+<TR><TD >NVT/NPT integrators</TD><TD > Mark Stevens (Sandia)</TD></TR>
+<TR><TD >rRESPA</TD><TD > Mark Stevens & Paul Crozier (Sandia)</TD></TR>
+<TR><TD >Ewald and PPPM solvers</TD><TD > Roy Pollock (LLNL) </TD><TD > 
 </TD></TR></TABLE></DIV>
 
 <P>Other CRADA partners involved in the design and testing of LAMMPS were

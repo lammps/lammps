@@ -158,6 +158,17 @@ int AtomVecEllipsoid::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecEllipsoid::pack_comm_one(int i, double *buf)
+{
+  buf[0] = quat[i][0];
+  buf[1] = quat[i][1];
+  buf[2] = quat[i][2];
+  buf[3] = quat[i][3];
+  return 4;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecEllipsoid::unpack_comm(int n, int first, double *buf)
 {
   int i,m,last;
@@ -173,6 +184,17 @@ void AtomVecEllipsoid::unpack_comm(int n, int first, double *buf)
     quat[i][2] = buf[m++];
     quat[i][3] = buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecEllipsoid::unpack_comm_one(int i, double *buf)
+{
+  quat[i][0] = buf[0];
+  quat[i][1] = buf[1];
+  quat[i][2] = buf[2];
+  quat[i][3] = buf[3];
+  return 4;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -196,6 +218,16 @@ int AtomVecEllipsoid::pack_reverse(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecEllipsoid::pack_reverse_one(int i, double *buf)
+{
+  buf[0] = torque[i][0];
+  buf[1] = torque[i][1];
+  buf[2] = torque[i][2];
+  return 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecEllipsoid::unpack_reverse(int n, int *list, double *buf)
 {
   int i,j,m;
@@ -210,6 +242,16 @@ void AtomVecEllipsoid::unpack_reverse(int n, int *list, double *buf)
     torque[j][1] += buf[m++];
     torque[j][2] += buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecEllipsoid::unpack_reverse_one(int i, double *buf)
+{
+  torque[i][0] += buf[0];
+  torque[i][1] += buf[1];
+  torque[i][2] += buf[2];
+  return 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,6 +306,17 @@ int AtomVecEllipsoid::pack_border(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecEllipsoid::pack_border_one(int i, double *buf)
+{
+  buf[0] = quat[i][0];
+  buf[1] = quat[i][1];
+  buf[2] = quat[i][2];
+  buf[3] = quat[i][3];
+  return 4;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecEllipsoid::unpack_border(int n, int first, double *buf)
 {
   int i,m,last;
@@ -283,6 +336,17 @@ void AtomVecEllipsoid::unpack_border(int n, int first, double *buf)
     quat[i][2] = buf[m++];
     quat[i][3] = buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecEllipsoid::unpack_border_one(int i, double *buf)
+{
+  quat[i][0] = buf[0];
+  quat[i][1] = buf[1];
+  quat[i][2] = buf[2];
+  quat[i][3] = buf[3];
+  return 4;
 }
 
 /* ----------------------------------------------------------------------

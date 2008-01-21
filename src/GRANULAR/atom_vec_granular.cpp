@@ -264,9 +264,9 @@ void AtomVecGranular::unpack_reverse(int n, int *list, double *buf)
 
 int AtomVecGranular::unpack_reverse_one(int i, double *buf)
 {
-  torque[i][0] = buf[0];
-  torque[i][1] = buf[1];
-  torque[i][2] = buf[2];
+  torque[i][0] += buf[0];
+  torque[i][1] += buf[1];
+  torque[i][2] += buf[2];
   return 3;
 }
 

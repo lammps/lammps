@@ -55,6 +55,14 @@ E.g. 1/4 of the dihedral energy to each of the 4 atoms.
 pairwise interactions between 1-4 atoms.  The energy contribution of
 these terms is included in the pair energy, not the dihedral energy.
 </P>
+<P>As an example of per-atom potential energy compared to total potential
+energy, these lines in an input script should yield the same result
+in the last 2 columns of thermo output:
+</P>
+<PRE>compute		peratom all pe/atom
+compute		p all sum c_peratom
+thermo_style	custom step temp etotal press pe c_p 
+</PRE>
 <P>IMPORTANT NOTE: The per-atom energy does NOT include contributions due
 to long-range Coulombic interactions (via the
 <A HREF = "kspace_style.html">kspace_style</A> command).  It's not clear this

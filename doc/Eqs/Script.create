@@ -3,6 +3,7 @@
 latex angle_charmm
 latex angle_class2
 latex angle_cosine
+latex angle_cosine_delta
 latex angle_cosine_squared
 latex angle_harmonic
 latex bond_class2

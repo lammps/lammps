@@ -14,6 +14,7 @@
 #ifdef AngleInclude
 #include "angle_charmm.h"
 #include "angle_cosine.h"
+#include "angle_cosine_delta.h"
 #include "angle_cosine_squared.h"
 #include "angle_harmonic.h"
 #include "angle_hybrid.h"
@@ -22,6 +23,7 @@
 #ifdef AngleClass
 AngleStyle(charmm,AngleCharmm)
 AngleStyle(cosine,AngleCosine)
+AngleStyle(cosine/delta,AngleCosineDelta)
 AngleStyle(cosine/squared,AngleCosineSquared)
 AngleStyle(harmonic,AngleHarmonic)
 AngleStyle(hybrid,AngleHybrid)

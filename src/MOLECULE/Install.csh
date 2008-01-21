@@ -10,6 +10,7 @@ if ($1 == 1) then
   cp angle.cpp ..
   cp angle_charmm.cpp ..
   cp angle_cosine.cpp ..
+  cp angle_cosine_delta.cpp ..
   cp angle_cosine_squared.cpp ..
   cp angle_harmonic.cpp ..
   cp angle_hybrid.cpp ..
@@ -43,6 +44,7 @@ if ($1 == 1) then
 #  cp angle.h ..
   cp angle_charmm.h ..
   cp angle_cosine.h ..
+  cp angle_cosine_delta.h ..
   cp angle_cosine_squared.h ..
   cp angle_harmonic.h ..
   cp angle_hybrid.h ..
@@ -81,6 +83,7 @@ else if ($1 == 0) then
   rm ../angle.cpp
   rm ../angle_charmm.cpp
   rm ../angle_cosine.cpp
+  rm ../angle_cosine_delta.cpp
   rm ../angle_cosine_squared.cpp
   rm ../angle_harmonic.cpp
   rm ../angle_hybrid.cpp
@@ -114,6 +117,7 @@ else if ($1 == 0) then
 #  rm ../angle.h
   rm ../angle_charmm.h
   rm ../angle_cosine.h
+  rm ../angle_cosine_delta.h
   rm ../angle_cosine_squared.h
   rm ../angle_harmonic.h
   rm ../angle_hybrid.h

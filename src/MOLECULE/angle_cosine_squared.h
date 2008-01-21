@@ -22,15 +22,15 @@ namespace LAMMPS_NS {
 class AngleCosineSquared : public Angle {
  public:
   AngleCosineSquared(class LAMMPS *);
-  ~AngleCosineSquared();
-  void compute(int, int);
+  virtual ~AngleCosineSquared();
+  virtual void compute(int, int);
   void coeff(int, int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  double single(int, int, int, int);
+  virtual double single(int, int, int, int);
 
- private:
+ protected:
   double *k,*theta0;
 
   void allocate();

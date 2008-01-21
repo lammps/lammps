@@ -550,6 +550,7 @@ itself for a full description:
 "charmm"_angle_charmm.html,
 "class2"_angle_class2.html,
 "cosine"_angle_cosine.html,
+"cosine/delta"_angle_cosine_delta.html,
 "cosine/squared"_angle_cosine_squared.html,
 "harmonic"_angle_harmonic.html :tb(c=4,ea=c,w=100)
 

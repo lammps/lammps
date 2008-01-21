@@ -142,19 +142,13 @@ one that matches the specified keyword.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info</B>:
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> shift, table, and tail options are
 not relevant for this pair style.
-</P>
-<P>This pair style can calculate per-atom energy and stress, as used by
-the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
-stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
-commands.
 </P>
 <P>This pair style writes the settings for the "pair_style table" command
 to <A HREF = "restart.html">binary restart files</A>, so a pair_style command does

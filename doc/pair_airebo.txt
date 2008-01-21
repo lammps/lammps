@@ -103,16 +103,10 @@ off.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, and rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 This pair style does not support the "pair_modify"_pair_modify.html
 mix, shift, table, and tail options.
-
-This pair style does not calculate per-atom energy and stress, as used
-by the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands.
 
 This pair style does not write its information to "binary restart
 files"_restart.html, since it is stored in potential files.  Thus, you

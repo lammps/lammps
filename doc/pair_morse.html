@@ -55,34 +55,27 @@ of the run time).
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info</B>:
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>None of the Morse pair styles support mixing.  Thus, coefficients for
-all I,J pairs must be specified explicitly.
+<P>None of these pair styles support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
 </P>
-<P>All of the Morse pair styles support the
-<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the pair
-interaction.
+<P>All of these pair styles support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> table options is not relevant for
 the Morse pair styles.
 </P>
-<P>None of the Morse pair styles support the
-<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
-corrections to energy and pressure.
+<P>None of these pair styles support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
 </P>
-<P>All of the Morse pair styles can calculate per-atom energy and
-stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
-<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
-custom</A> commands.
+<P>All of these pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
 </P>
-<P>All of the Morse pair styles write their information to <A HREF = "restart.html">binary
-restart files</A>, so pair_style and pair_coeff commands do
-not need to be specified in an input script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
 <HR>

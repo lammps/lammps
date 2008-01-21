@@ -120,8 +120,7 @@ potentials.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 Any pair potential settings made via the
 "pair_modify"_pair_modify.html command are passed along to all
@@ -141,11 +140,6 @@ doc page for the sub-style to see if allows for mixing.
 The hybrid pair styles supports the "pair_modify"_pair_modify.html
 shift, table, and tail options for an I,J pair interaction, if the
 associated sub-style supports it.
-
-The hybrid pair styles can calculate per-atom energy and stress, as
-used by the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands, if all its sub-styles can perform per-atom calculations.
 
 For the hybrid pair styles, the list of sub-styles and their
 respective settings are written to "binary restart

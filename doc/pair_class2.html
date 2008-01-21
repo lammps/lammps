@@ -96,8 +96,7 @@ mix</A> setting is thus ignored for class2 potentials
 for epsilon and sigma.  However it is still followed for mixing the
 cutoff distance.
 </P>
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, and rRESPA info</B>:
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/class2 pair styles can be mixed.
@@ -118,11 +117,6 @@ capability has not yet been added to this potential.
 <A HREF = "pair_modify.html">pair_modify</A> tail option for adding a long-range
 tail correction to the energy and pressure of the Lennard-Jones
 portion of the pair interaction.
-</P>
-<P>All of the lj/class2 pair styles can calculate per-atom energy and
-stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
-<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
-custom</A> commands.
 </P>
 <P>All of the lj/class2 pair styles write their information to <A HREF = "restart.html">binary
 restart files</A>, so pair_style and pair_coeff commands do

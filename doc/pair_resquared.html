@@ -130,8 +130,7 @@ that type in a "pair_coeff I J" command.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info</B>:
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed, but only for LJ sphere pairs.  The
@@ -155,11 +154,6 @@ for this pair style.
 <P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
 tail option for adding long-range tail corrections to energy and
 pressure.
-</P>
-<P>This pair style does not calculate per-atom energy and stress, as used
-by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
-stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
-commands.
 </P>
 <P>This pair style writes its information to <A HREF = "restart.html">binary restart
 files</A>, so pair_style and pair_coeff commands do not need

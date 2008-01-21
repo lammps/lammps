@@ -82,8 +82,7 @@ pair_style command.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress, and
-restart info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 None of the Buckingham pair styles support mixing.  Thus, coefficients
 for all I,J pairs must be specified explicitly.
@@ -99,11 +98,6 @@ capability has not yet been added to this potential.
 None of the Buckingham pair styles support the
 "pair_modify"_pair_modify.html tail option for adding long-range tail
 corrections to energy and pressure.
-
-All of the Buckingham pair styles can calculate per-atom energy and
-stress, as used by the "compute epair/atom"_compute_epair_atom.html,
-"compute stress/atom"_compute_stress_atom.html, and "dump
-custom"_dump.html commands.
 
 All of the Buckingham pair styles write their information to "binary
 restart files"_restart.html, so pair_style and pair_coeff commands do

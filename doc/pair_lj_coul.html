@@ -105,8 +105,7 @@ pair, since only one global Coulombic cutoff is allowed.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info</B>:
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
@@ -125,11 +124,6 @@ Coulombic interaction.
 option for adding a long-range tail correction to the Lennard-Jones
 portion of the energy and pressure of the pair interaction, assuming
 <I>flag_lj</I> is <I>cut</I>.
-</P>
-<P>This pair style can calculate per-atom energy and stress, as used by
-the <A HREF = "compute_epair_atom.html">compute epair/atom</A>, <A HREF = "compute_stress_atom.html">compute
-stress/atom</A>, and <A HREF = "dump.html">dump custom</A>
-commands.
 </P>
 <P>This pair style writes its information to <A HREF = "restart.html">binary restart
 files</A>, so pair_style and pair_coeff commands do not need

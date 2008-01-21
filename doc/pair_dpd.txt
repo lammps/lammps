@@ -55,8 +55,7 @@ command so it does not need to be specified.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 Thsi pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -70,13 +69,6 @@ for this pair style.
 This pair style does not support the "pair_modify"_pair_modify.html
 tail option for adding long-range tail corrections to energy and
 pressure.
-
-This pair style can calculate per-atom energy and stress, as used by
-the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands.  However, only the first term with the A coefficienct
-(conservative force) is used for these computations.  The drag force
-and random force terms are not.
 
 This pair style writes its information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands do not need

@@ -65,16 +65,10 @@ See the citation below for more discussion of granular potentials.
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 The "pair_modify"_pair_modify.html mix, shift, table, and tail options
 are not relevant for granular pair styles.
-
-These pair styles do not calculate per-atom energy and stress, as used
-by the "compute epair/atom"_compute_epair_atom.html, "compute
-stress/atom"_compute_stress_atom.html, and "dump custom"_dump.html
-commands.
 
 These pair styles write their information to "binary restart
 files"_restart.html, so a pair_style command does not need to be

@@ -51,34 +51,27 @@ of the run time).
 
 :line
 
-[Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, rRESPA info]:
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-None of the Morse pair styles support mixing.  Thus, coefficients for
-all I,J pairs must be specified explicitly.
+None of these pair styles support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
 
-All of the Morse pair styles support the
-"pair_modify"_pair_modify.html shift option for the energy of the pair
-interaction.
+All of these pair styles support the "pair_modify"_pair_modify.html
+shift option for the energy of the pair interaction.
 
 The "pair_modify"_pair_modify.html table options is not relevant for
 the Morse pair styles.
 
-None of the Morse pair styles support the
-"pair_modify"_pair_modify.html tail option for adding long-range tail
-corrections to energy and pressure.
+None of these pair styles support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
 
-All of the Morse pair styles can calculate per-atom energy and
-stress, as used by the "compute epair/atom"_compute_epair_atom.html,
-"compute stress/atom"_compute_stress_atom.html, and "dump
-custom"_dump.html commands.
+All of these pair styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
 
-All of the Morse pair styles write their information to "binary
-restart files"_restart.html, so pair_style and pair_coeff commands do
-not need to be specified in an input script that reads a restart file.
-
-This pair style can only be used via the {pair} keyword of the
-"run_style respa"_run_style.html command.  It does not support the
+These pair styles can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  They do not support the
 {inner}, {middle}, {outer} keywords.
 
 :line

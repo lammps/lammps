@@ -24,8 +24,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "force.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -55,15 +54,14 @@ void DeleteAtoms::command(int narg, char **arg)
   // allocate and initialize deletion list
   
   int nlocal = atom->nlocal;
-  int *dlist = new int[nlocal];
-
+  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   // delete the atoms
 
-  if (strcmp(arg[0],"group") == 0) delete_group(narg,arg,dlist);
-  else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg,dlist);
-  else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg,dlist);
+  if (strcmp(arg[0],"group") == 0) delete_group(narg,arg);
+  else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg);
+  else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg);
   else error->all("Illegal delete_atoms command");
 
   // delete local atoms in list
@@ -80,7 +78,7 @@ void DeleteAtoms::command(int narg, char **arg)
     } else i++;
   }
   atom->nlocal = nlocal;
-  delete [] dlist;
+  memory->sfree(dlist);
 
   // if non-molecular system, reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
@@ -122,7 +120,7 @@ void DeleteAtoms::command(int narg, char **arg)
    group will still exist
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_group(int narg, char **arg, int *dlist)
+void DeleteAtoms::delete_group(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal delete_atoms command");
 
@@ -141,7 +139,7 @@ void DeleteAtoms::delete_group(int narg, char **arg, int *dlist)
    delete all atoms in region
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_region(int narg, char **arg, int *dlist)
+void DeleteAtoms::delete_region(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal delete_atoms command");
   
@@ -162,34 +160,33 @@ void DeleteAtoms::delete_region(int narg, char **arg, int *dlist)
    no guarantee that minimium number of atoms will be deleted
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_overlap(int narg, char **arg, int *dlist)
+void DeleteAtoms::delete_overlap(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal delete_atoms command");
+  if (narg < 4) error->all("Illegal delete_atoms command");
     
-  // read args including optional type info
+  // read args
 
   double cut = atof(arg[1]);
   double cutsq = cut*cut;
 
-  int typeflag,type1,type2;
-  if (narg == 2) typeflag = 0;
-  else if (narg == 3) {
-    typeflag = 1;
-    type1 = atoi(arg[2]);
-  } else if (narg == 4) {
-    typeflag = 2;
-    type1 = atoi(arg[2]);
-    type2 = atoi(arg[3]);
-  } else error->all("Illegal delete_atoms command");
+  int igroup1 = group->find(arg[2]);
+  int igroup2 = group->find(arg[3]);
+  if (igroup1 < 0 || igroup2 < 0)
+    error->all("Could not find delete_atoms group ID");
+
+  int group1bit = group->bitmask[igroup1];
+  int group2bit = group->bitmask[igroup2];
 
   if (comm->me == 0 && screen)
     fprintf(screen,"System init for delete_atoms ...\n");
 
-  // request a half neighbor list for use by this command
+  // request a full neighbor list for use by this command
 
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->command = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
 
   // init entire system since comm->borders and neighbor->build is done
@@ -218,30 +215,13 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *dlist)
   NeighList *list = neighbor->lists[irequest];
   neighbor->build_one(irequest);
 
-  // create an atom map if one doesn't exist already
-
-  int mapflag = 0;
-  if (atom->map_style == 0) {
-    mapflag = 1;
-    atom->map_style = 1;
-    atom->map_init();
-    atom->map_set();
-  }
-
-  // double loop over owned atoms and their neighbors
+  // double loop over owned atoms and their full neighbor list
   // at end of loop, there are no more overlaps
-  // criteria for i,j to undergo a deletion event:
-  //   weighting factor != 0.0 for this pair
-  //     could be 0 and still be in neigh list for long-range Coulombics
-  //   local copy of j (map[tag[j]]) has not already been deleted
-  //   distance between i,j is less than cutoff
-  //   i,j are of valid types
-  // if all criteria met, delete i and skip to next i in outer loop
-  //   unless j is ghost and newton_pair off and tag[j] < tag[i]
-  //   then rely on other proc to delete
+  // only ever delete owned atom I, never J even if owned
 
   int *tag = atom->tag;
   int *type = atom->type;
+  int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
@@ -270,17 +250,16 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *dlist)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
 
+      // if weighting factors are 0, skip this pair
+      // could be 0 and still be in neigh list for long-range Coulombics
+      // want consistency with non-charged pairs which wouldn't be in list
+
       if (j >= nall) {
 	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0) continue;
 	j %= nall;
       }
 
-      if (j < nlocal) {
-	if (dlist[j]) continue;
-      } else {
-	m = atom->map(tag[j]);
-	if (m < nlocal && dlist[m]) continue;
-      }
+      // only consider deletion if I,J distance < cutoff
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -288,24 +267,30 @@ void DeleteAtoms::delete_overlap(int narg, char **arg, int *dlist)
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq) continue;
 
-      if (typeflag) {
-	jtype = type[j];
-	if (typeflag == 1 && itype != type1 && jtype != type1) continue;
-	if (typeflag == 2 && !(itype == type1 && jtype == type2) && 
-	    !(itype == type2 && jtype == type1)) continue;
-      }
+      // only consider deletion if I,J are in groups 1,2 respectively
+      // true whether J is owned or ghost atom
 
-      if (j >= nlocal && newton_pair == 0 && tag[j] < tag[i]) continue;
+      if (!(mask[i] & group1bit)) continue;
+      if (!(mask[j] & group2bit)) continue;
+
+      // J is owned atom:
+      //   delete atom I if atom J has not already been deleted
+      // J is ghost atom:
+      //   delete atom I if J,I is not a candidate deletion pair
+      //     due to being in groups 1,2 respectively
+      //   if they are candidate pair, then either:
+      //      another proc owns J and could delete J
+      //      J is a ghost of another of my owned atoms, and I could delete J
+      //   test on tags of I,J insures that only I or J is deleted
+
+      if (j < nlocal) {
+	if (dlist[j]) continue;
+      } else if ((mask[i] & group2bit) && (mask[j] & group1bit)) {
+	if (tag[i] > tag[j]) continue;
+      }
 
       dlist[i] = 1;
       break;
     }
-  }
-
-  // delete temporary atom map
-
-  if (mapflag) {
-    atom->map_delete();
-    atom->map_style = 0;
   }
 }

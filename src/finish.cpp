@@ -294,6 +294,7 @@ void Finish::end(int flag)
   }
 
   // find a non-skip neighbor list containing half the pairwise interactions
+  // count neighbors in that list for stats purposes
 
   for (m = 0; m < neighbor->old_nrequest; m++)
     if ((neighbor->old_requests[m]->half || neighbor->old_requests[m]->gran ||
@@ -302,9 +303,13 @@ void Finish::end(int flag)
 	neighbor->old_requests[m]->skip == 0) break;
 
   int nneigh = 0;
-  if (m < neighbor->old_nrequest)
-    for (i = 0; i < atom->nlocal; i++)
-      nneigh += neighbor->lists[m]->numneigh[i];
+  if (m < neighbor->old_nrequest) {
+    int inum = neighbor->lists[m]->inum;
+    int *ilist = neighbor->lists[m]->ilist;
+    int *numneigh = neighbor->lists[m]->numneigh;
+    for (int ii = 0; ii < inum; ii++)
+      nneigh += numneigh[ilist[ii]];
+  }
 
   tmp = nneigh;
   stats(1,&tmp,&ave,&max,&min,10,histo);

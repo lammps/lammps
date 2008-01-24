@@ -24,9 +24,11 @@ class DeleteAtoms : protected Pointers {
   void command(int, char **);
 
  private:
-  void delete_group(int, char **, int *);
-  void delete_region(int, char **, int *);
-  void delete_overlap(int, char **, int *);
+  int *dlist;
+
+  void delete_group(int, char **);
+  void delete_region(int, char **);
+  void delete_overlap(int, char **);
 };
 
 }

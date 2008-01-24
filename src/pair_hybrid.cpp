@@ -342,10 +342,11 @@ void PairHybrid::init_style()
 
   for (istyle = 0; istyle < nstyles; istyle++) styles[istyle]->init_style();
 
-  // create skip lists for each neigh request
+  // create skip lists for each pair neigh request
   // any kind of list can have its skip flag set at this stage
 
   for (i = 0; i < neighbor->nrequest; i++) {
+    if (!neighbor->requests[i]->pair) continue;
 
     // find associated sub-style
 
@@ -458,6 +459,7 @@ void PairHybrid::modify_requests()
   int i,j;
   NeighRequest *irq,*jrq;
 
+  // loop over pair requests only
   // if list is skip list and not copy, look for non-skip list of same kind
   // if one exists, point at that one
   // else make new non-skip request of same kind and point at that one
@@ -471,6 +473,8 @@ void PairHybrid::modify_requests()
   //   which invokes this routine
 
   for (i = 0; i < neighbor->nrequest; i++) {
+    if (!neighbor->requests[i]->pair) continue;
+
     irq = neighbor->requests[i];
     if (irq->skip == 0 || irq->copy) continue;
     if (irq->half_from_full) {
@@ -479,6 +483,7 @@ void PairHybrid::modify_requests()
     }
 
     for (j = 0; j < neighbor->nrequest; j++) {
+      if (!neighbor->requests[j]->pair) continue;
       jrq = neighbor->requests[j];
       if (irq->same_kind(jrq) && jrq->skip == 0) break;
     }

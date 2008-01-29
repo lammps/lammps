@@ -59,6 +59,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
   style = SINGLE;
   multilo = multihi = NULL;
+  cutghostmulti = NULL;
 
   // initialize comm buffers & exchange memory
 

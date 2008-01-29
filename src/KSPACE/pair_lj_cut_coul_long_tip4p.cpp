@@ -54,16 +54,6 @@ PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp)
 {
   single_enable = 0;
-
-  nmax = 0;
-  ftmp = NULL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairLJCutCoulLongTIP4P::~PairLJCutCoulLongTIP4P()
-{
-  memory->destroy_2d_double_array(ftmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -523,16 +513,4 @@ void *PairLJCutCoulLongTIP4P::extract(char *str)
   else if (strcmp(str,"typeB") == 0) return (void *) &typeB;
   else if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
-}
-
-/* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
-------------------------------------------------------------------------- */
-
-double PairLJCutCoulLongTIP4P::memory_usage()
-{
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 3 * nmax * sizeof(double);
-  return bytes;
 }

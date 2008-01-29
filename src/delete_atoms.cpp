@@ -51,12 +51,6 @@ void DeleteAtoms::command(int narg, char **arg)
 
   int natoms_previous = static_cast<int> (atom->natoms);
 
-  // allocate and initialize deletion list
-  
-  int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
-  for (int i = 0; i < nlocal; i++) dlist[i] = 0;
-
   // delete the atoms
 
   if (strcmp(arg[0],"group") == 0) delete_group(narg,arg);
@@ -64,10 +58,11 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg);
   else error->all("Illegal delete_atoms command");
 
-  // delete local atoms in list
+  // delete local atoms flagged in dlist
   // reset nlocal
 
   AtomVec *avec = atom->avec;
+  int nlocal = atom->nlocal;
 
   int i = 0;
   while (i < nlocal) {
@@ -77,6 +72,7 @@ void DeleteAtoms::command(int narg, char **arg)
       nlocal--;
     } else i++;
   }
+
   atom->nlocal = nlocal;
   memory->sfree(dlist);
 
@@ -85,8 +81,6 @@ void DeleteAtoms::command(int narg, char **arg)
 
   if (atom->molecular == 0) {
     int *tag = atom->tag;
-    int nlocal = atom->nlocal;
- 
     for (i = 0; i < nlocal; i++) tag[i] = 0;
     atom->tag_extend();
   }
@@ -127,8 +121,13 @@ void DeleteAtoms::delete_group(int narg, char **arg)
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all("Could not find delete_atoms group ID");
 
-  int *mask = atom->mask;
+  // allocate and initialize deletion list
+  
   int nlocal = atom->nlocal;
+  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  for (int i = 0; i < nlocal; i++) dlist[i] = 0;
+
+  int *mask = atom->mask;
   int groupbit = group->bitmask[igroup];
 
   for (int i = 0; i < nlocal; i++)
@@ -146,8 +145,13 @@ void DeleteAtoms::delete_region(int narg, char **arg)
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all("Could not find delete_atoms region ID");
 
-  double **x = atom->x;
+  // allocate and initialize deletion list
+  
   int nlocal = atom->nlocal;
+  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  for (int i = 0; i < nlocal; i++) dlist[i] = 0;
+
+  double **x = atom->x;
 
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
@@ -215,6 +219,13 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   NeighList *list = neighbor->lists[irequest];
   neighbor->build_one(irequest);
 
+  // allocate and initialize deletion list
+  // must be after exchange potentially changes nlocal
+  
+  int nlocal = atom->nlocal;
+  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  for (int i = 0; i < nlocal; i++) dlist[i] = 0;
+
   // double loop over owned atoms and their full neighbor list
   // at end of loop, there are no more overlaps
   // only ever delete owned atom I, never J even if owned
@@ -223,7 +234,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;

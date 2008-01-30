@@ -74,7 +74,8 @@ PairSW::~PairSW()
 
 void PairSW::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,kk,inum,jnum,jnumm1,itag,jtag,itype,jtype,ktype,iparam;
+  int i,j,k,ii,jj,kk,inum,jnum,jnumm1,itag,jtag;
+  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
@@ -133,10 +134,10 @@ void PairSW::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      iparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[iparam].cutsq) continue;
+      ijparam = elem2param[itype][jtype][jtype];
+      if (rsq > params[ijparam].cutsq) continue;
 
-      twobody(&params[iparam],rsq,fpair,eflag,evdwl);
+      twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
 
       f[i][0] += delx*fpair;
       f[i][1] += dely*fpair;
@@ -149,34 +150,31 @@ void PairSW::compute(int eflag, int vflag)
 			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
-    // three-body interactions
-    // cannot test I-J distance against cutoff outside of 2nd loop
-    // b/c must use I-J-K cutoff for both rij and rik
-
     jnumm1 = jnum - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
       j = jlist[jj];
       jtype = map[type[j]];
+      ijparam = elem2param[itype][jtype][jtype];
+      delr1[0] = x[j][0] - xtmp;
+      delr1[1] = x[j][1] - ytmp;
+      delr1[2] = x[j][2] - ztmp;
+      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      if (rsq1 > params[ijparam].cutsq) continue;
 
       for (kk = jj+1; kk < jnum; kk++) {
 	k = jlist[kk];
 	ktype = map[type[k]];
-	iparam = elem2param[itype][jtype][ktype];
-
-	delr1[0] = x[j][0] - xtmp;
-	delr1[1] = x[j][1] - ytmp;
-	delr1[2] = x[j][2] - ztmp;
-	rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-	if (rsq1 > params[iparam].cutsq) continue;
+	ikparam = elem2param[itype][ktype][ktype];
+	ijkparam = elem2param[itype][jtype][ktype];
 
 	delr2[0] = x[k][0] - xtmp;
 	delr2[1] = x[k][1] - ytmp;
 	delr2[2] = x[k][2] - ztmp;
 	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[iparam].cutsq) continue;
+	if (rsq2 > params[ikparam].cutsq) continue;
 
-	threebody(&params[iparam],rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+	threebody(&params[ijparam],&params[ikparam],&params[ijkparam],rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
 	f[i][0] -= fj[0] + fk[0];
 	f[i][1] -= fj[1] + fk[1];
@@ -323,7 +321,7 @@ double PairSW::init_one(int i, int j)
 
 void PairSW::read_file(char *file)
 {
-  int params_per_line = 13;
+  int params_per_line = 14;
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);
@@ -432,12 +430,13 @@ void PairSW::read_file(char *file)
     params[nparams].bigb = atof(words[10]);
     params[nparams].powerp = atof(words[11]);
     params[nparams].powerq = atof(words[12]);
+    params[nparams].tol = atof(words[13]);
 
     if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 || 
 	params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
 	params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 || 
 	params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
-	params[nparams].powerq < 0.0)
+	params[nparams].powerq < 0.0 || params[nparams].tol < 0.0)
       error->all("Illegal Stillinger-Weber parameter");
 
     nparams++;
@@ -451,6 +450,7 @@ void PairSW::read_file(char *file)
 void PairSW::setup()
 {
   int i,j,k,m,n;
+  double rtmp;
 
   // set elem2param for all triplet combinations
   // must be a single exact match to lines read from file
@@ -478,9 +478,24 @@ void PairSW::setup()
 
   // compute parameter values derived from inputs
 
+  // set cutsq using shortcut to reduce neighbor list for accelerated
+  // calculations. cut must remain unchanged as it is a potential parameter
+  // (cut = a*sigma) 
+
   for (m = 0; m < nparams; m++) {
     params[m].cut = params[m].sigma*params[m].littlea;
-    params[m].cutsq = params[m].cut*params[m].cut;
+
+    rtmp = params[m].cut;
+    if (params[m].tol > 0.0) {
+      if (params[m].tol > 0.01) params[m].tol = 0.01;
+      if (params[m].gamma < 1.0)
+        rtmp = rtmp +
+          params[m].gamma * params[m].sigma / log(params[m].tol);
+      else rtmp = rtmp +  
+	     params[m].sigma / log(params[m].tol);
+    }
+    params[m].cutsq = rtmp * rtmp;
+
     params[m].sigma_gamma = params[m].sigma*params[m].gamma;
     params[m].lambda_epsilon = params[m].lambda*params[m].epsilon;
     params[m].lambda_epsilon2 = 2.0*params[m].lambda*params[m].epsilon;
@@ -502,8 +517,10 @@ void PairSW::setup()
   // set cutmax to max of all params
 
   cutmax = 0.0;
-  for (m = 0; m < nparams; m++)
-    if (params[m].cut > cutmax) cutmax = params[m].cut;
+  for (m = 0; m < nparams; m++) {
+    rtmp = sqrt(params[m].cutsq);
+    if (rtmp > cutmax) cutmax = rtmp;
+  }
 }  
 
 /* ---------------------------------------------------------------------- */
@@ -527,7 +544,7 @@ void PairSW::twobody(Param *param, double rsq, double &fforce,
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW::threebody(Param *param, double rsq1, double rsq2,
+void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk, double rsq1, double rsq2,
 		       double *delr1, double *delr2,
 		       double *fj, double *fk, int eflag, double &eng)
 {
@@ -538,28 +555,29 @@ void PairSW::threebody(Param *param, double rsq1, double rsq2,
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
-  rainv1 = 1.0/(r1 - param->cut);
-  gsrainv1 = param->sigma_gamma * rainv1;
+  rainv1 = 1.0/(r1 - paramij->cut);
+  gsrainv1 = paramij->sigma_gamma * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1; 
   expgsrainv1 = exp(gsrainv1);
 
   r2 = sqrt(rsq2);
   rinvsq2 = 1.0/rsq2;
-  rainv2 = 1.0/(r2 - param->cut);
-  gsrainv2 = param->sigma_gamma * rainv2;
+  rainv2 = 1.0/(r2 - paramik->cut);
+  gsrainv2 = paramik->sigma_gamma * rainv2;
   gsrainvsq2 = gsrainv2*rainv2/r2; 
   expgsrainv2 = exp(gsrainv2);
 
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  delcs = cs - param->costheta;
+  delcs = cs - paramijk->costheta;
   delcssq = delcs*delcs;
 
   facexp = expgsrainv1*expgsrainv2;
-  facrad = param->lambda_epsilon * facexp*delcssq;
+  //  facrad = sqrt(paramij->lambda_epsilon*paramik->lambda_epsilon) * facexp*delcssq;
+  facrad = paramijk->lambda_epsilon * facexp*delcssq;
   frad1 = facrad*gsrainvsq1;
   frad2 = facrad*gsrainvsq2;
-  facang = param->lambda_epsilon2 * facexp*delcs;
+  facang = paramijk->lambda_epsilon2 * facexp*delcs;
   facang12 = rinv12*facang;
   csfacang = cs*facang;
   csfac1 = rinvsq1*csfacang;
@@ -576,3 +594,4 @@ void PairSW::threebody(Param *param, double rsq1, double rsq2,
 
   if (eflag) eng = facrad;
 }
+

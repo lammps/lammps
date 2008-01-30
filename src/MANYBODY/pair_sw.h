@@ -34,6 +34,7 @@ class PairSW : public Pair {
     double littlea,lambda,gamma,costheta;
     double biga,bigb;
     double powerp,powerq;
+    double tol;
     double cut,cutsq;
     double sigma_gamma,lambda_epsilon,lambda_epsilon2;
     double c1,c2,c3,c4,c5,c6;
@@ -53,7 +54,7 @@ class PairSW : public Pair {
   void read_file(char *);
   void setup();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, double, double, double *, double *,
+  void threebody(Param *, Param *, Param *, double, double, double *, double *,
 		 double *, double *, int, double &);
 };
 

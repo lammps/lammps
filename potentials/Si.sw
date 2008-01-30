@@ -6,7 +6,7 @@
 
 # format of a single entry (one or more lines):
 #   element 1, element 2, element 3, 
-#   epsilon, sigma, a, lambda, gamma, costheta0, A, B, p, q
+#   epsilon, sigma, a, lambda, gamma, costheta0, A, B, p, q, tol
 
 # Here are the original parameters in metal units, for Silicon from:
 #
@@ -14,4 +14,4 @@
 #
 
 Si Si Si 2.1683  2.0951  1.80  21.0  1.20  -0.333333333333
-         7.049556277  0.6022245584  4.0  0.0 
+         7.049556277  0.6022245584  4.0  0.0 0.0

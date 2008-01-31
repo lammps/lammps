@@ -137,7 +137,7 @@ void DihedralHarmonic::compute(int eflag, int vflag)
       MPI_Comm_rank(world,&me);
       if (screen) {
 	char str[128];
-	sprintf(str,"Dihedral problem: %d %d %d %d %d %d\n",
+	sprintf(str,"Dihedral problem: %d %d %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
 	error->warning(str);

@@ -37,11 +37,11 @@ the input script or data file.  These are the 4 coefficients:
 </P>
 <UL><LI>theta0 (degrees)
 <LI>K2 (energy/radian^2)
-<LI>K3 (energy/radian^2)
-<LI>K4 (energy/radian^2) 
+<LI>K3 (energy/radian^3)
+<LI>K4 (energy/radian^4) 
 </UL>
 <P>Theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian^2.
+internally; hence the units of the various K are in per-radian.
 </P>
 <P>Coefficients for the Ebb and Eba formulas can only be specified in the
 data file.

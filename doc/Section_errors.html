@@ -3587,6 +3587,11 @@ read_restart, or create_box command.
 </H4>
 <DL>
 
+<DT><I>Dihedral problem: %d %d %d %d %d %d</I> 
+
+<DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry. 
+
 <DT><I>Dump dcd/xtc timestamp may be wrong with fix dt/reset</I> 
 
 <DD>If the fix changes the timestep, the dump dcd file will not
@@ -3618,6 +3623,11 @@ the other fixes have made their adjustments.
 <DD>The fix_modify command is specifying a temperature computation that
 computes a temperature on a different group of atoms than the fix
 itself operates on.  This is probably not what you want to do. 
+
+<DT><I>Improper problem: %d %d %d %d %d %d</I> 
+
+<DD>Conformation of the 4 listed improper atoms is extreme; you may want
+to check your simulation geometry. 
 
 <DT><I>Less insertions than requested</I> 
 

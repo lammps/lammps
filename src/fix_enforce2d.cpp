@@ -15,6 +15,7 @@
 #include "fix_enforce2d.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
 #include "respa.h"
 #include "error.h"
 
@@ -37,6 +38,14 @@ int FixEnforce2D::setmask()
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixEnforce2D::init()
+{
+  if (domain->dimension == 3)
+    error->all("Should not use fix enforce2d with 3d simulation");
 }
 
 /* ---------------------------------------------------------------------- */

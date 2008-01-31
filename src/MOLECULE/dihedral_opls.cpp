@@ -165,9 +165,11 @@ void DihedralOPLS::compute(int eflag, int vflag)
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
       if (screen) {
-	fprintf(screen,"Dihedral problem: %d %d %d %d %d %d\n",
+	char str[128];
+	sprintf(str,"Dihedral problem: %d %d %d %d %d %d\n",
 		comm->me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+	error->warning(str);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		comm->me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",

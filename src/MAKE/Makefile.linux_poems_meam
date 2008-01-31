@@ -6,12 +6,11 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		icc
-CCFLAGS =	-O -I/home/sjplimp/lammps/lib/poems \
+CCFLAGS =	-O -I../../lib/poems \
 		-DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		icc
-LINKFLAGS =	-O -L/home/sjplimp/lammps/lib/poems \
-		-L/home/sjplimp/lammps/lib/meam \
+LINKFLAGS =	-O -L../../lib/poems -L../../lib/meam \
 		-L/opt/intel/fce/10.0.023/lib
 USRLIB =	-lfftw -lmpich -lpoems -lmeam
 SYSLIB =	-lpthread -lstdc++ -lifcore -lsvml -lompstub -limf

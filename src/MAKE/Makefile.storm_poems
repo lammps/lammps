@@ -8,8 +8,7 @@ SHELL = /bin/sh
 
 CC =		CC
 CCFLAGS =	-fastsse -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK \
-		-I/projects/fftw/fftw-2.1.5/include \
-		-I/home/sjplimp/lammps/lib/poems
+		-I/projects/fftw/fftw-2.1.5/include -I../../lib/poems
 DEPFLAGS =	-M
 LINK =		CC
 LINKFLAGS =	-O -L/projects/fftw/fftw-2.1.5/lib \

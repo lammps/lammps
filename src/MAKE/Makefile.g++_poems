@@ -6,11 +6,11 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		g++
-CCFLAGS =	-g -O -I/home/sjplimp/lammps/lib/poems \
+CCFLAGS =	-g -O -I../../lib/poems \
 		-DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O -L/home/sjplimp/lammps/lib/poems
+LINKFLAGS =	-g -O -L../../lib/poems
 USRLIB =	-lfftw -lmpich -lpoems
 SYSLIB =	-lpthread
 ARCHIVE =	ar

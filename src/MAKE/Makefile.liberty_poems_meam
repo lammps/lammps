@@ -8,11 +8,11 @@ SHELL = /bin/sh
 FFTW =		/apps/libraries/fftw/icc
 
 CC =		mpiCC
-CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw -I/home/sjplimp/lammps/lib/poems
+CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw -I../../lib/poems
 DEPFLAGS =	-M
 LINK =		mpiCC
-LINKFLAGS =	-O -L${FFTW}/fftw/.libs -L/home/sjplimp/lammps/lib/poems \
-		-L/home/sjplimp/lammps/lib/meam -L/opt/intel/fc/9.0/lib
+LINKFLAGS =	-O -L${FFTW}/fftw/.libs -L../../lib/poems \
+		-L../../lib/meam -L/opt/intel/fc/9.0/lib
 USRLIB =	-lfftw -lpoems -lmeam
 SYSLIB =	-lstdc++ -lm -lifcore
 SIZE =		size

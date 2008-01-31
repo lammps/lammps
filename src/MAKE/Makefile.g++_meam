@@ -9,8 +9,7 @@ CC =		g++
 CCFLAGS =	-g -O -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O -L/home/sjplimp/lammps/lib/meam \
-		-L/opt/intel/fce/10.0.023/lib
+LINKFLAGS =	-g -O -L../../lib/meam -L/opt/intel/fce/10.0.023/lib
 USRLIB =	-lfftw -lmpich -lmeam
 SYSLIB =	-lpthread -lifcore -lsvml -lompstub -limf
 ARCHIVE =	ar

@@ -714,4 +714,9 @@ xdrstdio_putuint32 (XDR *xdrs, xdr_uint32_t *ip)
 }
 #endif
 
+#else 
+/* satisfy compilers that do not like to compile empty files. */
+static void i_am_a_dummy_subroutine(void) {
+  return;
+}
 #endif

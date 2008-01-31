@@ -16,6 +16,9 @@
                          open-source XDR routines from
 			   Frans van Hoesel (http://md.chem.rug.nl/hoesel)
 			   are also included in this file
+                         Axel Kohlmeyer (UPenn)
+                           port to platforms without XDR support
+                           added support for unwrapped trajectories
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -43,12 +46,6 @@ int xdropen(XDR *, const char *, const char *);
 int xdrclose(XDR *);
 void xdrfreebuf();
 int xdr3dfcoord(XDR *, float *, int *, float *);
-
-// include XDR compatibility code 
-
-#ifdef LAMMPS_USE_XDR_COMPAT
-#include "xdr_compat.c"
-#endif
 
 /* ---------------------------------------------------------------------- */
 

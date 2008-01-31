@@ -174,7 +174,8 @@ void PairSW::compute(int eflag, int vflag)
 	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 	if (rsq2 > params[ikparam].cutsq) continue;
 
-	threebody(&params[ijparam],&params[ikparam],&params[ijkparam],rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+	threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
+		  rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
 	f[i][0] -= fj[0] + fk[0];
 	f[i][1] -= fj[1] + fk[1];
@@ -544,7 +545,8 @@ void PairSW::twobody(Param *param, double rsq, double &fforce,
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk, double rsq1, double rsq2,
+void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
+		       double rsq1, double rsq2,
 		       double *delr1, double *delr2,
 		       double *fj, double *fk, int eflag, double &eng)
 {
@@ -573,7 +575,10 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk, double r
   delcssq = delcs*delcs;
 
   facexp = expgsrainv1*expgsrainv2;
-  //  facrad = sqrt(paramij->lambda_epsilon*paramik->lambda_epsilon) * facexp*delcssq;
+
+  // facrad = sqrt(paramij->lambda_epsilon*paramik->lambda_epsilon) *
+  //          facexp*delcssq;
+
   facrad = paramijk->lambda_epsilon * facexp*delcssq;
   frad1 = facrad*gsrainvsq1;
   frad2 = facrad*gsrainvsq2;

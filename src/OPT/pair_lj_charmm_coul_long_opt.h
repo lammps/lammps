@@ -28,18 +28,18 @@
 #include "force.h"
 #include "neigh_list.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+namespace LAMMPS_NS {
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+#define EWALD_A1  0.254829592
+#define EWALD_A2 -0.284496736
+#define EWALD_A3  1.421413741
+#define EWALD_A4 -1.453152027
+#define EWALD_A5  1.061405429
 
-namespace LAMMPS_NS {
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 class PairLJCharmmCoulLongOpt : public PairLJCharmmCoulLong {
  public:
@@ -146,7 +146,9 @@ void PairLJCharmmCoulLongOpt::eval()
 	      grij = g_ewald * r;
 	      expm2 = exp(-grij*grij);
 	      t = 1.0 / (1.0 + EWALD_P*grij);
-	      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	      erfc = t * 
+		(EWALD_A1+t*(EWALD_A2+t*(EWALD_A3+t*(EWALD_A4+t*EWALD_A5)))) * 
+		expm2;
 	      prefactor = qqrd2e * tmp_coef3/r;
 	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	    } else {
@@ -230,7 +232,9 @@ void PairLJCharmmCoulLongOpt::eval()
 	      grij = g_ewald * r;
 	      expm2 = exp(-grij*grij);
 	      t = 1.0 / (1.0 + EWALD_P*grij);
-	      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	      erfc = t * 
+		(EWALD_A1+t*(EWALD_A2+t*(EWALD_A3+t*(EWALD_A4+t*EWALD_A5)))) * 
+		expm2;
 	      prefactor = qqrd2e * tmp_coef3/r;
 	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	      if (factor_coul < 1.0) {

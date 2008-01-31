@@ -5,9 +5,12 @@
 # lambda_ijk is equal to lambda_ik and eps_ijk is 
 # equal to sqrt(lambda_ij*eps_ij*lambda_ik*eps_ik)/lambda_ik, 
 # and all other parameters in the ijk line are for ik.
+
+# These entries are in LAMMPS "metal" units:
+#   epsilon = eV; sigma = Angstroms
+#   other quantities are unitless
 #
 #         eps      sigma a lambda gamma  cos(theta)     A    B    p   q  tol
-#        The units of eps, sigma and a are eV, A, and A, respectively.
 #
 Ga Ga Ga 1.2000000 2.100 1.6 32.5 1.2 -0.333333333333 7.917 0.72 4.0 0.0 0.0
 N  N  N  1.2000000 1.300 1.8 32.5 1.2 -0.333333333333 7.917 0.72 4.0 0.0 0.0

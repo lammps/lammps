@@ -17,12 +17,12 @@
 #include "kspace.h"
 #include "math_complex.h"
 
+namespace LAMMPS_NS {
+
 #define EWALD_NORDER	6
 #define EWALD_NFUNCS	4
 #define EWALD_MAX_NSUMS	10
 #define EWALD_NSUMS	{1, 1, 7, 1}
-
-namespace LAMMPS_NS {
 
 typedef struct cvector { complex x, y, z; } cvector;
 typedef struct hvector { double x, y, z; } hvector;

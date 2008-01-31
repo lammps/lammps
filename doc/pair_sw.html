@@ -75,13 +75,29 @@ and three-body coefficients in the formula above:
 <LI>A
 <LI>B
 <LI>p
-<LI>q 
+<LI>q
+<LI>tol 
 </UL>
 <P>The A, B, p, and q parameters are used only for two-body
-interactions.  The lambda, gamma, and costheta0 parameters are used only for
+interactions.  The lambda and costheta0 parameters are used only for
 three-body interactions. The epsilon, sigma and a parameters are used
-for both two-body and three-body interactions.  
+for both two-body and three-body interactions. gamma is used only in the
+three-body interactions, but is defined for pairs of atoms.   
 The non-annotated parameters are unitless.
+</P>
+<P>Lammps introduces an additional performance-optimization parameter 
+tol that is used for
+both two-body and three-body interactions.
+In the Stillinger-Weber potential, the
+interaction enrgies become negligibly small at atomic separations 
+substantially less than the theoretical cutoff
+distances.  Lammps therefore defines a virtual cutoff distance 
+based on a user defined tolerance tol.  
+The use of the virtual cutoff distance in constructing atom neighbor
+lists can significantly reduce the neighbor list sizes and therefore the
+computational cost.  Lammps provide a tol value for each of the three-body
+entries so that they can be separately controlled. If tol = 0.0, then 
+the standard Stillinger-Weber cutoff is used.
 </P>
 <P>The Stillinger-Weber potential file must contain entries for all the
 elements listed in the pair_coeff command.  It can also contain
@@ -97,17 +113,29 @@ entries would be required, etc.
 </P>
 <P>As annotated above, the first element in the entry is the center atom
 in a three-body interaction.  Thus an entry for SiCC means a Si atom
-with 2 C atoms as neighbors.  By symmetry, three-body parameters for
-SiCSi and SiSiC entries should be the same.  The parameters used for
-the two-body interaction come from the entry where the 2nd element is
-repeated.  Thus the two-body parameters for Si interacting with C,
-comes from the SiCC entry.  Again by symmetry, the two-body parameters
-in the SiCC and CSiSi entries should thus be the same.  The parameters
-used for a particular three-body interaction come from the entry with
-the corresponding three elements.  The parameters used only for
-two-body interactions (A, B, p, and q) in entries whose 2nd and 3rd
-element are different (e.g. SiCSi) are not used for anything and can
-be set to 0.0 if desired.
+with 2 C atoms as neighbors.  The parameter values used for
+the two-body interaction come
+from the entry where the 2nd and 3rd elements are the same.  
+Thus the two-body
+parameters for Si interacting with C, comes from the SiCC entry.
+The three-body parameters can in principle be specific to the
+three elements of the configuration. In the literature, however, the
+three-body parameters are usually defined by simple formulas involving 
+two sets of pair-wise parameters, corresponding to the ij and ik pairs, 
+where i is the center atom. The user must
+ensure that the correct combining rule is used to calculate the
+values of the threebody parameters for alloys. Note also that 
+the function phi3 contains two exponential screening factors with parameter
+values from the ij pair and ik pairs. So phi3 for a C atom bonded to a Si atom and 
+a second C atom will depend on the three-body parameters for the CSiC 
+entry, and also on the two-body parameters for the CCC and CSiSi entries. Since the order
+of the two neighbors is arbitrary, the threebody parameters for entries CSiC and CCSi 
+should be the same.
+Similarly, the two-body parameters for entries SiCC
+and CSiSi should also be the same. 
+The parameters used only for two-body interactions (A, B, p, and q) 
+in entries whose 2nd and 3rd element are different (e.g. SiCSi) 
+are not used for anything and can be set to 0.0 if desired.
 </P>
 <HR>
 

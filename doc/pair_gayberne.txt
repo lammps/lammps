@@ -156,7 +156,8 @@ ratio ellipsoids are used.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "fix nve/asphere"_fix_nve_asphere.html,
-"compute temp/asphere"_compute_temp_asphere.html
+"compute temp/asphere"_compute_temp_asphere.html, "pair_style
+resquared"_pair_resquared.html
 
 [Default:] none
 

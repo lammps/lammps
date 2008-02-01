@@ -25,7 +25,7 @@ pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 [Description:]
 
 Style {gayberne} computes a Gay-Berne anisotropic LJ interaction
-"(Beradi)"_#Beradi between pairs of ellipsoidal particles or an
+"(Berardi)"_#Berardi between pairs of ellipsoidal particles or an
 ellipsoidal and spherical particle via the formulas
 
 :c,image(Eqs/pair_gayberne.jpg)
@@ -167,6 +167,7 @@ ratio ellipsoids are used.
 
 :link(Berardi)
 [(Berardi)] Berardi, Fava, Zannoni, Chem Phys Lett, 297, 8-14 (1998).
+Berardi, Muccioli, Zannoni, J Chem Phys, 128, 024905 (2008).
 
 :link(Perram)
 [(Perram)] Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).

@@ -119,6 +119,7 @@ available in LAMMPS:
 "sum"_compute_sum.html - sum per-atom quantities to a global value
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
+"temp/com"_compute_temp_com.html - include center-of-mass momentum all directly-bonded neighbors
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
 "temp/dipole"_compute_temp_dipole.html - temperature of point dipolar particles
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity

@@ -466,7 +466,7 @@ optimized pair potentials for lj/cut, charmm/long, eam, morse : \
   James Fischer (High Performance Technologies), \
   David Richie and Vincent Natoli (Stone Ridge Technologies)
 fix wall/lj126 : Mark Stevens (Sandia)
-Stillinger-Weber and Tersoff potentials : Aidan Thompson (Sandia)
+Stillinger-Weber and Tersoff potentials : Aidan Thompson and Xiaowang Zhou (Sandia)
 region prism : Pieter in 't Veld (Sandia)
 LJ tail corrections for energy/pressure : Paul Crozier (Sandia)
 fix momentum and recenter : Naveen Michaud-Agrawal (Johns Hopkins U)

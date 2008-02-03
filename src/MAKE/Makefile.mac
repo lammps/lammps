@@ -5,11 +5,11 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		c++
-CCFLAGS =	-O -I../STUBS -I/Users/sjplimp/tools/fftw/include -DFFT_FFTW
+CCFLAGS =	-O -I../STUBS -I/sw/include -DFFT_FFTW
 DEPFLAGS =	-M
 LINK =		c++
-LINKFLAGS =	-O -L../STUBS -L/Users/sjplimp/tools/fftw/lib
-USRLIB =	-lfftw -lmpi
+LINKFLAGS =	-O -L/sw/lib
+USRLIB =	-lfftw ../STUBS/mpi.o
 SYSLIB = 
 SIZE =		size
 

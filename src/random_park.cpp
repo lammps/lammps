@@ -133,6 +133,8 @@ void RanPark::reset(int ibase, double *coord)
   // warm up the RNG
 
   for (i = 0; i < 5; i++) uniform();
+
+  save = 0;
 }
 
 /* ---------------------------------------------------------------------- */

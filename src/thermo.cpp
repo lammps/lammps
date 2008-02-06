@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 
 // step, atoms, cpu, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi
+// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
 // pxx, pyy, pzz, pxy, pxz, pyz
 // drot, grot (rotational KE for dipole and granular particles)
 
@@ -699,6 +699,13 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"zhi") == 0) {
       addfield("Zhi",&Thermo::compute_zhi,FLOAT);
 
+    } else if (strcmp(word,"xy") == 0) {
+      addfield("Xy",&Thermo::compute_xy,FLOAT);
+    } else if (strcmp(word,"xz") == 0) {
+      addfield("Xz",&Thermo::compute_xz,FLOAT);
+    } else if (strcmp(word,"yz") == 0) {
+      addfield("Yz",&Thermo::compute_yz,FLOAT);
+
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
       index_press = add_compute(id_press,1);
@@ -971,6 +978,10 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"yhi") == 0) compute_yhi();
   else if (strcmp(word,"zlo") == 0) compute_zlo();
   else if (strcmp(word,"zhi") == 0) compute_zhi();
+
+  else if (strcmp(word,"xy") == 0) compute_xy();
+  else if (strcmp(word,"xz") == 0) compute_xz();
+  else if (strcmp(word,"yz") == 0) compute_yz();
 
   else if (strcmp(word,"pxx") == 0) compute_pxx();
   else if (strcmp(word,"pyy") == 0) compute_pyy();
@@ -1338,6 +1349,27 @@ void Thermo::compute_zlo()
 void Thermo::compute_zhi()
 {
   dvalue = domain->boxhi[2];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_xy()
+{
+  dvalue = domain->xy;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_xz()
+{
+  dvalue = domain->xz;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_yz()
+{
+  dvalue = domain->yz;
 }
 
 /* ---------------------------------------------------------------------- */

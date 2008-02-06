@@ -143,6 +143,10 @@ class Thermo : protected Pointers {
   void compute_zlo();
   void compute_zhi();
 
+  void compute_xy();
+  void compute_xz();
+  void compute_yz();
+
   void compute_pxx();
   void compute_pyy();
   void compute_pzz();

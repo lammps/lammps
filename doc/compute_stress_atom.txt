@@ -19,7 +19,7 @@ keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {fi
 
 [Examples:]
 
-compute 1 mobile stress/atom :pre
+compute 1 mobile stress/atom
 compute 1 all stress/atom pair bond :pre
 
 [Description:]
@@ -75,13 +75,14 @@ these terms is included in the pair virial, not the dihedral virial.
 
 Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress-volume
-formulation.  It would need to be divided by a per-atom volume to have
-units of stress, but an individual atom's volume is not easy to
-compute in a deformed solid or a liquid.  Thus, if the diagonal
-components of the per-atom stress tensor are summed for all atoms in
-the system and the sum is divided by 3V, where V is the volume of the
-system, the result should be -P, where P is the total pressure of the
-system.
+formulation, meaning the computed quantity is in units of
+pressure-volume.  It would need to be divided by a per-atom volume to
+have units of stress (pressure), but an individual atom's volume is
+not easy to compute in a deformed solid or a liquid.  Thus, if the
+diagonal components of the per-atom stress tensor are summed for all
+atoms in the system and the sum is divided by 3V, where V is the
+volume of the system, the result should be -P, where P is the total
+pressure of the system.
 
 These lines in an input script should yield that result.  I.e. the
 last 2 columns of thermo output will be the same:
@@ -94,9 +95,7 @@ thermo_style	custom step temp etotal press v_press :pre
 IMPORTANT NOTE: The per-atom stress does NOT include contributions due
 to long-range Coulombic interactions (via the
 "kspace_style"_kspace_style.html command).  It's not clear this
-contribution can easily be computed.  There are also a few pair styles
-for manybody potentials that are not yet instrumented to yield
-per-atom stress.  See the Restrictions below.
+contribution can easily be computed.
 
 [Output info:]
 
@@ -106,11 +105,7 @@ as input.  See "this section"_Section_howto.html#4_15 for an overview
 of LAMMPS output options.  The 6 components of the vector are ordered
 xx, yy, zz, xy, xz, yz.
 
-[Restrictions:]
-
-These pair styles do not yet tabulate per-atom virials to allow them
-to work with this compute: "airebo"_pair_airebo.html,
-"meam"_pair_meam.html, and "TIP4P"_pair_lj.html.
+[Restrictions:] none
 
 [Related commands:]
 

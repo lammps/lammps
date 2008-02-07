@@ -22,9 +22,8 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 mobile stress/atom 
-</PRE>
-<PRE>compute 1 all stress/atom pair bond 
+<PRE>compute 1 mobile stress/atom
+compute 1 all stress/atom pair bond 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -79,13 +78,14 @@ these terms is included in the pair virial, not the dihedral virial.
 </P>
 <P>Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress-volume
-formulation.  It would need to be divided by a per-atom volume to have
-units of stress, but an individual atom's volume is not easy to
-compute in a deformed solid or a liquid.  Thus, if the diagonal
-components of the per-atom stress tensor are summed for all atoms in
-the system and the sum is divided by 3V, where V is the volume of the
-system, the result should be -P, where P is the total pressure of the
-system.
+formulation, meaning the computed quantity is in units of
+pressure-volume.  It would need to be divided by a per-atom volume to
+have units of stress (pressure), but an individual atom's volume is
+not easy to compute in a deformed solid or a liquid.  Thus, if the
+diagonal components of the per-atom stress tensor are summed for all
+atoms in the system and the sum is divided by 3V, where V is the
+volume of the system, the result should be -P, where P is the total
+pressure of the system.
 </P>
 <P>These lines in an input script should yield that result.  I.e. the
 last 2 columns of thermo output will be the same:
@@ -98,9 +98,7 @@ thermo_style	custom step temp etotal press v_press
 <P>IMPORTANT NOTE: The per-atom stress does NOT include contributions due
 to long-range Coulombic interactions (via the
 <A HREF = "kspace_style.html">kspace_style</A> command).  It's not clear this
-contribution can easily be computed.  There are also a few pair styles
-for manybody potentials that are not yet instrumented to yield
-per-atom stress.  See the Restrictions below.
+contribution can easily be computed.
 </P>
 <P><B>Output info:</B>
 </P>
@@ -110,11 +108,7 @@ as input.  See <A HREF = "Section_howto.html#4_15">this section</A> for an overv
 of LAMMPS output options.  The 6 components of the vector are ordered
 xx, yy, zz, xy, xz, yz.
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>These pair styles do not yet tabulate per-atom virials to allow them
-to work with this compute: <A HREF = "pair_airebo.html">airebo</A>,
-<A HREF = "pair_meam.html">meam</A>, and <A HREF = "pair_lj.html">TIP4P</A>.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>

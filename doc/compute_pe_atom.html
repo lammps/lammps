@@ -66,9 +66,7 @@ thermo_style	custom step temp etotal press pe c_p
 <P>IMPORTANT NOTE: The per-atom energy does NOT include contributions due
 to long-range Coulombic interactions (via the
 <A HREF = "kspace_style.html">kspace_style</A> command).  It's not clear this
-contribution can easily be computed.  There are also a few pair styles
-for manybody potentials that are not yet instrumented to yield
-per-atom energy.  See the Restrictions below.
+contribution can easily be computed.
 </P>
 <P><B>Output info:</B>
 </P>
@@ -78,10 +76,6 @@ accessed by any command that uses per-atom computes as input.  See
 output options.
 </P>
 <P><B>Restrictions:</B>
-</P>
-<P>These pair styles do not yet tabulate per-atom energies to allow them
-to work with this compute: <A HREF = "pair_airebo.html">airebo</A>,
-<A HREF = "pair_meam.html">meam</A>, and <A HREF = "pair_lj.html">TIP4P</A>.
 </P>
 <P><B>Related commands:</B>
 </P>

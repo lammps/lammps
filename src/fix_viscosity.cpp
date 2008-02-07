@@ -19,8 +19,6 @@
 #include "domain.h"
 #include "error.h"
 
-#include "update.h"
-
 using namespace LAMMPS_NS;
 
 #define BIG 1.0e20

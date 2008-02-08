@@ -259,7 +259,12 @@ restart2data tool :h4,link(restart)
 The file restart2data.cpp converts a binary LAMMPS restart file into
 an ASCII data file.  The syntax for running the tool is
 
-restart2data restart-file data-file :pre
+restart2data restart-file data-file (input-file) :pre
+
+Input-file is optional and if specified will contain LAMMPS input
+commands for the masses and force field parameters, instead of putting
+those in the data-file.  Only a few force field styles currently
+support this option.
 
 This tool must be compiled on a platform that can read the binary file
 created by a LAMMPS run, since binary files are not compatible across

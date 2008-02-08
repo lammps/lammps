@@ -263,8 +263,13 @@ examples directory within pymol_asphere for more information.
 <P>The file restart2data.cpp converts a binary LAMMPS restart file into
 an ASCII data file.  The syntax for running the tool is
 </P>
-<PRE>restart2data restart-file data-file 
+<PRE>restart2data restart-file data-file (input-file) 
 </PRE>
+<P>Input-file is optional and if specified will contain LAMMPS input
+commands for the masses and force field parameters, instead of putting
+those in the data-file.  Only a few force field styles currently
+support this option.
+</P>
 <P>This tool must be compiled on a platform that can read the binary file
 created by a LAMMPS run, since binary files are not compatible across
 all platforms.

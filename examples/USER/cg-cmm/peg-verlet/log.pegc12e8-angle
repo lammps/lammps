@@ -1,0 +1,138 @@
+LAMMPS (22 Jan 2008 / Patchlevel 25 Jan 2008 / CMM-CG v0.97)
+# Solvated 5-mer peptide
+
+units		real
+dimension	3
+atom_style	angle
+
+# read topology and force field
+read_data	data.pegc12e8
+  1 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (-63.7 -63.7 -200) to (63.7 63.7 200)
+  1 by 1 by 4 processor grid
+  40140 atoms
+  13284 bonds
+  12177 angles
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+include		parm.pegc12e8-angle
+# Solvated 5-mer peptide CG force field
+
+pair_style	cg/cmm 15.0
+bond_style	harmonic
+angle_style	cg/cmm
+special_bonds	0.0 0.0 1.0
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of special neighbors
+
+mass		1 	31.035
+mass		2 	44.054
+mass		3	42.081
+mass		4	29.062
+mass		5	54.000
+
+pair_coeff	1  1	lj9_6	0.4491  3.7130
+pair_coeff	1  2	lj9_6	0.4400  3.8900
+pair_coeff	1  3	lj9_6	0.3650  3.9870
+pair_coeff	1  4	lj9_6	0.3800  3.8400
+pair_coeff	1  5	lj12_4	0.7000  3.9500
+pair_coeff	2  2	lj9_6	0.4050  4.2500
+pair_coeff	2  3	lj9_6	0.3770  4.2740
+pair_coeff	2  4	lj9_6	0.3700  4.1400
+pair_coeff	2  5	lj12_4	0.5700  4.3100
+pair_coeff	3  3	lj9_6	0.4200  4.5060
+pair_coeff	3  4	lj9_6	0.3620  4.3635
+pair_coeff	3  5	lj12_4	0.3400  4.4385
+pair_coeff	4  4	lj9_6	0.3120  4.2210
+pair_coeff	4  5	lj12_4	0.2900  4.2960
+pair_coeff	5  5	lj12_4	0.8950  4.3710
+
+bond_coeff	1	15.00	2.79
+bond_coeff	2	4.900	3.28
+bond_coeff	3	7.100	3.56
+bond_coeff	4	6.160	3.64
+bond_coeff	5	9.000	3.13
+
+angle_coeff	1	3.000	131.0  lj9_6   0.4400  3.8900  
+angle_coeff	2	3.400	132.0  lj9_6   0.4050  4.2500
+angle_coeff	3	3.200	146.0  lj9_6   0.3770  4.2740
+angle_coeff	4	1.500	172.0  lj9_6   0.3770  4.2740
+angle_coeff	5	1.190	173.0  lj9_6   0.4200  4.5060
+angle_coeff	6	1.600	172.0  lj9_6   0.3620  4.3635
+
+
+neighbor	2.0 bin
+neigh_modify	delay 5
+
+timestep	5.0
+dump            1 all xtc 200 pegc12e8-1.xtc
+dump_modify  1 unwrap yes
+#dump            2 all dcd 200 pegc12e8-1.dcd unwrap
+#dump_modify  2 unwrap yes
+
+velocity all create 303.0 46659 mom yes rot yes dist gaussian
+
+fix		1 all nvt 303.0 303.0 100.0
+
+thermo_style	multi
+thermo		200
+run		1000
+Memory usage per processor = 4.43925 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =   -217835.8659 KinEng   =     36252.9606 Temp     =       303.0000 
+PotEng   =   -254088.8265 E_bond   =      4468.5931 E_angle  =      3565.0955 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262122.5151 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =       105.8245 
+---------------- Step      200 ----- CPU =     29.9183 (sec) ----------------
+TotEng   =   -218051.4566 KinEng   =     36272.3725 Temp     =       303.1622 
+PotEng   =   -254323.8292 E_bond   =      4530.3699 E_angle  =      3351.7084 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262205.9074 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        36.2458 
+---------------- Step      400 ----- CPU =     60.9372 (sec) ----------------
+TotEng   =   -218054.5847 KinEng   =     36253.0519 Temp     =       303.0008 
+PotEng   =   -254307.6366 E_bond   =      4620.3304 E_angle  =      3417.4287 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262345.3957 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        12.6545 
+---------------- Step      600 ----- CPU =     89.8983 (sec) ----------------
+TotEng   =   -218042.2111 KinEng   =     36394.6544 Temp     =       304.1843 
+PotEng   =   -254436.8655 E_bond   =      4623.6900 E_angle  =      3419.7393 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262480.2949 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        20.4952 
+---------------- Step      800 ----- CPU =    119.1245 (sec) ----------------
+TotEng   =   -217865.4500 KinEng   =     36565.4671 Temp     =       305.6119 
+PotEng   =   -254430.9171 E_bond   =      4590.5794 E_angle  =      3466.0941 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262487.5906 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =         2.9466 
+---------------- Step     1000 ----- CPU =    147.8398 (sec) ----------------
+TotEng   =   -218219.2310 KinEng   =     36266.8018 Temp     =       303.1157 
+PotEng   =   -254486.0328 E_bond   =      4542.7739 E_angle  =      3415.8267 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262444.6334 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        -8.6110 
+Loop time of 147.84 on 4 procs for 1000 steps with 40140 atoms
+Performance:       2.922 ns/day        8.213 hours/ns
+
+Pair  time (%) = 61.7803 (41.7886)
+Bond  time (%) = 1.17913 (0.797574)
+Neigh time (%) = 6.23896 (4.22007)
+Comm  time (%) = 76.805 (51.9514)
+Outpt time (%) = 0.0374529 (0.0253334)
+Other time (%) = 1.79919 (1.21699)
+
+Nlocal:    10035 ave 19571 max 538 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    11797.5 ave 18129 max 5484 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    1.19407e+06 ave 2.388e+06 max 12690 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 4776294
+Ave neighs/atom = 118.991
+Ave special neighs/atom = 1.26861
+Neighbor list builds = 59
+Dangerous builds = 0
+write_restart	pegc12e8-angle-1.restart
+

@@ -1,0 +1,33 @@
+LAMMPS cmm-cg example problems
+
+Each of these sub-directories contains a sample problem for the CMM
+coarse grained MD potentials that you can run with LAMMPS.  The
+represent some typical uses and are also used to verify the
+implmentation in LAMMPS.
+
+Each problem has an input script (in.*) and produces a log file
+(log.*) and trajectory file in compressed .xtc format (*.xtc) when it
+runs.  Inputs are usually set up to read the start configuration and
+topology from a data file (data.*) and the matching force field
+parameter from an include file (parms.*).
+
+A few sample log file outputs on different machines and different
+numbers of processors are included in the directories to compare your
+answers to.  E.g. a log file like log.crack.date.foo.P means it ran on
+P processors of machine "foo" with the dated version of LAMMPS.  Note
+that these problems should get statistically similar answers when run
+on different machines or different numbers of processors, but not
+identical answers to those in the log of dump files included here.
+See the Errors section of the LAMMPS documentation for more
+discussion.
+
+The examples also provide matching topology files for visualization
+(*.psf) so that the .xtc trajectories can be visualized with VMD.
+
+These are the sample systems the various sub-directories:
+
+peg-verlet:	coarse grained PEG surfactant/water mixture lamella
+		verlet version
+		this example uses the plain LJ term only, no charges
+
+(more to come)

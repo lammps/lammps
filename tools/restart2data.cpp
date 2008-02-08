@@ -13,7 +13,11 @@
 
 // Convert a LAMMPS binary restart file into an ASCII text data file
 //
-// Syntax: restart2data restart-file data-file
+// Syntax: restart2data restart-file data-file (parameter-file)
+//         parameter-file is optional
+//         if specified it will contain LAMMPS input script commands
+//           for mass and force field info
+//         only a few force field styles support this option
 //
 // this serial code must be compiled on a platform that can read the binary
 //   restart file since binary formats are not compatible across all platforms
@@ -45,6 +49,9 @@ enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
 enum{MASS,SHAPE,DIPOLE};
 enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
+static const char * const cg_type_list[] = 
+  {"none", "lj9_6", "lj12_4", "lj12_6"};
+
 // ---------------------------------------------------------------------
 // Data class to hold problem
 // ---------------------------------------------------------------------
@@ -73,8 +80,12 @@ class Data {
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int triclinic;
+
   double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;
   double special_lj[4],special_coul[4];
+
+  double cut_lj_global,cut_coul_global,kappa;
+  int offset_flag,mix_flag;
 
   // force fields
 
@@ -91,6 +102,9 @@ class Data {
   double *pair_gb_epsilon,*pair_gb_sigma;
   double *pair_gb_epsa,*pair_gb_epsb,*pair_gb_epsc;
   double *pair_lj_epsilon,*pair_lj_sigma;
+  double **pair_cg_epsilon,**pair_cg_sigma;
+  int **pair_cg_cmm_type, **pair_setflag;
+  double **pair_cut_coul, **pair_cut_lj;
   double *pair_ljexpand_epsilon,*pair_ljexpand_sigma,*pair_ljexpand_shift;
   double *pair_ljsmooth_epsilon,*pair_ljsmooth_sigma;
   double *pair_morse_d0,*pair_morse_alpha,*pair_morse_r0;
@@ -116,6 +130,8 @@ class Data {
   double *angle_cosine_k;
   double *angle_cosine_squared_k,*angle_cosine_squared_theta0;
   double *angle_harmonic_k,*angle_harmonic_theta0;
+  double *angle_cg_cmm_epsilon,*angle_cg_cmm_sigma;
+  int *angle_cg_cmm_type;
 
   double *dihedral_charmm_k,*dihedral_charmm_weight;
   int *dihedral_charmm_multiplicity,*dihedral_charmm_sign;
@@ -172,7 +188,7 @@ class Data {
 
   Data();
   void stats();
-  void write(FILE *);
+  void write(FILE *fp, FILE *fp2=NULL);
 
   void write_atom_angle(FILE *, int, int, int, int);
   void write_atom_atomic(FILE *, int, int, int, int);
@@ -266,13 +282,13 @@ char *read_char(FILE *fp);
 // main program
 // ---------------------------------------------------------------------
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   // syntax error check
 
-  if (argc != 3) {
-    printf("Syntax: restart2data restart-file data-file\n");
-    exit(1);
+    if ((argc != 3) && (argc !=4)) {
+    printf("Syntax: restart2data restart-file data-file [parameter-file]\n");
+    return 1;
   }
 
   // if restart file contains '%', file = filename with % replaced by "base"
@@ -297,7 +313,7 @@ main (int argc, char **argv)
   FILE *fp = fopen(file,"rb");
   if (fp == NULL) {
     printf("ERROR: Cannot open restart file %s\n",file);
-    exit(1);
+    return 1;
   }
 
   // read beginning of restart file
@@ -324,8 +340,8 @@ main (int argc, char **argv)
       sprintf(file,"%s%d%s",argv[1],iproc,ptr+1);
       fp = fopen(file,"rb");
       if (fp == NULL) {
-	printf("ERROR: Cannot open restart file %s\n",file);
-	exit(1);
+        printf("ERROR: Cannot open restart file %s\n",file);
+        return 1;
       }
     }
     n = read_int(fp);
@@ -348,17 +364,40 @@ main (int argc, char **argv)
 
   data.stats();
 
-  // write out data file
+  // write out data file and no parameter file
 
-  printf("Writing data file ...\n");
-  fp = fopen(argv[2],"w");
-  if (fp == NULL) {
-    printf("ERROR: Cannot open data file %s\n",argv[2]);
-    exit(1);
+  if (argc == 3) {
+    printf("Writing data file ...\n");
+    fp = fopen(argv[2],"w");
+    if (fp == NULL) {
+      printf("ERROR: Cannot open data file %s\n",argv[2]);
+      return 1;
+    }
+    data.write(fp);
+    fclose(fp);
+
+  // write out data file and parameter file
+
+  } else {
+    printf("Writing data file ...\n");
+    fp = fopen(argv[2],"w");
+    if (fp == NULL) {
+      printf("ERROR: Cannot open data file %s\n",argv[2]);
+      return 1;
+    }
+    printf("Writing parameter file ...\n");
+    FILE *fp2 = fopen(argv[3],"w");
+    if (fp2 == NULL) {
+      printf("ERROR: Cannot open parameter file %s\n",argv[3]);
+      return 1;
+    }
+
+    data.write(fp,fp2);
+    fclose(fp);
+    fclose(fp2);
   }
-
-  data.write(fp);
-  fclose(fp);
+  
+  return 0;
 }
 
 // ---------------------------------------------------------------------
@@ -1768,6 +1807,61 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if ((strcmp(style,"cg/cmm") == 0) ||
+             (strcmp(style,"cg/cmm/coul/cut") == 0) ||
+             (strcmp(style,"cg/cmm/coul/long") == 0) ) {
+    m = 0;
+    data.cut_lj_global = read_double(fp);
+    data.cut_coul_global = read_double(fp);
+    data.kappa = read_double(fp);
+    data.offset_flag = read_int(fp);
+    data.mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    const int numtyp=data.ntypes+1;
+    data.pair_cg_cmm_type = new int*[numtyp];
+    data.pair_setflag = new int*[numtyp];
+    data.pair_cg_epsilon = new double*[numtyp];
+    data.pair_cg_sigma = new double*[numtyp];
+    data.pair_cut_lj = new double*[numtyp];
+    if  ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
+             (strcmp(style,"cg/cmm/coul/long") == 0) ) {
+      data.pair_cut_coul = new double*[numtyp];
+      m=1;
+    } else {
+      data.pair_cut_coul = NULL;
+      m=0;
+    }
+    
+    for (i = 1; i <= data.ntypes; i++) {
+      data.pair_cg_cmm_type[i] = new int[numtyp];
+      data.pair_setflag[i] = new int[numtyp];
+      data.pair_cg_epsilon[i] = new double[numtyp];
+      data.pair_cg_sigma[i] = new double[numtyp];
+      data.pair_cut_lj[i] = new double[numtyp];
+      if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
+          (strcmp(style,"cg/cmm/coul/long") == 0) ) {
+        data.pair_cut_coul[i] = new double[numtyp];
+      }
+
+      for (j = i; j <= data.ntypes; j++) {
+        itmp = read_int(fp);
+        data.pair_setflag[i][j] = itmp;        
+        if (i == j && itmp == 0) {
+          printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+          exit(1);
+        }
+        if (itmp) {
+          data.pair_cg_cmm_type[i][j] = read_int(fp);
+          data.pair_cg_epsilon[i][j] = read_double(fp);
+          data.pair_cg_sigma[i][j] = read_double(fp);
+          data.pair_cut_lj[i][j] = read_double(fp);
+          if (m) data.pair_cut_coul[i][j] = read_double(fp);
+        } 
+      }
+    }
+
   } else if (strcmp(style,"hybrid") == 0) {
 
     // for each substyle of hybrid,
@@ -1922,7 +2016,8 @@ void angle(FILE *fp, Data &data)
     data.angle_cosine_k = new double[data.nangletypes+1];
     fread(&data.angle_cosine_k[1],sizeof(double),data.nangletypes,fp);
 
-  } else if (strcmp(data.angle_style,"cosine/squared") == 0) {
+  } else if ((strcmp(data.angle_style,"cosine/squared") == 0) ||
+             (strcmp(data.angle_style,"cosine/delta") == 0)) {
 
     data.angle_cosine_squared_k = new double[data.nangletypes+1];
     data.angle_cosine_squared_theta0 = new double[data.nangletypes+1];
@@ -1936,6 +2031,22 @@ void angle(FILE *fp, Data &data)
     data.angle_harmonic_theta0 = new double[data.nangletypes+1];
     fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
     fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
+
+  } else if (strcmp(data.angle_style,"cg/cmm") == 0) {
+
+    data.angle_harmonic_k = new double[data.nangletypes+1];
+    data.angle_harmonic_theta0 = new double[data.nangletypes+1];
+    data.angle_cg_cmm_epsilon = new double[data.nangletypes+1];
+    data.angle_cg_cmm_sigma = new double[data.nangletypes+1];
+    double *angle_cg_cmm_rcut = new double[data.nangletypes+1];
+    data.angle_cg_cmm_type = new int[data.nangletypes+1];
+    
+    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_epsilon[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_sigma[1],sizeof(double),data.nangletypes,fp);
+    fread(angle_cg_cmm_rcut,sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_type[1],sizeof(int),data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"hybrid") == 0) {
 
@@ -2243,7 +2354,7 @@ void Data::stats()
 // write the data file
 // ---------------------------------------------------------------------
 
-void Data::write(FILE *fp)
+void Data::write(FILE *fp, FILE *fp2)
 {
   fprintf(fp,"LAMMPS data file from restart file: timestep = %d, procs = %d\n",
 	  ntimestep,nprocs);
@@ -2271,9 +2382,33 @@ void Data::write(FILE *fp)
   fprintf(fp,"%g %g zlo zhi\n",zlo,zhi);
   if (triclinic) fprintf(fp,"%g %g %g xy xz yz\n",xy,xz,yz);
 
+  // write ff styles to parameter file
+
+  if (fp2) {
+    fprintf(fp2,"# LAMMPS parameter file from restart file: timestep = %d, procs = %d\n\n",
+	  ntimestep,nprocs);
+    if (pair_style) fprintf(fp2,"pair_style %s\n",pair_style);
+    if (bond_style) fprintf(fp2,"bond_style %s\n",bond_style);
+    if (angle_style) fprintf(fp2,"angle_style %s\n",angle_style);
+    if (dihedral_style) fprintf(fp2,"dihedral_style %s\n",dihedral_style);
+    if (improper_style) fprintf(fp2,"improper_style %s\n",improper_style);
+    fprintf(fp2,"special_bonds %g %g %g %g %g %g\n",
+            special_lj[1],special_lj[2],special_lj[3],
+            special_lj[1],special_coul[2],special_coul[3]);
+    fprintf(fp2,"\n");
+  }
+
+  // mass to either data file or parameter file
+
   if (mass) {
-    fprintf(fp,"\nMasses\n\n");
-    for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
+    if (fp2) {
+      fprintf(fp2,"\n");
+      for (int i = 1; i <= ntypes; i++) fprintf(fp2,"mass %d %g\n",i,mass[i]);
+      fprintf(fp2,"\n");
+    } else {
+      fprintf(fp,"\nMasses\n\n");
+      for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
+    }
   }
 
   if (shape) {
@@ -2286,8 +2421,10 @@ void Data::write(FILE *fp)
     fprintf(fp,"\nDipoles\n\n");
     for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,dipole[i]);
   }
-  
-  if (pair_style) {
+
+  // pair coeffs to data file
+
+  if (pair_style && fp2 == NULL) {
     if ((strcmp(pair_style,"none") != 0) && 
 	(strcmp(pair_style,"eam") != 0) &&
 	(strcmp(pair_style,"eam/opt") != 0) &&
@@ -2389,10 +2526,41 @@ void Data::write(FILE *fp)
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g\n",i,
 		pair_yukawa_A[i]);
+
+    } else if ((strcmp(pair_style,"cg/cmm") == 0) || 
+               (strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
+               (strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+      printf("ERROR: Cannot write pair_style %s to data file\n",
+	     pair_style);
+      exit(1);
     }
   }
 
-  if (bond_style) {
+  // pair coeffs to parameter file
+  // only supported styles = cg/cmm
+
+  if (pair_style && fp2) {
+    if ((strcmp(pair_style,"cg/cmm") == 0) || 
+	(strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
+	(strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+      for (int i = 1; i <= ntypes; i++) {
+	for (int j = i; j <= ntypes; j++) {
+	  fprintf(fp2,"pair_coeff %d %d %s %g %g\n",i,j,
+		  cg_type_list[pair_cg_cmm_type[i][j]],
+		  pair_cg_epsilon[i][j],pair_cg_sigma[i][j]);
+	}
+      }
+
+    } else {
+      printf("ERROR: Cannot write pair_style %s to parameter file\n",
+	     pair_style);
+      exit(1);
+    }
+  }
+
+  // bond coeffs to data file
+
+  if (bond_style && fp2 == NULL) {
     if ((strcmp(bond_style,"none") != 0) && 
 	(strcmp(bond_style,"hybrid") != 0))
       fprintf(fp,"\nBond Coeffs\n\n");
@@ -2434,7 +2602,25 @@ void Data::write(FILE *fp)
     }
   }
 
-  if (angle_style) {
+  // bond coeffs to parameter file
+  // only supported styles = harmonic
+
+  if (bond_style && fp2) {
+    if (strcmp(bond_style,"harmonic") == 0) {
+      for (int i = 1; i <= nbondtypes; i++)
+	fprintf(fp2,"bond_coeff  %d %g %g\n",i,
+		bond_harmonic_k[i],bond_harmonic_r0[i]);
+
+    } else {
+      printf("ERROR: Cannot write bond_style %s to parameter file\n",
+	     bond_style);
+      exit(1);
+    }
+  }
+
+  // angle coeffs to data file
+
+  if (angle_style && fp2 == NULL) {
     double PI = 3.1415926;           // convert back to degrees
 
     if ((strcmp(angle_style,"none") != 0) && 
@@ -2452,13 +2638,13 @@ void Data::write(FILE *fp)
 	fprintf(fp,"%d %g %g %g %g\n",i,
 		angle_class2_theta0[i]/PI*180.0,angle_class2_k2[i], 
 		angle_class2_k3[i],angle_class2_k4[i]);
-
+      
       fprintf(fp,"\nBondBond Coeffs\n\n");
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g %g\n",i,
 		angle_class2_bb_k[i],
 		angle_class2_bb_r1[i],angle_class2_bb_r2[i]);
-
+      
       fprintf(fp,"\nBondAngle Coeffs\n\n");
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
@@ -2467,13 +2653,56 @@ void Data::write(FILE *fp)
 
     } else if (strcmp(angle_style,"cosine") == 0) {
       for (int i = 1; i <= nangletypes; i++)
-	fprintf(fp,"%d %g\n",i,
-		angle_cosine_k[i]);
-
-    } if (strcmp(angle_style,"harmonic") == 0) {
+	fprintf(fp,"%d %g\n",i,angle_cosine_k[i]);
+      
+    } else if (strcmp(angle_style,"cosine/squared") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp,"%d %g %g\n",i,
+		angle_cosine_squared_k[i],
+		angle_cosine_squared_theta0[i]/PI*180.0);
+      
+    } else if (strcmp(angle_style,"harmonic") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0);
+      
+    } else if (strcmp(angle_style,"cg/cmm") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp,"%d %g %g %s %g %g\n",i,
+		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0,
+		cg_type_list[angle_cg_cmm_type[i]],angle_cg_cmm_epsilon[i],
+		angle_cg_cmm_sigma[i]);
+    }
+  }
+
+  // angle coeffs to parameter file
+  // only supported styles = cosine/squared, harmonic, cg/cmm
+
+  if (angle_style && fp2) {
+    double PI = 3.1415926;           // convert back to degrees
+
+    if (strcmp(angle_style,"cosine/squared") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp2,"angle_coeffs  %d %g %g\n",i,
+		angle_cosine_squared_k[i],
+		angle_cosine_squared_theta0[i]/PI*180.0);
+      
+    } else if (strcmp(angle_style,"harmonic") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp2,"angle_coeffs  %d %g %g\n",i,
+		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0);
+      
+    } else if (strcmp(angle_style,"cg/cmm") == 0) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp2,"angle_coeffs  %d %g %g %s %g %g\n",i,
+		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0,
+		cg_type_list[angle_cg_cmm_type[i]],angle_cg_cmm_epsilon[i],
+		angle_cg_cmm_sigma[i]);
+      
+    } else {
+      printf("ERROR: Cannot write angle_style %s to parameter file\n",
+	     angle_style);
+      exit(1);
     }
   }
 

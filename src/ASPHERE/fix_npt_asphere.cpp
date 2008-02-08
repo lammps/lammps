@@ -21,6 +21,7 @@
 #include "fix_npt_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "compute.h"
 #include "kspace.h"
@@ -34,9 +35,10 @@ using namespace LAMMPS_NS;
 FixNPTASphere::FixNPTASphere(LAMMPS *lmp, int narg, char **arg) :
   FixNPT(lmp, narg, arg)
 {
-  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag)
+  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
+      !atom->avec->shape_type)
     error->all("Fix npt/asphere requires atom attributes "
-	       "quat, angmom, torque");
+	       "quat, angmom, torque, shape");
 }
 
 /* ----------------------------------------------------------------------

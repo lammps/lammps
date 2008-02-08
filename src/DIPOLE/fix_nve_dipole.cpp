@@ -15,6 +15,7 @@
 #include "string.h"
 #include "fix_nve_dipole.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
@@ -33,7 +34,7 @@ FixNVEDipole::FixNVEDipole(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all("Illegal fix nve/dipole command");
   if (!atom->mu_flag || !atom->omega_flag || 
-      !atom->torque_flag || atom->shape == NULL)
+      !atom->torque_flag || !atom->avec->shape_type)
     error->all("Fix nve/dipole requires atom attributes "
 	       "mu, omega, torque, shape");
   inertia = new double[atom->ntypes+1];

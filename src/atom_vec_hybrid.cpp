@@ -75,6 +75,8 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
+    ghost_velocity = MAX(ghost_velocity,styles[k]->ghost_velocity);
+
     size_comm += styles[k]->size_comm - 3;
     size_reverse += styles[k]->size_reverse - 3;
     size_border += styles[k]->size_border - 6;

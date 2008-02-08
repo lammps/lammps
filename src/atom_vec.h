@@ -28,6 +28,8 @@ class AtomVec : protected Pointers {
   int dipole_type;                     // 1 if per-type dipole moments
   int comm_x_only;                     // 1 if only exchange x in forward comm
   int comm_f_only;                     // 1 if only exchange f in reverse comm
+  int ghost_velocity;                  // 1 if ghost atoms store velocity
+
   int size_comm;                       // # of values per atom in comm       
   int size_reverse;                    // # in reverse comm
   int size_border;                     // # in border comm

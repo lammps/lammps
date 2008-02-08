@@ -31,6 +31,7 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp, int narg, char **arg) :
 {
   mass_type = 1;
   comm_x_only = 0;
+  ghost_velocity = 1;
   size_comm = 6;
   size_reverse = 3;
   size_border = 9;

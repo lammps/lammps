@@ -21,6 +21,7 @@
 #include "fix_nve_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
@@ -36,9 +37,10 @@ using namespace LAMMPS_NS;
 FixNVEASphere::FixNVEASphere(LAMMPS *lmp, int narg, char **arg) : 
   FixNVE(lmp, narg, arg)
 {
-  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag)
+  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
+      !atom->avec->shape_type)
     error->all("Fix nve/asphere requires atom attributes "
-	       "quat, angmom, torque");
+	       "quat, angmom, torque, shape");
   inertia = 
     memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
 }

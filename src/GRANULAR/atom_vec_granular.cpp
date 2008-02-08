@@ -32,6 +32,7 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
   comm_x_only = comm_f_only = 0;
+  ghost_velocity = 1;
   size_comm = 9;
   size_reverse = 6;
   size_border = 14;

@@ -427,6 +427,8 @@ void xdrfreebuf()
 {
   if (ip) free(ip);
   if (buf) free(buf);
+  ip = NULL;
+  buf = NULL;
 }
 
 

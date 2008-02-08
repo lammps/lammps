@@ -1,0 +1,84 @@
+# xt3 = PSC BigBen Cray XT3, GCC, native MPI, FFTW
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+CC =            CC --target=catamount
+CCFLAGS =       -O3 -fomit-frame-pointer -finline-functions \
+		-Wall -Wno-unused -funroll-all-loops  \
+                -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK -DLAMMPS_XDR -I$(FFTW_INC) 
+NOALIAS =       -fno-strict-aliasing
+DEPFLAGS =      -M
+LINK =          CC --target=catamount
+LINKFLAGS =     -O -L$(FFTW_LIB)
+USRLIB =        -ldfftw -lgmalloc
+SYSLIB =
+SIZE =          size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+	@echo Run $(EXE) with yod/pbsyod -small_pages for maximum performance.
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# explicit overrides for files that violate ansi aliasing rules
+
+pair.o : pair.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_table.o : pair_table.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_eam_alloy_opt.o : pair_eam_alloy_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_eam_fs_opt.o : pair_eam_fs_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_eam_opt.o : pair_eam_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_charmm_coul_long_opt.o : pair_lj_charmm_coul_long_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_cut_opt.o : pair_lj_cut_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_morse_opt.o : pair_morse_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_cut_coul_long.o : pair_lj_cut_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_cg_cut_coul_cut.o : pair_cg_cut_coul_cut.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_cg_cut_coul_long.o : pair_cg_cut_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_charmm_coul_long.o : pair_lj_charmm_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_cut_coul_long_tip4p.o : pair_lj_cut_coul_long_tip4p.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

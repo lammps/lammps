@@ -1,0 +1,83 @@
+# sdsc = SDSC BG/L machine, xlC, native MPI, FFTW
+
+SHELL = /bin/sh
+.SUFFIXES: .cpp .u 
+.IGNORE:
+
+# System-specific settings
+
+CC =	        blrts_xlC \
+	       -I/bgl/BlueLight/ppcfloor/bglsys/include \
+	       -I//usr/local/apps/V1R3/fftw-2.1.5d/include/
+CCFLAGS =       -O2 -qarch=440 -qtune=440 \
+		-DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK  -DLAMMPS_XDR
+NOALIAS = 	-qalias=noansi
+DEPFLAGS =	-M -qmakedep=gcc
+LINK =	        blrts_xlC
+LINKFLAGS =	-O2 -L/bgl/BlueLight/ppcfloor/bglsys/lib \
+		-L/opt/ibmcmp/xlf/bg/10.1/blrts_lib \
+		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib \
+		-L/usr/local/apps/V1R3/fftw-2.1.5d/lib
+USRLIB =	-lfftw -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lm
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) -MF$@ -c $< 
+
+# explicit overrides for files that violate ansi aliasing rules
+
+pair.o : pair.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_table.o : pair_table.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_eam_alloy_opt.o : pair_eam_alloy_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_eam_fs_opt.o : pair_eam_fs_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_eam_opt.o : pair_eam_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_charmm_coul_long_opt.o : pair_lj_charmm_coul_long_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_cut_opt.o : pair_lj_cut_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_morse_opt.o : pair_morse_opt.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_cut_coul_long.o : pair_lj_cut_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_cg_cmm_coul_long.o : pair_cg_cmm_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_coul_long.o: pair_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_charmm_coul_long.o : pair_lj_charmm_coul_long.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+pair_lj_cut_coul_long_tip4p.o : pair_lj_cut_coul_long_tip4p.cpp
+	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

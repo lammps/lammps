@@ -34,6 +34,7 @@ class FixLangevin : public Fix {
   double t_start,t_stop,t_period;
   int flagx,flagy,flagz,iregion;
   double *gfactor1,*gfactor2,*ratio;
+  double scalefactor;
 
   int nlevels_respa;
   class RanMars *random;

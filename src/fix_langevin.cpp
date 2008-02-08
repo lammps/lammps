@@ -58,6 +58,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   flagx = flagy = flagz = 1;
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
   iregion = -1;
+  scalefactor = 1.0;
 
   int iarg = 7;
   while (iarg < narg) {
@@ -76,8 +77,14 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       ratio[itype] = scale;
       iarg += 3;
     } else if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1) error->all("Fix langevin region ID does not exist");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"weight") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      scalefactor = atof(arg[iarg+1]);
+      if (scalefactor <= 0.0) error->all("Illegal fix langevin command");
       iarg += 2;
     } else error->all("Illegal fix langevin command");
   }
@@ -114,7 +121,7 @@ void FixLangevin::init()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     gfactor1[i] = - atom->mass[i] / t_period / force->ftm2v;
-    gfactor2[i] = sqrt(atom->mass[i]) * 
+    gfactor2[i] = scalefactor * sqrt(atom->mass[i]) * 
       sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / force->ftm2v;
     gfactor1[i] *= 1.0/ratio[i];
     gfactor2[i] *= 1.0/sqrt(ratio[i]);
@@ -203,7 +210,7 @@ void FixLangevin::reset_target(double t_new)
 void FixLangevin::reset_dt()
 {
   for (int i = 1; i <= atom->ntypes; i++) {
-    gfactor2[i] = sqrt(atom->mass[i]) * 
+    gfactor2[i] = scalefactor * sqrt(atom->mass[i]) * 
       sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / force->ftm2v;
     gfactor2[i] *= 1.0/sqrt(ratio[i]);
   }

@@ -521,6 +521,9 @@ These are pair styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
 "buck/coul"_pair_buck_coul.html,
+"cg/cmm"_pair_cmm.html,
+"cg/cmm/coul/cut"_pair_cmm.html,
+"cg/cmm/coul/long"_pair_cmm.html,
 "lj/coul"_pair_lj_coul.html :tb(c=4,ea=c)
 
 :line
@@ -553,6 +556,11 @@ itself for a full description:
 "cosine/delta"_angle_cosine_delta.html,
 "cosine/squared"_angle_cosine_squared.html,
 "harmonic"_angle_harmonic.html :tb(c=4,ea=c,w=100)
+
+These are angle styles contributed by users, which can be used if
+"LAMMPS is built with the appropriate package"_Section_start.html#2_3.
+
+"cg/cmm"_angle_cmm.html :tb(c=4,ea=c)
 
 :line
 

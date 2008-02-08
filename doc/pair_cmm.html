@@ -1,0 +1,176 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style cg/cmm command 
+</H3>
+<H3>pair_style cg/cmm/coul/cut command 
+</H3>
+<H3>pair_style cg/cmm/coul/long command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>cg/cmm</I> or <I>cg/cmm/coul/cut</I> or <I>cg/cmm/coul/long</I>
+<LI>args = list of arguments for a particular style 
+</UL>
+<PRE>  <I>cg/cmm</I> args = cutoff
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+  <I>cg/cmm/coul/cut</I> args = cutoff (cutoff2) (kappa)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+    kappa = Debye length (optional, defaults to 0.0 = disabled) (inverse distance units)
+  <I>cg/cmm/coul/long</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style cg/cmm 2.5
+pair_coeff 1 1 lj12_6 1 1.1 2.8 
+</PRE>
+<PRE>pair_style cg/cmm/coul/cut 10.0 12.0
+pair_coeff 1 1 lj9_6  100.0 3.5 9.0
+pair_coeff 1 1 lj12_4 100.0 3.5 9.0 9.0 
+</PRE>
+<PRE>pair_style cg/cmm/coul/long 10.0
+pair_style cg/cmm/coul/long 10.0 8.0
+pair_coeff 1 1 lj9_6 100.0 3.5 9.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>cg/cmm</I> styles compute a 9/6, 12/4, or 12/6 Lennard-Jones potential,
+given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_cmm.jpg">
+</CENTER>
+<P>as required for the CMM Coarse-grained MD parametrization discussed in
+<A HREF = "#Shinoda">(Shinoda)</A>.  Rc is the cutoff.
+</P>
+<P>Style <I>cg/cmm/coul/cut</I> adds a Coulombic pairwise interaction given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
+</CENTER>
+<P>where C is an energy-conversion constant, Qi and Qj are the charges on
+the 2 atoms, and epsilon is the dielectric constant which can be set
+by the <A HREF = "dielectric.html">dielectric</A> command.  If one cutoff is
+specified in the pair_style command, it is used for both the LJ and
+Coulombic terms.  If two cutoffs are specified, they are used as
+cutoffs for the LJ and Coulombic terms respectively.
+</P>
+<P>This style also contains an additional exp() damping factor
+to the Coulombic term, given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_debye.jpg">
+</CENTER>
+<P>where kappa is the Debye length (kappa=0.0 is the unscreened coulomb).
+This potential is another way to mimic the screening effect of a polar
+solvent.
+</P>
+<P>Style <I>cg/cmm/coul/long</I> computes the same Coulombic interactions as
+style <I>cg/cmm/coul/cut</I> except that an additional damping factor is
+applied to the Coulombic term so it can be used in conjunction with
+the <A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
+option.  The Coulombic cutoff specified for this style means that
+pairwise interactions within this distance are computed directly;
+interactions outside that distance are computed in reciprocal space.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cg_type (lj9_6, lj12_4, or lj12_6)
+<LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>Note that sigma is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum. The prefactors
+are chosen so that the potential minimum is at -epsilon.
+</P>
+<P>The latter 2 coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.
+</P>
+<P>For <I>cg/cmm/coul/long</I> only the LJ cutoff can be specified since a
+Coulombic cutoff cannot be specified for an individual I,J type pair.
+All type pairs use the same global Coulombic cutoff specified in the
+pair_style command.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
+restart, and rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the cg/cmm pair styles <I>cannot</I> be mixed,
+since different pairs may have different exponents. So all parameters
+for all pairs have to be specified explicitly through the "pair_coeff"
+command. Defining then in a data file is also not supported, due to
+limitations of that file format.
+</P>
+<P>All of the cg/cmm pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
+Lennard-Jones portion of the pair interaction.
+</P>
+<P>The <I>cg/cmm/coul/long</I> pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> table option since they can tabulate
+the short-range portion of the long-range Coulombic interaction.
+</P>
+<P>All of the cg/cmm pair styles can calculate per-atom energy and
+stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
+<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
+custom</A> commands.
+</P>
+<P>All of the cg/cmm pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
+<P>The cg/cmm, cg/cmm/coul/cut and lj/cut/coul/long pair styles support 
+the use of the <I>inner</I>, <I>middle</I>, and <I>outer</I> keywords of the <A HREF = "run_style.html">run_style
+respa</A> command, meaning the pairwise forces can be
+partitioned by distance at different levels of the rRESPA hierarchy.
+See the <A HREF = "run_style.html">run_style</A> command for details.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>All of the cg/cmm pair styles are part of the "user-cg-cmm"
+package. They are only enabled if LAMMPS was built with that
+package. The <I>cg/cmm/coul/long</I> style also requires the "kspace"
+package to be built (which is enabled by default).  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>On some 64-bit machines, compiling with -O3 appears to break the
+Coulombic tabling option used by the <I>cg/cmm/coul/long</I> style.  See
+the "Additional build tips" section of the Making LAMMPS documentation
+pages for workarounds on this issue.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "angle_cmm.html">angle_style cg/cmm</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Shinoda"></A>
+
+<P><B>(Shinoda)</B> Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
+</P>
+</HTML>

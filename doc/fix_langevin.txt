@@ -18,7 +18,7 @@ Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
 damp = damping parameter (time units) :l
 seed = random # seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {axes} or {scale} or {region}
+keyword = {axes} or {scale} or {region} or {weight}
   {axes} values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include a dimension in the thermostat
   {scale} values = type ratio
@@ -26,6 +26,8 @@ keyword = {axes} or {scale} or {region}
     ratio = factor to scale the damping coefficient by
   {region} values = region-ID
     region-ID = ID of region to apply thermostat to :pre
+  {weight} values = factor
+    factor = scale factor to apply to random thermal force
 :ule
 
 [Examples:]
@@ -102,6 +104,13 @@ The keyword {region} applies the fix only to atoms that are in the
 specified geometric region (and in the fix group).  Since atoms can
 enter/leave a region, this test is performed each timestep.
 
+The keyword {weight} applies the specified scale factor to the Fr term
+in the above equation.  A value of 1.0 (the default) leaves it
+unchanged.  A value smaller/greater than 1.0 scales its relative
+magnitude as compared to the Ff term.  This can be useful for some
+models of thermostatting where a different coupling to the background
+solvent (coupling constant) is desired.
+
 As noted above, fix {langevin} does not update the coordinates or
 velocities of its atoms, only the forces.  It is normally used with a
 "fix nve"_fix_nve.html that does the time integration.  Fix {langevin}
@@ -136,7 +145,10 @@ This fix is not invoked during "energy minimization"_minimize.html.
 "fix nvt"_fix_nvt.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
 viscous"_fix_viscous.html
 
-[Default:] none
+[Default:]
+
+The option defaults are axes = 1 1 1, scale = 1.0 for all types, no
+region, and weight = 1.0.
 
 :link(Dunweg)
 [(Dunweg)] Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).

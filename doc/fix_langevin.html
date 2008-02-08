@@ -27,7 +27,7 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>axes</I> or <I>scale</I> or <I>region</I>
+<PRE>keyword = <I>axes</I> or <I>scale</I> or <I>region</I> or <I>weight</I>
   <I>axes</I> values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include a dimension in the thermostat
   <I>scale</I> values = type ratio
@@ -36,6 +36,8 @@
   <I>region</I> values = region-ID
     region-ID = ID of region to apply thermostat to 
 </PRE>
+  <I>weight</I> values = factor
+    factor = scale factor to apply to random thermal force
 
 </UL>
 <P><B>Examples:</B>
@@ -112,6 +114,13 @@ values.
 specified geometric region (and in the fix group).  Since atoms can
 enter/leave a region, this test is performed each timestep.
 </P>
+<P>The keyword <I>weight</I> applies the specified scale factor to the Fr term
+in the above equation.  A value of 1.0 (the default) leaves it
+unchanged.  A value smaller/greater than 1.0 scales its relative
+magnitude as compared to the Ff term.  This can be useful for some
+models of thermostatting where a different coupling to the background
+solvent (coupling constant) is desired.
+</P>
 <P>As noted above, fix <I>langevin</I> does not update the coordinates or
 velocities of its atoms, only the forces.  It is normally used with a
 <A HREF = "fix_nve.html">fix nve</A> that does the time integration.  Fix <I>langevin</I>
@@ -146,7 +155,10 @@ commands</A>.
 <P><A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_viscous.html">fix
 viscous</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are axes = 1 1 1, scale = 1.0 for all types, no
+region, and weight = 1.0.
 </P>
 <A NAME = "Dunweg"></A>
 

@@ -1,0 +1,37 @@
+The files in this directory are a user-contributed package for LAMMPS.
+
+The person who created these files is Axel Kohlmeyer
+(akohlmey@cmm.chem.upenn.edu).  Contact him directly if you have
+questions.
+
+The current version of this package should be considered beta
+quality. The CG potentials work correctly and well, but there will be
+optimizations, cleanups and additional tools to aid in setting up and
+analyzing simulations with this package added in the next months.
+
+This package implements 4 commands which can be used in a LAMMPS input
+script:
+
+pair_style cg/cmm
+pair_style cg/cmm/coul/cut
+pair_style cg/cmm/coul/long
+and angle_style cg/cmm.
+
+See the documentation files for these commands for details.
+
+There is also an cg-cmm example directory under examples/USER with
+sample inputs and outputs.
+
+These styles allow coarse grained MD simulations with the
+parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)
+(cg/cmm), with extensions to simulate ionic liquids, electrolytes,
+lipids and charged amino acids (to be published soon).
+
+Thanks for contributions, support and testing goes to
+
+Wataru Shinoda (AIST, Tsukuba)
+Russell DeVane (CMM / U Penn, Philadelphia)
+Balasubramanian Sundaram (JNCASR, Bangalore)
+Michael L. Klein (CMM / U Penn, Philadelphia)
+
+version: 0.98 / 2008-01-31

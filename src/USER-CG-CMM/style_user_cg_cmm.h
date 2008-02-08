@@ -11,9 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// style flies for user-contributed packages
-// see the README files in individual user-package directories for details
+// add new include files in appropriate Include ifdef
+// add new style keywords and class names in appropriate Class ifdef
+// see style.h for examples
 
-#include "style_user_ackland.h"
-#include "style_user_cg_cmm.h"
-#include "style_user_ewaldn.h"
+#ifdef AngleInclude
+#include "angle_cg_cmm.h"
+#endif
+
+#ifdef AngleClass
+AngleStyle(cg/cmm,AngleCGCMM)
+#endif
+
+#ifdef PairInclude
+#include "pair_cg_cmm.h"
+#include "pair_cg_cmm_coul_cut.h"
+#include "pair_cg_cmm_coul_long.h"
+#endif
+
+#ifdef PairClass
+PairStyle(cg/cmm,PairCGCMM)
+PairStyle(cg/cmm/coul/cut,PairCGCMMCoulCut)
+PairStyle(cg/cmm/coul/long,PairCGCMMCoulLong)
+#endif

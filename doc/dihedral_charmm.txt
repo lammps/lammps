@@ -84,4 +84,4 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 :link(MacKerell)
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
-Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).

@@ -13,8 +13,8 @@
 
 // Convert a LAMMPS binary restart file into an ASCII text data file
 //
-// Syntax: restart2data restart-file data-file (parameter-file)
-//         parameter-file is optional
+// Syntax: restart2data restart-file data-file (input-file)
+//         input-file is optional
 //         if specified it will contain LAMMPS input script commands
 //           for mass and force field info
 //         only a few force field styles support this option
@@ -287,7 +287,7 @@ int main (int argc, char **argv)
   // syntax error check
 
     if ((argc != 3) && (argc !=4)) {
-    printf("Syntax: restart2data restart-file data-file [parameter-file]\n");
+    printf("Syntax: restart2data restart-file data-file (input-file)\n");
     return 1;
   }
 
@@ -364,7 +364,7 @@ int main (int argc, char **argv)
 
   data.stats();
 
-  // write out data file and no parameter file
+  // write out data file and no input file
 
   if (argc == 3) {
     printf("Writing data file ...\n");
@@ -376,7 +376,7 @@ int main (int argc, char **argv)
     data.write(fp);
     fclose(fp);
 
-  // write out data file and parameter file
+  // write out data file and inpur file
 
   } else {
     printf("Writing data file ...\n");
@@ -385,10 +385,10 @@ int main (int argc, char **argv)
       printf("ERROR: Cannot open data file %s\n",argv[2]);
       return 1;
     }
-    printf("Writing parameter file ...\n");
+    printf("Writing input file ...\n");
     FILE *fp2 = fopen(argv[3],"w");
     if (fp2 == NULL) {
-      printf("ERROR: Cannot open parameter file %s\n",argv[3]);
+      printf("ERROR: Cannot open input file %s\n",argv[3]);
       return 1;
     }
 
@@ -2382,10 +2382,10 @@ void Data::write(FILE *fp, FILE *fp2)
   fprintf(fp,"%g %g zlo zhi\n",zlo,zhi);
   if (triclinic) fprintf(fp,"%g %g %g xy xz yz\n",xy,xz,yz);
 
-  // write ff styles to parameter file
+  // write ff styles to input file
 
   if (fp2) {
-    fprintf(fp2,"# LAMMPS parameter file from restart file: timestep = %d, procs = %d\n\n",
+    fprintf(fp2,"# LAMMPS input file from restart file: timestep = %d, procs = %d\n\n",
 	  ntimestep,nprocs);
     if (pair_style) fprintf(fp2,"pair_style %s\n",pair_style);
     if (bond_style) fprintf(fp2,"bond_style %s\n",bond_style);
@@ -2398,7 +2398,7 @@ void Data::write(FILE *fp, FILE *fp2)
     fprintf(fp2,"\n");
   }
 
-  // mass to either data file or parameter file
+  // mass to either data file or input file
 
   if (mass) {
     if (fp2) {
@@ -2536,7 +2536,7 @@ void Data::write(FILE *fp, FILE *fp2)
     }
   }
 
-  // pair coeffs to parameter file
+  // pair coeffs to input file
   // only supported styles = cg/cmm
 
   if (pair_style && fp2) {
@@ -2552,7 +2552,7 @@ void Data::write(FILE *fp, FILE *fp2)
       }
 
     } else {
-      printf("ERROR: Cannot write pair_style %s to parameter file\n",
+      printf("ERROR: Cannot write pair_style %s to input file\n",
 	     pair_style);
       exit(1);
     }
@@ -2602,7 +2602,7 @@ void Data::write(FILE *fp, FILE *fp2)
     }
   }
 
-  // bond coeffs to parameter file
+  // bond coeffs to input file
   // only supported styles = harmonic
 
   if (bond_style && fp2) {
@@ -2612,7 +2612,7 @@ void Data::write(FILE *fp, FILE *fp2)
 		bond_harmonic_k[i],bond_harmonic_r0[i]);
 
     } else {
-      printf("ERROR: Cannot write bond_style %s to parameter file\n",
+      printf("ERROR: Cannot write bond_style %s to input file\n",
 	     bond_style);
       exit(1);
     }
@@ -2675,7 +2675,7 @@ void Data::write(FILE *fp, FILE *fp2)
     }
   }
 
-  // angle coeffs to parameter file
+  // angle coeffs to input file
   // only supported styles = cosine/squared, harmonic, cg/cmm
 
   if (angle_style && fp2) {
@@ -2700,7 +2700,7 @@ void Data::write(FILE *fp, FILE *fp2)
 		angle_cg_cmm_sigma[i]);
       
     } else {
-      printf("ERROR: Cannot write angle_style %s to parameter file\n",
+      printf("ERROR: Cannot write angle_style %s to input file\n",
 	     angle_style);
       exit(1);
     }

@@ -24,10 +24,10 @@ keyword = {axes} or {scale} or {region} or {weight}
   {scale} values = type ratio
     type = atom type (1-N)
     ratio = factor to scale the damping coefficient by
-  {region} values = region-ID
-    region-ID = ID of region to apply thermostat to :pre
-  {weight} values = factor
-    factor = scale factor to apply to random thermal force
+  {region} value = region-ID
+    region-ID = ID of region to apply thermostat to
+  {weight} value = factor
+    factor = scale factor to apply to random thermal force :pre
 :ule
 
 [Examples:]

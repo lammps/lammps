@@ -78,18 +78,18 @@ precedent over the {int} or {float} setting.
 
 The {temp} keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a
-temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx etc",
-"tave", "pave").  The specified compute ID must have been previously
-defined by the user via the "compute"_compute.html command and it must
-be a style of compute that calculates a temperature.  As described in
-the "thermo_style"_thermo_style.html command, thermo output uses a
-default compute for temperature with ID = {thermo_temp}.  This option
-allows the user to override the default.
+temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx", etc).
+The specified compute ID must have been previously defined by the user
+via the "compute"_compute.html command and it must be a style of
+compute that calculates a temperature.  As described in the
+"thermo_style"_thermo_style.html command, thermo output uses a default
+compute for temperature with ID = {thermo_temp}.  This option allows
+the user to override the default.
 
 The {press} keyword is used to determine how thermodynamic pressure is
 calculated, which is used by all thermo quantities that require a
-pressure ("press", "enthalpy", "pxx etc", "pave").  The specified
-compute ID must have been previously defined by the user via the
+pressure ("press", "enthalpy", "pxx", etc).  The specified compute ID
+must have been previously defined by the user via the
 "compute"_compute.html command and it must be a style of compute that
 calculates a pressure.  As described in the
 "thermo_style"_thermo_style.html command, thermo output uses a default

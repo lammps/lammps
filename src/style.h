@@ -79,6 +79,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_centro_atom.h"
 #include "compute_coord_atom.h"
 #include "compute_displace_atom.h"
+#include "compute_group_group.h"
 #include "compute_ke_atom.h"
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
@@ -98,6 +99,7 @@ CommandStyle(write_restart,WriteRestart)
 ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
+ComputeStyle(group/group,ComputeGroupGroup)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)

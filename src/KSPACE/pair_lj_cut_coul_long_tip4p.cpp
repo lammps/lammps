@@ -205,8 +205,11 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 
 	  // if i,j are not O atoms, force is applied directly
 	  // if i or j are O atoms, force is on fictitious atom
-	  //   and is thus spread to all 3 atoms in water molecule
-	  // formulas due to Feenstra et al, J Comp Chem, 20, 786 (1999)
+	  // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+	  // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+	  // preserves total force and torque on water molecule
+	  // all virial terms are computed as distances to x2
+	  // vlist stores 2,4,6 atoms whose forces contribute to virial
 
 	  n = 0;
 
@@ -216,12 +219,13 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	    f[i][2] += delz * cforce;
 
 	    if (vflag) {
-	      v[0] = 0.5 * delx * delx * cforce;
-	      v[1] = 0.5 * dely * dely * cforce;
-	      v[2] = 0.5 * delz * delz * cforce;
-	      v[3] = 0.5 * delx * dely * cforce;
-	      v[4] = 0.5 * delx * delz * cforce;
-	      v[5] = 0.5 * dely * delz * cforce;
+	      v[0] = delx * delx * cforce;
+	      v[1] = dely * dely * cforce;
+	      v[2] = delz * delz * cforce;
+	      v[3] = delx * dely * cforce;
+	      v[4] = delx * delz * cforce;
+	      v[5] = dely * delz * cforce;
+
 	      vlist[n++] = i;
 	    }
 
@@ -262,12 +266,12 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      delz3 = x[iH2][2] - x2[2];
 	      domain->minimum_image(delx3,dely3,delz3);
 
-	      v[0] = 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
-	      v[1] = 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
-	      v[2] = 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
-	      v[3] = 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
-	      v[4] = 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
-	      v[5] = 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+	      v[0] = delx1 * fO[0] + (delx2 + delx3) * fH[0];
+	      v[1] = dely1 * fO[1] + (dely2 + dely3) * fH[1];
+	      v[2] = delz1 * fO[2] + (delz2 + delz3) * fH[2];
+	      v[3] = delx1 * fO[1] + (delx2 + delx3) * fH[1];
+	      v[4] = delx1 * fO[2] + (delx2 + delx3) * fH[2];
+	      v[5] = dely1 * fO[2] + (dely2 + dely3) * fH[2];
 
 	      vlist[n++] = i;
 	      vlist[n++] = iH1;
@@ -280,16 +284,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	    f[j][1] -= dely * cforce;
 	    f[j][2] -= delz * cforce;
 
-	    if (vflag) {
-	      v[0] += 0.5 * delx * delx * cforce;
-	      v[1] += 0.5 * dely * dely * cforce;
-	      v[2] += 0.5 * delz * delz * cforce;
-	      v[3] += 0.5 * delx * dely * cforce;
-	      v[4] += 0.5 * delx * delz * cforce;
-	      v[5] += 0.5 * dely * delz * cforce;
-
-	      vlist[n++] = j;
-	    }
+	    if (vflag) vlist[n++] = j;
 
 	  } else {
 	    negforce = -cforce;
@@ -315,27 +310,27 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	    f[jH2][2] += fH[2];
 
 	    if (vflag) {
-	      delx1 = x[j][0] - x1[0];
-	      dely1 = x[j][1] - x1[1];
-	      delz1 = x[j][2] - x1[2];
+	      delx1 = x[j][0] - x2[0];
+	      dely1 = x[j][1] - x2[1];
+	      delz1 = x[j][2] - x2[2];
 	      domain->minimum_image(delx1,dely1,delz1);
 
-	      delx2 = x[jH1][0] - x1[0];
-	      dely2 = x[jH1][1] - x1[1];
-	      delz2 = x[jH1][2] - x1[2];
+	      delx2 = x[jH1][0] - x2[0];
+	      dely2 = x[jH1][1] - x2[1];
+	      delz2 = x[jH1][2] - x2[2];
 	      domain->minimum_image(delx2,dely2,delz2);
 
-	      delx3 = x[jH2][0] - x1[0];
-	      dely3 = x[jH2][1] - x1[1];
-	      delz3 = x[jH2][2] - x1[2];
+	      delx3 = x[jH2][0] - x2[0];
+	      dely3 = x[jH2][1] - x2[1];
+	      delz3 = x[jH2][2] - x2[2];
 	      domain->minimum_image(delx3,dely3,delz3);
 
-	      v[0] += 0.5 * (delx1 * fO[0] + (delx2 + delx3) * fH[0]);
-	      v[1] += 0.5 * (dely1 * fO[1] + (dely2 + dely3) * fH[1]);
-	      v[2] += 0.5 * (delz1 * fO[2] + (delz2 + delz3) * fH[2]);
-	      v[3] += 0.5 * (dely1 * fO[0] + (dely2 + dely3) * fH[0]);
-	      v[4] += 0.5 * (delz1 * fO[0] + (delz2 + delz3) * fH[0]);
-	      v[5] += 0.5 * (delz1 * fO[1] + (delz2 + delz3) * fH[1]);
+	      v[0] += delx1 * fO[0] + (delx2 + delx3) * fH[0];
+	      v[1] += dely1 * fO[1] + (dely2 + dely3) * fH[1];
+	      v[2] += delz1 * fO[2] + (delz2 + delz3) * fH[2];
+	      v[3] += delx1 * fO[1] + (delx2 + delx3) * fH[1];
+	      v[4] += delx1 * fO[2] + (delx2 + delx3) * fH[2];
+	      v[5] += dely1 * fO[2] + (dely2 + dely3) * fH[2];
 
 	      vlist[n++] = j;
 	      vlist[n++] = jH1;

@@ -13,7 +13,6 @@ communicate command :h3
 communicate style keyword value ... :pre
 
 style = {single} or {multi} :ulb,l
-
 zero or more keyword/value pairs may be appended :l
 keyword = {group} :l
   {group} value = group-ID = only communicate atoms in the group :pre

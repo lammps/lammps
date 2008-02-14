@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "compute_group_group.h"
 #include "atom.h"

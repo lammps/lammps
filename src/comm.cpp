@@ -29,6 +29,7 @@
 #include "neighbor.h"
 #include "modify.h"
 #include "fix.h"
+#include "group.h"
 #include "compute.h"
 #include "error.h"
 #include "memory.h"
@@ -57,6 +58,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   grid2proc = NULL;
 
+  igroup = 0;
   style = SINGLE;
   multilo = multihi = NULL;
   cutghostmulti = NULL;
@@ -170,6 +172,7 @@ void Comm::init()
 {
   triclinic = domain->triclinic;
   map_style = atom->map_style;
+  groupbit = group->bitmask[igroup];
 
   // comm_only = 1 if only x,f are exchanged in forward/reverse comm
 
@@ -605,7 +608,7 @@ void Comm::borders()
 {
   int i,n,itype,iswap,dim,ineed,maxneed,nsend,nrecv,nfirst,nlast,smax,rmax;
   double lo,hi;
-  int *type;
+  int *type,*mask;
   double **x;
   double *buf,*mlo,*mhi;
   MPI_Request request;
@@ -648,22 +651,47 @@ void Comm::borders()
       }
 
       nsend = 0;
-      if (style == SINGLE) {
-	for (i = nfirst; i < nlast; i++)
-	  if (x[i][dim] >= lo && x[i][dim] <= hi) {
-	    if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	    sendlist[iswap][nsend++] = i;
-	  }
+
+      // SINGLE vs MULTI, all atoms versus only atoms in group
+
+      if (igroup) {
+	mask = atom->mask;
+	if (style == SINGLE) {
+	  for (i = nfirst; i < nlast; i++)
+	    if (mask[i] & groupbit) {
+	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
+	    }
+	} else {
+	  for (i = nfirst; i < nlast; i++)
+	    if (mask[i] & groupbit) {
+	      itype = type[i];
+	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
+	    }
+	}
       } else {
-	for (i = nfirst; i < nlast; i++) {
-	  itype = type[i];
-	  if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-	    if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	    sendlist[iswap][nsend++] = i;
+	if (style == SINGLE) {
+	  for (i = nfirst; i < nlast; i++)
+	    if (x[i][dim] >= lo && x[i][dim] <= hi) {
+	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+	      sendlist[iswap][nsend++] = i;
+	    }
+	} else {
+	  for (i = nfirst; i < nlast; i++) {
+	    itype = type[i];
+	    if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+	      sendlist[iswap][nsend++] = i;
+	    }
 	  }
 	}
       }
-      
+
       // pack up list of border atoms
 
       if (nsend*size_border > maxsend)
@@ -1466,11 +1494,22 @@ void Comm::free_multi()
 
 void Comm::set(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal communicate command");
+  if (narg < 1) error->all("Illegal communicate command");
 
   if (strcmp(arg[0],"single") == 0) style = SINGLE;
   else if (strcmp(arg[0],"multi") == 0) style = MULTI;
   else error->all("Illegal communicate command");
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"group") == 0) {
+      if (iarg+2 > narg) error->all("Illegal communicate command");
+      igroup = group->find(arg[iarg+1]);
+      if (igroup < 0)
+	error->all("Invalid group ID in communicate command");
+      iarg += 2;
+    } else error->all("Illegal communicate command");
+  }
 }
 
 /* ----------------------------------------------------------------------

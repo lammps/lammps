@@ -123,6 +123,9 @@ class Neighbor : protected Pointers {
 
   int special_flag[4];             // flags for 1-2, 1-3, 1-4 neighbors
 
+  int include_group;               // only form neighbor lists on this group
+  int include_groupbit;
+
   int exclude;                     // 0 if no type/group exclusions, 1 if yes
 
   int nex_type;                    // # of entries in type exclusion list

@@ -90,6 +90,8 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   // pair exclusion list info
 
+  include_group = 0;
+
   nex_type = maxex_type = 0;
   ex1_type = ex2_type = NULL;
   ex_type = NULL;
@@ -337,6 +339,8 @@ void Neighbor::init()
   // exclusion lists for type, group, molecule settings from neigh_modify
 
   n = atom->ntypes;
+
+  include_groupbit = group->bitmask[include_group];
 
   if (nex_type == 0 && nex_group == 0 && nex_mol == 0) exclude = 0;
   else exclude = 1;
@@ -920,15 +924,28 @@ int Neighbor::check_distance()
 {
   double delx,dely,delz,rsq;
 
-  int nlocal = atom->nlocal;
   double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
   int flag = 0;
-  for (int i = 0; i < nlocal; i++) {
-    delx = x[i][0] - xhold[i][0];
-    dely = x[i][1] - xhold[i][1];
-    delz = x[i][2] - xhold[i][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > triggersq) flag = 1;
+
+  if (include_group) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & include_groupbit) {
+	delx = x[i][0] - xhold[i][0];
+	dely = x[i][1] - xhold[i][1];
+	delz = x[i][2] - xhold[i][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+	if (rsq > triggersq) flag = 1;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      delx = x[i][0] - xhold[i][0];
+      dely = x[i][1] - xhold[i][1];
+      delz = x[i][2] - xhold[i][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq > triggersq) flag = 1;
+    }
   }
 
   int flagall;
@@ -1288,6 +1305,12 @@ void Neighbor::modify_params(int narg, char **arg)
       if (binsize_user <= 0.0) binsizeflag = 0;
       else binsizeflag = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"include") == 0) {
+      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      include_group = group->find(arg[iarg+1]);
+      if (include_group == -1)
+	error->all("Invalid group ID in neigh_modify command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");
 
@@ -1395,35 +1418,30 @@ int Neighbor::find_special(int i, int j)
 void Neighbor::bin_atoms()
 {
   int i,ibin,nall;
-  double **x;
-
-  nall = atom->nlocal + atom->nghost;
-  x = atom->x;
 
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 
   // bin in reverse order so linked list will be in forward order
   // also puts ghost atoms at end of list, which is necessary
 
-  for (i = nall-1; i >= 0; i--) {
-    ibin = coord2bin(x[i]);
-    bins[i] = binhead[ibin];
-    binhead[ibin] = i;
-  }
+  double **x = atom->x;
+  int *mask = atom->mask;
+  nall = atom->nlocal + atom->nghost;
 
-  /*
-  for (i = nlocal; i < nall; i++) {
-    ibin = coord2bin(x[i]);
-    bins[i] = binhead[ibin];
-    binhead[ibin] = i;
+  if (include_group) {
+    for (i = nall-1; i >= 0; i--)
+      if (mask[i] & include_groupbit) {
+	ibin = coord2bin(x[i]);
+	bins[i] = binhead[ibin];
+	binhead[ibin] = i;
+      }
+  } else {
+    for (i = nall-1; i >= 0; i--) {
+      ibin = coord2bin(x[i]);
+      bins[i] = binhead[ibin];
+      binhead[ibin] = i;
+    }
   }
-
-  for (i = 0; i < nlocal; i++) {
-    ibin = coord2bin(x[i]);
-    bins[i] = binhead[ibin];
-    binhead[ibin] = i;
-  }
-  */
 }
 
 /* ----------------------------------------------------------------------

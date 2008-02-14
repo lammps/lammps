@@ -717,6 +717,6 @@ double PairLJCut::single(int i, int j, int itype, int jtype, double rsq,
 
 void *PairLJCut::extract(char *str)
 {
-  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"diameter") == 0) return (void *) sigma;
   return NULL;
 }

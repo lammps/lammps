@@ -53,6 +53,7 @@ PairColloid::~PairColloid()
     memory->destroy_2d_double_array(d2);
     memory->destroy_2d_double_array(a1);
     memory->destroy_2d_double_array(a2);
+    memory->destroy_2d_double_array(diameter);
     memory->destroy_2d_double_array(cut);		
     memory->destroy_2d_double_array(offset);
     memory->destroy_2d_double_array(sigma3);
@@ -229,6 +230,7 @@ void PairColloid::allocate()
   d2 = memory->create_2d_double_array(n+1,n+1,"pair:d2");
   a1 = memory->create_2d_double_array(n+1,n+1,"pair:a1");
   a2 = memory->create_2d_double_array(n+1,n+1,"pair:a2");
+  diameter = memory->create_2d_double_array(n+1,n+1,"pair:diameter");
   cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
   offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
   sigma3 = memory->create_2d_double_array(n+1,n+1,"pair:sigma3");
@@ -292,6 +294,7 @@ void PairColloid::coeff(int narg, char **arg)
 	error->all("Invalid d1 or d2 value for pair colloid coeff");
       d1[i][j] = d1_one;
       d2[i][j] = d2_one;
+      diameter[i][j] = 0.5*(d1_one+d2_one);
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -312,6 +315,7 @@ double PairColloid::init_one(int i, int j)
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     d1[i][j] = mix_distance(d1[i][i],d1[j][j]);
     d2[i][j] = mix_distance(d2[i][i],d2[j][j]);
+    diameter[i][j] = 0.5 * (d1[i][j] + d2[i][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
@@ -340,6 +344,7 @@ double PairColloid::init_one(int i, int j)
   sigma[j][i] = sigma[i][j];
   sigma3[j][i] = sigma3[i][j];
   sigma6[j][i] = sigma6[i][j];
+  diameter[j][i] = diameter[i][j];
   cut[j][i] = cut[i][j];
   cutsq[j][i] = cutsq[i][j] = cut[i][j] * cut[i][j];
 
@@ -515,4 +520,12 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
   }
 
   return factor_lj*phi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairColloid::extract(char *str)
+{
+  if (strcmp(str,"diameter") == 0) return (void *) diameter;
+  return NULL;
 }

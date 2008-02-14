@@ -31,11 +31,12 @@ class PairColloid : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
+  void *extract(char *);
 
  private:
   double cut_global;
   double **cut;
-  double **a12,**d1,**d2,**a1,**a2,**offset;
+  double **a12,**d1,**d2,**diameter,**a1,**a2,**offset;
   double **sigma,**sigma3,**sigma6;
   double **lj1,**lj2,**lj3,**lj4;
   int **form;

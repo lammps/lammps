@@ -352,8 +352,6 @@ void PairLubricate::init_style()
 {
   if (!atom->torque_flag || atom->shape == NULL)
     error->all("Pair lubricate requires atom attributes torque, shape");
-  if (domain->dimension != 3)
-    error->all("Pair lubricate only available for 3d");
 
   // insure all particle shapes are spherical
 

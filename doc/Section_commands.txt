@@ -441,6 +441,7 @@ description:
 "centro/atom"_compute_centro_atom.html,
 "coord/atom"_compute_coord_atom.html,
 "displace/atom"_compute_displace_atom.html,
+"group/group"_compute_group_group.html,
 "ke/atom"_compute_ke_atom.html,
 "pe"_compute_pe.html,
 "pe/atom"_compute_pe_atom.html,

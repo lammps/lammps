@@ -109,6 +109,7 @@ available in LAMMPS:
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "displace/atom"_compute_displace_atom.html - displacement of each atom
+"group/group"_compute_group_group.html - energy/force between two groups of atoms
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom

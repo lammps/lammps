@@ -1,0 +1,67 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute group/group command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID group/group group2-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>group/group = style name of this compute command
+<LI>group2-ID = group ID of second (or same) group 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 lower group/group upper
+compute mine fluid group/group wall 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the total energy and force
+interaction between two groups of atoms: the compute group and the
+specified group2.  The two groups can be the same.  The interaction
+energy is defined as the pairwise energy between all pairs of atoms
+where one atom in the pair is in the first group and the other is in
+the second group.  Likewise, the interaction force calculated by this
+compute is the force on the compute group atoms due to pairwise
+interactions with atoms in the specified group2.
+</P>
+<P>The energy and force are calculated by looping over a neighbor list of
+pairwise interactions.  Thus it can be inefficient to compute this
+quantity too frequently.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The interaction energy calculated by this compute is a scalar
+quantity.  The interaction force is a vector of length 3.  Both the
+scalar and vector values calculated by this compute are "extensive",
+meaning they scale with the number of atoms in the simulation.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Only pairwise interactions, as defined by the
+<A HREF = "pair_style.html">pair_style</A> command, are included in this
+calculation.  Bond (angle, dihedral, etc) interactions between atoms
+in the two groups are not included.  Long-range interactions due to a
+<A HREF = "kspace_style.html">kspace_style</A> command are also not included.  Not
+all pair potentials can be evaluated in a pairwise mode as required by
+this compute.  For example, 3-body potentials, such as
+<A HREF = "pair_tersoff.html">Tersoff</A> and <A HREF = "pair_sw.html">Stillinger-Weber</A> cannot
+be used.  <A HREF = "pair_eam.html">EAM</A> potentials for metals only include the
+pair potential portion of the EAM interaction, not the embedding
+term.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

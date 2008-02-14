@@ -13,13 +13,22 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>communicate style 
+<PRE>communicate style keyword value ... 
 </PRE>
 <UL><LI>style = <I>single</I> or <I>multi</I> 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>group</I> 
+
+<PRE>  <I>group</I> value = group-ID = only communicate atoms in the group 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>communicate multi 
+<PRE>communicate multi
+communicate multi group solvent 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -40,6 +49,11 @@ communicated.  See the <A HREF = "neighbor.html">neighbor multi</A> command for 
 neighbor list construction option that may also be beneficial for
 simulations of this kind.
 </P>
+<P>The <I>group</I> option will limit communication to atoms in the specified
+group.  This can be useful for certain models where no ghost copies
+are needed for some kinds of particles.  The particles not in the
+specified group will still migrate to new processors as they move.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -48,6 +62,6 @@ simulations of this kind.
 </P>
 <P><B>Default:</B>
 </P>
-<P>style = single
+<P>The default settings are style = single and group = all.
 </P>
 </HTML>

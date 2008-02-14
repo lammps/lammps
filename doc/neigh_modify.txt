@@ -13,7 +13,7 @@ neigh_modify command :h3
 neigh_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {delay} or {every} or {check} or {exclude} or {page} or {one} or {binsize}
+keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {one} or {binsize}
   {delay} value = N
     N = delay building until this many steps since last build
   {every} value = M
@@ -21,6 +21,8 @@ keyword = {delay} or {every} or {check} or {exclude} or {page} or {one} or {bins
   {check} value = {yes} or {no}
     {yes} = only build if some atom has moved half the skin distance or more
     {no} = always build on 1st step that {every} and {delay} are satisfied
+  {include} value = group-ID
+    group-ID = only build pair neighbor lists for atoms in this group
   {exclude} values:
     type M N
       M,N = exclude if one atom in pair is type M, other is type N
@@ -79,6 +81,11 @@ to freeze a wall or portion of a bio-molecule. :l
 When one or more rigid bodies are specified, interactions within each
 body can be turned off to save needless computation.  See the "fix
 rigid"_fix_rigid.html command for more details. :l,ule
+
+The {include} option limits the building of pairwise neighbor lists to
+atoms in the specified group.  This can be useful if a large portion
+of the simulation is particles that do not interact with the remainder
+of the simulation or with each other via pairwise interactions.
 
 The {exclude type} option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The
@@ -140,5 +147,5 @@ space.
 
 [Default:]
 
-The option defaults are delay = 10, every = 1, check = yes, exclude =
-none, page = 100000, one = 2000, and binsize = 0.0.
+The option defaults are delay = 10, every = 1, check = yes, include =
+all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.

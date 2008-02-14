@@ -10,13 +10,19 @@ communicate command :h3
 
 [Syntax:]
 
-communicate style :pre
+communicate style keyword value ... :pre
 
-style = {single} or {multi} :ul
+style = {single} or {multi} :ulb,l
+
+zero or more keyword/value pairs may be appended :l
+keyword = {group} :l
+  {group} value = group-ID = only communicate atoms in the group :pre
+:ule
 
 [Examples:]
 
-communicate multi :pre
+communicate multi
+communicate multi group solvent :pre
 
 [Description:]
 
@@ -37,6 +43,11 @@ communicated.  See the "neighbor multi"_neighbor.html command for a
 neighbor list construction option that may also be beneficial for
 simulations of this kind.
 
+The {group} option will limit communication to atoms in the specified
+group.  This can be useful for certain models where no ghost copies
+are needed for some kinds of particles.  The particles not in the
+specified group will still migrate to new processors as they move.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -45,4 +56,4 @@ simulations of this kind.
 
 [Default:]
 
-style = single
+The default settings are style = single and group = all.

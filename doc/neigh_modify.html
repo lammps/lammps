@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
+<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>include</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
   <I>delay</I> value = N
     N = delay building until this many steps since last build
   <I>every</I> value = M
@@ -25,6 +25,8 @@
   <I>check</I> value = <I>yes</I> or <I>no</I>
     <I>yes</I> = only build if some atom has moved half the skin distance or more
     <I>no</I> = always build on 1st step that <I>every</I> and <I>delay</I> are satisfied
+  <I>include</I> value = group-ID
+    group-ID = only build pair neighbor lists for atoms in this group
   <I>exclude</I> values:
     type M N
       M,N = exclude if one atom in pair is type M, other is type N
@@ -86,6 +88,11 @@ to freeze a wall or portion of a bio-molecule.
 body can be turned off to save needless computation.  See the <A HREF = "fix_rigid.html">fix
 rigid</A> command for more details. 
 </UL>
+<P>The <I>include</I> option limits the building of pairwise neighbor lists to
+atoms in the specified group.  This can be useful if a large portion
+of the simulation is particles that do not interact with the remainder
+of the simulation or with each other via pairwise interactions.
+</P>
 <P>The <I>exclude type</I> option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The
 <I>exclude group</I> option turns off the interaction if one atom is in the
@@ -146,7 +153,7 @@ space.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are delay = 10, every = 1, check = yes, exclude =
-none, page = 100000, one = 2000, and binsize = 0.0.
+<P>The option defaults are delay = 10, every = 1, check = yes, include =
+all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.
 </P>
 </HTML>

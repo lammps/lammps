@@ -88,7 +88,6 @@ void ComputeTempAsphere::recount()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   int itype;
   int rot_dof = 0;

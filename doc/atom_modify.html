@@ -17,15 +17,17 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>map</I> 
+<LI>keyword = <I>map</I> or <I>first</I> 
 
-<PRE>  <I>map</I> value = <I>array</I> or <I>hash</I> 
+<PRE>  <I>map</I> value = <I>array</I> or <I>hash</I>
+  <I>first</I> value = group-ID = group whose atoms will appear first in internal atom lists 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>atom_modify map hash 
+<PRE>atom_modify map hash
+atom_modify first colloid 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -43,6 +45,26 @@ slightly slower than the <I>array</I> method, but its memory cost is
 proportional to N/P on each processor, where P is the total number of
 processors running the simulation.
 </P>
+<P>The <I>first</I> keyword allows a <A HREF = "group.html">group</A> to be specified whose
+atoms will be maintained as the first atoms in each processor's list
+of owned atoms.  This in only useful when the specified group is a
+small fraction of all the atoms, and there are other operations LAMMPS
+is performing that will be sped-up significantly by being able to loop
+over the smaller set of atoms.  Otherwise the reordering required by
+this option will be a net slow-down.  The <A HREF = "neigh_modify.html">neigh_modify
+include</A> and <A HREF = "communicate.html">communicate group</A>
+commands are two examples of commands that require this setting to
+work efficiently.  Several <A HREF = "fix.html">fixes</A>, most notably time
+integration fixes like <A HREF = "fix_nve.html">fix nve</A>, also take advantage of
+this setting if the group they operate on is the group specified by
+this command.
+</P>
+<P>Note that because the atom_modify command must be used in an input
+script before a simulation is setup and groups are defined, this means
+the <I>first</I> keyword will specify a group that is not yet defined.
+This is OK; LAMMPS will check that the group exists before the first
+simulation is performed.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>This command must be used before the simulation box is defined by a
@@ -52,7 +74,8 @@ processors running the simulation.
 </P>
 <P><B>Default:</B>
 </P>
-<P>By default, atomic (non-molecular) problems do not allocate maps.
-For molecular problems, the option default is map = array.
+<P>By default, atomic (non-molecular) problems do not allocate maps.  For
+molecular problems, the option default is map = array.  By default,
+first = all.
 </P>
 </HTML>

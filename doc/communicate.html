@@ -34,7 +34,8 @@ communicate multi group solvent
 </P>
 <P>This command sets the style of inter-processor communication that
 occurs each timestep as atom coordinates and other properties are
-exchanged between neighboring processors.
+exchanged between neighboring processors and stored as properties of
+ghost atoms.
 </P>
 <P>The default style is <I>single</I> which means each processor acquires
 information for ghost atoms that are within a single distance from its
@@ -50,9 +51,11 @@ neighbor list construction option that may also be beneficial for
 simulations of this kind.
 </P>
 <P>The <I>group</I> option will limit communication to atoms in the specified
-group.  This can be useful for certain models where no ghost copies
-are needed for some kinds of particles.  The particles not in the
-specified group will still migrate to new processors as they move.
+group.  This can be useful for models where no ghost atoms are needed
+for some kinds of particles.  All atoms (not just those in the
+specified group) will still migrate to new processors as they move.
+The group specified with this option must also be specified via the
+"atom_modify first" command.
 </P>
 <P><B>Restrictions:</B> none
 </P>

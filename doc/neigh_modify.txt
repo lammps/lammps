@@ -66,6 +66,13 @@ When the rRESPA integrator is used (see the "run_style"_run_style.html
 command), the {every} and {delay} parameters refer to the longest
 (outermost) timestep.
 
+The {include} option limits the building of pairwise neighbor lists to
+atoms in the specified group.  This can be useful for models where a
+large portion of the simulation is particles that do not interact with
+other particles or with each other via pairwise interactions.  The
+group specified with this option must also be specified via the
+"atom_modify first" command.
+
 The {exclude} option turns off pairwise interactions between certain
 pairs of atoms, by not including them in the neighbor list.  These are
 sample scenarios where this is useful:
@@ -81,11 +88,6 @@ to freeze a wall or portion of a bio-molecule. :l
 When one or more rigid bodies are specified, interactions within each
 body can be turned off to save needless computation.  See the "fix
 rigid"_fix_rigid.html command for more details. :l,ule
-
-The {include} option limits the building of pairwise neighbor lists to
-atoms in the specified group.  This can be useful if a large portion
-of the simulation is particles that do not interact with the remainder
-of the simulation or with each other via pairwise interactions.
 
 The {exclude type} option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The

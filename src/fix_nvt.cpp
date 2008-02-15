@@ -167,6 +167,7 @@ void FixNVT::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -195,6 +196,7 @@ void FixNVT::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -238,6 +240,7 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // outermost level - update eta_dot and apply to v
   // all other levels - NVE update of v
@@ -305,6 +308,7 @@ void FixNVT::final_integrate_respa(int ilevel)
     int *type = atom->type;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
+    if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {

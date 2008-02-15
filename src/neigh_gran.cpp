@@ -14,6 +14,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "group.h"
 #include "fix_shear_history.h"
 #include "error.h"
 
@@ -29,7 +30,7 @@ using namespace LAMMPS_NS;
 
 void Neighbor::granular_nsq_no_newton(NeighList *list)
 {
-  int i,j,m,n,nn;
+  int i,j,m,n,nn,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr,*touchptr;
@@ -50,7 +51,11 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
+  if (include_group) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[include_group];
+  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -74,7 +79,6 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -104,6 +108,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
+      if (include_group && !(mask[j] & bitmask)) continue;
       if (exclude && exclusion(i,j,type[i],type[j],mask,molecule)) continue;
 
       delx = xtmp - x[j][0];
@@ -169,7 +174,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
 
 void Neighbor::granular_nsq_newton(NeighList *list)
 {
-  int i,j,n,itag,jtag;
+  int i,j,n,itag,jtag,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;
@@ -181,7 +186,11 @@ void Neighbor::granular_nsq_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
+  if (include_group) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[include_group];
+  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -193,7 +202,6 @@ void Neighbor::granular_nsq_newton(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -213,6 +221,8 @@ void Neighbor::granular_nsq_newton(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
+      if (include_group && !(mask[j] & bitmask)) continue;
+
       if (j >= nlocal) {
 	jtag = tag[j];
 	if (itag > jtag) {
@@ -288,6 +298,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -313,7 +324,6 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -431,6 +441,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -444,7 +455,6 @@ void Neighbor::granular_bin_newton(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -538,6 +548,7 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -551,7 +562,6 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;

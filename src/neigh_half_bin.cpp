@@ -42,7 +42,8 @@ void Neighbor::half_bin_no_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
+  if (include_group) nlocal = atom->nfirst;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -57,7 +58,6 @@ void Neighbor::half_bin_no_newton(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -135,8 +135,9 @@ void Neighbor::half_bin_newton(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -150,7 +151,6 @@ void Neighbor::half_bin_newton(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -249,8 +249,9 @@ void Neighbor::half_bin_newton_tri(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -264,7 +265,6 @@ void Neighbor::half_bin_newton_tri(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;

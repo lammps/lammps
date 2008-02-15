@@ -14,6 +14,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -25,7 +26,7 @@ using namespace LAMMPS_NS;
 
 void Neighbor::full_nsq(NeighList *list)
 {
-  int i,j,n,itype,jtype,which;
+  int i,j,n,itype,jtype,which,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
@@ -34,8 +35,12 @@ void Neighbor::full_nsq(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
+  if (include_group) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[include_group];
+  }
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -47,7 +52,6 @@ void Neighbor::full_nsq(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -67,8 +71,8 @@ void Neighbor::full_nsq(NeighList *list)
     // skip i = j
 
     for (j = 0; j < nall; j++) {
+      if (include_group && !(mask[j] & bitmask)) continue;
       if (i == j) continue;
-
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
@@ -117,8 +121,9 @@ void Neighbor::full_bin(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -132,7 +137,6 @@ void Neighbor::full_bin(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;
@@ -209,8 +213,9 @@ void Neighbor::full_multi(NeighList *list)
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
+  if (include_group) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -225,7 +230,6 @@ void Neighbor::full_multi(NeighList *list)
   int npnt = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (include_group && !(mask[i] & include_groupbit)) continue;
 
     if (pgsize - npnt < oneatom) {
       npnt = 0;

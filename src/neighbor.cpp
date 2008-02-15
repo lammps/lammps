@@ -340,8 +340,6 @@ void Neighbor::init()
 
   n = atom->ntypes;
 
-  include_groupbit = group->bitmask[include_group];
-
   if (nex_type == 0 && nex_group == 0 && nex_mol == 0) exclude = 0;
   else exclude = 1;
 
@@ -925,27 +923,16 @@ int Neighbor::check_distance()
   double delx,dely,delz,rsq;
 
   double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int flag = 0;
+  if (include_group) nlocal = atom->nfirst;
 
-  if (include_group) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & include_groupbit) {
-	delx = x[i][0] - xhold[i][0];
-	dely = x[i][1] - xhold[i][1];
-	delz = x[i][2] - xhold[i][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq > triggersq) flag = 1;
-      }
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      delx = x[i][0] - xhold[i][0];
-      dely = x[i][1] - xhold[i][1];
-      delz = x[i][2] - xhold[i][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq > triggersq) flag = 1;
-    }
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    delx = x[i][0] - xhold[i][0];
+    dely = x[i][1] - xhold[i][1];
+    delz = x[i][2] - xhold[i][2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq > triggersq) flag = 1;
   }
 
   int flagall;
@@ -1308,8 +1295,11 @@ void Neighbor::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"include") == 0) {
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");
       include_group = group->find(arg[iarg+1]);
-      if (include_group == -1)
+      if (include_group < 0)
 	error->all("Invalid group ID in neigh_modify command");
+      if (include_group && (atom->firstgroupname == NULL ||
+			    strcmp(arg[iarg+1],atom->firstgroupname) != 0))
+	error->all("Neigh_modify include group != atom_modify first group");
       iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");
@@ -1417,7 +1407,7 @@ int Neighbor::find_special(int i, int j)
 
 void Neighbor::bin_atoms()
 {
-  int i,ibin,nall;
+  int i,ibin;
 
   for (i = 0; i < mbins; i++) binhead[i] = -1;
 
@@ -1426,15 +1416,23 @@ void Neighbor::bin_atoms()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  nall = atom->nlocal + atom->nghost;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
 
   if (include_group) {
-    for (i = nall-1; i >= 0; i--)
-      if (mask[i] & include_groupbit) {
+    int bitmask = group->bitmask[include_group];
+    for (i = nall-1; i >= nlocal; i--) {
+      if (mask[i] & bitmask) {
 	ibin = coord2bin(x[i]);
 	bins[i] = binhead[ibin];
 	binhead[ibin] = i;
       }
+    }
+    for (i = atom->nfirst; i >= 0; i--) {
+      ibin = coord2bin(x[i]);
+      bins[i] = binhead[ibin];
+      binhead[ibin] = i;
+    }
   } else {
     for (i = nall-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);

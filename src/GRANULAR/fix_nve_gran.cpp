@@ -75,6 +75,7 @@ void FixNVEGran::initial_integrate(int vflag)
   double *radius = atom->radius;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -111,6 +112,7 @@ void FixNVEGran::final_integrate()
   double *radius = atom->radius;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {

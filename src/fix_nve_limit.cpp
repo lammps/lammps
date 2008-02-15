@@ -79,6 +79,7 @@ void FixNVELimit::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (mass) {
     for (int i = 0; i < nlocal; i++) {
@@ -141,6 +142,7 @@ void FixNVELimit::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (mass) {
     for (int i = 0; i < nlocal; i++) {

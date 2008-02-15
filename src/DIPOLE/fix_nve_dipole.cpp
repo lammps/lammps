@@ -95,6 +95,7 @@ void FixNVEDipole::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double g[3];
 
@@ -148,6 +149,7 @@ void FixNVEDipole::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // update v for all particles
   // update omega for all dipoles

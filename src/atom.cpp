@@ -52,6 +52,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nbonds = nangles = ndihedrals = nimpropers = 0;
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
 
+  firstgroupname = NULL;
+
   // initialize atom arrays
   // customize by adding new array
 
@@ -136,6 +138,7 @@ Atom::~Atom()
 {
   delete [] atom_style;
   delete avec;
+  delete [] firstgroupname;
 
   // delete atom arrays
   // customize by adding new array
@@ -273,6 +276,14 @@ void Atom::init()
   check_shape();
   check_dipole();
 
+  // setup of firstgroup
+
+  if (firstgroupname) {
+    firstgroup = group->find(firstgroupname);
+    if (firstgroup < 0)
+      error->all("Could not find atom_modify first group ID");
+  } else firstgroup = -1;
+
   // init sub-style
 
   avec->init();
@@ -309,6 +320,15 @@ void Atom::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"array") == 0) map_style = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_style = 2;
       else error->all("Illegal atom_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"first") == 0) {
+      if (iarg+2 > narg) error->all("Illegal atom_modify command");
+      if (strcmp(arg[iarg+1],"all") == 0) delete [] firstgroupname;
+      else {
+	int n = strlen(arg[iarg+1]) + 1;
+	firstgroupname = new char[n];
+	strcpy(firstgroupname,arg[iarg+1]);
+      }
       iarg += 2;
     } else error->all("Illegal atom_modify command");
   }
@@ -1203,6 +1223,36 @@ void Atom::check_dipole()
   for (int itype = 1; itype <= ntypes; itype++)
     if (dipole_setflag[itype] == 0)
       error->all("All dipole moments are not set");
+}
+
+/* ----------------------------------------------------------------------
+   reorder owned atoms so those in firstgroup appear first
+   called by comm->exchange() if atom_modify first group is set
+   only owned atoms exist at this point, no ghost atoms
+------------------------------------------------------------------------- */
+
+void Atom::first_reorder()
+{
+  // insure there is one extra atom location at end of arrays for swaps
+
+  if (nlocal == nmax) avec->grow(0);
+
+  // loop over owned atoms
+  // nfirst = index of first atom not in firstgroup
+  // when find firstgroup atom out of place, swap it with atom nfirst
+
+  int bitmask = group->bitmask[firstgroup];
+  nfirst = 0;
+  while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & bitmask && i > nfirst) {
+      avec->copy(i,nlocal);
+      avec->copy(nfirst,i);
+      avec->copy(nlocal,nfirst);
+      while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

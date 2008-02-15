@@ -91,6 +91,7 @@ void FixNVTSlodd::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
@@ -146,6 +147,7 @@ void FixNVTSlodd::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
@@ -211,6 +213,7 @@ void FixNVTSlodd::initial_integrate_respa(int vflag, int ilevel, int flag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // outermost level - update eta_dot and apply to v
   // all other levels - NVE update of v

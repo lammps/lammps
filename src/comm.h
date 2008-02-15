@@ -71,7 +71,7 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
-  int igroup,groupbit;              // only communicate this group
+  int bordergroup;                  // only communicate this group in borders
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap

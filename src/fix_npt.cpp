@@ -374,6 +374,7 @@ void FixNPT::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double dtfm;
   for (i = 0; i < nlocal; i++) {
@@ -422,6 +423,7 @@ void FixNPT::final_integrate()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double dtfm;
   for (i = 0; i < nlocal; i++) {
@@ -499,6 +501,7 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // outermost level - update eta_dot and omega_dot, apply to v, remap box
   // all other levels - NVE update of v
@@ -604,6 +607,7 @@ void FixNPT::final_integrate_respa(int ilevel)
     int *type = atom->type;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
+    if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {

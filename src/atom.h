@@ -35,6 +35,10 @@ class Atom : protected Pointers {
   int nbonds,nangles,ndihedrals,nimpropers;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
 
+  int firstgroup;               // store atoms in this group first, -1 if unset
+  int nfirst;                   // # of atoms in first group on this proc
+  char *firstgroupname;         // group-ID to store first, NULL if unset
+
   // per-atom arrays
   // customize by adding new array
 
@@ -131,6 +135,8 @@ class Atom : protected Pointers {
   void set_dipole(int, char **);
   void set_dipole(double *);
   void check_dipole();
+
+  void first_reorder();
 
   void add_callback(int);
   void delete_callback(const char *, int);

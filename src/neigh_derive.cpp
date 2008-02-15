@@ -93,7 +93,7 @@ void Neighbor::half_from_full_newton(NeighList *list)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
+  int nall = nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;

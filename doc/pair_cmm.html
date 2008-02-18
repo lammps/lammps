@@ -113,8 +113,7 @@ pair_style command.
 </P>
 <HR>
 
-<P><B>Mixing, shift, table, tail correction, per-atom energy/stress,
-restart, and rRESPA info</B>:
+<P><B>Mixing, shift, table, tail correction, restart, and rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the cg/cmm pair styles <I>cannot</I> be mixed,
@@ -130,11 +129,6 @@ Lennard-Jones portion of the pair interaction.
 <P>The <I>cg/cmm/coul/long</I> pair styles support the
 <A HREF = "pair_modify.html">pair_modify</A> table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
-</P>
-<P>All of the cg/cmm pair styles can calculate per-atom energy and
-stress, as used by the <A HREF = "compute_epair_atom.html">compute epair/atom</A>,
-<A HREF = "compute_stress_atom.html">compute stress/atom</A>, and <A HREF = "dump.html">dump
-custom</A> commands.
 </P>
 <P>All of the cg/cmm pair styles write their information to <A HREF = "restart.html">binary
 restart files</A>, so pair_style and pair_coeff commands do

@@ -105,6 +105,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   // pair lists
 
   maxlocal = 0;
+  nblist = nglist = nslist = 0;
 
   nlist = 0;
   lists = NULL;

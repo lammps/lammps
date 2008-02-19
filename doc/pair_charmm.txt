@@ -49,7 +49,7 @@ pair_coeff 1 1 100.0 2.0 150.0 3.5 :pre
 
 The {lj/charmm} styles compute LJ and Coulombic interactions with an
 additional switching function S(r) that ramps the energy and force
-smoothly to zero between an inner and outer cuoff.  It is a widely
+smoothly to zero between an inner and outer cutoff.  It is a widely
 used potential in the "CHARMM"_http://www.scripps.edu/brooks MD code.
 See "(MacKerell)"_#MacKerell for a description of the CHARMM force
 field.

@@ -54,7 +54,7 @@ variable, then see the "fix ave/time"_fix_ave_time.html command.
 
 "Computes"_compute.html that produce per-atom quantities are those
 which have the word {atom} in their style name.  See the doc pages for
-inidividual "fixes"_fix.html to determine which ones produce per-atom
+individual "fixes"_fix.html to determine which ones produce per-atom
 quantities.  "Variables"_variable.html of style {atom} are the only
 ones that can be used with this fix since all other styles of variable
 produce global quantities.
@@ -65,13 +65,13 @@ The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
 timesteps the values will be generated in order to contribute to the
 average.  The final averaged quantities are generated every {Nfreq}
 timesteps.  The average is over {Nrepeat} quantities, computed in the
-preceeding portion of the simulation every {Nevery} timesteps.
-{Nfreq} must be a multiple of {Nevery} and {Nevery} must be non-zero
-even if {Nrepeat} is 1.
+preceding portion of the simulation every {Nevery} timesteps.  {Nfreq}
+must be a multiple of {Nevery} and {Nevery} must be non-zero even if
+{Nrepeat} is 1.
 
 For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
-on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.
 
 :line

@@ -104,12 +104,12 @@ atom types, you have 3 choices.  You can assign the type pair to some
 sub-style and use the "neigh_modify exclude type"_neigh_modify
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
-LJ potential).  Or, for {hybrid} and {hybrid/overlay} simluations, you
+LJ potential).  Or, for {hybrid} and {hybrid/overlay} simulations, you
 can use this form of the pair_coeff command:
 
 pair_coeff	2 3 none :pre
 
-If an assignment to {none} is made in a simluation with the
+If an assignment to {none} is made in a simulation with the
 {hybrid/overlay} pair style, it wipes out all previous assignments of
 that atom type pair to sub-styles.
 
@@ -154,7 +154,7 @@ their sub-styles do.
 
 [Restrictions:]
 
-When using a long-range Coulomic solver (via the
+When using a long-range Coulombic solver (via the
 "kspace_style"_kspace_style command) with a hybrid pair_style, one or
 more sub-styles will be of the "long" variety, e.g. {lj/cut/coul/long}
 or {buck/coul/long}.  You must insure that the short-range Coulombic

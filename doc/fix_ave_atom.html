@@ -65,7 +65,7 @@ variable, then see the <A HREF = "fix_ave_time.html">fix ave/time</A> command.
 </P>
 <P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
 which have the word <I>atom</I> in their style name.  See the doc pages for
-inidividual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
+individual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
 quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are the only
 ones that can be used with this fix since all other styles of variable
 produce global quantities.
@@ -76,13 +76,13 @@ produce global quantities.
 timesteps the values will be generated in order to contribute to the
 average.  The final averaged quantities are generated every <I>Nfreq</I>
 timesteps.  The average is over <I>Nrepeat</I> quantities, computed in the
-preceeding portion of the simulation every <I>Nevery</I> timesteps.
-<I>Nfreq</I> must be a multiple of <I>Nevery</I> and <I>Nevery</I> must be non-zero
-even if <I>Nrepeat</I> is 1.
+preceding portion of the simulation every <I>Nevery</I> timesteps.  <I>Nfreq</I>
+must be a multiple of <I>Nevery</I> and <I>Nevery</I> must be non-zero even if
+<I>Nrepeat</I> is 1.
 </P>
 <P>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
-on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.
 </P>
 <HR>

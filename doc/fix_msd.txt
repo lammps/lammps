@@ -37,7 +37,7 @@ and the computed MSD will not reflect its true displacement.  See the
 "fix rigid"_fix_rigid.html command for details.  Thus, to compute the
 MSD of rigid bodies as they cross periodic boundaries, you will need
 to post-process a "dump file"_dump.html containing coordinates of the
-atomss in the bodies.
+atoms in the bodies.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

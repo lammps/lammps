@@ -23,7 +23,7 @@ pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 [Description:]
 
-Style {dipole/cut} computes interactions bewteen pairs of particles
+Style {dipole/cut} computes interactions between pairs of particles
 that each have a charge and/or a point dipole moment.  In addition to
 the usual Lennard-Jones interaction between the particles (Elj) the
 charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)

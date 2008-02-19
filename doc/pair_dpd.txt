@@ -57,7 +57,7 @@ command so it does not need to be specified.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-Thsi pair style does not support mixing.  Thus, coefficients for all
+This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
 This pair style does not support the "pair_modify"_pair_modify.html
@@ -73,10 +73,10 @@ pressure.
 This pair style writes its information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.  Note
-that the user-specifice random number seed is stored in the restart
+that the user-specified random number seed is stored in the restart
 file, so when a simulation is restarted, each processor will
 re-initialize its random number generator the same way it did
-intially.  This means the random forces will be random, but will not
+initially.  This means the random forces will be random, but will not
 be the same as they would have been if the original simulation had
 continued past the restart time.
 

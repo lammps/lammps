@@ -66,7 +66,7 @@ the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 "compute_modify"_compute_modify.html command or print this temperature
-during thermodyanmic output via the "thermo_style
+during thermodynamic output via the "thermo_style
 custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
 effect on this fix.

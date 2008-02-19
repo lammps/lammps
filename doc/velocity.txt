@@ -116,7 +116,7 @@ temperature using a compute that is defined as follows:
 compute velocity_temp group-ID temp :pre
 
 where group-ID is the same ID used in the velocity command. i.e. the
-group of aotms whose velocity is being altered.  This compute is
+group of atoms whose velocity is being altered.  This compute is
 deleted when the velocity command is finished.  See the "compute
 temp"_compute_temp.html command for details.  If the computed
 temperature should have degrees-of-freedom removed due to fix

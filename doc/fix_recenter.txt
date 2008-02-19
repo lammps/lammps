@@ -43,7 +43,7 @@ Distance units for the x,y,z values are determined by the setting of
 the {units} keyword, as discussed below.  One or more x,y,z values can
 also be specified as NULL, which means exclude that dimension from
 this operation.  Or it can be specified as INIT which means to
-constain the center-of-mass to its initial value at the beginning of
+constrain the center-of-mass to its initial value at the beginning of
 the run.
 
 The center-of-mass (COM) is computed for the group specified by the
@@ -102,7 +102,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 This fix should not be used with an x,y,z setting that causes a large
 shift in the system on the 1st timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
-be lost,especially in parallel.  Instead, use the
+be lost, especially in parallel.  Instead, use the
 "displace_atoms"_displace_atoms.html command, which can be used to
 move atoms a large distance.
 

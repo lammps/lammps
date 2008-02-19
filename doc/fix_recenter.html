@@ -51,7 +51,7 @@ do not drift during the simulation due to random perturbations
 the <I>units</I> keyword, as discussed below.  One or more x,y,z values can
 also be specified as NULL, which means exclude that dimension from
 this operation.  Or it can be specified as INIT which means to
-constain the center-of-mass to its initial value at the beginning of
+constrain the center-of-mass to its initial value at the beginning of
 the run.
 </P>
 <P>The center-of-mass (COM) is computed for the group specified by the
@@ -110,7 +110,7 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 <P>This fix should not be used with an x,y,z setting that causes a large
 shift in the system on the 1st timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
-be lost,especially in parallel.  Instead, use the
+be lost, especially in parallel.  Instead, use the
 <A HREF = "displace_atoms.html">displace_atoms</A> command, which can be used to
 move atoms a large distance.
 </P>

@@ -12,7 +12,7 @@ pair_coeff command :h3
 
 pair_coeff I J args :pre
 
-I,J = atom types (see asterik form below)
+I,J = atom types (see asterisk form below)
 args = coefficients for one or more pairs of atom types :ul
 
 [Examples:]
@@ -37,15 +37,15 @@ can be used for each, as in the 1st example above.  I <= J is
 required.  LAMMPS sets the coefficients for the symmetric J,I
 interaction to the same values.
 
-A wild-card asterik can be used in place of or in conjunction with the
+A wild-card asterisk can be used in place of or in conjunction with the
 I,J arguments to set the coefficients for multiple pairs of atom
 types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
-number of atom types, then an asterik with no numeric values means all
-types from 1 to N.  A leading asterik means all types from 1 to n
-(inclusive).  A trailing asterik means all types from n to N
-(inclusive).  A middle asterik means all types from m to n
+number of atom types, then an asterisk with no numeric values means all
+types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
 (inclusive).  Note that only type pairs with I <= J are considered; if
-asteriks imply type pairs where J < I, they are ignored.
+asterisks imply type pairs where J < I, they are ignored.
 
 Note that a pair_coeff command can override a previous setting for the
 same I,J pair.  For example, these commands set the coeffs for all I,J
@@ -60,7 +60,7 @@ script, with the exception of the I,J type arguments.  In each line of
 the "Pair Coeffs" section of a data file, only a single type I is
 specified, which sets the coefficients for type I interacting with
 type I.  This is because the section has exactly N lines, where N =
-the number of atom types.  For this reason, the wild-card asterik
+the number of atom types.  For this reason, the wild-card asterisk
 should also not be used as part of the I argument.  Thus in a data
 file, the line corresponding to the 1st example above would be listed
 as
@@ -68,7 +68,7 @@ as
 2 1.0 1.0 2.5 :pre
 
 For many potentials, if coefficients for type pairs with I != J are
-not set explicity by a pair_coeff command, the values are inferred
+not set explicitly by a pair_coeff command, the values are inferred
 from the I,I and J,J settings by mixing rules; see the
 "pair_modify"_pair_modify.html command for a discussion.  Details on
 this option as it pertains to individual potentials are described on
@@ -86,11 +86,11 @@ the pair_style command, and coefficients specified by the associated
 
 "pair_style airebo"_pair_airebo.html - AI-REBO potential
 "pair_style buck"_pair_buck.html - Buckingham potential
-"pair_style buck/coul/cut"_pair_buck.html - Buckinhham with cutoff Coulomb
+"pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
 "pair_style coul/cut"_pair_coul.html - cutoff Coulombic potential
-"pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screeing
+"pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential
 "pair_style dipole/cut"_pair_dpd.html - point dipoles with cutoff
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
@@ -114,7 +114,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
 "pair_style lj/cut/opt"_pair_lj.html - optimized version of cutoff LJ
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
-"pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye screeing added to Coulomb
+"pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye screening added to Coulomb
 "pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
 "pair_style lj/cut/coul/long/tip4p"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles

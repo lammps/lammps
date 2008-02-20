@@ -158,13 +158,15 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   if (nvalues == 1) {
     scalar_flag = 1;
-    extscalar = 1;
+    if (mode == SUM) extscalar = 1;
+    else extscalar = 0;
     vector = NULL;
     onevec = NULL;
   } else {
     vector_flag = 1;
     size_vector = nvalues;
-    extvector = 1;
+    if (mode == SUM) extvector = 1;
+    else extvector = 0;
     vector = new double[size_vector];
     onevec = new double[size_vector];
   }

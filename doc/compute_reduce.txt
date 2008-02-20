@@ -72,19 +72,20 @@ value.  If multiple inputs are specified, this compute produces a
 vector of global values, the length of which is equal to the number of
 inputs specified.
 
-The value(s) produced by this compute are all "extensive", meaning
-their value scales linearly with the number of atoms involved.  If
-normalized values are desired, this compute can be accessed by the
-"thermo_style custom"_thermo_style.html command with "thermo_modify
-norm yes"_thermo_modify.html set as an option.  Or it can be accessed
-by a "variable"_variable.html that divides by the appropriate atom
-count.
+As discussed below, for {sum} mode, the value(s) produced by this
+compute are all "extensive", meaning their value scales linearly with
+the number of atoms involved.  If normalized values are desired, this
+compute can be accessed by the "thermo_style custom"_thermo_style.html
+command with "thermo_modify norm yes"_thermo_modify.html set as an
+option.  Or it can be accessed by a "variable"_variable.html that
+divides by the appropriate atom count.
 
 [Output info:]
 
-The scalar and vector values calculated by this compute are
-"extensive", meaning they scale with the number of atoms in the
-simulation.
+For {sum} mode, the scalar and vector values calculated by this
+compute are "extensive", meaning they scale with the number of atoms
+in the simulation.  For {min} and {max} modes, the value(s) are
+intensive.
 
 [Restrictions:] none
 

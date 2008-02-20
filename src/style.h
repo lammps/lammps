@@ -84,10 +84,10 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
+#include "compute_reduce.h"
 #include "compute_rotate_dipole.h"
 #include "compute_rotate_gran.h"
 #include "compute_stress_atom.h"
-#include "compute_sum.h"
 #include "compute_temp.h"
 #include "compute_temp_deform.h"
 #include "compute_temp_partial.h"
@@ -104,10 +104,10 @@ ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)
+ComputeStyle(reduce,ComputeReduce)
 ComputeStyle(rotate/dipole,ComputeRotateDipole)
 ComputeStyle(rotate/gran,ComputeRotateGran)
 ComputeStyle(stress/atom,ComputeStressAtom)
-ComputeStyle(sum,ComputeSum)
 ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/deform,ComputeTempDeform)
 ComputeStyle(temp/partial,ComputeTempPartial)

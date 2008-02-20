@@ -1,0 +1,106 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute reduce command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID reduce mode input1 input2 ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>reduce = style name of this compute command 
+
+<LI>mode = <I>sum</I> or <I>min</I> or <I>max</I> 
+
+<LI>one or more inputs can be listed 
+
+<LI>input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name 
+
+<PRE>  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+  c_ID = per-atom scalar value calculated by a compute with ID
+  c_ID[N] = Nth component of per-atom vector calculated by a compute with ID
+  f_ID = per-atom scalar value calculated by a fix with ID
+  f_ID[N] = Nth component of per-atom vector calculated by a fix with ID
+  v_name = per-atom value calculated by an atom-style variable with name 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all reduce sum c_force
+compute 2 all reduce min c_press<B>2</B> f_ave v_myKE 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a calculation that "reduces" one or more per-atom inputs across
+all atoms in the group to yield a single global scalar for each listed
+input.  The resulting value(s) can be accessed by any command that
+uses global computes, e.g. the <A HREF = "therml_style.html">thermo custom</A>
+command or <A HREF = "fix_ave_time.html">fix ave/time</A> command or by a
+<A HREF = "variable.html">variable</A> command.  See <A HREF = "Section_howto.html#4_15">this
+section</A> of the documentation for an overview
+of output options.
+</P>
+<P>The reduction operation is specified by the <I>mode</I> setting.  The <I>sum</I>
+option adds the per-atom quantities into a global total.  The <I>min</I> or
+<I>max</I> options find the minimum or maximum value across all per-atom
+quantities.
+</P>
+<P>Each listed input is operated on independently.  The group specified
+with the command means only atoms within the group contribute to the
+result.  Note that the input that produces the per-atom quantities may
+define its own group which affects the quantities it returns.  For
+example, if a per-atom compute is used as an input, it will generate
+values of 0.0 for atoms that are not in the group specified for that
+compute.
+</P>
+<P>Each listed input can be an atom attribute (position, velocity, force
+component) or can be the result of a <A HREF = "compute.html">compute</A> or
+<A HREF = "fix.html">fix</A> or the evaluation of an atom-style
+<A HREF = "variable.html">variable</A>.  In the latter cases, the compute, fix, or
+variable must produce per-atom quantities, not a global quantity.
+</P>
+<P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
+which have the word <I>atom</I> in their style name.  See the doc pages for
+individual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
+quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are the only
+ones that can be used with this compute since all other variable
+styles produce global quantities.
+</P>
+<P>If a single input is specified this compute produces a global scalar
+value.  If multiple inputs are specified, this compute produces a
+vector of global values, the length of which is equal to the number of
+inputs specified.
+</P>
+<P>The value(s) produced by this compute are all "extensive", meaning
+their value scales linearly with the number of atoms involved.  If
+normalized values are desired, this compute can be accessed by the
+<A HREF = "thermo_style.html">thermo_style custom</A> command with <A HREF = "thermo_modify.html">thermo_modify
+norm yes</A> set as an option.  Or it can be accessed
+by a <A HREF = "variable.html">variable</A> that divides by the appropriate atom
+count.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The scalar and vector values calculated by this compute are
+"extensive", meaning they scale with the number of atoms in the
+simulation.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, <A HREF = "variable.html">variable</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

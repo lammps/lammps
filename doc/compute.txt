@@ -114,10 +114,10 @@ available in LAMMPS:
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
+"reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
 "rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
-"sum"_compute_sum.html - sum per-atom quantities to a global value
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity

@@ -376,7 +376,7 @@ int main (int argc, char **argv)
     data.write(fp);
     fclose(fp);
 
-  // write out data file and inpur file
+  // write out data file and input file
 
   } else {
     printf("Writing data file ...\n");

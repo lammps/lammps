@@ -22,7 +22,7 @@ help:
 	for file in $$files; do head -1 $$file; done
 
 clean:
-	rm -r Obj_*
+	rm -rf Obj_*
 
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
@@ -31,4 +31,4 @@ clean:
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cd Obj_$@; \
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
+	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi

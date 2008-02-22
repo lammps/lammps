@@ -65,7 +65,7 @@ help:
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cd Obj_$@; \
 	$(MAKE)  "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm $(SRC) $(INC) Makefile*; fi
+	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
 
 # Remove machine-specific object files
 
@@ -74,10 +74,10 @@ clean:
 	@echo 'make clean-machine       delete object files for one machine'
 
 clean-all:
-	rm -r Obj_*
+	rm -rf Obj_*
 
 clean-%:
-	rm -r Obj_$(@:clean-%=%)
+	rm -rf Obj_$(@:clean-%=%)
 
 # Create a tarball of src dir and packages
 

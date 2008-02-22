@@ -551,7 +551,7 @@ void Special::build()
 /* ----------------------------------------------------------------------
    concatenate onetwo, onethree, onefour into master atom->special list
    remove duplicates
-   convert nspecial[0], nspecial[1], nspecial[2] into cummulative counters 
+   convert nspecial[0], nspecial[1], nspecial[2] into cumulative counters 
 ------------------------------------------------------------------------- */
 
 void Special::combine()
@@ -646,7 +646,7 @@ void Special::combine()
   // again use map to cull duplicates
   // exclude original atom explicitly
   // adjust nspecial[i] values to reflect removed duplicates
-  // nspecial[i][1] and nspecial[i][2] now become cummulative counters
+  // nspecial[i][1] and nspecial[i][2] now become cumulative counters
 
   for (i = 0; i < nlocal; i++) {
 

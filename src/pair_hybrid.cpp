@@ -435,6 +435,8 @@ double PairHybrid::init_one(int i, int j)
   double cutmax = 0.0;
   if (tail_flag) etail_ij = ptail_ij = 0.0;
 
+  nmap[j][i] = nmap[i][j];
+
   for (int k = 0; k < nmap[i][j]; k++) {
     map[j][i][k] = map[i][j][k];
     double cut = styles[map[i][j][k]]->init_one(i,j);

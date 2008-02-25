@@ -221,9 +221,10 @@ been defined elsewhere in the input script.  See the
 <A HREF = "compute.html">compute</A> command for details.  Note that only global
 scalar or vector quantities calculated by a compute can be output as
 thermodynamic data; per-atom quantities calcalated by a compute can be
-output by the <A HREF = "dump.html">dump custom</A> command.  There is a <A HREF = "compute_sum.html">compute
-sum</A> command which sums per-atom quantities into a
-global scalar or vector which can be output by thermo_style custom.
+output by the <A HREF = "dump.html">dump custom</A> command.  There is a <A HREF = "compute_reduce.html">compute
+reduce</A> command which can sum per-atom quantities
+into a global scalar or vector which can be output by thermo_style
+custom.
 </P>
 <P>Note that some computes calculate "intensive" global quantities like
 temperature; others calculate "extensive" global quantities like

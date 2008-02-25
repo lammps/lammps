@@ -77,8 +77,8 @@ must produce a global quantity, not a per-atom quantity.  If you wish
 to spatial- or time-average per-atom quantities from a compute, fix,
 or variable, then see the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> or
 <A HREF = "fix_ave_atom.html">fix ave/atom</A> commands.  If you wish to sum a
-per-atom quantity into a single global quantity, see the <A HREF = "compute_sum.html">compute
-sum</A> command.
+per-atom quantity into a single global quantity, see the <A HREF = "compute_reduce.html">compute
+reduce</A> command.
 </P>
 <P><A HREF = "compute.html">Computes</A> that produce global quantities are those which
 do not have the word <I>atom</I> in their style name.  Only a few
@@ -111,15 +111,15 @@ averaging is done; values are simply generated on timesteps
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Nth vector value calculated by the
-compute is used.  Note that there is a <A HREF = "compute_sum.html">compute sum</A>
-command which sums per-atom quantities into a global scalar or vector
-which can thus be accessed by fix ave/time.  Or it can be a compute
-defined not in your input script, but by <A HREF = "thermo_style.html">thermodynamic
-output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
-nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  See
-the doc pages for these commands which give the IDs of these computes.
-Users can also write code for their own compute styles and <A HREF = "Section_modify.html">add them
-to LAMMPS</A>.
+compute is used.  Note that there is a <A HREF = "compute_reduce.html">compute
+reduce</A> command which can sum per-atom quantities
+into a global scalar or vector which can thus be accessed by fix
+ave/time.  Or it can be a compute defined not in your input script,
+but by <A HREF = "thermo_style.html">thermodynamic output</A> or other fixes such as
+<A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.
+See the doc pages for these commands which give the IDs of these
+computes.  Users can also write code for their own compute styles and
+<A HREF = "Section_modify.html">add them to LAMMPS</A>.
 </P>
 <P>If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is

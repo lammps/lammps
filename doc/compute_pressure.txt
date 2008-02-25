@@ -29,7 +29,7 @@ Define a computation that calculates the pressure of the entire system
 of atoms.  The specified group must be "all".  See the "compute
 stress/atom"_compute_stress_atom.html command if you want per-atom
 pressure (stress).  These per-atom values could be summed for a group
-of atoms via the "compute sum"_compute_sum.html command.
+of atoms via the "compute reduce"_compute_reduce.html command.
 
 The pressure is computed by the formula
 

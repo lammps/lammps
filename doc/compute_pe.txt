@@ -28,7 +28,7 @@ Define a computation that calculates the potential energy of the
 entire system of atoms.  The specified group must be "all".  See the
 "compute pe/atom"_compute_pe_atom.html command if you want per-atom
 energies.  These per-atom values could be summed for a group of atoms
-via the "compute sum"_compute_sum.html command.
+via the "compute reduce"_compute_reduce.html command.
 
 The energy is calulated by the various pair, bond, etc potentials
 defined for the simulation.  If no extra keywords are listed, then the

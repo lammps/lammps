@@ -216,8 +216,9 @@ been defined elsewhere in the input script.  See the
 scalar or vector quantities calculated by a compute can be output as
 thermodynamic data; per-atom quantities calcalated by a compute can be
 output by the "dump custom"_dump.html command.  There is a "compute
-sum"_compute_sum.html command which sums per-atom quantities into a
-global scalar or vector which can be output by thermo_style custom.
+reduce"_compute_reduce.html command which can sum per-atom quantities
+into a global scalar or vector which can be output by thermo_style
+custom.
 
 Note that some computes calculate "intensive" global quantities like
 temperature; others calculate "extensive" global quantities like

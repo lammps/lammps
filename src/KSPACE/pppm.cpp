@@ -36,8 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#undef hz                      // required by IBM AIX compiler
-
 #define MAXORDER 7
 #define OFFSET 4096
 #define SMALL 0.00001

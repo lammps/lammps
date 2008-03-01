@@ -1,0 +1,31 @@
+# power5 = IBM Power5+ machine, mpCC, FFTW
+
+SHELL = /bin/sh
+.SUFFIXES: .cpp .u
+.IGNORE:
+
+# System-specific settings
+
+CC =		mpCC_r
+CCFLAGS =	-O3 -qnoipa -qlanglvl=oldmath \
+		-I/scr/oppe/LAMMPS/fftw-2.1.5/include -DFFT_FFTW
+DEPFLAGS =	-M
+LINK =		mpCC_r
+LINKFLAGS =	-O -qnoipa -qlanglvl=oldmath -bmaxdata:0x70000000
+USRLIB =	-L/scr/oppe/LAMMPS/fftw-2.1.5/lib -lfftw
+SYSLIB =	-lm
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+pppm.o: pppm.cpp
+	$(CC) $(CCFLAGS) -D_ANSI_C_SOURCE -c $<

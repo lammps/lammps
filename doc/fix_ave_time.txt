@@ -31,7 +31,7 @@ keyword = {file} or {ave} :l
     filename = name of file to output time averages to
   {ave} args = {one} or {running} or {window M}
     one = output a new average value every Nfreq steps
-    running = output cummulative average of all previous Nfreq steps
+    running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps :pre
 :ule
 
@@ -81,13 +81,13 @@ The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
 timesteps the values will be generated in order to contribute to the
 average.  The final averaged quantities are generated every {Nfreq}
 timesteps.  The average is over {Nrepeat} quantities, computed in the
-preceeding portion of the simulation every {Nevery} timesteps.
+preceding portion of the simulation every {Nevery} timesteps.
 {Nfreq} must be a multiple of {Nevery} and {Nevery} must be non-zero
 even if {Nrepeat} is 1.
 
 For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
-on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
 averaging is done; values are simply generated on timesteps
 100,200,etc.
@@ -145,8 +145,8 @@ output as-is without further averaging.
 
 If the {ave} setting is {running}, then the values produced on
 timesteps that are multiples of {Nfreq} are summed and averaged in a
-cummulative sense before being output.  Each output value is thus the
-average of the value produced on that timestep with all preceeding
+cumulative sense before being output.  Each output value is thus the
+average of the value produced on that timestep with all preceding
 values.  This running average begins when the fix is defined; it can
 only be restarted by deleting the fix via the "unfix"_unfix.html
 command, or by re-defining the fix by re-specifying it.

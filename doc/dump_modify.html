@@ -34,7 +34,7 @@
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
     value = numeric value to compare to
-    these 3 args can be replaced by the word "none" to turn off threshholding
+    these 3 args can be replaced by the word "none" to turn off thresholding
 
 </PRE>
 
@@ -105,15 +105,15 @@ shape, and it can be the "union" or "intersection" of a series of
 simpler regions.
 </P>
 <P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> style.
-Multiple threshholds can be specified.  Specifying "none" turns off
-all threshhold criteria.  If theshholds are specified, only atoms
-whose attributes meet all the threshhold criteria are written to the
+Multiple thresholds can be specified.  Specifying "none" turns off
+all threshold criteria.  If thresholds are specified, only atoms
+whose attributes meet all the threshold criteria are written to the
 dump file.  The possible attributes that can be tested for are the
 same as those that can be specified in the <A HREF = "dump.html">dump custom</A>
 command.  Note that different attributes can be output by the dump
-custom command than are used as threshhold criteria by the dump_modify
+custom command than are used as threshold criteria by the dump_modify
 command.  E.g. you can output the coordinates and stress of atoms
-whose energy is above some threshhold.
+whose energy is above some threshold.
 </P>
 <P><B>Restrictions:</B> none
 </P>

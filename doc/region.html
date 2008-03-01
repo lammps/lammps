@@ -74,7 +74,7 @@ command, or deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> comma
 <P>The lo/hi values for <I>block</I> or <I>cylinder</I> or <I>prism</I> styles can be
 specified as EDGE or INF.  EDGE means they extend all the way to the
 global simulation box boundary.  Note that this is the current box
-boundary; if the box changes size during a simlation the region does
+boundary; if the box changes size during a simulation the region does
 not.  INF means a large negative or positive number (1.0e20), so it
 should encompass the simulation box even if it changes size.  If a
 region is defined before the simulation box has been created (via
@@ -85,12 +85,12 @@ parameter cannot be used.
 <P>For style <I>cylinder</I>, the c1,c2 params are coordinates in the 2 other
 dimensions besides the cylinder axis dimension.  For dim = x, c1/c2 =
 y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.  Thus the
-third example above specifes a cylinder with its axis in the
+third example above specifies a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
 </P>
 <P>For style <I>prism</I>, a parallelepiped is defined (it's too hard to spell
-parallelepiped in an input script!).  Think of the parallelepided as
+parallelepiped in an input script!).  Think of the parallelepiped as
 initially an axis-aligned orthogonal box with the same xyz lo/hi
 parameters as region style <I>block</I> would define.  Then, while holding
 the (xlo,ylo,zlo) corner point fixed, the box is "skewed" or "tilted"
@@ -114,7 +114,7 @@ configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
 equivalent.
 </P>
 <P>The <I>union</I> style creates a region consisting of the volume of all the
-listed regions combined.  The <I>intesect</I> style creates a region
+listed regions combined.  The <I>intersect</I> style creates a region
 consisting of the volume that is common to all the listed regions.
 </P>
 <P>The <I>side</I> keyword determines whether the region is considered to be

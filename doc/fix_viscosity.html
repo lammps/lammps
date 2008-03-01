@@ -62,7 +62,7 @@ swaps is computed by the fix and can be output.  Dividing this
 quantity by time and the cross-sectional area of the simulation box
 yields a momentum flux.  The ratio of momentum flux to the slope of
 the shear velocity profile is the viscosity of the fluid, in
-appopriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
+appropriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
 details.
 </P>
 <P>IMPORTANT NOTE: After equilibration, if the velocity profile you
@@ -73,7 +73,7 @@ the Nevery parameter.
 </P>
 <P>An alternative method for calculating a viscosity is to run a NEMD
 simulation, as described in <A HREF = "Section_howto.html#4_13">this section</A> of
-the manual.  NEMD simulations deform the simmulation box via the <A HREF = "fix_deform.html">fix
+the manual.  NEMD simulations deform the simulation box via the <A HREF = "fix_deform.html">fix
 deform</A> command.  Thus they cannot be run on a charged
 system using a <A HREF = "kspace_style.html">PPPM solver</A> since PPPM does not
 currently support non-orthogonal boxes.  Using fix viscosity keeps the
@@ -85,10 +85,10 @@ box orthogonal; thus it does not suffer from this limitation.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>The cummulative momentum transferred between the bottom and middle of
+<P>The cumulative momentum transferred between the bottom and middle of
 the simulation box (in the <I>pdim</I> direction) is stored as a scalar
 quantity by this fix.  This quantity is zeroed when the fix is defined
-and accumlates thereafter, once every N steps.  The units of the
+and accumulates thereafter, once every N steps.  The units of the
 quantity are momentum = mass*velocity.  This quantity can be accessed
 by various <A HREF = "Section_howto.html#4_15">output commands</A>, such as
 <A HREF = "thermo_style.html">thermo_style custom</A>.  The scalar value calculated
@@ -115,7 +115,7 @@ See the <A HREF = "#Maginn">Maginn paper</A> for an example of using this algori
 in a computation of alcohol molecule properties.
 </P>
 <P>When running a simulation with large, massive particles or molecules
-in a background solvent, you may want to only exchange momenta bewteen
+in a background solvent, you may want to only exchange momenta between
 solvent particles.
 </P>
 <P><B>Related commands:</B>

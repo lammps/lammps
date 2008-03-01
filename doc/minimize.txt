@@ -100,7 +100,7 @@ contribute to the potential energy which is probably not what is
 desired.
 
 The volume of the simulation domain is not allowed to change during a
-minimzation.  Ideally we would allow a fix such as {npt} to impose an
+minimization.  Ideally we would allow a fix such as {npt} to impose an
 external pressure that would be included in the minimization
 (i.e. allow the box dimensions to change), but this has not yet been
 implemented.

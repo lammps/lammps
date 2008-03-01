@@ -100,7 +100,7 @@ be used for such settings instead, as in bench/in.lj.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed
-from the list of active varaibles, and is thus available to be
+from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.
 
 :line
@@ -227,7 +227,7 @@ can use formula elements that produce either global values or per-atom
 values.
 
 The thermo keywords allowed in a formula are those defined by the
-"thermo_style custom" command.  Since many thermodyanmic quantities
+"thermo_style custom" command.  Since many thermodynamic quantities
 are only computable after the a simulation has begun, these keywords
 cannot be used if a variable is evaluated before the first simulation
 begins.
@@ -304,7 +304,7 @@ by "f_", and the word "compute" is replaced by "fix".
 
 The current values of other variables can be accessed by prepending a
 "v_" to the variable name.  This will cause that variable to be
-evaulated.  Atom-style variables generate per-atom values; all other
+evaluated.  Atom-style variables generate per-atom values; all other
 styles of variables generate a single scalar value.
 
 The different kinds of variable references are as follows.  N is a
@@ -332,7 +332,7 @@ immediately when the line is read from the input script, just as it
 would be in other input script command.  This could be the desired
 behavior if a static value is desired.  Or it could be the desired
 behavior for an equal-style variable if the variable command appears
-in a loop (see the "jump"_jump.html and "next"_next.html commmands),
+in a loop (see the "jump"_jump.html and "next"_next.html commands),
 since the substitution will be performed anew each time thru the loop
 as the command is re-read.  Note that if the variable formula is
 enclosed in double quotes, this prevents variable substitution and
@@ -357,7 +357,7 @@ By contrast, these lines:
 variable x equal vol
 variable y equal 2*v_x :pre
 
-wlll associate the equation string "2*v_x" with variable y.
+will associate the equation string "2*v_x" with variable y.
 
 Thus if the variable y were evaluated periodically during a run where
 the box volume changed, the resulting value would always be 2000.0 for

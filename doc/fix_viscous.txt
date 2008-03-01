@@ -46,7 +46,7 @@ optional keyword {scale} is used, gamma can scaled up or down by the
 specified factor for atoms of that type.  It can be used multiple
 times to adjust gamma for several atom types.
 
-In a Brownian dynamics context, gamma = kT / mD, where k = Bolztmann's
+In a Brownian dynamics context, gamma = kT / mD, where k = Boltzmann's
 constant, T = temperature, m = particle mass, and D = particle
 diffusion coefficient.  D can be written as kT / (6 pi eta d), where
 eta = viscosity of the frictional fluid and d = diameter of particle.

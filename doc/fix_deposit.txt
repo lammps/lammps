@@ -66,7 +66,7 @@ normalizing factor each time temperature is computed.
 
 Care must be taken that inserted particles are not too near existing
 particles, using the options described below.  When inserting
-particles above a surface in a non-perioidic box (see the
+particles above a surface in a non-periodic box (see the
 "boundary"_boundary.html command), the possibility of a particle
 escaping the surface and flying upward should be considered, since the
 particle may be lost or the box size may grow infinitely large.  A

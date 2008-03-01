@@ -145,7 +145,7 @@ each time the command is invoked.
 
 IMPORTANT NOTE: For the {every} option, the command should be listed
 exactly as it would be if it appeared on a line by itself.  Thus all
-remaining arguments after the M value are considerd part of the LAMMPS
+remaining arguments after the M value are considered part of the LAMMPS
 command (e.g. print "Protein Rg = $r" as in the example above).  This
 means that, if specified, the {every} option must be the last keyword
 used.

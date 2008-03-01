@@ -106,7 +106,7 @@ sizes.  E.g. if colloidal particles of diameter 10 are used with
 solvent particles of diameter 1, then a solvent-solvent cutoff of 2.5
 would correspond to a colloid-colloid cutoff of 25.  A good
 rule-of-thumb is to use a colloid-solvent cutoff that is half the big
-diamter + 4 times the small diamter.  I.e. 9 = 5 + 4 for the
+diameter + 4 times the small diameter.  I.e. 9 = 5 + 4 for the
 colloid-solvent cutoff in this case.
 
 :line

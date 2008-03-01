@@ -20,7 +20,7 @@
 <PRE>  <I>verlet</I> args = none
   <I>respa</I> args = N n1 n2 ... keyword values ...
     N = # of levels of rRESPA
-    n1, n2, ... = loop factor bewteen rRESPA levels (N-1 values)
+    n1, n2, ... = loop factor between rRESPA levels (N-1 values)
     zero or more keyword/value pairings may be appended to the loop factors
     keyword = <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or
 	      <I>pair</I> or <I>inner</I> or <I>middle</I> or <I>outer</I> or <I>kspace</I>
@@ -142,7 +142,7 @@ simulations using the CHARMM or similar all-atom force field, bonds
 involving hydrogen atoms exhibit high frequency vibrations and require
 a time step on the order of 0.5 fmsec in order to conserve energy.
 These high frequency modes also limit the outer time step sizes since
-the modes are coupled.  It is therefore desireable to use SHAKE with
+the modes are coupled.  It is therefore desirable to use SHAKE with
 respa in order to freeze out these high frequency motions and increase
 the size of the time steps in the respa hierarchy.  The following
 settings can be used for biomolecular simulations with SHAKE and

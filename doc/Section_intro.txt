@@ -178,7 +178,7 @@ Integrators: :h4
 Output: :h4
 ("dump"_dump.html, "restart"_restart.html commands) 
 
-  log file of thermodynanmic info
+  log file of thermodynamic info
   text dump files of atom coords, velocities, other per-atom quantities
   binary restart files
   per-atom quantities (energy, stress, centro-symmetry parameter, etc)
@@ -504,12 +504,12 @@ radial distribution functions: Paul Crozier & Jeff Greathouse (Sandia)
 force tables for long-range Coulombics: Paul Crozier (Sandia)
 targeted molecular dynamics (TMD): Paul Crozier (Sandia) and \
   Christian Burisch (Bochum University, Germany)
-FFT support for SGI SCLS (Altix): Jim Shepherd (Ga Tech)
+FFT support for SGI SCSL (Altix): Jim Shepherd (Ga Tech)
 lmp2cfg and lmp2traj tools: Ara Kooser, Jeff Greathouse, \
   Andrey Kalinichev (Sandia)
 parallel tempering: Mark Sears (Sandia)
 embedded atom method (EAM) potential: Stephen Foiles (Sandia)
-multi-harmonic dihedral potential: Mathias Putz (Sandia)
+multi-harmonic dihedral potential: Mathias Puetz (Sandia)
 granular force fields and BC: Leo Silbert & Gary Grest (Sandia)
 2d Ewald/PPPM: Paul Crozier (Sandia)
 CHARMM force fields: Paul Crozier (Sandia)

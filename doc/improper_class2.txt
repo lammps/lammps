@@ -53,7 +53,7 @@ the data file or restart files read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands:
 
 For this style, coefficients for the Ei formula can be specified in
-eiher the input script or data file.  These are the 2 coefficients:
+either the input script or data file.  These are the 2 coefficients:
 
 K (energy/radian^2)
 X0 (degrees) :ul

@@ -38,7 +38,7 @@ keyword = {type} or {type/fraction} or {mol} or \
   {quat/random} value = seed
     seed = random # seed (positive integer) for quaternion orientations
   {bond} value = bond type for all bonds between selected atoms
-  {angle} value = angle type for all angles bewteen selected atoms
+  {angle} value = angle type for all angles between selected atoms
   {dihedral} value = dihedral type for all dihedrals between selected atoms
   {improper} value = improper type for all impropers between selected atoms :pre
 :ule
@@ -85,7 +85,7 @@ command.
 
 Keyword {type/fraction} sets the atom type for a fraction of the
 selected atoms.  The actual number of atoms changed is not guaranteed
-to be exactly the requested fraction, but should be statisticaly
+to be exactly the requested fraction, but should be statistically
 close.  Random numbers are used in such a way that a particular atom
 is changed or not changed, regardless of how many processors are being
 used.

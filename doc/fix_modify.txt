@@ -50,7 +50,7 @@ default method for computing P.
 
 For fixes that calculate a contribution to the potential energy of the
 system, the {energy} keyword will include that contribution in
-thermodyanmic output of potential energy.  See the
+thermodynamic output of potential energy.  See the
 "thermo_style"_thermo_style.html command for info on how potential
 energy is output.  The contribution by itself can be printed by using
 the keyword f_ID in the thermo_style custom command, where ID is the

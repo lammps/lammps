@@ -27,7 +27,7 @@ command was used previously, this does nothing.  But if a
 invoking this script file, then all command lines in the script prior
 to this line will be ignored.  I.e. execution of the script will begin
 at this line.  This is useful for looping over a section of the input
-script as discussed in the "jump"_jump.html commmand.
+script as discussed in the "jump"_jump.html command.
 
 [Restrictions:] none
 

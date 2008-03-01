@@ -103,7 +103,7 @@ This style is part of the "colloid" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-Because this poential computes forces and torques on particles, the
+Because this potential computes forces and torques on particles, the
 atom style must support particles whose size is set via the
 "shape"_shape.html command.  This is "atom_style"_atom_style.html
 ellipsoid and dipole.  Since only spherical mono-disperse particles

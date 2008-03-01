@@ -88,7 +88,7 @@ in the LAMMPS distribution.
 <LI><A HREF = "#bond">Bond, angle, dihedral, improper potentials</A>
 <LI><A HREF = "#compute">Compute styles</A>
 <LI><A HREF = "#dump">Dump styles</A>
-<LI><A HREF = "#dump">Dump custom output optoins</A>
+<LI><A HREF = "#dump">Dump custom output options</A>
 <LI><A HREF = "#fix">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc
 <LI><A HREF = "#command">Input script commands</A>
 <LI><A HREF = "#kspace">Kspace computations</A>
@@ -373,7 +373,7 @@ needed.
 <A NAME = "kspace"></A><H4>Kspace computations 
 </H4>
 <P>Classes that compute long-range Coulombic interactions via K-space
-represenations (Ewald, PPPM) are derived from the KSpace class.  New
+representations (Ewald, PPPM) are derived from the KSpace class.  New
 styles can be created to add new K-space options to LAMMPS.
 </P>
 <P>Ewald.cpp is an example of computing K-space interactions.
@@ -469,7 +469,7 @@ thermodynamic info is output.  See the
 quantities.
 </P>
 <P>The thermo styles (one, multi, etc) are simply lists of keywords.
-Adding a new style thus only requies defining a new list of keywords.
+Adding a new style thus only requires defining a new list of keywords.
 Search for the word "customize" with references to "thermo style" in
 thermo.cpp to see the two locations where code will need to be added.
 </P>
@@ -503,7 +503,7 @@ group functions = mass(group), xcm(group,x), ...
 atom values = x<B>123</B>, y<B>3</B>, vx<B>34</B>, ...
 compute values = c_mytemp<B>0</B>, c_thermo_press<B>3</B>, ...
 </P>
-<P>Adding keywords for the <A HREF = "themo_style.html">thermo_style custom</A> command
+<P>Adding keywords for the <A HREF = "thermo_style.html">thermo_style custom</A> command
 (which can then be accessed by variables) was discussed
 <A HREF = "Section_modify.html#thermo">here</A> on this page.
 </P>
@@ -590,7 +590,7 @@ should indicate that your feature is only available if LAMMPS is built
 with the "user-foo" package.  See other user package files for an
 example of how to do this.
 </P>
-<P>Note that the more clear and self-exaplantory you make your doc and
+<P>Note that the more clear and self-explanatory you make your doc and
 README files, the more likely it is that users will try out your new
 feature.
 </P>

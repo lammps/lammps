@@ -134,7 +134,7 @@ back inside the box.
 These are the section keywords for the body of the file.
 
 {Atoms, Velocities, Masses, Shapes, Dipoles} = atom-property sections 
-{Bonds, Angles, Dihedrals, Impropers} = molecular topolgy sections 
+{Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
 {Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
 {BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs, \

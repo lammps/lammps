@@ -136,7 +136,7 @@ Tersoff_2 parameters.
 
 In the potentials directory, the file SiCGe.tersoff provides the
 LAMMPS parameters for Tersoff's various versions of Si, as well as his
-alloy paramters for Si, C, and Ge. This file can be used for pure Si,
+alloy parameters for Si, C, and Ge. This file can be used for pure Si,
 (three different versions), pure C, pure Ge, binary SiC, and binary
 SiGe.  LAMMPS will generate an error if this file is used with any
 combination involving C and Ge, since there are no entries for the GeC
@@ -197,7 +197,7 @@ appropriate units if your simulation doesn't use "metal" units.
 [(Tersoff_1)] J. Tersoff, Phys Rev B, 37, 6991 (1988).
 
 :link(Albe)
-[(Albe)] J. Nord, K. Albe, P. Erhartand K. Nordlund, J. Phys.:
+[(Albe)] J. Nord, K. Albe, P. Erhart, and K. Nordlund, J. Phys.:
 Condens. Matter, 15, 5649(2003).
 
 :link(Tersoff_2)

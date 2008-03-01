@@ -12,7 +12,7 @@ shape command :h3
 
 mass I x y z :pre
 
-I = atom type (see asterik form below)
+I = atom type (see asterisk form below)
 x = x diameter
 y = y diameter
 z = z diameter :ul
@@ -47,17 +47,17 @@ components the same.
 
 The I index can be specified in one of two ways.  An explicit numeric
 value can be used, as in the 1st example above.  Or a wild-card
-asterik can be used to set the mass for multiple atom types.  This
+asterisk can be used to set the mass for multiple atom types.  This
 takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
-atom types, then an asterik with no numeric values means all types
-from 1 to N.  A leading asterik means all types from 1 to n
-(inclusive).  A trailing asterik means all types from n to N
-(inclusive).  A middle asterik means all types from m to n
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
 A line in a data file that specifies shape uses the same format as the
 arguments of the shape command in an input script, except that no
-wild-card asterik can be used.  For example, under the "Shapes"
+wild-card asterisk can be used.  For example, under the "Shapes"
 section of a data file, the line that corresponds to the 1st example
 above would be listed as
 

@@ -61,19 +61,19 @@ and RIj is a vector in the reference (perfect) crystal.  That is, if
 dir = 0/1, then RIj is a vector to an atom coord from file 0/1.
 Equation (2) gives the expected value of the order parameter XiIJ in
 the other grain.  Hi and lo cutoffs are defined in equations (3) and
-(4), using the input parameters <I>cutlo</I> and <I>cuthi</I> as threshholds to
+(4), using the input parameters <I>cutlo</I> and <I>cuthi</I> as thresholds to
 avoid adding grain boundary energy when the deviation in the order
 parameter from 0 or 1 is small (e.g. due to thermal fluctuations in a
 perfect crystal).  The added potential energy Ui for atom I is given
 in equation (6) where it is interpolated between 0 and dE using the
-two threshhold Xi values and the Wi value of equation (5).
+two threshold Xi values and the Wi value of equation (5).
 </P>
 <P>The derivative of this energy expression gives the force on each atom
 which thus depends on the orientation of its neighbors relative to the
 2 grain orientations.  Only atoms near the grain boundary feel a net
 force which tends to drive them to one of the two grain orientations.
 </P>
-<P>In equation (1), the reference vector used for each neigbbor is the
+<P>In equation (1), the reference vector used for each neighbor is the
 reference vector closest to the actual neighbor position.  This means
 it is possible two different neighbors will use the same reference
 vector.  In such cases, the atom in question is far from a perfect

@@ -66,7 +66,7 @@ factor of 3.0 (the argument in pair_style), the resulting E_LJ cutoff
 would be 10.2 Angstroms.
 
 The E_TORSION term is an explicit 4-body potential that describes
-various diheadral angle preferences in hydrocarbon configurations.
+various dihedral angle preferences in hydrocarbon configurations.
 
 Only a single pair_coeff command is used with the {airebo} style which
 specifies an AIREBO potential file with parameters for C and H.  These

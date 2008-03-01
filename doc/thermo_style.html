@@ -179,7 +179,7 @@ attributes of this computation via the
 directly assign a new compute which you have defined, to be used for
 <I>drot</I>.  This is done via the <A HREF = "thermo_modify.html">thermo_modify</A>
 command.  For example, this could be useful if you wish to exclude
-certain particles from the compuation.
+certain particles from the computation.
 </P>
 <P>The <I>grot</I> keyword requires a rotational energy to be computed for
 granular particles.  To do this, a compute of style "rotate/gran" is
@@ -194,7 +194,7 @@ computation via the <A HREF = "compute_modify.html">compute_modify</A> command.
 Alternatively, you can directly assign a new compute which you have
 defined, to be used for <I>grot</I>.  This is done via the
 <A HREF = "thermo_modify.html">thermo_modify</A> command.  For example, this could
-be useful if you wish to exclude frozen particles from the compuation.
+be useful if you wish to exclude frozen particles from the computation.
 </P>
 <HR>
 
@@ -220,7 +220,7 @@ keyword should be replaced by the actual ID of the compute that has
 been defined elsewhere in the input script.  See the
 <A HREF = "compute.html">compute</A> command for details.  Note that only global
 scalar or vector quantities calculated by a compute can be output as
-thermodynamic data; per-atom quantities calcalated by a compute can be
+thermodynamic data; per-atom quantities calculated by a compute can be
 output by the <A HREF = "dump.html">dump custom</A> command.  There is a <A HREF = "compute_reduce.html">compute
 reduce</A> command which can sum per-atom quantities
 into a global scalar or vector which can be output by thermo_style
@@ -230,7 +230,7 @@ custom.
 temperature; others calculate "extensive" global quantities like
 kinetic energy that are summed over all atoms in the compute group.
 Intensive quantities are printed directly as is by thermo_style
-custom.  Extensive quantites may be normalized when output by the
+custom.  Extensive quantities may be normalized when output by the
 total number of atoms in the simulation (NOT the number of atoms in
 the compute group) depending on the <A HREF = "thermo_modify.html">thermo_modify
 norm</A> option being used.
@@ -256,7 +256,7 @@ global scalar and vector quantities calculated by other
 timestep size; others calculate "extensive" global quantities like
 energy that are summed over all atoms in the fix group.  Intensive
 quantities are printed directly as is by thermo_style custom.
-Extensive quantites may be normalized when output by the total number
+Extensive quantities may be normalized when output by the total number
 of atoms in the simulation (NOT the number of atoms in the fix group)
 depending on the <A HREF = "thermo_modify.html">thermo_modify norm</A> option being
 used.
@@ -281,7 +281,7 @@ output.
 </P>
 <P>See <A HREF = "Section_modify.html">this section</A> for information on how to add
 new compute and fix styles to LAMMPS to calculate quantities that
-could then be output with these keywords as part of thermodyanmic
+could then be output with these keywords as part of thermodynamic
 information.
 </P>
 <HR>

@@ -53,7 +53,7 @@
     filename = file to write results to
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
     one = output new average value every Nfreq steps
-    running = output cummulative average of all previous Nfreq steps
+    running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps 
 </PRE>
 
@@ -99,13 +99,13 @@ produce global quantities.
 timesteps the layer values will be generated in order to contribute to
 the average.  The final averaged quantities are generated every
 <I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I> quantities, computed
-in the preceeding portion of the simulation every <I>Nevery</I> timesteps.
+in the preceding portion of the simulation every <I>Nevery</I> timesteps.
 <I>Nfreq</I> must be a multiple of <I>Nevery</I> and <I>Nevery</I> must be non-zero
 even if <I>Nrepeat</I> is 1.
 </P>
 <P>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
-on timestep 100.  Similary for timesteps 190,192,194,196,198,200 on
+on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
 averaging is done; values are simply generated on timesteps
 100,200,etc.
@@ -117,7 +117,7 @@ where the layers are in a particular <I>dim</I> and have a thickness given
 by <I>delta</I>.  Every Nfreq steps, when an averaging is being performed
 and the per-atom property is calculated for the first time, the number
 of layers and the layer boundaries are computed.  Thus if the
-simlation box changes size during a simulation, the number of layers
+simulation box changes size during a simulation, the number of layers
 and their boundaries may also change.  Layers are defined relative to
 a specified <I>origin</I>, which may be the lower/upper edge of the box (in
 <I>dim</I>) or its center point, or a specified coordinate value.  Starting
@@ -232,15 +232,15 @@ quantities.  If the value of the <I>units</I> keyword is <I>box</I> or
 steps that were multiples of <I>Nfreq</I>, before they are accessed by
 another output command or written to a file.
 </P>
-<P>If the <I>ave</I> setting is <I>one</I>, then the layuer values produced on
+<P>If the <I>ave</I> setting is <I>one</I>, then the layer values produced on
 timesteps that are multiples of <I>Nfreq</I> are independent of each other;
 they are output as-is without further averaging.
 </P>
 <P>If the <I>ave</I> setting is <I>running</I>, then the layer values produced on
 timesteps that are multiples of <I>Nfreq</I> are summed and averaged in a
-cummulative sense before being output.  Each output layer value is
+cumulative sense before being output.  Each output layer value is
 thus the average of the layer value produced on that timestep with all
-preceeding values for the same layer.  This running average begins
+preceding values for the same layer.  This running average begins
 when the fix is defined; it can only be restarted by deleting the fix
 via the <A HREF = "unfix.html">unfix</A> command, or re-defining the fix by
 re-specifying it.

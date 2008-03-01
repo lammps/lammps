@@ -106,7 +106,7 @@ F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
 LAMMPS be Cu atoms.  Different single-element files can be assigned to
 different atom types to model an alloy system.  The mixing to create
 alloy potentials for type pairs with I != J is done automatically the
-same way that the serial DYANMO code originally did it; you do not
+same way that the serial DYNAMO code originally did it; you do not
 need to specify coefficients for these type pairs.
 </P>
 <P><I>Funcfl</I> files in the <I>potentials</I> directory of the LAMMPS
@@ -127,7 +127,7 @@ cutoff used by LAMMPS for the potential.  The units of dr are
 Angstroms; I'm not sure of the units for drho - some measure of
 electron density.
 </P>
-<P>Following the 3 header lines are 3 arrays of tabulated values:
+<P>Following the three header lines are three arrays of tabulated values:
 </P>
 <UL><LI>embedding function F(rho) (Nrho values)
 <LI>effective charge function Z(r) (Nr values)
@@ -140,7 +140,7 @@ individual Z(r) values are for r = 0,dr,2*dr, ... (Nr-1)*dr.
 <P>The units for the embedding function F are eV.  The units for the
 density function rho are the same as for drho (see above, electron
 density).  The units for the effective charge Z are "atomic charge" or
-sqrt(Hartree * Bohr-radii).  For 2 interacting atoms i,j this is used
+sqrt(Hartree * Bohr-radii).  For two interacting atoms i,j this is used
 by LAMMPS to compute the pair potential term in the EAM energy
 expression as r*phi, in units of eV-Angstroms, via the formula
 </P>

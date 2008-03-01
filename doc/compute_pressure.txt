@@ -45,7 +45,7 @@ and long-range interactions.  "Fixes"_fix.html that impose constraints
 virial term.
 
 A 6-component pressure tensor is also calculated by this compute whose
-componenents can be output by the "thermo_style
+components can be output by the "thermo_style
 custom"_thermo_style.html command or accessed by other
 "compute"_compute.html and "fix"_fix.html commands.  The equation for
 the components of the tensor is the same as in above formula, except
@@ -92,6 +92,6 @@ the simulation.
 
 "compute temp"_compute_temp.html, "compute
 stress/atom"_compute_stress_atom.html,
-"thermo_style"_themo_style.html,
+"thermo_style"_thermo_style.html,
 
 [Default:] none

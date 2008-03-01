@@ -6,7 +6,7 @@
 
 :line
 
-pair_style gran/hertizian command :h3
+pair_style gran/hertzian command :h3
 pair_style gran/history command :h3
 pair_style gran/no_history command :h3
 

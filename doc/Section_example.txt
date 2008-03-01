@@ -31,7 +31,7 @@ colloid:  big colloid particles in a small particle solvent, 2d system
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
-flow:	  Couette and Poisseuille flow in a 2d channel
+flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
 indent:	  spherical indenter into a 2d solid
 meam:	  MEAM test for SiC and shear (same as shear examples)

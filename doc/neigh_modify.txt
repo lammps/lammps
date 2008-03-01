@@ -98,7 +98,7 @@ both atoms are in the specified group and in the same molecule, as
 determined by their molecule ID.
 
 Each of the exclude options can be specified multiple times.  The
-{exclude type} option is the most efficient option to use; it requries
+{exclude type} option is the most efficient option to use; it requires
 only a single check, no matter how many times it has been specified.
 The other exclude options are more expensive if specified multiple
 times; they require one check for each time they have been specified.
@@ -114,7 +114,7 @@ long cutoff is being used, these parameters can be tuned.  The indices
 of neighboring atoms are stored in "pages", which are allocated one
 after another as they fill up.  The size of each page is set by the
 {page} value.  A new page is allocated when the next atom's neighbors
-could potentially overflow the list.  This threshhold is set by the
+could potentially overflow the list.  This threshold is set by the
 {one} value which tells LAMMPS the maximum number of neighbor's one
 atom can have.
 

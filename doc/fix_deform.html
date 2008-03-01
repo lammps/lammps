@@ -126,7 +126,7 @@ value.
 </P>
 <P>For style <I>final</I>, the final lo and hi box boundaries of a dimension
 are specified.  The values can be in lattice or box distance units.
-See the discsussion of the units keyword below.
+See the discussion of the units keyword below.
 </P>
 <P>For style <I>delta</I>, plus or minus changes in the lo/hi box boundaries
 of a dimension are specified.  The values can be in lattice or box
@@ -233,13 +233,13 @@ units keyword below.
 </P>
 <P>For style <I>delta</I>, a plus or minus change in the tilt factor is
 specified.  The value can be in lattice or box distance units.  See
-the discsussion of the units keyword below.
+the discussion of the units keyword below.
 </P>
 <P>For style <I>vel</I>, a velocity at which the tilt factor changes is
 specified in units of distance/time.  This is effectively an
 "engineering shear strain rate", where rate = V/L0 and L0 is the
 initial box length perpendicular to the direction of shear.  The
-distance can be in lattice or box distance units.  See the discsussion
+distance can be in lattice or box distance units.  See the discussion
 of the units keyword below.  For example, if the initial tilt factor
 is 5 Angstroms, and the V is 10 Angstroms/psec, then after 1 psec, the
 tilt factor will be 15 Angstroms.  After 2 psec, it will be 25
@@ -304,7 +304,7 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 ... are all equivalent.
 </P>
 <P>To obey this constraint and allow for large shear deformations to be
-applied via the <I>xy</I>, <I>xz</I>, or <I>yz</I> parameters, the folloiwng
+applied via the <I>xy</I>, <I>xz</I>, or <I>yz</I> parameters, the following
 algorithm is used.  If <I>prd</I> is the associated parallel box length (10
 in the example above), then if the tilt factor exceeds the accepted
 range of -5 to 5 during the simulation, then the box is re-shaped to

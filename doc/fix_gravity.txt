@@ -43,7 +43,7 @@ Impose an additional acceleration on each particle in the group.  This
 fix is typically used with granular systems to include a "gravity"
 term acting on the macroscopic particles.  More generally, it can
 represent any kind of driving field, e.g. a pressure gradient inducing
-a Poisselle flow in a fluid.  Note that this fix operates differently
+a Poiseuille flow in a fluid.  Note that this fix operates differently
 than the "fix addforce"_fix_addforce.html command.  The addforce fix
 adds the same force to each atom, independent of its mass.  This
 command imparts the same acceleration to each atom (force/mass).

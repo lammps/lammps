@@ -52,7 +52,7 @@ a constant-energy time integration, so you should not update the same
 atoms via other fixes (e.g. nve, nvt, npt, temp/rescale, langevin).
 
 Each body must have a non-degenerate inertia tensor, which means if
-must contain at least 3 non-collinear atoms.  Which atoms are in which
+must contain at least 3 non-colinear atoms.  Which atoms are in which
 bodies can be defined via several options.
 
 For option {group}, each of the listed groups is treated as a rigid

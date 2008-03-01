@@ -15,7 +15,7 @@ fix ID group-ID rdf N file Nbin itype1 jtype1 itype2 jtype2 ... :pre
 ID, group-ID are documented in "fix"_fix.html command
 rdf = style name of this fix command
 N = compute radial distribution function (RDF) every this many timesteps
-file = filename to write radial distribution funtion info to
+file = filename to write radial distribution function info to
 Nbin = number of RDF bins
 itypeN = central atom type for RDF pair N
 jtypeN = distribution atom type for RDF pair N :ul

@@ -12,7 +12,7 @@ angle_coeff command :h3
 
 angle_coeff N args :pre
 
-N = angle type (see asterik form below)
+N = angle type (see asterisk form below)
 args = coefficients for one or more angle types :ul
 
 [Examples:]
@@ -32,9 +32,9 @@ N can be specified in one of two ways.  An explicit numeric value can
 be used, as in the 1st example above.  Or a wild-card asterik can be
 used to set the coefficients for multiple angle types.  This takes the
 form "*" or "*n" or "n*" or "m*n".  If N = the number of angle types,
-then an asterik with no numeric values means all types from 1 to N.  A
-leading asterik means all types from 1 to n (inclusive).  A trailing
-asterik means all types from n to N (inclusive).  A middle asterisk
+then an asterisk with no numeric values means all types from 1 to N.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).
 
 Note that using an angle_coeff command can override a previous setting

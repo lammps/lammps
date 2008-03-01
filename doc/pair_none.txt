@@ -29,7 +29,7 @@ bonds, angles, etc.
 A pair style of {none} will also prevent pairwise neighbor lists from
 being built.  However if the "neighbor"_neighbor.html style is {bin},
 data structures for binning are still allocated.  If the neighbor skin
-distance is small, then these data structues can consume a large
+distance is small, then these data structures can consume a large
 amount of memory.  So you should either set the neighbor style to
 {nsq} or set the skin distance to a larger value.
 

@@ -499,7 +499,7 @@ or create_box command. :dd
 
 {Cannot displace_box on a non-periodic boundary} :dt
 
-Self-explantory. :dd
+Self-explanatory. :dd
 
 {Cannot dump scaled coords with triclinic box} :dt
 
@@ -2147,9 +2147,9 @@ or cause multiple files to be written. :dd
 Filenames used with the dump xyz style cannot be binary or cause files
 to be written by each processor. :dd
 
-{Invalid dump_modify threshhold operator} :dt
+{Invalid dump_modify threshold operator} :dt
 
-Operator keyword used for threshhold specification in not recognized. :dd
+Operator keyword used for threshold specification in not recognized. :dd
 
 {Invalid fix ID in variable formula} :dt
 

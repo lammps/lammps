@@ -30,7 +30,7 @@ size sigma.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
 
 Details for the equations used are given in the references below and
-in "this supplementary document"_Eqs/pair_resquqred_extra.pdf.
+in "this supplementary document"_Eqs/pair_resquared_extra.pdf.
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 {asphere} extension (e.g. "fix nve/asphere"_fix_nve_asphere.html) in
@@ -134,7 +134,7 @@ and cutoff distance can be mixed, but only for LJ sphere pairs.  The
 default mix value is {geometric}.  See the "pair_modify" command for
 details.  Other type pairs cannot be mixed, due to the different
 meanings of the energy prefactors used to calculate the interactions
-and the implicit dependance of the ellipsoid-LJ sphere interaction on
+and the implicit dependence of the ellipsoid-LJ sphere interaction on
 the equation for the Hamaker constant presented here.  Mixing of sigma
 and epsilon followed by calculation of the energy prefactors using the
 equations above is recommended.

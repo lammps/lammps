@@ -86,7 +86,3 @@ out.Chead = Chead;
 out.data = data;
 
 varargout{1} = out;
-
-
-
-   

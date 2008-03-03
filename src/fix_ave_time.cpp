@@ -92,6 +92,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   fp = NULL;
   ave = ONE;
+  startstep = 0;
 
   // optional args
 
@@ -120,6 +121,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
+    } else if (strcmp(arg[iarg],"start") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/time command");
+      startstep = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all("Illegal fix ave/time command");
   }
 
@@ -393,30 +398,32 @@ void FixAveTime::end_of_step()
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values
-  // if ave = WINDOW, comine with nwindow most recent Nfreq timestep values
+  // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
 
-  if (ave == ONE) {
-    for (i = 0; i < nvalues; i++) vector_total[i] = vector[i];
-    norm = 1;
+  if (update->ntimestep >= startstep) {
+    if (ave == ONE) {
+      for (i = 0; i < nvalues; i++) vector_total[i] = vector[i];
+      norm = 1;
 
-  } else if (ave == RUNNING) {
-    for (i = 0; i < nvalues; i++) vector_total[i] += vector[i];
-    norm++;
-
-  } else if (ave == WINDOW) {
-    for (i = 0; i < nvalues; i++) {
-      vector_total[i] += vector[i];
-      if (window_limit) vector_total[i] -= vector_list[iwindow][i];
-      vector_list[iwindow][i] = vector[i];
+    } else if (ave == RUNNING) {
+      for (i = 0; i < nvalues; i++) vector_total[i] += vector[i];
+      norm++;
+      
+    } else if (ave == WINDOW) {
+      for (i = 0; i < nvalues; i++) {
+	vector_total[i] += vector[i];
+	if (window_limit) vector_total[i] -= vector_list[iwindow][i];
+	vector_list[iwindow][i] = vector[i];
+      }
+      
+      iwindow++;
+      if (iwindow == nwindow) {
+	iwindow = 0;
+	window_limit = 1;
+      }
+      if (window_limit) norm = nwindow;
+      else norm = iwindow;
     }
-
-    iwindow++;
-    if (iwindow == nwindow) {
-      iwindow = 0;
-      window_limit = 1;
-    }
-    if (window_limit) norm = nwindow;
-    else norm = iwindow;
   }
 
   // output result to file

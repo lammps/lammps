@@ -37,7 +37,7 @@ class FixAveTime : public Fix {
   char **ids;
   FILE *fp;
 
-  int ave,nwindow,nsum;
+  int ave,nwindow,nsum,startstep;
   double *vector;
 
   int norm,iwindow,window_limit;

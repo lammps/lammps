@@ -32,7 +32,9 @@ keyword = {file} or {ave} :l
   {ave} args = {one} or {running} or {window M}
     one = output a new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
-    window M = output average of M most recent Nfreq steps :pre
+    window M = output average of M most recent Nfreq steps
+  {start} args = Nstart
+    Nstart = start averaging on this timestep :pre
 :ule
 
 [Examples:]
@@ -159,6 +161,11 @@ on step 10000 will be the average of the individual values on steps
 8000,9000,10000.  Outputs on early steps will average over less than M
 values if they are not available.
 
+The {start} keyword specifies what timestep averaging will begin on.
+The default is step 0.  Often this value is 0.0, so setting {start} to
+a larger value can avoid including a 0.0 in a running or windowed
+average.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -196,4 +203,4 @@ ave/atom"_fix_ave_atom.html
 
 [Default:] none
 
-The option defaults no file output and ave = one.
+The option defaults no file output, ave = one, and start = 0.

@@ -1,0 +1,72 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/com command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/com 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/com = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all temp/com
+compute myTemp mobile temp/com 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature of a group of
+atoms, after subtracting out the center-of-mass velocity of the group.
+This is useful if the group is expected to have a non-zero net
+velocity for some reason.  A compute of this style can be used by any
+command that computes a temperature,
+e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
+</P>
+<P>The temperature is calculated by the formula KE = dim/2 N k T, where
+KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
+dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
+in the group, k = Boltzmann constant, and T = temperature.
+</P>
+<P>A 6-component kinetic energy tensor is also calculated by this compute
+for use in the computation of a pressure tensor.  The formula for the
+components of the tensor is the same as the above formula, except that
+v^2 is replaced by vx * vy for the xy component, etc.
+</P>
+<P>The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the <I>dynamic</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
+</P>
+<P>This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
+<A HREF = "fix_rigid.html">fix rigid</A>.  This means the temperature of groups of
+atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+<I>extra</I> option of the <A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.  The vector
+values are "extensive", meaning they scale with the number of atoms in
+the simulation.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

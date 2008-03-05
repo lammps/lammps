@@ -452,6 +452,7 @@ description:
 "stress/atom"_compute_stress_atom.html,
 "temp"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,
+"temp/com"_compute_temp_com.html,
 "temp/deform"_compute_temp_deform.html,
 "temp/dipole"_compute_temp_dipole.html,
 "temp/partial"_compute_temp_partial.html,

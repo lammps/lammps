@@ -1,0 +1,67 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/com command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/com :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+temp/com = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all temp/com
+compute myTemp mobile temp/com :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of a group of
+atoms, after subtracting out the center-of-mass velocity of the group.
+This is useful if the group is expected to have a non-zero net
+velocity for some reason.  A compute of this style can be used by any
+command that computes a temperature,
+e.g. "thermo_modify"_thermo_modify.html, "fix
+temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+
+The temperature is calculated by the formula KE = dim/2 N k T, where
+KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
+dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
+in the group, k = Boltzmann constant, and T = temperature.
+
+A 6-component kinetic energy tensor is also calculated by this compute
+for use in the computation of a pressure tensor.  The formula for the
+components of the tensor is the same as the above formula, except that
+v^2 is replaced by vx * vy for the xy component, etc.
+
+The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the {dynamic} option of the
+"compute_modify"_compute_modify.html command if this is not the case.
+
+This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as "fix shake"_fix_shake.html and
+"fix rigid"_fix_rigid.html.  This means the temperature of groups of
+atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+{extra} option of the "compute_modify"_compute_modify.html command.
+
+[Output info:]
+
+The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.  The vector
+values are "extensive", meaning they scale with the number of atoms in
+the simulation.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute temp"_compute_temp.html
+
+[Default:] none

@@ -63,7 +63,7 @@ the pair_modify mix value.  The default mix value is {geometric}.  See
 the "pair_modify" command for details.
 
 This pair styles does not support the "pair_modify"_pair_modify.html
-shift option, since the pair interaction is goes to 0.0 at the cutoff.
+shift option, since the pair interaction goes to 0.0 at the cutoff.
 
 The "pair_modify"_pair_modify.html table and tail options are not
 relevant for this pair style.

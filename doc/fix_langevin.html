@@ -27,7 +27,7 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>axes</I> or <I>scale</I> or <I>region</I> or <I>weight</I>
+keyword = <I>axes</I> or <I>scale</I> or <I>region</I>
   <I>axes</I> values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include a dimension in the thermostat
   <I>scale</I> values = type ratio
@@ -35,9 +35,6 @@
     ratio = factor to scale the damping coefficient by
   <I>region</I> value = region-ID
     region-ID = ID of region to apply thermostat to
-  <I>weight</I> value = factor
-    factor = scale factor to apply to random thermal force 
-</PRE>
 
 </UL>
 <P><B>Examples:</B>
@@ -98,28 +95,22 @@ and Fr to.  A flag of 0 means skip that dimension; a flag of 1 means
 include that dimension.  The default is 1 for all 3 dimensions.
 </P>
 <P>The keyword <I>scale</I> allows the damp factor to be scaled up or down by
-the specified factor for atoms of that type.  It can be used multiple
-times to adjust damp for several atom types.  Note that specifying a
-ratio of 2 increase the relaxation time which is equivalent to the the
-solvent's viscosity acting on particles with 1/2 the diameter.  This
-is the opposite effect of scale factors used by the <A HREF = "fix_viscous.html">fix
-viscous</A> command, since the damp factor in fix
-<I>langevin</I> is inversely related to the gamma factor in fix <I>viscous</I>.
-Also note that the damping factor in fix <I>langevin</I> includes the
-particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass and size of
-different atom types should be accounted for in the choice of ratio
-values.
+the specified factor for atoms of that type.  This can be useful when
+different atom types have different sizes or masses.  It can be used
+multiple times to adjust damp for several atom types.  Note that
+specifying a ratio of 2 increase the relaxation time which is
+equivalent to the the solvent's viscosity acting on particles with 1/2
+the diameter.  This is the opposite effect of scale factors used by
+the <A HREF = "fix_viscous.html">fix viscous</A> command, since the damp factor in
+fix <I>langevin</I> is inversely related to the gamma factor in fix
+<I>viscous</I>.  Also note that the damping factor in fix <I>langevin</I>
+includes the particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass
+and size of different atom types should be accounted for in the choice
+of ratio values.
 </P>
 <P>The keyword <I>region</I> applies the fix only to atoms that are in the
 specified geometric region (and in the fix group).  Since atoms can
 enter/leave a region, this test is performed each timestep.
-</P>
-<P>The keyword <I>weight</I> applies the specified scale factor to the Fr term
-in the above equation.  A value of 1.0 (the default) leaves it
-unchanged.  A value smaller/greater than 1.0 scales its relative
-magnitude as compared to the Ff term.  This can be useful for some
-models of thermostatting where a different coupling to the background
-solvent (coupling constant) is desired.
 </P>
 <P>As noted above, fix <I>langevin</I> does not update the coordinates or
 velocities of its atoms, only the forces.  It is normally used with a

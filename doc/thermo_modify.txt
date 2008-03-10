@@ -96,6 +96,17 @@ calculates a pressure.  As described in the
 compute for pressure with ID = {thermo_press}.  This option allows the
 user to override the default.
 
+IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
+thermo_modify command (or in two separate commands), then the order in
+which the keywords are specified is important.  Note that a "pressure
+compute"_compute_pressure.html defines its own temperature compute as
+an argument when it is specified.  The {temp} keyword will override
+this (for the pressure compute being used by thermodynamics), but only
+if the {temp} keyword comes after the {press} keyword.  If the {temp}
+keyword comes before the {press} keyword, then the new pressure
+compute specified by the {press} keyword will be unaffected by the
+{temp} setting.
+
 The {drot} keyword is used to determine how rotational energy is
 calculated for dipolar atoms, which is used by the thermo_style
 keyword {drot}.  The specified compute ID must have been previously

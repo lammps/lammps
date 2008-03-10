@@ -69,23 +69,24 @@ class Thermo : protected Pointers {
                          // internal = 1/0 if Thermo created them or not
                          // id = ID of Compute objects
                          // Compute * = ptrs to the Compute objects
-  int index_temp,index_press,index_pe,index_drot,index_grot;
+  int index_temp,index_press_scalar,index_press_vector,index_pe;
+  int index_drot,index_grot;
   int internal_drot,internal_grot;
   char *id_temp,*id_press,*id_pe,*id_drot,*id_grot;
   class Compute *temperature,*pressure,*pe,*rotate_dipole,*rotate_gran;
 
-  int ncompute;          // # of Compute objects called by thermo
-  char **id_compute;     // their IDs
-  int *compute_which;    // 0/1/2 if should call scalar() or vector() or both
+  int ncompute;                // # of Compute objects called by thermo
+  char **id_compute;           // their IDs
+  int *compute_which;          // 0/1 if should call scalar() or vector()
   class Compute **computes;    // list of ptrs to the Compute objects
 
-  int nfix;              // # of Fix objects called by thermo
-  char **id_fix;         // their IDs
-  class Fix **fixes;     // list of ptrs to the Fix objects
+  int nfix;                    // # of Fix objects called by thermo
+  char **id_fix;               // their IDs
+  class Fix **fixes;           // list of ptrs to the Fix objects
 
-  int nvariable;         // # of variables evaulated by thermo
-  char **id_variable;    // list of variable names
-  int *variables;        // list of Variable indices
+  int nvariable;               // # of variables evaulated by thermo
+  char **id_variable;          // list of variable names
+  int *variables;              // list of Variable indices
 
   // private methods
 

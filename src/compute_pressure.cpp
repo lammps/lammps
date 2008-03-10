@@ -109,6 +109,7 @@ void ComputePressure::init()
   dimension = domain->dimension;
 
   // set temperature used by pressure
+  // must be done in init() since user can change it via modify command
 
   int icompute = modify->find_compute(id_pre);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");

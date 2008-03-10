@@ -121,7 +121,8 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   rotate_dipole = NULL;
   rotate_gran = NULL;
 
-  index_temp = index_press = index_pe = index_drot = index_grot = -1;
+  index_temp = index_press_scalar = index_press_vector = index_pe = -1;
+  index_drot = index_grot = -1;
   internal_drot = internal_grot = 0;
 
   id_temp = (char *) "thermo_temp";
@@ -263,7 +264,8 @@ void Thermo::init()
   // set ptrs to keyword-specific Compute objects
 
   if (index_temp >= 0) temperature = computes[index_temp];
-  if (index_press >= 0) pressure = computes[index_press];
+  if (index_press_scalar >= 0) pressure = computes[index_press_scalar];
+  if (index_press_vector >= 0) pressure = computes[index_press_vector];
   if (index_pe >= 0) pe = computes[index_pe];
   if (index_drot >= 0) rotate_dipole = computes[index_drot];
   if (index_grot >= 0) rotate_gran = computes[index_grot];
@@ -400,7 +402,7 @@ void Thermo::modify_params(int narg, char **arg)
       id_compute[index_temp] = new char[n];
       strcpy(id_compute[index_temp],arg[iarg+1]);
 
-      int icompute = modify->find_compute(id_compute[index_temp]);
+      int icompute = modify->find_compute(arg[iarg+1]);
       if (icompute < 0) error->all("Could not find thermo_modify temp ID");
       temperature = modify->compute[icompute];
 
@@ -412,8 +414,11 @@ void Thermo::modify_params(int narg, char **arg)
       // reset id_pre of pressure to new temp ID
       // either pressure currently being used by thermo or "thermo_press"
 
-      if (index_press >= 0) {
-	icompute = modify->find_compute(id_compute[index_press]);
+      if (index_press_scalar >= 0) {
+	icompute = modify->find_compute(id_compute[index_press_scalar]);
+	if (icompute < 0) error->all("Press ID for thermo does not exist");
+      } else if (index_press_vector >= 0) {
+	icompute = modify->find_compute(id_compute[index_press_vector]);
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_press");
 
@@ -425,13 +430,23 @@ void Thermo::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"press") == 0) {
       if (iarg+2 > narg) error->all("Illegal thermo_modify command");
-      if (index_press < 0) error->all("Thermo style does not use press");
-      delete [] id_compute[index_press];
-      int n = strlen(arg[iarg+1]) + 1;
-      id_compute[index_press] = new char[n];
-      strcpy(id_compute[index_press],arg[iarg+1]);
+      if (index_press_scalar < 0 && index_press_vector < 0)
+	error->all("Thermo style does not use press");
 
-      int icompute = modify->find_compute(id_compute[index_press]);
+      if (index_press_scalar >= 0) {
+	delete [] id_compute[index_press_scalar];
+	int n = strlen(arg[iarg+1]) + 1;
+	id_compute[index_press_scalar] = new char[n];
+	strcpy(id_compute[index_press_scalar],arg[iarg+1]);
+      }
+      if (index_press_vector >= 0) {
+	delete [] id_compute[index_press_vector];
+	int n = strlen(arg[iarg+1]) + 1;
+	id_compute[index_press_vector] = new char[n];
+	strcpy(id_compute[index_press_vector],arg[iarg+1]);
+      }
+
+      int icompute = modify->find_compute(arg[iarg+1]);
       if (icompute < 0) error->all("Could not find thermo_modify press ID");
       pressure = modify->compute[icompute];
 
@@ -629,7 +644,7 @@ void Thermo::parse_fields(char *str)
       index_temp = add_compute(id_temp,0);
     } else if (strcmp(word,"press") == 0) {
       addfield("Press",&Thermo::compute_press,FLOAT);
-      index_press = add_compute(id_press,0);
+      index_press_scalar = add_compute(id_press,0);
     } else if (strcmp(word,"pe") == 0) {
       addfield("PotEng",&Thermo::compute_pe,FLOAT);
       index_pe = add_compute(id_pe,0);
@@ -643,7 +658,7 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"enthalpy") == 0) {
       addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
       index_temp = add_compute(id_temp,0);
-      index_press = add_compute(id_press,0);
+      index_press_scalar = add_compute(id_press,0);
       index_pe = add_compute(id_pe,0);
 
     } else if (strcmp(word,"evdwl") == 0) {
@@ -708,22 +723,22 @@ void Thermo::parse_fields(char *str)
 
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
-      index_press = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,1);
     } else if (strcmp(word,"pyy") == 0) {
       addfield("Pyy",&Thermo::compute_pyy,FLOAT);
-      index_press = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,1);
     } else if (strcmp(word,"pzz") == 0) {
       addfield("Pzz",&Thermo::compute_pzz,FLOAT);
-      index_press = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,1);
     } else if (strcmp(word,"pxy") == 0) {
       addfield("Pxy",&Thermo::compute_pxy,FLOAT);
-      index_press = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,1);
     } else if (strcmp(word,"pxz") == 0) {
       addfield("Pxz",&Thermo::compute_pxz,FLOAT);
-      index_press = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,1);
     } else if (strcmp(word,"pyz") == 0) {
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
-      index_press = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,1);
 
     } else if (strcmp(word,"drot") == 0) {
       addfield("RotKEdip",&Thermo::compute_drot,FLOAT);

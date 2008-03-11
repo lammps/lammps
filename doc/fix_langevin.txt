@@ -21,7 +21,7 @@ zero or more keyword/value pairs may be appended :l
 keyword = {scale}
   {scale} values = type ratio
     type = atom type (1-N)
-    ratio = factor to scale the damping coefficient by
+    ratio = factor by which to scale the damping coefficient :pre
 :ule
 
 [Examples:]

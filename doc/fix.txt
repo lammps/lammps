@@ -153,6 +153,8 @@ list of fix styles available in LAMMPS:
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
 "spring/self"_fix_spring_self.html - spring from each atom to its origin
+"temp/berendsen"_fix_temp_berendsen.html - temperature control by \
+     Berendsen thermostat
 "temp/rescale"_fix_temp_rescale.html - temperature control by \
      velocity rescaling
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration

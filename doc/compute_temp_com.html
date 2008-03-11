@@ -47,6 +47,17 @@ v^2 is replaced by vx * vy for the xy component, etc.
 constant for the duration of the run; use the <I>dynamic</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
 </P>
+<P>The removal of the center-of-mass velocity by this fix is essentially
+computing the temperature after a "bias" has been removed from the
+velocity of the atoms.  If this compute is used with a fix command
+that performs thermostatting then this bias will be subtracted from
+each atom, thermostatting of the remaining thermal velocity will be
+performed, and the bias will be added back in.  Thermostatting fixes
+that work in this way include <A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_temp_berendsen">fix
+temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
+langevin</A>.
+</P>
 <P>This compute subtracts out degrees-of-freedom due to fixes that
 constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
 <A HREF = "fix_rigid.html">fix rigid</A>.  This means the temperature of groups of

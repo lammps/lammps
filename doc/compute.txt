@@ -120,7 +120,7 @@ available in LAMMPS:
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
-"temp/com"_compute_temp_com.html - temperature after subtracting c-o-m velocity
+"temp/com"_compute_temp_com.html - temperature after subtracting center-of-mass velocity
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
 "temp/dipole"_compute_temp_dipole.html - temperature of point dipolar particles
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity

@@ -44,6 +44,17 @@ The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the {dynamic} option of the
 "compute_modify"_compute_modify.html command if this is not the case.
 
+The removal of the center-of-mass velocity by this fix is essentially
+computing the temperature after a "bias" has been removed from the
+velocity of the atoms.  If this compute is used with a fix command
+that performs thermostatting then this bias will be subtracted from
+each atom, thermostatting of the remaining thermal velocity will be
+performed, and the bias will be added back in.  Thermostatting fixes
+that work in this way include "fix nvt"_fix_nvt.html, "fix
+temp/rescale"_fix_temp_rescale.html, "fix
+temp/berendsen"_fix_temp_berendsen, and "fix
+langevin"_fix_langevin.html.
+
 This compute subtracts out degrees-of-freedom due to fixes that
 constrain molecular motion, such as "fix shake"_fix_shake.html and
 "fix rigid"_fix_rigid.html.  This means the temperature of groups of

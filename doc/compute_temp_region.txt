@@ -63,7 +63,7 @@ remaining thermal velocity will be performed, and the bias will be
 added back in.  Thermostatting fixes that work in this way include
 "fix nvt"_fix_nvt.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
 temp/berendsen"_fix_temp_berendsen, and "fix
-langevin"_fix_langevin.html.  This means any of those thermostatting
+langevin"_fix_langevin.html.  This means any of the thermostatting
 fixes can operate on a geometric region of atoms, as defined by this
 compute.
 

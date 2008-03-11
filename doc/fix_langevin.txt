@@ -18,14 +18,10 @@ Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
 damp = damping parameter (time units) :l
 seed = random # seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {axes} or {scale} or {region}
-  {axes} values = xflag yflag zflag
-    xflag,yflag,zflag = 0/1 to exclude/include a dimension in the thermostat
+keyword = {scale}
   {scale} values = type ratio
     type = atom type (1-N)
     ratio = factor to scale the damping coefficient by
-  {region} value = region-ID
-    region-ID = ID of region to apply thermostat to
 :ule
 
 [Examples:]
@@ -62,8 +58,35 @@ used to randomize the direction and magnitude of this force as
 described in "(Dunweg)"_#Dunweg, where a uniform random number is used
 (instead of a Gaussian random number) for speed.
 
+IMPORTANT NOTE: Unlike the "fix nvt"_fix_nvt.html command which
+performs Nose/Hoover thermostatting AND time integration, this fix
+does NOT perform time integration.  It only modifies forces to effect
+thermostatting.  Thus you must use a separate time integration fix,
+like "fix nve"_fix_nve.html to actually update the velocities and
+positions of atoms using the the modified forces.  Likewise, this fix
+should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. by "fix nvt"_fix_nvt.html or "fix
+temp/rescale"_fix_temp_rescale.html commands.
+
+:line
+
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.
+
+Like other fixes that perform thermostatting, this fix can be used
+with "compute commands"_compute.html that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the "fix_modify"_fix_modify.html command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual "compute
+commands"_compute.html to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
 
 The {damp} parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0
@@ -99,17 +122,6 @@ includes the particle mass in Ff, unlike fix {viscous}.  Thus the mass
 and size of different atom types should be accounted for in the choice
 of ratio values.
 
-The keyword {region} applies the fix only to atoms that are in the
-specified geometric region (and in the fix group).  Since atoms can
-enter/leave a region, this test is performed each timestep.
-
-As noted above, fix {langevin} does not update the coordinates or
-velocities of its atoms, only the forces.  It is normally used with a
-"fix nve"_fix_nve.html that does the time integration.  Fix {langevin}
-should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. a "nvt"_fix_nvt.html or
-"temp/rescale"_fix_temp_rescale.html fix.
-
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
@@ -119,10 +131,14 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 
-None of the "fix_modify"_fix_modify.html options are relevant to this
-fix.  No global scalar or vector or per-atom quantities are stored by
-this fix for access by various "output
-commands"_Section_howto.html#4_15.
+The "fix_modify"_fix_modify.html {temp} option is supported by this
+fix.  You can use it to assign a temperature "compute"_compute.html
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+
+No global scalar or vector or per-atom quantities are stored by this
+fix for access by various "output commands"_Section_howto.html#4_15.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

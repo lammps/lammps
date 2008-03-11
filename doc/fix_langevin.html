@@ -27,14 +27,10 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-keyword = <I>axes</I> or <I>scale</I> or <I>region</I>
-  <I>axes</I> values = xflag yflag zflag
-    xflag,yflag,zflag = 0/1 to exclude/include a dimension in the thermostat
+keyword = <I>scale</I>
   <I>scale</I> values = type ratio
     type = atom type (1-N)
     ratio = factor to scale the damping coefficient by
-  <I>region</I> value = region-ID
-    region-ID = ID of region to apply thermostat to
 
 </UL>
 <P><B>Examples:</B>
@@ -71,8 +67,35 @@ used to randomize the direction and magnitude of this force as
 described in <A HREF = "#Dunweg">(Dunweg)</A>, where a uniform random number is used
 (instead of a Gaussian random number) for speed.
 </P>
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nvt.html">fix nvt</A> command which
+performs Nose/Hoover thermostatting AND time integration, this fix
+does NOT perform time integration.  It only modifies forces to effect
+thermostatting.  Thus you must use a separate time integration fix,
+like <A HREF = "fix_nve.html">fix nve</A> to actually update the velocities and
+positions of atoms using the the modified forces.  Likewise, this fix
+should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. by <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A> commands.
+</P>
+<HR>
+
 <P>The desired temperature at each timestep is a ramped value during the
 run from <I>Tstart</I> to <I>Tstop</I>.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
 </P>
 <P>The <I>damp</I> parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0
@@ -108,17 +131,6 @@ includes the particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass
 and size of different atom types should be accounted for in the choice
 of ratio values.
 </P>
-<P>The keyword <I>region</I> applies the fix only to atoms that are in the
-specified geometric region (and in the fix group).  Since atoms can
-enter/leave a region, this test is performed each timestep.
-</P>
-<P>As noted above, fix <I>langevin</I> does not update the coordinates or
-velocities of its atoms, only the forces.  It is normally used with a
-<A HREF = "fix_nve.html">fix nve</A> that does the time integration.  Fix <I>langevin</I>
-should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. a <A HREF = "fix_nvt.html">nvt</A> or
-<A HREF = "fix_temp_rescale.html">temp/rescale</A> fix.
-</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
@@ -128,10 +140,14 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 </P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
-fix.  No global scalar or vector or per-atom quantities are stored by
-this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+</P>
+<P>No global scalar or vector or per-atom quantities are stored by this
+fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
 </P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the

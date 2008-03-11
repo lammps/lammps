@@ -66,6 +66,16 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
+IMPORTANT NOTE: Unlike the "fix temp/berendsen"_fix_berendsen.html
+command which performs thermostatting but NO time integration, this
+fix performs thermostatting/barostatting AND time integration.  Thus
+you should not use any other time integration fix, such as "fix
+nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
+this fix should not normally be used on atoms that also have their
+temperature controlled by another fix - e.g. by "fix
+langevin"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html
+commands.
+
 :line
 
 The pressure can be controlled in one of several styles, as specified
@@ -140,6 +150,21 @@ custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} or
 {thermo_press} will have no effect on this fix.
 
+Like other fixes that perform thermostatting, this fix can be used
+with "compute commands"_compute.html that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the "fix_modify"_fix_modify.html command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual "compute
+commands"_compute.html to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the state of the Nose/Hoover thermostat and barostat
@@ -151,11 +176,11 @@ operation of the fix continues in an uninterrupted fashion.
 The "fix_modify"_fix_modify.html {temp} and {press} options are
 supported by this fix.  You can use them to assign a
 "compute"_compute.html you have defined to this fix which will be used
-in its thermostatting or barostatting procedure.  If you do this, note
-that the kinetic energy derived from the compute temperature should be
-consistent with the virial term computed using all atoms for the
-pressure.  LAMMPS will warn you if you choose to compute temperature
-on a subset of atoms.
+in its thermostatting or barostatting procedure, as described above.
+If you do this, note that the kinetic energy derived from the compute
+temperature should be consistent with the virial term computed using
+all atoms for the pressure.  LAMMPS will warn you if you choose to
+compute temperature on a subset of atoms.
 
 IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
 single thermo_modify command (or in two separate commands), then the

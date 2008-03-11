@@ -6,21 +6,16 @@
 
 :line
 
-fix nvt command :h3
+fix temp/berendsen command :h3
 
 [Syntax:]
 
-fix ID group-ID nvt Tstart Tstop Tdamp keyword value ... :pre
+fix ID group-ID temp/berendsen Tstart Tstop Tdamp :pre
 
-ID, group-ID are documented in "fix"_fix.html command :ulb,l
-nvt = style name of this fix command :l
-Tstart,Tstop = desired temperature at start/end of run :l
-Tdamp = temperature damping parameter (time units) :l
-
-zero or more keyword/value pairs may be appended :l
-keyword = {drag} :l
-  {drag} value = drag factor added to thermostat (0.0 = no drag) :pre
-:ule
+ID, group-ID are documented in "fix"_fix.html command
+temp/berendsen = style name of this fix command
+Tstart,Tstop = desired temperature at start/end of run
+Tdamp = temperature damping parameter (time units) :ul
 
 [Examples:]
 
@@ -29,10 +24,9 @@ fix 1 all nvt 300.0 300.0 100.0 drag 0.2 :pre
 
 [Description:]
 
-Perform constant NVT integration to update positions and velocities
-each timestep for atoms in the group using a Nose/Hoover temperature
-thermostat "(Hoover)"_#Hoover.  V is volume; T is temperature.  This
-creates a system trajectory consistent with the canonical ensemble.
+Reset the temperature of a group of atoms by using a Berendsen
+thermostat "(Berendsen)"_#Berendsen, which rescale their velocities
+every timestep.
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.  The {Tdamp} parameter is specified in
@@ -41,25 +35,17 @@ example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 "units"_units.html command).
 
-In some cases (e.g. for solids) the temperature of the system can
-oscillate undesirably when a Nose/Hoover thermostat is applied.  The
-optional {drag} keyword will damp these oscillations, although it
-alters the Nose/Hoover equations.  A value of 0.0 (no drag) leaves the
-Nose/Hoover formalism unchanged.  A non-zero value adds a drag term;
-the larger the value specified, the greater the damping effect.
-Performing a short run and monitoring the temperature is the best way
-to determine if the drag term is working.  Typically a value between
-0.2 to 2.0 is sufficient to damp oscillations after a few periods.
+IMPORTANT NOTE: Unlike the "fix nvt"_fix_nvt.html command which
+performs Nose/Hoover thermostatting AND time integration, this fix
+does NOT perform time integration.  It only modifies velocities to
+effect thermostatting.  Thus you must use a separate time integration
+fix, like "fix nve"_fix_nve.html to actually update the positions of
+atoms using the modified velocities.  Likewise, this fix should not
+normally be used on atoms that also have their temperature controlled
+by another fix - e.g. by "fix nvt"_fix_nvt.html or "fix
+langevin"_fix_langevin.html commands.
 
-IMPORTANT NOTE: Unlike the "fix temp/berendsen"_fix_berendsen.html
-command which performs thermostatting but NO time integration, this
-fix performs thermostatting/barostatting AND time integration.  Thus
-you should not use any other time integration fix, such as "fix
-nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
-this fix should not normally be used on atoms that also have their
-temperature controlled by another fix - e.g. by "fix
-langevin"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html
-commands.
+:line
 
 This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
@@ -98,11 +84,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-This fix writes the state of the Nose/Hoover thermostat to "binary
-restart files"_restart.html.  See the "read_restart"_read_restart.html
-command for info on how to re-specify a fix in an input script that
-reads a restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
+No information about this fix is written to "binary restart
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {temp} option is supported by this
 fix.  You can use it to assign a temperature "compute"_compute.html
@@ -110,16 +93,8 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The "fix_modify"_fix_modify.html {energy} option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting to
-the system's potential energy as part of "thermodynamic
-output"_thermo_style.html.
-
-The potential energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive", meaning it scales with the number of atoms in
-the simulation.
+No global scalar or vector or per-atom quantities are stored by this
+fix for access by various "output commands"_Section_howto.html#4_15.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -127,23 +102,19 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:]
-
-The final Tstop cannot be 0.0 since it would make the target T = 0.0
-at some timestep during the simulation which is not allowed in 
-the Nose/Hoover formulation.
+[Restrictions:] none
 
 [Related commands:]
 
-"fix nve"_fix_nve.html, "fix npt"_fix_npt.html, "fix
+"fix nve"_fix_nve.html, "fix nvt"_fix_nvt.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
 "fix_modify"_fix_modify.html, "compute temp"_compute_temp.html
 
-[Default:]
-
-The keyword defaults are drag = 0.0.
+[Default:] none
 
 :line
 
-:link(Hoover)
-[(Hoover)] Hoover, Phys Rev A, 31, 1695 (1985).
+:link(Berendsen)
+
+[(Berendsen)] Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
+Phys, 81, 3684 (1984).

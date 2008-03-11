@@ -27,8 +27,7 @@ keyword = {scale}
 [Examples:]
 
 fix 3 boundary langevin 1.0 1.0 1000.0 699483
-fix 1 all langevin 1.0 1.1 100.0 48279 axes 0 1 1
-fix 3 boundary langevin 1.0 1.0 1000.0 699483 region boundary :pre
+fix 1 all langevin 1.0 1.1 100.0 48279 scale 3 1.5 :pre
 
 [Description:]
 
@@ -67,8 +66,6 @@ positions of atoms using the the modified forces.  Likewise, this fix
 should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. by "fix nvt"_fix_nvt.html or "fix
 temp/rescale"_fix_temp_rescale.html commands.
-
-:line
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.

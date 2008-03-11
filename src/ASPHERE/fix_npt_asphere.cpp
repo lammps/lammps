@@ -79,7 +79,7 @@ void FixNPTASphere::initial_integrate(int vflag)
   }
   ang_factor = exp(-dthalf*eta_dot);
 
-  // v update only for atoms in NPT group
+  // v update only for atoms in group
 
   double **x = atom->x;
   double **v = atom->v;
@@ -107,7 +107,7 @@ void FixNPTASphere::initial_integrate(int vflag)
 
   remap(0);
 
-  // x update by full step only for atoms in NPT group
+  // x update by full step only for atoms in group
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -147,7 +147,7 @@ void FixNPTASphere::final_integrate()
 {
   int i;
 
-  // v update only for atoms in NPT group
+  // v update only for atoms in group
 
   double **v = atom->v;
   double **f = atom->f;

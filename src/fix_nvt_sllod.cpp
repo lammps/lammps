@@ -78,7 +78,7 @@ void FixNVTSlodd::initial_integrate(int vflag)
   eta += dtv*eta_dot;
   factor = exp(-dthalf*eta_dot);
 
-  // update vthermal and x of only atoms in NVT group
+  // update vthermal and x of only atoms in group
   // lamda = 0-1 triclinic lamda coords
   // vstream = streaming velocity = Hrate*lamda + Hratelo
   // vthermal = thermal velocity = v - vstream
@@ -134,7 +134,7 @@ void FixNVTSlodd::final_integrate()
 {
   double dtfm;
 
-  // update vthermal of only atoms in NVT group
+  // update vthermal of only atoms in group
   // lamda = 0-1 triclinic lamda coords
   // vstream = streaming velocity = Hrate*lamda + Hratelo
   // vthermal = thermal velocity = v - vstream
@@ -232,7 +232,7 @@ void FixNVTSlodd::initial_integrate_respa(int vflag, int ilevel, int flag)
     factor = exp(-dthalf*eta_dot);
   } else factor = 1.0;
 
-  // update v of only atoms in NVT group
+  // update v of only atoms in group
 
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
@@ -265,7 +265,7 @@ void FixNVTSlodd::initial_integrate_respa(int vflag, int ilevel, int flag)
     }
   }
 
-  // innermost level - also update x of only atoms in NVT group
+  // innermost level - also update x of only atoms in group
 
   if (ilevel == 0) {
     for (int i = 0; i < nlocal; i++) {

@@ -61,7 +61,7 @@ void FixNVTASphere::initial_integrate(int vflag)
   eta += dtv*eta_dot;
   factor = exp(-dthalf*eta_dot);
 
-  // update v and x of only atoms in NVT group
+  // update v and x of only atoms in group
 
   double **x = atom->x;
   double **v = atom->v;
@@ -106,7 +106,7 @@ void FixNVTASphere::final_integrate()
 {
   double dtfm;
 
-  // update v of only atoms in NVT group
+  // update v of only atoms in group
 
   double **v = atom->v;
   double **f = atom->f;

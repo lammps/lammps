@@ -46,6 +46,7 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
+  tempbias = 1;
 
   vector = new double[6];
 }
@@ -197,4 +198,22 @@ void ComputeTempDeform::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (int i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempDeform::remove_bias(int i, double *v)
+{
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  domain->x2lamda(atom->x[i],lamda);
+  vbias[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
+    h_rate[4]*lamda[2] + h_ratelo[0];
+  vbias[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+  vbias[2] = h_rate[2]*lamda[2] + h_ratelo[2];
+  v[0] -= vbias[0];
+  v[1] -= vbias[1];
+  v[2] -= vbias[2];
 }

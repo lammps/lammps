@@ -29,11 +29,15 @@ class FixLangevin : public Fix {
   void post_force_respa(int, int, int);
   void reset_target(double);
   void reset_dt();
+  int modify_param(int, char **);
 
  private:
+  int which;
   double t_start,t_stop,t_period;
-  int flagx,flagy,flagz,iregion;
   double *gfactor1,*gfactor2,*ratio;
+
+  char *id_temp;
+  class Compute *temperature;
 
   int nlevels_respa;
   class RanMars *random;

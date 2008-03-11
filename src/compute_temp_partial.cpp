@@ -42,6 +42,8 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
+  tempbias = 1;
+  vbias[0] = vbias[1] = vbias[2] = 0.0;
 
   vector = new double[6];
 }
@@ -139,4 +141,22 @@ void ComputeTempPartial::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempPartial::remove_bias(int i, double *v)
+{
+  if (!xflag) {
+    vbias[0] = v[0];
+    v[0] = 0.0;
+  }
+  if (!yflag) {
+    vbias[1] = v[1];
+    v[1] = 0.0;
+  }
+  if (!zflag) {
+    vbias[2] = v[2];
+    v[2] = 0.0;
+  }
 }

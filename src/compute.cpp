@@ -60,6 +60,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   scalar_flag = vector_flag = peratom_flag = 0;
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;
+  tempbias = 0;
   id_pre = NULL;
   timeflag = 0;
   invoked = 0;
@@ -162,3 +163,16 @@ int Compute::matchstep(int ntimestep)
   }
   return 0;
 }
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias removed by remove_bias() to leave thermal temp
+   assume remove_bias() was previously called for this atom
+------------------------------------------------------------------------- */
+
+void Compute::restore_bias(double *v)
+{
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
+}
+

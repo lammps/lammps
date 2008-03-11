@@ -36,7 +36,7 @@ class FixNPT : public Fix {
   void reset_dt();
 
  protected:
-  int dimension;
+  int dimension,which;
   double dtv,dtf,dtq,dthalf;
   double boltz,nktv2p;
   double vol0;

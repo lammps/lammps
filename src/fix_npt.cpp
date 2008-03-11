@@ -36,6 +36,8 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
+enum{NOBIAS,BIAS};
+
 /* ---------------------------------------------------------------------- */
 
 FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
@@ -257,6 +259,9 @@ void FixNPT::init()
   if (icompute < 0) error->all("Temp ID for fix npt does not exist");
   temperature = modify->compute[icompute];
 
+  if (temperature->tempbias) which = BIAS;
+  else which = NOBIAS;
+
   icompute = modify->find_compute(id_press);
   if (icompute < 0) error->all("Press ID for fix npt does not exist");
   pressure = modify->compute[icompute];
@@ -365,7 +370,7 @@ void FixNPT::initial_integrate(int vflag)
     dilation[i] = exp(dthalf*omega_dot[i]);
   }
 
-  // v update only for atoms in NPT group
+  // v update only for atoms in group
 
   double **x = atom->x;
   double **v = atom->v;
@@ -377,12 +382,27 @@ void FixNPT::initial_integrate(int vflag)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double dtfm;
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+
+  if (which == NOBIAS) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+      }
+    }
+
+  } else if (which == BIAS) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+	temperature->restore_bias(v[i]);
+      }
     }
   }
 
@@ -390,7 +410,7 @@ void FixNPT::initial_integrate(int vflag)
 
   remap(0);
 
-  // x update by full step only for atoms in NPT group
+  // x update by full step only for atoms in group
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -415,7 +435,7 @@ void FixNPT::final_integrate()
 {
   int i;
 
-  // v update only for atoms in NPT group
+  // v update only for atoms in group
 
   double **v = atom->v;
   double **f = atom->f;
@@ -426,12 +446,27 @@ void FixNPT::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double dtfm;
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
-      v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
-      v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
+
+  if (which == NOBIAS) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
+	v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
+	v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
+      }
+    }
+
+  } else if (which == BIAS) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
+	v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
+	v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
+	temperature->restore_bias(v[i]);
+      }
     }
   }
 
@@ -505,7 +540,7 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 
   // outermost level - update eta_dot and omega_dot, apply to v, remap box
   // all other levels - NVE update of v
-  // x,v updates only performed for atoms in NPT group
+  // x,v updates only performed for atoms in group
 
   if (ilevel == nlevels_respa-1) {
 
@@ -538,7 +573,7 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
       dilation[i] = exp(dthalf*omega_dot[i]);
     }
 
-    // v update only for atoms in NPT group
+    // v update only for atoms in group
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -555,19 +590,33 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 
   } else {
 
-    // v update only for atoms in NPT group
+    // v update only for atoms in group
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
+      }
+
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	  temperature->restore_bias(v[i]);
+	}
       }
     }
   }
 
-  // innermost level - also update x only for atoms in NPT group
+  // innermost level - also update x only for atoms in group
 
   if (ilevel == 0) {
     for (int i = 0; i < nlocal; i++) {
@@ -594,12 +643,12 @@ void FixNPT::final_integrate_respa(int ilevel)
   // outermost level - update eta_dot and omega_dot,
   //   apply to v via final_integrate()
   // all other levels - NVE update of v
-  // v update only performed for atoms in NPT group
+  // v update only performed for atoms in group
 
   if (ilevel == nlevels_respa-1) final_integrate();
   else {
 
-    // v update only for atoms in NPT group
+    // v update only for atoms in group
 
     double **v = atom->v;
     double **f = atom->f;
@@ -609,12 +658,26 @@ void FixNPT::final_integrate_respa(int ilevel)
     int nlocal = atom->nlocal;
     if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
+      }
+
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	  temperature->restore_bias(v[i]);
+	}
       }
     }
   }
@@ -763,7 +826,7 @@ int FixNPT::modify_param(int narg, char **arg)
     id_temp = new char[n];
     strcpy(id_temp,arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
+    int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all("Could not find fix_modify temp ID");
     temperature = modify->compute[icompute];
 
@@ -793,7 +856,7 @@ int FixNPT::modify_param(int narg, char **arg)
     id_press = new char[n];
     strcpy(id_press,arg[1]);
 
-    int icompute = modify->find_compute(id_press);
+    int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all("Could not find fix_modify press ID");
     pressure = modify->compute[icompute];
 

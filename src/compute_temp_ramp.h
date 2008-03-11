@@ -25,6 +25,7 @@ class ComputeTempRamp : public Compute {
   void init();
   double compute_scalar();
   void compute_vector();
+  void remove_bias(int, double *);
 
  private:
   int coord_dim;

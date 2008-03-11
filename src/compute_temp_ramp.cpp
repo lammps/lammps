@@ -107,6 +107,8 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
+  tempbias = 1;
+  vbias[0] = vbias[1] = vbias[2] = 0.0;
 
   vector = new double[6];
 }
@@ -223,4 +225,15 @@ void ComputeTempRamp::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempRamp::remove_bias(int i, double *v)
+{
+  double fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+  fraction = MAX(fraction,0.0);
+  fraction = MIN(fraction,1.0);
+  vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
+  v[v_dim] -= vbias[v_dim];
 }

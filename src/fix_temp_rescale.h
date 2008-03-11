@@ -25,12 +25,13 @@ class FixTempRescale : public Fix {
   int setmask();
   void init();
   void end_of_step();
-  double compute_scalar();
   int modify_param(int, char **);
+  void reset_target(double);
+  double compute_scalar();
 
  private:
-  int type,iregion,partial,xflag,yflag,zflag;
-  double t_start,t_end,t_window;
+  int which;
+  double t_start,t_stop,t_window;
   double fraction,energy,efactor;
 
   char *id_temp;

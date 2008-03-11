@@ -37,6 +37,7 @@ class FixNVT : public Fix {
   void reset_dt();
 
  protected:
+  int which;
   double t_start,t_stop;
   double t_current,t_target;
   double t_freq,drag,drag_factor;

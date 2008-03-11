@@ -19,6 +19,8 @@
 #include "atom.h"
 #include "force.h"
 #include "update.h"
+#include "modify.h"
+#include "compute.h"
 #include "domain.h"
 #include "region.h"
 #include "respa.h"
@@ -27,6 +29,8 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,19 +59,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   
   // optional args
 
-  flagx = flagy = flagz = 1;
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
-  iregion = -1;
 
   int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"axes") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix langevin command");
-      flagx = atoi(arg[iarg+1]);
-      flagy = atoi(arg[iarg+2]);
-      flagz = atoi(arg[iarg+3]);
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"scale") == 0) {
+    if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix langevin command");
       int itype = atoi(arg[iarg+1]);
       double scale = atof(arg[iarg+2]);
@@ -75,13 +71,13 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Illegal fix langevin command");
       ratio[itype] = scale;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix langevin command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix langevin region ID does not exist");
-      iarg += 2;
     } else error->all("Illegal fix langevin command");
   }
+
+  // set temperature = NULL, user can override via fix_modify if wants bias
+
+  id_temp = NULL;
+  temperature = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,6 +88,7 @@ FixLangevin::~FixLangevin()
   delete [] gfactor1;
   delete [] gfactor2;
   delete [] ratio;
+  delete [] id_temp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,6 +118,9 @@ void FixLangevin::init()
     gfactor2[i] *= 1.0/sqrt(ratio[i]);
   }
 
+  if (temperature && temperature->tempbias) which = BIAS;
+  else which = NOBIAS;
+
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
@@ -142,6 +142,8 @@ void FixLangevin::setup(int vflag)
 
 void FixLangevin::post_force(int vflag)
 {
+  double gamma1,gamma2;
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -154,34 +156,40 @@ void FixLangevin::post_force(int vflag)
   double t_target = t_start + delta * (t_stop-t_start);
   double tsqrt = sqrt(t_target);
 
-  double gamma1,gamma2;
+  // apply damping and thermostat to appropriate atoms
 
-  // apply damping and thermostat to all atoms in fix group
-
-  if (iregion == -1) {
+  if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	gamma1 = gfactor1[type[i]];
 	gamma2 = gfactor2[type[i]] * tsqrt;
-	if (flagx) f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	if (flagy) f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	if (flagz) f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
       }
     }
 
-  // apply damping and thermostat to all atoms in fix group and in region
+  // invoke temperature since some computes require it to remove bias
+  // test on v = 0 since some computes mask non-participating atoms via v = 0
 
-  } else {
+  } else if (which == BIAS) {
+    double tmp = temperature->compute_scalar();
+
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit &&
-	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i] & groupbit) {
 	gamma1 = gfactor1[type[i]];
 	gamma2 = gfactor2[type[i]] * tsqrt;
-	if (flagx) f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	if (flagy) f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	if (flagz) f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	temperature->remove_bias(i,v[i]);
+	if (v[i][0] != 0.0)
+	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	if (v[i][1] != 0.0)
+	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	if (v[i][2] != 0.0)
+	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	temperature->restore_bias(v[i]);
       }
     }
+
   }
 }
 
@@ -208,4 +216,28 @@ void FixLangevin::reset_dt()
       sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / force->ftm2v;
     gfactor2[i] *= 1.0/sqrt(ratio[i]);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixLangevin::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"temp") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temp ID does not compute temperature");
+    if (temperature->igroup != igroup && comm->me == 0)
+      error->warning("Group for fix_modify temp != fix group");
+    return 2;
+  }
+  return 0;
 }

@@ -106,6 +106,7 @@ class Fix : protected Pointers {
 
   virtual int dof(int) {return 0;}
   virtual void deform(int) {}
+  virtual void reset_target(double) {}
   virtual void reset_dt() {}
 
   virtual int modify_param(int, char **) {return 0;}

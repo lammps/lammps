@@ -40,6 +40,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
+  tempbias = 1;
 
   vector = new double[6];
 }
@@ -136,4 +137,20 @@ void ComputeTempRegion::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempRegion::remove_bias(int i, double *v)
+{
+  double *x = atom->x[i];
+  if (atom->mask[i] & groupbit && 
+      domain->regions[iregion]->match(x[0],x[1],x[2]))
+    vbias[0] = vbias[1] = vbias[2] = 0.0;
+  else {
+    vbias[0] = v[0];
+    vbias[1] = v[1];
+    vbias[2] = v[2];
+    v[0] = v[1] = v[2] = 0.0;
+  }
 }

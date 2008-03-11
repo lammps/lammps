@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{STANDARD,REGION,PARTIAL};
+enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,41 +45,11 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   t_start = atof(arg[4]);
-  t_end = atof(arg[5]);
+  t_stop = atof(arg[5]);
   t_window = atof(arg[6]);
   fraction = atof(arg[7]);
 
-  // optional args
-
-  iregion = -1;
-  partial = 0;
-  xflag = yflag = zflag = 1;
-
-  int iarg = 8;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix temp/rescale command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) 
-	error->all("Fix temp/rescale region ID does not exist");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"partial") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix temp/rescale command");
-      xflag = atoi(arg[iarg+1]);
-      yflag = atoi(arg[iarg+2]);
-      zflag = atoi(arg[iarg+3]);
-      partial = 1;
-      iarg += 4;
-    } else error->all("Illegal fix temp/rescale command");
-  }
-
-  if (iregion == -1 && partial == 0) type = STANDARD;
-  else if (iregion >= 0 && partial == 0) type = REGION;
-  else if (iregion == -1 && partial) type = PARTIAL;
-  else 
-    error->all("Cannot use both region, partial options in fix temp/rescale");
-
-  // create a new compute temp or temp/region or temp/partial
+  // create a new compute temp
   // id = fix-ID + temp, compute group = fix group
 
   int n = strlen(id) + 6;
@@ -90,23 +60,8 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   char **newarg = new char*[6];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
-  if (type == STANDARD) {
-    newarg[2] = (char *) "temp";
-    modify->add_compute(3,newarg);
-  } else if (type == REGION) {
-    newarg[2] = (char *) "temp/region";
-    newarg[3] = domain->regions[iregion]->id;
-    modify->add_compute(4,newarg);
-  } else if (type == PARTIAL) {
-    newarg[2] = (char *) "temp/partial";
-    if (xflag) newarg[3] = (char *) "1";
-    else newarg[3] = (char *) "0";
-    if (yflag) newarg[4] = (char *) "1";
-    else newarg[4] = (char *) "0";
-    if (zflag) newarg[5] = (char *) "1";
-    else newarg[5] = (char *) "0";
-    modify->add_compute(6,newarg);
-  }
+  newarg[2] = (char *) "temp";
+  modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
 
@@ -141,6 +96,9 @@ void FixTempRescale::init()
   if (icompute < 0) error->all("Temp ID for fix temp/rescale does not exist");
   temperature = modify->compute[icompute];
 
+  if (temperature->tempbias) which = BIAS;
+  else which = NOBIAS;
+
   temperature->init();              // not yet called by Modify::init()
   efactor = (0.5 * force->boltz * temperature->dof);
   energy = 0.0;
@@ -151,20 +109,24 @@ void FixTempRescale::init()
 void FixTempRescale::end_of_step()
 {
   double t_current = temperature->compute_scalar();
+  if (t_current == 0.0)
+    error->all("Computed temperature for fix temp/berendsen cannot be 0.0");
+
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
-  double t_target = t_start + delta * (t_end-t_start);
+  double t_target = t_start + delta * (t_stop-t_start);
+
+  // rescale velocity of appropriate atoms if outside window
 
   if (fabs(t_current-t_target) > t_window) {
     t_target = t_current - fraction*(t_current-t_target);
     double factor = sqrt(t_target/t_current);
 
-    double **x = atom->x;
     double **v = atom->v;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    if (type == STANDARD) {
+    if (which == NOBIAS) {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -174,25 +136,15 @@ void FixTempRescale::end_of_step()
 	}
       }
 
-    } else if (type == REGION) {
-      efactor = (0.5 * force->boltz * temperature->dof);
-      energy += (t_current-t_target) * efactor;
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit &&
-	    domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
-	  v[i][0] *= factor;
-	  v[i][1] *= factor;
-	  v[i][2] *= factor;
-	}
-      }
-
-    } else {
+    } else if (which == BIAS) {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
-	  if (xflag) v[i][0] *= factor;
-	  if (yflag) v[i][1] *= factor;
-	  if (zflag) v[i][2] *= factor;
+	  temperature->remove_bias(i,v[i]);
+	  v[i][0] *= factor;
+	  v[i][1] *= factor;
+	  v[i][2] *= factor;
+	  temperature->restore_bias(v[i]);
 	}
       }
     }
@@ -226,6 +178,14 @@ int FixTempRescale::modify_param(int narg, char **arg)
     return 2;
   }
   return 0;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempRescale::reset_target(double t_new)
+{
+  t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -146,6 +146,9 @@ void FixNVE::initial_integrate_respa(int vflag, int ilevel, int flag)
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
 
+  // innermost level - NVE update of v and x
+  // all other levels - NVE update of v
+
   if (ilevel == 0) initial_integrate(vflag);
   else final_integrate();
 }

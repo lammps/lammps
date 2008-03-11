@@ -180,6 +180,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_spring.h"
 #include "fix_spring_rg.h"
 #include "fix_spring_self.h"
+#include "fix_temp_berendsen.h"
 #include "fix_temp_rescale.h"
 #include "fix_tmd.h"
 #include "fix_viscosity.h"
@@ -233,6 +234,7 @@ FixStyle(SHEAR_HISTORY,FixShearHistory)
 FixStyle(spring,FixSpring)
 FixStyle(spring/rg,FixSpringRG)
 FixStyle(spring/self,FixSpringSelf)
+FixStyle(temp/berendsen,FixTempBerendsen)
 FixStyle(temp/rescale,FixTempRescale)
 FixStyle(tmd,FixTMD)
 FixStyle(viscosity,FixViscosity)

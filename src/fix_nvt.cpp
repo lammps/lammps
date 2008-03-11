@@ -31,6 +31,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{NOBIAS,BIAS};
+
 /* ---------------------------------------------------------------------- */
 
 FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
@@ -117,6 +119,9 @@ void FixNVT::init()
   if (icompute < 0) error->all("Temp ID for fix nvt does not exist");
   temperature = modify->compute[icompute];
 
+  if (temperature->tempbias) which = BIAS;
+  else which = NOBIAS;
+
   // set timesteps and frequencies
 
   dtv = update->dt;
@@ -158,7 +163,7 @@ void FixNVT::initial_integrate(int vflag)
   eta += dtv*eta_dot;
   factor = exp(-dthalf*eta_dot);
 
-  // update v and x of only atoms in NVT group
+  // update v and x of only atoms in group
 
   double **x = atom->x;
   double **v = atom->v;
@@ -169,15 +174,32 @@ void FixNVT::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	x[i][0] += dtv * v[i][0];
+	x[i][1] += dtv * v[i][1];
+	x[i][2] += dtv * v[i][2];
+      }
+    }
+
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	temperature->restore_bias(v[i]);
+	x[i][0] += dtv * v[i][0];
+	x[i][1] += dtv * v[i][1];
+	x[i][2] += dtv * v[i][2];
+      }
     }
   }
 }
@@ -188,7 +210,7 @@ void FixNVT::final_integrate()
 {
   double dtfm;
 
-  // update v of only atoms in NVT group
+  // update v of only atoms in group
 
   double **v = atom->v;
   double **f = atom->f;
@@ -198,12 +220,26 @@ void FixNVT::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]] * factor;
-      v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]] * factor;
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+      }
+    }
+
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]] * factor;
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	temperature->restore_bias(v[i]);
+      }
     }
   }
 
@@ -242,8 +278,9 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // outermost level - update eta_dot and apply to v
-  // all other levels - NVE update of v
+  // outermost level - update eta_dot and apply to v with factor
+  // all other levels - NVE update of v (factor = 1)
+  // innermost level - also update x
 
   if (ilevel == nlevels_respa-1) {
     double delta = update->ntimestep - update->beginstep;
@@ -259,18 +296,28 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
     factor = exp(-dthalf*eta_dot);
   } else factor = 1.0;
 
-  // update v of only atoms in NVT group
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+      }
+    }
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	temperature->restore_bias(v[i]);
+      }
     }
   }
-
-  // innermost level - also update x of only atoms in NVT group
 
   if (ilevel == 0) {
     for (int i = 0; i < nlocal; i++) {
@@ -287,10 +334,9 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 
 void FixNVT::final_integrate_respa(int ilevel)
 {
-  double dtfm;
-
   // set timesteps by level
 
+  double dtfm;
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   dthalf = 0.5 * step_respa[ilevel];
 
@@ -299,9 +345,6 @@ void FixNVT::final_integrate_respa(int ilevel)
 
   if (ilevel == nlevels_respa-1) final_integrate();
   else {
-
-    // update v of only atoms in NVT group
-
     double **v = atom->v;
     double **f = atom->f;
     double *mass = atom->mass;

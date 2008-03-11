@@ -44,6 +44,8 @@ ComputeTempCOM::ComputeTempCOM(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
+  tempbias = 1;
+  vbias[0] = vbias[1] = vbias[2] = 0.0;
 
   vector = new double[6];
 }
@@ -81,12 +83,12 @@ void ComputeTempCOM::recount()
 
 double ComputeTempCOM::compute_scalar()
 {
-  double vcm[3],vthermal[3];
+  double vthermal[3];
 
   invoked |= INVOKED_SCALAR;
 
   if (dynamic) masstotal = group->mass(igroup);
-  group->vcm(igroup,masstotal,vcm);
+  group->vcm(igroup,masstotal,vbias);
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -98,9 +100,9 @@ double ComputeTempCOM::compute_scalar()
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      vthermal[0] = v[i][0] - vcm[0];
-      vthermal[1] = v[i][1] - vcm[1];
-      vthermal[2] = v[i][2] - vcm[2];
+      vthermal[0] = v[i][0] - vbias[0];
+      vthermal[1] = v[i][1] - vbias[1];
+      vthermal[2] = v[i][2] - vbias[2];
       if (mass)
 	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
 	      vthermal[2]*vthermal[2]) * mass[type[i]];
@@ -120,12 +122,12 @@ double ComputeTempCOM::compute_scalar()
 void ComputeTempCOM::compute_vector()
 {
   int i;
-  double vcm[3],vthermal[3];
+  double vthermal[3];
 
   invoked |= INVOKED_VECTOR;
 
   if (dynamic) masstotal = group->mass(igroup);
-  group->vcm(igroup,masstotal,vcm);
+  group->vcm(igroup,masstotal,vbias);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -140,9 +142,9 @@ void ComputeTempCOM::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      vthermal[0] = v[i][0] - vcm[0];
-      vthermal[1] = v[i][1] - vcm[1];
-      vthermal[2] = v[i][2] - vcm[2];
+      vthermal[0] = v[i][0] - vbias[0];
+      vthermal[1] = v[i][1] - vbias[1];
+      vthermal[2] = v[i][2] - vbias[2];
 
       if (mass) massone = mass[type[i]];
       else massone = rmass[i];
@@ -156,4 +158,13 @@ void ComputeTempCOM::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempCOM::remove_bias(int i, double *v)
+{
+  v[0] = v[0] - vbias[0];
+  v[1] = v[1] - vbias[1];
+  v[2] = v[2] - vbias[2];
 }

@@ -30,8 +30,6 @@
 #include "output.h"
 #include "thermo.h"
 #include "fix.h"
-#include "fix_nvt.h"
-#include "fix_langevin.h"
 #include "random_park.h"
 #include "finish.h"
 #include "timer.h"
@@ -40,8 +38,6 @@
 
 using namespace LAMMPS_NS;
 
-#define NVT      1
-#define LANGEVIN 2
 // #define TEMPER_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
@@ -97,10 +93,11 @@ void Temper::command(int narg, char **arg)
 
   // fix style must be appropriate for temperature control
 
-  if (strcmp(modify->fix[whichfix]->style,"nvt") == 0) fixstyle = NVT;
-  else if (strcmp(modify->fix[whichfix]->style,"langevin") == 0) 
-    fixstyle = LANGEVIN;
-  else error->universe_all("Tempering fix is not valid");
+  if ((strcmp(modify->fix[whichfix]->style,"nvt") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"langevin") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/berendsen") != 0) &&
+      (strcmp(modify->fix[whichfix]->style,"temp/rescale") != 0))
+    error->universe_all("Tempering temperature fix is not valid");
 
   // setup for long tempering run
 
@@ -173,10 +170,7 @@ void Temper::command(int narg, char **arg)
 
   if (narg == 7) {
     double new_temp = set_temp[my_set_temp];
-    if (fixstyle == NVT) 
-      ((FixNVT *) modify->fix[whichfix])->reset_target(new_temp);
-    else if (fixstyle == LANGEVIN)
-      ((FixLangevin *) modify->fix[whichfix])->reset_target(new_temp);
+    modify->fix[whichfix]->reset_target(new_temp);
   }
 
   // setup tempering runs
@@ -278,11 +272,8 @@ void Temper::command(int narg, char **arg)
 
     if (swap) {
       new_temp = set_temp[partner_set_temp];
-      if (fixstyle == NVT) 
-	((FixNVT *) modify->fix[whichfix])->reset_target(new_temp);
-      else if (fixstyle == LANGEVIN)
-	((FixLangevin *) modify->fix[whichfix])->reset_target(new_temp);
-    }
+      modify->fix[whichfix]->reset_target(new_temp);
+  }
 
     // update my_set_temp and temp2world on every proc
     // root procs update their value if swap took place

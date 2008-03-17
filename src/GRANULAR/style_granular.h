@@ -21,7 +21,6 @@ AtomStyle(granular,AtomVecGranular)
 
 #ifdef FixInclude
 #include "fix_freeze.h"
-#include "fix_nve_gran.h"
 #include "fix_pour.h"
 #include "fix_shear_history.h"
 #include "fix_wall_gran.h"
@@ -29,7 +28,6 @@ AtomStyle(granular,AtomVecGranular)
 
 #ifdef FixClass
 FixStyle(freeze,FixFreeze)
-FixStyle(nve/gran,FixNVEGran)
 FixStyle(pour,FixPour)
 FixStyle(SHEAR_HISTORY,FixShearHistory)
 FixStyle(wall/gran,FixWallGran)

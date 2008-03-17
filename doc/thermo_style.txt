@@ -12,11 +12,10 @@ thermo_style command :h3
 
 thermo_style style args :pre
 
-style = {one} or {multi} or {granular} or {custom} :ulb,l
+style = {one} or {multi} or {custom} :ulb,l
 args = list of arguments for a particular style :l
   {one} args = none
   {multi} args = none
-  {granular} args = none
   {custom} args = list of attributes
     possible attributes = step, atoms, cpu, temp, press,
                           pe, ke, etotal, enthalpy,
@@ -24,7 +23,6 @@ args = list of arguments for a particular style :l
                           emol, elong, etail,
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
 			  pxx, pyy, pzz, pxy, pxz, pyz
-                          drot, grot,
 			  c_ID, c_ID\[n\], f_ID, f_ID\[n\], v_name
       step = timestep
       atoms = # of atoms
@@ -49,8 +47,6 @@ args = list of arguments for a particular style :l
       lx,ly,lz = box lengths in x,y,z
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
-      drot = rotational energy of dipolar atoms
-      grot = rotational energy of granular atoms
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[N\] = Nth component of global vector calculated by a compute with ID
       f_ID = global scalar value calculated by a fix with ID
@@ -77,10 +73,6 @@ Style {multi} prints a multiple-line listing of thermodynamic info
 that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
-
-Style {granular} is used with "atom style"_atom_style.html granular
-and prints a one-line numeric summary that is the equivalent of
-"thermo_style custom step atoms ke grot".
 
 Style {custom} is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
@@ -159,38 +151,13 @@ the ID of this compute is {thermo_pe} and the group is {all}.  You can
 change the attributes of this potential energy via the
 "compute_modify"_compute_modify.html command.
 
-The {drot} keyword requires a rotational energy to be computed for
-point dipole particles.  To do this, a compute of style
-"rotate/dipole" is created, as if this command had been issued:
-
-compute thermo_rotate_dipole all rotate/dipole :pre
-
-See the "compute rotate/dipole"_compute_rotate_dipole.html command for
-details.  Note that the ID of the new compute is
-{thermo_rotate_dipole} and the group is {all}.  You can change the
-attributes of this computation via the
-"compute_modify"_compute_modify.html command.  Alternatively, you can
-directly assign a new compute which you have defined, to be used for
-{drot}.  This is done via the "thermo_modify"_thermo_modify.html
-command.  For example, this could be useful if you wish to exclude
-certain particles from the computation.
-
-The {grot} keyword requires a rotational energy to be computed for
-granular particles.  To do this, a compute of style "rotate/gran" is
-created, as if this command had been issued:
-
-compute thermo_rotate_gran all rotate/gran :pre
-
-See the "compute rotate/gran"_compute_rotate_gran.html command for
-details.  Note that the ID of the new compute is {thermo_rotate_gran}
-and the group is {all}.  You can change the attributes of this
-computation via the "compute_modify"_compute_modify.html command.
-Alternatively, you can directly assign a new compute which you have
-defined, to be used for {grot}.  This is done via the
-"thermo_modify"_thermo_modify.html command.  For example, this could
-be useful if you wish to exclude frozen particles from the computation.
-
 :line
+
+The kinetic energy of the system {ke} is inferred from the temperature
+of the system with 1/2 Kb T of energy for each degree of freedom.
+Thus using different "compute commands"_compute.html for calculating
+temperature, via the "thermo_modify temp"_thermo_modify.html command,
+may yield different kinetic energies.
 
 The potential energy of the system {pe} will include contributions
 from fixes if the "fix_modify thermo"_fix_modify.html option is set

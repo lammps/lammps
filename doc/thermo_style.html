@@ -15,13 +15,12 @@
 </P>
 <PRE>thermo_style style args 
 </PRE>
-<UL><LI>style = <I>one</I> or <I>multi</I> or <I>granular</I> or <I>custom</I> 
+<UL><LI>style = <I>one</I> or <I>multi</I> or <I>custom</I> 
 
 <LI>args = list of arguments for a particular style 
 
 <PRE>  <I>one</I> args = none
   <I>multi</I> args = none
-  <I>granular</I> args = none
   <I>custom</I> args = list of attributes
     possible attributes = step, atoms, cpu, temp, press,
                           pe, ke, etotal, enthalpy,
@@ -29,7 +28,6 @@
                           emol, elong, etail,
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
 			  pxx, pyy, pzz, pxy, pxz, pyz
-                          drot, grot,
 			  c_ID, c_ID[n], f_ID, f_ID[n], v_name
       step = timestep
       atoms = # of atoms
@@ -54,8 +52,6 @@
       lx,ly,lz = box lengths in x,y,z
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
-      drot = rotational energy of dipolar atoms
-      grot = rotational energy of granular atoms
       c_ID = global scalar value calculated by a compute with ID
       c_ID[N] = Nth component of global vector calculated by a compute with ID
       f_ID = global scalar value calculated by a fix with ID
@@ -83,10 +79,6 @@ press".  The line contains only numeric values.
 that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
-</P>
-<P>Style <I>granular</I> is used with <A HREF = "atom_style.html">atom style</A> granular
-and prints a one-line numeric summary that is the equivalent of
-"thermo_style custom step atoms ke grot".
 </P>
 <P>Style <I>custom</I> is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
@@ -165,39 +157,14 @@ the ID of this compute is <I>thermo_pe</I> and the group is <I>all</I>.  You can
 change the attributes of this potential energy via the
 <A HREF = "compute_modify.html">compute_modify</A> command.
 </P>
-<P>The <I>drot</I> keyword requires a rotational energy to be computed for
-point dipole particles.  To do this, a compute of style
-"rotate/dipole" is created, as if this command had been issued:
-</P>
-<PRE>compute thermo_rotate_dipole all rotate/dipole 
-</PRE>
-<P>See the <A HREF = "compute_rotate_dipole.html">compute rotate/dipole</A> command for
-details.  Note that the ID of the new compute is
-<I>thermo_rotate_dipole</I> and the group is <I>all</I>.  You can change the
-attributes of this computation via the
-<A HREF = "compute_modify.html">compute_modify</A> command.  Alternatively, you can
-directly assign a new compute which you have defined, to be used for
-<I>drot</I>.  This is done via the <A HREF = "thermo_modify.html">thermo_modify</A>
-command.  For example, this could be useful if you wish to exclude
-certain particles from the computation.
-</P>
-<P>The <I>grot</I> keyword requires a rotational energy to be computed for
-granular particles.  To do this, a compute of style "rotate/gran" is
-created, as if this command had been issued:
-</P>
-<PRE>compute thermo_rotate_gran all rotate/gran 
-</PRE>
-<P>See the <A HREF = "compute_rotate_gran.html">compute rotate/gran</A> command for
-details.  Note that the ID of the new compute is <I>thermo_rotate_gran</I>
-and the group is <I>all</I>.  You can change the attributes of this
-computation via the <A HREF = "compute_modify.html">compute_modify</A> command.
-Alternatively, you can directly assign a new compute which you have
-defined, to be used for <I>grot</I>.  This is done via the
-<A HREF = "thermo_modify.html">thermo_modify</A> command.  For example, this could
-be useful if you wish to exclude frozen particles from the computation.
-</P>
 <HR>
 
+<P>The kinetic energy of the system <I>ke</I> is inferred from the temperature
+of the system with 1/2 Kb T of energy for each degree of freedom.
+Thus using different <A HREF = "compute.html">compute commands</A> for calculating
+temperature, via the <A HREF = "thermo_modify.html">thermo_modify temp</A> command,
+may yield different kinetic energies.
+</P>
 <P>The potential energy of the system <I>pe</I> will include contributions
 from fixes if the <A HREF = "fix_modify.html">fix_modify thermo</A> option is set
 for a fix that calculates such a contribution.  For example, the <A HREF = "fix_wall_lj93">fix

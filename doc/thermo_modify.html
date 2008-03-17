@@ -17,9 +17,8 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I> or <I>drot</I> or <I>grot</I> 
-
-<PRE>  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
+keyword = <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I>:l
+  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
   <I>norm</I> value = <I>yes</I> or <I>no</I>
   <I>flush</I> value = <I>yes</I> or <I>no</I>
   <I>line</I> value = <I>one</I> or <I>multi</I>
@@ -28,9 +27,6 @@
     string = C-style format string
   <I>temp</I> value = compute ID that calculates a temperature
   <I>press</I> value = compute ID that calculates a pressure
-  <I>drot</I> value = compute ID that calculates rotational energy for dipolar atoms
-  <I>grot</I> value = compute ID that calculates rotational energy for granular atoms 
-</PRE>
 
 </UL>
 <P><B>Examples:</B>
@@ -113,24 +109,6 @@ the <I>temp</I> keyword comes before the <I>press</I> keyword, then the new
 pressure compute specified by the <I>press</I> keyword will be unaffected
 by the <I>temp</I> setting.
 </P>
-<P>The <I>drot</I> keyword is used to determine how rotational energy is
-calculated for dipolar atoms, which is used by the thermo_style
-keyword <I>drot</I>.  The specified compute ID must have been previously
-defined by the user via the <A HREF = "compute.html">compute</A> command.  As
-described in the <A HREF = "thermo_style.html">thermo_style</A> command, thermo
-output has a default compute for this calculation with ID =
-<I>thermo_rotate_dipole</I>.  This option allows the user to override the
-default.
-</P>
-<P>The <I>grot</I> keyword is used to determine how rotational energy is
-calculated for granular atoms, which is used by the thermo_style
-keyword <I>grot</I>.  The specified compute ID must have been previously
-defined by the user via the <A HREF = "compute.html">compute</A> command.  As
-described in the <A HREF = "thermo_style.html">thermo_style</A> command, thermo
-output has a default compute for this calculation with ID =
-<I>thermo_rotate_gran</I>.  This option allows the user to override the
-default.
-</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -141,11 +119,11 @@ default.
 </P>
 <P>The option defaults are lost = error, norm = yes for unit style of
 <I>lj</I>, norm = no for unit style of <I>real</I> and <I>metal</I>, flush = no,
-temp/press/drot/grot = compute IDs defined by thermo_style.
+temp/press = compute IDs defined by thermo_style.
 </P>
 <P>The defaults for the line and format options depend on the thermo
-style.  For styles "one", "granular", and "custom" the line and format
-defaults are "one", "%8d", and "%12.8g".  For style "multi", the line
-and format defaults are "multi", "%8d", and "%14.4f".
+style.  For styles "one" and and "custom" the line and format defaults
+are "one", "%8d", and "%12.8g".  For style "multi", the line and
+format defaults are "multi", "%8d", and "%14.4f".
 </P>
 </HTML>

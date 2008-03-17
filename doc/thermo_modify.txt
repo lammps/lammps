@@ -13,7 +13,7 @@ thermo_modify command :h3
 thermo_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press} or {drot} or {grot} :l
+keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}:l
   {lost} value = {error} or {warn} or {ignore}
   {norm} value = {yes} or {no}
   {flush} value = {yes} or {no}
@@ -23,8 +23,6 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
     string = C-style format string
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
-  {drot} value = compute ID that calculates rotational energy for dipolar atoms
-  {grot} value = compute ID that calculates rotational energy for granular atoms :pre
 :ule
 
 [Examples:]
@@ -107,24 +105,6 @@ the {temp} keyword comes before the {press} keyword, then the new
 pressure compute specified by the {press} keyword will be unaffected
 by the {temp} setting.
 
-The {drot} keyword is used to determine how rotational energy is
-calculated for dipolar atoms, which is used by the thermo_style
-keyword {drot}.  The specified compute ID must have been previously
-defined by the user via the "compute"_compute.html command.  As
-described in the "thermo_style"_thermo_style.html command, thermo
-output has a default compute for this calculation with ID =
-{thermo_rotate_dipole}.  This option allows the user to override the
-default.
-
-The {grot} keyword is used to determine how rotational energy is
-calculated for granular atoms, which is used by the thermo_style
-keyword {grot}.  The specified compute ID must have been previously
-defined by the user via the "compute"_compute.html command.  As
-described in the "thermo_style"_thermo_style.html command, thermo
-output has a default compute for this calculation with ID =
-{thermo_rotate_gran}.  This option allows the user to override the
-default.
-
 [Restrictions:] none
 
 [Related commands:]
@@ -135,9 +115,9 @@ default.
 
 The option defaults are lost = error, norm = yes for unit style of
 {lj}, norm = no for unit style of {real} and {metal}, flush = no,
-temp/press/drot/grot = compute IDs defined by thermo_style.
+temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo
-style.  For styles "one", "granular", and "custom" the line and format
-defaults are "one", "%8d", and "%12.8g".  For style "multi", the line
-and format defaults are "multi", "%8d", and "%14.4f".
+style.  For styles "one" and and "custom" the line and format defaults
+are "one", "%8d", and "%12.8g".  For style "multi", the line and
+format defaults are "multi", "%8d", and "%14.4f".

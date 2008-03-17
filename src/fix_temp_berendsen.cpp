@@ -35,13 +35,13 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix temp/berendsen command");
 
-  t_start = atof(arg[3]);
-  t_stop = atof(arg[4]);
-  t_period = atof(arg[5]);
-
   // Berendsen thermostat should be applied every step
 
   nevery = 1;
+
+  t_start = atof(arg[3]);
+  t_stop = atof(arg[4]);
+  t_period = atof(arg[5]);
 
   // error checks
 

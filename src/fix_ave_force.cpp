@@ -98,33 +98,33 @@ void FixAveForce::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double sum[3];
-  sum[0] = sum[1] = sum[2] = 0.0;
+  double foriginal[3];
+  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      sum[0] += f[i][0];
-      sum[1] += f[i][1];
-      sum[2] += f[i][2];
+      foriginal[0] += f[i][0];
+      foriginal[1] += f[i][1];
+      foriginal[2] += f[i][2];
     }
 
   // average the force on participating atoms
   // add in requested amount
 
-  double sumall[3];
-  MPI_Allreduce(sum,sumall,3,MPI_DOUBLE,MPI_SUM,world);
-  sumall[0] = sumall[0]/ncount + xvalue;
-  sumall[1] = sumall[1]/ncount + yvalue;
-  sumall[2] = sumall[2]/ncount + zvalue;
+  MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+  double fave[3];
+  fave[0] = foriginal_all[0]/ncount + xvalue;
+  fave[1] = foriginal_all[1]/ncount + yvalue;
+  fave[2] = foriginal_all[2]/ncount + zvalue;
 
   // set force of all participating atoms to same value
   // only for active dimensions
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (xflag) f[i][0] = sumall[0];
-      if (yflag) f[i][1] = sumall[1];
-      if (zflag) f[i][2] = sumall[2];
+      if (xflag) f[i][0] = fave[0];
+      if (yflag) f[i][1] = fave[1];
+      if (zflag) f[i][2] = fave[2];
     }
 }
 
@@ -141,27 +141,27 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    double sum[3];
-    sum[0] = sum[1] = sum[2] = 0.0;
+    double foriginal[3];
+    foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	sum[0] += f[i][0];
-	sum[1] += f[i][1];
-	sum[2] += f[i][2];
+	foriginal[0] += f[i][0];
+	foriginal[1] += f[i][1];
+	foriginal[2] += f[i][2];
       }
 
-    double sumall[3];
-    MPI_Allreduce(sum,sumall,3,MPI_DOUBLE,MPI_SUM,world);
-    sumall[0] = sumall[0]/ncount;
-    sumall[1] = sumall[1]/ncount;
-    sumall[2] = sumall[2]/ncount;
+    MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    double fave[3];
+    fave[0] = foriginal_all[0]/ncount;
+    fave[1] = foriginal_all[1]/ncount;
+    fave[2] = foriginal_all[2]/ncount;
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xflag) f[i][0] = sumall[0];
-	if (yflag) f[i][1] = sumall[1];
-	if (zflag) f[i][2] = sumall[2];
+	if (xflag) f[i][0] = fave[0];
+	if (yflag) f[i][1] = fave[1];
+	if (zflag) f[i][2] = fave[2];
       }
   }
 }
@@ -171,4 +171,13 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 void FixAveForce::min_post_force(int vflag)
 {
   post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   return components of total force on fix group before force was changed
+------------------------------------------------------------------------- */
+
+double FixAveForce::compute_vector(int n)
+{
+  return foriginal_all[n];
 }

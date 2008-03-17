@@ -28,9 +28,12 @@ class FixAddForce : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  double compute_vector(int);
 
  private:
   double xvalue,yvalue,zvalue;
+  double foriginal[3],foriginal_all[3];
+  int force_flag;
   int nlevels_respa;
 };
 

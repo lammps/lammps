@@ -28,10 +28,12 @@ class FixAveForce : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  double compute_vector(int);
 
  private:
   int xflag,yflag,zflag;
   double xvalue,yvalue,zvalue;
+  double foriginal_all[3];
   int ncount;
   int nlevels_respa;
 };

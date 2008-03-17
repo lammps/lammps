@@ -142,7 +142,7 @@ void FixSetForce::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   return components of total force on fix group before reset
+   return components of total force on fix group before force was changed
 ------------------------------------------------------------------------- */
 
 double FixSetForce::compute_vector(int n)

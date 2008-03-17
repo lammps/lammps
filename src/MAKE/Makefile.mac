@@ -5,10 +5,10 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		c++
-CCFLAGS =	-O -I../STUBS -I/sw/include -DFFT_FFTW
+CCFLAGS =	-O -I../STUBS -DFFT_FFTW
 DEPFLAGS =	-M
 LINK =		c++
-LINKFLAGS =	-O -L/sw/lib
+LINKFLAGS =	-O
 USRLIB =	-lfftw ../STUBS/mpi.o
 SYSLIB = 
 SIZE =		size

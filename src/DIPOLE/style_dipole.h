@@ -19,22 +19,6 @@
 AtomStyle(dipole,AtomVecDipole)
 #endif
 
-#ifdef ComputeInclude
-#include "compute_temp_dipole.h"
-#endif
-
-#ifdef ComputeClass
-ComputeStyle(temp/dipole,ComputeTempDipole)
-#endif
-
-#ifdef FixInclude
-#include "fix_nve_dipole.h"
-#endif
-
-#ifdef FixClass
-FixStyle(nve/dipole,FixNVEDipole)
-#endif
-
 #ifdef PairInclude
 #include "pair_dipole_cut.h"
 #endif

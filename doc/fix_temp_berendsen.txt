@@ -24,7 +24,7 @@ fix 1 all nvt 300.0 300.0 100.0 :pre
 [Description:]
 
 Reset the temperature of a group of atoms by using a Berendsen
-thermostat "(Berendsen)"_#Berendsen, which rescale their velocities
+thermostat "(Berendsen)"_#Berendsen, which rescales their velocities
 every timestep.
 
 The desired temperature at each timestep is a ramped value during the
@@ -105,7 +105,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 "fix nve"_fix_nve.html, "fix nvt"_fix_nvt.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
-"fix_modify"_fix_modify.html, "compute temp"_compute_temp.html
+"fix_modify"_fix_modify.html, "compute temp"_compute_temp.html,
+"fix press/berendsen"_fix_press_berendsen.html
 
 [Default:] none
 

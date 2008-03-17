@@ -62,7 +62,7 @@ performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies forces to effect
 thermostatting.  Thus you must use a separate time integration fix,
 like "fix nve"_fix_nve.html to actually update the velocities and
-positions of atoms using the the modified forces.  Likewise, this fix
+positions of atoms using the modified forces.  Likewise, this fix
 should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. by "fix nvt"_fix_nvt.html or "fix
 temp/rescale"_fix_temp_rescale.html commands.

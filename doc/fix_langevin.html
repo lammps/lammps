@@ -72,7 +72,7 @@ performs Nose/Hoover thermostatting AND time integration, this fix
 does NOT perform time integration.  It only modifies forces to effect
 thermostatting.  Thus you must use a separate time integration fix,
 like <A HREF = "fix_nve.html">fix nve</A> to actually update the velocities and
-positions of atoms using the the modified forces.  Likewise, this fix
+positions of atoms using the modified forces.  Likewise, this fix
 should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. by <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix
 temp/rescale</A> commands.

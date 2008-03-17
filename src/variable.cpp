@@ -582,6 +582,7 @@ double Variable::evaluate(char *str, Tree **tree)
         Tree *newtree = new Tree();
 	newtree->type = VALUE;
 	newtree->value = atof(number);
+	newtree->left = newtree->right = NULL;
 	treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = atof(number);
 
@@ -654,6 +655,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = value1;
+	    newtree->left = newtree->right = NULL;
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 
@@ -669,6 +671,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = value1;
+	    newtree->left = newtree->right = NULL;
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 
@@ -685,6 +688,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  newtree->type = ATOMARRAY;
 	  newtree->array = compute->scalar_atom;
 	  newtree->nstride = 1;
+	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
         // c_ID[N] = global value from per-atom scalar
@@ -712,6 +716,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  newtree->type = ATOMARRAY;
 	  newtree->array = &compute->vector_atom[0][index2-1];
 	  newtree->nstride = compute->size_peratom;
+	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
         // c_ID[N][2] = global value from per-atom vector
@@ -776,6 +781,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = value1;
+	    newtree->left = newtree->right = NULL;
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 
@@ -792,6 +798,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = value1;
+	    newtree->left = newtree->right = NULL;
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 
@@ -808,6 +815,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  newtree->type = ATOMARRAY;
 	  newtree->array = fix->scalar_atom;
 	  newtree->nstride = 1;
+	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
         // f_ID[N] = global value from per-atom scalar
@@ -835,6 +843,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  newtree->type = ATOMARRAY;
 	  newtree->array = &fix->vector_atom[0][index2-1];
 	  newtree->nstride = fix->size_peratom;
+	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
         // f_ID[N][2] = global value from per-atom vector
@@ -888,6 +897,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = atof(var);
+	    newtree->left = newtree->right = NULL;
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = atof(var);
 
@@ -970,6 +980,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
 	    newtree->value = value1;
+	    newtree->left = newtree->right = NULL;
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 	}
@@ -1007,9 +1018,13 @@ double Variable::evaluate(char *str, Tree **tree)
 	if (tree) {
 	  Tree *newtree = new Tree();
 	  newtree->type = opprevious;
-	  newtree->right = treestack[--ntreestack];
-	  if (opprevious == UNARY) newtree->left = newtree->right;
-	  else newtree->left = treestack[--ntreestack];
+	  if (opprevious == UNARY) {
+	    newtree->left = treestack[--ntreestack];
+	    newtree->right = NULL;
+	  } else {
+	    newtree->right = treestack[--ntreestack];
+	    newtree->left = treestack[--ntreestack];
+	  }
 	  treestack[ntreestack++] = newtree;
 
 	} else {
@@ -1200,6 +1215,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     Tree *argtree;
     double tmp = evaluate(contents,&argtree);
     newtree->left = argtree;
+    newtree->right = NULL;
     treestack[ntreestack++] = newtree;
   } else value = evaluate(contents,NULL);
     
@@ -1266,6 +1282,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   if (tree) {
     newtree = new Tree();
     newtree->type = VALUE;
+    newtree->left = newtree->right = NULL;
     treestack[ntreestack++] = newtree;
   }
 
@@ -1401,6 +1418,7 @@ void Variable::peratom2global(int flag, char *word,
     Tree *newtree = new Tree();
     newtree->type = VALUE;
     newtree->value = value;
+    newtree->left = newtree->right = NULL;
     treestack[ntreestack++] = newtree;
   } else argstack[nargstack++] = value;
 }
@@ -1421,6 +1439,7 @@ void Variable::atom_vector(char *word, Tree **tree,
   Tree *newtree = new Tree();
   newtree->type = ATOMARRAY;
   newtree->nstride = 3;
+  newtree->left = newtree->right = NULL;
   treestack[ntreestack++] = newtree;
 	    
   if (strcmp(word,"mass") == 0) {

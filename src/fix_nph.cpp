@@ -312,8 +312,8 @@ void FixNPH::setup(int vflag)
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];
 
-  double tmp = temperature->compute_scalar();
   if (press_couple == 0) {
+    double tmp = temperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
@@ -425,8 +425,8 @@ void FixNPH::final_integrate()
 
   // compute new pressure
 
-  double tmp = temperature->compute_scalar();
   if (press_couple == 0) {
+    double tmp = temperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();

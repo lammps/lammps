@@ -85,8 +85,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
 #include "compute_reduce.h"
-#include "compute_rotate_dipole.h"
-#include "compute_rotate_gran.h"
+#include "compute_erotate_sphere.h"
 #include "compute_stress_atom.h"
 #include "compute_temp.h"
 #include "compute_temp_com.h"
@@ -94,6 +93,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_temp_partial.h"
 #include "compute_temp_ramp.h"
 #include "compute_temp_region.h"
+#include "compute_temp_sphere.h"
 #endif
 
 #ifdef ComputeClass
@@ -106,8 +106,7 @@ ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)
 ComputeStyle(reduce,ComputeReduce)
-ComputeStyle(rotate/dipole,ComputeRotateDipole)
-ComputeStyle(rotate/gran,ComputeRotateGran)
+ComputeStyle(erotate/sphere,ComputeERotateSphere)
 ComputeStyle(stress/atom,ComputeStressAtom)
 ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/com,ComputeTempCOM)
@@ -115,6 +114,7 @@ ComputeStyle(temp/deform,ComputeTempDeform)
 ComputeStyle(temp/partial,ComputeTempPartial)
 ComputeStyle(temp/ramp,ComputeTempRamp)
 ComputeStyle(temp/region,ComputeTempRegion)
+ComputeStyle(temp/sphere,ComputeTempSphere)
 #endif
 
 #ifdef DihedralInclude
@@ -165,6 +165,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_nve.h"
 #include "fix_nve_limit.h"
 #include "fix_nve_noforce.h"
+#include "fix_nve_sphere.h"
 #include "fix_nvt.h"
 #include "fix_nvt_sllod.h"
 #include "fix_plane_force.h"
@@ -219,6 +220,7 @@ FixStyle(npt,FixNPT)
 FixStyle(nve,FixNVE)
 FixStyle(nve/limit,FixNVELimit)
 FixStyle(nve/noforce,FixNVENoforce)
+FixStyle(nve/sphere,FixNVESphere)
 FixStyle(nvt,FixNVT)
 FixStyle(nvt/sllod,FixNVTSlodd)
 FixStyle(orient/fcc,FixOrientFCC)

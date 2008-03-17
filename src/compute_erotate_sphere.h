@@ -11,21 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_ROTATE_DIPOLE_H
-#define COMPUTE_ROTATE_DIPOLE_H
+#ifndef COMPUTE_EROTATE_SPHERE_H
+#define COMPUTE_EROTATE_SPHERE_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeRotateDipole : public Compute {
+class ComputeERotateSphere : public Compute {
  public:
-  ComputeRotateDipole(class LAMMPS *, int, char **);
-  ~ComputeRotateDipole();
+  ComputeERotateSphere(class LAMMPS *, int, char **);
+  ~ComputeERotateSphere();
   void init();
   double compute_scalar();
 
  private:
+  double pfactor;
   double *inertia;
 };
 

@@ -11,21 +11,27 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_ROTATE_GRAN_H
-#define COMPUTE_ROTATE_GRAN_H
+#ifndef COMPUTE_TEMP_SPHERE_H
+#define COMPUTE_TEMP_SPHERE_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeRotateGran : public Compute {
+class ComputeTempSphere : public Compute {
  public:
-  ComputeRotateGran(class LAMMPS *, int, char **);
+  ComputeTempSphere(class LAMMPS *, int, char **);
+  ~ComputeTempSphere();
   void init();
   double compute_scalar();
+  void compute_vector();
 
  private:
-  double pfactor;
+  int fix_dof;
+  double tfactor;
+  double *inertia;
+
+  void recount();
 };
 
 }

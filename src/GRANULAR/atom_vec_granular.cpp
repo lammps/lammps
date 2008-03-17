@@ -41,7 +41,7 @@ AtomVecGranular::AtomVecGranular(LAMMPS *lmp, int narg, char **arg) :
   xcol_data = 5;
 
   atom->radius_flag = atom->density_flag = atom->rmass_flag = 1;
-  atom->xorient_flag = atom->omega_flag = atom->torque_flag = 1;
+  atom->omega_flag = atom->torque_flag = 1;
 
   PI = 4.0*atan(1.0);
 }
@@ -77,8 +77,6 @@ void AtomVecGranular::grow(int n)
   rmass = atom->rmass = (double *)
     memory->srealloc(atom->rmass,nmax*sizeof(double),"atom:rmass");
 
-  xorient = atom->xorient = 
-    memory->grow_2d_double_array(atom->xorient,nmax,3,"atom:xorient");
   omega = atom->omega = 
     memory->grow_2d_double_array(atom->omega,nmax,3,"atom:omega");
   torque = atom->torque =
@@ -107,9 +105,6 @@ void AtomVecGranular::copy(int i, int j)
   radius[j] = radius[i];
   density[j] = density[i];
   rmass[j] = rmass[i];
-  xorient[j][0] = xorient[i][0];
-  xorient[j][1] = xorient[i][1];
-  xorient[j][2] = xorient[i][2];
   omega[j][0] = omega[i][0];
   omega[j][1] = omega[i][1];
   omega[j][2] = omega[i][2];
@@ -408,9 +403,6 @@ int AtomVecGranular::pack_exchange(int i, double *buf)
   buf[m++] = radius[i];
   buf[m++] = density[i];
   buf[m++] = rmass[i];
-  buf[m++] = xorient[i][0];
-  buf[m++] = xorient[i][1];
-  buf[m++] = xorient[i][2];
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
@@ -445,9 +437,6 @@ int AtomVecGranular::unpack_exchange(double *buf)
   radius[nlocal] = buf[m++];
   density[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
-  xorient[nlocal][0] = buf[m++];
-  xorient[nlocal][1] = buf[m++];
-  xorient[nlocal][2] = buf[m++];
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
@@ -503,9 +492,6 @@ int AtomVecGranular::pack_restart(int i, double *buf)
 
   buf[m++] = radius[i];
   buf[m++] = density[i];
-  buf[m++] = xorient[i][0];
-  buf[m++] = xorient[i][1];
-  buf[m++] = xorient[i][2];
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
@@ -553,9 +539,6 @@ int AtomVecGranular::unpack_restart(double *buf)
   else
     rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
 
-  xorient[nlocal][0] = buf[m++];
-  xorient[nlocal][1] = buf[m++];
-  xorient[nlocal][2] = buf[m++];
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
@@ -598,9 +581,6 @@ void AtomVecGranular::create_atom(int itype, double *coord)
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
   else
     rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
-  xorient[nlocal][0] = 0.0;
-  xorient[nlocal][1] = 0.0;
-  xorient[nlocal][2] = 0.0;
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
@@ -644,9 +624,6 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values)
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
-  xorient[nlocal][0] = 1.0;
-  xorient[nlocal][1] = 0.0;
-  xorient[nlocal][2] = 0.0;
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
@@ -672,9 +649,6 @@ int AtomVecGranular::data_atom_hybrid(int nlocal, char **values)
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
-  xorient[nlocal][0] = 1.0;
-  xorient[nlocal][1] = 0.0;
-  xorient[nlocal][2] = 0.0;
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
@@ -727,7 +701,6 @@ double AtomVecGranular::memory_usage()
   if (atom->memcheck("radius")) bytes += nmax * sizeof(double);
   if (atom->memcheck("density")) bytes += nmax * sizeof(double);
   if (atom->memcheck("rmass")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("xorient")) bytes += nmax*3 * sizeof(double);
   if (atom->memcheck("omega")) bytes += nmax*3 * sizeof(double);
   if (atom->memcheck("torque")) bytes += nmax*3 * sizeof(double);
 

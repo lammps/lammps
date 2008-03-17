@@ -44,14 +44,11 @@ using namespace LAMMPS_NS;
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
 // pxx, pyy, pzz, pxy, pxz, pyz
-// drot, grot (rotational KE for dipole and granular particles)
 
 // customize a new thermo style by adding a DEFINE to this list
 
 #define ONE "step temp epair emol etotal press"
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
-#define GRANULAR "step atoms ke grot"
-#define DIPOLE "step temp epair drot etotal press"
 
 enum{IGNORE,WARN,ERROR};           // same as write_restart.cpp
 enum{ONELINE,MULTILINE};
@@ -97,10 +94,6 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   } else if (strcmp(style,"multi") == 0) {
     strcpy(line,MULTI);
     lineflag = MULTILINE;
-  } else if (strcmp(style,"granular") == 0) {
-    strcpy(line,GRANULAR);
-  } else if (strcmp(style,"dipole") == 0) {
-    strcpy(line,DIPOLE);
 
   } else if (strcmp(style,"custom") == 0) {
     if (narg == 1) error->all("Illegal thermo style custom command");
@@ -118,18 +111,12 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   temperature = NULL;
   pressure = NULL;
   pe = NULL;
-  rotate_dipole = NULL;
-  rotate_gran = NULL;
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
-  index_drot = index_grot = -1;
-  internal_drot = internal_grot = 0;
 
   id_temp = (char *) "thermo_temp";
   id_press = (char *) "thermo_press";
   id_pe = (char *) "thermo_pe";
-  id_drot = (char *) "thermo_rotate_dipole";
-  id_grot = (char *) "thermo_rotate_gran";
 
   // count fields in line
   // allocate per-field memory
@@ -138,18 +125,6 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   nfield_initial = atom->count_words(line);
   allocate();
   parse_fields(line);
-
-  // create the requested compute styles
-  // temperature,pressure,pe always exist b/c Output class created them
-
-  if (index_drot >= 0) {
-    create_compute(id_drot,(char *) "rotate/dipole",NULL);
-    internal_drot = 1;
-  }
-  if (index_grot >= 0) {
-    create_compute(id_grot,(char *) "rotate/gran",NULL);
-    internal_grot = 1;
-  }
 
   // format strings
 
@@ -170,13 +145,6 @@ Thermo::~Thermo()
   delete [] style;
   delete [] line;
 
-  // delete Compute classes if thermo created them
-
-  if (index_drot >= 0 && internal_drot)
-    modify->delete_compute(id_compute[index_drot]);
-  if (index_grot >= 0 && internal_grot)
-    modify->delete_compute(id_compute[index_grot]);
-
   deallocate();
 
   // format strings
@@ -194,7 +162,6 @@ void Thermo::init()
   // set normvalue to default setting unless user has specified it
 
   if (normuserflag) normvalue = normuser;
-  else if (strcmp(style,"granular") == 0) normvalue = 0;
   else if (strcmp(update->unit_style,"lj") == 0) normvalue = 1;
   else normvalue = 0;
 
@@ -267,8 +234,6 @@ void Thermo::init()
   if (index_press_scalar >= 0) pressure = computes[index_press_scalar];
   if (index_press_vector >= 0) pressure = computes[index_press_vector];
   if (index_pe >= 0) pe = computes[index_pe];
-  if (index_drot >= 0) rotate_dipole = computes[index_drot];
-  if (index_grot >= 0) rotate_gran = computes[index_grot];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -453,38 +418,6 @@ void Thermo::modify_params(int narg, char **arg)
       if (pressure->pressflag == 0)
 	error->all("Thermo_modify press ID does not compute pressure");
 
-      iarg += 2;
-
-    } else if (strcmp(arg[iarg],"drot") == 0) {
-      if (iarg+2 > narg) error->all("Illegal thermo_modify command");
-      if (index_drot < 0) error->all("Thermo style does not use drot");
-      if (internal_drot) {
-	modify->delete_compute(id_compute[index_drot]);
-	internal_drot = 0;
-      }
-      delete [] id_compute[index_drot];
-      int n = strlen(arg[iarg+1]) + 1;
-      id_compute[index_drot] = new char[n];
-      strcpy(id_compute[index_drot],arg[iarg+1]);
-
-      int icompute = modify->find_compute(id_compute[index_drot]);
-      if (icompute < 0) error->all("Could not find thermo_modify drot ID");
-      iarg += 2;
-
-    } else if (strcmp(arg[iarg],"grot") == 0) {
-      if (iarg+2 > narg) error->all("Illegal thermo_modify command");
-      if (index_grot < 0) error->all("Thermo style does not use grot");
-      if (internal_grot) {
-	modify->delete_compute(id_compute[index_grot]);
-	internal_grot = 0;
-      }
-      delete [] id_compute[index_grot];
-      int n = strlen(arg[iarg+1]) + 1;
-      id_compute[index_grot] = new char[n];
-      strcpy(id_compute[index_grot],arg[iarg+1]);
-
-      int icompute = modify->find_compute(id_compute[index_grot]);
-      if (icompute < 0) error->all("Could not find thermo_modify grot ID");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"lost") == 0) {
@@ -740,13 +673,6 @@ void Thermo::parse_fields(char *str)
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
       index_press_vector = add_compute(id_press,1);
 
-    } else if (strcmp(word,"drot") == 0) {
-      addfield("RotKEdip",&Thermo::compute_drot,FLOAT);
-      index_drot = add_compute(id_drot,0);
-    } else if (strcmp(word,"grot") == 0) {
-      addfield("RotKEgrn",&Thermo::compute_grot,FLOAT);
-      index_grot = add_compute(id_grot,0);
-
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // if no trailing [], then arg is set to 0, else arg is between []
     // copy = at most 8 chars of ID to pass to addfield
@@ -925,14 +851,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pe)
       error->all("Variable uses compute via thermo keyword that thermo does not");
 
-  if (strcmp(word,"drot") == 0)
-    if (!rotate_dipole)
-      error->all("Variable uses compute via thermo keyword that thermo does not");
-
-  if (strcmp(word,"grot") == 0)
-    if (!rotate_gran)
-      error->all("Variable uses compute via thermo keyword that thermo does not");
-
   // set compute_pe invocation flag for keywords that use energy
   // but don't call compute_pe explicitly
 
@@ -1004,9 +922,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"pxy") == 0) compute_pxy();
   else if (strcmp(word,"pxz") == 0) compute_pxz();
   else if (strcmp(word,"pyz") == 0) compute_pyz();
-  
-  else if (strcmp(word,"drot") == 0) compute_drot();
-  else if (strcmp(word,"grot") == 0) compute_grot();
 
   else return 1;
 
@@ -1439,24 +1354,4 @@ void Thermo::compute_pyz()
   if (thermoflag == 0 && !(pressure->invoked & INVOKED_VECTOR))
     pressure->compute_vector();
   dvalue = pressure->vector[5];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_drot()
-{
-  if (thermoflag || rotate_dipole->invoked & INVOKED_SCALAR)
-    dvalue = rotate_dipole->scalar;
-  else dvalue = rotate_dipole->compute_scalar();
-  if (normflag) dvalue /= natoms;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_grot()
-{
-  if (thermoflag || rotate_gran->invoked & INVOKED_SCALAR)
-    dvalue = rotate_gran->scalar;
-  else dvalue = rotate_gran->compute_scalar();
-  if (normflag) dvalue /= natoms;
 }

@@ -66,14 +66,11 @@ class Thermo : protected Pointers {
 
                          // data for keyword-specific Compute objects
                          // index = where they are in computes list
-                         // internal = 1/0 if Thermo created them or not
                          // id = ID of Compute objects
                          // Compute * = ptrs to the Compute objects
   int index_temp,index_press_scalar,index_press_vector,index_pe;
-  int index_drot,index_grot;
-  int internal_drot,internal_grot;
-  char *id_temp,*id_press,*id_pe,*id_drot,*id_grot;
-  class Compute *temperature,*pressure,*pe,*rotate_dipole,*rotate_gran;
+  char *id_temp,*id_press,*id_pe;
+  class Compute *temperature,*pressure,*pe;
 
   int ncompute;                // # of Compute objects called by thermo
   char **id_compute;           // their IDs
@@ -154,9 +151,6 @@ class Thermo : protected Pointers {
   void compute_pxy();
   void compute_pyz();
   void compute_pxz();
-
-  void compute_drot();
-  void compute_grot();
 };
 
 }

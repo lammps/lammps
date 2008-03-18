@@ -50,7 +50,7 @@ velocity     upper set 3.0 0.0 0.0
 fix	     3 boundary setforce 0.0 0.0 0.0
 fix	     4 all enforce2d
 
-# Poisseuille flow
+# Poiseuille flow
 
 #velocity     boundary set 0.0 0.0 0.0
 #fix	     3 lower setforce 0.0 0.0 0.0

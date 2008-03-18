@@ -209,8 +209,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     error->all("Lattice orient vectors are not orthogonal");
   if (!right_handed())
     error->all("Lattice orient vectors are not right-handed");
-  if (colinear())
-    error->all("Lattice primitive vectors are colinear");
+  if (collinear())
+    error->all("Lattice primitive vectors are collinear");
 
   if (dimension == 2) {
     if (origin[2] != 0.0)
@@ -321,10 +321,10 @@ int Lattice::right_handed()
 }
 
 /* ----------------------------------------------------------------------
-   check colinearity of each pair of primitive vectors
+   check collinearity of each pair of primitive vectors
 ------------------------------------------------------------------------- */
 
-int Lattice::colinear()
+int Lattice::collinear()
 {
   double vec[3];
   cross(a1,a2,vec);

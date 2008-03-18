@@ -48,7 +48,7 @@ private:
 
   int orthogonal();
   int right_handed();
-  int colinear();
+  int collinear();
   void setup_transform();
   void add_basis(double, double, double);
   double dot(double *, double *);

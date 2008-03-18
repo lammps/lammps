@@ -6,14 +6,14 @@
 
 :line
 
-fix nph command :h3
+fix press/berendsen command :h3
 
 [Syntax:]
 
-fix ID group-ID nph p-style args keyword value ... :pre
+fix ID group-ID press/berendsen p-style args keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-nph = style name of this fix command :l
+press/berendsen = style name of this fix command :l
 p-style = {xyz} or {xy} or {yz} or {xz} or {aniso} :l
   {xyz} args = Pstart Pstop Pdamp
     Pstart,Pstop = desired pressure at start/end of run (pressure units)
@@ -28,32 +28,21 @@ p-style = {xyz} or {xy} or {yz} or {xz} or {aniso} :l
     Pdamp = pressure damping parameter (time units) :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {drag} or {dilate} :l
-  {drag} value = drag factor added to barostat (0.0 = no drag)
+keyword = {dilate} :l
   {dilate} value = {all} or {partial} :pre
 :ule
 
 [Examples:]
 
-fix 1 all nph xyz 0.0 0.0 1000.0
-fix 2 all nph xz 5.0 5.0 NULL NULL 5.0 5.0 1000.0 drag 1.0
-fix 2 all nph aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 :pre
+fix 1 all press/berendsen xyz 0.0 0.0 1000.0
+fix 2 all press/berendsen aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 dilate partial :pre
 
 [Description:]
 
-Perform constant NPH integration to update positions and velocities
-each timestep for atoms in the group using a Nose/Hoover pressure
-barostat "(Hoover)"_#Hoover, implemented as described in
-"(Melchionna)"_#Melchionna.  P is pressure.  This creates a system
-trajectory consistent with the isobaric ensemble.  Unlike "fix
-npt"_fix_npt.html, temperature will not be controlled if no other fix
-is used.  Temperature can be controlled independently by using a
-thermostatting fis such as "fix langevin"_fix_langevin.html or "fix
-temp/rescale"_fix_temp_rescale.html.
-
-The atoms in the fix group are the only ones whose velocities and
-positions are updated by the velocity/position update portion of the
-NPT integration.
+Reset the pressure of the system by using a Berendsen barostat
+"(Berendsen)"_#Berendsen, which rescales the system volume and
+(optionally) the atoms coordinates withing the simulation box every
+timestep.
 
 Regardless of what atoms are in the fix group, a global pressure is
 computed for all atoms.  Similarly, when the size of the simulation
@@ -63,14 +52,16 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
-IMPORTANT NOTE: Unlike the "fix
-press/berendsen"_fix_press_berendsen.html command which performs
-barostatting but NO time integration, this fix performs barostatting
-AND time integration.  Thus you should not use any other time
-integration fix, such as "fix nve"_fix_nve.html or "fix
-nvt"_fix_nvt.html on atoms to which this fix is applied.  Use "fix
-npt"_fix_npt.html instead of this fix, if you want to control both
-temperature and pressure via Nose/Hoover.
+IMPORTANT NOTE: Unlike the "fix npt"_fix_npt.html or "fix
+nph"_fix_nph.html commands which perform Nose/Hoover barostatting AND
+time integration, this fix does NOT perform time integration.  It only
+modifies the box size and atom coordinates to effect barostatting.
+Thus you must use a separate time integration fix, like "fix
+nve"_fix_nve.html or "fix nvt"_fix_nvt.html to actually update the
+positions and velocities of atoms.  This fix can be used in
+conjunction with thermostatting fixes to control the temperature, such
+as "fix nvt"_fix_nvt.html or "fix langevin"_fix_langevin.html or "fix
+temp/berendsen"_fix_temp_berendsen,html.
 
 :line
 
@@ -147,31 +138,20 @@ It also means that changing attributes of {thermo_temp} or
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-This fix writes the state of the Nose/Hoover barostat to "binary
-restart files"_restart.html.  See the "read_restart"_read_restart.html
-command for info on how to re-specify a fix in an input script that
-reads a restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
+No information about this fix is written to "binary restart
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {temp} and {press} options are
 supported by this fix.  You can use them to assign a
 "compute"_compute.html you have defined to this fix which will be used
-in its thermostatting or barostatting procedure.  If you do this, note
+in its temperature and pressure calculations.  If you do this, note
 that the kinetic energy derived from the compute temperature should be
 consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
-The "fix_modify"_fix_modify.html {energy} option is supported by this
-fix to add the energy change induced by Nose/Hoover barostatting to
-the system's potential energy as part of "thermodynamic
-output"_thermo_style.html.
-
-The potential energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive", meaning it scales with the number of atoms in
-the simulation.
+No global scalar or vector or per-atom quantities are stored by this
+fix for access by various "output commands"_Section_howto.html#4_15.
 
 This fix can ramp its target pressure over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -187,18 +167,17 @@ non-periodic or periodic.
 
 [Related commands:]
 
-"fix nve"_fix_nve.html, "fix npt"_fix_npt.html,
+"fix nve"_fix_nve.html, "fix nph"_fix_nph.html, "fix
+npt"_fix_npt.html, "fix temp/berendsen"_fix_temp_berendsen.html,
 "fix_modify"_fix_modify.html
 
 [Default:]
 
-The keyword defaults are drag = 0.0 and dilate = all.
+The keyword defaults are dilate = all.
 
 :line
 
-:link(Hoover)
-[(Hoover)] Hoover, Phys Rev A, 34, 2499 (1986).
+:link(Berendsen)
 
-:link(Melchionna)
-[(Melchionna)] Melchionna, Ciccotti, Holian, Molecular Physics, 78,
-533-44 (1993).
+[(Berendsen)] Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
+Phys, 81, 3684 (1984).

@@ -140,6 +140,8 @@ list of fix styles available in LAMMPS:
 "poems"_fix_poems.html - constrain clusters of atoms to move \
   as coupled rigid bodies
 "pour"_fix_pour.html - pour new atoms into a granular simulation domain
+"press/berendsen"_fix_press_berendsen.html - pressure control by \
+     Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
 "rdf"_fix_rdf.html - compute radial distribution functions
 "recenter"_fix_recenter.html - constrain the center-of-mass position \

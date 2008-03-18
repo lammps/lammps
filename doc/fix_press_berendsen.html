@@ -9,15 +9,15 @@
 
 <HR>
 
-<H3>fix nph command 
+<H3>fix press/berendsen command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID nph p-style args keyword value ... 
+<PRE>fix ID group-ID press/berendsen p-style args keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>nph = style name of this fix command 
+<LI>press/berendsen = style name of this fix command 
 
 <LI>p-style = <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> 
 
@@ -35,34 +35,23 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>drag</I> or <I>dilate</I> 
+<LI>keyword = <I>dilate</I> 
 
-<PRE>  <I>drag</I> value = drag factor added to barostat (0.0 = no drag)
-  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all nph xyz 0.0 0.0 1000.0
-fix 2 all nph xz 5.0 5.0 NULL NULL 5.0 5.0 1000.0 drag 1.0
-fix 2 all nph aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 
+<PRE>fix 1 all press/berendsen xyz 0.0 0.0 1000.0
+fix 2 all press/berendsen aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0 dilate partial 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Perform constant NPH integration to update positions and velocities
-each timestep for atoms in the group using a Nose/Hoover pressure
-barostat <A HREF = "#Hoover">(Hoover)</A>, implemented as described in
-<A HREF = "#Melchionna">(Melchionna)</A>.  P is pressure.  This creates a system
-trajectory consistent with the isobaric ensemble.  Unlike <A HREF = "fix_npt.html">fix
-npt</A>, temperature will not be controlled if no other fix
-is used.  Temperature can be controlled independently by using a
-thermostatting fis such as <A HREF = "fix_langevin.html">fix langevin</A> or <A HREF = "fix_temp_rescale.html">fix
-temp/rescale</A>.
-</P>
-<P>The atoms in the fix group are the only ones whose velocities and
-positions are updated by the velocity/position update portion of the
-NPT integration.
+<P>Reset the pressure of the system by using a Berendsen barostat
+<A HREF = "#Berendsen">(Berendsen)</A>, which rescales the system volume and
+(optionally) the atoms coordinates withing the simulation box every
+timestep.
 </P>
 <P>Regardless of what atoms are in the fix group, a global pressure is
 computed for all atoms.  Similarly, when the size of the simulation
@@ -72,14 +61,16 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 </P>
-<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_press_berendsen.html">fix
-press/berendsen</A> command which performs
-barostatting but NO time integration, this fix performs barostatting
-AND time integration.  Thus you should not use any other time
-integration fix, such as <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nvt.html">fix
-nvt</A> on atoms to which this fix is applied.  Use <A HREF = "fix_npt.html">fix
-npt</A> instead of this fix, if you want to control both
-temperature and pressure via Nose/Hoover.
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_npt.html">fix npt</A> or <A HREF = "fix_nph.html">fix
+nph</A> commands which perform Nose/Hoover barostatting AND
+time integration, this fix does NOT perform time integration.  It only
+modifies the box size and atom coordinates to effect barostatting.
+Thus you must use a separate time integration fix, like <A HREF = "fix_nve.html">fix
+nve</A> or <A HREF = "fix_nvt.html">fix nvt</A> to actually update the
+positions and velocities of atoms.  This fix can be used in
+conjunction with thermostatting fixes to control the temperature, such
+as <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix langevin</A> or <A HREF = "fix_temp_berendsen,html">fix
+temp/berendsen</A>.
 </P>
 <HR>
 
@@ -157,31 +148,20 @@ It also means that changing attributes of <I>thermo_temp</I> or
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
-<P>This fix writes the state of the Nose/Hoover barostat to <A HREF = "restart.html">binary
-restart files</A>.  See the <A HREF = "read_restart.html">read_restart</A>
-command for info on how to re-specify a fix in an input script that
-reads a restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
 </P>
 <P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
 supported by this fix.  You can use them to assign a
 <A HREF = "compute.html">compute</A> you have defined to this fix which will be used
-in its thermostatting or barostatting procedure.  If you do this, note
+in its temperature and pressure calculations.  If you do this, note
 that the kinetic energy derived from the compute temperature should be
 consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 </P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
-fix to add the energy change induced by Nose/Hoover barostatting to
-the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.
-</P>
-<P>The potential energy change due to this fix is stored as a scalar
-quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The scalar value calculated by
-this fix is "extensive", meaning it scales with the number of atoms in
-the simulation.
+<P>No global scalar or vector or per-atom quantities are stored by this
+fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
 </P>
 <P>This fix can ramp its target pressure over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
@@ -197,22 +177,19 @@ non-periodic or periodic.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_npt.html">fix npt</A>,
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nph.html">fix nph</A>, <A HREF = "fix_npt.html">fix
+npt</A>, <A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>,
 <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are drag = 0.0 and dilate = all.
+<P>The keyword defaults are dilate = all.
 </P>
 <HR>
 
-<A NAME = "Hoover"></A>
+<A NAME = "Berendsen"></A>
 
-<P><B>(Hoover)</B> Hoover, Phys Rev A, 34, 2499 (1986).
-</P>
-<A NAME = "Melchionna"></A>
-
-<P><B>(Melchionna)</B> Melchionna, Ciccotti, Holian, Molecular Physics, 78,
-533-44 (1993).
+<P><B>(Berendsen)</B> Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
+Phys, 81, 3684 (1984).
 </P>
 </HTML>

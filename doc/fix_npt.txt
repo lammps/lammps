@@ -66,15 +66,15 @@ only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
 
-IMPORTANT NOTE: Unlike the "fix temp/berendsen"_fix_berendsen.html
-command which performs thermostatting but NO time integration, this
-fix performs thermostatting/barostatting AND time integration.  Thus
-you should not use any other time integration fix, such as "fix
-nve"_fix_nve.html on atoms to which this fix is applied.  Likewise,
-this fix should not normally be used on atoms that also have their
-temperature controlled by another fix - e.g. by "fix
-langevin"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html
-commands.
+IMPORTANT NOTE: Unlike the "fix
+temp/berendsen"_fix_temp_berendsen.html command which performs
+thermostatting but NO time integration, this fix performs
+thermostatting/barostatting AND time integration.  Thus you should not
+use any other time integration fix, such as "fix nve"_fix_nve.html on
+atoms to which this fix is applied.  Likewise, this fix should not
+normally be used on atoms that also have their temperature controlled
+by another fix - e.g. by "fix langevin"_fix_nvt.html or "fix
+temp/rescale"_fix_temp_rescale.html commands.
 
 :line
 
@@ -116,8 +116,8 @@ is working.  Typically a value between 0.2 to 2.0 is sufficient to
 damp oscillations after a few periods.
 
 For all pressure styles, the simulation box stays rectangular in
-shape.  Parinello-Rahman boundary conditions (tilted box) are not yet
-implemented in LAMMPS.
+shape.  Parinello-Rahman boundary conditions (tilted box) for this fix
+are not yet implemented in LAMMPS.
 
 For all styles, the {Pdamp} parameter operates like the {Tdamp}
 parameter, determining the time scale on which pressure is relaxed.

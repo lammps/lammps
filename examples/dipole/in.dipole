@@ -22,12 +22,13 @@ pair_coeff	* * 1.0 1.0
 neighbor	0.3 bin
 neigh_modify	delay 0
 
-fix		1 all nve/dipole
+fix		1 all nve/sphere update dipole
 fix		2 all enforce2d
 
 timestep	0.005
 
-thermo_style	dipole
+compute		erot all erotate/sphere
+thermo_style	custom step temp epair c_erot etotal press
 thermo		500
 
 dump		1 all custom 200 dump.dipole tag type x y z mux muy muz

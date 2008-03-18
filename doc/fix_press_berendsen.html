@@ -125,16 +125,17 @@ fmsec or psec - see the <A HREF = "units.html">units</A> command).
 bulk modulus of the system (inverse of isothermal compressibility).
 The bulk modulus has units of pressure and is the amount of pressure
 that would need to be applied (isotropically) to reduce the volume of
-the system by a factor of 2.  The bulk modulus can be set via the
-keyword <I>modulus</I>.  The <I>Pdamp</I> parameter is effectively multiplied by
-the bulk modulus, so if the pressure is relaxing faster than expected
-or desired, increasing the bulk modulus has the same effect as
-increasing <I>Pdamp</I>.  The converse is also true.  LAMMPS does not
-attempt to guess a correct value of the bulk modulus; it just uses
-10.0 as a default value which is about right for a Lennard-Jones
-liquid, but will be way off for other materials and way too small for
-solids.  Thus you should experiment to find appropriate values of
-<I>Pdamp</I> and/or the <I>modulus</I> when using this fix.
+the system by a factor of 2 (assuming the bulk modulus was a constant,
+independent of density, which it's not).  The bulk modulus can be set
+via the keyword <I>modulus</I>.  The <I>Pdamp</I> parameter is effectively
+multiplied by the bulk modulus, so if the pressure is relaxing faster
+than expected or desired, increasing the bulk modulus has the same
+effect as increasing <I>Pdamp</I>.  The converse is also true.  LAMMPS does
+not attempt to guess a correct value of the bulk modulus; it just uses
+10.0 as a default value which gives reasonable relaxation for a
+Lennard-Jones liquid, but will be way off for other materials and way
+too small for solids.  Thus you should experiment to find appropriate
+values of <I>Pdamp</I> and/or the <I>modulus</I> when using this fix.
 </P>
 <HR>
 

@@ -22,9 +22,9 @@ fix 1 all nve/asphere :pre
 [Description:]
 
 Perform constant NVE updates of position, velocity, orientation, and
-angular velocity for aspherical or ellipsoidal particles in the group
-each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.
+angular velocity for aspherical particles in the group each timestep.
+V is volume; E is energy.  This creates a system trajectory consistent
+with the microcanonical ensemble.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -42,8 +42,13 @@ This fix is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
+This fix requires that particles be represented as extended ellipsoids
+and not point particles.  This means they will have an angular
+momentum and a shape which is determined by the "shape"_shape.html
+command.
+
 [Related commands:]
 
-"fix nve"_fix_nve.html
+"fix nve"_fix_nve.html, "fix nve/sphere"_fix_nve_sphere.html
 
 [Default:] none

@@ -25,9 +25,9 @@
 <P><B>Description:</B>
 </P>
 <P>Perform constant NVE updates of position, velocity, orientation, and
-angular velocity for aspherical or ellipsoidal particles in the group
-each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.
+angular velocity for aspherical particles in the group each timestep.
+V is volume; E is energy.  This creates a system trajectory consistent
+with the microcanonical ensemble.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -45,9 +45,14 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
+<P>This fix requires that particles be represented as extended ellipsoids
+and not point particles.  This means they will have an angular
+momentum and a shape which is determined by the <A HREF = "shape.html">shape</A>
+command.
+</P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nve.html">fix nve</A>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nve_sphere.html">fix nve/sphere</A>
 </P>
 <P><B>Default:</B> none
 </P>

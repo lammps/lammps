@@ -169,6 +169,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_nvt.h"
 #include "fix_nvt_sllod.h"
 #include "fix_plane_force.h"
+#include "fix_press_berendsen.h"
 #include "fix_print.h"
 #include "fix_orient_fcc.h"
 #include "fix_rdf.h"
@@ -224,8 +225,9 @@ FixStyle(nve/sphere,FixNVESphere)
 FixStyle(nvt,FixNVT)
 FixStyle(nvt/sllod,FixNVTSlodd)
 FixStyle(orient/fcc,FixOrientFCC)
-FixStyle(print,FixPrint)
+FixStyle(press/berendsen,FixPressBerendsen)
 FixStyle(planeforce,FixPlaneForce)
+FixStyle(print,FixPrint)
 FixStyle(rdf,FixRDF)
 FixStyle(recenter,FixRecenter)
 FixStyle(RESPA,FixRespa)

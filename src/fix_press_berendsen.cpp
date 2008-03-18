@@ -108,7 +108,7 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // process extra keywords
 
-  bulkmodulus = 1.0;
+  bulkmodulus = 10.0;
   allremap = 1;
 
   int iarg;

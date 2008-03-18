@@ -315,9 +315,15 @@ To run a simulation of a granular model, you will want to use
 the following commands:
 
 "atom_style"_atom_style.html granular
-"fix nve/gran"_fix_nve_gran.html
-"fix gravity"_fix_gravity.html
-"thermo_style"_thermo_style.html gran :ul
+"fix nve/sphere"_fix_nve_sphere.html
+"fix gravity"_fix_gravity.html :ul
+
+This compute
+
+"compute erotate/sphere"_compute_erotate_sphere.html :ul
+
+will calculate rotational kinetic energy which can then be "output
+with thermodynamic info"_.
 
 Use one of these 3 pair potentials:
 

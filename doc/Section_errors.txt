@@ -371,7 +371,7 @@ are too far apart to make a valid bond. :dd
 
 {Bond atoms %d %d missing on proc %d at step %d} :dt
 
-One or more of 2 atoms needed to compute a particular bond are
+One or both of 2 atoms needed to compute a particular bond are
 missing on this processor.  Typically this is because the pairwise
 cutoff is set too short or the bond has blown apart and an atom is
 too far away. :dd
@@ -511,7 +511,7 @@ Group ID used in the delete_bonds command does not exist. :dd
 
 {Cannot fix deform on a non-periodic boundary} :dt
 
-Only a periodiic boundary can be modified. :dd
+Only a periodic boundary can be modified. :dd
 
 {Cannot have both pair_modify shift and tail set to yes} :dt
 
@@ -1033,6 +1033,10 @@ Self-explanatory. :dd
 
 A group ID used in the dump command does not exist. :dd
 
+{Could not find dump_modify ID} :dt
+
+Self-explanatory. :dd
+
 {Could not find fix ID to delete} :dt
 
 Self-explanatory. :dd
@@ -1133,10 +1137,6 @@ does not exist. :dd
 If using a Kspace solver, all Coulomb cutoffs of long pair styles must
 be the same. :dd
 
-{Cound not find dump_modify ID} :dt
-
-Self-explanatory. :dd
-
 {Create_atoms command before simulation box is defined} :dt
 
 The create_atoms command cannot be used before a read_data,
@@ -1184,7 +1184,7 @@ No atoms are yet defined so the delete_bonds command cannot be used. :dd
 
 {Deposition region extends outside simulation box} :dt
 
-Self-explatory. :dd
+Self-explanatory. :dd
 
 {Did not assign all atoms correctly} :dt
 
@@ -2384,7 +2384,7 @@ orthogonal. :dd
 The three specified lattice orientation vectors must create a
 right-handed coordinate system such that a1 cross a2 = a3. :dd
 
-{Lattice primitive vectors are colinear} :dt
+{Lattice primitive vectors are collinear} :dt
 
 The specified lattice primitive vectors do not for a unit cell with
 non-zero volume. :dd
@@ -3101,7 +3101,7 @@ A region ID cannot be used twice. :dd
 
 Fix poems will only work with bodies (collections of atoms) that have
 non-zero principal moments of inertia.  This means they must be 3 or
-more non-colinear atoms, even with joint atoms removed. :dd
+more non-collinear atoms, even with joint atoms removed. :dd
 
 {Rigid fix must come before NPT/NPH fix} :dt
 

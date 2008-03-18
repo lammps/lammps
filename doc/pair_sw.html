@@ -85,19 +85,17 @@ for both two-body and three-body interactions. gamma is used only in the
 three-body interactions, but is defined for pairs of atoms.   
 The non-annotated parameters are unitless.
 </P>
-<P>LAMMPS introduces an additional performance-optimization parameter 
-tol that is used for
-both two-body and three-body interactions.
-In the Stillinger-Weber potential, the
-interaction energies become negligibly small at atomic separations 
-substantially less than the theoretical cutoff
-distances.  LAMMPS therefore defines a virtual cutoff distance 
-based on a user defined tolerance tol.  
-The use of the virtual cutoff distance in constructing atom neighbor
-lists can significantly reduce the neighbor list sizes and therefore the
-computational cost.  LAMMPS provide a tol value for each of the three-body
-entries so that they can be separately controlled. If tol = 0.0, then 
-the standard Stillinger-Weber cutoff is used.
+<P>LAMMPS introduces an additional performance-optimization parameter tol
+that is used for both two-body and three-body interactions.  In the
+Stillinger-Weber potential, the interaction energies become negligibly
+small at atomic separations substantially less than the theoretical
+cutoff distances.  LAMMPS therefore defines a virtual cutoff distance
+based on a user defined tolerance tol.  The use of the virtual cutoff
+distance in constructing atom neighbor lists can significantly reduce
+the neighbor list sizes and therefore the computational cost.  LAMMPS
+provides a <I>tol</I> value for each of the three-body entries so that they
+can be separately controlled. If tol = 0.0, then the standard
+Stillinger-Weber cutoff is used.
 </P>
 <P>The Stillinger-Weber potential file must contain entries for all the
 elements listed in the pair_coeff command.  It can also contain

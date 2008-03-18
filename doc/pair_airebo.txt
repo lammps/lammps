@@ -77,9 +77,9 @@ LAMMPS atom types:
 filename
 N element names = mapping of AIREBO elements to atom types :ul
 
-As an example, if your LAMMPS simulation has 4 atoms types and you
-want the 1st 3 to be C, and the 4th to be H, you would use the
-following pair_coeff command:
+As an example, if your LAMMPS simulation has 4 atom types and you want
+the 1st 3 to be C, and the 4th to be H, you would use the following
+pair_coeff command:
 
 pair_coeff * * CH.airebo C C C H :pre
 

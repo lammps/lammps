@@ -129,8 +129,8 @@ commands)
     class 2 (COMPASS), OPLS
   improper potentials: harmonic, cvff, class 2 (COMPASS)
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
-    potentials can be used in one simlulation
-  overlayed potentials: superposition of multiple pair potentials
+    potentials can be used in one simulation
+  overlaid potentials: superposition of multiple pair potentials
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye

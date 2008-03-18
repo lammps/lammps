@@ -34,7 +34,7 @@ apart when r is less than the contact distance d.
 :c,image(Eqs/pair_granular.jpg)
 
 The 1st term is a normal force and the 2nd term is a tangential force.
-The other quantites are as follows:
+The other quantities are as follows:
 
 delta = d - r
 f(x) = 1 for Hookean contacts used in pair styles {history} and {no_history}

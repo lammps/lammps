@@ -61,7 +61,7 @@ own sub-directories with their own Makefiles.
 
 amber2lmp tool :h4,link(amber)
 
-The amber2lmp sub-directory contain two Python scripts for converting
+The amber2lmp sub-directory contains two Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
 README file in amber2lmp for more information.
 

@@ -11,7 +11,7 @@ Section"_Section_errors.html :c
 8. Modifying & extending LAMMPS :h3
 
 LAMMPS is designed in a modular fashion so as to be easy to modify and
-extend with new functionality.  In fact, about 75% if its source code
+extend with new functionality.  In fact, about 75% of its source code
 is files added in this fashion.
 
 In this section, changes and additions users can make are listed along

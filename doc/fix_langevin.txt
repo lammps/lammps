@@ -109,7 +109,7 @@ The keyword {scale} allows the damp factor to be scaled up or down by
 the specified factor for atoms of that type.  This can be useful when
 different atom types have different sizes or masses.  It can be used
 multiple times to adjust damp for several atom types.  Note that
-specifying a ratio of 2 increase the relaxation time which is
+specifying a ratio of 2 increases the relaxation time which is
 equivalent to the the solvent's viscosity acting on particles with 1/2
 the diameter.  This is the opposite effect of scale factors used by
 the "fix viscous"_fix_viscous.html command, since the damp factor in

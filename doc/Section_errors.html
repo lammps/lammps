@@ -374,7 +374,7 @@ are too far apart to make a valid bond.
 
 <DT><I>Bond atoms %d %d missing on proc %d at step %d</I> 
 
-<DD>One or more of 2 atoms needed to compute a particular bond are
+<DD>One or both of 2 atoms needed to compute a particular bond are
 missing on this processor.  Typically this is because the pairwise
 cutoff is set too short or the bond has blown apart and an atom is
 too far away. 
@@ -514,7 +514,7 @@ or create_box command.
 
 <DT><I>Cannot fix deform on a non-periodic boundary</I> 
 
-<DD>Only a periodiic boundary can be modified. 
+<DD>Only a periodic boundary can be modified. 
 
 <DT><I>Cannot have both pair_modify shift and tail set to yes</I> 
 
@@ -1036,6 +1036,10 @@ does not exist.
 
 <DD>A group ID used in the dump command does not exist. 
 
+<DT><I>Could not find dump_modify ID</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Could not find fix ID to delete</I> 
 
 <DD>Self-explanatory. 
@@ -1136,10 +1140,6 @@ does not exist.
 <DD>If using a Kspace solver, all Coulomb cutoffs of long pair styles must
 be the same. 
 
-<DT><I>Cound not find dump_modify ID</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Create_atoms command before simulation box is defined</I> 
 
 <DD>The create_atoms command cannot be used before a read_data,
@@ -1187,7 +1187,7 @@ read_restart, or create_box command.
 
 <DT><I>Deposition region extends outside simulation box</I> 
 
-<DD>Self-explatory. 
+<DD>Self-explanatory. 
 
 <DT><I>Did not assign all atoms correctly</I> 
 
@@ -2387,7 +2387,7 @@ orthogonal.
 <DD>The three specified lattice orientation vectors must create a
 right-handed coordinate system such that a1 cross a2 = a3. 
 
-<DT><I>Lattice primitive vectors are colinear</I> 
+<DT><I>Lattice primitive vectors are collinear</I> 
 
 <DD>The specified lattice primitive vectors do not for a unit cell with
 non-zero volume. 
@@ -3104,7 +3104,7 @@ outside a non-periodic simulation box.
 
 <DD>Fix poems will only work with bodies (collections of atoms) that have
 non-zero principal moments of inertia.  This means they must be 3 or
-more non-colinear atoms, even with joint atoms removed. 
+more non-collinear atoms, even with joint atoms removed. 
 
 <DT><I>Rigid fix must come before NPT/NPH fix</I> 
 

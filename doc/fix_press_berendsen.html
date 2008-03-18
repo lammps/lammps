@@ -35,9 +35,10 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>dilate</I> 
+<LI>keyword = <I>dilate</I> or <I>modulus</I> 
 
-<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I>
+  <I>modulus</I> value = bulk modulus of system (pressure units) 
 </PRE>
 
 </UL>
@@ -120,6 +121,21 @@ which pressure is relaxed.  For example, a value of 1000.0 means to
 relax the pressure in a timespan of (roughly) 1000 time units (tau or
 fmsec or psec - see the <A HREF = "units.html">units</A> command).
 </P>
+<P>IMPORTANT NOTE: The relaxation time is actually also a function of the
+bulk modulus of the system (inverse of isothermal compressibility).
+The bulk modulus has units of pressure and is the amount of pressure
+that would need to be applied (isotropically) to reduce the volume of
+the system by a factor of 2.  The bulk modulus can be set via the
+keyword <I>modulus</I>.  The <I>Pdamp</I> parameter is effectively multiplied by
+the bulk modulus, so if the pressure is relaxing faster than expected
+or desired, increasing the bulk modulus has the same effect as
+increasing <I>Pdamp</I>.  The converse is also true.  LAMMPS does not
+attempt to guess a correct value of the bulk modulus; it just uses
+10.0 as a default value which is about right for a Lennard-Jones
+liquid, but will be way off for other materials and way too small for
+solids.  Thus you should experiment to find appropriate values of
+<I>Pdamp</I> and/or the <I>modulus</I> when using this fix.
+</P>
 <HR>
 
 <P>This fix computes a temperature and pressure each timestep.  To do
@@ -183,7 +199,8 @@ npt</A>, <A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>,
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are dilate = all.
+<P>The keyword defaults are dilate = all, modulus = 10.0 in units of
+pressure for whatever <A HREF = "units.html">units</A> are defined.
 </P>
 <HR>
 

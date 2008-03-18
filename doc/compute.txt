@@ -109,14 +109,13 @@ available in LAMMPS:
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "displace/atom"_compute_displace_atom.html - displacement of each atom
+"erotate/sphere"_compute_erotate_sphere.html - rotational energy of spherical particles
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
-"rotate/dipole"_compute_rotate_dipole.html - rotational energy of dipolar atoms
-"rotate/gran"_compute_rotate_gran.html - rotational energy of granular atoms
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
@@ -125,7 +124,8 @@ available in LAMMPS:
 "temp/dipole"_compute_temp_dipole.html - temperature of point dipolar particles
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
 "temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
-"temp/region"_compute_temp_region.html - temperature of a region of atoms :ul
+"temp/region"_compute_temp_region.html - temperature of a region of atoms
+"temp/sphere"_compute_temp_sphere.html - temperature of spherical particles :ul
 
 There are also additional compute styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

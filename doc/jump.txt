@@ -49,8 +49,8 @@ jump in.lj loop :pre
 If the jump {file} argument is a variable, the jump command can be
 used to cause different processor partitions to run different input
 scripts.  In this example, LAMMPS is run on 40 processors, with 4
-partitions of 10 procs each.  An in.file containing the example variable
-and jump command will cause each partition to run a different
+partitions of 10 procs each.  An in.file containing the example
+variable and jump command will cause each partition to run a different
 simulation.
 
 mpirun -np 40 lmp_ibm -partition 4x10 -in in.file :pre

@@ -29,6 +29,11 @@ Restart files also store this setting.
 See the discussion in "this section"_Section_howto.html for additional
 instructions on how to run 2d simulations.
 
+IMPORTANT NOTE: Some models in LAMMPS treat particles as extended
+spheres or ellipsoids, as opposed to point particles.  In 2d, the
+particles will still be spheres or ellipsoids, not circular disks or
+ellipses, meaning their moment of inertia will be the same as in 3d.
+
 [Restrictions:]
 
 This command must be used before the simulation box is defined by a

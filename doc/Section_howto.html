@@ -320,6 +320,10 @@ place:
 
 <A NAME = "4_6"></A><H4>4.6 Granular models 
 </H4>
+<P>Granular system are composed of spherical particles with a diameter,
+as opposed to point particles.  This means they have an angular
+velocity and torque can be imparted to them to cause them to rotate.
+</P>
 <P>To run a simulation of a granular model, you will want to use
 the following commands:
 </P>
@@ -331,10 +335,11 @@ the following commands:
 </P>
 <UL><LI><A HREF = "compute_erotate_sphere.html">compute erotate/sphere</A> 
 </UL>
-<P>will calculate rotational kinetic energy which can then be <A HREF = "">output
-with thermodynamic info</A>.
+<P>calculates rotational kinetic energy which can be <A HREF = "Section_howto.html#4_15">output with
+thermodynamic info</A>.
 </P>
-<P>Use one of these 3 pair potentials:
+<P>Use one of these 3 pair potentials, which compute forces and torques
+between interacting pairs of particles:
 </P>
 <UL><LI><A HREF = "pair_style.html">pair_style</A> gran/history
 <LI><A HREF = "pair_style.html">pair_style</A> gran/no_history
@@ -343,7 +348,6 @@ with thermodynamic info</A>.
 <P>These commands implement fix options specific to granular systems:
 </P>
 <UL><LI><A HREF = "fix_freeze.html">fix freeze</A>
-<LI><A HREF = "fix_gran_diag.html">fix gran/diag</A>
 <LI><A HREF = "fix_pour.html">fix pour</A>
 <LI><A HREF = "fix_viscous.html">fix viscous</A>
 <LI><A HREF = "fix_wall_gran.html">fix wall/gran</A> 

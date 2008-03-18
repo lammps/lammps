@@ -143,9 +143,8 @@ values of <I>Pdamp</I> and/or the <I>modulus</I> when using this fix.
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 </P>
-<PRE>compute fix-ID_temp group-ID temp 
-</PRE>
-<PRE>compute fix-ID_press group-ID pressure fix-ID_temp 
+<PRE>compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp 
 </PRE>
 <P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
 pressure</A> commands for details.  Note that the

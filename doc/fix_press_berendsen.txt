@@ -134,7 +134,7 @@ This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 
-compute fix-ID_temp group-ID temp :pre
+compute fix-ID_temp group-ID temp
 compute fix-ID_press group-ID pressure fix-ID_temp :pre
 
 See the "compute temp"_compute_temp.html and "compute

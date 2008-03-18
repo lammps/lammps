@@ -453,7 +453,6 @@ description:
 "temp/asphere"_compute_temp_asphere.html,
 "temp/com"_compute_temp_com.html,
 "temp/deform"_compute_temp_deform.html,
-"temp/dipole"_compute_temp_dipole.html,
 "temp/partial"_compute_temp_partial.html,
 "temp/ramp"_compute_temp_ramp.html,
 "temp/region"_compute_temp_region.html,

@@ -50,7 +50,7 @@ The rotational kinetic energy is computed as 1/2 I w^2, where I is the
 inertia tensor for the aspherical particle and w is its angular
 velocity, which is computed from its angular momentum.
 
-IMPORTANT NOTE: Fo "2d models"_dimension.html, particles are treated
+IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
 as ellipsoids, not ellipses, meaning their moments of inertia will be
 the same as in 3d.
 

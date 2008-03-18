@@ -6,34 +6,43 @@
 
 :line
 
-compute rotate/dipole command :h3
+compute erotate/sphere command :h3
 
 [Syntax:]
 
-compute ID group-ID rotate/dipole :pre
+compute ID group-ID erotate/sphere :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-rotate/dipole = style name of this compute command :ul
+erotate/sphere = style name of this compute command :ul
 
 [Examples:]
 
-compute 1 all rotate/dipole :pre
+compute 1 all erotate/sphere :pre
 
 [Description:]
 
-Define a computation that calculates the total rotational energy of a
-group of atoms with point dipole moments.
+Define a computation that calculates the rotational kinetic energy of
+a group of spherical particles.
 
-The rotational energy is calculated as the sum of 1/2 I w^2 over all
-the atoms in the group, where I is the moment of inertia of a
-disk/spherical (2d/3d) particle, and w is its angular velocity.
+The rotational energy is computed as 1/2 I w^2, where I is the moment
+of inertia for a sphere and w is the particle's angular velocity.
+
+IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
+as spheres, not disks, meaning their moment of inertia will be the
+same as in 3d.
 
 [Output info:]
 
 The scalar value calculated by this compute is "extensive", meaning it
 it scales with the number of atoms in the simulation.
 
-[Restrictions:] none
+[Restrictions:]
+
+This compute requires that particles be represented as extended
+spheres and not point particles.  This means they will have an angular
+velocity and a diameter which is determined either by the
+"shape"_shape.html command or by each particle being assigned an
+individual radius, e.g. for "atom_style granular"_atom_style.html.
 
 [Related commands:] none
 

@@ -28,8 +28,8 @@ compute myTemp mobile temp/sphere
 <P>Define a computation that calculates the temperature of a group of
 spherical particles, including a contribution from both their
 translational and rotational kinetic energy.  This differs from the
-usual "compute temp" command which assumes point particles with only
-translational kinetic energy.
+usual <A HREF = "compute_temp.html">compute temp</A> command, which assumes point
+particles with only translational kinetic energy.
 </P>
 <P>For 3d spherical particles, each has 6 degrees of freedom (3
 translational, 3 rotational).  For 2d spherical particles, each has 3
@@ -39,8 +39,9 @@ degrees of freedom (2 translational, 1 rotational).
 moment of inertia for a sphere and w is the particle's angular
 velocity.
 </P>
-<P>IMPORTANT NOTE: For a <A HREF = "dimension.html">2-dimensional system</A>, particles
-are treated as spheres, not disks.
+<P>IMPORTANT NOTE: Fo <A HREF = "dimension.html">2d models</A>, particles are treated
+as spheres, not disks, meaning their moment of inertia will be the
+same as in 3d.
 </P>
 <P>A 6-component kinetic energy tensor is also calculated by this
 compute.  The formula for the components of the tensor is the same as

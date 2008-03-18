@@ -153,6 +153,11 @@ so that any forces induced by other fixes will be zeroed out.
 Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.
 
+IMPORTANT NOTE: Some models in LAMMPS treat particles as extended
+spheres, as opposed to point particles.  In 2d, the particles will
+still be spheres, not disks, meaning their moment of inertia will be
+the same as in 3d.
+
 :line
 
 4.3 CHARMM and AMBER force fields :link(4_3),h4
@@ -793,6 +798,10 @@ gayberne"_pair_gayberne.html.  Alternatively, the "pair_style
 hybrid"_pair_hybrid.html potential can be used, with the sphere-sphere
 interactions computed by another pair potential, such as "pair_style
 lj/cut"_pair_lj.html.
+
+IMPORTANT NOTE: In 2d, aspherical particles will still be ellipsoids,
+not ellipses, meaning their moments of inertia will be the same as in
+3d.
 
 :line
 

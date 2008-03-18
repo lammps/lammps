@@ -28,20 +28,20 @@ compute myTemp mobile temp/asphere
 <P>Define a computation that calculates the temperature of a group of
 aspherical particles, including a contribution from both their
 translational and rotational kinetic energy.  This differs from the
-usual "compute temp" command which assumes point particles with only
-translational kinetic energy.
+usual <A HREF = "compute_temp.html">compute temp</A> command, which assumes point
+particles with only translational kinetic energy.
 </P>
 <P>For 3d aspherical particles, each has 3, 5, or 6 degrees of freedom (3
 translational, remainder rotational), depending on whether the
 particle is spherical, uniaxial, or biaxial.  This is determined by
 the <A HREF = "shape.html">shape</A> command.  Uniaxial means two of its three shape
-parameters are equal.  Biaxial means they all 3 are different. 
+parameters are equal.  Biaxial means all 3 shape parameters are
+different.
 </P>
-<P>For 2d aspherical particles ...
-</P>
-<P>The rotational kinetic energy is computed as 1/2 I w^2, where I is the
-inertia tensor for the aspherical particle and w is its angular
-velocity, which is computed from its angular momentum.
+<P>For 2d aspherical particles, each has 3 or 4 degrees of freedom (3
+translational, remainder rotational), depending on whether the
+particle is spherical, or biaxial.  Biaxial means the x,y shape
+parameters are unequal.
 </P>
 <P>IMPORTANT NOTE: These degrees of freedom assume that the interaction
 potential between degenerate aspherical particles does not impart
@@ -49,8 +49,13 @@ rotational motion to the extra degrees of freedom.  E.g. the <A HREF = "pair_gay
 pair potential</A> does not impart torque to spherical
 particles, so they do not rotate.
 </P>
-<P>IMPORTANT NOTE: For a <A HREF = "dimension.html">2-dimensional system</A>, particles
-are treated as ellipsoids, not ellipses.
+<P>The rotational kinetic energy is computed as 1/2 I w^2, where I is the
+inertia tensor for the aspherical particle and w is its angular
+velocity, which is computed from its angular momentum.
+</P>
+<P>IMPORTANT NOTE: Fo <A HREF = "dimension.html">2d models</A>, particles are treated
+as ellipsoids, not ellipses, meaning their moments of inertia will be
+the same as in 3d.
 </P>
 <P>A 6-component kinetic energy tensor is also calculated by this
 compute.  The formula for the components of the tensor is the same as

@@ -135,26 +135,56 @@ void ComputeTempSphere::compute_vector()
   invoked |= INVOKED_VECTOR;
 
   double **v = atom->v;
+  double **omega = atom->omega;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double massone,t[6];
+  double massone,inertiaone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
-      t[0] += massone * v[i][0]*v[i][0];
-      t[1] += massone * v[i][1]*v[i][1];
-      t[2] += massone * v[i][2]*v[i][2];
-      t[3] += massone * v[i][0]*v[i][1];
-      t[4] += massone * v[i][0]*v[i][2];
-      t[5] += massone * v[i][1]*v[i][2];
-    }
+  if (mass) {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	massone = mass[type[i]];
+	t[0] += massone * v[i][0]*v[i][0];
+	t[1] += massone * v[i][1]*v[i][1];
+	t[2] += massone * v[i][2]*v[i][2];
+	t[3] += massone * v[i][0]*v[i][1];
+	t[4] += massone * v[i][0]*v[i][2];
+	t[5] += massone * v[i][1]*v[i][2];
+
+	inertiaone = inertia[type[i]];
+	t[0] += massone * omega[i][0]*omega[i][0];
+	t[1] += massone * omega[i][1]*omega[i][1];
+	t[2] += massone * omega[i][2]*omega[i][2];
+	t[3] += massone * omega[i][0]*omega[i][1];
+	t[4] += massone * omega[i][0]*omega[i][2];
+	t[5] += massone * omega[i][1]*omega[i][2];
+      }
+  } else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	massone = rmass[i];
+	t[0] += massone * v[i][0]*v[i][0];
+	t[1] += massone * v[i][1]*v[i][1];
+	t[2] += massone * v[i][2]*v[i][2];
+	t[3] += massone * v[i][0]*v[i][1];
+	t[4] += massone * v[i][0]*v[i][2];
+	t[5] += massone * v[i][1]*v[i][2];
+
+	inertiaone = INERTIA*radius[i]*radius[i]*rmass[i];
+	t[0] += massone * omega[i][0]*omega[i][0];
+	t[1] += massone * omega[i][1]*omega[i][1];
+	t[2] += massone * omega[i][2]*omega[i][2];
+	t[3] += massone * omega[i][0]*omega[i][1];
+	t[4] += massone * omega[i][0]*omega[i][2];
+	t[5] += massone * omega[i][1]*omega[i][2];
+      }
+  }
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;

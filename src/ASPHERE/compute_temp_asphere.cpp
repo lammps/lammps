@@ -78,7 +78,8 @@ void ComputeTempAsphere::init()
 void ComputeTempAsphere::recount()
 {
   double natoms = group->count(igroup);
-  dof = domain->dimension * natoms;
+  int dimension = domain->dimension;
+  dof = dimension * natoms;
   dof -= extra_dof + fix_dof;
 
   // add rotational degrees of freedom
@@ -94,12 +95,17 @@ void ComputeTempAsphere::recount()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       itype = type[i];
-      if (shape[itype][0] == shape[itype][1] && 
-	  shape[itype][1] == shape[itype][2]) continue;
-      else if (shape[itype][0] == shape[itype][1] || 
-	       shape[itype][1] == shape[itype][2] ||
-	       shape[itype][0] == shape[itype][2]) rot_dof += 2;
-      else rot_dof += 3;
+      if (dimension == 2) {
+	if (shape[itype][0] == shape[itype][1]) continue;
+	else rot_dof += 1;
+      } else {
+	if (shape[itype][0] == shape[itype][1] && 
+	    shape[itype][1] == shape[itype][2]) continue;
+	else if (shape[itype][0] == shape[itype][1] || 
+		 shape[itype][1] == shape[itype][2] ||
+		 shape[itype][0] == shape[itype][2]) rot_dof += 2;
+	else rot_dof += 3;
+      }
     }
 
   int rot_total;

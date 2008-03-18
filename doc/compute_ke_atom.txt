@@ -21,14 +21,14 @@ compute 1 all ke/atom :pre
 
 [Description:]
 
-Define a computation that calculates the per-atom kinetic energy for
-each atom in a group.
-
-The value of the kinetic energy will be 0.0 for atoms not in the
-specified compute group.
+Define a computation that calculates the per-atom translational
+kinetic energy for each atom in a group.
 
 The kinetic energy is simply 1/2 m v^2, where m is the mass and v is
 the velocity of each atom.
+
+The value of the kinetic energy will be 0.0 for atoms not in the
+specified compute group.
 
 [Output info:]
 

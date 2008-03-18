@@ -155,9 +155,12 @@ change the attributes of this potential energy via the
 
 The kinetic energy of the system {ke} is inferred from the temperature
 of the system with 1/2 Kb T of energy for each degree of freedom.
-Thus using different "compute commands"_compute.html for calculating
+Thus, using different "compute commands"_compute.html for calculating
 temperature, via the "thermo_modify temp"_thermo_modify.html command,
-may yield different kinetic energies.
+may yield different kinetic energies, since different temperature
+compute can subtract out different non-thermal components of velocity
+and/or include different degrees of freedom (translational,
+rotational, etc).
 
 The potential energy of the system {pe} will include contributions
 from fixes if the "fix_modify thermo"_fix_modify.html option is set

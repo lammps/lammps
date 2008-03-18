@@ -1,0 +1,40 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute rotate/dipole command :h3
+
+[Syntax:]
+
+compute ID group-ID rotate/dipole :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+rotate/dipole = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all rotate/dipole :pre
+
+[Description:]
+
+Define a computation that calculates the total rotational energy of a
+group of atoms with point dipole moments.
+
+The rotational energy is calculated as the sum of 1/2 I w^2 over all
+the atoms in the group, where I is the moment of inertia of a
+disk/spherical (2d/3d) particle, and w is its angular velocity.
+
+[Output info:]
+
+The scalar value calculated by this compute is "extensive", meaning it
+it scales with the number of atoms in the simulation.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

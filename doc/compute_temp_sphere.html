@@ -1,0 +1,84 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/sphere command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/sphere 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/sphere = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all temp/sphere
+compute myTemp mobile temp/sphere 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature of a group of
+spherical particles, including a contribution from both their
+translational and rotational kinetic energy.  This differs from the
+usual "compute temp" command which assumes point particles with only
+translational kinetic energy.
+</P>
+<P>For 3d spherical particles, each has 6 degrees of freedom (3
+translational, 3 rotational).  For 2d spherical particles, each has 3
+degrees of freedom (2 translational, 1 rotational).
+</P>
+<P>The rotational kinetic energy is computed as 1/2 I w^2, where I is the
+moment of inertia for a sphere and w is the particle's angular
+velocity.
+</P>
+<P>IMPORTANT NOTE: For a <A HREF = "dimension.html">2-dimensional system</A>, particles
+are treated as spheres, not disks.
+</P>
+<P>A 6-component kinetic energy tensor is also calculated by this
+compute.  The formula for the components of the tensor is the same as
+the above formula, except that v^2 and w^2 are replaced by vx*vy and
+wx*wy for the xy component.
+</P>
+<P>The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the <I>dynamic</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
+</P>
+<P>This compute subtracts out translational degrees-of-freedom due to
+fixes that constrain molecular motion, such as <A HREF = "fix_shake.html">fix
+shake</A> and <A HREF = "fix_rigid.html">fix rigid</A>.  This means the
+temperature of groups of atoms that include these constraints will be
+computed correctly.  If needed, the subtracted degrees-of-freedom can
+be altered using the <I>extra</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.  The vector
+values are "extensive", meaning they scale with the number of atoms in
+the simulation.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute requires that particles be represented as extended
+spheres and not point particles.  This means they will have an angular
+velocity and a diameter which is determined either by the
+<A HREF = "shape.html">shape</A> command or by each particle being assigned an
+individual radius, e.g. for <A HREF = "atom_style.html">atom_style granular</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp.html">compute
+temp/asphere</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

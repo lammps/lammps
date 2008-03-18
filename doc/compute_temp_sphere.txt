@@ -1,0 +1,79 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/sphere command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/sphere :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+temp/sphere = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all temp/sphere
+compute myTemp mobile temp/sphere :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of a group of
+spherical particles, including a contribution from both their
+translational and rotational kinetic energy.  This differs from the
+usual "compute temp" command which assumes point particles with only
+translational kinetic energy.
+
+For 3d spherical particles, each has 6 degrees of freedom (3
+translational, 3 rotational).  For 2d spherical particles, each has 3
+degrees of freedom (2 translational, 1 rotational).
+
+The rotational kinetic energy is computed as 1/2 I w^2, where I is the
+moment of inertia for a sphere and w is the particle's angular
+velocity.
+
+IMPORTANT NOTE: For a "2-dimensional system"_dimension.html, particles
+are treated as spheres, not disks.
+
+A 6-component kinetic energy tensor is also calculated by this
+compute.  The formula for the components of the tensor is the same as
+the above formula, except that v^2 and w^2 are replaced by vx*vy and
+wx*wy for the xy component.
+
+The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the {dynamic} option of the
+"compute_modify"_compute_modify.html command if this is not the case.
+
+This compute subtracts out translational degrees-of-freedom due to
+fixes that constrain molecular motion, such as "fix
+shake"_fix_shake.html and "fix rigid"_fix_rigid.html.  This means the
+temperature of groups of atoms that include these constraints will be
+computed correctly.  If needed, the subtracted degrees-of-freedom can
+be altered using the {extra} option of the
+"compute_modify"_compute_modify.html command.
+
+[Output info:]
+
+The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.  The vector
+values are "extensive", meaning they scale with the number of atoms in
+the simulation.
+
+[Restrictions:]
+
+This compute requires that particles be represented as extended
+spheres and not point particles.  This means they will have an angular
+velocity and a diameter which is determined either by the
+"shape"_shape.html command or by each particle being assigned an
+individual radius, e.g. for "atom_style granular"_atom_style.html.
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "compute
+temp/asphere"_compute_temp.html
+
+[Default:] none

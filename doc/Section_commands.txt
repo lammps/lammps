@@ -444,6 +444,7 @@ description:
 "displace/atom"_compute_displace_atom.html,
 "erotate/sphere"_compute_erotate_sphere.html,
 "group/group"_compute_group_group.html,
+"ke"_compute_ke.html,
 "ke/atom"_compute_ke_atom.html,
 "pe"_compute_pe.html,
 "pe/atom"_compute_pe_atom.html,

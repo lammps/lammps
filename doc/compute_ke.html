@@ -1,0 +1,54 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute erotate/sphere command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID erotate/sphere 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>erotate/sphere = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all erotate/sphere 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the rotational kinetic energy of
+a group of spherical particles.
+</P>
+<P>The rotational energy is computed as 1/2 I w^2, where I is the moment
+of inertia for a sphere and w is the particle's angular velocity.
+</P>
+<P>IMPORTANT NOTE: For <A HREF = "dimension.html">2d models</A>, particles are treated
+as spheres, not disks, meaning their moment of inertia will be the
+same as in 3d.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The scalar value calculated by this compute is "extensive", meaning it
+it scales with the number of atoms in the simulation.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute requires that particles be represented as extended
+spheres and not point particles.  This means they will have an angular
+velocity and a diameter which is determined either by the
+<A HREF = "shape.html">shape</A> command or by each particle being assigned an
+individual radius, e.g. for <A HREF = "atom_style.html">atom_style granular</A>.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

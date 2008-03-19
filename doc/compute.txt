@@ -111,6 +111,7 @@ available in LAMMPS:
 "displace/atom"_compute_displace_atom.html - displacement of each atom
 "erotate/sphere"_compute_erotate_sphere.html - rotational energy of spherical particles
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
+"ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom

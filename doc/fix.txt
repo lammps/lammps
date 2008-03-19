@@ -127,6 +127,7 @@ list of fix styles available in LAMMPS:
 "nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
 "npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
+"npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
 "nve"_fix_nve.html - constant NVE time integration
 "nve/asphere"_fix_nve_asphere.html - NVT for aspherical particles
 "nve/limit"_fix_nve_limit.html - NVE with limited step length
@@ -135,6 +136,7 @@ list of fix styles available in LAMMPS:
 "nvt"_fix_nvt.html - constant NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles
 "nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
+"nvt/sphere"_fix_nvt_sphere.html - NVT for spherical particles
 "orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "poems"_fix_poems.html - constrain clusters of atoms to move \

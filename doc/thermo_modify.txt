@@ -22,7 +22,7 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
     M = integer from 1 to N, where N = # of quantities being printed
     string = C-style format string
   {temp} value = compute ID that calculates a temperature
-  {press} value = compute ID that calculates a pressure
+  {press} value = compute ID that calculates a pressure :pre
 :ule
 
 [Examples:]

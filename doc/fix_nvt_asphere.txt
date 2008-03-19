@@ -29,11 +29,18 @@ fix 1 all nvt/asphere 300.0 300.0 100.0 drag 0.2 :pre
 
 [Description:]
 
-Perform constant NVT integration to update positions, velocities,
-and angular velocities each timestep for aspherical or ellipsoidal 
-particles in the group using a Nose/Hoover temperature thermostat.  
-V is volume; T is temperature.  This creates a system trajectory 
-consistent with the canonical ensemble.
+Perform constant NVT integration to update position, velocity,
+orientation, and angular velocity each timestep for aspherical or
+ellipsoidal particles in the group using a Nose/Hoover temperature
+thermostat.  V is volume; T is temperature.  This creates a system
+trajectory consistent with the canonical ensemble.
+
+The thermostat is applied to both the translational and rotational
+degrees of freedom for the aspherical particles, assuming a compute is
+used which calculates a temperature that includes the rotational
+degrees of freedom (see below).  The translational degrees of freedom
+can also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.  The {Tdamp} parameter is specified in
@@ -73,6 +80,21 @@ custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
 effect on this fix.
 
+Like other fixes that perform thermostatting, this fix can be used
+with "compute commands"_compute.html that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the "fix_modify"_fix_modify.html command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual "compute
+commands"_compute.html to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the state of the Nose/Hoover thermostat to "binary
@@ -106,6 +128,11 @@ This fix is not invoked during "energy minimization"_minimize.html.
 This fix is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
+
+This fix requires that particles be represented as extended ellipsoids
+and not point particles.  This means they will have an angular
+momentum and a shape which is determined by the "shape"_shape.html
+command.
 
 The final Tstop cannot be 0.0 since it would make the target T = 0.0
 at some timestep during the simulation which is not allowed in 

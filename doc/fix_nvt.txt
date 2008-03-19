@@ -34,6 +34,11 @@ each timestep for atoms in the group using a Nose/Hoover temperature
 thermostat "(Hoover)"_#Hoover.  V is volume; T is temperature.  This
 creates a system trajectory consistent with the canonical ensemble.
 
+The thermostat is applied to only the translational degrees of freedom
+for the particles.  The translational degrees of freedom can also have
+a bias velocity removed from them before thermostatting takes place;
+see the description below.
+
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.  The {Tdamp} parameter is specified in
 time units and determines how rapidly the temperature is relaxed.  For

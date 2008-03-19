@@ -27,10 +27,10 @@ fix 1 all nve/sphere update dipole :pre
 
 [Description:]
 
-Perform constant NVE updates of position, velocity, and angular
-velocity for spherical particles in the group each timestep.  V is
-volume; E is energy.  This creates a system trajectory consistent with
-the microcanonical ensemble.
+Perform constant NVE integration to update position, velocity, and
+angular velocity for extended spherical particles in the group each
+timestep.  V is volume; E is energy.  This creates a system trajectory
+consistent with the microcanonical ensemble.
 
 This fix differs from the "fix nve"_fix_nve.html command, which
 assumes point particles and only updates their position and velocity.

@@ -50,12 +50,19 @@ fix 2 water npt/asphere 300.0 300.0 100.0 aniso 0.0 0.0 0.0 0.0 NULL NULL 1000.0
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Perform constant NPT integration to update positions, velocities, 
-and angular velocity each timestep for aspherical or ellipsoidal 
-particles in the group using a Nose/Hoover temperature
+<P>Perform constant NPT integration to update position, velocity,
+orientation, and angular velocity each timestep for aspherical or
+ellipsoidal particles in the group using a Nose/Hoover temperature
 thermostat and Nose/Hoover pressure barostat.  P is pressure; T is
 temperature.  This creates a system trajectory consistent with the
 isothermal-isobaric ensemble.
+</P>
+<P>The thermostat is applied to both the translational and rotational
+degrees of freedom for the aspherical particles, assuming a compute is
+used which calculates a temperature that includes the rotational
+degrees of freedom (see below).  The translational degrees of freedom
+can also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
 </P>
 <P>The desired temperature at each timestep is a ramped value during the
 run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in
@@ -150,6 +157,21 @@ custom</A> command using the appropriate compute-ID.
 It also means that changing attributes of <I>thermo_temp</I> or
 <I>thermo_press</I> will have no effect on this fix.
 </P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>This fix writes the state of the Nose/Hoover thermostat and barostat
@@ -189,6 +211,11 @@ this.
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
+<P>This fix requires that particles be represented as extended ellipsoids
+and not point particles.  This means they will have an angular
+momentum and a shape which is determined by the <A HREF = "shape.html">shape</A>
+command.
+</P>
 <P>Any dimension being adjusted by this fix must be periodic.  A
 dimension whose target pressures are specified as NULL can be
 non-periodic or periodic.
@@ -199,8 +226,8 @@ the Nose/Hoover formulation.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_npt.html">fix npt</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>,
-<A HREF = "fix_modify.html">fix_modify</A>
+<P><A HREF = "fix_npt.html">fix npt</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>, <A HREF = "fix_npt_asphere.html">fix
+npt_asphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Default:</B>
 </P>

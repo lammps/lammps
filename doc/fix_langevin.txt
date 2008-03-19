@@ -17,6 +17,7 @@ langevin = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
 damp = damping parameter (time units) :l
 seed = random # seed to use for white noise (positive integer) :l
+
 zero or more keyword/value pairs may be appended :l
 keyword = {scale}
   {scale} values = type ratio
@@ -56,6 +57,14 @@ timestep size, and damp is the damping factor.  Random numbers are
 used to randomize the direction and magnitude of this force as
 described in "(Dunweg)"_#Dunweg, where a uniform random number is used
 (instead of a Gaussian random number) for speed.
+
+Note that the thermostat effect of this fix is applied to only the
+translational degrees of freedom for the particles, which is an
+important consideration if extended spherical or aspherical particles
+which have rotational degrees of freedom are being thermostatted with
+this fix.  The translational degrees of freedom can also have a bias
+velocity removed from them before thermostatting takes place; see the
+description below.
 
 IMPORTANT NOTE: Unlike the "fix nvt"_fix_nvt.html command which
 performs Nose/Hoover thermostatting AND time integration, this fix
@@ -101,10 +110,6 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 
-The keyword {axes} can be used to specify which dimensions to add Ff
-and Fr to.  A flag of 0 means skip that dimension; a flag of 1 means
-include that dimension.  The default is 1 for all 3 dimensions.
-
 The keyword {scale} allows the damp factor to be scaled up or down by
 the specified factor for atoms of that type.  This can be useful when
 different atom types have different sizes or masses.  It can be used
@@ -148,7 +153,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Related commands:]
 
 "fix nvt"_fix_nvt.html, "fix temp/rescale"_fix_temp_rescale.html, "fix
-viscous"_fix_viscous.html
+viscous"_fix_viscous.html, "fix nvt"_fix_nvt.html
 
 [Default:]
 

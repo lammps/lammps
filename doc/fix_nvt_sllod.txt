@@ -99,6 +99,21 @@ custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
 effect on this fix.
 
+Like other fixes that perform thermostatting, this fix can be used
+with "compute commands"_compute.html that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the "fix_modify"_fix_modify.html command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual "compute
+commands"_compute.html to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the state of the Nose/Hoover thermostat to "binary

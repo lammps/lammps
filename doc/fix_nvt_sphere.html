@@ -9,15 +9,15 @@
 
 <HR>
 
-<H3>fix nvt/asphere command 
+<H3>fix nvt/sphere command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID nvt/asphere Tstart Tstop Tdamp keyword value ... 
+<PRE>fix ID group-ID nvt/sphere Tstart Tstop Tdamp keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>nvt/asphere = style name of this fix command 
+<LI>nvt/sphere = style name of this fix command 
 
 <LI>Tstart,Tstop = desired temperature at start/end of run 
 
@@ -33,16 +33,26 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all nvt/asphere 300.0 300.0 100.0
-fix 1 all nvt/asphere 300.0 300.0 100.0 drag 0.2 
+<PRE>fix 1 all nvt/sphere 300.0 300.0 100.0
+fix 1 all nvt/sphere 300.0 300.0 100.0 drag 0.2 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Perform constant NVT integration to update positions, velocities,
-and angular velocities each timestep for aspherical or ellipsoidal 
-particles in the group using a Nose/Hoover temperature thermostat.  
-V is volume; T is temperature.  This creates a system trajectory 
-consistent with the canonical ensemble.
+<P>Perform constant NVT integration to update position, velocity, and
+angular velocity each timestep for extended spherical particles in the
+group using a Nose/Hoover temperature thermostat.  V is volume; T is
+temperature.  This creates a system trajectory consistent with the
+canonical ensemble.
+</P>
+<P>This fix differs from the <A HREF = "fix_nvt.html">fix nvt</A> command, which
+assumes point particles and only updates their position and velocity.
+</P>
+<P>The thermostat is applied to both the translational and rotational
+degrees of freedom for the spherical particles, assuming a compute is
+used which calculates a temperature that includes the rotational
+degrees of freedom (see below).  The translational degrees of freedom
+can also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
 </P>
 <P>The desired temperature at each timestep is a ramped value during the
 run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in
@@ -62,12 +72,12 @@ to determine if the drag term is working.  Typically a value between
 0.2 to 2.0 is sufficient to damp oscillations after a few periods.
 </P>
 <P>This fix computes a temperature each timestep.  To do this, the fix
-creates its own compute of style "temp/asphere", as if this command 
+creates its own compute of style "temp/sphere", as if this command 
 had been issued:
 </P>
-<PRE>compute fix-ID_temp group-ID temp/asphere 
+<PRE>compute fix-ID_temp group-ID temp/sphere 
 </PRE>
-<P>See the <A HREF = "compute_temp_asphere.html">compute temp/asphere</A> command for
+<P>See the <A HREF = "compute_temp_sphere.html">compute temp/sphere</A> command for
 details.  Note that the ID of the new compute is the fix-ID +
 underscore + "temp", and the group for the new compute is the same as
 the fix group.
@@ -81,6 +91,21 @@ during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
 custom</A> command using the appropriate compute-ID.
 It also means that changing attributes of <I>thermo_temp</I> will have no
 effect on this fix.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -112,9 +137,10 @@ commands</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
+<P>This fix requires that particles be represented as extended spheres
+and not point particles.  This means they will have an angular
+velocity and a diameter which is determined by the <A HREF = "shape.html">shape</A>
+command.
 </P>
 <P>The final Tstop cannot be 0.0 since it would make the target T = 0.0
 at some timestep during the simulation which is not allowed in 
@@ -122,8 +148,9 @@ the Nose/Hoover formulation.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>, <A HREF = "fix_npt_asphere.html">fix
-npt_asphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
+<P><A HREF = "fix_nvt.html">fix nvt</A>, <A HREF = "fix_nve_sphere.html">fix nve_sphere</A>, <A HREF = "fix_nvt_asphere.html">fix
+nvt_asphere</A>, <A HREF = "fix_npt_sphere.html">fix
+npt_sphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Default:</B>
 </P>

@@ -32,7 +32,7 @@ class FixLangevin : public Fix {
   int modify_param(int, char **);
 
  private:
-  int which;
+  int which,massflag;
   double t_start,t_stop,t_period;
   double *gfactor1,*gfactor2,*ratio;
 

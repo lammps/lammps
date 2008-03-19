@@ -31,6 +31,7 @@
 using namespace LAMMPS_NS;
 
 enum{NOBIAS,BIAS};
+enum{MASS,RMASS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,21 +106,24 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
-  if (atom->mass == NULL)
-    error->all("Cannot use fix langevin without per-type mass defined");
-
   // set force prefactors
 
-  for (int i = 1; i <= atom->ntypes; i++) {
-    gfactor1[i] = - atom->mass[i] / t_period / force->ftm2v;
-    gfactor2[i] = sqrt(atom->mass[i]) * 
-      sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / force->ftm2v;
-    gfactor1[i] *= 1.0/ratio[i];
-    gfactor2[i] *= 1.0/sqrt(ratio[i]);
+  if (atom->mass) {
+    for (int i = 1; i <= atom->ntypes; i++) {
+      gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
+      gfactor2[i] = sqrt(atom->mass[i]) * 
+	sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / 
+	force->ftm2v;
+      gfactor1[i] *= 1.0/ratio[i];
+      gfactor2[i] *= 1.0/sqrt(ratio[i]);
+    }
   }
 
   if (temperature && temperature->tempbias) which = BIAS;
   else which = NOBIAS;
+
+  if (atom->mass) massflag = MASS;
+  else massflag = RMASS;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -158,38 +162,83 @@ void FixLangevin::post_force(int vflag)
 
   // apply damping and thermostat to appropriate atoms
 
-  if (which == NOBIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	gamma1 = gfactor1[type[i]];
-	gamma2 = gfactor2[type[i]] * tsqrt;
-	f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-      }
-    }
-
-  // invoke temperature since some computes require it to remove bias
-  // test on v = 0 since some computes mask non-participating atoms via v = 0
-
-  } else if (which == BIAS) {
-    double tmp = temperature->compute_scalar();
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	gamma1 = gfactor1[type[i]];
-	gamma2 = gfactor2[type[i]] * tsqrt;
-	temperature->remove_bias(i,v[i]);
-	if (v[i][0] != 0.0)
+  if (massflag == MASS) {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = gfactor1[type[i]];
+	  gamma2 = gfactor2[type[i]] * tsqrt;
 	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	if (v[i][1] != 0.0)
 	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	if (v[i][2] != 0.0)
 	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-	temperature->restore_bias(v[i]);
+	}
+      }
+
+    // invoke temperature since some computes require it to remove bias
+    // test v = 0 since some computes mask non-participating atoms via v = 0
+
+    } else if (which == BIAS) {
+      double tmp = temperature->compute_scalar();
+      
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = gfactor1[type[i]];
+	  gamma2 = gfactor2[type[i]] * tsqrt;
+	  temperature->remove_bias(i,v[i]);
+	  if (v[i][0] != 0.0)
+	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  if (v[i][1] != 0.0)
+	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  if (v[i][2] != 0.0)
+	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  temperature->restore_bias(v[i]);
+	}
       }
     }
 
+  } else {
+    double *rmass = atom->rmass;
+    double boltz = force->boltz;
+    double dt = update->dt;
+    double mvv2e = force->mvv2e;
+    double ftm2v = force->ftm2v;
+
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = -rmass[i] / t_period / ftm2v;
+	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+	  gamma1 *= 1.0/ratio[type[i]];
+	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	}
+      }
+
+    // invoke temperature since some computes require it to remove bias
+    // test v = 0 since some computes mask non-participating atoms via v = 0
+
+    } else if (which == BIAS) {
+      double tmp = temperature->compute_scalar();
+      
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = -rmass[i] / t_period / ftm2v;
+	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+	  gamma1 *= 1.0/ratio[type[i]];
+	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+	  temperature->remove_bias(i,v[i]);
+	  if (v[i][0] != 0.0)
+	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  if (v[i][1] != 0.0)
+	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  if (v[i][2] != 0.0)
+	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  temperature->restore_bias(v[i]);
+	}
+      }
+    }
   }
 }
 
@@ -211,10 +260,13 @@ void FixLangevin::reset_target(double t_new)
 
 void FixLangevin::reset_dt()
 {
-  for (int i = 1; i <= atom->ntypes; i++) {
-    gfactor2[i] = sqrt(atom->mass[i]) * 
-      sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / force->ftm2v;
-    gfactor2[i] *= 1.0/sqrt(ratio[i]);
+  if (atom->mass) {
+    for (int i = 1; i <= atom->ntypes; i++) {
+      gfactor2[i] = sqrt(atom->mass[i]) * 
+	sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e) / 
+	force->ftm2v;
+      gfactor2[i] *= 1.0/sqrt(ratio[i]);
+    }
   }
 }
 

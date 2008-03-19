@@ -160,6 +160,7 @@ void PairGayBerne::compute(int eflag, int vflag)
 	  MathExtra::diag_times3(shape[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
+	  ttor[0] = ttor[1] = ttor[2] = 0.0;
 	  break;
 
         case ELLIPSE_SPHERE:

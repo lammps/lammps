@@ -163,10 +163,10 @@ change the attributes of this potential energy via the
 of the system with 1/2 Kb T of energy for each degree of freedom.
 Thus, using different <A HREF = "compute.html">compute commands</A> for calculating
 temperature, via the <A HREF = "thermo_modify.html">thermo_modify temp</A> command,
-may yield different kinetic energies, since different temperature
-compute can subtract out different non-thermal components of velocity
-and/or include different degrees of freedom (translational,
-rotational, etc).
+may yield different kinetic energies, since different computes that
+calculate temperature can subtract out different non-thermal
+components of velocity and/or include different degrees of freedom
+(translational, rotational, etc).
 </P>
 <P>The potential energy of the system <I>pe</I> will include contributions
 from fixes if the <A HREF = "fix_modify.html">fix_modify thermo</A> option is set

@@ -20,10 +20,12 @@ AtomStyle(ellipsoid,AtomVecEllipsoid)
 # endif
 
 #ifdef ComputeInclude
+#include "compute_erotate_asphere.h"
 #include "compute_temp_asphere.h"
 #endif
 
 #ifdef ComputeClass
+ComputeStyle(erotate/asphere,ComputeERotateASphere)
 ComputeStyle(temp/asphere,ComputeTempAsphere)
 #endif
 

@@ -6,44 +6,49 @@
 
 :line
 
-compute erotate/sphere command :h3
+compute ke command :h3
 
 [Syntax:]
 
-compute ID group-ID erotate/sphere :pre
+compute ID group-ID ke :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-erotate/sphere = style name of this compute command :ul
+ke = style name of this compute command :ul
 
 [Examples:]
 
-compute 1 all erotate/sphere :pre
+compute 1 all ke :pre
 
 [Description:]
 
-Define a computation that calculates the rotational kinetic energy of
-a group of spherical particles.
+Define a computation that calculates the translational kinetic energy
+of a group of particles.
 
-The rotational energy is computed as 1/2 I w^2, where I is the moment
-of inertia for a sphere and w is the particle's angular velocity.
+The kinetic energy or each particle is computed as 1/2 m v^2, where m
+and v are the mass and velocity of the particle.
 
-IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
-as spheres, not disks, meaning their moment of inertia will be the
-same as in 3d.
+There is a subtle difference between the quantity calculated by this
+compute and the kinetic energy calculated by the {ke} or {etotal}
+keyword used in thermodynamic output, as specified by the
+"thermo_style"_thermo_style.html command.  For this compute, kinetic
+energy is "translational" kinetic energy, calculated by the simple
+formula above.  For thermodynamic output, the {ke} keyword infers
+kinetic energy from the temperature of the system with 1/2 Kb T of
+energy for each degree of freedom.  For the default temperature
+computation via the "compute temp"_compute_temp.html command, these
+are the same.  But different computes that calculate temperature can
+subtract out different non-thermal components of velocity and/or
+include different degrees of freedom (translational, rotational, etc).
 
 [Output info:]
 
 The scalar value calculated by this compute is "extensive", meaning it
 it scales with the number of atoms in the simulation.
 
-[Restrictions:]
+[Restrictions:] none
 
-This compute requires that particles be represented as extended
-spheres and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-"shape"_shape.html command or by each particle being assigned an
-individual radius, e.g. for "atom_style granular"_atom_style.html.
+[Related commands:]
 
-[Related commands:] none
+"compute erotate/sphere"_compute_erotate_sphere.html
 
 [Default:] none

@@ -9,45 +9,50 @@
 
 <HR>
 
-<H3>compute erotate/sphere command 
+<H3>compute ke command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID erotate/sphere 
+<PRE>compute ID group-ID ke 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>erotate/sphere = style name of this compute command 
+<LI>ke = style name of this compute command 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all erotate/sphere 
+<PRE>compute 1 all ke 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that calculates the rotational kinetic energy of
-a group of spherical particles.
+<P>Define a computation that calculates the translational kinetic energy
+of a group of particles.
 </P>
-<P>The rotational energy is computed as 1/2 I w^2, where I is the moment
-of inertia for a sphere and w is the particle's angular velocity.
+<P>The kinetic energy or each particle is computed as 1/2 m v^2, where m
+and v are the mass and velocity of the particle.
 </P>
-<P>IMPORTANT NOTE: For <A HREF = "dimension.html">2d models</A>, particles are treated
-as spheres, not disks, meaning their moment of inertia will be the
-same as in 3d.
+<P>There is a subtle difference between the quantity calculated by this
+compute and the kinetic energy calculated by the <I>ke</I> or <I>etotal</I>
+keyword used in thermodynamic output, as specified by the
+<A HREF = "thermo_style.html">thermo_style</A> command.  For this compute, kinetic
+energy is "translational" kinetic energy, calculated by the simple
+formula above.  For thermodynamic output, the <I>ke</I> keyword infers
+kinetic energy from the temperature of the system with 1/2 Kb T of
+energy for each degree of freedom.  For the default temperature
+computation via the <A HREF = "compute_temp.html">compute temp</A> command, these
+are the same.  But different computes that calculate temperature can
+subtract out different non-thermal components of velocity and/or
+include different degrees of freedom (translational, rotational, etc).
 </P>
 <P><B>Output info:</B>
 </P>
 <P>The scalar value calculated by this compute is "extensive", meaning it
 it scales with the number of atoms in the simulation.
 </P>
-<P><B>Restrictions:</B>
+<P><B>Restrictions:</B> none
 </P>
-<P>This compute requires that particles be represented as extended
-spheres and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-<A HREF = "shape.html">shape</A> command or by each particle being assigned an
-individual radius, e.g. for <A HREF = "atom_style.html">atom_style granular</A>.
+<P><B>Related commands:</B>
 </P>
-<P><B>Related commands:</B> none
+<P><A HREF = "compute_erotate_sphere.html">compute erotate/sphere</A>
 </P>
 <P><B>Default:</B> none
 </P>

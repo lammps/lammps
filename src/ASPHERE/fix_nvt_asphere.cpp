@@ -32,6 +32,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{NOBIAS,BIAS};
+
 /* ---------------------------------------------------------------------- */
 
 FixNVTASphere::FixNVTASphere(LAMMPS *lmp, int narg, char **arg) :
@@ -41,6 +43,14 @@ FixNVTASphere::FixNVTASphere(LAMMPS *lmp, int narg, char **arg) :
       !atom->avec->shape_type)
     error->all("Fix nvt/asphere requires atom attributes "
 	       "quat, angmom, torque, shape");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVTASphere::init()
+{
+  FixNVT::init();
+  dtq = 0.5 * update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,27 +85,56 @@ void FixNVTASphere::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	x[i][0] += dtv * v[i][0];
+	x[i][1] += dtv * v[i][1];
+	x[i][2] += dtv * v[i][2];
+	
+	// update angular momentum by 1/2 step
+	// update quaternion a full step via Richardson iteration
+	// returns new normalized quaternion
+	
+	angmom[i][0] = angmom[i][0]*factor + dtf*torque[i][0];
+	angmom[i][1] = angmom[i][1]*factor + dtf*torque[i][1];
+	angmom[i][2] = angmom[i][2]*factor + dtf*torque[i][2];
+	
+	double inertia[3];
+	calculate_inertia(atom->mass[type[i]],atom->shape[type[i]],inertia);
+	richardson(quat[i],angmom[i],inertia);
+      }
+    }
 
-      // update angular momentum by 1/2 step
-      // update quaternion a full step via Richardson iteration
-      // returns new normalized quaternion
-      
-      angmom[i][0] = angmom[i][0] * factor + dtf * torque[i][0];
-      angmom[i][1] = angmom[i][1] * factor + dtf * torque[i][1];
-      angmom[i][2] = angmom[i][2] * factor + dtf * torque[i][2];
-
-      double inertia[3];
-      calculate_inertia(atom->mass[type[i]],atom->shape[type[i]],inertia);
-      richardson(quat[i],angmom[i],inertia);
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	temperature->restore_bias(v[i]);
+	x[i][0] += dtv * v[i][0];
+	x[i][1] += dtv * v[i][1];
+	x[i][2] += dtv * v[i][2];
+	
+	// update angular momentum by 1/2 step
+	// update quaternion a full step via Richardson iteration
+	// returns new normalized quaternion
+	
+	angmom[i][0] = angmom[i][0]*factor + dtf*torque[i][0];
+	angmom[i][1] = angmom[i][1]*factor + dtf*torque[i][1];
+	angmom[i][2] = angmom[i][2]*factor + dtf*torque[i][2];
+	
+	double inertia[3];
+	calculate_inertia(atom->mass[type[i]],atom->shape[type[i]],inertia);
+	richardson(quat[i],angmom[i],inertia);
+      }
     }
   }
 }
@@ -118,16 +157,32 @@ void FixNVTASphere::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]] * factor;
-      v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]] * factor;
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	angmom[i][0] = (angmom[i][0] + dtf*torque[i][0]) * factor;
+	angmom[i][1] = (angmom[i][1] + dtf*torque[i][1]) * factor;
+	angmom[i][2] = (angmom[i][2] + dtf*torque[i][2]) * factor;
+      }
+    }
 
-      angmom[i][0] = angmom[i][0] * factor + dtf * torque[i][0];
-      angmom[i][1] = angmom[i][1] * factor + dtf * torque[i][1];
-      angmom[i][2] = angmom[i][2] * factor + dtf * torque[i][2];
+  } else if (which == BIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	temperature->remove_bias(i,v[i]);
+	dtfm = dtf / mass[type[i]] * factor;
+	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	temperature->restore_bias(v[i]);
+	angmom[i][0] = (angmom[i][0] + dtf*torque[i][0]) * factor;
+	angmom[i][1] = (angmom[i][1] + dtf*torque[i][1]) * factor;
+	angmom[i][2] = (angmom[i][2] + dtf*torque[i][2]) * factor;
+      }
     }
   }
 
@@ -140,6 +195,14 @@ void FixNVTASphere::final_integrate()
   f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
   eta_dot += f_eta*dthalf;
   eta_dot *= drag_factor;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVTASphere::reset_dt()
+{
+  FixNVT::reset_dt();
+  dtq = 0.5 * update->dt;
 }
 
 /* ----------------------------------------------------------------------

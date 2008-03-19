@@ -23,7 +23,7 @@ class FixNPT : public Fix {
   FixNPT(class LAMMPS *, int, char **);
   virtual ~FixNPT();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
   void initial_integrate(int);
   virtual void final_integrate();
@@ -33,11 +33,11 @@ class FixNPT : public Fix {
   void write_restart(FILE *);
   void restart(char *);
   int modify_param(int, char **);
-  void reset_dt();
+  virtual void reset_dt();
 
  protected:
   int dimension,which;
-  double dtv,dtf,dtq,dthalf;
+  double dtv,dtf,dthalf;
   double boltz,nktv2p;
   double vol0;
 

@@ -21,7 +21,6 @@ namespace LAMMPS_NS {
 class FixNVTSlodd : public FixNVT {
  public:
   FixNVTSlodd(class LAMMPS *, int, char **);
-  ~FixNVTSlodd() {}
   void init();
   void initial_integrate(int);
   void final_integrate();

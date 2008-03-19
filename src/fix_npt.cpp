@@ -178,6 +178,8 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(style,"npt") == 0) newarg[2] = (char *) "temp";
   else if (strcmp(style,"npt/asphere") == 0)
     newarg[2] = (char *) "temp/asphere";
+  else if (strcmp(style,"npt/sphere") == 0)
+    newarg[2] = (char *) "temp/sphere";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -270,7 +272,6 @@ void FixNPT::init()
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dtq = 0.5 * update->dt;
   dthalf = 0.5 * update->dt;
 
   double freq = MAX(p_freq[0],p_freq[1]);
@@ -392,7 +393,6 @@ void FixNPT::initial_integrate(int vflag)
 	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
       }
     }
-
   } else if (which == BIAS) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -456,7 +456,6 @@ void FixNPT::final_integrate()
 	v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
       }
     }
-
   } else if (which == BIAS) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -601,7 +600,6 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	  v[i][2] += dtfm*f[i][2];
 	}
       }
-
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -667,7 +665,6 @@ void FixNPT::final_integrate_respa(int ilevel)
 	  v[i][2] += dtfm*f[i][2];
 	}
       }
-
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -894,7 +891,6 @@ void FixNPT::reset_dt()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dtq = 0.5 * update->dt;
   dthalf = 0.5 * update->dt;
 
   double freq = MAX(p_freq[0],p_freq[1]);

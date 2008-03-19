@@ -175,4 +175,3 @@ void Compute::restore_bias(double *v)
   v[1] += vbias[1];
   v[2] += vbias[2];
 }
-

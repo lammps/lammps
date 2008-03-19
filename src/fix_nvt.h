@@ -23,7 +23,7 @@ class FixNVT : public Fix {
   FixNVT(class LAMMPS *, int, char **);
   virtual ~FixNVT();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
   virtual void initial_integrate(int);
   virtual void final_integrate();
@@ -34,7 +34,7 @@ class FixNVT : public Fix {
   void restart(char *);
   int modify_param(int, char **);
   void reset_target(double);
-  void reset_dt();
+  virtual void reset_dt();
 
  protected:
   int which;
@@ -42,7 +42,7 @@ class FixNVT : public Fix {
   double t_current,t_target;
   double t_freq,drag,drag_factor;
   double f_eta,eta_dot,eta,factor;
-  double dtv,dtf,dtq,dthalf;
+  double dtv,dtf,dthalf;
 
   int nlevels_respa;
   double *step_respa;

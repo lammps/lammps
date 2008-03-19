@@ -164,12 +164,14 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_momentum.h"
 #include "fix_nph.h"
 #include "fix_npt.h"
+#include "fix_npt_sphere.h"
 #include "fix_nve.h"
 #include "fix_nve_limit.h"
 #include "fix_nve_noforce.h"
 #include "fix_nve_sphere.h"
 #include "fix_nvt.h"
 #include "fix_nvt_sllod.h"
+#include "fix_nvt_sphere.h"
 #include "fix_plane_force.h"
 #include "fix_press_berendsen.h"
 #include "fix_print.h"
@@ -220,12 +222,14 @@ FixStyle(momentum,FixMomentum)
 FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)
 FixStyle(npt,FixNPT)
+FixStyle(npt/sphere,FixNPTSphere)
 FixStyle(nve,FixNVE)
 FixStyle(nve/limit,FixNVELimit)
 FixStyle(nve/noforce,FixNVENoforce)
 FixStyle(nve/sphere,FixNVESphere)
 FixStyle(nvt,FixNVT)
 FixStyle(nvt/sllod,FixNVTSlodd)
+FixStyle(nvt/sphere,FixNVTSphere)
 FixStyle(orient/fcc,FixOrientFCC)
 FixStyle(press/berendsen,FixPressBerendsen)
 FixStyle(planeforce,FixPlaneForce)

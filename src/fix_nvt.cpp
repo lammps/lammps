@@ -80,6 +80,8 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
     newarg[2] = (char *) "temp/asphere";
   else if (strcmp(style,"nvt/sllod") == 0) 
     newarg[2] = (char *) "temp/deform";
+  else if (strcmp(style,"nvt/sphere") == 0) 
+    newarg[2] = (char *) "temp/sphere";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -126,7 +128,6 @@ void FixNVT::init()
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dtq = 0.5 * update->dt;
   dthalf = 0.5 * update->dt;
 
   drag_factor = 1.0 - (update->dt * t_freq * drag);
@@ -435,7 +436,6 @@ void FixNVT::reset_dt()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dtq = 0.5 * update->dt;
   dthalf = 0.5 * update->dt;
 
   drag_factor = 1.0 - (update->dt * t_freq * drag);

@@ -35,6 +35,7 @@
 using namespace LAMMPS_NS;
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
+enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,6 +47,9 @@ FixNVTSlodd::FixNVTSlodd(LAMMPS *lmp, int narg, char **arg) :
 void FixNVTSlodd::init()
 {
   FixNVT::init();
+
+  if (!temperature->tempbias)
+    error->all("Temperature for fix nvt/sllod does not have a bias");
 
   // check fix deform remap settings
 
@@ -78,11 +82,10 @@ void FixNVTSlodd::initial_integrate(int vflag)
   eta += dtv*eta_dot;
   factor = exp(-dthalf*eta_dot);
 
-  // update vthermal and x of only atoms in group
-  // lamda = 0-1 triclinic lamda coords
-  // vstream = streaming velocity = Hrate*lamda + Hratelo
-  // vthermal = thermal velocity = v - vstream
-  // vdelu = Hrate*Hinv*vthermal
+  // update v and x of only atoms in group
+  // remove and restore bias = streaming velocity = Hrate*lamda + Hratelo
+  // thermostat thermal velocity only
+  // vdelu = SLLOD correction = Hrate*Hinv*vthermal
 
   double **x = atom->x;
   double **v = atom->v;
@@ -93,34 +96,21 @@ void FixNVTSlodd::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  double *h_rate = domain->h_rate;
-  double *h_ratelo = domain->h_ratelo;
-  double h_two[6],lamda[3],vstream[3],vthermal[3],vdelu[3];
-  MathExtra::multiply_shape_shape(h_rate,domain->h_inv,h_two);
+  double h_two[6],vdelu[3];
+  MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      temperature->remove_bias(i,v[i]);
+      vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
+      vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
+      vdelu[2] = h_two[2]*v[i][2];
       dtfm = dtf / mass[type[i]];
+      v[i][0] = v[i][0]*factor + dtfm*f[i][0] - dthalf*vdelu[0];
+      v[i][1] = v[i][1]*factor + dtfm*f[i][1] - dthalf*vdelu[1];
+      v[i][2] = v[i][2]*factor + dtfm*f[i][2] - dthalf*vdelu[2];
+      temperature->restore_bias(v[i]);
 
-      domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
-      vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
-      vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
-      vthermal[0] = v[i][0] - vstream[0];
-      vthermal[1] = v[i][1] - vstream[1];
-      vthermal[2] = v[i][2] - vstream[2];
-      vdelu[0] = h_two[0]*vthermal[0] + h_two[5]*vthermal[1] + 
-	h_two[4]*vthermal[2];
-      vdelu[1] = h_two[1]*vthermal[1] + h_two[3]*vthermal[2];
-      vdelu[2] = h_two[2]*vthermal[2];
-
-      v[i][0] = vstream[0] + 
-	vthermal[0]*factor + dtfm*f[i][0] - dthalf*vdelu[0];
-      v[i][1] = vstream[1] + 
-	vthermal[1]*factor + dtfm*f[i][1] - dthalf*vdelu[1];
-      v[i][2] = vstream[2] + 
-	vthermal[2]*factor + dtfm*f[i][2] - dthalf*vdelu[2];
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
@@ -134,11 +124,10 @@ void FixNVTSlodd::final_integrate()
 {
   double dtfm;
 
-  // update vthermal of only atoms in group
-  // lamda = 0-1 triclinic lamda coords
-  // vstream = streaming velocity = Hrate*lamda + Hratelo
-  // vthermal = thermal velocity = v - vstream
-  // vdelu = Hrate*Hinv*vthermal
+  // update v of only atoms in group
+  // remove and restore bias = streaming velocity = Hrate*lamda + Hratelo
+  // thermostat thermal velocity only
+  // vdelu = SLLOD correction = Hrate*Hinv*vthermal
 
   double **x = atom->x;
   double **v = atom->v;
@@ -149,34 +138,21 @@ void FixNVTSlodd::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  double *h_rate = domain->h_rate;
-  double *h_ratelo = domain->h_ratelo;
-  double h_two[6],lamda[3],vstream[3],vthermal[3],vdelu[3];
-  MathExtra::multiply_shape_shape(h_rate,domain->h_inv,h_two);
+  double h_two[6],vdelu[3];
+  MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      temperature->remove_bias(i,v[i]);
+      vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
+      vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
+      vdelu[2] = h_two[2]*v[i][2];
+      //dtfm = dtf / mass[type[i]] * factor;
       dtfm = dtf / mass[type[i]];
-
-      domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
-      vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
-      vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
-      vthermal[0] = v[i][0] - vstream[0];
-      vthermal[1] = v[i][1] - vstream[1];
-      vthermal[2] = v[i][2] - vstream[2];
-      vdelu[0] = h_two[0]*vthermal[0] + h_two[5]*vthermal[1] + 
-	h_two[4]*vthermal[2];
-      vdelu[1] = h_two[1]*vthermal[1] + h_two[3]*vthermal[2];
-      vdelu[2] = h_two[2]*vthermal[2];
-
-      v[i][0] = vstream[0] + 
-	vthermal[0]*factor + dtfm*f[i][0] - dthalf*vdelu[0];
-      v[i][1] = vstream[1] + 
-	vthermal[1]*factor + dtfm*f[i][1] - dthalf*vdelu[1];
-      v[i][2] = vstream[2] + 
-	vthermal[2]*factor + dtfm*f[i][2] - dthalf*vdelu[2];
+      v[i][0] = v[i][0]*factor + dtfm*f[i][0] - dthalf*vdelu[0];
+      v[i][1] = v[i][1]*factor + dtfm*f[i][1] - dthalf*vdelu[1];
+      v[i][2] = v[i][2]*factor + dtfm*f[i][2] - dthalf*vdelu[2];
+      temperature->restore_bias(v[i]);
     }
   }
 
@@ -234,34 +210,20 @@ void FixNVTSlodd::initial_integrate_respa(int vflag, int ilevel, int flag)
 
   // update v of only atoms in group
 
-  double *h_rate = domain->h_rate;
-  double *h_ratelo = domain->h_ratelo;
-  double h_two[6],lamda[3],vstream[3],vthermal[3],vdelu[3];
-  MathExtra::multiply_shape_shape(h_rate,domain->h_inv,h_two);
+  double h_two[6],vdelu[3];
+  MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      temperature->remove_bias(i,v[i]);
+      vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
+      vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
+      vdelu[2] = h_two[2]*v[i][2];
       dtfm = dtf / mass[type[i]];
-
-      domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
-      vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
-      vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
-      vthermal[0] = v[i][0] - vstream[0];
-      vthermal[1] = v[i][1] - vstream[1];
-      vthermal[2] = v[i][2] - vstream[2];
-      vdelu[0] = h_two[0]*vthermal[0] + h_two[5]*vthermal[1] + 
-	h_two[4]*vthermal[2];
-      vdelu[1] = h_two[1]*vthermal[1] + h_two[3]*vthermal[2];
-      vdelu[2] = h_two[2]*vthermal[2];
-
-      v[i][0] = vstream[0] + 
-	vthermal[0]*factor + dtfm*f[i][0] - dthalf*vdelu[0];
-      v[i][1] = vstream[1] + 
-	vthermal[1]*factor + dtfm*f[i][1] - dthalf*vdelu[1];
-      v[i][2] = vstream[2] + 
-	vthermal[2]*factor + dtfm*f[i][2] - dthalf*vdelu[2];
+      v[i][0] = v[i][0]*factor + dtfm*f[i][0] - dthalf*vdelu[0];
+      v[i][1] = v[i][1]*factor + dtfm*f[i][1] - dthalf*vdelu[1];
+      v[i][2] = v[i][2]*factor + dtfm*f[i][2] - dthalf*vdelu[2];
+      temperature->restore_bias(v[i]);
     }
   }
 

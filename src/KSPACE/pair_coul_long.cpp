@@ -242,14 +242,11 @@ void PairCoulLong::init_style()
 
   // set & error check interior rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      for (i = 1; i <= atom->ntypes; i++)
-	for (j = i; j <= atom->ntypes; j++)
-	  if (cut_coul < cut_respa[3])
-	    error->all("Pair cutoff < Respa interior cutoff");
-    }
+  if (strcmp(update->integrate_style,"respa") == 0 &&
+      ((Respa *) update->integrate)->level_inner >= 0) {
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+    if (cut_coul < cut_respa[3])
+      error->all("Pair cutoff < Respa interior cutoff");
   } else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald

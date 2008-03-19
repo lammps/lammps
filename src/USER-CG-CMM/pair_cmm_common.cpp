@@ -281,15 +281,6 @@ double PairCMMCommon::init_one(int i, int j)
     cut_coul[j][i]=cut_coul[i][j];
     cut_coulsq[j][i]=cut_coulsq[i][j];
   }
-  
-  // set & error check interior rRESPA cutoff
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      if (cut[i][j] < cut_respa[3])
-        error->all("Pair cutoff < Respa interior cutoff");
-    }
-  } else cut_respa = NULL;
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

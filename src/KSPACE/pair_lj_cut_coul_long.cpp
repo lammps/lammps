@@ -709,17 +709,12 @@ void PairLJCutCoulLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // set & error check interior rRESPA cutoffs
+  // set rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      for (i = 1; i <= atom->ntypes; i++)
-	for (j = i; j <= atom->ntypes; j++)
-	  if (MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-	    error->all("Pair cutoff < Respa interior cutoff");
-    }
-  } else cut_respa = NULL;
+  if (strcmp(update->integrate_style,"respa") == 0 &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -777,6 +772,11 @@ double PairLJCutCoulLong::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
+
+  // check interior rRESPA cutoff
+
+  if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
+    error->all("Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

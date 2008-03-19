@@ -266,17 +266,12 @@ void PairLJCoul::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // set & error check interior rRESPA cutoffs
+  // set rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      for (i = 1; i <= atom->ntypes; i++)
-	for (j = i; j <= atom->ntypes; j++)
-	  if (MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-	    error->all("Pair cutoff < Respa interior cutoff");
-    }
-  } else cut_respa = NULL;
+  if (strcmp(update->integrate_style,"respa") == 0 &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
 
   // ensure use of KSpace long-range solver, set g_ewald
 
@@ -341,7 +336,12 @@ double PairLJCoul::init_one(int i, int j)
   lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-     
+
+  // check interior rRESPA cutoff
+
+  if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
+    error->all("Pair cutoff < Respa interior cutoff");
+ 
   if (offset_flag) {
     double ratio = sigma[i][j] / cut_lj[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));

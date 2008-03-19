@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
     void compute_outer(int, int);
 
     void init_style();
+    double init_one(int, int);
 
     void write_restart(FILE *);
     void read_restart(FILE *);

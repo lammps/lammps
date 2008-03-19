@@ -776,15 +776,13 @@ void PairLJCharmmCoulLong::init_style()
 
   // set & error check interior rRESPA cutoffs
 
-  cut_respa = NULL;
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      if (MIN(cut_lj,cut_coul) < cut_respa[3])
-	error->all("Pair cutoff < Respa interior cutoff");
-      if (cut_lj_inner < cut_respa[1])
-	error->all("Pair inner cutoff < Respa interior cutoff");
-    }
+  if (strcmp(update->integrate_style,"respa") == 0 &&
+      ((Respa *) update->integrate)->level_inner >= 0) {
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+    if (MIN(cut_lj,cut_coul) < cut_respa[3])
+      error->all("Pair cutoff < Respa interior cutoff");
+    if (cut_lj_inner < cut_respa[1])
+      error->all("Pair inner cutoff < Respa interior cutoff");
   } else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald

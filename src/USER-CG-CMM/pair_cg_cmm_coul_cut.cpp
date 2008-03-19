@@ -68,17 +68,26 @@ void PairCGCMMCoulCut::init_style()
 
   PairCMMCommon::init_style();
 
-  // set & error check interior rRESPA cutoffs
-  if (strcmp(update->integrate_style,"respa") == 0) {
-    if (((Respa *) update->integrate)->level_inner >= 0) {
-      cut_respa = ((Respa *) update->integrate)->cutoff;
-      for (int i = 1; i <= atom->ntypes; i++)
-        for (int j = i; j <= atom->ntypes; j++)
-          if (MIN(cut_lj[i][j],cut_coul[i][j]) < cut_respa[3])
-            error->all("Pair cutoff < Respa interior cutoff");
-    }
-  } else cut_respa = NULL;
+  // set rRESPA cutoffs
 
+  if (strcmp(update->integrate_style,"respa") == 0 &&
+      ((Respa *) update->integrate)->level_inner >= 0)
+    cut_respa = ((Respa *) update->integrate)->cutoff;
+  else cut_respa = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairCGCMMCoulCut::init_one(int i, int j)
+{
+  double mycut = PairCMMCommon::init_one(i,j);
+
+  // check interior rRESPA cutoff
+
+  if (cut_respa && MIN(cut_lj[i][j],cut_coul[i][j]) < cut_respa[3])
+    error->all("Pair cutoff < Respa interior cutoff");
+
+  return mycut;
 }
 
 /* ---------------------------------------------------------------------- */

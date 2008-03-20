@@ -18,9 +18,9 @@
 
 namespace LAMMPS_NS {
 
-class FixNVTASphere : public FixNVT {
+class FixNVTAsphere : public FixNVT {
  public:
-  FixNVTASphere(class LAMMPS *, int, char **);
+  FixNVTAsphere(class LAMMPS *, int, char **);
   void init();
   void initial_integrate(int);
   void final_integrate();

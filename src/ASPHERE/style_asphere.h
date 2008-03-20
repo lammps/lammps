@@ -25,7 +25,7 @@ AtomStyle(ellipsoid,AtomVecEllipsoid)
 #endif
 
 #ifdef ComputeClass
-ComputeStyle(erotate/asphere,ComputeERotateASphere)
+ComputeStyle(erotate/asphere,ComputeERotateAsphere)
 ComputeStyle(temp/asphere,ComputeTempAsphere)
 #endif
 
@@ -36,9 +36,9 @@ ComputeStyle(temp/asphere,ComputeTempAsphere)
 #endif
 
 #ifdef FixClass
-FixStyle(nve/asphere,FixNVEASphere)
-FixStyle(nvt/asphere,FixNVTASphere)
-FixStyle(npt/asphere,FixNPTASphere)
+FixStyle(nve/asphere,FixNVEAsphere)
+FixStyle(nvt/asphere,FixNVTAsphere)
+FixStyle(npt/asphere,FixNPTAsphere)
 #endif
 
 #ifdef PairInclude

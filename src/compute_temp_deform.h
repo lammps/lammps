@@ -25,11 +25,21 @@ class ComputeTempDeform : public Compute {
   void init();
   double compute_scalar();
   void compute_vector();
+
   void remove_bias(int, double *);
+  void remove_bias_all();
+  void restore_bias(double *);
+  void restore_bias_all();
+  double memory_usage();
 
  private:
   int fix_dof;
   double tfactor;
+
+  double vbias[3];    // stored velocity bias for one atom
+  double **vbiasall;  // stored velocity bias for all atoms
+  int maxbias;        // size of vbiasall array
+  Compute *tbias;     // ptr to additional bias compute
 
   void recount();
 };

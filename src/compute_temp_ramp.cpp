@@ -22,6 +22,7 @@
 #include "fix.h"
 #include "domain.h"
 #include "lattice.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -108,8 +109,9 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   tempflag = 1;
   tempbias = 1;
-  vbias[0] = vbias[1] = vbias[2] = 0.0;
 
+  maxbias = 0;
+  vbiasall = NULL;
   vector = new double[6];
 }
 
@@ -117,6 +119,7 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempRamp::~ComputeTempRamp()
 {
+  memory->destroy_2d_double_array(vbiasall);
   delete [] vector;
 }
 
@@ -128,6 +131,12 @@ void ComputeTempRamp::init()
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
+
+  if (id_bias) {
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,6 +157,12 @@ double ComputeTempRamp::compute_scalar()
   double fraction,vramp,vthermal[3];
 
   invoked |= INVOKED_SCALAR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_SCALAR))
+      double tmp = tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -176,6 +191,8 @@ double ComputeTempRamp::compute_scalar()
 	      vthermal[2]*vthermal[2]) * rmass[i];
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) recount();
   scalar *= tfactor;
@@ -190,6 +207,11 @@ void ComputeTempRamp::compute_vector()
   double fraction,vramp,vthermal[3];
 
   invoked |= INVOKED_VECTOR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
+    tbias->remove_bias_all();
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -223,17 +245,90 @@ void ComputeTempRamp::compute_vector()
       t[5] += massone * vthermal[1]*vthermal[2];
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
 
 void ComputeTempRamp::remove_bias(int i, double *v)
 {
+  if (tbias) tbias->remove_bias(i,v);
+
   double fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
   fraction = MAX(fraction,0.0);
   fraction = MIN(fraction,1.0);
   vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
   v[v_dim] -= vbias[v_dim];
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempRamp::remove_bias_all()
+{
+  if (tbias) tbias->remove_bias_all();
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (nlocal > maxbias) {
+    memory->destroy_2d_double_array(vbiasall);
+    maxbias = atom->nmax;
+    vbiasall = memory->create_2d_double_array(maxbias,3,
+					      "compute/temp:vbiasall");
+  }
+
+  double fraction;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+      fraction = MAX(fraction,0.0);
+      fraction = MIN(fraction,1.0);
+      vbiasall[i][v_dim] = v_lo + fraction*(v_hi - v_lo);
+      v[i][v_dim] -= vbiasall[i][v_dim];
+    }
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempRamp::restore_bias(double *v)
+{
+  v[v_dim] += vbias[v_dim];
+  if (tbias) tbias->restore_bias(v);
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempRamp::restore_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      v[i][v_dim] += vbiasall[i][v_dim];
+
+  if (tbias) tbias->restore_bias_all();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeTempRamp::memory_usage()
+{
+  double bytes = maxbias * sizeof(double);
+  return bytes;
 }

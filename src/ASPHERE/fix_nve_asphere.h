@@ -18,10 +18,10 @@
 
 namespace LAMMPS_NS {
 
-class FixNVEASphere : public FixNVE {
+class FixNVEAsphere : public FixNVE {
  public:
-  FixNVEASphere(class LAMMPS *, int, char **);
-  ~FixNVEASphere();
+  FixNVEAsphere(class LAMMPS *, int, char **);
+  ~FixNVEAsphere();
   void init();
   void initial_integrate(int);
   void final_integrate();

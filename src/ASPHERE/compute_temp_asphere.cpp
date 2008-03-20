@@ -70,6 +70,13 @@ void ComputeTempAsphere::init()
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
 
+  if (id_bias) {
+    tempbias = 1;
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+  } else tempbias = 0;
+
   calculate_inertia();
 }
 
@@ -122,6 +129,12 @@ double ComputeTempAsphere::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
 
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_SCALAR))
+      double tmp = tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
+
   double **v = atom->v;
   double **quat = atom->quat;
   double **angmom = atom->angmom;
@@ -163,6 +176,8 @@ double ComputeTempAsphere::compute_scalar()
       }
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) recount();
   scalar *= tfactor;
@@ -176,6 +191,11 @@ void ComputeTempAsphere::compute_vector()
   int i;
 
   invoked |= INVOKED_VECTOR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
+    tbias->remove_bias_all();
+  }
 
   double **v = atom->v;
   double **quat = atom->quat;
@@ -223,6 +243,8 @@ void ComputeTempAsphere::compute_vector()
       t[5] += inertia[itype][2]*wbody[1]*wbody[2];
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
@@ -245,3 +267,42 @@ void ComputeTempAsphere::calculate_inertia()
       (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
   }
 }
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempAsphere::remove_bias(int i, double *v)
+{
+  if (tbias) tbias->remove_bias(i,v);
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempAsphere::remove_bias_all()
+{
+  if (tbias) tbias->remove_bias_all();
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempAsphere::restore_bias(double *v)
+{
+  if (tbias) tbias->restore_bias(v);
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempAsphere::restore_bias_all()
+{
+  if (tbias) tbias->restore_bias_all();
+}
+

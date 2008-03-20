@@ -18,10 +18,10 @@
 
 namespace LAMMPS_NS {
 
-class ComputeERotateASphere : public Compute {
+class ComputeERotateAsphere : public Compute {
  public:
-  ComputeERotateASphere(class LAMMPS *, int, char **);
-  ~ComputeERotateASphere();
+  ComputeERotateAsphere(class LAMMPS *, int, char **);
+  ~ComputeERotateAsphere();
   void init();
   double compute_scalar();
 

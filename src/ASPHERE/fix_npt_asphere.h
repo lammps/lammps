@@ -18,9 +18,9 @@
 
 namespace LAMMPS_NS {
 
-class FixNPTASphere : public FixNPT {
+class FixNPTAsphere : public FixNPT {
  public:
-  FixNPTASphere(class LAMMPS *, int, char **);
+  FixNPTAsphere(class LAMMPS *, int, char **);
   void init();
   void initial_integrate(int);
   void final_integrate();

@@ -26,6 +26,7 @@
 #include "fix_deform.h"
 #include "group.h"
 #include "comm.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -48,6 +49,8 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
+  maxbias = 0;
+  vbiasall = NULL;
   vector = new double[6];
 }
 
@@ -55,6 +58,7 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempDeform::~ComputeTempDeform()
 {
+  memory->destroy_2d_double_array(vbiasall);
   delete [] vector;
 }
 
@@ -68,6 +72,12 @@ void ComputeTempDeform::init()
   for (i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
+
+  if (id_bias) {
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+  }
 
   // check fix deform remap settings
 
@@ -101,6 +111,12 @@ double ComputeTempDeform::compute_scalar()
 
   invoked |= INVOKED_SCALAR;
 
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_SCALAR))
+      double tmp = tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
+
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
@@ -118,35 +134,25 @@ double ComputeTempDeform::compute_scalar()
 
   double t = 0.0;
 
-  if (mass) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	domain->x2lamda(x[i],lamda);
-	vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	  h_rate[4]*lamda[2] + h_ratelo[0];
-	vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
-	vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
-	vthermal[0] = v[i][0] - vstream[0];
-	vthermal[1] = v[i][1] - vstream[1];
-	vthermal[2] = v[i][2] - vstream[2];
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      domain->x2lamda(x[i],lamda);
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
+	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+      vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
+      vthermal[0] = v[i][0] - vstream[0];
+      vthermal[1] = v[i][1] - vstream[1];
+      vthermal[2] = v[i][2] - vstream[2];
+      if (mass)
 	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
 	      vthermal[2]*vthermal[2]) * mass[type[i]];
-      }
-  }
-  else
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	domain->x2lamda(x[i],lamda);
-	vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	  h_rate[4]*lamda[2] + h_ratelo[0];
-	vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
-	vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
-	vthermal[0] = v[i][0] - vstream[0];
-	vthermal[1] = v[i][1] - vstream[1];
-	vthermal[2] = v[i][2] - vstream[2];
+      else 
 	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
 	      vthermal[2]*vthermal[2]) * rmass[i];
-      }
+    }
+
+  if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   scalar *= tfactor;
@@ -160,6 +166,11 @@ void ComputeTempDeform::compute_vector()
   double lamda[3],vstream[3],vthermal[3];
 
   invoked |= INVOKED_VECTOR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
+    tbias->remove_bias_all();
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -196,14 +207,20 @@ void ComputeTempDeform::compute_vector()
       t[5] += massone * vthermal[1]*vthermal[2];
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (int i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
 
 void ComputeTempDeform::remove_bias(int i, double *v)
 {
+  if (tbias) tbias->remove_bias(i,v);
+
   double lamda[3];
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
@@ -216,4 +233,82 @@ void ComputeTempDeform::remove_bias(int i, double *v)
   v[0] -= vbias[0];
   v[1] -= vbias[1];
   v[2] -= vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempDeform::remove_bias_all()
+{
+  if (tbias) tbias->remove_bias_all();
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (nlocal > maxbias) {
+    memory->destroy_2d_double_array(vbiasall);
+    maxbias = atom->nmax;
+    vbiasall = memory->create_2d_double_array(maxbias,3,
+					      "compute/temp:vbiasall");
+  }
+
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      domain->x2lamda(atom->x[i],lamda);
+      vbiasall[i][0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
+	h_rate[4]*lamda[2] + h_ratelo[0];
+      vbiasall[i][1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+      vbiasall[i][2] = h_rate[2]*lamda[2] + h_ratelo[2];
+      v[i][0] -= vbiasall[i][0];
+      v[i][1] -= vbiasall[i][1];
+      v[i][2] -= vbiasall[i][2];
+    }
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempDeform::restore_bias(double *v)
+{
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
+  if (tbias) tbias->restore_bias(v);
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempDeform::restore_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      v[i][0] += vbiasall[i][0];
+      v[i][1] += vbiasall[i][1];
+      v[i][2] += vbiasall[i][2];
+    }
+
+  if (tbias) tbias->restore_bias_all();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeTempDeform::memory_usage()
+{
+  double bytes = maxbias * sizeof(double);
+  return bytes;
 }

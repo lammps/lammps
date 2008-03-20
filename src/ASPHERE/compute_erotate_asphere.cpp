@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeERotateASphere::ComputeERotateASphere(LAMMPS *lmp, int narg, char **arg) :
+ComputeERotateAsphere::ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 3) error->all("Illegal compute erotate/asphere command");
@@ -42,14 +42,14 @@ ComputeERotateASphere::ComputeERotateASphere(LAMMPS *lmp, int narg, char **arg) 
 
 /* ---------------------------------------------------------------------- */
 
-ComputeERotateASphere::~ComputeERotateASphere()
+ComputeERotateAsphere::~ComputeERotateAsphere()
 {
   memory->destroy_2d_double_array(inertia);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeERotateASphere::init()
+void ComputeERotateAsphere::init()
 {
   pfactor = 0.5 * force->mvv2e;
 
@@ -61,7 +61,7 @@ void ComputeERotateASphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeERotateASphere::compute_scalar()
+double ComputeERotateAsphere::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
 
@@ -102,7 +102,7 @@ double ComputeERotateASphere::compute_scalar()
    principal moments of inertia for ellipsoids
 ------------------------------------------------------------------------- */
 
-void ComputeERotateASphere::calculate_inertia()
+void ComputeERotateAsphere::calculate_inertia()
 {
   double *mass = atom->mass;
   double **shape = atom->shape;

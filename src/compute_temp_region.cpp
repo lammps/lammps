@@ -16,8 +16,10 @@
 #include "compute_temp_region.h"
 #include "atom.h"
 #include "force.h"
+#include "modify.h"
 #include "domain.h"
 #include "region.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -42,6 +44,8 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
+  maxbias = 0;
+  vbiasall = NULL;
   vector = new double[6];
 }
 
@@ -49,6 +53,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempRegion::~ComputeTempRegion()
 {
+  memory->destroy_2d_double_array(vbiasall);
   delete [] vector;
 }
 
@@ -57,6 +62,12 @@ ComputeTempRegion::~ComputeTempRegion()
 void ComputeTempRegion::init()
 {
   dof = 0;
+
+  if (id_bias) {
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,6 +75,12 @@ void ComputeTempRegion::init()
 double ComputeTempRegion::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_SCALAR))
+      double tmp = tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -93,6 +110,8 @@ double ComputeTempRegion::compute_scalar()
       }
   }
   
+  if (tbias) tbias->restore_bias_all();
+
   double tarray[2],tarray_all[2];
   tarray[0] = count;
   tarray[1] = t;
@@ -110,6 +129,11 @@ void ComputeTempRegion::compute_vector()
   int i;
 
   invoked |= INVOKED_VECTOR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
+    tbias->remove_bias_all();
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -135,14 +159,20 @@ void ComputeTempRegion::compute_vector()
       t[5] += massone * v[i][1]*v[i][2];
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
 
 void ComputeTempRegion::remove_bias(int i, double *v)
 {
+  if (tbias) tbias->remove_bias(i,v);
+
   double *x = atom->x[i];
   if (atom->mask[i] & groupbit && 
       domain->regions[iregion]->match(x[0],x[1],x[2]))
@@ -153,4 +183,80 @@ void ComputeTempRegion::remove_bias(int i, double *v)
     vbias[2] = v[2];
     v[0] = v[1] = v[2] = 0.0;
   }
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempRegion::remove_bias_all()
+{
+  if (tbias) tbias->remove_bias_all();
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (nlocal > maxbias) {
+    memory->destroy_2d_double_array(vbiasall);
+    maxbias = atom->nmax;
+    vbiasall = memory->create_2d_double_array(maxbias,3,
+					      "compute/temp:vbiasall");
+  }
+  
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      if (atom->mask[i] & groupbit && 
+	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
+      else {
+	vbiasall[i][0] = v[i][0];
+	vbiasall[i][1] = v[i][1];
+	vbiasall[i][2] = v[i][2];
+	v[i][0] = v[i][1] = v[i][2] = 0.0;
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempRegion::restore_bias(double *v)
+{
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
+  if (tbias) tbias->restore_bias(v);
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempRegion::restore_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      v[i][0] += vbiasall[i][0];
+      v[i][1] += vbiasall[i][1];
+      v[i][2] += vbiasall[i][2];
+    }
+
+  if (tbias) tbias->restore_bias_all();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeTempRegion::memory_usage()
+{
+  double bytes = maxbias * sizeof(double);
+  return bytes;
 }

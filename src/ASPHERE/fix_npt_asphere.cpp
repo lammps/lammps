@@ -35,7 +35,7 @@ enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 
-FixNPTASphere::FixNPTASphere(LAMMPS *lmp, int narg, char **arg) :
+FixNPTAsphere::FixNPTAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNPT(lmp, narg, arg)
 {
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
@@ -46,7 +46,7 @@ FixNPTASphere::FixNPTASphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixNPTASphere::init()
+void FixNPTAsphere::init()
 {
   FixNPT::init();
   dtq = 0.5 * update->dt;
@@ -56,7 +56,7 @@ void FixNPTASphere::init()
    1st half of Verlet update 
 ------------------------------------------------------------------------- */
 
-void FixNPTASphere::initial_integrate(int vflag)
+void FixNPTAsphere::initial_integrate(int vflag)
 {
   int i;
   double dtfm;
@@ -168,7 +168,7 @@ void FixNPTASphere::initial_integrate(int vflag)
    2nd half of Verlet update 
 ------------------------------------------------------------------------- */
 
-void FixNPTASphere::final_integrate()
+void FixNPTAsphere::final_integrate()
 {
   int i;
   double dtfm;
@@ -251,7 +251,7 @@ void FixNPTASphere::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNPTASphere::reset_dt()
+void FixNPTAsphere::reset_dt()
 {
   FixNPT::reset_dt();
   dtq = 0.5 * update->dt;
@@ -261,7 +261,7 @@ void FixNPTASphere::reset_dt()
    Richardson iteration to update quaternion accurately
 ------------------------------------------------------------------------- */
 
-void FixNPTASphere::richardson(double *q, double *m, double *moments)
+void FixNPTAsphere::richardson(double *q, double *m, double *moments)
 {
   // compute omega at 1/2 step from m at 1/2 step and q at 0
 
@@ -320,7 +320,7 @@ void FixNPTASphere::richardson(double *q, double *m, double *moments)
      and divide by principal moments
 ------------------------------------------------------------------------- */
 
-void FixNPTASphere::omega_from_mq(double *q, double *m, double *inertia,
+void FixNPTAsphere::omega_from_mq(double *q, double *m, double *inertia,
 				  double *w)
 {
   double rot[3][3];
@@ -339,7 +339,7 @@ void FixNPTASphere::omega_from_mq(double *q, double *m, double *inertia,
    shape = x,y,z radii in body frame
 ------------------------------------------------------------------------- */
 
-void FixNPTASphere::calculate_inertia(double mass, double *shape,
+void FixNPTAsphere::calculate_inertia(double mass, double *shape,
 				      double *inertia)
 {
   inertia[0] = mass*(shape[1]*shape[1]+shape[2]*shape[2])/5.0;

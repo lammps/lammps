@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEASphere::FixNVEASphere(LAMMPS *lmp, int narg, char **arg) : 
+FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) : 
   FixNVE(lmp, narg, arg)
 {
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
@@ -47,14 +47,14 @@ FixNVEASphere::FixNVEASphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEASphere::~FixNVEASphere()
+FixNVEAsphere::~FixNVEAsphere()
 {
   memory->destroy_2d_double_array(inertia);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEASphere::init()
+void FixNVEAsphere::init()
 {
   FixNVE::init();
   calculate_inertia();
@@ -62,7 +62,7 @@ void FixNVEASphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEASphere::initial_integrate(int vflag)
+void FixNVEAsphere::initial_integrate(int vflag)
 {
   double dtfm;
 
@@ -102,7 +102,7 @@ void FixNVEASphere::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEASphere::final_integrate()
+void FixNVEAsphere::final_integrate()
 {
   double dtfm;
 
@@ -133,7 +133,7 @@ void FixNVEASphere::final_integrate()
    Richardson iteration to update quaternion accurately
 ------------------------------------------------------------------------- */
 
-void FixNVEASphere::richardson(double *q, double *m, double *moments)
+void FixNVEAsphere::richardson(double *q, double *m, double *moments)
 {
   // compute omega at 1/2 step from m at 1/2 step and q at 0
 
@@ -192,7 +192,7 @@ void FixNVEASphere::richardson(double *q, double *m, double *moments)
      and divide by principal moments
 ------------------------------------------------------------------------- */
 
-void FixNVEASphere::omega_from_mq(double *q, double *m, double *moments,
+void FixNVEAsphere::omega_from_mq(double *q, double *m, double *moments,
 				  double *w)
 {
   double rot[3][3];
@@ -210,7 +210,7 @@ void FixNVEASphere::omega_from_mq(double *q, double *m, double *moments,
    principal moments of inertia for ellipsoids
 ------------------------------------------------------------------------- */
 
-void FixNVEASphere::calculate_inertia()
+void FixNVEAsphere::calculate_inertia()
 {
   double *mass = atom->mass;
   double **shape = atom->shape;

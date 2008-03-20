@@ -19,6 +19,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -43,8 +44,9 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   tempflag = 1;
   tempbias = 1;
-  vbias[0] = vbias[1] = vbias[2] = 0.0;
 
+  maxbias = 0;
+  vbiasall = NULL;
   vector = new double[6];
 }
 
@@ -52,6 +54,7 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempPartial::~ComputeTempPartial()
 {
+  memory->destroy_2d_double_array(vbiasall);
   delete [] vector;
 }
 
@@ -63,6 +66,12 @@ void ComputeTempPartial::init()
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
+
+  if (id_bias) {
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,6 +90,12 @@ void ComputeTempPartial::recount()
 double ComputeTempPartial::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_SCALAR))
+      double tmp = tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -102,7 +117,9 @@ double ComputeTempPartial::compute_scalar()
 	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
 	      zflag*v[i][2]*v[i][2]) * rmass[i];
   }
-    
+
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) recount();
   scalar *= tfactor;
@@ -116,6 +133,11 @@ void ComputeTempPartial::compute_vector()
   int i;
 
   invoked |= INVOKED_VECTOR;
+
+  if (tbias) {
+    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
+    tbias->remove_bias_all();
+  }
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -139,14 +161,20 @@ void ComputeTempPartial::compute_vector()
       t[5] += massone * yflag*zflag*v[i][1]*v[i][2];
     }
 
+  if (tbias) tbias->restore_bias_all();
+
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
 
 void ComputeTempPartial::remove_bias(int i, double *v)
 {
+  if (tbias) tbias->remove_bias(i,v);
+
   if (!xflag) {
     vbias[0] = v[0];
     v[0] = 0.0;
@@ -159,4 +187,82 @@ void ComputeTempPartial::remove_bias(int i, double *v)
     vbias[2] = v[2];
     v[2] = 0.0;
   }
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempPartial::remove_bias_all()
+{
+  if (tbias) tbias->remove_bias_all();
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (nlocal > maxbias) {
+    memory->destroy_2d_double_array(vbiasall);
+    maxbias = atom->nmax;
+    vbiasall = memory->create_2d_double_array(maxbias,3,
+					      "compute/temp:vbiasall");
+  }
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      if (!xflag) {
+	vbiasall[i][0] = v[i][0];
+	v[i][0] = 0.0;
+      }
+      if (!yflag) {
+	vbiasall[i][1] = v[i][1];
+	v[i][1] = 0.0;
+      }
+      if (!zflag) {
+	vbiasall[i][2] = v[i][2];
+	v[i][2] = 0.0;
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempPartial::restore_bias(double *v)
+{
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
+  if (tbias) tbias->restore_bias(v);
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempPartial::restore_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      v[i][0] += vbiasall[i][0];
+      v[i][1] += vbiasall[i][1];
+      v[i][2] += vbiasall[i][2];
+    }
+
+  if (tbias) tbias->restore_bias_all();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeTempPartial::memory_usage()
+{
+  double bytes = maxbias * sizeof(double);
+  return bytes;
 }

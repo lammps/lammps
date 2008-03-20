@@ -401,7 +401,7 @@ void FixNPT::initial_integrate(int vflag)
 	v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
 	v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
 	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -464,7 +464,7 @@ void FixNPT::final_integrate()
 	v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
 	v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
 	v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -608,7 +608,7 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	  v[i][0] += dtfm*f[i][0];
 	  v[i][1] += dtfm*f[i][1];
 	  v[i][2] += dtfm*f[i][2];
-	  temperature->restore_bias(v[i]);
+	  temperature->restore_bias(i,v[i]);
 	}
       }
     }
@@ -673,7 +673,7 @@ void FixNPT::final_integrate_respa(int ilevel)
 	  v[i][0] += dtfm*f[i][0];
 	  v[i][1] += dtfm*f[i][1];
 	  v[i][2] += dtfm*f[i][2];
-	  temperature->restore_bias(v[i]);
+	  temperature->restore_bias(i,v[i]);
 	}
       }
     }

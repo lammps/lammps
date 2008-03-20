@@ -260,11 +260,14 @@ void ComputeTempRamp::remove_bias(int i, double *v)
 {
   if (tbias) tbias->remove_bias(i,v);
 
-  double fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
-  fraction = MAX(fraction,0.0);
-  fraction = MIN(fraction,1.0);
-  vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
-  v[v_dim] -= vbias[v_dim];
+  if (atom->mask[i] & groupbit) {
+    double fraction = 
+      (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+    fraction = MAX(fraction,0.0);
+    fraction = MIN(fraction,1.0);
+    vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
+    v[v_dim] -= vbias[v_dim];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -302,10 +305,10 @@ void ComputeTempRamp::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempRamp::restore_bias(double *v)
+void ComputeTempRamp::restore_bias(int i, double *v)
 {
-  v[v_dim] += vbias[v_dim];
-  if (tbias) tbias->restore_bias(v);
+  if (atom->mask[i] & groupbit) v[v_dim] += vbias[v_dim];
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

@@ -144,7 +144,7 @@ void FixTempRescale::end_of_step()
 	  v[i][0] *= factor;
 	  v[i][1] *= factor;
 	  v[i][2] *= factor;
-	  temperature->restore_bias(v[i]);
+	  temperature->restore_bias(i,v[i]);
 	}
       }
     }

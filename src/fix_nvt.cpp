@@ -196,7 +196,7 @@ void FixNVT::initial_integrate(int vflag)
 	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
 	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
 	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
 	x[i][0] += dtv * v[i][0];
 	x[i][1] += dtv * v[i][1];
 	x[i][2] += dtv * v[i][2];
@@ -239,7 +239,7 @@ void FixNVT::final_integrate()
 	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
 	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
 	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -315,7 +315,7 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
 	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
 	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
       }
     }
   }

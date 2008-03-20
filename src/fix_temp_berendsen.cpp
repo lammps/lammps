@@ -135,7 +135,7 @@ void FixTempBerendsen::end_of_step()
 	v[i][0] *= lamda;
 	v[i][1] *= lamda;
 	v[i][2] *= lamda;
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
       }
     }
   }

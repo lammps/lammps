@@ -183,9 +183,9 @@ void ComputeTemp::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTemp::restore_bias(double *v)
+void ComputeTemp::restore_bias(int i, double *v)
 {
-  if (tbias) tbias->restore_bias(v);
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

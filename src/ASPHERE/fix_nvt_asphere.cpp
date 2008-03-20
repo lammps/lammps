@@ -118,7 +118,7 @@ void FixNVTAsphere::initial_integrate(int vflag)
 	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
 	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
 	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
 	x[i][0] += dtv * v[i][0];
 	x[i][1] += dtv * v[i][1];
 	x[i][2] += dtv * v[i][2];
@@ -178,7 +178,7 @@ void FixNVTAsphere::final_integrate()
 	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
 	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
 	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(v[i]);
+	temperature->restore_bias(i,v[i]);
 	angmom[i][0] = (angmom[i][0] + dtf*torque[i][0]) * factor;
 	angmom[i][1] = (angmom[i][1] + dtf*torque[i][1]) * factor;
 	angmom[i][2] = (angmom[i][2] + dtf*torque[i][2]) * factor;

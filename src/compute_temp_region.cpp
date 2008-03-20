@@ -174,15 +174,16 @@ void ComputeTempRegion::remove_bias(int i, double *v)
 {
   if (tbias) tbias->remove_bias(i,v);
 
-  double *x = atom->x[i];
-  if (atom->mask[i] & groupbit && 
-      domain->regions[iregion]->match(x[0],x[1],x[2]))
-    vbias[0] = vbias[1] = vbias[2] = 0.0;
-  else {
-    vbias[0] = v[0];
-    vbias[1] = v[1];
-    vbias[2] = v[2];
-    v[0] = v[1] = v[2] = 0.0;
+  if (atom->mask[i] & groupbit) {
+    double *x = atom->x[i];
+    if (domain->regions[iregion]->match(x[0],x[1],x[2]))
+      vbias[0] = vbias[1] = vbias[2] = 0.0;
+    else {
+      vbias[0] = v[0];
+      vbias[1] = v[1];
+      vbias[2] = v[2];
+      v[0] = v[1] = v[2] = 0.0;
+    }
   }
 }
 
@@ -208,8 +209,7 @@ void ComputeTempRegion::remove_bias_all()
   
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (atom->mask[i] & groupbit && 
-	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
 	vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
       else {
 	vbiasall[i][0] = v[i][0];
@@ -225,12 +225,14 @@ void ComputeTempRegion::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempRegion::restore_bias(double *v)
+void ComputeTempRegion::restore_bias(int i, double *v)
 {
-  v[0] += vbias[0];
-  v[1] += vbias[1];
-  v[2] += vbias[2];
-  if (tbias) tbias->restore_bias(v);
+  if (atom->mask[i] & groupbit) {
+    v[0] += vbias[0];
+    v[1] += vbias[1];
+    v[2] += vbias[2];
+  }
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

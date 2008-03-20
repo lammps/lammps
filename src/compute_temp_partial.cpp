@@ -176,17 +176,19 @@ void ComputeTempPartial::remove_bias(int i, double *v)
 {
   if (tbias) tbias->remove_bias(i,v);
 
-  if (!xflag) {
-    vbias[0] = v[0];
-    v[0] = 0.0;
-  }
-  if (!yflag) {
-    vbias[1] = v[1];
-    v[1] = 0.0;
-  }
-  if (!zflag) {
-    vbias[2] = v[2];
-    v[2] = 0.0;
+  if (atom->mask[i] & groupbit) {
+    if (!xflag) {
+      vbias[0] = v[0];
+      v[0] = 0.0;
+    }
+    if (!yflag) {
+      vbias[1] = v[1];
+      v[1] = 0.0;
+    }
+    if (!zflag) {
+      vbias[2] = v[2];
+      v[2] = 0.0;
+    }
   }
 }
 
@@ -231,12 +233,14 @@ void ComputeTempPartial::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempPartial::restore_bias(double *v)
+void ComputeTempPartial::restore_bias(int i, double *v)
 {
-  v[0] += vbias[0];
-  v[1] += vbias[1];
-  v[2] += vbias[2];
-  if (tbias) tbias->restore_bias(v);
+  if (atom->mask[i] & groupbit) {
+    v[0] += vbias[0];
+    v[1] += vbias[1];
+    v[2] += vbias[2];
+  }
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

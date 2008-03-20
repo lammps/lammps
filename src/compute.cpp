@@ -15,9 +15,10 @@
 #include "stdlib.h"
 #include "string.h"
 #include "ctype.h"
+#include "comm.h"
 #include "compute.h"
 #include "group.h"
-#include "domain.h"
+#include "modify.h"
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
@@ -124,6 +125,11 @@ void Compute::modify_params(int narg, char **arg)
 	int n = strlen(arg[iarg+1]) + 1;
 	id_bias = new char[n];
 	strcpy(id_bias,arg[iarg+1]);
+	int icompute = modify->find_compute(id_bias);
+	if (icompute < 0) error->all("Could not find compute_modify bias ID");
+	Compute *temperature = modify->compute[icompute];
+	if (temperature->igroup != igroup && comm->me == 0)
+	  error->warning("Group for compute_modify bias != compute group");
       }
       iarg += 2;
     } else error->all("Illegal compute_modify command");

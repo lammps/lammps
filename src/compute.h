@@ -79,7 +79,7 @@ class Compute : protected Pointers {
 
   virtual void remove_bias(int, double *) {}
   virtual void remove_bias_all() {}
-  virtual void restore_bias(double *) {}
+  virtual void restore_bias(int, double *) {}
   virtual void restore_bias_all() {}
 
   void addstep(int);

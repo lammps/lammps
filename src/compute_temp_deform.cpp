@@ -222,18 +222,20 @@ void ComputeTempDeform::remove_bias(int i, double *v)
 {
   if (tbias) tbias->remove_bias(i,v);
 
-  double lamda[3];
-  double *h_rate = domain->h_rate;
-  double *h_ratelo = domain->h_ratelo;
-
-  domain->x2lamda(atom->x[i],lamda);
-  vbias[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-    h_rate[4]*lamda[2] + h_ratelo[0];
-  vbias[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
-  vbias[2] = h_rate[2]*lamda[2] + h_ratelo[2];
-  v[0] -= vbias[0];
-  v[1] -= vbias[1];
-  v[2] -= vbias[2];
+  if (atom->mask[i] & groupbit) {
+    double lamda[3];
+    double *h_rate = domain->h_rate;
+    double *h_ratelo = domain->h_ratelo;
+    
+    domain->x2lamda(atom->x[i],lamda);
+    vbias[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
+      h_rate[4]*lamda[2] + h_ratelo[0];
+    vbias[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
+    vbias[2] = h_rate[2]*lamda[2] + h_ratelo[2];
+    v[0] -= vbias[0];
+    v[1] -= vbias[1];
+    v[2] -= vbias[2];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -277,12 +279,14 @@ void ComputeTempDeform::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempDeform::restore_bias(double *v)
+void ComputeTempDeform::restore_bias(int i, double *v)
 {
-  v[0] += vbias[0];
-  v[1] += vbias[1];
-  v[2] += vbias[2];
-  if (tbias) tbias->restore_bias(v);
+  if (atom->mask[i] & groupbit) {
+    v[0] += vbias[0];
+    v[1] += vbias[1];
+    v[2] += vbias[2];
+  }
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

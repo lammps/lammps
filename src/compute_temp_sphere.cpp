@@ -237,9 +237,9 @@ void ComputeTempSphere::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempSphere::restore_bias(double *v)
+void ComputeTempSphere::restore_bias(int i, double *v)
 {
-  if (tbias) tbias->restore_bias(v);
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

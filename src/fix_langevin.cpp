@@ -191,7 +191,7 @@ void FixLangevin::post_force(int vflag)
 	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
 	  if (v[i][2] != 0.0)
 	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-	  temperature->restore_bias(v[i]);
+	  temperature->restore_bias(i,v[i]);
 	}
       }
     }
@@ -235,7 +235,7 @@ void FixLangevin::post_force(int vflag)
 	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
 	  if (v[i][2] != 0.0)
 	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-	  temperature->restore_bias(v[i]);
+	  temperature->restore_bias(i,v[i]);
 	}
       }
     }

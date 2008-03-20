@@ -188,9 +188,11 @@ void ComputeTempCOM::compute_vector()
 void ComputeTempCOM::remove_bias(int i, double *v)
 {
   if (tbias) tbias->remove_bias(i,v);
-  v[0] -= vbias[0];
-  v[1] -= vbias[1];
-  v[2] -= vbias[2];
+  if (atom->mask[i] & groupbit) {
+    v[0] -= vbias[0];
+    v[1] -= vbias[1];
+    v[2] -= vbias[2];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -218,12 +220,14 @@ void ComputeTempCOM::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempCOM::restore_bias(double *v)
+void ComputeTempCOM::restore_bias(int i, double *v)
 {
-  v[0] += vbias[0];
-  v[1] += vbias[1];
-  v[2] += vbias[2];
-  if (tbias) tbias->restore_bias(v);
+  if (atom->mask[i] & groupbit) {
+    v[0] += vbias[0];
+    v[1] += vbias[1];
+    v[2] += vbias[2];
+  }
+  if (tbias) tbias->restore_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------

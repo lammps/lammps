@@ -28,7 +28,7 @@ class ComputeTempCOM : public Compute {
 
   void remove_bias(int, double *);
   void remove_bias_all();
-  void restore_bias(double *);
+  void restore_bias(int, double *);
   void restore_bias_all();
 
  private:

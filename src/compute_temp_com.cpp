@@ -63,7 +63,7 @@ void ComputeTempCOM::init()
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
-  recount();
+  dof_compute();
   masstotal = group->mass(igroup);
 
   tbias = NULL;
@@ -76,10 +76,11 @@ void ComputeTempCOM::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempCOM::recount()
+void ComputeTempCOM::dof_compute()
 {
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
+  if (tbias) dof -= tbias->dof_remove(natoms);
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -126,7 +127,7 @@ double ComputeTempCOM::compute_scalar()
   if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic) recount();
+  if (dynamic || tbias) dof_compute();
   scalar *= tfactor;
   return scalar;
 }

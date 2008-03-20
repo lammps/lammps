@@ -17,6 +17,7 @@
 #include "ctype.h"
 #include "comm.h"
 #include "compute.h"
+#include "domain.h"
 #include "group.h"
 #include "modify.h"
 #include "lattice.h"
@@ -71,7 +72,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   comm_forward = comm_reverse = 0;
 
   // set modify defaults
+  // should change 3 to dimension
 
+  //extra_dof = domain->dimension;
   extra_dof = 3;
   dynamic = 0;
 

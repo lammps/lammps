@@ -77,6 +77,7 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
+  virtual double dof_remove(double &) {return 0.0;}
   virtual void remove_bias(int, double *) {}
   virtual void remove_bias_all() {}
   virtual void restore_bias(int, double *) {}

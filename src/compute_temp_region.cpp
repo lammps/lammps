@@ -73,6 +73,17 @@ void ComputeTempRegion::init()
 
 /* ---------------------------------------------------------------------- */
 
+double ComputeTempRegion::dof_remove(double &natoms)
+{
+  double rmdof = 0.0;
+  if (tbias) rmdof = tbias->dof_remove(natoms);
+  natoms -= natoms_region;
+  rmdof += domain->dimension * natoms;
+  return rmdof;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double ComputeTempRegion::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
@@ -117,7 +128,8 @@ double ComputeTempRegion::compute_scalar()
   tarray[0] = count;
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
-  dof = domain->dimension * tarray_all[0] - extra_dof;
+  natoms_region = tarray_all[0];
+  dof = domain->dimension * natoms_region - extra_dof;
   if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;
   return scalar;

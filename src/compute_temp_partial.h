@@ -26,6 +26,7 @@ class ComputeTempPartial : public Compute {
   double compute_scalar();
   void compute_vector();
 
+  double dof_remove(double &);
   void remove_bias(int, double *);
   void remove_bias_all();
   void restore_bias(int, double *);
@@ -42,7 +43,7 @@ class ComputeTempPartial : public Compute {
   int maxbias;        // size of vbiasall array
   Compute *tbias;     // ptr to additional bias compute
 
-  void recount();
+  void dof_compute();
 };
 
 }

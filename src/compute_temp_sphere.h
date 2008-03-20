@@ -38,7 +38,7 @@ class ComputeTempSphere : public Compute {
 
   Compute *tbias;     // ptr to additional bias compute
 
-  void recount();
+  void dof_compute();
 };
 
 }

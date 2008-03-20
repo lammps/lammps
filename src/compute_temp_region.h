@@ -26,6 +26,7 @@ class ComputeTempRegion : public Compute {
   double compute_scalar();
   void compute_vector();
 
+  double dof_remove(double &);
   void remove_bias(int, double *);
   void remove_bias_all();
   void restore_bias(int, double *);
@@ -34,6 +35,7 @@ class ComputeTempRegion : public Compute {
 
  private:
   int iregion;
+  double natoms_region;
 
   double vbias[3];    // stored velocity bias for one atom
   double **vbiasall;  // stored velocity bias for all atoms

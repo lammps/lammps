@@ -68,7 +68,7 @@ void ComputeTempAsphere::init()
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
-  recount();
+  dof_compute();
 
   tempbias = 0;
   tbias = NULL;
@@ -84,11 +84,12 @@ void ComputeTempAsphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempAsphere::recount()
+void ComputeTempAsphere::dof_compute()
 {
   double natoms = group->count(igroup);
   int dimension = domain->dimension;
   dof = dimension * natoms;
+  if (tbias) dof -= tbias->dof_remove(natoms);
   dof -= extra_dof + fix_dof;
 
   // add rotational degrees of freedom
@@ -181,7 +182,7 @@ double ComputeTempAsphere::compute_scalar()
   if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic) recount();
+  if (dynamic || tbias) dof_compute();
   scalar *= tfactor;
   return scalar;
 }

@@ -60,7 +60,7 @@ void ComputeTempSphere::init()
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
-  recount();
+  dof_compute();
 
   tempbias = 0;
   tbias = NULL;
@@ -85,11 +85,12 @@ void ComputeTempSphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempSphere::recount()
+void ComputeTempSphere::dof_compute()
 {
   double natoms = group->count(igroup);
   if (domain->dimension == 3) dof = 6.0 * natoms;
   else dof = 3.0 * natoms;
+  if (tbias) dof -= tbias->dof_remove(natoms);
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -138,7 +139,7 @@ double ComputeTempSphere::compute_scalar()
   if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic) recount();
+  if (dynamic || tbias) dof_compute();
   scalar *= tfactor;
   return scalar;
 }

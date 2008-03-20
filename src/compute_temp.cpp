@@ -56,7 +56,7 @@ void ComputeTemp::init()
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
-  recount();
+  dof_compute();
 
   tempbias = 0;
   tbias = NULL;
@@ -70,12 +70,13 @@ void ComputeTemp::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTemp::recount()
+void ComputeTemp::dof_compute()
 {
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
+  if (tbias) dof -= tbias->dof_remove(natoms);
   dof -= extra_dof + fix_dof;
-  if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
+  if (dof > 0.0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
 
@@ -89,7 +90,7 @@ double ComputeTemp::compute_scalar()
     if (!(tbias->invoked & INVOKED_SCALAR))
       double tmp = tbias->compute_scalar();
     tbias->remove_bias_all();
-  } else tempbias = 0;
+  }
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -114,7 +115,7 @@ double ComputeTemp::compute_scalar()
   if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic) recount();
+  if (dynamic || tbias) dof_compute();
   scalar *= tfactor;
   return scalar;
 }

@@ -16,6 +16,7 @@
 #include "compute_temp_partial.h"
 #include "atom.h"
 #include "force.h"
+#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
@@ -65,7 +66,7 @@ void ComputeTempPartial::init()
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
-  recount();
+  dof_compute();
 
   tbias = NULL;
   if (id_bias) {
@@ -77,13 +78,26 @@ void ComputeTempPartial::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempPartial::recount()
+void ComputeTempPartial::dof_compute()
 {
   double natoms = group->count(igroup);
   dof = (xflag+yflag+zflag) * natoms;
+  if (tbias) dof -= tbias->dof_remove(natoms);
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeTempPartial::dof_remove(double &natoms)
+{
+  double rmdof = 0.0;
+  if (tbias) rmdof = tbias->dof_remove(natoms);
+  int activedim = xflag+yflag+zflag;
+  if (domain->dimension == 2) activedim = xflag+yflag;
+  rmdof += (domain->dimension - activedim) * natoms;
+  return rmdof;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,7 +136,7 @@ double ComputeTempPartial::compute_scalar()
   if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic) recount();
+  if (dynamic || tbias) dof_compute();
   scalar *= tfactor;
   return scalar;
 }

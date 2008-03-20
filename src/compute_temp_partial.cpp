@@ -67,6 +67,7 @@ void ComputeTempPartial::init()
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
 
+  tbias = NULL;
   if (id_bias) {
     int i = modify->find_compute(id_bias);
     if (i < 0) error->all("Could not find compute ID for temperature bias");

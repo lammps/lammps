@@ -70,12 +70,14 @@ void ComputeTempAsphere::init()
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
 
+  tempbias = 0;
+  tbias = NULL;
   if (id_bias) {
     tempbias = 1;
     int i = modify->find_compute(id_bias);
     if (i < 0) error->all("Could not find compute ID for temperature bias");
     tbias = modify->compute[i];
-  } else tempbias = 0;
+  }
 
   calculate_inertia();
 }

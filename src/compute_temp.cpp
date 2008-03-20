@@ -58,6 +58,8 @@ void ComputeTemp::init()
     fix_dof += modify->fix[i]->dof(igroup);
   recount();
 
+  tempbias = 0;
+  tbias = NULL;
   if (id_bias) {
     tempbias = 1;
     int i = modify->find_compute(id_bias);

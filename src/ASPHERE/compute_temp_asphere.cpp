@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3 || narg != 4)
+  if (narg != 3 && narg != 4)
     error->all("Illegal compute temp/asphere command");
 
   if (!atom->quat_flag || !atom->angmom_flag)
@@ -88,6 +88,7 @@ void ComputeTempAsphere::init()
       error->all("Bias compute group does not match compute group");
     tbias->init();
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
+    else tempbias = 1;
   }
 
   fix_dof = 0;

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "string.h"
 #include "compute_temp.h"
 #include "atom.h"
 #include "force.h"
@@ -38,7 +39,6 @@ ComputeTemp::ComputeTemp(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
-  tempbias = 0;
 
   vector = new double[6];
 }

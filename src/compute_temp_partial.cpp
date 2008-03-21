@@ -86,7 +86,9 @@ void ComputeTempPartial::dof_compute()
 
 int ComputeTempPartial::dof_remove(int i)
 {
-  return 0;
+  int nper = xflag+yflag+zflag;
+  if (domain->dimension == 2) nper = xflag+yflag;
+  return (domain->dimension - nper);
 }
 
 /* ---------------------------------------------------------------------- */

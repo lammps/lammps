@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 3 || narg != 4)
+  if (narg != 3 && narg != 4)
     error->all("Illegal compute temp/sphere command");
 
   scalar_flag = vector_flag = 1;

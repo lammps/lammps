@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "string.h"
 #include "compute_temp_sphere.h"
 #include "atom.h"
 #include "force.h"
@@ -33,13 +34,23 @@ using namespace LAMMPS_NS;
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute temp command");
+  if (narg != 3 || narg != 4)
+    error->all("Illegal compute temp/sphere command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
+
+  tempbias = 0;
+  id_bias = NULL;
+  if (narg == 4) {
+    tempbias = 1;
+    int n = strlen(arg[3]) + 1;
+    id_bias = new char[n];
+    strcpy(id_bias,arg[3]);
+  }
 
   vector = new double[6];
   inertia = new double[atom->ntypes+1];
@@ -57,19 +68,25 @@ ComputeTempSphere::~ComputeTempSphere()
 
 void ComputeTempSphere::init()
 {
+  if (tempbias) {
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+    if (tbias->tempflag == 0)
+      error->all("Bias compute does not calculate temperature");
+    if (tbias->tempbias == 0)
+      error->all("Bias compute does not calculate a velocity bias");
+    if (tbias->igroup != igroup)
+      error->all("Bias compute group does not match compute group");
+    tbias->init();
+    if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
+    else tempbias = 1;
+  }
+
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-
-  tempbias = 0;
-  tbias = NULL;
-  if (id_bias) {
-    tempbias = 1;
-    int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-  }
 
   if (atom->mass) {
     double *mass = atom->mass;
@@ -88,9 +105,25 @@ void ComputeTempSphere::init()
 void ComputeTempSphere::dof_compute()
 {
   double natoms = group->count(igroup);
-  if (domain->dimension == 3) dof = 6.0 * natoms;
-  else dof = 3.0 * natoms;
-  if (tbias) dof -= tbias->dof_remove(natoms);
+  int nper = 6;
+  if (domain->dimension == 2) nper = 3;
+  dof = nper * natoms;
+
+  if (tempbias) {
+    if (tempbias == 1) dof -= tbias->dof_remove(-1) * natoms;
+    else {
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+      int count = 0;
+      for (int i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  if (tbias->dof_remove(i)) count++;
+      int count_all;
+      MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
+      dof -= nper * count_all;
+    }
+  }
+
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -102,7 +135,7 @@ double ComputeTempSphere::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
 
-  if (tbias) {
+  if (tempbias) {
     if (!(tbias->invoked & INVOKED_SCALAR))
       double tmp = tbias->compute_scalar();
     tbias->remove_bias_all();
@@ -136,10 +169,10 @@ double ComputeTempSphere::compute_scalar()
       }
   }
 
-  if (tbias) tbias->restore_bias_all();
+  if (tempbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic || tbias) dof_compute();
+  if (dynamic || tempbias == 2) dof_compute();
   scalar *= tfactor;
   return scalar;
 }
@@ -152,7 +185,7 @@ void ComputeTempSphere::compute_vector()
 
   invoked |= INVOKED_VECTOR;
 
-  if (tbias) {
+  if (tempbias) {
     if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
     tbias->remove_bias_all();
   }
@@ -209,7 +242,7 @@ void ComputeTempSphere::compute_vector()
       }
   }
 
-  if (tbias) tbias->restore_bias_all();
+  if (tempbias) tbias->restore_bias_all();
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
@@ -221,16 +254,7 @@ void ComputeTempSphere::compute_vector()
 
 void ComputeTempSphere::remove_bias(int i, double *v)
 {
-  if (tbias) tbias->remove_bias(i,v);
-}
-
-/* ----------------------------------------------------------------------
-   remove velocity bias from all atoms to leave thermal velocity
-------------------------------------------------------------------------- */
-
-void ComputeTempSphere::remove_bias_all()
-{
-  if (tbias) tbias->remove_bias_all();
+  tbias->remove_bias(i,v);
 }
 
 /* ----------------------------------------------------------------------
@@ -240,16 +264,5 @@ void ComputeTempSphere::remove_bias_all()
 
 void ComputeTempSphere::restore_bias(int i, double *v)
 {
-  if (tbias) tbias->restore_bias(i,v);
+  tbias->restore_bias(i,v);
 }
-
-/* ----------------------------------------------------------------------
-   add back in velocity bias to all atoms removed by remove_bias_all()
-   assume remove_bias_all() was previously called
-------------------------------------------------------------------------- */
-
-void ComputeTempSphere::restore_bias_all()
-{
-  if (tbias) tbias->restore_bias_all();
-}
-

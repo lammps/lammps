@@ -26,16 +26,9 @@ class ComputeTemp : public Compute {
   double compute_scalar();
   void compute_vector();
 
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_all();
-
  private:
   int fix_dof;
   double tfactor;
-
-  Compute *tbias;     // ptr to additional bias compute
 
   void dof_compute();
 };

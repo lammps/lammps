@@ -26,7 +26,7 @@ class ComputeTempPartial : public Compute {
   double compute_scalar();
   void compute_vector();
 
-  double dof_remove(double &);
+  int dof_remove(int);
   void remove_bias(int, double *);
   void remove_bias_all();
   void restore_bias(int, double *);
@@ -37,11 +37,9 @@ class ComputeTempPartial : public Compute {
   int xflag,yflag,zflag;
   int fix_dof;
   double tfactor;
-
   double vbias[3];    // stored velocity bias for one atom
   double **vbiasall;  // stored velocity bias for all atoms
   int maxbias;        // size of vbiasall array
-  Compute *tbias;     // ptr to additional bias compute
 
   void dof_compute();
 };

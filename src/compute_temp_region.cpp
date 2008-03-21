@@ -61,25 +61,16 @@ ComputeTempRegion::~ComputeTempRegion()
 
 void ComputeTempRegion::init()
 {
-  dof = 0;
-
-  tbias = NULL;
-  if (id_bias) {
-    int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-  }
+  dof = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeTempRegion::dof_remove(double &natoms)
+int ComputeTempRegion::dof_remove(int i)
 {
-  double rmdof = 0.0;
-  if (tbias) rmdof = tbias->dof_remove(natoms);
-  natoms -= natoms_region;
-  rmdof += domain->dimension * natoms;
-  return rmdof;
+  double *x = atom->x[i];
+  if (domain->regions[iregion]->match(x[0],x[1],x[2])) return 0;
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,12 +78,6 @@ double ComputeTempRegion::dof_remove(double &natoms)
 double ComputeTempRegion::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_SCALAR))
-      double tmp = tbias->compute_scalar();
-    tbias->remove_bias_all();
-  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -102,34 +87,30 @@ double ComputeTempRegion::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  Region *region = domain->regions[iregion];
   int count = 0;
   double t = 0.0;
 
   if (mass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit &&
-	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
 	count++;
 	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
 	  mass[type[i]];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit &&
-	  domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
 	count++;
 	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
       }
   }
-  
-  if (tbias) tbias->restore_bias_all();
 
   double tarray[2],tarray_all[2];
   tarray[0] = count;
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
-  natoms_region = tarray_all[0];
-  dof = domain->dimension * natoms_region - extra_dof;
+  dof = domain->dimension * tarray_all[0] - extra_dof;
   if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;
   return scalar;
@@ -143,11 +124,6 @@ void ComputeTempRegion::compute_vector()
 
   invoked |= INVOKED_VECTOR;
 
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
-    tbias->remove_bias_all();
-  }
-
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
@@ -156,12 +132,12 @@ void ComputeTempRegion::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  Region *region = domain->regions[iregion];
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && 
-	domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) {
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       if (mass) massone = mass[type[i]];
       else massone = rmass[i];
       t[0] += massone * v[i][0]*v[i][0];
@@ -171,8 +147,6 @@ void ComputeTempRegion::compute_vector()
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
     }
-
-  if (tbias) tbias->restore_bias_all();
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
@@ -184,18 +158,14 @@ void ComputeTempRegion::compute_vector()
 
 void ComputeTempRegion::remove_bias(int i, double *v)
 {
-  if (tbias) tbias->remove_bias(i,v);
-
-  if (atom->mask[i] & groupbit) {
-    double *x = atom->x[i];
-    if (domain->regions[iregion]->match(x[0],x[1],x[2]))
-      vbias[0] = vbias[1] = vbias[2] = 0.0;
-    else {
-      vbias[0] = v[0];
-      vbias[1] = v[1];
-      vbias[2] = v[2];
-      v[0] = v[1] = v[2] = 0.0;
-    }
+  double *x = atom->x[i];
+  if (domain->regions[iregion]->match(x[0],x[1],x[2]))
+    vbias[0] = vbias[1] = vbias[2] = 0.0;
+  else {
+    vbias[0] = v[0];
+    vbias[1] = v[1];
+    vbias[2] = v[2];
+    v[0] = v[1] = v[2] = 0.0;
   }
 }
 
@@ -205,8 +175,6 @@ void ComputeTempRegion::remove_bias(int i, double *v)
 
 void ComputeTempRegion::remove_bias_all()
 {
-  if (tbias) tbias->remove_bias_all();
-
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
@@ -219,9 +187,11 @@ void ComputeTempRegion::remove_bias_all()
 					      "compute/temp:vbiasall");
   }
   
+  Region *region = domain->regions[iregion];
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+      if (region->match(x[i][0],x[i][1],x[i][2]))
 	vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
       else {
 	vbiasall[i][0] = v[i][0];
@@ -239,12 +209,9 @@ void ComputeTempRegion::remove_bias_all()
 
 void ComputeTempRegion::restore_bias(int i, double *v)
 {
-  if (atom->mask[i] & groupbit) {
-    v[0] += vbias[0];
-    v[1] += vbias[1];
-    v[2] += vbias[2];
-  }
-  if (tbias) tbias->restore_bias(i,v);
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -264,8 +231,6 @@ void ComputeTempRegion::restore_bias_all()
       v[i][1] += vbiasall[i][1];
       v[i][2] += vbiasall[i][2];
     }
-
-  if (tbias) tbias->restore_bias_all();
 }
 
 /* ---------------------------------------------------------------------- */

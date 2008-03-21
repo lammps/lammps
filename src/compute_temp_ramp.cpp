@@ -131,13 +131,6 @@ void ComputeTempRamp::init()
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-
-  tbias = NULL;
-  if (id_bias) {
-    int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,8 +138,8 @@ void ComputeTempRamp::init()
 void ComputeTempRamp::dof_compute()
 {
   double natoms = group->count(igroup);
-  dof = domain->dimension * natoms;
-  if (tbias) dof -= tbias->dof_remove(natoms);
+  int nper = domain->dimension;
+  dof = nper * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -159,12 +152,6 @@ double ComputeTempRamp::compute_scalar()
   double fraction,vramp,vthermal[3];
 
   invoked |= INVOKED_SCALAR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_SCALAR))
-      double tmp = tbias->compute_scalar();
-    tbias->remove_bias_all();
-  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -193,10 +180,8 @@ double ComputeTempRamp::compute_scalar()
 	      vthermal[2]*vthermal[2]) * rmass[i];
     }
 
-  if (tbias) tbias->restore_bias_all();
-
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic || tbias) dof_compute();
+  if (dynamic) dof_compute();
   scalar *= tfactor;
   return scalar;
 }
@@ -209,11 +194,6 @@ void ComputeTempRamp::compute_vector()
   double fraction,vramp,vthermal[3];
 
   invoked |= INVOKED_VECTOR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
-    tbias->remove_bias_all();
-  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -247,8 +227,6 @@ void ComputeTempRamp::compute_vector()
       t[5] += massone * vthermal[1]*vthermal[2];
     }
 
-  if (tbias) tbias->restore_bias_all();
-
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
@@ -259,16 +237,11 @@ void ComputeTempRamp::compute_vector()
 
 void ComputeTempRamp::remove_bias(int i, double *v)
 {
-  if (tbias) tbias->remove_bias(i,v);
-
-  if (atom->mask[i] & groupbit) {
-    double fraction = 
-      (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
-    fraction = MAX(fraction,0.0);
-    fraction = MIN(fraction,1.0);
-    vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
-    v[v_dim] -= vbias[v_dim];
-  }
+  double fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+  fraction = MAX(fraction,0.0);
+  fraction = MIN(fraction,1.0);
+  vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
+  v[v_dim] -= vbias[v_dim];
 }
 
 /* ----------------------------------------------------------------------
@@ -277,8 +250,6 @@ void ComputeTempRamp::remove_bias(int i, double *v)
 
 void ComputeTempRamp::remove_bias_all()
 {
-  if (tbias) tbias->remove_bias_all();
-
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -308,8 +279,7 @@ void ComputeTempRamp::remove_bias_all()
 
 void ComputeTempRamp::restore_bias(int i, double *v)
 {
-  if (atom->mask[i] & groupbit) v[v_dim] += vbias[v_dim];
-  if (tbias) tbias->restore_bias(i,v);
+  v[v_dim] += vbias[v_dim];
 }
 
 /* ----------------------------------------------------------------------
@@ -326,8 +296,6 @@ void ComputeTempRamp::restore_bias_all()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       v[i][v_dim] += vbiasall[i][v_dim];
-
-  if (tbias) tbias->restore_bias_all();
 }
 
 /* ---------------------------------------------------------------------- */

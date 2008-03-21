@@ -67,13 +67,6 @@ void ComputeTempPartial::init()
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-
-  tbias = NULL;
-  if (id_bias) {
-    int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,8 +74,9 @@ void ComputeTempPartial::init()
 void ComputeTempPartial::dof_compute()
 {
   double natoms = group->count(igroup);
-  dof = (xflag+yflag+zflag) * natoms;
-  if (tbias) dof -= tbias->dof_remove(natoms);
+  int nper = xflag+yflag+zflag;
+  if (domain->dimension == 2) nper = xflag+yflag;
+  dof = nper * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -90,14 +84,9 @@ void ComputeTempPartial::dof_compute()
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeTempPartial::dof_remove(double &natoms)
+int ComputeTempPartial::dof_remove(int i)
 {
-  double rmdof = 0.0;
-  if (tbias) rmdof = tbias->dof_remove(natoms);
-  int activedim = xflag+yflag+zflag;
-  if (domain->dimension == 2) activedim = xflag+yflag;
-  rmdof += (domain->dimension - activedim) * natoms;
-  return rmdof;
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,12 +94,6 @@ double ComputeTempPartial::dof_remove(double &natoms)
 double ComputeTempPartial::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_SCALAR))
-      double tmp = tbias->compute_scalar();
-    tbias->remove_bias_all();
-  }
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -133,10 +116,8 @@ double ComputeTempPartial::compute_scalar()
 	      zflag*v[i][2]*v[i][2]) * rmass[i];
   }
 
-  if (tbias) tbias->restore_bias_all();
-
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic || tbias) dof_compute();
+  if (dynamic) dof_compute();
   scalar *= tfactor;
   return scalar;
 }
@@ -148,11 +129,6 @@ void ComputeTempPartial::compute_vector()
   int i;
 
   invoked |= INVOKED_VECTOR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
-    tbias->remove_bias_all();
-  }
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -176,8 +152,6 @@ void ComputeTempPartial::compute_vector()
       t[5] += massone * yflag*zflag*v[i][1]*v[i][2];
     }
 
-  if (tbias) tbias->restore_bias_all();
-
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
@@ -188,21 +162,17 @@ void ComputeTempPartial::compute_vector()
 
 void ComputeTempPartial::remove_bias(int i, double *v)
 {
-  if (tbias) tbias->remove_bias(i,v);
-
-  if (atom->mask[i] & groupbit) {
-    if (!xflag) {
-      vbias[0] = v[0];
-      v[0] = 0.0;
-    }
-    if (!yflag) {
-      vbias[1] = v[1];
-      v[1] = 0.0;
-    }
-    if (!zflag) {
-      vbias[2] = v[2];
-      v[2] = 0.0;
-    }
+  if (!xflag) {
+    vbias[0] = v[0];
+    v[0] = 0.0;
+  }
+  if (!yflag) {
+    vbias[1] = v[1];
+    v[1] = 0.0;
+  }
+  if (!zflag) {
+    vbias[2] = v[2];
+    v[2] = 0.0;
   }
 }
 
@@ -212,8 +182,6 @@ void ComputeTempPartial::remove_bias(int i, double *v)
 
 void ComputeTempPartial::remove_bias_all()
 {
-  if (tbias) tbias->remove_bias_all();
-
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -249,12 +217,9 @@ void ComputeTempPartial::remove_bias_all()
 
 void ComputeTempPartial::restore_bias(int i, double *v)
 {
-  if (atom->mask[i] & groupbit) {
-    v[0] += vbias[0];
-    v[1] += vbias[1];
-    v[2] += vbias[2];
-  }
-  if (tbias) tbias->restore_bias(i,v);
+  if (!xflag) v[0] += vbias[0];
+  if (!yflag) v[1] += vbias[1];
+  if (!zflag) v[2] += vbias[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -270,12 +235,10 @@ void ComputeTempPartial::restore_bias_all()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      v[i][0] += vbiasall[i][0];
-      v[i][1] += vbiasall[i][1];
-      v[i][2] += vbiasall[i][2];
+      if (!xflag) v[i][0] += vbiasall[i][0];
+      if (!yflag) v[i][1] += vbiasall[i][1];
+      if (!zflag) v[i][2] += vbiasall[i][2];
     }
-
-  if (tbias) tbias->restore_bias_all();
 }
 
 /* ---------------------------------------------------------------------- */

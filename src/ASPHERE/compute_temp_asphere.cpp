@@ -37,7 +37,8 @@ using namespace LAMMPS_NS;
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute temp command");
+  if (narg != 3 || narg != 4)
+    error->all("Illegal compute temp/asphere command");
 
   if (!atom->quat_flag || !atom->angmom_flag)
     error->all("Compute temp/asphere requires atom attributes quat, angmom");
@@ -48,6 +49,15 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   tempflag = 1;
 
+  tempbias = 0;
+  id_bias = NULL;
+  if (narg == 4) {
+    tempbias = 1;
+    int n = strlen(arg[3]) + 1;
+    id_bias = new char[n];
+    strcpy(id_bias,arg[3]);
+  }
+
   vector = new double[6];
   inertia = 
     memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
@@ -57,6 +67,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempAsphere::~ComputeTempAsphere()
 {
+  delete [] id_bias;
   delete [] vector;
   memory->destroy_2d_double_array(inertia);
 }
@@ -65,19 +76,24 @@ ComputeTempAsphere::~ComputeTempAsphere()
 
 void ComputeTempAsphere::init()
 {
+  if (tempbias) {
+    int i = modify->find_compute(id_bias);
+    if (i < 0) error->all("Could not find compute ID for temperature bias");
+    tbias = modify->compute[i];
+    if (tbias->tempflag == 0)
+      error->all("Bias compute does not calculate temperature");
+    if (tbias->tempbias == 0)
+      error->all("Bias compute does not calculate a velocity bias");
+    if (tbias->igroup != igroup)
+      error->all("Bias compute group does not match compute group");
+    tbias->init();
+    if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
+  }
+
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-
-  tempbias = 0;
-  tbias = NULL;
-  if (id_bias) {
-    tempbias = 1;
-    int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-  }
 
   calculate_inertia();
 }
@@ -89,10 +105,10 @@ void ComputeTempAsphere::dof_compute()
   double natoms = group->count(igroup);
   int dimension = domain->dimension;
   dof = dimension * natoms;
-  if (tbias) dof -= tbias->dof_remove(natoms);
-  dof -= extra_dof + fix_dof;
 
-  // add rotational degrees of freedom
+  if (tempbias == 1) dof -= tbias->dof_remove(-1) * natoms;
+
+  // rotational degrees of freedom
   // 0 for sphere, 2 for uniaxial, 3 for biaxial
 
   double **shape = atom->shape;
@@ -101,27 +117,30 @@ void ComputeTempAsphere::dof_compute()
   int nlocal = atom->nlocal;
 
   int itype;
-  int rot_dof = 0;
+  int count = 0;
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      if (tempbias == 2 && tbias->dof_remove(i)) continue;
       itype = type[i];
       if (dimension == 2) {
 	if (shape[itype][0] == shape[itype][1]) continue;
-	else rot_dof += 1;
+	else count++;
       } else {
 	if (shape[itype][0] == shape[itype][1] && 
 	    shape[itype][1] == shape[itype][2]) continue;
 	else if (shape[itype][0] == shape[itype][1] || 
 		 shape[itype][1] == shape[itype][2] ||
-		 shape[itype][0] == shape[itype][2]) rot_dof += 2;
-	else rot_dof += 3;
+		 shape[itype][0] == shape[itype][2]) count += 2;
+	else count += 3;
       }
     }
 
-  int rot_total;
-  MPI_Allreduce(&rot_dof,&rot_total,1,MPI_INT,MPI_SUM,world);
-  dof += rot_total;
+  int count_all;
+  MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
+  dof += count_all;
     
+  dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -132,7 +151,7 @@ double ComputeTempAsphere::compute_scalar()
 {
   invoked |= INVOKED_SCALAR;
 
-  if (tbias) {
+  if (tempbias) {
     if (!(tbias->invoked & INVOKED_SCALAR))
       double tmp = tbias->compute_scalar();
     tbias->remove_bias_all();
@@ -179,10 +198,10 @@ double ComputeTempAsphere::compute_scalar()
       }
     }
 
-  if (tbias) tbias->restore_bias_all();
+  if (tempbias) tbias->restore_bias_all();
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic || tbias) dof_compute();
+  if (dynamic || tempbias == 2) dof_compute();
   scalar *= tfactor;
   return scalar;
 }
@@ -195,7 +214,7 @@ void ComputeTempAsphere::compute_vector()
 
   invoked |= INVOKED_VECTOR;
 
-  if (tbias) {
+  if (tempbias) {
     if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
     tbias->remove_bias_all();
   }
@@ -246,7 +265,7 @@ void ComputeTempAsphere::compute_vector()
       t[5] += inertia[itype][2]*wbody[1]*wbody[2];
     }
 
-  if (tbias) tbias->restore_bias_all();
+  if (tempbias) tbias->restore_bias_all();
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
@@ -281,15 +300,6 @@ void ComputeTempAsphere::remove_bias(int i, double *v)
 }
 
 /* ----------------------------------------------------------------------
-   remove velocity bias from all atoms to leave thermal velocity
-------------------------------------------------------------------------- */
-
-void ComputeTempAsphere::remove_bias_all()
-{
-  if (tbias) tbias->remove_bias_all();
-}
-
-/* ----------------------------------------------------------------------
    add back in velocity bias to atom I removed by remove_bias()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
@@ -297,14 +307,4 @@ void ComputeTempAsphere::remove_bias_all()
 void ComputeTempAsphere::restore_bias(int i, double *v)
 {
   if (tbias) tbias->restore_bias(i,v);
-}
-
-/* ----------------------------------------------------------------------
-   add back in velocity bias to all atoms removed by remove_bias_all()
-   assume remove_bias_all() was previously called
-------------------------------------------------------------------------- */
-
-void ComputeTempAsphere::restore_bias_all()
-{
-  if (tbias) tbias->restore_bias_all();
 }

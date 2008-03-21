@@ -62,9 +62,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   scalar_flag = vector_flag = peratom_flag = 0;
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;
-
   tempbias = 0;
-  id_bias = NULL;
 
   id_pre = NULL;
   timeflag = 0;
@@ -90,7 +88,6 @@ Compute::~Compute()
 {
   delete [] id;
   delete [] style;
-  delete [] id_bias;
   delete [] id_pre;
 
   memory->sfree(tlist);
@@ -119,21 +116,6 @@ void Compute::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"no") == 0) thermoflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) thermoflag = 1;
       else error->all("Illegal compute_modify command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) error->all("Illegal compute_modify command");
-      delete [] id_bias;
-      if (strcmp(arg[iarg+1],"NULL") == 0) id_bias = NULL;
-      else {
-	int n = strlen(arg[iarg+1]) + 1;
-	id_bias = new char[n];
-	strcpy(id_bias,arg[iarg+1]);
-	int icompute = modify->find_compute(id_bias);
-	if (icompute < 0) error->all("Could not find compute_modify bias ID");
-	Compute *temperature = modify->compute[icompute];
-	if (temperature->igroup != igroup && comm->me == 0)
-	  error->warning("Group for compute_modify bias != compute group");
-      }
       iarg += 2;
     } else error->all("Illegal compute_modify command");
   }

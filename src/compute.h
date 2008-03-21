@@ -45,9 +45,7 @@ class Compute : protected Pointers {
   int peflag;         // 1 if Compute calculates PE (uses Force energies)
   int peatomflag;     // 1 if Compute calculates per-atom PE
 
-  int tempbias;       // 0/1 if Compute temp includes
-                      // self or extra bias via compute_modify
-  char *id_bias;      // ID of extra Compute temp that adds bias
+  int tempbias;       // 0/1 if Compute temp includes self/extra bias
 
   char *id_pre;       // ID of pre-compute the Compute may store
 
@@ -77,7 +75,7 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
-  virtual double dof_remove(double &) {return 0.0;}
+  virtual int dof_remove(int) {return 0;}
   virtual void remove_bias(int, double *) {}
   virtual void remove_bias_all() {}
   virtual void restore_bias(int, double *) {}

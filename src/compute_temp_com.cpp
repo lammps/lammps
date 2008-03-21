@@ -64,14 +64,8 @@ void ComputeTempCOM::init()
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-  masstotal = group->mass(igroup);
 
-  tbias = NULL;
-  if (id_bias) {
-    int i = modify->find_compute(id_bias);
-    if (i < 0) error->all("Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-  }
+  masstotal = group->mass(igroup);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,8 +73,8 @@ void ComputeTempCOM::init()
 void ComputeTempCOM::dof_compute()
 {
   double natoms = group->count(igroup);
-  dof = domain->dimension * natoms;
-  if (tbias) dof -= tbias->dof_remove(natoms);
+  int nper = domain->dimension;
+  dof = nper * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -93,12 +87,6 @@ double ComputeTempCOM::compute_scalar()
   double vthermal[3];
 
   invoked |= INVOKED_SCALAR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_SCALAR))
-      double tmp = tbias->compute_scalar();
-    tbias->remove_bias_all();
-  }
 
   if (dynamic) masstotal = group->mass(igroup);
   group->vcm(igroup,masstotal,vbias);
@@ -124,10 +112,8 @@ double ComputeTempCOM::compute_scalar()
 	      vthermal[2]*vthermal[2]) * rmass[i];
     }
 
-  if (tbias) tbias->restore_bias_all();
-
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic || tbias) dof_compute();
+  if (dynamic) dof_compute();
   scalar *= tfactor;
   return scalar;
 }
@@ -140,11 +126,6 @@ void ComputeTempCOM::compute_vector()
   double vthermal[3];
 
   invoked |= INVOKED_VECTOR;
-
-  if (tbias) {
-    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
-    tbias->remove_bias_all();
-  }
 
   if (dynamic) masstotal = group->mass(igroup);
   group->vcm(igroup,masstotal,vbias);
@@ -176,8 +157,6 @@ void ComputeTempCOM::compute_vector()
       t[5] += massone * vthermal[1]*vthermal[2];
     }
 
-  if (tbias) tbias->restore_bias_all();
-
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
@@ -188,12 +167,9 @@ void ComputeTempCOM::compute_vector()
 
 void ComputeTempCOM::remove_bias(int i, double *v)
 {
-  if (tbias) tbias->remove_bias(i,v);
-  if (atom->mask[i] & groupbit) {
-    v[0] -= vbias[0];
-    v[1] -= vbias[1];
-    v[2] -= vbias[2];
-  }
+  v[0] -= vbias[0];
+  v[1] -= vbias[1];
+  v[2] -= vbias[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -202,8 +178,6 @@ void ComputeTempCOM::remove_bias(int i, double *v)
 
 void ComputeTempCOM::remove_bias_all()
 {
-  if (tbias) tbias->remove_bias_all();
-
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -223,12 +197,9 @@ void ComputeTempCOM::remove_bias_all()
 
 void ComputeTempCOM::restore_bias(int i, double *v)
 {
-  if (atom->mask[i] & groupbit) {
-    v[0] += vbias[0];
-    v[1] += vbias[1];
-    v[2] += vbias[2];
-  }
-  if (tbias) tbias->restore_bias(i,v);
+  v[0] += vbias[0];
+  v[1] += vbias[1];
+  v[2] += vbias[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -248,6 +219,4 @@ void ComputeTempCOM::restore_bias_all()
       v[i][1] += vbias[1];
       v[i][2] += vbias[2];
     }
-
-  if (tbias) tbias->restore_bias_all();
 }

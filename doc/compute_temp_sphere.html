@@ -13,15 +13,16 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID temp/sphere 
+<PRE>compute ID group-ID temp/sphere bias-ID 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>temp/sphere = style name of this compute command 
+<LI>temp/sphere = style name of this compute command
+<LI>bias-ID = ID of a temperature compute that removes a velocity bias (optional) 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all temp/sphere
-compute myTemp mobile temp/sphere 
+compute myTemp mobile temp/sphere tempCOM 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -51,6 +52,15 @@ wx*wy for the xy component.
 <P>The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the <I>dynamic</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
+</P>
+<P>If a <I>bias-ID</I> is specified it must be the ID of a temperature compute
+that removes a "bias" velocity from each atom.  This allows compute
+temp/sphere to compute its thermal temperature after the translational
+kinetic energy components have been altered in a prescribed way,
+e.g. to remove a velocity profile.  Thermostats that use this compute
+will work with this bias term.  See the doc pages for individual
+computes that calculate a temperature and the doc pages for fixes that
+perform thermostatting for more details.
 </P>
 <P>This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as <A HREF = "fix_shake.html">fix

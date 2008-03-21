@@ -10,15 +10,16 @@ compute temp/asphere command :h3
 
 [Syntax:]
 
-compute ID group-ID temp/asphere :pre
+compute ID group-ID temp/asphere bias-ID :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-temp/asphere = style name of this compute command :ul
+temp/asphere = style name of this compute command
+bias-ID = ID of a temperature compute that removes a velocity bias (optional) :ul
 
 [Examples:]
 
 compute 1 all temp/asphere
-compute myTemp mobile temp/asphere :pre
+compute myTemp mobile temp/asphere tempCOM :pre
 
 [Description:]
 
@@ -63,6 +64,15 @@ inertia tensor are used.
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the {dynamic} option of the
 "compute_modify"_compute_modify.html command if this is not the case.
+
+If a {bias-ID} is specified it must be the ID of a temperature compute
+that removes a "bias" velocity from each atom.  This allows compute
+temp/sphere to compute its thermal temperature after the translational
+kinetic energy components have been altered in a prescribed way,
+e.g. to remove a velocity profile.  Thermostats that use this compute
+will work with this bias term.  See the doc pages for individual
+computes that calculate a temperature and the doc pages for fixes that
+perform thermostatting for more details.
 
 This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as "fix

@@ -36,12 +36,12 @@ processor partitions are defined using the -partition command-line
 switch (see <A HREF = "Section_start.html#2_6">this section</A>).  Each ensemble's
 temperature is typically controlled at a different value by a fix with
 ID <I>fix-ID</I> that controls temperature.  Possible fix styles are
-<A HREF = "fix_nvt.html">nvt</A>, <A HREF = "fix_npt.html">npt</A>, and
-<A HREF = "fix_temp_rescale.html">temp/rescale</A>.  The desired temperature is
-specified by <I>temp</I>, which is typically a variable previously set in
-the input script, so that each partition is assigned a different
-temperature.  See the <A HREF = "variable.html">variable</A> command for more
-details.  For example,
+<A HREF = "fix_nvt.html">nvt</A>, <A HREF = "fix_npt.html">temp/berendsen</A>,
+<A HREF = "fix_langevin.html">langevin</A> and <A HREF = "fix_temp_rescale.html">temp/rescale</A>.
+The desired temperature is specified by <I>temp</I>, which is typically a
+variable previously set in the input script, so that each partition is
+assigned a different temperature.  See the <A HREF = "variable.html">variable</A>
+command for more details.  For example,
 </P>
 <PRE>variable t world 300.0 310.0 320.0 330.0 
 </PRE>

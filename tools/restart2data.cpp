@@ -2439,7 +2439,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"sw") != 0) &&
 	(strcmp(pair_style,"table") != 0) &&
 	(strcmp(pair_style,"tersoff") != 0) &&
-	(strcmp(pair_style,"hybrid") != 0))
+	(strcmp(pair_style,"hybrid") != 0) &&
+	(strcmp(pair_style,"hybrid/overlay") != 0))
       fprintf(fp,"\nPair Coeffs\n\n");
     
     if ((strcmp(pair_style,"buck") == 0) || 

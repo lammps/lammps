@@ -119,6 +119,8 @@ class Data {
   double *bond_harmonic_k,*bond_harmonic_r0;
   double *bond_morse_d0,*bond_morse_alpha,*bond_morse_r0;
   double *bond_nonlinear_epsilon,*bond_nonlinear_r0,*bond_nonlinear_lamda;
+  double *bond_quartic_k,*bond_quartic_b1,*bond_quartic_b2;
+  double *bond_quartic_rc,*bond_quartic_u0;
 
   double *angle_charmm_k,*angle_charmm_theta0;
   double *angle_charmm_k_ub,*angle_charmm_r_ub;
@@ -1949,6 +1951,19 @@ void bond(FILE *fp, Data &data)
     fread(&data.bond_nonlinear_r0[1],sizeof(double),data.nbondtypes,fp);
     fread(&data.bond_nonlinear_lamda[1],sizeof(double),data.nbondtypes,fp);
 
+  } else if (strcmp(data.bond_style,"quartic") == 0) {
+
+    data.bond_quartic_k = new double[data.nbondtypes+1];
+    data.bond_quartic_b1 = new double[data.nbondtypes+1];
+    data.bond_quartic_b2 = new double[data.nbondtypes+1];
+    data.bond_quartic_rc = new double[data.nbondtypes+1];
+    data.bond_quartic_u0 = new double[data.nbondtypes+1];
+    fread(&data.bond_quartic_k[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_quartic_b1[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_quartic_b2[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_quartic_rc[1],sizeof(double),data.nbondtypes,fp);
+    fread(&data.bond_quartic_u0[1],sizeof(double),data.nbondtypes,fp);
+
   } else if (strcmp(data.bond_style,"hybrid") == 0) {
 
     int nstyles = read_int(fp);
@@ -2600,6 +2615,12 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g %g\n",i,
 		bond_nonlinear_epsilon[i],bond_nonlinear_r0[i],
 		bond_nonlinear_lamda[i]);
+
+    } else if (strcmp(bond_style,"quartic") == 0) {
+      for (int i = 1; i <= nbondtypes; i++)
+        fprintf(fp,"%d %g %g %g %g %g\n",i,
+                bond_quartic_k[i],bond_quartic_b1[i],bond_quartic_b2[i],
+                bond_quartic_rc[i],bond_quartic_u0[i]);
     }
   }
 
@@ -2656,7 +2677,8 @@ void Data::write(FILE *fp, FILE *fp2)
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g\n",i,angle_cosine_k[i]);
       
-    } else if (strcmp(angle_style,"cosine/squared") == 0) {
+    } else if ((strcmp(angle_style,"cosine/squared") == 0) ||
+               (strcmp(angle_style,"cosine/delta") == 0)) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		angle_cosine_squared_k[i],
@@ -2682,7 +2704,8 @@ void Data::write(FILE *fp, FILE *fp2)
   if (angle_style && fp2) {
     double PI = 3.1415926;           // convert back to degrees
 
-    if (strcmp(angle_style,"cosine/squared") == 0) {
+    if ((strcmp(angle_style,"cosine/squared") == 0) ||
+        (strcmp(angle_style,"cosine/delta") == 0)) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp2,"angle_coeffs  %d %g %g\n",i,
 		angle_cosine_squared_k[i],

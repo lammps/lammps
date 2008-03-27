@@ -217,6 +217,7 @@ double PairYukawa::init_one(int i, int j)
     offset[i][j] = a[i][j] * screening / cut[i][j];
   } else offset[i][j] = 0.0;
 
+  a[j][i] = a[i][j];
   offset[j][i] = offset[i][j];
 
   return cut[i][j];

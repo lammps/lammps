@@ -1,0 +1,109 @@
+This directory contains utility scripts for using VMD to visualize and
+analyze LAMMPS trajectories (well, right now there is only two
+scripts, but more are to come). Below are short descriptions and
+examples on how to use them. Additional information on VMD as well as
+additional scripts can be found at:
+http://www.ks.uiuc.edu/Research/vmd/
+
+The scripts here are maintained by Axel Kohlmeyer
+<akohlmey@cmm.chem.upenn.edu>.
+
+-------------------------
+
+1. lmpbonds2vmd.tcl - translate bonding information from a LAMMPS data
+   file into VMD.
+
+1a. Background.
+   With VMD one typically reads bonding information from a topology file and 
+   then reads a trajectory with the coordinate information on top of that.
+   The most common use is the combination of a (CHARMM or X-PLOR style) .psf
+   file and a .dcd file. If the bonding information is not avaiable, VMD uses
+   a heuristic guess, which does not always work, but can be particularly
+   cumbersome in coarse grained MD or similar systems. The lmpbonds2vmd.tcl
+   script provide an option to transfer bonding information from a LAMMPS data
+   file into VMD.
+
+1b. Usage 
+   The script defines a new procedure "lmpbondsfromdata". To activate it
+   type at the VMD command prompt:
+
+   source lmpbonds2vmd.tcl
+
+   To then build a .psf file that can be used for subsequent
+   visualizations you can load one frame of a native LAMMPS trajectory
+   (not binary, not custom!), e.g. perusing the output from the
+   micelle example.
+
+   mol new dump.micelle type lammpstrj waitfor all
+   lmpbondsfromdata 0 data.micelle
+
+   now you should only see the bonds that actually have bonded interactions.
+
+   to avoid having to run the script all the time you can save the bonding 
+   information in an (incomplete) .psf file.
+
+   animate write psf micelle.psf
+
+   and now in the future you can load this psf file first and then 
+   the dump file (or a more compact and faster loading .dcd or .xtc file).
+   e.g., with:
+
+   vmd micelle.psf -lammpstrj dump.micelle
+
+1c. Problems
+   The data file format is quite flexible and thus not always easy to parse
+   independent from context. As a consequence, the lmpbondsfromdata parser
+   may be confused by your specific setup.
+
+1d. History
+   First version. 2007, axel kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+
+-------------------------
+
+2. lmpresid2vmd.tcl - translate residue information from a LAMMPS data
+   file into VMD.
+
+2a Background.  LAMMPS dump files contain information about the
+   (numerical) atom type, but not a molecule or residue id as it is
+   typically used in .psf or .pdf files to define subunits of a
+   system. Adding this information can be very helpful for analysis
+   and postprocessing of LAMMPS data in VMD.
+
+2b Usage.
+   The script defines a new procedure "lmpresidfromdata". To activate it
+   type at the VMD command prompt:
+
+   source lmpresid2vmd.tcl
+
+   To then add the residue information to a .psf file, see the steps for from
+   item 1 from above and then type into the VMD console.
+   
+   lmpresidfromdata 0 data.micelle
+
+   to avoid having to run the script all the time you can save the bonding
+   information in an (incomplete) .psf file.
+
+   animate write psf micelle2.psf
+
+   and now in the future you can load this psf file first and then
+   the dump file (or a more compact and faster loading .dcd or .xtc file).
+   e.g., with:
+
+   vmd micelle2.psf -lammpstrj dump.micelle
+
+   now you can use the residue information to "join" the bonds split
+   across the periodic boundaries with:
+
+   pbc join residue -all
+
+   and then enjoy a nice visualization of the micelle example with VMD. :)
+
+2c. Problems
+   The data file format is quite flexible and thus not always easy to parse
+   independent from context. As a consequence, the lmpresidfromdata parser
+   may be confused by your specific setup.
+
+2d. History
+   First version. 2008, axel kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+
+

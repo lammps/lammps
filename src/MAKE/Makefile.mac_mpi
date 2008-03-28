@@ -7,7 +7,7 @@ SHELL = /bin/sh
 FFTW =	/sw
 
 CC =		mpic++
-CCFLAGS =	-O -MMD	-DFFT_FFTW  -I${FFTW}/include -DOMPI_SKIP_MPICXX
+CCFLAGS =	-O -MMD	-MG -DFFT_FFTW  -I${FFTW}/include -DOMPI_SKIP_MPICXX
 LINK =		mpic++
 LINKFLAGS =	-O  -L${FFTW}/lib
 

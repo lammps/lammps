@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
-     SQRT,EXP,LN,VALUE,ATOMARRAY,TYPEARRAY};
+     SQRT,EXP,LN,CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY};
 
 #define INVOKED_SCALAR 1      // same as in computes
 #define INVOKED_VECTOR 2
@@ -1100,6 +1100,7 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == UNARY)
     return -eval_tree(tree->left,i);
+
   if (tree->type == SQRT) {
     double arg = eval_tree(tree->left,i);
     if (arg < 0.0) error->all("Sqrt of negative in variable formula");
@@ -1112,6 +1113,12 @@ double Variable::eval_tree(Tree *tree, int i)
     if (arg <= 0.0) error->all("Log of zero/negative in variable formula");
     return log(arg);
   }
+  if (tree->type == CEIL)
+    return ceil(eval_tree(tree->left,i));
+  if (tree->type == FLOOR)
+    return floor(eval_tree(tree->left,i));
+  if (tree->type == ROUND)
+    return round(eval_tree(tree->left,i));
 
   return 0.0;
 }
@@ -1204,7 +1211,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") && strcmp(word,"exp") && strcmp(word,"ln"))
+  if (strcmp(word,"sqrt") && strcmp(word,"exp") && strcmp(word,"ln") &&
+      strcmp(word,"ceil") && strcmp(word,"floor") && strcmp(word,"round"))
     return 0;
     
   Tree *newtree;
@@ -1236,11 +1244,22 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       if (value <= 0.0) error->all("Log of zero/negative in variable formula");
       argstack[nargstack++] = log(value);
     }
+
+  } else if (strcmp(word,"ceil") == 0) {
+    if (tree) newtree->type = CEIL;
+    else argstack[nargstack++] = ceil(value);
+
+  } else if (strcmp(word,"floor") == 0) {
+    if (tree) newtree->type = FLOOR;
+    else argstack[nargstack++] = floor(value);
+
+  } else if (strcmp(word,"round") == 0) {
+    if (tree) newtree->type = ROUND;
+    else argstack[nargstack++] = round(value);
   }
 
   return 1;
-}    
-
+}
 
 /* ----------------------------------------------------------------------
    process a group function in formula

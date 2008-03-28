@@ -27,7 +27,7 @@
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
-    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
+    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), ceil(x), floor(x), round(x)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group)
@@ -213,7 +213,7 @@ references, fix references, and references to other variables.
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
-<TR><TD >Math operations</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)</TD></TR>
+<TR><TD >Math operations</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), ceil(x), floor(x), round(x)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[N], x[N], y[N], z[N],              vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]</TD></TR>
 <TR><TD >Atom vectors</TD><TD > mass[], x[], y[], z[],               vx[], vy[], vz[], fx[], fy[], fz[]</TD></TR>
@@ -245,7 +245,11 @@ division, and multiplication and division before addition and
 subtraction.  Parenthesis can be used to group one or more portions of
 a formula and enforce a desired order of operations.  Additional math
 operations can be specified as keywords followed by a parenthesized
-argument, e.g. sqrt(v_ke).
+argument, e.g. sqrt(v_ke).  The ceil(), floor(), and round()
+operations are those in the C math library.  Ceil() is the smallest
+integer not less than its argument.  Floor() if the largest integer
+not greater than its argument.  Round() is the nearest integer to its
+argument.
 </P>
 <P>Group functions take one or two arguments in a specific format.  The
 first argument is the group-ID.  The <I>dim</I> argument, if it exists, is

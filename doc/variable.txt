@@ -22,7 +22,7 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
-    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
+    math operations = (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), ceil(x), floor(x), round(x)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,xmin), gyration(group)
@@ -206,7 +206,7 @@ references, fix references, and references to other variables.
 
 Number: 0.2, 100, 1.0e20, -15.4, etc
 Thermo keywords: vol, pe, ebond, etc
-Math operations: (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x)
+Math operations: (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), ceil(x), floor(x), round(x)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID)
 Atom values: mass\[N\], x\[N\], y\[N\], z\[N\], \
@@ -240,7 +240,11 @@ division, and multiplication and division before addition and
 subtraction.  Parenthesis can be used to group one or more portions of
 a formula and enforce a desired order of operations.  Additional math
 operations can be specified as keywords followed by a parenthesized
-argument, e.g. sqrt(v_ke).
+argument, e.g. sqrt(v_ke).  The ceil(), floor(), and round()
+operations are those in the C math library.  Ceil() is the smallest
+integer not less than its argument.  Floor() if the largest integer
+not greater than its argument.  Round() is the nearest integer to its
+argument.
 
 Group functions take one or two arguments in a specific format.  The
 first argument is the group-ID.  The {dim} argument, if it exists, is

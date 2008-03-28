@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
@@ -21,14 +22,19 @@
 
 using namespace LAMMPS_NS;
 
-#define BIG 1.0e20
+// needs to be big, but not so big that lose precision when subtract velocity
+
+#define BIG 1.0e10
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
 FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 7) error->all("Illegal fix viscosity command");
+  if (narg < 7) error->all("Illegal fix viscosity command");
 
   MPI_Comm_rank(world,&me);
 
@@ -52,7 +58,46 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   nbin = atoi(arg[6]);
   if (nbin < 3) error->all("Illegal fix viscosity command");
 
+  // optional keywords
+
+  nswap = 1;
+  vtarget = BIG;
+
+  int iarg = 7;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"swap") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix viscosity command");
+      nswap = atoi(arg[iarg+1]);
+      if (nswap <= 0) error->all("Fix viscosity swap value must be positive");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vtarget") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix viscosity command");
+      if (strcmp(arg[iarg+1],"INF") == 0) vtarget = BIG;
+      else vtarget = atof(arg[iarg+1]);
+      if (vtarget <= 0.0)
+	error->all("Fix viscosity vtarget value must be positive");
+      iarg += 2;
+    } else error->all("Illegal fix viscosity command");
+  }
+
+  // initialize array sizes to nswap+1 so have space to shift values down
+
+  pos_index = new int[nswap+1];
+  neg_index = new int[nswap+1];
+  pos_delta = new double[nswap+1];
+  neg_delta = new double[nswap+1];
+
   flux = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixViscosity::~FixViscosity()
+{
+  delete [] pos_index;
+  delete [] neg_index;
+  delete [] pos_delta;
+  delete [] neg_delta;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,8 +137,8 @@ void FixViscosity::init()
 
 void FixViscosity::end_of_step()
 {
-  int i;
-  double p,coord;
+  int i,m,insert;
+  double p,coord,delta;
   MPI_Status status;
   struct {
     double value;
@@ -113,8 +158,10 @@ void FixViscosity::end_of_step()
     slabhi_hi = boxlo + ((nbin-1)/2 + 1)*binsize;
   }
 
-  // ipos,ineg = my 2 atoms with most pos/neg momenta in bottom/top slabs
-  // map atom back into periodic box if necessary
+  // make list of nswap atoms with velocity closest to +/- vtarget
+  // only consider atoms in the bottom/middle slabs
+  // map atoms back into periodic box if necessary
+  // insert = location in list to insert new atom
 
   double **x = atom->x;
   double **v = atom->v;
@@ -124,78 +171,113 @@ void FixViscosity::end_of_step()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int ipos = -1;
-  int ineg = -1;
-  double pmin = BIG;
-  double pmax = -BIG;
+  npositive = nnegative = 0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (mass) p = mass[type[i]] * v[i][vdim];
-      else p = rmass[i] * v[i][vdim];
       coord = x[i][pdim];
       if (coord < boxlo && periodicity) coord += prd;
       else if (coord >= boxhi && periodicity) coord -= prd;
+
       if (coord >= slablo_lo && coord < slablo_hi) {
-	if (p > pmax) {
-	  pmax = p;
-	  ipos = i;
+	if (v[i][vdim] < 0.0) continue;
+	delta = fabs(v[i][vdim] - vtarget);
+	if (npositive < nswap || delta < pos_delta[nswap-1]) {
+	  for (insert = npositive-1; insert >= 0; insert--)
+	    if (delta > pos_delta[insert]) break;
+	  insert++;
+	  for (m = npositive-1; m >= insert; m--) {
+	    pos_delta[m+1] = pos_delta[m];
+	    pos_index[m+1] = pos_index[m];
+	  }
+	  pos_delta[insert] = delta;
+	  pos_index[insert] = i;
+	  if (npositive < nswap) npositive++;
 	}
       }
+
       if (coord >= slabhi_lo && coord < slabhi_hi) {
-	if (p < pmin) {
-	  pmin = p;
-	  ineg = i;
+	if (v[i][vdim] > 0.0) continue;
+	delta = fabs(v[i][vdim] + vtarget);
+	if (nnegative < nswap || delta < neg_delta[nswap-1]) {
+	  for (insert = nnegative-1; insert >= 0; insert--)
+	    if (delta > neg_delta[insert]) break;
+	  insert++;
+	  for (m = nnegative-1; m >= insert; m--) {
+	    neg_delta[m+1] = neg_delta[m];
+	    neg_index[m+1] = neg_index[m];
+	  }
+	  neg_delta[insert] = delta;
+	  neg_index[insert] = i;
+	  if (nnegative < nswap) nnegative++;
 	}
       }
     }
 
-  // find 2 global atoms with most pos/neg momenta in bottom/top slabs
-  // MAXLOC also communicates which procs own them
-
-  mine[0].value = pmax;
-  mine[0].proc = me;
-  mine[1].value = -pmin;
-  mine[1].proc = me;
-
-  MPI_Allreduce(mine,all,2,MPI_DOUBLE_INT,MPI_MAXLOC,world);
-
+  // loop over nswap pairs
+  // find 2 global atoms with smallest delta in bottom/top slabs
+  // MINLOC also communicates which procs own them
   // exchange momenta between the 2 particles
-  // if I own both particles just swap, else point2point comm of mass,vel
-  
+  // if I own both particles just swap, else point2point comm of vel,mass
+
+  int ipos,ineg;
   double sbuf[2],rbuf[2];
 
-  if (me == all[0].proc && me == all[1].proc) {
-    sbuf[0] = v[ineg][vdim];
-    if (mass) sbuf[1] = mass[type[ineg]];
-    else sbuf[1] = rmass[ineg];
-    rbuf[0] = v[ipos][vdim];
-    if (mass) rbuf[1] = mass[type[ipos]];
-    else rbuf[1] = rmass[ipos];
-    v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
-    v[ipos][vdim] = sbuf[0] * sbuf[1]/rbuf[1];
+  double dflux = 0.0;
+  mine[0].proc = mine[1].proc = me;
+  int ipositive = 0;
+  int inegative = 0;
 
-  } else if (me == all[0].proc) {
-    sbuf[0] = v[ipos][vdim];
-    if (mass) sbuf[1] = mass[type[ipos]];
-    else sbuf[1] = rmass[ipos];
-    MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
-		 rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
-    v[ipos][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
+  int nactual = MIN(nnegative,npositive);
 
-  } else if (me == all[1].proc) {
-    sbuf[0] = v[ineg][vdim];
-    if (mass) sbuf[1] = mass[type[ineg]];
-    else sbuf[1] = rmass[ineg];
-    MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
-		 rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
-    v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
+  for (m = 0; m < nactual; m++) {
+    if (ipositive < npositive) mine[0].value = pos_delta[ipositive];
+    else mine[0].value = BIG;
+    if (inegative < nnegative) mine[1].value = neg_delta[inegative];
+    else mine[1].value = BIG;
+    
+    MPI_Allreduce(mine,all,2,MPI_DOUBLE_INT,MPI_MINLOC,world);
+
+    if (me == all[0].proc && me == all[1].proc) {
+      ipos = pos_index[ipositive++];
+      ineg = neg_index[inegative++];
+      rbuf[0] = v[ipos][vdim];
+      if (mass) rbuf[1] = mass[type[ipos]];
+      else rbuf[1] = rmass[ipos];
+      sbuf[0] = v[ineg][vdim];
+      if (mass) sbuf[1] = mass[type[ineg]];
+      else sbuf[1] = rmass[ineg];
+      v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
+      v[ipos][vdim] = sbuf[0] * sbuf[1]/rbuf[1];
+      dflux += rbuf[0]*rbuf[1] - sbuf[0]*sbuf[1];
+      
+    } else if (me == all[0].proc) {
+      ipos = pos_index[ipositive++];
+      sbuf[0] = v[ipos][vdim];
+      if (mass) sbuf[1] = mass[type[ipos]];
+      else sbuf[1] = rmass[ipos];
+      MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
+		   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
+      v[ipos][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
+      dflux += sbuf[0]*sbuf[1];
+
+    } else if (me == all[1].proc) {
+      ineg = neg_index[inegative++];
+      sbuf[0] = v[ineg][vdim];
+      if (mass) sbuf[1] = mass[type[ineg]];
+      else sbuf[1] = rmass[ineg];
+      MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
+		   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
+      v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
+      dflux -= sbuf[0]*sbuf[1];
+    }
   }
 
-  // tally momentum flux
-  // sign of all[1].value was flipped for MPI_Allreduce
+  // tally momentum flux from all swaps
 
-  flux += all[0].value + all[1].value;
+  double dflux_all;
+  MPI_Allreduce(&dflux,&dflux_all,1,MPI_DOUBLE,MPI_SUM,world);
+  flux += dflux_all;
 }
 
 /* ---------------------------------------------------------------------- */

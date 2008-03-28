@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class FixViscosity : public Fix {
  public:
   FixViscosity(class LAMMPS *, int, char **);
-  ~FixViscosity() {}
+  ~FixViscosity();
   int setmask();
   void init();
   void end_of_step();
@@ -30,9 +30,15 @@ class FixViscosity : public Fix {
  private:
   int me;
   int vdim,pdim,nbin,periodicity;
+  int nswap;
+  double vtarget;
   double prd,boxlo,boxhi;
   double slablo_lo,slablo_hi,slabhi_lo,slabhi_hi;
   double flux;
+
+  int npositive,nnegative;
+  int *pos_index,*neg_index;
+  double *pos_delta,*neg_delta;
 };
 
 }

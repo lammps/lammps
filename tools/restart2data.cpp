@@ -1226,6 +1226,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   if (strcmp(style,"none") == 0) {
 
+  } else if (strcmp(style,"airebo") == 0) {
+
   } else if ((strcmp(style,"buck") == 0)  ||
 	   (strcmp(style,"buck/coul/cut") == 0) ||
 	   (strcmp(style,"buck/coul/long") == 0) ||
@@ -2441,6 +2443,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (pair_style && fp2 == NULL) {
     if ((strcmp(pair_style,"none") != 0) && 
+	(strcmp(pair_style,"airebo") != 0) &&
 	(strcmp(pair_style,"eam") != 0) &&
 	(strcmp(pair_style,"eam/opt") != 0) &&
 	(strcmp(pair_style,"eam/alloy") != 0) &&

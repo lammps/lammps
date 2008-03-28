@@ -13,18 +13,33 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID viscosity N vdim pdim Nbin 
+<PRE>fix ID group-ID viscosity N vdim pdim Nbin keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>viscosity = style name of this fix command
-<LI>N = perform momentum exchange every N steps
-<LI>vdim = <I>x</I> or <I>y</I> or <I>z</I> = which momentum component to exchange
-<LI>pdim = <I>x</I> or <I>y</I> or <I>z</I> = direction of momentum transfer
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>viscosity = style name of this fix command 
+
+<LI>N = perform momentum exchange every N steps 
+
+<LI>vdim = <I>x</I> or <I>y</I> or <I>z</I> = which momentum component to exchange 
+
+<LI>pdim = <I>x</I> or <I>y</I> or <I>z</I> = direction of momentum transfer 
+
 <LI>Nbin = # of layers in pdim direction 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>swap</I> or <I>target</I> 
+
+<PRE>  <I>swap</I> value = Nswap = number of swaps to perform every N steps
+  <I>vtarget</I> value = V or INF = target velocity of swap partners (velocity units) 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all viscosity 100 x z 20 
+<PRE>fix 1 all viscosity 100 x z 20
+fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -42,27 +57,36 @@ momentum flux is imposed, and the shear velocity profile is the
 system's response.
 </P>
 <P>The simulation box is divided into <I>Nbin</I> layers in the <I>pdim</I>
-direction.  Every N steps, two atoms are chosen in the following
-manner.  Only atoms in the fix group are considered.  The atom in the
-bottom layer with the most positive momentum component in the <I>vdim</I>
-direction is the first atom.  The atom in the middle later with the
-most negative momentum component in the <I>vdim</I> direction is the second
-atom.  The <I>vdim</I> momenta components of these two atoms are swapped,
-which resets their velocities, typically in opposite directions.  Over
+direction.  Every N steps, Nswap pairs of atoms are chosen in the
+following manner.  Only atoms in the fix group are considered.  Nswap
+atoms in the bottom layer with positive velocity components in the
+<I>vdim</I> direction closest to the target value <I>V</I> are selected.
+Similarly, Nswap atoms in the middle later with negative velocity
+components in the <I>vdim</I> direction closest to the negative of the
+target value <I>V</I> are selected.  The two sets of Nswap atoms are paired
+up and their <I>vdim</I> momenta components are swapped within each pair.
+This resets their velocities, typically in opposite directions.  Over
 time, this induces a shear velocity profile in the system which can be
 measured using commands such as the following, which writes the
 profile to the file tmp.profile:
 </P>
-<PRE>compute		c1 all attribute/atom vx
-fix		f1 all ave/spatial 100 10 1000 z lower 0.05 tmp.profile &
-		compute c1 units reduced 
+<PRE>fix		f1 all ave/spatial 100 10 1000 z lower 0.05 vx &
+		file tmp.profile units reduced 
 </PRE>
+<P>Note that by default, Nswap = 1 and vtarget = INF, though this can be
+changed by the optional <I>swap</I> and <I>vtarget</I> keywords.  When vtarget =
+INF, one or more atoms with the most positive and negative velocity
+components are selected.  Setting these parameters appropriately, in
+conjunction with the swap rate N, allows the momentum flux rate to be
+adjusted across a wide range of values, and the momenta to be
+exchanged in large chunks or more smoothly.
+</P>
 <P>As described below, the total momentum transferred by these velocity
 swaps is computed by the fix and can be output.  Dividing this
 quantity by time and the cross-sectional area of the simulation box
 yields a momentum flux.  The ratio of momentum flux to the slope of
 the shear velocity profile is the viscosity of the fluid, in
-appropriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
+appopriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
 details.
 </P>
 <P>IMPORTANT NOTE: After equilibration, if the velocity profile you
@@ -73,7 +97,7 @@ the Nevery parameter.
 </P>
 <P>An alternative method for calculating a viscosity is to run a NEMD
 simulation, as described in <A HREF = "Section_howto.html#4_13">this section</A> of
-the manual.  NEMD simulations deform the simulation box via the <A HREF = "fix_deform.html">fix
+the manual.  NEMD simulations deform the simmulation box via the <A HREF = "fix_deform.html">fix
 deform</A> command.  Thus they cannot be run on a charged
 system using a <A HREF = "kspace_style.html">PPPM solver</A> since PPPM does not
 currently support non-orthogonal boxes.  Using fix viscosity keeps the
@@ -85,10 +109,10 @@ box orthogonal; thus it does not suffer from this limitation.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>The cumulative momentum transferred between the bottom and middle of
+<P>The cummulative momentum transferred between the bottom and middle of
 the simulation box (in the <I>pdim</I> direction) is stored as a scalar
 quantity by this fix.  This quantity is zeroed when the fix is defined
-and accumulates thereafter, once every N steps.  The units of the
+and accumlates thereafter, once every N steps.  The units of the
 quantity are momentum = mass*velocity.  This quantity can be accessed
 by various <A HREF = "Section_howto.html#4_15">output commands</A>, such as
 <A HREF = "thermo_style.html">thermo_style custom</A>.  The scalar value calculated
@@ -115,7 +139,7 @@ See the <A HREF = "#Maginn">Maginn paper</A> for an example of using this algori
 in a computation of alcohol molecule properties.
 </P>
 <P>When running a simulation with large, massive particles or molecules
-in a background solvent, you may want to only exchange momenta between
+in a background solvent, you may want to only exchange momenta bewteen
 solvent particles.
 </P>
 <P><B>Related commands:</B>
@@ -123,7 +147,9 @@ solvent particles.
 <P><A HREF = "fix_ave_spatial.html">fix ave/spatial</A>, <A HREF = "fix_nvt_sllod.html">fix
 nvt/sllod</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are swap = 1 and vtarget = INF.
 </P>
 <HR>
 

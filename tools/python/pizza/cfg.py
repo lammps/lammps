@@ -86,6 +86,7 @@ class cfg:
 #        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7])
         print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac)
       
+      print time,
       sys.stdout.flush()
       n += 1
       
@@ -140,6 +141,7 @@ class cfg:
 #        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7])
         print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac)
       
+      print time,
       sys.stdout.flush()
       f.close()
       n += 1

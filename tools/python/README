@@ -1,0 +1,111 @@
+This directory contains Python scripts for common LAMMPS
+post-processing tasks.
+
+If you have suggestions or contributions for additional scripts or
+functionality that could be added, built on the Pizza.py modules (as
+explained below), send email to Steve Plimpton (sjplimp at
+sandia.gov).
+
+log2txt.py	convert thermo info in a LAMMPS log file to columns of numbers
+logplot.py	plot 2 columns of thermo info from a LAMMPS log file
+dumpsort.py	sort the snapshots of atoms in a LAMMPS dump file by atom ID
+dump2cfg.py	convert a native LAMMPS dump file to CFG format
+dump2xyz.py	convert a native LAMMPS dump file to XYZ format
+dump2pdb.py	convert a native LAMMPS dump file to PDB format
+
+See the top of each script file for syntax, or just run it with no
+arguments to get a syntax message.
+
+------------------------------
+General info:
+
+These scripts are very simple.  They load Python modules in the pizza
+sub-directory that are part of the Pizza.py toolkit, which do the
+heavy lifting.
+
+The modules themselves have a lot more functionality than these
+scripts expose, so if you want to do something beyond what these
+scripts perform, you should learn about Pizza.py.  See this WWW page
+for details and download info:
+
+www.sandia.gov/~sjplimp/pizza.html
+
+The tools in the Pizza.py src directory are identical to those in the
+pizza sub-directory of lammps/tools/python.  The header section of the
+tool files lists all the functionality that tool supports.
+
+To use all the features of Pizza.py modules, you need to be familiar
+with Python syntax.  You can then modify the scripts to invoke
+additional Pizza.py functionality or use the Python interpreter itself
+to drive the Pizza.py modules.
+
+------------------------------
+Before you run the scripts:
+
+To use these scripts you must set the environment variable
+LAMMPS_TOOLS_PYTHON in your shell to point to the Pizza.py modules
+that the scripts use.  This can either be a) the pizza sub-directory
+under lammps/tools/python, or b) the src directory in the Pizza.py
+package if you have installed Pizza.py on your box.
+
+For example, on my box, either of these lines in my .cshrc works:
+
+setenv LAMMPS_TOOLS_PYTHON /home/sjplimp/lammps/tools/python/pizza
+setenv LAMMPS_TOOLS_PYTHON /home/sjplimp/pizza/src
+
+------------------------------
+Running the scripts:
+
+As with any Python script, you can run these scripts in one of two
+ways.  You may want to setup aliases so that you can run them from the
+directory where your data files are.
+
+% python log2txt.py args ...
+% log2txt.py args ...
+
+The latter requires 2 things:
+
+1) that the script be made "executable", e.g. type "chmod +x log2txt.py"
+2) that the 1st line of the script is the path of the Python installed 
+   on your box, e.g. /usr/local/bin/python
+
+IMPORTANT NOTE: If you run the logplot.py script using the 1st method
+above, you should type
+
+% python -i logplot.py args ...
+
+so that the plot produced by GnuPlot stays visible before Python
+exits.
+
+------------------------------
+Dependencies:
+
+To use the logplot.py script you need to have GnuPlot installed on
+your system and its executable "gnuplot" in your path.
+
+To use any of the scripts which load the dump module to read LAMMPS
+dump files, you must have the Python package Numeric installed in your
+Python.  See http://numeric.scipy.org.
+
+Note that the Pizza.py modules use the older (but still popular)
+Numeric package, not the newer numarray package.
+
+If Numeric is already installed in your Python, you should be able to
+type the following without getting an error:
+
+>>> import Numeric
+
+Numeric can be downloaded from SourceForge at this WWW site:
+
+http://sourceforge.net/project/showfiles.php?group_id=1369&package_id=1351
+
+As of July 2007, Version 24.2 was fine.  Once unpacked, you can type
+the following from the Numeric directory to install it in your Python.
+
+sudo python setup.py install
+
+On my Linux box, when Numeric installed itself under the Python lib in
+/usr/local, it did not set all file permsissions correctly to allow a
+user to import it.  So I also needed to do this:
+
+sudo chmod -R 755 /usr/local/lib/python2.5/site-packages/Numeric

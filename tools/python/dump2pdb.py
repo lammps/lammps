@@ -1,0 +1,32 @@
+#!/usr/local/bin/python
+
+# Script:  dump2pdb.py
+# Purpose: convert a LAMMPS dump file to PDB format
+# Syntax:  dump2pdb.py dumpfile Nid Ntype Nx Ny Nz pdbfile
+#          dumpfile = LAMMPS dump file in native LAMMPS format
+#          Nid,Ntype,Nx,Ny,Nz = columns #s for ID,type,x,y,z
+#                               (usually 1,2,3,4,5)
+#          pdbfile = new PDB file
+# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+
+import sys,os
+path = os.environ["LAMMPS_PYTHON_TOOLS"]
+sys.path.append(path)
+from dump import dump
+from pdbfile import pdbfile
+
+if len(sys.argv) != 8:
+  raise StandardError, "Syntax: dump2pdb.py dumpfile Nid Ntype Nx Ny Nz pdbfile"
+
+dumpfile = sys.argv[1]
+nid = int(sys.argv[2])
+ntype = int(sys.argv[3])
+nx = int(sys.argv[4])
+ny = int(sys.argv[5])
+nz = int(sys.argv[6])
+pfile = sys.argv[7]
+
+d = dump(dumpfile)
+d.map(nid,"id",ntype,"type",nx,"x",ny,"y",nz,"z")
+p = pdbfile(d)
+p.one(pfile)

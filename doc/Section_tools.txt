@@ -53,6 +53,7 @@ own sub-directories with their own Makefiles.
 "micelle2d"_#micelle
 "msi2lmp"_#msi
 "pymol_asphere"_#pymol
+"python"_#pythontools
 "restart2data"_#restart
 "thermo_extract"_#thermo_extract
 "vim"_#vim
@@ -267,6 +268,21 @@ viewed as true ellipsoidal particles within PyMol.  See the README and
 examples directory within pymol_asphere for more information.
 
 This tool was written by Mike Brown at Sandia.
+
+:line
+
+python tool :h4,link(pythontools)
+
+The python sub-directory contains several Python scripts
+that perform common LAMMPS post-processing tasks, like
+
+extract thermodynamic info from a log file as columns of numbers
+plot two columns of thermodynamic info from a log file
+sort the snapshots in a dump file by atom ID
+convert dump files into XYZ, CFG, or PDB format for viz by other packages :ul
+
+These are simple scripts built on "Pizza.py"_pizza modules.  See the
+README for more info on Pizza.py and how to use these scripts.
 
 :line
 

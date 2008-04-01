@@ -35,6 +35,8 @@ using namespace LAMMPS_NS;
 #define VARDELTA 4
 #define MAXLEVEL 4
 
+#define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
+
 enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
@@ -1118,7 +1120,7 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == FLOOR)
     return floor(eval_tree(tree->left,i));
   if (tree->type == ROUND)
-    return round(eval_tree(tree->left,i));
+    return MYROUND(eval_tree(tree->left,i));
 
   return 0.0;
 }
@@ -1255,7 +1257,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
 
   } else if (strcmp(word,"round") == 0) {
     if (tree) newtree->type = ROUND;
-    else argstack[nargstack++] = round(value);
+    else argstack[nargstack++] = MYROUND(value);
   }
 
   return 1;

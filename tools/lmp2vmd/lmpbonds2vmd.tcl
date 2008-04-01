@@ -3,9 +3,13 @@
 # (c) 2007 Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
 
 proc lmpbondsfromdata {mol filename} {
+    
+    if {"$mol" == "top"} {
+        set mol [molinfo top]
+    }
 
     # create an empty bondlist
-    set na [molinfo $mol get numatoms];     # number of atoms
+    set na [molinfo $mol get numatoms]; # number of atoms
     set nb 0;                           # number of bonds
     set bl {};                          # bond list
     for {set i 0} {$i < $na} {incr i} {
@@ -24,20 +28,26 @@ proc lmpbondsfromdata {mol filename} {
         regexp {^\s*(\d+)\s+bonds} $line dummy nb
 
         if { [regexp {^\s*Bonds} $line] } {
-            puts "nbonds= $nb\n now reading Bonds section"
+            puts "nbonds= $nb\nnow reading Bonds section"
             break
         }
     }
 
     # skip one line
     gets $fp line
-    # read the bonds file
+    # read the bonds data
     for {set i 0} {$i < $nb} {incr i} {
         gets $fp line
         # grep bond numbers from entry and adjust to VMD numbering style
         regexp {^\s*\d+\s+\d+\s+(\d+)\s+(\d+)} $line dummy ba bb
         incr ba -1
         incr bb -1
+
+        # sanity check
+        if { ($ba > $na) || ($bb > $na) } {
+            puts stderr "number of atoms in VMD molecule ($na) does not match data file"
+            return -1
+        }
 
         set bn [lindex $bl $ba]
         lappend bn $bb
@@ -52,5 +62,6 @@ proc lmpbondsfromdata {mol filename} {
     set sel [atomselect $mol all]
     $sel setbonds $bl
     $sel delete
+    return 0
 }
 

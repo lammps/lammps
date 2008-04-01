@@ -3,12 +3,16 @@
 
 proc lmpresidfromdata {mol filename} {
 
+    if {"$mol" == "top"} {
+        set mol [molinfo top]
+    }
+
     # create an empty bondlist
     set na [molinfo $mol get numatoms]; # number of atoms of molecule
-    set nb 0;                           # number of atoms in data file
-    set bl {};                          # resid list
+    set da 0;                           # number of atoms in data file
+    set rl {};                          # resid list
     for {set i 0} {$i < $na} {incr i} {
-        lappend bl 0
+        lappend rl 0
     }
 
     # open lammps data file
@@ -19,11 +23,18 @@ proc lmpresidfromdata {mol filename} {
 
     # read file line by line until we hit the Bonds keyword
     while {[gets $fp line] >= 0} {
-        # pick number of bonds
-        regexp {^\s*(\d+)\s+atoms} $line dummy nb
+        # pick number of atoms
+        regexp {^\s*(\d+)\s+atoms} $line dummy da
 
         if { [regexp {^\s*Atoms} $line] } {
-            puts "atoms= $nb\n now reading Atoms section"
+            # sanity check
+            if {$na != $da} {
+                puts stderr \
+                    "number of atoms in VMD molecule ($na) does not match data file ($da)"
+                return -1
+            }
+
+            puts "atoms= $da\nnow reading Atoms section"
             break
         }
     }
@@ -31,17 +42,17 @@ proc lmpresidfromdata {mol filename} {
     # skip one line
     gets $fp line
     # read the Atoms data
-    for {set i 0} {$i < $nb} {incr i} {
+    for {set i 0} {$i < $da} {incr i} {
         gets $fp line
         # grep bond numbers from entry and adjust to VMD numbering style
         regexp {^\s*(\d+)\s+(\d+)\s+\d+.*} $line dummy ba bb
         incr ba -1
-        lset bl $ba $bb
+        lset rl $ba $bb
     }
     close $fp
 
     set sel [atomselect $mol all]
-    $sel set resid $bl
+    $sel set resid $rl
     $sel delete
 }
 

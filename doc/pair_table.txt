@@ -69,7 +69,29 @@ an optional coefficient.  If not specified, the outer cutoff in the
 table itself (see below) will be used to build an interpolation table
 that extend to the largest tabulated distance.  If specified, only
 file values up to the cutoff are used to create the interpolation
-table.
+table.  The format of this file is described below.
+
+:line
+
+Here are some guidelines for using the pair_style table command to
+best effect: :ule,l
+
+Vary the number of table points; you may need to use more than you think
+to get good resolution. :l
+
+Always use the "pair_write"_pair_write.html command to produce a plot
+of what the final interpolated potential looks like.  This can show up
+interpolations "features" you may not like. :l
+
+Start with the linear style; it's the style least likely to have problems. :l
+
+Use as large an inner cutoff as possible.  This avoids fitting splines
+to very steep parts of the potential. :l
+
+Make sure the potential tabulation you are feeding to LAMMPS is not
+pathological. :l
+
+:line
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):

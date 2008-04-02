@@ -13,10 +13,10 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style lj/smooth Rin cutoff 
+<PRE>pair_style lj/smooth Rin Rc 
 </PRE>
-<UL><LI>Rin = global inner cutoff beyond which force smoothing will be applied (distance units)
-<LI>cutoff = global cutoff for lj/smooth interactions (distance units) 
+<UL><LI>Rin = inner cutoff beyond which force smoothing will be applied (distance units)
+<LI>Rc = outer cutoff for lj/smooth interactions (distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -32,9 +32,12 @@ applied between the inner and outer cutoff.
 <CENTER><IMG SRC = "Eqs/pair_lj_smooth.jpg">
 </CENTER>
 <P>The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
-cause the force to vary smoothly from Rin to Rc.  At Rin the force and
-its 1st derivative will match the unsmoothed LJ formula.  At Rc the
-force and its 1st derivative will be 0.0.
+cause the force to vary smoothly from the inner cutoff Rin to the
+outer cutoff Rc. 
+</P>
+<P>At the inner cutoff the force and its 1st derivative
+will match the unsmoothed LJ formula.  At the outer cutoff the force
+and its 1st derivative will be 0.0.  The inner cutoff cannot be 0.0.
 </P>
 <P>IMPORTANT NOTE: this force smoothing causes the energy to be
 discontinuous both in its values and 1st derivative.  This can lead to
@@ -50,13 +53,11 @@ commands, or by mixing as described below:
 </P>
 <UL><LI>epsilon (energy units)
 <LI>sigma (distance units)
-<LI>Rin (distance units)
-<LI>cutoff (distance units) 
+<LI>innner (distance units)
+<LI>outer (distance units) 
 </UL>
-<P>The last 2 coefficients are optional.  If not specified, the global
-Rin and cutoff are used.  Rin cannot be 0.0.  If Rin = cutoff, then no
-force smoothing is performed for this type pair; the standard LJ
-formula is used.
+<P>The last 2 coefficients are optional inner and outer cutoffs.  If not
+specified, the global values for Rin and Rc are used.
 </P>
 <HR>
 

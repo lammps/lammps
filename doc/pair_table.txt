@@ -74,22 +74,22 @@ table.  The format of this file is described below.
 :line
 
 Here are some guidelines for using the pair_style table command to
-best effect: :ule,l
+best effect:
 
 Vary the number of table points; you may need to use more than you think
-to get good resolution. :l
+to get good resolution. :ulb,l
 
 Always use the "pair_write"_pair_write.html command to produce a plot
 of what the final interpolated potential looks like.  This can show up
-interpolations "features" you may not like. :l
+interpolation "features" you may not like. :l
 
 Start with the linear style; it's the style least likely to have problems. :l
 
 Use as large an inner cutoff as possible.  This avoids fitting splines
 to very steep parts of the potential. :l
 
-Make sure the potential tabulation you are feeding to LAMMPS is not
-pathological. :l
+Make sure the tabulated potential you are feeding to LAMMPS is not
+pathological. :l,ule
 
 :line
 

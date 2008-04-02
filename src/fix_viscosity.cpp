@@ -158,7 +158,8 @@ void FixViscosity::end_of_step()
     slabhi_hi = boxlo + ((nbin-1)/2 + 1)*binsize;
   }
 
-  // make list of nswap atoms with velocity closest to +/- vtarget
+  // make 2 lists of up to nswap atoms with velocity closest to +/- vtarget
+  // lists are sorted by closeness to vtarget
   // only consider atoms in the bottom/middle slabs
   // map atoms back into periodic box if necessary
   // insert = location in list to insert new atom
@@ -216,6 +217,7 @@ void FixViscosity::end_of_step()
 
   // loop over nswap pairs
   // find 2 global atoms with smallest delta in bottom/top slabs
+  // BIG values are for procs with no atom to contribute
   // MINLOC also communicates which procs own them
   // exchange momenta between the 2 particles
   // if I own both particles just swap, else point2point comm of vel,mass
@@ -228,15 +230,15 @@ void FixViscosity::end_of_step()
   int ipositive = 0;
   int inegative = 0;
 
-  int nactual = MIN(nnegative,npositive);
-
-  for (m = 0; m < nactual; m++) {
+  for (m = 0; m < nswap; m++) {
     if (ipositive < npositive) mine[0].value = pos_delta[ipositive];
     else mine[0].value = BIG;
     if (inegative < nnegative) mine[1].value = neg_delta[inegative];
     else mine[1].value = BIG;
     
     MPI_Allreduce(mine,all,2,MPI_DOUBLE_INT,MPI_MINLOC,world);
+
+    if (all[0].value == BIG || all[1].value == BIG) continue;
 
     if (me == all[0].proc && me == all[1].proc) {
       ipos = pos_index[ipositive++];

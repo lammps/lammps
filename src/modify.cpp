@@ -125,7 +125,7 @@ Modify::~Modify()
 
 void Modify::init()
 {
-  int i;
+  int i,j;
 
   // delete storage of restart info since it is not valid after 1st run
 
@@ -165,6 +165,33 @@ void Modify::init()
 
   for (i = 0; i < ncompute; i++) compute[i]->init();
   modify->addstep_compute_all(update->ntimestep);
+
+  // warn if any particle is time integrated more than once
+
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+
+  int *flag = new int[nlocal];
+  for (i = 0; i < nlocal; i++) flag[i] = 0;
+
+  int groupbit;
+  for (i = 0; i < nfix; i++) {
+    if (fix[i]->time_integrate == 0) continue;
+    groupbit = fix[i]->groupbit;
+    for (j = 0; j < nlocal; j++)
+      if (mask[j] & groupbit) flag[j]++;
+  }
+
+  int check = 0;
+  for (i = 0; i < nlocal; i++)
+    if (flag[i] > 1) check = 1;
+
+  delete [] flag;
+
+  int checkall;
+  MPI_Allreduce(&check,&checkall,1,MPI_INT,MPI_SUM,world);
+  if (comm->me == 0 && checkall)
+    error->warning("One or more atoms are time integrated more than once");
 }
 
 /* ----------------------------------------------------------------------

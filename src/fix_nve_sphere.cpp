@@ -35,6 +35,8 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3) error->all("Illegal fix nve/sphere command");
 
+  time_integrate = 1;
+
   // process extra keywords
 
   extra = NONE;

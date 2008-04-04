@@ -60,7 +60,7 @@ energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:
 </P>
 <PRE>compute		peratom all pe/atom
-compute		p all sum c_peratom
+compute		p all reduce sum c_peratom
 thermo_style	custom step temp etotal press pe c_p 
 </PRE>
 <P>IMPORTANT NOTE: The per-atom energy does NOT include contributions due

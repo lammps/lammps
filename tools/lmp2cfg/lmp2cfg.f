@@ -62,12 +62,15 @@ c----------This begins the frame by frame reading section-------------
          read(9,*,end=999)
          read(9,*,end=999) natom
          read(9,*,end=999)
-         read(9,50,end=999) xcell
-         read(9,50,end=999) ycell
-         read(9,50,end=999) zcell
+         read(9,*,end=999) xlower,xupper
+         read(9,*,end=999) ylower,yupper
+         read(9,*,end=999) zlower,zupper
          read(9,*,end=999)
-
- 50      format(2x,f12.5)
+ 50      format(2f12.5)
+         xcell=xupper-xlower
+         ycell=yupper-ylower
+         zcell=zupper-zlower
+          
 
 
 

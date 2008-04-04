@@ -1026,10 +1026,10 @@ aggregate motiion of particles) and its thermal velocity.  The sum of
 the two is the particle's total velocity, but the latter is often what
 is wanted to compute a temperature.
 
-LAMMPS has several options for computing temperatures and for using
-them in thermostatting and barostatting.
-
-These "compute commands"_compute.html calculate temperature.
+LAMMPS has several options for computing temperatures, any of which
+can be used in thermostatting and barostatting.  These "compute
+commands"_compute.html calculate temperature, and the "compute
+pressure"_compute_pressure.html command calculates pressure.
 
 "compute temp"_compute_temp.html
 "compute temp/sphere"_compute_temp_sphere.html
@@ -1087,7 +1087,7 @@ used in conjunction with a constant NVE integration fix such as these:
 
 "fix nve"_fix_nve.html
 "fix nve/sphere"_fix_nve_sphere.html
-"fix nve/asphere"_doc_fix_nve_asphere.html :ul
+"fix nve/asphere"_fix_nve_asphere.html :ul
 
 Barostatting in LAMMPS is also performed by "fixes"_fix.html.  Two
 barosttating methods are currently available: Nose-Hoover (npt and

@@ -28,7 +28,8 @@ certain kinds of LAMMPS simulations.
 4.12 <A HREF = "#4_12">Non-orthogonal simulation boxes</A><BR>
 4.13 <A HREF = "#4_13">NEMD simulations</A><BR>
 4.14 <A HREF = "#4_14">Aspherical particles</A><BR>
-4.15 <A HREF = "#4_15">Output from LAMMPS</A> <BR>
+4.15 <A HREF = "#4_15">Output from LAMMPS</A><BR>
+4.16 <A HREF = "#4_16">Thermostatting, barostatting and computing temperature</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">this section</A> also show how to
@@ -1014,6 +1015,82 @@ frequencies and global vs per-atom attributes are the same.
 <TR><TD >run every</TD><TD > any variable</TD><TD > nevery</TD><TD > screen, log</TD><TD > nevery 
 </TD></TR></TABLE></DIV>
 
+<HR>
+
+<A NAME = "4_16"></A><H4>4.16 Thermostatting, barostatting, and computing temperature 
+</H4>
+<P>  add a HowTo on time integration options and/or thermostat/temperature options
+    4 thermostats
+    which do integration, which need fix nve or fix nph
+    all can be used with press/berendsen
+    only NVT thermostats rotational degrees of freedom directly
+    what bias is, how to remove it
+    howto remove bias for temp/sphere and temp/asphere
+    which biases can be doubled up via compute_modify bias command
+</P>
+<P>Enhanced the computes that calculate temperature, thermostatting
+fixes, and time integrators that use temperature control to be more
+flexible and consistent.  This is for point particles, extended
+spherical particles, and <A HREF = "doc/Section_howto.html#4_14">aspherical
+particles</A>.  Also Added new <A HREF = "doc/compute_ke.html">compute
+ke</A> and <A HREF = "doc/compute_erotate_asphere.html">compute
+erotate/asphere</A> commands.
+</P>
+<P>These <A HREF = "doc/compute.html">compute commands</A> calculate temperature.  All
+but the first 3 calculate velocity biases that are removed when
+computing a temperature.  Temp/sphere and temp/asphere now allow
+computes that calculate such a biased temperature to be included as an
+additional argument, so that the translational velocity of extended
+spherical or aspherical particles can also be altered in prescribed
+ways.
+</P>
+<UL><LI><A HREF = "doc/compute_temp.html">compute temp</A>
+<LI><A HREF = "doc/compute_temp_sphere.html">compute temp/sphere</A>
+<LI><A HREF = "doc/compute_temp_asphere.html">compute temp/asphere</A>
+<LI><A HREF = "doc/compute_temp_com.html">compute temp/com</A>
+<LI><A HREF = "doc/compute_temp_deform.html">compute temp/deform</A>
+<LI><A HREF = "doc/compute_temp_partial.html">compute temp/partial</A>
+<LI><A HREF = "doc/compute_temp_ramp.html">compute temp/ramp</A>
+<LI><A HREF = "doc/compute_temp_region.html">compute temp/region</A> 
+</UL>
+<P>Four thermostatting methods are available: Nose-Hoover, Berendsen,
+Langevin, and direct rescaling.  Nose/Hoover works on rotational
+degrees-of-freedom for spherical and aspherical particles; the others
+only work on translational degrees of freedom.  Any of these methods
+can use temperature computes that remove bias for the purpose of
+computing the current temperature and performing thermostatting only
+on the remaining thermal velocity.  For <A HREF = "doc/Section_howto.html#4_13">non-equilibrium MD
+simulations</A>., there is also a SLLOD fix
+which does NVT thermostatting in conjunction with the SLLOD equations
+of motion.  These are the relevant <A HREF = "doc/fix.html">fix commands</A>:
+</P>
+<UL><LI><A HREF = "doc/fix_nvt.html">fix nvt</A>
+<LI><A HREF = "doc/fix_nvt_sphere.html">fix nvt/sphere</A>
+<LI><A HREF = "doc/fix_nvt_asphere.html">fix nvt/asphere</A>
+<LI><A HREF = "doc/fix_nvt_sllod.html">fix nvt/sllod</A>
+<LI><A HREF = "doc/fix_temp_berendsen.html">fix temp/berendsen</A>
+<LI><A HREF = "doc/fix_langevin.html">fix langevin</A>
+<LI><A HREF = "doc/fix_temp_rescale.html">fix temp/rescale</A> 
+</UL>
+<P>Note that only the nvt fixes perform time integration.  The others
+should be used with an NVE integration fix such as these:
+</P>
+<UL><LI><A HREF = "doc/fix_nve.html">fix nve</A>
+<LI><A HREF = "doc/fix_nve_sphere.html">fix nve/sphere</A>
+<LI><A HREF = "doc_fix_nve_asphere.html">fix nve/asphere</A> 
+</UL>
+<P>Two barosttating methods are available: Nose-Hoover and Berendsen.
+The fix npt commands include Nose-Hoover thermostatting.  Fix nph and
+fix press/bernendsen can be used in conjunction with any of the 4
+thermostatting methods.  These are the relevant <A HREF = "doc/fix.html">fix
+commands</A>:
+</P>
+<UL><LI><A HREF = "doc/fix_npt.html">fix npt</A>
+<LI><A HREF = "doc/fix_npt_sphere.html">fix npt/sphere</A>
+<LI><A HREF = "doc/fix_npt_asphere.html">fix npt/asphere</A>
+<LI><A HREF = "doc/fix_nph.html">fix nph</A>
+<LI><A HREF = "doc/fix_press_berendsen.html">fix press/berendsen</A> 
+</UL>
 <HR>
 
 <HR>

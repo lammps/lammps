@@ -54,6 +54,10 @@ normally be used on atoms that also have their temperature controlled
 by another fix - e.g. by <A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
 langevin</A> commands.
 </P>
+<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
+discussion of different ways to compute temperature and perform
+thermostatting.
+</P>
 <P>This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:

@@ -72,6 +72,10 @@ nvt"_fix_nvt.html on atoms to which this fix is applied.  Use "fix
 npt"_fix_npt.html instead of this fix, if you want to control both
 temperature and pressure via Nose/Hoover.
 
+See "this howto section"_Section_howto.html#4_16 of the manual for a
+discussion of different ways to compute temperature and perform
+thermostatting and barostatting.
+
 :line
 
 The pressure can be controlled in one of several styles, as specified

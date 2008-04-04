@@ -25,7 +25,8 @@ certain kinds of LAMMPS simulations.
 4.12 "Non-orthogonal simulation boxes"_#4_12
 4.13 "NEMD simulations"_#4_13
 4.14 "Aspherical particles"_#4_14
-4.15 "Output from LAMMPS"_#4_15 :all(b)
+4.15 "Output from LAMMPS"_#4_15
+4.16 "Thermostatting, barostatting and computing temperature"_#4_16 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "this section"_Section_example.html also show how to
@@ -1004,6 +1005,84 @@ variable equal: thermo keywords, atom value vx\[123\], global scalar/vector comp
 variable atom: thermo keywords, atom value vx\[123\], atom vector vx\[\], global scalar/vector compute, peratom scalar/vector compute, global scalar/vector fix, peratom scalar/vector fix, any variable: N/A: peratom scalar: N/A
 print: any variable: N/A: screen, log: between runs
 run every: any variable: nevery: screen, log: nevery :tb(s=:)
+
+:line
+
+4.16 Thermostatting, barostatting, and computing temperature :link(4_16),h4
+
+  add a HowTo on time integration options and/or thermostat/temperature options
+    4 thermostats
+    which do integration, which need fix nve or fix nph
+    all can be used with press/berendsen
+    only NVT thermostats rotational degrees of freedom directly
+    what bias is, how to remove it
+    howto remove bias for temp/sphere and temp/asphere
+    which biases can be doubled up via compute_modify bias command
+
+Enhanced the computes that calculate temperature, thermostatting
+fixes, and time integrators that use temperature control to be more
+flexible and consistent.  This is for point particles, extended
+spherical particles, and "aspherical
+particles"_doc/Section_howto.html#4_14.  Also Added new "compute
+ke"_doc/compute_ke.html and "compute
+erotate/asphere"_doc/compute_erotate_asphere.html commands.
+
+These "compute commands"_doc/compute.html calculate temperature.  All
+but the first 3 calculate velocity biases that are removed when
+computing a temperature.  Temp/sphere and temp/asphere now allow
+computes that calculate such a biased temperature to be included as an
+additional argument, so that the translational velocity of extended
+spherical or aspherical particles can also be altered in prescribed
+ways.
+
+"compute temp"_doc/compute_temp.html
+"compute temp/sphere"_doc/compute_temp_sphere.html
+"compute temp/asphere"_doc/compute_temp_asphere.html
+"compute temp/com"_doc/compute_temp_com.html
+"compute temp/deform"_doc/compute_temp_deform.html
+"compute temp/partial"_doc/compute_temp_partial.html
+"compute temp/ramp"_doc/compute_temp_ramp.html
+"compute temp/region"_doc/compute_temp_region.html :ul
+
+Four thermostatting methods are available: Nose-Hoover, Berendsen,
+Langevin, and direct rescaling.  Nose/Hoover works on rotational
+degrees-of-freedom for spherical and aspherical particles; the others
+only work on translational degrees of freedom.  Any of these methods
+can use temperature computes that remove bias for the purpose of
+computing the current temperature and performing thermostatting only
+on the remaining thermal velocity.  For "non-equilibrium MD
+simulations"_doc/Section_howto.html#4_13., there is also a SLLOD fix
+which does NVT thermostatting in conjunction with the SLLOD equations
+of motion.  These are the relevant "fix commands"_doc/fix.html:
+
+"fix nvt"_doc/fix_nvt.html
+"fix nvt/sphere"_doc/fix_nvt_sphere.html
+"fix nvt/asphere"_doc/fix_nvt_asphere.html
+"fix nvt/sllod"_doc/fix_nvt_sllod.html
+"fix temp/berendsen"_doc/fix_temp_berendsen.html
+"fix langevin"_doc/fix_langevin.html
+"fix temp/rescale"_doc/fix_temp_rescale.html :ul
+
+Note that only the nvt fixes perform time integration.  The others
+should be used with an NVE integration fix such as these:
+
+"fix nve"_doc/fix_nve.html
+"fix nve/sphere"_doc/fix_nve_sphere.html
+"fix nve/asphere"_doc_fix_nve_asphere.html :ul
+
+Two barosttating methods are available: Nose-Hoover and Berendsen.
+The fix npt commands include Nose-Hoover thermostatting.  Fix nph and
+fix press/bernendsen can be used in conjunction with any of the 4
+thermostatting methods.  These are the relevant "fix
+commands"_doc/fix.html:
+
+"fix npt"_doc/fix_npt.html
+"fix npt/sphere"_doc/fix_npt_sphere.html
+"fix npt/asphere"_doc/fix_npt_asphere.html
+"fix nph"_doc/fix_nph.html
+"fix press/berendsen"_doc/fix_press_berendsen.html :ul
+
+
 
 :line
 :line

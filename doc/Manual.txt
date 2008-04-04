@@ -87,7 +87,8 @@ it gives quick access to documentation for all LAMMPS commands.
   4.12 "Non-orthogonal simulation boxes"_4_12 :b
   4.13 "NEMD simulations"_4_13 :b
   4.14 "Aspherical particles"_4_14 :b
-  4.15 "Output from LAMMPS"_4_15 :ule,b
+  4.15 "Output from LAMMPS"_4_15 :b
+  4.16 "Thermostatting, barostatting, and compute temperature"_4_16 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
@@ -137,6 +138,7 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(4_13,Section_howto.html#4_13)
 :link(4_14,Section_howto.html#4_14)
 :link(4_15,Section_howto.html#4_15)
+:link(4_16,Section_howto.html#4_16)
 
 :link(9_1,Section_errors.html#9_1)
 :link(9_2,Section_errors.html#9_2)

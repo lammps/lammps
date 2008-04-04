@@ -1010,79 +1010,136 @@ run every: any variable: nevery: screen, log: nevery :tb(s=:)
 
 4.16 Thermostatting, barostatting, and computing temperature :link(4_16),h4
 
-  add a HowTo on time integration options and/or thermostat/temperature options
-    4 thermostats
-    which do integration, which need fix nve or fix nph
-    all can be used with press/berendsen
-    only NVT thermostats rotational degrees of freedom directly
-    what bias is, how to remove it
-    howto remove bias for temp/sphere and temp/asphere
-    which biases can be doubled up via compute_modify bias command
+Thermostatting means controlling the temperature of particles in an MD
+simulation.  Barostatting means controlling the pressure.  Since the
+pressure includes a kinetic component due to particle velocities, both
+these operations require calculation of the temperature.  Typically a
+target temperature (T) and/or pressure (P) is specified by the user,
+and the thermostat or barostat attempts to equilibrate the system to
+the requested T and/or P.
 
-Enhanced the computes that calculate temperature, thermostatting
-fixes, and time integrators that use temperature control to be more
-flexible and consistent.  This is for point particles, extended
-spherical particles, and "aspherical
-particles"_doc/Section_howto.html#4_14.  Also Added new "compute
-ke"_doc/compute_ke.html and "compute
-erotate/asphere"_doc/compute_erotate_asphere.html commands.
+Temperature is computed as kinetic energy divided by some number of
+degrees of freedom (and the Boltzmann constant).  Since kinetic energy
+is a function of particle velocity, there is often a need to
+distinguish between a particle's advection velocity (due to some
+aggregate motiion of particles) and its thermal velocity.  The sum of
+the two is the particle's total velocity, but the latter is often what
+is wanted to compute a temperature.
 
-These "compute commands"_doc/compute.html calculate temperature.  All
-but the first 3 calculate velocity biases that are removed when
-computing a temperature.  Temp/sphere and temp/asphere now allow
-computes that calculate such a biased temperature to be included as an
-additional argument, so that the translational velocity of extended
-spherical or aspherical particles can also be altered in prescribed
-ways.
+LAMMPS has several options for computing temperatures and for using
+them in thermostatting and barostatting.
 
-"compute temp"_doc/compute_temp.html
-"compute temp/sphere"_doc/compute_temp_sphere.html
-"compute temp/asphere"_doc/compute_temp_asphere.html
-"compute temp/com"_doc/compute_temp_com.html
-"compute temp/deform"_doc/compute_temp_deform.html
-"compute temp/partial"_doc/compute_temp_partial.html
-"compute temp/ramp"_doc/compute_temp_ramp.html
-"compute temp/region"_doc/compute_temp_region.html :ul
+These "compute commands"_compute.html calculate temperature.
 
-Four thermostatting methods are available: Nose-Hoover, Berendsen,
-Langevin, and direct rescaling.  Nose/Hoover works on rotational
-degrees-of-freedom for spherical and aspherical particles; the others
-only work on translational degrees of freedom.  Any of these methods
-can use temperature computes that remove bias for the purpose of
-computing the current temperature and performing thermostatting only
-on the remaining thermal velocity.  For "non-equilibrium MD
-simulations"_doc/Section_howto.html#4_13., there is also a SLLOD fix
-which does NVT thermostatting in conjunction with the SLLOD equations
-of motion.  These are the relevant "fix commands"_doc/fix.html:
+"compute temp"_compute_temp.html
+"compute temp/sphere"_compute_temp_sphere.html
+"compute temp/asphere"_compute_temp_asphere.html
+"compute temp/com"_compute_temp_com.html
+"compute temp/deform"_compute_temp_deform.html
+"compute temp/partial"_compute_temp_partial.html
+"compute temp/ramp"_compute_temp_ramp.html
+"compute temp/region"_compute_temp_region.html :ul
 
-"fix nvt"_doc/fix_nvt.html
-"fix nvt/sphere"_doc/fix_nvt_sphere.html
-"fix nvt/asphere"_doc/fix_nvt_asphere.html
-"fix nvt/sllod"_doc/fix_nvt_sllod.html
-"fix temp/berendsen"_doc/fix_temp_berendsen.html
-"fix langevin"_doc/fix_langevin.html
-"fix temp/rescale"_doc/fix_temp_rescale.html :ul
+All but the first 3 calculate velocity biases (i.e. advection
+velocities) that are removed when computing the thermal temperature.
+"Fix temp/sphere"_fix_temp_sphere.html and "fix
+temp/asphere"_fix_temp_asphere.html compute kinetic energy for
+extended particles that includes rotational degrees of freedom.  They
+both allow, as an extra argument, another temperature compute that
+subtracts a velocity bias, so the translational velocity of extended
+spherical or aspherical particles can be adjusted in prescribed ways.
 
-Note that only the nvt fixes perform time integration.  The others
-should be used with an NVE integration fix such as these:
+Thermostatting in LAMMPS is performed by "fixes"_fix.html.  Four
+thermostatting fixes are currently available: Nose-Hoover (nvt),
+Berendsen, Langevin, and direct rescaling (temp/rescale):
 
-"fix nve"_doc/fix_nve.html
-"fix nve/sphere"_doc/fix_nve_sphere.html
+"fix nvt"_fix_nvt.html
+"fix nvt/sphere"_fix_nvt_sphere.html
+"fix nvt/asphere"_fix_nvt_asphere.html
+"fix nvt/sllod"_fix_nvt_sllod.html
+"fix temp/berendsen"_fix_temp_berendsen.html
+"fix langevin"_fix_langevin.html
+"fix temp/rescale"_fix_temp_rescale.html :ul
+
+"Fix nvt"_fix_nvt.html only thermostats the translational velocity of
+particles.  "Fix nvt/sllod"_fix_nvt_sllod.html does as well, except
+that it subtracts out a velocity bias due to a deforming box and
+integrates the SLLOD equations of motion.  See the "NEMD
+simulations"_#4_13 section of this page for further details.  "Fix
+nvt/sphere"_fix_nvt_sphere.html and "fix
+nvt/asphere"_fix_nvt_asphere.html thermostat not only translation
+velocities but also rotational velocities for spherical and aspherical
+particles.
+
+Any of these fixes can use temperature computes that remove bias for
+two purposes: (a) computing the current temperature to compare to the
+requested target temperature, and (b) adjusting only the thermal
+temperature component of the particle's velocities.  See the doc pages
+for the individual fixes and for the "fix_modify"_fix_modify.html
+command for instructions on how to assign a temperature compute to a
+thermostatting fix.
+
+IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
+they update the velocities and positions of particles due to forces
+and velocities respectively.  The other thermostat fixes only adjust
+velocities; they do NOT perform time integration.  Thus they should be
+used in conjunction with a constant NVE integration fix such as these:
+
+"fix nve"_fix_nve.html
+"fix nve/sphere"_fix_nve_sphere.html
 "fix nve/asphere"_doc_fix_nve_asphere.html :ul
 
-Two barosttating methods are available: Nose-Hoover and Berendsen.
-The fix npt commands include Nose-Hoover thermostatting.  Fix nph and
-fix press/bernendsen can be used in conjunction with any of the 4
-thermostatting methods.  These are the relevant "fix
-commands"_doc/fix.html:
+Barostatting in LAMMPS is also performed by "fixes"_fix.html.  Two
+barosttating methods are currently available: Nose-Hoover (npt and
+nph) and Berendsen:
 
-"fix npt"_doc/fix_npt.html
-"fix npt/sphere"_doc/fix_npt_sphere.html
-"fix npt/asphere"_doc/fix_npt_asphere.html
-"fix nph"_doc/fix_nph.html
-"fix press/berendsen"_doc/fix_press_berendsen.html :ul
+"fix npt"_fix_npt.html
+"fix npt/sphere"_fix_npt_sphere.html
+"fix npt/asphere"_fix_npt_asphere.html
+"fix nph"_fix_nph.html
+"fix press/berendsen"_fix_press_berendsen.html :ul
 
+The "fix npt"_fix_npt.html commands include a Nose-Hoover thermostat
+and barostat.  "Fix nph"_fix_nph.html is just a Nose/Hoover barostat;
+it does no thermostatting.  Both "fix nph"_fix_nph.html and "fix
+press/bernendsen"_fix_press_berendsen.html can be used in conjunction
+with any of the thermostatting fixes.
 
+As with the thermostats, "fix npt"_fix_npt.html and "fix
+nph"_fix_nph.html only use translational motion of the particles in
+computing T and P and performing thermo/barostatting.  "Fix
+npt/sphere"_fix_npt_sphere.html and "fix
+npt/asphere"_fix_npt_asphere.html thermo/barostat using not only
+translation velocities but also rotational velocities for spherical
+and aspherical particles.
+
+All of the barostatting fixes use the "compute
+pressure"_compute_pressure.html compute to calculate a current
+pressure.  The barostatting fixes can also use temperature computes
+that remove bias for the purpose of computing the current temperature
+which contributes to the current pressure.  See the doc pages for the
+individual fixes and for the "fix_modify"_fix_modify.html command for
+instructions on how to assign a temperature or pressure compute to a
+barostatting fix.
+
+IMPORTANT NOTE: As with the thermostats, the Nose/Hoover methods ("fix
+npt"_fix_npt.html and "fix nph"_fix_nph.html) perform time
+integration.  "Fix press/berendsen"_fix_press_berendsen.html does NOT,
+so it should be used with one of the constant NVE fixes or with one of
+the NVT fixes.
+
+Finally, thermodynamic output, which can be setup via the
+"thermo_style"_thermo_style.html command, often includes temperature
+and pressure values.  As explained on the doc page for the
+"thermo_style"_thermo_style.html command, the default T and P are
+setup by the thermo command itself.  They are NOT the ones associated
+with any thermostatting or barostatting fix you have defined or with
+any compute that calculates a temperature or pressure.  Thus if you
+want to view these values of T and P, you need to specify them
+explicitly via a "thermo_style custom"_thermo_style.html command.  Or
+you can use the "thermo_modify"_thermo_modify.html command to
+re-define what temperature or pressure compute is used for default
+thermodynamic output.
 
 :line
 :line

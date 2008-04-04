@@ -43,6 +43,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,ibody;
 
+  time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
 

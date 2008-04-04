@@ -33,6 +33,7 @@ class Fix : protected Pointers {
   int rigid_flag;                // 1 if Fix integrates rigid bodies, 0 if not
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
+  int time_integrate;            // 1 if fix performs time integration, 0 if no
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists

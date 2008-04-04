@@ -31,6 +31,7 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all("Illegal fix nve/limit command");
 
+  time_integrate = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
   extscalar = 1;

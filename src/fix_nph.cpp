@@ -46,6 +46,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   box_change = 1;
+  time_integrate = 1;
   scalar_flag = 1;
   scalar_vector_freq = 1;
   extscalar = 1;

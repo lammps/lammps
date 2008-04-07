@@ -441,7 +441,8 @@ double PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
 				      double factor_coul, double factor_lj,
 				      double &fforce)
 {
-  double r2inv,r6inv,switch1,switch2,forcecoul,forcelj,phicoul,philj;
+  double r2inv,r6inv,forcecoul,forcelj,phicoul,philj;
+  double switch1,switch2;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq) {
@@ -454,6 +455,7 @@ double PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
       forcecoul *= switch1 + switch2;
     }
   } else forcecoul = 0.0;
+
   if (rsq < cut_ljsq) {
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
@@ -466,6 +468,7 @@ double PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
       forcelj = forcelj*switch1 + philj*switch2;
     }
   } else forcelj = 0.0;
+
   fforce = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
 
   double eng = 0.0;

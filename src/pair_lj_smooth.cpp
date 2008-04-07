@@ -67,8 +67,8 @@ void PairLJSmooth::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r6inv,r,forcelj,factor_lj;
-  double t,tsq,fskin;
+  double rsq,r2inv,r6inv,forcelj,factor_lj;
+  double r,t,tsq,fskin;
   int *ilist,*jlist,*numneigh,**firstneigh;
   
   evdwl = 0.0;
@@ -203,7 +203,8 @@ void PairLJSmooth::settings(int narg, char **arg)
   cut_inner_global = atof(arg[0]);
   cut_global = atof(arg[1]);
 
-  if (cut_inner_global <= 0.0) error->all("Illegal pair_style command");
+  if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
+    error->all("Illegal pair_style command");
 
   // reset cutoffs that have been explicitly set
 
@@ -242,7 +243,8 @@ void PairLJSmooth::coeff(int narg, char **arg)
     cut_one = atof(arg[5]);
   }
 
-  if (cut_inner_one <= 0.0) error->all("Incorrect args for pair coefficients");
+  if (cut_inner_one <= 0.0 || cut_inner_one > cut_one)
+    error->all("Incorrect args for pair coefficients");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

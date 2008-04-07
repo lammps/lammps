@@ -36,10 +36,10 @@ This parameter is computed using the following formula from
 
 :c,image(Eqs/centro_symmetry.jpg)
 
-where the 12 nearest neighbors are found and Ri and Ri+6 are the
-vectors from the central atom to the opposite pair of nearest
-neighbors.  Atoms not in the group are included in the 12 neighbors
-used in this calculation.
+where the 12 nearest neighbors are found (for fcc lattices) and Ri and
+Ri+6 are the vectors from the central atom to the opposite pair of
+nearest neighbors.  Atoms not in the group are included in the 12
+neighbors used in this calculation.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms

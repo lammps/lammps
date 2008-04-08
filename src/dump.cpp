@@ -153,7 +153,7 @@ void Dump::write()
   // write timestep header
 
   if (multiproc) write_header(nme);
-  else if (me == 0) write_header(ntotal);
+  else write_header(ntotal);
 
   // grow communication buffer if necessary
 

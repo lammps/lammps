@@ -59,11 +59,13 @@ void DumpBond::init()
 
 void DumpBond::write_header(int ndump)
 {
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%d\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF BONDS\n");
-  fprintf(fp,"%d\n",ndump);
-  fprintf(fp,"ITEM: BONDS\n");
+  if (me == 0) {
+    fprintf(fp,"ITEM: TIMESTEP\n");
+    fprintf(fp,"%d\n",update->ntimestep);
+    fprintf(fp,"ITEM: NUMBER OF BONDS\n");
+    fprintf(fp,"%d\n",ndump);
+    fprintf(fp,"ITEM: BONDS\n");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

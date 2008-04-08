@@ -179,11 +179,13 @@ void DumpDCD::write_header(int n)
     dim[4] = (h[0]*h[5]) / alen/blen;
   }
   
-  uint32_t out_integer = 48;
-  fwrite_int32(fp,out_integer);
-  fwrite(dim,out_integer,1,fp); 
-  fwrite_int32(fp,out_integer);
-  if (flush_flag) fflush(fp);
+  if (me == 0) {
+    uint32_t out_integer = 48;
+    fwrite_int32(fp,out_integer);
+    fwrite(dim,out_integer,1,fp); 
+    fwrite_int32(fp,out_integer);
+    if (flush_flag) fflush(fp);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

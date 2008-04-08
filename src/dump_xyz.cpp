@@ -94,7 +94,7 @@ double DumpXYZ::memory_usage()
 
 void DumpXYZ::write_header(int n)
 {
-  // realloc types & coords if necessary
+  // all procs realloc types & coords if necessary
 
   if (igroup == 0 && n != natoms) {
     memory->sfree(types);
@@ -106,8 +106,12 @@ void DumpXYZ::write_header(int n)
     coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   }
 
-  fprintf(fp,"%d\n",n);
-  fprintf(fp,"Atoms\n");
+  // only proc 0 writes header
+
+  if (me == 0) {
+    fprintf(fp,"%d\n",n);
+    fprintf(fp,"Atoms\n");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

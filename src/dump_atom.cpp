@@ -110,7 +110,7 @@ int DumpAtom::modify_param(int narg, char **arg)
 
 void DumpAtom::write_header(int ndump)
 {
-  (this->*header_choice)(ndump);
+  if (me == 0) (this->*header_choice)(ndump);
 }
 
 /* ---------------------------------------------------------------------- */

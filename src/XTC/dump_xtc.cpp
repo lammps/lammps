@@ -151,7 +151,7 @@ void DumpXTC::openfile()
 
 void DumpXTC::write_header(int n)
 {
-  // realloc coords if necessary
+  // all procs realloc types & coords if necessary
 
   if (n != natoms) {
     memory->sfree(coords);
@@ -160,6 +160,10 @@ void DumpXTC::write_header(int n)
     natoms = n;
     coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   }
+
+  // only proc 0 writes header
+
+  if (me != 0) return;
 
   int tmp = XTC_MAGIC;
   xdr_int(&xd,&tmp);

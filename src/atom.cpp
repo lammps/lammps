@@ -602,7 +602,7 @@ void Atom::tag_extend()
 
 /* ----------------------------------------------------------------------
    check if atom tags are consecutive from 1 to Natoms
-   return 0 if any tag <= 0 or maxtag > Natoms
+   return 0 if any tag <= 0 or maxtag != Natoms
    return 1 if OK (doesn't actually check if all tag values are used)
 ------------------------------------------------------------------------- */
 
@@ -620,7 +620,7 @@ int Atom::tag_consecutive()
   }
   MPI_Allreduce(check,check_all,2,MPI_INT,MPI_MAX,world);
 
-  if (check_all[0] || check_all[1] > natoms) return 0;
+  if (check_all[0] || check_all[1] != static_cast<int> (natoms)) return 0;
   return 1;
 }
 

@@ -206,7 +206,7 @@ void DumpCustom::init()
 
 void DumpCustom::write_header(int ndump)
 {
-  (this->*header_choice)(ndump);
+  if (me == 0) (this->*header_choice)(ndump);
 }
 
 /* ---------------------------------------------------------------------- */

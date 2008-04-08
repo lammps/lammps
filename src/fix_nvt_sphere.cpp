@@ -54,18 +54,14 @@ FixNVTSphere::~FixNVTSphere()
 void FixNVTSphere::init()
 {
   FixNVT::init();
-  dtfrotate = dtf / INERTIA;
 
   if (!atom->shape)
     error->all("Fix nvt/sphere requires atom attribute shape");
 
-  double *mass = atom->mass;
   double **shape = atom->shape;
-  for (int i = 1; i <= atom->ntypes; i++) {
+  for (int i = 1; i <= atom->ntypes; i++)
     if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
       error->all("Fix nvt/sphere requires spherical particle shapes");
-    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,6 +96,14 @@ void FixNVTSphere::initial_integrate(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // recompute timesteps since dt may have changed or come via rRESPA
+
+  double dtfrotate = dtf / INERTIA;
+  int ntypes = atom->ntypes;
+  double **shape = atom->shape;
+  for (int i = 1; i <= ntypes; i++)
+    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
@@ -164,6 +168,14 @@ void FixNVTSphere::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
+  // recompute timesteps since dt may have changed or come via rRESPA
+
+  double dtfrotate = dtf / INERTIA;
+  int ntypes = atom->ntypes;
+  double **shape = atom->shape;
+  for (int i = 1; i <= ntypes; i++)
+    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -210,12 +222,4 @@ void FixNVTSphere::final_integrate()
   f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
   eta_dot += f_eta*dthalf;
   eta_dot *= drag_factor;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVTSphere::reset_dt()
-{
-  FixNVT::reset_dt();
-  dtfrotate = dtf / INERTIA;
 }

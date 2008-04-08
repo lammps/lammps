@@ -197,34 +197,19 @@ void Velocity::create(int narg, char **arg)
       atom->map_set();
     }
 
-    random = new RanPark(lmp,seed);
+    // error check
 
     if (atom->tag_enable == 0)
       error->all("Cannot use velocity create loop all unless atoms have IDs");
-    int natoms = static_cast<int> (atom->natoms);
+    if (atom->tag_consecutive() == 0)
+      error->all("Atom IDs must be consecutive for velocity create loop all");
 
-    // check that atom IDs span range from 1 to natoms
-
-    int *tag = atom->tag;
-    int idmin = natoms;
-    int idmax = 0;
-
-    for (i = 0; i < nlocal; i++) {
-      idmin = MIN(idmin,tag[i]);
-      idmax = MAX(idmax,tag[i]);
-    }
-    int idminall,idmaxall;
-    MPI_Allreduce(&idmin,&idminall,1,MPI_INT,MPI_MIN,world);
-    MPI_Allreduce(&idmax,&idmaxall,1,MPI_INT,MPI_MAX,world);
-
-    if (idminall != 1 || idmaxall != natoms) {
-      char *str = (char *) "Cannot use velocity create loop all with non-contiguous atom IDs";
-      error->all(str);
-    }
-    
     // loop over all atoms in system
     // generate RNGs for all atoms, only assign to ones I own
     // use either per-type mass or per-atom rmass
+
+    random = new RanPark(lmp,seed);
+    int natoms = static_cast<int> (atom->natoms);
 
     for (i = 1; i <= natoms; i++) {
       if (dist_flag == 0) {

@@ -27,6 +27,7 @@ class FixNVEAsphere : public FixNVE {
   void final_integrate();
 
  private:
+  double dtq;
   double **inertia;
 
   void richardson(double *, double *, double *);

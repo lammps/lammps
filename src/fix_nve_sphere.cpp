@@ -31,7 +31,7 @@ enum{NONE,DIPOLE};
 /* ---------------------------------------------------------------------- */
 
 FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  FixNVE(lmp, narg, arg)
 {
   if (narg < 3) error->all("Illegal fix nve/sphere command");
 
@@ -86,7 +86,6 @@ void FixNVESphere::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dtfrotate = dtf / INERTIA;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     step_respa = ((Respa *) update->integrate)->step;
@@ -97,13 +96,10 @@ void FixNVESphere::init()
     error->all("Fix nve/sphere requires atom attributes radius, rmass");
 
   if (atom->mass) {
-    double *mass = atom->mass;
     double **shape = atom->shape;
-    for (int i = 1; i <= atom->ntypes; i++) {
+    for (int i = 1; i <= atom->ntypes; i++)
       if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
 	error->all("Fix nve/sphere requires spherical particle shapes");
-      dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
-    }
   }
 }
 
@@ -127,6 +123,16 @@ void FixNVESphere::initial_integrate(int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // recompute timesteps since dt may have changed or come via rRESPA
+
+  dtfrotate = dtf / INERTIA;
+  if (mass) {
+    double **shape = atom->shape;
+    int ntypes = atom->ntypes;
+    for (int i = 1; i <= ntypes; i++)
+      dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+  }
 
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
@@ -212,6 +218,16 @@ void FixNVESphere::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
+  // recompute timesteps since dt may have changed or come via rRESPA
+
+  dtfrotate = dtf / INERTIA;
+  if (mass) {
+    double **shape = atom->shape;
+    int ntypes = atom->ntypes;
+    for (int i = 1; i <= ntypes; i++)
+      dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+  }
+
   if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -229,6 +245,7 @@ void FixNVESphere::final_integrate()
     }
     
   } else {
+    dtfrotate = dtf / INERTIA;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	dtfm = dtf / rmass[i];
@@ -243,36 +260,4 @@ void FixNVESphere::final_integrate()
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVESphere::initial_integrate_respa(int vflag, int ilevel, int flag)
-{
-  if (flag) return;             // only used by NPT,NPH
-
-  dtv = step_respa[ilevel];
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  dtfrotate = dtf / INERTIA;
-
-  if (ilevel == 0) initial_integrate(vflag);
-  else final_integrate();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVESphere::final_integrate_respa(int ilevel)
-{
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  dtfrotate = dtf / INERTIA;
-  final_integrate();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVESphere::reset_dt()
-{
-  dtv = update->dt;
-  dtf = 0.5 * update->dt * force->ftm2v;
-  dtfrotate = dtf / INERTIA;
 }

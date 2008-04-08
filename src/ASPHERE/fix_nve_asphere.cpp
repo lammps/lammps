@@ -66,6 +66,8 @@ void FixNVEAsphere::initial_integrate(int vflag)
 {
   double dtfm;
 
+  dtq = 0.5 * dtv;
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;

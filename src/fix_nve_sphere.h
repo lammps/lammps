@@ -14,11 +14,11 @@
 #ifndef FIX_NVE_SPHERE_H
 #define FIX_NVE_SPHERE_H
 
-#include "fix.h"
+#include "fix_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixNVESphere : public Fix {
+class FixNVESphere : public FixNVE {
  public:
   FixNVESphere(class LAMMPS *, int, char **);
   ~FixNVESphere();
@@ -26,14 +26,10 @@ class FixNVESphere : public Fix {
   void init();
   void initial_integrate(int);
   void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int);
-  void reset_dt();
 
  private:
   int extra;
-  double dtv,dtf,dtfrotate;
-  double *step_respa;
+  double dtfrotate;
   double *dttype;
 };
 

@@ -601,26 +601,29 @@ void Atom::tag_extend()
 }
 
 /* ----------------------------------------------------------------------
-   check if atom tags are consecutive from 1 to Natoms
-   return 0 if any tag <= 0 or maxtag != Natoms
-   return 1 if OK (doesn't actually check if all tag values are used)
+   check that atom IDs span range from 1 to Natoms
+   return 0 if mintag != 1 or maxtag != Natoms
+   return 1 if OK
+   doesn't actually check if all tag values are used
 ------------------------------------------------------------------------- */
 
 int Atom::tag_consecutive()
 {
-  // check[0] = flagged if any tag <= 0
-  // check[1] = max tag of any atom
-
   int check[2],check_all[2];
-
   check[0] = check[1] = 0;
-  for (int i = 0; i < nlocal; i++) {
-    if (tag[i] <= 0) check[0] = 1;
-    if (tag[i] > check[1]) check[1] = tag[i];
-  }
-  MPI_Allreduce(check,check_all,2,MPI_INT,MPI_MAX,world);
 
-  if (check_all[0] || check_all[1] != static_cast<int> (natoms)) return 0;
+  int idmin = static_cast<int> (natoms);
+  int idmax = 0;
+  
+  for (int i = 0; i < nlocal; i++) {
+    idmin = MIN(idmin,tag[i]);
+    idmax = MAX(idmax,tag[i]);
+  }
+  int idminall,idmaxall;
+  MPI_Allreduce(&idmin,&idminall,1,MPI_INT,MPI_MIN,world);
+  MPI_Allreduce(&idmax,&idmaxall,1,MPI_INT,MPI_MAX,world);
+
+  if (idminall != 1 || idmaxall != static_cast<int> (natoms)) return 0;
   return 1;
 }
 

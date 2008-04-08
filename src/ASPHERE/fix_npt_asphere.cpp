@@ -44,14 +44,6 @@ FixNPTAsphere::FixNPTAsphere(LAMMPS *lmp, int narg, char **arg) :
 	       "quat, angmom, torque, shape");
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixNPTAsphere::init()
-{
-  FixNPT::init();
-  dtq = 0.5 * update->dt;
-}
-
 /* ----------------------------------------------------------------------
    1st half of Verlet update 
 ------------------------------------------------------------------------- */
@@ -60,6 +52,8 @@ void FixNPTAsphere::initial_integrate(int vflag)
 {
   int i;
   double dtfm;
+
+  dtq = 0.5 * dtv;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -247,14 +241,6 @@ void FixNPTAsphere::final_integrate()
     omega_dot[i] += f_omega*dthalf;
     omega_dot[i] *= drag_factor;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNPTAsphere::reset_dt()
-{
-  FixNPT::reset_dt();
-  dtq = 0.5 * update->dt;
 }
 
 /* ----------------------------------------------------------------------

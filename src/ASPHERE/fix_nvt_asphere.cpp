@@ -47,17 +47,11 @@ FixNVTAsphere::FixNVTAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVTAsphere::init()
-{
-  FixNVT::init();
-  dtq = 0.5 * update->dt;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNVTAsphere::initial_integrate(int vflag)
 {
   double dtfm;
+
+  dtq = 0.5 * dtv;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -195,14 +189,6 @@ void FixNVTAsphere::final_integrate()
   f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
   eta_dot += f_eta*dthalf;
   eta_dot *= drag_factor;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVTAsphere::reset_dt()
-{
-  FixNVT::reset_dt();
-  dtq = 0.5 * update->dt;
 }
 
 /* ----------------------------------------------------------------------

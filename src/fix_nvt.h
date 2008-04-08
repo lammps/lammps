@@ -34,7 +34,7 @@ class FixNVT : public Fix {
   void restart(char *);
   int modify_param(int, char **);
   void reset_target(double);
-  virtual void reset_dt();
+  void reset_dt();
 
  protected:
   int which;

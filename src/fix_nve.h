@@ -30,7 +30,7 @@ class FixNVE : public Fix {
   void reset_dt();
 
  protected:
-  double dtv,dtf,dtq;
+  double dtv,dtf;
   double *step_respa;
   int mass_require;
 };

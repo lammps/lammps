@@ -25,10 +25,8 @@ class FixNPTSphere : public FixNPT {
   void init();
   void initial_integrate(int);
   void final_integrate();
-  void reset_dt();
 
  private:
-  double dtfrotate;
   double *dttype;
   double factor_rotate;
 };

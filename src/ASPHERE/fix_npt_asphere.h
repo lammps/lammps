@@ -21,10 +21,8 @@ namespace LAMMPS_NS {
 class FixNPTAsphere : public FixNPT {
  public:
   FixNPTAsphere(class LAMMPS *, int, char **);
-  void init();
   void initial_integrate(int);
   void final_integrate();
-  void reset_dt();
 
  private:
   double dtq;

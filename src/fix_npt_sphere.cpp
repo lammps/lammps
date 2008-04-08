@@ -53,18 +53,14 @@ FixNPTSphere::~FixNPTSphere()
 void FixNPTSphere::init()
 {
   FixNPT::init();
-  dtfrotate = dtf / INERTIA;
 
   if (!atom->shape)
     error->all("Fix npt/sphere requires atom attribute shape");
 
-  double *mass = atom->mass;
   double **shape = atom->shape;
-  for (int i = 1; i <= atom->ntypes; i++) {
+  for (int i = 1; i <= atom->ntypes; i++)
     if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
       error->all("Fix npt/sphere requires spherical particle shapes");
-    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -155,6 +151,14 @@ void FixNPTSphere::initial_integrate(int vflag)
     }
   }
 
+  // recompute timesteps since dt may have changed or come via rRESPA
+
+  double dtfrotate = dtf / INERTIA;
+  int ntypes = atom->ntypes;
+  double **shape = atom->shape;
+  for (int i = 1; i <= ntypes; i++)
+    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+
   // update angular momentum by 1/2 step
   // update quaternion a full step via Richardson iteration
   // returns new normalized quaternion
@@ -195,6 +199,14 @@ void FixNPTSphere::final_integrate()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // recompute timesteps since dt may have changed or come via rRESPA
+
+  double dtfrotate = dtf / INERTIA;
+  int ntypes = atom->ntypes;
+  double **shape = atom->shape;
+  for (int i = 1; i <= ntypes; i++)
+    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
 
   if (which == NOBIAS) {
     for (i = 0; i < nlocal; i++) {
@@ -267,12 +279,4 @@ void FixNPTSphere::final_integrate()
     omega_dot[i] += f_omega*dthalf;
     omega_dot[i] *= drag_factor;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNPTSphere::reset_dt()
-{
-  FixNPT::reset_dt();
-  dtfrotate = dtf / INERTIA;
 }

@@ -39,11 +39,11 @@ class FixWallGran : public Fix {
   void reset_dt();
 
  private:
-  int wallstyle,pairstyle,wiggle,axis;
+  int wallstyle,pairstyle,wiggle,wshear,axis;
   double xkk,xkkt,gamman,xmu;
   double lo,hi,cylradius;
   double dt,gamman_dl,gammas_dl;
-  double amplitude,period,omega,time_origin;
+  double amplitude,period,omega,time_origin,vshear;
 
   int *touch;
   double **shear;

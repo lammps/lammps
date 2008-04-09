@@ -94,6 +94,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // check for trailing keyword/values
 
   wiggle = 0;
+  wshear = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -106,6 +107,15 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       period = atof(arg[iarg+3]);
       wiggle = 1;
       iarg += 4;
+    } else if (strcmp(arg[iarg],"shear") == 0) {
+      if (iarg+3 > narg) error->all("Illegal fix wall/gran command");
+      if (strcmp(arg[iarg+1],"x") == 0) axis = 0;
+      else if (strcmp(arg[iarg+1],"y") == 0) axis = 1;
+      else if (strcmp(arg[iarg+1],"z") == 0) axis = 2;
+      else error->all("Illegal fix wall/gran command");
+      vshear = atof(arg[iarg+2]);
+      wshear = 1;
+      iarg += 3;
     } else error->all("Illegal fix wall/gran command");
   }
 
@@ -118,8 +128,15 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (wallstyle == ZCYLINDER && (domain->xperiodic || domain->yperiodic))
     error->all("Cannot use wall in periodic dimension");
 
-  if (wallstyle == ZCYLINDER && wiggle)
-    if (axis != 2) error->all("Can only wiggle zcylinder wall in z dim");
+  if (wiggle && wshear) error->all("Cannot wiggle and shear fix wall/gran");
+  if (wiggle && wallstyle == ZCYLINDER && axis != 2)
+    error->all("Invalid wiggle direction for fix wall/gran");
+  if (wshear && wallstyle == XPLANE && axis == 0)
+    error->all("Invalid shear direction for fix wall/gran");
+  if (wshear && wallstyle == YPLANE && axis == 1)
+    error->all("Invalid shear direction for fix wall/gran");
+  if (wshear && wallstyle == ZPLANE && axis == 2)
+    error->all("Invalid shear direction for fix wall/gran");
 
   // setup oscillations
 
@@ -208,7 +225,7 @@ void FixWallGran::post_force(int vflag)
   double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq;
 
   // set position of wall to initial settings and velocity to 0.0
-  // if wiggle, set wall position and velocity accordingly
+  // if wiggle or shear, set wall position and velocity accordingly
 
   double wlo = lo;
   double whi = hi;
@@ -217,13 +234,13 @@ void FixWallGran::post_force(int vflag)
     double arg = omega * (update->ntimestep - time_origin) * dt;
     wlo = lo + amplitude - amplitude*cos(arg);
     whi = hi + amplitude - amplitude*cos(arg);
-    vwall[axis] = dt * amplitude*omega*sin(arg);
-  }
+    vwall[axis] = amplitude*omega*sin(arg);
+  } else if (wshear) vwall[axis] = vshear;
 
   // loop over all my atoms
   // rsq = distance from wall
   // dx,dy,dz = signed distance from wall
-  //   in cylinder case
+  // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
   //   if wall was set to NULL, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
@@ -267,6 +284,11 @@ void FixWallGran::post_force(int vflag)
 	else {
 	  dx = -delr/delxy * x[i][0];
 	  dy = -delr/delxy * x[i][1];
+	  if (wshear && axis != 2) {
+	    vwall[0] = vshear * x[i][1]/delxy;
+	    vwall[1] = -vshear * x[i][0]/delxy;
+	    vwall[2] = 0.0;
+	  }
 	}
       }
 
@@ -302,7 +324,7 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,xmeff,damp,ccel,vtr1,vtr2,vtr3,vrel;
-  double fn,fs,ft,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3;
+  double fn,fs,ft,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3,rinv;
 
   r = sqrt(rsq);
 
@@ -381,9 +403,10 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
 
   // torques
 
-  tor1 = dy*fs3 - dz*fs2;
-  tor2 = dz*fs1 - dx*fs3;
-  tor3 = dx*fs2 - dy*fs1;
+  rinv = 1/r;
+  tor1 = rinv * (dy*fs3 - dz*fs2);
+  tor2 = rinv * (dz*fs1 - dx*fs3);
+  tor3 = rinv * (dx*fs2 - dy*fs1);
   torque[0] -= radius*tor1;
   torque[1] -= radius*tor2;
   torque[2] -= radius*tor3;
@@ -525,7 +548,7 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,xmeff,damp,ccel,vtr1,vtr2,vtr3,vrel;
   double fn,fs,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3;
-  double shrmag,rsht,rhertz;
+  double shrmag,rsht,rhertz,rinv;
 
   r = sqrt(rsq);
 
@@ -634,9 +657,10 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
 
   // torques
 
-  tor1 = dy*fs3 - dz*fs2;
-  tor2 = dz*fs1 - dx*fs3;
-  tor3 = dx*fs2 - dy*fs1;
+  rinv = 1/r;
+  tor1 = rinv * (dy*fs3 - dz*fs2);
+  tor2 = rinv * (dz*fs1 - dx*fs3);
+  tor3 = rinv * (dx*fs2 - dy*fs1);
   torque[0] -= radius*tor1;
   torque[1] -= radius*tor2;
   torque[2] -= radius*tor3;

@@ -27,6 +27,12 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 6) error->all("Illegal fix addforce command");
+
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+  extvector = 1;
+
   xvalue = atof(arg[3]);
   yvalue = atof(arg[4]);
   zvalue = atof(arg[5]);

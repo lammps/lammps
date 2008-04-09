@@ -29,6 +29,11 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix aveforce command");
 
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+  extvector = 1;
+
   xflag = yflag = zflag = 1;
   if (strcmp(arg[3],"NULL") == 0) xflag = 0;
   else xvalue = atof(arg[3]);

@@ -34,8 +34,8 @@ or "read_restart"_read_restart.html commands:
 
 R0 (distance)
 K2 (energy/distance^2)
-K3 (energy/distance^2)
-K4 (energy/distance^2) :ul
+K3 (energy/distance^3)
+K4 (energy/distance^4) :ul
 
 [Restrictions:]
 

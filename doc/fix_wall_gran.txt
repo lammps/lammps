@@ -17,7 +17,7 @@ wall/gran = style name of this fix command :l
 style = {xplane} or {yplane} or {zplane} or {zcylinder} :l
 args = list of arguments for a particular style :l
   {xplane} or {yplane} or {zplane} args = lo hi gamma xmu
-    lo, hi = position of lower and upper plane (either can be NULL)
+    lo,hi = position of lower and upper plane (distance units), either can be NULL)
     gamman = damping coeff for normal direction collisions with wall
     xmu = friction coeff for the wall
   {zcylinder} args = radius gamma xmu
@@ -25,11 +25,14 @@ args = list of arguments for a particular style :l
     gamman = damping coeff for normal direction collisions with wall
     xmu = friction coeff for the wall :pre
 zero or more keyword/value pairs may be appended to args :l
-  keyword = {wiggle}
-    values = dim amplitude period
-      dim = {x} or {y} or {z}
-      amplitude = size of oscillation (distance units)
-      period = time of oscillation (time units) :pre
+keyword = {wiggle} or {shear} :l
+  {wiggle} values = dim amplitude period
+    dim = {x} or {y} or {z}
+    amplitude = size of oscillation (distance units)
+    period = time of oscillation (time units)
+  {shear} values = dim vshear
+    dim = {x} or {y} or {z}
+    vshear = magnitude of shear velocity (velocity units) :pre
 :ule
 
 [Examples:]
@@ -52,20 +55,38 @@ axis is at x = y = 0.0, and the radius of the cylinder is specified.
 For all wallstyles, a damping and friction coefficient for
 particle-wall interactions are also specified.
 
-Optionally, a wall can be oscillated, similar to the oscillations of
-frozen particles specified by the "fix_wiggle"_fix_wiggle.html
-command.  This is useful in packing simulations of granular particles.
-If the keyword {wiggle} is appended to the argument list, then a
-dimension for the motion, as well as it's {amplitude} and {period} is
-specified.  Each timestep, the position of the wall in the appropriate
-{dim} is set according to this equation:
+Optionally, the wall can be moving, if the {wiggle} or {shear}
+keywords are appended.  Both keywords cannot be used together.
+
+For the {wiggle} keyword, the wall oscillates sinusoidally, similar to
+the oscillations of frozen particles specified by the
+"fix_wiggle"_fix_wiggle.html command.  This is useful in packing
+simulations of granular particles.  The arguments to the {wiggle}
+keyword specify a dimension for the motion, as well as it's
+{amplitude} and {period}.  Note that if the dimension is in the plane
+of the wall, this is effectively a shearing motion.  If the dimension
+is perpendicular to the wall, it is more of a shaking motion.  A
+{zcylinder} wall can only be wiggled in the z dimension.
+
+Each timestep, the position of a wiggled wall in the appropriate {dim}
+is set according to this equation:
 
 position = pos0 + A - A cos (omega * delta) :pre
 
 where {pos0} is the position at the time the fix was specified, {A} is
 the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the
 elapsed time since the fix was specified.  The velocity of the wall is
-also set to the derivative of this expression.
+set to the derivative of this expression.
+
+For the {shear} keyword, the wall moves continuously in the specified
+dimension with velocity {vshear}.  The dimension must be tangential to
+walls with a planar {wallstyle}, e.g. in the {y} or {z} directions for
+an {xplane} wall.  For {zcylinder} walls, a dimension of {z} means the
+cylinder is moving in the z-direction along it's axis.  A dimension of
+{x} or {y} means the cylinder is spinning around the z-axis, either in
+the clockwise direction for {vshear} > 0 or counter-clockwise for
+{vshear} < 0.  In this case, {vshear} is the tangential velocity of
+the wall at whatever {radius} has been defined.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -91,8 +112,6 @@ LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 Any dimension (xyz) that has a granular wall must be non-periodic.
-
-A zcylinder wall can only be oscillated in the z dimension.
 
 [Related commands:]
 

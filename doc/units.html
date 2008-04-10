@@ -30,15 +30,20 @@ and data file, as well as quantities output to the screen, log file,
 and dump files.  Typically, this command is used at the very beginning
 of an input script.
 </P>
-<P>For real and metallic units, LAMMPS uses physical constants from
+<P>For <I>real</I> and <I>metal</I> units, LAMMPS uses physical constants from
 www.physics.nist.gov. For the definition of Kcal in real units, LAMMPS
 uses the thermochemical calorie = 4.184 J.
 </P>
-<P>For style <I>lj</I>, all quantities are unitless.  The formula relating the
-reduced or unitless quantity (with an asterisk) to the same quantity
-with units is also given:
+<P>For style <I>lj</I>, all quantities are unitless.  Without loss of
+generality, LAMMPS sets the fundamental quantities mass, sigma,
+epsilon, and the Boltzmann constant = 1.  The masses, distances,
+energies you specify are multiples of these fundamental values.  The
+formulas relating the reduced or unitless quantity (with an asterisk)
+to the same quantity with units is also given.  Thus you can use the
+mass & sigma & epsilon values for a specific material and convert the
+results from a unitless LJ simulation into physical quantities.
 </P>
-<UL><LI>m (mass) = epsilon = sigma = tau = Boltzmann constant = 1
+<UL><LI>mass = mass or m
 <LI>distance = sigma, where x* = x / sigma
 <LI>time = tau, where tau = t* = t (Kb T / m / sigma^2)^1/2
 <LI>energy = epsilon, where E* = E / epsilon
@@ -53,8 +58,7 @@ with units is also given:
 </UL>
 <P>For style <I>real</I>, these are the units:
 </P>
-<UL><LI>Boltzmann constant = 0.0019872067 Kcal/mole per degree K
-<LI>mass = grams/mole
+<UL><LI>mass = grams/mole
 <LI>distance = Angstroms
 <LI>time = femtoseconds
 <LI>energy = Kcal/mole 
@@ -69,8 +73,7 @@ with units is also given:
 </UL>
 <P>For style <I>metal</I>, these are the units:
 </P>
-<UL><LI>Boltzmann constant = 8.617343e-5 eV per degree K
-<LI>mass = grams/mole
+<UL><LI>mass = grams/mole
 <LI>distance = Angstroms
 <LI>time = picoseconds
 <LI>energy = eV

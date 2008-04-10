@@ -37,6 +37,7 @@ using namespace LAMMPS_NS;
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 enum{NOBIAS,BIAS};
+enum{XYZ,XY,YZ,XZ,ANISO};
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,7 +64,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"xyz") == 0) {
     if (narg < 10) error->all("Illegal fix npt command");
 
-    press_couple = 0;
+    press_couple = XYZ;
     p_start[0] = p_start[1] = p_start[2] = atof(arg[7]);
     p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[8]);
     p_period[0] = p_period[1] = p_period[2] = atof(arg[9]);
@@ -74,16 +75,16 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
     }
 
   } else {
-    if (strcmp(arg[6],"xy") == 0) press_couple = 1;
-    else if (strcmp(arg[6],"yz") == 0) press_couple = 2;
-    else if (strcmp(arg[6],"xz") == 0) press_couple = 3;
-    else if (strcmp(arg[6],"aniso") == 0) press_couple = 4;
+    if (strcmp(arg[6],"xy") == 0) press_couple = XY;
+    else if (strcmp(arg[6],"yz") == 0) press_couple = YZ;
+    else if (strcmp(arg[6],"xz") == 0) press_couple = XZ;
+    else if (strcmp(arg[6],"aniso") == 0) press_couple = ANISO;
     else error->all("Illegal fix npt command");
 
     if (narg < 14) error->all("Illegal fix npt command");
 
     if (domain->dimension == 2 && 
-	(press_couple == 1 || press_couple == 2 || press_couple == 3))
+	(press_couple == XY || press_couple == YZ || press_couple == XZ))
       error->all("Invalid fix npt command for a 2d simulation");
 
     if (strcmp(arg[7],"NULL") == 0) {
@@ -125,7 +126,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   allremap = 1;
 
   int iarg;
-  if (press_couple == 0) iarg = 10;
+  if (press_couple == XYZ) iarg = 10;
   else iarg = 14;
 
   while (iarg < narg) {
@@ -142,7 +143,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix npt command");
   }
 
-  // error checks
+  // check for periodicity in controlled dimensions
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix npt on a non-periodic dimension");
@@ -322,7 +323,7 @@ void FixNPT::setup(int vflag)
   p_target[2] = p_start[2];
 
   t_current = temperature->compute_scalar();
-  if (press_couple == 0) {
+  if (press_couple == XYZ) {
     double tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
@@ -473,7 +474,7 @@ void FixNPT::final_integrate()
   // compute new T,P
 
   t_current = temperature->compute_scalar();
-  if (press_couple == 0) {
+  if (press_couple == XYZ) {
     double tmp = pressure->compute_scalar();
   } else {
     temperature->compute_vector();
@@ -687,21 +688,21 @@ void FixNPT::couple()
 {
   double *tensor = pressure->vector;
 
-  if (press_couple == 0)
+  if (press_couple == XYZ)
     p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
-  else if (press_couple == 1) {
+  else if (press_couple == XY) {
     double ave = 0.5 * (tensor[0] + tensor[1]);
     p_current[0] = p_current[1] = ave;
     p_current[2] = tensor[2];
-  } else if (press_couple == 2) {
+  } else if (press_couple == YZ) {
     double ave = 0.5 * (tensor[1] + tensor[2]);
     p_current[1] = p_current[2] = ave;
     p_current[0] = tensor[0];
-  } else if (press_couple == 3) {
+  } else if (press_couple == XZ) {
     double ave = 0.5 * (tensor[0] + tensor[2]);
     p_current[0] = p_current[2] = ave;
     p_current[1] = tensor[1];
-  } if (press_couple == 4) {
+  } else if (press_couple == ANISO) {
     p_current[0] = tensor[0];
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];

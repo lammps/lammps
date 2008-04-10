@@ -186,6 +186,7 @@ void MinCG::run()
     eng_force(&ntmp,&xtmp,&htmp,&etmp);
     output->write(update->ntimestep);
   }
+
   timer->barrier_stop(TIME_LOOP);
 
   // delete fix at end of run, so its atom arrays won't persist

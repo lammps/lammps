@@ -37,6 +37,8 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
+enum{XYZ,XY,YZ,XZ,ANISO};
+
 /* ---------------------------------------------------------------------- */
 
 FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
@@ -55,7 +57,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"xyz") == 0) {
     if (narg < 7) error->all("Illegal fix nph command");
 
-    press_couple = 0;
+    press_couple = XYZ;
     p_start[0] = p_start[1] = p_start[2] = atof(arg[4]);
     p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[5]);
     p_period[0] = p_period[1] = p_period[2] = atof(arg[6]);
@@ -66,16 +68,16 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
     }
 
   } else {
-    if (strcmp(arg[3],"xy") == 0) press_couple = 1;
-    else if (strcmp(arg[3],"yz") == 0) press_couple = 2;
-    else if (strcmp(arg[3],"xz") == 0) press_couple = 3;
-    else if (strcmp(arg[3],"aniso") == 0) press_couple = 4;
+    if (strcmp(arg[3],"xy") == 0) press_couple = XY;
+    else if (strcmp(arg[3],"yz") == 0) press_couple = YZ;
+    else if (strcmp(arg[3],"xz") == 0) press_couple = XZ;
+    else if (strcmp(arg[3],"aniso") == 0) press_couple = ANISO;
     else error->all("Illegal fix nph command");
 
     if (narg < 11) error->all("Illegal fix nph command");
 
     if (domain->dimension == 2 && 
-	(press_couple == 1 || press_couple == 2 || press_couple == 3))
+	(press_couple == XY || press_couple == YZ || press_couple == XZ))
       error->all("Invalid fix nph command for a 2d simulation");
 
     if (strcmp(arg[4],"NULL") == 0) {
@@ -117,7 +119,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   allremap = 1;
 
   int iarg;
-  if (press_couple == 0) iarg = 7;
+  if (press_couple == XYZ) iarg = 7;
   else iarg = 11;
 
   while (iarg < narg) {
@@ -134,7 +136,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix nph command");
   }
 
-  // error checks
+  // check for periodicity in controlled dimensions
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix nph on a non-periodic dimension");
@@ -313,7 +315,7 @@ void FixNPH::setup(int vflag)
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];
 
-  if (press_couple == 0) {
+  if (press_couple == XYZ) {
     double tmp = temperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
@@ -426,7 +428,7 @@ void FixNPH::final_integrate()
 
   // compute new pressure
 
-  if (press_couple == 0) {
+  if (press_couple == XYZ) {
     double tmp = temperature->compute_scalar();
     tmp = pressure->compute_scalar();
   } else {
@@ -598,21 +600,21 @@ void FixNPH::couple()
 {
   double *tensor = pressure->vector;
 
-  if (press_couple == 0)
+  if (press_couple == XYZ)
     p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
-  else if (press_couple == 1) {
+  else if (press_couple == XY) {
     double ave = 0.5 * (tensor[0] + tensor[1]);
     p_current[0] = p_current[1] = ave;
     p_current[2] = tensor[2];
-  } else if (press_couple == 2) {
+  } else if (press_couple == YZ) {
     double ave = 0.5 * (tensor[1] + tensor[2]);
     p_current[1] = p_current[2] = ave;
     p_current[0] = tensor[0];
-  } else if (press_couple == 3) {
+  } else if (press_couple == XZ) {
     double ave = 0.5 * (tensor[0] + tensor[2]);
     p_current[0] = p_current[2] = ave;
     p_current[1] = tensor[1];
-  } if (press_couple == 4) {
+  } else if (press_couple == ANISO) {
     p_current[0] = tensor[0];
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];

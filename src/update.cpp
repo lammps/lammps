@@ -102,6 +102,7 @@ void Update::set_units(const char *style)
     force->nktv2p = 1.0;
     force->qqr2e = 1.0;
     force->qe2f = 1.0;
+    force->vxmu2f = 1.0;
     dt = 0.005;
     neighbor->skin = 0.3;
     
@@ -112,6 +113,7 @@ void Update::set_units(const char *style)
     force->nktv2p = 68568.415;
     force->qqr2e = 332.06371;
     force->qe2f = 23.060549; 
+    force->vxmu2f = 1.4393264316e4;
     dt = 1.0;
     neighbor->skin = 2.0;
 
@@ -122,6 +124,7 @@ void Update::set_units(const char *style)
     force->nktv2p = 1.6021765e6;
     force->qqr2e = 14.399645;
     force->qe2f = 1.0;
+    force->vxmu2f = 0.6241509647;
     dt = 0.001;
     neighbor->skin = 2.0;
   } else error->all("Illegal units command");

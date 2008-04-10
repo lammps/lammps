@@ -86,6 +86,7 @@ void PairLubricate::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   int omega_flag = atom->omega_flag;
+  double vxmu2f = force->vxmu2f;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -198,16 +199,17 @@ void PairLubricate::compute(int eflag, int vflag)
         h_sep = r - 2.0*radi;
 
 	if (flag1)
-	  a_squeeze = (3.0*PI*mu*2.0*radi/2.0) * (2.0*radi/4.0/h_sep); 
+	  a_squeeze = vxmu2f * 
+	    (3.0*PI*mu*2.0*radi/2.0) * (2.0*radi/4.0/h_sep); 
 	if (flag2) 
-	  a_shear = (PI*mu*2.*radi/2.0) *
+	  a_shear = vxmu2f * (PI*mu*2.*radi/2.0) *
 	    log(2.0*radi/2.0/h_sep)*(2.0*radi+h_sep)*(2.0*radi+h_sep)/4.0;
 	if (flag3) 
-	  a_pump = (PI*mu*pow(2.0*radi,4)/8.0) *
+	  a_pump = vxmu2f * (PI*mu*pow(2.0*radi,4)/8.0) *
 	    ((3.0/20.0) * log(2.0*radi/2.0/h_sep) + 
 	     (63.0/250.0) * (h_sep/2.0/radi) * log(2.0*radi/2.0/h_sep));
 	if (flag4)
-	  a_twist = (PI*mu*pow(2.0*radi,4)/4.0) *
+	  a_twist = vxmu2f * (PI*mu*pow(2.0*radi,4)/4.0) *
 	    (h_sep/2.0/radi) * log(2.0/(2.0*h_sep));
 
         if (h_sep >= cut_inner[itype][jtype]) {

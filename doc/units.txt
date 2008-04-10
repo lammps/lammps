@@ -31,44 +31,51 @@ For real and metallic units, LAMMPS uses physical constants from
 www.physics.nist.gov. For the definition of Kcal in real units, LAMMPS
 uses the thermochemical calorie = 4.184 J.
 
-For style {lj}, all quantities are unitless:
+For style {lj}, all quantities are unitless.  The formula relating the
+reduced or unitless quantity (with an asterisk) to the same quantity
+with units is also given:
 
-distance = sigma
-time = tau
-mass = one
-energy = epsilon
-velocity = sigma/tau
-force = epsilon/sigma
-temperature = reduced LJ temperature
-pressure = reduced LJ pressure
-charge = reduced LJ charge
-dipole = reduced LJ dipole moment
-electric field = force/charge :ul
+m (mass) = epsilon = sigma = tau = Boltzmann constant = 1
+distance = sigma, where x* = x / sigma
+time = tau, where tau = t* = t (Kb T / m / sigma^2)^1/2
+energy = epsilon, where E* = E / epsilon
+velocity = sigma/tau, where v* = v tau / sigma
+force = epsilon/sigma, where f* = f sigma / epsilon
+temperature = reduced LJ temperature, where T* = T Kb / epsilon
+pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
+viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
+charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
+dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
+electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon :ul
 
 For style {real}, these are the units:
 
+Boltzmann constant = 0.0019872067 Kcal/mole per degree K
+mass = grams/mole
 distance = Angstroms
 time = femtoseconds
-mass = grams/mole
 energy = Kcal/mole 
 velocity = Angstroms/femtosecond 
 force = Kcal/mole-Angstrom
 temperature = degrees K
 pressure = atmospheres
+viscosity = Poise
 charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
 electric field = volts/Angstrom :ul
 
 For style {metal}, these are the units:
 
+Boltzmann constant = 8.617343e-5 eV per degree K
+mass = grams/mole
 distance = Angstroms
 time = picoseconds
-mass = grams/mole
 energy = eV
 velocity = Angstroms/picosecond 
 force = eV/Angstrom
 temperature = degrees K
 pressure = bars
+viscosity = Poise
 charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
 electric field = volts/Angstrom :ul

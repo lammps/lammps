@@ -34,44 +34,51 @@ of an input script.
 www.physics.nist.gov. For the definition of Kcal in real units, LAMMPS
 uses the thermochemical calorie = 4.184 J.
 </P>
-<P>For style <I>lj</I>, all quantities are unitless:
+<P>For style <I>lj</I>, all quantities are unitless.  The formula relating the
+reduced or unitless quantity (with an asterisk) to the same quantity
+with units is also given:
 </P>
-<UL><LI>distance = sigma
-<LI>time = tau
-<LI>mass = one
-<LI>energy = epsilon
-<LI>velocity = sigma/tau
-<LI>force = epsilon/sigma
-<LI>temperature = reduced LJ temperature
-<LI>pressure = reduced LJ pressure
-<LI>charge = reduced LJ charge
-<LI>dipole = reduced LJ dipole moment
-<LI>electric field = force/charge 
+<UL><LI>m (mass) = epsilon = sigma = tau = Boltzmann constant = 1
+<LI>distance = sigma, where x* = x / sigma
+<LI>time = tau, where tau = t* = t (Kb T / m / sigma^2)^1/2
+<LI>energy = epsilon, where E* = E / epsilon
+<LI>velocity = sigma/tau, where v* = v tau / sigma
+<LI>force = epsilon/sigma, where f* = f sigma / epsilon
+<LI>temperature = reduced LJ temperature, where T* = T Kb / epsilon
+<LI>pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
+<LI>viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
+<LI>charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
+<LI>dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
+<LI>electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon 
 </UL>
 <P>For style <I>real</I>, these are the units:
 </P>
-<UL><LI>distance = Angstroms
-<LI>time = femtoseconds
+<UL><LI>Boltzmann constant = 0.0019872067 Kcal/mole per degree K
 <LI>mass = grams/mole
+<LI>distance = Angstroms
+<LI>time = femtoseconds
 <LI>energy = Kcal/mole 
 <LI>velocity = Angstroms/femtosecond 
 <LI>force = Kcal/mole-Angstrom
 <LI>temperature = degrees K
 <LI>pressure = atmospheres
+<LI>viscosity = Poise
 <LI>charge = multiple of electron charge (+1.0 is a proton)
 <LI>dipole = charge*Angstroms
 <LI>electric field = volts/Angstrom 
 </UL>
 <P>For style <I>metal</I>, these are the units:
 </P>
-<UL><LI>distance = Angstroms
-<LI>time = picoseconds
+<UL><LI>Boltzmann constant = 8.617343e-5 eV per degree K
 <LI>mass = grams/mole
+<LI>distance = Angstroms
+<LI>time = picoseconds
 <LI>energy = eV
 <LI>velocity = Angstroms/picosecond 
 <LI>force = eV/Angstrom
 <LI>temperature = degrees K
 <LI>pressure = bars
+<LI>viscosity = Poise
 <LI>charge = multiple of electron charge (+1.0 is a proton)
 <LI>dipole = charge*Angstroms
 <LI>electric field = volts/Angstrom 

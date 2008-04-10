@@ -136,8 +136,10 @@ is working.  Typically a value between 0.2 to 2.0 is sufficient to
 damp oscillations after a few periods.
 </P>
 <P>For all pressure styles, the simulation box stays rectangular in
-shape.  Parinello-Rahman boundary conditions (tilted box) for this fix
-are not yet implemented in LAMMPS.
+shape.  Parinello-Rahman boundary condition for tilted boxes
+(triclinic symmetry) are supported by other LAMMPS commands (see <A HREF = "Section_howto.html#4_12">this
+section</A> of the manual), but not yet by this
+command.
 </P>
 <P>For all styles, the <I>Pdamp</I> parameter operates like the <I>Tdamp</I>
 parameter, determining the time scale on which pressure is relaxed.

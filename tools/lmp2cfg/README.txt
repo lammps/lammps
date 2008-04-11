@@ -40,6 +40,7 @@ You need to create a user input file. In the examples folder you will find
 an example input script, LAMMPS dump file, and the correct .cfg output. 
 The input script reads like this:
 
+2898           #total number of atoms in system (may be more than in dump)
 7              #number of atom types in your LAMMPS file       
 'dump.atom'    #name of the LAMMPS dump file, you need the ' '
 1              #first frame

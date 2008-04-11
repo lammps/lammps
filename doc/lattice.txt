@@ -12,7 +12,7 @@ lattice command :h3
 
 lattice style scale keyword values ... :pre
 
-style = {none} or {sc} or {bcc} or {fcc} or {diamond} or \
+style = {none} or {sc} or {bcc} or {fcc} or {hcp} or {diamond} or \
         {sq} or {sq2} or {hex} or {custom} :ulb,l
 scale = scale factor between lattice and simulation box :l
   for style {none}:
@@ -65,9 +65,9 @@ underlying problem geometry is atoms on a lattice.
 
 The lattice style must be consistent with the dimension of the
 simulation - see the "dimension"_dimension.html command.  Styles {sc}
-or {bcc} or {fcc} or {diamond} are for 3d problems.  Styles {sq} or
-{sq2} or {hex} are for 2d problems.  Style {custom} can be used for
-either 2d or 3d problems.
+or {bcc} or {fcc} or {hcp} or {diamond} are for 3d problems.  Styles
+{sq} or {sq2} or {hex} are for 2d problems.  Style {custom} can be
+used for either 2d or 3d problems.
 
 A lattice consists of a unit cell, a set of basis atoms within that
 cell, and a set of transformation parameters (scale, origin, orient)
@@ -81,22 +81,24 @@ minimum volume.
 
 Lattices of style {sc}, {fcc}, {bcc}, and {diamond} are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
-1.0 0.0 0.0, a2 = 0.0 1.0 0.0, and a3 = 0.0 0.0 1.0.  The placement of
-the basis atoms within the unit cell are described in any solid-state
-physics text.  A {sc} lattice has 1 basis atom at the
-lower-left-bottom corner of the cube.  A {bcc} lattice has 2 basis
-atoms, one at the corner and one at the center of the cube.  A {fcc}
-lattice has 4 basis atoms, one at the corner and 3 at the cube face
-centers.  A {diamond} lattice has 8 basis atoms.
+1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style {hcp} has a1 = 1 0 0, a2 = 0
+sqrt(3) 0, and a3 = 0 0 sqrt(8/3).  The placement of the basis atoms
+within the unit cell are described in any solid-state physics text.  A
+{sc} lattice has 1 basis atom at the lower-left-bottom corner of the
+cube.  A {bcc} lattice has 2 basis atoms, one at the corner and one at
+the center of the cube.  A {fcc} lattice has 4 basis atoms, one at the
+corner and 3 at the cube face centers.  A {hcp} lattice has 4 basis
+atoms, two in the z = 0 plane and 2 in the z = 0.5 plane.  A {diamond}
+lattice has 8 basis atoms.
 
 Lattices of style {sq} and {sq2} are 2d lattices that define a square
-unit cell with edge length = 1.0.  This means a1 = 1.0 0.0 0.0 and a2
-= 0.0 1.0 0.0.  A {sq} lattice has 1 basis atom at the lower-left
-corner of the square.  A {sq2} lattice has 2 basis atoms, one at the
-corner and one at the center of the square.  A {hex} style is also a
-2d lattice, but the unit cell is rectangular, with a1 = 1.0 0.0 0.0
-and a2 = 0.0 sqrt(3.0) 0.0.  It has 2 basis atoms, one at the corner
-and one at the center of the rectangle.
+unit cell with edge length = 1.0.  This means a1 = 1 0 0 and a2 = 0 1
+0.  A {sq} lattice has 1 basis atom at the lower-left corner of the
+square.  A {sq2} lattice has 2 basis atoms, one at the corner and one
+at the center of the square.  A {hex} style is also a 2d lattice, but
+the unit cell is rectangular, with a1 = 1 0 0 and a2 = 0 sqrt(3) 0.
+It has 2 basis atoms, one at the corner and one at the center of the
+rectangle.
 
 A lattice of style {custom} allows you to specify a1, a2, a3, and a
 list of basis atoms to put in the unit cell.  By default, a1,a2,a3 are

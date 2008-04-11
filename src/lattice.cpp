@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 #define BIG 1.0e30
 
-enum{NONE,SC,BCC,FCC,DIAMOND,SQ,SQ2,HEX,CUSTOM};
+enum{NONE,SC,BCC,FCC,HCP,DIAMOND,SQ,SQ2,HEX,CUSTOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -44,6 +44,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   else if (strcmp(arg[0],"sc") == 0) style = SC;
   else if (strcmp(arg[0],"bcc") == 0) style = BCC;
   else if (strcmp(arg[0],"fcc") == 0) style = FCC;
+  else if (strcmp(arg[0],"hcp") == 0) style = HCP;
   else if (strcmp(arg[0],"diamond") == 0) style = DIAMOND;
   else if (strcmp(arg[0],"sq") == 0) style = SQ;
   else if (strcmp(arg[0],"sq2") == 0) style = SQ2;
@@ -61,7 +62,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int dimension = domain->dimension;
   if (dimension == 2) {
-    if (style == SC || style == BCC || style == FCC || style == DIAMOND)
+    if (style == SC || style == BCC || style == FCC || style == HCP ||
+	style == DIAMOND)
       error->all("Lattice style incompatible with simulation dimension");
   }
   if (dimension == 3) {
@@ -89,6 +91,11 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     add_basis(0.5,0.5,0.0);
     add_basis(0.5,0.0,0.5);
     add_basis(0.0,0.5,0.5);
+  } else if (style == HCP) {
+    add_basis(0.0,0.0,0.0);
+    add_basis(0.5,0.5,0.0);
+    add_basis(0.5,0.25,0.5);
+    add_basis(0.0,0.75,0.5);
   } else if (style == SQ) {
     add_basis(0.0,0.0,0.0);
   } else if (style == SQ2) {
@@ -123,6 +130,10 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   a3[0] = 0.0;  a3[1] = 0.0;  a3[2] = 1.0;
 
   if (style == HEX) a2[1] = sqrt(3.0);
+  if (style == HCP) {
+    a2[1] = sqrt(3.0);
+    a3[2] = sqrt(8.0/3.0);
+  }
 
   // process optional args
 

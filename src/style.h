@@ -279,13 +279,11 @@ IntegrateStyle(verlet,Verlet)
 
 #ifdef MinimizeInclude
 #include "min_cg.h"
-#include "min_cg_fr.h"
 #include "min_sd.h"
 #endif
 
 #ifdef MinimizeClass
 MinimizeStyle(cg,MinCG)
-MinimizeStyle(cg/fr,MinCGFR)
 MinimizeStyle(sd,MinSD)
 # endif
 

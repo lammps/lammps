@@ -48,12 +48,15 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
-#define EPS         1.0e-6
-#define SCAN_FACTOR 2.0
-#define SECANT_EPS  1.0e-3
+#define EPS_ENERGY 1.0e-8
+#define BACKTRACK_SLOPE 0.5
+#define ALPHA_REDUCE 0.5
 
-#define SCAN   0   // same as in min.cpp
-#define SECANT 1
+enum{FAIL,MAXITER,MAXEVAL,ETOL,FTOL};   // same as in other min classes
+
+char *stopstrings[] = {"failed linesearch","max iterations",
+		       "max force evaluations","energy tolerance",
+		       "force tolerance"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,8 +120,7 @@ void MinCG::init()
 
   // set ptr to linemin function
 
-  if (linestyle == SCAN) linemin = &MinCG::linemin_scan;
-  else if (linestyle == SECANT) linemin = &MinCG::linemin_secant;
+  linemin = &MinCG::linemin_backtrack;
 }
 
 /* ----------------------------------------------------------------------
@@ -149,17 +151,18 @@ void MinCG::run()
   f = atom->f[0];
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
-  MPI_Allreduce(&tmp,&gnorm2_init,1,MPI_DOUBLE,MPI_SUM,world);
-  gnorm2_init = sqrt(gnorm2_init);
+  MPI_Allreduce(&tmp,&fnorm2_init,1,MPI_DOUBLE,MPI_SUM,world);
+  fnorm2_init = sqrt(fnorm2_init);
 
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
-  MPI_Allreduce(&tmp,&gnorminf_init,1,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&tmp,&fnorminf_init,1,MPI_DOUBLE,MPI_MAX,world);
 
   // minimizer iterations
 
   timer->barrier_start(TIME_LOOP);
-  iterate(update->nsteps);
+  int stop_condition = iterate(update->nsteps);
+  stopstr = stopstrings[stop_condition];
 
   // account for early exit from iterate loop due to convergence
   // set niter/nsteps for Finish stats to print
@@ -206,12 +209,12 @@ void MinCG::run()
   f = atom->f[0];
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
-  MPI_Allreduce(&tmp,&gnorm2_final,1,MPI_DOUBLE,MPI_SUM,world);
-  gnorm2_final = sqrt(gnorm2_final);
+  MPI_Allreduce(&tmp,&fnorm2_final,1,MPI_DOUBLE,MPI_SUM,world);
+  fnorm2_final = sqrt(fnorm2_final);
 
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
-  MPI_Allreduce(&tmp,&gnorminf_final,1,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&tmp,&fnorminf_final,1,MPI_DOUBLE,MPI_MAX,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -269,10 +272,10 @@ void MinCG::setup()
    Polak-Ribiere formulation
 ------------------------------------------------------------------------- */
 
-void MinCG::iterate(int n)
+int MinCG::iterate(int n)
 {
-  int i,gradsearch,fail,ntimestep;
-  double alpha,beta,gg,dot[2],dotall[2];
+  int i,fail,ntimestep;
+  double beta,gg,dot[2],dotall[2];
   double *f;
 
   f = atom->f[0];
@@ -283,7 +286,6 @@ void MinCG::iterate(int n)
   MPI_Allreduce(dot,&gg,1,MPI_DOUBLE,MPI_SUM,world);
 
   neval = 0;
-  gradsearch = 1;
 
   for (niter = 0; niter < n; niter++) {
 
@@ -292,26 +294,21 @@ void MinCG::iterate(int n)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,alpha,neval);
+    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,
+			    alpha_final,neval);
+    if (fail) return FAIL;
 
-    // if max_eval exceeded, all done
-    // if linemin failed or energy did not decrease sufficiently:
-    //   if searched in grad direction, then all done
-    //   else force next search to be in grad direction (CG restart)
+    // function evaluation criterion
 
-    if (neval >= update->max_eval) break;
+    if (neval >= update->max_eval) return MAXEVAL;
 
-    if (fail || fabs(ecurrent-eprevious) <= 
-    	update->tolerance * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS)) {
-      if (gradsearch == 1) break;
-      gradsearch = -1;
-    }
+    // energy tolerance criterion
 
-    // update h from new f = -Grad(x) and old g
-    // old g,h must have migrated with atoms to do this correctly
-    // done if size sq of grad vector < EPS
-    // force new search dir to be grad dir if need to restart CG
-    // set gradsearch to 1 if will search in grad dir on next iteration
+    if (fabs(ecurrent-eprevious) <= 
+	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+      return ETOL;
+
+    // force tolerance criterion
 
     f = atom->f[0];
     dot[0] = dot[1] = 0.0;
@@ -321,13 +318,12 @@ void MinCG::iterate(int n)
     }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
 
+    if (dotall[0] < update->ftol * update->ftol) return FTOL;
+
+    // update h from new f = -Grad(x) and old g
+
     beta = MAX(0.0,(dotall[0] - dotall[1])/gg);
     gg = dotall[0];
-    if (gg < EPS) break;
-
-    if (gradsearch == -1) beta = 0.0;
-    if (beta == 0.0) gradsearch = 1;
-    else gradsearch = 0;
 
     for (i = 0; i < ndof; i++) {
       g[i] = f[i];
@@ -342,6 +338,8 @@ void MinCG::iterate(int n)
       timer->stamp(TIME_OUTPUT);
     }
   }
+
+  return MAXITER;
 }
 
 /* ----------------------------------------------------------------------
@@ -481,11 +479,11 @@ void MinCG::force_clear()
 	  dir = search direction as vector
 	  eng = current energy at initial x
 	  min/max dist = min/max distance to move any atom coord
-   output: return 0 if successful move, set alpha
-           return 1 if failed, no move, no need to set alpha
-           alpha = distance moved along dir to set x to min-eng config
+   output: return 0 if successful move, non-zero alpha alpha
+           return 1 if failed, alpha = 0.0
+           alpha = distance moved along dir to set x to minimun eng config
            caller has several quantities set via last call to eng_force()
-	     INSURE last call to eng_force() is consistent with returns
+	     must insure last call to eng_force() is consistent with returns
 	       if fail, eng_force() of original x
 	       if succeed, eng_force() at x + alpha*dir
              atom->x = coords at new configuration
@@ -493,24 +491,30 @@ void MinCG::force_clear()
 	     ecurrent = energy of new configuration
    NOTE: when call eng_force: n,x,dir,eng may change due to atom migration
 	 updated values are returned by eng_force()
-	 these routines CANNOT store atom-based quantities b/c of migration
+	 b/c of migration, linemin routines CANNOT store atom-based quantities
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   linemin: scan forward by larger and larger steps (SCAN_FACTOR)
+   linemin: backtracking line search (Alg 3.1, p 41 in Nocedal and Wright)
    uses no gradient info, but should be very robust
-   start at mindist, continue until maxdist
-   quit as soon as energy starts to rise
+   start at maxdist, backtrack until energy decrease is sufficient
 ------------------------------------------------------------------------- */
 
-int MinCG::linemin_scan(int n, double *x, double *dir, double eng,
-			double mindist, double maxdist,
-			double &alpha, int &nfunc)
+int MinCG::linemin_backtrack(int n, double *x, double *dir, double eng,
+			     double mindist, double maxdist,
+			     double &alpha, int &nfunc)
 {
-  int i;
-  double fmax,fme,elowest,alphamin,alphamax,alphalast;
+  int i,ilist,m;
+  double fdotdirme,fdotdirall,fme,fmax,eoriginal,alphamax;
 
-  // alphamin = step that moves some atom coord by mindist
+  // stopping criterion
+
+  double *f = atom->f[0];
+  fdotdirme = 0.0;
+  for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
+  MPI_Allreduce(&fdotdirme,&fdotdirall,1,MPI_DOUBLE,MPI_SUM,world);
+  if (output->thermo->normflag) fdotdirall /= atom->natoms;
+
   // alphamax = step that moves some atom coord by maxdist
 
   fme = 0.0;
@@ -518,133 +522,26 @@ int MinCG::linemin_scan(int n, double *x, double *dir, double eng,
   MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
   if (fmax == 0.0) return 1;
 
-  alphamin = mindist/fmax;
   alphamax = maxdist/fmax;
 
-  // if minstep is already uphill, fail
-  // if eng increases, stop and return previous alpha
-  // if alphamax, stop and return alphamax
+  // reduce alpha by factor of ALPHA_REDUCE until energy decrease is sufficient
 
-  elowest = eng;
-  alpha = alphamin;
+  eoriginal = eng;
+  alpha = alphamax;
 
   while (1) {
     for (i = 0; i < n; i++) x[i] += alpha*dir[i];
     eng_force(&n,&x,&dir,&eng);
     nfunc++;
 
-    if (alpha == alphamin && eng >= elowest) {
-      for (i = 0; i < n; i++) x[i] -= alpha*dir[i];
+    if (eng <= eoriginal - BACKTRACK_SLOPE*alpha*fdotdirall) return 0;
+
+    for (i = 0; i < n; i++) x[i] -= alpha*dir[i];
+    
+    alpha *= ALPHA_REDUCE;
+    if (alpha == 0.0) {
       eng_force(&n,&x,&dir,&eng);
-      nfunc++;
       return 1;
     }
-    if (eng > elowest) {
-      for (i = 0; i < n; i++) x[i] += (alphalast-alpha)*dir[i];
-      eng_force(&n,&x,&dir,&eng);
-      nfunc++;
-      alpha = alphalast;
-      return 0;
-    }      
-    if (alpha == alphamax) return 0;
-
-    elowest = eng;
-    alphalast = alpha;
-    alpha *= SCAN_FACTOR;
-    if (alpha > alphamax) alpha = alphamax;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   linemin: use secant approximation to estimate parabola minimum at each step
-   should converge more quickly/accurately than "scan", but can be less robust
-------------------------------------------------------------------------- */
-
-int MinCG::linemin_secant(int n, double *x, double *dir, double eng,
-			  double mindist, double maxdist,
-			  double &alpha, int &nfunc)
-{
-  int i,iter;
-  double eta,eta_prev,alphamin,alphamax,alphadelta,fme,fmax,dsq,e0,tmp;
-  double *f;
-  double epssq = SECANT_EPS * SECANT_EPS;
-
-  // stopping criterion for secant iterations
-
-  fme = 0.0;
-  for (i = 0; i < n; i++) fme += dir[i]*dir[i];
-  MPI_Allreduce(&fme,&dsq,1,MPI_DOUBLE,MPI_SUM,world);
-
-  // alphamin = smallest allowed step of mindist
-  // alphamax = largest allowed step (in single iteration) of maxdist
-
-  fme = 0.0;
-  for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
-  MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
-  if (fmax == 0.0) return 1;
-
-  alphamin = mindist/fmax;
-  alphamax = maxdist/fmax;
-
-  // eval func at alphamin
-  // exit if minstep is already uphill
-
-  e0 = eng;
-  for (i = 0; i < n; i++) x[i] += alphamin*dir[i];
-  eng_force(&n,&x,&dir,&eng);
-  nfunc++;
-
-  if (eng >= e0) {
-    for (i = 0; i < n; i++) x[i] -= alphamin*dir[i];
-    eng_force(&n,&x,&dir,&eng);
-    nfunc++;
-    return 1;
-  }
-
-  // secant iterations
-  // alphadelta = new increment to move, alpha = accumulated move
-  // first step is alpha = 0, first previous step is at mindist
-  // prevent func evals for alpha outside mindist to maxdist
-  // if happens on 1st iteration and alpha < mindist
-  //   secant approx is likely searching
-  //   for a maximum (negative alpha), so reevaluate at alphamin
-  // if happens on 1st iteration and alpha > maxdist
-  //   wants to take big step, so reevaluate at alphamax
-
-  f = atom->f[0];
-  tmp = 0.0;
-  for (i = 0; i < n; i++) tmp -= f[i]*dir[i];
-  MPI_Allreduce(&tmp,&eta_prev,1,MPI_DOUBLE,MPI_SUM,world);
-
-  alpha = alphamin;
-  alphadelta = -alphamin;
-
-  for (iter = 0; iter < lineiter; iter++) {
-    alpha += alphadelta;
-    for (i = 0; i < n; i++) x[i] += alphadelta*dir[i];
-    eng_force(&n,&x,&dir,&eng);
-    nfunc++;
-
-    f = atom->f[0];
-    tmp = 0.0;
-    for (i = 0; i < n; i++) tmp -= f[i]*dir[i];
-    MPI_Allreduce(&tmp,&eta,1,MPI_DOUBLE,MPI_SUM,world);
-
-    alphadelta *= eta / (eta_prev - eta);
-    eta_prev = eta;
-    if (alphadelta*alphadelta*dsq <= epssq) break;
-
-    if (alpha+alphadelta < alphamin || alpha+alphadelta > alphamax) {
-      if (iter == 0) {
-	if (alpha+alphadelta < alphamin) alpha = alphamin;
-	else alpha = alphamax;
-	for (i = 0; i < n; i++) x[i] += alpha*dir[i];
-	eng_force(&n,&x,&dir,&eng);
-	nfunc++;
-      }
-      break;
-    }
-  }
-
-  return 0;
+  }    
 }

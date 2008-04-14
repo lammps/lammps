@@ -24,7 +24,7 @@ class MinCG : public Min {
   virtual ~MinCG() {}
   void init();
   void run();
-  virtual void iterate(int);
+  virtual int iterate(int);
 
  protected:
   int pairflag,torqueflag;
@@ -42,11 +42,8 @@ class MinCG : public Min {
   typedef int (MinCG::*FnPtr)(int, double *, double *, double,
 			      double, double, double &, int &);
   FnPtr linemin;             // ptr to linemin functions
-
-  int linemin_scan(int, double *, double *, double,
-		   double, double, double &, int &);
-  int linemin_secant(int, double *, double *, double,
-		     double, double, double &, int &);
+  int linemin_backtrack(int, double *, double *, double,
+			double, double, double &, int &);
 
   void setup();
   void setup_vectors();

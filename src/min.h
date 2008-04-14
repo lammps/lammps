@@ -21,8 +21,10 @@ namespace LAMMPS_NS {
 class Min : protected Pointers {
  public:
   double einitial,efinal,eprevious;
-  double gnorm2_init,gnorminf_init,gnorm2_final,gnorminf_final;
+  double fnorm2_init,fnorminf_init,fnorm2_final,fnorminf_final;
+  double alpha_final;
   int niter,neval;
+  char *stopstr;
   double dmin,dmax;
   int linestyle,lineiter;
 

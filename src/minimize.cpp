@@ -29,14 +29,18 @@ Minimize::Minimize(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Minimize::command(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal minimize command");
+  if (narg != 4) error->all("Illegal minimize command");
 
   if (domain->box_exist == 0)
     error->all("Minimize command before simulation box is defined");
 
-  update->tolerance = atof(arg[0]);
-  update->nsteps = atoi(arg[1]);
-  update->max_eval = atoi(arg[2]);
+  update->etol = atof(arg[0]);
+  update->ftol = atof(arg[1]);
+  update->nsteps = atoi(arg[2]);
+  update->max_eval = atoi(arg[3]);
+
+  if (update->etol < 0.0 || update->ftol < 0.0)
+    error->all("Illegal minimize command");
 
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;

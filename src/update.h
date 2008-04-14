@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class Update : protected Pointers {
  public:
   double dt;                      // timestep
-  double tolerance;               // minimizer tolerance
+  double etol,ftol;               // minimizer tolerances on energy/force
   int ntimestep;                  // current step (dynamics or min iter)
   int nsteps;                     // # of steps to run (dynamics or min iter)
   int whichflag;                  // 0 for time integration, 1 for minimization

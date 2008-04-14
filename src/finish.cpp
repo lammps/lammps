@@ -88,29 +88,43 @@ void Finish::end(int flag)
     if (me == 0) {
       if (screen) {
 	fprintf(screen,"Minimization stats:\n");
-	fprintf(screen,"  E initial, next-to-last, final = %g %g %g\n",
+	fprintf(screen,"  Stopping criterion = %s\n",
+		update->minimize->stopstr);
+	fprintf(screen,"  Energy initial, next-to-last, final = \n"
+		"    %18.12g %18.12g %18.12g\n",
 		update->minimize->einitial,update->minimize->eprevious,
 		update->minimize->efinal);
-	fprintf(screen,"  Gradient 2-norm init/final= %g %g\n",
-		update->minimize->gnorm2_init,update->minimize->gnorm2_final);
-	fprintf(screen,"  Gradient inf-norm init/final= %g %g\n",
-		update->minimize->gnorminf_init,
-		update->minimize->gnorminf_final);
-	fprintf(screen,"  Iterations = %d\n",update->minimize->niter);
-	fprintf(screen,"  Force evaluations = %d\n",update->minimize->neval);
+	fprintf(screen,"  Force two-norm initial, final = %g %g\n",
+		update->minimize->fnorm2_init,update->minimize->fnorm2_final);
+	fprintf(screen,"  Force max component initial, final = %g %g\n",
+		update->minimize->fnorminf_init,
+		update->minimize->fnorminf_final);
+	fprintf(screen,"  Final line search alpha, max atom move = %g %g\n",
+		update->minimize->alpha_final,
+		update->minimize->alpha_final*
+		update->minimize->fnorminf_final);
+	fprintf(screen,"  Iterations, force evaluations = %d %d\n",
+		update->minimize->niter,update->minimize->neval);
       }
       if (logfile) {
 	fprintf(logfile,"Minimization stats:\n");
-	fprintf(logfile,"  E initial, next-to-last, final = %g %g %g\n",
+	fprintf(logfile,"  Stopping criterion = %s\n",
+		update->minimize->stopstr);
+	fprintf(logfile,"  Energy initial, next-to-last, final = \n"
+		"    %18.12g %18.12g %18.12g\n",
 		update->minimize->einitial,update->minimize->eprevious,
 		update->minimize->efinal);
-	fprintf(logfile,"  Gradient 2-norm init/final= %g %g\n",
-		update->minimize->gnorm2_init,update->minimize->gnorm2_final);
-	fprintf(logfile,"  Gradient inf-norm init/final= %g %g\n",
-		update->minimize->gnorminf_init,
-		update->minimize->gnorminf_final);
-	fprintf(logfile,"  Iterations = %d\n",update->minimize->niter);
-	fprintf(logfile,"  Force evaluations = %d\n",update->minimize->neval);
+	fprintf(logfile,"  Force two-norm initial, final = %g %g\n",
+		update->minimize->fnorm2_init,update->minimize->fnorm2_final);
+	fprintf(logfile,"  Force max component initial, final = %g %g\n",
+		update->minimize->fnorminf_init,
+		update->minimize->fnorminf_final);
+	fprintf(logfile,"  Final line search alpha, max atom move = %g %g\n",
+		update->minimize->alpha_final,
+		update->minimize->alpha_final*
+		update->minimize->fnorminf_final);
+	fprintf(logfile,"  Iterations, force evaluations = %d %d\n",
+		update->minimize->niter,update->minimize->neval);
       }
     }
     if (me == 0) {

@@ -21,7 +21,9 @@
 
 using namespace LAMMPS_NS;
 
-#define EPS       1.0e-6
+#define EPS       1.0e-8
+
+enum{FAIL,MAXITER,MAXEVAL,ETOL,FTOL};   // same as in other min classes
 
 /* ---------------------------------------------------------------------- */
 
@@ -31,10 +33,10 @@ MinSD::MinSD(LAMMPS *lmp) : MinCG(lmp) {}
    minimization via steepest descent
 ------------------------------------------------------------------------- */
 
-void MinSD::iterate(int n)
+int MinSD::iterate(int n)
 {
-  int i,fail;
-  double alpha,dot,dotall;
+  int i,fail,ntimestep;
+  double dot,dotall;
   double *f;
 
   f = atom->f[0];
@@ -44,39 +46,46 @@ void MinSD::iterate(int n)
 
   for (niter = 0; niter < n; niter++) {
 
-    update->ntimestep++;
+    ntimestep = ++update->ntimestep;
 
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,alpha,neval);
+    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,
+			    alpha_final,neval);
+    if (fail) return FAIL;
 
-    // if max_eval exceeded, all done
-    // if linemin failed or energy did not decrease sufficiently, all done
+    // function evaluation criterion
 
-    if (neval >= update->max_eval) break;
+    if (neval >= update->max_eval) return MAXEVAL;
 
-    if (fail || fabs(ecurrent-eprevious) <= 
-    	update->tolerance * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS))
-      break;
+    // energy tolerance criterion
 
-    // set h to new f = -Grad(x)
-    // done if size sq of grad vector < EPS
+    if (fabs(ecurrent-eprevious) <= 
+	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS))
+      return ETOL;
+
+    // force tolerance criterion
 
     f = atom->f[0];
     dot = 0.0;
     for (i = 0; i < ndof; i++) dot += f[i]*f[i];
     MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
-    if (dotall < EPS) break;
+
+    if (dotall < update->ftol * update->ftol) return FTOL;
+
+    // set h to new f = -Grad(x)
 
     for (i = 0; i < ndof; i++) h[i] = f[i];
 
     // output for thermo, dump, restart files
 
-    if (output->next == update->ntimestep) {
+    if (output->next == ntimestep) {
       timer->stamp();
-      output->write(update->ntimestep);
+      output->write(ntimestep);
       timer->stamp(TIME_OUTPUT);
     }
   }
+  
+  return MAXITER;
 }

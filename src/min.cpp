@@ -20,17 +20,11 @@
 
 using namespace LAMMPS_NS;
 
-#define SCAN   0   // same as in min_cg.cpp
-#define SECANT 1
-
 /* ---------------------------------------------------------------------- */
 
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
 {
-  linestyle = SECANT;
-  dmin = 1.0e-5;
   dmax = 0.1;
-  lineiter = 10;
 
   elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -53,23 +47,9 @@ void Min::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"linestyle") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"scan") == 0) linestyle = SCAN;
-      else if (strcmp(arg[iarg+1],"secant") == 0) linestyle = SECANT;
-      else error->all("Illegal min_modify command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"dmin") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
-      dmin = atof(arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"dmax") == 0) {
+    if (strcmp(arg[iarg],"dmax") == 0) {
       if (iarg+2 > narg) error->all("Illegal min_modify command");
       dmax = atof(arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"lineiter") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
-      lineiter = atoi(arg[iarg+1]);
       iarg += 2;
     } else error->all("Illegal min_modify command");
   }

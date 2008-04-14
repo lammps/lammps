@@ -2,6 +2,7 @@
 
 units		lj
 dimension	2
+boundary	s s p
 atom_style	atomic
 
 lattice		sq2 0.8442
@@ -13,22 +14,21 @@ mass		1 1.0
 velocity	all create 5.0 87287 loop geom
 
 pair_style	lj/cut 2.5
-pair_coeff	1 1 1.0 1.0 2.5
+pair_coeff	1 1 1.0 1.0
+pair_modify	shift yes
 
 neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
 
 fix		1 all nve
-fix		2 all enforce2d
+fix		2 all wall/reflect xlo xhi ylo yhi
+fix		3 all enforce2d
 
-dump		1 all atom 100 dump.min
+dump		1 all atom 50 dump.min
 
 thermo		100
 
-run		1000
+run		500
 
-neigh_modify	delay 0 every 1 check yes
-
-dump_modify	1 every 5
-thermo		5
-minimize	0.001 100 1000
+min_style	cg
+minimize	1.0e-16 1.0e-16 2000 20000

@@ -3,6 +3,7 @@ LAMMPS (22 Jan 2008)
 
 units		lj
 dimension	2
+boundary	s s p
 atom_style	atomic
 
 lattice		sq2 0.8442
@@ -12,97 +13,95 @@ create_box	1 box
 Created orthogonal box = (0 0 -0.153919) to (30.7838 30.7838 0.153919)
   1 by 1 by 1 processor grid
 create_atoms	1 box
-Created 800 atoms
+Created 841 atoms
 mass		1 1.0
 
 velocity	all create 5.0 87287 loop geom
 
 pair_style	lj/cut 2.5
-pair_coeff	1 1 1.0 1.0 2.5
+pair_coeff	1 1 1.0 1.0
+pair_modify	shift yes
 
 neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
 
 fix		1 all nve
-fix		2 all enforce2d
+fix		2 all wall/reflect xlo xhi ylo yhi
+fix		3 all enforce2d
 
-dump		1 all atom 100 dump.min
+dump		1 all atom 50 dump.min
 
 thermo		100
 
-run		1000
-Memory usage per processor = 1.70423 Mbytes
-Step Temp E_pair E_mol TotEng Press 
-       0            5   -2.6248859            0    2.3657391    5.0164128 
-     100    3.2795145  -0.87336396            0    2.4000015    15.900553 
-     200    3.3074198   -0.9044265            0    2.3967919    15.576341 
-     300    3.3534392  -0.94957004            0    2.3975815    15.391302 
-     400    3.3549454  -0.95021671            0    2.3984381    15.467991 
-     500    3.3505722   -0.9450797            0    2.3992102    15.303768 
-     600    3.3563052  -0.95112664            0    2.3988855    15.316923 
-     700    3.3113296  -0.90709884            0    2.3980221    15.652857 
-     800    3.3089219  -0.90328598            0    2.3994317    15.697982 
-     900    3.3896055  -0.98663361            0    2.3966164    15.174382 
-    1000    3.2558363  -0.85179366            0    2.3979379    15.969928 
-Loop time of 0.34733 on 1 procs for 1000 steps with 800 atoms
+run		500
+Memory usage per processor = 1.69054 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            5   -2.3392224            0    2.6518596    5.2514392    947.65505 
+     100    3.3097379  -0.63883378            0    2.6650009    17.070807    943.40014 
+     200    3.3080762   -0.6288886            0    2.6732874     17.04277    941.19268 
+     300    3.3787956  -0.69098843            0    2.6817808    16.831266    939.23341 
+     400    3.3724983  -0.65871066            0    2.7077725    17.321124    935.66558 
+     500    3.2655218  -0.53947527            0    2.7202221    17.961553    933.59779 
+Loop time of 0.178504 on 1 procs for 500 steps with 841 atoms
 
-Pair  time (%) = 0.233341 (67.1814)
-Neigh time (%) = 0.0635982 (18.3106)
-Comm  time (%) = 0.00819516 (2.35948)
-Outpt time (%) = 0.0112507 (3.23921)
-Other time (%) = 0.0309446 (8.90928)
+Pair  time (%) = 0.115572 (64.7446)
+Neigh time (%) = 0.0305917 (17.1378)
+Comm  time (%) = 0.000834465 (0.467477)
+Outpt time (%) = 0.012027 (6.73768)
+Other time (%) = 0.019479 (10.9124)
 
-Nlocal:    800 ave 800 max 800 min
+Nlocal:    841 ave 841 max 841 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    306 ave 306 max 306 min
+Nghost:    0 ave 0 max 0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    7777 ave 7777 max 7777 min
+Neighs:    7729 ave 7729 max 7729 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 7777
-Ave neighs/atom = 9.72125
-Neighbor list builds = 203
+Total # of neighbors = 7729
+Ave neighs/atom = 9.19025
+Neighbor list builds = 100
 Dangerous builds = 0
 
-neigh_modify	delay 0 every 1 check yes
-
-dump_modify	1 every 5
-thermo		5
-minimize	0.001 100 1000
-Memory usage per processor = 2.16199 Mbytes
-Step Temp E_pair E_mol TotEng Press 
-    1000    3.2558363  -0.85179366            0    2.3979379    15.969928 
-    1005    3.2558363   -2.4413786            0   0.80835297    5.4982994 
-    1010    3.2558363   -2.6930024            0   0.55672923    3.4763561 
-    1015    3.2558363   -2.7915434            0   0.45818818    2.7004125 
-    1020    3.2558363   -2.8473652            0   0.40236645    2.2710995 
-    1025    3.2558363   -2.8801981            0   0.36953347    2.0454244 
-    1030    3.2558363   -2.9057319            0   0.34399973    1.8826037 
-    1035    3.2558363   -2.9290193            0   0.32071229    1.7428917 
-    1039    3.2558363   -2.9396453            0   0.31008627    1.6662179 
-Loop time of 0.0738001 on 1 procs for 39 steps with 800 atoms
+min_style	cg
+minimize	1.0e-16 1.0e-16 2000 20000
+Memory usage per processor = 2.1483 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     500    3.2655218  -0.53947527            0    2.7202221    17.962424    933.55255 
+     600    3.2655218   -2.7918184            0     0.467879    2.3687829    978.86967 
+     700    3.2655218   -2.8484405            0   0.41125693    2.5617944    970.87845 
+     800    3.2655218   -2.8653234            0   0.39437404    2.8341532    959.29931 
+     900    3.2655218   -2.8709903            0    0.3887071    2.8615917    957.77926 
+    1000    3.2655218    -2.875841            0   0.38385645    2.8424963    962.97893 
+    1100    3.2655218   -2.8773559            0   0.38234149    2.8331831    966.27062 
+    1200    3.2655218   -2.8779916            0   0.38170577    2.8383813    966.23993 
+    1300    3.2655218    -2.877995            0   0.38170241    2.8377343    966.07015 
+    1400    3.2655218   -2.8779951            0   0.38170231    2.8385866    965.76227 
+    1500    3.2655218   -2.8779951            0   0.38170231    2.8358421    966.69888 
+Loop time of 2.96182 on 1 procs for 1000 steps with 841 atoms
 
 Minimization stats:
-  E initial, next-to-last, final = -0.851794 -2.93825 -2.93965
-  Gradient 2-norm init/final= 1901.5 21.4893
-  Gradient inf-norm init/final= 405.821 7.08876
-  Iterations = 39
-  Force evaluations = 158
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+         -0.5394752732     -2.87799510218     -2.87799510218
+  Force two-norm initial, final = 2031.66 4.61875e-05
+  Force max component initial, final = 297.987 7.7681e-06
+  Final line search alpha, max atom move = 1.40663e-08 1.09269e-13
+  Iterations, force evaluations = 1000 7616
 
-Pair  time (%) = 0.056319 (76.3129)
-Neigh time (%) = 0.00313663 (4.25018)
-Comm  time (%) = 0.000870228 (1.17917)
-Outpt time (%) = 0.0078578 (10.6474)
-Other time (%) = 0.00561643 (7.61032)
+Pair  time (%) = 2.67288 (90.2446)
+Neigh time (%) = 0.0491631 (1.65989)
+Comm  time (%) = 0.00455403 (0.153758)
+Outpt time (%) = 0.0223653 (0.755121)
+Other time (%) = 0.212854 (7.18659)
 
-Nlocal:    800 ave 800 max 800 min
+Nlocal:    841 ave 841 max 841 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    316 ave 316 max 316 min
+Nghost:    0 ave 0 max 0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    7292 ave 7292 max 7292 min
+Neighs:    7067 ave 7067 max 7067 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 7292
-Ave neighs/atom = 9.115
-Neighbor list builds = 10
+Total # of neighbors = 7067
+Ave neighs/atom = 8.40309
+Neighbor list builds = 159
 Dangerous builds = 0

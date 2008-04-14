@@ -151,8 +151,8 @@ void PairLubricate::compute(int eflag, int vflag)
 	} else {
 	  inv_inertia = 1.0 / (0.4*atom->mass[itype]*radi*radi);
 	  w1 = inv_inertia * (angmom[i][0] + angmom[j][0]);
-	  w1 = inv_inertia * (angmom[i][0] + angmom[j][0]);
-	  w1 = inv_inertia * (angmom[i][0] + angmom[j][0]);
+	  w2 = inv_inertia * (angmom[i][1] + angmom[j][1]);
+	  w3 = inv_inertia * (angmom[i][2] + angmom[j][2]);
 	}
 
         // relative velocities n X P . (v1-v2) = n X (I-nn) . (v1-v2)
@@ -181,8 +181,8 @@ void PairLubricate::compute(int eflag, int vflag)
 	  wr3 = omega[i][2] - omega[j][2];
 	} else {
 	  wr1 = inv_inertia * (angmom[i][0] - angmom[j][0]);
-	  wr1 = inv_inertia * (angmom[i][0] - angmom[j][0]);
-	  wr1 = inv_inertia * (angmom[i][0] - angmom[j][0]);
+	  wr2 = inv_inertia * (angmom[i][1] - angmom[j][1]);
+	  wr3 = inv_inertia * (angmom[i][2] - angmom[j][2]);
 	}
  
 	wnnr = wr1*delx + wr2*dely + wr3*delz;
@@ -219,7 +219,7 @@ void PairLubricate::compute(int eflag, int vflag)
 	    (2.0/r)*a_shear*n_cross_omega_t_2;
           fz = -a_squeeze*vn3 - a_shear*(2.0/r)*(2.0/r)*vt3 +
 	    (2.0/r)*a_shear*n_cross_omega_t_3;
-
+	  
 	  torque[i][0] += -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 - 
 	    a_pump*P_dot_wrel_1 - a_twist*wn1;
 	  torque[i][1] += -(2.0/r)*a_shear*v_shear2 - a_shear*omega_t_2 - 

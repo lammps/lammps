@@ -21,7 +21,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPS       1.0e-8
+#define EPS_ENERGY 1.0e-8
 
 enum{FAIL,MAXITER,MAXEVAL,ETOL,FTOL};   // same as in other min classes
 
@@ -62,7 +62,7 @@ int MinSD::iterate(int n)
     // energy tolerance criterion
 
     if (fabs(ecurrent-eprevious) <= 
-	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS))
+	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
       return ETOL;
 
     // force tolerance criterion

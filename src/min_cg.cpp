@@ -321,7 +321,8 @@ int MinCG::iterate(int n)
     if (dotall[0] < update->ftol * update->ftol) return FTOL;
 
     // update h from new f = -Grad(x) and old g
-
+    // beta = dotall[0]/gg would be Fletcher-Reeves CG
+    
     beta = MAX(0.0,(dotall[0] - dotall[1])/gg);
     gg = dotall[0];
 
@@ -495,7 +496,7 @@ void MinCG::force_clear()
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   linemin: backtracking line search (Alg 3.1, p 41 in Nocedal and Wright)
+   linemin: backtracking line search (Proc 3.1, p 41 in Nocedal and Wright)
    uses no gradient info, but should be very robust
    start at maxdist, backtrack until energy decrease is sufficient
 ------------------------------------------------------------------------- */
@@ -507,7 +508,7 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir, double eng,
   int i,ilist,m;
   double fdotdirme,fdotdirall,fme,fmax,eoriginal,alphamax;
 
-  // stopping criterion
+  // stopping criterion, must be scaled by normflag
 
   double *f = atom->f[0];
   fdotdirme = 0.0;

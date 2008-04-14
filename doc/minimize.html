@@ -13,26 +13,30 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>minimize tolerance maxiter maxeval 
+<PRE>minimize etol ftol maxiter maxeval 
 </PRE>
-<UL><LI>tolerance = stopping tolerance
+<UL><LI>etol = stopping tolerance for energy (unitless)
+<LI>ftol = stopping tolerance for force (force units)
 <LI>maxiter = max iterations of minimizer
 <LI>maxeval = max number of total force/energy evaluations 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>minimize 1.0e-4 100 1000 
+<PRE>minimize 1.0e-4 1.0e-6 100 1000
+minimize 0.0 1.0e-8 1000 100000 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Perform an energy minimization of the system, by adjusting each atom's
-atomic coordinates.  The algorithm used is set by the
-<A HREF = "min_style.html">min_style</A> command.  Minimize commands can be
+atomic coordinates iteratively until convergence to a low-energy
+minimum is achieved.  The algorithm used is set by the
+<A HREF = "min_style.html">min_style</A> command.  Other options are set by the
+<A HREF = "min_modify.html">min_modify</A> command.  Minimize commands can be
 interspersed with <A HREF = "run.html">run</A> commands to alternate between
 relaxation and dynamics.  The minimizers are implemented in a robust
 fashion that should allow for systems with highly overlapped atoms
-(large energies and forces) to still be minimized by pushing the atoms
-off of each other.
+(large energies and forces) to be minimized by pushing the atoms off
+of each other.
 </P>
 <P>Alternate means of relaxing a system are to run dynamics with a small
 or <A HREF = "fix_nve_limit.html">limited timestep</A>.  Or dynamics can be run
@@ -41,35 +45,113 @@ slowly drains all kinetic energy from the system.  The <A HREF = "pair_soft.html
 soft</A> potential can be used to un-overlap atoms while
 running dynamics.
 </P>
-<P>Following the minimization a statistical summary is printed that
-includes the energy change and convergence criteria information.
-</P>
 <P>A minimization involves an outer iteration loop which sets the search
-direction along which coordinates are changed.  An inner iteration is
-then performed using a line search algorithm.  The line search
-typically evaluates forces and energies several times to set new
-coordinates.  The minimization stops if any of several criteria are
-met:
+direction along which atom coordinates are changed.  An inner
+iteration is then performed using a line search algorithm.  The line
+search typically evaluates forces and energies several times to set
+new coordinates.  Currently, a backtracking algorithm is used which
+may not be optimal in terms of the number of force evaulations
+performed, but appears to be more robust than previous line searches
+we've tried.  The backtracking method is described in Nocedal and
+Wright's Numerical Optimization (Procedure 3.1 on p 41).
 </P>
-<UL><LI>the change in energy between outer iterations is less than the tolerance
-<LI>the number of outer iterations exceeds maxiter
-<LI>the number of force evaluations exceeds maxeval
-<LI>the 3N dimensional force vector goes (nearly) to zero 
+<P>Note that these algorithms only find a local energy minimum from a
+given starting point (configuration of atoms).  There is no guarantee
+of finding a global energy minimum.
+</P>
+<HR>
+
+<P>The minimization procedure stops if any of several criteria are met:
+</P>
+<UL><LI>the change in energy between outer iterations is less than <I>etol</I>
+<LI>the 2-norm (length) of the global force vector is less than the <I>ftol</I>
+<LI>the line search fails because the step distance backtracks to 0.0
+<LI>the number of outer iterations exceeds <I>maxiter</I>
+<LI>the number of total force evaluations exceeds <I>maxeval</I> 
 </UL>
-<P>For the first criterion, the specified tolerance is unitless; it is
-met when the ratio of the energy delta to the energy magnitude is
-equal to the tolerance (e.g. one part in 10^4 in the example above).
+<P>For the first criterion, the specified energy tolerance <I>etol</I> is
+unitless; it is met when the energy change between successive
+iterations divided by the energy magnitude is less than or equal to
+the tolerance.  For example, a setting of 1.0e-4 for <I>etol</I> means an
+energy tolerance of one part in 10^4.
+</P>
+<P>For the second criterion, the specified force tolerance <I>ftol</I> is in
+force units, since it is the length of the global force vector for all
+atoms, e.g. a vector of size 3N for N atoms.  Since many of the
+components will be near zero after minimization, you can think of
+<I>ftol</I> as an upper bound on the final force on any component of any
+atom.  For example, a setting of 1.0e-4 for <I>ftol</I> means no x, y, or z
+component of force on any atom will be larger than 1.0e-4 (in force
+units) after minimization.
+</P>
+<P>Either or both of the <I>etol</I> and <I>ftol</I> values can be set to 0.0, in
+which case some other criterion will terminate the minimization.
 </P>
 <P>During a minimization, the outer iteration count is treated as a
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
 output or dump and restart files.
 </P>
-<P>For optimal convergence, a <A HREF = "pair_style.html">pair style</A> that goes
-smoothly to 0.0 at the cutoff distance for both energy and force
-should typically be used though this is not required.  Examples
-include <I>pair/lj/charmm/coul/charmm</I> and <I>pair/lj/charmm/coul/long</I>.
-If a <I>soft</I> potential is used the Astop value is used for the
-prefactor (no time dependence).
+<P>Following minimization, a statistical summary is printed that lists
+which convergence criterion caused the minimizer to stop, as well as
+information about the energy, force, final line search, and and
+iteration counts.  An example is as follows:
+</P>
+<PRE>Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+       -0.626828169302     -2.82642039062     -2.82643549739
+  Force two-norm initial, final = 2052.1 91.9642
+  Force max component initial, final = 346.048 9.78056
+  Final line search alpha, max atom move = 2.23899e-06 2.18986e-05
+  Iterations, force evaluations = 2000 12724 
+</PRE>
+<P>The 3 energy values are for before and after the minimization and on
+the next-to-last iteration.  This is what the <I>etol</I> parameter checks.
+</P>
+<P>The two-norm force values are the length of the global force vector
+before and after minimization.  This is what the <I>ftol</I> parameter
+checks.
+</P>
+<P>The max-component force values are the absolute value of the largest
+component (x,y,z) in the global force vector.
+</P>
+<P>The alpha parameter for the line-search, when multiplied by the max
+force component (on the last iteration), gives the max distance any
+atom moved during the last iteration.  Alpha will be 0.0 if the line
+search could not reduce the energy.  Even if alpha is non-zero, if the
+"max atom move" distance is tiny compared to typical atom coordinates,
+then it is possible the last iteration effectively caused no atom
+movement and thus the evaluated energy did not change and the
+minimizer terminated.  Said another way, even with non-zero forces,
+it's possible the effect of those forces is to move atoms a distance
+less than machine precision, so that the energy cannot be further
+reduced.
+</P>
+<P>The iterations and force evaluation values are what is checked by the
+<I>maxiter</I> and <I>maxeval</I> parameters.
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: It is HIGHLY RECOMMENDED that you use a <A HREF = "pair_style.html">pair
+style</A> that goes to 0.0 at the cutoff distance when
+performing minimization (even if you later change it when running
+dynamics).  If this is not done, the total energy of the system will
+have discontinuities when the relative distance between any pair of
+atoms changes from cutoff+epsilon to cutoff-epsilon and the minimizer
+may behave poorly.
+</P>
+<P>Note that a cutoff Lennard-Jones potential (and others) can be shifted
+so that its energy is 0.0 at the cutoff via the
+<A HREF = "pair_modify">pair_modify</A> command.  See the doc pages for inidividual
+<A HREF = "pair_style.html">pair styles</A> for details.  Note that Coulombic
+potentials always have a cutoff, unless versions with a long-range
+component are used (e.g. <A HREF = "pair_lj.html">pair_style lj/cut/coul/long</A>).
+The CHARMM potentials go to 0.0 at the cutoff (e.g. <A HREF = "pair_charmm.html</I>">pair_style
+lj/charmm/coul/charmm</A>, as do the GROMACS potentials
+(e.g. <A HREF = "pair_gromacs.html</I>">pair_style lj/gromacs</A>.
+</P>
+<P>If a soft potential (<A HREF = "pair_soft.html">pair_style soft</A>) is used the
+Astop value is used for the prefactor (no time dependence).
 </P>
 <P>Only some fixes (typically those that apply force constraints) are
 invoked during minimization.  See the doc pages for individual
@@ -82,6 +164,8 @@ you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> opt
 that fix.  The doc pages for individual <A HREF = "fix.html">fix</A> commands
 specify if this should be done.
 </P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>Features that are not yet implemented are listed here, in case someone

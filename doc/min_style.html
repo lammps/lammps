@@ -15,7 +15,7 @@
 </P>
 <PRE>min_style style 
 </PRE>
-<UL><LI>style = <I>cg</I> or <I>cg/fr</I> or <I>sd</I> 
+<UL><LI>style = <I>cg</I> or <I>sd</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -27,22 +27,19 @@ min_style sd
 <P>Choose a minimization algorithm to use when a <A HREF = "minimize.html">minimize</A>
 command is performed.
 </P>
-<P>Style <I>cg</I> is the Polak-Ribiere (PR) version of the conjugate gradient
-(CG) algorithm.  At each iteration the force gradient is combined with
-the previous iteration information to compute a new search direction
-perpendicular (conjugate) to previous search directions.  The PR
+<P>Style <I>cg</I> is the Polak-Ribiere version of the conjugate gradient (CG)
+algorithm.  At each iteration the force gradient is combined with the
+previous iteration information to compute a new search direction
+perpendicular (conjugate) to the previous search direction.  The PR
 variant affects how the direction is chosen and how the CG method is
 restarted when it ceases to make progress.  The PR variant is thought
 to be the most effective CG choice.
 </P>
-<P>Style <I>cg/fr</I> is the Fletcher-Reeves version of the conjugate gradient
-algorithm.
-</P>
 <P>Style <I>sd</I> is a steepest descent algorithm.  At each iteration, the
-downhill direction corresponding to the force vector (negative
-gradient of energy) is searched along by a 1d line search.  Typically,
-steepest descent will not converge as quickly as CG, but may be more
-robust in some situations.
+search direction is set to the downhill direction corresponding to the
+force vector (negative gradient of energy).  Typically, steepest
+descent will not converge as quickly as CG, but may be more robust in
+some situations.
 </P>
 <P><B>Restrictions:</B> none
 </P>

@@ -10,26 +10,30 @@ minimize command :h3
 
 [Syntax:]
 
-minimize tolerance maxiter maxeval :pre
+minimize etol ftol maxiter maxeval :pre
 
-tolerance = stopping tolerance
+etol = stopping tolerance for energy (unitless)
+ftol = stopping tolerance for force (force units)
 maxiter = max iterations of minimizer
 maxeval = max number of total force/energy evaluations :ul
 
 [Examples:]
 
-minimize 1.0e-4 100 1000 :pre
+minimize 1.0e-4 1.0e-6 100 1000
+minimize 0.0 1.0e-8 1000 100000 :pre
 
 [Description:]
 
 Perform an energy minimization of the system, by adjusting each atom's
-atomic coordinates.  The algorithm used is set by the
-"min_style"_min_style.html command.  Minimize commands can be
+atomic coordinates iteratively until convergence to a low-energy
+minimum is achieved.  The algorithm used is set by the
+"min_style"_min_style.html command.  Other options are set by the
+"min_modify"_min_modify.html command.  Minimize commands can be
 interspersed with "run"_run.html commands to alternate between
 relaxation and dynamics.  The minimizers are implemented in a robust
 fashion that should allow for systems with highly overlapped atoms
-(large energies and forces) to still be minimized by pushing the atoms
-off of each other.
+(large energies and forces) to be minimized by pushing the atoms off
+of each other.
 
 Alternate means of relaxing a system are to run dynamics with a small
 or "limited timestep"_fix_nve_limit.html.  Or dynamics can be run
@@ -38,35 +42,113 @@ slowly drains all kinetic energy from the system.  The "pair_style
 soft"_pair_soft.html potential can be used to un-overlap atoms while
 running dynamics.
 
-Following the minimization a statistical summary is printed that
-includes the energy change and convergence criteria information.
-
 A minimization involves an outer iteration loop which sets the search
-direction along which coordinates are changed.  An inner iteration is
-then performed using a line search algorithm.  The line search
-typically evaluates forces and energies several times to set new
-coordinates.  The minimization stops if any of several criteria are
-met:
+direction along which atom coordinates are changed.  An inner
+iteration is then performed using a line search algorithm.  The line
+search typically evaluates forces and energies several times to set
+new coordinates.  Currently, a backtracking algorithm is used which
+may not be optimal in terms of the number of force evaulations
+performed, but appears to be more robust than previous line searches
+we've tried.  The backtracking method is described in Nocedal and
+Wright's Numerical Optimization (Procedure 3.1 on p 41).
 
-the change in energy between outer iterations is less than the tolerance
-the number of outer iterations exceeds maxiter
-the number of force evaluations exceeds maxeval
-the 3N dimensional force vector goes (nearly) to zero :ul
+Note that these algorithms only find a local energy minimum from a
+given starting point (configuration of atoms).  There is no guarantee
+of finding a global energy minimum.
 
-For the first criterion, the specified tolerance is unitless; it is
-met when the ratio of the energy delta to the energy magnitude is
-equal to the tolerance (e.g. one part in 10^4 in the example above).
+:line
+
+The minimization procedure stops if any of several criteria are met:
+
+the change in energy between outer iterations is less than {etol}
+the 2-norm (length) of the global force vector is less than the {ftol}
+the line search fails because the step distance backtracks to 0.0
+the number of outer iterations exceeds {maxiter}
+the number of total force evaluations exceeds {maxeval} :ul
+
+For the first criterion, the specified energy tolerance {etol} is
+unitless; it is met when the energy change between successive
+iterations divided by the energy magnitude is less than or equal to
+the tolerance.  For example, a setting of 1.0e-4 for {etol} means an
+energy tolerance of one part in 10^4.
+
+For the second criterion, the specified force tolerance {ftol} is in
+force units, since it is the length of the global force vector for all
+atoms, e.g. a vector of size 3N for N atoms.  Since many of the
+components will be near zero after minimization, you can think of
+{ftol} as an upper bound on the final force on any component of any
+atom.  For example, a setting of 1.0e-4 for {ftol} means no x, y, or z
+component of force on any atom will be larger than 1.0e-4 (in force
+units) after minimization.
+
+Either or both of the {etol} and {ftol} values can be set to 0.0, in
+which case some other criterion will terminate the minimization.
 
 During a minimization, the outer iteration count is treated as a
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
 output or dump and restart files.
 
-For optimal convergence, a "pair style"_pair_style.html that goes
-smoothly to 0.0 at the cutoff distance for both energy and force
-should typically be used though this is not required.  Examples
-include {pair/lj/charmm/coul/charmm} and {pair/lj/charmm/coul/long}.
-If a {soft} potential is used the Astop value is used for the
-prefactor (no time dependence).
+Following minimization, a statistical summary is printed that lists
+which convergence criterion caused the minimizer to stop, as well as
+information about the energy, force, final line search, and and
+iteration counts.  An example is as follows:
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+       -0.626828169302     -2.82642039062     -2.82643549739
+  Force two-norm initial, final = 2052.1 91.9642
+  Force max component initial, final = 346.048 9.78056
+  Final line search alpha, max atom move = 2.23899e-06 2.18986e-05
+  Iterations, force evaluations = 2000 12724 :pre
+
+The 3 energy values are for before and after the minimization and on
+the next-to-last iteration.  This is what the {etol} parameter checks.
+
+The two-norm force values are the length of the global force vector
+before and after minimization.  This is what the {ftol} parameter
+checks.
+
+The max-component force values are the absolute value of the largest
+component (x,y,z) in the global force vector.
+
+The alpha parameter for the line-search, when multiplied by the max
+force component (on the last iteration), gives the max distance any
+atom moved during the last iteration.  Alpha will be 0.0 if the line
+search could not reduce the energy.  Even if alpha is non-zero, if the
+"max atom move" distance is tiny compared to typical atom coordinates,
+then it is possible the last iteration effectively caused no atom
+movement and thus the evaluated energy did not change and the
+minimizer terminated.  Said another way, even with non-zero forces,
+it's possible the effect of those forces is to move atoms a distance
+less than machine precision, so that the energy cannot be further
+reduced.
+
+The iterations and force evaluation values are what is checked by the
+{maxiter} and {maxeval} parameters.
+
+:line
+
+IMPORTANT NOTE: It is HIGHLY RECOMMENDED that you use a "pair
+style"_pair_style.html that goes to 0.0 at the cutoff distance when
+performing minimization (even if you later change it when running
+dynamics).  If this is not done, the total energy of the system will
+have discontinuities when the relative distance between any pair of
+atoms changes from cutoff+epsilon to cutoff-epsilon and the minimizer
+may behave poorly.
+
+Note that a cutoff Lennard-Jones potential (and others) can be shifted
+so that its energy is 0.0 at the cutoff via the
+"pair_modify"_pair_modify command.  See the doc pages for inidividual
+"pair styles"_pair_style.html for details.  Note that Coulombic
+potentials always have a cutoff, unless versions with a long-range
+component are used (e.g. "pair_style lj/cut/coul/long"_pair_lj.html).
+The CHARMM potentials go to 0.0 at the cutoff (e.g. "pair_style
+lj/charmm/coul/charmm"_pair_charmm.html}, as do the GROMACS potentials
+(e.g. "pair_style lj/gromacs"_pair_gromacs.html}.
+
+If a soft potential ("pair_style soft"_pair_soft.html) is used the
+Astop value is used for the prefactor (no time dependence).
 
 Only some fixes (typically those that apply force constraints) are
 invoked during minimization.  See the doc pages for individual
@@ -78,6 +160,8 @@ total potential energy of the system (the quantity being minimized),
 you MUST enable the "fix_modify"_fix_modify.html {energy} option for
 that fix.  The doc pages for individual "fix"_fix.html commands
 specify if this should be done.
+
+:line
 
 [Restrictions:]
 

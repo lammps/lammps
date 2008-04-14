@@ -11,7 +11,7 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {cg/fr} or {sd} :ul
+style = {cg} or {sd} :ul
 
 [Examples:]
 
@@ -23,22 +23,19 @@ min_style sd :pre
 Choose a minimization algorithm to use when a "minimize"_minimize.html
 command is performed.
 
-Style {cg} is the Polak-Ribiere (PR) version of the conjugate gradient
-(CG) algorithm.  At each iteration the force gradient is combined with
-the previous iteration information to compute a new search direction
-perpendicular (conjugate) to previous search directions.  The PR
+Style {cg} is the Polak-Ribiere version of the conjugate gradient (CG)
+algorithm.  At each iteration the force gradient is combined with the
+previous iteration information to compute a new search direction
+perpendicular (conjugate) to the previous search direction.  The PR
 variant affects how the direction is chosen and how the CG method is
 restarted when it ceases to make progress.  The PR variant is thought
 to be the most effective CG choice.
 
-Style {cg/fr} is the Fletcher-Reeves version of the conjugate gradient
-algorithm.
-
 Style {sd} is a steepest descent algorithm.  At each iteration, the
-downhill direction corresponding to the force vector (negative
-gradient of energy) is searched along by a 1d line search.  Typically,
-steepest descent will not converge as quickly as CG, but may be more
-robust in some situations.
+search direction is set to the downhill direction corresponding to the
+force vector (negative gradient of energy).  Typically, steepest
+descent will not converge as quickly as CG, but may be more robust in
+some situations.
 
 [Restrictions:] none
 

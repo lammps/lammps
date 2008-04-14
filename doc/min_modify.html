@@ -17,48 +17,32 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<PRE>keyword = <I>linestyle</I> or <I>dmin</I> or <I>dmax</I> or <I>lineiter</I>
-  <I>linestyle</I> value = <I>secant</I> or <I>scan</I>
-  <I>dmin</I> value = min
-    min = minimum distance for line search to move (distance units)
+keyword = <I>dmax</I>
   <I>dmax</I> value = max
     max = maximum distance for line search to move (distance units)
-  <I>lineiter</I> value = N
-    N = max number of iterations in a line search 
-</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>min_modify linestyle scan dmin 0.001 dmax 0.2
-min_modify lineiter 5 
+<PRE>min_modify dmax 0.2 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command sets parameters that affect the minimization algorithms.
-The various settings may effect the convergence rate and overall
-number of force evaluations required by a minimization, so users can
-experiment with these parameters to tune their minimizations.
+<P>This command sets parameters that affect the energy minimization
+algorithms.  The various settings may effect the convergence rate and
+overall number of force evaluations required by a minimization, so
+users can experiment with these parameters to tune their
+minimizations.
 </P>
-<P>The <I>linestyle</I> sets the algorithm used for 1d line searches at each
-outer iteration of the minimizer.  The <I>secant</I> style uses two
-successive force/energy evaluations to create a parabola and pick its
-minimum as an estimate of the next iteration's 1d minimum.  The <I>scan</I>
-style starts its 1d search at <I>dmin</I> and doubles the distance along
-the line at which the energy is computed until the minimum is passed.
-It continues only as far as <I>dmax</I>.  Normally, the <I>secant</I> method
-should find more accurate 1d minimums in less iterations, but the
-<I>scan</I> method can be more robust.
-</P>
-<P>The <I>dmin</I> and <I>dmax</I> settings are both used by the <I>scan</I> line search
-as described above.  For the <I>secant</I> line search, only the <I>dmin</I>
-value is used to pick an initial point to begin the secant
-approximation.
-</P>
-<P>The <I>lineiter</I> setting is used by the <I>secant</I> algorithm to limit its
-iterations.  The smaller the setting, the more inaccurate the line
-search becomes.  Nonlinear conjugate gradient is not thought to
-require high-accuracy line searches in order to converge efficiently.
+<P>The minimization algorithms have an outer iteration (conjugate
+gradient or steepest descent) and an inner iteration which is steps
+along a one-dimensional line search in a particular search direction.
+The <I>dmax</I> parameter is how far any atom can move in a single line
+search in any dimension (x, y, or z).  Thus a value of 0.1 in real
+distance units means no atom will move further than 0.1 Angstroms in a
+single outer iteration.  This is typically set to avoid the
+possibility than one atom will be moved through another due to strong
+overlapping forces.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -68,7 +52,6 @@ require high-accuracy line searches in order to converge efficiently.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are linestyle = secant, dmin = 1.0e-5, dmax = 0.1,
-and lineiter = 10.
+<P>The option defaults are dmax = 0.1.
 </P>
 </HTML>

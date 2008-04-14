@@ -160,7 +160,7 @@ the x-axis in the simulation box will be the [210] lattice
 direction.  The 3 lattice directions you specify must be mutually
 orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
 the Z direction.  Note that this description is really only valid for
-orthogonal lattices.  if you are using the more general lattice style
+orthogonal lattices.  If you are using the more general lattice style
 <I>custom</I> with non-orthogonal a1,a2,a3 vectors, then think of the 3
 <I>orient</I> options as creating a 3x3 rotation matrix which is applied to
 a1,a2,a3 to rotate the original unit cell to a new orientation in the
@@ -185,7 +185,7 @@ lattices.
 <P>If the <I>spacing</I> option is not specified, the lattice spacings are
 computed by LAMMPS in the following way.  A unit cell of the lattice
 is mapped into the simulation box (scaled, shifted, rotated), so that
-it now has (perhaps) a modified shape and orientation.  The lattice
+it now has (perhaps) a modified size and orientation.  The lattice
 spacing in X is defined as the difference between the min/max extent
 of the x coordinates of the 8 corner points of the modified unit cell.
 Similarly, the Y and Z lattice spacings are defined as the difference
@@ -237,7 +237,7 @@ then generate an error.  No additional arguments need be used with
 <PRE>lattice none 
 </PRE>
 <P>For other lattice styles, the option defaults are origin = 0.0 0.0
-0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1.0
-0.0 0.0, a2 = 0.0 1.0 0.0, and a3 = 0.0 0.0 1.0.
+0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,
+a2 = 0 1 0, and a3 = 0 0 1.
 </P>
 </HTML>

@@ -25,7 +25,7 @@ class Min : protected Pointers {
   double alpha_final;
   int niter,neval;
   char *stopstr;
-  double dmin,dmax;
+  double dmax;
   int linestyle,lineiter;
 
   Min(class LAMMPS *);

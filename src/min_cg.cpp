@@ -294,8 +294,7 @@ int MinCG::iterate(int n)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,
-			    alpha_final,neval);
+    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmax,alpha_final,neval);
     if (fail) return FAIL;
 
     // function evaluation criterion
@@ -479,7 +478,7 @@ void MinCG::force_clear()
           x = ptr to atom->x[0] as vector
 	  dir = search direction as vector
 	  eng = current energy at initial x
-	  min/max dist = min/max distance to move any atom coord
+	  maxdist = max distance to move any atom coord
    output: return 0 if successful move, non-zero alpha alpha
            return 1 if failed, alpha = 0.0
            alpha = distance moved along dir to set x to minimun eng config
@@ -502,45 +501,48 @@ void MinCG::force_clear()
 ------------------------------------------------------------------------- */
 
 int MinCG::linemin_backtrack(int n, double *x, double *dir, double eng,
-			     double mindist, double maxdist,
-			     double &alpha, int &nfunc)
+			     double maxdist, double &alpha, int &nfunc)
 {
-  int i,ilist,m;
-  double fdotdirme,fdotdirall,fme,fmax,eoriginal,alphamax;
+  int i,m;
 
   // stopping criterion, must be scaled by normflag
 
   double *f = atom->f[0];
-  fdotdirme = 0.0;
+  double fdotdirme = 0.0;
   for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
+  double fdotdirall;
   MPI_Allreduce(&fdotdirme,&fdotdirall,1,MPI_DOUBLE,MPI_SUM,world);
   if (output->thermo->normflag) fdotdirall /= atom->natoms;
 
   // alphamax = step that moves some atom coord by maxdist
 
-  fme = 0.0;
+  double fme = 0.0;
   for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
+  double fmax;
   MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
   if (fmax == 0.0) return 1;
 
-  alphamax = maxdist/fmax;
+  double alphamax = maxdist/fmax;
 
-  // reduce alpha by factor of ALPHA_REDUCE until energy decrease is sufficient
+  // reduce alpha by ALPHA_REDUCE until energy decrease is sufficient
 
-  eoriginal = eng;
+  double eoriginal = eng;
   alpha = alphamax;
+  double alpha_previous = 0.0;
+  double delta;
 
   while (1) {
-    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
+    delta = alpha - alpha_previous;
+    for (i = 0; i < n; i++) x[i] += delta*dir[i];
     eng_force(&n,&x,&dir,&eng);
     nfunc++;
 
     if (eng <= eoriginal - BACKTRACK_SLOPE*alpha*fdotdirall) return 0;
 
-    for (i = 0; i < n; i++) x[i] -= alpha*dir[i];
-    
+    alpha_previous = alpha;
     alpha *= ALPHA_REDUCE;
     if (alpha == 0.0) {
+      for (i = 0; i < n; i++) x[i] -= alpha_previous*dir[i];
       eng_force(&n,&x,&dir,&eng);
       return 1;
     }

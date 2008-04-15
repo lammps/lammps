@@ -32,18 +32,20 @@ class MinCG : public Min {
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
 
   class FixMinimize *fix_minimize;  // fix that stores gradient vecs
-  class Compute *pe_compute;  // compute for potential energy
-  double ecurrent;            // current potential energy
+  class Compute *pe_compute;        // compute for potential energy
+  double ecurrent;                  // current potential energy
   double mindist,maxdist;     // min/max dist for coord delta in line search
 
   int ndof;                   // # of degrees-of-freedom on this proc
   double *g,*h;               // local portion of gradient, searchdir vectors
 
+  // ptr to linemin functions
+
   typedef int (MinCG::*FnPtr)(int, double *, double *, double,
-			      double, double, double &, int &);
-  FnPtr linemin;             // ptr to linemin functions
+			      double, double &, int &);
+  FnPtr linemin;
   int linemin_backtrack(int, double *, double *, double,
-			double, double, double &, int &);
+			double, double &, int &);
 
   void setup();
   void setup_vectors();

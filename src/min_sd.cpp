@@ -51,8 +51,7 @@ int MinSD::iterate(int n)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmin,dmax,
-			    alpha_final,neval);
+    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmax,alpha_final,neval);
     if (fail) return FAIL;
 
     // function evaluation criterion

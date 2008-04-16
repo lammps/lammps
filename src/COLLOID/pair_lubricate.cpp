@@ -28,8 +28,8 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "memory.h"
+#include "random_mars.h"
 #include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,6 +41,8 @@ using namespace LAMMPS_NS;
 PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+
+  random = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,6 +56,7 @@ PairLubricate::~PairLubricate()
     memory->destroy_2d_double_array(cut);
     memory->destroy_2d_double_array(cut_inner);
   }
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,8 +64,8 @@ PairLubricate::~PairLubricate()
 void PairLubricate::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz;
-  double rsq,r,h_sep,radi;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
+  double rsq,r,h_sep,radi,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3,w1,w2,w3,v_shear1,v_shear2,v_shear3;
   double omega_t_1,omega_t_2,omega_t_3;
@@ -87,6 +90,9 @@ void PairLubricate::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int omega_flag = atom->omega_flag;
   double vxmu2f = force->vxmu2f;
+
+  double prethermostat = sqrt(2.0 * force->boltz * t_target / update->dt);
+  prethermostat *= sqrt(force->vxmu2f/force->ftm2v/force->mvv2e);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -167,7 +173,7 @@ void PairLubricate::compute(int eflag, int vflag)
 	omega_t_2 = w2 - dely*(dely*w2) / rsq;
 	omega_t_3 = w3 - delz*(delz*w3) / rsq;
 
-        // n x omega_t
+        // n X omega_t
 
         n_cross_omega_t_1 =  (dely*omega_t_3 - delz*omega_t_2) / r;
         n_cross_omega_t_2 =  -(delx*omega_t_3 - delz*omega_t_1) / r;
@@ -186,9 +192,9 @@ void PairLubricate::compute(int eflag, int vflag)
 	}
  
 	wnnr = wr1*delx + wr2*dely + wr3*delz;
-	wn1 =  delx*wnnr / rsq;
-	wn2 =  dely*wnnr / rsq;
-	wn3 =  delz*wnnr / rsq;
+	wn1 = delx*wnnr / rsq;
+	wn2 = dely*wnnr / rsq;
+	wn3 = delz*wnnr / rsq;
 
         P_dot_wrel_1 = wr1 - delx*(delx*wr1)/rsq; 
         P_dot_wrel_2 = wr2 - dely*(dely*wr2)/rsq; 
@@ -199,17 +205,16 @@ void PairLubricate::compute(int eflag, int vflag)
         h_sep = r - 2.0*radi;
 
 	if (flag1)
-	  a_squeeze = vxmu2f * 
-	    (3.0*PI*mu*2.0*radi/2.0) * (2.0*radi/4.0/h_sep); 
+	  a_squeeze = (3.0*PI*mu*2.0*radi/2.0) * (2.0*radi/4.0/h_sep);
 	if (flag2) 
-	  a_shear = vxmu2f * (PI*mu*2.*radi/2.0) *
+	  a_shear = (PI*mu*2.*radi/2.0) *
 	    log(2.0*radi/2.0/h_sep)*(2.0*radi+h_sep)*(2.0*radi+h_sep)/4.0;
 	if (flag3) 
-	  a_pump = vxmu2f * (PI*mu*pow(2.0*radi,4)/8.0) *
+	  a_pump = (PI*mu*pow(2.0*radi,4)/8.0) *
 	    ((3.0/20.0) * log(2.0*radi/2.0/h_sep) + 
 	     (63.0/250.0) * (h_sep/2.0/radi) * log(2.0*radi/2.0/h_sep));
 	if (flag4)
-	  a_twist = vxmu2f * (PI*mu*pow(2.0*radi,4)/4.0) *
+	  a_twist = (PI*mu*pow(2.0*radi,4)/4.0) *
 	    (h_sep/2.0/radi) * log(2.0/(2.0*h_sep));
 
         if (h_sep >= cut_inner[itype][jtype]) {
@@ -219,19 +224,40 @@ void PairLubricate::compute(int eflag, int vflag)
 	    (2.0/r)*a_shear*n_cross_omega_t_2;
           fz = -a_squeeze*vn3 - a_shear*(2.0/r)*(2.0/r)*vt3 +
 	    (2.0/r)*a_shear*n_cross_omega_t_3;
+	  fx *= vxmu2f;
+	  fy *= vxmu2f;
+	  fz *= vxmu2f;
+
+	  // add in thermostat force
+
+	  tfmag = prethermostat*sqrt(a_squeeze)*(random->uniform()-0.5);
+	  fx -= tfmag * delx/r;
+	  fy -= tfmag * dely/r;
+	  fz -= tfmag * delz/r;
 	  
-	  torque[i][0] += -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 - 
+	  tx = -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 - 
 	    a_pump*P_dot_wrel_1 - a_twist*wn1;
-	  torque[i][1] += -(2.0/r)*a_shear*v_shear2 - a_shear*omega_t_2 - 
+	  ty = -(2.0/r)*a_shear*v_shear2 - a_shear*omega_t_2 - 
 	    a_pump*P_dot_wrel_2 - a_twist*wn2;
-	  torque[i][2] += -(2.0/r)*a_shear*v_shear3 - a_shear*omega_t_3 - 
+	  tz = -(2.0/r)*a_shear*v_shear3 - a_shear*omega_t_3 - 
 	    a_pump*P_dot_wrel_3 - a_twist*wn3;
+	  torque[i][0] += vxmu2f * tx;
+	  torque[i][1] += vxmu2f * ty;
+	  torque[i][2] += vxmu2f * tz;
 
         } else {
-	  fpair = -vnnr*(3.0*PI*mu*radi/2.0)*radi/4.0/cut_inner[itype][jtype];
-	  fx = fpair*delx/r;
-	  fy = fpair*dely/r;
-	  fz = fpair*delz/r;
+	  a_squeeze = (3.0*PI*mu*2.0*radi/2.0) * 
+	    (2.0*radi/4.0/cut_inner[itype][jtype]);
+	  fpair = -a_squeeze*vnnr;
+	  fpair *= vxmu2f;
+
+	  // add in thermostat force
+
+	  fpair -= prethermostat*sqrt(a_squeeze)*(random->uniform()-0.5);
+
+	  fx = fpair * delx/r;
+	  fy = fpair * dely/r;
+	  fz = fpair * delz/r;
 	}
 
 	f[i][0] += fx;
@@ -244,12 +270,15 @@ void PairLubricate::compute(int eflag, int vflag)
 	  f[j][2] -= fz;
 
 	  if (h_sep >= cut_inner[itype][jtype]) {
-	    torque[j][0] += -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 + 
+	    tx = -(2.0/r)*a_shear*v_shear1 - a_shear*omega_t_1 + 
 	      a_pump*P_dot_wrel_1 + a_twist*wn1;
-	    torque[j][1] += -(2.0/r)*a_shear*v_shear2 - a_shear*omega_t_2 + 
+	    ty = -(2.0/r)*a_shear*v_shear2 - a_shear*omega_t_2 + 
 	      a_pump*P_dot_wrel_2 + a_twist*wn2;
-	    torque[j][2] += -(2.0/r)*a_shear*v_shear3 - a_shear*omega_t_3 + 
+	    tz = -(2.0/r)*a_shear*v_shear3 - a_shear*omega_t_3 + 
 	      a_pump*P_dot_wrel_3 + a_twist*wn3;
+	    torque[j][0] += vxmu2f * tx;
+	    torque[j][1] += vxmu2f * ty;
+	    torque[j][2] += vxmu2f * tz;
 	  }
 	}
 
@@ -288,7 +317,7 @@ void PairLubricate::allocate()
 
 void PairLubricate::settings(int narg, char **arg)
 {
-  if (narg != 7) error->all("Illegal pair_style command");
+  if (narg != 9) error->all("Illegal pair_style command");
 
   mu = atof(arg[0]);
   flag1 = atoi(arg[1]);
@@ -297,6 +326,8 @@ void PairLubricate::settings(int narg, char **arg)
   flag4 = atoi(arg[4]);
   cut_inner_global = atof(arg[5]);
   cut_global = atof(arg[6]);
+  t_target = atof(arg[7]);
+  seed = atoi(arg[8]);
 
   // reset cutoffs that have been explicitly set
 
@@ -309,6 +340,11 @@ void PairLubricate::settings(int narg, char **arg)
 	  cut[i][j] = cut_global;
 	}
   }
+
+  // initialize Marsaglia RNG with processor-unique seed
+
+  delete random;
+  random = new RanMars(lmp,seed + comm->me);
 }
 
 /* ----------------------------------------------------------------------
@@ -446,6 +482,8 @@ void PairLubricate::write_restart_settings(FILE *fp)
   fwrite(&flag4,sizeof(int),1,fp);
   fwrite(&cut_inner_global,sizeof(double),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&t_target,sizeof(double),1,fp);
+  fwrite(&seed,sizeof(int),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -465,6 +503,8 @@ void PairLubricate::read_restart_settings(FILE *fp)
     fread(&flag4,sizeof(int),1,fp);
     fread(&cut_inner_global,sizeof(double),1,fp);
     fread(&cut_global,sizeof(double),1,fp);
+    fread(&t_target, sizeof(double),1,fp);
+    fread(&seed, sizeof(int),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
@@ -475,6 +515,13 @@ void PairLubricate::read_restart_settings(FILE *fp)
   MPI_Bcast(&flag4,1,MPI_INT,0,world);
   MPI_Bcast(&cut_inner_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&t_target,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&seed,1,MPI_INT,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+
+  // additional setup based on restart parameters
+
+  delete random;
+  random = new RanMars(lmp,seed + comm->me);
 }

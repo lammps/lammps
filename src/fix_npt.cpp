@@ -63,7 +63,6 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   double p_period[3];
   if (strcmp(arg[6],"xyz") == 0) {
     if (narg < 10) error->all("Illegal fix npt command");
-
     press_couple = XYZ;
     p_start[0] = p_start[1] = p_start[2] = atof(arg[7]);
     p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[8]);

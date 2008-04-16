@@ -34,9 +34,12 @@ class PairLubricate : public Pair {
 
  protected:
   double cut_inner_global,cut_global;
-  double **cut_inner,**cut;
-  double mu;
+  double t_target,mu;
   int flag1,flag2,flag3,flag4;
+  int seed;
+  double **cut_inner,**cut;
+
+  class RanMars *random;
 
   void allocate();
 };
@@ -44,4 +47,3 @@ class PairLubricate : public Pair {
 }
 
 #endif
-

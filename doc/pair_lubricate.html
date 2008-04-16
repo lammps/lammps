@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style lubricate mu squeeze shear pump twist cutinner cutoff 
+<PRE>pair_style lubricate mu squeeze shear pump twist cutinner cutoff T_target seed 
 </PRE>
 <UL><LI>mu = viscosity (mass/distance/time units)
 <LI>squeeze = 0/1 for squeeze force off/on
@@ -21,11 +21,13 @@
 <LI>pump = 0/1 for pump force off/on
 <LI>twist = 0/1 for twist force off/on
 <LI>cutinner = (distance units)
-<LI>cutoff = outer cutoff for interactions (distance units) 
+<LI>cutoff = outer cutoff for interactions (distance units)
+<LI>T_target = desired temperature (temperature units)
+<LI>seed = random number seed (positive integer) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style lubricate 1.5 1 1 1 0 2.3 2.4
+<PRE>pair_style lubricate 1.5 1 1 1 0 2.3 2.4 1.3 5878598
 pair_coeff 1 1 1.8 2.0
 pair_coeff * * 
 </PRE>
@@ -58,6 +60,12 @@ distance between the particles.  Within the inner cutoff <I>cutinner</I>,
 the forces and torques are evaluated at a separation of cutinner.  The
 outer <I>cutoff</I> is the separation distance beyond which the pair-wise
 forces are zero.
+</P>
+<P>A Langevin thermostatting term is also added to the pairwise force,
+similar to that provided by the <A HREF = "fix_langevin.html">fix langevin</A> or
+<A HREF = "pair_dpd.html">pair_style dpd</A> commands.  The target temperature for
+the thermostat is the specified <I>T_target</I>.  The <I>seed</I> is used for
+the random numbers generated for the thermostat.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

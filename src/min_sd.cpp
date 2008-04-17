@@ -37,10 +37,9 @@ int MinSD::iterate(int n)
 {
   int i,fail,ntimestep;
   double dot,dotall;
-  double *f;
 
-  f = atom->f[0];
-  for (int i = 0; i < ndof; i++) h[i] = f[i];
+  double *f = atom->f[0];
+  for (i = 0; i < ndof; i++) h[i] = f[i];
 
   neval = 0;
 

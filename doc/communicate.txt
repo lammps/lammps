@@ -48,7 +48,7 @@ group.  This can be useful for models where no ghost atoms are needed
 for some kinds of particles.  All atoms (not just those in the
 specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
-"atom_modify first" command.
+"atom_modify first"_atom_modify.html command.
 
 [Restrictions:] none
 

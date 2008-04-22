@@ -37,6 +37,9 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3 && narg != 4)
     error->all("Illegal compute temp/sphere command");
 
+  if (!atom->omega_flag)
+    error->all("Compute temp/sphere requires atom attribute omega");
+
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extscalar = 0;

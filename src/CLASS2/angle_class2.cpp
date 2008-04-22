@@ -154,7 +154,7 @@ void AngleClass2::compute(int eflag, int vflag)
     tk2 = bb_k[type] * dr2;
 
     f1[0] -= delx1*tk2/r1;
-    f1[2] -= dely1*tk2/r1;
+    f1[1] -= dely1*tk2/r1;
     f1[2] -= delz1*tk2/r1;
 
     f3[0] -= delx2*tk1/r2;
@@ -194,7 +194,7 @@ void AngleClass2::compute(int eflag, int vflag)
     b2 = ba_k2[type] * dtheta / r2;
 
     f1[0] -= vx11 + b1*delx1 + vx12;
-    f1[2] -= vy11 + b1*dely1 + vy12;
+    f1[1] -= vy11 + b1*dely1 + vy12;
     f1[2] -= vz11 + b1*delz1 + vz12;
 
     f3[0] -= vx21 + b2*delx2 + vx22;

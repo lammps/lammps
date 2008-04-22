@@ -43,13 +43,15 @@ velocity which is used to compute the temperature.
 
 IMPORTANT NOTE: "Fix deform"_fix_deform.html has an option for
 remapping either atom coordinates or velocities to the changing
-simulation box.  To use this compute, fix deform should NOT remap atom
-positions, but rather should let atoms respond to the changing box by
-adjusting their own velocities (or let fix deform remap the atom
-velocities).  If fix deform does remap atom positions, their velocity
-is not changed, and thus they do not have the streaming velocity
-assumed by this compute.  LAMMPS will warn you if the fix deform
-setting is not consistent with this compute.
+simulation box.  When using this compute in conjunction with a
+deforming box, fix deform should NOT remap atom positions, but rather
+should let atoms respond to the changing box by adjusting their own
+velocities (or let "fix deform"_fix_deform.html remap the atom
+velocities, see it's remap option).  If fix deform does remap atom
+positions, then they appear to move with the box but their velocity is
+not changed, and thus they do NOT have the streaming velocity assumed
+by this compute.  LAMMPS will warn you if fix deform is defined and
+its remap setting is not consistent with this compute.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),

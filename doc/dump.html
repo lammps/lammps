@@ -37,6 +37,7 @@
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
+                          radius, omegax, omegay, omegaz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
 			  c_ID, c_ID[N], f_ID, f_ID[N], v_name
       tag = atom ID
@@ -50,6 +51,8 @@
       fx,fy,fz = forces on atoms
       q = atom charge
       mux,muy,muz = orientation of dipolar atom
+      radius = radius of extended spherical atom
+      omegax,omegay,omegaz = angular velocity of extended atom
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on aspherical particles
       c_ID = per-atom scalar value calculated by a compute with ID
@@ -244,6 +247,15 @@ is meant by scaled vs unscaled coordinates and the image flags.
 <P>The <I>mux</I>, <I>muy</I>, <I>muz</I> keywords are specific to dipolar systems
 defined with an atom style of <I>dipole</I>.  They give the orientation of
 the atom's dipole.
+</P>
+<P>The <I>radius</I> keyword is specific to extended spherical particles
+that have a finite size, such as granular particles defined with
+an atom style of <I>granular</I>.
+</P>
+<P>The <I>omegax</I>, <I>omegay</I>, and <I>omegaz</I> keywords are specific to extended
+spherical or aspherical particles that have an angular velocity.  Only
+certain atom styles, such as <I>granular</I> or <I>ellipsoid</I> define this
+quantity.
 </P>
 <P>The <I>quatw</I>, <I>quati</I>, <I>quatj</I>, <I>quatk</I>, <I>tqx</I>, <I>tqy</I>, <I>tqz</I> keywords
 are specific to aspherical particles defined with an atom style of

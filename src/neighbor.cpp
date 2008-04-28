@@ -1429,11 +1429,12 @@ void Neighbor::bin_atoms()
 	binhead[ibin] = i;
       }
     }
-    for (i = atom->nfirst; i >= 0; i--) {
+    for (i = atom->nfirst-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
       bins[i] = binhead[ibin];
       binhead[ibin] = i;
     }
+
   } else {
     for (i = nall-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);

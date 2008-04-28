@@ -33,10 +33,10 @@ using namespace LAMMPS_NS;
 // customize by adding keyword to 1st enum
 
 enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
-     VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,
-     QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
-     COMPUTE,FIX,VARIABLE};
+       VX,VY,VZ,FX,FY,FZ,
+       Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,
+       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
+       COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
 
@@ -442,6 +442,18 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == MUZ) {
 	ptr = &atom->mu[0][2];
 	nstride = 3;
+      } else if (thresh_array[ithresh] == RADIUS) {
+	ptr = atom->radius;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == OMEGAX) {
+	ptr = &atom->omega[0][0];
+	nstride = 3;
+      } else if (thresh_array[ithresh] == OMEGAY) {
+	ptr = &atom->omega[0][1];
+	nstride = 3;
+      } else if (thresh_array[ithresh] == OMEGAZ) {
+	ptr = &atom->omega[0][2];
+	nstride = 3;
       } else if (thresh_array[ithresh] == QUATW) {
 	ptr = &atom->quat[0][0];
 	nstride = 4;
@@ -681,6 +693,27 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->mu_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
+      vtype[i] = DOUBLE;
+
+    } else if (strcmp(arg[iarg],"radius") == 0) {
+      if (!atom->radius_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_radius;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"omegax") == 0) {
+      if (!atom->omega_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_omegax;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"omegay") == 0) {
+      if (!atom->omega_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_omegay;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"omegaz") == 0) {
+      if (!atom->omega_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_omegaz;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
@@ -967,6 +1000,10 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"mux") == 0) thresh_array[nthresh] = MUX;
     else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
     else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
+    else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
+    else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
+    else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
+    else if (strcmp(arg[1],"omegaz") == 0) thresh_array[nthresh] = OMEGAZ;
     else if (strcmp(arg[1],"quatw") == 0) thresh_array[nthresh] = QUATW;
     else if (strcmp(arg[1],"quati") == 0) thresh_array[nthresh] = QUATI;
     else if (strcmp(arg[1],"quatj") == 0) thresh_array[nthresh] = QUATJ;
@@ -1556,6 +1593,62 @@ void DumpCustom::pack_muz(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = mu[i][2];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_radius(int n)
+{
+  double *radius = atom->radius;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = radius[i];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_omegax(int n)
+{
+  double **omega = atom->omega;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = omega[i][0];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_omegay(int n)
+{
+  double **omega = atom->omega;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = omega[i][1];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_omegaz(int n)
+{
+  double **omega = atom->omega;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = omega[i][2];
       n += size_one;
     }
 }

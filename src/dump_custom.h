@@ -113,6 +113,10 @@ class DumpCustom : public Dump {
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
+  void pack_radius(int);
+  void pack_omegax(int);
+  void pack_omegay(int);
+  void pack_omegaz(int);
   void pack_quatw(int);
   void pack_quati(int);
   void pack_quatj(int);

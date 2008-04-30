@@ -39,23 +39,24 @@ spherical particles via this formula from <A HREF = "#Ball">(Ball and Melrose)</
 <CENTER><IMG SRC = "Eqs/pair_lubricate.jpg">
 </CENTER>
 <P>which represents the dissipation W between two nearby particles due to
-the background solvent.  Rc is the outer cutoff specified in the
-pair_style command, the translational velocities of the 2 particles
-are v1 and v2, the angular velocities are w1 and w2, and n is the unit
-vector in the direction from particle 1 to 2.  The 4 terms represent
-four modes of pairwise interaction: squeezing, shearing, pumping, and
-twisting.  The 4 flags in the pair_style command turn on or off each
-of these modes by including or excluding each term.  The 4
-coefficients on each term are functions of the separation distance of
-the particles.  Details are given in <A HREF = "#Ball">(Ball and Melrose)</A>,
-including the forces and torques that result from taking derivatives
-of this equation (see Appendix A).
+their relative velocities in the presence of a background solvent.  Rc
+is the outer cutoff specified in the pair_style command, the
+translational velocities of the 2 particles are v1 and v2, the angular
+velocities are w1 and w2, and n is the unit vector in the direction
+from particle 1 to 2.  The 4 terms represent four modes of pairwise
+interaction: squeezing, shearing, pumping, and twisting.  The 4 flags
+in the pair_style command turn on or off each of these modes by
+including or excluding each term.  The 4 coefficients on each term are
+functions of the separation distance of the particles.  Details are
+given in <A HREF = "#Ball">(Ball and Melrose)</A>, including the forces and torques
+that result from taking derivatives of this equation with respect to
+velocity (see Appendix A).
 </P>
 <P>Unlike most pair potentials, the two specified cutoffs (cutinner and
 cutoff) refer to the surface-to-surface separation between two
 particles, not center-to-center distance.  Currently, this pair style
-can only be used for mono-disperse spheres (same radii), so that
-separation is r_ij - 2*radius, where r_ij is the center-to-center
+can only be used for mono-disperse extended spheres (same radii), so
+that separation is r_ij - 2*radius, where r_ij is the center-to-center
 distance between the particles.  Within the inner cutoff <I>cutinner</I>,
 the forces and torques are evaluated at a separation of cutinner.  The
 outer <I>cutoff</I> is the separation distance beyond which the pair-wise

@@ -140,7 +140,6 @@ DumpStyle(xyz,DumpXYZ)
 #endif
 
 #ifdef FixInclude
-#include "fix_box_relax.h"
 #include "fix_add_force.h"
 #include "fix_ave_atom.h"
 #include "fix_ave_force.h"
@@ -199,7 +198,6 @@ DumpStyle(xyz,DumpXYZ)
 #endif
 
 #ifdef FixClass
-FixStyle(box/relax,FixBoxRelax)
 FixStyle(addforce,FixAddForce)
 FixStyle(ave/atom,FixAveAtom)
 FixStyle(aveforce,FixAveForce)
@@ -282,15 +280,11 @@ IntegrateStyle(verlet,Verlet)
 #ifdef MinimizeInclude
 #include "min_cg.h"
 #include "min_sd.h"
-#include "min_cg2.h"
-#include "min_sd2.h"
 #endif
 
 #ifdef MinimizeClass
 MinimizeStyle(cg,MinCG)
 MinimizeStyle(sd,MinSD)
-MinimizeStyle(cg2,MinCG2)
-MinimizeStyle(sd2,MinSD2)
 # endif
 
 #ifdef PairInclude

@@ -242,9 +242,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // print header into file
 
   if (fp && me == 0) {
-    fprintf(fp,"Spatial-averaged data for fix %s and group %s\n",id,arg[1]);
-    fprintf(fp,"TimeStep Number-of-layers\n");
-    fprintf(fp,"Layer Coordinate Natoms");
+    fprintf(fp,"# Spatial-averaged data for fix %s and group %s\n",id,arg[1]);
+    fprintf(fp,"# TimeStep Number-of-layers\n");
+    fprintf(fp,"# Layer Coordinate Natoms");
     for (int i = 0; i < nvalues; i++)
       if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
       else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);

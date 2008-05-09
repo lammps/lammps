@@ -167,8 +167,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // print header into file
 
   if (fp && me == 0) {
-    fprintf(fp,"Time-averaged data for fix %s\n",id);
-    fprintf(fp,"TimeStep");
+    fprintf(fp,"# Time-averaged data for fix %s\n",id);
+    fprintf(fp,"# TimeStep");
     for (int i = 0; i < nvalues; i++)
       if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
       else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);

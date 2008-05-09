@@ -78,7 +78,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
 	sprintf(str,"Cannot open fix tmd file %s",arg[6]);
 	error->one(str);
       }
-      fprintf(fp,"%s %s\n","Step rho_target rho_old gamma_back",
+      fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
 	      "gamma_forward lambda work_lambda work_analytical");
     }
   }

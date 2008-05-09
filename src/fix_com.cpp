@@ -42,8 +42,8 @@ FixCOM::FixCOM(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (me == 0) {
-    fprintf(fp,"Center-of-mass for group %s\n",group->names[igroup]);
-    fprintf(fp,"TimeStep x y z\n");
+    fprintf(fp,"# Center-of-mass for group %s\n",group->names[igroup]);
+    fprintf(fp,"# TimeStep x y z\n");
   }
 }
 

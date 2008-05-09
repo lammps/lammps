@@ -42,8 +42,8 @@ FixGyration::FixGyration(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (me == 0) {
-    fprintf(fp,"Radius-of-gyration for group %s\n",group->names[igroup]);
-    fprintf(fp,"TimeStep Rg\n");
+    fprintf(fp,"# Radius-of-gyration for group %s\n",group->names[igroup]);
+    fprintf(fp,"# TimeStep Rg\n");
   }
 }
 

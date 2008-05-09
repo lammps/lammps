@@ -68,7 +68,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   // print header into file
 
-  if (fp && me == 0) fprintf(fp,"Fix print output for fix %s\n",id);
+  if (fp && me == 0) fprintf(fp,"# Fix print output for fix %s\n",id);
 
   copy = new char[MAXLINE];
   work = new char[MAXLINE];

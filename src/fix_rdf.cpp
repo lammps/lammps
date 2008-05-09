@@ -260,7 +260,7 @@ void FixRDF::end_of_step()
     double constant = 4.0*PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
     int irdf;
 
-    fprintf(fp,"%s %d \n","TIMESTEP", update->ntimestep);
+    fprintf(fp,"# Timestep %d\n",update->ntimestep);
     fprintf(fp,"%s","r");
 
     for (int i = 1; i <= atom->ntypes; i++)
@@ -300,7 +300,7 @@ void FixRDF::end_of_step()
 
     if (update->ntimestep + nevery > update->endstep) {
 
-      fprintf(fp,"%s \n","RUN AVERAGE");
+      fprintf(fp,"# Run Average\n");
       fprintf(fp,"%s","r");
 
       for (int i = 1; i <= atom->ntypes; i++)

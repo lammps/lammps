@@ -46,9 +46,9 @@ FixMSD::FixMSD(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (me == 0) {
-    fprintf(fp,"Mean-squared Displacement for group %s\n",
+    fprintf(fp,"# Mean-squared Displacement for group %s\n",
 	    group->names[igroup]);
-    fprintf(fp,"TimeStep x y z total\n");
+    fprintf(fp,"# TimeStep x y z total\n");
   }
 
   // perform initial allocation of atom-based array

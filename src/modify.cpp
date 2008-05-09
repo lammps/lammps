@@ -328,18 +328,35 @@ void Modify::min_post_force(int vflag)
    return energy and forces on extra degrees of freedom
 ------------------------------------------------------------------------- */
 
-double Modify::min_energy(double *xextra, double *fextra)
+double Modify::min_energy(double *fextra)
 {
   int ifix,index;
 
   index = 0;
-  double energy_extra = 0.0;
+  double eng = 0.0;
   for (int i = 0; i < n_min_energy; i++) {
     ifix = list_min_energy[i];
-    energy_extra += fix[ifix]->min_energy(&xextra[index],&fextra[index]);
+    eng += fix[ifix]->min_energy(&fextra[index]);
     index += fix[ifix]->min_dof();
   }
-  return energy_extra;
+  return eng;
+}
+
+/* ----------------------------------------------------------------------
+   minimizer energy, force evaluation only for relevant fixes
+   return energy and forces on extra degrees of freedom
+------------------------------------------------------------------------- */
+
+void Modify::min_step(double delta, double *fextra)
+{
+  int ifix,index;
+
+  index = 0;
+  for (int i = 0; i < n_min_energy; i++) {
+    ifix = list_min_energy[i];
+    fix[ifix]->min_step(delta,&fextra[index]);
+    index += fix[ifix]->min_dof();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -352,19 +369,6 @@ int Modify::min_dof()
   for (int i = 0; i < n_min_energy; i++)
     ndof += fix[list_min_energy[i]]->min_dof();
   return ndof;
-}
-
-/* ----------------------------------------------------------------------
-   minimizer initial xextra values only from relevant fixes
-------------------------------------------------------------------------- */
-
-void Modify::min_xinitial(double *xextra)
-{
-  int index = 0;
-  for (int i = 0; i < n_min_energy; i++) {
-    fix[list_min_energy[i]]->min_xinitial(&xextra[index]);
-    index += fix[list_min_energy[i]]->min_dof();
-  }
 }
 
 /* ----------------------------------------------------------------------

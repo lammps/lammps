@@ -93,9 +93,9 @@ class Fix : protected Pointers {
   virtual void final_integrate_respa(int) {}
 
   virtual void min_post_force(int) {}
-  virtual double min_energy(double *, double *) {return 0.0;}
+  virtual double min_energy(double *) {return 0.0;}
+  virtual void min_step(double, double *) {}
   virtual int min_dof() {return 0;}
-  virtual void min_xinitial(double *) {}
 
   virtual int pack_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}

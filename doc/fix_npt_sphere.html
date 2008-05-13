@@ -113,6 +113,10 @@ that the box dimension remains unchanged.  For a 2d simulation the z
 pressure components must be specified as NULL when using style
 <I>aniso</I>.
 </P>
+<P>For styles <I>xy</I> and <I>yz</I> and <I>xz</I>, the starting and stopping pressures
+must be the same for the two coupled dimensions and cannot be
+specified as NULL.
+</P>
 <P>In some cases (e.g. for solids) the pressure (volume) and/or
 temperature of the system can oscillate undesirably when a Nose/Hoover
 barostat and thermostat is applied.  The optional <I>drag</I> keyword will

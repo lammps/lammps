@@ -1193,8 +1193,8 @@ void Neighbor::setup_bins()
   }
 
   // create stencil of bins to search over in neighbor list construction
-  // sx,sy,sz = max range of stencil extent
-  // smax = 
+  // sx,sy,sz = max range of stencil in each dim
+  // smax = max possible size of entire 3d stencil
   // stencil is empty if cutneighmax = 0.0
 
   sx = static_cast<int> (cutneighmax*bininvx);
@@ -1478,7 +1478,7 @@ int Neighbor::coord2bin(double *x)
   else
     iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - mbinzlo - 1;
 
-  return (iz*mbiny*mbinx + iy*mbinx + ix + 1);
+  return (iz*mbiny*mbinx + iy*mbinx + ix);
 }
 
 /* ----------------------------------------------------------------------

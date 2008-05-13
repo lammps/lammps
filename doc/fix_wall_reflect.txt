@@ -32,6 +32,14 @@ by a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is
 put back inside the box by the same delta and the sign of the
 corresponding component of its velocity is flipped.
 
+When used in conjunction with "fix nve"_fix_nve.html and "run_style
+verlet"_run_style.html, the resultant time-integration algorithm is
+equivalent to the primitive splitting algorithm (PSA) described by
+"Bond"_#Bond.  Because each reflection event divides
+the corresponding timestep asymmetrically, energy conservation is only
+satisfied to O(dt), rather than to O(dt^2) as it would be for
+velocity-Verlet integration without reflective walls.
+
 IMPORTANT NOTE: This fix performs its operations at the same point in
 the timestep as other time integration fixes, such as "fix
 nve"_fix_nve.html, "fix nvt"_fix_nvt.html, or "fix npt"_fix_npt.html.
@@ -65,3 +73,6 @@ wall/lj93"_fix_wall_lj93.html.
 "fix wall/lj93"_fix_wall_lj93.html command
 
 [Default:] none
+
+:link(Bond)
+[(Bond)] Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).

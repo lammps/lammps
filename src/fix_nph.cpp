@@ -136,7 +136,24 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix nph command");
   }
 
-  // check for periodicity in controlled dimensions
+  // error checks
+
+  if (press_couple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
+    error->all("Invalid fix npt command");
+  if (press_couple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
+    error->all("Invalid fix npt command");
+  if (press_couple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
+    error->all("Invalid fix npt command");
+
+  if (press_couple == XY && 
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1]))
+    error->all("Invalid fix npt command");
+  if (press_couple == YZ && 
+      (p_start[1] != p_start[2] || p_stop[1] != p_stop[2]))
+    error->all("Invalid fix npt command");
+  if (press_couple == XZ && 
+      (p_start[0] != p_start[2] || p_stop[0] != p_stop[2]))
+    error->all("Invalid fix npt command");
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix nph on a non-periodic dimension");

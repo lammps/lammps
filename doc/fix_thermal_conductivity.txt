@@ -122,7 +122,8 @@ bewteen solvent particles.
 
 [Related commands:]
 
-"fix ave/spatial"_fix_ave_spatial.html
+"fix ave/spatial"_fix_ave_spatial.html, "fix
+viscosity"_fix_viscosity.html
 
 [Default:]
 

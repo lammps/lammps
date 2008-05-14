@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_VISCOSITY_H
-#define FIX_VISCOSITY_H
+#ifndef FIX_THERMAL_CONDUCTIVITY_H
+#define FIX_THERMAL_CONDUCTIVITY_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixViscosity : public Fix {
+class FixThermalConductivity : public Fix {
  public:
-  FixViscosity(class LAMMPS *, int, char **);
-  ~FixViscosity();
+  FixThermalConductivity(class LAMMPS *, int, char **);
+  ~FixThermalConductivity();
   int setmask();
   void init();
   void end_of_step();
@@ -29,16 +29,15 @@ class FixViscosity : public Fix {
 
  private:
   int me;
-  int vdim,pdim,nbin,periodicity;
+  int edim,nbin,periodicity;
   int nswap;
-  double vtarget;
   double prd,boxlo,boxhi;
   double slablo_lo,slablo_hi,slabhi_lo,slabhi_hi;
-  double p_exchange;
+  double e_exchange;
 
-  int npositive,nnegative;
-  int *pos_index,*neg_index;
-  double *pos_delta,*neg_delta;
+  int nlo,nhi;
+  int *index_lo,*index_hi;
+  double *ke_lo,*ke_hi;
 };
 
 }

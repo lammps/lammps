@@ -87,7 +87,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   pos_delta = new double[nswap+1];
   neg_delta = new double[nswap+1];
 
-  flux = 0.0;
+  p_exchange = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,7 +225,7 @@ void FixViscosity::end_of_step()
   int ipos,ineg;
   double sbuf[2],rbuf[2];
 
-  double dflux = 0.0;
+  double pswap = 0.0;
   mine[0].proc = mine[1].proc = me;
   int ipositive = 0;
   int inegative = 0;
@@ -251,7 +251,7 @@ void FixViscosity::end_of_step()
       else sbuf[1] = rmass[ineg];
       v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
       v[ipos][vdim] = sbuf[0] * sbuf[1]/rbuf[1];
-      dflux += rbuf[0]*rbuf[1] - sbuf[0]*sbuf[1];
+      pswap += rbuf[0]*rbuf[1] - sbuf[0]*sbuf[1];
       
     } else if (me == all[0].proc) {
       ipos = pos_index[ipositive++];
@@ -261,7 +261,7 @@ void FixViscosity::end_of_step()
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
 		   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
       v[ipos][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
-      dflux += sbuf[0]*sbuf[1];
+      pswap += sbuf[0]*sbuf[1];
 
     } else if (me == all[1].proc) {
       ineg = neg_index[inegative++];
@@ -271,20 +271,20 @@ void FixViscosity::end_of_step()
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
 		   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
       v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
-      dflux -= sbuf[0]*sbuf[1];
+      pswap -= sbuf[0]*sbuf[1];
     }
   }
 
-  // tally momentum flux from all swaps
+  // tally momentum exchange from all swaps
 
-  double dflux_all;
-  MPI_Allreduce(&dflux,&dflux_all,1,MPI_DOUBLE,MPI_SUM,world);
-  flux += dflux_all;
+  double pswap_all;
+  MPI_Allreduce(&pswap,&pswap_all,1,MPI_DOUBLE,MPI_SUM,world);
+  p_exchange += pswap_all;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double FixViscosity::compute_scalar()
 {
-  return flux;
+  return p_exchange;
 }

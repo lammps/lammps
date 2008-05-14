@@ -188,6 +188,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_spring_self.h"
 #include "fix_temp_berendsen.h"
 #include "fix_temp_rescale.h"
+#include "fix_thermal_conductivity.h"
 #include "fix_tmd.h"
 #include "fix_viscosity.h"
 #include "fix_viscous.h"
@@ -246,6 +247,7 @@ FixStyle(spring/rg,FixSpringRG)
 FixStyle(spring/self,FixSpringSelf)
 FixStyle(temp/berendsen,FixTempBerendsen)
 FixStyle(temp/rescale,FixTempRescale)
+FixStyle(thermal/conductivity,FixThermalConductivity)
 FixStyle(tmd,FixTMD)
 FixStyle(viscosity,FixViscosity)
 FixStyle(viscous,FixViscous)

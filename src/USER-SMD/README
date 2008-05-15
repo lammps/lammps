@@ -2,7 +2,7 @@ The files in this directory are a user-contributed package for LAMMPS.
 
 The person who created these files is Axel Kohlmeyer
 (akohlmey@cmm.chem.upenn.edu).  Contact him directly if you have
-questions.
+questions or for example scripts that use it.
 
 This package implements a "fix smd" command which can be used in a
 LAMMPS input script.  SMD stands for steered molecular dynamics.

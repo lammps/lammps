@@ -19,7 +19,8 @@ chain		       create a data file of bead-spring chains
 data2xmovie	       convert a data file to a snapshot that xmovie can viz
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
 lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
-lmp2traj	       convert LAMMPS output to contour, density profiles 
+lmp2traj	       convert LAMMPS output to contour, density profiles
+lmp2vmd                tools for visualizing and analyzing LAMMPS data with VMD
 micelle2d	       create a data file of small lipid chains in solvent
 msi2lmp		       use Accelrys Insight code to setup LAMMPS input
 pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format

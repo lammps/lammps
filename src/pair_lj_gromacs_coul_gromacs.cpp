@@ -447,7 +447,7 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
       r = sqrt(rsq); 
       tc = r - cut_coul_inner;
       fswitchcoul =  force->qqrd2e * 
-	atom->q[i]*atom->q[j] * r*tc*tc * (coulsw1 + coulsw2*tcoul);
+	atom->q[i]*atom->q[j] * r*tc*tc * (coulsw1 + coulsw2*tc);
       forcecoul += fswitchcoul;
     }
   } else forcecoul = 0.0;

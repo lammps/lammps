@@ -700,7 +700,7 @@ int atom(double *buf, Data &data)
     if (data.style_molecular) allocate_molecular(data);
   }
 
-  // read atom quatities from buf
+  // read atom quantities from buf
   // if hybrid, loop over all sub-styles in order listed
   // if hybrid, loop index k will match style setting to insure correct order
 
@@ -1912,7 +1912,10 @@ void pair(FILE *fp, Data &data, char *style, int flag)
           data.pair_cg_epsilon[i][j] = read_double(fp);
           data.pair_cg_sigma[i][j] = read_double(fp);
           data.pair_cut_lj[i][j] = read_double(fp);
-          if (m) data.pair_cut_coul[i][j] = read_double(fp);
+          if (m) {
+	    data.pair_cut_lj[i][j] = read_double(fp);
+	    data.pair_cut_coul[i][j] = read_double(fp);
+	  }
         } 
       }
     }

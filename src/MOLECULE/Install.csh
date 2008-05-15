@@ -34,6 +34,7 @@ if ($1 == 1) then
   cp dihedral_multi_harmonic.cpp ..
   cp dihedral_opls.cpp ..
   cp dump_bond.cpp ..
+  cp fix_bond_swap.cpp ..
   cp improper.cpp ..
   cp improper_cvff.cpp ..
   cp improper_harmonic.cpp ..
@@ -68,6 +69,7 @@ if ($1 == 1) then
   cp dihedral_multi_harmonic.h ..
   cp dihedral_opls.h ..
   cp dump_bond.h ..
+  cp fix_bond_swap.h ..
 #  cp improper.h ..
   cp improper_cvff.h ..
   cp improper_harmonic.h ..
@@ -107,6 +109,7 @@ else if ($1 == 0) then
   rm ../dihedral_multi_harmonic.cpp
   rm ../dihedral_opls.cpp
   rm ../dump_bond.cpp
+  rm ../fix_bond_swap.cpp
   rm ../improper.cpp
   rm ../improper_cvff.cpp
   rm ../improper_harmonic.cpp
@@ -141,6 +144,7 @@ else if ($1 == 0) then
   rm ../dihedral_multi_harmonic.h
   rm ../dihedral_opls.h
   rm ../dump_bond.h
+  rm ../fix_bond_swap.h
 #  rm ../improper.h
   rm ../improper_cvff.h
   rm ../improper_harmonic.h

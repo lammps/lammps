@@ -90,9 +90,11 @@ DumpStyle(bond,DumpBond)
 #endif
 
 #ifdef FixInclude
+#include "fix_bond_swap.h"
 #endif
 
 #ifdef FixClass
+FixStyle(bond/swap,FixBondSwap)
 #endif
 
 #ifdef ImproperInclude

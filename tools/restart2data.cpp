@@ -106,6 +106,7 @@ class Data {
   int **pair_cg_cmm_type, **pair_setflag;
   double **pair_cut_coul, **pair_cut_lj;
   double *pair_ljexpand_epsilon,*pair_ljexpand_sigma,*pair_ljexpand_shift;
+  double *pair_ljgromacs_epsilon,*pair_ljgromacs_sigma;
   double *pair_ljsmooth_epsilon,*pair_ljsmooth_sigma;
   double *pair_morse_d0,*pair_morse_alpha,*pair_morse_r0;
   double *pair_soft_start,*pair_soft_stop;
@@ -1674,6 +1675,56 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if ((strcmp(style,"lj/gromacs") == 0) ||
+	     (strcmp(style,"lj/gromacs/coul/gromacs") == 0)) {
+
+    if (strcmp(style,"lj/gromacs") == 0) {
+      m = 1;
+      double cut_inner_global = read_double(fp);
+      double cut_global = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/gromacs/coul/gromacs") == 0) {
+      m = 0;
+      double cut_lj_inner_global = read_double(fp);
+      double cut_lj = read_double(fp);
+      double cut_coul_inner_global = read_double(fp);
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    }
+
+    if (!flag) return;
+
+    data.pair_ljgromacs_epsilon = new double[data.ntypes+1];
+    data.pair_ljgromacs_sigma = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_ljgromacs_epsilon[i] = read_double(fp);
+	    data.pair_ljgromacs_sigma[i] = read_double(fp);
+	    if (m) {
+	      double cut_inner = read_double(fp);
+	      double cut = read_double(fp);
+	    }
+	    } else {
+	    double ljgromacs_epsilon = read_double(fp);
+	    double ljgromacs_sigma = read_double(fp);
+	    if (m) {
+	      double cut_inner = read_double(fp);
+	      double cut = read_double(fp);
+	    }
+	  }
+	}
+      }
+
   } else if (strcmp(style,"lj/smooth") == 0) {
 
     double cut_inner_global = read_double(fp);
@@ -2524,6 +2575,12 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g %g\n",i,
 		pair_ljexpand_epsilon[i],pair_ljexpand_sigma[i],
 		pair_ljexpand_shift[i]);
+
+    } else if ((strcmp(pair_style,"lj/gromacs") == 0) ||
+	       (strcmp(pair_style,"lj/gromacs/coul/gromacs") == 0)) {
+      for (int i = 1; i <= ntypes; i++)
+	fprintf(fp,"%d %g %g\n",i,
+		pair_ljgromacs_epsilon[i],pair_ljgromacs_sigma[i]);
 
     } else if (strcmp(pair_style,"lj/smooth") == 0) {
       for (int i = 1; i <= ntypes; i++)

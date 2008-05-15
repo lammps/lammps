@@ -130,7 +130,6 @@ void ComputeTempCOM::compute_vector()
   if (dynamic) masstotal = group->mass(igroup);
   group->vcm(igroup,masstotal,vbias);
 
-  double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;

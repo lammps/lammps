@@ -88,7 +88,6 @@ void FixNVTSphere::initial_integrate(int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *mass = atom->mass;

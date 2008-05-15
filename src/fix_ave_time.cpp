@@ -288,8 +288,6 @@ void FixAveTime::init()
   // set indices and check validity of all computes,fixes,variables
   // check that fix frequency is acceptable
 
-  int ilist = 0;
-
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
@@ -328,8 +326,7 @@ void FixAveTime::setup(int vflag)
 
 void FixAveTime::end_of_step()
 {
-  int i,j,k,m;
-  double tmp;
+  int i,m;
 
   // skip if not step which requires doing something
 
@@ -344,8 +341,6 @@ void FixAveTime::end_of_step()
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
-
-  int ilist = 0;
 
   for (i = 0; i < nvalues; i++) {
     m = value2index[i];

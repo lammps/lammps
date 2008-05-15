@@ -609,9 +609,6 @@ void Atom::tag_extend()
 
 int Atom::tag_consecutive()
 {
-  int check[2],check_all[2];
-  check[0] = check[1] = 0;
-
   int idmin = static_cast<int> (natoms);
   int idmax = 0;
   

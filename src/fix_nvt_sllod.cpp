@@ -129,7 +129,6 @@ void FixNVTSlodd::final_integrate()
   // thermostat thermal velocity only
   // vdelu = SLLOD correction = Hrate*Hinv*vthermal
 
-  double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
   double *mass = atom->mass;

@@ -502,7 +502,7 @@ void MinCG::force_clear()
 int MinCG::linemin_backtrack(int n, double *x, double *dir, double eng,
 			     double maxdist, double &alpha, int &nfunc)
 {
-  int i,m;
+  int i;
 
   // stopping criterion, must be scaled by normflag
 

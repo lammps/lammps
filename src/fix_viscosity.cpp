@@ -138,7 +138,7 @@ void FixViscosity::init()
 void FixViscosity::end_of_step()
 {
   int i,m,insert;
-  double p,coord,delta;
+  double coord,delta;
   MPI_Status status;
   struct {
     double value;

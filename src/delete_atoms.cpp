@@ -237,9 +237,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int nall = atom->nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
 
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 

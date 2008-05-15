@@ -40,7 +40,8 @@ using namespace LAMMPS_NS;
 enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
-     SQRT,EXP,LN,CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY};
+       SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
+       CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY};
 
 #define INVOKED_SCALAR 1      // same as in computes
 #define INVOKED_VECTOR 2
@@ -500,7 +501,9 @@ void Variable::copy(int narg, char **from, char **to)
    string is a equal-style or atom-style formula containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
      thermo keyword = ke, vol, atoms, ...
-     math operation = (),-x,x+y,x-y,x*y,x/y,x^y,sqrt(x),exp(x),ln(x)
+     math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
+                      sqrt(x),exp(x),ln(x),log(x),
+		      sin(x),cos(x),tan(x),asin(x),acos(x),atan(x)
      group function = count(group), mass(group), xcm(group,x), ...
      atom value = x[123], y[3], vx[34], ...
      atom vector = x[], y[], vx[], ...
@@ -1076,6 +1079,10 @@ double Variable::evaluate(char *str, Tree **tree)
   }
 }
 
+/* ----------------------------------------------------------------------
+   process an evaulation tree
+   customize by adding a math function:
+     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
 /* ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1115,6 +1122,34 @@ double Variable::eval_tree(Tree *tree, int i)
     if (arg <= 0.0) error->all("Log of zero/negative in variable formula");
     return log(arg);
   }
+  if (tree->type == LOG) {
+    double arg = eval_tree(tree->left,i);
+    if (arg <= 0.0) error->all("Log of zero/negative in variable formula");
+    return log10(arg);
+  }
+
+  if (tree->type == SIN)
+    return sin(eval_tree(tree->left,i));
+  if (tree->type == COS)
+    return cos(eval_tree(tree->left,i));
+  if (tree->type == TAN)
+    return tan(eval_tree(tree->left,i));
+
+  if (tree->type == ASIN) {
+    double arg = eval_tree(tree->left,i);
+    if (arg < -1.0 || arg > 1.0)
+      error->all("Arcsin of invalid value in variable formula");
+    return asin(arg);
+  }
+  if (tree->type == ACOS) {
+    double arg = eval_tree(tree->left,i);
+    if (arg < -1.0 || arg > 1.0)
+      error->all("Arccos of invalid value in variable formula");
+    return acos(arg);
+  }
+  if (tree->type == ATAN)
+    return atan(eval_tree(tree->left,i));
+
   if (tree->type == CEIL)
     return ceil(eval_tree(tree->left,i));
   if (tree->type == FLOOR)
@@ -1204,7 +1239,8 @@ int Variable::int_between_brackets(char *str, int i, int &index, int emptyflag)
    word = math function
    contents = str bewteen parentheses
    return 0 if not a match, 1 if successfully processed
-   customize by adding a math function: sqrt(),exp(),log()
+   customize by adding a math function in 2 places:
+     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -1213,7 +1249,11 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") && strcmp(word,"exp") && strcmp(word,"ln") &&
+  if (strcmp(word,"sqrt") && strcmp(word,"exp") && 
+      strcmp(word,"ln") && strcmp(word,"log") &&
+      strcmp(word,"sin") && strcmp(word,"cos") &&
+      strcmp(word,"tan") && strcmp(word,"asin") &&
+      strcmp(word,"acos") && strcmp(word,"atan") &&
       strcmp(word,"ceil") && strcmp(word,"floor") && strcmp(word,"round"))
     return 0;
     
@@ -1239,13 +1279,46 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"exp") == 0) {
     if (tree) newtree->type = EXP;
     else argstack[nargstack++] = exp(value);
-
   } else if (strcmp(word,"ln") == 0) {
     if (tree) newtree->type = LN;
     else {
       if (value <= 0.0) error->all("Log of zero/negative in variable formula");
       argstack[nargstack++] = log(value);
     }
+  } else if (strcmp(word,"log") == 0) {
+    if (tree) newtree->type = LOG;
+    else {
+      if (value <= 0.0) error->all("Log of zero/negative in variable formula");
+      argstack[nargstack++] = log10(value);
+    }
+
+  } else if (strcmp(word,"sin") == 0) {
+    if (tree) newtree->type = SIN;
+    else argstack[nargstack++] = sin(value);
+  } else if (strcmp(word,"cos") == 0) {
+    if (tree) newtree->type = COS;
+    else argstack[nargstack++] = cos(value);
+  } else if (strcmp(word,"tan") == 0) {
+    if (tree) newtree->type = TAN;
+    else argstack[nargstack++] = tan(value);
+
+  } else if (strcmp(word,"asin") == 0) {
+    if (tree) newtree->type = ASIN;
+    else {
+      if (value < -1.0 || value > 1.0) 
+	error->all("Arcsin of invalid value in variable formula");
+      argstack[nargstack++] = asin(value);
+    }
+  } else if (strcmp(word,"acos") == 0) {
+    if (tree) newtree->type = ACOS;
+    else {
+      if (value < -1.0 || value > 1.0) 
+	error->all("Arccos of invalid value in variable formula");
+      argstack[nargstack++] = acos(value);
+    }
+  } else if (strcmp(word,"atan") == 0) {
+    if (tree) newtree->type = ATAN;
+    else argstack[nargstack++] = atan(value);
 
   } else if (strcmp(word,"ceil") == 0) {
     if (tree) newtree->type = CEIL;

@@ -7,7 +7,7 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O2  -funroll-loops  -DFFT_FFTW -DLAMMPS_GZIP \
-		-fstrict-aliasing -Wall
+		-fstrict-aliasing -Wall -W -Wno-uninitialized
 NOALIAS = 	-fno-strict-aliasing
 DEPFLAGS =	-M
 LINK =		mpic++

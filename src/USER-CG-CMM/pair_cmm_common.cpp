@@ -259,6 +259,7 @@ double PairCMMCommon::init_one(int i, int j)
 
   if (allocated_coul) {
     mycut = MAX(cut_lj[i][j],cut_coul[i][j]);
+    cut[i][j] = mycut;
     cut_ljsq[i][j]=cut_lj[i][j]*cut_lj[i][j];
     cut_coulsq[i][j]=cut_coul[i][j]*cut_coul[i][j];
     if (offset_flag) {
@@ -274,7 +275,8 @@ double PairCMMCommon::init_one(int i, int j)
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
   cg_type[j][i] = cg_type[i][j];
-
+  cut[j][i] = mycut;
+  
   if (allocated_coul) {
     cut_lj[j][i]=cut_lj[i][j];
     cut_ljsq[j][i]=cut_ljsq[i][j];
@@ -407,6 +409,7 @@ void PairCMMCommon::read_restart_settings(FILE *fp)
   MPI_Bcast(&kappa,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  cut_coulsq_global = cut_coul_global*cut_coul_global;
 }
 
 /* ---------------------------------------------------------------------- */

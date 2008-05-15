@@ -33,7 +33,7 @@ namespace LAMMPS_NS {
     double single(int, int, int, int, double, double, double, double &);
 
     private:
-    // disable default destructor
+    // disable default constructor
     PairCGCMM();
   };
 }

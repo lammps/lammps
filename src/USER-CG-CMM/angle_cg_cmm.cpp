@@ -49,6 +49,88 @@ AngleCGCMM::~AngleCGCMM()
 
 /* ---------------------------------------------------------------------- */
 
+void AngleCGCMM::ev_tally_lj13(int i, int j, int nlocal, int newton_bond, 
+                               double evdwl, double fpair,
+                               double delx, double dely, double delz)
+{
+  double v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) {
+        energy += evdwl;
+      } else {
+        if (i < nlocal)
+          energy += 0.5*evdwl;
+        if (j < nlocal)
+          energy += 0.5*evdwl;
+      }
+    }
+    if (eflag_atom) {
+      if (newton_bond || i < nlocal) eatom[i] += 0.5*evdwl;
+      if (newton_bond || j < nlocal) eatom[i] += 0.5*evdwl;
+    }
+  }
+  
+  if (vflag_either) {
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        vatom[i][0] += 0.5*v[0];
+        vatom[i][1] += 0.5*v[1];
+        vatom[i][2] += 0.5*v[2];
+        vatom[i][3] += 0.5*v[3];
+        vatom[i][4] += 0.5*v[4];
+        vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        vatom[j][0] += 0.5*v[0];
+        vatom[j][1] += 0.5*v[1];
+        vatom[j][2] += 0.5*v[2];
+        vatom[j][3] += 0.5*v[3];
+        vatom[j][4] += 0.5*v[4];
+        vatom[j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AngleCGCMM::compute(int eflag, int vflag)
 {
   int i1,i2,i3,n,type;
@@ -142,7 +224,7 @@ void AngleCGCMM::compute(int eflag, int vflag)
     dtheta = acos(c) - theta0[type];
     tk = k[type] * dtheta;
 
-    if (eflag) eangle = tk*dtheta + e13;
+    if (eflag) eangle = tk*dtheta;
 
     a = -2.0 * tk * s;
     a11 = a*c / rsq1;
@@ -176,11 +258,12 @@ void AngleCGCMM::compute(int eflag, int vflag)
       f[i3][2] += f3[2] - f13*delz3;
     }
 
-    // FIXME: we'll need to override this one for accurate virial.
-    // for the time being, we hope that this contribution
-    // is very small (it should be).
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
 			 delx1,dely1,delz1,delx2,dely2,delz2);
+
+    if (evflag) ev_tally_lj13(i1,i3,nlocal,newton_bond,
+                         e13,f13,delx3,dely3,delz3);
+
   }
 }
 

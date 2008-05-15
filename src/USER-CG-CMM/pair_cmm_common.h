@@ -201,6 +201,7 @@ namespace LAMMPS_NS {
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       double qtmp = (COUL_TYPE != CG_COUL_NONE) ? q[i] : 0.0;
+
       const int itype = type[i];
       const int * const jlist = firstneigh[i];
       const int jnum = numneigh[i];

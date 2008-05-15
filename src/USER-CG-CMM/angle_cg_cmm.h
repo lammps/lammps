@@ -34,6 +34,10 @@ class AngleCGCMM : public Angle, public CGCMMParms {
   void read_restart(FILE *);
   double single(int, int, int, int);
 
+ protected:
+  void ev_tally_lj13(int, int, int, int, double, double, 
+                     double, double, double);
+  
  private:
   double *k,*theta0;
   int *cg_type;

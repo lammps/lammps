@@ -380,6 +380,7 @@ of each style or click on the style itself for a full description:
 "ave/atom"_fix_ave_atom.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
+"bond/swap"_fix_bond_swap.html,
 "com"_fix_com.html,
 "coord/original"_fix_coord_original.html,
 "deform"_fix_deform.html,

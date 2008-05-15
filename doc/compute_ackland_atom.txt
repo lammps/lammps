@@ -53,7 +53,11 @@ accessed by any command that uses per-atom computes as input.  See
 "this section"_Section_howto.html#4_15 for an overview of LAMMPS
 output options.
 
-[Restrictions:] none
+[Restrictions:]
+
+This compute is part of the "user-ackland" package.  It is only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 

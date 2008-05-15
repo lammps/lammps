@@ -106,7 +106,8 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"fix drag"_fix_drag.html, "fix spring/self"_fix_spring_self.html, "fix
-spring/rg"_fix_spring_rg.html
+"fix drag"_fix_drag.html, "fix spring/self"_fix_spring_self.html, 
+"fix spring/rg"_fix_spring_rg.html, "fix smd"_fix_smd.html
+
 
 [Default:] none

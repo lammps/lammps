@@ -133,7 +133,8 @@ solvent particles.
 
 [Related commands:]
 
-"fix ave/spatial"_fix_ave_spatial.html
+"fix ave/spatial"_fix_ave_spatial.html, "fix
+thermal/conductivity"_fix_thermal_conductivity.html
 
 [Default:]
 

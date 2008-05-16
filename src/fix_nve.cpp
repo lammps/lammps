@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix nve command");
+  if (narg < 3) error->all("Illegal fix nve command");
 
   time_integrate = 1;
 }

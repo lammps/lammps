@@ -70,10 +70,8 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   comm_forward = comm_reverse = 0;
 
   // set modify defaults
-  // should change 3 to dimension
 
-  //extra_dof = domain->dimension;
-  extra_dof = 3;
+  extra_dof = domain->dimension;
   dynamic = 0;
 
   // setup list of timesteps

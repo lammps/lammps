@@ -12,19 +12,23 @@ at.
 
 These are the included tools:
 
-amber2lammps	       python scripts for using AMBER to setup LAMMPS input
+amber2lmp	       python scripts for using AMBER to setup LAMMPS input
 binary2txt	       convert a LAMMPS dump file from binary to ASCII text
 ch2lmp		       convert CHARMM files to LAMMPS input
 chain		       create a data file of bead-spring chains
 data2xmovie	       convert a data file to a snapshot that xmovie can viz
+eam_generate	       generate EAM potential files
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
 lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz
 lmp2traj	       convert LAMMPS output to contour, density profiles
 lmp2vmd                tools for visualizing and analyzing LAMMPS data with VMD
+matlab		       MatLab scripts for post-processing LAMMPS output
 micelle2d	       create a data file of small lipid chains in solvent
 msi2lmp		       use Accelrys Insight code to setup LAMMPS input
 pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
+python		       Python scripts for post-processing LAMMPS output
 restart2data	       convert a binary restart file to an input data file
+thermo_extract	       C program for extracting thermo info from log file
 vim		       add-ons to VIM editor for editing LAMMPS input scripts
 xmovie		       a quick/simple viz package (2d projections of 3d)
 

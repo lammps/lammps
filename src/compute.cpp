@@ -120,6 +120,15 @@ void Compute::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   reset extra_dof to its default value
+------------------------------------------------------------------------- */
+
+void Compute::reset_extra_dof()
+{
+  extra_dof = domain->dimension;
+}
+
+/* ----------------------------------------------------------------------
    add ntimestep to list of timesteps the compute will be called on
    do not add if already in list
    search from top downward, since list of times is in decreasing order

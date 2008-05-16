@@ -28,6 +28,7 @@
 #include "pair.h"
 #include "min.h"
 #include "modify.h"
+#include "compute.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -802,6 +803,14 @@ void Input::dimension()
   if (domain->box_exist) 
     error->all("Dimension command after simulation box is defined");
   domain->dimension = atoi(arg[0]);
+  if (domain->dimension != 2 && domain->dimension != 3)
+    error->all("Illegal dimension command");
+
+  // must reset default extra_dof of all computes
+  // since some were created before dimension command is encountered
+
+  for (int i = 0; i < modify->ncompute; i++)
+    modify->compute[i]->reset_extra_dof();
 }
 
 /* ---------------------------------------------------------------------- */

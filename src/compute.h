@@ -58,12 +58,14 @@ class Compute : protected Pointers {
 
   double dof;         // degrees-of-freedom for temperature
 
-  int comm_forward;     // size of forward communication (0 if none)
-  int comm_reverse;     // size of reverse communication (0 if none)
+  int comm_forward;   // size of forward communication (0 if none)
+  int comm_reverse;   // size of reverse communication (0 if none)
 
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);
+  void reset_extra_dof();
+
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}
   virtual double compute_scalar() {return 0.0;}

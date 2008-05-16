@@ -134,7 +134,7 @@ commands)
 <LI>  water potentials: TIP3P, TIP4P, SPC
 <LI>  implicit solvent potentials: hydrodynamic lubrication, Debye
 <LI>  long-range Coulombics and dispersion: Ewald,     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-<LI>  CHARMM, AMBER, OPLS force-field compatibility 
+<LI>  CHARMM, AMBER, OPLS, GROMACS, force-field compatibility 
 </UL>
 <H4>Creation of atoms: 
 </H4>
@@ -155,13 +155,13 @@ commands)
 <LI>  orthogonal or non-orthogonal (triclinic symmetry) simulation domains
 <LI>  constant NVE, NVT, NPT, NPH integrators
 <LI>  thermostatting options for groups and geometric regions of atoms
-<LI>  pressure control via Nose/Hoover barostatting in 1 to 3 dimensions
+<LI>  pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
 <LI>  simulation box deformation (tensile and shear)
 <LI>  harmonic (umbrella) constraint forces
 <LI>  independent or coupled rigid body integration
 <LI>  SHAKE bond and angle constraints
 <LI>  walls of various kinds
-<LI>  targeted molecular dynamics (TMD) constraints
+<LI>  targeted molecular dynamics (TMD) and steered molecule dynamics (SMD) constraints
 <LI>  non-equilibrium molecular dynamics (NEMD)
 <LI>  variety of additional boundary conditions and constraints 
 </UL>
@@ -455,6 +455,12 @@ the list.
 
 
 <DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >fix smd for steered MD </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>
+<TR><TD >GROMACS pair potentials </TD><TD > Mark Stevens (Sandia)</TD></TR>
+<TR><TD >lmp2vmd tool </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>
+<TR><TD >compute group/group </TD><TD > Naveen Michaud-Agrawal (Johns Hopkins U)</TD></TR>
+<TR><TD >CG-CMM user package for coarse-graining </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>
+<TR><TD >cosine/delta angle potential </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>
 <TR><TD >VIM editor add-ons for LAMMPS input scripts </TD><TD > Gerolf Ziegenhain</TD></TR>
 <TR><TD >pair lubricate </TD><TD > Randy Schunk (Sandia)</TD></TR>
 <TR><TD >compute ackland/atom </TD><TD > Gerolf Zeigenhain</TD></TR>

@@ -136,7 +136,7 @@ commands)
   implicit solvent potentials: hydrodynamic lubrication, Debye
   long-range Coulombics and dispersion: Ewald, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-  CHARMM, AMBER, OPLS force-field compatibility :ul
+  CHARMM, AMBER, OPLS, GROMACS, force-field compatibility :ul
 
 Creation of atoms: :h4
 ("read_data"_read_data.html, "lattice"_lattice.html,
@@ -155,13 +155,13 @@ Ensembles, constraints, and boundary conditions: :h4
   orthogonal or non-orthogonal (triclinic symmetry) simulation domains
   constant NVE, NVT, NPT, NPH integrators
   thermostatting options for groups and geometric regions of atoms
-  pressure control via Nose/Hoover barostatting in 1 to 3 dimensions
+  pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
   simulation box deformation (tensile and shear)
   harmonic (umbrella) constraint forces
   independent or coupled rigid body integration
   SHAKE bond and angle constraints
   walls of various kinds
-  targeted molecular dynamics (TMD) constraints
+  targeted molecular dynamics (TMD) and steered molecule dynamics (SMD) constraints
   non-equilibrium molecular dynamics (NEMD)
   variety of additional boundary conditions and constraints :ul
 
@@ -441,6 +441,12 @@ the list.
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
+fix smd for steered MD : Axel Kohlmeyer (U Penn)
+GROMACS pair potentials : Mark Stevens (Sandia)
+lmp2vmd tool : Axel Kohlmeyer (U Penn)
+compute group/group : Naveen Michaud-Agrawal (Johns Hopkins U)
+CG-CMM user package for coarse-graining : Axel Kohlmeyer (U Penn)
+cosine/delta angle potential : Axel Kohlmeyer (U Penn)
 VIM editor add-ons for LAMMPS input scripts : Gerolf Ziegenhain
 pair lubricate : Randy Schunk (Sandia)
 compute ackland/atom : Gerolf Zeigenhain

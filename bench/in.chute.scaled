@@ -26,9 +26,11 @@ neigh_modify	exclude group bottom bottom
 
 fix		1 all gravity 1.0 chute 26.0
 fix		2 bottom freeze
-fix		3 active nve/gran
+fix		3 active nve/sphere
 
-thermo_style	granular
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo_modify	norm no
 thermo		100
 
 run		100

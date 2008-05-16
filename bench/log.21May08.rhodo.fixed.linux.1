@@ -1,4 +1,4 @@
-LAMMPS (22 Jan 2008)
+LAMMPS (21 May 2008)
 # Rhodopsin model
 
 units           real  
@@ -19,7 +19,7 @@ read_data       data.rhodo
   18 = max dihedrals/atom
   2 = max impropers/atom
   orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
-  1 by 2 by 2 processor grid
+  1 by 1 by 1 processor grid
   32000 atoms
   32000 velocities
   27723 bonds
@@ -49,45 +49,45 @@ PPPM initialization ...
   G vector = 0.248831
   grid = 25 32 32
   RMS precision = 7.57143e-05
-  brick FFT buffer size/proc = 13230 6400 5670
-Memory usage per processor = 47.7552 Mbytes
+  brick FFT buffer size/proc = 41070 25600 12321
+Memory usage per processor = 124.369 Mbytes
 ---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
 TotEng   =    -25356.2081 KinEng   =     21444.8313 Temp     =       299.0397 
 PotEng   =    -46801.0393 E_bond   =      2537.9940 E_angle  =     10921.3742 
 E_dihed  =      5211.7865 E_impro  =       213.5116 E_vdwl   =     -2307.8634 
 E_coul   =    207021.6578 E_long   =   -270399.5000 Press    =      -142.6055 
 Volume   =    307995.0335 
----------------- Step       50 ----- CPU =      9.2501 (sec) ----------------
+---------------- Step       50 ----- CPU =     37.2713 (sec) ----------------
 TotEng   =    -25330.0565 KinEng   =     21501.0002 Temp     =       299.8229 
 PotEng   =    -46831.0567 E_bond   =      2471.7010 E_angle  =     10836.4978 
 E_dihed  =      5239.6302 E_impro  =       227.1217 E_vdwl   =     -1993.2861 
 E_coul   =    206793.4380 E_long   =   -270406.1593 Press    =       237.6633 
 Volume   =    308031.6776 
----------------- Step      100 ----- CPU =     18.7659 (sec) ----------------
+---------------- Step      100 ----- CPU =     75.1959 (sec) ----------------
 TotEng   =    -25290.7382 KinEng   =     21592.0112 Temp     =       301.0920 
-PotEng   =    -46882.7494 E_bond   =      2567.9820 E_angle  =     10781.9426 
+PotEng   =    -46882.7493 E_bond   =      2567.9820 E_angle  =     10781.9426 
 E_dihed  =      5198.7430 E_impro  =       216.7831 E_vdwl   =     -1902.4962 
-E_coul   =    206655.0352 E_long   =   -270400.7391 Press    =         6.9485 
+E_coul   =    206655.0353 E_long   =   -270400.7390 Press    =         6.9485 
 Volume   =    308134.2307 
-Loop time of 18.7664 on 4 procs for 100 steps with 32000 atoms
+Loop time of 75.1959 on 1 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 12.4306 (66.2387)
-Bond  time (%) = 0.672617 (3.58415)
-Kspce time (%) = 2.40555 (12.8184)
-Neigh time (%) = 1.92536 (10.2596)
-Comm  time (%) = 0.438069 (2.33432)
-Outpt time (%) = 0.00159127 (0.00847933)
-Other time (%) = 0.892596 (4.75635)
+Pair  time (%) = 55.4662 (73.7622)
+Bond  time (%) = 2.72389 (3.62239)
+Kspce time (%) = 6.22886 (8.2835)
+Neigh time (%) = 8.4082 (11.1817)
+Comm  time (%) = 0.208787 (0.277658)
+Outpt time (%) = 0.000394106 (0.000524105)
+Other time (%) = 2.15962 (2.87199)
 
-FFT time (% of Kspce) = 0.331501 (13.7806)
-FFT Gflps 3d 1d-only = 1.56771 6.70967
+FFT time (% of Kspce) = 0.433197 (6.95468)
+FFT Gflps 3d 1d-only = 1.19968 1.74734
 
-Nlocal:    8000 ave 8143 max 7933 min
-Histogram: 1 2 0 0 0 0 0 0 0 1
-Nghost:    22733.5 ave 22769 max 22693 min
-Histogram: 1 0 0 0 0 2 0 0 0 1
-Neighs:    3.00702e+06 ave 3.0975e+06 max 2.96493e+06 min
-Histogram: 1 2 0 0 0 0 0 0 0 1
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    47958 ave 47958 max 47958 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.20281e+07 ave 1.20281e+07 max 1.20281e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 12028097
 Ave neighs/atom = 375.878

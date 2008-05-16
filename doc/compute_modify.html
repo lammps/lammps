@@ -43,8 +43,9 @@ all compute styles support all parameters.
 <P>The <I>extra</I> keyword refers to how many degrees-of-freedom are
 subtracted (typically from 3N) as a normalizing factor in a
 temperature computation.  Only computes that compute a temperature use
-this option.  The default is 3 which is a correction factor for an
-ensemble of velocities with zero total linear momentum.
+this option.  The default is 2 or 3 for <A HREF = "dimension.html">2d or 3d
+systems</A> which is a correction factor for an ensemble
+of velocities with zero total linear momentum.
 </P>
 <P>The <I>dynamic</I> keyword determines whether the number of atoms N in the
 compute group is re-computed each time a temperature is computed.
@@ -69,8 +70,8 @@ fixes</A> for details.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are extra = 3 and dynamic = no.  Thermo is <I>yes</I> if
-the compute of style <I>pe</I> was defined with no extra keywords; otherwise
-it is <I>no</I>.
+<P>The option defaults are extra = 2 or 3 for 2d or 3d systems and
+dynamic = no.  Thermo is <I>yes</I> if the compute of style <I>pe</I> was
+defined with no extra keywords; otherwise it is <I>no</I>.
 </P>
 </HTML>

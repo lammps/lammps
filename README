@@ -1,4 +1,4 @@
-This is the LAMMPS (22 Jan 2008) software package.
+This is the LAMMPS (21 May 2008) software package.
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
@@ -21,7 +21,7 @@ at sjplimp@sandia.gov.  The LAMMPS WWW Site at
 www.cs.sandia.gov/~sjplimp/lammps.html has more information about the
 code and its uses.
 
-The LAMMPS (22 Jan 2008) distribution includes the following files
+The LAMMPS (21 May 2008) distribution includes the following files
 and directories:
 
 README			   this file

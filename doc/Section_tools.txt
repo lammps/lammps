@@ -39,7 +39,7 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Some of them are larger packages in their
 own sub-directories with their own Makefiles.
 
-"amber2lammps"_#amber
+"amber2lmp"_#amber
 "binary2txt"_#binary
 "ch2lmp"_#charmm
 "chain"_#chain

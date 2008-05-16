@@ -45,7 +45,7 @@ int FixEnforce2D::setmask()
 void FixEnforce2D::init()
 {
   if (domain->dimension == 3)
-    error->all("Should not use fix enforce2d with 3d simulation");
+    error->all("Cannot use fix enforce2d with 3d simulation");
 }
 
 /* ---------------------------------------------------------------------- */

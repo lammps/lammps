@@ -50,7 +50,7 @@ fix_modify   2 temp mobile
 #fix	     3 boundary setforce 0.0 0.0 0.0
 #fix	     4 all enforce2d
 
-# Poiseuille flow
+# Poisseuille flow
 
 velocity     boundary set 0.0 0.0 0.0
 fix	     3 lower setforce 0.0 0.0 0.0

@@ -1,0 +1,137 @@
+LAMMPS (21 May 2008)
+# Pour granular particles into chute container, then induce flow
+
+atom_style	granular
+boundary	p p fm
+newton		off
+
+region		reg block -10 10 -10 10 -0.5 16 units box
+create_box	1 reg
+Created orthogonal box = (-10 -10 -0.5) to (10 10 16)
+  2 by 2 by 1 processor grid
+
+neighbor	0.2 bin
+neigh_modify	delay 0
+
+# IMPORTANT NOTE: these values of stiffness (2000) and timestep (0.001)
+# are used in this example file to produce a quick simulation and movie.
+# More appropriate values for realistic simulations would be
+# k = 2.0e5 and dt = 0.0001, as in bench/in.chute.
+
+pair_style      gran/history 2000.0 50.0 0.5 0
+timestep	0.001
+
+fix		1 all nve/sphere
+fix		2 all gravity 1.0 spherical 0.0 -180.0
+fix		zlower all wall/gran zplane 0.0 2000.0 50.0 0.5
+
+region		slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box
+fix		ins all pour 3000 1 300719 vol 0.13 50 region slab
+Particle insertion: 402 every 3162 steps, 3000 by step 22135
+
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo		1000
+thermo_modify	lost ignore norm no
+compute_modify	thermo_temp dynamic yes
+
+dump		id all atom 1000 dump.pour
+run		25000
+Memory usage per processor = 3.14935 Mbytes
+Step Atoms KinEng 1 Volume 
+       0        0           -0            0         6600 
+    1000      402    779.98578            0         6600 
+    2000      402    1424.4252            0         6600 
+    3000      402    1424.6738    13.243803         6600 
+    4000      804    1725.4319    47.250762         6600 
+    5000      804    1605.2015    60.084404         6600 
+    6000      804    1371.3425    69.247899         6600 
+    7000     1206    1524.3574    74.071529         6600 
+    8000     1206    1418.8999    60.727347         6600 
+    9000     1206    1258.0064    51.943448         6600 
+   10000     1608    1391.6571    50.505619         6600 
+   11000     1608    1232.8265    50.877674         6600 
+   12000     1608    1195.2804    46.358334         6600 
+   13000     2010    1315.8232    49.633638         6600 
+   14000     2010    1171.0007    43.965336         6600 
+   15000     2010    984.42685    42.714353         6600 
+   16000     2412    1028.8418    41.732668         6600 
+   17000     2412    1016.9257    44.039977         6600 
+   18000     2412    911.33181    36.804113         6600 
+   19000     2814    1002.0117    38.864202         6600 
+   20000     2814    960.38825    45.167894         6600 
+   21000     2814    747.55191    45.970768         6600 
+   22000     2814    523.67155    43.946925         6600 
+   23000     3000    438.80433    35.866677         6600 
+   24000     3000    350.60693    23.380222         6600 
+   25000     3000    232.00186     22.76523         6600 
+Loop time of 12.3364 on 4 procs for 25000 steps with 3000 atoms
+
+Pair  time (%) = 3.62034 (29.3469)
+Neigh time (%) = 0.423409 (3.4322)
+Comm  time (%) = 4.89279 (39.6614)
+Outpt time (%) = 0.0863795 (0.700201)
+Other time (%) = 3.31347 (26.8593)
+
+Nlocal:    750 ave 763 max 730 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Nghost:    393.25 ave 404 max 387 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+Neighs:    3584.25 ave 3654 max 3500 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+
+Total # of neighbors = 14337
+Ave neighs/atom = 4.779
+Neighbor list builds = 1151
+Dangerous builds = 0
+
+unfix		ins
+fix		2 all gravity 1.0 chute 26.0
+run		25000
+Memory usage per processor = 9.68018 Mbytes
+Step Atoms KinEng 1 Volume 
+   25000     3000    232.00186     22.76523         6600 
+   26000     3000    106.03482    19.110968         6600 
+   27000     3000    117.35702    11.863221         6600 
+   28000     3000    210.16302    11.734546         6600 
+   29000     3000    364.51031    13.978019         6600 
+   30000     3000    615.67035    19.096214         6600 
+   31000     3000    903.47015    29.320372         6600 
+   32000     3000    1251.3923    32.674763         6600 
+   33000     3000    1705.6441     43.39215         6600 
+   34000     3000    2196.1688    50.259234         6600 
+   35000     3000    2774.3046    56.750935         6600 
+   36000     3000    3390.0639    66.826889         6600 
+   37000     3000    4108.0306    80.340967         6600 
+   38000     3000    4931.8421    82.362753         6600 
+   39000     3000    5798.3775    99.330342         6600 
+   40000     3000    6729.1245    110.92274         6600 
+   41000     3000    7780.6383    123.43956         6600 
+   42000     3000    8927.2592    135.00244         6600 
+   43000     3000    10032.341    144.35759         6600 
+   44000     3000    11220.512    163.73946         6600 
+   45000     3000    12527.526    182.56044         6600 
+   46000     3000    14021.788    208.42883         6600 
+   47000     3000    15724.627     221.7706         6600 
+   48000     3000    17394.628    231.95039         6600 
+   49000     3000    19056.668    255.27889         6600 
+   50000     3000    20908.007    287.26263         6600 
+Loop time of 18.252 on 4 procs for 25000 steps with 3000 atoms
+
+Pair  time (%) = 7.67562 (42.0535)
+Neigh time (%) = 0.668073 (3.66027)
+Comm  time (%) = 5.45432 (29.8833)
+Outpt time (%) = 0.128624 (0.704711)
+Other time (%) = 4.3254 (23.6982)
+
+Nlocal:    750 ave 760 max 743 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+Nghost:    406 ave 408 max 402 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:    3714 ave 3765 max 3659 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 14856
+Ave neighs/atom = 4.952
+Neighbor list builds = 850
+Dangerous builds = 0

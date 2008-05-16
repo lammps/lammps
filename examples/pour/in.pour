@@ -25,8 +25,8 @@ fix		zlower all wall/gran zplane 0.0 2000.0 50.0 0.5
 region		slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box
 fix		ins all pour 3000 1 300719 vol 0.13 50 region slab
 
-compute		erot all erotate/sphere
-thermo_style	custom step atoms ke c_erot vol
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
 thermo		1000
 thermo_modify	lost ignore norm no
 compute_modify	thermo_temp dynamic yes

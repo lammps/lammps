@@ -264,6 +264,14 @@ The data file header lists angles but no angle types. :dd
 Cannot attempt to open a 2nd input script, when the original file is
 still being processed. :dd
 
+{Arccos of invalid value in variable formula} :dt
+
+Argument of arccos() must be between -1 and 1. :dd
+
+{Arcsin of invalid value in variable formula} :dt
+
+Argument of arcsin() must be between -1 and 1. :dd
+
 {Atom IDs must be consecutive for dump dcd} :dt
 
 Self-explanatory. :dd
@@ -273,6 +281,10 @@ Self-explanatory. :dd
 Self-explanatory. :dd
 
 {Atom IDs must be consecutive for dump xyz} :dt
+
+Self-explanatory. :dd
+
+{Atom IDs must be consecutive for velocity create loop all} :dt
 
 Self-explanatory. :dd
 
@@ -329,14 +341,27 @@ be computed. :dd
 The 3d grid of processors defined by the processors command does not
 match the number of processors LAMMPS is being run on. :dd
 
+{Bad kspace_modify slab parameter} :dt
+
+Kspace_modify value for the slab/volume keyword must be >= 2.0. :dd
+
 {Bad principal moments} :dt
 
 Fix rigid did not compute the principal moments of inertia of a rigid
 group of atoms correctly. :dd
 
-{Bad slab parameter} :dt
+{Bias compute does not calculate a velocity bias} :dt
 
-Kspace_modify value for the slab/volume keyword must be >= 2.0. :dd
+The specified compute must compute a bias for temperature. :dd
+
+{Bias compute does not calculate temperature} :dt
+
+The specified compute must compute temperature. :dd
+
+{Bias compute group does not match compute group} :dt
+
+The specified compute must operate on the same group as the parent
+compute. :dd
 
 {Bitmapped lookup tables require int/float be same size} :dt
 
@@ -446,10 +471,6 @@ or create_box command. :dd
 
 The box boundaries specified in the read_data file are invalid.  The
 lo value must be less than the hi value for all 3 dimensions. :dd
-
-{Can only wiggle zcylinder wall in z dim} :dt
-
-The Self-explanatory. :dd
 
 {Cannot (yet) use PPPM with triclinic box} :dt
 
@@ -746,10 +767,6 @@ This feature is not yet supported. :dd
 The kspace style pppm cannot be used in 2d simulations.  You can use
 2d PPPM in a 3d simulation; see the kspace_modify command. :dd
 
-{Cannot use both region, partial options in fix temp/rescale} :dt
-
-Self-explanatory. :dd
-
 {Cannot use delete_atoms unless atoms have IDs} :dt
 
 Your atoms do not have IDs, so the delete_atoms command cannot be
@@ -774,10 +791,9 @@ an atom map to be created. :dd
 
 The trate style alters the current strain. :dd
 
-{Cannot use fix langevin without per-type mass defined} :dt
+{Cannot use fix enforce2d with 3d simulation} :dt
 
-Some atom styles use a per-atom mass which is incompatible with fix
-langevin. :dd
+Self-explanatory. :dd
 
 {Cannot use fix nph on a non-periodic dimension} :dt
 
@@ -816,9 +832,29 @@ The defined atom style uses per-atom mass, not per-type mass. :dd
 
 This feature is not yet supported. :dd
 
+{Cannot use fix press/berendsen and fix deform on same dimension} :dt
+
+Self-explanatory. :dd
+
+{Cannot use fix press/berendsen on a non-periodic dimension} :dt
+
+Self-explanatory. :dd
+
+{Cannot use fix press/berendsen with triclinic box} :dt
+
+Self-explanatory. :dd
+
+{Cannot use fix press/berendsen without per-type mass defined} :dt
+
+Self-explanatory. :dd
+
 {Cannot use fix shake with non-molecular system} :dt
 
 Your choice of atom style does not have bonds. :dd
+
+{Cannot use fix temp/berendsen without per-type mass defined} :dt
+
+Self-explanatory. :dd
 
 {Cannot use kspace solver on system with no charge} :dt
 
@@ -860,14 +896,13 @@ Atom IDs are not defined, so they cannot be used to identify an atom. :dd
 Atoms in the simulation to do not have IDs, so this style
 of velocity creation cannot be performed. :dd
 
-{Cannot use velocity create loop all with non-contiguous atom IDs} :dt
-
-Atoms in the simulation to do not have consecutive IDs, so this style
-of velocity creation cannot be performed. :dd
-
 {Cannot use wall in periodic dimension} :dt
 
 Self-explanatory. :dd
+
+{Cannot wiggle and shear fix wall/gran} :dt
+
+Cannot specify both options at the same time. :dd
 
 {Cannot zero momentum of 0 atoms} :dt
 
@@ -883,7 +918,11 @@ Self-explanatory. :dd
 Cannot change orthogonal box to orthogonal or a triclinic box to
 triclinic. :dd
 
-{Compute ID for compute sum does not exist} :dt
+{Communicate group != atom_modify first group} :dt
+
+Self-explanatory. :dd
+
+{Compute ID for compute reduce does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -908,6 +947,38 @@ Self-explanatory. :dd
 Cannot compute coordination at distances longer than the pair cutoff,
 since those atoms are not in the neighbor list. :dd
 
+{Compute erotate/asphere requires atom attribute shape} :dt
+
+An atom style that specifies atom shape is needed. :dd
+
+{Compute erotate/asphere requires atom attributes angmom, quat} :dt
+
+An atom style is needed that has these attributes. :dd
+
+{Compute erotate/sphere requires atom attribute omega} :dt
+
+An atom style is needed that has this attribute. :dd
+
+{Compute erotate/sphere requires atom attribute shape} :dt
+
+An atom style that specifies atom shape is needed. :dd
+
+{Compute erotate/sphere requires atom attributes radius, rmass} :dt
+
+An atom style is needed that has these attributes. :dd
+
+{Compute erotate/sphere requires spherical particle shapes} :dt
+
+Self-explanatory. :dd
+
+{Compute group/group group ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Compute group/group requires pair style be defined} :dt
+
+Self-explanatory. :dd
+
 {Compute in variable formula before initial run} :dt
 
 Calculating this compute before the first run is not allowed because
@@ -928,49 +999,53 @@ computed on all atoms. :dd
 The compute ID assigned to a pressure computation must compute
 temperature. :dd
 
-{Compute rotate/dipole requires atom attributes dipole, omega} :dt
+{Compute reduce compute does not calculate a per-atom scalar} :dt
 
-The atom style defined does not have these attributes. :dd
+Self-explanatory. :dd
 
-{Compute sum compute does not calculate a per-atom scalar} :dt
+{Compute reduce compute does not calculate a per-atom vector} :dt
 
-A compute accessed by compute sum must produce per-atom values. :dd
+Self-explanatory. :dd
 
-{Compute sum compute does not calculate a per-atom vector} :dt
+{Compute reduce compute does not calculate per-atom values} :dt
 
-A compute accessed by compute sum must produce per-atom values. :dd
+Self-explanatory. :dd
 
-{Compute sum compute does not calculate per-atom values} :dt
+{Compute reduce fix does not calculate a per-atom scalar} :dt
 
-A compute accessed by compute sum must produce per-atom values. :dd
+Self-explanatory. :dd
 
-{Compute sum fix does not calculate a per-atom scalar} :dt
+{Compute reduce fix does not calculate a per-atom vector} :dt
 
-A fix accessed by compute sum must produce per-atom values. :dd
+Self-explanatory. :dd
 
-{Compute sum fix does not calculate a per-atom vector} :dt
+{Compute reduce fix does not calculate per-atom values} :dt
 
-A fix accessed by compute sum must produce per-atom values. :dd
+Self-explanatory. :dd
 
-{Compute sum fix does not calculate per-atom values} :dt
+{Compute reduce variable is not atom-style variable} :dt
 
-A fix accessed by compute sum must produce per-atom values. :dd
-
-{Compute sum variable is not atom-style variable} :dt
-
-A variable accessed by compute sum must produce per-atom values. :dd
+Self-explanatory. :dd
 
 {Compute temp/asphere requires atom attributes quat, angmom} :dt
 
 The atom style defined does not have these attributes. :dd
 
-{Compute temp/dipole requires atom attributes omega, shape} :dt
+{Compute temp/sphere requires atom attribute omega} :dt
 
-The atom style defined does not have these attributes. :dd
+An atom style is needed that has this attributes. :dd
+
+{Compute temp/sphere requires spherical particle shapes} :dt
+
+Self-explanatory. :dd
 
 {Compute vector in variable formula is too small} :dt
 
 The index to the vector is out of bounds. :dd
+
+{Computed temperature for fix temp/berendsen cannot be 0.0} :dt
+
+Self-explanatory. :dd
 
 {Could not create 3d FFT plan} :dt
 
@@ -979,6 +1054,14 @@ The FFT setup in pppm failed. :dd
 {Could not create 3d remap plan} :dt
 
 The FFT setup in pppm failed. :dd
+
+{Could not find atom_modify first group ID} :dt
+
+Self-explanatory. :dd
+
+{Could not find compute ID for temperature bias} :dt
+
+Self-explanatory. :dd
 
 {Could not find compute ID to delete} :dt
 
@@ -1032,10 +1115,6 @@ Self-explanatory. :dd
 {Could not find dump group ID} :dt
 
 A group ID used in the dump command does not exist. :dd
-
-{Could not find dump_modify ID} :dt
-
-Self-explanatory. :dd
 
 {Could not find fix ID to delete} :dt
 
@@ -1099,16 +1178,6 @@ Self-explanatory. :dd
 
 Fix ID specified in thermo_style command does not exist. :dd
 
-{Could not find thermo_modify drot ID} :dt
-
-The compute ID needed by thermo style custom to compute rotational
-energy of dipolar atoms does not exist. :dd
-
-{Could not find thermo_modify grot ID} :dt
-
-The compute ID needed by thermo style custom to compute rotational
-energy of granular atoms does not exist. :dd
-
 {Could not find thermo_modify press ID} :dt
 
 The compute ID needed by thermo style custom to compute pressure does
@@ -1136,6 +1205,10 @@ does not exist. :dd
 
 If using a Kspace solver, all Coulomb cutoffs of long pair styles must
 be the same. :dd
+
+{Cound not find dump_modify ID} :dt
+
+Self-explanatory. :dd
 
 {Create_atoms command before simulation box is defined} :dt
 
@@ -1404,7 +1477,7 @@ smaller simulation or on more processors. :dd
 
 Self-explanatory. :dd
 
-{Fix ID for compute sum does not exist} :dt
+{Fix ID for compute reduce does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -1536,6 +1609,18 @@ The index for the vector is out of bounds. :dd
 
 A variable used by fix ave/time must generate a global value. :dd
 
+{Fix bond/swap cannot use dihedral or improper styles} :dt
+
+These styles cannot be defined when using this fix. :dd
+
+{Fix bond/swap requires pair and bond styles} :dt
+
+Self-explanatory. :dd
+
+{Fix bond/swap requires special_bonds = 0,1,1} :dt
+
+Self-explanatory. :dd
+
 {Fix command before simulation box is defined} :dt
 
 The fix command cannot be used before a read_data, read_restart, or
@@ -1597,10 +1682,6 @@ requesting the values on a non-allowed timestep. :dd
 
 The time window for temperature relaxation must be > 0 :dd
 
-{Fix langevin region ID does not exist} :dt
-
-Self-explanatory. :dd
-
 {Fix momentum group has no atoms} :dt
 
 Self-explanatory. :dd
@@ -1617,9 +1698,49 @@ The time window for pressure relaxation must be > 0 :dd
 
 The time window for temperature or pressure relaxation must be > 0 :dd
 
+{Fix npt/sphere requires atom attribute shape} :dt
+
+An atom style that specifies atom shape is needed. :dd
+
+{Fix npt/sphere requires spherical particle shapes} :dt
+
+Self-explanatory. :dd
+
+{Fix nve/sphere requires atom attribute mu} :dt
+
+An atom style with this attribute is needed. :dd
+
+{Fix nve/sphere requires atom attribute shape} :dt
+
+An atom style with this attribute is needed. :dd
+
+{Fix nve/sphere requires atom attributes omega, torque} :dt
+
+An atom style with these attributes is needed. :dd
+
+{Fix nve/sphere requires atom attributes radius, rmass} :dt
+
+An atom style with these attributes is needed. :dd
+
+{Fix nve/sphere requires spherical particle shapes} :dt
+
+Self-explanatory. :dd
+
 {Fix nvt period must be > 0.0} :dt
 
 The time window for temperature relaxation must be > 0 :dd
+
+{Fix nvt/sphere requires atom attribute shape} :dt
+
+An atom style with this attribute is needed. :dd
+
+{Fix nvt/sphere requires atom attributes omega, torque} :dt
+
+An atom style with these attributes is needed. :dd
+
+{Fix nvt/sphere requires spherical particle shapes} :dt
+
+Self-explanatory. :dd
 
 {Fix orient/fcc file open failed} :dt
 
@@ -1644,6 +1765,10 @@ Self-explanatory. :dd
 
 The atom style defined does not have these attributes. :dd
 
+{Fix press/berendsen period must be > 0.0} :dt
+
+Self-explanatory. :dd
+
 {Fix rdf requires a pair style be defined} :dt
 
 Cannot use the rdf fix unless a pair style with a cutoff has been
@@ -1658,7 +1783,11 @@ Self-explanatory. :dd
 Cannot use fix shake while doing an energy minimization since
 it turns off bonds that should contribute to the energy. :dd
 
-{Fix temp/rescale region ID does not exist} :dt
+{Fix temp/berendsen period must be > 0.0} :dt
+
+Self-explanatory. :dd
+
+{Fix thermal/conductivity swap value must be positive} :dt
 
 Self-explanatory. :dd
 
@@ -1668,7 +1797,7 @@ Any fix tmd command must appear in the input script after all time
 integration fixes (nve, nvt, npt).  See the fix tmd documentation for
 details. :dd
 
-{Fix used in compute sum not computed at compatible time} :dt
+{Fix used in compute reduce not computed at compatible time} :dt
 
 Fixes generate their values on specific timesteps.  Compute sum is
 requesting a value on a non-allowed timestep. :dd
@@ -1676,6 +1805,14 @@ requesting a value on a non-allowed timestep. :dd
 {Fix vector in variable formula is too small} :dt
 
 Index into vector is out of bounds. :dd
+
+{Fix viscosity swap value must be positive} :dt
+
+Self-explanatory. :dd
+
+{Fix viscosity vtarget value must be positive} :dt
+
+Self-explanatory. :dd
 
 {Fix wall/gran is incompatible with Pair style} :dt
 
@@ -2147,7 +2284,7 @@ or cause multiple files to be written. :dd
 Filenames used with the dump xyz style cannot be binary or cause files
 to be written by each processor. :dd
 
-{Invalid dump_modify threshold operator} :dt
+{Invalid dump_modify threshhold operator} :dt
 
 Operator keyword used for threshold specification in not recognized. :dd
 
@@ -2159,9 +2296,28 @@ The fix is not recognized. :dd
 
 Cannot use style xy, yz, or xz for a 2d simulation. :dd
 
+{Invalid fix nph command pressure settings} :dt
+
+Pressure settings for different components must be the same if
+the components are coupled. :dd
+
 {Invalid fix npt command for a 2d simulation} :dt
 
 Cannot use style xy, yz, or xz for a 2d simulation. :dd
+
+{Invalid fix npt command pressure settings} :dt
+
+Pressure settings for different components must be the same if
+the components are coupled. :dd
+
+{Invalid fix press/berendsen command for a 2d simulation} :dt
+
+Can only use xyz or aniso styles in 2d. :dd
+
+{Invalid fix press/berendsen command pressure settings} :dt
+
+Pressure settings for different components must be the same if
+the components are coupled. :dd
 
 {Invalid fix style used in compute displace/atom command} :dt
 
@@ -2186,6 +2342,10 @@ Unrecognized entry in restart file. :dd
 {Invalid frequency in temper command} :dt
 
 Nevery must be > 0. :dd
+
+{Invalid group ID in communicate command} :dt
+
+Self-explanatory. :dd
 
 {Invalid group ID in neigh_modify command} :dt
 
@@ -2295,6 +2455,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Invalid shear direction for fix wall/gran} :dt
+
+Self-explanatory. :dd
+
 {Invalid style in pair_write command} :dt
 
 Self-explanatory.  Check the input script. :dd
@@ -2346,6 +2510,10 @@ Variable name used in an input script line is invalid. :dd
 
 Variable styles {equal} and {world} cannot be used in a next
 command. :dd
+
+{Invalid wiggle direction for fix wall/gran} :dt
+
+Self-explanatory. :dd
 
 {Invoked pair single on pair style none} :dt
 
@@ -2613,6 +2781,10 @@ be oriented along the z dimension. :dd
 TIP4P potentials assume angles in water are constrained by a fix shake
 command. :dd
 
+{Must use atom style with molecule IDs with fix efield} :dt
+
+Self-explanatory. :dd
+
 {Must use charged atom style with fix efield} :dt
 
 The atom style being used does not allow atoms to have assigned
@@ -2646,6 +2818,10 @@ when using bond style quartic. :dd
 
 The header of the data file indicated that bonds or angles or
 dihedrals or impropers would be included, but they were not present. :dd
+
+{Neigh_modify include group != atom_modify first group} :dt
+
+Self-explanatory. :dd
 
 {Neighbor delay must be 0 or multiple of every setting} :dt
 
@@ -2774,6 +2950,10 @@ Two atoms are closer together than the pairwise table allows. :dd
 
 Two atoms are further apart than the pairwise table allows. :dd
 
+{Pair dpd requires ghost atoms store velocity} :dt
+
+An atom style that stores this, like atom_style dpd, must be used. :dd
+
 {Pair gayberne epsilon a,b,c coeffs are not all set} :dt
 
 Each atom type involved in pair_style gayberne must
@@ -2786,6 +2966,11 @@ The atom style defined does not have these attributes. :dd
 {Pair granular requires atom attributes radius, omega, torque} :dt
 
 The atom style defined does not have these attributes. :dd
+
+{Pair granular requires ghost atoms store velocity} :dt
+
+An atom style that stores this, like atom_style granular, must be
+used. :dd
 
 {Pair hybrid sub-style is not used} :dt
 
@@ -2800,10 +2985,6 @@ rRESPA cutoffs. :dd
 {Pair inner cutoff >= Pair outer cutoff} :dt
 
 The specified cutoffs for the pair style are inconsistent. :dd
-
-{Pair lubricate only available for 3d} :dt
-
-Self-explanatory. :dd
 
 {Pair lubricate requires atom attributes torque, shape} :dt
 
@@ -2887,11 +3068,6 @@ not be invoked by the pair_write command. :dd
 You are attempting to use rRESPA options with a pair style that
 does not support them. :dd
 
-{Pair style dpd requires atom style dpd} :dt
-
-Must use atom_style dpd or atom_style hybrid with dpd as a sub-style
-in order to use this pair style. :dd
-
 {Pair style granular with history requires atoms have IDs} :dt
 
 Atoms in the simulation do not have IDs, so history effects
@@ -2953,6 +3129,10 @@ The atom style defined does not have these attributes. :dd
 This is because the computation of constraint forces within a water
 molecule adds forces to atoms owned by other processors. :dd
 
+{Pair style lj/gromacs/coul/gromacs requires atom attribute q} :dt
+
+An atom_style with this attribute is needed. :dd
+
 {Pair table cutoffs must all be equal to use with KSpace} :dt
 
 When using pair style table with a long-range KSpace solver, the
@@ -3013,6 +3193,11 @@ The compute ID needed to compute pressure for the fix does not
 exist. :dd
 
 {Press ID for fix npt does not exist} :dt
+
+The compute ID needed to compute pressure for the fix does not
+exist. :dd
+
+{Press ID for fix press/berendsen does not exist} :dt
 
 The compute ID needed to compute pressure for the fix does not
 exist. :dd
@@ -3224,6 +3409,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Temp ID for fix bond/swap does not exist} :dt
+
+Self-explanatory. :dd
+
 {Temp ID for fix nph does not exist} :dt
 
 The compute ID needed to compute temperature for the fix does not
@@ -3239,6 +3428,14 @@ exist. :dd
 The compute ID needed to compute temperature for the fix does not
 exist. :dd
 
+{Temp ID for fix press/berendsen does not exist} :dt
+
+Self-explanatory. :dd
+
+{Temp ID for fix temp/berendsen does not exist} :dt
+
+Self-explanatory. :dd
+
 {Temp ID for fix temp/rescale does not exist} :dt
 
 The compute ID needed to compute temperature for the fix does not
@@ -3248,6 +3445,10 @@ exist. :dd
 
 The temper command cannot be used before a read_data, read_restart, or
 create_box command. :dd
+
+{Temperature for fix nvt/sllod does not have a bias} :dt
+
+The specified compute must compute temperature with a bias. :dd
 
 {Temperature region ID does not exist} :dt
 
@@ -3262,7 +3463,7 @@ explicitly deleted by a uncompute command. :dd
 
 The fix ID specified by the temper command does not exist. :dd
 
-{Tempering fix is not valid} :dt
+{Tempering temperature fix is not valid} :dt
 
 The fix specified by the temper command is not one that controls
 temperature (nvt or langevin). :dd
@@ -3310,16 +3511,6 @@ Index into vector is out of bounds. :dd
 
 Calculating a thermo keyword before the first run is not allowed
 because various quantities may not yet be initialized. :dd
-
-{Thermo style does not use drot} :dt
-
-Cannot use thermo_modify to set this parameter since the thermo_style
-is not computing this quantity. :dd
-
-{Thermo style does not use grot} :dt
-
-Cannot use thermo_modify to set this parameter since the thermo_style
-is not computing this quantity. :dd
 
 {Thermo style does not use press} :dt
 
@@ -3519,7 +3710,7 @@ provided by "remap v" as a fix deform option. :dd
 
 Self-explanatory. :dd
 
-{Variable name for compute sum does not exist} :dt
+{Variable name for compute reduce does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -3626,6 +3817,11 @@ itself operates on.  This is probably not what you want to do. :dd
 Conformation of the 4 listed improper atoms is extreme; you may want
 to check your simulation geometry. :dd
 
+{Kspace_modify slab param < 2.0 may cause unphysical behavior} :dt
+
+The kspace_modify slab parameter should be larger to insure periodic
+grids padded with empty space do not overlap. :dd
+
 {Less insertions than requested} :dt
 
 Less atom insertions occurred on this timestep due to the fix insert
@@ -3675,6 +3871,12 @@ coordinates will not be updated during timestepping. :dd
 The bodies defined by fix poems are not connected by joints.  POEMS
 will integrate the body motion, but it would be more efficient to use
 fix rigid. :dd
+
+{One or more atoms are time integrated more than once} :dt
+
+This is probably an error since you typically do not want to
+advance the positions or velocities of an atom more than once
+per timestep. :dd
 
 {One or more respa levels compute no forces} :dt
 
@@ -3782,11 +3984,6 @@ to read the file.  Versions of LAMMPS are specified by a date. :dd
 The determinant of the quadratic equation being solved for a single
 cluster specified by the fix shake command is numerically suspect.  LAMMPS
 will set it to 0.0 and continue. :dd
-
-{Slab parameter < 2.0 may cause unphysical behavior} :dt
-
-The kspace_modify slab parameter should be larger to insure periodic
-grids padded with empty space do not overlap. :dd
 
 {System is not charge neutral, net charge = %g} :dt
 

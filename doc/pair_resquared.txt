@@ -30,7 +30,7 @@ size sigma.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
 
 Details for the equations used are given in the references below and
-in "this supplementary document"_Eqs/pair_resquared_extra.pdf.
+in "this supplementary document"_PDF/pair_resquared_extra.pdf.
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 {asphere} extension (e.g. "fix nve/asphere"_fix_nve_asphere.html) in
@@ -77,7 +77,7 @@ composing the ellipsoids and epsilon_LJ determines the interaction
 strength of the spherical particles.
 
 For ellipsoid-LJ sphere interactions, A12 gives the energy prefactor
-(see "here"_Eqs/pair_resquared_extra.pdf for details:
+(see "here"_PDF/pair_resquared_extra.pdf for details:
 
 :c,image(Eqs/pair_resquared2.jpg)
 

@@ -57,7 +57,7 @@ particles.
 
 More details of the Gay-Berne formulation are given in the references
 listed below and in "this supplementary
-document"_Eqs/pair_gayberne_extra.pdf.
+document"_PDF/pair_gayberne_extra.pdf.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

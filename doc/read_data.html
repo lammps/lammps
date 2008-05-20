@@ -120,19 +120,24 @@ coords for atoms that appear in the file; the default of -0.5 0.5 is
 valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
 and yz tilt factors must be 0.0.
 </P>
-<P>If the system is non-periodic (in a dimension), then all atoms in the
-data file should have coordinates (in that dimension) between the lo
-and hi values.  Furthermore, if running in parallel, the lo/hi values
-should be just a bit smaller/larger than the min/max extent of atoms.
-For example, if your atoms extend from 0 to 50, you should not specify
-the box bounds as -10000 and 10000.  Since LAMMPS uses the specified
-box size to layout the 3d grid of processors, this will be sub-optimal
-and may cause a parallel simulation to lose atoms when LAMMPS
-shrink-wraps the box to the atoms.
-</P>
 <P>If the system is periodic (in a dimension), then atom coordinates can
 be outside the bounds; they will be remapped (in a periodic sense)
 back inside the box.
+</P>
+<P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
+all atoms in the data file must have coordinates (in that dimension)
+that are greater than the lo value and less than the hi value.
+Actually "greater than or equal to" is OK for the lo value, but they
+must be "less than", not "less than or equal to" for the hi value.
+Thus the lo/hi values you specify should be just a bit smaller/larger
+than the min/max extent of atoms.  However you do not want to make
+these values much smaller/larger than the extent of the atoms.  For
+example, if your atoms extend from 0 to 50, you should not specify the
+box bounds as -10000 and 10000.  This is because LAMMPS uses the
+specified box size to layout the 3d grid of processors.  A huge
+(mostly empty) box will be sub-optimal for performance and may cause a
+parallel simulation to lose atoms if LAMMPS shrink-wraps the box
+around the atoms.
 </P>
 <HR>
 

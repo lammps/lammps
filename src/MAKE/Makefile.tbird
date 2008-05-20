@@ -5,9 +5,15 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-# NOTE: you may need to invoke (by typing or in your .cshrc)
+# NOTE: you may need to invoke (by entering in your job-submission script
+#  or in your .cshrc file)
 #   module load libraries/fftw-2.1.5-openmpi-1.1.2-ofed-intel-9.1
-# before building LAMMPS
+# before running LAMMPS. 
+#
+# Additional Note:
+# Even when using the OpenMPI build 10.0,
+# DO NOT USE: module load libraries/fftw-2.1.5_openmpi-1.2.4_ofed_intel-10.0-f025-c025
+# This build of FFTW exhibits fatal memory errors in long runs. 
 
 FFTW = /apps/x86_64/libraries/fftw/openmpi-1.1.2-ofed-intel-9.1/fftw-2.1.5
 

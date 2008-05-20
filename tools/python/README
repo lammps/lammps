@@ -50,8 +50,8 @@ package if you have installed Pizza.py on your box.
 
 For example, on my box, either of these lines in my .cshrc works:
 
-setenv LAMMPS_TOOLS_PYTHON /home/sjplimp/lammps/tools/python/pizza
-setenv LAMMPS_TOOLS_PYTHON /home/sjplimp/pizza/src
+setenv LAMMPS_PYTHON_TOOLS /home/sjplimp/lammps/tools/python/pizza
+setenv LAMMPS_PYTHON_TOOLS /home/sjplimp/pizza/src
 
 ------------------------------
 Running the scripts:

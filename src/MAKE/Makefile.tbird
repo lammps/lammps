@@ -9,7 +9,7 @@ SHELL = /bin/sh
 #   module load libraries/fftw-2.1.5-openmpi-1.1.2-ofed-intel-9.1
 # before building LAMMPS
 
-FFTW =	/apps/x86_64/libraries/fftw/openmpi-1.1.2-ofed-intel-9.1/fftw-2.1.5
+FFTW = /apps/x86_64/libraries/fftw/openmpi-1.1.2-ofed-intel-9.1/fftw-2.1.5
 
 CC =		mpicxx
 CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/include

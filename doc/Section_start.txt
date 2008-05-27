@@ -80,6 +80,10 @@ type a command like:
 make linux
 gmake mac :pre
 
+Note that on a multi-processor or multi-core platform you can launch a
+parallel make, by using the "-j" switch with the make command, which
+will typically build LAMMPS more quickly.
+
 If you get no errors and an executable like lmp_linux or lmp_mac is
 produced, you're done; it's your lucky day.
 

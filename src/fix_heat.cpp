@@ -75,7 +75,7 @@ void FixHeat::end_of_step()
   group->vcm(igroup,masstotal,vcm);
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
   double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
-  if (escale < 0.0) error->all("Illegal fix heat attempt");
+  if (escale < 0.0) error->all("Fix heat kinetic energy went negative");
   double r = sqrt(escale);
 
   vsub[0] = (r-1.0) * vcm[0];

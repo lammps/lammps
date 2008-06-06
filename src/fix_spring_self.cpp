@@ -35,6 +35,9 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all("Illegal fix spring/self command");
 
   restart_peratom = 1;
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
+  extscalar = 1;
 
   k = atof(arg[3]);
   if (k <= 0.0) error->all("Illegal fix spring/self command");
@@ -92,6 +95,7 @@ int FixSpringSelf::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -131,6 +135,7 @@ void FixSpringSelf::post_force(int vflag)
   double zprd = domain->zprd;
   int xbox,ybox,zbox;
   double dx,dy,dz;
+  double espring = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -143,6 +148,7 @@ void FixSpringSelf::post_force(int vflag)
       f[i][0] -= k*dx;
       f[i][1] -= k*dy;
       f[i][2] -= k*dz;
+      espring += k * (dx*dx + dy*dy + dz*dz);
     }
 }
 
@@ -151,6 +157,24 @@ void FixSpringSelf::post_force(int vflag)
 void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   energy of stretched springs
+------------------------------------------------------------------------- */
+
+double FixSpringSelf::compute_scalar()
+{
+  double all;
+  MPI_Allreduce(&espring,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  return all;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixSpringSelf::min_post_force(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

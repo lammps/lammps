@@ -27,6 +27,8 @@ class FixSpringSelf : public Fix {
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  void min_post_force(int);
+  double compute_scalar();
 
   double memory_usage();
   void grow_arrays(int);
@@ -39,7 +41,7 @@ class FixSpringSelf : public Fix {
   int maxsize_restart();
 
  private:
-  double k;
+  double k,espring;
   double **xoriginal;         // original coords of atoms
   int nlevels_respa;
 };

@@ -874,7 +874,7 @@ non-periodic z dimension. :dd
 
 {Cannot use nonperiodic boundaries with PPPM} :dt
 
-For kspace style pppm, All 3 dimensions must have periodic boundaries
+For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
@@ -2268,7 +2268,7 @@ or cause multiple files to be written. :dd
 
 {Invalid dump frequency} :dt
 
-Dumps frequency must be 1 or greater. :dd
+Dump frequency must be 1 or greater. :dd
 
 {Invalid dump style} :dt
 
@@ -3543,7 +3543,7 @@ Specified timestep size is invalid. :dd
 
 Molecular problems cannot become bigger than 2^31 atoms (or bonds,
 etc) when replicated, else the atom IDs and other quantities cannot be
-stored in 32 bit quantities. :dd
+stored in 32-bit quantities. :dd
 
 {Too few bits for lookup table} :dt
 

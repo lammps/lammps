@@ -28,7 +28,7 @@ class Fix : protected Pointers {
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
   int box_change;                // 1 if Fix changes box size, 0 if not
   int next_reneighbor;           // next timestep to force a reneighboring
-  int thermo_energy;             // 1 if ThEng enabled via fix_modify, 0 if not
+  int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
   int nevery;                    // how often to call an end_of_step fix
   int rigid_flag;                // 1 if Fix integrates rigid bodies, 0 if not
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not

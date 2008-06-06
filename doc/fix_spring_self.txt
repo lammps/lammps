@@ -38,12 +38,25 @@ same in a restarted simulation.  See the
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
-None of the "fix_modify"_fix_modify.html options are relevant to this
-fix.  No global scalar or vector or per-atom quantities are stored by
-this fix for access by various "output
-commands"_Section_howto.html#4_15.  No parameter of this fix can be
-used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy stored in the per-atom springs to the system's
+potential energy as part of "thermodynamic output"_thermo_style.html.
+
+This fix computes a scalar energy which can be accessed by various
+"output commands"_Section_howto.html#4_15.  The scalar value
+calculated by this fix is "extensive", meaning it scales with the
+number of atoms in the simulation.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.
+
+IMPORTANT NOTE: If you want the per-atom spring energy to be included
+in the total potential energy of the system (the quantity being
+minimized), you MUST enable the "fix_modify"_fix_modify.html {energy}
+option for this fix.
 
 [Restrictions:] none
 

@@ -122,6 +122,9 @@ void FixBondSwap::init()
   if (force->pair == NULL || force->bond == NULL)
     error->all("Fix bond/swap requires pair and bond styles");
 
+  if (force->angle == NULL && atom->nangles > 0 && comm->me == 0)
+    error->warning("Fix bond/swap will ignore defined angles");
+
   if (force->dihedral || force->improper)
     error->all("Fix bond/swap cannot use dihedral or improper styles");
 

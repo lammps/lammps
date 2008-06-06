@@ -994,10 +994,10 @@ void Neighbor::build()
     (this->*pair_build[blist[i]])(lists[blist[i]]);
 
   if (atom->molecular) {
-    if (atom->nbonds) (this->*bond_build)();
-    if (atom->nangles) (this->*angle_build)();
-    if (atom->ndihedrals) (this->*dihedral_build)();
-    if (atom->nimpropers) (this->*improper_build)();
+    if (force->bond) (this->*bond_build)();
+    if (force->angle) (this->*angle_build)();
+    if (force->dihedral) (this->*dihedral_build)();
+    if (force->improper) (this->*improper_build)();
   }
 }
 

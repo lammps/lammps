@@ -33,7 +33,7 @@ class DihedralCharmm : public Dihedral {
   double *k,*weight,*cos_shift,*sin_shift;
   int *multiplicity,*shift;
   double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
-  int implicit;
+  int implicit,weightflag;
 
   void allocate();
 };

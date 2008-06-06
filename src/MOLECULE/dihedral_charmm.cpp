@@ -73,7 +73,7 @@ void DihedralCharmm::compute(int eflag, int vflag)
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (vflag_global == 2)
+  if (weightflag && vflag_global == 2)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **x = atom->x;
@@ -374,7 +374,7 @@ void DihedralCharmm::init_style()
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
 
-  int weightflag = 0;
+  weightflag = 0;
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     if (weight[i] > 0.0) weightflag = 1;
 

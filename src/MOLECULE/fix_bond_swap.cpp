@@ -109,7 +109,7 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == NULL)
-    error->all("Must use atom style with molecule IDs with fix efield");
+    error->all("Must use atom style with molecule IDs with fix bond/swap");
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Temp ID for fix bond/swap does not exist");

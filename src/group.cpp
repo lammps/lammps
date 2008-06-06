@@ -305,14 +305,18 @@ void Group::assign(int narg, char **arg)
 
   // print stats for changed group
 
-  int n,all;
+  int n;
   n = 0;
   for (i = 0; i < nlocal; i++) if (mask[i] & bit) n++;
-  MPI_Allreduce(&n,&all,1,MPI_INT,MPI_SUM,world);
+
+  double rlocal = n;
+  double all;
+  MPI_Allreduce(&rlocal,&all,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"%d atoms in group %s\n",all,names[igroup]);
-    if (logfile) fprintf(logfile,"%d atoms in group %s\n",all,names[igroup]);
+    if (screen) fprintf(screen,"%.15g atoms in group %s\n",all,names[igroup]);
+    if (logfile)
+      fprintf(logfile,"%.15g atoms in group %s\n",all,names[igroup]);
   }
 }
  

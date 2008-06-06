@@ -76,25 +76,19 @@ mpirun -np 8 lmp_foo < in.rhodo
 
 Parallel scaled-size runs (on 16 procs in this case):
 
-mpirun -np 16 lmp_foo -var x 40 -var y 40 -var z 80 < in.lj
+mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.lj
 mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.chain.scaled
-mpirun -np 16 lmp_foo -var x 40 -var y 40 -var z 80 < in.eam
+mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.eam
 mpirun -np 16 lmp_foo -var x 4 -var y 4 < in.chute.scaled
 mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.rhodo.scaled
 
 For each of the scaled-size runs you must set 3 variables as -var
-command line switches.  The variables are used in the input scripts to
-scale up the problem size in each dimension.  Imagine the P processors
-arrayed as a 3d grid, so that P = Px * Py * Pz.  For P = 16, you might
-use Px = 2, Py = 2, Pz = 4.  To scale up equally in all dimensions you
-roughly want Px = Py = Pz.
-
-For LJ and Eam runs, use Px,Py,Pz multiplied by 20 to set the variable
-values of x,y,z, as in the example mpirun commands above.
-
-For Chain and Rhodo runs, use Px,Py,Pz directly to set the variable
-values of x,y,z, as in the example mpirun commands above.
+command line switches.  The variables x,y,z are used in the input
+scripts to scale up the problem size in each dimension.  Imagine the P
+processors arrayed as a 3d grid, so that P = Px * Py * Pz.  For P =
+16, you might use Px = 2, Py = 2, Pz = 4.  To scale up equally in all
+dimensions you roughly want Px = Py = Pz.  Using the var switches, set
+x = Px, y = Py, and z = Pz.
 
 For Chute runs, you must have Pz = 1.  Therefore P = Px * Py and you
-only need to set variables x and y.  Use Px,Py directly to set the
-values of x,y, as in the example mpirun command above.
+only need to set variables x and y.

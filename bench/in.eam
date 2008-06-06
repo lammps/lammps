@@ -1,14 +1,18 @@
 # bulk Cu lattice
 
-variable	x index 20
-variable	y index 20
-variable	z index 20
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	yy equal 20*$y
+variable	zz equal 20*$z
 
 units		metal
 atom_style	atomic
 
 lattice		fcc 3.615
-region		box block 0 $x 0 $y 0 $z
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
 create_atoms	1 box
 

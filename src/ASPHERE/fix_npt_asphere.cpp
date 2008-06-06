@@ -328,7 +328,7 @@ void FixNPTAsphere::omega_from_mq(double *q, double *m, double *inertia,
 void FixNPTAsphere::calculate_inertia(double mass, double *shape,
 				      double *inertia)
 {
-  inertia[0] = mass*(shape[1]*shape[1]+shape[2]*shape[2])/5.0;
-  inertia[1] = mass*(shape[0]*shape[0]+shape[2]*shape[2])/5.0;
-  inertia[2] = mass*(shape[0]*shape[0]+shape[1]*shape[1])/5.0;
+  inertia[0] = 0.2*mass*(shape[1]*shape[1]+shape[2]*shape[2]);
+  inertia[1] = 0.2*mass*(shape[0]*shape[0]+shape[2]*shape[2]);
+  inertia[2] = 0.2*mass*(shape[0]*shape[0]+shape[1]*shape[1]);
 }

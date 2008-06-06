@@ -218,11 +218,11 @@ void FixNVEAsphere::calculate_inertia()
   double **shape = atom->shape;
 
   for (int i = 1; i <= atom->ntypes; i++) {
-    inertia[i][0] = mass[i] * 
-      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]) / 5.0;
-    inertia[i][1] = mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]) / 5.0;
-    inertia[i][2] = mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]) / 5.0;
+    inertia[i][0] = 0.2*mass[i] *
+      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);
+    inertia[i][1] = 0.2*mass[i] *
+      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
+    inertia[i][2] = 0.2*mass[i] * 
+      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
   }
 }

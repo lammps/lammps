@@ -165,6 +165,7 @@ void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
 
 double FixSpringSelf::compute_scalar()
 {
+  espring *= 0.5;
   double all;
   MPI_Allreduce(&espring,&all,1,MPI_DOUBLE,MPI_SUM,world);
   return all;

@@ -1,0 +1,47 @@
+# intel_mkl = Intel Cluster Tools with MKL library for FFTs and MPI
+
+# Intel C++, Intel MPI, Intel MKL FFTs
+# Intel recommends Intel Cluster Tools Compiler Edition
+# to build libfftw2xc_intel.a: 
+# > cd /opt/intel/mkl/10.0.011/interfaces/fftw2xc
+# > become root via su
+# > gmake libem64t
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =	        mpiicc	
+CCFLAGS =	-O3 -fno-alias -ip -unroll0 -g -DMPICH_IGNORE_CXX_SEEK -DLAMMPS_GZIP -DFFT_FFTW -I/opt/intel/mkl/10.0.011/include/fftw 
+DEPFLAGS =	-M
+LINK =		mpiicc
+LINKFLAGS =	-mt_mpi -L/opt/intel/mkl/10.0.011/lib/em64t 
+USRLIB =	/opt/intel/mkl/10.0.011/lib/em64t/libfftw2xc_intel.a
+SYSLIB =        -lstdc++ -lpthread -lmkl_em64t -lguide 
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

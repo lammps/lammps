@@ -1,0 +1,34 @@
+# freebsd = FreeBSD box, 7.0-RELEASE, LAM/MPI, FFTW
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		mpic++
+CCFLAGS =	-O3 -DFFT_FFTW
+DEPFLAGS =	-M
+LINK =		mpic++
+LINKFLAGS =	-O3
+USRLIB =	-lfftw -lmpi
+SYSLIB = 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

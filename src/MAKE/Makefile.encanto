@@ -1,0 +1,43 @@
+# encanto = NM cluster with dual quad-core Xeons, mpicxx, native MPI, FFTW
+
+SHELL = /bin/sh
+.IGNORE:
+
+# System-specific settings
+
+CC =		mpicxx
+CCFLAGS =	-O -DFFT_FFTW -I/home/jlane/fftw-2.1.5/fftw
+DEPFLAGS =	-M
+LINK =		mpicxx
+LINKFLAGS =	-O -L/home/jlane/fftw-2.1.5/fftw/.libs
+USRLIB =	-lstdc++ -lfftw
+SYSLIB =	-lm
+SIZE =		size
+
+ARCHIVE =       ar
+ARFLAGS =       -rc
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+ 
+lib:    $(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

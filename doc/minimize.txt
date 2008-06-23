@@ -53,7 +53,7 @@ we've tried.  The backtracking method is described in Nocedal and
 Wright's Numerical Optimization (Procedure 3.1 on p 41).
 
 The objective function being minimized is the potential energy of the
-system as a function of atom coordinates:
+system as a function of the N atom coordinates:
 
 :c,image(Eqs/min_energy.jpg)
 

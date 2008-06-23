@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string"
+#include "string.h"
 #include "change_box.h"
 #include "domain.h"
 #include "modify.h"

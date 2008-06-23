@@ -58,8 +58,8 @@ system as a function of the N atom coordinates:
 :c,image(Eqs/min_energy.jpg)
 
 where the first term is the sum of all non-bonded pairwise
-interactions including long-range interactions (Coulombic), the 2nd
-thru fifth terms are bond, angle, dihedral, and improper interactions
+interactions including long-range Coulombic interactions, the 2nd thru
+5th terms are bond, angle, dihedral, and improper interactions
 respectively, and the last term is constraints due to fixes, such as
 energy/force interactions with a wall.  See the discussion below about
 which fix commands affect minimization.
@@ -67,8 +67,8 @@ which fix commands affect minimization.
 The starting point for the minimization is the current configuration
 of the atoms.  Note that the minimizer only attempts to find a local
 energy minimum, not a global minimum.  In a mathematical sense, there
-is no guarantee of even finding a local minimum in some cases with
-these algorithms.
+is no guarantee in some cases of even finding a local minimum if the
+objective function is ill-behaved.
 
 :line
 

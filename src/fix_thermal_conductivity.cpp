@@ -51,7 +51,8 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
   else error->all("Illegal fix thermal/conductivity command");
 
   nbin = atoi(arg[5]);
-  if (nbin < 3) error->all("Illegal fix thermal/conductivity command");
+  if (nbin % 2 || nbin <= 2) 
+    error->all("Illegal fix thermal/conductivity command");
 
   // optional keywords
 
@@ -105,8 +106,7 @@ void FixThermalConductivity::init()
   // set bounds of 2 slabs in edim
   // only necessary for static box, else re-computed in end_of_step()
   // lo bin is always bottom bin
-  // if nbin even, hi bin is just above half height
-  // if nbin odd, hi bin straddles half height
+  // hi bin is just above half height
 
   if (domain->box_change == 0) {
     prd = domain->prd[edim];

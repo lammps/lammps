@@ -56,7 +56,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   else error->all("Illegal fix viscosity command");
 
   nbin = atoi(arg[6]);
-  if (nbin < 3) error->all("Illegal fix viscosity command");
+  if (nbin % 2 || nbin <= 2) error->all("Illegal fix viscosity command");
 
   // optional keywords
 
@@ -116,8 +116,7 @@ void FixViscosity::init()
   // set bounds of 2 slabs in pdim
   // only necessary for static box, else re-computed in end_of_step()
   // lo bin is always bottom bin
-  // if nbin even, hi bin is just above half height
-  // if nbin odd, hi bin straddles half height
+  // hi bin is just above half height
 
   if (domain->box_change == 0) {
     prd = domain->prd[pdim];

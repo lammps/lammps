@@ -17,7 +17,7 @@ viscosity = style name of this fix command :l
 N = perform momentum exchange every N steps :l
 vdim = {x} or {y} or {z} = which momentum component to exchange :l
 pdim = {x} or {y} or {z} = direction of momentum transfer :l
-Nbin = # of layers in pdim direction :l
+Nbin = # of layers in pdim direction (must be even number) :l
 
 zero or more keyword/value pairs may be appended :l
 keyword = {swap} or {target} :l
@@ -46,18 +46,19 @@ momentum flux is imposed, and the shear velocity profile is the
 system's response.
 
 The simulation box is divided into {Nbin} layers in the {pdim}
-direction.  Every N steps, Nswap pairs of atoms are chosen in the
-following manner.  Only atoms in the fix group are considered.  Nswap
-atoms in the bottom layer with positive velocity components in the
-{vdim} direction closest to the target value {V} are selected.
-Similarly, Nswap atoms in the middle later with negative velocity
-components in the {vdim} direction closest to the negative of the
-target value {V} are selected.  The two sets of Nswap atoms are paired
-up and their {vdim} momenta components are swapped within each pair.
-This resets their velocities, typically in opposite directions.  Over
-time, this induces a shear velocity profile in the system which can be
-measured using commands such as the following, which writes the
-profile to the file tmp.profile:
+direction, where the layer 1 is at the low end of that dimension and
+the layer {Nbin} is at the high end.  Every N steps, Nswap pairs of
+atoms are chosen in the following manner.  Only atoms in the fix group
+are considered.  Nswap atoms in layer 1 with positive velocity
+components in the {vdim} direction closest to the target value {V} are
+selected.  Similarly, Nswap atoms in the "middle" layer (see below) with
+negative velocity components in the {vdim} direction closest to the
+negative of the target value {V} are selected.  The two sets of Nswap
+atoms are paired up and their {vdim} momenta components are swapped
+within each pair.  This resets their velocities, typically in opposite
+directions.  Over time, this induces a shear velocity profile in the
+system which can be measured using commands such as the following,
+which writes the profile to the file tmp.profile:
 
 fix f1 all ave/spatial 100 10 1000 z lower 0.05 vx &
     file tmp.profile units reduced :pre
@@ -69,6 +70,12 @@ components are selected.  Setting these parameters appropriately, in
 conjunction with the swap rate N, allows the momentum flux rate to be
 adjusted across a wide range of values, and the momenta to be
 exchanged in large chunks or more smoothly.
+
+The "middle" layer for momenta swapping is defined as the {Nbin}/2 + 1
+layer.  Thus if {Nbin} = 20, the two swapping layers are 1 and 11.
+This should lead to a symmetric velocity profile since the two layers
+are separated by the same distance in both directions in a periodic
+sense.  This is why {Nbin} is restricted to being an even number.
 
 As described below, the total momentum transferred by these velocity
 swaps is computed by the fix and can be output.  Dividing this

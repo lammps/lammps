@@ -33,13 +33,16 @@ on atom I due to atom J is given as a sum of 3 terms
 </P>
 <CENTER><IMG SRC = "Eqs/pair_dpd.jpg">
 </CENTER>
-<P>where FC is a conservative force, FD is a dissipative force, and FR is
+<P>where Fc is a conservative force, Fd is a dissipative force, and Fr is
 a random force.  Rij is a unit vector in the direction Ri - Rj, Vij is
 the vector difference in velocities of the two atoms = Vi - Vj, alpha
 is a Gaussian random number with zero mean and unit variance, dt is
 the timestep size, and w(r) is a weighting factor that varies between
 0 and 1.  Rc is the cutoff.  Sigma is set equal to sqrt(2 T gamma),
 where T is a parameter in the pair_style command.
+</P>
+<P>The pairwise energy associated with this potential is only due to the
+conservative force term Fc.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

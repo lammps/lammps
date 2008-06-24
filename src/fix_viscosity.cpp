@@ -116,7 +116,7 @@ void FixViscosity::init()
   // set bounds of 2 slabs in pdim
   // only necessary for static box, else re-computed in end_of_step()
   // lo bin is always bottom bin
-  // if nbin even, hi bin is just below half height
+  // if nbin even, hi bin is just above half height
   // if nbin odd, hi bin straddles half height
 
   if (domain->box_change == 0) {
@@ -126,8 +126,8 @@ void FixViscosity::init()
     double binsize = (boxhi-boxlo) / nbin;
     slablo_lo = boxlo;
     slablo_hi = boxlo + binsize;
-    slabhi_lo = boxlo + ((nbin-1)/2)*binsize;
-    slabhi_hi = boxlo + ((nbin-1)/2 + 1)*binsize;
+    slabhi_lo = boxlo + (nbin/2)*binsize;
+    slabhi_hi = boxlo + (nbin/2+1)*binsize;
   }
 
   periodicity = domain->periodicity[pdim];
@@ -154,8 +154,8 @@ void FixViscosity::end_of_step()
     double binsize = (boxhi-boxlo) / nbin;
     slablo_lo = boxlo;
     slablo_hi = boxlo + binsize;
-    slabhi_lo = boxlo + ((nbin-1)/2)*binsize;
-    slabhi_hi = boxlo + ((nbin-1)/2 + 1)*binsize;
+    slabhi_lo = boxlo + (nbin/2)*binsize;
+    slabhi_hi = boxlo + (nbin/2+1)*binsize;
   }
 
   // make 2 lists of up to nswap atoms with velocity closest to +/- vtarget

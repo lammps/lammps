@@ -27,7 +27,7 @@ certain kinds of LAMMPS simulations.
 4.11 <A HREF = "#4_11">Visualizing LAMMPS snapshots</A><BR>
 4.12 <A HREF = "#4_12">Non-orthogonal simulation boxes</A><BR>
 4.13 <A HREF = "#4_13">NEMD simulations</A><BR>
-4.14 <A HREF = "#4_14">Aspherical particles</A><BR>
+4.14 <A HREF = "#4_14">Extended spherical and aspherical particles</A><BR>
 4.15 <A HREF = "#4_15">Output from LAMMPS</A><BR>
 4.16 <A HREF = "#4_16">Thermostatting, barostatting and computing temperature</A> <BR>
 
@@ -388,7 +388,7 @@ H mass = 1.008 <BR>
 H charge = 0.417 <BR>
 </P>
 <P>LJ epsilon of OO = 0.1521<BR>
-LJ sigma of OO = 3.188<BR>
+LJ sigma of OO = 3.1507<BR>
 LJ epsilon of HH = 0.0460<BR>
 LJ sigma of HH = 0.4000<BR>
 LJ epsilon of OH = 0.0836<BR>
@@ -410,7 +410,7 @@ H mass = 1.008 <BR>
 H charge = 0.415 <BR>
 </P>
 <P>LJ epsilon of OO = 0.102<BR>
-LJ sigma of OO = 3.1507<BR>
+LJ sigma of OO = 3.188<BR>
 LJ epsilon, sigma of OH, HH = 0.0 <BR>
 </P>
 <P>K of OH bond = 450<BR>
@@ -772,48 +772,171 @@ profile consistent with the applied shear strain rate.
 </P>
 <HR>
 
-<A NAME = "4_14"></A><H4>4.14 Aspherical particles 
+<A NAME = "4_14"></A><H4>4.14 Extended spherical and aspherical particles 
 </H4>
-<P>LAMMPS supports ellipsoidal particles via the <A HREF = "atom_style.html">atom_style
-ellipsoid</A> and <A HREF = "shape.html">shape</A> commands.  The
-latter command defines the 3 axes (diameters) of a general ellipsoid.
-The <A HREF = "pair_gayberne.html">pair_style gayberne</A> command can be used to
-define a Gay-Berne (GB) potential for how ellipsoidal particles
-interact with each other and with spherical particles.  The GB
-potential is like a Lennard-Jones (LJ) potential, generalized for
-orientation-dependent interactions.
+<P>Typical MD models treat atoms or particles as point masses.
+Sometimes, however, it is desirable to have a model where the
+particles are extended spherioids or extended aspherical paticles such
+as an ellipsoid.  The difference is that such particles have a moment
+of inertia, rotational energy, and angular momentum.  Rotation is
+induced by torque from interactions with other particles.
 </P>
-<P>The orientation of ellipsoidal particles is stored as a quaternion.
-See the <A HREF = "set.html">set</A> command for a brief explanation of quaternions
-and how the orientation of such particles can be initialized.  The
-data file read by the <A HREF = "read_data.html">read_data</A> command contains
-quaternions for each atom in the Atoms section if <A HREF = "atom_style.html">atom_style
-ellipsoid</A> is being used.  The <A HREF = "compute_temp_asphere.html">compute
-temp/asphere</A> command can be used to
-calculate the temperature of a group of ellipsoidal particles, taking
-account of rotational degrees of freedom.  The motion of the particles
-can be integrated via the <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>, <A HREF = "fix_nvt_asphere.html">fix
-nvt/asphere</A>, or <A HREF = "fix_npt_asphere.html">fix
-npt/asphere</A> commands.  All of these commands are
-part of the ASPHERE package in LAMMPS.
+<P>LAMMPS has several options for running simulations with these kinds of
+particles.  The following aspects are discussed in turn:
 </P>
-<P>Computationally, the cost for two ellipsoidal particles to interact is
-30 times (or more) expensive than for 2 spherical LJ particles.  Thus
-if you are modeling a system with many spherical particles (e.g. as
-the solvent), then you should insure sphere-sphere interactions are
-computed with a cheaper potential than GB.  This can be done by
-setting the particle's 3 shape parameters to all be equal (a sphere).
-Additionally, the corresponding GB potential coefficients can be set
-so the GB potential will treat the pair of particles as LJ spheres.
-Details are given in the doc page for the <A HREF = "pair_gayberne.html">pair_style
-gayberne</A>.  Alternatively, the <A HREF = "pair_hybrid.html">pair_style
-hybrid</A> potential can be used, with the sphere-sphere
-interactions computed by another pair potential, such as <A HREF = "pair_lj.html">pair_style
-lj/cut</A>.
+<UL><LI>atom styles
+<LI>pair potentials
+<LI>time integration
+<LI>computes, thermodynamics, and dump output
+<LI>rigid bodies composed of extended particles 
+</UL>
+<H5>Atom styles 
+</H5>
+<P>There are 3 <A HREF = "atom_style.html">atom styles</A> that define extended
+particles: granular, dipole, ellipsoid.
 </P>
-<P>IMPORTANT NOTE: In 2d, aspherical particles will still be ellipsoids,
-not ellipses, meaning their moments of inertia will be the same as in
-3d.
+<P>Granular particles are extended spheriods and each particle can have a
+unique diameter and mass (or density).  These particles store
+an angular velocity (omega) and can be acted upon by torque.
+</P>
+<P>Dipole particles are extended spheriods with a point dipole and each
+particle type has a diamater and mass, set by the <A HREF = "shape.html">shape</A>
+and <A HREF = "mass.html">mass</A> commands.  These particles store an angular
+velocity (omega) and can be acted upon by torque.  They also store an
+orientation for the point dipole (mu) which has a length set by the
+<A HREF = "dipole.html">dipole</A> command.  The <A HREF = "set.html">set</A> command can be used
+to initialize the orientation of dipole moments.
+</P>
+<P>Ellipsoid particles are aspherical.  Each particle type has an
+ellipsoidal shape and mass, defined by the <A HREF = "shape.html">shape</A> and
+<A HREF = "mass.html">mass</A> commands.  These particles store an angular momentum
+and their orientation (quaternion), and can be acted upon by torque.
+They do not store an angular velocity (omega) which can be in a
+different direction than angular momentum.  The <A HREF = "set.html">set</A> command
+can be used to initialize the orientation of ellipsoidal particles and
+has a brief explanation of quaternions.
+</P>
+<P>Note that if one of these atom styles is used (or multiple styles via
+the <A HREF = "atom_style.html">atom_style hybrid</A> command), not all particles in
+the system are required to be extended or aspherical.  For example, if
+the 3 shape parameters are set to the same value, the particle will be
+a spheroid rather than an ellipsoid.  If the dipole moment is set to
+zero, the particle will not have a point dipole associated with it.
+The pair styles used to compute pairwise interactions will typically
+compute the correct interaction in these simplified (cheaper) cases.
+<A HREF = "pair_hybrid.html">Pair_style hybrid</A> can be used to insure the correct
+interactions are computed for the appropriate style of interactions.
+Likewise, using groups to partition particles (ellipsoid versus
+spheroid versus point particles) will allow you to use the appropriate
+time integrators and temperature computations for each class of
+particles.  See the doc pages for various commands for details.
+</P>
+<P>Also note that for <A HREF = "dimension.html">2d simulations</A>, extended spheroids
+and ellipsoids are still treated as 3d particles, rather than as disks
+or ellipses.  This means they still have a moment of inertia for a 3d
+extended object.  When their temperature is coomputed, the correct
+degrees of freedom are used for rotation in a 2d versus 3d system.
+</P>
+<H5>Pair potentials 
+</H5>
+<P>When a system with extended particles is defined, the particles will
+only rotate and experience torque if the force field computes such
+interactions.  These are the various <A HREF = "pair_style.html">pair styles</A>
+that generate torque:
+</P>
+<UL><LI><A HREF = "pair_gran.html">pair_style gran/history</A>
+<LI><A HREF = "pair_gran.html">pair_style gran/hertzian</A>
+<LI><A HREF = "pair_gran.html">pair_style gran/no_history</A>
+<LI><A HREF = "pair_dipole.html">pair_style dipole/cut</A>
+<LI><A HREF = "pair_gayberne.html">pair_style gayberne</A>
+<LI><A HREF = "pair_resuared.html">pair_style resquared</A>
+<LI><A HREF = "pair_lubricate.html">pair_style lubricate</A> 
+</UL>
+<P>The <A HREF = "pair_gran.html">granular pair styles</A> are used with <A HREF = "atom_style.html">atom_style
+granular</A>.  The <A HREF = "pair_dipole.html">dipole pair style</A>
+is used with <A HREF = "atom_style.html">atom_style dipole</A>.  The
+<A HREF = "pair_gayberne.html">GayBerne</A> and <A HREF = "pair_resquared.html">REsquared</A>
+potentials require particles have a <A HREF = "shape.html">shape</A> and are
+designed for <A HREF = "atom_style.html">ellipsoidal particles</A>.  The
+<A HREF = "pair_lubricate.html">lubrication potential</A> requires that particles
+have a <A HREF = "shape.html">shape</A>.  It can currently only be used with
+extended spherical particles.
+</P>
+<H5>Time integration 
+</H5>
+<P>There are 3 fixes that perform time integration on extended spherical
+particles, meaning the integrators update the rotational orientation
+and angular velocity or angular momentum of the particles:
+</P>
+<UL><LI><A HREF = "fix_nve_sphere.html">fix nve/sphere</A>
+<LI><A HREF = "fix_nvt_sphere.html">fix nvt/sphere</A>
+<LI><A HREF = "fix_npt_sphere.html">fix npt/sphere</A> 
+</UL>
+<P>Likewise, there are 3 fixes that perform time integration on extended
+aspherical particles:
+</P>
+<UL><LI><A HREF = "fix_nve_asphere.html">fix nve/asphere</A>
+<LI><A HREF = "fix_nvt_asphere.html">fix nvt/asphere</A>
+<LI><A HREF = "fix_npt_asphere.html">fix npt/asphere</A> 
+</UL>
+<P>The advantage of these fixes is that those which thermostat the
+particles include the rotational degrees of freedom in the temperature
+calculation and thermostatting.  Other thermostats can be used with
+fix nve/sphere or fix nve/asphere, such as fix langevin or fix
+temp/berendsen, but those thermostats only operate on the
+translational kinetic energy of the extended particles.
+</P>
+<P>Note that for mixtures of point and extended particles, you should
+only use these integration fixes on <A HREF = "group.html">groups</A> which contain
+extended particles.
+</P>
+<H5>Computes, thermodynamics, and dump output 
+</H5>
+<P>There are 4 computes that calculate the temperature or rotational energy
+of extended spherical or aspherical particles:
+</P>
+<UL><LI><A HREF = "compute_temp_sphere.html">compute temp/sphere</A>
+<LI><A HREF = "compute_temp_asphere.html">compute temp/asphere</A>
+<LI><A HREF = "compute_erotate_sphere.html">compute erotate/sphere</A>
+<LI><A HREF = "compute_erotate_asphere.html">compute erotate/asphere</A> 
+</UL>
+<P>These include rotational degrees of freedom in their computation.  If
+you wish the thermodynamic output of temperature or pressure to use
+one of these computes (e.g. for a system entirely composed of extended
+particles), then the compute can be defined and the
+<A HREF = "thermo_modify.html">thermo_modify</A> command used.  Note that by
+default thermodynamic quantities will be calculated with a temperature
+that only includes translational degrees of freedom.  See the
+<A HREF = "thermo_style.html">thermo_style</A> command for details.
+</P>
+<P>The <A HREF = "dump.html">dump custom</A> command can output various attributes of
+extended particles, including the dipole moment (mu), the angular
+velocity (omega), the angular momentum (angmom), the quaternion
+(quat), and the torque (tq) on the particle.
+</P>
+<H5>Rigid bodies composed of extended particles 
+</H5>
+<P>The <A HREF = "fix_rigid.html">fix rigid</A> command treats a collection of
+particles as a rigid body, computes its inertia tensor, sums the total
+force and torque on the rigid body each timestep due to forces on its
+constituent particles, and integrates the motion of the rigid body.
+</P>
+<P>If any of the constituent particles of a rigid body are extended
+particles (spheroids or ellipsoids), then their contribution to the
+inertia tensor of the body is different than if they were point
+particles.  This means the rotational dynamics of the rigid body will
+be different.  Thus a model of a dimer is different if the dimer
+consists of two point masses versus two extended sphereoids, even if
+the two particles have the same mass.  Extended particles that
+experience torque due to their interaction with other particles will
+also impart that torque to a rigid body they are part of.
+</P>
+<P>See the "fix rigid" command for example of complex rigid-body models
+it is possible to define in LAMMPS.
+</P>
+<P>Note that the <A HREF = "fix_shake.html">fix shake</A> command can also be used to
+treat 2, 3, or 4 particles as a rigid body, but it always assumes the
+particles are point masses.
 </P>
 <HR>
 

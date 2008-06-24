@@ -18,7 +18,7 @@
 
 #include "mpi.h"
 
-/* ifdef allow this file to be included in a C program */
+/* ifdefs allow this file to be included in a C program */
 
 #ifdef __cplusplus
 extern "C" {

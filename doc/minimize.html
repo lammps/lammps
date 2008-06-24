@@ -27,16 +27,21 @@ minimize 0.0 1.0e-8 1000 100000
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Perform an energy minimization of the system, by adjusting each atom's
-atomic coordinates iteratively until convergence to a low-energy
-minimum is achieved.  The algorithm used is set by the
+<P>Perform an energy minimization of the system, by iteratively adjusting
+atom coordinates.  Iterations are terminated when one of the stopping
+criteria is satisfied.  At that point the configuration will hopefully
+be in local potential energy minimum.  Mathematically speaking, the
+configuration should approximate a critical point for the objective
+function (see below), which may or may not be a local minimum.
+</P>
+<P>The minimization algorithm used is set by the
 <A HREF = "min_style.html">min_style</A> command.  Other options are set by the
 <A HREF = "min_modify.html">min_modify</A> command.  Minimize commands can be
 interspersed with <A HREF = "run.html">run</A> commands to alternate between
-relaxation and dynamics.  The minimizers are implemented in a robust
-fashion that should allow for systems with highly overlapped atoms
-(large energies and forces) to be minimized by pushing the atoms off
-of each other.
+relaxation and dynamics.  The minimizers bound the distance atoms move
+in one iteration, so that you can relax systems with highly overlapped
+atoms (large energies and forces) by pushing the atoms off of each
+other.
 </P>
 <P>Alternate means of relaxing a system are to run dynamics with a small
 or <A HREF = "fix_nve_limit.html">limited timestep</A>.  Or dynamics can be run
@@ -55,23 +60,23 @@ performed, but appears to be more robust than previous line searches
 we've tried.  The backtracking method is described in Nocedal and
 Wright's Numerical Optimization (Procedure 3.1 on p 41).
 </P>
-<P>The objective function being minimized is the potential energy of the
-system as a function of the N atom coordinates:
+<P>The objective function being minimized is the total potential energy
+of the system as a function of the N atom coordinates:
 </P>
 <CENTER><IMG SRC = "Eqs/min_energy.jpg">
 </CENTER>
-<P>where the first term is the sum of all non-bonded pairwise
-interactions including long-range Coulombic interactions, the 2nd thru
-5th terms are bond, angle, dihedral, and improper interactions
-respectively, and the last term is constraints due to fixes, such as
-energy/force interactions with a wall.  See the discussion below about
+<P>where the first term is the sum of all non-bonded <A HREF = "pair_style.html">pairwise
+interactions</A> including <A HREF = "kspace_style.html">long-range Coulombic
+interactions</A>, the 2nd thru 5th terms are
+<A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
+<A HREF = "dihedral_style.html">dihedral</A>, and <A HREF = "improper_style.html">improper</A>
+interactions respectively, and the last term is energy due to
+<A HREF = "fix.html">fixes</A> which can act as constraints or apply force to atoms,
+such as thru interaction with a wall.  See the discussion below about
 which fix commands affect minimization.
 </P>
 <P>The starting point for the minimization is the current configuration
-of the atoms.  Note that the minimizer only attempts to find a local
-energy minimum, not a global minimum.  In a mathematical sense, there
-is no guarantee in some cases of even finding a local minimum if the
-objective function is ill-behaved.
+of the atoms.
 </P>
 <HR>
 

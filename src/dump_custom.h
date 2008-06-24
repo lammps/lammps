@@ -117,6 +117,9 @@ class DumpCustom : public Dump {
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
+  void pack_angmomx(int);
+  void pack_angmomy(int);
+  void pack_angmomz(int);
   void pack_quatw(int);
   void pack_quati(int);
   void pack_quatj(int);

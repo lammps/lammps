@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
        VX,VY,VZ,FX,FY,FZ,
-       Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,
+       Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
        QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
        COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
@@ -328,6 +328,8 @@ int DumpCustom::count()
 	ptr = dchoose;
 	nstride = 1;
       } else if (thresh_array[ithresh] == MOL) {
+	if (!atom->molecule_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	int *molecule = atom->molecule;
 	for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
 	ptr = dchoose;
@@ -431,48 +433,93 @@ int DumpCustom::count()
 	ptr = &atom->f[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == Q) {
+	if (!atom->q_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = atom->q;
 	nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
+	if (!atom->mu_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->mu[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == MUY) {
+	if (!atom->mu_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->mu[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == MUZ) {
+	if (!atom->mu_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->mu[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == RADIUS) {
+	if (!atom->radius_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = atom->radius;
 	nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
+	if (!atom->omega_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->omega[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAY) {
+	if (!atom->omega_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->omega[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAZ) {
+	if (!atom->omega_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->omega[0][2];
 	nstride = 3;
+      } else if (thresh_array[ithresh] == ANGMOMX) {
+	if (!atom->angmom_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
+	ptr = &atom->angmom[0][0];
+	nstride = 3;
+      } else if (thresh_array[ithresh] == ANGMOMY) {
+	if (!atom->angmom_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
+	ptr = &atom->angmom[0][1];
+	nstride = 3;
+      } else if (thresh_array[ithresh] == ANGMOMZ) {
+	if (!atom->angmom_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
+	ptr = &atom->angmom[0][2];
+	nstride = 3;
       } else if (thresh_array[ithresh] == QUATW) {
+	if (!atom->quat_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->quat[0][0];
 	nstride = 4;
       } else if (thresh_array[ithresh] == QUATI) {
+	if (!atom->quat_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->quat[0][1];
 	nstride = 4;
       } else if (thresh_array[ithresh] == QUATJ) {
+	if (!atom->quat_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->quat[0][2];
 	nstride = 4;
       } else if (thresh_array[ithresh] == QUATK) {
+	if (!atom->quat_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->quat[0][3];
 	nstride = 4;
       } else if (thresh_array[ithresh] == TQX) {
+	if (!atom->torque_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->torque[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQY) {
+	if (!atom->torque_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->torque[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQZ) {
+	if (!atom->torque_flag)
+	  error->all("Threshhold for an atom quantity that isn't allocated");
 	ptr = &atom->torque[0][2];
 	nstride = 3;
 
@@ -714,6 +761,21 @@ void DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->omega_flag)
 	error->all("Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegaz;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"angmomx") == 0) {
+      if (!atom->angmom_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_angmomx;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"angmomy") == 0) {
+      if (!atom->angmom_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_angmomy;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"angmomz") == 0) {
+      if (!atom->angmom_flag)
+	error->all("Dumping an atom quantity that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_angmomz;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
@@ -1004,6 +1066,9 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
     else if (strcmp(arg[1],"omegaz") == 0) thresh_array[nthresh] = OMEGAZ;
+    else if (strcmp(arg[1],"angmomx") == 0) thresh_array[nthresh] = ANGMOMX;
+    else if (strcmp(arg[1],"angmomy") == 0) thresh_array[nthresh] = ANGMOMY;
+    else if (strcmp(arg[1],"angmomz") == 0) thresh_array[nthresh] = ANGMOMZ;
     else if (strcmp(arg[1],"quatw") == 0) thresh_array[nthresh] = QUATW;
     else if (strcmp(arg[1],"quati") == 0) thresh_array[nthresh] = QUATI;
     else if (strcmp(arg[1],"quatj") == 0) thresh_array[nthresh] = QUATJ;
@@ -1649,6 +1714,48 @@ void DumpCustom::pack_omegaz(int n)
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = omega[i][2];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_angmomx(int n)
+{
+  double **angmom = atom->angmom;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = angmom[i][0];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_angmomy(int n)
+{
+  double **angmom = atom->angmom;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = angmom[i][1];
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_angmomz(int n)
+{
+  double **angmom = atom->angmom;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = angmom[i][2];
       n += size_one;
     }
 }

@@ -29,6 +29,7 @@ args = list of arguments for a particular style :l
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
                           radius, omegax, omegay, omegaz,
+                          angmomx, angmomy, angmomz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
 			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name
       tag = atom ID
@@ -42,10 +43,11 @@ args = list of arguments for a particular style :l
       fx,fy,fz = forces on atoms
       q = atom charge
       mux,muy,muz = orientation of dipolar atom
-      radius = radius of extended spherical atom
-      omegax,omegay,omegaz = angular velocity of extended atom
+      radius = radius of extended spherical particle
+      omegax,omegay,omegaz = angular velocity of extended particle
+      angmomx,angmomy,angmomz = angular momentum of extended particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
-      tqx,tqy,tqz = torque on aspherical particles
+      tqx,tqy,tqz = torque on extended particles
       c_ID = per-atom scalar value calculated by a compute with ID
       c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
       f_ID = per-atom scalar value calculated by a fix with ID
@@ -236,7 +238,7 @@ is meant by scaled vs unscaled coordinates and the image flags.
 
 The {mux}, {muy}, {muz} keywords are specific to dipolar systems
 defined with an atom style of {dipole}.  They give the orientation of
-the atom's dipole.
+the atom's point dipole moment.
 
 The {radius} keyword is specific to extended spherical particles
 that have a finite size, such as granular particles defined with
@@ -244,14 +246,21 @@ an atom style of {granular}.
 
 The {omegax}, {omegay}, and {omegaz} keywords are specific to extended
 spherical or aspherical particles that have an angular velocity.  Only
-certain atom styles, such as {granular} or {ellipsoid} define this
+certain atom styles, such as {granular} or {dipole} define this
 quantity.
 
-The {quatw}, {quati}, {quatj}, {quatk}, {tqx}, {tqy}, {tqz} keywords
-are specific to aspherical particles defined with an atom style of
-{ellipsoid}.  The first 4 are the components of the quaternion that
-define the orientation of the particle.  The final 3 give the
-rotational torque on the particle.
+The {angmomx}, {angmomy}, and {angmomz} keywords are specific to
+extended aspherical particles that have an angular momentum.  Only
+the {ellipsoid) atom style defines this quantity.
+
+The {quatw}, {quati}, {quatj}, {quatk} keywords are for aspherical
+particles defined with an atom style of {ellipsoid}.  They are the
+components of the quaternion that defines the orientation of the
+particle.
+
+The {tqx}, {tqy}, {tqz} keywords are for extended spherical or
+aspherical particles that can sustain a rotational torque due
+to interactions with other particles.
 
 The {c_ID} and {c_ID\[N\]} keywords allow scalar or vector per-atom
 quantities calculated by a "compute"_compute.html to be output.  The

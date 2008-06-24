@@ -914,6 +914,9 @@ particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 
+(NOTE: 6/08 the feature described in the following paragraph has
+not yet been released.  It will be soon.)
+
 If any of the constituent particles of a rigid body are extended
 particles (spheroids or ellipsoids), then their contribution to the
 inertia tensor of the body is different than if they were point

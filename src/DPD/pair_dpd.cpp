@@ -149,7 +149,7 @@ void PairDPD::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  evdwl = a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+	  evdwl = -a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
 	  evdwl *= factor_dpd;
 	}
 
@@ -383,6 +383,6 @@ double PairDPD::single(int i, int j, int itype, int jtype, double rsq,
   wd = 1.0 - r/cut[itype][jtype];
   fforce = a0[itype][jtype]*wd * factor_dpd*rinv;
   
-  phi = a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+  phi = -a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
   return factor_dpd*phi;
 }

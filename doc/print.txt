@@ -12,7 +12,7 @@ print command :h3
 
 print string :pre
 
-string = text string to print. may contain variables :ul
+string = text string to print, which may contain variables :ul
 
 [Examples:]
 

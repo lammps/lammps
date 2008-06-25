@@ -499,9 +499,9 @@ LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
 r0 of OH bond = 1.0
 theta of HOH angle = 109.47 :all(b),p
 
-To use TIP3P with a long-range Coulombic
-solver (Ewald or PPPM in LAMMPS), the only parameters that
-change are the partial charge assignments:
+To use SPC with a long-range Coulombic solver (Ewald or PPPM in
+LAMMPS), the only parameters that change are the partial charge
+assignments:
 
 O charge = -0.8476
 H charge = 0.4238 :all(b),p

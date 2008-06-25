@@ -91,7 +91,6 @@ void PairGranHistory::compute(int eflag, int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -252,7 +251,7 @@ void PairGranHistory::compute(int eflag, int vflag)
 	torque[i][1] -= radi*tor2;
 	torque[i][2] -= radi*tor3;
 
-	if (newton_pair || j < nlocal) {
+	if (j < nlocal) {
 	  f[j][0] -= fx;
 	  f[j][1] -= fy;
 	  f[j][2] -= fz;
@@ -261,7 +260,7 @@ void PairGranHistory::compute(int eflag, int vflag)
 	  torque[j][2] -= radj*tor3;
 	}
 
-	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+	if (evflag) ev_tally_xyz(i,j,nlocal,0,
 				 0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }

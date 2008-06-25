@@ -432,10 +432,9 @@ angle style of <I>harmonic</I> or <I>charmm</I> should also be used.
 </P>
 <P>Currently, only a four-point model for long-range Coulombics is
 implemented via the LAMMPS <A HREF = "pair_lj.html">pair style
-lj/cut/coul/long/tip4p</A>.  We plan to add a cutoff
-version in the future.  For both models, the bond lengths and bond
-angles should be held fixed using the <A HREF = "fix_shake.html">fix shake</A>
-command.
+lj/cut/coul/long/tip4p</A>.  A cutoff version may be added
+the future.  For both models, the bond lengths and bond angles should
+be held fixed using the <A HREF = "fix_shake.html">fix shake</A> command.
 </P>
 <P>These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
@@ -503,6 +502,13 @@ LJ epsilon, sigma of OH, HH = 0.0 <BR>
 </P>
 <P>r0 of OH bond = 1.0<BR>
 theta of HOH angle = 109.47 <BR>
+</P>
+<P>To use TIP3P with a long-range Coulombic
+solver (Ewald or PPPM in LAMMPS), the only parameters that
+change are the partial charge assignments:
+</P>
+<P>O charge = -0.8476<BR>
+H charge = 0.4238 <BR>
 </P>
 <HR>
 

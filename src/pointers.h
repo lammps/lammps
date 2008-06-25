@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 // Pointers class contains ptrs to master copy of
-//   fundamental and top-level LAMMPS class ptrs stored in lammps.h
-// every LAMMPS class inherits from Pointers to get access to lammps.h ptrs
+//   fundamental LAMMPS class ptrs stored in lammps.h
+// every LAMMPS class inherits from Pointers to access lammps.h ptrs
 // these variables are auto-initialized by Pointer class constructor
 // *& variables are really pointers to the pointers in lammps.h
-// & enables them to be used in any class as error->all()
+// & enables them to be accessed directly in any class, e.g. error->all()
 
 #ifndef POINTERS_H
 #define POINTERS_H

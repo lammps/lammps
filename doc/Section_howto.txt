@@ -300,7 +300,7 @@ to launch LAMMPS on multiple partitions.
 In your input script, define a set of temperatures, one for each
 processor partition, using the "variable"_variable.html command:
 
-variable t proc 300.0 310.0 320.0 330.0 :pre
+variable t world 300.0 310.0 320.0 330.0 :pre
 
 Define a fix of style "nvt"_fix_nvt.html or "langevin"_fix_langevin.html
 to control the temperature of each simulation:

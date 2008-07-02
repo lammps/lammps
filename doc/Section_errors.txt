@@ -2496,7 +2496,7 @@ A variable used in a formula could not be evaluated. :dd
 
 {Invalid variable in next command} :dt
 
-Next command in input script must set variables from "a" to "z". :dd
+Self-explanatory. :dd
 
 {Invalid variable name in variable formula} :dt
 

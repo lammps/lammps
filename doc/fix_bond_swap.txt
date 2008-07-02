@@ -28,9 +28,11 @@ In a simulation of polymer chains, this command attempts to swap bonds
 between two different chains, effectively grafting the end of one
 chain onto another chain and vice versa.  This is done via Monte Carlo
 rules using the Boltzmann acceptance criterion.  The purpose is to
-lower the energy of the system more rapidly than dynamics alone would
-do it, by enabling instantaneous large conformational changes in a
-dense polymer melt.  It is designed for use with systems of
+equilibrate the polymer chain conformations more rapidly than dynamics
+alone would do it, by enabling instantaneous large conformational
+changes in a dense polymer melt.  The polymer chains should thus more
+rapidly converge to the proper end-to-end distances and radii of
+gyration.  It is designed for use with systems of
 "FENE"_bond_fene.html bead-spring polymer chains where each polymer is
 a linear chain of monomers, but LAMMPS does not enforce this
 requirement.

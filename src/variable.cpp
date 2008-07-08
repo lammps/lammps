@@ -1084,7 +1084,7 @@ double Variable::evaluate(char *str, Tree **tree)
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
      ceil(),floor(),round()
-/* ---------------------------------------------------------------------- */
+---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
 {

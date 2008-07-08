@@ -217,12 +217,12 @@ void ComputeTempSphere::compute_vector()
 	t[5] += massone * v[i][1]*v[i][2];
 
 	inertiaone = inertia[type[i]];
-	t[0] += massone * omega[i][0]*omega[i][0];
-	t[1] += massone * omega[i][1]*omega[i][1];
-	t[2] += massone * omega[i][2]*omega[i][2];
-	t[3] += massone * omega[i][0]*omega[i][1];
-	t[4] += massone * omega[i][0]*omega[i][2];
-	t[5] += massone * omega[i][1]*omega[i][2];
+	t[0] += inertiaone * omega[i][0]*omega[i][0];
+	t[1] += inertiaone * omega[i][1]*omega[i][1];
+	t[2] += inertiaone * omega[i][2]*omega[i][2];
+	t[3] += inertiaone * omega[i][0]*omega[i][1];
+	t[4] += inertiaone * omega[i][0]*omega[i][2];
+	t[5] += inertiaone * omega[i][1]*omega[i][2];
       }
   } else {
     for (i = 0; i < nlocal; i++)
@@ -236,12 +236,12 @@ void ComputeTempSphere::compute_vector()
 	t[5] += massone * v[i][1]*v[i][2];
 
 	inertiaone = INERTIA*radius[i]*radius[i]*rmass[i];
-	t[0] += massone * omega[i][0]*omega[i][0];
-	t[1] += massone * omega[i][1]*omega[i][1];
-	t[2] += massone * omega[i][2]*omega[i][2];
-	t[3] += massone * omega[i][0]*omega[i][1];
-	t[4] += massone * omega[i][0]*omega[i][2];
-	t[5] += massone * omega[i][1]*omega[i][2];
+	t[0] += inertiaone * omega[i][0]*omega[i][0];
+	t[1] += inertiaone * omega[i][1]*omega[i][1];
+	t[2] += inertiaone * omega[i][2]*omega[i][2];
+	t[3] += inertiaone * omega[i][0]*omega[i][1];
+	t[4] += inertiaone * omega[i][0]*omega[i][2];
+	t[5] += inertiaone * omega[i][1]*omega[i][2];
       }
   }
 

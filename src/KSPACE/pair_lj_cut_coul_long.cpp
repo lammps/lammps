@@ -666,8 +666,6 @@ void PairLJCutCoulLong::coeff(int narg, char **arg)
 
 void PairLJCutCoulLong::init_style()
 {
-  int i,j;
-
   if (!atom->q_flag)
     error->all("Pair style lj/cut/coul/long requires atom attribute q");
 

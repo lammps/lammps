@@ -148,7 +148,6 @@ void FixLangevin::post_force(int vflag)
 {
   double gamma1,gamma2;
 
-  double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;

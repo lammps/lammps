@@ -238,7 +238,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
 
-  int i,j,ii,jj,inum,jnum,itype;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -252,7 +252,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 

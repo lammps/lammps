@@ -363,6 +363,8 @@ RegionStyle(union,RegUnion)
 #include "style_poems.h"
 #include "style_xtc.h"
 
+#include "style_sd.h"
+
 // user add-ons: individual classes and packages
 
 #include "style_user.h"

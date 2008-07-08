@@ -127,7 +127,7 @@ void FixThermalConductivity::init()
 void FixThermalConductivity::end_of_step()
 {
   int i,j,m,insert;
-  double p,coord,ke;
+  double coord,ke;
   MPI_Status status;
   struct {
     double value;

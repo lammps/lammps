@@ -389,8 +389,6 @@ void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
 
 void PairLJCutCoulLongTIP4P::init_style()
 {
-  int i,j;
-
   if (atom->tag_enable == 0)
     error->all("Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair) 

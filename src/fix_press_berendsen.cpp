@@ -366,7 +366,7 @@ void FixPressBerendsen::couple()
 
 void FixPressBerendsen::remap()
 {
-  int i,n;
+  int i;
   double oldlo,oldhi,ctr;
 
   double **x = atom->x;

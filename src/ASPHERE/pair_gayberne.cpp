@@ -698,8 +698,6 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   double temp1,temp2,temp3;
 
   int *type = atom->type;
-  int newton_pair = force->newton_pair;
-  int nlocal = atom->nlocal;
 
   double r12hat[3];
   MathExtra::normalize3(r12,r12hat);

@@ -210,7 +210,8 @@ for i = 1 : 1 : nfiles
         if j ~= Natoms
             if atom_data(id(j,1,i),2,i) ~=  atom_data(id(j+1,1,i),2,i)
                 atom_change = 1;
-                aid = aid+1;
+                aid = atom_data(id(j+1,1,i),2,i);
+%                aid = aid+1;
             end
         end
     end

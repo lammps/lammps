@@ -1083,6 +1083,7 @@ double Variable::evaluate(char *str, Tree **tree)
    process an evaulation tree
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
+     ceil(),floor(),round()
 /* ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -1241,6 +1242,7 @@ int Variable::int_between_brackets(char *str, int i, int &index, int emptyflag)
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function in 2 places:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan()
+     ceil(),floor(),round()
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,

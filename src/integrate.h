@@ -35,7 +35,7 @@ class Integrate : protected Pointers {
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;
-  class Compute **elist_global;     // list of PE,virial Computes
+  class Compute **elist_global;     // lists of PE,virial Computes
   class Compute **elist_atom;
   class Compute **vlist_global;
   class Compute **vlist_atom;

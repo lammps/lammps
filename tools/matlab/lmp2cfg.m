@@ -197,7 +197,8 @@ for i = 1 : 1 : nfiles
                                                      auxiliary{k,2});
         end
     end
-    aid = 1;
+    aid = atom_data(id(1,1,i),2,i);
+%    aid = 1;
     atom_change = 1;
     for j = 1 : 1 : Natoms(i)
         if atom_change == 1

@@ -1326,6 +1326,44 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	  }
 	}
       }
+    
+  } else if ((strcmp(style,"coul/cut") == 0) ||
+	     (strcmp(style,"coul/debye") == 0) ||
+	     (strcmp(style,"coul/long") == 0)) {
+
+    if (strcmp(style,"coul/cut") == 0) {
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"coul/debye") == 0) {
+      m = 1;
+      double cut_coul = read_double(fp);
+      double kappa = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"coul/long") == 0) {
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    }
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double cut_coul = read_double(fp);
+	  } else {
+	    double cut_coul = read_double(fp);
+	  }
+	}
+      }
 
   } else if (strcmp(style,"dipole/cut") == 0) {
 
@@ -1586,6 +1624,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
+      double kappa = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/coul/long") == 0) {
@@ -1920,7 +1959,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
     }
 
-  } else if (strcmp(style,"hybrid") == 0) {
+  } else if ((strcmp(style,"hybrid") == 0) ||
+	     (strcmp(style,"hybrid/overlay") == 0)) {
 
     // for each substyle of hybrid,
     //   read its settings by calling pair() recursively with flag = 0
@@ -2498,6 +2538,9 @@ void Data::write(FILE *fp, FILE *fp2)
   if (pair_style && fp2 == NULL) {
     if ((strcmp(pair_style,"none") != 0) && 
 	(strcmp(pair_style,"airebo") != 0) &&
+	(strcmp(pair_style,"coul/cut") != 0) &&
+	(strcmp(pair_style,"coul/debye") != 0) &&
+	(strcmp(pair_style,"coul/long") != 0) &&
 	(strcmp(pair_style,"eam") != 0) &&
 	(strcmp(pair_style,"eam/opt") != 0) &&
 	(strcmp(pair_style,"eam/alloy") != 0) &&

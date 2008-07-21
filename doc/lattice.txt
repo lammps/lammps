@@ -53,7 +53,7 @@ of the lattice command can be used to define a wide variety of
 crystallographic lattices.
 
 A lattice is used by LAMMPS in two ways.  First, the
-"create_atoms"_create_atoms.hmtl command creates atoms on the lattice
+"create_atoms"_create_atoms.html command creates atoms on the lattice
 points inside the simulation box.  Note that the
 "create_atoms"_create_atoms.html command allows different atom types
 to be assigned to different basis atoms of the lattice.  Second, the

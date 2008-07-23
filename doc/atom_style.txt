@@ -13,7 +13,7 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
-        {dpd} or {ellipsoid} or {full} or {granular} or {molecular} or \
+        {dpd} or {ellipsoid} or {full} or {granular} or {molecular} or {peri} \
 	{hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
@@ -55,7 +55,8 @@ velocities, atom IDs and types.
 {ellipsoid} = quaternion for particle orientation, angular velocity/momentum
 {full} = molecular + charge - e.g. biomolecules, charged polymers
 {granular} = granular atoms with rotational properties
-{molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers :ul
+{molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
+{peri} = mass, volume - e.g. mesocopic Peridynamics :ul
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
@@ -82,7 +83,8 @@ The {angle}, {bond}, {full}, and {molecular} styles are part of the
 "molecular" package.  The {granular} style is part of the "granular"
 package.  The {dpd} style is part of the "dpd" package.  The {dipole}
 style is part of the "dipole" package.  The {ellipsoid} style is part
-of the "ellipsoid" package.  They are only enabled if LAMMPS was built
+of the "ellipsoid" package.  The {peri} style is part of the "peri"
+package for Peridynamics.  They are only enabled if LAMMPS was built
 with that package.  See the "Making LAMMPS"_Section_start.html#2_3
 section for more info.
 

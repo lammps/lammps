@@ -15,7 +15,7 @@
 </P>
 <PRE>units style 
 </PRE>
-<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> 
+<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> or <I>si</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -86,11 +86,27 @@ results from a unitless LJ simulation into physical quantities.
 <LI>dipole = charge*Angstroms
 <LI>electric field = volts/Angstrom 
 </UL>
+<P>For style <I>si</I>, these are the units:
+</P>
+<UL><LI>mass = kilograms
+<LI>distance = meters
+<LI>time = seconds
+<LI>energy = Joules
+<LI>velocity = meters/second
+<LI>force = Newtons
+<LI>temperature = degrees K
+<LI>pressure = Pascals
+<LI>viscosity = Pascal*second
+<LI>charge = Coulombs
+<LI>dipole = Coulombs*meters
+<LI>electric field = volts/meter 
+</UL>
 <P>This command also sets the timestep size and neighbor skin distance to
 default values for each style.  For style <I>lj</I> these are dt = 0.005
 tau and skin = 0.3 sigma.  For style <I>real</I> these are dt = 1.0 fmsec
 and skin = 2.0 Angstroms.  For style <I>metal</I> these are dt = 0.001 psec
-and skin = 2.0 Angstroms.
+and skin = 2.0 Angstroms. For style <I>si</I> these are dt = 1.0e-8 sec and 
+skin = 0.001 meters.
 </P>
 <P><B>Restrictions:</B>
 </P>

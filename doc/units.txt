@@ -12,7 +12,7 @@ units command :h3
 
 units style :pre
 
-style = {lj} or {real} or {metal} :ul
+style = {lj} or {real} or {metal} or {si} :ul
 
 [Examples:]
 
@@ -83,11 +83,27 @@ charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
 electric field = volts/Angstrom :ul
 
+For style {si}, these are the units:
+
+mass = kilograms
+distance = meters
+time = seconds
+energy = Joules
+velocity = meters/second
+force = Newtons
+temperature = degrees K
+pressure = Pascals
+viscosity = Pascal*second
+charge = Coulombs
+dipole = Coulombs*meters
+electric field = volts/meter :ul
+
 This command also sets the timestep size and neighbor skin distance to
 default values for each style.  For style {lj} these are dt = 0.005
 tau and skin = 0.3 sigma.  For style {real} these are dt = 1.0 fmsec
 and skin = 2.0 Angstroms.  For style {metal} these are dt = 0.001 psec
-and skin = 2.0 Angstroms.
+and skin = 2.0 Angstroms. For style {si} these are dt = 1.0e-8 sec and 
+skin = 0.001 meters.
 
 [Restrictions:]
 

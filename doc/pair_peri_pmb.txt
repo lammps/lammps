@@ -1,0 +1,52 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style peri/pmb command :h3
+
+[Syntax:]
+
+pair_style peri/pmb :pre 
+
+[Examples:]
+
+pair_style peri/pmb
+pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25 :pre
+
+[Description:]
+
+The {peri/pmb} style implements the peridynamic bond-based prototype
+microelastic brittle (PMB) model. Please see the
+"PDLAMMPS"_http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf user guide for more
+details. 
+
+The syntax for the pair_coeff command is:
+
+pair_coeff type1 type2 c horizon s00 alpha :pre
+
+The following coefficients must be defined for each pair of atoms types via
+the pair_coeff command as in the examples above.
+
+c (peridynamic PMB "spring constant")
+horizon (peridynamic horizon)
+s00 (used when calculating if bond should break)
+alpha (used when calculating if bond should break) :ul
+
+:line
+
+[Restrictions:]
+
+The {peri/pmb} style is part of the "peridynamic" package.  It is only
+enabled if LAMMPS was built with that package (which it is not by
+default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none

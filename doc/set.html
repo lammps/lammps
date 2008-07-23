@@ -21,7 +21,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or 	  <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat/random</I> or 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> 
+<LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or 	  <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat/random</I> or 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or 	  <I>rmass</I> or <I>vfrac</I> 
 
 <PRE>  <I>type</I> value = atom type
   <I>type/fraction</I> values = type fraction seed
@@ -44,7 +44,9 @@
   <I>bond</I> value = bond type for all bonds between selected atoms
   <I>angle</I> value = angle type for all angles between selected atoms
   <I>dihedral</I> value = dihedral type for all dihedrals between selected atoms
-  <I>improper</I> value = improper type for all impropers between selected atoms 
+  <I>improper</I> value = improper type for all impropers between selected atoms
+  <I>rmass</I> value = particle mass (mass units)
+  <I>vfrac</I> value = particle volume (volume units) 
 </PRE>
 
 </UL>
@@ -148,9 +150,18 @@ etc) was set by the <I>bond types</I> (<I>angle types</I>, etc) field in the
 header of the data file read by the <A HREF = "read_data.html">read_data</A>
 command.
 </P>
+<P>Keyword <I>rmass</I> sets the mass of each atom, for simulations where each
+atom stores its own mass.  This is distinct from the <A HREF = "mass.html">mass</A>
+command, which sets the mass by atom type.  When used with <A HREF = "atom_style.html">atom style
+peri</A>, this command sets the density of each particle,
+not its mass.
+</P>
+<P>Keyword <I>vfrac</I> sets the volume for all selected particles.  This is
+only supported by <A HREF = "atom_style.html">atom style peri</A>.
+</P>
 <P><B>Restrictions:</B>
 </P>
-<P>You cannot set an atom attribute (e.g. <I>mol</I> or <I>q</I>) if the
+<P>You cannot set an atom attribute (e.g. <I>mol</I> or <I>q</I> or <I>vfrac</I>) if the
 <A HREF = "atom_style.html">atom_style</A> does not have that attribute.
 </P>
 <P>This command requires inter-processor communication to coordinate the

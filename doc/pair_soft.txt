@@ -33,9 +33,9 @@ how to make the ramping take place across multiple runs.  Rc is the
 cutoff.  See the "fix nve/limit"_fix_nve_limit.html command for
 another way to push apart overlapping atoms.
 
-The following coefficients must be defined for each pair of atoms
-types via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the data file or restart files read by the
+The following coefficients must be defined for each pair of atom types
+via the "pair_coeff"_pair_coeff.html command as in the examples above,
+or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands, or by mixing as described below:
 

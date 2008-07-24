@@ -450,6 +450,7 @@ description:
 
 "centro/atom"_compute_centro_atom.html,
 "coord/atom"_compute_coord_atom.html,
+"damage/atom"_compute_damage_atom.html,
 "displace/atom"_compute_displace_atom.html,
 "erotate/asphere"_compute_erotate_asphere.html,
 "erotate/sphere"_compute_erotate_sphere.html,
@@ -526,6 +527,7 @@ full description:
 "morse"_pair_morse.html,
 "morse/opt"_pair_morse.html,
 "resquared"_pair_resquared.html,
+"peri/pmb"_pair_peri_pmb.html,
 "soft"_pair_soft.html,
 "sw"_pair_sw.html,
 "table"_pair_table.html,

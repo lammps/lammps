@@ -110,7 +110,7 @@ temperature = degrees K
 pressure = dyne/cm^2 or barye = 1.0e-6 bars
 viscosity = Poise
 charge = statcoulombs or esu
-dipole = debye
+dipole = statcoul-cm = 10^18 debye
 electric field = statvolt/cm or dyne/esu :ul
 
 The units command also sets the timestep size and neighbor skin

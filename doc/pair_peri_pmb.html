@@ -22,36 +22,70 @@ pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>peri/pmb</I> style implements the peridynamic bond-based prototype
-microelastic brittle (PMB) model. Please see the
-<A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS</A> user guide for more
-details. 
+<P>Style <I>peri/pmb</I> style implements the Peridynamic bond-based prototype
+microelastic brittle (PMB) model, which can be used to model materials
+at the mesoscopic or macroscopic scale.  The implementation of
+Peridynamics in LAMMPS is described in <A HREF = "#Parks">(Parks)</A>.  Also see the
+<A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS user
+guide</A> for more
+details about this particular potential.
 </P>
-<P>The syntax for the pair_coeff command is:
+<P>The following coefficients must be defined for each pair of atom
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
 </P>
-<PRE>pair_coeff type1 type2 c horizon s00 alpha 
-</PRE>
-<P>The following coefficients must be defined for each pair of atoms types via
-the pair_coeff command as in the examples above.
-</P>
-<UL><LI>c (peridynamic PMB "spring constant")
-<LI>horizon (peridynamic horizon)
-<LI>s00 (used when calculating if bond should break)
-<LI>alpha (used when calculating if bond should break) 
+<UL><LI>K (energy/distance^2 units)
+<LI>horizon (distance units)
+<LI>s00 (?? units)
+<LI>alpha (?? units) 
 </UL>
+<P>K is the spring constant for Peridynamic bonds, the horizon is a
+cutoff distance for truncating interactions, and s00 and alpha are
+used as a bond breaking criteria.  See the users guide for more
+details.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
+relevant for this pair style.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
 <HR>
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>peri/pmb</I> style is part of the "peridynamic" package.  It is only
-enabled if LAMMPS was built with that package (which it is not by
-default).  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info.
+<P>The <I>peri/pmb</I> style is part of the "peri" package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Parks"></A>
+
+<P><B>(Parks)</B> Parks, Lehoucq, Plimpton, Silling, to appear in Comp Phys
+Comm, (2008).
 </P>
 </HTML>

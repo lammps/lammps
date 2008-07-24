@@ -6,7 +6,7 @@
 
 :line
 
-compute damage/peri command :h3
+compute damage/atom command :h3
 
 [Syntax:]
 

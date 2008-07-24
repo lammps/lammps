@@ -33,13 +33,17 @@ using namespace LAMMPS_NS;
 
 enum{ATOM,GROUP,REGION};
 enum{TYPE,TYPE_FRACTION,MOLECULE,
-     X,Y,Z,VX,VY,VZ,CHARGE,
-     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
-     BOND,ANGLE,DIHEDRAL,IMPROPER};
+       X,Y,Z,VX,VY,VZ,CHARGE,
+       DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
+       DIAMETER,DENSITY,VOLUME,
+       BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
-Set::Set(LAMMPS *lmp) : Pointers(lmp) {}
+Set::Set(LAMMPS *lmp) : Pointers(lmp)
+{
+  PI = 4.0*atan(1.0);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -171,6 +175,29 @@ void Set::command(int narg, char **arg)
       if (ivalue <= 0) error->all("Invalid random number seed in set command");
       setrandom(QUAT_RANDOM);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"diameter") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (!atom->radius_flag)
+        error->all("Cannot set this attribute for this atom style");
+      set(DIAMETER);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"density") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      /*
+      if (!atom->density_flag)
+        error->all("Cannot set this attribute for this atom style");
+      */
+      set(DENSITY);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"volume") == 0) {
+      if (iarg+2 > narg) error->all("Illegal set command");
+      dvalue = atof(arg[iarg+1]);
+      if (!atom->vfrac_flag)
+        error->all("Cannot set this attribute for this atom style");
+      set(VOLUME);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
@@ -291,6 +318,26 @@ void Set::set(int keyword)
       else if (keyword == VY) atom->v[i][1] = dvalue;
       else if (keyword == VZ) atom->v[i][2] = dvalue;
       else if (keyword == CHARGE) atom->q[i] = dvalue;
+      else if (keyword == DIAMETER) {
+	atom->radius[i] = 0.5 * dvalue;
+	if (domain->dimension == 3)
+	  atom->rmass[i] = 4.0*PI/3.0 * 
+	    atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
+	else
+	  atom->rmass[i] = PI * 
+	    atom->radius[i]*atom->radius[i] * atom->density[i];
+      } else if (keyword == DENSITY) {
+	atom->rmass[i] = dvalue;
+	/*
+	atom->density[i] = dvalue;
+	if (domain->dimension == 3)
+	  atom->rmass[i] = 4.0*PI/3.0 * 
+	    atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
+	else
+	  atom->rmass[i] = PI * 
+	    atom->radius[i]*atom->radius[i] * atom->density[i];
+	*/
+      } else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
 
       else if (keyword == DIPOLE) {
 	if (atom->dipole[atom->type[i]] > 0.0) {

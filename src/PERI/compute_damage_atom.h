@@ -11,29 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SET_H
-#define SET_H
+#ifndef COMPUTE_DAMAGE_ATOM_H
+#define COMPUTE_DAMAGE_ATOM_H
 
-#include "pointers.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class Set : protected Pointers {
+class ComputeDamageAtom : public Compute {
  public:
-  Set(class LAMMPS *);
-  void command(int, char **);
+  ComputeDamageAtom(class LAMMPS *, int, char **);
+  ~ComputeDamageAtom();
+  void init();
+  void compute_peratom();
+  double memory_usage();
 
  private:
-  char *id;
-  int *select;
-  int style,ivalue,newtype,count;
-  double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
-  double PI;
-
-  void selection(int);
-  void set(int);
-  void setrandom(int);
-  void topology(int);
+  int nmax;
+  double *damage;
+  int ifix_peri;
 };
 
 }

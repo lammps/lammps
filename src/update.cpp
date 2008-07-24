@@ -127,6 +127,27 @@ void Update::set_units(const char *style)
     force->vxmu2f = 0.6241509647;
     dt = 0.001;
     neighbor->skin = 2.0;
+
+  } else if (strcmp(style,"si") == 0) {
+    force->boltz = 1.3806504e-23;
+    force->mvv2e = 1.0;
+    force->ftm2v = 1.0;
+    force->nktv2p = 1.0;
+    force->qqr2e = 8.9876e9;
+    force->qe2f = 1.0;
+    dt = 1.0e-8;
+    neighbor->skin = 0.001;
+
+  } else if (strcmp(style,"cgs") == 0) {
+    force->boltz = 1.3806504e-16;
+    force->mvv2e = 1.0;
+    force->ftm2v = 1.0;
+    force->nktv2p = 1.0;
+    force->qqr2e = 1.0;
+    force->qe2f = 1.0;
+    dt = 1.0e-8;
+    neighbor->skin = 0.1;
+
   } else error->all("Illegal units command");
 
   delete [] unit_style;

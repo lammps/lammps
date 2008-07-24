@@ -360,6 +360,7 @@ RegionStyle(union,RegUnion)
 #include "style_meam.h"
 #include "style_molecule.h"
 #include "style_opt.h"
+#include "style_peri.h"
 #include "style_poems.h"
 #include "style_xtc.h"
 

@@ -30,10 +30,15 @@ mass 2* 62.5
 also be set in the <A HREF = "read_data.html">read_data</A> data file.  See the
 <A HREF = "units.html">units</A> command for what mass units to use.
 </P>
-<P>Most atom styles require masses to be specified.  One exception is
-<A HREF = "atom_style.html">atom_style granular</A>, where masses are defined for
-individual atoms, not types.  <A HREF = "pair_eam.html">Pair_style eam</A> defines
-the masses of atom types in the EAM potential file.
+<P>Most atom styles require per-type masses to be specified.  One
+exception is <A HREF = "atom_style.html">atom_style granular</A> or <A HREF = "atom_style.html">atom_style
+peri</A>, where masses are defined for individual atoms,
+not types.  These are defined in the file read by the
+<A HREF = "read_data.html">read_data</A> command, or set to default values by the
+<A HREF = "create_atoms.html">create_atoms</A> command, or set to new values by the
+<A HREF = "set.html">set density</A> command.  Also note that <A HREF = "pair_eam.html">pair_style
+eam</A> defines the masses of atom types in the EAM
+potential file.
 </P>
 <P>I can be specified in one of two ways.  An explicit numeric value can
 be used, as in the 1st example above.  Or a wild-card asterisk can be

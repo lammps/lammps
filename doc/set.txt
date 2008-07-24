@@ -18,8 +18,8 @@ one or more keyword/value pairs may be appended :l
 keyword = {type} or {type/fraction} or {mol} or \
 	  {x} or {y} or {z} or {vx} or {vy} or {vz} or \
           {charge} or {dipole} or {dipole/random} or {quat/random} or \
-	  {bond} or {angle} or {dihedral} or {improper} or \
-	  {rmass} or {vfrac} :l
+	  {diameter} or {density} or {volume} or
+	  {bond} or {angle} or {dihedral} or {improper} :l
   {type} value = atom type
   {type/fraction} values = type fraction seed
     type = new atom type
@@ -38,12 +38,13 @@ keyword = {type} or {type/fraction} or {mol} or \
     theta = rotation angle in degrees
   {quat/random} value = seed
     seed = random # seed (positive integer) for quaternion orientations
+  {diameter} value = particle diameter (distance units)
+  {density} value = particle mass (mass/distance^3 units)
+  {volume} value = particle volume (distance^3 units)
   {bond} value = bond type for all bonds between selected atoms
   {angle} value = angle type for all angles between selected atoms
   {dihedral} value = dihedral type for all dihedrals between selected atoms
-  {improper} value = improper type for all impropers between selected atoms
-  {rmass} value = particle mass (mass units)
-  {vfrac} value = particle volume (volume units) :pre
+  {improper} value = improper type for all impropers between selected atoms :pre
 :ule
 
 [Examples:]
@@ -137,6 +138,18 @@ xy plane are generated.
 For the {dipole} and {quat} keywords, the "atom style"_atom_style.html
 being used must support the use of dipoles or quaternions.
 
+Keyword {diameter} sets the size of all selected particles.
+
+Keyword {density} sets the density of all selected particles, which
+combined with its density determines their mass.
+
+Keyword {volume} sets the effective size of all selected particles.
+
+For the {diameter} and {density} and {volume} keywords, the "atom
+style"_atom_style.html being used must support the use of those
+parameters.  For example, granular particles store a diameter and
+density.  Peridynamic particles store a volume and density.
+
 Keywords {bond}, {angle}, {dihedral}, and {improper}, set the bond
 type (angle type, etc) of all bonds (angles, etc) of selected atoms to
 the specified value from 1 to nbondtypes (nangletypes, etc).  All
@@ -146,19 +159,10 @@ etc) was set by the {bond types} ({angle types}, etc) field in the
 header of the data file read by the "read_data"_read_data.html
 command.
 
-Keyword {rmass} sets the mass of each atom, for simulations where each
-atom stores its own mass.  This is distinct from the "mass"_mass.html
-command, which sets the mass by atom type.  When used with "atom style
-peri"_atom_style.html, this command sets the density of each particle,
-not its mass.
-
-Keyword {vfrac} sets the volume for all selected particles.  This is
-only supported by "atom style peri"_atom_style.html.
-
 [Restrictions:]
 
-You cannot set an atom attribute (e.g. {mol} or {q} or {vfrac}) if the
-"atom_style"_atom_style.html does not have that attribute.
+You cannot set an atom attribute (e.g. {mol} or {q} or {volume}) if
+the "atom_style"_atom_style.html does not have that attribute.
 
 This command requires inter-processor communication to coordinate the
 setting of bond types (angle types, etc).  This means that your system

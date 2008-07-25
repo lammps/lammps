@@ -248,7 +248,7 @@ ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
 granular: atom-ID atom-type diameter density x y z
 molecular: atom-ID molecule-ID atom-type x y z
-peri: atom-ID atom-type x y z volume density
+peri: atom-ID atom-type volume density x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
 The keywords have these meanings:

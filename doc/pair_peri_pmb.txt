@@ -21,11 +21,12 @@ pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25 :pre
 
 Style {peri/pmb} style implements the Peridynamic bond-based prototype
 microelastic brittle (PMB) model, which can be used to model materials
-at the mesoscopic or macroscopic scale.  The implementation of
+at the mesoscopic or macroscopic scale.  The canonical paper on
+Peridynamics is "(Silling)"_#Silling.  The implementation of
 Peridynamics in LAMMPS is described in "(Parks)"_#Parks.  Also see the
 "PDLAMMPS user
 guide"_http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf for more
-details about this particular potential.
+details about this particular potential and using it in LAMMPS.
 
 The following coefficients must be defined for each pair of atom
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -33,15 +34,17 @@ above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands, or by mixing as described below:
 
-K (energy/distance^2 units)
+c (energy/distance/volume^2 units)
 horizon (distance units)
-s00 (?? units)
-alpha (?? units) :ul
+s00 (unitless)
+alpha (unitless) :ul
 
-K is the spring constant for Peridynamic bonds, the horizon is a
-cutoff distance for truncating interactions, and s00 and alpha are
-used as a bond breaking criteria.  See the users guide for more
-details.
+C is the effectively a spring constant for Peridynamic bonds, the
+horizon is a cutoff distance for truncating interactions, and s00 and
+alpha are used as a bond breaking criteria.  The units of c are such
+that c/distance = stiffness/volume^2, where stiffness is
+energy/distance^2 and volume is distance^3.  See the users guide for
+more details.
 
 :line
 
@@ -83,3 +86,6 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 :link(Parks)
 [(Parks)] Parks, Lehoucq, Plimpton, Silling, to appear in Comp Phys
 Comm, (2008).
+
+:link(Silling)
+[(Silling)] Silling, J Mech Phys Solids, 48, 175-209 (2000).

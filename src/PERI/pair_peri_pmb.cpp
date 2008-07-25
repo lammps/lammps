@@ -250,11 +250,11 @@ void PairPeriPMB::compute(int eflag, int vflag)
       f[i][1] += dely*fbond;
       f[i][2] += delz*fbond;
 
-      // hardwire newton flag off and use 1/2 since I-J is double counted
+      // since I-J is double counted, set newton off & use 1/2 factor and I,I 
 
       if (eflag) evdwl = rk*dr;
-      //if (evflag) ev_tally(i,j,nlocal,0,
-      //		   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
+      if (evflag) ev_tally(i,i,nlocal,0,
+			   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep

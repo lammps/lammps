@@ -61,7 +61,7 @@ void ComputeDamageAtom::init()
 
   // find associated PERI_NEIGH fix that must exist
 
-  ifix_peri == -1;
+  ifix_peri = -1;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1)
@@ -86,15 +86,12 @@ void ComputeDamageAtom::compute_peratom()
 
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  double **x = atom->x;
   double *vfrac = atom->vfrac;
   double *vinter = ((FixPeriNeigh *) modify->fix[ifix_peri])->vinter;
   int **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
   int i,j,jj,jnum;
 
-  Pair *anypair = force->pair_match("peri_pmb");
-  double **cutsq = anypair->cutsq;
   double damage_temp;
 
   for (i = 0; i < nlocal; i++) {

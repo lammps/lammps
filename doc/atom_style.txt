@@ -13,8 +13,8 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
-        {dpd} or {ellipsoid} or {full} or {granular} or {molecular} or {peri} \
-	{hybrid} :ul
+        {dpd} or {ellipsoid} or {full} or {granular} or {molecular} or \
+	{peri} or {hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
 

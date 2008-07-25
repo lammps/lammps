@@ -64,7 +64,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   q = NULL;
   mu = NULL;
   quat = omega = angmom = torque = NULL;
-  radius = density = rmass = vfrac = s0 = vinter = NULL;
+  radius = density = rmass = NULL;
+  vfrac = s0 = NULL;
   x0 = NULL;
 
   maxspecial = 1;
@@ -91,7 +92,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   molecule_flag = 0;
   q_flag = mu_flag = 0;
   quat_flag = omega_flag = angmom_flag = torque_flag = 0;
-  radius_flag = density_flag = rmass_flag = vfrac_flag = s0_flag = vinter_flag = 0;
+  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
 
   // ntype-length arrays
 
@@ -164,7 +165,6 @@ Atom::~Atom()
   memory->sfree(rmass);
   memory->sfree(vfrac);
   memory->sfree(s0);
-  memory->sfree(vinter);
   memory->destroy_2d_double_array(x0);
 
   memory->sfree(molecule);
@@ -293,7 +293,7 @@ void Atom::init()
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if style matches atom style hybrid sub-style
+   return 1 if style matches atom style or hybrid sub-style
    else return 0
 ------------------------------------------------------------------------- */
 

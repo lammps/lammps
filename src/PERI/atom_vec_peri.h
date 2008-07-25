@@ -46,7 +46,7 @@ class AtomVecPeri : public AtomVec {
  private:
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
-  double *rmass,*vfrac,*s0,**x0,*vinter;
+  double *vfrac,*density,*rmass,*s0,**x0;
 };
 
 }

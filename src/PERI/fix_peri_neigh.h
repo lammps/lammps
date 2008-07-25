@@ -41,11 +41,12 @@ class FixPeriNeigh : public Fix {
   int maxsize_restart();
 
  private:
-  int first;
+  int first;                 // flag for first time initialization
   int maxpartner;            // max # of peridynamic neighs for any atom
   int *npartner;             // # of neighbors for each atom
   int **partner;             // neighs for each atom, stored as global IDs
   double **r0;               // initial distance to partners
+  double *vinter;            // sum of vfrac for bonded neighbors
 
   class NeighList *list;
 };

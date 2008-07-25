@@ -185,10 +185,8 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"density") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       dvalue = atof(arg[iarg+1]);
-      /*
       if (!atom->density_flag)
         error->all("Cannot set this attribute for this atom style");
-      */
       set(DENSITY);
       iarg += 2;
     } else if (strcmp(arg[iarg],"volume") == 0) {
@@ -302,6 +300,13 @@ void Set::selection(int n)
 
 void Set::set(int keyword)
 {
+  // set granular and peridynamic flags
+
+  int granflag = 0;
+  int periflag = 0;
+  if (atom->style_match("granular")) granflag = 1;
+  if (atom->style_match("peri")) periflag = 1;
+  
   if (keyword == DIPOLE) atom->check_dipole();
 
   selection(atom->nlocal);
@@ -318,6 +323,9 @@ void Set::set(int keyword)
       else if (keyword == VY) atom->v[i][1] = dvalue;
       else if (keyword == VZ) atom->v[i][2] = dvalue;
       else if (keyword == CHARGE) atom->q[i] = dvalue;
+
+      // diameter setting triggers setting of rmass
+
       else if (keyword == DIAMETER) {
 	atom->radius[i] = 0.5 * dvalue;
 	if (domain->dimension == 3)
@@ -326,17 +334,24 @@ void Set::set(int keyword)
 	else
 	  atom->rmass[i] = PI * 
 	    atom->radius[i]*atom->radius[i] * atom->density[i];
+
+      // density setting triggers setting of rmass
+      // for granular, rmass is function of diameter and density
+      // for peri, rmass stores density directly
+	
       } else if (keyword == DENSITY) {
-	atom->rmass[i] = dvalue;
-	/*
 	atom->density[i] = dvalue;
-	if (domain->dimension == 3)
-	  atom->rmass[i] = 4.0*PI/3.0 * 
-	    atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
-	else
-	  atom->rmass[i] = PI * 
-	    atom->radius[i]*atom->radius[i] * atom->density[i];
-	*/
+	if (granflag) {
+	  if (domain->dimension == 3)
+	    atom->rmass[i] = 4.0*PI/3.0 * 
+	      atom->radius[i]*atom->radius[i]*atom->radius[i] * 
+	      atom->density[i];
+	  else
+	    atom->rmass[i] = PI * 
+	      atom->radius[i]*atom->radius[i] * atom->density[i];
+	}
+	if (periflag) atom->rmass[i] = dvalue;
+
       } else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
 
       else if (keyword == DIPOLE) {

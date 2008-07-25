@@ -96,7 +96,6 @@ void PairPeriPMB::compute(int eflag, int vflag)
   double *vfrac = atom->vfrac;
   double *s0 = atom->s0;
   double **x0 = atom->x0;
-
   double **r0   = ((FixPeriNeigh *) modify->fix[ifix_peri])->r0;
   int **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
@@ -112,13 +111,15 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
+  int nonperiodic = domain->nonperiodic;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
- // loop over neighbors of my atoms
+  // loop over neighbors of my atoms
+  // need minimg() for x0 difference since not ghosted
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -139,24 +140,23 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      domain->minimum_image(delx0,dely0,delz0);
+      if (nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
  
       r = sqrt(rsq);
 
-      // shortrange interaction distance based on initial particle position
+      // short-range interaction distance based on initial particle position
       // 0.9 and 1.35 are constants
 
       d_ij = MIN(0.9*sqrt(rsq0),1.35*lc);
 
-      // apply short-range contact forces
-      // 15 is a constant taken from the EMU Theory Manual
+      // short-range contact forces
+      // 15 is constant taken from the EMU Theory Manual
       // Silling, 12 May 2005, p 18
 
       if (r < d_ij) {
@@ -191,12 +191,12 @@ void PairPeriPMB::compute(int eflag, int vflag)
     s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");
   }
 
-  // first = flag indicating if this is first neighbor of particle i
+  // loop over my particles and their partners
+  // partner list contains all bond partners, so I-J appears twice
+  // if bond already broken, skip this partner
+  // first = true if this is first neighbor of particle i
 
   bool first;
-
-  // loop over my particles and their partners
-  // if bond already broken, skip this partner
 
   for (i = 0; i < nlocal; i++) {
     xtmp = x[i][0];
@@ -211,22 +211,22 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (partner[i][jj] == 0) continue;
       j = atom->map(partner[i][jj]);
 
-      // check if we've lost a partner without first breaking bond
+      // check if lost a partner without first breaking bond
 
       if (j < 0) {
         partner[i][jj] = 0;
         continue;
       }
 
-      // compute force density and add to PD equation of motion
+      // compute force density, add to PD equation of motion
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      domain->minimum_image(delx,dely,delz);
+      if (nonperiodic == 0) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]); // the horizon
+      delta = sqrt(cutsq[itype][jtype]);
       r = sqrt(rsq);
       dr = r - r0[i][jj];
 
@@ -234,7 +234,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
       if (fabs(dr) < 2.2204e-016) dr = 0.0;
 
-      // apply scaling for vfrac[j] if particle j near the horizon
+      // scale vfrac[j] if particle j near the horizon
 
       if ((fabs(r0[i][jj] - delta)) <= half_lc)
         vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
@@ -250,11 +250,13 @@ void PairPeriPMB::compute(int eflag, int vflag)
       f[i][1] += dely*fbond;
       f[i][2] += delz*fbond;
 
-      if (eflag) evdwl = rk*dr;
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fbond,delx,dely,delz);
+      // hardwire newton flag off and use 1/2 since I-J is double counted
 
-      // find stretch in bond i-j and break if necessary
+      if (eflag) evdwl = rk*dr;
+      //if (evflag) ev_tally(i,j,nlocal,0,
+      //		   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
+
+      // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
 
       if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
@@ -266,14 +268,13 @@ void PairPeriPMB::compute(int eflag, int vflag)
       else
          s0_new[i] = MAX(s0_new[i],
 			 s00[itype][jtype] - (alpha[itype][jtype] * stretch));
-
-      // first neighbor of particle i has now been examined
-
       first = false;
     }
   }
 
-  // update with newly computed s0
+  if (vflag_fdotr) virial_compute();
+
+  // store new s0
 
   for (i = 0; i < nlocal; i++) s0[i] = s0_new[i]; 
 }
@@ -353,6 +354,7 @@ double PairPeriPMB::init_one(int i, int j)
   cutsq[j][i] = cutsq[i][j];
 
   // set other j,i parameters
+
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
   s00[j][i] = s00[i][j];
@@ -460,18 +462,17 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
 
   double *vfrac = atom->vfrac;
   double **x0 = atom->x0;
-  double lc = domain->lattice->xlattice;
-
-  double half_lc = 0.5*lc;
   double **r0   = ((FixPeriNeigh *) modify->fix[ifix_peri])->r0;
   int **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
 
+  double lc = domain->lattice->xlattice;
+  double half_lc = 0.5*lc;
 
   delx0 = x0[i][0] - x0[j][0];
   dely0 = x0[i][1] - x0[j][1];
   delz0 = x0[i][2] - x0[j][2];
-  domain->minimum_image(delx0,dely0,delz0);
+  if (domain->nonperiodic == 0) domain->minimum_image(delx0,dely0,delz0);
   rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
 
   d_ij = MIN(0.9*sqrt(rsq0),1.35*lc);

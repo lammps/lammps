@@ -50,6 +50,8 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   npartner = NULL;
   partner = NULL;
   r0 = NULL;
+  vinter = NULL;
+
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
@@ -75,6 +77,7 @@ FixPeriNeigh::~FixPeriNeigh()
   memory->sfree(npartner);
   memory->destroy_2d_int_array(partner);
   memory->destroy_2d_double_array(r0);
+  memory->sfree(vinter);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,7 +123,6 @@ void FixPeriNeigh::setup(int vflag)
 
   double **x = atom->x;
   double *vfrac = atom->vfrac;
-  double *vinter = atom->vinter;
   int *type = atom->type;
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -143,8 +145,6 @@ void FixPeriNeigh::setup(int vflag)
 
   Pair *anypair = force->pair_match("peri");
   double **cutsq = anypair->cutsq;
-
-  double *s0 = atom->s0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -173,9 +173,8 @@ void FixPeriNeigh::setup(int vflag)
   int maxall;
   MPI_Allreduce(&maxpartner,&maxall,1,MPI_INT,MPI_MAX,world);
 
-  // realloc arrays stored by fix with correct value for maxpartner
+  // realloc arrays with correct value for maxpartner
 
-  memory->sfree(npartner);
   memory->destroy_2d_int_array(partner);
   memory->destroy_2d_double_array(r0);
   npartner = NULL;
@@ -184,8 +183,12 @@ void FixPeriNeigh::setup(int vflag)
   grow_arrays(atom->nmax);
 
   // create partner list and r0 values from neighbor list
+  // compute vinter for each atom
 
-  for (i = 0; i < nlocal; i++) npartner[i] = 0;
+  for (i = 0; i < nlocal; i++) {
+    npartner[i] = 0;
+    vinter[i] = 0.0;
+  }
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -195,7 +198,6 @@ void FixPeriNeigh::setup(int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    vinter[i] = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -246,6 +248,7 @@ double FixPeriNeigh::memory_usage()
   int bytes = nmax * sizeof(int);
   bytes += nmax*maxpartner * sizeof(int);
   bytes += nmax*maxpartner * sizeof(double);
+  bytes += nmax * sizeof(double);
   return bytes;
 }
 
@@ -260,6 +263,8 @@ void FixPeriNeigh::grow_arrays(int nmax)
   partner = memory->grow_2d_int_array(partner,nmax,maxpartner,
 				      "peri_neigh:partner");
   r0 = memory->grow_2d_double_array(r0,nmax,maxpartner,"peri_neigh:r0");
+  vinter = (double *) memory->srealloc(vinter,nmax*sizeof(double),
+				       "peri_neigh:vinter");
 }
 
 /* ----------------------------------------------------------------------
@@ -273,6 +278,7 @@ void FixPeriNeigh::copy_arrays(int i, int j)
     partner[j][m] = partner[i][m];
     r0[j][m] = r0[i][m];
   }
+  vinter[j] = vinter[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -290,7 +296,9 @@ int FixPeriNeigh::pack_exchange(int i, double *buf)
     buf[m++] = partner[i][n];
     buf[m++] = r0[i][n];
   }
+
   buf[0] = m/2;
+  buf[m++] = vinter[i];
   return m;
 }
 
@@ -306,6 +314,7 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
     partner[nlocal][n] = static_cast<int> (buf[m++]);
     r0[nlocal][n] = buf[m++];
   }
+  vinter[nlocal] = buf[m++];
   return m;
 }
 
@@ -322,6 +331,7 @@ int FixPeriNeigh::pack_restart(int i, double *buf)
     buf[m++] = partner[i][n];
     buf[m++] = r0[i][n];
   }
+  buf[m++] = vinter[i];
   return m;
 }
 
@@ -344,6 +354,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
     partner[nlocal][n] = static_cast<int> (extra[nlocal][m++]);
     r0[nlocal][n] = extra[nlocal][m++];
   }
+  vinter[nlocal] = extra[nlocal][m++];
 }
 
 /* ----------------------------------------------------------------------
@@ -352,7 +363,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
 
 int FixPeriNeigh::maxsize_restart()
 {
-  return 2*maxpartner + 2;
+  return 2*maxpartner + 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -361,5 +372,5 @@ int FixPeriNeigh::maxsize_restart()
 
 int FixPeriNeigh::size_restart(int nlocal)
 {
-  return 2*npartner[nlocal] + 2;
+  return 2*npartner[nlocal] + 3;
 }

@@ -460,7 +460,7 @@ int AtomVecGranular::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 19 * nlocal;
+  int n = 16 * nlocal;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 

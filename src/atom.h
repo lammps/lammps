@@ -48,7 +48,8 @@ class Atom : protected Pointers {
   int *molecule;
   double *q,**mu;
   double **quat,**omega,**angmom,**torque;
-  double *radius,*density,*rmass,*vfrac,*s0,**x0,*vinter;
+  double *radius,*density,*rmass,*vfrac,*s0;
+  double **x0;
 
   int maxspecial;
   int **nspecial,**special;
@@ -75,7 +76,7 @@ class Atom : protected Pointers {
   int molecule_flag;
   int q_flag,mu_flag;
   int quat_flag,omega_flag,angmom_flag,torque_flag;
-  int radius_flag,density_flag,rmass_flag,vfrac_flag,s0_flag,vinter_flag;
+  int radius_flag,density_flag,rmass_flag,vfrac_flag;
 
   // extra peratom info in restart file destined for fix & diag 
 

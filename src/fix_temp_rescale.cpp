@@ -110,7 +110,7 @@ void FixTempRescale::end_of_step()
 {
   double t_current = temperature->compute_scalar();
   if (t_current == 0.0)
-    error->all("Computed temperature for fix temp/berendsen cannot be 0.0");
+    error->all("Computed temperature for fix temp/rescale cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;

@@ -20,7 +20,7 @@ seed = random # seed (positive integer) :ul
 
 [Examples:]
 
-fix 1 all bond/swap 0.5 1.5 598934 :pre
+fix 1 all bond/swap 0.5 1.3 598934 :pre
 
 [Description:]
 

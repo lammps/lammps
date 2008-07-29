@@ -28,7 +28,7 @@ class FixTempBerendsen : public Fix {
   int modify_param(int, char **);
   void reset_target(double);
 
- protected:
+ private:
   int which;
   double t_start,t_stop,t_target,t_period;
 

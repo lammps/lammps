@@ -31,7 +31,7 @@ class FixIndent : public Fix {
   double compute_scalar();
   double compute_vector(int);
 
- protected:
+ private:
   int istyle,scaleflag,radflag,thermo_flag,eflag_enable;
   double k,k3;
   double x0,y0,z0,r0_stop,r0_start;

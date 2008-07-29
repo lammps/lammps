@@ -174,6 +174,21 @@ void BondFENE::coeff(int narg, char **arg)
   if (count == 0) error->all("Incorrect args for bond coefficients");
 }
 
+/* ----------------------------------------------------------------------
+   check if special_bond settings are valid
+------------------------------------------------------------------------- */
+
+void BondFENE::init_style()
+{
+  // special bonds should be 0 1 1
+
+  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
+      force->special_lj[3] != 1.0) {
+    if (comm->me == 0)
+      error->warning("Use special bonds = 0,1,1 with bond style fene");
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 double BondFENE::equilibrium_distance(int i)

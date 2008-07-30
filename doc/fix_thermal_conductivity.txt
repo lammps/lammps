@@ -56,7 +56,7 @@ commands such as the following, which writes the temperature profile
 (assuming z = edim) to the file tmp.profile:
 
 compute   ke all ke/atom
-variable  temp atom c_ke[]/1.5
+variable  temp atom c_ke\[\]/1.5
 fix       3 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
             file tmp.profile units reduced :pre
 

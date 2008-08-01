@@ -94,6 +94,7 @@ int FixSpringSelf::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -122,6 +123,13 @@ void FixSpringSelf::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixSpringSelf::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixSpringSelf::post_force(int vflag)
 {
   double **x = atom->x;
@@ -135,7 +143,7 @@ void FixSpringSelf::post_force(int vflag)
   double zprd = domain->zprd;
   int xbox,ybox,zbox;
   double dx,dy,dz;
-  double espring = 0.0;
+  espring = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -150,6 +158,8 @@ void FixSpringSelf::post_force(int vflag)
       f[i][2] -= k*dz;
       espring += k * (dx*dx + dy*dy + dz*dz);
     }
+
+  espring *= 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,7 +175,6 @@ void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
 
 double FixSpringSelf::compute_scalar()
 {
-  espring *= 0.5;
   double all;
   MPI_Allreduce(&espring,&all,1,MPI_DOUBLE,MPI_SUM,world);
   return all;

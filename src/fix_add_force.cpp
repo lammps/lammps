@@ -28,9 +28,11 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix addforce command");
 
+  scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
+  extscalar = 1;
   extvector = 1;
 
   xvalue = atof(arg[3]);
@@ -38,7 +40,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   zvalue = atof(arg[5]);
 
   force_flag = 0;
-  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+  foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,6 +49,7 @@ int FixAddForce::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -84,18 +87,22 @@ void FixAddForce::min_setup(int vflag)
 
 void FixAddForce::post_force(int vflag)
 {
+  double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+  foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
   force_flag = 0;
+
+  // foriginal[0] = - x dot f = "potential" for added force
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      foriginal[0] += f[i][0];
-      foriginal[1] += f[i][1];
-      foriginal[2] += f[i][2];
+      foriginal[0] -= xvalue*x[i][0] + yvalue*x[i][1] + zvalue[i][2];
+      foriginal[1] += f[i][0];
+      foriginal[2] += f[i][1];
+      foriginal[3] += f[i][2];
       f[i][0] += xvalue;
       f[i][1] += yvalue;
       f[i][2] += zvalue;
@@ -117,6 +124,21 @@ void FixAddForce::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   potential energy of added force
+------------------------------------------------------------------------- */
+
+double FixAddForce::compute_scalar()
+{
+  // only sum across procs one time
+
+  if (force_flag == 0) {
+    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return foriginal_all[0];
+}
+
+/* ----------------------------------------------------------------------
    return components of total force on fix group before force was changed
 ------------------------------------------------------------------------- */
 
@@ -125,8 +147,8 @@ double FixAddForce::compute_vector(int n)
   // only sum across procs one time
 
   if (force_flag == 0) {
-    MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
     force_flag = 1;
   }
-  return foriginal_all[n];
+  return foriginal_all[n+1];
 }

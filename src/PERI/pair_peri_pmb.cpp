@@ -176,7 +176,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-        if (eflag) evdwl = rk*dr;
+        if (eflag) evdwl = 0.5*rk*dr;
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
 			     evdwl,0.0,fpair,delx,dely,delz);
       }
@@ -252,7 +252,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
       // since I-J is double counted, set newton off & use 1/2 factor and I,I 
 
-      if (eflag) evdwl = rk*dr;
+      if (eflag) evdwl = 0.5*rk*dr;
       if (evflag) ev_tally(i,i,nlocal,0,
 			   0.5*evdwl,0.0,0.5*fbond,delx,dely,delz);
 
@@ -486,7 +486,7 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
     rk = (15.0 * kspring[itype][jtype] * vfrac[j]) * 
       (dr / sqrt(cutsq[itype][jtype]));
     if (r > 0.0) fforce += -(rk/r);
-    energy += rk*dr;
+    energy += 0.5*rk*dr;
   }
   
   int jnum = npartner[i];
@@ -503,7 +503,7 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
       rk = (kspring[itype][jtype] * vfrac[j] * vfrac_scale) * 
 	(dr / r0[i][jj]);
       if (r > 0.0) fforce += -(rk/r);
-      energy += rk*dr;
+      energy += 0.5*rk*dr;
     }
   }
 

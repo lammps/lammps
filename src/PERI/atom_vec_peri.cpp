@@ -537,8 +537,8 @@ void AtomVecPeri::data_atom(double *coord, int imagetmp, char **values)
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one("Invalid atom type in Atoms section of data file");
 
-  vfrac[nlocal] = atof(values[3]);
-  density[nlocal] = atof(values[4]);
+  vfrac[nlocal] = atof(values[2]);
+  density[nlocal] = atof(values[3]);
   rmass[nlocal] = density[nlocal];
 
   x[nlocal][0] = coord[0];

@@ -96,10 +96,11 @@ void FixAddForce::post_force(int vflag)
   force_flag = 0;
 
   // foriginal[0] = - x dot f = "potential" for added force
+  // foriginal[123] = force on atoms before extra force added
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      foriginal[0] -= xvalue*x[i][0] + yvalue*x[i][1] + zvalue[i][2];
+      foriginal[0] -= xvalue*x[i][0] + yvalue*x[i][1] + zvalue*x[i][2];
       foriginal[1] += f[i][0];
       foriginal[2] += f[i][1];
       foriginal[3] += f[i][2];

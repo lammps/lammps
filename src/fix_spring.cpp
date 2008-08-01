@@ -164,15 +164,12 @@ void FixSpring::spring_tether()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       massfrac = mass[type[i]]/masstotal;
-      fx *= massfrac;
-      fy *= massfrac;
-      fz *= massfrac;
-      f[i][0] -= fx;
-      f[i][1] -= fy;
-      f[i][2] -= fz;
-      ftotal[0] -= fx;
-      ftotal[1] -= fy;
-      ftotal[2] -= fz;
+      f[i][0] -= fx*massfrac;
+      f[i][1] -= fy*massfrac;
+      f[i][2] -= fz*massfrac;
+      ftotal[0] -= fx*massfrac;
+      ftotal[1] -= fy*massfrac;
+      ftotal[2] -= fz*massfrac;
     }
 }
 

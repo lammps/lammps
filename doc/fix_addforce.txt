@@ -30,21 +30,35 @@ a channel.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.
+files"_restart.html.
 
-This fix computes a 3-vector of forces, which can be accessed by
-various "output commands"_Section_howto.html#4_15.  This is the total
-force on the group of atoms before the forces on individual atoms are
-changed by the fix.  The vector values calculated by this fix are
-"extensive", meaning they scale with the number of atoms in the
-simulation.
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the potential "energy" inferred by the added force to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.  This is a fictitious quantity but is
+needed so that the "minimize"_minimize.html command can include the
+forces added by this fix in a consistent manner.  I.e. there is a
+decrease in potential energy when atoms move in the direction of the
+added force.
+
+This fix computes a scalar and a 3-vector of forces, which can be
+accessed by various "output commands"_Section_howto.html#4_15.  The
+scalar is the potential energy discussed above.  The vector is the
+total force on the group of atoms before the forces on individual
+atoms are changed by the fix.  The scalar vector values calculated by
+this fix are "extensive", meaning they scale with the number of atoms
+in the simulation.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.
+
+IMPORTANT NOTE: If you want the fictitious potential energy associated
+with the added forces to be included in the total potential energy of
+the system (the quantity being minimized), you MUST enable the
+"fix_modify"_fix_modify.html {energy} option for this fix.
 
 [Restrictions:] none
 

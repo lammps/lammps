@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "values.h"
+#include "float.h"
 #include "stdlib.h"
 #include "string.h"
 #include "pair_peri_pmb.h"
@@ -204,7 +204,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
     ztmp = x[i][2];
     itype = type[i];
     jnum = npartner[i];
-    s0_new[i] = MAXDOUBLE;
+    s0_new[i] = DBL_MAX;
     first = true;
 
     for (jj = 0; jj < jnum; jj++) {

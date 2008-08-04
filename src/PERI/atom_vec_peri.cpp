@@ -15,7 +15,7 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include "values.h"
+#include "float.h"
 #include "stdlib.h"
 #include "atom_vec_peri.h"
 #include "atom.h"
@@ -511,7 +511,7 @@ void AtomVecPeri::create_atom(int itype, double *coord)
   vfrac[nlocal] = 1.0;
   density[nlocal] = 1.0;
   rmass[nlocal] = density[nlocal];
-  s0[nlocal] = MAXDOUBLE;
+  s0[nlocal] = DBL_MAX;
   x0[nlocal][0] = coord[0];
   x0[nlocal][1] = coord[1];
   x0[nlocal][2] = coord[2];
@@ -552,7 +552,7 @@ void AtomVecPeri::data_atom(double *coord, int imagetmp, char **values)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
-  s0[nlocal] = MAXDOUBLE;
+  s0[nlocal] = DBL_MAX;
   x0[nlocal][0] = coord[0];
   x0[nlocal][1] = coord[1];
   x0[nlocal][2] = coord[2];
@@ -576,7 +576,7 @@ int AtomVecPeri::data_atom_hybrid(int nlocal, char **values)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
-  s0[nlocal] = MAXDOUBLE;
+  s0[nlocal] = DBL_MAX;
   x0[nlocal][0] = x[nlocal][0];
   x0[nlocal][1] = x[nlocal][1];
   x0[nlocal][2] = x[nlocal][2];

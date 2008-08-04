@@ -141,7 +141,7 @@ void PairColloid::compute(int eflag, int vflag)
 	K[3] *= K[3]*K[3];
 	K[6] = K[3]*K[3];
 	fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-	fpair = 4.0/15.0*sqrt(rsq)*fR*factor_lj * 
+	fpair = 4.0/15.0*fR*factor_lj * 
 	  (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
 	   sigma6[itype][jtype]/K[6]-5.0) / K[0];
 	if (eflag) 

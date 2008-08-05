@@ -574,7 +574,7 @@ void type_arrays(FILE *fp, Data &data)
       data.mass = new double[data.ntypes+1];
       fread(&data.mass[1],sizeof(double),data.ntypes,fp);
     } else if (flag == SHAPE) {
-      data.dipole = new double[3*(data.ntypes+1)];
+      data.shape = new double[3*(data.ntypes+1)];
       fread(&data.shape[3],sizeof(double),3*data.ntypes,fp);
     } else if (flag == DIPOLE) {
       data.dipole = new double[data.ntypes+1];

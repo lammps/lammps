@@ -2522,10 +2522,14 @@ void Data::write(FILE *fp, FILE *fp2)
     }
   }
 
+  // shape and dipole to data file
+  // convert shape from radius to diameter
+
   if (shape) {
     fprintf(fp,"\nShapes\n\n");
     for (int i = 1; i <= ntypes; i++)
-      fprintf(fp,"%d %g %g %g\n",i,shape[3*i+0],shape[3*i+1],shape[3*i+2]);
+      fprintf(fp,"%d %g %g %g\n",i,
+	      2.0*shape[3*i+0],2.0*shape[3*i+1],2.0*shape[3*i+2]);
   }
 
   if (dipole) {

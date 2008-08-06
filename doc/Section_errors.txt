@@ -91,19 +91,31 @@ buffering or boost the sizes of messages that can be buffered.
 
 9.2 Reporting bugs :link(9_2),h4
 
-If you are confident that you have found a bug in LAMMPS, please send
-an email to the "developers"_http://lammps.sandia.gov/authors.html.
+If you are confident that you have found a bug in LAMMPS, follow these
+steps.
 
-First, check the "New features and bug fixes" section of the "LAMMPS
-WWW site"_lws to see if the bug has already been reported or fixed.
+Check the "New features and bug
+fixes"_http://lammps.sandia.gov/bug.html section of the "LAMMPS WWW
+site"_lws to see if the bug has already been reported or fixed or the
+"Unfixed bug"_http://lammps.sandia.gov/unbug.html to see if a fix is
+pending.
 
-If not, the most useful thing you can do for us is to isolate the
-problem.  Run it on the smallest number of atoms and fewest number of
-processors and with the simplest input script that reproduces the bug.
+Check the "mailing list"_http://lammps.sandia.gov/mail.html
+to see if it has been discussed before.
 
-In your email, describe the problem and any ideas you have as to what
-is causing it or where in the code the problem might be.  We'll
-request your input script and data files if necessary.
+If not, send an email to the mailing list describing the problem any
+ideas you have as to what is causing it or where in the code the
+problem might be.  The developers will ask for more info if needed,
+such as an input script or data files.
+
+The most useful thing you can do to help us fix the bug is to isolate
+the problem.  Run it on the smallest number of atoms and fewest number
+of processors and with the simplest input script that reproduces the
+bug so that it is clear what command or combination of commands is
+causing the problem.
+
+As a last resort, you can send an email directly to the
+"developers"_http://lammps.sandia.gov/authors.html.
 
 :line
 

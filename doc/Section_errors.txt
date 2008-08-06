@@ -103,15 +103,15 @@ pending.
 Check the "mailing list"_http://lammps.sandia.gov/mail.html
 to see if it has been discussed before.
 
-If not, send an email to the mailing list describing the problem any
-ideas you have as to what is causing it or where in the code the
+If not, send an email to the mailing list describing the problem with
+any ideas you have as to what is causing it or where in the code the
 problem might be.  The developers will ask for more info if needed,
 such as an input script or data files.
 
 The most useful thing you can do to help us fix the bug is to isolate
 the problem.  Run it on the smallest number of atoms and fewest number
 of processors and with the simplest input script that reproduces the
-bug so that it is clear what command or combination of commands is
+bug and try to identify what command or combination of commands is
 causing the problem.
 
 As a last resort, you can send an email directly to the

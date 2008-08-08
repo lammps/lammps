@@ -714,7 +714,9 @@ int atom(double *buf, Data &data)
     if (k == data.style_atomic) m += atom_atomic(&buf[m],data,iatoms);
     if (k == data.style_bond) m += atom_bond(&buf[m],data,iatoms);
     if (k == data.style_charge) m += atom_charge(&buf[m],data,iatoms);
+    if (k == data.style_dipole) m += atom_dipole(&buf[m],data,iatoms);
     if (k == data.style_dpd) m += atom_dpd(&buf[m],data,iatoms);
+    if (k == data.style_ellipsoid) m += atom_ellipsoid(&buf[m],data,iatoms);
     if (k == data.style_full) m += atom_full(&buf[m],data,iatoms);
     if (k == data.style_granular) m += atom_granular(&buf[m],data,iatoms);
     if (k == data.style_molecular) m += atom_molecular(&buf[m],data,iatoms);

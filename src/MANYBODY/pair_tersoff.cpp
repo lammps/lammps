@@ -474,6 +474,10 @@ void PairTersoff::read_file(char *file)
     params[nparams].lam1 = atof(words[15]);
     params[nparams].biga = atof(words[16]);
 
+    // currently only allow m exponent of 1 or 3
+
+    params[nparams].powermint = int(params[nparams].powerm);
+
     if (
 	params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 || 
 	params[nparams].d < 0.0 || params[nparams].powern < 0.0 || 
@@ -482,8 +486,9 @@ void PairTersoff::read_file(char *file)
 	params[nparams].bigd < 0.0 ||
 	params[nparams].bigd > params[nparams].bigr ||
 	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
-	params[nparams].powerm - int(params[nparams].powerm) != 0.0 ||
-        params[nparams].powerm < 0.0 || params[nparams].gamma < 0.0)
+	params[nparams].powerm - params[nparams].powermint != 0.0 ||
+        (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
+	params[nparams].gamma < 0.0)
       error->all("Illegal Tersoff parameter");
 
     nparams++;
@@ -568,7 +573,9 @@ double PairTersoff::zeta(Param *param, double rsqij, double rsqik,
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] + 
 	      delrij[2]*delrik[2]) / (rij*rik);
 
-  arg = pow(param->lam3 * (rij-rik),param->powerm);
+  if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
+  else arg = param->lam3 * (rij-rik);
+
   if (arg > 69.0776) ex_delr = 1.e30;
   else if (arg < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(arg);
@@ -725,14 +732,17 @@ void PairTersoff::ters_zetaterm_d(double prefactor,
 
   fc = ters_fc(rik,param);
   dfc = ters_fc_d(rik,param);
-  tmp = pow(param->lam3 * (rij-rik),param->powerm);
+  if (param->powermint == 3) tmp = pow(param->lam3 * (rij-rik),3.0);
+  else tmp = param->lam3 * (rij-rik);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  ex_delr_d = (param->powerm*pow(param->lam3,param->powerm)) *
-              pow(rij-rik,param->powerm-1.0)*ex_delr;
+  if (param->powermint == 3)
+    ex_delr_d = 3.0*pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+  else ex_delr_d = param->lam3 * ex_delr;
+
   cos_theta = vec3_dot(rij_hat,rik_hat);
   gijk = ters_gijk(cos_theta,param);
   gijk_d = ters_gijk_d(cos_theta,param);
@@ -785,36 +795,3 @@ void PairTersoff::costheta_d(double *rij_hat, double rij,
   vec3_add(drj,drk,dri);
   vec3_scale(-1.0,dri,dri);
 };
-
-/* ----------------------------------------------------------------------
-   vector routines
-------------------------------------------------------------------------- */
-
-/*
-double PairTersoff::vec3_dot(double *x, double *y)
-{
-  return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-}
-
-void PairTersoff::vec3_add(double *x, double *y, double *z)
-{
-  z[0] = x[0]+y[0];
-  z[1] = x[1]+y[1];
-  z[2] = x[2]+y[2];
-}
-
-void PairTersoff::vec3_scale(double k, double *x, double *y)
-{
-  y[0] = k*x[0];
-  y[1] = k*x[1];
-  y[2] = k*x[2];
-}
-
-void PairTersoff::vec3_scaleadd(double k, double *x, double *y, double *z)
-{
-  z[0] = k*x[0]+y[0];
-  z[1] = k*x[1]+y[1];
-  z[2] = k*x[2]+y[2];
-}
-
-*/

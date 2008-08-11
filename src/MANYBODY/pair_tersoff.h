@@ -38,6 +38,7 @@ class PairTersoff : public Pair {
     double cut,cutsq;
     double c1,c2,c3,c4;
     int ielement,jelement,kelement;
+    int powermint;
   };
   
   double PI2,PI4;

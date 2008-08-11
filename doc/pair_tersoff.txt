@@ -79,10 +79,10 @@ lambda1 (1/distance units)
 A (energy units) :ul
 
 The n, beta, lambda2, B, lambda1, and A parameters are only used for
-two-body interactions.  The m, gamma, lambda3, c, d, and costheta0 parameters
-are only used for three-body interactions. The R and D parameters 
-are used for both two-body and three-body interactions. The 
-non-annotated parameters are unitless.
+two-body interactions.  The m, gamma, lambda3, c, d, and costheta0
+parameters are only used for three-body interactions. The R and D
+parameters are used for both two-body and three-body interactions. The
+non-annotated parameters are unitless.  The value of m must be 3 or 1.
 
 The Tersoff potential file must contain entries for all the elements
 listed in the pair_coeff command.  It can also contain entries for
@@ -116,9 +116,10 @@ We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff potential.  In particular, our form
 reduces to the original Tersoff form when m = 3 and gamma = 1, while
 it reduces to the form of "Albe et al."_#Albe when beta = 1 and m = 1.
-Tersoff used a slightly different but equivalent form for alloys,
-which we will refer to as Tersoff_2 potential
-"(Tersoff_2)"_#Tersoff_2.
+Note that in the current Tersoff implementation in LAMMPS, m must be
+specified as either 3 or 1.  Tersoff used a slightly different but
+equivalent form for alloys, which we will refer to as Tersoff_2
+potential "(Tersoff_2)"_#Tersoff_2.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows.
 gamma = 1, just as for Tersoff_1, but now lambda3 = 0 and the value of

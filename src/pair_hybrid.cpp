@@ -59,12 +59,11 @@ PairHybrid::~PairHybrid()
 /* ----------------------------------------------------------------------
   call each sub-style's compute function
   accumulate sub-style global/peratom energy/virial in hybrid
-  for vflag = 1:
+  for global vflag = 1:
     each sub-style computes own virial[6]
     sum sub-style virial[6] to hybrid's virial[6]
-  for vflag = 2:
-    call sub-style compute() with vflag % 2
-      to prevent sub-style from calling virial_compute()
+  for global vflag = 2:
+    call sub-style with adjusted vflag to prevent it calling virial_compute()
     hybrid calls virial_compute() on final accumulated f
 ------------------------------------------------------------------------- */
 
@@ -72,18 +71,22 @@ void PairHybrid::compute(int eflag, int vflag)
 {
   int i,j,m,n;
 
+  // if no_virial_compute is set and global component of incoming vflag = 2,
+  // reset vflag as if it were 1
+  // necessary since one or more sub-styles cannot compute virial as F dot r
+  
+  if (no_virial_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 
-  // don't allow substyle to invoke virial_compute()
-  // if vflag has that setting, change vflag passed to substyle
-  // preserve vflag_atom option in what is passed to substyle
+  // check if global component of incoming vflag = 2
+  // if so, reset vflag passed to substyle as if it were 0
+  // necessary so substyle will not invoke virial_compute()
 
   int vflag_substyle;
-  int vflag_global_substyle = vflag % 4;
-  if (vflag_global_substyle == 2) {
-    vflag_substyle = vflag/4 * 4;
-  } else vflag_substyle = vflag;
+  if (vflag % 4 == 2) vflag_substyle = vflag/4 * 4;
+  else vflag_substyle = vflag;
 
   for (m = 0; m < nstyles; m++) {
     styles[m]->compute(eflag,vflag_substyle);
@@ -92,8 +95,9 @@ void PairHybrid::compute(int eflag, int vflag)
       eng_vdwl += styles[m]->eng_vdwl;
       eng_coul += styles[m]->eng_coul;
     }
-    if (vflag_global)
+    if (vflag_global) {
       for (n = 0; n < 6; n++) virial[n] += styles[m]->virial[n];
+    }
     if (eflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
@@ -238,11 +242,14 @@ void PairHybrid::settings(int narg, char **arg)
 
   // single_enable = 0 if any sub-style = 0
   // respa_enable = 1 if any sub-style is set
+  // no_virial_compute = 1 if any sub-style is set
 
   for (m = 0; m < nstyles; m++)
     if (styles[m]->single_enable == 0) single_enable = 0;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->respa_enable) respa_enable = 1;
+  for (m = 0; m < nstyles; m++)
+    if (styles[m]->no_virial_compute) no_virial_compute = 1;
 }
 
 /* ----------------------------------------------------------------------

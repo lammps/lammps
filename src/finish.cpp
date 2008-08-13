@@ -256,14 +256,11 @@ void Finish::end(int flag)
     if (me == 0) {
       if (screen) {
 	fprintf(screen,"FFT time (%% of Kspce) = %g (%g)\n",time3d,fraction);
-	fprintf(screen,"FFT Gflps 3d 1d-only = %g %g\n",flop3,flop1);
+	fprintf(screen,"FFT Gflps 3d (1d only) = %g %g\n",flop3,flop1);
       }
       if (logfile) {
-	fprintf(logfile,"FFT time (%% of Kspce) = %g (%g)\n",
-		time3d,time3d/time_kspace*100.0);
-	fprintf(logfile,"FFT Gflps 3d 1d-only = %g %g\n",
-		nflops/1.0e9/(time3d/4.0/nsteps),
-		nflops/1.0e9/(time1d/4.0/nsteps));
+	fprintf(logfile,"FFT time (%% of Kspce) = %g (%g)\n",time3d,fraction);
+	fprintf(logfile,"FFT Gflps 3d (1d only) = %g %g\n",flop3,flop1);
       }
     }
   }

@@ -46,6 +46,7 @@ using namespace LAMMPS_NS;
 PairGranHistory::PairGranHistory(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  no_virial_compute = 1;
   history = 1;
   fix_history = NULL;
 }

@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 
 PairGranHertzian::PairGranHertzian(LAMMPS *lmp) : PairGranHistory(lmp)
 {
+  no_virial_compute = 1;
   history = 1;
 }
 

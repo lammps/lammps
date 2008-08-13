@@ -37,6 +37,7 @@ class Pair : protected Pointers {
   int single_enable;             // 1 if single() routine exists
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
+  int no_virial_compute;         // 1 if does not invoke virial_compute()
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections

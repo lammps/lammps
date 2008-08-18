@@ -16,10 +16,10 @@ style = {none} or {sc} or {bcc} or {fcc} or {hcp} or {diamond} or \
         {sq} or {sq2} or {hex} or {custom} :ulb,l
 scale = scale factor between lattice and simulation box :l
   for style {none}:
-    scale is not specified (nor any optional args)
+    scale is not specified (nor any optional arguments)
   for all other styles:
     scale = reduced density rho* (for LJ units)
-    scale = lattice constant in Angstroms (for real or metal units) :pre
+    scale = lattice constant in distance units (for non-LJ units) :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {origin} or {orient} or {spacing} or {a1} or {a2} or {a3} or {basis} :l
   {origin} values = x y z
@@ -122,10 +122,12 @@ lattice of the desired size and distance units in the simulation box.
 The meaning of the {scale} argument depends on the "units"_unit.html
 being used in your simulation.
 
-For unit style {real} or {metal}, the scale argument is in Angstroms.
-For example, if the unit cell is a unit cube with edge length 1.0,
-setting scale = 3.52 would create a cubic lattice with a spacing of
-3.52 Angstroms.
+For all unit styles except {lj}, the scale argument is specified in
+the distance units defined by the unit style.  For example, in {real}
+or {metal} units, if the unit cell is a unit cube with edge length
+1.0, specifying scale = 3.52 would create a cubic lattice with a
+spacing of 3.52 Angstroms.  In {cgs} units, the spacing would be 3.52
+cm.
 
 For unit style {lj}, the scale argument is the Lennard-Jones reduced
 density, typically written as rho*.  LAMMPS converts this value into

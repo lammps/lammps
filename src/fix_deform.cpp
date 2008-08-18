@@ -477,13 +477,13 @@ void FixDeform::pre_exchange()
   domain->xy = set[5].tilt_target = set[5].tilt_flip;
   domain->set_global_box();
   domain->set_local_box();
-  
+
   double **x = atom->x;
   int *image = atom->image;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
     domain->remap(x[i],image[i]);
-  
+
   domain->x2lamda(atom->nlocal);
   comm->irregular();
   domain->lamda2x(atom->nlocal);

@@ -982,8 +982,12 @@ void Comm::reverse_comm_compute(Compute *compute)
 void Comm::irregular()
 {
   // clear global->local map since atoms move to new procs
+  // zero out ghosts so map_set() at end will operate only on local atoms
+  // exchange() doesn't need to zero ghosts b/c borders()
+  //   is called right after and it zeroes ghosts and calls map_set()
 
   if (map_style) atom->map_clear();
+  atom->nghost = 0;
 
   // subbox bounds for orthogonal or triclinic
 

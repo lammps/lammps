@@ -448,12 +448,12 @@ void PairAIREBO::REBO_neigh()
 
 void PairAIREBO::FREBO(int eflag, int vflag)
 {
-  int i,j,k,m,itype,jtype;
+  int i,j,k,m,ii,inum,itype,jtype;
   double delx,dely,delz,evdwl,fpair;
   double rsq,rij,wij;
   double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
   double dwij,del[3];
-  int *REBO_neighs;
+  int *ilist,*REBO_neighs;
 
   evdwl = 0.0;
 
@@ -464,9 +464,13 @@ void PairAIREBO::FREBO(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
+  inum = list->inum;
+  ilist = list->ilist;
+
   // two-body interactions from REBO neighbor list, skip half of them
 
-  for (i = 0; i < nlocal; i++) {
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     itype = map[type[i]];
     REBO_neighs = REBO_firstneigh[i];
 
@@ -840,7 +844,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
 void PairAIREBO::TORSION(int eflag, int vflag)
 {
-  int i,j,k,l;
+  int i,j,k,l,ii,inum;
   double evdwl,fpair;
   double cos321;
   double w21,dw21,cos234,w34,dw34;
@@ -860,7 +864,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
   double deljk[3],del34[3],delil[3],delkl[3],r23,r34;
   double fi[3],fj[3],fk[3],fl[3];
   int itype,jtype,ktype,ltype,kk,ll,jj;
-  int *REBO_neighs_i,*REBO_neighs_j;
+  int *ilist,*REBO_neighs_i,*REBO_neighs_j;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -868,7 +872,11 @@ void PairAIREBO::TORSION(int eflag, int vflag)
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++) {
+  inum = list->inum;
+  ilist = list->ilist;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     itype = map[type[i]];
     if (itype != 0) continue;
     REBO_neighs_i = REBO_firstneigh[i];

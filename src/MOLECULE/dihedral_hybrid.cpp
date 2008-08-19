@@ -243,14 +243,14 @@ void DihedralHybrid::write_restart(FILE *fp)
 
 void DihedralHybrid::read_restart(FILE *fp)
 {
-  allocate();
-
   int me = comm->me;
   if (me == 0) fread(&nstyles,sizeof(int),1,fp);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Dihedral*[nstyles];
   keywords = new char*[nstyles];
-  
+
+  allocate();
+
   int n;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);

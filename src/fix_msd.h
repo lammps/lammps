@@ -39,8 +39,10 @@ class FixMSD : public Fix {
   int maxsize_restart();
 
  private:
-  int me,first;
+  int me,first,comflag;
   FILE *fp;
+  double masstotal;
+
   int nmsd;                   // # of atoms in group
   double **xoriginal;         // original coords of atoms
 };

@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 FixMSD::FixMSD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all("Illegal fix msd command");
+  if (narg != 5 && narg != 7) error->all("Illegal fix msd command");
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix msd command");
   first = 1;
@@ -51,6 +51,21 @@ FixMSD::FixMSD(LAMMPS *lmp, int narg, char **arg) :
     fprintf(fp,"# TimeStep x y z total\n");
   }
 
+  // optional args
+
+  comflag = 0;
+
+  int iarg = 5;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"com") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix msd command");
+      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
+      else error->all("Illegal fix msd command");
+      iarg += 2;
+    } else error->all("Illegal fix msd command");
+  }
+
   // perform initial allocation of atom-based array
   // register with Atom class
 
@@ -59,16 +74,32 @@ FixMSD::FixMSD(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
 
+  // cm = original center of mass
+
+  double cm[3];
+
+  if (comflag) {
+    masstotal = group->mass(igroup);
+    group->xcm(igroup,masstotal,cm);
+  }
+
   // xoriginal = initial unwrapped positions of atoms
-  
+  // relative to center of mass if comflag is set
+
   double **x = atom->x;
   int *mask = atom->mask;
   int *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
-    else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
+    if (mask[i] & groupbit) {
+      domain->unmap(x[i],image[i],xoriginal[i]);
+      if (comflag) {
+	xoriginal[i][0] -= cm[0];
+	xoriginal[i][1] -= cm[1];
+	xoriginal[i][2] -= cm[2];
+      }
+    } else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   // nmsd = # of atoms in group
@@ -133,6 +164,15 @@ void FixMSD::setup(int vflag)
 
 void FixMSD::end_of_step()
 {
+  // cm = current center of mass
+
+  double cm[3];
+
+  if (comflag) {
+    group->mass(igroup);
+    group->xcm(igroup,masstotal,cm);
+  }
+
   double **x = atom->x;
   int *mask = atom->mask;
   int *image = atom->image;
@@ -146,8 +186,9 @@ void FixMSD::end_of_step()
   double dx,dy,dz;
   double msd[4];
   msd[0] = msd[1] = msd[2] = msd[3] = 0.0;
-
+  
   // dx,dy,dz = displacement of atom from original position
+  // relative to center of mass if comflag is set
   // for triclinic, need to unwrap current atom coord via h matrix
 
   if (domain->triclinic == 0) {
@@ -156,9 +197,15 @@ void FixMSD::end_of_step()
 	xbox = (image[i] & 1023) - 512;
 	ybox = (image[i] >> 10 & 1023) - 512;
 	zbox = (image[i] >> 20) - 512;
-	dx = x[i][0] + xbox*xprd - xoriginal[i][0];
-	dy = x[i][1] + ybox*yprd - xoriginal[i][1];
-	dz = x[i][2] + zbox*zprd - xoriginal[i][2];
+	if (comflag) {
+	  dx = x[i][0] + xbox*xprd - cm[0] - xoriginal[i][0];
+	  dy = x[i][1] + ybox*yprd - cm[1] - xoriginal[i][1];
+	  dz = x[i][2] + zbox*zprd - cm[2] - xoriginal[i][2];
+	} else {
+	  dx = x[i][0] + xbox*xprd - xoriginal[i][0];
+	  dy = x[i][1] + ybox*yprd - xoriginal[i][1];
+	  dz = x[i][2] + zbox*zprd - xoriginal[i][2];
+	}
 	msd[0] += dx*dx;
 	msd[1] += dy*dy;
 	msd[2] += dz*dz;
@@ -171,9 +218,16 @@ void FixMSD::end_of_step()
 	xbox = (image[i] & 1023) - 512;
 	ybox = (image[i] >> 10 & 1023) - 512;
 	zbox = (image[i] >> 20) - 512;
-	dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
-	dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
-	dz = x[i][2] + h[2]*zbox - xoriginal[i][2];
+	if (comflag) {
+	  dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - 
+	    cm[0] - xoriginal[i][0];
+	  dy = x[i][1] + h[1]*ybox + h[3]*zbox - cm[1] - xoriginal[i][1];
+	  dz = x[i][2] + h[2]*zbox - cm[2] - xoriginal[i][2];
+	} else {
+	  dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
+	  dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
+	  dz = x[i][2] + h[2]*zbox - xoriginal[i][2];
+	}
 	msd[0] += dx*dx;
 	msd[1] += dy*dy;
 	msd[2] += dz*dz;

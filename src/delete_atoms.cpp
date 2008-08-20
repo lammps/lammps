@@ -231,7 +231,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // only ever delete owned atom I, never J even if owned
 
   int *tag = atom->tag;
-  int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
   int nall = atom->nlocal + atom->nghost;

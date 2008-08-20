@@ -33,13 +33,6 @@ need to be built, but more pairs must be checked for possible force
 interactions every timestep.  The default value for <I>skin</I> depends on
 the choice of units for the simulation (see below).
 </P>
-<P>For simulations without pairwise interactions (see "pair_style none"
-command), and just bonded interactions, you still need to set the
-neighbor skin distance.  Pairwise neighbor lists will not be formed
-but the skin distance also determines which atoms are communicated
-from nearby processors, so it should be slightly large enough that all
-bond, angle, etc atoms are acquired.
-</P>
 <P>The <I>style</I> value selects what algorithm is used to build the list.
 The <I>bin</I> style creates the list by binning which is an operation that
 scales linearly with N/P, the number of atoms per processor where N =
@@ -71,7 +64,24 @@ the pairwise list and the number of times neighbor lists were built
 are printed to the screen and log file.  See <A HREF = "Section_start.html#2_7">this
 section</A> for details.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>For simulations without pairwise interactions (see "pair_style none"
+command), but that include bonded interactions, you still need to set
+the neighbor skin distance.  Pairwise neighbor lists will not be
+formed, but the pair cutoff (0.0 in this case) plus the skin distance
+is the range at which atoms are communicated from nearby processors.
+This needs to be large enough that atoms in the same bond, angle, etc
+as an atom owned by a processor are acquired.  What distance is
+appropriate depends on the <A HREF = "newton.html">newton bond</A> setting.  For
+newton bond off, the distance needs to be the furthest distance
+between any two atoms in the bond, angle, etc.  E.g. the distance
+between the 1-4 atoms in a dihedral.  For newton bond on, the distance
+is between the central atom in the bond, angle, etc and any other
+atom.  E.g. the distance between the 2-4 atoms in a dihedral.
+</P>
+<P>The same logic applies to systems that include bonded interactions and
+a pairwise cutoff shorter than the distances just described.
 </P>
 <P><B>Related commands:</B>
 </P>

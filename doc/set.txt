@@ -10,7 +10,7 @@ set command :h3
 
 [Syntax:]
 
-set style ID keyword value ... :pre
+set style ID keyword values ... :pre
 
 style = {atom} or {group} or {region} :ulb,l
 ID = atom ID or group ID or region ID :l
@@ -18,7 +18,7 @@ one or more keyword/value pairs may be appended :l
 keyword = {type} or {type/fraction} or {mol} or \
 	  {x} or {y} or {z} or {vx} or {vy} or {vz} or \
           {charge} or {dipole} or {dipole/random} or {quat/random} or \
-	  {diameter} or {density} or {volume} or
+	  {diameter} or {density} or {volume} or {image} or
 	  {bond} or {angle} or {dihedral} or {improper} :l
   {type} value = atom type
   {type/fraction} values = type fraction seed
@@ -41,6 +41,8 @@ keyword = {type} or {type/fraction} or {mol} or \
   {diameter} value = particle diameter (distance units)
   {density} value = particle density (mass/distance^3 units)
   {volume} value = particle volume (distance^3 units)
+  {image} nx ny nz
+    nx,ny,nz = which periodic image of the simulation box the atom is in
   {bond} value = bond type for all bonds between selected atoms
   {angle} value = angle type for all angles between selected atoms
   {dihedral} value = dihedral type for all dihedrals between selected atoms
@@ -144,6 +146,28 @@ Keyword {density} sets the density of all selected particles, which
 combined with its density determines their mass.
 
 Keyword {volume} sets the effective size of all selected particles.
+
+Keyword {image} sets which image of the simulation box the atom is
+considered to be in.  It is only applied to periodic dimensions.  An
+image of 0 means it is inside the box as defined.  A value of 2 means
+add 2 box lengths to get the true value.  A value of -1 means subtract
+1 box length to get the true value.  LAMMPS updates these flags as
+atoms cross periodic boundaries during the simulation.  The flags can
+be output with atom snapshots via the "dump"_dump.html command.  If a
+value of NULL is specified for any of nx,ny,nz, then the current image
+value for that dimension is unchanged.
+
+This command can be useful after a system has been equilibrated and
+atoms have diffused one or more box lengths in various directions.
+This command can then reset the image values for atoms so that they
+are effectively inside the simulation box, e.g if a diffusion
+coefficient is about to be measured via the "fix msd"_fix_msd.html
+command.  Care should be taken not to reset the image flags of two
+atoms in a bond to the same value if the bond straddles a periodic
+boundary (rather they should be different by +/- 1).  This will not
+affect the dynamics of a simulation, but may mess up analysis of the
+trajectories if a LAMMPS diagnostic or your own analysis relies on the
+image flags to unwrap a molecule which straddles the periodic box.
 
 For the {diameter} and {density} and {volume} keywords, the "atom
 style"_atom_style.html being used must support the use of those

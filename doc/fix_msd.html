@@ -13,26 +13,40 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID msd N file 
+<PRE>fix ID group-ID msd N file keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>msd = style name of this fix command
-<LI>N = compute mean-squared displacement every this many timesteps
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>msd = style name of this fix command 
+
+<LI>N = compute mean-squared displacement every this many timesteps 
+
 <LI>file = filename to write mean-squared displacement info to 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>com</I> 
+
+<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all msd 100 diff.out 
+<PRE>fix 1 all msd 100 diff.out
+fix 1 all msd 1000 diff.out com yes 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Compute the mean-squared displacement (MSD) of the group of atoms
 every N steps, including all effects due to atoms passing thru
-periodic boundaries.  The slope of the mean-squared displacement
-versus time is proportional to the diffusion coefficient of the
-diffusing atoms.  The "origin" of the displacement for each atom is
-its position at the time the fix command was issued.  Write the
-results to the specified file.
+periodic boundaries.  The MSD is the square of the displacement of
+each atom, averaged over all the atoms in the group.  The displacement
+of an atom is from its original position at the time the fix command
+was issued.  The slope of the mean-squared displacement versus time is
+proportional to the diffusion coefficient of the diffusing atoms.
+</P>
+<P>The MSD values versus time are written to the specified file.
 </P>
 <P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
 rigid</A> command), it's periodic image flags are altered,
@@ -41,6 +55,10 @@ and the computed MSD will not reflect its true displacement.  See the
 MSD of rigid bodies as they cross periodic boundaries, you will need
 to post-process a <A HREF = "dump.html">dump file</A> containing coordinates of the
 atoms in the bodies.
+</P>
+<P>If the <I>com</I> option is set to <I>yes</I> then the effect of any drift
+in the center-of-mass of the group of atoms is subtracted out before
+the displacment of each atom is calcluated.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -64,6 +82,8 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 </P>
 <P><A HREF = "fix_coord_original.html">fix coord/original</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option default is com = no.
 </P>
 </HTML>

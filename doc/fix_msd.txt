@@ -10,26 +10,33 @@ fix msd command :h3
 
 [Syntax:]
 
-fix ID group-ID msd N file :pre
+fix ID group-ID msd N file keyword value ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-msd = style name of this fix command
-N = compute mean-squared displacement every this many timesteps
-file = filename to write mean-squared displacement info to :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+msd = style name of this fix command :l
+N = compute mean-squared displacement every this many timesteps :l
+file = filename to write mean-squared displacement info to :l
+zero or more keyword/value pairs may be appended :l
+keyword = {com} :l
+  {com} value = {yes} or {no} :pre
+:ule
 
 [Examples:]
 
-fix 1 all msd 100 diff.out :pre
+fix 1 all msd 100 diff.out
+fix 1 all msd 1000 diff.out com yes :pre
 
 [Description:]
 
 Compute the mean-squared displacement (MSD) of the group of atoms
 every N steps, including all effects due to atoms passing thru
-periodic boundaries.  The slope of the mean-squared displacement
-versus time is proportional to the diffusion coefficient of the
-diffusing atoms.  The "origin" of the displacement for each atom is
-its position at the time the fix command was issued.  Write the
-results to the specified file.
+periodic boundaries.  The MSD is the square of the displacement of
+each atom, averaged over all the atoms in the group.  The displacement
+of an atom is from its original position at the time the fix command
+was issued.  The slope of the mean-squared displacement versus time is
+proportional to the diffusion coefficient of the diffusing atoms.
+
+The MSD values versus time are written to the specified file.
 
 IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
 rigid"_fix_rigid.html command), it's periodic image flags are altered,
@@ -38,6 +45,10 @@ and the computed MSD will not reflect its true displacement.  See the
 MSD of rigid bodies as they cross periodic boundaries, you will need
 to post-process a "dump file"_dump.html containing coordinates of the
 atoms in the bodies.
+
+If the {com} option is set to {yes} then the effect of any drift
+in the center-of-mass of the group of atoms is subtracted out before
+the displacment of each atom is calcluated.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -61,4 +72,6 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 "fix coord/original"_fix_coord_original.html
 
-[Default:] none
+[Default:]
+
+The option default is com = no.

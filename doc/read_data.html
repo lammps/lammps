@@ -340,12 +340,12 @@ listed in the same order they appear as listed above.
 </PRE>
 <P>Atom lines (all lines or none of them) can optionally list 3 trailing
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
-image of the box the atom is considered to be in.  An image of 0 means
-it is inside the box as defined.  A value of 2 means add 2 box lengths
-to get the true value.  A value of -1 means subtract 1 box length to
-get the true value.  LAMMPS updates these flags as atoms cross
-periodic boundaries during the simulation.  The flags can be output
-with atom snapshots via the <A HREF = "dump.html">dump</A> command.
+image of the simulation box the atom is considered to be in.  An image
+of 0 means it is inside the box as defined.  A value of 2 means add 2
+box lengths to get the true value.  A value of -1 means subtract 1 box
+length to get the true value.  LAMMPS updates these flags as atoms
+cross periodic boundaries during the simulation.  The flags can be
+output with atom snapshots via the <A HREF = "dump.html">dump</A> command.
 </P>
 <P>If nx,ny,nz values are not set in the data file, LAMMPS initializes
 them to 0.  If image information is needed for later analysis and they

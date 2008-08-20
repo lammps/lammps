@@ -27,6 +27,7 @@ class Set : protected Pointers {
   char *id;
   int *select;
   int style,ivalue,newtype,count;
+  int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
   double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
   double PI;
 

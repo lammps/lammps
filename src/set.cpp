@@ -35,7 +35,7 @@ enum{ATOM,GROUP,REGION};
 enum{TYPE,TYPE_FRACTION,MOLECULE,
        X,Y,Z,VX,VY,VZ,CHARGE,
        DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,
-       DIAMETER,DENSITY,VOLUME,
+       DIAMETER,DENSITY,VOLUME,IMAGE,
        BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 /* ---------------------------------------------------------------------- */
@@ -196,6 +196,23 @@ void Set::command(int narg, char **arg)
         error->all("Cannot set this attribute for this atom style");
       set(VOLUME);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"image") == 0) {
+      if (iarg+4 > narg) error->all("Illegal set command");
+      ximageflag = yimageflag = zimageflag = 0;
+      if (strcmp(arg[iarg+1],"NULL") != 0 && domain->xperiodic) {
+	ximageflag = 1;
+	ximage = atoi(arg[iarg+1]);
+      }
+      if (strcmp(arg[iarg+2],"NULL") != 0 && domain->yperiodic) {
+	yimageflag = 1;
+	yimage = atoi(arg[iarg+2]);
+      }
+      if (strcmp(arg[iarg+3],"NULL") != 0 && domain->zperiodic) {
+	zimageflag = 1;
+	zimage = atoi(arg[iarg+3]);
+      }
+      set(IMAGE);
+      iarg += 4;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all("Illegal set command");
       ivalue = atoi(arg[iarg+1]);
@@ -354,7 +371,19 @@ void Set::set(int keyword)
 
       } else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
 
-      else if (keyword == DIPOLE) {
+      // reset any or all of 3 image flags
+
+      else if (keyword == IMAGE) {
+	int xbox = (atom->image[i] & 1023) - 512;
+	int ybox = (atom->image[i] >> 10 & 1023) - 512;
+	int zbox = (atom->image[i] >> 20) - 512;
+	if (ximageflag) xbox = ximage;
+	if (yimageflag) ybox = yimage;
+	if (zimageflag) zbox = zimage;
+	atom->image[i] = ((zbox + 512 & 1023) << 20) |
+	  ((ybox + 512 & 1023) << 10) |	(xbox + 512 & 1023);
+
+      } else if (keyword == DIPOLE) {
 	if (atom->dipole[atom->type[i]] > 0.0) {
 	  double **mu = atom->mu;
 	  mu[i][0] = xvalue;

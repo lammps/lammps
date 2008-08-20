@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 FixMSD::FixMSD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5 && narg != 7) error->all("Illegal fix msd command");
+  if (narg < 5) error->all("Illegal fix msd command");
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix msd command");
   first = 1;

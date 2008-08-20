@@ -45,7 +45,20 @@ Values for x,y,z of 0,0,0 unset the option.
 The {order} keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the FFT grid in kspace style pppm.  The
 default for this parameter is 5, which means each charge spans 5 grid
-cells in each dimension.
+cells in each dimension.  The larger the value of this parameter, the
+smaller the FFT grid will need to be to achieve the requested
+precision.  Conversely, the smaller the order value, the larger the
+grid will be.  Note that there is an inherent trade-off involved: a
+small grid will lower the cost of FFTs, but a large order parameter
+will increase the cost of intepolating charge/fields to/from the grid.
+And vice versa.
+
+The order parameter may be reset by LAMMPS when it sets up the PPPM
+FFT grid if the implied grid stencil extends beyond the grid cells
+owned by neighboring processors.  Typically this will only occur when
+small problems are run on large numbers of processors.  A warning will
+be generated indicating the order parameter is being reduced to allow
+LAMMPS to run the problem.
 
 The {gewald} keyword sets the value of the PPPM G-ewald parameter.
 Without this setting, LAMMPS chooses the parameter automatically as a

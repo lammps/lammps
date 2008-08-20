@@ -80,6 +80,9 @@ used in conjunction with the pairwise cutoff to determine the number
 of K-space vectors for style {ewald} or the FFT grid size for style
 {pppm}.
 
+See the "kspace_modify"_kspace_modify.html command for additional
+options of the K-space solvers that can be set.
+
 [Restrictions:]
 
 A simulation must be 3d and periodic in all dimensions to use an Ewald

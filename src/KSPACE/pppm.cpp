@@ -190,173 +190,192 @@ void PPPM::init()
   }
 
   // setup FFT grid resolution and g_ewald
+  // normally one iteration thru while loop is all that is required
+  // if grid stencil extends beyond neighbor proc, reduce order and try again
 
-  set_grid();
+  int iteration = 0;
 
-  if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-    error->all("PPPM grid is too large");
+  while (order > 0) {
 
-  // global indices of PPPM grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that I own without ghost cells
-  // for slab PPPM, assign z grid as if it were not extended
+    if (iteration && me == 0)
+      error->warning("Reducing PPPM order b/c stencil extends beyond neighbor processor");
+    iteration++;
 
-  nxlo_in = comm->myloc[0]*nx_pppm / comm->procgrid[0];
-  nxhi_in = (comm->myloc[0]+1)*nx_pppm / comm->procgrid[0] - 1;
-  nylo_in = comm->myloc[1]*ny_pppm / comm->procgrid[1];
-  nyhi_in = (comm->myloc[1]+1)*ny_pppm / comm->procgrid[1] - 1;
-  nzlo_in = comm->myloc[2] * 
-    (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2];
-  nzhi_in = (comm->myloc[2]+1) * 
-    (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2] - 1;
- 
-  // nlower,nupper = stencil size for mapping particles to PPPM grid
+    set_grid();
 
-  nlower = -(order-1)/2;
-  nupper = order/2;
+    if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
+      error->all("PPPM grid is too large");
 
-  // shift values for particle <-> grid mapping
-  // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
+    // global indices of PPPM grid range from 0 to N-1
+    // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
+    //   global PPPM grid that I own without ghost cells
+    // for slab PPPM, assign z grid as if it were not extended
 
-  if (order % 2) shift = OFFSET + 0.5;
-  else shift = OFFSET;
-  if (order % 2) shiftone = 0.0;
-  else shiftone = 0.5;
+    nxlo_in = comm->myloc[0]*nx_pppm / comm->procgrid[0];
+    nxhi_in = (comm->myloc[0]+1)*nx_pppm / comm->procgrid[0] - 1;
+    nylo_in = comm->myloc[1]*ny_pppm / comm->procgrid[1];
+    nyhi_in = (comm->myloc[1]+1)*ny_pppm / comm->procgrid[1] - 1;
+    nzlo_in = comm->myloc[2] * 
+      (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2];
+    nzhi_in = (comm->myloc[2]+1) * 
+      (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2] - 1;
 
-  // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that my particles can contribute charge to
-  // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
-  //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
-  //   qdist = offset due to TIP4P fictitious charge
-  //   convert to triclinic if necessary
-  // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
-  // for slab PPPM, assign z grid as if it were not extended
+    // nlower,nupper = stencil size for mapping particles to PPPM grid
 
-  triclinic = domain->triclinic;
-  double *prd,*sublo,*subhi;
+    nlower = -(order-1)/2;
+    nupper = order/2;
 
-  if (triclinic == 0) {
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    prd = domain->prd_lamda;
-    boxlo = domain->boxlo_lamda;
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
+    // shift values for particle <-> grid mapping
+    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
+    if (order % 2) shift = OFFSET + 0.5;
+    else shift = OFFSET;
+    if (order % 2) shiftone = 0.0;
+    else shiftone = 0.5;
 
-  double dist[3];
-  double cuthalf = 0.5 * neighbor->skin + qdist;
-  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else {
-    dist[0] = cuthalf/domain->prd[0];
-    dist[1] = cuthalf/domain->prd[1];
-    dist[2] = cuthalf/domain->prd[2];
-  }
+    // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
+    //   global PPPM grid that my particles can contribute charge to
+    // effectively nlo_in,nhi_in + ghost cells
+    // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
+    //           position a particle in my box can be at
+    // dist[3] = particle position bound = subbox + skin/2.0 + qdist
+    //   qdist = offset due to TIP4P fictitious charge
+    //   convert to triclinic if necessary
+    // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+    // for slab PPPM, assign z grid as if it were not extended
 
-  int nlo,nhi;
+    triclinic = domain->triclinic;
+    double *prd,*sublo,*subhi;
+
+    if (triclinic == 0) {
+      prd = domain->prd;
+      boxlo = domain->boxlo;
+      sublo = domain->sublo;
+      subhi = domain->subhi;
+    } else {
+      prd = domain->prd_lamda;
+      boxlo = domain->boxlo_lamda;
+      sublo = domain->sublo_lamda;
+      subhi = domain->subhi_lamda;
+    }
+
+    double xprd = prd[0];
+    double yprd = prd[1];
+    double zprd = prd[2];
+    double zprd_slab = zprd*slab_volfactor;
+
+    double dist[3];
+    double cuthalf = 0.5 * neighbor->skin + qdist;
+    if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
+    else {
+      dist[0] = cuthalf/domain->prd[0];
+      dist[1] = cuthalf/domain->prd[1];
+      dist[2] = cuthalf/domain->prd[2];
+    }
+    
+    int nlo,nhi;
+    
+    nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) * 
+			    nx_pppm/xprd + shift) - OFFSET;
+    nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) * 
+			    nx_pppm/xprd + shift) - OFFSET;
+    nxlo_out = nlo + nlower;
+    nxhi_out = nhi + nupper;
+
+    nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) * 
+			    ny_pppm/yprd + shift) - OFFSET;
+    nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) * 
+			    ny_pppm/yprd + shift) - OFFSET;
+    nylo_out = nlo + nlower;
+    nyhi_out = nhi + nupper;
+
+    nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) * 
+			    nz_pppm/zprd_slab + shift) - OFFSET;
+    nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * 
+			    nz_pppm/zprd_slab + shift) - OFFSET;
+    nzlo_out = nlo + nlower;
+    nzhi_out = nhi + nupper;
+
+    // for slab PPPM, change the grid boundary for processors at +z end
+    //   to include the empty volume between periodically repeating slabs
+    // for slab PPPM, want charge data communicated from -z proc to +z proc,
+    //   but not vice versa, also want field data communicated from +z proc to
+    //   -z proc, but not vice versa
+    // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
+
+    if (slabflag && ((comm->myloc[2]+1) == (comm->procgrid[2]))) {
+      nzhi_in =  nz_pppm - 1;
+      nzhi_out = nz_pppm - 1;
+    }
   
-  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) * 
-			  nx_pppm/xprd + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) * 
-			  nx_pppm/xprd + shift) - OFFSET;
-  nxlo_out = nlo + nlower;
-  nxhi_out = nhi + nupper;
+    // nlo_ghost,nhi_ghost = # of planes I will recv from 6 directions
+    //   that overlay domain I own
+    // proc in that direction tells me via sendrecv()
+    // if no neighbor proc, value is from self since I have ghosts regardless
 
-  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) * 
-			  ny_pppm/yprd + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) * 
-			  ny_pppm/yprd + shift) - OFFSET;
-  nylo_out = nlo + nlower;
-  nyhi_out = nhi + nupper;
+    int nplanes;
+    MPI_Status status;
 
-  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) * 
-			  nz_pppm/zprd_slab + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * 
-			  nz_pppm/zprd_slab + shift) - OFFSET;
-  nzlo_out = nlo + nlower;
-  nzhi_out = nhi + nupper;
+    nplanes = nxlo_in - nxlo_out;
+    if (comm->procneigh[0][0] != me)
+      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
+		   &nxhi_ghost,1,MPI_INT,comm->procneigh[0][1],0,
+		   world,&status);
+    else nxhi_ghost = nplanes;
 
-  // for slab PPPM, change the grid boundary for processors at +z end
-  //   to include the empty volume between periodically repeating slabs
-  // for slab PPPM, want charge data communicated from -z proc to +z proc,
-  //   but not vice versa, also want field data communicated from +z proc to
-  //   -z proc, but not vice versa
-  // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
+    nplanes = nxhi_out - nxhi_in;
+    if (comm->procneigh[0][1] != me)
+      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
+		   &nxlo_ghost,1,MPI_INT,comm->procneigh[0][0],
+		   0,world,&status);
+    else nxlo_ghost = nplanes;
 
-  if (slabflag && ((comm->myloc[2]+1) == (comm->procgrid[2]))) {
-    nzhi_in =  nz_pppm - 1;
-    nzhi_out = nz_pppm - 1;
+    nplanes = nylo_in - nylo_out;
+    if (comm->procneigh[1][0] != me)
+      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
+		   &nyhi_ghost,1,MPI_INT,comm->procneigh[1][1],0,
+		   world,&status);
+    else nyhi_ghost = nplanes;
+
+    nplanes = nyhi_out - nyhi_in;
+    if (comm->procneigh[1][1] != me)
+      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
+		   &nylo_ghost,1,MPI_INT,comm->procneigh[1][0],0,
+		   world,&status);
+    else nylo_ghost = nplanes;
+
+    nplanes = nzlo_in - nzlo_out;
+    if (comm->procneigh[2][0] != me)
+      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
+		   &nzhi_ghost,1,MPI_INT,comm->procneigh[2][1],0,
+		   world,&status);
+    else nzhi_ghost = nplanes;
+
+    nplanes = nzhi_out - nzhi_in;
+    if (comm->procneigh[2][1] != me)
+      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
+		   &nzlo_ghost,1,MPI_INT,comm->procneigh[2][0],0,
+		   world,&status);
+    else nzlo_ghost = nplanes;
+
+    // test that ghost overlap is not bigger than my sub-domain
+
+    int flag = 0;
+    if (nxlo_ghost > nxhi_in-nxlo_in+1) flag = 1;
+    if (nxhi_ghost > nxhi_in-nxlo_in+1) flag = 1;
+    if (nylo_ghost > nyhi_in-nylo_in+1) flag = 1;
+    if (nyhi_ghost > nyhi_in-nylo_in+1) flag = 1;
+    if (nzlo_ghost > nzhi_in-nzlo_in+1) flag = 1;
+    if (nzhi_ghost > nzhi_in-nzlo_in+1) flag = 1;
+
+    int flag_all;
+    MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
+
+    if (flag_all == 0) break;
+    order--;
   }
-  
-  // nlo_ghost,nhi_ghost = # of planes I will recv from 6 directions
-  //   that overlay domain I own
-  // proc in that direction tells me via sendrecv()
-  // if no neighbor proc, value comes from self since I have ghosts regardless
 
-  int nplanes;
-  MPI_Status status;
-
-  nplanes = nxlo_in - nxlo_out;
-  if (comm->procneigh[0][0] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
-		 &nxhi_ghost,1,MPI_INT,comm->procneigh[0][1],0,world,&status);
-  else nxhi_ghost = nplanes;
-
-  nplanes = nxhi_out - nxhi_in;
-  if (comm->procneigh[0][1] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
-		 &nxlo_ghost,1,MPI_INT,comm->procneigh[0][0],0,world,&status);
-  else nxlo_ghost = nplanes;
-
-  nplanes = nylo_in - nylo_out;
-  if (comm->procneigh[1][0] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
-		 &nyhi_ghost,1,MPI_INT,comm->procneigh[1][1],0,world,&status);
-  else nyhi_ghost = nplanes;
-
-  nplanes = nyhi_out - nyhi_in;
-  if (comm->procneigh[1][1] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
-		 &nylo_ghost,1,MPI_INT,comm->procneigh[1][0],0,world,&status);
-  else nylo_ghost = nplanes;
-
-  nplanes = nzlo_in - nzlo_out;
-  if (comm->procneigh[2][0] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
-		 &nzhi_ghost,1,MPI_INT,comm->procneigh[2][1],0,world,&status);
-  else nzhi_ghost = nplanes;
-
-  nplanes = nzhi_out - nzhi_in;
-  if (comm->procneigh[2][1] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
-		 &nzlo_ghost,1,MPI_INT,comm->procneigh[2][0],0,world,&status);
-  else nzlo_ghost = nplanes;
-
-  // test that ghost overlap is not bigger than my sub-domain
-
-  int flag = 0;
-  if (nxlo_ghost > nxhi_in-nxlo_in+1) flag = 1;
-  if (nxhi_ghost > nxhi_in-nxlo_in+1) flag = 1;
-  if (nylo_ghost > nyhi_in-nylo_in+1) flag = 1;
-  if (nyhi_ghost > nyhi_in-nylo_in+1) flag = 1;
-  if (nzlo_ghost > nzhi_in-nzlo_in+1) flag = 1;
-  if (nzhi_ghost > nzhi_in-nzlo_in+1) flag = 1;
-
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-
-  if (flag_all)
-    error->all("PPPM stencil extends too far, reduce PPPM order");
+  if (order == 0) error->all("PPPM order has been reduced to 0");
 
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -944,11 +963,13 @@ void PPPM::set_grid()
     if (screen) {
       fprintf(screen,"  G vector = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
+      fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  RMS precision = %g\n",MAX(lpr,spr));
     }
     if (logfile) {
       fprintf(logfile,"  G vector = %g\n",g_ewald);
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
+      fprintf(logfile,"  stencil order = %d\n",order);
       fprintf(logfile,"  RMS precision = %g\n",MAX(lpr,spr));
     }
   }

@@ -50,9 +50,10 @@ neigh_modify exclude molecule rigid :pre
 
 [Description:]
 
-This command sets parameters that affect the pairwise neighbor list.
+This command sets parameters that affect the building and use of
+pairwise neighbor lists.
 
-The {every}, {delay}, and {check} options affect how often the list is
+The {every}, {delay}, and {check} options affect how often lists are
 built as a simulation runs.  The {delay} setting means never build a
 new list until at least N steps after the previous build.  The {every}
 setting means build the list every M steps (after the delay has

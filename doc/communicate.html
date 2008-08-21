@@ -19,16 +19,18 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>group</I> 
+<LI>keyword = <I>group</I> or <I>cutoff</I> 
 
-<PRE>  <I>group</I> value = group-ID = only communicate atoms in the group 
+<PRE>  <I>group</I> value = group-ID = only communicate atoms in the group
+  <I>cutoff</I> value = Rcut (distance units) = communicate atoms from this far away 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>communicate multi
-communicate multi group solvent 
+communicate multi group solvent
+communicate single cutoff 5.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -57,6 +59,45 @@ specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
 <A HREF = "atom_modify.html">atom_modify first</A> command.
 </P>
+<P>The <I>cutoff</I> option allows you to set a ghost cutoff distance which is
+the distance from the borders of a processor's sub-domain at which
+ghost atoms are acquired from other processors.  By default the ghost
+cutoff = the neighbor cutoff = the pairwise force cutoff + the
+neighbor skin.  See the <A HREF = "neighbor.html">neighbor</A> command for more
+information about the skin distance.  If the specified Rcut is greater
+than the neighbor cutoff, then extra ghost atoms will be acquired.  If
+it is smaller, the ghost cutoff is set to the neighbor cutoff.
+</P>
+<P>These are simulation scenarios in which it may be useful to set a
+ghost cutoff > neighbor cutoff:
+</P>
+<UL><LI>a single polymer chain with bond interactions, but no pairwise interactions
+<LI>bonded interactions (e.g. dihedrals) extend further than the pairwise cutoff
+<LI>ghost atoms beyond the pairwise cutoff are needed for some computation 
+</UL>
+<P>In the first scenario, a pairwise potential may not be defined.  Thus
+the pairwise neighbor cutoff will be 0.0.  But ghost atoms are still
+needed for computing bond, angle, etc interactions between atoms on
+different processors.  The appropriate ghost cutoff depends on the
+<A HREF = "newton.html">newton bond</A> setting.  For newton bond <I>off</I>, the
+distance needs to be the furthest distance between any two atoms in
+the bond, angle, etc.  E.g. the distance between 1-4 atoms in a
+dihedral.  For newton bond <I>on</I>, the distance between the central atom
+in the bond, angle, etc and any other atom is sufficient.  E.g. the
+distance between 2-4 atoms in a dihedral.
+</P>
+<P>In the second scenario, a pairwise potential is defined, but its
+neighbor cutoff is not sufficiently long enough to enable bond, angle,
+etc terms to be computed.  As in the previous scenario, an appropriate
+ghost cutoff should be set.
+</P>
+<P>In the last scenario, a <A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A> or
+<A HREF = "pair_style.html">pairwise potential</A> needs to calculate with ghost
+atoms beyond the normal pairwise cutoff for some computation it
+performs (e.g. locate neighbors of ghost atoms in a multibody pair
+potential).  Setting the ghost cutoff appropriately can insure it will
+find the needed atoms.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -65,6 +106,6 @@ The group specified with this option must also be specified via the
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default settings are style = single and group = all.
+<P>The default settings are style = single, group = all, cutoff = 0.0.
 </P>
 </HTML>

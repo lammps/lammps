@@ -25,13 +25,22 @@ neighbor 2.0 nsq
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command sets parameters that affect the building of the pairwise
-neighbor list.  All atom pairs within a cutoff distance equal to the
+<P>This command sets parameters that affect the building of pairwise
+neighbor lists.  All atom pairs within a cutoff distance equal to the
 their force cutoff plus the <I>skin</I> distance are stored in the list.
 Typically, the larger the skin distance, the less often neighbor lists
 need to be built, but more pairs must be checked for possible force
 interactions every timestep.  The default value for <I>skin</I> depends on
-the choice of units for the simulation (see below).
+the choice of units for the simulation; see the default values below.
+</P>
+<P>Even if pairwise neighbor lists are not used in a simulation (e.g. a
+pair potential is not defined), the skin distance may still determine
+how often atoms migrate to new processors due to atom motion and
+should thus be set appropriately.  This is because atoms migrate on
+the same timestep that neighbor lists are built.  See the various
+settings of the <A HREF = "neigh_modify">neigh_modify</A> command which control when
+neighbor lists are built, based on atom movement via the "check yes"
+option.
 </P>
 <P>The <I>style</I> value selects what algorithm is used to build the list.
 The <I>bin</I> style creates the list by binning which is an operation that
@@ -64,24 +73,7 @@ the pairwise list and the number of times neighbor lists were built
 are printed to the screen and log file.  See <A HREF = "Section_start.html#2_7">this
 section</A> for details.
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>For simulations without pairwise interactions (see "pair_style none"
-command), but that include bonded interactions, you still need to set
-the neighbor skin distance.  Pairwise neighbor lists will not be
-formed, but the pair cutoff (0.0 in this case) plus the skin distance
-is the range at which atoms are communicated from nearby processors.
-This needs to be large enough that atoms in the same bond, angle, etc
-as an atom owned by a processor are acquired.  What distance is
-appropriate depends on the <A HREF = "newton.html">newton bond</A> setting.  For
-newton bond off, the distance needs to be the furthest distance
-between any two atoms in the bond, angle, etc.  E.g. the distance
-between the 1-4 atoms in a dihedral.  For newton bond on, the distance
-is between the central atom in the bond, angle, etc and any other
-atom.  E.g. the distance between the 2-4 atoms in a dihedral.
-</P>
-<P>The same logic applies to systems that include bonded interactions and
-a pairwise cutoff shorter than the distances just described.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -90,7 +82,9 @@ a pairwise cutoff shorter than the distances just described.
 </P>
 <P><B>Default:</B>
 </P>
-<PRE>0.3 bin      for lj units (0.3 sigma)
-2.0 bin      for real or metal units (2.0 Angstroms) 
-</PRE>
+0.3 bin for units = lj, skin = 0.3 sigma<BR>
+2.0 bin for units = real or metal, skin = 2.0 Angstroms<BR>
+0.001 bin for units = si, skin = 0.001 meters = 1.0 mm<BR>
+0.1 bin for units = cgs, skin = 0.1 cm = 1.0 mm <BR>
+
 </HTML>

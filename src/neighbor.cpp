@@ -201,15 +201,9 @@ void Neighbor::init()
 
   // set neighbor cutoffs (force cutoff + skin)
   // trigger determines when atoms migrate and neighbor lists are rebuilt
-  // cutneigh and cutneighsq determine what pairs go into neighbor list
-  //   set to 0 if cutforce = 0
-  // cutneighmin/max used for neighbor bin sizes
-  // cutghost determines comm distance = max of cutneigh & skin
-  //   skin is only > cutneighmax when cutneighmax = 0.0 due to pair = NULL
-  //   in this case, are running a bond-only simulation
-  //   still need ghost atom communication for bonds and atom exchange
-  //     triggered by atoms moving 1/2 skin distance, but no neigh lists formed
-  //   user should set skin big enough to find all bonds
+  //   needs to be non-zero for migration distance check
+  //   even if pair = NULL and no neighbor lists are used
+  // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
 
   triggersq = 0.25*skin*skin;
 
@@ -240,7 +234,6 @@ void Neighbor::init()
       cutneighmax = MAX(cutneighmax,cut);
     }
   }
-  cutghost = MAX(cutneighmax,skin);
   cutneighmaxsq = cutneighmax * cutneighmax;
 
   // check other classes that can induce reneighboring in decide()
@@ -1053,7 +1046,7 @@ void Neighbor::setup_bins()
 {
   // bbox lo/hi = bounding box of entire domain
   // bbox = size of bbox of entire domain
-  // bsubbox lo/hi = bounding box of my subdomain extended by ghost atoms
+  // bsubbox lo/hi = bounding box of my subdomain extended by comm->cutghost
   // for triclinic:
   //   bbox bounds all 8 corners of tilted box
   //   subdomain is in lamda coords
@@ -1061,26 +1054,27 @@ void Neighbor::setup_bins()
   //   domain->bbox() converts lamda extent to box coords and computes bbox
 
   double bbox[3],bsubboxlo[3],bsubboxhi[3];
+  double *cutghost = comm->cutghost;
 
   if (triclinic == 0) {
     bboxlo = domain->boxlo;
     bboxhi = domain->boxhi;
-    bsubboxlo[0] = domain->sublo[0] - cutghost;
-    bsubboxlo[1] = domain->sublo[1] - cutghost;
-    bsubboxlo[2] = domain->sublo[2] - cutghost;
-    bsubboxhi[0] = domain->subhi[0] + cutghost;
-    bsubboxhi[1] = domain->subhi[1] + cutghost;
-    bsubboxhi[2] = domain->subhi[2] + cutghost;
+    bsubboxlo[0] = domain->sublo[0] - cutghost[0];
+    bsubboxlo[1] = domain->sublo[1] - cutghost[1];
+    bsubboxlo[2] = domain->sublo[2] - cutghost[2];
+    bsubboxhi[0] = domain->subhi[0] + cutghost[0];
+    bsubboxhi[1] = domain->subhi[1] + cutghost[1];
+    bsubboxhi[2] = domain->subhi[2] + cutghost[2];
   } else {
     bboxlo = domain->boxlo_bound;
     bboxhi = domain->boxhi_bound;
     double lo[3],hi[3];
-    lo[0] = domain->sublo_lamda[0] - comm->cutghost[0];
-    lo[1] = domain->sublo_lamda[1] - comm->cutghost[1];
-    lo[2] = domain->sublo_lamda[2] - comm->cutghost[2];
-    hi[0] = domain->subhi_lamda[0] + comm->cutghost[0];
-    hi[1] = domain->subhi_lamda[1] + comm->cutghost[1];
-    hi[2] = domain->subhi_lamda[2] + comm->cutghost[2];
+    lo[0] = domain->sublo_lamda[0] - cutghost[0];
+    lo[1] = domain->sublo_lamda[1] - cutghost[1];
+    lo[2] = domain->sublo_lamda[2] - cutghost[2];
+    hi[0] = domain->subhi_lamda[0] + cutghost[0];
+    hi[1] = domain->subhi_lamda[1] + cutghost[1];
+    hi[2] = domain->subhi_lamda[2] + cutghost[2];
     domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
   }
 

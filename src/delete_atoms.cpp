@@ -200,8 +200,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // error check on cutoff
 
-  if (cut > neighbor->cutghost) 
-    error->all("Delete_atoms cutoff > ghost cutoff");
+  if (cut > neighbor->cutneighmax) 
+    error->all("Delete_atoms cutoff > neighbor cutoff");
 
   // setup domain, communication and neighboring
   // acquire ghosts

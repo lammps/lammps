@@ -29,7 +29,8 @@ class Neighbor : protected Pointers {
   int oneatom;                     // max # of neighbors for one atom
 
   double skin;                     // skin distance
-  double cutghost;                 // distance for acquiring ghost atoms
+  double cutneighmin;              // min neighbor cutoff for all type pairs
+  double cutneighmax;              // max neighbor cutoff for all type pairs
   double *cuttype;                 // for each type, max neigh cut w/ others
 
   int ncalls;                      // # of times build has been called
@@ -81,8 +82,6 @@ class Neighbor : protected Pointers {
   int *fixchecklist;               // which fixes to check
 
   double **cutneighsq;             // neighbor cutneigh sq for each type pair
-  double cutneighmin;              // min neighbor cutoff (for cutforce > 0)
-  double cutneighmax;              // max neighbor cutoff for all type pairs
   double cutneighmaxsq;            // cutneighmax squared
   double *cuttypesq;               // cuttype squared
 

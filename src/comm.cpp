@@ -62,6 +62,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   style = SINGLE;
   multilo = multihi = NULL;
   cutghostmulti = NULL;
+  cutghostuser = 0.0;
 
   // initialize comm buffers & exchange memory
 
@@ -215,14 +216,14 @@ void Comm::init()
 
 /* ----------------------------------------------------------------------
    setup spatial-decomposition communication patterns
-   function of neighbor cutoff(s) and current box size
+   function of neighbor cutoff(s) & cutghostuser & current box size
    single style sets slab boundaries (slablo,slabhi) based on max cutoff
    multi style sets type-dependent slab boundaries (multilo,multihi)
 ------------------------------------------------------------------------- */
 
 void Comm::setup()
 {
-  // cutghost = max distance at which ghost atoms need to be acquired
+  // cutghost[] = max distance at which ghost atoms need to be acquired
   // for orthogonal:
   //   cutghost is in box coords = neigh->cutghost in all 3 dims
   // for triclinic:
@@ -235,17 +236,21 @@ void Comm::setup()
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
   
+  double cut = MAX(neighbor->cutneighmax,cutghostuser);
+
   if (triclinic == 0) {
     prd = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
-    cutghost[0] = cutghost[1] = cutghost[2] = neighbor->cutghost;
+    cutghost[0] = cutghost[1] = cutghost[2] = cut;
+
     if (style == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++)
 	cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] = 
 	  cuttype[i];
     }
+
   } else {
     prd = domain->prd_lamda;
     sublo = domain->sublo_lamda;
@@ -253,11 +258,12 @@ void Comm::setup()
     double *h_inv = domain->h_inv;
     double length0,length1,length2;
     length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
-    cutghost[0] = neighbor->cutghost * length0;
+    cutghost[0] = cut * length0;
     length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
-    cutghost[1] = neighbor->cutghost * length1;
+    cutghost[1] = cut * length1;
     length2 = h_inv[2];
-    cutghost[2] = neighbor->cutghost * length2;
+    cutghost[2] = cut * length2;
+
     if (style == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
@@ -1524,10 +1530,16 @@ void Comm::set(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal communicate command");
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
-	error->all("Invalid group ID in communicate command");
+	error->all("Invalid group in communicate command");
       if (bordergroup && (atom->firstgroupname == NULL || 
 			  strcmp(arg[iarg+1],atom->firstgroupname) != 0))
 	error->all("Communicate group != atom_modify first group");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"cutoff") == 0) {
+      if (iarg+2 > narg) error->all("Illegal communicate command");
+      cutghostuser = atof(arg[iarg+1]);
+      if (cutghostuser < 0.0) 
+	error->all("Invalid cutoff in communicate command");
       iarg += 2;
     } else error->all("Illegal communicate command");
   }

@@ -23,21 +23,19 @@ neighbor 2.0 nsq :pre
 [Description:]
 
 This command sets parameters that affect the building of pairwise
-neighbor lists.  All atom pairs within a cutoff distance equal to the
-their force cutoff plus the {skin} distance are stored in the list.
-Typically, the larger the skin distance, the less often neighbor lists
-need to be built, but more pairs must be checked for possible force
-interactions every timestep.  The default value for {skin} depends on
-the choice of units for the simulation; see the default values below.
+neighbor lists.  All atom pairs within a neighbor cutoff distance
+equal to the their force cutoff plus the {skin} distance are stored in
+the list.  Typically, the larger the skin distance, the less often
+neighbor lists need to be built, but more pairs must be checked for
+possible force interactions every timestep.  The default value for
+{skin} depends on the choice of units for the simulation; see the
+default values below.
 
-Even if pairwise neighbor lists are not used in a simulation (e.g. a
-pair potential is not defined), the skin distance may still determine
-how often atoms migrate to new processors due to atom motion and
-should thus be set appropriately.  This is because atoms migrate on
-the same timestep that neighbor lists are built.  See the various
-settings of the "neigh_modify"_neigh_modify command which control when
-neighbor lists are built, based on atom movement via the "check yes"
-option.
+The {skin} distance is also used to determine how often atoms migrate
+to new processors if the {check} option of the
+"neigh_modify"_neigh_modify command is set to {yes}.  Atoms are
+migrated (communicated) to new processors on the same timestep that
+neighbor lists are re-built.
 
 The {style} value selects what algorithm is used to build the list.
 The {bin} style creates the list by binning which is an operation that

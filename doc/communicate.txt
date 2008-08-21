@@ -52,14 +52,14 @@ specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
 "atom_modify first"_atom_modify.html command.
 
-The {cutoff} option allows you to set a ghost cutoff distance which is
-the distance from the borders of a processor's sub-domain at which
+The {cutoff} option allows you to set a ghost cutoff distance, which
+is the distance from the borders of a processor's sub-domain at which
 ghost atoms are acquired from other processors.  By default the ghost
-cutoff = the neighbor cutoff = the pairwise force cutoff + the
-neighbor skin.  See the "neighbor"_neighbor.html command for more
-information about the skin distance.  If the specified Rcut is greater
-than the neighbor cutoff, then extra ghost atoms will be acquired.  If
-it is smaller, the ghost cutoff is set to the neighbor cutoff.
+cutoff = neighbor cutoff = pairwise force cutoff + neighbor skin.  See
+the "neighbor"_neighbor.html command for more information about the
+skin distance.  If the specified Rcut is greater than the neighbor
+cutoff, then extra ghost atoms will be acquired.  If it is smaller,
+the ghost cutoff is set to the neighbor cutoff.
 
 These are simulation scenarios in which it may be useful to set a
 ghost cutoff > neighbor cutoff:
@@ -100,3 +100,5 @@ find the needed atoms.
 [Default:]
 
 The default settings are style = single, group = all, cutoff = 0.0.
+The cutoff default of 0.0 means that effectively ghost cutoff =
+neighbor cutoff = pairwise force cutoff + neighbor skin.

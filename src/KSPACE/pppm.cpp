@@ -265,7 +265,7 @@ void PPPM::init()
     double zprd_slab = zprd*slab_volfactor;
 
     double dist[3];
-    double cuthalf = 0.5 * neighbor->skin + qdist;
+    double cuthalf = 0.5*neighbor->skin + qdist;
     if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
     else {
       dist[0] = cuthalf/domain->prd[0];

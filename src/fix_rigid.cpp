@@ -278,6 +278,9 @@ void FixRigid::init()
 
   triclinic = domain->triclinic;
 
+  if (atom->mass == NULL)
+    error->all("Cannot use fix rigid without per-type mass defined");
+
   // warn if more than one rigid fix
 
   int count = 0;

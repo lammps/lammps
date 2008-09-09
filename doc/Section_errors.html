@@ -40,6 +40,17 @@ phase space trajectories of the two simulations will rapidly diverge.
 See the discussion of the <I>loop</I> option in the
 <A HREF = "velocity.html">velocity</A> command for details.
 </P>
+<P>Similarly, the <A HREF = "create_atoms.html">create_atoms</A> command generates a
+lattice of atoms.  For the same physical system, the ordering and
+numbering of atoms (atom ID or tag) may be different depending on the
+number of processors.
+</P>
+<P>Some commands use random number generators which may be setup to
+produce different random number streams on each processor and hence
+will produce different effects when run on different numbers of
+processors.  A commonly-used example is the <A HREF = "fix_langevin.html">fix
+langevin</A> command for thermostatting.
+</P>
 <P>A LAMMPS simulation typically has two stages, setup and run.  Most
 LAMMPS errors are detected at setup time; others like a bond
 stretching too far may not occur until the middle of a run.

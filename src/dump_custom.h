@@ -91,6 +91,7 @@ class DumpCustom : public Dump {
   void pack_tag(int);
   void pack_molecule(int);
   void pack_type(int);
+  void pack_mass(int);
   void pack_x(int);
   void pack_y(int);
   void pack_z(int);

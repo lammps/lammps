@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 // customize by adding keyword to 1st enum
 
-enum{TAG,MOL,TYPE,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
+enum{TAG,MOL,TYPE,MASS,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
        VX,VY,VZ,FX,FY,FZ,
        Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
        QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
@@ -339,6 +339,17 @@ int DumpCustom::count()
 	for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
 	ptr = dchoose;
 	nstride = 1;
+      } else if (thresh_array[ithresh] == MASS) {
+	if (atom->mass) {
+	  double *mass = atom->mass;
+	  int *type = atom->type;
+	  for (i = 0; i < nlocal; i++) dchoose[i] = mass[type[i]];
+	  ptr = dchoose;
+	  nstride = 1;
+	} else {
+	  ptr = atom->rmass;
+	  nstride = 1;
+	}
       } else if (thresh_array[ithresh] == X) {
 	ptr = &atom->x[0][0];
 	nstride = 3;
@@ -658,6 +669,9 @@ void DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
       vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      pack_choice[i] = &DumpCustom::pack_mass;
+      vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       pack_choice[i] = &DumpCustom::pack_x;
@@ -1040,6 +1054,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"tag") == 0) thresh_array[nthresh] = TAG;
     else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
     else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
+    else if (strcmp(arg[1],"mass") == 0) thresh_array[nthresh] = MASS;
     else if (strcmp(arg[1],"x") == 0) thresh_array[nthresh] = X;
     else if (strcmp(arg[1],"y") == 0) thresh_array[nthresh] = Y;
     else if (strcmp(arg[1],"z") == 0) thresh_array[nthresh] = Z;
@@ -1337,6 +1352,30 @@ void DumpCustom::pack_type(int n)
       buf[n] = type[i];
       n += size_one;
     }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_mass(int n)
+{
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  if (mass) {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = mass[type[i]];
+	n += size_one;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (choose[i]) {
+	buf[n] = rmass[i];
+	n += size_one;
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

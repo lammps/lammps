@@ -71,6 +71,9 @@ must be set before this command can be invoked.
 <P>Due to how the pairwise force is computed, an inner value > 0.0 must
 be specified even if the potential has a finite value at r = 0.0.
 </P>
+<P>For EAM potentials, the pair_write command only tabulates the
+pairwise portion of the potential, not the embedding portion.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_coeff.html">pair_coeff</A>

@@ -650,10 +650,6 @@ but was unsuccessful.  Check that the path and name are correct. :dd
 
 Self-explanatory. :dd
 
-{Cannot open input script %s} :dt
-
-Self-explanatory. :dd
-
 {Cannot open log.lammps} :dt
 
 The default LAMMPS log file cannot be opened.  Check that the

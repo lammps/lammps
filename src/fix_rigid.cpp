@@ -991,20 +991,19 @@ int FixRigid::dof(int igroup)
   int *nall = new int[nbody];
   MPI_Allreduce(ncount,nall,nbody,MPI_INT,MPI_SUM,world);
 
-  // remove d*N - d(d+1)/2 dof for each rigid body if more than 2 atoms in igroup
+  // in 3d/2d, remove d*N - d(d+1)/2 dof for each rigid body
+  // in 3d, remove an additional dof for each diatomic rigid body
   // http://en.wikipedia.org/wiki/Degrees_of_freedom_(engineering)
-  // remove an additional dof for each diatomic rigid body in igroup if d=3
 
   int n = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nbody; ibody++) {
-      if (nall[ibody] > 2) n += 3*nall[ibody] - 6;
-      else if (nall[ibody] == 2) n++;
+      n += 3*nall[ibody] - 6;
+      if (nall[ibody] == 2) n++;
     }
   } else if (domain->dimension == 2) {
-    for (int ibody = 0; ibody < nbody; ibody++) {
-      if (nall[ibody] > 1) n += 2*nall[ibody] - 3;
-    }
+    for (int ibody = 0; ibody < nbody; ibody++)
+      n += 2*nall[ibody] - 3;
   }
 
   delete [] ncount;

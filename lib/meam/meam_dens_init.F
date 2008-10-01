@@ -94,88 +94,97 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       drinv = 1.d0/delr_meam
       elti = fmap(type(i))
 
-      xitmp = x(1,i)
-      yitmp = x(2,i)
-      zitmp = x(3,i)
+      if (elti.gt.0) then
 
-      do jn = 1,numneigh
-        j = firstneigh(jn)
-
-c     First compute screening function itself, sij
-        xjtmp = x(1,j)
-        yjtmp = x(2,j)
-        zjtmp = x(3,j)
-        delxij = xjtmp - xitmp
-        delyij = yjtmp - yitmp
-        delzij = zjtmp - zitmp
-        rij2 = delxij*delxij + delyij*delyij + delzij*delzij
-        rij = sqrt(rij2)
-        if (rij.gt.rc_meam) then
-          fcij = 0.0
-          dfcij = 0.d0
-          sij = 0.d0
-        else
-          rnorm = (rc_meam-rij)*drinv
-          call screen(i, j, nmax, x, rij2, sij,
-     $         numneigh_full, firstneigh_full, ntype, type, fmap)
-          call dfcut(rnorm,fc,dfc)
-          fcij = fc
-          dfcij = dfc*drinv
-        endif
-
-c     Now compute derivatives
-        dscrfcn(jn) = 0.d0
-        sfcij = sij*fcij
-        if (sfcij.eq.0.d0.or.sfcij.eq.1.d0) goto 100
-        eltj = fmap(type(j))
-        rbound = ebound_meam(elti,eltj) * rij2
-        do kn = 1,numneigh_full
-          k = firstneigh_full(kn)
-          if (k.eq.j) goto 10
-          eltk = fmap(type(k))
-          xktmp = x(1,k)
-          yktmp = x(2,k)
-          zktmp = x(3,k)
-          delxjk = xktmp - xjtmp
-          delyjk = yktmp - yjtmp
-          delzjk = zktmp - zjtmp
-          rjk2 = delxjk*delxjk + delyjk*delyjk + delzjk*delzjk
-          if (rjk2.gt.rbound) goto 10
-          delxik = xktmp - xitmp
-          delyik = yktmp - yitmp
-          delzik = zktmp - zitmp
-          rik2 = delxik*delxik + delyik*delyik + delzik*delzik
-          if (rik2.gt.rbound) goto 10
-          xik = rik2/rij2
-          xjk = rjk2/rij2
-          a =  1 - (xik-xjk)*(xik-xjk)
-          if (a.eq.0.d0) goto 10
-          cikj = (2.d0*(xik+xjk) + a - 2.d0)/a
-          Cmax = Cmax_meam(elti,eltj,eltk)
-          Cmin = Cmin_meam(elti,eltj,eltk)
-          if (cikj.ge.Cmax.or.cikj.lt.0.d0) then
-            goto 10
-c     Note that we never have 0<cikj<Cmin here, else sij=0 (rejected above)
-          else
-            delc = Cmax - Cmin
-            cikj = (cikj-Cmin)/delc
-            call dfcut(cikj,sikj,dfikj)
-            coef1 = dfikj/(delc*sikj)
-            call dCfunc(rij2,rik2,rjk2,dCikj)
-            dscrfcn(jn) = dscrfcn(jn) + coef1*dCikj
-          endif
- 10       continue
-        enddo
-        coef1 = sfcij
-        coef2 = sij*dfcij/rij
-        dscrfcn(jn) = dscrfcn(jn)*coef1 - coef2
- 100    continue
+        xitmp = x(1,i)
+        yitmp = x(2,i)
+        zitmp = x(3,i)
         
-        scrfcn(jn) = sij
-        fcpair(jn) = fcij
+        do jn = 1,numneigh
+          j = firstneigh(jn)
 
-      enddo
+          eltj = fmap(type(j))
+          if (eltj.gt.0) then
+          
+c     First compute screening function itself, sij
+            xjtmp = x(1,j)
+            yjtmp = x(2,j)
+            zjtmp = x(3,j)
+            delxij = xjtmp - xitmp
+            delyij = yjtmp - yitmp
+            delzij = zjtmp - zitmp
+            rij2 = delxij*delxij + delyij*delyij + delzij*delzij
+            rij = sqrt(rij2)
+            if (rij.gt.rc_meam) then
+              fcij = 0.0
+              dfcij = 0.d0
+              sij = 0.d0
+            else
+              rnorm = (rc_meam-rij)*drinv
+              call screen(i, j, nmax, x, rij2, sij,
+     $             numneigh_full, firstneigh_full, ntype, type, fmap)
+              call dfcut(rnorm,fc,dfc)
+              fcij = fc
+              dfcij = dfc*drinv
+            endif
+            
+c     Now compute derivatives
+            dscrfcn(jn) = 0.d0
+            sfcij = sij*fcij
+            if (sfcij.eq.0.d0.or.sfcij.eq.1.d0) goto 100
+            rbound = ebound_meam(elti,eltj) * rij2
+            do kn = 1,numneigh_full
+              k = firstneigh_full(kn)
+              if (k.eq.j) goto 10
+              eltk = fmap(type(k))
+              if (eltk.eq.0) goto 10
+              xktmp = x(1,k)
+              yktmp = x(2,k)
+              zktmp = x(3,k)
+              delxjk = xktmp - xjtmp
+              delyjk = yktmp - yjtmp
+              delzjk = zktmp - zjtmp
+              rjk2 = delxjk*delxjk + delyjk*delyjk + delzjk*delzjk
+              if (rjk2.gt.rbound) goto 10
+              delxik = xktmp - xitmp
+              delyik = yktmp - yitmp
+              delzik = zktmp - zitmp
+              rik2 = delxik*delxik + delyik*delyik + delzik*delzik
+              if (rik2.gt.rbound) goto 10
+              xik = rik2/rij2
+              xjk = rjk2/rij2
+              a =  1 - (xik-xjk)*(xik-xjk)
+              if (a.eq.0.d0) goto 10
+              cikj = (2.d0*(xik+xjk) + a - 2.d0)/a
+              Cmax = Cmax_meam(elti,eltj,eltk)
+              Cmin = Cmin_meam(elti,eltj,eltk)
+              if (cikj.ge.Cmax.or.cikj.lt.0.d0) then
+                goto 10
+c     Note that we never have 0<cikj<Cmin here, else sij=0 (rejected above)
+              else
+                delc = Cmax - Cmin
+                cikj = (cikj-Cmin)/delc
+                call dfcut(cikj,sikj,dfikj)
+                coef1 = dfikj/(delc*sikj)
+                call dCfunc(rij2,rik2,rjk2,dCikj)
+                dscrfcn(jn) = dscrfcn(jn) + coef1*dCikj
+              endif
+ 10           continue
+            enddo
+            coef1 = sfcij
+            coef2 = sij*dfcij/rij
+            dscrfcn(jn) = dscrfcn(jn)*coef1 - coef2
+ 100        continue
+            
+            scrfcn(jn) = sij
+            fcpair(jn) = fcij
+
+          endif
+          
+        enddo
       
+      endif
+
       return
       end
       

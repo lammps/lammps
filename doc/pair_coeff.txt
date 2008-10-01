@@ -92,7 +92,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style coul/cut"_pair_coul.html - cutoff Coulombic potential
 "pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential
-"pair_style dipole/cut"_pair_dpd.html - point dipoles with cutoff
+"pair_style dipole/cut"_pair_dipole.html - point dipoles with cutoff
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
 "pair_style eam/opt"_pair_eam.html - optimized version of EAM
@@ -131,6 +131,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "pair_style table"_pair_table.html - tabulated pair potential
 "pair_style tersoff"_pair_tersoff.html - Tersoff 3-body potential
+"pair_style tersoff/zbl"_pair_tersoff.html - Tersoff/ZBL 3-body potential
 "pair_style yukawa"_pair_yukawa.html - Yukawa potential :ul
 
 There are also additional pair styles submitted by users which are

@@ -34,8 +34,8 @@ class FixIndent : public Fix {
  private:
   int istyle,scaleflag,radflag,thermo_flag,eflag_enable;
   double k,k3;
-  double x0,y0,z0,r0_stop,r0_start;
-  int indenter_flag;
+  double x0,y0,z0,r0_stop,r0_start,planepos;
+  int indenter_flag,planeside;
   double indenter[4],indenter_all[4];
   int cdim;
   double c1,c2;

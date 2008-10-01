@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,SPHERE,CYLINDER};
+enum{NONE,SPHERE,CYLINDER,PLANE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -103,6 +103,10 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
       r0_stop *= zscale;
       r0_start *= zscale;
     }
+  } else if (istyle == PLANE) {
+    if (cdim == 0) planepos *= xscale;
+    else if (cdim == 1) planepos *= yscale;
+    else if (cdim == 2) planepos *= zscale;
   } else error->all("Illegal fix indent command");
 
   indenter_flag = 0;
@@ -210,7 +214,7 @@ void FixIndent::post_force(int vflag)
 
   // cylindrical indenter
 
-  } else {
+  } else if (istyle == CYLINDER) {
 
     // c1new,c2new = current coords of indenter axis from original c1,c2
 	      
@@ -263,6 +267,35 @@ void FixIndent::post_force(int vflag)
 	indenter[1] -= fx;
 	indenter[2] -= fy;
 	indenter[3] -= fz;
+      }
+
+  // planar indenter
+
+  } else {
+
+    // posnew = current coord of plane from original planepos
+	      
+    double delta = (update->ntimestep - update->beginstep) * update->dt;
+    double posnew;
+    if (cdim == 0) posnew = planepos + delta*vx;
+    else if (cdim == 1) posnew = planepos + delta*vy;
+    else if (cdim == 2) posnew = planepos + delta*vz;
+    
+    double **x = atom->x;
+    double **f = atom->f;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    
+    double dr,fatom;
+    
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	dr = planeside * (posnew - x[i][cdim]);
+	if (dr >= 0.0) continue;
+	fatom = -planeside * k*dr*dr;
+	f[i][cdim] += fatom;
+	indenter[0] -= k3 * dr*dr*dr;
+	indenter[cdim+1] -= fatom;
       }
   }
 }
@@ -340,6 +373,18 @@ void FixIndent::options(int narg, char **arg)
       r0_stop = atof(arg[iarg+4]);
       istyle = CYLINDER;
       iarg += 5;
+    } else if (strcmp(arg[iarg],"plane") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix indent command");
+      if (strcmp(arg[iarg+1],"x") == 0) cdim = 0;
+      else if (strcmp(arg[iarg+1],"y") == 0) cdim = 1;
+      else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
+      else error->all("Illegal fix indent command");
+      planepos = atof(arg[iarg+2]);
+      if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
+      else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;
+      else error->all("Illegal fix indent command");
+      istyle = PLANE;
+      iarg += 4;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix indent command");
       vx = atof(arg[iarg+1]);

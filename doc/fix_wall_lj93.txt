@@ -26,9 +26,9 @@ fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5 :pre
 
 [Description:]
 
-Bound the simulation domain with a Lennard-Jones wall that encloses
-the atoms.  The energy E of a wall-particle interactions is given by
-the 9-3 potential
+Bound the simulation domain on one of its faces with a Lennard-Jones
+wall that interacts with the atoms in the group.  The energy E of
+wall-particle interactions is given by the 9-3 potential
 
 :c,image(Eqs/fix_wall_lj93.jpg)
 

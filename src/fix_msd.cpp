@@ -242,8 +242,11 @@ void FixMSD::end_of_step()
   msd_all[2] /= nmsd;
   msd_all[3] /= nmsd;
 
-  if (me == 0) fprintf(fp,"%d %g %g %g %g\n",update->ntimestep,
-		       msd_all[0],msd_all[1],msd_all[2],msd_all[3]);
+  if (me == 0) {
+    fprintf(fp,"%d %g %g %g %g\n",update->ntimestep,
+	    msd_all[0],msd_all[1],msd_all[2],msd_all[3]);
+    fflush(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------

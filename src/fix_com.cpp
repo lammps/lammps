@@ -85,6 +85,8 @@ void FixCOM::end_of_step()
   double xcm[3];
   group->xcm(igroup,masstotal,xcm);
 
-  if (me == 0) fprintf(fp,"%d %g %g %g\n",
-		       update->ntimestep,xcm[0],xcm[1],xcm[2]);
+  if (me == 0) {
+    fprintf(fp,"%d %g %g %g\n",update->ntimestep,xcm[0],xcm[1],xcm[2]);
+    fflush(fp);
+  }
 }

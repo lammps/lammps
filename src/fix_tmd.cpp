@@ -287,6 +287,7 @@ void FixTMD::initial_integrate(int vflag)
       fprintf(fp,"%d %g %g %g %g %g %g %g\n",
 	      update->ntimestep,rho_target,rho_old,
               gamma_back,gamma_forward,lambda,work_lambda,work_analytical);
+      fflush(fp);
       previous_stat = update->ntimestep;
     }
   }

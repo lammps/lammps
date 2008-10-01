@@ -323,5 +323,7 @@ void FixRDF::end_of_step()
       }
       fprintf(fp,"\n");
     }
+
+    fflush(fp);
   }
 }

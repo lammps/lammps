@@ -86,5 +86,8 @@ void FixGyration::end_of_step()
   group->xcm(igroup,masstotal,xcm);
   double rg = group->gyration(igroup,masstotal,xcm);
 
-  if (me == 0) fprintf(fp,"%d %g\n",update->ntimestep,rg);
+  if (me == 0) {
+    fprintf(fp,"%d %g\n",update->ntimestep,rg);
+    fflush(fp);
+  }
 }

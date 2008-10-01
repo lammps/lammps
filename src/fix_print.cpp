@@ -114,6 +114,9 @@ void FixPrint::end_of_step()
   if (me == 0) {
     if (screenflag && screen) fprintf(screen,copy);
     if (screenflag && logfile) fprintf(logfile,copy);
-    if (fp) fprintf(fp,copy);
+    if (fp) {
+      fprintf(fp,copy);
+      fflush(fp);
+    }
   }
 }

@@ -524,12 +524,13 @@ void FixAveSpatial::end_of_step()
   }
 
   // assign each atom to a layer
-  // insure array index is within bounds (since atoms can be outside box)
+  // remap each atom's relevant coord back into box via PBC if necessary
   // if scaleflag = REDUCED, box coords -> lamda coords
 
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
 
   if (nlocal > maxatomlayer) {
     maxatomlayer = atom->nmax;
@@ -538,11 +539,32 @@ void FixAveSpatial::end_of_step()
       memory->smalloc(maxatomlayer*sizeof(int),"ave/spatial:layer");
   }
 
+  double *boxlo,*boxhi,*prd;
+  double xremap;
+  int periodicity = domain->periodicity[dim];
+
+  if (periodicity) {
+    if (scaleflag == REDUCED) {
+      boxlo = domain->boxlo_lamda;
+      boxhi = domain->boxhi_lamda;
+      prd = domain->prd_lamda;
+    } else {
+      boxlo = domain->boxlo;
+      boxhi = domain->boxhi;
+      prd = domain->prd;
+    }
+  }
+
   if (scaleflag == REDUCED) domain->x2lamda(nlocal);
   
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      ilayer = static_cast<int> ((x[i][dim] - offset) * invdelta);
+      xremap = x[i][dim];
+      if (periodicity) {
+	if (xremap < boxlo[dim]) xremap += prd[dim];
+	if (xremap >= boxhi[dim]) xremap -= prd[dim];
+      }
+      ilayer = static_cast<int> ((xremap - offset) * invdelta);
       if (ilayer < 0) ilayer = 0;
       if (ilayer >= nlayers) ilayer = nlayers-1;
       layer[i] = ilayer;

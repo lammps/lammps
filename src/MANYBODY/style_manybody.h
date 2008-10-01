@@ -18,6 +18,7 @@
 #include "pair_eam_fs.h"
 #include "pair_sw.h"
 #include "pair_tersoff.h"
+#include "pair_tersoff_zbl.h"
 #endif
 
 #ifdef PairClass
@@ -27,4 +28,5 @@ PairStyle(eam/alloy,PairEAMAlloy)
 PairStyle(eam/fs,PairEAMFS)
 PairStyle(sw,PairSW)
 PairStyle(tersoff,PairTersoff)
+PairStyle(tersoff/zbl,PairTersoffZBL)
 #endif

@@ -21,14 +21,14 @@ namespace LAMMPS_NS {
 class PairTersoff : public Pair {
  public:
   PairTersoff(class LAMMPS *);
-  ~PairTersoff();
+  virtual ~PairTersoff();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
 
- private:
+ protected:
   struct Param {
     double lam1,lam2,lam3;
     double c,d,h;
@@ -39,9 +39,11 @@ class PairTersoff : public Pair {
     double c1,c2,c3,c4;
     int ielement,jelement,kelement;
     int powermint;
+    double Z_i,Z_j;
+    double ZBLcut,ZBLexpscale;
   };
   
-  double PI2,PI4;
+  double PI,PI2,PI4;
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
@@ -52,9 +54,9 @@ class PairTersoff : public Pair {
   Param *params;                // parameter set for an I-J-K interaction
 
   void allocate();
-  void read_file(char *);
+  virtual void read_file(char *);
   void setup();
-  void repulsive(Param *, double, double &, int, double &);
+  virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
   void force_zeta(Param *, double, double, double &, double &, int, double &);
   void attractive(Param *, double, double, double, double *, double *,
@@ -62,14 +64,14 @@ class PairTersoff : public Pair {
 
   double ters_fc(double, Param *);
   double ters_fc_d(double, Param *);
-  double ters_fa(double, Param *);
-  double ters_fa_d(double, Param *);
+  virtual double ters_fa(double, Param *);
+  virtual double ters_fa_d(double, Param *);
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
   double ters_gijk(double, Param *);
   double ters_gijk_d(double, Param *);
   void ters_zetaterm_d(double, double *, double, double *, double,
-		       double *, double *, double *, Param *);
+			       double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
 		  double *, double *, double *);
 

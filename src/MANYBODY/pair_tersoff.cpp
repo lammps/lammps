@@ -41,6 +41,7 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   one_coeff = 1;
 
+  PI = 4.0*atan(1.0);
   PI2 = 2.0*atan(1.0);
   PI4 = atan(1.0);
 

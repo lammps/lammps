@@ -11,22 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PairInclude
-#include "pair_airebo.h"
-#include "pair_eam.h"
-#include "pair_eam_alloy.h"
-#include "pair_eam_fs.h"
-#include "pair_sw.h"
-#include "pair_tersoff.h"
-#include "pair_tersoff_zbl.h"
-#endif
+#ifndef PAIR_TERSOFF_ZBL_H
+#define PAIR_TERSOFF_ZBL_H
 
-#ifdef PairClass
-PairStyle(airebo,PairAIREBO)
-PairStyle(eam,PairEAM)
-PairStyle(eam/alloy,PairEAMAlloy)
-PairStyle(eam/fs,PairEAMFS)
-PairStyle(sw,PairSW)
-PairStyle(tersoff,PairTersoff)
-PairStyle(tersoff/zbl,PairTersoffZBL)
+#include "pair_tersoff.h"
+
+namespace LAMMPS_NS {
+
+class PairTersoffZBL : public PairTersoff {
+ public:
+  PairTersoffZBL(class LAMMPS *);
+  ~PairTersoffZBL() {}
+
+ private:
+  double global_a_0;		// Bohr radius for Coulomb repulsion
+  double global_epsilon_0;	// permittivity of vacuum for Coulomb repulsion
+  double global_e;		// proton charge (negative of electron charge)
+
+  void read_file(char *);
+  void repulsive(Param *, double, double &, int, double &);
+
+  double ters_fa(double, Param *);
+  double ters_fa_d(double, Param *);
+	
+  double F_fermi(double, Param *);
+  double F_fermi_d(double, Param *);
+};
+
+}
+
 #endif

@@ -68,14 +68,14 @@ class FixRigid : public Fix {
 
   int jacobi(double **, double *, double **);
   void rotate(double **, int, int, int, int, double, double);
-  void qcreate(double **, double *);
+  void q_from_exyz(double *, double *, double *, double *);
+  void exyz_from_q(double *, double *, double *, double *);
   void multiply(double *, double *, double *);
   void normalize(double *);
   void richardson(double *, double *, double *, double *,
 		  double *, double *, double *);
   void omega_from_mq(double *, double *, double *,
 		     double *, double *, double *);
-  void exyz_from_q(double *, double *, double *, double *);
   void set_xv();
   void set_v();
 };

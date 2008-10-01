@@ -439,7 +439,7 @@ void FixRigid::init()
     ez_space[ibody][0] = evectors[0][2];
     ez_space[ibody][1] = evectors[1][2];
     ez_space[ibody][2] = evectors[2][2];
-    
+
     // if any principal moment < scaled EPSILON, set to 0.0
   
     double max;
@@ -469,7 +469,7 @@ void FixRigid::init()
 
     // create initial quaternion
   
-    qcreate(evectors,quat[ibody]);
+    q_from_exyz(ex_space[ibody],ey_space[ibody],ez_space[ibody],quat[ibody]);
   }
 
   // free temporary memory
@@ -1111,45 +1111,67 @@ void FixRigid::rotate(double **matrix, int i, int j, int k, int l,
 }
 
 /* ----------------------------------------------------------------------
-   create quaternion from rotation matrix (evectors)
+   create quaternion from space-frame ex,ey,ez
+   ex,ey,ez are columns of evectors rotation matrix
 ------------------------------------------------------------------------- */
 
-void FixRigid::qcreate(double **a, double *q)
+void FixRigid::q_from_exyz(double *ex, double *ey, double *ez, double *q)
 {
   // squares of quaternion components
   
-  double q0sq = 0.25 * (a[0][0] + a[1][1] + a[2][2] + 1.0);
-  double q1sq = q0sq - 0.5 * (a[1][1] + a[2][2]);
-  double q2sq = q0sq - 0.5 * (a[0][0] + a[2][2]);
-  double q3sq = q0sq - 0.5 * (a[0][0] + a[1][1]);
+  double q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
+  double q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
+  double q2sq = q0sq - 0.5 * (ex[0] + ez[2]);
+  double q3sq = q0sq - 0.5 * (ex[0] + ey[1]);
   
   // some component must be greater than 1/4 since they sum to 1
   // compute other components from it
   
   if (q0sq >= 0.25) {
     q[0] = sqrt(q0sq);
-    q[1] = (a[2][1] - a[1][2]) / (4.0*q[0]);
-    q[2] = (a[0][2] - a[2][0]) / (4.0*q[0]);
-    q[3] = (a[1][0] - a[0][1]) / (4.0*q[0]);
+    q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
+    q[2] = (ez[0] - ex[2]) / (4.0*q[0]);
+    q[3] = (ex[1] - ey[0]) / (4.0*q[0]);
   } else if (q1sq >= 0.25) {
     q[1] = sqrt(q1sq);
-    q[0] = (a[2][1] - a[1][2]) / (4.0*q[1]);
-    q[2] = (a[0][1] + a[1][0]) / (4.0*q[1]);
-    q[3] = (a[2][0] + a[0][2]) / (4.0*q[1]);
+    q[0] = (ey[2] - ez[1]) / (4.0*q[1]);
+    q[2] = (ey[0] + ex[1]) / (4.0*q[1]);
+    q[3] = (ex[2] + ez[0]) / (4.0*q[1]);
   } else if (q2sq >= 0.25) {
     q[2] = sqrt(q2sq);
-    q[0] = (a[0][2] - a[2][0]) / (4.0*q[2]);
-    q[1] = (a[0][1] + a[1][0]) / (4.0*q[2]);
-    q[2] = (a[1][2] + a[2][1]) / (4.0*q[2]);
+    q[0] = (ez[0] - ex[2]) / (4.0*q[2]);
+    q[1] = (ey[0] + ex[1]) / (4.0*q[2]);
+    q[3] = (ez[1] + ey[2]) / (4.0*q[2]);
   } else if (q3sq >= 0.25) {
     q[3] = sqrt(q3sq);
-    q[0] = (a[1][0] - a[0][1]) / (4.0*q[3]);
-    q[1] = (a[0][2] + a[2][0]) / (4.0*q[3]);
-    q[2] = (a[1][2] + a[2][1]) / (4.0*q[3]);
+    q[0] = (ex[1] - ey[0]) / (4.0*q[3]);
+    q[1] = (ez[0] + ex[2]) / (4.0*q[3]);
+    q[2] = (ez[1] + ey[2]) / (4.0*q[3]);
   } else
     error->all("Quaternion creation numeric error");
 
   normalize(q);
+}
+
+/* ----------------------------------------------------------------------
+   compute space-frame ex,ey,ez from current quaternion q
+   ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
+   operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
+------------------------------------------------------------------------- */
+
+void FixRigid::exyz_from_q(double *q, double *ex, double *ey, double *ez)
+{
+  ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
+  ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
+  ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
+  
+  ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
+  ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
+  ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
+  
+  ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
+  ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
+  ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
 }
 
 /* ----------------------------------------------------------------------
@@ -1202,27 +1224,6 @@ void FixRigid::omega_from_mq(double *m, double *ex, double *ey, double *ez,
   w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
   w[1] = wbody[0]*ex[1] + wbody[1]*ey[1] + wbody[2]*ez[1];
   w[2] = wbody[0]*ex[2] + wbody[1]*ey[2] + wbody[2]*ez[2];
-}
-
-/* ----------------------------------------------------------------------
-   compute space-frame ex,ey,ez from current quaternion q
-   ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
-   operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
-------------------------------------------------------------------------- */
-
-void FixRigid::exyz_from_q(double *q, double *ex, double *ey, double *ez)
-{
-  ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
-  ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
-  ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
-  
-  ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
-  ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
-  ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
-  
-  ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
-  ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
-  ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
 }
 
 /* ----------------------------------------------------------------------

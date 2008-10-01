@@ -23,15 +23,19 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>sphere</I> or <I>cylinder</I> or <I>vel</I> or <I>rstart</I> or <I>units</I> 
+<LI>keyword = <I>sphere</I> or <I>cylinder</I> or <I>plane</I> or <I>vel</I> or <I>rstart</I> or <I>units</I> 
 
 <PRE>  <I>sphere</I> args = x y z R
-    x,y,z = initial position of center of indenter
+    x,y,z = initial position of center of indenter (distance units)
     R = sphere radius of indenter (distance units)
   <I>cylinder</I> args = dim c1 c2 R
-    dim = x or y or z = axis of cylinder
+    dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     R = cylinder radius of indenter (distance units)
+  <I>plane</I> args = dim pos side
+    dim = <I>x</I> or <I>y</I> or <I>z</I> = plane perpendicular to this dimension
+    pos = position of plane in dimension x, y, or z (distance units)
+    side = <I>lo</I> or <I>hi</I>
   <I>vel</I> args = vx vy vz
     vx,vy,vz = velocity of center of indenter (velocity units)
   <I>rstart</I> value = R0
@@ -54,8 +58,8 @@ fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box
 atoms that touch it, so it can be used to push into a material or as
 an obstacle in a flow.
 </P>
-<P>The indenter can either be spherical or cylindrical.  You must set
-one of those 2 keywords.
+<P>The indenter can either be spherical or cylindrical or planar.  You
+must set one of those 3 keywords.
 </P>
 <P>A spherical indenter exerts a force of magnitude
 </P>
@@ -70,12 +74,20 @@ radius of the indenter.  The force is repulsive and F(r) = 0 for <I>r</I> >
 distance from the atom to the center axis of the cylinder.  The
 cylinder extends infinitely along its axis.
 </P>
-<P>If the <I>vel</I> keyword is specified, the center (or axis) of the
-spherical (or cylindrical) indenter will move during the simulation,
-based on its initial position (x,y,z) and the specified (vx,vy,vz).
-Note that if you do multiple runs, the initial position of the
-indenter (x,y,z) does not change, so it will continue to move at the
-specified velocity.
+<P>A planar indenter is really an axis-aligned infinite-extent wall
+exerting the same force on atoms in the system, where <I>r</I> is the
+distance from the plane.  If the <I>side</I> parameter of the plane is
+specified as <I>lo</I> then it will indent from the lo end of the
+simulation box, meaning that atoms with a coordinate less than the
+plane's current position will be pushed towards the hi end of the box.
+Vice versa if <I>side</I> is specified as <I>hi</I>.
+</P>
+<P>If the <I>vel</I> keyword is specified, the center (or axis or position) of
+the spherical (or cylindrical or planar) indenter will move during the
+simulation, based on its initial position (x,y,z) and the specified
+(vx,vy,vz).  Note that if you do multiple runs, the initial position
+of the indenter (x,y,z) does not change, so it will continue to move
+at the specified velocity.
 </P>
 <P>If the <I>rstart</I> keyword is specified, then the radius of the indenter
 is a time-dependent quantity.  R0 is the value assigned at the start
@@ -94,9 +106,10 @@ choice affects not only the indenter's physical geometry, but also its
 velocity and force constant since they are defined in terms of
 distance as well.
 </P>
-<P>IMPORTANT NOTE: You should insure the indenter's extent does not
-overlap a periodic boundary, either for a fixed indenter, or one that
-moves.  No check for such overlaps is performed by the code.
+<P>IMPORTANT NOTE: For spherical and cylindrical indenters, you should
+insure the indenter's extent does not overlap a periodic boundary,
+either for a fixed indenter, or one that moves.  No check for such
+overlaps is performed by the code.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

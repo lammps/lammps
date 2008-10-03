@@ -28,6 +28,8 @@ class Modify : protected Pointers {
   int n_min_post_force,n_min_energy;
   int nfix_restart_peratom;
 
+  int restart_pbc_any;       // 1 if any fix sets restart_pbc
+
   class Fix **fix;           // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 

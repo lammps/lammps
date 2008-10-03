@@ -36,6 +36,9 @@
 
 using namespace LAMMPS_NS;
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 // same as read_restart.cpp and tools/restart2data.cpp
 
 enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
@@ -106,7 +109,7 @@ void WriteRestart::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   called from output within run/minimize loop
+   called from command() and directly from output within run/minimize loop
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
@@ -178,6 +181,55 @@ void WriteRestart::write(char *file)
   AtomVec *avec = atom->avec;
   int n = 0;
   for (int i = 0; i < atom->nlocal; i++) n += avec->pack_restart(i,&buf[n]);
+
+  // if any fix requires it, remap each atom's coords via PBC
+  // is because fix changes atom coords (excepting an integrate fix)
+  // just remap in buffer, not actual atoms
+
+  if (modify->restart_pbc_any) {
+    int triclinic = domain->triclinic;
+    double *lo,*hi,*period;
+
+    if (triclinic == 0) {
+      lo = domain->boxlo;
+      hi = domain->boxhi;
+      period = domain->prd;
+    } else {
+      lo = domain->boxlo_lamda;
+      hi = domain->boxhi_lamda;
+      period = domain->prd_lamda;
+    }
+
+    int xperiodic = domain->xperiodic;
+    int yperiodic = domain->yperiodic;
+    int zperiodic = domain->zperiodic;
+
+    double *x;
+    int m = 0;
+    for (int i = 0; i < atom->nlocal; i++) {
+      x = &buf[m+1];
+      if (triclinic) domain->x2lamda(x,x);
+
+      if (xperiodic) {
+	if (x[0] < lo[0]) x[0] += period[0];
+	if (x[0] >= hi[0]) x[0] -= period[0];
+	x[0] = MAX(x[0],lo[0]);
+      }
+      if (yperiodic) {
+	if (x[1] < lo[1]) x[1] += period[1];
+	if (x[1] >= hi[1]) x[1] -= period[1];
+	x[1] = MAX(x[1],lo[1]);
+      }
+      if (zperiodic) {
+	if (x[2] < lo[2]) x[2] += period[2];
+	if (x[2] >= hi[2]) x[2] -= period[2];
+	x[2] = MAX(x[2],lo[2]);
+      }
+
+      if (triclinic) domain->x2lamda(x,x);
+      m += static_cast<int> (buf[m]);
+    }
+  }
 
   // if single file:
   //   write one chunk of atoms per proc to file

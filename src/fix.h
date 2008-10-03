@@ -34,6 +34,8 @@ class Fix : protected Pointers {
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
   int time_integrate;            // 1 if fix performs time integration, 0 if no
+  int restart_pbc;               // 1 if fix moves atoms (except integrate)
+                                 //   so that write_restart must remap to PBC
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists

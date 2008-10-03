@@ -166,6 +166,12 @@ void Modify::init()
   for (i = 0; i < ncompute; i++) compute[i]->init();
   modify->addstep_compute_all(update->ntimestep);
 
+  // set global flag if any fix has its restart_pbc flag set
+
+  restart_pbc_any = 0;
+  for (i = 0; i < nfix; i++)
+    if (fix[i]->restart_pbc) restart_pbc_any = 1;
+  
   // warn if any particle is time integrated more than once
 
   int nlocal = atom->nlocal;

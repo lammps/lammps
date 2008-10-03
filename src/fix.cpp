@@ -53,6 +53,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   virial_flag = 0;
   no_change_box = 0;
   time_integrate = 0;
+  restart_pbc = 0;
 
   scalar_flag = vector_flag = peratom_flag = 0;
 

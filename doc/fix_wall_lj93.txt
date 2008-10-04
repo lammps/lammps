@@ -10,7 +10,7 @@ fix wall/lj93 command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/lj93 style coord epsilon sigma cutoff :pre
+fix ID group-ID wall/lj93 style coord epsilon sigma cutoff keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 wall/lj93 = style name of this fix command
@@ -18,11 +18,17 @@ style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi}
 coord = position of wall
 epsilon = Lennard-Jones epsilon for wall-particle interaction
 sigma = Lennard-Jones sigma for wall-particle interaction
-cutoff = distance from wall at which wall-particle interaction is cut off :ul
+cutoff = distance from wall at which wall-particle interaction is cut off :l
+one or more keyword/value pairs may be appended :l
+keyword = {vel} :l
+  {vel} args = v
+    v = velocity of wall (velocity units)
+:ule
 
 [Examples:]
 
 fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5 :pre
+fix leftwall all wall/lj93 zlo 0.0  1.0 1.0 0.858 vel 1.0
 
 [Description:]
 
@@ -41,6 +47,12 @@ wall/lj126"_fix_wall_lj126.html command.
 
 The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
+
+If the {vel} keyword is specified, the position of wall will move during the
+simulation, based on its initial position (coord) and the specified
+velocity (vel).  Note that if you do multiple runs, the initial position
+of the indenter (x,y,z) does not change, so it will continue to move
+at the specified velocity.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -78,4 +90,7 @@ Any dimension (xyz) that has a LJ 9/3 wall must be non-periodic.
 "fix wall/reflect"_fix_wall_reflect.html, "fix
 wall/lj126"_fix_wall_lj126.html
 
-[Default:] none
+[Default:]
+
+The option defaults are vel = 0.
+

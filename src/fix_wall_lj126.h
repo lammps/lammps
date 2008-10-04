@@ -36,6 +36,7 @@ class FixWallLJ126 : public Fix {
   double coord,epsilon,sigma,cutoff;
   double coeff1,coeff2,coeff3,coeff4,offset;
   double wall[4],wall_all[4];
+  double vel,coord0;
   int wall_flag;
   int nlevels_respa;
 };

@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix wall/lj126 command");
+  if (narg < 8) error->all("Illegal fix wall/lj126 command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -42,7 +42,11 @@ FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  if (strcmp(arg[3],"xlo") == 0) {
+  // set defaults
+
+  vel = 0.0;
+
+if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
     side = -1;
   } else if (strcmp(arg[3],"xhi") == 0) {
@@ -62,10 +66,19 @@ FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
     side = 1;
   } else error->all("Illegal fix wall/lj126 command");
 
-  coord = atof(arg[4]);
+  coord0 = atof(arg[4]);
   epsilon = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
+
+  int iarg = 8;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"vel") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix wall/lj126 command");
+      vel = atof(arg[iarg+1]);
+      iarg += 2;
+    } else error->all("Illegal fix wall/lj126 command");
+  }
 
   coeff1 = 48.0 * epsilon * pow(sigma,12.0);
   coeff2 = 24.0 * epsilon * pow(sigma,6.0);
@@ -139,6 +152,13 @@ void FixWallLJ126::post_force(int vflag)
   double delta,rinv,r2inv,r6inv,fwall;
   wall[0] = wall[1] = wall[2] = wall[3] = 0.0;
   wall_flag = 0;
+
+  // coord = current position of wall
+  // coord0 = initial position of wall
+  
+  double delt = (update->ntimestep - update->beginstep) * update->dt;
+  double coord = coord0 + delt*vel;
+
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

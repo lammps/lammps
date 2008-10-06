@@ -13,20 +13,30 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID wall/lj93 style coord epsilon sigma cutoff 
+<PRE>fix ID group-ID wall/lj93 style coord epsilon sigma cutoff keyword values ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>wall/lj93 = style name of this fix command
-<LI>style = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I>
-<LI>coord = position of wall
-<LI>epsilon = Lennard-Jones epsilon for wall-particle interaction
-<LI>sigma = Lennard-Jones sigma for wall-particle interaction
-<LI>cutoff = distance from wall at which wall-particle interaction is cut off 
+<LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+wall/lj93 = style name of this fix command
+style = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I>
+coord = position of wall
+epsilon = Lennard-Jones epsilon for wall-particle interaction
+sigma = Lennard-Jones sigma for wall-particle interaction
+cutoff = distance from wall at which wall-particle interaction is cut off 
+
+<LI>one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>vel</I> 
+
+  <I>vel</I> args = v
+    v = velocity of wall (velocity units)
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5 
 </PRE>
+<P>fix leftwall all wall/lj93 zlo 0.0  1.0 1.0 0.858 vel 1.0
+</P>
 <P><B>Description:</B>
 </P>
 <P>Bound the simulation domain on one of its faces with a Lennard-Jones
@@ -44,6 +54,12 @@ wall/lj126</A> command.
 </P>
 <P>The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
+</P>
+<P>If the <I>vel</I> keyword is specified, the position of wall will move during the
+simulation, based on its initial position (coord) and the specified
+velocity (vel).  Note that if you do multiple runs, the initial position
+of the indenter (x,y,z) does not change, so it will continue to move
+at the specified velocity.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -81,6 +97,8 @@ being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
 <P><A HREF = "fix_wall_reflect.html">fix wall/reflect</A>, <A HREF = "fix_wall_lj126.html">fix
 wall/lj126</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are vel = 0.
 </P>
 </HTML>

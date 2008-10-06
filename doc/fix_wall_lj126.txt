@@ -12,23 +12,23 @@ fix wall/lj126 command :h3
 
 fix ID group-ID wall/lj126 style coord epsilon sigma cutoff keyword values ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-wall/lj126 = style name of this fix command
-style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi}
-coord = position of wall
-epsilon = Lennard-Jones epsilon for wall-particle interaction
-sigma = Lennard-Jones sigma for wall-particle interaction
-cutoff = distance from wall at which wall-particle interaction is cut off :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+wall/lj126 = style name of this fix command :l
+style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
+coord = position of wall :l
+epsilon = Lennard-Jones epsilon for wall-particle interaction :l
+sigma = Lennard-Jones sigma for wall-particle interaction :l
+cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :l
 one or more keyword/value pairs may be appended :l
 keyword = {vel} :l
   {vel} args = v
-    v = velocity of wall (velocity units)
+    v = velocity of wall in perpendicular direction (velocity units) :pre
 :ule
 
 [Examples:]
 
-fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 1.12 :pre
-fix leftwall all wall/lj126 zlo 0.0  1.0 1.0 0.858 vel 1.0
+fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 1.12
+fix leftwall all wall/lj126 zlo 0.0  1.0 1.0 0.858 vel 1.0 :pre
 
 [Description:]
 
@@ -47,11 +47,13 @@ provided by the "fix wall/lj93"_fix_wall_lj93.html command.
 The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
 
-If the {vel} keyword is specified, the position of wall will move during the
-simulation, based on its initial position (coord) and the specified
-velocity (vel).  Note that if you do multiple runs, the initial position
-of the indenter (x,y,z) does not change, so it will continue to move
-at the specified velocity.
+If the {vel} keyword is specified, the position of wall will move
+during the simulation, based on its initial position (coord) and the
+specified velocity (vel).  {Xlo} or {xhi} walls move in the x
+direction with whatever sign you give the {v} argument.  Ditto for {y}
+and {z} walls.  Note that if you do multiple runs, the initial
+position of the wall does not change, so it will continue to move at
+the specified velocity.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -92,4 +94,3 @@ wall/lj93"_fix_wall_lj93.html
 [Default:]
 
 The option defaults are vel = 0.
-

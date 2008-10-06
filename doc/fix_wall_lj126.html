@@ -15,28 +15,34 @@
 </P>
 <PRE>fix ID group-ID wall/lj126 style coord epsilon sigma cutoff keyword values ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>wall/lj126 = style name of this fix command
-<LI>style = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I>
-<LI>coord = position of wall
-<LI>epsilon = Lennard-Jones epsilon for wall-particle interaction
-<LI>sigma = Lennard-Jones sigma for wall-particle interaction
-<LI>cutoff = distance from wall at which wall-particle interaction is cut off 
-</UL>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>wall/lj126 = style name of this fix command 
+
+<LI>style = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
+
+<LI>coord = position of wall 
+
+<LI>epsilon = Lennard-Jones epsilon for wall-particle interaction 
+
+<LI>sigma = Lennard-Jones sigma for wall-particle interaction 
+
+<LI>cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
+
 <LI>one or more keyword/value pairs may be appended 
 
 <LI>keyword = <I>vel</I> 
 
-  <I>vel</I> args = v
-    v = velocity of wall (velocity units)
+<PRE>  <I>vel</I> args = v
+    v = velocity of wall in perpendicular direction (velocity units) 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 1.12 
+<PRE>fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 1.12
+fix leftwall all wall/lj126 zlo 0.0  1.0 1.0 0.858 vel 1.0 
 </PRE>
-<P>fix leftwall all wall/lj126 zlo 0.0  1.0 1.0 0.858 vel 1.0
-</P>
 <P><B>Description:</B>
 </P>
 <P>Bound the simulation domain on one of its faces with a Lennard-Jones
@@ -54,11 +60,13 @@ provided by the <A HREF = "fix_wall_lj93.html">fix wall/lj93</A> command.
 <P>The wall potential is shifted so that the energy of a wall-particle
 interaction is 0.0 at the cutoff distance.
 </P>
-<P>If the <I>vel</I> keyword is specified, the position of wall will move during the
-simulation, based on its initial position (coord) and the specified
-velocity (vel).  Note that if you do multiple runs, the initial position
-of the indenter (x,y,z) does not change, so it will continue to move
-at the specified velocity.
+<P>If the <I>vel</I> keyword is specified, the position of wall will move
+during the simulation, based on its initial position (coord) and the
+specified velocity (vel).  <I>Xlo</I> or <I>xhi</I> walls move in the x
+direction with whatever sign you give the <I>v</I> argument.  Ditto for <I>y</I>
+and <I>z</I> walls.  Note that if you do multiple runs, the initial
+position of the wall does not change, so it will continue to move at
+the specified velocity.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

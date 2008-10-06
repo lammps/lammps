@@ -40,8 +40,6 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
 
   // set defaults
 
-  vel = 0.0;
-
   if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
     side = -1;
@@ -66,6 +64,10 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
   epsilon = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
+
+  // read options 
+
+  vel = 0.0;
 
   int iarg = 8;
   while (iarg < narg) {

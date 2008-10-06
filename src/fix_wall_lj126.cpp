@@ -44,9 +44,7 @@ FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) :
 
   // set defaults
 
-  vel = 0.0;
-
-if (strcmp(arg[3],"xlo") == 0) {
+  if (strcmp(arg[3],"xlo") == 0) {
     dim = 0;
     side = -1;
   } else if (strcmp(arg[3],"xhi") == 0) {
@@ -70,6 +68,10 @@ if (strcmp(arg[3],"xlo") == 0) {
   epsilon = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
+
+  // read options
+
+  vel = 0.0;
 
   int iarg = 8;
   while (iarg < narg) {
@@ -158,7 +160,6 @@ void FixWallLJ126::post_force(int vflag)
   
   double delt = (update->ntimestep - update->beginstep) * update->dt;
   double coord = coord0 + delt*vel;
-
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

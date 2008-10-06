@@ -35,7 +35,7 @@ style = {index} or {loop} or {world} or {universe} or {uloop} or {equal} or {ato
                   vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
     compute references = c_ID, c_ID\[2\], c_ID\[N\], c_ID\[N\]\[2\], c_ID\[\], c_ID\[\]\[2\]
     fix references = f_ID, f_ID\[2\], f_ID\[N\], f_ID\[N\]\[2\], f_ID\[\], f_ID\[\]\[2\]
-    other variables = v_abc, v_abc\[N\], v_abc\[\] :pre
+    variable references = v_abc, v_abc\[N\], v_abc\[\] :pre
 :ule
 
 [Examples:]
@@ -91,15 +91,14 @@ script (with 2 exceptions, read further).  This is to allow an input
 script to be processed multiple times without resetting the variables;
 see the "jump"_jump.html or "include"_include.html commands.  It also
 means that using the "command-line switch"_Section_start.html#2_6 -var
-will override a corresponding variable setting in the input script.
+will override a corresponding index variable setting in the input
+script.
 
 There are two exceptions to this rule.  First, variables of style
 {equal} and {atom} ARE redefined each time the command is encountered.
 This allows them to be reset, when their formulas contain a
 substitution for another variable, e.g. $x.  This can be useful in a
-loop.  This also means an {equal}-style variable will re-define a
-command-line switch -var setting, so an {index}-style variable should
-be used for such settings instead, as in bench/in.lj.
+loop.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed
@@ -291,13 +290,13 @@ c_ID\[\]: per-atom scalar from a per-atom compute
 c_ID\[\]\[M\]: per-atom vector component from a per-atom compute :tb(s=:)
 
 Fix references access one or more quantities calculated by a
-"fix"_fix.html.  The ID in the reference should be replaced by
-the actual ID of the fix defined elsewhere in the input script.
-See the doc pages for individual computes to see which ones calculate
-global versus per-atom quantities.  If the compute reference contains
-empty brackets, then per-atom values calculated by the compute are
-accessed.  Otherwise a single value (global or per-atom) calculated by
-the compute is accessed.
+"fix"_fix.html.  The ID in the reference should be replaced by the
+actual ID of the fix defined elsewhere in the input script.  See the
+doc pages for individual computes to see which ones calculate global
+versus per-atom quantities.  If the fix reference contains empty
+brackets, then per-atom values calculated by the fix are accessed.
+Otherwise a single value (global or per-atom) calculated by the
+fix is accessed.
 
 Note that some fixes only generate quantities on certain timesteps.
 If a variable attempts to access the fix on non-allowed timesteps, an
@@ -329,27 +328,30 @@ print $a :pre
 
 then LAMMPS will run for a while when the print statement is invoked!
 
-Another way to reference a variable in a formula is using the $x form
-instead of v_x.  There is a subtle difference between the two
-references that has to do with when the evaluation of the included
-variable is done.
+:line
 
-Using a $x, the value of the include variable is substituted for
-immediately when the line is read from the input script, just as it
-would be in other input script command.  This could be the desired
-behavior if a static value is desired.  Or it could be the desired
-behavior for an equal-style variable if the variable command appears
-in a loop (see the "jump"_jump.html and "next"_next.html commands),
-since the substitution will be performed anew each time thru the loop
-as the command is re-read.  Note that if the variable formula is
-enclosed in double quotes, this prevents variable substitution and
-thus an error will be generated when the variable formula is
-evaluated.
+It is useful to understand the distinction between referencing a
+variable in a formula using the $x form instead of v_x.  There is a
+subtle difference between the two references that has to do with when
+the evaluation of the included variable is done.
 
-Using a v_x, the value of the included variable will not be accessed
-until the variable formula is evaluated.  Thus the value may change
-each time the evaluation is performed.  This may also be desired
-behavior.
+Referencing the variable as $x, the value of the include variable is
+substituted for immediately when the line is read from the input
+script, just as it would be in other input script command. 
+
+This could be the desired behavior if a static value is desired.  Or
+it could be the desired behavior for an equal-style variable if the
+variable command appears in a loop (see the "jump"_jump.html and
+"next"_next.html commands), since the substitution will be performed
+anew each time thru the loop as the command is re-read.  Note that if
+the variable formula is enclosed in double quotes, this prevents
+variable substitution and thus an error will be generated when the
+variable formula is evaluated.
+
+Referencing the variable as v_x, the value of the included variable
+will not be accessed until the variable formula is evaluated.  Thus
+the value may change each time the evaluation is performed.  This may
+also be desired behavior.
 
 As an example, if the current simulation box volume is 1000.0, then
 these lines:

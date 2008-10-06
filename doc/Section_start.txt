@@ -572,12 +572,13 @@ the input script is read.  "Name" is the variable name which can be a
 single character (referenced as $x in the input script) or a full
 string (referenced as $\{abc\}).  The value can be any string.  Using
 this command-line option is equivalent to putting the line "variable
-name index value" at the beginning of the input script.  Defining a
-variable as a command-line argument overrides any setting for the same
-variable in the input script, since variables cannot be re-defined.
-See the "variable"_variable.html command for more info on defining
-variables and "this section"_Section_commands.html#3_2 for more info
-on using variables in input scripts.
+name index value" at the beginning of the input script.  Defining an
+index variable as a command-line argument overrides any setting for
+the same index variable in the input script, since index variables
+cannot be re-defined.  See the "variable"_variable.html command for
+more info on defining index and other kinds of variables and "this
+section"_Section_commands.html#3_2 for more info on using variables in
+input scripts.
 
 :line
 

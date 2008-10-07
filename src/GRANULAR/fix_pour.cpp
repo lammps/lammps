@@ -456,10 +456,7 @@ void FixPour::pre_exchange()
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;
       atom->density[m] = denstmp;
-      if (domain->dimension == 3) 
-	atom->rmass[m] = 4.0*PI/3.0 * radtmp*radtmp*radtmp * denstmp;
-      else
-	atom->rmass[m] = PI * radtmp*radtmp * denstmp;
+      atom->rmass[m] = 4.0*PI/3.0 * radtmp*radtmp*radtmp * denstmp;
       atom->mask[m] = 1 | groupbit;
       atom->v[m][0] = vxtmp;
       atom->v[m][1] = vytmp;

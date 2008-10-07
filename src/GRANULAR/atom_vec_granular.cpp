@@ -533,11 +533,8 @@ int AtomVecGranular::unpack_restart(double *buf)
 
   radius[nlocal] = buf[m++];
   density[nlocal] = buf[m++];
-  if (domain->dimension == 3) 
-    rmass[nlocal] = 4.0*PI/3.0 * 
-      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-  else
-    rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
+  rmass[nlocal] = 4.0*PI/3.0 * 
+    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
@@ -576,11 +573,8 @@ void AtomVecGranular::create_atom(int itype, double *coord)
 
   radius[nlocal] = 0.5;
   density[nlocal] = 1.0;
-  if (domain->dimension == 3)
-    rmass[nlocal] = 4.0*PI/3.0 *
-      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-  else
-    rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
+  rmass[nlocal] = 4.0*PI/3.0 *
+    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
@@ -608,11 +602,8 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values)
 
   radius[nlocal] = 0.5 * atof(values[2]);
   density[nlocal] = atof(values[3]);
-  if (domain->dimension == 3)
-    rmass[nlocal] = 4.0*PI/3.0 *
-      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-  else
-    rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
+  rmass[nlocal] = 4.0*PI/3.0 *
+    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -640,11 +631,8 @@ int AtomVecGranular::data_atom_hybrid(int nlocal, char **values)
 {
   radius[nlocal] = 0.5 * atof(values[0]);
   density[nlocal] = atof(values[1]);
-  if (domain->dimension == 3)
-    rmass[nlocal] = 4.0*PI/3.0 *
-      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-  else
-    rmass[nlocal] = PI * radius[nlocal]*radius[nlocal] * density[nlocal];
+  rmass[nlocal] = 4.0*PI/3.0 *
+    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;

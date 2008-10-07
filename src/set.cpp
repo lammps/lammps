@@ -345,12 +345,8 @@ void Set::set(int keyword)
 
       else if (keyword == DIAMETER) {
 	atom->radius[i] = 0.5 * dvalue;
-	if (domain->dimension == 3)
-	  atom->rmass[i] = 4.0*PI/3.0 * 
-	    atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
-	else
-	  atom->rmass[i] = PI * 
-	    atom->radius[i]*atom->radius[i] * atom->density[i];
+	atom->rmass[i] = 4.0*PI/3.0 * 
+	  atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
 
       // density setting triggers setting of rmass
       // for granular, rmass is function of diameter and density
@@ -358,15 +354,10 @@ void Set::set(int keyword)
 	
       } else if (keyword == DENSITY) {
 	atom->density[i] = dvalue;
-	if (granflag) {
-	  if (domain->dimension == 3)
-	    atom->rmass[i] = 4.0*PI/3.0 * 
-	      atom->radius[i]*atom->radius[i]*atom->radius[i] * 
-	      atom->density[i];
-	  else
-	    atom->rmass[i] = PI * 
-	      atom->radius[i]*atom->radius[i] * atom->density[i];
-	}
+	if (granflag)
+	  atom->rmass[i] = 4.0*PI/3.0 * 
+	    atom->radius[i]*atom->radius[i]*atom->radius[i] * 
+	    atom->density[i];
 	if (periflag) atom->rmass[i] = dvalue;
 
       } else if (keyword == VOLUME) atom->vfrac[i] = dvalue;

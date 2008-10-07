@@ -89,30 +89,23 @@ Variable::~Variable()
 
 void Variable::set(int narg, char **arg)
 {
-  if (narg < 3) error->all("Illegal variable command");
+  if (narg < 2) error->all("Illegal variable command");
 
-  // if var already exists, just skip, except EQUAL and ATOM vars
+  // DELETE
+  // doesn't matter if variable no longer exists
 
-  if (find(arg[0]) >= 0 && 
-      strcmp(arg[1],"equal") != 0 && strcmp(arg[1],"atom") != 0) return;
-      
-  // make space for new variable
-
-  if (nvar == maxvar) {
-    maxvar += VARDELTA;
-    names = (char **)
-      memory->srealloc(names,maxvar*sizeof(char *),"var:names");
-    style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
-    num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
-    index = (int *) memory->srealloc(index,maxvar*sizeof(int),"var:index");
-    data = (char ***) 
-      memory->srealloc(data,maxvar*sizeof(char **),"var:data");
-  }
+  if (strcmp(arg[1],"delete") == 0) {
+    if (narg != 2) error->all("Illegal variable command");
+    if (find(arg[0]) >= 0) remove(find(arg[0]));
+    return;
 
   // INDEX
   // num = listed args, index = 1st value, data = copied args
 
-  if (strcmp(arg[1],"index") == 0) {
+  } else if (strcmp(arg[1],"index") == 0) {
+    if (narg < 3) error->all("Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) extend();
     style[nvar] = INDEX;
     num[nvar] = narg - 2;
     index[nvar] = 0;
@@ -124,6 +117,8 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"loop") == 0) {
     if (narg != 3) error->all("Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) extend();
     style[nvar] = LOOP;
     num[nvar] = atoi(arg[2]);
     index[nvar] = 0;
@@ -142,6 +137,7 @@ void Variable::set(int narg, char **arg)
 	error->all("Cannot redefine variable as a different style");
       remove(find(arg[0]));
     }
+    if (nvar == maxvar) extend();
     style[nvar] = EQUAL;
     num[nvar] = 2;
     index[nvar] = 0;
@@ -154,6 +150,9 @@ void Variable::set(int narg, char **arg)
   // error check that num = # of worlds in universe
 
   } else if (strcmp(arg[1],"world") == 0) {
+    if (narg < 3) error->all("Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) extend();
     style[nvar] = WORLD;
     num[nvar] = narg - 2;
     if (num[nvar] != universe->nworlds)
@@ -171,12 +170,17 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"universe") == 0 || strcmp(arg[1],"uloop") == 0) {
     if (strcmp(arg[1],"universe") == 0) {
+      if (narg < 3) error->all("Illegal variable command");
+      if (find(arg[0]) >= 0) return;
+      if (nvar == maxvar) extend();
       style[nvar] = UNIVERSE;
       num[nvar] = narg - 2;
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
     } else {
       if (narg != 3) error->all("Illegal variable command");
+      if (find(arg[0]) >= 0) return;
+      if (nvar == maxvar) extend();
       style[nvar] = ULOOP;
       num[nvar] = atoi(arg[2]);
       data[nvar] = new char*[num[nvar]];
@@ -221,6 +225,7 @@ void Variable::set(int narg, char **arg)
 	error->all("Cannot redefine variable as a different style");
       remove(find(arg[0]));
     }
+    if (nvar == maxvar) extend();
     style[nvar] = ATOM;
     num[nvar] = 1;
     index[nvar] = 0;
@@ -479,6 +484,22 @@ void Variable::remove(int n)
     data[i-1] = data[i];
   }
   nvar--;
+}
+
+/* ----------------------------------------------------------------------
+  make space in arrays for new variable
+------------------------------------------------------------------------- */
+
+void Variable::extend()
+{
+  maxvar += VARDELTA;
+  names = (char **)
+    memory->srealloc(names,maxvar*sizeof(char *),"var:names");
+  style = (int *) memory->srealloc(style,maxvar*sizeof(int),"var:style");
+  num = (int *) memory->srealloc(num,maxvar*sizeof(int),"var:num");
+  index = (int *) memory->srealloc(index,maxvar*sizeof(int),"var:index");
+  data = (char ***) 
+    memory->srealloc(data,maxvar*sizeof(char **),"var:data");
 }
 
 /* ----------------------------------------------------------------------

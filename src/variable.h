@@ -51,9 +51,10 @@ class Variable : protected Pointers {
     Tree *left,*right;
   };
 
+  void remove(int);
+  void extend();
   void copy(int, char **, char **);
   double evaluate(char *, Tree **);
-  void remove(int);
   double eval_tree(Tree *, int);
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&);

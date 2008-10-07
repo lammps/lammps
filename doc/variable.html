@@ -17,9 +17,10 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>equal</I> or <I>atom</I> 
+<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>equal</I> or <I>atom</I> 
 
-<PRE>  <I>index</I> args = one or more strings
+<PRE>  <I>delete</I> = no args
+  <I>index</I> args = one or more strings
   <I>loop</I> args = N = integer size of loop
   <I>world</I> args = one string for each partition of processors
   <I>universe</I> args = one or more strings
@@ -53,10 +54,11 @@ variable b1 equal x[234]+0.5*vol
 variable b1 equal "x[234] + 0.5*vol"
 variable b equal xcm(mol1,x)/2.0
 variable b equal c_myTemp
-variable b atom x<B></B>*y<B></B>/vol
+variable b atom x[]*y[]/vol
 variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-variable x uloop 15 
+variable x uloop 15
+variable x delete 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -109,7 +111,8 @@ loop.
 <P>Second, as described below, if a variable is iterated on to the end of
 its list of strings via the <A HREF = "next.html">next</A> command, it is removed
 from the list of active variables, and is thus available to be
-re-defined in a subsequent variable command.
+re-defined in a subsequent variable command.  The <I>delete</I> option does
+the same thing.
 </P>
 <HR>
 
@@ -127,6 +130,22 @@ next <A HREF = "jump.html">jump</A> command encountered in the input script to b
 skipped.  This enables the construction of simple loops in the input
 script that are iterated over and then exited from.
 </P>
+<P>As explained above, an exhausted variable can be re-used in an input
+script.  The <I>delete</I> option also removes the variable, the same as if
+it were exhausted, allowing it to be redefined later in the input
+script or when the input script is looped over.  This can be useful
+when breaking out of a loop via the <A HREF = "if.html">if</A> and <A HREF = "jump.html">jump</A>
+commands before the variable would become exhausted.  For example,
+</P>
+<PRE>label	    loop
+variable    a loop 5
+print	    "A = $a"
+if	    $a > 2 then "jump in.test break"
+next	    a
+jump	    in.test loop
+label	    break
+variable    a delete 
+</PRE>
 <HR>
 
 <P>For the <I>index</I> style, one or more strings are specified.  Initially,

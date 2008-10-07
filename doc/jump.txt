@@ -24,9 +24,9 @@ jump in.run2 runloop :pre
 
 This command closes the current input script file, opens the file with
 the specified name, and begins reading LAMMPS commands from that file.
-The original file is not returned to, although by using multiple jump
-commands it is possible to chain from file to file or back to the
-original file.
+Unlike the "include"_include.html command, the original file is not
+returned to, although by using multiple jump commands it is possible
+to chain from file to file or back to the original file.
 
 Optionally, if a 2nd argument is used, it is treated as a label and
 the new file is scanned (without executing commands) until the label
@@ -57,6 +57,24 @@ mpirun -np 40 lmp_ibm -partition 4x10 -in in.file :pre
 
 variable f world script.1 script.2 script.3 script.4
 jump $f :pre
+
+Here is an example of a double loop which uses the "if"_if.html and
+jump commands to break out of the inner loop when a condition is met,
+then continues iterating thru the outer loop.
+
+label	    loopa
+variable    a loop 5
+  label	    loopb
+  variable  b loop 5
+  print	    "A,B = $a,$b"
+  run       10000
+  if	    $b > 2 then "jump in.script break"
+  next	    b
+  jump	    in.script loopb
+label	    break
+variable    b delete :pre
+next	    a
+jump	    in.script loopa :pre
 
 [Restrictions:]
 

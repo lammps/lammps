@@ -48,7 +48,9 @@ value from their respective lists.
 <P>When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next
 <A HREF = "jump.html">jump</A> command encountered.  This enables a loop containing
-a next command to exit.
+a next command to exit.  As explained in the <A HREF = "variable.html">variable</A>
+command, the variable that has exhausted its values is also deleted.
+This allows it to be used and re-defined later in the input script.
 </P>
 <P>When the next command is used with <I>index</I>- or <I>loop</I>-style variables,
 the next value is assigned to the variable for all processors.  When
@@ -87,16 +89,35 @@ finished.
 For example, this script will run 15 simulations in a double loop.
 </P>
 <PRE>variable i loop 3
-variable j loop 5
-clear
-...
-read_data data.polymer.$i$j
-print Running simulation $i.$j
-run 10000
-next j
-jump in.script
+  variable j loop 5
+  clear
+  ...
+  read_data data.polymer.$i$j
+  print Running simulation $i.$j
+  run 10000
+  next j
+  jump in.script
 next i
 jump in.script 
+</PRE>
+<P>Here is an example of a double loop which uses the <A HREF = "if.html">if</A> and
+<A HREF = "jump.html">jump</A> commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.
+</P>
+<PRE>label	    loopa
+variable    a loop 5
+  label	    loopb
+  variable  b loop 5
+  print	    "A,B = $a,$b"
+  run       10000
+  if	    $b > 2 then "jump in.script break"
+  next	    b
+  jump	    in.script loopb
+label	    break
+variable    b delete 
+</PRE>
+<PRE>next	    a
+jump	    in.script loopa 
 </PRE>
 <P><B>Restrictions:</B> none
 </P>

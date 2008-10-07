@@ -45,9 +45,32 @@ be treated as a single argument, as in the examples above.
 The if command can contain an optional "else" clause.  If it does and
 the result of the if test is FALSE, then command2 is executed.
 
+Note that by jumping to a label in the same input script, the if
+command can be used to break out of a loop.  See the "variable
+delete"_variable.html for info on how to delete the associated loop
+variable, so that it can be re-used later in the input script.
+
 Note that if either command1 or command2 is a bogus LAMMPS command,
 such as "exit" in the first example, then executing the command will
 cause LAMMPS to halt.
+
+Here is an example of a double loop which uses the if and
+"jump"_jump.html commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.
+
+label	    loopa
+variable    a loop 5
+  label	    loopb
+  variable  b loop 5
+  print	    "A,B = $a,$b"
+  run       10000
+  if	    $b > 2 then "jump in.script break"
+  next	    b
+  jump	    in.script loopb
+label	    break
+variable    b delete :pre
+next	    a
+jump	    in.script loopa :pre
 
 [Restrictions:] none
 

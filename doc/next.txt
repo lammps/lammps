@@ -45,7 +45,9 @@ value from their respective lists.
 When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next
 "jump"_jump.html command encountered.  This enables a loop containing
-a next command to exit.
+a next command to exit.  As explained in the "variable"_variable.html
+command, the variable that has exhausted its values is also deleted.
+This allows it to be used and re-defined later in the input script.
 
 When the next command is used with {index}- or {loop}-style variables,
 the next value is assigned to the variable for all processors.  When
@@ -84,16 +86,34 @@ Jump and next commands can also be nested to enable multi-level loops.
 For example, this script will run 15 simulations in a double loop.
 
 variable i loop 3
-variable j loop 5
-clear
-...
-read_data data.polymer.$i$j
-print Running simulation $i.$j
-run 10000
-next j
-jump in.script
+  variable j loop 5
+  clear
+  ...
+  read_data data.polymer.$i$j
+  print Running simulation $i.$j
+  run 10000
+  next j
+  jump in.script
 next i
 jump in.script :pre
+
+Here is an example of a double loop which uses the "if"_if.html and
+"jump"_jump.html commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.
+
+label	    loopa
+variable    a loop 5
+  label	    loopb
+  variable  b loop 5
+  print	    "A,B = $a,$b"
+  run       10000
+  if	    $b > 2 then "jump in.script break"
+  next	    b
+  jump	    in.script loopb
+label	    break
+variable    b delete :pre
+next	    a
+jump	    in.script loopa :pre
 
 [Restrictions:] none
 

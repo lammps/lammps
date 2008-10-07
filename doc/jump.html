@@ -27,9 +27,9 @@ jump in.run2 runloop
 </P>
 <P>This command closes the current input script file, opens the file with
 the specified name, and begins reading LAMMPS commands from that file.
-The original file is not returned to, although by using multiple jump
-commands it is possible to chain from file to file or back to the
-original file.
+Unlike the <A HREF = "include.html">include</A> command, the original file is not
+returned to, although by using multiple jump commands it is possible
+to chain from file to file or back to the original file.
 </P>
 <P>Optionally, if a 2nd argument is used, it is treated as a label and
 the new file is scanned (without executing commands) until the label
@@ -60,6 +60,25 @@ simulation.
 </PRE>
 <PRE>variable f world script.1 script.2 script.3 script.4
 jump $f 
+</PRE>
+<P>Here is an example of a double loop which uses the <A HREF = "if.html">if</A> and
+jump commands to break out of the inner loop when a condition is met,
+then continues iterating thru the outer loop.
+</P>
+<PRE>label	    loopa
+variable    a loop 5
+  label	    loopb
+  variable  b loop 5
+  print	    "A,B = $a,$b"
+  run       10000
+  if	    $b > 2 then "jump in.script break"
+  next	    b
+  jump	    in.script loopb
+label	    break
+variable    b delete 
+</PRE>
+<PRE>next	    a
+jump	    in.script loopa 
 </PRE>
 <P><B>Restrictions:</B>
 </P>

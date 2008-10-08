@@ -87,7 +87,10 @@ values must be adjusted accordingly.  For example, the "fix
 msd"_fix_msd.html will not compute the expected mean-squared
 displacement for such atoms, and the image flag values written to a
 "dump file"_dump.html will be different than they would be if the
-atoms were not in a rigid body.
+atoms were not in a rigid body.  It also means that if you have bonds
+between a pair of rigid bodies and the bond straddles a periodic
+boundary, you cannot use the "replicate"_replicate command to increase
+the system size.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

@@ -94,7 +94,10 @@ values must be adjusted accordingly.  For example, the <A HREF = "fix_msd.html">
 msd</A> will not compute the expected mean-squared
 displacement for such atoms, and the image flag values written to a
 <A HREF = "dump.html">dump file</A> will be different than they would be if the
-atoms were not in a rigid body.
+atoms were not in a rigid body.  It also means that if you have bonds
+between a pair of rigid bodies and the bond straddles a periodic
+boundary, you cannot use the <A HREF = "replicate">replicate</A> command to increase
+the system size.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

@@ -146,7 +146,8 @@ respective settings are written to "binary restart
 files"_restart.html, so a pair_style command does not need to
 specified in an input script that reads a restart file.  However, the
 coefficient information is not stored in the restart file.  Thus,
-pair_coeff commands need to be specified in the restart input script.
+pair_coeff commands need to be re-specified in the restart input
+script.
 
 These pair styles support the use of the {inner}, {middle}, and
 {outer} keywords of the "run_style respa"_run_style.html command, if

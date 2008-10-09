@@ -57,6 +57,11 @@ This dihedral style can only be used if LAMMPS was built with the
 "molecular" package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info on packages.
 
+Unlike other dihedral styles, the hybrid dihedral style does not store
+dihedral coefficient info for individual sub-styles in a "binary
+restart files"_restart.html.  Thus when retarting a simulation from a
+restart file, you need to re-specify dihedral_coeff commands.
+
 [Related commands:]
 
 "dihedral_coeff"_dihedral_coeff.html

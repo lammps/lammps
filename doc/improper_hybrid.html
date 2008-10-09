@@ -59,6 +59,11 @@ if you desire to turn off certain improper types.
 "molecular" package (which it is by default).  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info on packages.
 </P>
+<P>Unlike other improper styles, the hybrid improper style does not store
+improper coefficient info for individual sub-styles in a <A HREF = "restart.html">binary
+restart files</A>.  Thus when retarting a simulation from a
+restart file, you need to re-specify improper_coeff commands.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "improper_coeff.html">improper_coeff</A>

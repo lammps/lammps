@@ -58,6 +58,11 @@ desire to turn off certain angle types.
 "molecular" package (which it is by default).  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info on packages.
 </P>
+<P>Unlike other angle styles, the hybrid angle style does not store angle
+coefficient info for individual sub-styles in a <A HREF = "restart.html">binary restart
+files</A>.  Thus when retarting a simulation from a restart
+file, you need to re-specify angle_coeff commands.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "angle_coeff.html">angle_coeff</A>

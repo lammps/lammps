@@ -60,6 +60,11 @@ if you desire to turn off certain dihedral types.
 "molecular" package (which it is by default).  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info on packages.
 </P>
+<P>Unlike other dihedral styles, the hybrid dihedral style does not store
+dihedral coefficient info for individual sub-styles in a <A HREF = "restart.html">binary
+restart files</A>.  Thus when retarting a simulation from a
+restart file, you need to re-specify dihedral_coeff commands.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>

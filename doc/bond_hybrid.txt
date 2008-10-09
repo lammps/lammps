@@ -48,6 +48,11 @@ This bond style can only be used if LAMMPS was built with the
 "molecular" package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info on packages.
 
+Unlike other bond styles, the hybrid bond style does not store bond
+coefficient info for individual sub-styles in a "binary restart
+files"_restart.html.  Thus when retarting a simulation from a restart
+file, you need to re-specify bond_coeff commands.
+
 [Related commands:]
 
 "bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html

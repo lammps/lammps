@@ -325,9 +325,9 @@ This pair style does not support the "pair_modify"_pair_modify.html
 shift, table, and tail options.
 
 The eam pair styles do not write their information to "binary restart
-files"_restart.html, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+files"_restart.html, since it is stored in tabulated potential files.
+Thus, you need to re-specify the pair_style and pair_coeff commands in
+an input script that reads a restart file.
 
 The eam pair styles can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  They do not support the

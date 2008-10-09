@@ -637,12 +637,7 @@ void ReadRestart::force_fields()
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
-      if (force->pair == NULL || strcmp(style,force->pair_style)) {
-	if (force->pair && me == 0)
-	  error->warning("Resetting pair_style to restart file value");
-	force->create_pair(style);
-      }
-      
+      force->create_pair(style);
       delete [] style;
       force->pair->read_restart(fp);
 
@@ -653,12 +648,7 @@ void ReadRestart::force_fields()
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
       
-      if (force->bond == NULL || strcmp(style,force->bond_style)) {
-	if (force->bond && me == 0)
-	  error->warning("Resetting bond_style to restart file value");
-	force->create_bond(style);
-      }
-      
+      force->create_bond(style);
       delete [] style;
       force->bond->read_restart(fp);
 
@@ -669,12 +659,7 @@ void ReadRestart::force_fields()
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
-      if (force->angle == NULL || strcmp(style,force->angle_style)) {
-	if (force->angle && me == 0)
-	  error->warning("Resetting angle_style to restart file value");
-	force->create_angle(style);
-      }
-
+      force->create_angle(style);
       delete [] style;
       force->angle->read_restart(fp);
 
@@ -685,12 +670,7 @@ void ReadRestart::force_fields()
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
-      if (force->dihedral == NULL || strcmp(style,force->dihedral_style)) {
-	if (force->dihedral && me == 0)
-	  error->warning("Resetting dihedral_style to restart file value");
-	force->create_dihedral(style);
-      }
-
+      force->create_dihedral(style);
       delete [] style;
       force->dihedral->read_restart(fp);
 
@@ -701,12 +681,7 @@ void ReadRestart::force_fields()
       if (me == 0) fread(style,sizeof(char),n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
-      if (force->improper == NULL || strcmp(style,force->improper_style)) {
-	if (force->improper && me == 0)
-	  error->warning("Resetting improper_style to restart file value");
-	force->create_improper(style);
-      }
-
+      force->create_improper(style);
       delete [] style;
       force->improper->read_restart(fp);
 

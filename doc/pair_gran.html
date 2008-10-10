@@ -21,15 +21,13 @@
 </PRE>
 <UL><LI>style = <I>gran/hertzian</I> or <I>gran/history</I> or <I>gran/no_history</I> 
 
-<LI>Kn = spring constant for particle repulsion 
+<LI>Kn = spring constant for particle repulsion (force/distance units) 
 
-<PRE>  (mg/d units where m is mass, g is the gravitational constant, d is diameter of a particle) 
-</PRE>
-<LI>gamma_n = damping coefficient for normal direction collisions (sqrt(g/d) units) 
+<LI>gamma_n = damping coefficient for normal direction collisions (1/time units) 
 
-<LI>xmu = static yield criterion 
+<LI>xmu = static yield criterion (unitless) 
 
-<LI>dampflag = flag (0/1) for whether to (no/yes) include tangential damping 
+<LI>dampflag = 0 or 1 if tangential damping force is excluded or included 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -39,32 +37,42 @@
 </P>
 <P>The <I>gran</I> styles use the following formula <A HREF = "#Silbert">(Silbert)</A> for
 frictional force between two granular particles that are a distance r
-apart when r is less than the contact distance d.
+apart when r is less than the contact distance d = Ri + Rj, where Ri
+and Rj are the radii of the two particles:
 </P>
 <CENTER><IMG SRC = "Eqs/pair_granular.jpg">
 </CENTER>
 <P>The 1st term is a normal force and the 2nd term is a tangential force.
-The other quantities are as follows:
+The normal force has 2 parts: a contact force and a damping force.
+The tangential force also has 2 parts: a shear force and a damping
+force.  The shear force is included in pair styles <I>history</I> and
+<I>Hertzian</I>, but is not included in pair style <I>no_history</I>.  The
+tangential damping force is not included if <I>dampflag</I> is set to 0.
+The other quantities in the equation are as follows:
 </P>
 <UL><LI>delta = d - r
-<LI>f(x) = 1 for Hookean contacts used in pair styles <I>history</I> and <I>no_history</I>
-<LI>f(x) = sqrt(x) for pair style <I>hertzian</I>
+<LI>f(x) = 1 for Hookean contact used in pair styles <I>history</I> and <I>no_history</I>
+<LI>f(x) = sqrt(x) for Hertzian contact used in pair style <I>hertzian</I>
 <LI>Kn = elastic constant for normal contact
 <LI>Kt = elastic constant for tangential contact = 2/7 of Kn
-<LI>gamma_n = viscoelastic constants for normal contact
-<LI>gamma_t = viscoelastic constants for tangential contact = 1/2 of gamma_n
+<LI>gamma_n = viscoelastic damping constant for normal contact
+<LI>gamma_t = viscoelastic damping constant for tangential contact = 1/2 of gamma_n
 <LI>m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj
 <LI>Delta St = tangential displacement vector between the 2 spherical particles       which is truncated to satisfy a frictional yield criterion
-<LI>n = a unit vector along the line connecting the centers of the 2 particles
+<LI>n_ij = unit vector along the line connecting the centers of the 2 particles
 <LI>Vn = normal component of the relative velocity of the 2 particles
 <LI>Vt = tangential component of the relative velocity of the 2 particles 
 </UL>
 <P>The Kn and gamma_n coefficients are set as parameters to the
-pair_style command.  Xmu is also specified which is the upper limit of
-the tangential force through the Coulomb criterion Ft = xmu*Fn.  The
-tangential force between 2 particles grows according to a tangential
-spring and dash-pot model until Ft/Fn = xmu and then is held at Ft =
-Fn*xmu until the particles lose contact.
+pair_style command.  You can also think of Kn as being in mg/d units
+where m is mass, g is the gravitational constant, and d is the
+characteristic diameter of a particle.
+</P>
+<P>Xmu is also specified in the pair_style command and is the upper limit
+of the tangential force through the Coulomb criterion Ft = xmu*Fn.
+The tangential force between 2 particles grows according to a
+tangential spring and dash-pot model until Ft/Fn = xmu and is then
+held at Ft = Fn*xmu until the particles lose contact.
 </P>
 <P>For granular styles there are no individual atom type coefficients
 that can be set via the <A HREF = "pair_coeff.html">pair_coeff</A> command.  All

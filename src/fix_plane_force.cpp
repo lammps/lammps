@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "fix_plane_force.h"
@@ -30,6 +31,13 @@ FixPlaneForce::FixPlaneForce(LAMMPS *lmp, int narg, char **arg) :
   xdir = atof(arg[3]);
   ydir = atof(arg[4]);
   zdir = atof(arg[5]);
+
+  double len = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
+  if (len == 0.0) error->all("Illegal fix planeforce command");
+
+  xdir /= len;
+  ydir /= len;
+  zdir /= len;
 }
 
 /* ---------------------------------------------------------------------- */

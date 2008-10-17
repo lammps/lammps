@@ -25,9 +25,10 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Adjust the forces on each atom in the group so that it's motion will
-be in the plane specified by the normal vector (x,y,z).  This is done
-by subtracting out components of force perpendicular to the plane.
+<P>Adjust the forces on each atom in the group so that only the
+components of force in the plane specified by the normal vector
+(x,y,z) remain.  This is done by subtracting out the component of
+force perpendicular to the plane.
 </P>
 <P>If the initial velocity of the atom is 0.0 (or in the plane), then it
 should continue to move in the plane thereafter.

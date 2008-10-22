@@ -98,7 +98,7 @@ void ComputeTempSphere::init()
     for (int i = 1; i <= atom->ntypes; i++) {
       if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
 	error->all("Compute temp/sphere requires spherical particle shapes");
-      inertia[i] = INERTIA * 0.25*shape[i][0]*shape[i][0] * mass[i];
+      inertia[i] = INERTIA * shape[i][0]*shape[i][0] * mass[i];
     }
   }
 }

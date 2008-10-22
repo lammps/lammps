@@ -221,26 +221,70 @@ void Verlet::force_clear()
 {
   int i;
 
-  // clear global force array
-  // nall includes ghosts only if either newton flag is set
+  // clear force on all particles
+  // if either newton flag is set, also include ghosts
 
-  int nall;
-  if (force->newton) nall = atom->nlocal + atom->nghost;
-  else nall = atom->nlocal;
+  if (neighbor->includegroup == 0) {
+    int nall;
+    if (force->newton) nall = atom->nlocal + atom->nghost;
+    else nall = atom->nlocal;
 
-  double **f = atom->f;
-  for (i = 0; i < nall; i++) {
-    f[i][0] = 0.0;
-    f[i][1] = 0.0;
-    f[i][2] = 0.0;
-  }
-
-  if (torqueflag) {
-    double **torque = atom->torque;
+    double **f = atom->f;
     for (i = 0; i < nall; i++) {
-      torque[i][0] = 0.0;
-      torque[i][1] = 0.0;
-      torque[i][2] = 0.0;
+      f[i][0] = 0.0;
+      f[i][1] = 0.0;
+      f[i][2] = 0.0;
+    }
+    
+    if (torqueflag) {
+      double **torque = atom->torque;
+      for (i = 0; i < nall; i++) {
+	torque[i][0] = 0.0;
+	torque[i][1] = 0.0;
+	torque[i][2] = 0.0;
+      }
+    }
+
+  // neighbor includegroup flag is set
+  // clear force only on initial nfirst particles
+  // if either newton flag is set, also include ghosts
+
+  } else {
+    int nall = atom->nfirst;
+
+    double **f = atom->f;
+    for (i = 0; i < nall; i++) {
+      f[i][0] = 0.0;
+      f[i][1] = 0.0;
+      f[i][2] = 0.0;
+    }
+    
+    if (torqueflag) {
+      double **torque = atom->torque;
+      for (i = 0; i < nall; i++) {
+	torque[i][0] = 0.0;
+	torque[i][1] = 0.0;
+	torque[i][2] = 0.0;
+      }
+    }
+
+    if (force->newton) {
+      nall = atom->nlocal + atom->nghost;
+
+      for (i = atom->nlocal; i < nall; i++) {
+	f[i][0] = 0.0;
+	f[i][1] = 0.0;
+	f[i][2] = 0.0;
+      }
+    
+      if (torqueflag) {
+	double **torque = atom->torque;
+	for (i = atom->nlocal; i < nall; i++) {
+	  torque[i][0] = 0.0;
+	  torque[i][1] = 0.0;
+	  torque[i][2] = 0.0;
+	}
+      }
     }
   }
 }

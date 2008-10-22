@@ -66,7 +66,7 @@ void ComputeERotateSphere::init()
     for (int i = 1; i <= atom->ntypes; i++) {
       if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
 	error->all("Compute erotate/sphere requires spherical particle shapes");
-      inertia[i] = 0.25*shape[i][0]*shape[i][0] * mass[i];
+      inertia[i] = shape[i][0]*shape[i][0] * mass[i];
     }
   }
 }

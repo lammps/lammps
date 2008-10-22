@@ -1036,6 +1036,8 @@ void Atom::set_mass(const char *str)
 
   mass[itype] = mass_one;
   mass_setflag[itype] = 1;
+
+  if (mass[itype] <= 0.0) error->all("Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1050,6 +1052,8 @@ void Atom::set_mass(int itype, double value)
 
   mass[itype] = value;
   mass_setflag[itype] = 1;
+
+  if (mass[itype] <= 0.0) error->all("Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1068,6 +1072,8 @@ void Atom::set_mass(int narg, char **arg)
   for (int itype = lo; itype <= hi; itype++) {
     mass[itype] = atof(arg[1]);
     mass_setflag[itype] = 1;
+
+    if (mass[itype] <= 0.0) error->all("Invalid mass value");
   }
 }
 
@@ -1116,6 +1122,9 @@ void Atom::set_shape(const char *str)
   shape[itype][1] = 0.5*b;
   shape[itype][2] = 0.5*c;
   shape_setflag[itype] = 1;
+
+  if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 || shape[itype][2] < 0.0)
+    error->all("Invalid shape value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1139,6 +1148,10 @@ void Atom::set_shape(int narg, char **arg)
     shape[itype][1] = 0.5*atof(arg[2]);
     shape[itype][2] = 0.5*atof(arg[3]);
     shape_setflag[itype] = 1;
+
+    if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 ||
+	shape[itype][2] < 0.0)
+      error->all("Invalid shape value");
   }
 }
 
@@ -1176,13 +1189,15 @@ void Atom::set_dipole(const char *str)
 {
   if (dipole == NULL) error->all("Cannot set dipole for this atom style");
 
-  int i;
+  int itype;
   double dipole_one;
-  int n = sscanf(str,"%d %lg",&i,&dipole_one);
-  if (n != 2) error->all("Invalid shape line in data file");
+  int n = sscanf(str,"%d %lg",&itype,&dipole_one);
+  if (n != 2) error->all("Invalid dipole line in data file");
 
-  dipole[i] = dipole_one;
-  dipole_setflag[i] = 1;
+  dipole[itype] = dipole_one;
+  dipole_setflag[itype] = 1;
+
+  if (dipole[itype] < 0.0) error->all("Invalid dipole value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1201,6 +1216,8 @@ void Atom::set_dipole(int narg, char **arg)
   for (int itype = lo; itype <= hi; itype++) {
     dipole[itype] = atof(arg[1]);
     dipole_setflag[itype] = 1;
+
+    if (dipole[itype] < 0.0) error->all("Invalid dipole value");
   }
 }
 

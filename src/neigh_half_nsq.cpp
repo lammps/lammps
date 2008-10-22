@@ -38,9 +38,9 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) {
+  if (includegroup) {
     nlocal = atom->nfirst;
-    bitmask = group->bitmask[include_group];
+    bitmask = group->bitmask[includegroup];
   }
 
   int *ilist = list->ilist;
@@ -71,7 +71,7 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
     // loop over remaining atoms, owned and ghost
 
     for (j = i+1; j < nall; j++) {
-      if (include_group && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j] & bitmask)) continue;
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
@@ -119,9 +119,9 @@ void Neighbor::half_nsq_newton(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) {
+  if (includegroup) {
     nlocal = atom->nfirst;
-    bitmask = group->bitmask[include_group];
+    bitmask = group->bitmask[includegroup];
   }
 
   int *ilist = list->ilist;
@@ -154,7 +154,7 @@ void Neighbor::half_nsq_newton(NeighList *list)
     // itag = jtag is possible for long cutoffs that include images of self
 
     for (j = i+1; j < nall; j++) {
-      if (include_group && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j] & bitmask)) continue;
 
       if (j >= nlocal) {
 	jtag = tag[j];

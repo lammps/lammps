@@ -37,9 +37,9 @@ void Neighbor::full_nsq(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) {
+  if (includegroup) {
     nlocal = atom->nfirst;
-    bitmask = group->bitmask[include_group];
+    bitmask = group->bitmask[includegroup];
   }
 
   int *ilist = list->ilist;
@@ -71,7 +71,7 @@ void Neighbor::full_nsq(NeighList *list)
     // skip i = j
 
     for (j = 0; j < nall; j++) {
-      if (include_group && !(mask[j] & bitmask)) continue;
+      if (includegroup && !(mask[j] & bitmask)) continue;
       if (i == j) continue;
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -123,7 +123,7 @@ void Neighbor::full_bin(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) nlocal = atom->nfirst;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -215,7 +215,7 @@ void Neighbor::full_multi(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) nlocal = atom->nfirst;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;

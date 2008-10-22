@@ -90,7 +90,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   // pair exclusion list info
 
-  include_group = 0;
+  includegroup = 0;
 
   nex_type = maxex_type = 0;
   ex1_type = ex2_type = NULL;
@@ -918,7 +918,7 @@ int Neighbor::check_distance()
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  if (include_group) nlocal = atom->nfirst;
+  if (includegroup) nlocal = atom->nfirst;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -1289,10 +1289,10 @@ void Neighbor::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"include") == 0) {
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");
-      include_group = group->find(arg[iarg+1]);
-      if (include_group < 0)
+      includegroup = group->find(arg[iarg+1]);
+      if (includegroup < 0)
 	error->all("Invalid group ID in neigh_modify command");
-      if (include_group && (atom->firstgroupname == NULL ||
+      if (includegroup && (atom->firstgroupname == NULL ||
 			    strcmp(arg[iarg+1],atom->firstgroupname) != 0))
 	error->all("Neigh_modify include group != atom_modify first group");
       iarg += 2;
@@ -1414,8 +1414,8 @@ void Neighbor::bin_atoms()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (include_group) {
-    int bitmask = group->bitmask[include_group];
+  if (includegroup) {
+    int bitmask = group->bitmask[includegroup];
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
 	ibin = coord2bin(x[i]);

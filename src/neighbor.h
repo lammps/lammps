@@ -27,6 +27,7 @@ class Neighbor : protected Pointers {
   int ago;                         // how many steps ago neighboring occurred
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
+  int includegroup;                // only build pairwise lists for this group
 
   double skin;                     // skin distance
   double cutneighmin;              // min neighbor cutoff for all type pairs
@@ -121,8 +122,6 @@ class Neighbor : protected Pointers {
   double cut_middle_inside_sq;     // inner cutoff for middle neighbor list
 
   int special_flag[4];             // flags for 1-2, 1-3, 1-4 neighbors
-
-  int include_group;               // only build pairwise lists for this group
 
   int exclude;                     // 0 if no type/group exclusions, 1 if yes
 

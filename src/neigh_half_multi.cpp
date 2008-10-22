@@ -46,7 +46,7 @@ void Neighbor::half_multi_no_newton(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) nlocal = atom->nfirst;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -147,7 +147,7 @@ void Neighbor::half_multi_newton(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) nlocal = atom->nfirst;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -271,7 +271,7 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
-  if (include_group) nlocal = atom->nfirst;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;

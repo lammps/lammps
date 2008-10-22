@@ -157,7 +157,7 @@ void FixNPTSphere::initial_integrate(int vflag)
   int ntypes = atom->ntypes;
   double **shape = atom->shape;
   for (int i = 1; i <= ntypes; i++)
-    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+    dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
 
   // update angular momentum by 1/2 step
   // update quaternion a full step via Richardson iteration
@@ -206,7 +206,7 @@ void FixNPTSphere::final_integrate()
   int ntypes = atom->ntypes;
   double **shape = atom->shape;
   for (int i = 1; i <= ntypes; i++)
-    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+    dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
 
   if (which == NOBIAS) {
     for (i = 0; i < nlocal; i++) {

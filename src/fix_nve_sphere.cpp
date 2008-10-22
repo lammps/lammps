@@ -131,7 +131,7 @@ void FixNVESphere::initial_integrate(int vflag)
     double **shape = atom->shape;
     int ntypes = atom->ntypes;
     for (int i = 1; i <= ntypes; i++)
-      dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+      dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
   }
 
   // update v,x,omega for all particles
@@ -225,7 +225,7 @@ void FixNVESphere::final_integrate()
     double **shape = atom->shape;
     int ntypes = atom->ntypes;
     for (int i = 1; i <= ntypes; i++)
-      dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+      dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
   }
 
   if (mass) {

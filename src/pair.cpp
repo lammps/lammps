@@ -699,17 +699,43 @@ void Pair::virial_compute()
 {
   double **x = atom->x;
   double **f = atom->f;
-  int nall = atom->nlocal + atom->nghost;
 
-  // sum over own & ghost atoms
+  // sum over force on all particles including ghosts
 
-  for (int i = 0; i < nall; i++) {
-    virial[0] += f[i][0]*x[i][0];
-    virial[1] += f[i][1]*x[i][1];
-    virial[2] += f[i][2]*x[i][2];
-    virial[3] += f[i][1]*x[i][0];
-    virial[4] += f[i][2]*x[i][0];
-    virial[5] += f[i][2]*x[i][1];
+  if (neighbor->includegroup == 0) {
+    int nall = atom->nlocal + atom->nghost;
+    for (int i = 0; i < nall; i++) {
+      virial[0] += f[i][0]*x[i][0];
+      virial[1] += f[i][1]*x[i][1];
+      virial[2] += f[i][2]*x[i][2];
+      virial[3] += f[i][1]*x[i][0];
+      virial[4] += f[i][2]*x[i][0];
+      virial[5] += f[i][2]*x[i][1];
+    }
+
+  // neighbor includegroup flag is set
+  // sum over force on initial nfirst particles and ghosts
+
+  } else {
+    int nall = atom->nfirst;
+    for (int i = 0; i < nall; i++) {
+      virial[0] += f[i][0]*x[i][0];
+      virial[1] += f[i][1]*x[i][1];
+      virial[2] += f[i][2]*x[i][2];
+      virial[3] += f[i][1]*x[i][0];
+      virial[4] += f[i][2]*x[i][0];
+      virial[5] += f[i][2]*x[i][1];
+    }
+
+    nall = atom->nlocal + atom->nghost;
+    for (int i = atom->nlocal; i < nall; i++) {
+      virial[0] += f[i][0]*x[i][0];
+      virial[1] += f[i][1]*x[i][1];
+      virial[2] += f[i][2]*x[i][2];
+      virial[3] += f[i][1]*x[i][0];
+      virial[4] += f[i][2]*x[i][0];
+      virial[5] += f[i][2]*x[i][1];
+    }
   }
 }
 

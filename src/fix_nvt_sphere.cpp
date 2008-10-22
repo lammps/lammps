@@ -102,7 +102,7 @@ void FixNVTSphere::initial_integrate(int vflag)
   int ntypes = atom->ntypes;
   double **shape = atom->shape;
   for (int i = 1; i <= ntypes; i++)
-    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+    dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
@@ -173,7 +173,7 @@ void FixNVTSphere::final_integrate()
   int ntypes = atom->ntypes;
   double **shape = atom->shape;
   for (int i = 1; i <= ntypes; i++)
-    dttype[i] = dtfrotate / (0.25*shape[i][0]*shape[i][0]*mass[i]);
+    dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {

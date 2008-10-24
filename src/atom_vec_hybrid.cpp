@@ -331,6 +331,7 @@ int AtomVecHybrid::pack_exchange(int i, double *buf)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       m += modify->fix[atom->extra_grow[iextra]]->pack_exchange(i,&buf[m]);
 
+  buf[0] = m;
   return m;
 }
 

@@ -1,0 +1,25 @@
+Compiling LAMMPS under MS Windows:
+
+Tips from Jamie Sanchez
+jamiesanchezuk@gmail.com
+24 Oct 2008
+
+-------------------
+
+1. add the line #include "erfc.h" in the following files:
+pair_coul_long.cpp
+pair_lj_charmm_coul_long.cpp
+pair_lj_cut_coul_long.cpp
+ 
+2. disable dump DCD in style.h
+
+I'm using Visual Studio 2008 in a Win XP and if I don't disable this
+option the code does not compile.
+ 
+3. in read_restart.cpp comment line
+#include "dirent.h"
+then comment lines 323 to 340
+
+I'm not using read_restart in Windows runs so even though this allows
+the code to compile successfully I don't necessarily know what this
+will do if you use this command in windows

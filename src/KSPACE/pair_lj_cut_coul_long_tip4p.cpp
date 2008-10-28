@@ -64,7 +64,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
   double r,r2inv,r6inv,forcecoul,forcelj,cforce,negforce;

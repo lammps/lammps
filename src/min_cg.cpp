@@ -148,7 +148,7 @@ void MinCG::run()
 	
   einitial = ecurrent;
 
-  f = atom->f[0];
+  if (ndof) f = atom->f[0];
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
   MPI_Allreduce(&tmp,&fnorm2_init,1,MPI_DOUBLE,MPI_SUM,world);
@@ -206,7 +206,7 @@ void MinCG::run()
 	
   efinal = ecurrent;
 
-  f = atom->f[0];
+  if (ndof) f = atom->f[0];
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
   MPI_Allreduce(&tmp,&fnorm2_final,1,MPI_DOUBLE,MPI_SUM,world);
@@ -277,7 +277,8 @@ int MinCG::iterate(int n)
   int i,fail,ntimestep;
   double beta,gg,dot[2],dotall[2];
 
-  double *f = atom->f[0];
+  double *f = NULL;
+  if (ndof) atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = g[i] = f[i];
 
   dot[0] = 0.0;
@@ -308,7 +309,7 @@ int MinCG::iterate(int n)
 
     // force tolerance criterion
 
-    f = atom->f[0];
+    if (ndof) f = atom->f[0];
     dot[0] = dot[1] = 0.0;
     for (i = 0; i < ndof; i++) {
       dot[0] += f[i]*f[i];
@@ -506,7 +507,8 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir, double eng,
 
   // stopping criterion, must be scaled by normflag
 
-  double *f = atom->f[0];
+  double *f = NULL;
+  if (n) f = atom->f[0];
   double fdotdirme = 0.0;
   for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
   double fdotdirall;

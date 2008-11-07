@@ -382,6 +382,7 @@ void Replicate::command(int narg, char **arg)
   // create global mapping and bond topology now that system is defined
 
   if (atom->map_style) {
+    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }

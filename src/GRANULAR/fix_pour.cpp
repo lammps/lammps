@@ -473,6 +473,7 @@ void FixPour::pre_exchange()
     atom->tag_extend();
     atom->natoms += nnear - nprevious;
     if (atom->map_style) {
+      atom->nghost = 0;
       atom->map_init();
       atom->map_set();
     }

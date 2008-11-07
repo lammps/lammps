@@ -687,5 +687,6 @@ void Special::combine()
 
   // re-create map
 
+  atom->nghost = 0;
   atom->map_set();
 }

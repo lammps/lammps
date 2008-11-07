@@ -151,6 +151,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (atom->natoms <= MAXATOMS) atom->tag_extend();
 
   if (atom->map_style) {
+    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }

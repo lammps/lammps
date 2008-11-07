@@ -311,6 +311,7 @@ void FixDeposit::pre_exchange()
     atom->tag_extend();
     atom->natoms += 1;
     if (atom->map_style) {
+      atom->nghost = 0;
       atom->map_init();
       atom->map_set();
     }

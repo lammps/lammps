@@ -193,6 +193,7 @@ void Velocity::create(int narg, char **arg)
     if (atom->map_style == 0) {
       mapflag = 1;
       atom->map_style = 1;
+      atom->nghost = 0;
       atom->map_init();
       atom->map_set();
     }

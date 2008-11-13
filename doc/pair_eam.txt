@@ -73,6 +73,19 @@ to model alloy systems by invoking the {eam/alloy} or {eam/fs} styles
 as described below.  These files require no mixing since they specify
 alloy interactions explicitly.
 
+There are several WWW sites that distribute and document EAM
+potentials stored in either the original DYNAMO or other formats:
+
+http://www.ctcms.nist.gov/potentials
+http://cst-www.nrl.navy.mil/ccm6/ap
+http://enpub.fulton.asu.edu/cms/potentials/main/main.htm :pre
+
+These potentials should be usable with LAMMPS, though the alternate
+formats would need to be converted to the DYNAMO format used by LAMMPS
+and described on this page.
+
+:line
+
 For style {eam}, potential values are read from a file that is in the
 DYNAMO single-element {funcfl} format.  If the DYNAMO file was created
 by a Fortran program, it cannot have "D" values in it for exponents.
@@ -347,17 +360,6 @@ the "Making LAMMPS"_Section_start.html#2_3 section for more info.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html
-
-Here are several WWW sites that discuss EAM potentials stored in
-either the original DYNAMO or other formats:
-
-http://www.ims.uconn.edu/centers/simul/pot
-http://cst-www.nrl.navy.mil/ccm6/ap
-http://enpub.fulton.asu.edu/cms/potentials/main/main.htm :pre
-
-In principle, these potentials could be used with LAMMPS, though the
-alternate formats would need to be converted to the DYNAMO format used
-by LAMMPS and described above.
 
 [Default:] none
 

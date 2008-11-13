@@ -66,12 +66,14 @@ distance from the atom to the center axis of the cylinder.  The
 cylinder extends infinitely along its axis.
 
 A planar indenter is really an axis-aligned infinite-extent wall
-exerting the same force on atoms in the system, where {r} is the
-distance from the plane.  If the {side} parameter of the plane is
-specified as {lo} then it will indent from the lo end of the
-simulation box, meaning that atoms with a coordinate less than the
-plane's current position will be pushed towards the hi end of the box.
-Vice versa if {side} is specified as {hi}.
+exerting the same force on atoms in the system, where {R} is the
+position of the plane and {r-R} is the distance from the plane.  If
+the {side} parameter of the plane is specified as {lo} then it will
+indent from the lo end of the simulation box, meaning that atoms with
+a coordinate less than the plane's current position will be pushed
+towards the hi end of the box and atoms with a coordinate higher than
+the plane's current position will feel no force.  Vice versa if {side}
+is specified as {hi}.
 
 If the {vel} keyword is specified, the center (or axis or position) of
 the spherical (or cylindrical or planar) indenter will move during the

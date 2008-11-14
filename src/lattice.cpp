@@ -94,8 +94,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   } else if (style == HCP) {
     add_basis(0.0,0.0,0.0);
     add_basis(0.5,0.5,0.0);
-    add_basis(0.5,0.25,0.5);
-    add_basis(0.0,0.75,0.5);
+    add_basis(0.5,5.0/6.0,0.5);
+    add_basis(0.0,1.0/3.0,0.5);
   } else if (style == SQ) {
     add_basis(0.0,0.0,0.0);
   } else if (style == SQ2) {

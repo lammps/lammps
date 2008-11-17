@@ -57,11 +57,11 @@ of the run time).
 The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
 the "pair_coeff"_pair_coeff.html command.  These are ASCII text files
-in a DYNAMO-style format which is described below.  DYNAMO is a serial
-MD code.  Several DYNAMO potential files for different metals are
-included in the "potentials" directory of the LAMMPS distribution.
-All of these files are parameterized in terms of LAMMPS "metal
-units"_units.html.
+in a DYNAMO-style format which is described below.  DYNAMO was the
+original serial EAM MD code, written by the EAM originators.  Several
+DYNAMO potential files for different metals are included in the
+"potentials" directory of the LAMMPS distribution.  All of these files
+are parameterized in terms of LAMMPS "metal units"_units.html.
 
 IMPORTANT NOTE: The {eam} style reads single-element EAM potentials in
 the DYNAMO {funcfl} format.  Either single element or alloy systems
@@ -74,7 +74,7 @@ as described below.  These files require no mixing since they specify
 alloy interactions explicitly.
 
 There are several WWW sites that distribute and document EAM
-potentials stored in either the original DYNAMO or other formats:
+potentials stored in DYNAMO or other formats:
 
 http://www.ctcms.nist.gov/potentials
 http://cst-www.nrl.navy.mil/ccm6/ap

@@ -34,11 +34,11 @@ Analysis metric is made in the paper.
 The result is a number which is mapped to the following different
 lattice structures:
 
-1 = UNKNOWN
-2 = BCC
-3 = FCC
-4 = HCP
-5 = ICO :ul
+0 = UNKNOWN
+1 = BCC
+2 = FCC
+3 = HCP
+4 = ICO :ul
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms

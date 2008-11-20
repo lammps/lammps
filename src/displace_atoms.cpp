@@ -135,7 +135,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     if (strcmp(arg[5],"x") == 0) coord_dim = 0;
     else if (strcmp(arg[5],"y") == 0) coord_dim = 1;
     else if (strcmp(arg[5],"z") == 0) coord_dim = 2;
-    else error->all("Illegal velocity ramp command");
+    else error->all("Illegal displace_atoms ramp command");
 
     double coord_lo,coord_hi;
     if (coord_dim == 0) {

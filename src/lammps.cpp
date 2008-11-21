@@ -55,7 +55,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0) {
-      if (iarg+1 > narg) 
+      if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
       iarg++;
       while (iarg < narg && arg[iarg][0] != '-') {

@@ -16,3 +16,11 @@ PRB(2006)73:054104.
 The output is a number with the following mapping:
 
 enum{UNKNOWN,BCC,FCC,HCP,ICO};
+
+or in other words:
+
+0 == UNKNOWN
+1 == BCC
+2 == FCC
+3 == HCP
+4 == ICO

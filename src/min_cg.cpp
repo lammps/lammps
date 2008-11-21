@@ -278,7 +278,7 @@ int MinCG::iterate(int n)
   double beta,gg,dot[2],dotall[2];
 
   double *f = NULL;
-  if (ndof) atom->f[0];
+  if (ndof) f = atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = g[i] = f[i];
 
   dot[0] = 0.0;

@@ -38,7 +38,8 @@ int MinSD::iterate(int n)
   int i,fail,ntimestep;
   double dot,dotall;
 
-  double *f = atom->f[0];
+  double *f = NULL;
+  if (ndof) f = atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = f[i];
 
   neval = 0;
@@ -65,7 +66,7 @@ int MinSD::iterate(int n)
 
     // force tolerance criterion
 
-    f = atom->f[0];
+    if (ndof) f = atom->f[0];
     dot = 0.0;
     for (i = 0; i < ndof; i++) dot += f[i]*f[i];
     MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);

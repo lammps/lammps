@@ -148,6 +148,7 @@ void MinCG::run()
 	
   einitial = ecurrent;
 
+  f = NULL;
   if (ndof) f = atom->f[0];
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
@@ -206,6 +207,7 @@ void MinCG::run()
 	
   efinal = ecurrent;
 
+  f = NULL;
   if (ndof) f = atom->f[0];
   tmp = 0.0;
   for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];

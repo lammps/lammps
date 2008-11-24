@@ -38,7 +38,9 @@ int MinSD::iterate(int n)
   int i,fail,ntimestep;
   double dot,dotall;
 
+  double *x = NULL;
   double *f = NULL;
+
   if (ndof) f = atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = f[i];
 
@@ -51,7 +53,8 @@ int MinSD::iterate(int n)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmax,alpha_final,neval);
+    if (ndof) x = atom->x[0];
+    fail = (this->*linemin)(ndof,x,h,ecurrent,dmax,alpha_final,neval);
     if (fail) return FAIL;
 
     // function evaluation criterion

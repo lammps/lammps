@@ -279,7 +279,9 @@ int MinCG::iterate(int n)
   int i,fail,ntimestep;
   double beta,gg,dot[2],dotall[2];
 
+  double *x = NULL;
   double *f = NULL;
+
   if (ndof) f = atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = g[i] = f[i];
 
@@ -296,7 +298,8 @@ int MinCG::iterate(int n)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ndof,atom->x[0],h,ecurrent,dmax,alpha_final,neval);
+    if (ndof) x = atom->x[0];
+    fail = (this->*linemin)(ndof,x,h,ecurrent,dmax,alpha_final,neval);
     if (fail) return FAIL;
 
     // function evaluation criterion
@@ -435,7 +438,8 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
   // return updated ptrs to caller since atoms may have migrated
 
   *pndof = ndof;
-  *px = atom->x[0];
+  if (ndof) *px = atom->x[0];
+  else *px = NULL;
   *ph = h;
   *peng = ecurrent;
 }

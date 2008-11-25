@@ -63,7 +63,7 @@ int MinSD::iterate(int n)
 
     // energy tolerance criterion
 
-    if (fabs(ecurrent-eprevious) <= 
+    if (fabs(ecurrent-eprevious) < 
 	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
       return ETOL;
 

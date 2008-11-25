@@ -148,7 +148,6 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_com.h"
 #include "fix_coord_original.h"
 #include "fix_deform.h"
-#include "fix_deform_prior.h"
 #include "fix_deposit.h"
 #include "fix_drag.h"
 #include "fix_dt_reset.h"
@@ -208,7 +207,6 @@ FixStyle(ave/time,FixAveTime)
 FixStyle(com,FixCOM)
 FixStyle(coord/original,FixCoordOriginal)
 FixStyle(deform,FixDeform)
-FixStyle(deform_prior,FixDeformPrior)
 FixStyle(deposit,FixDeposit)
 FixStyle(drag,FixDrag)
 FixStyle(dt/reset,FixDtReset)

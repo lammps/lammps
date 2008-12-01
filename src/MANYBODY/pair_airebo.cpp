@@ -870,7 +870,6 @@ void PairAIREBO::TORSION(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int *tag = atom->tag;
-  int nlocal = atom->nlocal;
 
   inum = list->inum;
   ilist = list->ilist;

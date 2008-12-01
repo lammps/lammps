@@ -163,8 +163,7 @@ void FixPeriNeigh::setup(int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) npartner[i]++;
+      if (rsq <= cutsq[itype][jtype]) npartner[i]++;
     }
   }
 
@@ -172,11 +171,14 @@ void FixPeriNeigh::setup(int vflag)
   for (i = 0; i < nlocal; i++) maxpartner = MAX(maxpartner,npartner[i]);
   int maxall;
   MPI_Allreduce(&maxpartner,&maxall,1,MPI_INT,MPI_MAX,world);
+  maxpartner = maxall;
 
   // realloc arrays with correct value for maxpartner
 
   memory->destroy_2d_int_array(partner);
   memory->destroy_2d_double_array(r0);
+  memory->sfree(npartner);
+
   npartner = NULL;
   partner = NULL;
   r0 = NULL;

@@ -143,7 +143,7 @@ switch t
         end
         
         % Pair Potentials
-        n_pair = ntypes + (factorial(ntypes)/2);
+        n_pair = ntypes * (ntypes + 1) / 2;
         for np = 1 : 1 : n_pair
             for i = 1 : 1 : nr/5
                 pair(i,:,np) = str2num(fgetl(fid));

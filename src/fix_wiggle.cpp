@@ -114,7 +114,7 @@ void FixWiggle::post_force(int vflag)
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       x[i][axis] = original[i] + amplitude - amplitude*cosine;
-      v[i][axis] = dt * amplitude*omega*sine;
+      v[i][axis] = amplitude*omega*sine;
       f[i][axis] = 0.0;
     }
   }

@@ -23,7 +23,7 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 frozen wiggle 3.0 0.5 
+<PRE>fix 1 frozen wiggle y 3.0 0.5 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -39,6 +39,11 @@ the <I>dim</I> coordinate of each atom is set to
 <I>A</I> is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
 elapsed time since the fix was specified.  The velocity of the atom is
 set to the derivative of this expression.
+</P>
+<P>Note that if a value of A > 0 is specified, each wiggling atom does
+not oscillate around its initial position, but moves entirely in the
+positive direction relative to its initial position.  This is so that
+its initial velocity will be 0.0.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

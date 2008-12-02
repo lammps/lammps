@@ -20,7 +20,7 @@ period = time of oscillation (time units) :ul
 
 [Examples:]
 
-fix 1 frozen wiggle 3.0 0.5 :pre
+fix 1 frozen wiggle y 3.0 0.5 :pre
 
 [Description:]
 
@@ -36,6 +36,11 @@ where {coord0} is the coordinate at the time the fix was specified,
 {A} is the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the
 elapsed time since the fix was specified.  The velocity of the atom is
 set to the derivative of this expression.
+
+Note that if a value of A > 0 is specified, each wiggling atom does
+not oscillate around its initial position, but moves entirely in the
+positive direction relative to its initial position.  This is so that
+its initial velocity will be 0.0.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

@@ -309,8 +309,8 @@ void LAMMPS::init()
                          //   when force->pair->gran_history creates fix ??
   modify->init();        // modify must come after update, force, atom, domain
   neighbor->init();      // neighbor must come after force, modify
+  comm->init();          // comm must come after force, modify, neighbor
   output->init();        // output must come after domain, force, modify
-  comm->init();          // comm must come after force, modify
   timer->init();
 }
 

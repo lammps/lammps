@@ -61,7 +61,10 @@ thermodynamic output of potential energy.  See the
 <A HREF = "thermo_style.html">thermo_style</A> command for info on how potential
 energy is output.  The contribution by itself can be printed by using
 the keyword f_ID in the thermo_style custom command, where ID is the
-fix-ID of the appropriate fix.
+fix-ID of the appropriate fix.  Note that you must use this setting
+for a fix if you are using it when performing an <A HREF = "minimize.html">energy
+minimization</A> and if you want the energy and forces it
+produces to be part of the optimization criteria.
 </P>
 <P><B>Restrictions:</B> none
 </P>

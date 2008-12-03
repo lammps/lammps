@@ -539,14 +539,31 @@ void FixRigid::init()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    if (fabs(all[ibody][0]-inertia[ibody][0]) > TOLERANCE || 
-	fabs(all[ibody][1]-inertia[ibody][1]) > TOLERANCE ||
-	fabs(all[ibody][2]-inertia[ibody][2]) > TOLERANCE)
-      error->all("Bad principal moments");
+    if (inertia[ibody][0] == 0.0) {
+      if (fabs(all[ibody][0]) > TOLERANCE)
+	error->all("Fix rigid: Bad principal moments");
+    } else {
+      if (fabs((all[ibody][0]-inertia[ibody][0])/inertia[ibody][0]) > 
+	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
+    }
+    if (inertia[ibody][1] == 0.0) {
+      if (fabs(all[ibody][1]) > TOLERANCE)
+	error->all("Fix rigid: Bad principal moments");
+    } else {
+      if (fabs((all[ibody][1]-inertia[ibody][1])/inertia[ibody][1]) > 
+	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
+    }
+    if (inertia[ibody][2] == 0.0) {
+      if (fabs(all[ibody][2]) > TOLERANCE)
+	error->all("Fix rigid: Bad principal moments");
+    } else {
+      if (fabs((all[ibody][2]-inertia[ibody][2])/inertia[ibody][2]) > 
+	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
+    }
     if (fabs(all[ibody][3]) > TOLERANCE || 
 	fabs(all[ibody][4]) > TOLERANCE ||
 	fabs(all[ibody][5]) > TOLERANCE)
-      error->all("Bad principal moments");
+      error->all("Fix rigid: Bad principal moments");
   }
 }
 

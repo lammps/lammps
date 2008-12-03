@@ -28,8 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-#define TETHER 0
-#define COUPLE 1
+enum{TETHER,COUPLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -157,9 +156,6 @@ void FixSpring::spring_tether()
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
   
-  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
-  force_flag = 0;
-
   double massfrac;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -167,10 +163,12 @@ void FixSpring::spring_tether()
       f[i][0] -= fx*massfrac;
       f[i][1] -= fy*massfrac;
       f[i][2] -= fz*massfrac;
-      ftotal[0] -= fx*massfrac;
-      ftotal[1] -= fy*massfrac;
-      ftotal[2] -= fz*massfrac;
     }
+
+  ftotal[0] = -fx;
+  ftotal[1] = -fy;
+  ftotal[2] = -fz;
+  force_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -207,9 +205,6 @@ void FixSpring::spring_couple()
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
 
-  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
-  force_flag = 0;
-
   double massfrac;
   for (int i = 0; i < nlocal; i++) {         
     if (mask[i] & groupbit) {
@@ -217,9 +212,6 @@ void FixSpring::spring_couple()
       f[i][0] += fx*massfrac;
       f[i][1] += fy*massfrac;
       f[i][2] += fz*massfrac;
-      ftotal[0] += fx*massfrac;
-      ftotal[1] += fy*massfrac;
-      ftotal[2] += fz*massfrac;
     }
     if (mask[i] & group2bit) {
       massfrac = mass[type[i]]/masstotal2;
@@ -228,6 +220,11 @@ void FixSpring::spring_couple()
       f[i][2] -= fz*massfrac;
     }
   }
+
+  ftotal[0] = -fx;
+  ftotal[1] = -fy;
+  ftotal[2] = -fz;
+  force_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

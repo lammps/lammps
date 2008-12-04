@@ -1209,7 +1209,9 @@ requested target temperature, and (b) adjusting only the thermal
 temperature component of the particle's velocities.  See the doc pages
 for the individual fixes and for the "fix_modify"_fix_modify.html
 command for instructions on how to assign a temperature compute to a
-thermostatting fix.
+thermostatting fix.  For example, you can apply a thermostat to only
+the x and z components of velocity by using it in conjunction with
+"compute temp/partial"_compute_temp_partial.html.
 
 IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
 they update the velocities and positions of particles due to forces

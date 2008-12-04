@@ -12,14 +12,17 @@ delete_atoms command :h3
 
 delete_atoms style args :pre
 
-style = {group} or {region} or {overlap} :ulb,l
+style = {group} or {region} or {overlap} or {porosity} :ulb,l
   {group} args = group-ID
   {region} args = region-ID
   {overlap} args = cutoff group1-ID group2-ID
     cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
     group1-ID = one atom in pair must be in this group
     group2-ID = other atom in pair must be in this group
-:pre
+  {porosity} args = region-ID fraction seed
+    region-ID = region within which to perform deletions
+    fraction = delete this fraction of atoms
+    seed = random number seed (positive integer) :pre
 :ule
 
 [Examples:]
@@ -27,7 +30,8 @@ style = {group} or {region} or {overlap} :ulb,l
 delete_atoms group edge
 delete_atoms region sphere
 delete_atoms overlap 0.3 all all
-delete_atoms overlap 0.5 solvent colloid :pre
+delete_atoms overlap 0.5 solvent colloid
+delete_atoms porosity cube 0.1 :pre
 
 [Description:]
 
@@ -55,6 +59,13 @@ have occurred that no atom pairs within the cutoff will remain
 (subject to the group restriction).  There is no guarantee that the
 minimum number of atoms will be deleted, or that the same atoms will
 be deleted when running on different numbers of processors.
+
+For style {porosity} a specified {fraction} of atoms are deleted
+within the specified region.  For example, if fraction is 0.1, then
+10% of the atoms will be deleted.  The atoms to delete are chosen
+randomly.  There is no guarantee that the exact fraction of atoms will
+be deleted, or that the same atoms will be deleted when running on
+different numbers of processors.
 
 After atoms are deleted, if the system is not molecular (no bonds),
 then atom IDs are re-assigned so that they run from 1 to the number of

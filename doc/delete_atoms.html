@@ -15,7 +15,7 @@
 </P>
 <PRE>delete_atoms style args 
 </PRE>
-<UL><LI>style = <I>group</I> or <I>region</I> or <I>overlap</I> 
+<UL><LI>style = <I>group</I> or <I>region</I> or <I>overlap</I> or <I>porosity</I> 
 
 <PRE>  <I>group</I> args = group-ID
   <I>region</I> args = region-ID
@@ -23,7 +23,10 @@
     cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
     group1-ID = one atom in pair must be in this group
     group2-ID = other atom in pair must be in this group
-
+  <I>porosity</I> args = region-ID fraction seed
+    region-ID = region within which to perform deletions
+    fraction = delete this fraction of atoms
+    seed = random number seed (positive integer) 
 </PRE>
 
 </UL>
@@ -32,7 +35,8 @@
 <PRE>delete_atoms group edge
 delete_atoms region sphere
 delete_atoms overlap 0.3 all all
-delete_atoms overlap 0.5 solvent colloid 
+delete_atoms overlap 0.5 solvent colloid
+delete_atoms porosity cube 0.1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -60,6 +64,13 @@ have occurred that no atom pairs within the cutoff will remain
 (subject to the group restriction).  There is no guarantee that the
 minimum number of atoms will be deleted, or that the same atoms will
 be deleted when running on different numbers of processors.
+</P>
+<P>For style <I>porosity</I> a specified <I>fraction</I> of atoms are deleted
+within the specified region.  For example, if fraction is 0.1, then
+10% of the atoms will be deleted.  The atoms to delete are chosen
+randomly.  There is no guarantee that the exact fraction of atoms will
+be deleted, or that the same atoms will be deleted when running on
+different numbers of processors.
 </P>
 <P>After atoms are deleted, if the system is not molecular (no bonds),
 then atom IDs are re-assigned so that they run from 1 to the number of

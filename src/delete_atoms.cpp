@@ -24,6 +24,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "random_mars.h"
 #include "memory.h"
 #include "error.h"
 
@@ -56,6 +57,7 @@ void DeleteAtoms::command(int narg, char **arg)
   if (strcmp(arg[0],"group") == 0) delete_group(narg,arg);
   else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg);
   else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg);
+  else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
   else error->all("Illegal delete_atoms command");
 
   // delete local atoms flagged in dlist
@@ -301,3 +303,34 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   create porosity by deleting atoms in a specified region 
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::delete_porosity(int narg, char **arg)
+{
+  if (narg != 4) error->all("Illegal delete_atoms command");
+
+  int iregion = domain->find_region(arg[1]);
+  if (iregion == -1) error->all("Could not find delete_atoms region ID");
+
+  double porosity_fraction = atof(arg[2]);
+  int seed = atoi(arg[3]);
+
+  RanMars *random = new RanMars(lmp,seed + comm->me);
+
+  // allocate and initialize deletion list
+ 
+  int nlocal = atom->nlocal;
+  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  for (int i = 0; i < nlocal; i++) dlist[i] = 0;
+
+  double **x = atom->x;
+
+  for (int i = 0; i < nlocal; i++)
+    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+      if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+}
+
+

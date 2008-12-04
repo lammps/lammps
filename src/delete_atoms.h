@@ -29,6 +29,7 @@ class DeleteAtoms : protected Pointers {
   void delete_group(int, char **);
   void delete_region(int, char **);
   void delete_overlap(int, char **);
+  void delete_porosity(int, char **);
 };
 
 }

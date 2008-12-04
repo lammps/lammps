@@ -52,6 +52,8 @@ class Force : protected Pointers {
                              // index [0] is not used in these arrays
   double special_lj[4];      // 1-2, 1-3, 1-4 prefactors for LJ
   double special_coul[4];    // 1-2, 1-3, 1-4 prefactors for Coulombics
+  int special_dihedral;      // 0 if defined dihedrals are ignored
+                             // 1 if only weight 1,4 atoms if in a dihedral
 
   Force(class LAMMPS *);
   ~Force();

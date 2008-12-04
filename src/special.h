@@ -27,8 +27,10 @@ class Special : protected Pointers {
  private:
   int me,nprocs;
   int **onetwo,**onethree,**onefour;
+  int dihedral_flag;
 
   void combine();
+  void dihedral_trim();
 };
 
 }

@@ -546,6 +546,7 @@ void Special::build()
   delete [] bufcopy;
 
   combine();
+  if (force->special_dihedral) dihedral_trim();
 }
 
 /* ----------------------------------------------------------------------
@@ -689,4 +690,166 @@ void Special::combine()
 
   atom->nghost = 0;
   atom->map_set();
+}
+
+/* ----------------------------------------------------------------------
+   trim list of 1-4 neighbors by checking defined dihedrals
+   delete a 1-4 neigh if those atoms are not end points of a defined dihedral
+------------------------------------------------------------------------- */
+
+void Special::dihedral_trim()
+{
+  int i,j,m,n,iglobal,jglobal,ilocal,jlocal;
+  MPI_Request request;
+  MPI_Status status;
+
+  int *tag = atom->tag;
+  int *num_dihedral = atom->num_dihedral;
+  int **dihedral_atom1 = atom->dihedral_atom1;
+  int **dihedral_atom4 = atom->dihedral_atom4;
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  // stats on old 1-4 neighbor counts
+
+  double onefourcount = 0.0;
+  for (i = 0; i < nlocal; i++)
+    onefourcount += nspecial[i][2] - nspecial[i][1];
+
+  double allcount;
+  MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,
+	      "  %g = # of 1-4 neighbors before dihedral trim\n",allcount);
+    if (logfile)
+      fprintf(logfile,
+	      "  %g = # of 1-4 neighbors before dihedral trim\n",allcount);
+  }
+
+  // if dihedrals are defined, flag each 1-4 neigh if it appears in a dihedral
+
+  if (num_dihedral && atom->ndihedrals) {
+
+    // dflag = flag for 1-4 neighs of all owned atoms
+
+    int maxcount = 0;
+    for (i = 0; i < nlocal; i++)
+      maxcount = MAX(maxcount,nspecial[i][2]-nspecial[i][1]);
+    int **dflag =
+      memory->create_2d_int_array(nlocal,maxcount,"special::dflag");
+
+    for (i = 0; i < nlocal; i++) {
+      n = nspecial[i][2] - nspecial[i][1];
+      for (j = 0; j < n; j++) dflag[i][j] = 0;
+    }
+
+    // nbufmax = largest buffer needed to hold info from any proc
+    // info for each atom = list of 1,4 atoms in each dihedral stored by atom
+
+    int nbuf = 0;
+    for (i = 0; i < nlocal; i++) nbuf += 2*num_dihedral[i];
+
+    int nbufmax;
+    MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
+
+    int *buf = new int[nbufmax];
+    int *bufcopy = new int[nbufmax];
+
+    // fill buffer with list of 1,4 atoms in each dihedral
+
+    int size = 0;
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_dihedral[i]; j++) {
+	buf[size++] = dihedral_atom1[i][j];
+	buf[size++] = dihedral_atom4[i][j];
+      }
+
+    // cycle buffer around ring of procs back to self
+    // when receive buffer, scan list of 1,4 atoms looking for atoms I own
+    // when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
+
+    int next = me + 1;
+    int prev = me -1; 
+    if (next == nprocs) next = 0;
+    if (prev < 0) prev = nprocs - 1;
+
+    int messtag = 7;
+    for (int loop = 0; loop < nprocs; loop++) {
+      i = 0;
+      while (i < size) {
+	iglobal = buf[i];
+	jglobal = buf[i+1];
+	ilocal = atom->map(iglobal);
+	jlocal = atom->map(jglobal);
+	if (ilocal >= 0 && ilocal < nlocal)
+	  for (m = nspecial[ilocal][1]; m < nspecial[ilocal][2]; m++)
+	    if (jglobal == special[ilocal][m]) {
+	      dflag[ilocal][m-nspecial[ilocal][1]] = 1;
+	      break;
+	    }
+	if (jlocal >= 0 && jlocal < nlocal)
+	  for (m = nspecial[jlocal][1]; m < nspecial[jlocal][2]; m++)
+	    if (iglobal == special[jlocal][m]) {
+	      dflag[jlocal][m-nspecial[jlocal][1]] = 1;
+	      break;
+	    }
+	i += 2;
+      }
+      if (me != next) {
+	MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
+	MPI_Send(buf,size,MPI_INT,next,messtag,world);
+	MPI_Wait(&request,&status);
+	MPI_Get_count(&status,MPI_INT,&size);
+	for (j = 0; j < size; j++) buf[j] = bufcopy[j];
+      }
+    }
+
+    // delete 1-4 neighbors if they are not flagged in dflag
+    
+    int offset;
+    for (i = 0; i < nlocal; i++) {
+      offset = m = nspecial[i][1];
+      for (j = nspecial[i][1]; j < nspecial[i][2]; j++)
+	if (dflag[i][j-offset]) special[i][m++] = special[i][j];
+      nspecial[i][2] = m;
+    }
+    
+    // clean up
+
+    memory->destroy_2d_int_array(dflag);
+    delete [] buf;
+    delete [] bufcopy;
+
+  // if no dihedrals are defined, delete all 1-4 neighs
+
+  } else for (i = 0; i < nlocal; i++) nspecial[i][2] = nspecial[i][1];
+
+  // reset atom->maxspecial
+
+  int maxspecial = 0;
+  for (i = 0; i < nlocal; i++)
+    maxspecial = MAX(maxspecial,nspecial[i][2]);
+
+  MPI_Allreduce(&maxspecial,&atom->maxspecial,1,MPI_INT,MPI_MAX,world);
+  atom->maxspecial = MAX(atom->maxspecial,1);
+
+  // stats on new 1-4 neighbor counts
+
+  onefourcount = 0.0;
+  for (i = 0; i < nlocal; i++)
+    onefourcount += nspecial[i][2] - nspecial[i][1];
+
+  MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,
+	      "  %g = # of 1-4 neighbors after dihedral trim\n",allcount);
+    if (logfile)
+      fprintf(logfile,
+	      "  %g = # of 1-4 neighbors after dihedral trim\n",allcount);
+  }
 }

@@ -184,13 +184,13 @@ void Temper::command(int narg, char **arg)
 
   update->integrate->setup();
 
-  timer->barrier_start(TIME_LOOP);
-
   if (me_universe == 0) {
     if (universe->uscreen) fprintf(universe->uscreen,"Step T1 T2 ...\n");
     if (universe->ulogfile) fprintf(universe->ulogfile,"Step T1 T2 ...\n");
     print_status();
   }
+
+  timer->barrier_start(TIME_LOOP);
 
   for (int iswap = 0; iswap < nswaps; iswap++) {
 

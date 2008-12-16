@@ -1,0 +1,40 @@
+# opensuse = openSUSE linux, g++, MPICH, FFTW
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-O3  -I /opt/mpich/include/ -DFFT_FFTW -DLAMMPS_GZIP
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-O3 -L /opt/mpich/ch-p4/lib64
+USRLIB =	-ldfftw -lmpich
+SYSLIB =
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

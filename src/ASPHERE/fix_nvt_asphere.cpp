@@ -40,7 +40,7 @@ FixNVTAsphere::FixNVTAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVT(lmp, narg, arg)
 {
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
-      !atom->avec->shape_type)
+      !atom->shape)
     error->all("Fix nvt/asphere requires atom attributes "
 	       "quat, angmom, torque, shape");
 }

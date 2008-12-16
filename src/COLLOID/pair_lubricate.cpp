@@ -402,7 +402,7 @@ void PairLubricate::init_style()
   // insure mono-dispersity
   
   for (int i = 2; i <= atom->ntypes; i++)
-    if (atom->shape[i][0] != atom->shape[1][1])
+    if (atom->shape[i][0] != atom->shape[1][0])
       error->all("Pair lubricate requires mono-disperse particles");
 
   int irequest = neighbor->request(this);

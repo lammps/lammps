@@ -38,7 +38,7 @@ FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
-      !atom->avec->shape_type)
+      !atom->shape)
     error->all("Fix nve/asphere requires atom attributes "
 	       "quat, angmom, torque, shape");
   inertia = 

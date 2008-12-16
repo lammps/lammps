@@ -952,6 +952,7 @@ void Neighbor::build()
   if (dist_check) {
     double **x = atom->x;
     int nlocal = atom->nlocal;
+    if (includegroup) nlocal = atom->nfirst;
     if (nlocal > maxhold) {
       maxhold = atom->nmax;
       memory->destroy_2d_double_array(xhold);

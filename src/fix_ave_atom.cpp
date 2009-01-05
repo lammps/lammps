@@ -27,14 +27,14 @@ using namespace LAMMPS_NS;
 
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 
-#define INVOKED_PERATOM 4      // same as in computes
-
 /* ---------------------------------------------------------------------- */
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 7) error->all("Illegal fix ave/atom command");
+
+  time_depend = 1;
 
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
@@ -167,6 +167,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
 
   // zero the array since dump may access it on timestep 0
+  // zero the array since a variable may access it before first run
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
@@ -185,9 +186,9 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
 
-  // add nvalid to ALL computes that store invocation times
+  // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
-  // once in end_of_step() can just set timestep for ones actually invoked
+  // once in end_of_step() can set timestep for ones actually invoked
 
   modify->addstep_compute_all(nvalid);
 }
@@ -268,7 +269,8 @@ void FixAveAtom::end_of_step()
 
   // skip if not step which requires doing something
 
-  if (update->ntimestep != nvalid) return;
+  int ntimestep = update->ntimestep;
+  if (ntimestep != nvalid) return;
 
   // zero if first step
 
@@ -307,7 +309,8 @@ void FixAveAtom::end_of_step()
 
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (!(compute->invoked & INVOKED_PERATOM)) compute->compute_peratom();
+      if (compute->invoked_peratom != ntimestep) compute->compute_peratom();
+      compute->invoked_flag = 1;
 
       if (j == 0) {
 	double *compute_scalar = compute->scalar_atom;
@@ -351,7 +354,7 @@ void FixAveAtom::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = update->ntimestep+peratom_freq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // average the final result for the Nfreq timestep

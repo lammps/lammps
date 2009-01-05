@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "min.h"
+#include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
@@ -116,6 +117,8 @@ void Min::ev_set(int ntimestep)
     if (elist_atom[i]->matchstep(ntimestep)) break;
   if (i < nelist_atom) eflag_atom = 2;
 
+  if (eflag_global) update->eflag_global = update->ntimestep;
+  if (eflag_atom) update->eflag_atom = update->ntimestep;
   eflag = eflag_global + eflag_atom;
 
   int vflag_global = 0;
@@ -128,5 +131,7 @@ void Min::ev_set(int ntimestep)
     if (vlist_atom[i]->matchstep(ntimestep)) break;
   if (i < nvlist_atom) vflag_atom = 4;
 
+  if (vflag_global) update->vflag_global = update->ntimestep;
+  if (vflag_atom) update->vflag_atom = update->ntimestep;
   vflag = vflag_global + vflag_atom;
 }

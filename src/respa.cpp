@@ -415,6 +415,8 @@ void Respa::recurse(int ilevel)
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
     modify->initial_integrate_respa(vflag,ilevel,0);
+    if (modify->n_post_integrate_respa)
+      modify->post_integrate_respa(ilevel,iloop);
 
     if (ilevel) recurse(ilevel-1);
 
@@ -427,6 +429,9 @@ void Respa::recurse(int ilevel)
 
     if (ilevel == nlevels-1) {
       modify->initial_integrate_respa(vflag,ilevel,1);
+      if (modify->n_post_integrate_respa)
+	modify->post_integrate_respa(ilevel,iloop);
+
       int nflag = neighbor->decide();
       if (nflag) {
 	if (modify->n_pre_exchange) modify->pre_exchange();
@@ -446,6 +451,7 @@ void Respa::recurse(int ilevel)
 	neighbor->build();
 	timer->stamp(TIME_NEIGHBOR);
       }
+
     } else if (ilevel == 0) {
       timer->stamp();
       comm->communicate();
@@ -453,6 +459,8 @@ void Respa::recurse(int ilevel)
     }
 
     force_clear(newton[ilevel]);
+    if (modify->n_pre_force_respa)
+      modify->pre_force_respa(vflag,ilevel,iloop);
 
     timer->stamp();
     if (level_bond == ilevel && force->bond) {

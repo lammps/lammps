@@ -15,6 +15,7 @@
 #include "string.h"
 #include "compute_temp_region.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "modify.h"
 #include "domain.h"
@@ -23,9 +24,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,7 +75,7 @@ int ComputeTempRegion::dof_remove(int i)
 
 double ComputeTempRegion::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -122,7 +120,7 @@ void ComputeTempRegion::compute_vector()
 {
   int i;
 
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
 
   double **x = atom->x;
   double **v = atom->v;

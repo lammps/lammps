@@ -32,15 +32,13 @@ using namespace LAMMPS_NS;
 
 // customize by adding keyword to 1st enum
 
-enum{TAG,MOL,TYPE,MASS,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
+enum{ID,MOL,TYPE,MASS,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
        VX,VY,VZ,FX,FY,FZ,
        Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
        QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
        COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
-
-#define INVOKED_PERATOM 4          // same as in computes
 
 /* ---------------------------------------------------------------------- */
 
@@ -271,10 +269,14 @@ int DumpCustom::count()
   // invoke Computes for per-atom dump quantities
   // only if not already invoked
 
-  if (ncompute)
-    for (i = 0; i < ncompute; i++)
-      if (!(compute[i]->invoked & INVOKED_PERATOM))
+  if (ncompute) {
+    int ntimestep = update->ntimestep;
+    for (i = 0; i < ncompute; i++) {
+      if (compute[i]->invoked_peratom != ntimestep)
 	compute[i]->compute_peratom();
+      compute[i]->invoked_flag = 1;
+    }
+  }
 
   // evaluate atom-style Variables for per-atom dump quantities
 
@@ -322,7 +324,7 @@ int DumpCustom::count()
 
       // customize by adding to if statement
 
-      if (thresh_array[ithresh] == TAG) {
+      if (thresh_array[ithresh] == ID) {
 	int *tag = atom->tag;
 	for (i = 0; i < nlocal; i++) dchoose[i] = tag[i];
 	ptr = dchoose;
@@ -658,8 +660,8 @@ void DumpCustom::parse_fields(int narg, char **arg)
   for (int iarg = 5; iarg < narg; iarg++) {
     i = iarg-5;
 
-    if (strcmp(arg[iarg],"tag") == 0) {
-      pack_choice[i] = &DumpCustom::pack_tag;
+    if (strcmp(arg[iarg],"id") == 0) {
+      pack_choice[i] = &DumpCustom::pack_id;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
@@ -1051,7 +1053,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     // set keyword type of threshhold
     // customize by adding to if statement
     
-    if (strcmp(arg[1],"tag") == 0) thresh_array[nthresh] = TAG;
+    if (strcmp(arg[1],"id") == 0) thresh_array[nthresh] = ID;
     else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
     else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
     else if (strcmp(arg[1],"mass") == 0) thresh_array[nthresh] = MASS;
@@ -1314,7 +1316,7 @@ void DumpCustom::pack_variable(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack_tag(int n)
+void DumpCustom::pack_id(int n)
 {
   int *tag = atom->tag;
   int nlocal = atom->nlocal;

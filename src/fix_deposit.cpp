@@ -37,6 +37,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all("Illegal fix deposit command");
 
   restart_global = 1;
+  time_depend = 1;
 
   // required args
 

@@ -90,10 +90,14 @@ DumpStyle(bond,DumpBond)
 #endif
 
 #ifdef FixInclude
+#include "fix_bond_break.h"
+#include "fix_bond_create.h"
 #include "fix_bond_swap.h"
 #endif
 
 #ifdef FixClass
+FixStyle(bond/break,FixBondBreak)
+FixStyle(bond/create,FixBondCreate)
 FixStyle(bond/swap,FixBondSwap)
 #endif
 

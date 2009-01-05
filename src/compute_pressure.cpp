@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "compute_pressure.h"
 #include "atom.h"
+#include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -29,9 +30,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -159,13 +157,16 @@ void ComputePressure::init()
 
 double ComputePressure::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
+  if (update->vflag_global != invoked_scalar)
+    error->all("Virial was not tallied on needed timestep");
 
   // invoke temperature it it hasn't been already
 
   double t;
   if (keflag) {
-    if (temperature->invoked & INVOKED_SCALAR) t = temperature->scalar;
+    if (temperature->invoked_scalar == update->ntimestep)
+      t = temperature->scalar;
     else t = temperature->compute_scalar();
   }
 
@@ -197,13 +198,15 @@ double ComputePressure::compute_scalar()
 
 void ComputePressure::compute_vector()
 {
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
+  if (update->vflag_global != invoked_vector)
+    error->all("Virial was not tallied on needed timestep");
 
   // invoke temperature it it hasn't been already
 
   double *ke_tensor;
   if (keflag) {
-    if (!(temperature->invoked & INVOKED_VECTOR))
+    if (temperature->invoked_vector != update->ntimestep)
       temperature->compute_vector();
     ke_tensor = temperature->vector;
   }

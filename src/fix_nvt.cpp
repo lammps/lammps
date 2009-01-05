@@ -62,8 +62,6 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   if (t_period <= 0.0) error->all("Fix nvt period must be > 0.0");
   t_freq = 1.0 / t_period;
 
-  eta = eta_dot = 0.0;
-
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
@@ -86,6 +84,10 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
+
+  // Nose/Hoover temp init
+
+  eta = eta_dot = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -193,11 +193,14 @@ void PairHybrid::settings(int narg, char **arg)
 
   // count sub-styles by skipping numeric args
   // one exception is 1st arg of style "table", which is non-numeric word
+  // one exception is 1st two args of style "lj/coul", which are non-numeric
+  // need a better way to skip these exceptions
 
   nstyles = 0;
   i = 0;
   while (i < narg) {
     if (strcmp(arg[i],"table") == 0) i++;
+    if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -304,9 +307,9 @@ void PairHybrid::coeff(int narg, char **arg)
 	}
 
   // set setflag and which type pairs map to which sub-style
-  // if sub-style is none: set hybrid subflag, wipe out map
+  // if sub-style is none: set hybrid setflag, wipe out map
   // else: set hybrid setflag & map only if substyle setflag is set
-  //   previous mappings are wiped out
+  //       previous mappings are wiped out
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

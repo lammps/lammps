@@ -54,7 +54,10 @@ class Compute : protected Pointers {
   int maxtime;        // max # of entries time list can hold
   int *tlist;         // time list of steps the Compute is called on
 
-  int invoked;        // set when Compute is invoked, to avoid re-invoking
+  int invoked_flag;     // 1 if invoked or accessed this step, 0 if not
+  int invoked_scalar;   // last timestep on which compute_scalar() was invoked
+  int invoked_vector;   // ditto for compute_vector()
+  int invoked_peratom;  // ditto for compute_peratom()
 
   double dof;         // degrees-of-freedom for temperature
 
@@ -85,6 +88,7 @@ class Compute : protected Pointers {
 
   void addstep(int);
   int matchstep(int);
+  void clearstep();
 
   virtual double memory_usage() {return 0.0;}
 

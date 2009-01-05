@@ -30,6 +30,9 @@ class Update : protected Pointers {
   int first_update;               // 0 before initial update, 1 after
   int max_eval;                   // max force evaluations for minimizer
 
+  int eflag_global,eflag_atom;    // timestep global/peratom eng is tallied
+  int vflag_global,vflag_atom;    // ditto for virial
+
   char *unit_style;
 
   class Integrate *integrate;

@@ -201,7 +201,10 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   lmp->init();
 
   // error check on cutoff
+  // if no pair style, neighbor list will be empty
 
+  if (force->pair == NULL)
+    error->all("Delete_atoms requires a pair style be defined");
   if (cut > neighbor->cutneighmax) 
     error->all("Delete_atoms cutoff > neighbor cutoff");
 

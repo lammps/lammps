@@ -30,6 +30,8 @@ FixWiggle::FixWiggle(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal fix wiggle command");
 
+  time_depend = 1;
+
   // parse command-line args
 
   if (strcmp(arg[3],"x") == 0) axis = 0;

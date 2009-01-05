@@ -15,6 +15,7 @@
 #include "string.h"
 #include "compute_stress_atom.h"
 #include "atom.h"
+#include "update.h"
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
@@ -28,8 +29,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -85,7 +84,9 @@ void ComputeStressAtom::compute_peratom()
 {
   int i,j;
 
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
+  if (update->vflag_atom != invoked_peratom)
+    error->all("Per-atom virial was not tallied on needed timestep");
 
   // grow local stress array if necessary
 

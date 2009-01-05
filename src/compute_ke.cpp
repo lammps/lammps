@@ -14,14 +14,13 @@
 #include "mpi.h"
 #include "compute_ke.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,7 +44,7 @@ void ComputeKE::init()
 
 double ComputeKE::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **v = atom->v;
   double *rmass = atom->rmass;

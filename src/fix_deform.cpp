@@ -46,6 +46,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   box_change = 1;
   no_change_box = 1;
+  time_depend = 1;
 
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix deform command");

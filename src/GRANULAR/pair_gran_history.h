@@ -38,8 +38,8 @@ class PairGranHistory : public Pair {
  protected:
   double xkk,xkkt,xmu;
   int dampflag;
-  double gamman;
-  double dt,gamman_dl,gammas_dl;
+  double gamman,gammas;
+  double dt;
   int freeze_group_bit;
   int history;
   class FixShearHistory *fix_history;

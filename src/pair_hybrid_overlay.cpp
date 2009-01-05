@@ -67,8 +67,8 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid subflag, wipe out map
   // else: set hybrid setflag & map only if substyle setflag is set
-  //   multiple mappings are allowed,
-  //   but don't map again if already mapped to this sub-style
+  //       multiple mappings are allowed,
+  //       but don't map again if already mapped to this sub-style
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

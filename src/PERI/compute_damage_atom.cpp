@@ -18,6 +18,7 @@
 #include "string.h"
 #include "compute_damage_atom.h"
 #include "atom.h"
+#include "update.h"
 #include "modify.h"
 #include "comm.h"
 #include "force.h"
@@ -72,6 +73,8 @@ void ComputeDamageAtom::init()
 
 void ComputeDamageAtom::compute_peratom()
 {
+  invoked_peratom = update->ntimestep;
+
   // grow damage array if necessary
 
   if (atom->nlocal > nmax) {

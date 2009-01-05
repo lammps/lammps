@@ -33,7 +33,7 @@ class ReadData : protected Pointers {
   char **arg;
 
   void open(char *);
-  void scan(int *, int *, int *, int*);
+  void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
   void header(int);
   void parse_keyword(int, int);

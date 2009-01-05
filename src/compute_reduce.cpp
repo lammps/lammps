@@ -27,10 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_PERATOM 4
-
 enum{SUM,MINN,MAXX};
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 
@@ -224,7 +220,7 @@ void ComputeReduce::init()
 
 double ComputeReduce::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double one = compute_one(0);
   if (mode == SUM)
@@ -240,7 +236,7 @@ double ComputeReduce::compute_scalar()
 
 void ComputeReduce::compute_vector()
 {
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
 
   for (int m = 0; m < nvalues; m++) onevec[m] = compute_one(m);
   if (mode == SUM)
@@ -288,7 +284,7 @@ double ComputeReduce::compute_one(int m)
   // invoke compute if not previously invoked
 
   } else if (which[m] == COMPUTE) {
-    if (!(modify->compute[n]->invoked & INVOKED_PERATOM))
+    if (modify->compute[n]->invoked_peratom != update->ntimestep)
       modify->compute[n]->compute_peratom();
 
     if (j == 0) {

@@ -19,6 +19,7 @@
 #include "compute_temp_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
@@ -28,9 +29,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -150,11 +148,10 @@ void ComputeTempAsphere::dof_compute()
 
 double ComputeTempAsphere::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   if (tempbias) {
-    if (!(tbias->invoked & INVOKED_SCALAR))
-      double tmp = tbias->compute_scalar();
+    if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
     tbias->remove_bias_all();
   }
 
@@ -213,10 +210,10 @@ void ComputeTempAsphere::compute_vector()
 {
   int i;
 
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
 
   if (tempbias) {
-    if (!(tbias->invoked & INVOKED_VECTOR)) tbias->compute_vector();
+    if (tbias->invoked_vector != update->ntimestep) tbias->compute_vector();
     tbias->remove_bias_all();
   }
 

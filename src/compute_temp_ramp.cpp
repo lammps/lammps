@@ -16,6 +16,7 @@
 #include "string.h"
 #include "compute_temp_ramp.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "group.h"
 #include "modify.h"
@@ -29,9 +30,6 @@ using namespace LAMMPS_NS;
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -151,7 +149,7 @@ double ComputeTempRamp::compute_scalar()
 {
   double fraction,vramp,vthermal[3];
 
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -193,7 +191,7 @@ void ComputeTempRamp::compute_vector()
   int i;
   double fraction,vramp,vthermal[3];
 
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
 
   double **x = atom->x;
   double **v = atom->v;

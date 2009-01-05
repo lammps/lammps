@@ -34,6 +34,7 @@ class Atom : protected Pointers {
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int nbonds,nangles,ndihedrals,nimpropers;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
+  int extra_bond_per_atom;
 
   int firstgroup;               // store atoms in this group first, -1 if unset
   int nfirst;                   // # of atoms in first group on this proc
@@ -51,8 +52,9 @@ class Atom : protected Pointers {
   double *radius,*density,*rmass,*vfrac,*s0;
   double **x0;
 
-  int maxspecial;
-  int **nspecial,**special;
+  int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
+  int **special;                // IDs of 1-2,1-3,1-4 neighs of each atom
+  int maxspecial;               // special[nlocal][maxspecial]
 
   int *num_bond;
   int **bond_type;

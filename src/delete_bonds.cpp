@@ -21,7 +21,6 @@
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
-#include "pair.h"
 #include "group.h"
 #include "special.h"
 #include "error.h"

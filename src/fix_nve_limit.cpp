@@ -37,6 +37,8 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   xlimit = atof(arg[3]);
+
+  ncount = 0;
 }
 
 /* ---------------------------------------------------------------------- */

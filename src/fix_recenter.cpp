@@ -28,6 +28,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{BOX,LATTICE,FRACTION};
+
 /* ---------------------------------------------------------------------- */
 
 FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
@@ -52,7 +54,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   group2bit = groupbit;
-  scaleflag = 1;
+  scaleflag = LATTICE;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -62,9 +64,9 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
       group2bit = group->bitmask[igroup2];
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else if (strcmp(arg[iarg+1],"fraction") == 0) scaleflag = 2;
+      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
+      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
+      else if (strcmp(arg[iarg+1],"fraction") == 0) scaleflag = FRACTION;
       else error->all("Illegal fix recenter command");
       iarg += 2;
     } else error->all("Illegal fix recenter command");
@@ -72,11 +74,11 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
 
   // scale xcom,ycom,zcom
 
-  if (scaleflag == 1 && domain->lattice == NULL)
+  if (scaleflag == LATTICE && domain->lattice == NULL)
     error->all("Use of fix recenter with undefined lattice");
 
   double xscale,yscale,zscale;
-  if (scaleflag == 1) {
+  if (scaleflag == LATTICE) {
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;
     zscale = domain->lattice->zlattice;
@@ -140,7 +142,7 @@ void FixRecenter::initial_integrate(int vflag)
   double xtarget,ytarget,ztarget;
   double *bboxlo,*bboxhi;
 
-  if (scaleflag == 2) {
+  if (scaleflag == FRACTION) {
     if (domain->triclinic == 0) {
       bboxlo = domain->boxlo;
       bboxhi = domain->boxhi;
@@ -151,15 +153,18 @@ void FixRecenter::initial_integrate(int vflag)
   }
 
   if (xinitflag) xtarget = xinit;
-  else if (scaleflag == 2) xtarget = bboxlo[0] + xcom*(bboxhi[0] - bboxlo[0]);
+  else if (scaleflag == FRACTION)
+    xtarget = bboxlo[0] + xcom*(bboxhi[0] - bboxlo[0]);
   else xtarget = xcom;
 
   if (yinitflag) ytarget = yinit;
-  else if (scaleflag == 2) ytarget = bboxlo[1] + ycom*(bboxhi[1] - bboxlo[1]);
+  else if (scaleflag == FRACTION)
+    ytarget = bboxlo[1] + ycom*(bboxhi[1] - bboxlo[1]);
   else ytarget = ycom;
 
   if (zinitflag) ztarget = zinit;
-  else if (scaleflag == 2) ztarget = bboxlo[2] + zcom*(bboxhi[2] - bboxlo[2]);
+  else if (scaleflag == FRACTION)
+    ztarget = bboxlo[2] + zcom*(bboxhi[2] - bboxlo[2]);
   else ztarget = zcom;
 
   // current COM

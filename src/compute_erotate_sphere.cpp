@@ -14,14 +14,13 @@
 #include "mpi.h"
 #include "compute_erotate_sphere.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
 
 #define INERTIA 0.4          // moment of inertia for sphere
 
@@ -75,7 +74,7 @@ void ComputeERotateSphere::init()
 
 double ComputeERotateSphere::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **omega = atom->omega;
   double *radius = atom->radius;

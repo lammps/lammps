@@ -14,6 +14,7 @@
 #include "string.h"
 #include "compute_ke_atom.h"
 #include "atom.h"
+#include "update.h"
 #include "modify.h"
 #include "comm.h"
 #include "force.h"
@@ -21,8 +22,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -60,7 +59,7 @@ void ComputeKEAtom::init()
 
 void ComputeKEAtom::compute_peratom()
 {
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
 
   // grow ke array if necessary
 

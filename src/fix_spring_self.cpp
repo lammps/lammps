@@ -72,6 +72,8 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
       xoriginal[i][2] = x[i][2] + zbox*zprd;
     } else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
+
+  espring = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

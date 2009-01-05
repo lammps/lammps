@@ -41,6 +41,9 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   else yvalue = atof(arg[4]);
   if (strcmp(arg[5],"NULL") == 0) zflag = 0;
   else zvalue = atof(arg[5]);
+
+  foriginal_all[0] = foriginal_all[1] = 
+    foriginal_all[2] = foriginal_all[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

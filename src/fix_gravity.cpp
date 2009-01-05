@@ -32,6 +32,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all("Illegal fix gravity command");
 
+  time_depend = 1;
+
   magnitude = atof(arg[3]);
 
   if (strcmp(arg[4],"chute") == 0) {

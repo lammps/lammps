@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "compute_group_group.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "pair.h"
 #include "neighbor.h"
@@ -27,9 +28,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,7 +60,7 @@ ComputeGroupGroup::~ComputeGroupGroup()
 void ComputeGroupGroup::init()
 {
   if (force->pair == NULL)
-    error->all("Compute group/group requires pair style be defined");
+    error->all("Compute group/group requires a pair style be defined");
   pair = force->pair;
   cutsq = force->pair->cutsq;
 
@@ -85,8 +83,7 @@ void ComputeGroupGroup::init_list(int id, NeighList *ptr)
 
 double ComputeGroupGroup::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
-  invoked |= INVOKED_VECTOR;
+  invoked_scalar = invoked_vector = update->ntimestep;
 
   interact();
   return scalar;
@@ -96,8 +93,7 @@ double ComputeGroupGroup::compute_scalar()
 
 void ComputeGroupGroup::compute_vector()
 {
-  invoked |= INVOKED_SCALAR;
-  invoked |= INVOKED_VECTOR;
+  invoked_scalar = invoked_vector = update->ntimestep;
 
   interact();
 }

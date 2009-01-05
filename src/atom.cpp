@@ -51,6 +51,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
+  extra_bond_per_atom = 0;
 
   firstgroupname = NULL;
 

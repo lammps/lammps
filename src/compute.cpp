@@ -66,8 +66,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   id_pre = NULL;
   timeflag = 0;
-  invoked = 0;
   comm_forward = comm_reverse = 0;
+
+  invoked_scalar = invoked_vector = invoked_peratom = -1;
 
   // set modify defaults
 
@@ -75,7 +76,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   dynamic = 0;
 
   // setup list of timesteps
-
+  
   ntime = maxtime = 0;
   tlist = NULL;
 }
@@ -174,4 +175,13 @@ int Compute::matchstep(int ntimestep)
     if (ntimestep > tlist[i]) ntime--;
   }
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   clean out list of timesteps to call the compute on
+------------------------------------------------------------------------- */
+
+void Compute::clearstep()
+{
+  ntime = 0;
 }

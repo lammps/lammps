@@ -245,7 +245,7 @@ void BondQuartic::init_style()
 
   if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0)
-    error->all("Must use special bonds = 1,1,1 with bond style quartic");
+    error->all("Bond style quartic requires special_bonds = 1,1,1");
 }
 
 /* ----------------------------------------------------------------------

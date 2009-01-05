@@ -43,10 +43,6 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
        CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY};
 
-#define INVOKED_SCALAR 1      // same as in computes
-#define INVOKED_VECTOR 2
-#define INVOKED_PERATOM 4
-
 /* ---------------------------------------------------------------------- */
 
 Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
@@ -643,15 +639,15 @@ double Variable::evaluate(char *str, Tree **tree)
 	char *id = new char[n];
 	strcpy(id,&word[2]);
 
-	if (update->first_update == 0)
-	  error->all("Compute in variable formula before initial run");
-
 	int icompute = modify->find_compute(id);
 	if (icompute < 0) error->all("Invalid compute ID in variable formula");
 	Compute *compute = modify->compute[icompute];
-
+	compute->invoked_flag = 1;
 	delete [] id;
 
+	if (domain->box_exist == 0)
+	  error->all("Variable evalulation before simulation box is defined");
+ 
 	// parse zero or one or two trailing brackets
 	// point i beyond last bracket
 	// nbracket = # of bracket pairs
@@ -674,9 +670,12 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	if (nbracket == 0 && compute->scalar_flag) {
 
-	  if (!(compute->invoked & INVOKED_SCALAR))
-	    value1 = compute->compute_scalar();
-	  else value1 = compute->scalar;
+	  if (compute->invoked_scalar != update->ntimestep) {
+	    if (update->whichflag < 0)
+	      error->all("Compute used in variable is not current");
+	    else compute->compute_scalar();
+	  }
+	  value1 = compute->scalar;
 	  if (tree) {
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
@@ -691,7 +690,11 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index1 > compute->size_vector)
 	      error->all("Compute vector in variable formula is too small");
-	  if (!(compute->invoked & INVOKED_VECTOR)) compute->compute_vector();
+	  if (compute->invoked_vector != update->ntimestep) {
+	    if (update->whichflag < 0)
+	      error->all("Compute used in variable is not current");
+	    else compute->compute_vector();
+	  }
 	  value1 = compute->vector[index1-1];
 	  if (tree) {
 	    Tree *newtree = new Tree();
@@ -708,8 +711,11 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (tree == NULL)
 	    error->all("Per-atom compute in equal-style variable formula");
-	  if (!(compute->invoked & INVOKED_PERATOM))
-	    compute->compute_peratom();
+	  if (compute->invoked_peratom != update->ntimestep) {
+	    if (update->whichflag < 0)
+	      error->all("Compute used in variable is not current");
+	    else compute->compute_peratom();
+	  }
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
 	  newtree->array = compute->scalar_atom;
@@ -722,8 +728,11 @@ double Variable::evaluate(char *str, Tree **tree)
 	} else if (nbracket == 1 && index1 > 0 && 
 		   compute->peratom_flag && compute->size_peratom == 0) {
 
-	  if (!(compute->invoked & INVOKED_PERATOM))
-	    compute->compute_peratom();
+	  if (compute->invoked_peratom != update->ntimestep) {
+	    if (update->whichflag < 0)
+	      error->all("Compute used in variable is not current");
+	    else compute->compute_peratom();
+	  }
 	  peratom2global(1,NULL,compute->scalar_atom,1,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
 
@@ -736,8 +745,11 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Per-atom compute in equal-style variable formula");
 	  if (index2 > compute->size_peratom)
 	    error->all("Compute vector in variable formula is too small");
-	  if (!(compute->invoked & INVOKED_PERATOM))
-	    compute->compute_peratom();
+	  if (compute->invoked_peratom != update->ntimestep) {
+	    if (update->whichflag < 0)
+	      error->all("Compute used in variable is not current");
+	    else compute->compute_peratom();
+	  }
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
 	  newtree->array = &compute->vector_atom[0][index2-1];
@@ -752,8 +764,11 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index2 > compute->size_peratom)
 	    error->all("Compute vector in variable formula is too small");
-	  if (!(compute->invoked & INVOKED_PERATOM))
-	    compute->compute_peratom();
+	  if (compute->invoked_peratom != update->ntimestep) {
+	    if (update->whichflag < 0)
+	      error->all("Compute used in variable is not current");
+	    else compute->compute_peratom();
+	  }
 	  peratom2global(1,NULL,&compute->vector_atom[0][index2-1],
 			 compute->size_peratom,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
@@ -769,15 +784,14 @@ double Variable::evaluate(char *str, Tree **tree)
 	char *id = new char[n];
 	strcpy(id,&word[2]);
 
-	if (update->first_update == 0)
-	  error->all("Fix in variable formula before initial run");
-
 	int ifix = modify->find_fix(id);
 	if (ifix < 0) error->all("Invalid fix ID in variable formula");
 	Fix *fix = modify->fix[ifix];
-
 	delete [] id;
 
+	if (domain->box_exist == 0)
+	  error->all("Variable evaluation before simulation box is defined");
+ 
 	// parse zero or one or two trailing brackets
 	// point i beyond last bracket
 	// nbracket = # of bracket pairs
@@ -800,7 +814,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	if (nbracket == 0 && fix->scalar_flag) {
 
-	  if (update->ntimestep % fix->scalar_vector_freq)
+	  if (update->whichflag >= 0 &&
+	      update->ntimestep % fix->scalar_vector_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  value1 = fix->compute_scalar();
 	  if (tree) {
@@ -817,7 +832,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index1 > fix->size_vector)
 	      error->all("Fix vector in variable formula is too small");
-	  if (update->ntimestep % fix->scalar_vector_freq)
+	  if (update->whichflag >= 0 && 
+	      update->ntimestep % fix->scalar_vector_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  value1 = fix->compute_vector(index1-1);
 	  if (tree) {
@@ -835,7 +851,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (tree == NULL)
 	    error->all("Per-atom fix in equal-style variable formula");
-	  if (update->ntimestep % fix->peratom_freq)
+	  if (update->whichflag >= 0 && 
+	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
@@ -849,7 +866,8 @@ double Variable::evaluate(char *str, Tree **tree)
 	} else if (nbracket == 1 && index1 > 0 && 
 		   fix->peratom_flag && fix->size_peratom == 0) {
 
-	  if (update->ntimestep % fix->peratom_freq)
+	  if (update->whichflag >= 0 && 
+	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  peratom2global(1,NULL,fix->scalar_atom,1,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
@@ -863,7 +881,8 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Per-atom fix in equal-style variable formula");
 	  if (index2 > fix->size_peratom)
 	    error->all("Fix vector in variable formula is too small");
-	  if (update->ntimestep % fix->peratom_freq)
+	  if (update->whichflag >= 0 && 
+	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
@@ -879,7 +898,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index2 > fix->size_peratom)
 	    error->all("Fix vector in variable formula is too small");
-	  if (update->ntimestep % fix->peratom_freq)
+	  if (update->whichflag >= 0 && 
+	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  peratom2global(1,NULL,&fix->vector_atom[0][index2-1],
 			 fix->size_peratom,index1,
@@ -984,6 +1004,9 @@ double Variable::evaluate(char *str, Tree **tree)
 	  i = int_between_brackets(str,i,id,1);
 	  i++;
 
+	  if (domain->box_exist == 0)
+	    error->all("Variable evaluation before simulation box is defined");
+ 
 	  // ID between brackets exists: atom value
 	  // empty brackets: atom vector
 
@@ -998,8 +1021,9 @@ double Variable::evaluate(char *str, Tree **tree)
 	// ----------------
 
 	} else {
-	  if (update->first_update == 0)
-	    error->all("Thermo keyword in variable formula before initial run");
+	  if (domain->box_exist == 0)
+	    error->all("Variable evaluation before simulation box is defined");
+ 
 	  int flag = output->thermo->evaluate_keyword(word,&value1);
 	  if (flag) error->all("Invalid thermo keyword in variable formula");
 	  if (tree) {

@@ -15,6 +15,7 @@
 #include "string.h"
 #include "compute_displace_atom.h"
 #include "atom.h"
+#include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -22,8 +23,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,7 +74,7 @@ void ComputeDisplaceAtom::init()
 
 void ComputeDisplaceAtom::compute_peratom()
 {
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
 
   // grow local displacement array if necessary
 

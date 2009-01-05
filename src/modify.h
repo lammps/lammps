@@ -22,9 +22,11 @@ namespace LAMMPS_NS {
 class Modify : protected Pointers {
  public:
   int nfix,maxfix;
-  int n_initial_integrate,n_pre_decide,n_pre_exchange,n_pre_neighbor;
-  int n_post_force,n_final_integrate,n_end_of_step,n_thermo_energy;
-  int n_initial_integrate_respa,n_post_force_respa,n_final_integrate_respa;
+  int n_initial_integrate,n_post_integrate,n_pre_exchange,n_pre_neighbor;
+  int n_pre_force,n_post_force;
+  int n_final_integrate,n_end_of_step,n_thermo_energy;
+  int n_initial_integrate_respa,n_post_integrate_respa;
+  int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
   int n_min_post_force,n_min_energy;
   int nfix_restart_peratom;
 
@@ -41,15 +43,19 @@ class Modify : protected Pointers {
   void init();
   void setup(int);
   void initial_integrate(int);
+  void post_integrate();
   void pre_decide();
   void pre_exchange();
   void pre_neighbor();
+  void pre_force(int);
   void post_force(int);
   void final_integrate();
   void end_of_step();
   double thermo_energy();
 
   void initial_integrate_respa(int,int,int);
+  void post_integrate_respa(int,int);
+  void pre_force_respa(int,int,int);
   void post_force_respa(int,int,int);
   void final_integrate_respa(int);
 
@@ -78,12 +84,13 @@ class Modify : protected Pointers {
   double memory_usage();
 
  private:
-                             // lists of fixes to apply at different times
-  int *list_initial_integrate,*list_pre_decide;
+                // lists of fixes to apply at different stages of timestep
+  int *list_initial_integrate,*list_post_integrate;
   int *list_pre_exchange,*list_pre_neighbor;
-  int *list_post_force,*list_final_integrate,*list_end_of_step;
-  int *list_thermo_energy;
-  int *list_initial_integrate_respa,*list_post_force_respa;
+  int *list_pre_force,*list_post_force;
+  int *list_final_integrate,*list_end_of_step,*list_thermo_energy;
+  int *list_initial_integrate_respa,*list_post_integrate_respa;
+  int *list_pre_force_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
   int *list_min_post_force,*list_min_energy;
 

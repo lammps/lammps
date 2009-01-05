@@ -36,37 +36,45 @@ using namespace LAMMPS_NS;
 
 // mask settings - same as in fix.cpp
 
-#define INITIAL_INTEGRATE  1
-#define PRE_EXCHANGE       2
-#define PRE_NEIGHBOR       4
-#define POST_FORCE         8
-#define FINAL_INTEGRATE   16
-#define END_OF_STEP       32
-#define THERMO_ENERGY     64
-#define INITIAL_INTEGRATE_RESPA 128
-#define POST_FORCE_RESPA        256
-#define FINAL_INTEGRATE_RESPA   512
-#define MIN_POST_FORCE         1024
-#define MIN_ENERGY             2048
+#define INITIAL_INTEGRATE   1
+#define POST_INTEGRATE      2
+#define PRE_EXCHANGE        4
+#define PRE_NEIGHBOR        8
+#define PRE_FORCE          16
+#define POST_FORCE         32
+#define FINAL_INTEGRATE    64
+#define END_OF_STEP       128
+#define THERMO_ENERGY     256
+#define INITIAL_INTEGRATE_RESPA   512
+#define POST_INTEGRATE_RESPA     1024
+#define PRE_FORCE_RESPA          2048
+#define POST_FORCE_RESPA         4096
+#define FINAL_INTEGRATE_RESPA    8192
+#define MIN_POST_FORCE          16384
+#define MIN_ENERGY              32768
 
 /* ---------------------------------------------------------------------- */
 
 Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 {
   nfix = maxfix = 0;
-  n_initial_integrate = 0;
+  n_initial_integrate = n_post_integrate = 0;
   n_pre_exchange = n_pre_neighbor = 0;
-  n_post_force = n_final_integrate = n_end_of_step = n_thermo_energy = 0;
-  n_initial_integrate_respa = n_post_force_respa = n_final_integrate_respa = 0;
+  n_pre_force = n_post_force = 0;
+  n_final_integrate = n_end_of_step = n_thermo_energy = 0;
+  n_initial_integrate_respa = n_post_integrate_respa = 0;
+  n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_post_force = n_min_energy = 0;
 
   fix = NULL;
   fmask = NULL;
-  list_initial_integrate = NULL;
+  list_initial_integrate = list_post_integrate = NULL;
   list_pre_exchange = list_pre_neighbor = NULL;
-  list_post_force = list_final_integrate = list_end_of_step = NULL;
+  list_pre_force = list_post_force = NULL;
+  list_final_integrate = list_end_of_step = NULL;
   list_thermo_energy = NULL;
-  list_initial_integrate_respa = list_post_force_respa = NULL;
+  list_initial_integrate_respa = list_post_integrate_respa = NULL;
+  list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
   list_min_post_force = list_min_energy = NULL;
 
@@ -101,13 +109,17 @@ Modify::~Modify()
   memory->sfree(compute);
 
   delete [] list_initial_integrate;
+  delete [] list_post_integrate;
   delete [] list_pre_exchange;
   delete [] list_pre_neighbor;
+  delete [] list_pre_force;
   delete [] list_post_force;
   delete [] list_final_integrate;
   delete [] list_end_of_step;
   delete [] list_thermo_energy;
   delete [] list_initial_integrate_respa;
+  delete [] list_post_integrate_respa;
+  delete [] list_pre_force_respa;
   delete [] list_post_force_respa;
   delete [] list_final_integrate_respa;
   delete [] list_min_post_force;
@@ -134,8 +146,10 @@ void Modify::init()
   // create lists of fixes to call at each stage of run
 
   list_init(INITIAL_INTEGRATE,n_initial_integrate,list_initial_integrate);
+  list_init(POST_INTEGRATE,n_post_integrate,list_post_integrate);
   list_init(PRE_EXCHANGE,n_pre_exchange,list_pre_exchange);
   list_init(PRE_NEIGHBOR,n_pre_neighbor,list_pre_neighbor);
+  list_init(PRE_FORCE,n_pre_force,list_pre_force);
   list_init(POST_FORCE,n_post_force,list_post_force);
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
@@ -143,8 +157,12 @@ void Modify::init()
 
   list_init(INITIAL_INTEGRATE_RESPA,
 	    n_initial_integrate_respa,list_initial_integrate_respa);
+  list_init(POST_INTEGRATE_RESPA,
+	    n_post_integrate_respa,list_post_integrate_respa);
   list_init(POST_FORCE_RESPA,
 	    n_post_force_respa,list_post_force_respa);
+  list_init(PRE_FORCE_RESPA,
+	    n_pre_force_respa,list_pre_force_respa);
   list_init(FINAL_INTEGRATE_RESPA,
 	    n_final_integrate_respa,list_final_integrate_respa);
 
@@ -161,9 +179,21 @@ void Modify::init()
   for (i = 0; i < nfix; i++) fix[i]->init();
 
   // init each compute
-  // add initial step to ALL computes that store invocation times
+  // reset their invoked flags
+  //   else may not be invoked on initial timestep of this run
+  //   if were invoked on last step of previous run
+  //   would be bad if state of system changed between runs
+  // add initial timestep to all computes that store invocation times
+  //   since any of them may be invoked by initial thermo
+  // do not clear stored invocation times within compute,
+  //   b/c some may be holdovers from previous run, like for ave fixes
 
-  for (i = 0; i < ncompute; i++) compute[i]->init();
+  for (i = 0; i < ncompute; i++) {
+    compute[i]->init();
+    compute[i]->invoked_scalar = -1;
+    compute[i]->invoked_vector = -1;
+    compute[i]->invoked_peratom = -1;
+  }
   modify->addstep_compute_all(update->ntimestep);
 
   // set global flag if any fix has its restart_pbc flag set
@@ -223,6 +253,16 @@ void Modify::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   post_integrate call only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::post_integrate()
+{
+  for (int i = 0; i < n_post_integrate; i++)
+    fix[list_post_integrate[i]]->post_integrate();
+}
+
+/* ----------------------------------------------------------------------
    pre_exchange call only for relevant fixes
 ------------------------------------------------------------------------- */
 
@@ -243,7 +283,17 @@ void Modify::pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-   force adjustment call only for relevant fixes
+   pre_force call only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::pre_force(int vflag)
+{
+  for (int i = 0; i < n_pre_force; i++)
+    fix[list_pre_force[i]]->pre_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   post_force call only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::post_force(int vflag)
@@ -300,7 +350,27 @@ void Modify::initial_integrate_respa(int vflag, int ilevel, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   rRESPA force adjustment call only for relevant fixes
+   rRESPA post_integrate call only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::post_integrate_respa(int ilevel, int flag)
+{
+  for (int i = 0; i < n_post_integrate_respa; i++)
+    fix[list_post_integrate_respa[i]]->post_integrate_respa(ilevel,flag);
+}
+
+/* ----------------------------------------------------------------------
+   rRESPA pre_force call only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
+{
+  for (int i = 0; i < n_pre_force_respa; i++)
+    fix[list_pre_force_respa[i]]->pre_force_respa(vflag,ilevel,iloop);
+}
+
+/* ----------------------------------------------------------------------
+   rRESPA post_force call only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::post_force_respa(int vflag, int ilevel, int iloop)
@@ -614,39 +684,40 @@ int Modify::find_compute(char *id)
 }
 
 /* ----------------------------------------------------------------------
-   clear invoked flag of all computes
-   always called before computes are invoked
+   loop only over computes that store invocation times
+   clear their invoked flag for this step
+   called before computes are invoked
 ------------------------------------------------------------------------- */
 
 void Modify::clearstep_compute()
 {
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    compute[icompute]->invoked = 0;
+  for (int icompute = 0; icompute < n_timeflag; icompute++)
+    compute[list_timeflag[icompute]]->invoked_flag = 0;
 }
 
 /* ----------------------------------------------------------------------
    loop only over computes that store invocation times
-   if it was invoked, schedule the next invocation
-   always called after computes are invoked
+   if its invoked flag set on this timestep, schedule the next invocation
+   called after computes are invoked
 ------------------------------------------------------------------------- */
 
-void Modify::addstep_compute(int ntimestep)
+void Modify::addstep_compute(int newstep)
 {
   for (int icompute = 0; icompute < n_timeflag; icompute++)
-    if (compute[list_timeflag[icompute]]->invoked)
-      compute[list_timeflag[icompute]]->addstep(ntimestep);
+    if (compute[list_timeflag[icompute]]->invoked_flag)
+      compute[list_timeflag[icompute]]->addstep(newstep);
 }
 
 /* ----------------------------------------------------------------------
-   loop only all computes
+   loop over all computes
    schedule the next invocation for those that store invocation times
+   called when not sure what computes will be needed on newstep
 ------------------------------------------------------------------------- */
 
-void Modify::addstep_compute_all(int ntimestep)
+void Modify::addstep_compute_all(int newstep)
 {
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (compute[icompute]->timeflag)
-      compute[icompute]->addstep(ntimestep);
+  for (int icompute = 0; icompute < n_timeflag; icompute++)
+    compute[list_timeflag[icompute]]->addstep(newstep);
 }
 
 /* ----------------------------------------------------------------------

@@ -54,6 +54,7 @@ class Force : protected Pointers {
   double special_coul[4];    // 1-2, 1-3, 1-4 prefactors for Coulombics
   int special_dihedral;      // 0 if defined dihedrals are ignored
                              // 1 if only weight 1,4 atoms if in a dihedral
+  int special_extra;         // extra space for added bonds
 
   Force(class LAMMPS *);
   ~Force();

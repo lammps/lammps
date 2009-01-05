@@ -619,11 +619,13 @@ void Special::combine()
   }
 
   // compute global maxspecial, must be at least 1
+  // add in extra factor from special_bonds command
   // allocate correct special array with same nmax, new maxspecial
   // previously allocated one must be destroyed
-  // must force AtomVec class to update its ptr to special
+  // must make AtomVec class update its ptr to special
 
   MPI_Allreduce(&maxspecial,&atom->maxspecial,1,MPI_INT,MPI_MAX,world);
+  atom->maxspecial += force->special_extra;
   atom->maxspecial = MAX(atom->maxspecial,1);
 
   if (me == 0) {
@@ -694,7 +696,7 @@ void Special::combine()
 
 /* ----------------------------------------------------------------------
    trim list of 1-4 neighbors by checking defined dihedrals
-   delete a 1-4 neigh if those atoms are not end points of a defined dihedral
+   delete a 1-4 neigh if they are not end atoms of a defined dihedral
 ------------------------------------------------------------------------- */
 
 void Special::dihedral_trim()
@@ -826,15 +828,6 @@ void Special::dihedral_trim()
   // if no dihedrals are defined, delete all 1-4 neighs
 
   } else for (i = 0; i < nlocal; i++) nspecial[i][2] = nspecial[i][1];
-
-  // reset atom->maxspecial
-
-  int maxspecial = 0;
-  for (i = 0; i < nlocal; i++)
-    maxspecial = MAX(maxspecial,nspecial[i][2]);
-
-  MPI_Allreduce(&maxspecial,&atom->maxspecial,1,MPI_INT,MPI_MAX,world);
-  atom->maxspecial = MAX(atom->maxspecial,1);
 
   // stats on new 1-4 neighbor counts
 

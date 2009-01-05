@@ -170,8 +170,8 @@ void MinCG::run()
   // set output->next values to this timestep
   // call eng_force to insure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
-  // add ntimestep to ALL computes that store invocation times
-  //   since just hardwired call to thermo/dumps and they may not be ready
+  // add ntimestep to all computes that store invocation times
+  //   since just hardwired call to thermo/dumps and computes may not be ready
 
   if (niter < update->nsteps) {
     niter++;

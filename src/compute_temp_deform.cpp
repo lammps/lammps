@@ -20,6 +20,7 @@
 #include "compute_temp_deform.h"
 #include "domain.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
@@ -31,8 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 /* ---------------------------------------------------------------------- */
@@ -103,7 +102,7 @@ double ComputeTempDeform::compute_scalar()
 {
   double lamda[3],vstream[3],vthermal[3];
 
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -152,7 +151,7 @@ void ComputeTempDeform::compute_vector()
 {
   double lamda[3],vstream[3],vthermal[3];
 
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
 
   double **x = atom->x;
   double **v = atom->v;

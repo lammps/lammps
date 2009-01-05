@@ -69,7 +69,7 @@ void PairGranHistory::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
-  double radi,radj,radsum,rsq,r,rinv;
+  double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
@@ -135,6 +135,8 @@ void PairGranHistory::compute(int eflag, int vflag)
 
       } else {
 	r = sqrt(rsq);
+	rinv = 1.0/r;
+	rsqinv = 1.0/rsq;
 
 	// relative translational velocity
 
@@ -142,16 +144,12 @@ void PairGranHistory::compute(int eflag, int vflag)
 	vr2 = v[i][1] - v[j][1];
 	vr3 = v[i][2] - v[j][2];
 
- 	vr1 *= dt;
- 	vr2 *= dt;
- 	vr3 *= dt;
-
 	// normal component
 
 	vnnr = vr1*delx + vr2*dely + vr3*delz;
-	vn1 = delx*vnnr / rsq;
-	vn2 = dely*vnnr / rsq;
-	vn3 = delz*vnnr / rsq;
+	vn1 = delx*vnnr * rsqinv;
+	vn2 = dely*vnnr * rsqinv;
+	vn3 = delz*vnnr * rsqinv;
 
 	// tangential component
 
@@ -161,22 +159,17 @@ void PairGranHistory::compute(int eflag, int vflag)
 
 	// relative rotational velocity
 
-	wr1 = radi*omega[i][0] + radj*omega[j][0];
-	wr2 = radi*omega[i][1] + radj*omega[j][1];
-	wr3 = radi*omega[i][2] + radj*omega[j][2];
+	wr1 = (radi*omega[i][0] + radj*omega[j][0]) * rinv;
+	wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
+	wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-	wr1 *= dt/r;
-	wr2 *= dt/r;
-	wr3 *= dt/r;
-
-	// normal damping term
-	// this definition of DAMP includes the extra 1/r term
+	// normal forces = Hookian contact + normal velocity damping
 
 	xmeff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
 	if (mask[i] & freeze_group_bit) xmeff = rmass[j];
 	if (mask[j] & freeze_group_bit) xmeff = rmass[i];
-	damp = xmeff*gamman_dl*vnnr/rsq;
-	ccel = xkk*(radsum-r)/r - damp;
+	damp = xmeff*gamman*vnnr*rsqinv;
+	ccel = xkk*(radsum-r)*rinv - damp;
 
 	// relative velocities
 
@@ -187,31 +180,29 @@ void PairGranHistory::compute(int eflag, int vflag)
 	vrel = sqrt(vrel);
 
 	// shear history effects
-	// shrmag = magnitude of shear
 
 	touch[jj] = 1;
 	shear = &allshear[3*jj];
-        shear[0] += vtr1;
-        shear[1] += vtr2;
-        shear[2] += vtr3;
+        shear[0] += vtr1*dt;
+        shear[1] += vtr2*dt;
+        shear[2] += vtr3*dt;
         shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
 		      shear[2]*shear[2]);
 
-	// rotate shear displacements correctly
+	// rotate shear displacements
 
 	rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
-	rsht /= rsq;
+	rsht *= rsqinv;
         shear[0] -= rsht*delx;
         shear[1] -= rsht*dely;
         shear[2] -= rsht*delz;
 
-	// tangential forces
+	// tangential forces = shear + tangential velocity damping
 
-	fs1 = - (xkkt*shear[0] + xmeff*gammas_dl*vtr1);
-	fs2 = - (xkkt*shear[1] + xmeff*gammas_dl*vtr2);
-	fs3 = - (xkkt*shear[2] + xmeff*gammas_dl*vtr3);
+	fs1 = - (xkkt*shear[0] + xmeff*gammas*vtr1);
+	fs2 = - (xkkt*shear[1] + xmeff*gammas*vtr2);
+	fs3 = - (xkkt*shear[2] + xmeff*gammas*vtr3);
 
-	// force normalization
 	// rescale frictional displacements and forces if needed
 
 	fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
@@ -219,12 +210,12 @@ void PairGranHistory::compute(int eflag, int vflag)
 
 	if (fs > fn) {
 	  if (shrmag != 0.0) {
-	    shear[0] = (fn/fs) * (shear[0] + xmeff*gammas_dl*vtr1/xkkt) -
-	      xmeff*gammas_dl*vtr1/xkkt;
-	    shear[1] = (fn/fs) * (shear[1] + xmeff*gammas_dl*vtr2/xkkt) -
-	      xmeff*gammas_dl*vtr2/xkkt;
-	    shear[2] = (fn/fs) * (shear[2] + xmeff*gammas_dl*vtr3/xkkt) -
-	      xmeff*gammas_dl*vtr3/xkkt;
+	    shear[0] = (fn/fs) * (shear[0] + xmeff*gammas*vtr1/xkkt) -
+	      xmeff*gammas*vtr1/xkkt;
+	    shear[1] = (fn/fs) * (shear[1] + xmeff*gammas*vtr2/xkkt) -
+	      xmeff*gammas*vtr2/xkkt;
+	    shear[2] = (fn/fs) * (shear[2] + xmeff*gammas*vtr3/xkkt) -
+	      xmeff*gammas*vtr3/xkkt;
 	    fs1 *= fn/fs;
 	    fs2 *= fn/fs;
 	    fs3 *= fn/fs;
@@ -244,7 +235,6 @@ void PairGranHistory::compute(int eflag, int vflag)
 	f[i][1] += fy;
 	f[i][2] += fz;
 
-	rinv = 1/r;
 	tor1 = rinv * (dely*fs3 - delz*fs2);
 	tor2 = rinv * (delz*fs1 - delx*fs3);
 	tor3 = rinv * (delx*fs2 - dely*fs1);
@@ -297,15 +287,6 @@ void PairGranHistory::settings(int narg, char **arg)
   gamman = atof(arg[1]);
   xmu = atof(arg[2]);
   dampflag = atoi(arg[3]);
-
-  // granular styles do not use pair_coeff, so set setflag for everything now
-
-  if (!allocated) allocate();
-
-  int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
-    for (j = i; j <= atom->ntypes; j++)
-      setflag[i][j] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -314,7 +295,22 @@ void PairGranHistory::settings(int narg, char **arg)
 
 void PairGranHistory::coeff(int narg, char **arg)
 {
-  error->all("Granular pair styles do not use pair_coeff settings");
+  if (narg > 2) error->all("Incorrect args for pair coefficients");
+  if (!allocated) allocate();
+
+  int ilo,ihi,jlo,jhi;
+  force->bounds(arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all("Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -344,11 +340,9 @@ void PairGranHistory::init_style()
   }
 
   xkkt = xkk * 2.0/7.0;
-  dt = update->dt;
   double gammas = 0.5*gamman;
   if (dampflag == 0) gammas = 0.0;
-  gamman_dl = gamman/dt;
-  gammas_dl = gammas/dt;
+  dt = update->dt;
 
   // if shear history is stored:
   // check if newton flag is valid
@@ -512,8 +506,4 @@ void *PairGranHistory::extract(char *str)
 void PairGranHistory::reset_dt()
 {
   dt = update->dt;
-  double gammas = 0.5*gamman;
-  if (dampflag == 0) gammas = 0.0;
-  gamman_dl = gamman/dt;
-  gammas_dl = gammas/dt;
 }

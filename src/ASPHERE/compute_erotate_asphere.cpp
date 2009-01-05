@@ -15,13 +15,12 @@
 #include "compute_erotate_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,7 +62,7 @@ void ComputeERotateAsphere::init()
 
 double ComputeERotateAsphere::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **quat = atom->quat;
   double **angmom = atom->angmom;

@@ -14,8 +14,8 @@
 #include "string.h"
 #include "compute_centro_atom.h"
 #include "atom.h"
-#include "modify.h"
 #include "update.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -26,8 +26,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,6 +57,9 @@ ComputeCentroAtom::~ComputeCentroAtom()
 
 void ComputeCentroAtom::init()
 {
+  if (force->pair == NULL) 
+    error->all("Compute centro/atom requires a pair style be defined");
+
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"centro/atom") == 0) count++;
@@ -91,7 +92,7 @@ void ComputeCentroAtom::compute_peratom()
   int *ilist,*jlist,*numneigh,**firstneigh;
   double pairs[66];
 
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
 
   // grow centro array if necessary
 

@@ -40,6 +40,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all("Illegal fix langevin command");
 
+  time_depend = 1;
+
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
   t_period = atof(arg[5]);

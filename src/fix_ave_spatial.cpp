@@ -38,7 +38,6 @@ enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
 
 #define BIG 1000000000
-#define INVOKED_PERATOM 4      // same as in computes
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,6 +49,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
 
   no_change_box = 1;
+  time_depend = 1;
 
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
@@ -150,7 +150,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   normflag = ALL;
-  scaleflag = BOX;
+  scaleflag = LATTICE;
   fp = NULL;
   ave = ONE;
 
@@ -315,9 +315,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
 
-  // add nvalid to ALL computes that store invocation times
+  // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
-  // once in end_of_step() can just set timestep for ones actually invoked
+  // once in end_of_step() can set timestep for ones actually invoked
 
   modify->addstep_compute_all(nvalid);
 }
@@ -417,7 +417,8 @@ void FixAveSpatial::end_of_step()
 
   // skip if not step which requires doing something
 
-  if (update->ntimestep != nvalid) return;
+  int ntimestep = update->ntimestep;
+  if (ntimestep != nvalid) return;
 
   // if computing the first sample, setup layers
   // compute current origin = boundary for some layer
@@ -621,7 +622,8 @@ void FixAveSpatial::end_of_step()
 
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (!(compute->invoked & INVOKED_PERATOM)) compute->compute_peratom();
+      if (compute->invoked_peratom != ntimestep) compute->compute_peratom();
+      compute->invoked_flag = 1;
       double *scalar = compute->scalar_atom;
       double **vector = compute->vector_atom;
       int jm1 = j - 1;
@@ -699,7 +701,7 @@ void FixAveSpatial::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // time average across samples
@@ -782,7 +784,7 @@ void FixAveSpatial::end_of_step()
   // output result to file
   
   if (fp && me == 0) {
-    fprintf(fp,"%d %d\n",update->ntimestep,nlayers);
+    fprintf(fp,"%d %d\n",ntimestep,nlayers);
     for (m = 0; m < nlayers; m++) {
       fprintf(fp,"  %d %g %g",m+1,coord[m],count_total[m]/norm);
       for (i = 0; i < nvalues; i++) fprintf(fp," %g",values_total[m][i]/norm);
@@ -803,6 +805,7 @@ double FixAveSpatial::compute_vector(int n)
   int ivalue = n % nvalues;
   int ilayer = n / nvalues;
   if (ilayer >= nlayers) return 0.0;
+  if (values_total == NULL) return 0.0;
   return values_total[ilayer][ivalue]/norm;
 }
 

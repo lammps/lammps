@@ -60,7 +60,6 @@ class Thermo : protected Pointers {
   int ivalue;            // integer value to print
   double dvalue,natoms;  // dvalue = double value to print
   int ifield;            // which field in thermo output is being computed
-  int thermoflag;        // 1 when called by compute(), 0 from variable eval
   int *field2index;      // which compute,fix,variable calcs this field
   int *argindex;         // index into compute,fix scalar,vector
 

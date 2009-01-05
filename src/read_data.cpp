@@ -38,6 +38,8 @@ using namespace LAMMPS_NS;
 #define CHUNK 1024
 #define DELTA 4
 
+#define NSECTIONS 22       // change when add to header::section_keywords
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -82,14 +84,17 @@ void ReadData::command(int narg, char **arg)
       if (screen) fprintf(screen,"Scanning data file ...\n");
       open(arg[0]);
       header(0);
-      scan(&atom->bond_per_atom,&atom->angle_per_atom,
-	   &atom->dihedral_per_atom,&atom->improper_per_atom);
+      scan(atom->bond_per_atom,atom->angle_per_atom,
+	   atom->dihedral_per_atom,atom->improper_per_atom);
       fclose(fp);
+      atom->bond_per_atom += atom->extra_bond_per_atom;
     }
+
     MPI_Bcast(&atom->bond_per_atom,1,MPI_INT,0,world);
     MPI_Bcast(&atom->angle_per_atom,1,MPI_INT,0,world);
     MPI_Bcast(&atom->dihedral_per_atom,1,MPI_INT,0,world);
     MPI_Bcast(&atom->improper_per_atom,1,MPI_INT,0,world);
+
   } else
     atom->bond_per_atom = atom->angle_per_atom =
       atom->dihedral_per_atom = atom->improper_per_atom = 0;
@@ -122,9 +127,9 @@ void ReadData::command(int narg, char **arg)
   domain->set_local_box();
 
   // read rest of file in free format
+  // if add a section keyword, add to header::section_keywords and NSECTIONS
 
   int atomflag = 0;
-  parse_keyword(1,1);
 
   while (strlen(keyword)) {
     if (strcmp(keyword,"Atoms") == 0) {
@@ -242,7 +247,7 @@ void ReadData::command(int narg, char **arg)
 
     } else {
       char str[128];
-      sprintf(str,"Unknown section in data file: %s",keyword);
+      sprintf(str,"Unknown identifier in data file: %s",keyword);
       error->all(str);
     }
 
@@ -281,6 +286,15 @@ void ReadData::header(int flag)
   int n;
   char *ptr;
 
+  char *section_keywords[NSECTIONS] = 
+    {"Atoms","Velocities","Bonds","Angles","Dihedrals","Impropers",
+     "Masses","Shapes","Dipoles",
+     "Pair Coeffs","Bond Coeffs","Angle Coeffs",
+     "Dihedral Coeffs","Improper Coeffs",
+     "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
+     "EndBondTorsion Coeffs","AngleTorsion Coeffs",
+     "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs"};
+  
   // skip 1st line of file
 
   if (me == 0) {
@@ -322,6 +336,7 @@ void ReadData::header(int flag)
     else if (strstr(line,"angles")) sscanf(line,"%d",&atom->nangles);
     else if (strstr(line,"dihedrals")) sscanf(line,"%d",&atom->ndihedrals);
     else if (strstr(line,"impropers")) sscanf(line,"%d",&atom->nimpropers);
+
     else if (strstr(line,"atom types")) sscanf(line,"%d",&atom->ntypes);
     else if (strstr(line,"bond types")) sscanf(line,"%d",&atom->nbondtypes);
     else if (strstr(line,"angle types")) sscanf(line,"%d",&atom->nangletypes);
@@ -329,6 +344,10 @@ void ReadData::header(int flag)
       sscanf(line,"%d",&atom->ndihedraltypes);
     else if (strstr(line,"improper types")) 
       sscanf(line,"%d",&atom->nimpropertypes);
+
+    else if (strstr(line,"extra bond per atom"))
+      sscanf(line,"%d",&atom->extra_bond_per_atom);
+
     else if (strstr(line,"xlo xhi")) 
       sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);
     else if (strstr(line,"ylo yhi")) 
@@ -339,6 +358,17 @@ void ReadData::header(int flag)
       domain->triclinic = 1;
       sscanf(line,"%lg %lg %lg",&domain->xy,&domain->xz,&domain->yz);
     } else break;
+  }
+
+  // check that exiting string is a valid section keyword
+
+  parse_keyword(1,flag);
+  for (n = 0; n < NSECTIONS; n++)
+    if (strcmp(keyword,section_keywords[n]) == 0) break;
+  if (n == NSECTIONS) {
+    char str[128];
+    sprintf(str,"Unknown identifier in data file: %s",keyword);
+    error->all(str);
   }
 
   // error check on consistency of header values
@@ -914,15 +944,14 @@ void ReadData::impropercoeffs(int which)
    proc 0 scans the data file for topology maximums 
 ------------------------------------------------------------------------- */
 
-void ReadData::scan(int *pbond_per, int *pangle_per,
-		    int *pdihedral_per, int *pimproper_per)
+void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
+		    int &dihedral_per_atom, int &improper_per_atom)
 {
   int i,tmp1,tmp2,atom1,atom2,atom3,atom4;
-  int bond_per,angle_per,dihedral_per,improper_per;
   char *eof;
 
   int natoms = static_cast<int> (atom->natoms);
-  bond_per = angle_per = dihedral_per = improper_per = 0;
+  bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
 
   // allocate topology counting vector
   // initially, array length = 1 to natoms
@@ -930,8 +959,6 @@ void ReadData::scan(int *pbond_per, int *pangle_per,
 
   int cmax = natoms + 1;
   int *count = (int *) memory->smalloc(cmax*sizeof(int),"read_data:count");
-
-  parse_keyword(1,0);
 
   while (strlen(keyword)) {
 
@@ -1050,9 +1077,9 @@ void ReadData::scan(int *pbond_per, int *pangle_per,
 	  count[atom1]++;
 	  count[atom2]++;
 	}
-      for (i = 1; i < cmax; i++) bond_per = MAX(bond_per,count[i]);
-      if (screen) fprintf(screen,"  %d = max bonds/atom\n",bond_per);
-      if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",bond_per);
+      for (i = 1; i < cmax; i++) bond_per_atom = MAX(bond_per_atom,count[i]);
+      if (screen) fprintf(screen,"  %d = max bonds/atom\n",bond_per_atom);
+      if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",bond_per_atom);
 
     } else if (strcmp(keyword,"Angles") == 0) {
 
@@ -1077,9 +1104,9 @@ void ReadData::scan(int *pbond_per, int *pangle_per,
 	  count[atom2]++;
 	  count[atom3]++;
 	}
-      for (i = 1; i < cmax; i++) angle_per = MAX(angle_per,count[i]);
-      if (screen) fprintf(screen,"  %d = max angles/atom\n",angle_per);
-      if (logfile) fprintf(logfile,"  %d = max angles/atom\n",angle_per);
+      for (i = 1; i < cmax; i++) angle_per_atom = MAX(angle_per_atom,count[i]);
+      if (screen) fprintf(screen,"  %d = max angles/atom\n",angle_per_atom);
+      if (logfile) fprintf(logfile,"  %d = max angles/atom\n",angle_per_atom);
 
     } else if (strcmp(keyword,"Dihedrals") == 0) {
 
@@ -1108,11 +1135,12 @@ void ReadData::scan(int *pbond_per, int *pangle_per,
 	  count[atom3]++;
 	  count[atom4]++;
 	}
-      for (i = 1; i < cmax; i++) dihedral_per = MAX(dihedral_per,count[i]);
+      for (i = 1; i < cmax; i++) 
+	dihedral_per_atom = MAX(dihedral_per_atom,count[i]);
       if (screen) 
-	fprintf(screen,"  %d = max dihedrals/atom\n",dihedral_per);
+	fprintf(screen,"  %d = max dihedrals/atom\n",dihedral_per_atom);
       if (logfile) 
-	fprintf(logfile,"  %d = max dihedrals/atom\n",dihedral_per);
+	fprintf(logfile,"  %d = max dihedrals/atom\n",dihedral_per_atom);
 
     } else if (strcmp(keyword,"Impropers") == 0) {
       for (i = 1; i < cmax; i++) count[i] = 0;
@@ -1140,11 +1168,12 @@ void ReadData::scan(int *pbond_per, int *pangle_per,
 	  count[atom3]++;
 	  count[atom4]++;
 	}
-      for (i = 1; i < cmax; i++) improper_per = MAX(improper_per,count[i]);
+      for (i = 1; i < cmax; i++)
+	improper_per_atom = MAX(improper_per_atom,count[i]);
       if (screen) 
-	fprintf(screen,"  %d = max impropers/atom\n",improper_per);
+	fprintf(screen,"  %d = max impropers/atom\n",improper_per_atom);
       if (logfile) 
-	fprintf(logfile,"  %d = max impropers/atom\n",improper_per);
+	fprintf(logfile,"  %d = max impropers/atom\n",improper_per_atom);
 
     } else {
       char str[128];
@@ -1161,17 +1190,11 @@ void ReadData::scan(int *pbond_per, int *pangle_per,
 
   // error check that topology was specified in file
 
-  if ((atom->nbonds && !bond_per) || (atom->nangles && !angle_per) ||
-      (atom->ndihedrals && !dihedral_per) ||
-      (atom->nimpropers && !improper_per)) 
+  if ((atom->nbonds && !bond_per_atom) ||
+      (atom->nangles && !angle_per_atom) ||
+      (atom->ndihedrals && !dihedral_per_atom) ||
+      (atom->nimpropers && !improper_per_atom)) 
     error->one("Needed topology not in data file");
-
-  // return values
-
-  *pbond_per = bond_per;
-  *pangle_per = angle_per;
-  *pdihedral_per = dihedral_per;
-  *pimproper_per = improper_per;
 }
 
 /* ----------------------------------------------------------------------

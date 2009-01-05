@@ -43,6 +43,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all("Illegal fix dt/reset command");
 
+  time_depend = 1;
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 1;

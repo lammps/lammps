@@ -45,6 +45,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all("Illegal fix wall/gran command");
 
+  time_depend = 1;
+
   if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Fix wall/gran requires atom attributes radius, omega, torque");
 
@@ -199,10 +201,8 @@ void FixWallGran::init()
   // same initialization as in pair_gran_history::init_style()
 
   xkkt = xkk * 2.0/7.0;
-  dt = update->dt;
   double gammas = 0.5*gamman;
-  gamman_dl = gamman/dt;
-  gammas_dl = gammas/dt;
+  dt = update->dt;
 
   // set pairstyle from granular pair style
 
@@ -324,9 +324,11 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,xmeff,damp,ccel,vtr1,vtr2,vtr3,vrel;
-  double fn,fs,ft,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3,rinv;
+  double fn,fs,ft,fs1,fs2,fs3,fx,fy,fz,tor1,tor2,tor3,rinv,rsqinv;
 
   r = sqrt(rsq);
+  rinv = 1.0/r;
+  rsqinv = 1.0/rsq;
 
   // relative translational velocity
 
@@ -334,16 +336,12 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
   vr2 = v[1] - vwall[1];
   vr3 = v[2] - vwall[2];
 
-  vr1 *= dt;
-  vr2 *= dt;
-  vr3 *= dt;
-
   // normal component
 
   vnnr = vr1*dx + vr2*dy + vr3*dz;
-  vn1 = dx*vnnr / rsq;
-  vn2 = dy*vnnr / rsq;
-  vn3 = dz*vnnr / rsq;
+  vn1 = dx*vnnr * rsqinv;
+  vn2 = dy*vnnr * rsqinv;
+  vn3 = dz*vnnr * rsqinv;
 
   // tangential component
 
@@ -353,20 +351,15 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
 
   // relative rotational velocity
 
-  wr1 = radius*omega[0];
-  wr2 = radius*omega[1];
-  wr3 = radius*omega[2];
+  wr1 = radius*omega[0] * rinv;
+  wr2 = radius*omega[1] * rinv;
+  wr3 = radius*omega[2] * rinv;
 
-  wr1 *= dt/r;
-  wr2 *= dt/r;
-  wr3 *= dt/r;
-
-  // normal damping term
-  // this definition of DAMP includes the extra 1/r term
+  // normal forces = Hookian contact + normal velocity damping
 
   xmeff = mass;
-  damp = xmeff*gamman_dl*vnnr/rsq;
-  ccel = xkk*(radius-r)/r - damp;
+  damp = xmeff*gamman*vnnr*rsqinv;
+  ccel = xkk*(radius-r)*rinv - damp;
 
   // relative velocities
 
@@ -379,31 +372,26 @@ void FixWallGran::no_history(double rsq, double dx, double dy, double dz,
   // force normalization
 
   fn = xmu * fabs(ccel*r);
-  fs = xmeff*gammas_dl*vrel;
+  fs = xmeff*gammas*vrel;
   if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
   else ft = 0.0;
 
-  // shear friction forces
+  // tangential force due to tangential velocity damping
 
   fs1 = -ft*vtr1;
   fs2 = -ft*vtr2;
   fs3 = -ft*vtr3;
 
-  // force components
+  // forces & torques
 
-  ccelx = dx*ccel + fs1;
-  ccely = dy*ccel + fs2;
-  ccelz = dz*ccel + fs3;
+  fx = dx*ccel + fs1;
+  fy = dy*ccel + fs2;
+  fz = dz*ccel + fs3;
 
-  // forces
+  f[0] += fx;
+  f[1] += fy;
+  f[2] += fz;
 
-  f[0] += ccelx;
-  f[1] += ccely;
-  f[2] += ccelz;
-
-  // torques
-
-  rinv = 1/r;
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -421,10 +409,12 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,xmeff,damp,ccel,vtr1,vtr2,vtr3,vrel;
-  double fn,fs,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3;
-  double shrmag,rsht,rinv;
+  double fn,fs,fs1,fs2,fs3,fx,fy,fz,tor1,tor2,tor3;
+  double shrmag,rsht,rinv,rsqinv;
 
   r = sqrt(rsq);
+  rinv = 1.0/r;
+  rsqinv = 1.0/rsq;
 
   // relative translational velocity
 
@@ -432,16 +422,12 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
   vr2 = v[1] - vwall[1];
   vr3 = v[2] - vwall[2];
 
-  vr1 *= dt;
-  vr2 *= dt;
-  vr3 *= dt;
-
   // normal component
 
   vnnr = vr1*dx + vr2*dy + vr3*dz;
-  vn1 = dx*vnnr / rsq;
-  vn2 = dy*vnnr / rsq;
-  vn3 = dz*vnnr / rsq;
+  vn1 = dx*vnnr * rsqinv;
+  vn2 = dy*vnnr * rsqinv;
+  vn3 = dz*vnnr * rsqinv;
 
   // tangential component
 
@@ -451,20 +437,15 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
 
   // relative rotational velocity
 
-  wr1 = radius*omega[0];
-  wr2 = radius*omega[1];
-  wr3 = radius*omega[2];
+  wr1 = radius*omega[0] * rinv;
+  wr2 = radius*omega[1] * rinv;
+  wr3 = radius*omega[2] * rinv;
 
-  wr1 *= dt/r;
-  wr2 *= dt/r;
-  wr3 *= dt/r;
-
-  // normal damping term
-  // this definition of DAMP includes the extra 1/r term
+  // normal forces = Hookian contact + normal velocity damping
 
   xmeff = mass;
-  damp = xmeff*gamman_dl*vnnr/rsq;
-  ccel = xkk*(radius-r)/r - damp;
+  damp = xmeff*gamman*vnnr*rsqinv;
+  ccel = xkk*(radius-r)*rinv - damp;
 
   // relative velocities
 
@@ -476,60 +457,54 @@ void FixWallGran::history(double rsq, double dx, double dy, double dz,
 
   // shear history effects
 
-  shear[0] += vtr1;
-  shear[1] += vtr2;
-  shear[2] += vtr3;
+  shear[0] += vtr1*dt;
+  shear[1] += vtr2*dt;
+  shear[2] += vtr3*dt;
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + shear[2]*shear[2]);
 
-  // rotate shear displacements correctly
+  // rotate shear displacements
 
   rsht = shear[0]*dx + shear[1]*dy + shear[2]*dz;
-  rsht = rsht/rsq;
+  rsht = rsht*rsqinv;
   shear[0] -= rsht*dx;
   shear[1] -= rsht*dy;
   shear[2] -= rsht*dz;
 
-  // tangential forces
+  // tangential forces = shear + tangential velocity damping
 
-  fs1 = - (xkkt*shear[0] + xmeff*gammas_dl*vtr1);
-  fs2 = - (xkkt*shear[1] + xmeff*gammas_dl*vtr2);
-  fs3 = - (xkkt*shear[2] + xmeff*gammas_dl*vtr3);
+  fs1 = - (xkkt*shear[0] + xmeff*gammas*vtr1);
+  fs2 = - (xkkt*shear[1] + xmeff*gammas*vtr2);
+  fs3 = - (xkkt*shear[2] + xmeff*gammas*vtr3);
 
-  // force normalization
+  // rescale frictional displacements and forces if needed
 
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
   fn = xmu * fabs(ccel*r);
 
-  // shrmag is magnitude of shearwall
-  // rescale frictional displacements and forces if needed
-
   if (fs > fn) {
     if (shrmag != 0.0) {
-      shear[0] = (fn/fs) * (shear[0] + xmeff*gammas_dl*vtr1/xkkt) - 
-	xmeff*gammas_dl*vtr1/xkkt;
-      shear[1] = (fn/fs) * (shear[1] + xmeff*gammas_dl*vtr2/xkkt) -
-	xmeff*gammas_dl*vtr2/xkkt;
-      shear[2] = (fn/fs) * (shear[2] + xmeff*gammas_dl*vtr3/xkkt) -
-	xmeff*gammas_dl*vtr3/xkkt;
+      shear[0] = (fn/fs) * (shear[0] + xmeff*gammas*vtr1/xkkt) - 
+	xmeff*gammas*vtr1/xkkt;
+      shear[1] = (fn/fs) * (shear[1] + xmeff*gammas*vtr2/xkkt) -
+	xmeff*gammas*vtr2/xkkt;
+      shear[2] = (fn/fs) * (shear[2] + xmeff*gammas*vtr3/xkkt) -
+	xmeff*gammas*vtr3/xkkt;
       fs1 = fs1 * fn / fs ;
       fs2 = fs2 * fn / fs;
       fs3 = fs3 * fn / fs;
     } else fs1 = fs2 = fs3 = 0.0;
   }
 
-  ccelx = dx*ccel + fs1;
-  ccely = dy*ccel + fs2;
-  ccelz = dz*ccel + fs3;
+  // forces & torques
 
-  // forces
+  fx = dx*ccel + fs1;
+  fy = dy*ccel + fs2;
+  fz = dz*ccel + fs3;
 
-  f[0] += ccelx;
-  f[1] += ccely;
-  f[2] += ccelz;
+  f[0] += fx;
+  f[1] += fy;
+  f[2] += fz;
 
-  // torques
-
-  rinv = 1/r;
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -547,20 +522,18 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,xmeff,damp,ccel,vtr1,vtr2,vtr3,vrel;
-  double fn,fs,fs1,fs2,fs3,ccelx,ccely,ccelz,tor1,tor2,tor3;
-  double shrmag,rsht,rhertz,rinv;
+  double fn,fs,fs1,fs2,fs3,fx,fy,fz,tor1,tor2,tor3;
+  double shrmag,rsht,rhertz,rinv,rsqinv;
 
   r = sqrt(rsq);
+  rinv = 1.0/r;
+  rsqinv = 1.0/rsq;
 
   // relative translational velocity
 
   vr1 = v[0] - vwall[0];
   vr2 = v[1] - vwall[1];
   vr3 = v[2] - vwall[2];
-
-  vr1 *= dt;
-  vr2 *= dt;
-  vr3 *= dt;
 
   // normal component
 
@@ -577,20 +550,15 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
 
   // relative rotational velocity
 
-  wr1 = radius*omega[0];
-  wr2 = radius*omega[1];
-  wr3 = radius*omega[2];
+  wr1 = radius*omega[0] * rinv;
+  wr2 = radius*omega[1] * rinv;
+  wr3 = radius*omega[2] * rinv;
 
-  wr1 *= dt/r;
-  wr2 *= dt/r;
-  wr3 *= dt/r;
-
-  // normal damping term
-  // this definition of DAMP includes the extra 1/r term
+  // normal forces = Hertzian contact + normal velocity damping
 
   xmeff = mass;
-  damp = xmeff*gamman_dl*vnnr/rsq;
-  ccel = xkk*(radius-r)/r - damp;
+  damp = xmeff*gamman*vnnr*rsqinv;
+  ccel = xkk*(radius-r)*rinv - damp;
   rhertz = sqrt(radius - r);
   ccel = rhertz * ccel;
 
@@ -604,60 +572,54 @@ void FixWallGran::hertzian(double rsq, double dx, double dy, double dz,
 
   // shear history effects
 
-  shear[0] += vtr1;
-  shear[1] += vtr2;
-  shear[2] += vtr3;
+  shear[0] += vtr1*dt;
+  shear[1] += vtr2*dt;
+  shear[2] += vtr3*dt;
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + shear[2]*shear[2]);
 
-  // rotate shear displacements correctly
+  // rotate shear displacements
 
   rsht = shear[0]*dx + shear[1]*dy + shear[2]*dz;
-  rsht = rsht/rsq;
+  rsht = rsht*rsqinv;
   shear[0] -= rsht*dx;
   shear[1] -= rsht*dy;
   shear[2] -= rsht*dz;
 
-  // tangential forces
+  // tangential forces = shear + tangential velocity damping
 
-  fs1 = -rhertz * (xkkt*shear[0] + xmeff*gammas_dl*vtr1);
-  fs2 = -rhertz * (xkkt*shear[1] + xmeff*gammas_dl*vtr2);
-  fs3 = -rhertz * (xkkt*shear[2] + xmeff*gammas_dl*vtr3);
+  fs1 = -rhertz * (xkkt*shear[0] + xmeff*gammas*vtr1);
+  fs2 = -rhertz * (xkkt*shear[1] + xmeff*gammas*vtr2);
+  fs3 = -rhertz * (xkkt*shear[2] + xmeff*gammas*vtr3);
 
-  // force normalization
+  // rescale frictional displacements and forces if needed
 
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
   fn = xmu * fabs(ccel*r);
 
-  // shrmag is magnitude of shearwall
-  // rescale frictional displacements and forces if needed
-
   if (fs > fn) {
     if (shrmag != 0.0) {
-      shear[0] = (fn/fs) * (shear[0] + xmeff*gammas_dl*vtr1/xkkt) - 
-	xmeff*gammas_dl*vtr1/xkkt;
-      shear[1] = (fn/fs) * (shear[1] + xmeff*gammas_dl*vtr2/xkkt) -
-	xmeff*gammas_dl*vtr2/xkkt;
-      shear[2] = (fn/fs) * (shear[2] + xmeff*gammas_dl*vtr3/xkkt) -
-	xmeff*gammas_dl*vtr3/xkkt;
+      shear[0] = (fn/fs) * (shear[0] + xmeff*gammas*vtr1/xkkt) - 
+	xmeff*gammas*vtr1/xkkt;
+      shear[1] = (fn/fs) * (shear[1] + xmeff*gammas*vtr2/xkkt) -
+	xmeff*gammas*vtr2/xkkt;
+      shear[2] = (fn/fs) * (shear[2] + xmeff*gammas*vtr3/xkkt) -
+	xmeff*gammas*vtr3/xkkt;
       fs1 = fs1 * fn / fs ;
       fs2 = fs2 * fn / fs;
       fs3 = fs3 * fn / fs;
     } else fs1 = fs2 = fs3 = 0.0;
   }
 
-  ccelx = dx*ccel + fs1;
-  ccely = dy*ccel + fs2;
-  ccelz = dz*ccel + fs3;
+  // forces & torques
 
-  // forces
+  fx = dx*ccel + fs1;
+  fy = dy*ccel + fs2;
+  fz = dz*ccel + fs3;
 
-  f[0] += ccelx;
-  f[1] += ccely;
-  f[2] += ccelz;
+  f[0] += fx;
+  f[1] += fy;
+  f[2] += fz;
 
-  // torques
-
-  rinv = 1/r;
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -778,7 +740,4 @@ int FixWallGran::size_restart(int nlocal)
 void FixWallGran::reset_dt()
 {
   dt = update->dt;
-  double gammas = 0.5*gamman;
-  gamman_dl = gamman/dt;
-  gammas_dl = gammas/dt;
 }

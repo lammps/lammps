@@ -56,6 +56,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_dihedral = 0;
+  special_extra = 0;
 
   dielectric = 1.0;
 
@@ -353,54 +354,72 @@ void Force::set_special(int narg, char **arg)
 {
   if (narg == 0) error->all("Illegal special_bonds command");
 
-  if (strcmp(arg[0],"charmm") == 0) {
-    if (narg != 1) error->all("Illegal special_bonds command");
-    special_lj[1] = 0.0;
-    special_lj[2] = 0.0;
-    special_lj[3] = 0.0;
-    special_coul[1] = 0.0;
-    special_coul[2] = 0.0;
-    special_coul[3] = 0.0;
-    special_dihedral = 0;
-    return;
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"amber") == 0) {
+      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      special_lj[1] = 0.0;
+      special_lj[2] = 0.0;
+      special_lj[3] = 0.5;
+      special_coul[1] = 0.0;
+      special_coul[2] = 0.0;
+      special_coul[3] = 5.0/6.0;
+      iarg += 1;
+    } else if (strcmp(arg[iarg],"charmm") == 0) {
+      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      special_lj[1] = 0.0;
+      special_lj[2] = 0.0;
+      special_lj[3] = 0.0;
+      special_coul[1] = 0.0;
+      special_coul[2] = 0.0;
+      special_coul[3] = 0.0;
+      iarg += 1;
+    } else if (strcmp(arg[iarg],"fene") == 0) {
+      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      special_lj[1] = 0.0;
+      special_lj[2] = 1.0;
+      special_lj[3] = 1.0;
+      special_coul[1] = 0.0;
+      special_coul[2] = 1.0;
+      special_coul[3] = 1.0;
+      iarg += 1;
+    } else if (strcmp(arg[iarg],"lj/coul") == 0) {
+      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      special_lj[1] = special_coul[1] = atof(arg[iarg+1]);
+      special_lj[2] = special_coul[2] = atof(arg[iarg+2]);
+      special_lj[3] = special_coul[3] = atof(arg[iarg+3]);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"lj") == 0) {
+      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      special_lj[1] = atof(arg[iarg+1]);
+      special_lj[2] = atof(arg[iarg+2]);
+      special_lj[3] = atof(arg[iarg+3]);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"coul") == 0) {
+      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      special_coul[1] = atof(arg[iarg+1]);
+      special_coul[2] = atof(arg[iarg+2]);
+      special_coul[3] = atof(arg[iarg+3]);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"dihedral") == 0) {
+      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (strcmp(arg[iarg+1],"no") == 0) special_dihedral = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) special_dihedral = 1;
+      else error->all("Illegal special_bonds command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"extra") == 0) {
+      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      special_extra = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else error->all("Illegal special_bonds command");
   }
 
-  if (strcmp(arg[0],"amber") == 0) {
-    if (narg != 1) error->all("Illegal special_bonds command");
-    special_lj[1] = 0.0;
-    special_lj[2] = 0.0;
-    special_lj[3] = 0.5;
-    special_coul[1] = 0.0;
-    special_coul[2] = 0.0;
-    special_coul[3] = 5.0/6.0;
-    special_dihedral = 0;
-    return;
-  }
+  for (int i = 1; i <= 3; i++)
+    if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
+	special_coul[i] < 0.0 || special_coul[i] > 1.0)
+      error->all("Illegal special_bonds command");
 
-  int iarg;
-  if (strcmp(arg[0],"dihedral") == 0) {
-    special_dihedral = 1;
-    iarg = 1;
-  } else if (strcmp(arg[0],"explicit") == 0) {
-    special_dihedral = 0;
-    iarg = 1;
-  } else {
-    special_dihedral = 0;
-    iarg = 0;
-  }
-
-  if (narg-iarg == 3) {
-    special_lj[1] = special_coul[1] = atof(arg[iarg+0]);
-    special_lj[2] = special_coul[2] = atof(arg[iarg+1]);
-    special_lj[3] = special_coul[3] = atof(arg[iarg+2]);
-  } else if (narg-iarg == 6) {
-    special_lj[1] = atof(arg[iarg+0]);
-    special_lj[2] = atof(arg[iarg+1]);
-    special_lj[3] = atof(arg[iarg+2]);
-    special_coul[1] = atof(arg[iarg+3]);
-    special_coul[2] = atof(arg[iarg+4]);
-    special_coul[3] = atof(arg[iarg+5]);
-  } else error->all("Illegal special_bonds command");
+  if (special_extra < 0) error->all("Illegal special_bonds command");
 }
 
 /* ----------------------------------------------------------------------

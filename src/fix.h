@@ -34,13 +34,14 @@ class Fix : protected Pointers {
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
   int time_integrate;            // 1 if fix performs time integration, 0 if no
+  int time_depend;               // 1 if fix is timestep dependent, 0 if not
   int restart_pbc;               // 1 if fix moves atoms (except integrate)
                                  //   so that write_restart must remap to PBC
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
   int size_vector;               // N = size of global vector
-  int scalar_vector_freq;        // frequency compute s/v data is available at
+  int scalar_vector_freq;        // frequency s/v data is available at
   int extscalar;                 // 0/1 if scalar is intensive/extensive
   int extvector;                 // 0/1/-1 if vector is all int/ext/extlist
   int *extlist;                  // list of 0/1 int/ext for each vec component
@@ -57,9 +58,11 @@ class Fix : protected Pointers {
   double virial[6];              // accumlated virial
   double **vatom;                // accumulated per-atom virial
 
-  int INITIAL_INTEGRATE,PRE_EXCHANGE,PRE_NEIGHBOR;    // mask settings
-  int POST_FORCE,FINAL_INTEGRATE,END_OF_STEP,THERMO_ENERGY;
-  int INITIAL_INTEGRATE_RESPA,POST_FORCE_RESPA,FINAL_INTEGRATE_RESPA;
+  int INITIAL_INTEGRATE,POST_INTEGRATE;    // mask settings
+  int PRE_EXCHANGE,PRE_NEIGHBOR;
+  int PRE_FORCE,POST_FORCE,FINAL_INTEGRATE,END_OF_STEP,THERMO_ENERGY;
+  int INITIAL_INTEGRATE_RESPA,POST_INTEGRATE_RESPA;
+  int PRE_FORCE_RESPA,POST_FORCE_RESPA,FINAL_INTEGRATE_RESPA;
   int MIN_POST_FORCE,MIN_ENERGY;
 
   Fix(class LAMMPS *, int, char **);
@@ -73,8 +76,10 @@ class Fix : protected Pointers {
   virtual void setup(int) {}
   virtual void min_setup(int) {}
   virtual void initial_integrate(int) {}
+  virtual void post_integrate() {}
   virtual void pre_exchange() {}
   virtual void pre_neighbor() {}
+  virtual void pre_force(int) {}
   virtual void post_force(int) {}
   virtual void final_integrate() {}
   virtual void end_of_step() {}
@@ -91,6 +96,8 @@ class Fix : protected Pointers {
   virtual int maxsize_restart() {return 0;}
 
   virtual void initial_integrate_respa(int, int, int) {}
+  virtual void post_integrate_respa(int, int) {}
+  virtual void pre_force_respa(int, int, int) {}
   virtual void post_force_respa(int, int, int) {}
   virtual void final_integrate_respa(int) {}
 

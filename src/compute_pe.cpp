@@ -15,6 +15,7 @@
 #include "string.h"
 #include "compute_pe.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -27,8 +28,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -73,7 +72,9 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
 
 double ComputePE::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
+  if (update->eflag_global != invoked_scalar)
+    error->all("Energy was not tallied on needed timestep");
 
   double one = 0.0;
   if (pairflag && force->pair)

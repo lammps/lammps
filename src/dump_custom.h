@@ -88,7 +88,7 @@ class DumpCustom : public Dump {
   typedef void (DumpCustom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
 
-  void pack_tag(int);
+  void pack_id(int);
   void pack_molecule(int);
   void pack_type(int);
   void pack_mass(int);

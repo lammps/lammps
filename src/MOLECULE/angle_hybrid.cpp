@@ -103,7 +103,6 @@ void AngleHybrid::compute(int eflag, int vflag)
   else evflag = 0;
 
   for (m = 0; m < nstyles; m++) {
-    if (styles[m] == NULL) continue;
     neighbor->nanglelist = nanglelist[m];
     neighbor->anglelist = anglelist[m];
 
@@ -168,6 +167,8 @@ void AngleHybrid::settings(int narg, char **arg)
 	error->all("Angle style hybrid cannot use same angle style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
       error->all("Angle style hybrid cannot have hybrid as an argument");
+    if (strcmp(arg[m],"none") == 0) 
+      error->all("Angle style hybrid cannot have none as an argument");
     styles[m] = force->new_angle(arg[m]);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
@@ -185,12 +186,18 @@ void AngleHybrid::coeff(int which, int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  // 2nd arg = angle style name (harmonic, etc)
+  // 2nd arg = angle sub-style name
+  // allow for "none" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
-  if (m == nstyles) error->all("Angle coeff for hybrid has invalid style");
+
+  int none = 0;
+  if (m == nstyles) {
+    if (strcmp(arg[1],"none") == 0) none = 1;
+    else error->all("Angle coeff for hybrid has invalid style");
+  }
 
   // move 1st arg to 2nd arg
   // just copy ptrs, since arg[] points into original input line
@@ -199,15 +206,19 @@ void AngleHybrid::coeff(int which, int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (styles[m]) styles[m]->coeff(which,narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(which,narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
-  // if sub-style is NULL for "none", still set setflag
+  // if sub-style is none: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    map[i] = m;
-    if (styles[m] == NULL) setflag[i] = 1;
-    else setflag[i] = styles[m]->setflag[i];
+    if (none) {
+      setflag[i] = 1;
+      map[i] = -1;
+    } else {
+      setflag[i] = styles[m]->setflag[i];
+      map[i] = m;
+    }
   }
 }
 
@@ -217,6 +228,7 @@ void AngleHybrid::coeff(int which, int narg, char **arg)
 
 double AngleHybrid::equilibrium_angle(int i)
 {
+  if (map[i] < 0) error->one("Invoked angle equil angle on angle style none");
   return styles[map[i]]->equilibrium_angle(i);
 }
 
@@ -265,8 +277,8 @@ void AngleHybrid::read_restart(FILE *fp)
 
 double AngleHybrid::single(int type, int i1, int i2, int i3)
 {
-  if (styles[map[type]]) return styles[map[type]]->single(type,i1,i2,i3);
-  return 0.0;
+  if (map[type] < 0) error->one("Invoked angle single on angle style none");
+  return styles[map[type]]->single(type,i1,i2,i3);
 }
 
 /* ----------------------------------------------------------------------

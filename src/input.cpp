@@ -1080,13 +1080,15 @@ void Input::shape()
 
 void Input::special_bonds()
 {
-  // store 1-3,1-4 and dihedral flag values before change
+  // store 1-3,1-4 and dihedral/extra flag values before change
+  // change in 1-2 coeffs will not change the special list
 
   double lj2 = force->special_lj[2];
   double lj3 = force->special_lj[3];
   double coul2 = force->special_coul[2];
   double coul3 = force->special_coul[3];
   int dihedral = force->special_dihedral;
+  int extra = force->special_extra;
 
   force->set_special(narg,arg);
 
@@ -1095,7 +1097,7 @@ void Input::special_bonds()
   if (domain->box_exist && atom->molecular) {
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
 	coul2 != force->special_coul[2] || coul3 != force->special_coul[3] ||
-	dihedral != force->special_dihedral) {
+	dihedral != force->special_dihedral || extra != force->special_extra) {
       Special special(lmp);
       special.build();
     }

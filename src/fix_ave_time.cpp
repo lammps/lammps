@@ -32,15 +32,14 @@ using namespace LAMMPS_NS;
 enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING,WINDOW};
 
-#define INVOKED_SCALAR 1      // same as in computes
-#define INVOKED_VECTOR 2
-
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 7) error->all("Illegal fix ave/time command");
+
+  time_depend = 1;
 
   MPI_Comm_rank(world,&me);
 
@@ -248,9 +247,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
 
-  // add nvalid to ALL computes that store invocation times
+  // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
-  // once in end_of_step() can just set timestep for ones actually invoked
+  // once in end_of_step() can set timestep for ones actually invoked
 
   modify->addstep_compute_all(nvalid);
 }
@@ -330,7 +329,8 @@ void FixAveTime::end_of_step()
 
   // skip if not step which requires doing something
 
-  if (update->ntimestep != nvalid) return;
+  int ntimestep = update->ntimestep;
+  if (ntimestep != nvalid) return;
 
   // zero if first step
 
@@ -351,11 +351,13 @@ void FixAveTime::end_of_step()
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-	if (compute->invoked & INVOKED_SCALAR) vector[i] += compute->scalar;
+	if (compute->invoked_scalar == ntimestep) vector[i] += compute->scalar;
 	else vector[i] += compute->compute_scalar();
+	compute->invoked_flag = 1;
       } else {
-	if (!(compute->invoked & INVOKED_VECTOR)) compute->compute_vector();
+	if (compute->invoked_vector != ntimestep) compute->compute_vector();
 	vector[i] += compute->vector[argindex[i]-1];
+	compute->invoked_flag = 1;
       }
 
     // access fix fields, guaranteed to be ready
@@ -383,7 +385,7 @@ void FixAveTime::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = update->ntimestep+nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // average the final result for the Nfreq timestep
@@ -395,7 +397,7 @@ void FixAveTime::end_of_step()
   // if ave = RUNNING, combine with all previous Nfreq timestep values
   // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
 
-  if (update->ntimestep >= startstep) {
+  if (ntimestep >= startstep) {
     if (ave == ONE) {
       for (i = 0; i < nvalues; i++) vector_total[i] = vector[i];
       norm = 1;
@@ -424,7 +426,7 @@ void FixAveTime::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
-    fprintf(fp,"%d",update->ntimestep);
+    fprintf(fp,"%d",ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp," %g",vector_total[i]/norm);
     fprintf(fp,"\n");
     fflush(fp);

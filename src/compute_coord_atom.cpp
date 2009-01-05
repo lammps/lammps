@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "compute_coord_atom.h"
 #include "atom.h"
+#include "update.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -26,8 +27,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -90,7 +89,7 @@ void ComputeCoordAtom::compute_peratom()
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
 
   // grow coordination array if necessary
 

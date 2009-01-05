@@ -102,7 +102,6 @@ void BondHybrid::compute(int eflag, int vflag)
   else evflag = 0;
 
   for (m = 0; m < nstyles; m++) {
-    if (styles[m] == NULL) continue;
     neighbor->nbondlist = nbondlist[m];
     neighbor->bondlist = bondlist[m];
 
@@ -167,6 +166,8 @@ void BondHybrid::settings(int narg, char **arg)
 	error->all("Bond style hybrid cannot use same bond style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
       error->all("Bond style hybrid cannot have hybrid as an argument");
+    if (strcmp(arg[m],"none") == 0) 
+      error->all("Bond style hybrid cannot have none as an argument");
     styles[m] = force->new_bond(arg[m]);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
@@ -184,12 +185,18 @@ void BondHybrid::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
-  // 2nd arg = bond style name (harmonic, fene, etc)
+  // 2nd arg = bond sub-style name
+  // allow for "none" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
-  if (m == nstyles) error->all("Bond coeff for hybrid has invalid style");
+
+  int none = 0;
+  if (m == nstyles) {
+    if (strcmp(arg[1],"none") == 0) none = 1;
+    else error->all("Bond coeff for hybrid has invalid style");
+  }
 
   // move 1st arg to 2nd arg
   // just copy ptrs, since arg[] points into original input line
@@ -198,14 +205,15 @@ void BondHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (styles[m]) styles[m]->coeff(narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
-  // if sub-style is NULL for "none", still set setflag
+  // if sub-style is none: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    map[i] = m;
     setflag[i] = 1;
+    if (none) map[i] = -1;
+    else map[i] = m;
   }
 }
 
@@ -223,6 +231,7 @@ void BondHybrid::init_style()
 
 double BondHybrid::equilibrium_distance(int i)
 {
+  if (map[i] < 0) error->one("Invoked bond equil distance on bond style none");
   return styles[map[i]]->equilibrium_distance(i);
 }
 
@@ -271,8 +280,8 @@ void BondHybrid::read_restart(FILE *fp)
 
 double BondHybrid::single(int type, double rsq, int i, int j)
 {
-  if (styles[map[type]]) return styles[map[type]]->single(type,rsq,i,j);
-  return 0.0;
+  if (map[type] < 0) error->one("Invoked bond single on bond style none");
+  return styles[map[type]]->single(type,rsq,i,j);
 }
 
 /* ----------------------------------------------------------------------

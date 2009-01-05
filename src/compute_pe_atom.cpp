@@ -14,6 +14,7 @@
 #include "string.h"
 #include "compute_pe_atom.h"
 #include "atom.h"
+#include "update.h"
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
@@ -25,8 +26,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,7 +75,9 @@ void ComputePEAtom::compute_peratom()
 {
   int i;
 
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
+  if (update->eflag_atom != invoked_peratom)
+    error->all("Per-atom energy was not tallied on needed timestep");
 
   // grow local energy array if necessary
 

@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "compute_temp_partial.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
@@ -24,9 +25,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -95,7 +93,7 @@ int ComputeTempPartial::dof_remove(int i)
 
 double ComputeTempPartial::compute_scalar()
 {
-  invoked |= INVOKED_SCALAR;
+  invoked_scalar = update->ntimestep;
 
   double **v = atom->v;
   double *mass = atom->mass;
@@ -130,7 +128,7 @@ void ComputeTempPartial::compute_vector()
 {
   int i;
 
-  invoked |= INVOKED_VECTOR;
+  invoked_vector = update->ntimestep;
 
   double **v = atom->v;
   double *mass = atom->mass;

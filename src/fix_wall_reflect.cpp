@@ -16,7 +16,6 @@
 #include "atom.h"
 #include "modify.h"
 #include "domain.h"
-#include "comm.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -52,29 +51,14 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 int FixWallReflect::setmask()
 {
   int mask = 0;
-  mask |= INITIAL_INTEGRATE;
+  mask |= POST_INTEGRATE;
+  mask |= POST_INTEGRATE_RESPA;
   return mask;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallReflect::init()
-{
-  // warn if any integrate fix comes after this one
-
-  int after = 0;
-  int flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(id,modify->fix[i]->id) == 0) after = 1;
-    else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
-  }
-  if (flag && comm->me == 0)
-    error->warning("Fix wall/reflect should come after all other integration fixes");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixWallReflect::initial_integrate(int vflag)
+void FixWallReflect::post_integrate()
 {
   double xlo = domain->boxlo[0];
   double xhi = domain->boxhi[0];

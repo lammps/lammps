@@ -53,6 +53,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   virial_flag = 0;
   no_change_box = 0;
   time_integrate = 0;
+  time_depend = 0;
   restart_pbc = 0;
 
   scalar_flag = vector_flag = peratom_flag = 0;
@@ -65,17 +66,21 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // mask settings - same as in modify.cpp
 
   INITIAL_INTEGRATE = 1;
-  PRE_EXCHANGE = 2;
-  PRE_NEIGHBOR = 4;
-  POST_FORCE = 8;
-  FINAL_INTEGRATE = 16;
-  END_OF_STEP = 32;
-  THERMO_ENERGY = 64;
-  INITIAL_INTEGRATE_RESPA = 128;
-  POST_FORCE_RESPA = 256;
-  FINAL_INTEGRATE_RESPA = 512;
-  MIN_POST_FORCE = 1024;
-  MIN_ENERGY = 2048;
+  POST_INTEGRATE = 2;
+  PRE_EXCHANGE = 4;
+  PRE_NEIGHBOR = 8;
+  PRE_FORCE = 16;
+  POST_FORCE = 32;
+  FINAL_INTEGRATE = 64;
+  END_OF_STEP = 128;
+  THERMO_ENERGY = 256;
+  INITIAL_INTEGRATE_RESPA = 512;
+  POST_INTEGRATE_RESPA = 1024;
+  PRE_FORCE_RESPA = 2048;
+  POST_FORCE_RESPA = 4096;
+  FINAL_INTEGRATE_RESPA = 8192;
+  MIN_POST_FORCE = 16384;
+  MIN_ENERGY = 32768;
 }
 
 /* ---------------------------------------------------------------------- */

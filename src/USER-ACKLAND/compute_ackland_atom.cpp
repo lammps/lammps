@@ -19,8 +19,8 @@
 #include "string.h"
 #include "compute_ackland_atom.h"
 #include "atom.h"
-#include "modify.h"
 #include "update.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -34,7 +34,6 @@
 using namespace LAMMPS_NS;
 
 enum{UNKNOWN,BCC,FCC,HCP,ICO};
-#define INVOKED_PERATOM 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -102,7 +101,7 @@ void ComputeAcklandAtom::compute_peratom()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int chi[8];
 
-  invoked |= INVOKED_PERATOM;
+  invoked_peratom = update->ntimestep;
 
   // grow structure array if necessary
 

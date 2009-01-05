@@ -77,6 +77,8 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   alist = NULL;
+
+  naccept = foursome = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -137,6 +137,7 @@ void Verlet::iterate(int n)
     // initial time integration
 
     modify->initial_integrate(vflag);
+    if (modify->n_post_integrate) modify->post_integrate();
 
     // regular communication vs neighbor list rebuild
 
@@ -168,6 +169,7 @@ void Verlet::iterate(int n)
     // force computations
 
     force_clear();
+    if (modify->n_pre_force) modify->pre_force(vflag);
 
     timer->stamp();
 

@@ -372,7 +372,7 @@ then LAMMPS will run for a while when the print statement is invoked!
 
 :line
 
-Immediate Evaluation of Variables:
+[Immediate Evaluation of Variables:]
 
 There is a difference between referencing a variable with a leading $
 sign (e.g. $x or $\{abc\}) versus with a leading "v_" (e.g. v_x or
@@ -427,7 +427,7 @@ evaluated later.
 
 :line
 
-Variable Accuracy:
+[Variable Accuracy:]
 
 Obviously, LAMMPS attempts to evaluate variables containing formulas
 ({equal} and {atom} style variables) accurately whenever the

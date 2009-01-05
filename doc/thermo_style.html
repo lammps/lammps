@@ -102,12 +102,14 @@ f_ID keyword and accessing a fix that does time-averaging such as the
 </P>
 <P>Options invoked by the <A HREF = "thermo_modify.html">thermo_modify</A> command can
 be used to set the one- or multi-line format of the print-out, the
-normalization of energy quantities (total or per-atom), and the
-numeric precision of each printed value.
+normalization of thermodynamic output (total values versus per-atom
+values for "extensive quantities, meaning ones which scale with the
+number of atoms in the system), and the numeric precision of each
+printed value.
 </P>
-<P>IMPORTANT NOTE: When you specify a "thermo_style<A HREF = "thermo_modify.html"> command, all
+<P>IMPORTANT NOTE: When you use a "thermo_style" command, all
 thermodynamic settings are restored to their default values, including
-those previously set by a :thermo_modify</A> command.
+those previously set by a <A HREF = "thermo_modify.html">thermo_modify</A> command.
 Thus if your input script specifies a thermo_style command, you should
 use the thermo_modify command after it.
 </P>

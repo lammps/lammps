@@ -50,10 +50,26 @@ If the value is {error} or {warn}, LAMMPS checks and either issues an
 error or warning.  The code will exit with an error and continue with
 a warning.  This can be a useful debugging option.
 
-The {norm} keyword determines whether the thermodynamic print-out is
-normalized by the number of atoms or is the total summed across all
-atoms.  Different unit styles have different defaults for this
-setting.
+The {norm} keyword determines whether various thermodynamic output
+values are normalized by the number of atoms or not, depending on
+whether it is set to {yes} or {no}.  Different unit styles have
+different defaults for this setting (see below).  Even if {norm} is
+set to {yes}, a value is only normalized if it is an "extensive"
+quantity, meaning that it scales with the number of atoms in the
+system.  For the thermo keywords described by the doc page for the
+"thermo_style"_thermo_style.html command, all energy-related keywords
+are extensive, such as {pe} or {ebond} or {enthalpy}.  Other keywords
+such as {temp} or {press} are "intensive" meaning their value is
+independent (in a statistical sense) of the number of atoms in the
+system and thus are never normalized.  For thermodynamic output values
+extracted from fixes and computes in a "thermo_style
+custom"_thermo_style.html command, the doc page for the individual
+"fix"_fix.html or "compute"_compute.html lists whether the value is
+"extensive" or "intensive" and thus whether it is normalized.
+Thermodynamic output values calculated by a variable formula are
+assumed to be "intensive" and thus are never normalized.  You can
+always include a divide by the number of atoms in the variable formula
+if this is not the case.
 
 The {flush} keyword invokes a flush operation after thermodynamic info
 is written to the log file.  This insures the output in that file is

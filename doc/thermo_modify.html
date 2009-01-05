@@ -55,10 +55,26 @@ If the value is <I>error</I> or <I>warn</I>, LAMMPS checks and either issues an
 error or warning.  The code will exit with an error and continue with
 a warning.  This can be a useful debugging option.
 </P>
-<P>The <I>norm</I> keyword determines whether the thermodynamic print-out is
-normalized by the number of atoms or is the total summed across all
-atoms.  Different unit styles have different defaults for this
-setting.
+<P>The <I>norm</I> keyword determines whether various thermodynamic output
+values are normalized by the number of atoms or not, depending on
+whether it is set to <I>yes</I> or <I>no</I>.  Different unit styles have
+different defaults for this setting (see below).  Even if <I>norm</I> is
+set to <I>yes</I>, a value is only normalized if it is an "extensive"
+quantity, meaning that it scales with the number of atoms in the
+system.  For the thermo keywords described by the doc page for the
+<A HREF = "thermo_style.html">thermo_style</A> command, all energy-related keywords
+are extensive, such as <I>pe</I> or <I>ebond</I> or <I>enthalpy</I>.  Other keywords
+such as <I>temp</I> or <I>press</I> are "intensive" meaning their value is
+independent (in a statistical sense) of the number of atoms in the
+system and thus are never normalized.  For thermodynamic output values
+extracted from fixes and computes in a <A HREF = "thermo_style.html">thermo_style
+custom</A> command, the doc page for the individual
+<A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A> lists whether the value is
+"extensive" or "intensive" and thus whether it is normalized.
+Thermodynamic output values calculated by a variable formula are
+assumed to be "intensive" and thus are never normalized.  You can
+always include a divide by the number of atoms in the variable formula
+if this is not the case.
 </P>
 <P>The <I>flush</I> keyword invokes a flush operation after thermodynamic info
 is written to the log file.  This insures the output in that file is

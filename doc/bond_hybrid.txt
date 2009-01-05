@@ -38,9 +38,8 @@ coefficients 80.0, 1.2 for K, r0.  All other bond types (2-N) would be
 computed with a {fene} potential with coefficients 30.0, 1.5, 1.0, 1.0
 for K, R0, epsilon, sigma.
 
-A bond style of {none} can be specified as an argument to bond_style
-hybrid and the corresponding bond_coeff commands, if you desire to
-turn off certain bond types.
+A bond style of {none} can be specified as the 2nd argument to the
+bond_coeff command, if you desire to turn off certain bond types.
 
 [Restrictions:]
 

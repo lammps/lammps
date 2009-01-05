@@ -40,14 +40,6 @@ the corresponding timestep asymmetrically, energy conservation is only
 satisfied to O(dt), rather than to O(dt^2) as it would be for
 velocity-Verlet integration without reflective walls.
 
-IMPORTANT NOTE: This fix performs its operations at the same point in
-the timestep as other time integration fixes, such as "fix
-nve"_fix_nve.html, "fix nvt"_fix_nvt.html, or "fix npt"_fix_npt.html.
-Thus fix wall/reflect should normally be the last such fix specified
-in the input script, since the adjustments it makes to atom
-coordinates should come after the changes made by time integration.
-LAMMPS will warn you if your fixes are not ordered this way.
-
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart

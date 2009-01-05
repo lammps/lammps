@@ -24,7 +24,7 @@ args = list of arguments for a particular style :l
   {xtc} args = none
   {xyz} args = none
   {custom} args = list of atom attributes
-    possible attributes = tag, mol, type,
+    possible attributes = id, mol, type,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
@@ -32,7 +32,7 @@ args = list of arguments for a particular style :l
                           angmomx, angmomy, angmomz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
 			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name
-      tag = atom ID
+      id = atom ID
       mol = molecule ID
       type = atom type
       x,y,z = unscaled atom coordinates
@@ -59,8 +59,8 @@ args = list of arguments for a particular style :l
 
 dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
-dump 4a all custom 100 dump.myforce.* tag type x y vx fx
-dump 4b flow custom 100 dump.%.myforce tag type c_myF\[3\] v_ke
+dump 4a all custom 100 dump.myforce.* id type x y vx fx
+dump 4b flow custom 100 dump.%.myforce id type c_myF\[3\] v_ke
 dump 1 all xtc 1000 file.xtc :pre
 
 [Description:]
@@ -219,8 +219,8 @@ styles.
 This section explains the atom quantities that can be specified as
 part of the {custom} style.
 
-The {tag}, {mol}, {type}, {x}, {y}, {z}, {vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, {q} keywords are self-explanatory.  {Tag} is the atom ID.  {Mol}
+The {id}, {mol}, {type}, {x}, {y}, {z}, {vx}, {vy}, {vz}, {fx}, {fy},
+{fz}, {q} keywords are self-explanatory.  {Id} is the atom ID.  {Mol}
 is the molecule ID, included in the data file for molecular systems.
 The {x}, {y}, {z} keywords write atom coordinates "unscaled", in the
 appropriate distance "units"_units.html (Angstroms, sigma, etc).  Use

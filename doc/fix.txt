@@ -105,6 +105,8 @@ list of fix styles available in LAMMPS:
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
 "ave/spatial"_fix_ave_spatial.html - output per-atom quantities by layer
 "ave/time"_fix_ave_time.html - output time-averaged compute quantities
+"bond/break"_fix_bond_break.html - break bonds on the fly
+"bond/create"_fix_bond_create.html - create bonds on the fly
 "bond/swap"_fix_bond_swap.html - Monte Carlo bond swapping
 "com"_fix_com.html - compute a center-of-mass
 "coord/original"_fix_coord_original.html - store original coords of each atom

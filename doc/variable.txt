@@ -63,17 +63,18 @@ Variables can be used in several ways in LAMMPS.  A variable can be
 referenced elsewhere in an input script to become part of a new input
 command.  For variable styles that store multiple strings, the
 "next"_next.html command can be used to increment which string is
-assigned to the variable.  Variables of style {equal} can be evaluated
-to produce a single numeric value which can be output either directly
-(see the "print"_print.html, "fix print"_fix_print.html, and "run
-every"_run.html commands) or as part of thermodynamic output (see the
-"thermo_style"_thermo_style.html command), or used as input to an
-averaging fix (see the "fix ave/time"_fix_ave/time command).
-Variables of style {atom} can be evaluated to produce one numeric
-value per atom which can be output to a dump file (see the "dump
-custom"_dump.html command) or used as input to an averaging fix (see
-the "fix ave/spatial"_fix_ave_spatial.html and "fix
-ave/atom"_fix_ave_atom.html commands).
+assigned to the variable.  Variables of style {equal} store a formula
+which when evaluated produces a single numeric value which can be
+output either directly (see the "print"_print.html, "fix
+print"_fix_print.html, and "run every"_run.html commands) or as part
+of thermodynamic output (see the "thermo_style"_thermo_style.html
+command), or used as input to an averaging fix (see the "fix
+ave/time"_fix_ave/time command).  Variables of style {atom} store a
+formula which when evaluated produces one numeric value per atom which
+can be output to a dump file (see the "dump custom"_dump.html command)
+or used as input to an averaging fix (see the "fix
+ave/spatial"_fix_ave_spatial.html and "fix ave/atom"_fix_ave_atom.html
+commands).
 
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
@@ -85,6 +86,12 @@ example.  The "value" is the numeric quantity resulting from
 evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.
+
+IMPORTANT NOTE: When the input script line that defines a variable of
+style {equal} or {atom} that contain a formula is encountered, the
+formula is NOT immediately evaluated and the result stored.  See the
+discussion below about "Immediate Evaluation of Variables" if you want
+to do this.
 
 IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command
@@ -98,9 +105,9 @@ script.
 
 There are two exceptions to this rule.  First, variables of style
 {equal} and {atom} ARE redefined each time the command is encountered.
-This allows them to be reset, when their formulas contain a
-substitution for another variable, e.g. $x.  This can be useful in a
-loop.
+This only changes their associated formula if the formula contains a
+substitution for another variable, e.g. $x.  But that can be useful,
+for example, in a loop.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed
@@ -208,7 +215,10 @@ Note that {equal} and {atom} variables can produce different values at
 different stages of the input script or at different times during a
 run.  For example, if an {equal} variable is used in a "fix
 print"_fix_print.html command, different values could be printed each
-timestep it was invoked.
+timestep it was invoked.  If you want a variable to be evaluated
+immediately, so that the result is stored by the variable instead of
+the string, see the section below on "Immediate Evaluation of
+Variables".
 
 The next command cannot be used with {equal} or {atom} style
 variables, since there is only one string.
@@ -248,10 +258,17 @@ can use formula elements that produce either global values or per-atom
 values.
 
 The thermo keywords allowed in a formula are those defined by the
-"thermo_style custom" command.  Since many thermodynamic quantities
-are only computable after the a simulation has begun, these keywords
-cannot be used if a variable is evaluated before the first simulation
-begins.
+"thermo_style custom" command.  Thermo keywords that require a
+"compute"_compute.html to calculate their values such as "temp" or
+"press", use computes stored and invoked by the thermo_style command.
+This means that you can only use those keywords in a variable if the
+style you are using with the thermo_style command (and the thermo
+keywords associated with that style) also define and use the needed
+compute.  Note that some thermo keywords use a compute indirectly to
+calculate their value (e.g. the enthalpy keyword uses temp, pe, and
+pressure).  If a variable is evaluated in an input script (not during
+a run), then the values accessed by the thermo keyword must be
+current.  See the discussion below about "Variable Accuracy".
 
 Math operations are written in the usual way, where the "x" and "y" in
 the examples above can be another section of the formula.  Operators
@@ -295,7 +312,10 @@ See the doc pages for individual computes to see which ones calculate
 global versus per-atom quantities.  If the compute reference contains
 empty brackets, then per-atom values calculated by the compute are
 accessed.  Otherwise a single value (global or per-atom) calculated by
-the compute is accessed.
+the compute is accessed.  If a variable containing a compute is
+evaluated in an input script (not during a run), then the values
+accessed by the compute must be current.  See the discussion below
+about "Variable Accuracy".
 
 The different kinds of compute references are as follows.  M is a
 positive integer <= the number of vector values calculated by the
@@ -314,14 +334,17 @@ actual ID of the fix defined elsewhere in the input script.  See the
 doc pages for individual computes to see which ones calculate global
 versus per-atom quantities.  If the fix reference contains empty
 brackets, then per-atom values calculated by the fix are accessed.
-Otherwise a single value (global or per-atom) calculated by the
-fix is accessed.
+Otherwise a single value (global or per-atom) calculated by the fix is
+accessed.
 
 Note that some fixes only generate quantities on certain timesteps.
 If a variable attempts to access the fix on non-allowed timesteps, an
 error is generated.  For example, the "fix ave/time"_fix_ave_time.html
 command may only generate averaged quantities every 100 steps.  See
-the doc pages for individual fix commands for details.
+the doc pages for individual fix commands for details.  If a variable
+containing a fix is evaluated in an input script (not during a run),
+then the values accessed by the fix should be current.  See the
+discussion below about "Variable Accuracy".
 
 The different kinds of fix references are exactly the same as the
 compute references listed in the above table, where "c_" is replaced
@@ -349,47 +372,176 @@ then LAMMPS will run for a while when the print statement is invoked!
 
 :line
 
-It is useful to understand the distinction between referencing a
-variable in a formula using the $x form instead of v_x.  There is a
-subtle difference between the two references that has to do with when
-the evaluation of the included variable is done.
+Immediate Evaluation of Variables:
 
-Referencing the variable as $x, the value of the include variable is
-substituted for immediately when the line is read from the input
-script, just as it would be in other input script command. 
+There is a difference between referencing a variable with a leading $
+sign (e.g. $x or $\{abc\}) versus with a leading "v_" (e.g. v_x or
+v_abc).  The former can be used in any command, including a variable
+command, to force the immediate evaluation of the referenced variable
+and the substitution of its value into the command.  The latter is a
+required kind of argument to some commands (e.g. the "fix
+ave/spatial"_fix_ave_spatial.html or "dump custom"_dump.html or
+"thermo_style"_thermo_style.html commands) if you wish it to evaluate
+a variable periodically during a run.  It can also be used in a
+variable formula if you wish to reference a second variable.  The
+second variable will be evaluated whenever the first variable is
+evaluated.
 
-This could be the desired behavior if a static value is desired.  Or
-it could be the desired behavior for an equal-style variable if the
-variable command appears in a loop (see the "jump"_jump.html and
-"next"_next.html commands), since the substitution will be performed
-anew each time thru the loop as the command is re-read.  Note that if
-the variable formula is enclosed in double quotes, this prevents
-variable substitution and thus an error will be generated when the
-variable formula is evaluated.
+As an example, suppose you use this command in your input script to
+define the variable "v" as
 
-Referencing the variable as v_x, the value of the included variable
-will not be accessed until the variable formula is evaluated.  Thus
-the value may change each time the evaluation is performed.  This may
-also be desired behavior.
+variable v equal vol :pre
 
-As an example, if the current simulation box volume is 1000.0, then
-these lines:
+before a run where the simulation box size changes.  You might think
+this will assign the initial volume to the variable "v".  That is not
+the case.  Rather it assigns a formula which evaluates the volume
+(using the thermo_style keyword "vol") to the variable "v".  If you
+use the variable "v" in some other command like "fix ave/time" then
+the current volume of the box will be evaluated continuously during
+the run.
 
-variable x equal vol
-variable y equal 2*$x :pre
+If you want to store the initial volume of the system, you can do it
+this way:
 
-will associate the equation string "2*1000.0" with variable y.
+variable v equal vol
+variable v0 equal $v :pre
 
-By contrast, these lines:
+The second command will force "v" to be evaluated (yielding the
+initial volume) and assign that value to the variable "v0".  Thus the
+command
 
-variable x equal vol
-variable y equal 2*v_x :pre
+thermo_style custom step v_v v_v0 :pre
 
-will associate the equation string "2*v_x" with variable y.
+would print out both the current and initial volume periodically
+during the run.
 
-Thus if the variable y were evaluated periodically during a run where
-the box volume changed, the resulting value would always be 2000.0 for
-the first case, but would change dynamically for the second case.
+Note that it is a mistake to enclose a variable formula in double
+quotes if it contains variables preceeded by $ signs.  For example,
+
+variable vratio equal "$\{vfinal\}/$\{v0\}" :pre
+
+This is because the quotes prevent variable substitution (see "this
+section"_Section_commands.html#3_2 on parsing input script commands),
+and thus an error will occur when the formula for "vratio" is
+evaluated later.
+
+:line
+
+Variable Accuracy:
+
+Obviously, LAMMPS attempts to evaluate variables containing formulas
+({equal} and {atom} style variables) accurately whenever the
+evaluation is performed.  Depending on what is included in the
+formula, this may require invoking a "compute"_compute.html, either
+directly or indirectly via a thermo keyword, or accessing a value
+calculated and stored by a "fix"_fix.html.  If the compute is one that
+calculates the pressure or energy of the system, then these quantities
+need to be tallied during the evaluation of the interatomic potentials
+(pair, bond, etc) on timesteps that the variable will need the values.
+
+LAMMPS keeps track of all of this during a "run"_run.html or "energy
+minimization"_minimize.html.  An error will be generated if you
+attempt to evaluate a variable on timesteps when it cannot produce
+accurate values.  For example, if a "thermo_style
+custom"_thermo_style.html command prints a variable which accesses
+values stored by a "fix ave/time"_fix_ave_time.html command and the
+timesteps on which thermo output is generated are not multiples of the
+averaging frequency used in the fix command, then it is an error.
+
+However, your input script can also require variables to be evaluated
+before or after or inbetween runs.  In this case, one of three things
+may happen.
+
+(1) The variable may be evaluated accurately.  If it contains
+references to a compute or fix, and these values were calculated and
+stored on the last timestep of a preceeding run, then they can be
+accessed and used by the variable.
+
+(2) LAMMPS may not be able to evaluate the variable and generate an
+error.  For example, if the variable formula requires a
+"compute"_compute.html to be invoked, either directly or indirectly
+via a thermo keyword, then the variable cannot be evaluated before the
+first run has occurred.  The general rule is that if a variable uses a
+value calculated by a compute, and the variable is not being evaluated
+during a run, then the variable will not invoke the compute.  Instead,
+it can only use the value stored by the compute, which for accuracy
+requires that the compute was already invoked on the same timestep
+during a preceeding run.
+
+Thus the way to get around this error is to perform a 0-timestep run
+before using the variable.  For example, these commands
+
+variable t equal temp
+print "Initial temperature = $t"
+run 1000 :pre
+
+will generate an error if the run is the first run specified in the
+input script, because generating a value for the "t" variable requires
+a compute for calculating the temperature to be invoked.
+
+However, this sequence of commands would be fine:
+
+run 0
+variable t equal temp
+print "Initial temperature = $t"
+run 1000 :pre
+
+The 0-timestep run initializes and invokes various computes, including
+the one for temperature, so that the value it stores is current and
+can be accessed by the variable "t" after the run has completed.  Note
+that a 0-timestep run does not alter the state of the system, so it
+does not change the input state for the 1000-timestep run that
+follows.  Also note, that the 0-timestep run must actually use and
+invoke the compute in question (e.g. via "thermo"_thermo_style.html or
+"dump"_dump.html output) in order for it to enable the compute to be
+used in a variable after the run.
+
+Note that unlike computes, "fixes"_fix.html will never generate an
+error if their values are accessed by a variable in between runs.
+They always return some value to the variable.  However, this value
+may not be what you expect if the fix has not yet calculated the
+quantity of interest.  For example, the "fix indent"_fix_indent.html
+command stores the force on the indenter.  But this is not computed
+until a run is performed.  Thus if a variable attempts to print this
+value before the first run, values of zero will be output.  Again,
+performing a 0-timestep run before printing the variable has the
+desired effect.
+
+(3) The variable may be evaluated incorrectly.  And LAMMPS may have
+no way to detect this has occurred.  Consider the following sequence
+of commands:
+
+pair_coeff 1 1 1.0 1.0
+run 1000
+pair_coeff 1 1 1.5 1.0
+variable e equal pe
+print "Final potential energy = $e" :pre
+
+The first run is performed using one setting for the pairwise
+potential defined by the "pair_style"_pair_style.html and
+"pair_coeff"_pair_coeff.html commands.  The potential energy is
+evaluated on the final timestep and stored by the "compute
+pe"_compute_pe.html compute (this is done by the
+"thermo_style"_thermo_style.html command).  Then a pair coefficient is
+changed, altering the potential energy of the system.  When the
+potential energy is printed via the "e" variable, LAMMPS will use the
+potential energy value stored by the "compute pe"_compute_pe.html
+compute, thinking it is current.  There are many other commands which
+could alter the state of the system between runs, causing a variable
+to evaluate incorrectly.
+
+The solution to this issue is the same as for case (2) above, namely
+to perform a 0-timestep run before the variable is evaluated to insure
+the system is up-to-date.  For example, this sequence of commands
+would print a potential energy that reflected the changed pairwise
+coefficient:
+
+pair_coeff 1 1 1.0 1.0
+run 1000
+pair_coeff 1 1 1.5 1.0
+run 0
+variable e equal pe
+print "Final potential energy = $e" :pre
 
 :line
 

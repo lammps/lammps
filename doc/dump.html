@@ -33,7 +33,7 @@
   <I>xtc</I> args = none
   <I>xyz</I> args = none
   <I>custom</I> args = list of atom attributes
-    possible attributes = tag, mol, type,
+    possible attributes = id, mol, type,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
@@ -41,7 +41,7 @@
                           angmomx, angmomy, angmomz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
 			  c_ID, c_ID[N], f_ID, f_ID[N], v_name
-      tag = atom ID
+      id = atom ID
       mol = molecule ID
       type = atom type
       x,y,z = unscaled atom coordinates
@@ -69,8 +69,8 @@
 </P>
 <PRE>dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
-dump 4a all custom 100 dump.myforce.* tag type x y vx fx
-dump 4b flow custom 100 dump.%.myforce tag type c_myF[3] v_ke
+dump 4a all custom 100 dump.myforce.* id type x y vx fx
+dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
 dump 1 all xtc 1000 file.xtc 
 </PRE>
 <P><B>Description:</B>
@@ -229,8 +229,8 @@ styles.
 <P>This section explains the atom quantities that can be specified as
 part of the <I>custom</I> style.
 </P>
-<P>The <I>tag</I>, <I>mol</I>, <I>type</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
-<I>fz</I>, <I>q</I> keywords are self-explanatory.  <I>Tag</I> is the atom ID.  <I>Mol</I>
+<P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
+<I>fz</I>, <I>q</I> keywords are self-explanatory.  <I>Id</I> is the atom ID.  <I>Mol</I>
 is the molecule ID, included in the data file for molecular systems.
 The <I>x</I>, <I>y</I>, <I>z</I> keywords write atom coordinates "unscaled", in the
 appropriate distance <A HREF = "units.html">units</A> (Angstroms, sigma, etc).  Use

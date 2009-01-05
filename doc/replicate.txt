@@ -27,15 +27,14 @@ dimension.  A replication factor of 1 in a dimension leaves the
 simulation domain unchanged.
 
 All properties of the atoms are replicated, including their
-velocities, which may or may not be desirable.  New atom IDs (tags)
-are assigned to new atoms, as are molecule IDs.  Bonds and other
-topology interactions are created between pairs of new atoms as well
-as between old and new atoms.  This is done by using the image flag
-for each atom to "unwrap" it out of the periodic box before
-replicating it.  This means that molecular bonds you specify in the
-original data file that span the periodic box should be between two
-atoms with image flags that differ by 1.  This will allow them to be
-unwrapped appropriately.
+velocities, which may or may not be desirable.  New atom IDs are
+assigned to new atoms, as are molecule IDs.  Bonds and other topology
+interactions are created between pairs of new atoms as well as between
+old and new atoms.  This is done by using the image flag for each atom
+to "unwrap" it out of the periodic box before replicating it.  This
+means that molecular bonds you specify in the original data file that
+span the periodic box should be between two atoms with image flags
+that differ by 1.  This will allow them to be unwrapped appropriately.
 
 [Restrictions:]
 

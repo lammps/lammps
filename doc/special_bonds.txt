@@ -10,101 +10,120 @@ special_bonds command :h3
 
 [Syntax:]
 
-special_bonds style args :pre
+special_bonds keyword values ... :pre
 
-style = {charmm} or {amber} or {dihedral} or {explicit} ({explicit} can be omitted) :ulb,l
-  {charmm} args = none
-  {amber} args = none
-  {dihedral} args = c1 c2 c3 c4 c5 c6
-    c1,c2,c3 = weights (0.0 to 1.0) on pairwise Lennard-Jones interactions (and Coulomb if c4,c5,c6 are not specified)
-    c4,c5,c6 = weights (0.0 to 1.0) on pairwise Coulomb interactions (optional)
-  {explicit} args = c1 c2 c3 c4 c5 c6
-    c1,c2,c3 = weights (0.0 to 1.0) on pairwise Lennard-Jones interactions (and Coulomb if c4,c5,c6 are not specified)
-    c4,c5,c6 = weights (0.0 to 1.0) on pairwise Coulomb interactions (optional) :pre
+one or more keyword/value pairs may be appended :ulb,l
+keyword = {amber} or {charmm} or {fene} or {lj/coul} or {lj} or {coul} or {dihedral} or {extra} :l
+  {amber} values = none
+  {charmm} values = none
+  {fene} values = none
+  {lj/coul} values = w1,w2,w3
+    w1,w2,w3 = weights (0.0 to 1.0) on pairwise Lennard-Jones and Coulombic interactions
+  {lj} values = w1,w2,w3
+    w1,w2,w3 = weights (0.0 to 1.0) on pairwise Lennard-Jones interactions
+  {coul} values = w1,w2,w3
+    w1,w2,w3 = weights (0.0 to 1.0) on pairwise Coulombic interactions
+  {dihedral} value = {yes} or {no}
+  {extra} value = N
+    N = number of extra 1-2,1-3,1-4 interactions to save space for :pre
 :ule
 
 Examples:
 
-special_bonds charmm
 special_bonds amber
-special_bonds dihedral 0.0 0.0 0.5
-special_bonds explicit 0 1 1
-special_bonds 0 1 1
-special_bonds 0.0 0.0 1.0 0.0 0.0 0.5 :pre
+special_bonds charmm
+special_bonds fene dihedral no
+special_bonds lj/coul 0.0 0.0 0.5 dihedral yes
+special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0 dihedral yes
+special_bonds lj/coul 0 1 1 extra 2 :pre
 
 [Description:]
 
-Set the weighting coefficients for the pairwise force and energy
-contributions from atom pairs that are also bonded to each other
-directly or indirectly.  For Lennard-Jones and Coulombic pairwise
-interactions, the 1st coefficient is the weighting factor on 1-2 atom
-pairs, which are those directly bonded to each other.  The 2nd
-coefficient is the weighting factor on 1-3 atom pairs which are those
-separated by 2 bonds (e.g. the 2 H atoms in a water molecule).  The
-3rd coefficient is the weighting factor on 1-4 atom pairs which are
-separated by 3 bonds (e.g. the 1st and 4th atoms in a dihedral
-interaction).
+Set weighting coefficients for pairwise energy and force contributions
+from atom pairs that are also bonded to each other directly or
+indirectly.  For Lennard-Jones (LJ) and Coulombic pairwise
+interactions, these coefficients come in sets of three.  The 1st
+coefficient is the weighting factor on 1-2 atom pairs, which are those
+directly bonded to each other.  The 2nd coefficient is the weighting
+factor on 1-3 atom pairs which are those separated by 2 bonds
+(e.g. the two H atoms in a water molecule).  The 3rd coefficient is
+the weighting factor on 1-4 atom pairs which are those separated by 3
+bonds (e.g. the 1st and 4th atoms in a dihedral interaction).  Thus if
+the 1-2 coefficient is set to 0.0, then the pairwise interaction is
+effectively turned off for all pairs of atoms bonded to each other.
 
-Note that for purposes of computing weighted pairwise interactions,
-1-3 and 1-4 interactions are NOT defined from the list of angles or
-dihedrals used by the simulation.  Rather, they are inferred
-topologically by the set of bonds defined when atoms are read in from
-a file ("read_data"_read_data.html or
-"read_restart"_read_restart.html).  Thus the set of 1-2,1-3,1-4
-interactions is the same whether angle and dihedral potentials are
+IMPORTANT NOTE: For purposes of computing weighted pairwise
+interactions, 1-3 and 1-4 interactions are not defined from the list
+of angles or dihedrals used by the simulation.  Rather, they are
+inferred topologically from the set of bonds defined when the
+simulation is defined from a data or restart file (see
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands).  Thus the set of 1-2,1-3,1-4 interactions that the weights
+apply to is the same whether angle and dihedral potentials are
 computed or not, and remains the same even if bonds are constrained,
 or turned off, or removed during a simulation.
 
-The two exceptions to this rule are (a) if the special_bonds
-{dihedral} style is used (see below), or (b) if the
+The two exceptions to this rule are (a) if the {dihedral} keyword is
+set to {yes} (see below), or (b) if the
 "delete_bonds"_delete_bonds.html command is used with the {special}
 option that recomputes the 1-2,1-3,1-4 topologies after bonds are
 deleted; see the "delete_bonds"_delete_bonds.html command for more
 details.
 
-The {charmm} style sets all 3 coefficients to 0.0 for both LJ and
-Coulombic interactions, which is the default for the CHARMM force
-field.  In pair styles {lj/charmm/coul/charmm} and
-{lj/charmm/coul/long} the 1-4 coefficients are defined explicitly, and
-these pair-wise contributions are computed in the charmm dihedral
-style - see the "pair_coeff"_pair_coeff.html and
-"dihedral_style"_dihedral_style.html commands for more information.
-
-The {amber} style sets the 3 coefficients to 0.0 0.0 0.5 for LJ
-interactions and to 0.0 0.0 0.8333 for Coulombic interactions, which
-is the default for a particular version of the AMBER force field,
+The {amber} keyword sets the 3 coefficients to 0.0, 0.0, 0.5 for LJ
+interactions and to 0.0, 0.0, 0.8333 for Coulombic interactions, which
+is the default for a commonly used version of the AMBER force field,
 where the last value is really 5/6.
 
-The {dihedral} style requires you to set 3 or 6 coefficients (see the
-{explicit} style), but it turns off the 1-4 weighting factor for
-individual atom pairs if they are not listed as the first and last
+The {charmm} keyword sets the 3 coefficients to 0.0, 0.0, 0.0 for both
+LJ and Coulombic interactions, which is the default for a commonly
+used version of the CHARMM force field.  Note that in pair styles
+{lj/charmm/coul/charmm} and {lj/charmm/coul/long} the 1-4 coefficients
+are defined explicitly, and these pairwise contributions are computed
+as part of the charmm dihedral style - see the
+"pair_coeff"_pair_coeff.html and "dihedral_style"_dihedral_style.html
+commands for more information.
+
+The {fene} keyword sets the 3 coefficients to 0.0, 1.0, 1.0 for both
+LJ and Coulombic interactions, which is consistent with a
+coarse-grained polymer model with "FENE bonds"_bond_fene.html.
+
+The {lj/coul}, {lj}, and {coul} keywords allow the 3 coefficients to
+be set explicitly.  The {lj/coul} keyword sets both the LJ and
+Coulombic coefficients to the same 3 values.  The {lj} and {coul}
+keywords only set either the LJ or Coulombic coefficients.  Use both
+of them if you wish to set the LJ coefficients to different values
+than the Coulombic coefficients.
+
+The {dihedral} keyword allows the 1-4 weighting factor to be ignored
+for individual atom pairs if they are not listed as the first and last
 atoms in any dihedral defined in the simulation.  For example, imagine
-you have set the 1-4 weighting factor to 0.5 and you have a linear
-molecule with 5 atoms and bonds as follows: 1-2-3-4-5.  If your data
-file defines 1-2-3-4 as a dihedral, but does not define 2-3-4-5 as a
-dihedral, then the pairwise interaction between atoms 1 and 4 will be
-weighted by 0.5, but the interaction between atoms 2 and 5 will be
-unaffected (full weighting of 1.0).  Note that if any of the other
-special_bond styles are used, then the 2,5 interaction would also be
-weighted by 0.5.  The {dihedral} style is provided because some force
-fields follow this rule.
+the 1-4 weighting factor is set to 0.5 and you have a linear molecule
+with 5 atoms and bonds as follows: 1-2-3-4-5.  If your data file
+defines 1-2-3-4 as a dihedral, but does not define 2-3-4-5 as a
+dihedral, then the pairwise interaction between atoms 1 and 4 will
+always be weighted by 0.5, but different force fields use different
+rules for weighting the pairwise interaction between atoms 2 and 5.
+If the {dihedral} keyword is specified as {yes}, then the pairwise
+interaction between atoms 2 and 5 will be unaffected (full weighting
+of 1.0).  If the {dihedral} keyword is specified as {no} which is the
+default, then the 2,5 interaction will also be weighted by 0.5.
 
-The {explicit} style requires you to set 3 or 6 coefficients directly.
-If 3 are specified, they are used for both LJ and Coulombic
-interactions.  If 6 are specified then the first 3 are LJ coefficients
-and the second 3 are Coulombic coefficients.  Note that the {explicit}
-keyword itself is optional; the special_bonds command can just take 3
-or 6 numeric arguments by themselves.
-
-IMPORTANT NOTE: For a "lj units"_units.html system with "FENE
-bonds"_bond_fene.html a setting of special bonds 0 1 1 should be used.
+The {extra} keyword is used when additional bonds will be created
+during a simulation run, e.g. by the "fix
+bond/create"_fix_bond_create.html command.  A list of 1-2,1-3,1-4
+neighbors for each atom is calculated and stored by LAMMPS.  If new
+bonds are created, the list needs to grow.  Using the {extra} keyword
+leaves empty space in the list for N additional bonds to be added.  If
+you do not do this, you may get an error when bonds are added.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"delete_bonds"_delete_bonds.html
+"delete_bonds"_delete_bonds.html, "fix bond/create"_fix_bond_create.html
 
 [Default:]
 
-special_bonds 0.0 0.0 0.0 :pre
+All 3 Lennard-Jones and 3 Coulobmic weighting coefficients = 0.0,
+dihedral = no, and extra = 0.

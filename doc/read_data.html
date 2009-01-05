@@ -78,6 +78,7 @@ is different than the default.
 <LI><I>angle types</I> = # of angle types in system
 <LI><I>dihedral types</I> = # of dihedral types in system
 <LI><I>improper types</I> = # of improper types in system
+<LI><I>extra bond per atom</I> = leave space for this many new bonds per atom
 <LI><I>xlo xhi</I> = simulation box boundaries in x dimension
 <LI><I>ylo yhi</I> = simulation box boundaries in y dimension
 <LI><I>zlo zhi</I> = simulation box boundaries in z dimension
@@ -87,7 +88,7 @@ is different than the default.
 In any dimension, the system may be periodic or non-periodic; see the
 <A HREF = "boundary.html">boundary</A> command.
 </P>
-<P>If the <I>xy xz yz</I> line does not appear, then LAMMPS will set up an
+<P>If the <I>xy xz yz</I> line does not appear, LAMMPS will set up an
 axis-aligned (orthogonal) simulation box.  If the line does appear,
 LAMMPS creates a non-orthogonal simulation domain shaped as a
 parallelepiped with triclinic symmetry.  See the <A HREF = "region.html">region
@@ -138,6 +139,11 @@ specified box size to layout the 3d grid of processors.  A huge
 (mostly empty) box will be sub-optimal for performance and may cause a
 parallel simulation to lose atoms if LAMMPS shrink-wraps the box
 around the atoms.
+</P>
+<P>The "extra bond per atom" setting should be used if new bonds will be
+added to the system when a simulation runs, e.g. by using the <A HREF = "fix_bond_create.html">fix
+bond/create</A> command.  This will pre-allocate
+space in LAMMPS data structures for storing the new bonds.
 </P>
 <HR>
 

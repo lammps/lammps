@@ -66,9 +66,19 @@ The tangential force between 2 particles grows according to a
 tangential spring and dash-pot model until Ft/Fn = xmu and is then
 held at Ft = Fn*xmu until the particles lose contact.
 
-For granular styles there are no individual atom type coefficients
-that can be set via the "pair_coeff"_pair_coeff.html command.  All
-global settings are made via the pair_style command.
+For granular styles there are no additional coefficients to set for
+each pair of atom types via the "pair_coeff"_pair_coeff.html command.
+All settings are global and are made via the pair_style command.
+However you must still use the "pair_coeff"_pair_coeff.html for all
+pairs of granular atom types.  For example the command
+
+pair_coeff * * :pre
+
+should be used if all atoms in the simulation interact via a granular
+potential.  If a granular potential is used as part of "pair_style
+hybrid"_pair_hybrid.html, then specific atom types can be used in the
+pair_coeff command to determine which atoms interact via a granular
+potential.
 
 See the citation below for more discussion of granular potentials.
 

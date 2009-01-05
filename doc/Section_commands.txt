@@ -110,8 +110,8 @@ line are arguments.
 (6) Text with spaces can be enclosed in double quotes so it will be
 treated as a single argument.  See the "dump modify"_dump_modify.html
 or "fix print"_fix_print.html commands for examples.  A '#' or '$'
-character that in text between double quotes will not be treated as a
-comment or substituted for as a variable.
+character that is in text between double quotes will not be treated as
+a comment or substituted for as a variable.
 
 :line
 
@@ -380,6 +380,8 @@ of each style or click on the style itself for a full description:
 "ave/atom"_fix_ave_atom.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
+"bond/break"_fix_bond_break.html,
+"bond/create"_fix_bond_create.html,
 "bond/swap"_fix_bond_swap.html,
 "com"_fix_com.html,
 "coord/original"_fix_coord_original.html,

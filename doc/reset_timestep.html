@@ -45,6 +45,21 @@ write.  See the <A HREF = "undump.html">undump</A> command or <A HREF = "restart
 if necessary.  New specifications for dump and restart files can be
 given after the reset_timestep command is used.
 </P>
+<P>This command cannot be used when any fixes are defined that keep track
+of time or the timestep in order to perform time-dependent operations.
+Examples include the "ave" or "wall" fixes such as <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> or <A HREF = "fix_wall_lj126.html">fix
+wall/lj126</A>, and also <A HREF = "fix_indent.html">fix
+indent</A>.  The wall and indeter fixes allow for a
+velocity or other time-dependent parameter to be specified, which
+would be messed up by resetting the timestep.
+</P>
+<P>Restting the timestep will clear the flags for <A HREF = "compute.html">computes</A>
+that may have calculated some quantity from a previous run.  This
+means that quantity cannot be accessed by a variable in between runs
+until a new run is performed.  See the <A HREF = "variable.html">variable</A>
+command for more details.
+</P>
 <P><B>Related commands:</B> none
 </P>
 <P><B>Default:</B> none

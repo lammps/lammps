@@ -150,6 +150,14 @@ command (e.g. print "Protein Rg = $r" as in the example above).  This
 means that, if specified, the {every} option must be the last keyword
 used.
 
+IMPORTANT NOTE: For the {every} option, if the command includes a
+variable (e.g. $x or $\{abc\}), and you want the variable to be
+evaluated afresh each time the command is invoked, then you should
+enclose that command argument in double quotes, as in the "Protein Rg
+= $r" example above.  If you don't do this, then the variable will be
+substituted for only once initially when the run command is parsed,
+just as occurs for any other command containing a variable.
+
 If the {pre} and {post} options are set to "no" when used with the
 {every} keyword, then the 1st run will do the full setup and the last
 run will print the full timing summary, but these operations will be

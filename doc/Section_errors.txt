@@ -39,8 +39,8 @@ See the discussion of the {loop} option in the
 
 Similarly, the "create_atoms"_create_atoms.html command generates a
 lattice of atoms.  For the same physical system, the ordering and
-numbering of atoms (atom ID or tag) may be different depending on the
-number of processors.
+numbering of atoms by atom ID may be different depending on the number
+of processors.
 
 Some commands use random number generators which may be setup to
 produce different random number streams on each processor and hence

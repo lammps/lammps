@@ -47,9 +47,9 @@ to other hybrid styles, use the style name (e.g. "harmonic")
 appropriate to that style.  The MiddleBondTorsion, etc coeffs for that
 dihedral type will then be ignored.
 
-A dihedral style of {none} can be specified as an argument to
-dihedral_style hybrid and the corresponding dihedral_coeff commands,
-if you desire to turn off certain dihedral types.
+A dihedral style of {none} can be specified as the 2nd argument to the
+dihedral_coeff command, if you desire to turn off certain dihedral
+types.
 
 [Restrictions:]
 

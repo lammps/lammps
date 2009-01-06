@@ -52,6 +52,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   maxlocal = 0;
   REBO_numneigh = NULL;
   REBO_firstneigh = NULL;
+  closestdistsq = NULL;
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
@@ -67,6 +68,7 @@ PairAIREBO::~PairAIREBO()
   memory->sfree(REBO_firstneigh);
   for (int i = 0; i < maxpage; i++) memory->sfree(pages[i]);
   memory->sfree(pages);
+  memory->sfree(closestdistsq);
   memory->sfree(nC);
   memory->sfree(nH);
 
@@ -304,12 +306,15 @@ void PairAIREBO::REBO_neigh()
     maxlocal = atom->nmax;
     memory->sfree(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
+    memory->sfree(closestdistsq);
     memory->sfree(nC);
     memory->sfree(nH);
     REBO_numneigh = (int *)
       memory->smalloc(maxlocal*sizeof(int),"AIREBO:numneigh");
     REBO_firstneigh = (int **)
       memory->smalloc(maxlocal*sizeof(int *),"AIREBO:firstneigh");
+    closestdistsq = (double *) 
+      memory->smalloc(maxlocal*sizeof(double),"AIREBO:closestdistsq");
     nC = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nC");
     nH = (double *) memory->smalloc(maxlocal*sizeof(double),"AIREBO:nH");
   }
@@ -319,9 +324,12 @@ void PairAIREBO::REBO_neigh()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // initialize ghost atom references to -1
+  // initialize ghost atom references to -1 and closest distance = cutljrebosq
 
-  for (i = nlocal; i < nall; i++) REBO_numneigh[i] = -1;
+  for (i = nlocal; i < nall; i++) {
+    REBO_numneigh[i] = -1;
+    closestdistsq[i] = cutljrebosq;
+  }
 
   // store all REBO neighs of owned atoms
   // scan full neighbor list of I
@@ -366,7 +374,10 @@ void PairAIREBO::REBO_neigh()
 	else
 	  nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
       }
-      if (j >= nlocal && rsq < cutljrebosq) REBO_numneigh[j] = i;
+      if (j >= nlocal && rsq < closestdistsq[j]) {
+	REBO_numneigh[j] = i;
+	closestdistsq[j] = rsq;
+      }
     }
 
     REBO_firstneigh[i] = neighptr;
@@ -376,8 +387,8 @@ void PairAIREBO::REBO_neigh()
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
-  // store REBO neighs of ghost atoms that have been flagged in REBO_numneigh
-  // find by scanning full neighbor list of owned atom M that is neighbor of I
+  // store REBO neighs of ghost atoms I that have been flagged in REBO_numneigh
+  // find by scanning full neighbor list of owned atom M = closest neigh of I
 
   for (i = nlocal; i < nall; i++) {
 
@@ -407,14 +418,21 @@ void PairAIREBO::REBO_neigh()
     delz = ztmp - x[m][2];
     rsq = delx*delx + dely*dely + delz*delz;
 
-    neighptr[n++] = m;
-    if (jtype == 0)
-      nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-    else
-      nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+    // add M as neigh of I if close enough
+
+    if (rsq < rcmaxsq[itype][jtype]) {
+      neighptr[n++] = m;
+      if (jtype == 0)
+	nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+      else
+	nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+    }
 
     jlist = firstneigh[m];
     jnum = numneigh[m];
+
+    // add M's neighbors as neighs of I if close enough
+    // skip I itself
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -4178,6 +4196,6 @@ double PairAIREBO::memory_usage()
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(int *);
   bytes += maxpage * neighbor->pgsize * sizeof(int);
-  bytes += 2 * maxlocal * sizeof(double);
+  bytes += 3 * maxlocal * sizeof(double);
   return bytes;
 }

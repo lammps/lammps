@@ -49,6 +49,7 @@ class PairAIREBO : public Pair {
 
   int *REBO_numneigh;              // # of pair neighbors for each atom
   int **REBO_firstneigh;           // ptr to 1st neighbor of each atom
+  double *closestdistsq;           // closest owned atom dist to each ghost
   double *nC,*nH;                  // sum of weighting fns with REBO neighs
 
   double smin,Nmin,Nmax,NCmin,NCmax,thmin,thmax;

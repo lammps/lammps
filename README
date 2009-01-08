@@ -1,4 +1,4 @@
-This is the LAMMPS (21 May 2008) software package.
+This is the LAMMPS (6 Jan 2009) software package.
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
@@ -20,7 +20,7 @@ The primary author of the code is Steve Plimpton, who can be emailed
 at sjplimp@sandia.gov.  The LAMMPS WWW Site at lammps.sandia.gov has
 more information about the code and its uses.
 
-The LAMMPS (21 May 2008) distribution includes the following files
+The LAMMPS (6 Jan 2009) distribution includes the following files
 and directories:
 
 README			   this file

@@ -18,7 +18,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "string.h"
-#include "pair_gran_hertzian.h"
+#include "pair_gran_hooke.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
@@ -30,15 +30,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHertzian::PairGranHertzian(LAMMPS *lmp) : PairGranHistory(lmp)
+PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHistory(lmp)
 {
-  no_virial_compute = 1;
-  history = 1;
+  history = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHertzian::compute(int eflag, int vflag)
+void PairGranHooke::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
@@ -47,11 +46,8 @@ void PairGranHertzian::compute(int eflag, int vflag)
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
   double xmeff,damp,ccel,tor1,tor2,tor3;
-  double fn,fs,fs1,fs2,fs3;
-  double shrmag,rsht,rhertz;
+  double fn,fs,ft,fs1,fs2,fs3;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *shear,*allshear,**firstshear;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -65,13 +61,12 @@ void PairGranHertzian::compute(int eflag, int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  firsttouch = list->listgranhistory->firstneigh;
-  firstshear = list->listgranhistory->firstdouble;
 
   // loop over neighbors of my atoms
 
@@ -81,8 +76,6 @@ void PairGranHertzian::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
-    touch = firsttouch[i];
-    allshear = firstshear[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -96,17 +89,7 @@ void PairGranHertzian::compute(int eflag, int vflag)
       radj = radius[j];
       radsum = radi + radj;
 
-      if (rsq >= radsum*radsum) {
-
-	// unset non-touching neighbors
-
-        touch[jj] = 0;
-	shear = &allshear[3*jj];
-        shear[0] = 0.0;
-        shear[1] = 0.0;
-        shear[2] = 0.0;
-
-      } else {
+      if (rsq < radsum*radsum) {
 	r = sqrt(rsq);
 	rinv = 1.0/r;
 	rsqinv = 1.0/rsq;
@@ -136,15 +119,13 @@ void PairGranHertzian::compute(int eflag, int vflag)
 	wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
 	wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-	// normal force = Hertzian contact + normal velocity damping
+	// normal forces = Hookian contact + normal velocity damping
 
 	xmeff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
 	if (mask[i] & freeze_group_bit) xmeff = rmass[j];
 	if (mask[j] & freeze_group_bit) xmeff = rmass[i];
 	damp = xmeff*gamman*vnnr*rsqinv;
 	ccel = xkk*(radsum-r)*rinv - damp;
-	rhertz = sqrt(radsum - r);
-	ccel *= rhertz;
 
 	// relative velocities
 
@@ -154,52 +135,18 @@ void PairGranHertzian::compute(int eflag, int vflag)
 	vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
 	vrel = sqrt(vrel);
 
-	// shear history effects
+	// force normalization
 
-	touch[jj] = 1;
-	shear = &allshear[3*jj];
-        shear[0] += vtr1*dt;
-        shear[1] += vtr2*dt;
-        shear[2] += vtr3*dt;
-        shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + 
-		      shear[2]*shear[2]);
-
-	// rotate shear displacements
-
-	rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
-	rsht *= rsqinv;
-        shear[0] -= rsht*delx;
-        shear[1] -= rsht*dely;
-        shear[2] -= rsht*delz;
-
-	// tangential forces = shear + tangential velocity damping
-
-        fs1 = -rhertz * (xkkt*shear[0] + xmeff*gammas*vtr1);
-        fs2 = -rhertz * (xkkt*shear[1] + xmeff*gammas*vtr2);
-        fs3 = -rhertz * (xkkt*shear[2] + xmeff*gammas*vtr3);
-
-	// rescale frictional displacements and forces if needed
-
-	fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
 	fn = xmu * fabs(ccel*r);
+	fs = xmeff*gammas*vrel;
+	if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
+	else ft = 0.0;
 
-	if (fs > fn) {
-	  if (shrmag != 0.0) {
-	    shear[0] = (fn/fs) * (shear[0] + xmeff*gammas*vtr1/xkkt) -
-	      xmeff*gammas*vtr1/xkkt;
-	    shear[1] = (fn/fs) * (shear[1] + xmeff*gammas*vtr2/xkkt) -
-	      xmeff*gammas*vtr2/xkkt;
-	    shear[2] = (fn/fs) * (shear[2] + xmeff*gammas*vtr3/xkkt) -
-	      xmeff*gammas*vtr3/xkkt;
-	    fs1 *= fn/fs;
-	    fs2 *= fn/fs;
-	    fs3 *= fn/fs;
-	  } else {
-	    fs1 = 0.0;
-	    fs2 = 0.0;
-	    fs3 = 0.0;
-	  }
-	}
+	// tangential force due to tangential velocity damping
+
+	fs1 = -ft*vtr1;
+	fs2 = -ft*vtr2;
+	fs3 = -ft*vtr3;
 
 	// forces & torques
 
@@ -217,7 +164,7 @@ void PairGranHertzian::compute(int eflag, int vflag)
 	torque[i][1] -= radi*tor2;
 	torque[i][2] -= radi*tor3;
 
-	if (j < nlocal) {
+	if (newton_pair || j < nlocal) {
 	  f[j][0] -= fx;
 	  f[j][1] -= fy;
 	  f[j][2] -= fz;
@@ -226,9 +173,11 @@ void PairGranHertzian::compute(int eflag, int vflag)
 	  torque[j][2] -= radj*tor3;
 	}
 
-	if (evflag) ev_tally_xyz(i,j,nlocal,0,
+	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
 				 0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }
   }
+
+  if (vflag_fdotr) virial_compute();
 }

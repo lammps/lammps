@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_GRAN_HISTORY_H
-#define PAIR_GRAN_HISTORY_H
+#ifndef PAIR_GRAN_HOOKE_HISTORY_H
+#define PAIR_GRAN_HOOKE_HISTORY_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairGranHistory : public Pair {
+class PairGranHookeHistory : public Pair {
  public:
-  PairGranHistory(class LAMMPS *);
-  ~PairGranHistory();
+  PairGranHookeHistory(class LAMMPS *);
+  ~PairGranHookeHistory();
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

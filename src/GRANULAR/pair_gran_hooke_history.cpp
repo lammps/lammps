@@ -19,7 +19,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "pair_gran_history.h"
+#include "pair_gran_hooke_history.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHistory::PairGranHistory(LAMMPS *lmp) : Pair(lmp)
+PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   no_virial_compute = 1;
@@ -53,7 +53,7 @@ PairGranHistory::PairGranHistory(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHistory::~PairGranHistory()
+PairGranHookeHistory::~PairGranHookeHistory()
 {
   if (fix_history) modify->delete_fix("SHEAR_HISTORY");
 
@@ -65,7 +65,7 @@ PairGranHistory::~PairGranHistory()
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHistory::compute(int eflag, int vflag)
+void PairGranHookeHistory::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
@@ -262,7 +262,7 @@ void PairGranHistory::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::allocate()
+void PairGranHookeHistory::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -279,7 +279,7 @@ void PairGranHistory::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::settings(int narg, char **arg)
+void PairGranHookeHistory::settings(int narg, char **arg)
 {
   if (narg != 4) error->all("Illegal pair_style command");
 
@@ -293,7 +293,7 @@ void PairGranHistory::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::coeff(int narg, char **arg)
+void PairGranHookeHistory::coeff(int narg, char **arg)
 {
   if (narg > 2) error->all("Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -317,7 +317,7 @@ void PairGranHistory::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::init_style()
+void PairGranHookeHistory::init_style()
 {
   int i;
 
@@ -349,7 +349,7 @@ void PairGranHistory::init_style()
   // if first init, create Fix needed for storing shear history
 
   if (history && force->newton_pair == 1)
-    error->all("Potential with shear history requires newton pair off");
+    error->all("Pair granular with shear history requires newton pair off");
 
   if (history && fix_history == NULL) {
     char **fixarg = new char*[3];
@@ -408,7 +408,7 @@ void PairGranHistory::init_style()
    optional granular history list
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::init_list(int id, NeighList *ptr)
+void PairGranHookeHistory::init_list(int id, NeighList *ptr)
 {
   if (id == 0) list = ptr;
   else if (id == 1) listgranhistory = ptr;
@@ -418,7 +418,7 @@ void PairGranHistory::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairGranHistory::init_one(int i, int j)
+double PairGranHookeHistory::init_one(int i, int j)
 {
   if (!allocated) allocate();
 
@@ -445,7 +445,7 @@ double PairGranHistory::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::write_restart(FILE *fp)
+void PairGranHookeHistory::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 }
@@ -454,7 +454,7 @@ void PairGranHistory::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::read_restart(FILE *fp)
+void PairGranHookeHistory::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -464,7 +464,7 @@ void PairGranHistory::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::write_restart_settings(FILE *fp)
+void PairGranHookeHistory::write_restart_settings(FILE *fp)
 {
   fwrite(&xkk,sizeof(double),1,fp);
   fwrite(&gamman,sizeof(double),1,fp);
@@ -476,7 +476,7 @@ void PairGranHistory::write_restart_settings(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairGranHistory::read_restart_settings(FILE *fp)
+void PairGranHookeHistory::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&xkk,sizeof(double),1,fp);
@@ -492,7 +492,7 @@ void PairGranHistory::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void *PairGranHistory::extract(char *str)
+void *PairGranHookeHistory::extract(char *str)
 {
   if (strcmp(str,"xkk") == 0) return (void *) &xkk;
   else if (strcmp(str,"gamman") == 0) return (void *) &gamman;
@@ -503,7 +503,7 @@ void *PairGranHistory::extract(char *str)
 
 /* ---------------------------------------------------------------------- */
 
-void PairGranHistory::reset_dt()
+void PairGranHookeHistory::reset_dt()
 {
   dt = update->dt;
 }

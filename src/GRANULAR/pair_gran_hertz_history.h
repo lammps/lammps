@@ -11,16 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_GRAN_HERTZIAN_H
-#define PAIR_GRAN_HERTZIAN_H
+#ifndef PAIR_GRAN_HERTZ_HISTORY_H
+#define PAIR_GRAN_HERTZ_HISTORY_H
 
-#include "pair_gran_history.h"
+#include "pair_gran_hooke_history.h"
 
 namespace LAMMPS_NS {
 
-class PairGranHertzian : public PairGranHistory {
+class PairGranHertzHistory : public PairGranHookeHistory {
  public:
-  PairGranHertzian(class LAMMPS *);
+  PairGranHertzHistory(class LAMMPS *);
   void compute(int, int);
 };
 

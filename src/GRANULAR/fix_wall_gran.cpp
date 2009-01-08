@@ -70,6 +70,13 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
     error->all("Illegal fix wall/gran command");
 
+  // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
+
+  if (force->pair_match("gran/hertz/history",1)) {
+    kn /= force->nktv2p;
+    kt /= force->nktv2p;
+  }
+
   // wallstyle args
 
   int iarg = 9;

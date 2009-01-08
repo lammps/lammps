@@ -792,18 +792,18 @@ void Pair::write_file(int narg, char **arg)
 
   // if pair style = soft, set prefactor to final value
 
-  Pair *spair = force->pair_match("soft");
+  Pair *spair = force->pair_match("soft",1);
   if (spair)
     ((PairSoft *) spair)->prefactor[itype][jtype] =
       ((PairSoft *) spair)->prestop[itype][jtype];
 
-  // if pair style = EAM, swap in dummy fp vector
+  // if pair style = any of EAM, swap in dummy fp vector
 
   double eamfp[2];
   eamfp[0] = eamfp[1] = 0.0;
   double *eamfp_hold;
 
-  Pair *epair = force->pair_match("eam");
+  Pair *epair = force->pair_match("eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
 
   // if atom style defines charge, swap in dummy q vec

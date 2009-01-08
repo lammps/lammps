@@ -143,7 +143,7 @@ void FixPeriNeigh::setup(int vflag)
 
   // scan neighbor list to set maxpartner
 
-  Pair *anypair = force->pair_match("peri");
+  Pair *anypair = force->pair_match("peri",0);
   double **cutsq = anypair->cutsq;
 
   for (ii = 0; ii < inum; ii++) {

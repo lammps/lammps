@@ -45,7 +45,7 @@ void PairGranHooke::compute(int eflag, int vflag)
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double xmeff,damp,ccel,tor1,tor2,tor3;
+  double meff,damp,ccel,tor1,tor2,tor3;
   double fn,fs,ft,fs1,fs2,fs3;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -121,11 +121,11 @@ void PairGranHooke::compute(int eflag, int vflag)
 
 	// normal forces = Hookian contact + normal velocity damping
 
-	xmeff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-	if (mask[i] & freeze_group_bit) xmeff = rmass[j];
-	if (mask[j] & freeze_group_bit) xmeff = rmass[i];
-	damp = xmeff*gamman*vnnr*rsqinv;
-	ccel = xkk*(radsum-r)*rinv - damp;
+	meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+	if (mask[i] & freeze_group_bit) meff = rmass[j];
+	if (mask[j] & freeze_group_bit) meff = rmass[i];
+	damp = meff*gamman*vnnr*rsqinv;
+	ccel = kn*(radsum-r)*rinv - damp;
 
 	// relative velocities
 
@@ -138,7 +138,7 @@ void PairGranHooke::compute(int eflag, int vflag)
 	// force normalization
 
 	fn = xmu * fabs(ccel*r);
-	fs = xmeff*gammas*vrel;
+	fs = meff*gammat*vrel;
 	if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
 	else ft = 0.0;
 

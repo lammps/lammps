@@ -40,7 +40,7 @@ class FixWallGran : public Fix {
 
  private:
   int wallstyle,pairstyle,wiggle,wshear,axis;
-  double xkk,xkkt,gamman,gammas,xmu;
+  double kn,kt,gamman,gammat,xmu;
   double lo,hi,cylradius;
   double dt;
   double amplitude,period,omega,time_origin,vshear;
@@ -48,14 +48,14 @@ class FixWallGran : public Fix {
   int *touch;
   double **shear;
 
-  void no_history(double, double, double, double, double *,
-		  double *, double *, double *, double *, double, double);
-  void history(double, double, double, double, double *,
-	       double *, double *, double *, double *, double, double,
-	       double *);
-  void hertzian(double, double, double, double, double *,
-		double *, double *, double *, double *, double, double,
-		double *);
+  void hooke(double, double, double, double, double *,
+	     double *, double *, double *, double *, double, double);
+  void hooke_history(double, double, double, double, double *,
+		     double *, double *, double *, double *, double, double,
+		     double *);
+  void hertz_history(double, double, double, double, double *,
+		     double *, double *, double *, double *, double, double,
+		     double *);
 };
 
 }

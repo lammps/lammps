@@ -274,8 +274,8 @@ void FixPour::init()
   // check if a shear history fix exists
 
   fix_history = NULL;
-  if (force->pair_match("gran/hooke/history") || 
-      force->pair_match("gran/hertz/history"))
+  if (force->pair_match("gran/hooke/history",1) || 
+      force->pair_match("gran/hertz/history",1))
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0)
 	fix_history = (FixShearHistory *) modify->fix[i];

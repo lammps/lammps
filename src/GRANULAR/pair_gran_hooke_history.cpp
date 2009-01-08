@@ -73,7 +73,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double xmeff,damp,ccel,tor1,tor2,tor3;
+  double meff,damp,ccel,tor1,tor2,tor3;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -165,11 +165,11 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
 	// normal forces = Hookian contact + normal velocity damping
 
-	xmeff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-	if (mask[i] & freeze_group_bit) xmeff = rmass[j];
-	if (mask[j] & freeze_group_bit) xmeff = rmass[i];
-	damp = xmeff*gamman*vnnr*rsqinv;
-	ccel = xkk*(radsum-r)*rinv - damp;
+	meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+	if (mask[i] & freeze_group_bit) meff = rmass[j];
+	if (mask[j] & freeze_group_bit) meff = rmass[i];
+	damp = meff*gamman*vnnr*rsqinv;
+	ccel = kn*(radsum-r)*rinv - damp;
 
 	// relative velocities
 
@@ -199,9 +199,9 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
 	// tangential forces = shear + tangential velocity damping
 
-	fs1 = - (xkkt*shear[0] + xmeff*gammas*vtr1);
-	fs2 = - (xkkt*shear[1] + xmeff*gammas*vtr2);
-	fs3 = - (xkkt*shear[2] + xmeff*gammas*vtr3);
+	fs1 = - (kt*shear[0] + meff*gammat*vtr1);
+	fs2 = - (kt*shear[1] + meff*gammat*vtr2);
+	fs3 = - (kt*shear[2] + meff*gammat*vtr3);
 
 	// rescale frictional displacements and forces if needed
 
@@ -210,20 +210,16 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
 	if (fs > fn) {
 	  if (shrmag != 0.0) {
-	    shear[0] = (fn/fs) * (shear[0] + xmeff*gammas*vtr1/xkkt) -
-	      xmeff*gammas*vtr1/xkkt;
-	    shear[1] = (fn/fs) * (shear[1] + xmeff*gammas*vtr2/xkkt) -
-	      xmeff*gammas*vtr2/xkkt;
-	    shear[2] = (fn/fs) * (shear[2] + xmeff*gammas*vtr3/xkkt) -
-	      xmeff*gammas*vtr3/xkkt;
+	    shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
+	      meff*gammat*vtr1/kt;
+	    shear[1] = (fn/fs) * (shear[1] + meff*gammat*vtr2/kt) -
+	      meff*gammat*vtr2/kt;
+	    shear[2] = (fn/fs) * (shear[2] + meff*gammat*vtr3/kt) -
+	      meff*gammat*vtr3/kt;
 	    fs1 *= fn/fs;
 	    fs2 *= fn/fs;
 	    fs3 *= fn/fs;
-	  } else {
-	    fs1 = 0.0;
-	    fs2 = 0.0;
-	    fs3 = 0.0;
-	  }
+	  } else fs1 = fs2 = fs3 = 0.0;
 	}
 
 	// forces & torques
@@ -281,12 +277,23 @@ void PairGranHookeHistory::allocate()
 
 void PairGranHookeHistory::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal pair_style command");
+  if (narg != 6) error->all("Illegal pair_style command");
 
-  xkk = atof(arg[0]);
-  gamman = atof(arg[1]);
-  xmu = atof(arg[2]);
-  dampflag = atoi(arg[3]);
+  kn = atof(arg[0]);
+  if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
+  else kt = atof(arg[1]);
+
+  gamman = atof(arg[2]);
+  if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
+  else gammat = atof(arg[3]);
+
+  xmu = atof(arg[4]);
+  dampflag = atoi(arg[5]);
+  if (dampflag == 0) gammat = 0.0;
+
+  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
+      xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
+    error->all("Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -339,9 +346,6 @@ void PairGranHookeHistory::init_style()
     neighbor->requests[irequest]->dnum = 3;
   }
 
-  xkkt = xkk * 2.0/7.0;
-  double gammas = 0.5*gamman;
-  if (dampflag == 0) gammas = 0.0;
   dt = update->dt;
 
   // if shear history is stored:
@@ -466,8 +470,10 @@ void PairGranHookeHistory::read_restart(FILE *fp)
 
 void PairGranHookeHistory::write_restart_settings(FILE *fp)
 {
-  fwrite(&xkk,sizeof(double),1,fp);
+  fwrite(&kn,sizeof(double),1,fp);
+  fwrite(&kt,sizeof(double),1,fp);
   fwrite(&gamman,sizeof(double),1,fp);
+  fwrite(&gammat,sizeof(double),1,fp);
   fwrite(&xmu,sizeof(double),1,fp);
   fwrite(&dampflag,sizeof(int),1,fp);
 }
@@ -479,26 +485,19 @@ void PairGranHookeHistory::write_restart_settings(FILE *fp)
 void PairGranHookeHistory::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&xkk,sizeof(double),1,fp);
+    fread(&kn,sizeof(double),1,fp);
+    fread(&kt,sizeof(double),1,fp);
     fread(&gamman,sizeof(double),1,fp);
+    fread(&gammat,sizeof(double),1,fp);
     fread(&xmu,sizeof(double),1,fp);
     fread(&dampflag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&xkk,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&kn,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&kt,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&gamman,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&gammat,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&xmu,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&dampflag,1,MPI_INT,0,world);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairGranHookeHistory::extract(char *str)
-{
-  if (strcmp(str,"xkk") == 0) return (void *) &xkk;
-  else if (strcmp(str,"gamman") == 0) return (void *) &gamman;
-  else if (strcmp(str,"xmu") == 0) return (void *) &xmu;
-  else if (strcmp(str,"dampflag") == 0) return (void *) &dampflag;
-  return NULL;
 }
 
 /* ---------------------------------------------------------------------- */

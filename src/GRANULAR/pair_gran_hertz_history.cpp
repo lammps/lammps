@@ -16,12 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
+#include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
 #include "pair_gran_hertz_history.h"
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -47,9 +49,9 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double xmeff,damp,ccel,tor1,tor2,tor3;
+  double meff,damp,ccel,tor1,tor2,tor3;
   double fn,fs,fs1,fs2,fs3;
-  double shrmag,rsht,rhertz;
+  double shrmag,rsht,polyhertz;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
@@ -139,13 +141,13 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 	// normal force = Hertzian contact + normal velocity damping
 
-	xmeff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-	if (mask[i] & freeze_group_bit) xmeff = rmass[j];
-	if (mask[j] & freeze_group_bit) xmeff = rmass[i];
-	damp = xmeff*gamman*vnnr*rsqinv;
-	ccel = xkk*(radsum-r)*rinv - damp;
-	rhertz = sqrt(radsum - r);
-	ccel *= rhertz;
+	meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+	if (mask[i] & freeze_group_bit) meff = rmass[j];
+	if (mask[j] & freeze_group_bit) meff = rmass[i];
+	damp = meff*gamman*vnnr*rsqinv;
+	ccel = kn*(radsum-r)*rinv - damp;
+	polyhertz = sqrt((radsum-r)*radi*radj / radsum);
+	ccel *= polyhertz;
 
 	// relative velocities
 
@@ -175,9 +177,9 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 	// tangential forces = shear + tangential velocity damping
 
-        fs1 = -rhertz * (xkkt*shear[0] + xmeff*gammas*vtr1);
-        fs2 = -rhertz * (xkkt*shear[1] + xmeff*gammas*vtr2);
-        fs3 = -rhertz * (xkkt*shear[2] + xmeff*gammas*vtr3);
+        fs1 = -polyhertz * (kt*shear[0] + meff*gammat*vtr1);
+        fs2 = -polyhertz * (kt*shear[1] + meff*gammat*vtr2);
+        fs3 = -polyhertz * (kt*shear[2] + meff*gammat*vtr3);
 
 	// rescale frictional displacements and forces if needed
 
@@ -186,20 +188,16 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 	if (fs > fn) {
 	  if (shrmag != 0.0) {
-	    shear[0] = (fn/fs) * (shear[0] + xmeff*gammas*vtr1/xkkt) -
-	      xmeff*gammas*vtr1/xkkt;
-	    shear[1] = (fn/fs) * (shear[1] + xmeff*gammas*vtr2/xkkt) -
-	      xmeff*gammas*vtr2/xkkt;
-	    shear[2] = (fn/fs) * (shear[2] + xmeff*gammas*vtr3/xkkt) -
-	      xmeff*gammas*vtr3/xkkt;
+	    shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
+	      meff*gammat*vtr1/kt;
+	    shear[1] = (fn/fs) * (shear[1] + meff*gammat*vtr2/kt) -
+	      meff*gammat*vtr2/kt;
+	    shear[2] = (fn/fs) * (shear[2] + meff*gammat*vtr3/kt) -
+	      meff*gammat*vtr3/kt;
 	    fs1 *= fn/fs;
 	    fs2 *= fn/fs;
 	    fs3 *= fn/fs;
-	  } else {
-	    fs1 = 0.0;
-	    fs2 = 0.0;
-	    fs3 = 0.0;
-	  }
+	  } else fs1 = fs2 = fs3 = 0.0;
 	}
 
 	// forces & torques
@@ -232,4 +230,34 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairGranHertzHistory::settings(int narg, char **arg)
+{
+  if (narg != 6) error->all("Illegal pair_style command");
+
+  kn = atof(arg[0]);
+  if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
+  else kt = atof(arg[1]);
+
+  gamman = atof(arg[2]);
+  if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
+  else gammat = atof(arg[3]);
+
+  xmu = atof(arg[4]);
+  dampflag = atoi(arg[5]);
+  if (dampflag == 0) gammat = 0.0;
+
+  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
+      xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
+    error->all("Illegal pair_style command");
+
+  // convert Kn and Kt from pressure units to force/distance^2
+
+  kn /= force->nktv2p;
+  kt /= force->nktv2p;
 }

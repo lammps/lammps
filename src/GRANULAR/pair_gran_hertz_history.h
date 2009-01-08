@@ -22,6 +22,7 @@ class PairGranHertzHistory : public PairGranHookeHistory {
  public:
   PairGranHertzHistory(class LAMMPS *);
   void compute(int, int);
+  void settings(int, char **);
 };
 
 }

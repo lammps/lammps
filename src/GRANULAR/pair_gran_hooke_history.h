@@ -23,7 +23,7 @@ class PairGranHookeHistory : public Pair {
   PairGranHookeHistory(class LAMMPS *);
   ~PairGranHookeHistory();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   void init_list(int, class NeighList *);
@@ -32,13 +32,11 @@ class PairGranHookeHistory : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  void *extract(char *);
   void reset_dt();
 
  protected:
-  double xkk,xkkt,xmu;
+  double kn,kt,gamman,gammat,xmu;
   int dampflag;
-  double gamman,gammas;
   double dt;
   int freeze_group_bit;
   int history;

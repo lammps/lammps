@@ -251,7 +251,7 @@ quantity.
 
 The {angmomx}, {angmomy}, and {angmomz} keywords are specific to
 extended aspherical particles that have an angular momentum.  Only
-the {ellipsoid) atom style defines this quantity.
+the {ellipsoid} atom style defines this quantity.
 
 The {quatw}, {quati}, {quatj}, {quatk} keywords are for aspherical
 particles defined with an atom style of {ellipsoid}.  They are the

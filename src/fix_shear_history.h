@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class FixShearHistory : public Fix {
   friend class Neighbor;
-  friend class PairGranHistory;
+  friend class PairGranHookeHistory;
   friend class FixPour;
 
  public:

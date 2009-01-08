@@ -19,9 +19,9 @@
 namespace LAMMPS_NS {
 
 class FixPour : public Fix {
-  friend class PairGranHistory;
-  friend class PairGranHertzian;
-  friend class PairGranNoHistory;
+  friend class PairGranHertzHistory;
+  friend class PairGranHooke;
+  friend class PairGranHookeHistory;
 
  public:
   FixPour(class LAMMPS *, int, char **);

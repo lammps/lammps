@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHistory(lmp)
+PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 {
   history = 0;
 }

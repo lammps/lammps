@@ -30,7 +30,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHertzHistory::PairGranHertzHistory(LAMMPS *lmp) : PairGranHistory(lmp)
+PairGranHertzHistory::PairGranHertzHistory(LAMMPS *lmp) :
+  PairGranHookeHistory(lmp)
 {
   no_virial_compute = 1;
   history = 1;

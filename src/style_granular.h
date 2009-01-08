@@ -34,13 +34,13 @@ FixStyle(wall/gran,FixWallGran)
 #endif
 
 #ifdef PairInclude
-#include "pair_gran_hertzian.h"
-#include "pair_gran_history.h"
-#include "pair_gran_no_history.h"
+#include "pair_gran_hertz_history.h"
+#include "pair_gran_hooke.h"
+#include "pair_gran_hooke_history.h"
 #endif
 
 #ifdef PairClass
-PairStyle(gran/hertzian,PairGranHertzian)
-PairStyle(gran/history,PairGranHistory)
-PairStyle(gran/no_history,PairGranNoHistory)
+PairStyle(gran/hertz/history,PairGranHertzHistory)
+PairStyle(gran/hooke,PairGranHooke)
+PairStyle(gran/hooke/history,PairGranHookeHistory)
 #endif

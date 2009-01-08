@@ -43,7 +43,7 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix wall/gran command");
+  if (narg < 10) error->all("Illegal fix wall/gran command");
 
   time_depend = 1;
 
@@ -52,45 +52,57 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   
-  int iarg;
-  if (strcmp(arg[3],"xplane") == 0) {
-    iarg = 8;
-    if (narg < iarg) error->all("Illegal fix wall/gran command");
+  // wall/particle coefficients
+
+  kn = atof(arg[3]);
+  if (strcmp(arg[4],"NULL") == 0) kt = kn * 2.0/7.0;
+  else kt = atof(arg[4]);
+
+  gamman = atof(arg[5]);
+  if (strcmp(arg[6],"NULL") == 0) gammat = 0.5 * gamman;
+  else gammat = atof(arg[6]);
+
+  xmu = atof(arg[7]);
+  int dampflag = atoi(arg[8]);
+  if (dampflag == 0) gammat = 0.0;
+
+  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
+      xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
+    error->all("Illegal fix wall/gran command");
+
+  // wallstyle args
+
+  int iarg = 9;
+  if (strcmp(arg[iarg],"xplane") == 0) {
+    if (narg < iarg+3) error->all("Illegal fix wall/gran command");
     wallstyle = XPLANE;
-    if (strcmp(arg[4],"NULL") == 0) lo = -BIG;
-    else lo = atof(arg[4]);
-    if (strcmp(arg[5],"NULL") == 0) hi = BIG;
-    else hi = atof(arg[5]);
-    gamman = atof(arg[6]);
-    xmu = atof(arg[7]);
-  } else if (strcmp(arg[3],"yplane") == 0) {
-    iarg = 8;
-    if (narg < iarg) error->all("Illegal fix wall/gran command");
+    if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
+    else lo = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
+    else hi = atof(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"yplane") == 0) {
+    if (narg < iarg+3) error->all("Illegal fix wall/gran command");
     wallstyle = YPLANE;
-    if (strcmp(arg[4],"NULL") == 0) lo = -BIG;
-    else lo = atof(arg[4]);
-    if (strcmp(arg[5],"NULL") == 0) hi = BIG;
-    else hi = atof(arg[5]);
-    gamman = atof(arg[6]);
-    xmu = atof(arg[7]);
-  } else if (strcmp(arg[3],"zplane") == 0) {
-    iarg = 8;
-    if (narg < iarg) error->all("Illegal fix wall/gran command");
+    if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
+    else lo = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
+    else hi = atof(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"zplane") == 0) {
+    if (narg < iarg+3) error->all("Illegal fix wall/gran command");
     wallstyle = ZPLANE;
-    if (strcmp(arg[4],"NULL") == 0) lo = -BIG;
-    else lo = atof(arg[4]);
-    if (strcmp(arg[5],"NULL") == 0) hi = BIG;
-    else hi = atof(arg[5]);
-    gamman = atof(arg[6]);
-    xmu = atof(arg[7]);
-  } else if (strcmp(arg[3],"zcylinder") == 0) {
-    iarg = 7;
-    if (narg < iarg) error->all("Illegal fix wall/gran command");
+    if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
+    else lo = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
+    else hi = atof(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"zcylinder") == 0) {
+    if (narg < iarg+2) error->all("Illegal fix wall/gran command");
     wallstyle = ZCYLINDER;
     lo = hi = 0.0;
-    cylradius = atof(arg[4]);
-    gamman = atof(arg[5]);
-    xmu = atof(arg[6]);
+    cylradius = atof(arg[iarg+1]);
+    iarg += 2;
   }
   
   // check for trailing keyword/values

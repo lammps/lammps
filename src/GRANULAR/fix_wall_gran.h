@@ -42,8 +42,8 @@ class FixWallGran : public Fix {
   int wallstyle,pairstyle,wiggle,wshear,axis;
   double kn,kt,gamman,gammat,xmu;
   double lo,hi,cylradius;
-  double dt;
   double amplitude,period,omega,time_origin,vshear;
+  double dt;
 
   int *touch;
   double **shear;

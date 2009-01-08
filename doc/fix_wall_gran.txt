@@ -10,20 +10,22 @@ fix wall/gran command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/gran wallstyle args keyword values ... :pre
+fix ID group-ID wall/gran Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/gran = style name of this fix command :l
-style = {xplane} or {yplane} or {zplane} or {zcylinder} :l
+Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below) :l
+Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below) :l
+gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) :l
+gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) :l
+xmu = static yield criterion (unitless fraction between 0.0 and 1.0) :l
+dampflag = 0 or 1 if tangential damping force is excluded or included :l
+wallstyle = {xplane} or {yplane} or {zplane} or {zcylinder} :l
 args = list of arguments for a particular style :l
-  {xplane} or {yplane} or {zplane} args = lo hi gamma xmu
+  {xplane} or {yplane} or {zplane} args = lo hi
     lo,hi = position of lower and upper plane (distance units), either can be NULL)
-    gamman = damping coeff for normal direction collisions with wall
-    xmu = friction coeff for the wall
-  {zcylinder} args = radius gamma xmu
+  {zcylinder} args = radius
     radius = cylinder radius (distance units)
-    gamman = damping coeff for normal direction collisions with wall
-    xmu = friction coeff for the wall :pre
 zero or more keyword/value pairs may be appended to args :l
 keyword = {wiggle} or {shear} :l
   {wiggle} values = dim amplitude period
@@ -37,9 +39,9 @@ keyword = {wiggle} or {shear} :l
 
 [Examples:]
 
-fix 1 all wall/gran xplane -10.0 10.0 50.0 0.5
-fix 2 all wall/gran zcylinder 15.0 50.0 0.5 wiggle z 3.0 2.0
-fix 1 all wall/gran zplane 0.0 NULL 100.0 0.5 :pre
+fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 
+fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL 
+fix 2 all wall/gran 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0 :pre
 
 [Description:]
 
@@ -47,13 +49,48 @@ Bound the simulation domain of a granular system with a frictional
 wall.  All particles in the group interact with the wall when they are
 close enough to touch it.
 
+The first set of parameters (Kn, Kt, gamma_n, gamma_t, xmu, and
+dampflag) have the same meaning as those specified with the
+"pair_style granular"_pair_gran.html force fields.  This means a NULL
+can be used for either Kt or gamma_t as described on that page.  If a
+NULL is used for Kt, then a default value is used where Kt = 2/7 Kn.
+If a NULL is used for gamma_t, then a default value is used where
+gamma_t = 1/2 gamma_n.
+
+The nature of the wall/particle interactions are determined by which
+pair_style is used in your input script: {hooke}, {hooke/history}, or
+{hertz/history}.  The equation for the force between the wall and
+particles touching it is the same as the corresponding equation on the
+"pair_style granular"_pair_gran.html doc page, in the limit of one of
+the two particles going to infinite radius and mass (flat wall).
+I.e. delta = radius - r = overlap of particle with wall, m_eff = mass
+of particle, and sqrt(RiRj/Ri+Rj) becomes sqrt(radius of particle).
+The units for Kn, Kt, gamma_n, and gamma_t are as described on that
+doc page.  The meaning of xmu and dampflag are also as described on
+that page.  Note that you can choose different values for these 6
+wall/particle coefficients than for particle/particle interactions, if
+you wish your wall to interact differently with the particles, e.g. if
+the wall is a different material.
+
+IMPORTANT NOTE: As discussed on the doc page for "pair_style
+granular"_pair_gran.html, versions of LAMMPS before 9Jan09 used a
+different equation for Hertzian interactions.  This means Hertizian
+wall/particle interactions have also changed.  They now include a
+sqrt(radius) term which was not present before.  Also the previous
+versions used Kn and Kt from the pairwise interaction and hardwired
+dampflag to 1, rather than letting them be specified directly.  This
+means you can set the values of the wall/particle coefficients
+appropriately in the current code to reproduce the results of a
+prevoius Hertzian monodisperse calculation.  For example, for the
+common case of a monodisperse system with particles of diameter 1, Kn,
+Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
+previously.
+
 The {wallstyle} can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
 {lo} and {hi}.  Either of the values can be specified as NULL if a
 single wall is desired.  For a {zcylinder} wallstyle, the cylinder's
 axis is at x = y = 0.0, and the radius of the cylinder is specified.
-For all wallstyles, a damping and friction coefficient for
-particle-wall interactions are also specified.
 
 Optionally, the wall can be moving, if the {wiggle} or {shear}
 keywords are appended.  Both keywords cannot be used together.
@@ -115,6 +152,6 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 
 [Related commands:]
 
-"fix_wiggle"_fix_wiggle.html
+"fix_wiggle"_fix_wiggle.html, pair_style granular"_pair_gran.html
 
 [Default:] none

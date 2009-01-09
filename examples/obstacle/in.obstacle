@@ -69,6 +69,6 @@ thermo		1000
 thermo_modify	temp mobile
 
 dump		1 all atom 100 dump.obstacle
-#dump		1 all custom 100 dump.custom tag type x y z vx vy 
+#dump		1 all custom 100 dump.custom id type x y z vx vy 
 
 run		25000

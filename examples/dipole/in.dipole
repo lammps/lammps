@@ -31,6 +31,6 @@ compute		erot all erotate/sphere
 thermo_style	custom step temp epair c_erot etotal press
 thermo		500
 
-dump		1 all custom 200 dump.dipole tag type x y z mux muy muz
+dump		1 all custom 200 dump.dipole id type x y z mux muy muz
 
 run		10000

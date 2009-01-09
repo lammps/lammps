@@ -10,7 +10,7 @@ atom_style	bond
 # Soft potential push-off
 
 read_data	data.micelle
-special_bonds	0 1 1
+special_bonds	fene
 
 pair_style	soft 1.12246
 pair_coeff	* * 1.0 20.0 1.12246

@@ -388,8 +388,6 @@ void ReadRestart::header()
 
     } else if (flag == UNITS) {
       char *style = read_char();
-      if (strcmp(style,update->unit_style) != 0 && me == 0)
-	error->warning("Resetting unit_style to restart file value");
       if (strcmp(style,update->unit_style) != 0) update->set_units(style);
       delete [] style;
 
@@ -400,8 +398,6 @@ void ReadRestart::header()
 
     } else if (flag == DIMENSION) {
       int dimension = read_int();
-      if (dimension != domain->dimension && me == 0)
-	error->warning("Resetting dimension to restart file value");
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
 	error->all("Cannot run 2d simulation with nonperiodic Z dimension");
@@ -431,12 +427,8 @@ void ReadRestart::header()
 
     } else if (flag == NEWTON_PAIR) {
       int newton_pair = read_int();
-      if (newton_pair != force->newton_pair && me == 0)
-	error->warning("Restart file used different newton pair setting");
     } else if (flag == NEWTON_BOND) {
       int newton_bond = read_int();
-      if (newton_bond != force->newton_bond && me == 0)
-	error->warning("Resetting newton bond to restart file value");
       force->newton_bond = newton_bond;
       if (force->newton_pair || force->newton_bond) force->newton = 1;
       else force->newton = 0;
@@ -465,14 +457,6 @@ void ReadRestart::header()
       int flag = 0;
       if ((xperiodic != domain->xperiodic || yperiodic != domain->yperiodic ||
 	   zperiodic != domain->zperiodic)) flag = 1;
-      if (boundary[0][0] != domain->boundary[0][0] || 
-	  boundary[0][1] != domain->boundary[0][1] ||
-	  boundary[1][0] != domain->boundary[1][0] || 
-	  boundary[1][1] != domain->boundary[1][1] ||
-	  boundary[2][0] != domain->boundary[2][0] || 
-	  boundary[2][1] != domain->boundary[2][1]) flag = 1;
-      if (flag && me == 0) 
-	error->warning("Resetting boundary settings to restart file values");
 
       domain->boundary[0][0] = boundary[0][0];
       domain->boundary[0][1] = boundary[0][1];

@@ -371,7 +371,7 @@ void PairPeriPMB::init_style()
   // error checks
 
   if (atom->map_style == 0) 
-    error->all("Must use atom_modify to define a map");
+    error->all("Pair peri requires an atom map, see atom_modify");
 
   if (atom->style_match("peri") == 0)
     error->all("Pair style peri_pmb requires atom style peri");

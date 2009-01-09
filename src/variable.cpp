@@ -646,7 +646,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	delete [] id;
 
 	if (domain->box_exist == 0)
-	  error->all("Variable evalulation before simulation box is defined");
+	  error->all("Variable evaluation before simulation box is defined");
  
 	// parse zero or one or two trailing brackets
 	// point i beyond last bracket

@@ -1,18 +1,25 @@
-LAMMPS (21 May 2008)
+LAMMPS (9 Jan 2009)
 # 3d Lennard-Jones melt
 
-variable	x index 20
-variable	y index 20
-variable	z index 20
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
 
 units		lj
 atom_style	atomic
 
 lattice		fcc 0.8442
 Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
-region		box block 0 $x 0 $y 0 $z
-region		box block 0 20 0 $y 0 $z
-region		box block 0 20 0 20 0 $z
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
 region		box block 0 20 0 20 0 20
 create_box	1 box
 Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
@@ -36,13 +43,13 @@ Memory usage per processor = 3.77112 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6134356   -5.0197073 
      100    0.7574531   -5.7585055            0   -4.6223613   0.20726105 
-Loop time of 1.13315 on 4 procs for 100 steps with 32000 atoms
+Loop time of 1.15946 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 0.863531 (76.2059)
-Neigh time (%) = 0.0883042 (7.79277)
-Comm  time (%) = 0.148168 (13.0757)
-Outpt time (%) = 0.000458002 (0.0404183)
-Other time (%) = 0.0326935 (2.88518)
+Pair  time (%) = 0.878825 (75.7963)
+Neigh time (%) = 0.0893251 (7.70404)
+Comm  time (%) = 0.151175 (13.0384)
+Outpt time (%) = 0.000439286 (0.0378872)
+Other time (%) = 0.0396926 (3.42338)
 
 Nlocal:    8000 ave 8037 max 7964 min
 Histogram: 2 0 0 0 0 0 0 0 1 1

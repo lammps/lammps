@@ -7,7 +7,7 @@ variable	z index 1
 units		lj
 atom_style	bond
 atom_modify	map hash
-special_bonds   0.0 1.0 1.0
+special_bonds   fene
 
 read_data	data.chain
 

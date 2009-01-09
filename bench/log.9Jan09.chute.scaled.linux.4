@@ -1,4 +1,4 @@
-LAMMPS (21 May 2008)
+LAMMPS (9 Jan 2009)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -23,7 +23,8 @@ replicate	2 2 1
   4 by 1 by 1 processor grid
   128000 atoms
 
-pair_style	gran/history 200000.0 50.0 0.5 0
+pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
+pair_coeff	* *
 
 neighbor	0.1 bin
 neigh_modify	every 1 delay 0
@@ -50,13 +51,13 @@ Memory usage per processor = 35.1222 Mbytes
 Step Atoms KinEng 1 Volume 
        0   128000    3136556.5    6404.5051    119323.52 
      100   128000      3137160    6284.0549    119327.22 
-Loop time of 3.33027 on 4 procs for 100 steps with 128000 atoms
+Loop time of 3.37589 on 4 procs for 100 steps with 128000 atoms
 
-Pair  time (%) = 1.5792 (47.4197)
-Neigh time (%) = 0.089829 (2.69735)
-Comm  time (%) = 0.305364 (9.16934)
-Outpt time (%) = 0.00202274 (0.0607381)
-Other time (%) = 1.35385 (40.6529)
+Pair  time (%) = 1.62026 (47.995)
+Neigh time (%) = 0.0885705 (2.62362)
+Comm  time (%) = 0.308013 (9.1239)
+Outpt time (%) = 0.002312 (0.0684858)
+Other time (%) = 1.35674 (40.189)
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

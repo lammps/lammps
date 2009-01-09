@@ -13,7 +13,7 @@ read_data	data.chute
 
 replicate	$x $y 1
 
-pair_style	gran/history 200000.0 50.0 0.5 0
+pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
 pair_coeff	* *
 
 neighbor	0.1 bin

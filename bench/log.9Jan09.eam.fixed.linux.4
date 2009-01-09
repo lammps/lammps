@@ -1,18 +1,25 @@
-LAMMPS (21 May 2008)
+LAMMPS (9 Jan 2009)
 # bulk Cu lattice
 
-variable	x index 20
-variable	y index 20
-variable	z index 20
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
 
 units		metal
 atom_style	atomic
 
 lattice		fcc 3.615
 Lattice spacing in x,y,z = 3.615 3.615 3.615
-region		box block 0 $x 0 $y 0 $z
-region		box block 0 20 0 $y 0 $z
-region		box block 0 20 0 20 0 $z
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
 region		box block 0 20 0 20 0 20
 create_box	1 box
 Created orthogonal box = (0 0 0) to (72.3 72.3 72.3)
@@ -39,13 +46,13 @@ Step Temp E_pair E_mol TotEng Press
        0         1600      -113280            0   -106662.09    18703.573 
       50    781.69049   -109873.35            0   -106640.13    52273.088 
      100      801.832    -109957.3            0   -106640.77    51322.821 
-Loop time of 3.02608 on 4 procs for 100 steps with 32000 atoms
+Loop time of 3.00127 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 2.56269 (84.6868)
-Neigh time (%) = 0.220453 (7.2851)
-Comm  time (%) = 0.187758 (6.20467)
-Outpt time (%) = 0.00119197 (0.0393901)
-Other time (%) = 0.0539875 (1.78408)
+Pair  time (%) = 2.56049 (85.3135)
+Neigh time (%) = 0.220936 (7.36143)
+Comm  time (%) = 0.161708 (5.38798)
+Outpt time (%) = 0.000860035 (0.0286557)
+Other time (%) = 0.0572762 (1.9084)
 
 Nlocal:    8000 ave 8008 max 7993 min
 Histogram: 2 0 0 0 0 0 0 0 1 1

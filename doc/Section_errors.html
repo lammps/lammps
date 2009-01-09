@@ -253,6 +253,10 @@ angle_coeff command.
 
 <DD>Self-explanatory. 
 
+<DT><I>Angle style hybrid cannot have none as an argument</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Angle style hybrid cannot use same angle style twice</I> 
 
 <DD>Self-explanatory. 
@@ -446,6 +450,10 @@ bond_coeff command.
 
 <DD>Self-explanatory. 
 
+<DT><I>Bond style hybrid cannot have none as an argument</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Bond style hybrid cannot use same bond style twice</I> 
 
 <DD>The sub-style arguments of bond_style hybrid cannot be duplicated.
@@ -455,6 +463,10 @@ Check the input script.
 
 <DD>No angle, dihedral, or improper styles can be defined when using
 bond style quartic. 
+
+<DT><I>Bond style quartic requires special_bonds = 1,1,1</I> 
+
+<DD>This is a restriction of the current bond quartic implementation. 
 
 <DT><I>Bond_coeff command before bond_style is defined</I> 
 
@@ -723,6 +735,11 @@ The replicate command cannot duplicate that information for new atoms.
 You should use the replicate command before fixes are applied to the
 system. 
 
+<DT><I>Cannot reset timestep with a time-dependent fix defined</I> 
+
+<DD>You cannot reset the timestep when a fix that keeps track of elapsed
+time is in place. 
+
 <DT><I>Cannot reset timestep with dump file already written to</I> 
 
 <DD>Changing the timestep will confuse when a dump file is written.  Use
@@ -809,6 +826,14 @@ provided by an atom map.  An atom map does not exist (by default) for
 non-molecular problems.  Using the atom_modify map command will force
 an atom map to be created. 
 
+<DT><I>Cannot use fix bond/break with non-molecular systems</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use fix bond/create with non-molecular systems</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot use fix deform trate on a box with zero tilt</I> 
 
 <DD>The trate style alters the current strain. 
@@ -869,6 +894,11 @@ together.
 <DT><I>Cannot use fix press/berendsen without per-type mass defined</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot use fix rigid without per-type mass defined</I> 
+
+<DD>This is a current restriction on the kinds of atoms fix rigid can
+be used with. 
 
 <DT><I>Cannot use fix shake with non-molecular system</I> 
 
@@ -964,10 +994,20 @@ triclinic.
 
 <DD>Self-explanatory. 
 
+<DT><I>Compute centro/atom requires a pair style be defined</I> 
+
+<DD>This is because the computation of the centro-symmetry values
+uses a pairwise neighbor list. 
+
 <DT><I>Compute coord/atom cutoff is longer than pairwise cutoff</I> 
 
 <DD>Cannot compute coordination at distances longer than the pair cutoff,
 since those atoms are not in the neighbor list. 
+
+<DT><I>Compute damage/atom requires peridynamic potential</I> 
+
+<DD>Damage is a Peridynamic-specific metric.  It requires you
+to be running a Peridynamics simulation. 
 
 <DT><I>Compute erotate/asphere requires atom attribute shape</I> 
 
@@ -997,14 +1037,10 @@ since those atoms are not in the neighbor list.
 
 <DD>Self-explanatory. 
 
-<DT><I>Compute group/group requires pair style be defined</I> 
+<DT><I>Compute group/group requires a pair style be defined</I> 
 
-<DD>Self-explanatory. 
-
-<DT><I>Compute in variable formula before initial run</I> 
-
-<DD>Calculating this compute before the first run is not allowed because
-various quantities may not yet be initialized. 
+<DD>This is because the computation of the group-group interactions uses a
+pairwise neighbor list. 
 
 <DT><I>Compute pe must use group all</I> 
 
@@ -1061,6 +1097,17 @@ temperature.
 
 <DD>Self-explanatory. 
 
+<DT><I>Compute used in variable is not current</I> 
+
+<DD>Computes are not invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run. 
+
+<DT><I>Compute used in variable thermo keyword is not current</I> 
+
+<DD>Some thermo keywords rely on a compute to calculate their value(s).
+Computes are not invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run. 
+
 <DT><I>Compute vector in variable formula is too small</I> 
 
 <DD>The index to the vector is out of bounds. 
@@ -1068,6 +1115,15 @@ temperature.
 <DT><I>Computed temperature for fix temp/berendsen cannot be 0.0</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Computed temperature for fix temp/rescale cannot be 0.0</I> 
+
+<DD>Cannot rescale the temperature to a new value if the current
+temperature is 0.0. 
+
+<DT><I>Could not count initial bonds in fix bond/create</I> 
+
+<DD>Could not find one of the atoms in a bond on this processor. 
 
 <DT><I>Could not create 3d FFT plan</I> 
 
@@ -1264,9 +1320,14 @@ the bodies in a ring (or cycle).
 <DD>The delete_atoms command cannot be used before a read_data,
 read_restart, or create_box command. 
 
-<DT><I>Delete_atoms cutoff > ghost cutoff</I> 
+<DT><I>Delete_atoms cutoff > neighbor cutoff</I> 
 
 <DD>Cannot delete atoms further away than a processor knows about. 
+
+<DT><I>Delete_atoms requires a pair style be defined</I> 
+
+<DD>This is because atom deletion within a cutoff uses a pairwise
+neighbor list. 
 
 <DT><I>Delete_bonds command before simulation box is defined</I> 
 
@@ -1338,6 +1399,10 @@ or read from a restart file is not recognized.
 the dihedral_coeff command. 
 
 <DT><I>Dihedral style hybrid cannot have hybrid as an argument</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Dihedral style hybrid cannot have none as an argument</I> 
 
 <DD>Self-explanatory. 
 
@@ -1485,6 +1550,12 @@ dumped.
 
 <DD>A value inside the brackets is required for this formula element. 
 
+<DT><I>Energy was not tallied on needed timestep</I> 
+
+<DD>You are using a thermo keyword that requires potentials to
+have tallied energy, but they didn't on this timestep.  See the
+variable doc page for ideas on how to make this work. 
+
 <DT><I>Failed to allocate %d bytes for array %s</I> 
 
 <DD>Your LAMMPS simulation has run out of memory.  You need to run a
@@ -1631,6 +1702,19 @@ per-atom quantity) can be used with fix ave/time.
 
 <DD>A variable used by fix ave/time must generate a global value. 
 
+<DT><I>Fix bond/break requires special_bonds = 0,1,1</I> 
+
+<DD>This is a restriction of the current fix bond/break implementation. 
+
+<DT><I>Fix bond/create cutoff is longer than pairwise cutoff</I> 
+
+<DD>This is not allowed because bond creation is done using the
+pairwise neighbor list. 
+
+<DT><I>Fix bond/create requires special_bonds = 0,1,1</I> 
+
+<DD>This is a restriction of the current fix bond/break implementation. 
+
 <DT><I>Fix bond/swap cannot use dihedral or improper styles</I> 
 
 <DD>These styles cannot be defined when using this fix. 
@@ -1690,10 +1774,10 @@ is requesting a value on a non-allowed timestep.
 
 <DD>Self-explanatory. 
 
-<DT><I>Fix in variable formula before initial run</I> 
+<DT><I>Fix heat kinetic energy went negative</I> 
 
-<DD>Calculating this fix before the first run is not allowed because
-various quantities may not yet be initialized. 
+<DD>This will cause the velocity rescaling about to be performed by fix
+heat to be invalid. 
 
 <DT><I>Fix in variable not computed at compatible time</I> 
 
@@ -1800,6 +1884,11 @@ defined.
 
 <DD>Self-explanatory. 
 
+<DT><I>Fix rigid: Bad principal moments</I> 
+
+<DD>The principal moments of inertia computed for a rigid body
+are not within the required tolerances. 
+
 <DT><I>Fix shake cannot be used with minimization</I> 
 
 <DD>Cannot use fix shake while doing an energy minimization since
@@ -1857,10 +1946,6 @@ this fix.
 
 <DD>When using a "*" in the restart file name, no matching file was found. 
 
-<DT><I>Granular pair styles do not use pair_coeff settings</I> 
-
-<DD>The pair_coeff command cannot be used with granular force fields. 
-
 <DT><I>Gravity must point in -y to use with fix pour in 2d</I> 
 
 <DD>Gravity must be pointing "down" in a 2d box. 
@@ -1902,10 +1987,6 @@ invalid.
 <DD>One or more of the coefficients defined in the potential file is
 invalid. 
 
-<DT><I>Illegal fix heat attempt</I> 
-
-<DD>The velocity rescaling about to be performed by fix heat is invalid. 
-
 <DT><I>Illegal simulation box</I> 
 
 <DD>The lower bound of the simulation box is greater than the upper bound. 
@@ -1944,6 +2025,10 @@ the improper_coeff command.
 
 <DD>Self-explanatory. 
 
+<DT><I>Improper style hybrid cannot have none as an argument</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Improper style hybrid cannot use same improper style twice</I> 
 
 <DD>Self-explanatory. 
@@ -1975,6 +2060,12 @@ definitions.
 <DT><I>Impropers defined but no improper types</I> 
 
 <DD>The data file header lists improper but no improper types. 
+
+<DT><I>Inconsistent new atom types in fix bond/create command</I> 
+
+<DD>If the two atom types forming a bond are the same type, then
+the two new atom types specified by the iparam and jparam keywords
+also need to be the same type. 
 
 <DT><I>Incorrect args for angle coefficients</I> 
 
@@ -2144,6 +2235,10 @@ atoms.
 <DD>The create_box command specified the range of valid atom types.
 An invalid type is being requested. 
 
+<DT><I>Invalid atom type in fix bond/create command</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Invalid atom type in neighbor exclusion list</I> 
 
 <DD>Atom types must range from 1 to Ntypes inclusive. 
@@ -2173,6 +2268,14 @@ An invalid type is being requested.
 <DD>Bond type must be positive integer and within range of specified bond
 types. 
 
+<DT><I>Invalid bond type in fix bond/break command</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid bond type in fix bond/create command</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Invalid bond type index for fix shake</I> 
 
 <DD>Self-explanatory.  Check the fix shake command in the input script. 
@@ -2201,6 +2304,10 @@ the command you are using to launch LAMMPS.
 <DT><I>Invalid compute style</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Invalid cutoff in communicate command</I> 
+
+<DD>Specified cutoff must be >= 0.0. 
 
 <DT><I>Invalid cutoffs in pair_write command</I> 
 
@@ -2282,6 +2389,14 @@ the command you are using to launch LAMMPS.
 
 <DD>Dihedral type must be positive integer and within range of specified
 dihedral types. 
+
+<DT><I>Invalid dipole line in data file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid dipole value</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid dump dcd filename</I> 
 
@@ -2365,10 +2480,6 @@ the components are coupled.
 
 <DD>Nevery must be > 0. 
 
-<DT><I>Invalid group ID in communicate command</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Invalid group ID in neigh_modify command</I> 
 
 <DD>A group ID used in the neigh_modify command does not exist. 
@@ -2376,6 +2487,10 @@ the components are coupled.
 <DT><I>Invalid group function in variable formula</I> 
 
 <DD>Group function is not recognized. 
+
+<DT><I>Invalid group in communicate command</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid improper style</I> 
 
@@ -2407,6 +2522,10 @@ improper types.
 <DD>The choice of kspace style is unknown. 
 
 <DT><I>Invalid mass line in data file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid mass value</I> 
 
 <DD>Self-explanatory. 
 
@@ -2477,6 +2596,10 @@ integer.
 
 <DD>Self-explanatory. 
 
+<DT><I>Invalid shape value</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Invalid shear direction for fix wall/gran</I> 
 
 <DD>Self-explanatory. 
@@ -2534,6 +2657,22 @@ too small or too large.
 command. 
 
 <DT><I>Invalid wiggle direction for fix wall/gran</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invoked angle equil angle on angle style none</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invoked angle single on angle style none</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invoked bond equil distance on bond style none</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invoked bond single on bond style none</I> 
 
 <DD>Self-explanatory. 
 
@@ -2803,7 +2942,7 @@ be oriented along the z dimension.
 <DD>TIP4P potentials assume angles in water are constrained by a fix shake
 command. 
 
-<DT><I>Must use atom style with molecule IDs with fix efield</I> 
+<DT><I>Must use atom style with molecule IDs with fix bond/swap</I> 
 
 <DD>Self-explanatory. 
 
@@ -2830,11 +2969,6 @@ option.
 <DT><I>Must use region with side = in with fix pour</I> 
 
 <DD>Self-explanatory. 
-
-<DT><I>Must use special bonds = 1,1,1 with bond style quartic</I> 
-
-<DD>The settings for the special_bonds command must be set as indicated
-when using bond style quartic. 
 
 <DT><I>Needed topology not in data file</I> 
 
@@ -2868,6 +3002,16 @@ neighbors allowed for one atom.
 <DT><I>Neighbor page size must be >= 10x the one atom setting</I> 
 
 <DD>This is required to prevent wasting too much memory. 
+
+<DT><I>New bond exceeded bonds per atom in fix bond/create</I> 
+
+<DD>See the read_data command for info on setting the "extra bond per
+atom" header value to allow for additional bonds to be formed. 
+
+<DT><I>New bond exceeded special list size in fix bond/create</I> 
+
+<DD>See the special_bonds extra command for info on how to leave space in
+the special bonds list to allow for additional bonds to be formed. 
 
 <DT><I>Newton bond change after simulation box is defined</I> 
 
@@ -2930,7 +3074,7 @@ atoms.
 
 <DT><I>Out of range atoms - cannot compute PPPM</I> 
 
-<P>One or more atoms are attempting to map their charge to a PPPM grid
+<DD>One or more atoms are attempting to map their charge to a PPPM grid
 point that is not owned by a processor.  This is likely for one of two
 reasons, both of them bad.  First, it may mean that an atom near the
 boundary of a processor's sub-domain has moved more than 1/2 the
@@ -2938,12 +3082,10 @@ boundary of a processor's sub-domain has moved more than 1/2 the
 rebuilt and atoms being migrated to new processors.  This also means
 you may be missing pairwise interactions that need to be computed.
 The solution is to change the re-neighboring criteria via the
-<A HREF = "neigh_modify">neigh_modify</A> command.
-</P>
-<DD>Second, it may mean that an atom has moved far outside a processor's
-sub-domain or even the entire simulation box.  This indicates bad
-physics, e.g. due to highly overlapping atoms, too large a timestep,
-etc. 
+<A HREF = "neigh_modify">neigh_modify</A> command.  Second, it may mean that an atom
+has moved far outside a processor's sub-domain or even the entire
+simulation box.  This indicates bad physics, e.g. due to highly
+overlapping atoms, too large a timestep, etc. 
 
 <DT><I>POEMS fix must come before NPT/NPH fix</I> 
 
@@ -2960,11 +3102,12 @@ requested precision.
 
 <DD>Self-explanatory. 
 
-<DT><I>PPPM stencil extends too far, reduce PPPM order</I> 
+<DT><I>PPPM order has been reduced to 0</I> 
 
-<DD>The grid points that atom charge are mapped to cannot extend further
-than one neighbor processor away.  Reducing the PPPM order via the
-kspace_modify command will reduce the stencil distance. 
+<DD>LAMMPS has attempted to reduce the PPPM order to enable the simulation
+to run, but can reduce the order no further.  Try increasing the
+accuracy of PPPM by reducing the tolerance size, thus inducing a 
+larger PPPM grid. 
 
 <DT><I>Pair coeff for hybrid has invalid style</I> 
 
@@ -3005,6 +3148,11 @@ have these 3 coefficients set at least once.
 <DD>An atom style that stores this, like atom_style granular, must be
 used. 
 
+<DT><I>Pair granular with shear history requires newton pair off</I> 
+
+<DD>This is a current restriction of the implementation of pair
+granular styles with history. 
+
 <DT><I>Pair hybrid sub-style is not used</I> 
 
 <DD>No pair_coeff command used a sub-style specified in the pair_style
@@ -3030,6 +3178,19 @@ rRESPA cutoffs.
 <DT><I>Pair lubricate requires spherical particles</I> 
 
 <DD>This is a current restriction of this pair style. 
+
+<DT><I>Pair peri lattice is not identical in x, y, and z</I> 
+
+<DD>The lattice defined by the lattice command must be cubic. 
+
+<DT><I>Pair peri requires a lattice be defined</I> 
+
+<DD>Use the lattice command for this purpose. 
+
+<DT><I>Pair peri requires an atom map, see atom_modify</I> 
+
+<DD>Even for atomic systems, an atom map is required to find Peridynamic
+bonds.  Use the atom_modify command to define one. 
 
 <DT><I>Pair resquared epsilon a,b,c coeffs are not all set</I> 
 
@@ -3166,6 +3327,11 @@ molecule adds forces to atoms owned by other processors.
 
 <DD>An atom_style with this attribute is needed. 
 
+<DT><I>Pair style peri_pmb requires atom style peri</I> 
+
+<DD>This is because atom style peri stores quantities needed by
+the peridynamic potential. 
+
 <DT><I>Pair table cutoffs must all be equal to use with KSpace</I> 
 
 <DD>When using pair style table with a long-range KSpace solver, the
@@ -3175,6 +3341,10 @@ long-range solver starts at that cutoff.
 <DT><I>Pair table parameters did not set N</I> 
 
 <DD>List of pair table parameters must include N setting. 
+
+<DT><I>Pair tersoff/zbl requires metal or real units</I> 
+
+<DD>This is a current restriction of this pair potential. 
 
 <DT><I>Pair_coeff command before pair_style is defined</I> 
 
@@ -3197,9 +3367,21 @@ read_restart, or create_box command.
 
 <DD>Equal-style variables cannot use per-atom quantities. 
 
+<DT><I>Per-atom energy was not tallied on needed timestep</I> 
+
+<DD>You are using a thermo keyword that requires potentials to
+have tallied energy, but they didn't on this timestep.  See the
+variable doc page for ideas on how to make this work. 
+
 <DT><I>Per-atom fix in equal-style variable formula</I> 
 
 <DD>Equal-style variables cannot use per-atom quantities. 
+
+<DT><I>Per-atom virial was not tallied on needed timestep</I> 
+
+<DD>You are using a thermo keyword that requires potentials to have
+tallied the virial, but they didn't on this timestep.  See the
+variable doc page for ideas on how to make this work. 
 
 <DT><I>Potential file has duplicate entry</I> 
 
@@ -3210,11 +3392,6 @@ one entry for the same 3 ordered elements.
 
 <DD>The potential file for a SW or Tersoff potential does not have a
 needed entry. 
-
-<DT><I>Potential with shear history requires newton pair off</I> 
-
-<DD>Granular potentials that include shear history effects can only be run
-with a newton setting where pairwise newton is "off". 
 
 <DT><I>Power by 0 in variable formula</I> 
 
@@ -3540,10 +3717,23 @@ thermodynamics.
 
 <DD>Index into vector is out of bounds. 
 
-<DT><I>Thermo keyword in variable formula before initial run</I> 
+<DT><I>Thermo keyword in variable requires thermo to use/init pe</I> 
 
-<DD>Calculating a thermo keyword before the first run is not allowed
-because various quantities may not yet be initialized. 
+<DD>You are using a thermo keyword in a variable that requires
+potential energy to be calculated, but your thermo output
+does not use it.  Add it to your thermo output. 
+
+<DT><I>Thermo keyword in variable requires thermo to use/init press</I> 
+
+<DD>You are using a thermo keyword in a variable that requires pressure to
+be calculated, but your thermo output does not use it.  Add it to your
+thermo output. 
+
+<DT><I>Thermo keyword in variable requires thermo to use/init temp</I> 
+
+<DD>You are using a thermo keyword in a variable that requires temperature
+to be calculated, but your thermo output does not use it.  Add it to
+your thermo output. 
 
 <DT><I>Thermo style does not use press</I> 
 
@@ -3567,6 +3757,11 @@ is not computing this quantity.
 
 <DD>The thermo_style command cannot be used before a read_data,
 read_restart, or create_box command. 
+
+<DT><I>Threshhold for an atom quantity that isn't allocated</I> 
+
+<DD>A dump threshhold has been requested on a quantity that is
+not defined by the atom style used in this simulation. 
 
 <DT><I>Timestep must be >= 0</I> 
 
@@ -3662,11 +3857,6 @@ number of processor partitions.
 
 <DD>A section of the data file cannot be read by LAMMPS. 
 
-<DT><I>Unknown section in data file: %s</I> 
-
-<DD>The keyword for a section of the data file is not recognized by
-LAMMPS. 
-
 <DT><I>Unknown table style in pair_style command</I> 
 
 <DD>Style of table is invalid for use with pair_style table command. 
@@ -3743,6 +3933,11 @@ provided by "remap v" as a fix deform option.
 
 <DD>Self-explanatory. 
 
+<DT><I>Variable evaluation before simulation box is defined</I> 
+
+<DD>Cannot evaluate a compute or fix or atom-based value in a variable
+before the simulation has been setup. 
+
 <DT><I>Variable name for compute reduce does not exist</I> 
 
 <DD>Self-explanatory. 
@@ -3763,13 +3958,6 @@ provided by "remap v" as a fix deform option.
 
 <DD>Self-explanatory. 
 
-<DT><I>Variable uses compute via thermo keyword that thermo does not</I> 
-
-<DD>A thermo keyword used in the variable requires a particular compute be
-invoked.  However, the thermodynamic output does not use this compute,
-so it has not been initialized.  Include the keyword in thermodynamic
-output. 
-
 <DT><I>Velocity command before simulation box is defined</I> 
 
 <DD>The velocity command cannot be used before a read_data, read_restart,
@@ -3787,6 +3975,12 @@ or create_box command.
 
 <DD>The compute ID given to the velocity command must compute
 temperature. 
+
+<DT><I>Virial was not tallied on needed timestep</I> 
+
+<DD>You are using a thermo keyword that requires potentials to
+have tallied the virial, but they didn't on this timestep.  See the
+variable doc page for ideas on how to make this work. 
 
 <DT><I>World variable count doesn't match # of partitions</I> 
 
@@ -3808,6 +4002,16 @@ read_restart, or create_box command.
 </H4>
 <DL>
 
+<DT><I>Broken bonds will not alter angles, dihedrals, or impropers</I> 
+
+<DD>See the doc page for fix bond/break for more info on this
+restriction. 
+
+<DT><I>Created bonds will not create angles, dihedrals, or impropers</I> 
+
+<DD>See the doc page for fix bond/create for more info on this
+restriction. 
+
 <DT><I>Dihedral problem: %d %d %d %d %d %d</I> 
 
 <DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
@@ -3828,16 +4032,15 @@ will be truncated to attempt to prevent the bond from blowing up.
 <DD>A FENE bond has stretched dangerously far.  It's interaction strength
 will be truncated to attempt to prevent the bond from blowing up. 
 
+<DT><I>Fix bond/swap will ignore defined angles</I> 
+
+<DD>See the doc page for fix bond/swap for more info on this
+restriction. 
+
 <DT><I>Fix recenter should come after all other integration fixes</I> 
 
 <DD>Other fixes may change the position of the center-of-mass, so 
 fix recenter should come last. 
-
-<DT><I>Fix wall/reflect should come after all other integration fixes</I> 
-
-<DD>This is because other integration fixes may alter the coordinates
-of an atom, so you want to reflect it back into the box only after
-the other fixes have made their adjustments. 
 
 <DT><I>Group for fix_modify temp != fix group</I> 
 
@@ -3877,6 +4080,10 @@ on the same group of atoms that velocities are being set for.
 <DT><I>More than one compute coord/atom</I> 
 
 <DD>It is not efficient to use compute coord/atom more than once. 
+
+<DT><I>More than one compute damage/atom</I> 
+
+<DD>It is not efficient to use compute ke/atom more than once. 
 
 <DT><I>More than one compute ke/atom</I> 
 
@@ -3921,6 +4128,11 @@ per timestep.
 needed.  The requested volume fraction may be too high, or other atoms
 may be in the insertion region. 
 
+<DT><I>Reducing PPPM order b/c stencil extends beyond neighbor processor</I> 
+
+<DD>LAMMPS is attempting this in order to allow the simulation
+to run.  It should not effect the PPPM accuracy. 
+
 <DT><I>Replacing a fix, but new group != old group</I> 
 
 <DD>The ID and style of a fix match for a fix you are changing with a fix
@@ -3932,57 +4144,12 @@ group.
 <DD>The parameters for a replicate command will cause a non-periodic
 dimension to be replicated; this may cause unwanted behavior. 
 
-<DT><I>Resetting angle_style to restart file value</I> 
-
-<DD>The angle style defined in the LAMMPS input script does not match that
-of the restart file. 
-
-<DT><I>Resetting bond_style to restart file value</I> 
-
-<DD>The bond style defined in the LAMMPS input script does not match that
-of the restart file. 
-
-<DT><I>Resetting boundary settings to restart file values</I> 
-
-<DD>The boundary settings defined in the LAMMPS input script do not match
-that of the restart file. 
-
-<DT><I>Resetting dihedral_style to restart file value</I> 
-
-<DD>The dihedral style defined in the LAMMPS input script does not match
-that of the restart file. 
-
-<DT><I>Resetting dimension to restart file value</I> 
-
-<DD>The dimension value defined in the LAMMPS input script does not match
-that of the restart file. 
-
-<DT><I>Resetting improper_style to restart file value</I> 
-
-<DD>The improper style defined in the LAMMPS input script does not match
-that of the restart file. 
-
-<DT><I>Resetting newton bond to restart file value</I> 
-
-<DD>The value of the newton setting for bonds defined in the LAMMPS input
-script does not match that of the restart file. 
-
-<DT><I>Resetting pair_style to restart file value</I> 
-
-<DD>The pair style defined in the LAMMPS input script does not match that
-of the restart file. 
-
 <DT><I>Resetting reneighboring criteria during minimization</I> 
 
 <DD>Minimization requires that neigh_modify settings be delay = 0, every =
 1, check = yes.  Since these settings were not in place, LAMMPS
 changed them and will restore them to their original values after the
 minimization. 
-
-<DT><I>Resetting unit_style to restart file value</I> 
-
-<DD>The unit style defined in the LAMMPS input script does not match that
-of the restart file. 
 
 <DT><I>Restart file used different # of processors</I> 
 
@@ -3997,12 +4164,6 @@ you ran on the same # of processors.
 different 3d grid of processors.  Due to round-off, the trajectories
 of your restarted simulation may diverge a little more quickly than if
 you ran on the same # of processors. 
-
-<DT><I>Restart file used different newton pair setting</I> 
-
-<DD>The restart file was written out by a LAMMPS simulation running with a
-different value of the newton pair setting.  The new simulation will
-use the value from the input script. 
 
 <DT><I>Restart file version does not match LAMMPS version</I> 
 
@@ -4049,6 +4210,14 @@ not compute temperature for all atoms.  Since thermo computes a global
 pressure, the kinetic energy contribution from the temperature is
 assumed to also be for all atoms.  Thus the pressure printed by thermo
 could be inaccurate. 
+
+<DT><I>Use special bonds = 0,1,1 with bond style fene/expand</I> 
+
+<DD>Most FENE models use this setting for the special_bonds command. 
+
+<DT><I>Use special bonds = 0,1,1 with bond style fene</I> 
+
+<DD>Most FENE models use this setting for the special_bonds command. 
 
 <DT><I>Using compute temp/deform with inconsistent fix deform remap option</I> 
 

@@ -129,6 +129,13 @@ void Verlet::iterate(int n)
 {
   int nflag,ntimestep;
 
+  int n_post_integrate = modify->n_post_integrate;
+  int n_pre_exchange = modify->n_pre_exchange;
+  int n_pre_neighbor = modify->n_pre_neighbor;
+  int n_pre_force = modify->n_pre_force;
+  int n_post_force = modify->n_post_force;
+  int n_end_of_step = modify->n_end_of_step;
+
   for (int i = 0; i < n; i++) {
 
     ntimestep = ++update->ntimestep;
@@ -137,7 +144,7 @@ void Verlet::iterate(int n)
     // initial time integration
 
     modify->initial_integrate(vflag);
-    if (modify->n_post_integrate) modify->post_integrate();
+    if (n_post_integrate) modify->post_integrate();
 
     // regular communication vs neighbor list rebuild
 
@@ -148,7 +155,7 @@ void Verlet::iterate(int n)
       comm->communicate();
       timer->stamp(TIME_COMM);
     } else {
-      if (modify->n_pre_exchange) modify->pre_exchange();
+      if (n_pre_exchange) modify->pre_exchange();
       if (triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
       if (domain->box_change) {
@@ -161,7 +168,7 @@ void Verlet::iterate(int n)
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       timer->stamp(TIME_COMM);
-      if (modify->n_pre_neighbor) modify->pre_neighbor();
+      if (n_pre_neighbor) modify->pre_neighbor();
       neighbor->build();
       timer->stamp(TIME_NEIGHBOR);
     }
@@ -169,7 +176,7 @@ void Verlet::iterate(int n)
     // force computations
 
     force_clear();
-    if (modify->n_pre_force) modify->pre_force(vflag);
+    if (n_pre_force) modify->pre_force(vflag);
 
     timer->stamp();
 
@@ -200,9 +207,9 @@ void Verlet::iterate(int n)
 
     // force modifications, final time integration, diagnostics
 
-    if (modify->n_post_force) modify->post_force(vflag);
+    if (n_post_force) modify->post_force(vflag);
     modify->final_integrate();
-    if (modify->n_end_of_step) modify->end_of_step();
+    if (n_end_of_step) modify->end_of_step();
 
     // all output
 

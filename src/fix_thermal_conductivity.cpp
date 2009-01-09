@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
+#include "modify.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -103,6 +104,16 @@ int FixThermalConductivity::setmask()
 
 void FixThermalConductivity::init()
 {
+  // warn if any fix ave/spatial comes after this fix
+  // can cause glitch in averaging since ave will happen after swap
+
+  int foundme = 0;
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) foundme = 1;
+    if (foundme && strcmp(modify->fix[i]->style,"ave/spatial") == 0 && me == 0)
+      error->warning("Fix thermal/conductivity comes before fix ave/spatial");
+  }
+
   // set bounds of 2 slabs in edim
   // only necessary for static box, else re-computed in end_of_step()
   // lo bin is always bottom bin

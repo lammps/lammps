@@ -36,7 +36,7 @@ FixNPTSphere::FixNPTSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNPT(lmp, narg, arg)
 {
   if (!atom->omega_flag || !atom->torque_flag)
-    error->all("Fix nvt/sphere requires atom attributes omega, torque");
+    error->all("Fix npt/sphere requires atom attributes omega, torque");
 
   dttype = new double[atom->ntypes+1];
 }

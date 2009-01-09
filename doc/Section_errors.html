@@ -1804,13 +1804,25 @@ requesting the values on a non-allowed timestep.
 
 <DD>The time window for temperature or pressure relaxation must be > 0 
 
+<DT><I>Fix npt/asphere requires atom attributes quat, angmom, torque, shape</I> 
+
+<DD>An atom style that specifies these quantities is needed. 
+
 <DT><I>Fix npt/sphere requires atom attribute shape</I> 
 
 <DD>An atom style that specifies atom shape is needed. 
 
+<DT><I>Fix npt/sphere requires atom attributes omega, torque</I> 
+
+<DD>An atom style that specifies these quantities is needed. 
+
 <DT><I>Fix npt/sphere requires spherical particle shapes</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Fix nve/asphere requires atom attributes quat, angmom, torque, shape</I> 
+
+<DD>An atom style that specifies these quantities is needed. 
 
 <DT><I>Fix nve/sphere requires atom attribute mu</I> 
 
@@ -1835,6 +1847,10 @@ requesting the values on a non-allowed timestep.
 <DT><I>Fix nvt period must be > 0.0</I> 
 
 <DD>The time window for temperature relaxation must be > 0 
+
+<DT><I>Fix nvt/asphere requires atom attributes quat, angmom, torque, shape</I> 
+
+<DD>An atom style that specifies these quantities is needed. 
 
 <DT><I>Fix nvt/sphere requires atom attribute shape</I> 
 
@@ -3118,6 +3134,10 @@ larger PPPM grid.
 <DD>One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs. 
 
+<DT><I>Pair dipole/cut requires atom attributes q, mu, torque, dipole</I> 
+
+<DD>An atom style that specifies these quantities is needed. 
+
 <DT><I>Pair distance < table inner cutoff</I> 
 
 <DD>Two atoms are closer together than the pairwise table allows. 
@@ -4041,6 +4061,24 @@ restriction.
 
 <DD>Other fixes may change the position of the center-of-mass, so 
 fix recenter should come last. 
+
+<DT><I>Fix thermal/conductivity comes before fix ave/spatial</I> 
+
+<DD>The order of these 2 fixes in your input script is such that fix
+thermal/conductivity comes first.  If you are using fix ave/spatial to
+measure the temperature profile induced by fix viscosity, then this
+may cause a glitch in the profile since you are averaging immediately
+after swaps have occurred.  Flipping the order of the 2 fixes
+typically helps. 
+
+<DT><I>Fix viscosity comes before fix ave/spatial</I> 
+
+<DD>The order of these 2 fixes in your input script is such that
+fix viscosity comes first.  If you are using fix ave/spatial
+to measure the velocity profile induced by fix viscosity, then
+this may cause a glitch in the profile since you are averaging
+immediately after swaps have occurred.  Flipping the order
+of the 2 fixes typically helps. 
 
 <DT><I>Group for fix_modify temp != fix group</I> 
 

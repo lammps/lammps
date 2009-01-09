@@ -1097,16 +1097,20 @@ temperature.
 
 <DD>Self-explanatory. 
 
-<DT><I>Compute used in variable is not current</I> 
+<DT><I>Compute used in variable between runs is not current</I> 
 
-<DD>Computes are not invoked by a variable in between runs.  Thus they
-must have been evaluated on the last timestep of the previous run. 
+<DD>Computes cannot be invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run in
+order for their value(s) to be accessed.  See the doc page for the
+variable command for more info. 
 
-<DT><I>Compute used in variable thermo keyword is not current</I> 
+<DT><I>Compute used in variable thermo keyword between runs is not current</I> 
 
 <DD>Some thermo keywords rely on a compute to calculate their value(s).
-Computes are not invoked by a variable in between runs.  Thus they
-must have been evaluated on the last timestep of the previous run. 
+Computes cannot be invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run in
+order for their value(s) to be accessed.  See the doc page for the
+variable command for more info. 
 
 <DT><I>Compute vector in variable formula is too small</I> 
 

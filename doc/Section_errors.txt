@@ -1094,16 +1094,20 @@ An atom style is needed that has this attributes. :dd
 
 Self-explanatory. :dd
 
-{Compute used in variable is not current} :dt
+{Compute used in variable between runs is not current} :dt
 
-Computes are not invoked by a variable in between runs.  Thus they
-must have been evaluated on the last timestep of the previous run. :dd
+Computes cannot be invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run in
+order for their value(s) to be accessed.  See the doc page for the
+variable command for more info. :dd
 
-{Compute used in variable thermo keyword is not current} :dt
+{Compute used in variable thermo keyword between runs is not current} :dt
 
 Some thermo keywords rely on a compute to calculate their value(s).
-Computes are not invoked by a variable in between runs.  Thus they
-must have been evaluated on the last timestep of the previous run. :dd
+Computes cannot be invoked by a variable in between runs.  Thus they
+must have been evaluated on the last timestep of the previous run in
+order for their value(s) to be accessed.  See the doc page for the
+variable command for more info. :dd
 
 {Compute vector in variable formula is too small} :dt
 

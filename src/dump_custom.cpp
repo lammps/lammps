@@ -39,6 +39,7 @@ enum{ID,MOL,TYPE,MASS,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
        COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -267,15 +268,14 @@ int DumpCustom::count()
   }
 
   // invoke Computes for per-atom dump quantities
-  // only if not already invoked
 
   if (ncompute) {
     int ntimestep = update->ntimestep;
-    for (i = 0; i < ncompute; i++) {
-      if (compute[i]->invoked_peratom != ntimestep)
+    for (i = 0; i < ncompute; i++)
+      if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {
 	compute[i]->compute_peratom();
-      compute[i]->invoked_flag = 1;
-    }
+	compute[i]->invoked_flag |= INVOKED_PERATOM;
+      }
   }
 
   // evaluate atom-style Variables for per-atom dump quantities

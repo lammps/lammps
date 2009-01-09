@@ -198,7 +198,8 @@ void PPPM::init()
   while (order > 0) {
 
     if (iteration && me == 0)
-      error->warning("Reducing PPPM order b/c stencil extends beyond neighbor processor");
+      error->warning("Reducing PPPM order b/c stencil extends "
+		     "beyond neighbor processor");
     iteration++;
 
     set_grid();

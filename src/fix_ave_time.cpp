@@ -31,6 +31,7 @@ using namespace LAMMPS_NS;
 
 enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING,WINDOW};
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -351,13 +352,17 @@ void FixAveTime::end_of_step()
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-	if (compute->invoked_scalar == ntimestep) vector[i] += compute->scalar;
-	else vector[i] += compute->compute_scalar();
-	compute->invoked_flag = 1;
+	if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+	  compute->compute_scalar();
+	  compute->invoked_flag |= INVOKED_SCALAR;
+	}
+	vector[i] += compute->compute_scalar();
       } else {
-	if (compute->invoked_vector != ntimestep) compute->compute_vector();
+	if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	  compute->compute_vector();
+	  compute->invoked_flag |= INVOKED_VECTOR;
+	}
 	vector[i] += compute->vector[argindex[i]-1];
-	compute->invoked_flag = 1;
       }
 
     // access fix fields, guaranteed to be ready

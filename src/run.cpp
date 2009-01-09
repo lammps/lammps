@@ -195,7 +195,8 @@ void Run::command(int narg, char **arg)
       if (postflag || nleft <= nsteps) finish.end(1);
       else finish.end(0);
 
-      // command string may invoke computes so wrap with clear/add
+      // command string may invoke computes via command with variable
+      // so wrap with clearstep/addstep
 
       if (commandstr) {
 	modify->clearstep_compute();

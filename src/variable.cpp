@@ -37,6 +37,7 @@ using namespace LAMMPS_NS;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
@@ -642,7 +643,6 @@ double Variable::evaluate(char *str, Tree **tree)
 	int icompute = modify->find_compute(id);
 	if (icompute < 0) error->all("Invalid compute ID in variable formula");
 	Compute *compute = modify->compute[icompute];
-	compute->invoked_flag = 1;
 	delete [] id;
 
 	if (domain->box_exist == 0)
@@ -670,11 +670,15 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	if (nbracket == 0 && compute->scalar_flag) {
 
-	  if (compute->invoked_scalar != update->ntimestep) {
-	    if (update->whichflag < 0)
-	      error->all("Compute used in variable is not current");
-	    else compute->compute_scalar();
+	  if (update->whichflag < 0) {
+	    if (compute->invoked_scalar != update->ntimestep)
+	      error->all("Compute used in variable between runs "
+			 "is not current");
+	  } else if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+	    compute->compute_scalar();
+	    compute->invoked_flag |= INVOKED_SCALAR;
 	  }
+
 	  value1 = compute->scalar;
 	  if (tree) {
 	    Tree *newtree = new Tree();
@@ -690,11 +694,15 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index1 > compute->size_vector)
 	      error->all("Compute vector in variable formula is too small");
-	  if (compute->invoked_vector != update->ntimestep) {
-	    if (update->whichflag < 0)
-	      error->all("Compute used in variable is not current");
-	    else compute->compute_vector();
+	  if (update->whichflag < 0) {
+	    if (compute->invoked_vector != update->ntimestep)
+	      error->all("Compute used in variable between runs "
+			 "is not current");
+	  } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	    compute->compute_vector();
+	    compute->invoked_flag |= INVOKED_VECTOR;
 	  }
+
 	  value1 = compute->vector[index1-1];
 	  if (tree) {
 	    Tree *newtree = new Tree();
@@ -711,11 +719,15 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (tree == NULL)
 	    error->all("Per-atom compute in equal-style variable formula");
-	  if (compute->invoked_peratom != update->ntimestep) {
-	    if (update->whichflag < 0)
-	      error->all("Compute used in variable is not current");
-	    else compute->compute_peratom();
+	  if (update->whichflag < 0) {
+	    if (compute->invoked_peratom != update->ntimestep)
+	      error->all("Compute used in variable between runs "
+			 "is not current");
+	  } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	    compute->compute_peratom();
+	    compute->invoked_flag |= INVOKED_PERATOM;
 	  }
+
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
 	  newtree->array = compute->scalar_atom;
@@ -728,11 +740,15 @@ double Variable::evaluate(char *str, Tree **tree)
 	} else if (nbracket == 1 && index1 > 0 && 
 		   compute->peratom_flag && compute->size_peratom == 0) {
 
-	  if (compute->invoked_peratom != update->ntimestep) {
-	    if (update->whichflag < 0)
-	      error->all("Compute used in variable is not current");
-	    else compute->compute_peratom();
+	  if (update->whichflag < 0) {
+	    if (compute->invoked_peratom != update->ntimestep)
+	      error->all("Compute used in variable between runs "
+			 "is not current");
+	  } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	    compute->compute_peratom();
+	    compute->invoked_flag |= INVOKED_PERATOM;
 	  }
+
 	  peratom2global(1,NULL,compute->scalar_atom,1,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
 
@@ -745,11 +761,15 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Per-atom compute in equal-style variable formula");
 	  if (index2 > compute->size_peratom)
 	    error->all("Compute vector in variable formula is too small");
-	  if (compute->invoked_peratom != update->ntimestep) {
-	    if (update->whichflag < 0)
-	      error->all("Compute used in variable is not current");
-	    else compute->compute_peratom();
+	  if (update->whichflag < 0) {
+	    if (compute->invoked_peratom != update->ntimestep)
+	      error->all("Compute used in variable between runs "
+			 "is not current");
+	  } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	    compute->compute_peratom();
+	    compute->invoked_flag |= INVOKED_PERATOM;
 	  }
+
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
 	  newtree->array = &compute->vector_atom[0][index2-1];
@@ -764,11 +784,15 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index2 > compute->size_peratom)
 	    error->all("Compute vector in variable formula is too small");
-	  if (compute->invoked_peratom != update->ntimestep) {
-	    if (update->whichflag < 0)
-	      error->all("Compute used in variable is not current");
-	    else compute->compute_peratom();
+	  if (update->whichflag < 0) {
+	    if (compute->invoked_peratom != update->ntimestep)
+	      error->all("Compute used in variable between runs "
+			 "is not current");
+	  } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	    compute->compute_peratom();
+	    compute->invoked_flag |= INVOKED_PERATOM;
 	  }
+
 	  peratom2global(1,NULL,&compute->vector_atom[0][index2-1],
 			 compute->size_peratom,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);

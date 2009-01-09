@@ -36,6 +36,7 @@ enum{X,V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 
 #define BIG 1000000000
 
@@ -622,8 +623,10 @@ void FixAveSpatial::end_of_step()
 
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (compute->invoked_peratom != ntimestep) compute->compute_peratom();
-      compute->invoked_flag = 1;
+      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	compute->compute_peratom();
+	compute->invoked_flag |= INVOKED_PERATOM;
+      }
       double *scalar = compute->scalar_atom;
       double **vector = compute->vector_atom;
       int jm1 = j - 1;

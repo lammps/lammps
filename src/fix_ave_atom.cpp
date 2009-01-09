@@ -26,6 +26,7 @@
 using namespace LAMMPS_NS;
 
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -309,8 +310,10 @@ void FixAveAtom::end_of_step()
 
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (compute->invoked_peratom != ntimestep) compute->compute_peratom();
-      compute->invoked_flag = 1;
+      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	compute->compute_peratom();
+	compute->invoked_flag |= INVOKED_PERATOM;
+      }
 
       if (j == 0) {
 	double *compute_scalar = compute->scalar_atom;

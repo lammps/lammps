@@ -684,21 +684,22 @@ int Modify::find_compute(char *id)
 }
 
 /* ----------------------------------------------------------------------
-   loop only over computes that store invocation times
-   clear their invoked flag for this step
-   called before computes are invoked
+   clear invoked flag of all computes
+   called everywhere that computes are used, before computes are invoked
+   invoked flag used to avoid re-invoking same compute multiple times
+   and to flag computes that store invocation times as having been invoked
 ------------------------------------------------------------------------- */
 
 void Modify::clearstep_compute()
 {
-  for (int icompute = 0; icompute < n_timeflag; icompute++)
+  for (int icompute = 0; icompute < ncompute; icompute++)
     compute[list_timeflag[icompute]]->invoked_flag = 0;
 }
 
 /* ----------------------------------------------------------------------
-   loop only over computes that store invocation times
-   if its invoked flag set on this timestep, schedule the next invocation
-   called after computes are invoked
+   loop over computes that store invocation times
+   if its invoked flag set on this timestep, schedule next invocation
+   called everywhere that computes are used, after computes are invoked
 ------------------------------------------------------------------------- */
 
 void Modify::addstep_compute(int newstep)
@@ -709,8 +710,8 @@ void Modify::addstep_compute(int newstep)
 }
 
 /* ----------------------------------------------------------------------
-   loop over all computes
-   schedule the next invocation for those that store invocation times
+   loop over computes that store invocation times
+   schedule next invocation for all of them
    called when not sure what computes will be needed on newstep
 ------------------------------------------------------------------------- */
 

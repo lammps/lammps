@@ -693,7 +693,7 @@ int Modify::find_compute(char *id)
 void Modify::clearstep_compute()
 {
   for (int icompute = 0; icompute < ncompute; icompute++)
-    compute[list_timeflag[icompute]]->invoked_flag = 0;
+    compute[icompute]->invoked_flag = 0;
 }
 
 /* ----------------------------------------------------------------------

@@ -98,6 +98,21 @@ favorite interatomic potential, boundary condition, or atom type, see
 <A HREF = "Section_modify.html">this section</A>, which describes how you can add it to
 LAMMPS.
 </P>
+<P>General features: h4
+</P>
+<UL><LI>  runs on a single processor or in parallel
+<LI>  distributed-memory message-passing parallelism (MPI)
+<LI>  spatial-decomposition of simulation domain for parallelism
+<LI>  open-source distribution
+<LI>  highly portable C++
+<LI>  optional libraries needed: MPI and single-processor FFT
+<LI>  easy to extend with new features and functionality
+<LI>  in parallel, run one or multiple simulations simultaneously
+<LI>  runs from an input script
+<LI>  syntax for defining and using variables and formulas
+<LI>  syntax for looping over runs and breaking out of loops
+<LI>  run a series of simluations from one script 
+</UL>
 <H4>Kinds of systems LAMMPS can simulate: 
 </H4>
 <P>(<A HREF = "atom_style.html">atom style</A> command)
@@ -111,7 +126,7 @@ LAMMPS.
 <LI>  coarse-grained mesoscale models
 <LI>  ellipsoidal particles
 <LI>  point dipolar particles
-<LI>  hybrid systems 
+<LI>  hybrid combinations of these 
 </UL>
 <H4>Force fields: 
 </H4>
@@ -123,7 +138,8 @@ commands)
 <UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse,     Yukawa, soft, class 2 (COMPASS), tabulated
 <LI>  charged pairwise potentials: Coulombic, point-dipole
 <LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     Stillinger-Weber, Tersoff, AI-REBO
-<LI>  coarse-grain potentials: granular, DPD, GayBerne, REsquared, colloidal
+<LI>  coarse-grain potentials: DPD, GayBerne, REsquared, colloidal
+<LI>  mesoscopic potentials: granular, Peridynamics
 <LI>  bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable)
 <LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared,     class 2 (COMPASS)
 <LI>  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS
@@ -160,6 +176,7 @@ commands)
 <LI>  harmonic (umbrella) constraint forces
 <LI>  independent or coupled rigid body integration
 <LI>  SHAKE bond and angle constraints
+<LI>  bond breaking, formation, swapping
 <LI>  walls of various kinds
 <LI>  targeted molecular dynamics (TMD) and steered molecule dynamics (SMD) constraints
 <LI>  non-equilibrium molecular dynamics (NEMD)
@@ -171,10 +188,9 @@ commands)
 </P>
 <UL><LI>  velocity-Verlet integrator
 <LI>  Brownian dynamics
-<LI>  energy minimization via conjugate gradient relaxation
+<LI>  energy minimization via conjugate gradient or steepest descent relaxation
 <LI>  rRESPA hierarchical timestepping
-<LI>  parallel tempering (replica exchange)
-<LI>  run multiple independent simulations simultaneously 
+<LI>  parallel tempering (replica exchange) 
 </UL>
 <H4>Output: 
 </H4>
@@ -455,6 +471,8 @@ the list.
 
 
 <DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >Tersoff/ZBL potential </TD><TD > Dave Farrell (Northwestern U)</TD></TR>
+<TR><TD >peridynamics </TD><TD > Mike Parks (Sandia)</TD></TR>
 <TR><TD >fix smd for steered MD </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>
 <TR><TD >GROMACS pair potentials </TD><TD > Mark Stevens (Sandia)</TD></TR>
 <TR><TD >lmp2vmd tool </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>

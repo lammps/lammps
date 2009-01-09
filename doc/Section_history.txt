@@ -29,7 +29,6 @@ are being worked on; some haven't been implemented because of lack of
 time or interest; others are just a lot of work!
 
 NPT with changing box shape (Parinello-Rahman)
-bond creation potentials
 long-range point dipole solver
 torsional shear boundary conditions and temperature calculation
 charge equilibration

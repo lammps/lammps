@@ -95,6 +95,21 @@ favorite interatomic potential, boundary condition, or atom type, see
 "this section"_Section_modify.html, which describes how you can add it to
 LAMMPS.
 
+General features: h4
+
+  runs on a single processor or in parallel
+  distributed-memory message-passing parallelism (MPI)
+  spatial-decomposition of simulation domain for parallelism
+  open-source distribution
+  highly portable C++
+  optional libraries needed: MPI and single-processor FFT
+  easy to extend with new features and functionality
+  in parallel, run one or multiple simulations simultaneously
+  runs from an input script
+  syntax for defining and using variables and formulas
+  syntax for looping over runs and breaking out of loops
+  run a series of simluations from one script :ul
+
 Kinds of systems LAMMPS can simulate: :h4
 ("atom style"_atom_style.html command)
 
@@ -107,7 +122,7 @@ Kinds of systems LAMMPS can simulate: :h4
   coarse-grained mesoscale models
   ellipsoidal particles
   point dipolar particles
-  hybrid systems :ul
+  hybrid combinations of these :ul
 
 Force fields: :h4
 ("pair style"_pair_style.html, "bond style"_bond_style.html,
@@ -120,7 +135,8 @@ commands)
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     Stillinger-Weber, Tersoff, AI-REBO
-  coarse-grain potentials: granular, DPD, GayBerne, REsquared, colloidal
+  coarse-grain potentials: DPD, GayBerne, REsquared, colloidal
+  mesoscopic potentials: granular, Peridynamics
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, \
@@ -160,6 +176,7 @@ Ensembles, constraints, and boundary conditions: :h4
   harmonic (umbrella) constraint forces
   independent or coupled rigid body integration
   SHAKE bond and angle constraints
+  bond breaking, formation, swapping
   walls of various kinds
   targeted molecular dynamics (TMD) and steered molecule dynamics (SMD) constraints
   non-equilibrium molecular dynamics (NEMD)
@@ -170,10 +187,9 @@ Integrators: :h4
 
   velocity-Verlet integrator
   Brownian dynamics
-  energy minimization via conjugate gradient relaxation
+  energy minimization via conjugate gradient or steepest descent relaxation
   rRESPA hierarchical timestepping
-  parallel tempering (replica exchange)
-  run multiple independent simulations simultaneously :ul
+  parallel tempering (replica exchange) :ul
 
 Output: :h4
 ("dump"_dump.html, "restart"_restart.html commands) 
@@ -441,6 +457,8 @@ the list.
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
+Tersoff/ZBL potential : Dave Farrell (Northwestern U)
+peridynamics : Mike Parks (Sandia)
 fix smd for steered MD : Axel Kohlmeyer (U Penn)
 GROMACS pair potentials : Mark Stevens (Sandia)
 lmp2vmd tool : Axel Kohlmeyer (U Penn)

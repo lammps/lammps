@@ -291,6 +291,7 @@ manybody : metal, 3-body, bond-order potentials
 meam : modified embedded atom method (MEAM) potential
 molecule : force fields for molecular systems
 opt : optimized versions of a few pair potentials
+peri : Peridynamics model and potential
 poems : coupled rigid body motion
 xtc : dump atom snapshots in XTC format :tb(s=:)
 

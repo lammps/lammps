@@ -25,7 +25,7 @@ args = list of arguments for a particular style :l
   {xplane} or {yplane} or {zplane} args = lo hi
     lo,hi = position of lower and upper plane (distance units), either can be NULL)
   {zcylinder} args = radius
-    radius = cylinder radius (distance units)
+    radius = cylinder radius (distance units) :pre
 zero or more keyword/value pairs may be appended to args :l
 keyword = {wiggle} or {shear} :l
   {wiggle} values = dim amplitude period

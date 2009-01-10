@@ -329,6 +329,11 @@ void PairLubricate::settings(int narg, char **arg)
   t_target = atof(arg[7]);
   seed = atoi(arg[8]);
 
+  // initialize Marsaglia RNG with processor-unique seed
+
+  delete random;
+  random = new RanMars(lmp,seed + comm->me);
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -340,11 +345,6 @@ void PairLubricate::settings(int narg, char **arg)
 	  cut[i][j] = cut_global;
 	}
   }
-
-  // initialize Marsaglia RNG with processor-unique seed
-
-  delete random;
-  random = new RanMars(lmp,seed + comm->me);
 }
 
 /* ----------------------------------------------------------------------
@@ -399,12 +399,6 @@ void PairLubricate::init_style()
 	(atom->shape[i][1] != atom->shape[i][2]) )
       error->all("Pair lubricate requires spherical particles");
 
-  // insure mono-dispersity
-  
-  for (int i = 2; i <= atom->ntypes; i++)
-    if (atom->shape[i][0] != atom->shape[1][0])
-      error->all("Pair lubricate requires mono-disperse particles");
-
   int irequest = neighbor->request(this);
 }
 
@@ -414,6 +408,19 @@ void PairLubricate::init_style()
 
 double PairLubricate::init_one(int i, int j)
 {
+  // insure mono-dispersity when i = j if non-zero cutoff
+  // cannot do this in init_style() b/c cut[][] may not be set (in error)
+  
+  if (i == j && cut[i][i] > 0.0) {
+    for (int m = 1; m <= atom->ntypes; m++) {
+      if (cut[m][m] > 0.0) {
+	if (atom->shape[i][0] != atom->shape[m][0])
+	  error->all("Pair lubricate requires mono-disperse particles");
+	break;
+      }
+    }
+  }
+
   if (setflag[i][j] == 0) {
     cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);

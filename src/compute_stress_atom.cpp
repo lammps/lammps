@@ -83,6 +83,7 @@ ComputeStressAtom::~ComputeStressAtom()
 void ComputeStressAtom::compute_peratom()
 {
   int i,j;
+  double onemass;
 
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
@@ -191,20 +192,34 @@ void ComputeStressAtom::compute_peratom()
   if (keflag) {
     double **v = atom->v;
     double *mass = atom->mass;
+    double *rmass = atom->rmass;
     int *type = atom->type;
     double mvv2e = force->mvv2e;
-    double rmass;
 
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	rmass = mvv2e * mass[type[i]];
-	stress[i][0] += rmass*v[i][0]*v[i][0];
-	stress[i][1] += rmass*v[i][1]*v[i][1];
-	stress[i][2] += rmass*v[i][2]*v[i][2];
-	stress[i][3] += rmass*v[i][0]*v[i][1];
-	stress[i][4] += rmass*v[i][0]*v[i][2];
-	stress[i][5] += rmass*v[i][1]*v[i][2];
-      }
+    if (mass) {
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) {
+	  onemass = mvv2e * mass[type[i]];
+	  stress[i][0] += onemass*v[i][0]*v[i][0];
+	  stress[i][1] += onemass*v[i][1]*v[i][1];
+	  stress[i][2] += onemass*v[i][2]*v[i][2];
+	  stress[i][3] += onemass*v[i][0]*v[i][1];
+	  stress[i][4] += onemass*v[i][0]*v[i][2];
+	  stress[i][5] += onemass*v[i][1]*v[i][2];
+	}
+
+    } else {
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) {
+	  onemass = mvv2e * rmass[i];
+	  stress[i][0] += onemass*v[i][0]*v[i][0];
+	  stress[i][1] += onemass*v[i][1]*v[i][1];
+	  stress[i][2] += onemass*v[i][2]*v[i][2];
+	  stress[i][3] += onemass*v[i][0]*v[i][1];
+	  stress[i][4] += onemass*v[i][0]*v[i][2];
+	  stress[i][5] += onemass*v[i][1]*v[i][2];
+	}
+    }
   }
 
   // convert to pressure units (actually stress/volume = -pressure)

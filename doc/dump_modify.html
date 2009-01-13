@@ -59,16 +59,20 @@ format string.  This option has no effect on the <I>dcd</I> and <I>xtc</I> dump
 styles since they write binary files.
 </P>
 <P>The <I>scale</I> and <I>image</I> keywords apply only to the dump <I>atom</I> style.
-A scale value of <I>yes</I> means atom coords are written in normalized
-units from 0.0 to 1.0 in each box dimension.  A value of <I>no</I> means
-they are written in absolute distance units (e.g. Angstroms or sigma).
-If the image value is <I>yes</I>, 3 flags are appended to each atom's
+</P>
+<P>A scale value of <I>yes</I> means atom coords are written in normalized
+units from 0.0 to 1.0 in each box dimension.  If the simluation box is
+triclinic (tilted), then all atom coords will still be between 0.0 and
+1.0.  A value of <I>no</I> means they are written in absolute distance
+units (e.g. Angstroms or sigma).
+</P>
+<P>If the image value is <I>yes</I>, 3 flags are appended to each atom's
 coords which are the absolute box image of the atom in each dimension.
 For example, an x image flag of -2 with a normalized coord of 0.5
 means the atom is in the center of the box, but has passed thru the
 box boundary 2 times and is really 2 box lengths to the left of its
-current coordinate.  Note that for dump style <I>custom</I> these values
-can be printed in the dump file by using the appropriate atom
+current coordinate.  Note that for dump style <I>custom</I> these various
+values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
 </P>
 

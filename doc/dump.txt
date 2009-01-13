@@ -219,22 +219,30 @@ styles.
 This section explains the atom quantities that can be specified as
 part of the {custom} style.
 
-The {id}, {mol}, {type}, {x}, {y}, {z}, {vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, {q} keywords are self-explanatory.  {Id} is the atom ID.  {Mol}
-is the molecule ID, included in the data file for molecular systems.
-The {x}, {y}, {z} keywords write atom coordinates "unscaled", in the
+The {id}, {mol}, {type}, {vx}, {vy}, {vz}, {fx}, {fy},
+{fz}, {q} keywords are self-explanatory.
+
+{Id} is the atom ID.  {Mol} is the molecule ID, included in the data
+file for molecular systems.  {Type} is the atom type.  {Vx}, {vy},
+{vz}, {fx}, {fy}, {fz}, and {q} are components of atom velocity and
+force and atomic charge.
+
+There are several options for outputting atom coordinates.  The {x},
+{y}, {z} keywords write atom coordinates "unscaled", in the
 appropriate distance "units"_units.html (Angstroms, sigma, etc).  Use
 {xs}, {ys}, {zs} if you want the coordinates "scaled" to the box size,
-so that each value is 0.0 to 1.0.  Use {xu}, {yu}, {zu} if you want
-the coordinates "unwrapped" by the image flags for each atom.
-Unwrapped means that if the atom has passed thru a periodic boundary
-one or more times, the value is printed for what the coordinate would
-be if it had not been wrapped back into the periodic box.  Note that
-using {xu}, {yu}, {zu} means that the coordinate values may be far
-outside the box size printed with the snapshot.  The image flags can
-be printed directly using the {ix}, {iy}, {iz} keywords. The
-"dump_modify"_dump_modify.html command describes in more detail what
-is meant by scaled vs unscaled coordinates and the image flags.
+so that each value is 0.0 to 1.0.  If the simluation box is triclinic
+(tilted), then all atom coords will still be between 0.0 and 1.0.  Use
+{xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the image
+flags for each atom.  Unwrapped means that if the atom has passed thru
+a periodic boundary one or more times, the value is printed for what
+the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that using {xu}, {yu}, {zu} means that the
+coordinate values may be far outside the box size printed with the
+snapshot.  The image flags can be printed directly using the {ix},
+{iy}, {iz} keywords. The "dump_modify"_dump_modify.html command
+describes in more detail what is meant by scaled vs unscaled
+coordinates and the image flags.
 
 The {mux}, {muy}, {muz} keywords are specific to dipolar systems
 defined with an atom style of {dipole}.  They give the orientation of
@@ -312,13 +320,6 @@ per-atom quantities which could then be output into dump files.
 :line
 
 [Restrictions:]
-
-Scaled coordinates cannot be writted to dump files when the simulation
-box is triclinic (non-orthogonal).  Note that this is the default for
-dump style {atom}; the "dump_modify command"_dump_modify.html must be
-used to change it.  The exception is DCD files which store the tilt
-factors for subsequent visualization by programs like
-"VMD"_http://www.ks.uiuc.edu/Research/vmd.
 
 To write gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option - see the "Making LAMMPS"_Section_start.html#2_2

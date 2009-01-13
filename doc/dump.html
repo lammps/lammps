@@ -229,22 +229,30 @@ styles.
 <P>This section explains the atom quantities that can be specified as
 part of the <I>custom</I> style.
 </P>
-<P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
-<I>fz</I>, <I>q</I> keywords are self-explanatory.  <I>Id</I> is the atom ID.  <I>Mol</I>
-is the molecule ID, included in the data file for molecular systems.
-The <I>x</I>, <I>y</I>, <I>z</I> keywords write atom coordinates "unscaled", in the
+<P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
+<I>fz</I>, <I>q</I> keywords are self-explanatory.
+</P>
+<P><I>Id</I> is the atom ID.  <I>Mol</I> is the molecule ID, included in the data
+file for molecular systems.  <I>Type</I> is the atom type.  <I>Vx</I>, <I>vy</I>,
+<I>vz</I>, <I>fx</I>, <I>fy</I>, <I>fz</I>, and <I>q</I> are components of atom velocity and
+force and atomic charge.
+</P>
+<P>There are several options for outputting atom coordinates.  The <I>x</I>,
+<I>y</I>, <I>z</I> keywords write atom coordinates "unscaled", in the
 appropriate distance <A HREF = "units.html">units</A> (Angstroms, sigma, etc).  Use
 <I>xs</I>, <I>ys</I>, <I>zs</I> if you want the coordinates "scaled" to the box size,
-so that each value is 0.0 to 1.0.  Use <I>xu</I>, <I>yu</I>, <I>zu</I> if you want
-the coordinates "unwrapped" by the image flags for each atom.
-Unwrapped means that if the atom has passed thru a periodic boundary
-one or more times, the value is printed for what the coordinate would
-be if it had not been wrapped back into the periodic box.  Note that
-using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the coordinate values may be far
-outside the box size printed with the snapshot.  The image flags can
-be printed directly using the <I>ix</I>, <I>iy</I>, <I>iz</I> keywords. The
-<A HREF = "dump_modify.html">dump_modify</A> command describes in more detail what
-is meant by scaled vs unscaled coordinates and the image flags.
+so that each value is 0.0 to 1.0.  If the simluation box is triclinic
+(tilted), then all atom coords will still be between 0.0 and 1.0.  Use
+<I>xu</I>, <I>yu</I>, <I>zu</I> if you want the coordinates "unwrapped" by the image
+flags for each atom.  Unwrapped means that if the atom has passed thru
+a periodic boundary one or more times, the value is printed for what
+the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that using <I>xu</I>, <I>yu</I>, <I>zu</I> means that the
+coordinate values may be far outside the box size printed with the
+snapshot.  The image flags can be printed directly using the <I>ix</I>,
+<I>iy</I>, <I>iz</I> keywords. The <A HREF = "dump_modify.html">dump_modify</A> command
+describes in more detail what is meant by scaled vs unscaled
+coordinates and the image flags.
 </P>
 <P>The <I>mux</I>, <I>muy</I>, <I>muz</I> keywords are specific to dipolar systems
 defined with an atom style of <I>dipole</I>.  They give the orientation of
@@ -322,13 +330,6 @@ per-atom quantities which could then be output into dump files.
 <HR>
 
 <P><B>Restrictions:</B>
-</P>
-<P>Scaled coordinates cannot be writted to dump files when the simulation
-box is triclinic (non-orthogonal).  Note that this is the default for
-dump style <I>atom</I>; the <A HREF = "dump_modify.html">dump_modify command</A> must be
-used to change it.  The exception is DCD files which store the tilt
-factors for subsequent visualization by programs like
-<A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>.
 </P>
 <P>To write gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#2_2">Making LAMMPS</A>

@@ -13,6 +13,7 @@
 
 #include "math.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
 #include "fix_rigid.h"
 #include "atom.h"
@@ -64,9 +65,10 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // nbody = 1
   // all atoms in fix group are part of body
 
-  if (strcmp(arg[3],"single") == 0) {
-    if (narg != 4) error->all("Illegal fix rigid command");
+  int iarg;
 
+  if (strcmp(arg[3],"single") == 0) {
+    iarg = 4;
     nbody = 1;
 
     int *mask = atom->mask;
@@ -84,7 +86,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // use nall as incremented ptr to set body[] values for each atom
 
   } else if (strcmp(arg[3],"molecule") == 0) {
-    if (narg != 4) error->all("Illegal fix rigid command");
+    iarg = 4;
     if (atom->molecular == 0)
       error->all("Must use a molecular atom style with fix rigid molecule");
 
@@ -128,12 +130,15 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // error if atom belongs to more than 1 rigid body
 
   } else if (strcmp(arg[3],"group") == 0) {
-    nbody = narg-4;
+    if (narg < 5) error->all("Illegal fix rigid command");
+    nbody = atoi(arg[4]);
     if (nbody <= 0) error->all("Illegal fix rigid command");
+    if (narg < 5+nbody) error->all("Illegal fix rigid command");
+    iarg = 5 + nbody;
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
-      igroups[ibody] = group->find(arg[ibody+4]);
+      igroups[ibody] = group->find(arg[5+ibody]);
       if (igroups[ibody] == -1) 
 	error->all("Could not find fix rigid group ID");
     }
@@ -182,11 +187,94 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   torque = memory->create_2d_double_array(nbody,3,"rigid:torque");
   quat = memory->create_2d_double_array(nbody,4,"rigid:quat");
   image = (int *) memory->smalloc(nbody*sizeof(int),"rigid:image");
+  fflag = memory->create_2d_double_array(nbody,3,"rigid:fflag");
+  tflag = memory->create_2d_double_array(nbody,3,"rigid:tflag");
 
   sum = memory->create_2d_double_array(nbody,6,"rigid:sum");
   all = memory->create_2d_double_array(nbody,6,"rigid:all");
   remapflag = memory->create_2d_int_array(nbody,4,"rigid:remapflag");
-  
+
+  // initialize force/torque flags to default = 1.0
+
+  vector_flag = 1;
+  size_vector = 12*nbody;
+  scalar_vector_freq = 1;
+  extvector = 0;
+
+  for (i = 0; i < nbody; i++) {
+    fflag[i][0] = fflag[i][1] = fflag[i][2] = 1.0;
+    tflag[i][0] = tflag[i][1] = tflag[i][2] = 1.0;
+  }
+
+  // parse optional args that set fflag and tflag
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"force") == 0) {
+      if (iarg+5 > narg) error->all("Illegal fix rigid command");
+
+      int mlo,mhi;
+      force->bounds(arg[iarg+1],nbody,mlo,mhi);
+
+      double xflag,yflag,zflag;
+      if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
+      else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
+      else error->all("Ill3gal fix rigid command");
+      if (strcmp(arg[iarg+2],"off") == 0) yflag = 0.0;
+      else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
+      else error->all("Illegal fix rigid command");
+      if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
+      else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
+      else error->all("Illegal fix rigid command");
+
+      int count = 0;
+      for (int m = mlo; m <= mhi; i++) {
+	fflag[m-1][0] = xflag;
+	fflag[m-1][1] = yflag;
+	fflag[m-1][2] = zflag;
+	count++;
+      }
+      if (count == 0) error->all("Illegal fix rigid command");
+
+      iarg += 5;
+    } else if (strcmp(arg[iarg],"torque") == 0) {
+      if (iarg+5 > narg) error->all("Illegal fix rigid command");
+
+      int mlo,mhi;
+      force->bounds(arg[iarg+1],nbody,mlo,mhi);
+
+      double xflag,yflag,zflag;
+      if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
+      else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
+      else error->all("Ill3gal fix rigid command");
+      if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
+      else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
+      else error->all("Illegal fix rigid command");
+      if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
+      else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
+      else error->all("Illegal fix rigid command");
+
+      int count = 0;
+      for (int m = mlo; m <= mhi; m++) {
+	tflag[m-1][0] = xflag;
+	tflag[m-1][1] = yflag;
+	tflag[m-1][2] = zflag;
+	count++;
+      }
+      if (count == 0) error->all("Illegal fix rigid command");
+
+      iarg += 5;
+    } else error->all("Illegal fix rigid command");
+  }
+
+  // initialize vector output quantities in case accessed before run
+
+  for (i = 0; i < nbody; i++) {
+    xcm[i][0] = xcm[i][1] = xcm[i][2] = 0.0;
+    vcm[i][0] = vcm[i][1] = vcm[i][2] = 0.0;
+    fcm[i][0] = fcm[i][1] = fcm[i][2] = 0.0;
+    torque[i][0] = torque[i][1] = torque[i][2] = 0.0;
+  }
+
   // nrigid[n] = # of atoms in Nth rigid body
   // error if one or zero atoms
   
@@ -251,6 +339,8 @@ FixRigid::~FixRigid()
   memory->destroy_2d_double_array(torque);
   memory->destroy_2d_double_array(quat);
   memory->sfree(image);
+  memory->destroy_2d_double_array(fflag);
+  memory->destroy_2d_double_array(tflag);
 
   memory->destroy_2d_double_array(sum);
   memory->destroy_2d_double_array(all);
@@ -677,8 +767,8 @@ void FixRigid::setup(int vflag)
   // set velocities from angmom & omega
 
   for (ibody = 0; ibody < nbody; ibody++)
-    omega_from_mq(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		  ez_space[ibody],inertia[ibody],omega[ibody]);
+    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],inertia[ibody],omega[ibody]);
   set_v();
 
   // guestimate virial as 2x the set_v contribution
@@ -703,9 +793,9 @@ void FixRigid::initial_integrate(int vflag)
     // update vcm by 1/2 step
   
     dtfm = dtf / masstotal[ibody];
-    vcm[ibody][0] += dtfm * fcm[ibody][0];
-    vcm[ibody][1] += dtfm * fcm[ibody][1];
-    vcm[ibody][2] += dtfm * fcm[ibody][2];
+    vcm[ibody][0] += dtfm * fcm[ibody][0] * fflag[ibody][0];
+    vcm[ibody][1] += dtfm * fcm[ibody][1] * fflag[ibody][1];
+    vcm[ibody][2] += dtfm * fcm[ibody][2] * fflag[ibody][2];
   
     // update xcm by full step
   
@@ -715,9 +805,9 @@ void FixRigid::initial_integrate(int vflag)
   
     // update angular momentum by 1/2 step
     
-    angmom[ibody][0] += dtf * torque[ibody][0];
-    angmom[ibody][1] += dtf * torque[ibody][1];
-    angmom[ibody][2] += dtf * torque[ibody][2];
+    angmom[ibody][0] += dtf * torque[ibody][0] * tflag[ibody][0];
+    angmom[ibody][1] += dtf * torque[ibody][1] * tflag[ibody][1];
+    angmom[ibody][2] += dtf * torque[ibody][2] * tflag[ibody][2];
 
     // update quaternion a full step
     // returns new normalized quat
@@ -747,12 +837,12 @@ void FixRigid::richardson(double *q, double *w,
 {
   // compute omega at 1/2 step from m at 1/2 step and q at 0
   
-  omega_from_mq(m,ex,ey,ez,moments,w);
+  omega_from_angmom(m,ex,ey,ez,moments,w);
 
   // full update from dq/dt = 1/2 w q
 
   double wq[4];
-  multiply(w,q,wq);
+  vecquat(w,q,wq);
 
   double qfull[4];
   qfull[0] = q[0] + dtq * wq[0];
@@ -777,8 +867,8 @@ void FixRigid::richardson(double *q, double *w,
   // recompute wq
 
   exyz_from_q(qhalf,ex,ey,ez);
-  omega_from_mq(m,ex,ey,ez,moments,w);
-  multiply(w,qhalf,wq);
+  omega_from_angmom(m,ex,ey,ez,moments,w);
+  vecquat(w,qhalf,wq);
 
   // 2nd half update from dq/dt = 1/2 w q
 
@@ -873,23 +963,23 @@ void FixRigid::final_integrate()
     // update vcm by 1/2 step
   
     dtfm = dtf / masstotal[ibody];
-    vcm[ibody][0] += dtfm * fcm[ibody][0];
-    vcm[ibody][1] += dtfm * fcm[ibody][1];
-    vcm[ibody][2] += dtfm * fcm[ibody][2];
+    vcm[ibody][0] += dtfm * fcm[ibody][0] * fflag[ibody][0];
+    vcm[ibody][1] += dtfm * fcm[ibody][1] * fflag[ibody][1];
+    vcm[ibody][2] += dtfm * fcm[ibody][2] * fflag[ibody][2];
   
     // update angular momentum by 1/2 step
     
-    angmom[ibody][0] += dtf * torque[ibody][0];
-    angmom[ibody][1] += dtf * torque[ibody][1];
-    angmom[ibody][2] += dtf * torque[ibody][2];
+    angmom[ibody][0] += dtf * torque[ibody][0] * tflag[ibody][0];
+    angmom[ibody][1] += dtf * torque[ibody][1] * tflag[ibody][1];
+    angmom[ibody][2] += dtf * torque[ibody][2] * tflag[ibody][2];
   }
 
   // set velocities from angmom & omega
   // virial is already setup from initial_integrate
 
   for (ibody = 0; ibody < nbody; ibody++) 
-    omega_from_mq(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		  ez_space[ibody],inertia[ibody],omega[ibody]);
+    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],inertia[ibody],omega[ibody]);
 
   set_v();
 }
@@ -1129,7 +1219,7 @@ void FixRigid::rotate(double **matrix, int i, int j, int k, int l,
 
 /* ----------------------------------------------------------------------
    create quaternion from space-frame ex,ey,ez
-   ex,ey,ez are columns of evectors rotation matrix
+   ex,ey,ez are columns of a rotation matrix
 ------------------------------------------------------------------------- */
 
 void FixRigid::q_from_exyz(double *ex, double *ey, double *ez, double *q)
@@ -1192,15 +1282,39 @@ void FixRigid::exyz_from_q(double *q, double *ex, double *ey, double *ez)
 }
 
 /* ----------------------------------------------------------------------
-   quaternion multiply: c = a*b where a = (0,a)
+   vector-quaternion multiply: c = a*b, where a = (0,a)
 ------------------------------------------------------------------------- */
 
-void FixRigid::multiply(double *a, double *b, double *c)
+void FixRigid::vecquat(double *a, double *b, double *c)
 {
   c[0] = -(a[0]*b[1] + a[1]*b[2] + a[2]*b[3]);
   c[1] = b[0]*a[0] + a[1]*b[3] - a[2]*b[2];
   c[2] = b[0]*a[1] + a[2]*b[1] - a[0]*b[3];
   c[3] = b[0]*a[2] + a[0]*b[2] - a[1]*b[1];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion-vector multiply: c = a*b, where b = (0,b)
+------------------------------------------------------------------------- */
+
+void FixRigid::quatvec(double *a, double *b, double *c)
+{
+  c[0] = - (a[1]*b[0] + a[2]*b[1] + a[3]*b[2]);
+  c[1] = a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
+  c[2] = a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
+  c[3] = a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion-quaternion multiply: c = a*b
+------------------------------------------------------------------------- */
+
+void FixRigid::quatquat(double *a, double *b, double *c)
+{
+  c[0] = a[0]*b[0] - (a[1]*b[1] + a[2]*b[2] + a[3]*b[3]);
+  c[1] = a[0]*b[1] + b[0]*a[1] + a[2]*b[3] - a[3]*b[2];
+  c[2] = a[0]*b[2] + b[0]*a[2] + a[3]*b[1] - a[1]*b[3];
+  c[3] = a[0]*b[3] + b[0]*a[3] + a[1]*b[2] - a[2]*b[1];
 }
 
 /* ----------------------------------------------------------------------
@@ -1217,17 +1331,18 @@ void FixRigid::normalize(double *q)
 }
 
 /* ----------------------------------------------------------------------
-   compute omega from angular momentum
-   w = omega = angular velocity in space frame
-   wbody = angular velocity in body frame
+   compute omega from angular momentum, both in space frame
+   only know Idiag so need to do M = Iw in body frame
+   ex,ey,ez are column vectors of rotation matrix P
+   Mbody = P_transpose Mspace
+   wbody = Mbody / Ibody
+   wspace = P wbody
    set wbody component to 0.0 if inertia component is 0.0
      otherwise body can spin easily around that axis
-   project space-frame angular momentum onto body axes
-     and divide by principal moments
 ------------------------------------------------------------------------- */
 
-void FixRigid::omega_from_mq(double *m, double *ex, double *ey, double *ez,
-			     double *inertia, double *w)
+void FixRigid::omega_from_angmom(double *m, double *ex, double *ey, double *ez,
+				 double *inertia, double *w)
 {
   double wbody[3];
 
@@ -1241,6 +1356,29 @@ void FixRigid::omega_from_mq(double *m, double *ex, double *ey, double *ez,
   w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
   w[1] = wbody[0]*ex[1] + wbody[1]*ey[1] + wbody[2]*ez[1];
   w[2] = wbody[0]*ex[2] + wbody[1]*ey[2] + wbody[2]*ez[2];
+}
+
+/* ----------------------------------------------------------------------
+   compute angular momentum from omega, both in space frame
+   only know Idiag so need to do M = Iw in body frame
+   ex,ey,ez are column vectors of rotation matrix P
+   wbody = P_transpose wspace
+   Mbody = Ibody wbody
+   Mspace = P Mbody
+------------------------------------------------------------------------- */
+
+void FixRigid::angmom_from_omega(double *w, double *ex, double *ey, double *ez,
+				 double *inertia, double *m)
+{
+  double mbody[3];
+
+  mbody[0] = (w[0]*ex[0] + w[1]*ex[1] + w[2]*ex[2]) * inertia[0];
+  mbody[1] = (w[0]*ey[0] + w[1]*ey[1] + w[2]*ey[2]) * inertia[1];
+  mbody[2] = (w[0]*ez[0] + w[1]*ez[1] + w[2]*ez[2]) * inertia[2];
+
+  m[0] = mbody[0]*ex[0] + mbody[1]*ey[0] + mbody[2]*ez[0];
+  m[1] = mbody[0]*ex[1] + mbody[1]*ey[1] + mbody[2]*ez[1];
+  m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -1525,4 +1663,22 @@ void FixRigid::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
+}
+
+/* ----------------------------------------------------------------------
+   return attributes of a rigid body
+   12 values per body
+   xcm = 1,2,3; vcm = 4,5,6; fcm = 7,8,9; torque = 10,11,12
+------------------------------------------------------------------------- */
+
+double FixRigid::compute_vector(int n)
+{
+  int ibody = n/12;
+  int iattribute = (n % 12) / 3;
+  int index = n % 3;
+
+  if (iattribute == 0) return xcm[ibody][index];
+  else if (iattribute == 1) return vcm[ibody][index];
+  else if (iattribute == 2) return fcm[ibody][index];
+  else return torque[ibody][index];
 }

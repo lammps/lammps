@@ -40,6 +40,7 @@ class FixRigid : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  double compute_vector(int);
 
  private:
   double dtv,dtf,dtq;
@@ -62,6 +63,8 @@ class FixRigid : public Fix {
   int *image;               // image flags of xcm of each rigid body
   int *body;                // which body each atom is part of (-1 if none)
   double **displace;        // displacement of each atom in body coords
+  double **fflag;           // flag for on/off of center-of-mass force
+  double **tflag;           // flag for on/off of center-of-mass torque
 
   double **sum,**all;       // work vectors for each rigid body
   int **remapflag;          // PBC remap flags for each rigid body
@@ -70,12 +73,16 @@ class FixRigid : public Fix {
   void rotate(double **, int, int, int, int, double, double);
   void q_from_exyz(double *, double *, double *, double *);
   void exyz_from_q(double *, double *, double *, double *);
-  void multiply(double *, double *, double *);
+  void vecquat(double *, double *, double *);
+  void quatvec(double *, double *, double *);
+  void quatquat(double *, double *, double *);
   void normalize(double *);
   void richardson(double *, double *, double *, double *,
 		  double *, double *, double *);
-  void omega_from_mq(double *, double *, double *,
-		     double *, double *, double *);
+  void omega_from_angmom(double *, double *, double *,
+			 double *, double *, double *);
+  void angmom_from_omega(double *, double *, double *,
+			 double *, double *, double *);
   void set_xv();
   void set_v();
 };

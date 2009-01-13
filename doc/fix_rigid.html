@@ -13,25 +13,41 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID rigid keyword values 
+<PRE>fix ID group-ID rigid bodystyle args keyword values ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
 <LI>rigid = style name of this fix command 
 
-<LI>keyword = <I>single</I> or <I>molecule</I> or <I>group</I> 
+<LI>bodystyle = <I>single</I> or <I>molecule</I> or <I>group</I> 
 
-<PRE>  <I>single</I> values = none
-  <I>molecule</I> values = none
-  <I>group</I> values = list of group IDs 
+<PRE>  <I>single</I> args = none
+  <I>molecule</I> args = none
+  <I>group</I> args = N groupID1 groupID2 ...
+    N = # of groups
+    groupID1, groupID2, ... = list of N group IDs 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>force</I> or <I>torque</I> 
+
+<PRE>  <I>force</I> values = M xflag yflag zflag
+    M = which rigid body from 1-Nbody (see asterisk form below)
+    xflag,yflag,zflag = off/on if component of center-of-mass force is active
+  <I>torque</I> values = M xflag yflag zflag
+    M = which rigid body from 1-Nbody (see asterisk form below)
+    xflag,yflag,zflag = off/on if component of center-of-mass torque is active 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 1 clump rigid single
+fix 1 clump rigid single force 1 off off on
 fix 1 polychains rigid molecule
-fix 2 fluid rigid group clump1 clump2 clump3 
+fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
+fix 2 fluid rigid group 3 clump1 clump2 clump3
+fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -46,20 +62,44 @@ for simulating a system of colloidal particles.
 a constant-energy time integration, so you should not update the same
 atoms via other fixes (e.g. nve, nvt, npt).
 </P>
-<P>Each body must have two or more atoms.  Which atoms are in which
-bodies can be defined via several options.
+<P>Each body must have two or more atoms.  An atom can belong to at most
+one rigid body.  Which atoms are in which bodies can be defined via
+several options.
 </P>
-<P>For option <I>single</I> the entire group of atoms is treated as one rigid
-body.
+<P>For bodystyle <I>single</I> the entire fix group of atoms is treated as one
+rigid body.
 </P>
-<P>For option <I>molecule</I>, each set of atoms in the group with a different
-molecule ID is treated as a rigid body.
+<P>For bodystyle <I>molecule</I>, each set of atoms in the fix group with a
+different molecule ID is treated as a rigid body.
 </P>
-<P>For option <I>group</I>, each of the listed groups is treated as a separate
-rigid body.  Note that only atoms that are also in the fix group are
+<P>For bodystyle <I>group</I>, each of the listed groups is treated as a
+separate rigid body.  Only atoms that are also in the fix group are
 included in each rigid body.
 </P>
-<P>For computational efficiency, you should also turn off pairwise and
+<P>By default, each rigid body is acted on by other atoms which induce a
+force and torque on its center of mass, causing it to translate and
+rotate.  Components of the center-of-mass force and torque can be
+turned off by the <I>force</I> and <I>torque</I> keywords.  This may be useful
+if you wish a body to rotate but not translate, or vice versa.  Note
+that if you expect a rigid body not to move or rotate by using these
+keywords, you must insure its initial center-of-mass translational or
+angular velocity is 0.0.
+</P>
+<P>An xflag, yflag, or zflag set to <I>off</I> means turn off the component of
+force of torque in that dimension.  A setting of <I>on</I> means turn on
+the component, which is the default.  Which rigid body(s) the settings
+apply to is determined by the first argument of the <I>force</I> and
+<I>torque</I> keywords.  It can be an integer M from 1 to Nbody, where
+Nbody is the number of rigid bodies defined.  A wild-card asterisk can
+be used in place of, or in conjunction with, the M argument to set the
+flags for multiple rigid bodies.  This takes the form "*" or "*n" or
+"n*" or "m*n".  If N = the number of rigid bodies, then an asterisk
+with no numeric values means all bodies from 1 to N.  A leading
+asterisk means all bodies from 1 to n (inclusive).  A trailing
+asterisk means all bodies from n to N (inclusive).  A middle asterisk
+means all types from m to n (inclusive).
+</P>
+<P>For computational efficiency, you may wish to turn off pairwise and
 bond interactions within each rigid body, as they no longer contribute
 to the motion.  The <A HREF = "neigh_modify.html">neigh_modify exclude</A> and
 <A HREF = "delete_bonds.html">delete_bonds</A> commands are used to do this.
@@ -83,7 +123,13 @@ degree-of-freedom must be subtracted manually using the
 <A HREF = "compute_modify.html">compute_modify</A> command.  E.g. for a simulation
 of 10 such rigid bodies, use "compute_modify thermo_temp extra 13",
 after the thermo_style command, where 3 is the default setting and an
-additional 10 degrees-of-freedom are subtracted.
+additional 10 degrees-of-freedom are subtracted.  You may also wish to
+manually subtract additional degrees-of-freedom if you use the <I>force</I>
+and <I>torque</I> keywords to eliminate certain motions of the rigid body.
+Alternatively, you can define the temperature <A HREF = "compute.html">compute</A>
+to exclude atoms in rigid bodies, which may be a better strategy,
+i.e. measure the temperature of the free atoms around the rigid body
+or bodies.
 </P>
 <P>IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
 modified when the center-of-mass of the rigid body moves across a
@@ -103,11 +149,32 @@ the system size.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+are relevant to this fix.
+</P>
+<P>This fix computes a global vector of quantities which can be accessed
+by various <A HREF = "Section_howto.html#4_15">output commands</A>.  For each rigid
+body, 12 values are stored: the xyz coords of the center of mass
+(COM), the xyz components of the COM velocity, the xyz components of
+the force acting on the COM, and the xyz components of the torque
+acting on the COM.  The force and torque values in the vector are not
+affected by the <I>force</I> and <I>torque</I> keywords in the fix rigid
+command; they reflect values before any changes are made by those
+keywords.
+</P>
+<P>The total length of the vector is 12*Nbody where Nbody is the number
+of rigid bodies defined by the fix.  Thus the 15th value in the vector
+would be the z-coord of the COM of the 2nd rigid body.  LAMMPS chooses
+the ordering of the rigid bodies internally.  The ordering of the
+rigid bodies is as follows.  For the <I>single</I> keyword there is just
+one rigid body.  For the <I>molecule</I> keyword, the bodies are ordered by
+ascending molecule ID.  For the <I>group</I> keyword, the list of group IDs
+determines the ordering of bodies.  The vector values calculated by
+this fix are "intensive", meaning they are independent of the number
+of atoms in the simulation.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -124,13 +191,17 @@ rigid body.
 stationary.  A better way to do this is to not include those atoms in
 your time integration fix.  E.g. use "fix 1 mobile nve" instead of
 "fix 1 all nve", where "mobile" is the group of atoms that you want to
-move.
+move.  Alternatively, you can also set the force on those atoms to 0.0
+via the <A HREF = "fix_setforce.html">fix setforce</A> command.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "delete_bonds.html">delete_bonds</A>, <A HREF = "neigh_modify.html">neigh_modify</A>
 exclude
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are force * 1 1 1 and torque * 1 1 1, meaning
+all rigid bodies are acted on by center-of-mass force and torque.
 </P>
 </HTML>

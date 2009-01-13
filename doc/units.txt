@@ -46,6 +46,7 @@ time = tau, where tau = t* = t (epsilon / m / sigma^2)^1/2
 energy = epsilon, where E* = E / epsilon
 velocity = sigma/tau, where v* = v tau / sigma
 force = epsilon/sigma, where f* = f sigma / epsilon
+torque = epsilon, where t* = t / epsilon
 temperature = reduced LJ temperature, where T* = T Kb / epsilon
 pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
 viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
@@ -61,6 +62,7 @@ time = femtoseconds
 energy = Kcal/mole 
 velocity = Angstroms/femtosecond 
 force = Kcal/mole-Angstrom
+torque = Kcal/mole
 temperature = degrees K
 pressure = atmospheres
 viscosity = Poise
@@ -76,6 +78,7 @@ time = picoseconds
 energy = eV
 velocity = Angstroms/picosecond 
 force = eV/Angstrom
+torque = eV
 temperature = degrees K
 pressure = bars
 viscosity = Poise
@@ -91,6 +94,7 @@ time = seconds
 energy = Joules
 velocity = meters/second
 force = Newtons
+torque = Newton-meters
 temperature = degrees K
 pressure = Pascals
 viscosity = Pascal*second
@@ -104,8 +108,9 @@ mass = grams
 distance = centimeters
 time = seconds
 energy = ergs
-velocity = cm/second
+velocity = centimeters/second
 force = dynes
+torque = dyne-centimeters
 temperature = degrees K
 pressure = dyne/cm^2 or barye = 1.0e-6 bars
 viscosity = Poise

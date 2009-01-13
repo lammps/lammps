@@ -40,12 +40,6 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 void DumpAtom::init()
 {
-  // this error check cannot occur in constructor since scale_flag = 1
-  // is the default and it can be changed by dump_modify
-
-  if (scale_flag && domain->triclinic)
-    error->all("Cannot dump scaled coords with triclinic box");
-
   if (image_flag == 0) size_one = 5;
   else size_one = 8;
 
@@ -72,10 +66,14 @@ void DumpAtom::init()
   if (binary) header_choice = &DumpAtom::header_binary;
   else header_choice = &DumpAtom::header_item;
 
-  if (scale_flag == 1 && image_flag == 0)
+  if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 0)
     pack_choice = &DumpAtom::pack_scale_noimage;
-  else if (scale_flag == 1 && image_flag == 1)
+  else if (scale_flag == 1 && image_flag == 1 && domain->triclinic == 0)
     pack_choice = &DumpAtom::pack_scale_image;
+  else if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 1)
+    pack_choice = &DumpAtom::pack_scale_noimage_triclinic;
+  else if (scale_flag == 1 && image_flag == 1 && domain->triclinic == 1)
+    pack_choice = &DumpAtom::pack_scale_image_triclinic;
   else if (scale_flag == 0 && image_flag == 0)
     pack_choice = &DumpAtom::pack_noscale_noimage;
   else if (scale_flag == 0 && image_flag == 1)
@@ -229,6 +227,62 @@ int DumpAtom::pack_scale_noimage()
       buf[m++] = (x[i][0] - boxxlo) * invxprd;
       buf[m++] = (x[i][1] - boxylo) * invyprd;
       buf[m++] = (x[i][2] - boxzlo) * invzprd;
+    }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpAtom::pack_scale_image_triclinic()
+{
+  int *tag = atom->tag;
+  int *type = atom->type;
+  int *image = atom->image;
+  int *mask = atom->mask;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  double lamda[3];
+
+  int m = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      buf[m++] = tag[i];
+      buf[m++] = type[i];
+      domain->x2lamda(x[i],lamda);
+      buf[m++] = lamda[0];
+      buf[m++] = lamda[1];
+      buf[m++] = lamda[2];
+      buf[m++] = (image[i] & 1023) - 512;
+      buf[m++] = (image[i] >> 10 & 1023) - 512;
+      buf[m++] = (image[i] >> 20) - 512;
+    }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpAtom::pack_scale_noimage_triclinic()
+{
+  int *tag = atom->tag;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  double lamda[3];
+  
+  int m = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      buf[m++] = tag[i];
+      buf[m++] = type[i];
+      domain->x2lamda(x[i],lamda);
+      buf[m++] = lamda[0];
+      buf[m++] = lamda[1];
+      buf[m++] = lamda[2];
     }
 
   return m;

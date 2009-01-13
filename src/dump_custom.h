@@ -92,18 +92,26 @@ class DumpCustom : public Dump {
   void pack_molecule(int);
   void pack_type(int);
   void pack_mass(int);
+
   void pack_x(int);
   void pack_y(int);
   void pack_z(int);
   void pack_xs(int);
   void pack_ys(int);
   void pack_zs(int);
+  void pack_xs_triclinic(int);
+  void pack_ys_triclinic(int);
+  void pack_zs_triclinic(int);
   void pack_xu(int);
   void pack_yu(int);
   void pack_zu(int);
+  void pack_xu_triclinic(int);
+  void pack_yu_triclinic(int);
+  void pack_zu_triclinic(int);
   void pack_ix(int);
   void pack_iy(int);
   void pack_iz(int);
+
   void pack_vx(int);
   void pack_vy(int);
   void pack_vz(int);

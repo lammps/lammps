@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 
 // customize by adding keyword to 1st enum
 
-enum{ID,MOL,TYPE,MASS,X,Y,Z,XS,YS,ZS,XU,YU,ZU,IX,IY,IZ,
+enum{ID,MOL,TYPE,MASS,
+       X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
        VX,VY,VZ,FX,FY,FZ,
        Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
        QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ,
@@ -352,6 +353,7 @@ int DumpCustom::count()
 	  ptr = atom->rmass;
 	  nstride = 1;
 	}
+
       } else if (thresh_array[ithresh] == X) {
 	ptr = &atom->x[0][0];
 	nstride = 3;
@@ -361,6 +363,7 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == Z) {
 	ptr = &atom->x[0][2];
 	nstride = 3;
+
       } else if (thresh_array[ithresh] == XS) {
         double **x = atom->x;
 	double boxxlo = domain->boxlo[0];
@@ -385,6 +388,34 @@ int DumpCustom::count()
 	  dchoose[i] = (x[i][2] - boxzlo) * invzprd;
 	ptr = dchoose;
 	nstride = 1;
+
+      } else if (thresh_array[ithresh] == XSTRI) {
+        double **x = atom->x;
+	double *boxlo = domain->boxlo;
+	double *h_inv = domain->h_inv;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = h_inv[0]*(x[i][0]-boxlo[0]) + 
+	    h_inv[5]*(x[i][1]-boxlo[1]) + h_inv[4]*(x[i][2]-boxlo[2]);
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == YSTRI) {
+        double **x = atom->x;
+	double *boxlo = domain->boxlo;
+	double *h_inv = domain->h_inv;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = h_inv[1]*(x[i][1]-boxlo[1]) + 
+	    h_inv[3]*(x[i][2]-boxlo[2]);
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == ZSTRI) {
+        double **x = atom->x;
+	double *boxlo = domain->boxlo;
+	double *h_inv = domain->h_inv;
+	for (i = 0; i < nlocal; i++) 
+	  dchoose[i] = h_inv[2]*(x[i][2]-boxlo[2]);
+	ptr = dchoose;
+	nstride = 1;
+
       } else if (thresh_array[ithresh] == XU) {
         double **x = atom->x;
 	int *image = atom->image;
@@ -409,6 +440,44 @@ int DumpCustom::count()
 	  dchoose[i] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
 	ptr = dchoose;
 	nstride = 1;
+
+      } else if (thresh_array[ithresh] == XUTRI) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double *h = domain->h;
+	int xbox,ybox,zbox;
+	for (i = 0; i < nlocal; i++) {
+	  xbox = (image[i] & 1023) - 512;
+	  ybox = (image[i] >> 10 & 1023) - 512;
+	  zbox = (image[i] >> 20) - 512;
+	  dchoose[i] = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+	}
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == YUTRI) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double *h = domain->h;
+	int ybox,zbox;
+	for (i = 0; i < nlocal; i++) {
+	  ybox = (image[i] >> 10 & 1023) - 512;
+	  zbox = (image[i] >> 20) - 512;
+	  dchoose[i] = x[i][1] + h[1]*ybox + h[3]*zbox;
+	}
+	ptr = dchoose;
+	nstride = 1;
+      } else if (thresh_array[ithresh] == ZUTRI) {
+        double **x = atom->x;
+	int *image = atom->image;
+	double *h = domain->h;
+	int zbox;
+	for (i = 0; i < nlocal; i++) {
+	  zbox = (image[i] >> 20) - 512;
+	  dchoose[i] = x[i][2] + h[2]*zbox;
+	}
+	ptr = dchoose;
+	nstride = 1;
+
       } else if (thresh_array[ithresh] == IX) {
 	int *image = atom->image;
 	for (i = 0; i < nlocal; i++)
@@ -427,6 +496,7 @@ int DumpCustom::count()
 	  dchoose[i] = (image[i] >> 20) - 512;
 	ptr = dchoose;
 	nstride = 1;
+
       } else if (thresh_array[ithresh] == VX) {
 	ptr = &atom->v[0][0];
 	nstride = 3;
@@ -685,28 +755,28 @@ void DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_z;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"xs") == 0) {
-      if (domain->triclinic)
-	error->all("Cannot dump scaled coords with triclinic box");
-      pack_choice[i] = &DumpCustom::pack_xs;
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_xs_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_xs;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"ys") == 0) {
-      if (domain->triclinic)
-	error->all("Cannot dump scaled coords with triclinic box");
-      pack_choice[i] = &DumpCustom::pack_ys;
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_ys_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_ys;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"zs") == 0) {
-      if (domain->triclinic)
-	error->all("Cannot dump scaled coords with triclinic box");
-      pack_choice[i] = &DumpCustom::pack_zs;
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zs_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_zs;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"xu") == 0) {
-      pack_choice[i] = &DumpCustom::pack_xu;
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_xu_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_xu;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"yu") == 0) {
-      pack_choice[i] = &DumpCustom::pack_yu;
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_yu_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_yu;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"zu") == 0) {
-      pack_choice[i] = &DumpCustom::pack_zu;
+      if (domain->triclinic) pack_choice[i] = &DumpCustom::pack_zu_triclinic;
+      else pack_choice[i] = &DumpCustom::pack_zu;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"ix") == 0) {
       pack_choice[i] = &DumpCustom::pack_ix;
@@ -1043,13 +1113,6 @@ int DumpCustom::modify_param(int narg, char **arg)
       memory->srealloc(thresh_value,(nthresh+1)*sizeof(double),
 		       "dump:thresh_value");
 
-    // error check for triclinic box
-
-    if (domain->triclinic &&
-	(strcmp(arg[1],"xs") == 0 || strcmp(arg[1],"ys") == 0 || 
-	 strcmp(arg[1],"zs") == 0))
-	error->all("Cannot dump scaled coords with triclinic box");
-
     // set keyword type of threshhold
     // customize by adding to if statement
     
@@ -1057,15 +1120,37 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
     else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
     else if (strcmp(arg[1],"mass") == 0) thresh_array[nthresh] = MASS;
+
     else if (strcmp(arg[1],"x") == 0) thresh_array[nthresh] = X;
     else if (strcmp(arg[1],"y") == 0) thresh_array[nthresh] = Y;
     else if (strcmp(arg[1],"z") == 0) thresh_array[nthresh] = Z;
-    else if (strcmp(arg[1],"xs") == 0) thresh_array[nthresh] = XS;
-    else if (strcmp(arg[1],"ys") == 0) thresh_array[nthresh] = YS;
-    else if (strcmp(arg[1],"zs") == 0) thresh_array[nthresh] = ZS;
-    else if (strcmp(arg[1],"xu") == 0) thresh_array[nthresh] = XU;
-    else if (strcmp(arg[1],"yu") == 0) thresh_array[nthresh] = YU;
-    else if (strcmp(arg[1],"zu") == 0) thresh_array[nthresh] = ZU;
+
+    else if (strcmp(arg[1],"xs") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = XS;
+    else if (strcmp(arg[1],"xs") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = XSTRI;
+    else if (strcmp(arg[1],"ys") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = YS;
+    else if (strcmp(arg[1],"ys") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = YSTRI;
+    else if (strcmp(arg[1],"zs") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = ZS;
+    else if (strcmp(arg[1],"zs") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = ZSTRI;
+
+    else if (strcmp(arg[1],"xu") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = XU;
+    else if (strcmp(arg[1],"xu") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = XUTRI;
+    else if (strcmp(arg[1],"yu") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = YU;
+    else if (strcmp(arg[1],"yu") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = YUTRI;
+    else if (strcmp(arg[1],"zu") == 0 && domain->triclinic == 0)
+      thresh_array[nthresh] = ZU;
+    else if (strcmp(arg[1],"zu") == 0 && domain->triclinic == 1)
+      thresh_array[nthresh] = ZUTRI;
+
     else if (strcmp(arg[1],"ix") == 0) thresh_array[nthresh] = IX;
     else if (strcmp(arg[1],"iy") == 0) thresh_array[nthresh] = IY;
     else if (strcmp(arg[1],"iz") == 0) thresh_array[nthresh] = IZ;
@@ -1475,12 +1560,65 @@ void DumpCustom::pack_zs(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::pack_xs_triclinic(int n)
+{
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  double *boxlo = domain->boxlo;
+  double *h_inv = domain->h_inv;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = h_inv[0]*(x[i][0]-boxlo[0]) + 
+	h_inv[5]*(x[i][1]-boxlo[1]) + h_inv[4]*(x[i][2]-boxlo[2]);
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_ys_triclinic(int n)
+{
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  double *boxlo = domain->boxlo;
+  double *h_inv = domain->h_inv;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = h_inv[1]*(x[i][1]-boxlo[1]) + h_inv[3]*(x[i][2]-boxlo[2]);
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_zs_triclinic(int n)
+{
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  double *boxlo = domain->boxlo;
+  double *h_inv = domain->h_inv;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      buf[n] = h_inv[2]*(x[i][2]-boxlo[2]);
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::pack_xu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
-  double xprd = domain->xprd;
   int nlocal = atom->nlocal;
+
+  double xprd = domain->xprd;
 
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
@@ -1495,8 +1633,9 @@ void DumpCustom::pack_yu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
-  double yprd = domain->yprd;
   int nlocal = atom->nlocal;
+
+  double yprd = domain->yprd;
 
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
@@ -1511,12 +1650,73 @@ void DumpCustom::pack_zu(int n)
 {
   double **x = atom->x;
   int *image = atom->image;
-  double zprd = domain->zprd;
   int nlocal = atom->nlocal;
+
+  double zprd = domain->zprd;
 
   for (int i = 0; i < nlocal; i++)
     if (choose[i]) {
       buf[n] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_xu_triclinic(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *h = domain->h;
+  int xbox,ybox,zbox;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      xbox = (image[i] & 1023) - 512;
+      ybox = (image[i] >> 10 & 1023) - 512;
+      zbox = (image[i] >> 20) - 512;
+      buf[n] = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_yu_triclinic(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *h = domain->h;
+  int ybox,zbox;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      ybox = (image[i] >> 10 & 1023) - 512;
+      zbox = (image[i] >> 20) - 512;
+      buf[n] = x[i][1] + h[1]*ybox + h[3]*zbox;
+      n += size_one;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_zu_triclinic(int n)
+{
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *h = domain->h;
+  int zbox;
+
+  for (int i = 0; i < nlocal; i++)
+    if (choose[i]) {
+      zbox = (image[i] >> 20) - 512;
+      buf[n] = x[i][2] + h[2]*zbox;
       n += size_one;
     }
 }

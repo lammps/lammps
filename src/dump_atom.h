@@ -44,6 +44,8 @@ class DumpAtom : public Dump {
   int pack_scale_noimage();
   int pack_noscale_image();
   int pack_noscale_noimage();
+  int pack_scale_image_triclinic();
+  int pack_scale_noimage_triclinic();
 
   typedef void (DumpAtom::*FnPtrData)(int, double *);
   FnPtrData write_choice;              // ptr to write data functions

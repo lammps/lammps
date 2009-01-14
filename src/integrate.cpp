@@ -105,8 +105,8 @@ void Integrate::ev_set(int ntimestep)
     if (elist_atom[i]->matchstep(ntimestep)) break;
   if (i < nelist_atom) eflag_atom = 2;
 
-  if (eflag_global) update->eflag_global = update->ntimestep;
-  if (eflag_atom) update->eflag_atom = update->ntimestep;
+  if (eflag_global) update->eflag_global = ntimestep;
+  if (eflag_atom) update->eflag_atom = ntimestep;
   eflag = eflag_global + eflag_atom;
 
   int vflag_global = 0;
@@ -119,7 +119,7 @@ void Integrate::ev_set(int ntimestep)
     if (vlist_atom[i]->matchstep(ntimestep)) break;
   if (i < nvlist_atom) vflag_atom = 4;
 
-  if (vflag_global) update->vflag_global = update->ntimestep;
-  if (vflag_atom) update->vflag_atom = update->ntimestep;
+  if (vflag_global) update->vflag_global = ntimestep;
+  if (vflag_atom) update->vflag_atom = ntimestep;
   vflag = vflag_global + vflag_atom;
 }

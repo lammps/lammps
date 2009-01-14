@@ -100,7 +100,7 @@ void ComputeCentroAtom::compute_peratom()
     memory->sfree(centro);
     nmax = atom->nmax;
     centro = (double *) 
-      memory->smalloc(nmax*sizeof(double),"compute/centro/atom:centro");
+      memory->smalloc(nmax*sizeof(double),"compute/centro:centro");
     scalar_atom = centro;
   }
 
@@ -137,9 +137,9 @@ void ComputeCentroAtom::compute_peratom()
 	memory->sfree(nearest);
 	maxneigh = jnum;
 	distsq = (double *) memory->smalloc(maxneigh*sizeof(double),
-					    "compute/centro/atom:distsq");
+					    "compute/centro:distsq");
 	nearest = (int *) memory->smalloc(maxneigh*sizeof(int),
-					  "compute/centro/atom:nearest");
+					  "compute/centro:nearest");
       }
 
       // loop over list of all neighbors within force cutoff

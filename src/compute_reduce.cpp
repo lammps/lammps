@@ -29,6 +29,7 @@ using namespace LAMMPS_NS;
 
 enum{SUM,MINN,MAXX};
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -284,15 +285,18 @@ double ComputeReduce::compute_one(int m)
   // invoke compute if not previously invoked
 
   } else if (which[m] == COMPUTE) {
-    if (modify->compute[n]->invoked_peratom != update->ntimestep)
-      modify->compute[n]->compute_peratom();
+    Compute *compute = modify->compute[n];
+    if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      compute->compute_peratom();
+      compute->invoked_flag |= INVOKED_PERATOM;
+    }
 
     if (j == 0) {
-      double *compute_scalar = modify->compute[n]->scalar_atom;
+      double *compute_scalar = compute->scalar_atom;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) combine(one,compute_scalar[i]);
     } else {
-      double **compute_vector = modify->compute[n]->vector_atom;
+      double **compute_vector = compute->vector_atom;
       int jm1 = j - 1;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) combine(one,compute_vector[i][jm1]);

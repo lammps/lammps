@@ -82,7 +82,9 @@ http://enpub.fulton.asu.edu/cms/potentials/main/main.htm :pre
 
 These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS
-and described on this page.
+and described on this page.  The NIST site is maintained by Chandler
+Becker (cbecker at nist.gov) who is good resource for info on
+interatomic potentials and file formats.
 
 :line
 

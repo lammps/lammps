@@ -95,7 +95,7 @@ favorite interatomic potential, boundary condition, or atom type, see
 "this section"_Section_modify.html, which describes how you can add it to
 LAMMPS.
 
-General features: h4
+General features :h4
 
   runs on a single processor or in parallel
   distributed-memory message-passing parallelism (MPI)
@@ -110,7 +110,7 @@ General features: h4
   syntax for looping over runs and breaking out of loops
   run a series of simluations from one script :ul
 
-Kinds of systems LAMMPS can simulate: :h4
+Kinds of systems LAMMPS can simulate :h4
 ("atom style"_atom_style.html command)
 
   atomic (e.g. box of Lennard-Jonesium)
@@ -124,7 +124,7 @@ Kinds of systems LAMMPS can simulate: :h4
   point dipolar particles
   hybrid combinations of these :ul
 
-Force fields: :h4
+Force fields :h4
 ("pair style"_pair_style.html, "bond style"_bond_style.html,
 "angle style"_angle_style.html, "dihedral style"_dihedral_style.html,
 "improper style"_improper_style.html, "kspace style"_kspace_style.html
@@ -152,9 +152,9 @@ commands)
   implicit solvent potentials: hydrodynamic lubrication, Debye
   long-range Coulombics and dispersion: Ewald, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-  CHARMM, AMBER, OPLS, GROMACS, force-field compatibility :ul
+  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options :ul
 
-Creation of atoms: :h4
+Creation of atoms :h4
 ("read_data"_read_data.html, "lattice"_lattice.html,
 "create_atoms"_create_atoms.html, "delete_atoms"_delete_atoms.html,
 "displace_atoms"_displace_atoms.html commands)
@@ -164,7 +164,7 @@ Creation of atoms: :h4
   delete geometric or logical groups of atoms (e.g. voids)
   displace atoms :ul
 
-Ensembles, constraints, and boundary conditions: :h4
+Ensembles, constraints, and boundary conditions :h4
 ("fix"_fix.html command) 
 
   2d or 3d systems
@@ -182,7 +182,7 @@ Ensembles, constraints, and boundary conditions: :h4
   non-equilibrium molecular dynamics (NEMD)
   variety of additional boundary conditions and constraints :ul
 
-Integrators: :h4
+Integrators :h4
 ("run"_run.html, "run_style"_run_style.html, "temper"_temper.html commands) 
 
   velocity-Verlet integrator
@@ -191,7 +191,7 @@ Integrators: :h4
   rRESPA hierarchical timestepping
   parallel tempering (replica exchange) :ul
 
-Output: :h4
+Output :h4
 ("dump"_dump.html, "restart"_restart.html commands) 
 
   log file of thermodynamic info
@@ -203,7 +203,7 @@ Output: :h4
   time averaging of system-wide quantities
   atom snapshots in native, XYZ, XTC, DCD formats :ul
 
-Pre- and post-processing: :h4
+Pre- and post-processing :h4
 
 Our group has also written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools for doing setup, analysis,

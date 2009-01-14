@@ -21,9 +21,7 @@
 #include "poemstreenode.h"
 #include "poemsnodelib.h"
 
-//tree.h
-//***********
-//***********
+
 // constants to indicate the balance factor of a node
 const int leftheavy = -1;
 const int balanced = 0;
@@ -39,13 +37,6 @@ protected:
 
 	// number of elements in the tree
 	int size;
-
-	//?????? the below are acuatually global functions right now
-	//memory allocation/deallocation
-	//TreeNode *GetTreeNode(const int& item,
-	//				TreeNode *lptr,TreeNode *rptr);
-	//void FreeTreeNode(TreeNode *p);
-
 	// used by the copy constructor and assignment operator
 	TreeNode *CopyTree(TreeNode *t);
 
@@ -71,39 +62,33 @@ protected:
 public:
 	// constructor, destructor
 	Tree(void);
-	//Tree(const Tree& tree);  //????????need to write this
 	~Tree(void)
 	{
 		ClearTree(root);
-	}; //?????????????need to write this
+	}; 
 
 	// assignment operator
 	Tree& operator= (const Tree& rhs);
 
 	// standard list handling methods
-	int Find(int& item);
+	void * Find(int& item);
 	void * GetAuxData(int item) { return (void *)(FindNode(item, root)->GetAuxData());}
 	void Insert(const int& item, const int& data, void * AuxData = NULL);
 	void Delete(const int& item);
-	void AVLInsert(TreeNode* &tree, TreeNode* newNode, int &reviseBalanceFactor);
-	//void AVLDelete(TreeNode* &tree, TreeNode* newNode, int &reviseBalanceFactor);
+	void AVLInsert(TreeNode* &tree, TreeNode* newNode, int &reviseBalanceFactor);	
 	void ClearList(void);
-	//int ListEmpty(void) const;
-	//int ListSize(void) const;
-
+	
 	// tree specific methods
 	void Update(const int& item);
 	TreeNode *GetRoot(void) const;
-
-	//friend class DCASolver;
 };
 
 
 // constructor
 Tree::Tree(void)
 {
-	root = 0; // was NULL
-	current = 0; // was NULL
+	root = 0; 
+	current = 0; 
 	size = 0;
 }
 
@@ -168,7 +153,7 @@ TreeNode *Tree::FindNode(const int& item,
 }
 
 // search for item. if found, assign the node data to item
-int Tree::Find(int& item)
+void * Tree::Find(int& item)
 {
 	// we use FindNode, which requires a parent parameter
 	TreeNode *parent;
@@ -180,11 +165,11 @@ int Tree::Find(int& item)
 	if (current != NULL)
 	{
 		item = current->data;
-		return (int)current->GetAuxData();
+        return current->GetAuxData();
 	}
 	else
 		// item not found in the tree. return False
-		return 0;
+		return NULL;
 }
 
 
@@ -210,44 +195,6 @@ void Tree::Insert(const int& item, const int& data, void * AuxData)
 	current = newNode;
 	size++;
 
-
-
-
-
-	////the below is for an unbalance insert algorithm
-	/*
-	// t is the current node in transversal, parent the pervios node
-	TreeNode *t = root, *parent = NULL, *newNode;
-
-	// terminate on empty subtree
-	while(t != NULL)
-	{
-		// update the parent pointer. then go left or right
-		parent = t;
-		if (item < t->data)
-			t = t->left;
-		else
-			t = t->right;
-	}
-
-	// create the new leaf node
-	newNode = GetTreeNode(item,NULL,NULL);
-
-	// if parent is NULL, insert as a root node
-	if (parent == NULL)
-		root = newNode;
-
-	// if item < parent->data. insert as left child
-	else if  (item < parent->data)
-		parent->left = newNode;
-
-	else
-	// if item >= parent->data. insert as right child
-	parent->right = newNode;
-	// assign current as address of new node and increment size
-	current = newNode;
-	size++;
-	*/
 }
 
 void Tree::AVLInsert(TreeNode *&tree, TreeNode *newNode, int &reviseBalanceFactor)
@@ -627,7 +574,7 @@ void Tree::DeleteTree(TreeNode *t)
 		DeleteTree(t->Left());
 		DeleteTree(t->Right());
 		if (t->GetAuxData() != NULL)
-					delete t->GetAuxData();
+                    delete (TreeNode *) t->GetAuxData();
 		FreeTreeNode(t);
 	}
 }

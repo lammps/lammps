@@ -88,7 +88,10 @@ flags for multiple rigid bodies.  This takes the form "*" or "*n" or
 with no numeric values means all bodies from 1 to N.  A leading
 asterisk means all bodies from 1 to n (inclusive).  A trailing
 asterisk means all bodies from n to N (inclusive).  A middle asterisk
-means all types from m to n (inclusive).
+means all types from m to n (inclusive).  Note that you can use the
+{force} or {torque} keywords as many times as you like.  If a
+particular rigid body has its component flags set multiple times, the
+settings from the final keyword are used.
 
 For computational efficiency, you may wish to turn off pairwise and
 bond interactions within each rigid body, as they no longer contribute

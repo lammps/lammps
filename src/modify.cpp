@@ -173,28 +173,19 @@ void Modify::init()
 
   list_init_compute();
 
-  // init each fix, must come after call to list_init_compute()
+  // init each compute
+  // add initial timestep to all computes that store invocation times
+  //   since any of them may be invoked by initial thermo
+  // do not clear out invocation times stored within a compute,
+  //   b/c some may be holdovers from previous run, like for ave fixes
+
+  for (i = 0; i < ncompute; i++) compute[i]->init();
+  modify->addstep_compute_all(update->ntimestep);
+
+  // init each fix
 
   comm->maxforward_fix = comm->maxreverse_fix = 0;
   for (i = 0; i < nfix; i++) fix[i]->init();
-
-  // init each compute
-  // reset their invoked flags
-  //   else may not be invoked on initial timestep of this run
-  //   if were invoked on last step of previous run
-  //   would be bad if state of system changed between runs
-  // add initial timestep to all computes that store invocation times
-  //   since any of them may be invoked by initial thermo
-  // do not clear stored invocation times within compute,
-  //   b/c some may be holdovers from previous run, like for ave fixes
-
-  for (i = 0; i < ncompute; i++) {
-    compute[i]->init();
-    compute[i]->invoked_scalar = -1;
-    compute[i]->invoked_vector = -1;
-    compute[i]->invoked_peratom = -1;
-  }
-  modify->addstep_compute_all(update->ntimestep);
 
   // set global flag if any fix has its restart_pbc flag set
 
@@ -710,15 +701,16 @@ void Modify::addstep_compute(int newstep)
 }
 
 /* ----------------------------------------------------------------------
-   loop over computes that store invocation times
-   schedule next invocation for all of them
+   loop over all computes
+   schedule next invocation for those that store invocation times
    called when not sure what computes will be needed on newstep
+   do not loop only over n_timeflag, since may not be set yet
 ------------------------------------------------------------------------- */
 
 void Modify::addstep_compute_all(int newstep)
 {
-  for (int icompute = 0; icompute < n_timeflag; icompute++)
-    compute[list_timeflag[icompute]]->addstep(newstep);
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (compute[icompute]->timeflag) compute[icompute]->addstep(newstep);
 }
 
 /* ----------------------------------------------------------------------

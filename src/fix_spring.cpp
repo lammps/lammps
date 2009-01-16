@@ -37,9 +37,11 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 9) error->all("Illegal fix spring command");
 
+  scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
   scalar_vector_freq = 1;
+  extscalar = 1;
   extvector = 1;
 
   if (strcmp(arg[3],"tether") == 0) {
@@ -88,7 +90,9 @@ int FixSpring::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -118,6 +122,13 @@ void FixSpring::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixSpring::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixSpring::post_force(int vflag)
 {
   if (styleflag == TETHER) spring_tether();
@@ -143,10 +154,12 @@ void FixSpring::spring_tether()
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
   dr = r - r0;
+
   fx = k_spring*dx*dr/r;
   fy = k_spring*dy*dr/r;
   fz = k_spring*dz*dr/r;
-  
+  espring = 0.5*k_spring * dr*dr;
+
   // apply restoring force to atoms in group
   // f = -k*(r-r0)*mass/masstotal
 
@@ -195,6 +208,7 @@ void FixSpring::spring_couple()
   fx = k_spring*dx*dr/r;
   fy = k_spring*dy*dr/r;
   fz = k_spring*dz*dr/r;
+  espring = 0.5*k_spring * dr*dr;
   
   // apply restoring force to atoms in group
   // f = -k*(r-r0)*mass/masstotal
@@ -221,10 +235,10 @@ void FixSpring::spring_couple()
     }
   }
 
-  ftotal[0] = -fx;
-  ftotal[1] = -fy;
-  ftotal[2] = -fz;
-  force_flag = 0;
+  ftotal[0] = fx;
+  ftotal[1] = fy;
+  ftotal[2] = fz;
+  force_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,6 +248,22 @@ void FixSpring::post_force_respa(int vflag, int ilevel, int iloop)
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixSpring::min_post_force(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   energy of stretched spring
+------------------------------------------------------------------------- */
+
+double FixSpring::compute_scalar()
+{
+  return espring;
+}
+
 /* ----------------------------------------------------------------------
    return components of total spring force on fix group
 ------------------------------------------------------------------------- */
@@ -241,6 +271,7 @@ void FixSpring::post_force_respa(int vflag, int ilevel, int iloop)
 double FixSpring::compute_vector(int n)
 {
   // only sum across procs one time
+  // spring_couple should not do thie
 
   if (force_flag == 0) {
     MPI_Allreduce(ftotal,ftotal_all,3,MPI_DOUBLE,MPI_SUM,world);

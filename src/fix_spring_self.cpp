@@ -171,6 +171,13 @@ void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixSpringSelf::min_post_force(int vflag)
+{
+  post_force(vflag);
+}
+
 /* ----------------------------------------------------------------------
    energy of stretched springs
 ------------------------------------------------------------------------- */
@@ -180,13 +187,6 @@ double FixSpringSelf::compute_scalar()
   double all;
   MPI_Allreduce(&espring,&all,1,MPI_DOUBLE,MPI_SUM,world);
   return all;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixSpringSelf::min_post_force(int vflag)
-{
-  post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

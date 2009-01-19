@@ -77,6 +77,7 @@ CommandStyle(write_restart,WriteRestart)
 
 #ifdef ComputeInclude
 #include "compute_centro_atom.h"
+#include "compute_cna_atom.h"
 #include "compute_coord_atom.h"
 #include "compute_displace_atom.h"
 #include "compute_group_group.h"
@@ -99,6 +100,7 @@ CommandStyle(write_restart,WriteRestart)
 
 #ifdef ComputeClass
 ComputeStyle(centro/atom,ComputeCentroAtom)
+ComputeStyle(cna/atom,ComputeCNAAtom)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(group/group,ComputeGroupGroup)

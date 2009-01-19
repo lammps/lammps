@@ -13,9 +13,9 @@ shape command :h3
 shape I x y z :pre
 
 I = atom type (see asterisk form below)
-x = x diameter
-y = y diameter
-z = z diameter :ul
+x = x diameter (distance units)
+y = y diameter (distance units)
+z = z diameter (distance units) :ul
 
 [Examples:]
 
@@ -25,25 +25,11 @@ shape 2* 3.0 1.0 1.0 :pre
 
 [Description:]
 
-Set the shape for all atoms of one or more atom types.  Shape values
-can also be set in the "read_data"_read_data.html data file.  See the
-"units"_units.html command for what distance units to use.
-
-Currently, only "atom_style dipole"_atom_style.html and "atom_style
-ellipsoid"_atom_style.html require that shapes be set.
-
-Dipoles use the atom shape to compute a moment of inertia for
-rotational energy.  Only the 1st component of the shape is used since
-the particles are assumed to be spherical.  The value of the first
-component should be the same as the Lennard-Jones sigma value defined
-in the dipole pair potential, i.e. in "pair_style
-dipole"_pair_dipole.html.
-
-Ellipsoids use the atom shape to compute a generalized inertia tensor.
-For example, a shape setting of 3.0 1.0 1.0 defines a particle 3x
-longer in x than in y or z and with a circular cross-section in yz.
-Ellipsoids that are spherical can be defined by setting all 3 shape
-components the same.
+Set the shape for all atoms of one or more atom types.  In LAMMPS,
+particles that have a finite size are said to have a "shape", as
+opposed to being a point mass.  Shape values can also be set in the
+"read_data"_read_data.html data file using the "Shapes" keyword.  See
+the "units"_units.html command for what distance units to use.
 
 The I index can be specified in one of two ways.  An explicit numeric
 value can be used, as in the 1st example above.  Or a wild-card
@@ -55,13 +41,47 @@ from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-A line in a data file that specifies shape uses the same format as the
-arguments of the shape command in an input script, except that no
-wild-card asterisk can be used.  For example, under the "Shapes"
-section of a data file, the line that corresponds to the 1st example
-above would be listed as
+A line in a "data file"_read_data.html that follows the "Shapes"
+keyword specifies shape using the same format as the arguments of the
+shape command in an input script, except that no wild-card asterisk
+can be used.  For example, under the "Shapes" section of a data file,
+the line that corresponds to the 1st example above would be listed as
 
 1 1.0 1.0 1.0 :pre
+
+The shape values can be set to 0.0, which means that atoms of that
+type are point masses and not finite-size particles.  Pair styles and
+fixes that rely on particles having a finite size should not be used
+for such particles.
+
+Note that the shape command can only be used if the "atom
+style"_atom_style.html requires per-type atom shape to be set.
+Currently, only the {dipole} and {ellipsoid} styles do.  The
+{granular} and {peri} styles require the shape to be set for indivual
+particles, not types.  For these styles, the only option currently
+allowed is for spherical particles, so a single diameter value
+suffices to determine the shape.  Per-atom diameters are defined in
+the data file read by the "read_data"_read_data.html command, or set
+to default values by the "create_atoms"_create_atoms.html command, or
+set to new values by the "set diamter"_set.html command.
+
+Dipoles use the atom shape to compute a moment of inertia for
+rotational energy.  See the "pair_style dipole"_pair_dipole.html
+command.  Only the 1st component of the shape is used since the
+particles are assumed to be spherical.
+
+Ellipsoids use the atom shape to compute a generalized inertia tensor.
+For example, a shape setting of 3.0 1.0 1.0 defines a particle 3x
+longer in x than in y or z and with a circular cross-section in yz.
+Degenerate ellipsoids which are spherical can be defined by setting
+all 3 shape components the same.
+
+If you define a "hybrid atom style"_atom_style.html which includes one
+(or more) sub-styles which require per-type shape and one (or more)
+sub-styles which require per-atom shape, then you must define both.
+If the per-atom diameter is set to 0.0, the per-type shape is used.
+If the per-atom diameter is non-zero, then the per-type shape is
+ignored.
 
 [Restrictions:]
 

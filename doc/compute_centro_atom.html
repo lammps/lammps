@@ -25,7 +25,7 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the centro-symmetry parameter for
-each atom in a group.  In solid-state systems the centro-symmetry
+each atom in the group.  In solid-state systems the centro-symmetry
 parameter is a useful measure of the local lattice disorder around an
 atom and can be used to characterize whether the atom is part of a
 perfect lattice, a local defect (e.g. a dislocation or stacking
@@ -45,9 +45,9 @@ nearest neighbors.  Atoms not in the group are included in the 12
 neighbors used in this calculation.
 </P>
 <P>The neighbor list needed to compute this quantity is constructed each
-time the calculation is performed (i.e. each time a snapshot of atoms
+time the calculation is performed (e.g. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
-too frequently or to have multiple compute/dump commands, each of a
+too frequently or to have multiple compute/dump commands, each with a
 <I>centro/atom</I> style.
 </P>
 <P><B>Output info:</B>
@@ -59,7 +59,9 @@ output options.
 </P>
 <P><B>Restrictions:</B> none
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_cna_atom.html">compute cna/atom</A>
 </P>
 <P><B>Default:</B> none
 </P>

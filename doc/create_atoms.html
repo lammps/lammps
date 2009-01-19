@@ -106,17 +106,35 @@ atoms do not overlap existing atoms inappropriately.  The
 <A HREF = "delete_atoms.html">delete_atoms</A> command can be used to handle
 overlaps.
 </P>
-<P>Aside from their position and atom type, other properties of created
-atoms are set to 0.0, e.g velocity, charge, etc.  These properties can
-be changed via the <A HREF = "velocity.html">velocity</A> or <A HREF = "set.html">set</A>
-commands.
-</P>
 <P>Atom IDs are assigned to created atoms in the following way.  The
 collection of created atoms are assigned consecutive IDs that start
 immediately following the largest atom ID existing before the
 create_atoms command was invoked.  When a simulation is performed on
 different numbers of processors, there is no guarantee a particular
 created atom will be assigned the same ID.
+</P>
+<P>Aside from their ID, atom type, and xyz position, other properties of
+created atoms are set to default values, depending on which quantities
+are defined by the chosen <A HREF = "atom_style.html">atom style</A>.  See the <A HREF = "atom_style.html">atom
+style</A> command for more details.  See the
+<A HREF = "set.html">set</A> and <A HREF = "velocity.html">velocity</A> commands for info on how
+to change these values.
+</P>
+<UL><LI>charge = 0.0
+<LI>dipole moment = 0.0
+<LI>diameter = 1.0
+<LI>volume = 1.0
+<LI>density = 1.0
+<LI>velocity = 0.0
+<LI>angular velocity = 0.0
+<LI>angular momentum = 0.0
+<LI>quaternion = (1,0,0,0)
+<LI>bonds, angles, dihedrals, impropers = none 
+</UL>
+<P>The <I>granular</I> style sets the diameter and density to 1.0 and
+calculates a mass for the particle, which is PI/6 * diameter^3 =
+0.5236.  The <I>peri</I> style sets the volume and density to 1.0 and
+calculates a mass for the particle, which is also 1.0.
 </P>
 <P><B>Restrictions:</B>
 </P>

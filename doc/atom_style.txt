@@ -43,20 +43,24 @@ what quantities are communicated between processors to enable forces
 to be computed, and what quantities are listed in the data file read
 by the "read_data"_read_data.html command.
 
-These are the attributes of each style.  All styles store coordinates,
-velocities, atom IDs and types.
+These are the additional attributes of each style and the typical
+kinds of physical systems they are used to model.  All styles store
+coordinates, velocities, atom IDs and types.  See the
+"read_data"_read_data.html, "create_atoms"_create_atoms.html, and
+"set"_set.html commands for info on how to set these various
+quantities.
 
-{angle} = bonds and angles - e.g. bead-spring polymers with stiffness
-{atomic} = only the default values
-{bond} = bonds - e.g. bead-spring polymers
-{charge} = charge
-{dipole} = charge and dipole moment
-{dpd} = default values, also communicates velocities
-{ellipsoid} = quaternion for particle orientation, angular velocity/momentum
-{full} = molecular + charge - e.g. biomolecules, charged polymers
-{granular} = granular atoms with rotational properties
-{molecular} = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
-{peri} = mass, volume - e.g. mesocopic Peridynamics :ul
+{angle} : bonds and angles : bead-spring polymers with stiffness
+{atomic} : only the default values : coarse-grain liquids, solids, metals
+{bond} : bonds : bead-spring polymers
+{charge} : charge : atomic system with charges
+{dipole} : charge and dipole moment : atomic system with dipoles
+{dpd} : default values, also communicates velocities : DPD models
+{ellipsoid} : quaternion for particle orientation, angular momentum : aspherical particles
+{full} : molecular + charge : bio-molecules
+{granular} : diameter, density, angular velocity : granular models
+{molecular} : bonds, angles, dihedrals, impropers : uncharged molecules
+{peri} : density, volume - mesocopic Peridynamic models :tb(c=3,s=:)
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
@@ -64,6 +68,7 @@ by a particular style, use the simplest style that defines all the
 needed properties by any atom.  For example, if some atoms in a
 simulation are charged, but others are not, use the {charge} style.
 If some atoms have bonds, but others do not, use the {bond} style.
+
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.
 E.g. if you want charged DPD particles, you would need to use

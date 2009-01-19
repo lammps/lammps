@@ -27,46 +27,58 @@ mass 2* 62.5
 <P><B>Description:</B>
 </P>
 <P>Set the mass for all atoms of one or more atom types.  Mass values can
-also be set in the <A HREF = "read_data.html">read_data</A> data file.  See the
-<A HREF = "units.html">units</A> command for what mass units to use.
+also be set in the <A HREF = "read_data.html">read_data</A> data file using the
+"Masses" keyword.  See the <A HREF = "units.html">units</A> command for what mass
+units to use.
 </P>
-<P>Most atom styles require per-type masses to be specified.  One
-exception is <A HREF = "atom_style.html">atom_style granular</A> or <A HREF = "atom_style.html">atom_style
-peri</A>, where masses are defined for individual atoms,
-not types.  These are defined in the file read by the
-<A HREF = "read_data.html">read_data</A> command, or set to default values by the
-<A HREF = "create_atoms.html">create_atoms</A> command, or set to new values by the
-<A HREF = "set.html">set density</A> command.  Also note that <A HREF = "pair_eam.html">pair_style
-eam</A> defines the masses of atom types in the EAM
-potential file.
+<P>The I index can be specified in one of two ways.  An explicit numeric
+value can be used, as in the 1st example above.  Or a wild-card
+asterisk can be used to set the mass for multiple atom types.  This
+takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
 </P>
-<P>I can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 1st example above.  Or a wild-card asterisk can be
-used to set the mass for multiple atom types.  This takes the form "*"
-or "*n" or "n*" or "m*n".  If N = the number of atom types, then an
-asterisk with no numeric values means all types from 1 to N.  A leading
-asterisk means all types from 1 to n (inclusive).  A trailing asterisk
-means all types from n to N (inclusive).  A middle asterisk means all
-types from m to n (inclusive).
-</P>
-<P>A line in a data file that specifies mass uses the same format as the
-arguments of the mass command in an input script, except that no
-wild-card asterisk can be used.  For example, under the "Masses"
-section of a data file, the line that corresponds to the 1st example
-above would be listed as
+<P>A line in a <A HREF = "read_data.html">data file</A> that follows the "Masses"
+keyword specifies mass using the same format as the arguments of the
+mass command in an input script, except that no wild-card asterisk can
+be used.  For example, under the "Masses" section of a data file, the
+line that corresponds to the 1st example above would be listed as
 </P>
 <PRE>1 1.0 
 </PRE>
+<P>Note that the mass command can only be used if the <A HREF = "atom_style.html">atom
+style</A> requires per-type atom mass to be set, which
+most do.  Exceptions are <A HREF = "atom_style.html">atom_style granular</A> or
+<A HREF = "atom_style.html">atom_style peri</A>, which require mass to be set for
+individual particles, not types.  Per-atom masses are defined in the
+data file read by the <A HREF = "read_data.html">read_data</A> command, or set to
+default values by the <A HREF = "create_atoms.html">create_atoms</A> command, or set
+to new values by the <A HREF = "set.html">set density</A> command.
+</P>
+<P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> defines the masses of
+atom types in the EAM potential file, in which case the mass command
+is normally not used.
+</P>
+<P>If you define a <A HREF = "atom_style.html">hybrid atom style</A> which includes one
+(or more) sub-styles which require per-type mass and one (or more)
+sub-styles which require per-atom mass, then you must define both.
+However, the per-type mass is ignored in this case; only the per-atom
+mass is used.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>This command must come after the simulation box is defined by a
 <A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>, or
 <A HREF = "create_box.html">create_box</A> command.
 </P>
-<P>All masses must be defined before a simulation is run (if the atom
-style requires masses be set).  They must also all be defined before a
-<A HREF = "velocity.html">velocity</A> or <A HREF = "fix_shake.html">fix shake</A> command is
-used.
+<P>All masses must be defined before a simulation is run.  They must also
+all be defined before a <A HREF = "velocity.html">velocity</A> or <A HREF = "fix_shake.html">fix
+shake</A> command is used.
+</P>
+<P>The mass assigned to any type or atom must be > 0.0.
 </P>
 <P><B>Related commands:</B> none
 </P>

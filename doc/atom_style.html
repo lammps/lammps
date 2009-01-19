@@ -45,28 +45,32 @@ what quantities are communicated between processors to enable forces
 to be computed, and what quantities are listed in the data file read
 by the <A HREF = "read_data.html">read_data</A> command.
 </P>
-<P>These are the attributes of each style.  All styles store coordinates,
-velocities, atom IDs and types.
+<P>These are the additional attributes of each style and the typical
+kinds of physical systems they are used to model.  All styles store
+coordinates, velocities, atom IDs and types.  See the
+<A HREF = "read_data.html">read_data</A>, <A HREF = "create_atoms.html">create_atoms</A>, and
+<A HREF = "set.html">set</A> commands for info on how to set these various
+quantities.
 </P>
-<UL><LI><I>angle</I> = bonds and angles - e.g. bead-spring polymers with stiffness
-<LI><I>atomic</I> = only the default values
-<LI><I>bond</I> = bonds - e.g. bead-spring polymers
-<LI><I>charge</I> = charge
-<LI><I>dipole</I> = charge and dipole moment
-<LI><I>dpd</I> = default values, also communicates velocities
-<LI><I>ellipsoid</I> = quaternion for particle orientation, angular velocity/momentum
-<LI><I>full</I> = molecular + charge - e.g. biomolecules, charged polymers
-<LI><I>granular</I> = granular atoms with rotational properties
-<LI><I>molecular</I> = bonds, angles, dihedrals, impropers - e.g. all-atom polymers
-<LI><I>peri</I> = mass, volume - e.g. mesocopic Peridynamics 
-</UL>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>angle</I> </TD><TD > bonds and angles </TD><TD > bead-spring polymers with stiffness<I>atomic</I> </TD></TR>
+<TR><TD > only the default values </TD><TD > coarse-grain liquids, solids, metals<I>bond</I> </TD><TD > bonds </TD></TR>
+<TR><TD > bead-spring polymers<I>charge</I> </TD><TD > charge </TD><TD > atomic system with charges<I>dipole</I> </TD></TR>
+<TR><TD > charge and dipole moment </TD><TD > atomic system with dipoles<I>dpd</I> </TD><TD > default values, also communicates velocities </TD></TR>
+<TR><TD > DPD models<I>ellipsoid</I> </TD><TD > quaternion for particle orientation, angular momentum </TD><TD > aspherical particles<I>full</I> </TD></TR>
+<TR><TD > molecular + charge </TD><TD > bio-molecules<I>granular</I> </TD><TD > diameter, density, angular velocity </TD></TR>
+<TR><TD > granular models<I>molecular</I> </TD><TD > bonds, angles, dihedrals, impropers </TD><TD > uncharged molecules<I>peri</I> </TD></TR>
+<TR><TD > density, volume - mesocopic Peridynamic models 
+</TD></TR></TABLE></DIV>
+
 <P>Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
 by a particular style, use the simplest style that defines all the
 needed properties by any atom.  For example, if some atoms in a
 simulation are charged, but others are not, use the <I>charge</I> style.
 If some atoms have bonds, but others do not, use the <I>bond</I> style.
-The only scenario where the <I>hybrid</I> style is needed is if there is no
+</P>
+<P>The only scenario where the <I>hybrid</I> style is needed is if there is no
 single style which defines all needed properties of all atoms.
 E.g. if you want charged DPD particles, you would need to use
 "atom_style hybrid dpd charge".  When a hybrid style is used, atoms

@@ -97,17 +97,35 @@ atoms do not overlap existing atoms inappropriately.  The
 "delete_atoms"_delete_atoms.html command can be used to handle
 overlaps.
 
-Aside from their position and atom type, other properties of created
-atoms are set to 0.0, e.g velocity, charge, etc.  These properties can
-be changed via the "velocity"_velocity.html or "set"_set.html
-commands.
-
 Atom IDs are assigned to created atoms in the following way.  The
 collection of created atoms are assigned consecutive IDs that start
 immediately following the largest atom ID existing before the
 create_atoms command was invoked.  When a simulation is performed on
 different numbers of processors, there is no guarantee a particular
 created atom will be assigned the same ID.
+
+Aside from their ID, atom type, and xyz position, other properties of
+created atoms are set to default values, depending on which quantities
+are defined by the chosen "atom style"_atom_style.html.  See the "atom
+style"_atom_style.html command for more details.  See the
+"set"_set.html and "velocity"_velocity.html commands for info on how
+to change these values.
+
+charge = 0.0
+dipole moment = 0.0
+diameter = 1.0
+volume = 1.0
+density = 1.0
+velocity = 0.0
+angular velocity = 0.0
+angular momentum = 0.0
+quaternion = (1,0,0,0)
+bonds, angles, dihedrals, impropers = none :ul
+
+The {granular} style sets the diameter and density to 1.0 and
+calculates a mass for the particle, which is PI/6 * diameter^3 =
+0.5236.  The {peri} style sets the volume and density to 1.0 and
+calculates a mass for the particle, which is also 1.0.
 
 [Restrictions:]
 

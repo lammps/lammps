@@ -80,8 +80,10 @@ void ComputeCNAAtom::init()
   if (sqrt(cutsq) > force->pair->cutforce) 
     error->all("Compute cna/atom cutoff is longer than pairwise cutoff");
 
-  double cutneighbor = force->pair->cutforce + neighbor->skin;
-  if (2.0*sqrt(cutsq) > cutneighbor && comm->me == 0)
+  // cannot use neighbor->cutneighmax b/c neighbor has not yet been init
+
+  if (2.0*sqrt(cutsq) > force->pair->cutforce + neighbor->skin && 
+      comm->me == 0)
     error->warning("Compute cna/atom cutoff may be too large to find "
 		   "ghost atom neighbors");
 

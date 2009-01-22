@@ -227,7 +227,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else error->all("Illegal fix rigid command");
 
       int count = 0;
-      for (int m = mlo; m <= mhi; i++) {
+      for (int m = mlo; m <= mhi; m++) {
 	fflag[m-1][0] = xflag;
 	fflag[m-1][1] = yflag;
 	fflag[m-1][2] = zflag;
@@ -1084,7 +1084,7 @@ int FixRigid::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
 
-  // ncount = # of atoms in each rigid body that are also in group
+  // nall = # of atoms in each rigid body that are also in temperature group
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1098,19 +1098,33 @@ int FixRigid::dof(int igroup)
   int *nall = new int[nbody];
   MPI_Allreduce(ncount,nall,nbody,MPI_INT,MPI_SUM,world);
 
-  // in 3d/2d, remove d*N - d(d+1)/2 dof for each rigid body
-  // in 3d, remove an additional dof for each diatomic rigid body
-  // http://en.wikipedia.org/wiki/Degrees_of_freedom_(engineering)
+  // warn if nall != nrigid for any body included in temperature group
+
+  int flag = 0;
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    if (nall[ibody] && nall[ibody] != nrigid[ibody]) flag = 1;
+  }
+  if (flag && comm->me == 0)
+    error->warning("Computing temperature of portions of rigid bodies");
+
+  // remove appropriate DOFs for each rigid body wholly in temperature group
+  // each has 3N (3d) or 2N (2d) to start with
+  // 3d N>2 rigid body should have 6 dof, so remove 3N-6 dof
+  // 3d N=2 rigid dimer should have 5 dof, so remove 1 dof
+  // 2d N>=2 rigid body should have 3 dof, so remove 2N-3 dof
 
   int n = 0;
   if (domain->dimension == 3) {
-    for (int ibody = 0; ibody < nbody; ibody++) {
-      n += 3*nall[ibody] - 6;
-      if (nall[ibody] == 2) n++;
-    }
+    for (int ibody = 0; ibody < nbody; ibody++)
+      if (nall[ibody] == nrigid[ibody]) {
+	n += 3*nrigid[ibody] - 6;
+	if (nrigid[ibody] == 2) n++;
+      }
   } else if (domain->dimension == 2) {
     for (int ibody = 0; ibody < nbody; ibody++)
-      n += 2*nall[ibody] - 3;
+      if (nall[ibody] == nrigid[ibody]) {
+	n += 2*nrigid[ibody] - 3;
+      }
   }
 
   delete [] ncount;

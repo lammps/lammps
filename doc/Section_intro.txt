@@ -197,7 +197,7 @@ Output :h4
   log file of thermodynamic info
   text dump files of atom coords, velocities, other per-atom quantities
   binary restart files
-  per-atom quantities (energy, stress, centro-symmetry parameter, etc)
+  per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc)
   user-defined system-wide (log file) or per-atom (dump file) calculations
   spatial and time averaging of per-atom quantities
   time averaging of system-wide quantities

@@ -39,7 +39,7 @@ class FixSpring : public Fix {
   int igroup2,group2bit;
   double masstotal,masstotal2;
   int nlevels_respa;
-  double espring,ftotal[3],ftotal_all[3];
+  double espring,ftotal[4];
   int force_flag;
 
   void spring_tether();

@@ -28,6 +28,11 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL 1.0e-10
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 enum{TETHER,COUPLE};
 
 /* ---------------------------------------------------------------------- */
@@ -39,7 +44,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   vector_flag = 1;
-  size_vector = 3;
+  size_vector = 4;
   scalar_vector_freq = 1;
   extscalar = 1;
   extvector = 1;
@@ -80,8 +85,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 
   } else error->all("Illegal fix spring command");
 
-  force_flag = 0;
-  ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
+  ftotal[0] = ftotal[1] = ftotal[2] = ftotal[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,7 +146,7 @@ void FixSpring::spring_tether()
   double xcm[3];
   group->xcm(igroup,masstotal,xcm);
 
-  // fx,fy,fz = components of k * (r-r0)
+  // fx,fy,fz = components of k * (r-r0) / masstotal
   
   double dx,dy,dz,fx,fy,fz,r,dr;
   
@@ -153,35 +157,51 @@ void FixSpring::spring_tether()
   if (!yflag) dy = 0.0;
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
+  r = MAX(r,SMALL);
   dr = r - r0;
 
   fx = k_spring*dx*dr/r;
   fy = k_spring*dy*dr/r;
   fz = k_spring*dz*dr/r;
+  ftotal[0] = -fx;
+  ftotal[1] = -fy;
+  ftotal[2] = -fz;
+  ftotal[3] = sqrt(fx*fx + fy*fy + fz*fz);
+  if (dr < 0.0) ftotal[3] = -ftotal[3]; 
   espring = 0.5*k_spring * dr*dr;
 
+  fx /= masstotal;
+  fy /= masstotal;
+  fz /= masstotal;
+
   // apply restoring force to atoms in group
-  // f = -k*(r-r0)*mass/masstotal
 
   double **f = atom->f;
   int *mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
   
-  double massfrac;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      massfrac = mass[type[i]]/masstotal;
-      f[i][0] -= fx*massfrac;
-      f[i][1] -= fy*massfrac;
-      f[i][2] -= fz*massfrac;
-    }
+  double massone;
 
-  ftotal[0] = -fx;
-  ftotal[1] = -fy;
-  ftotal[2] = -fz;
-  force_flag = 0;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	massone = rmass[i];
+	f[i][0] -= fx*massone;
+	f[i][1] -= fy*massone;
+	f[i][2] -= fz*massone;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	massone = mass[type[i]];
+	f[i][0] -= fx*massone;
+	f[i][1] -= fy*massone;
+	f[i][2] -= fz*massone;
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,9 +212,10 @@ void FixSpring::spring_couple()
   group->xcm(igroup,masstotal,xcm);
   group->xcm(igroup2,masstotal2,xcm2);
   
-  // fx,fy,fz = components of k * (r-r0)
+  // fx,fy,fz = components of k * (r-r0) / masstotal
+  // fx2,fy2,fz2 = components of k * (r-r0) / masstotal2
   
-  double dx,dy,dz,fx,fy,fz,r,dr;
+  double dx,dy,dz,fx,fy,fz,fx2,fy2,fz2,r,dr;
   
   dx = xcm2[0] - xcm[0] - xc;
   dy = xcm2[1] - xcm[1] - yc;
@@ -203,13 +224,26 @@ void FixSpring::spring_couple()
   if (!yflag) dy = 0.0;
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
+  r = MAX(r,SMALL);
   dr = r - r0;
   
   fx = k_spring*dx*dr/r;
   fy = k_spring*dy*dr/r;
   fz = k_spring*dz*dr/r;
+  ftotal[0] = fx;
+  ftotal[1] = fy;
+  ftotal[2] = fz;
+  ftotal[3] = sqrt(fx*fx + fy*fy + fz*fz);
+  if (dr < 0.0) ftotal[3] = -ftotal[3]; 
   espring = 0.5*k_spring * dr*dr;
-  
+
+  fx2 = fx/masstotal2;
+  fy2 = fy/masstotal2;
+  fz2 = fz/masstotal2;
+  fx /= masstotal;
+  fy /= masstotal;
+  fz /= masstotal;
+
   // apply restoring force to atoms in group
   // f = -k*(r-r0)*mass/masstotal
 
@@ -217,28 +251,42 @@ void FixSpring::spring_couple()
   int *mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  double massfrac;
-  for (int i = 0; i < nlocal; i++) {         
-    if (mask[i] & groupbit) {
-      massfrac = mass[type[i]]/masstotal;
-      f[i][0] += fx*massfrac;
-      f[i][1] += fy*massfrac;
-      f[i][2] += fz*massfrac;
+  double massone;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {         
+      if (mask[i] & groupbit) {
+	massone = rmass[i];
+	f[i][0] += fx*massone;
+	f[i][1] += fy*massone;
+	f[i][2] += fz*massone;
+      }
+      if (mask[i] & group2bit) {
+	massone = rmass[i];
+	f[i][0] -= fx2*massone;
+	f[i][1] -= fy2*massone;
+	f[i][2] -= fz2*massone;
+      }
     }
-    if (mask[i] & group2bit) {
-      massfrac = mass[type[i]]/masstotal2;
-      f[i][0] -= fx*massfrac;
-      f[i][1] -= fy*massfrac;
-      f[i][2] -= fz*massfrac;
+  } else {
+    for (int i = 0; i < nlocal; i++) {         
+      if (mask[i] & groupbit) {
+	massone = mass[type[i]];
+	f[i][0] += fx*massone;
+	f[i][1] += fy*massone;
+	f[i][2] += fz*massone;
+      }
+      if (mask[i] & group2bit) {
+	massone = mass[type[i]];
+	f[i][0] -= fx2*massone;
+	f[i][1] -= fy2*massone;
+	f[i][2] -= fz2*massone;
+      }
     }
   }
-
-  ftotal[0] = fx;
-  ftotal[1] = fy;
-  ftotal[2] = fz;
-  force_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -270,12 +318,5 @@ double FixSpring::compute_scalar()
 
 double FixSpring::compute_vector(int n)
 {
-  // only sum across procs one time
-  // spring_couple should not do thie
-
-  if (force_flag == 0) {
-    MPI_Allreduce(ftotal,ftotal_all,3,MPI_DOUBLE,MPI_SUM,world);
-    force_flag = 1;
-  }
-  return ftotal_all[n];
+  return ftotal[n];
 }

@@ -115,24 +115,27 @@ rigid fixes to be defined, but it is more expensive.
 additional constraints to control the temperature of an ensemble of
 rigid bodies.  You can use <A HREF = "fix_langevin.html">fix langevin</A> for this
 purpose to treat the system as effectively immersed in an implicit
-solvent, i.e. a Brownian dynamics model.  Or you can thermostat
-additional atoms of an explicit solvent directly.
+solvent, e.g. a Brownian dynamics model.  Or you can thermostat only
+the non-rigid atoms that surround one or more rigid bodies
+(i.e. explicit solvent) by appropriate choice of groups in the compute
+and fix commands for temperature and thermostatting.
 </P>
-<P>The degrees-of-freedom removed by rigid bodies are accounted for in
-temperature and pressure computations.  Similarly, the rigid body
-contribution to the pressure of the system (virial) is also accounted
-for.  For linear rigid bodies of three or more atoms, one additional
-degree-of-freedom must be subtracted manually using the
-<A HREF = "compute_modify.html">compute_modify</A> command.  E.g. for a simulation
-of 10 such rigid bodies, use "compute_modify thermo_temp extra 13",
-after the thermo_style command, where 3 is the default setting and an
-additional 10 degrees-of-freedom are subtracted.  You may also wish to
-manually subtract additional degrees-of-freedom if you use the <I>force</I>
-and <I>torque</I> keywords to eliminate certain motions of the rigid body.
-Alternatively, you can define the temperature <A HREF = "compute.html">compute</A>
-to exclude atoms in rigid bodies, which may be a better strategy,
-i.e. measure the temperature of the free atoms around the rigid body
-or bodies.
+<P>If you do calculate a temperature for the rigid bodies, the
+degrees-of-freedom removed by each rigid body are accounted for in the
+temperature (and pressure) computation, but only if the temperature
+group includes the entire rigid body.  Rigid bodies in 3d have 6
+degrees of freedom (3 translational, 3 rotational), except for dimers
+which only have 5.  Rigid bodies in 2d have 3 degrees of freedom.
+Note that linear rigid bodies in 3d of three or more atoms also have 5
+degrees of freedom instead of 6, but LAMMPS will not detect this.  So
+you should use the <A HREF = "compute_modify.html">compute_modify</A> command to
+subtract an additional degree of freedom per rigid body.  You may also
+wish to explicitly subtract additional degrees-of-freedom if you use
+the <I>force</I> and <I>torque</I> keywords to eliminate certain motions of the
+rigid body, as LAMMPS does not do this automatically.
+</P>
+<P>The rigid body contribution to the pressure of the system (virial) is
+also accounted for by this fix.
 </P>
 <P>IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
 modified when the center-of-mass of the rigid body moves across a

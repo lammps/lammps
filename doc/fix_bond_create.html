@@ -1,0 +1,218 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix bond/create command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>bond/create = style name of this fix command 
+
+<LI>Nevery = attempt bond creation every this many steps 
+
+<LI>itype,jtype = atoms of itype can bond to atoms of jtype 
+
+<LI>Rmin = 2 atoms separated by less than Rmin can bond (distance units) 
+
+<LI>bondtype = type of created bonds 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>iparam</I> or <I>jparam</I> or <I>prob</I> 
+
+<PRE>  <I>iparam</I> values = maxbond, newtype
+    maxbond = max # of bonds of bondtype the itype atom can have
+    newtype = change the itype atom to this type when maxbonds exist
+  <I>jparam</I> values = maxbond, newtype
+    maxbond = max # of bonds of bondtype the jtype atom can have
+    newtype = change the jtype atom to this type when maxbonds exist
+  <I>prob</I> values = fraction seed
+    fraction = create a bond with this probability if otherwise eligible
+    seed = random number seed (positive integer) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 5 all bond/create 10 1 2 0.8 1
+fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Create bonds between pairs of atoms as a simulation runs according to
+specified criteria.  This can be used to model cross-linking of
+polymers, the formation of a percolation network, etc.  In this
+context, a bond means an interaction between a pair of atoms computed
+by the <A HREF = "bond_style.html">bond_style</A> command.  Once the bond is created
+it will be permanently in place.  This is different than a
+<A HREF = "pair_style.html">pairwise</A> bond-order potential such as Tersoff or
+AIREBO which infers bonds and many-body interactions based on the
+current geometry of a small cluster of atoms and effectively creates
+and destroys bonds from timestep to timestep as atoms move.
+</P>
+<P>A check for possible new bonds is performed every <I>Nevery</I> timesteps.
+If two atoms I,J are within a distance <I>Rmin</I> of each other, if I is
+of atom type <I>itype</I>, if J is of atom type <I>jtype</I>, if both I and J
+are in the specified fix group, if a bond does not already exist
+between I and J, and if both I and J meet their respective <I>maxbond</I>
+requirement (explained below), then I,J is labeled as a "possible"
+bond pair.
+</P>
+<P>If several atoms are close to an atom, it may have multiple possible
+bond partners.  Every atom checks its list of possible bond partners
+and labels the closest such partner as its "sole" bond partner.  After
+this is done, if atom I has atom J as its sole partner, and atom J has
+atom I as its sole partner, then the I,J bond is "eligible" to be
+formed.
+</P>
+<P>Note that these rules mean an atom will only be part of at most one
+created bond on a given timestep.  It also means that if atom I
+chooses atom J as its sole partner, but atom J chooses atom K is its
+sole partner (due to Rjk < Rij), then this means atom I will not form
+a bond on this timestep, even if it has other possible bond partners.
+</P>
+<P>It is permissible to have <I>itype</I> = <I>jtype</I>.  <I>Rmin</I> must be <= the
+pairwise cutoff distance between <I>itype</I> and <I>jtype</I> atoms, as defined
+by the <A HREF = "pair_style.html">pair_style</A> command.
+</P>
+<P>The <I>iparam</I> and <I>jparam</I> keywords can be used to limit the bonding
+functionality of the participating atoms.  Each atom keeps track of
+how many bonds of <I>bondtype</I> it already has.  If atom I of
+itype already has <I>maxbond</I> bonds (as set by the <I>iparam</I>
+keyword), then it will not form any more.  Likewise for atom J.  If
+<I>maxbond</I> is set to 0, then there is no limit on the number of bonds
+that can be formed with that atom.
+</P>
+<P>The <I>newtype</I> value for <I>iparam</I> and <I>jparam</I> can be used to change
+the atom type of atom I or J when it reaches <I>maxbond</I> number of bonds
+of type <I>bondtype</I>.  This means it can now interact in a pairwise
+fashion with other atoms in a different way by specifying different
+<A HREF = "pair_coeff.html">pair_coeff</A> coefficients.  If you do not wish the
+atom type to change, simply specify <I>newtype</I> as <I>itype</I> or <I>jtype</I>.
+</P>
+<P>The <I>prob</I> keyword can also effect whether an eligible bond is
+actually created.  The <I>fraction</I> setting must be a value between 0.0
+and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
+the eligible bond is only created if the random number < fraction.
+</P>
+<P>Any bond that is created is assigned a bond type of <I>bondtype</I>.  Data
+structures within LAMMPS that store bond topology are updated to
+reflect the new bond.  This can also affect subsequent computation of
+pairwise interactions involving the atoms in the bond.  See the
+Restriction section below for additional information.
+</P>
+<P>IMPORTANT NOTE: To create a new bond, the internal LAMMPS data
+structures that store this information must have space for it.  When
+LAMMPS is initialized from a data file, the list of bonds is scanned
+and the maximum number of bonds per atom is tallied.  If some atom
+will acquire more bonds than this limit as this fix operates, then the
+"extra bonds per atom" parameter in the data file header must be set
+to allow for it.  See the <A HREF = "read_data.html">read_data</A> command for more
+details.  Note that if this parameter needs to be set, it means a data
+file must be used to initialize the system, even if it initially has
+no bonds.  A data file with no atoms can be used if you wish to add
+unbonded atoms via the <A HREF = "create_atoms.html">create atoms</A> command,
+e.g. for a percolation simulation.
+</P>
+<P>IMPORTANT NOTE: LAMMPS also maintains a data structure that stores a
+list of 1st, 2nd, and 3rd neighbors of each atom (in the bond topology
+of the system) for use in weighting pairwise interactions for bonded
+atoms.  Adding a bond adds a single entry to this list.  The "extra"
+keyword of the <A HREF = "special_bonds.html">special_bonds</A> command should be
+used to leave space for new bonds if the maximum number of entries for
+any atom will be exceeded as this fix operates.  See the
+<A HREF = "special_bonds.html">special_bonds</A> command for details.
+</P>
+<P>Note that even if your simulation starts with no bonds, you must
+define a <A HREF = "bond_style.html">bond_style</A> and use the
+<A HREF = "bond_coeff.html">bond_coeff</A> command to specify coefficients for the
+<I>bondtype</I>.  Similarly, if new atom types are specified by the
+<I>iparam</I> or <I>jparam</I> keywords, they must be within the range of atom
+types allowed by the simulation and pairwise coefficients must be
+specified for the new types.
+</P>
+<P>Computationally, each timestep this fix operates, it loops over
+neighbor lists and computes distances between pairs of atoms in the
+list.  It also communicates between neighboring processors to
+coordinate which bonds are created.  Thus it roughly doubles the cost
+of a timestep.  Thus you should be cautious about invoking this fix
+too frequently.
+</P>
+<P>You can dump out snapshots of the current bond topology via the <A HREF = "dump.html">dump
+bond</A> command.
+</P>
+<P>IMPORTANT NOTE: Creating a bond typically alters the energy of a
+system.  You should be careful not to choose bond creation criteria
+that induce a dramatic change in energy.  For example, if you define a
+very stiff harmonic bond and create it when 2 atoms are separated by a
+distance far from the equilibribum bond length, then the 2 atoms will
+oscillate dramatically when the bond is formed.  More generally, you
+may need to thermostat your system to compensate for energy changes
+resulting from created bonds.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix. 
+</P>
+<P>This fix computes two statistics which it stores in a vector of length
+2, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  The vector values
+calculated by this fix are "extensive", meaning they scale with the
+number of atoms in the simulation.
+</P>
+<P>These are the 2 quantities:
+</P>
+<UL><LI>(1) # of bonds created on the most recent creation timestep
+<LI>(2) cummulative # of bonds created 
+</UL>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Currently, there are 2 restrictions for using this fix.  We may relax
+these in the future if there are new models that would be enabled by
+it.
+</P>
+<P>When a bond is created, you might wish to induce new angle and
+dihedral interactions that include that bond.  However, LAMMPS does
+not create these angles and dihedrals, even if your simulation defines
+an <A HREF = "angle_style.html">angle_style</A> or
+<A HREF = "dihedral_style.html">dihedral_style</A>.
+</P>
+<P>This fix requires that the pairwise weightings defined by the
+<A HREF = "special_bonds.html">special_bonds</A> command be 0,1,1 for 1-2, 1-3, and
+1-4 neighbors within the bond topology.  This effectively means that
+the pairwise interaction between atoms I and J will be turned off when
+a bond between them is created.  It also means that the pairwise
+interaction of I with J's other bond partners will be unaffected by
+the new bond.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_bond_break.html">fix bond/break</A>, <A HREF = "fix_bond_swap.html">fix
+bond/swap</A>, <A HREF = "dump.html">dump bond</A>,
+<A HREF = "special_bonds.html">special_bonds</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are iparam = (0,itype), jparam = (0,jtype), and
+prob = 1.0.
+</P>
+</HTML>

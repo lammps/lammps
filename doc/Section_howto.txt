@@ -25,7 +25,7 @@ certain kinds of LAMMPS simulations.
 4.12 "Non-orthogonal simulation boxes"_#4_12
 4.13 "NEMD simulations"_#4_13
 4.14 "Extended spherical and aspherical particles"_#4_14
-4.15 "Output from LAMMPS"_#4_15
+4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#4_15
 4.16 "Thermostatting, barostatting and computing temperature"_#4_16 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
@@ -942,7 +942,7 @@ particles are point masses.
 
 :line
 
-4.15 Output from LAMMPS :link(4_15),h4
+4.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) :link(4_15),h4
 
 Aside from "restart files"_restart.html, there are two basic kinds of
 LAMMPS output.  The first is "thermodynamic output"_thermo_style.html,

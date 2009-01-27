@@ -475,7 +475,6 @@ void PairRESquared::read_restart(FILE *fp)
 void PairRESquared::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
@@ -488,11 +487,9 @@ void PairRESquared::read_restart_settings(FILE *fp)
   int me = comm->me;
   if (me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
@@ -871,6 +868,24 @@ double PairRESquared::resquared_lj(const int i, const int j,
   double fwae[3];        // -fourw'*aTe
   double p[3];           // lA*rhat
 
+  // distance of closest approach correction
+
+  double aTs[3][3];       // A1'*S1^2
+  double gamma[3][3];     // A1'*S1^2*A
+  double lAtwo[3][3][3];  // A1'*S1^2*wi.lA
+  double scorrect[3];
+  double half_sigma=sigma[type[i]][type[j]] / 2.0;
+  scorrect[0] = shape[type[i]][0]+half_sigma;
+  scorrect[1] = shape[type[i]][1]+half_sigma;
+  scorrect[2] = shape[type[i]][2]+half_sigma;
+  scorrect[0] = scorrect[0] * scorrect[0] / 2.0;
+  scorrect[1] = scorrect[1] * scorrect[1] / 2.0;
+  scorrect[2] = scorrect[2] * scorrect[2] / 2.0;
+  MathExtra::transpose_times_diag3(wi.A,scorrect,aTs);
+  MathExtra::times3(aTs,wi.A,gamma);
+  for (int ii=0; ii<3; ii++)
+    MathExtra::times3(aTs,wi.lA[ii],lAtwo[ii]);
+
   rnorm=sqrt(rsq);
   rhat[0] = r[0]/rnorm;
   rhat[1] = r[1]/rnorm;
@@ -878,7 +893,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
 
   // energy
 
-  MathExtra::mldivide3(wi.gamma,rhat,s,error);
+  MathExtra::mldivide3(gamma,rhat,s,error);
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
   double temp[3][3];
   MathExtra::times3(wi.aTe,wi.A,temp);
@@ -957,7 +972,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
       double tempv[3];
       MathExtra::times_column3(wi.lA[i],w,tempv);
       dchi = -MathExtra::dot3(fwae,tempv);
-      MathExtra::times_column3(wi.lAtwo[i],spr,tempv);
+      MathExtra::times_column3(lAtwo[i],spr,tempv);
       dh12 = -MathExtra::dot3(s,tempv);
 
       dUa = pbsu*dchi-dh12*dspu;

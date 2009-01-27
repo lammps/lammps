@@ -65,6 +65,11 @@ are ignored for LJ sphere interactions.  The interactions between two
 LJ sphere particles are computed using the standard Lennard-Jones
 formula.
 
+For ellipsoid-LJ sphere interactions, a correction to the distance-
+of-closest approach equation has been implemented to reduce the error
+from disparate sizes; see "this supplementary
+document"_PDF/pair_resquared_extra.pdf.
+
 A12 specifies the energy prefactor which depends on the type of
 particles interacting.  For ellipsoid-ellipsoid interactions, A12 is
 the Hamaker constant as described in "(Everaers)"_#Everaers. In LJ
@@ -88,9 +93,7 @@ in Lennard-Jones pair styles:
 
 sigma specifies the diameter of the continuous distribution of
 constituent particles within each ellipsoid used to model the
-RE-squared potential. Therefore, the effective shape of an ellipsoid
-is given by the specified diameters (see the "shape"_shape.html
-command) plus sigma.
+RE-squared potential. 
 
 For large uniform molecules it has been shown that the epsilon_*_*
 energy parameters are approximately representable in terms of local

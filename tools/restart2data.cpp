@@ -1558,7 +1558,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/charmm/coul/long") == 0) {
+    } else if ((strcmp(style,"lj/charmm/coul/long") == 0) ||
+	       (strcmp(style,"lj/charmm/coul/long/opt") == 0)) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul = read_double(fp);
@@ -1653,7 +1654,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	   (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
 	   (strcmp(style,"lj/coul") == 0)) {
 
-    if (strcmp(style,"lj/cut") == 0) {
+    if ((strcmp(style,"lj/cut") == 0) || (strcmp(style,"lj/cut/opt") == 0)) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);

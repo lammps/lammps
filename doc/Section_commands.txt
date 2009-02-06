@@ -530,6 +530,7 @@ full description:
 "morse"_pair_morse.html,
 "morse/opt"_pair_morse.html,
 "peri/pmb"_pair_peri_pmb.html,
+"reax"_pair_reax.html,
 "resquared"_pair_resquared.html,
 "soft"_pair_soft.html,
 "sw"_pair_sw.html,

@@ -1,0 +1,101 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style reax command :h3
+
+[Syntax:]
+
+pair_style reax hbcut precision :pre
+
+hbcut = hydrogen-bond cutoff (distance units)
+precision = precision for charge equilibration :ul
+
+[Examples:]
+
+pair_style reax
+pair_style reax 10.0 1.0e-5
+pair_coeff * * C H O N :pre
+
+[Description:]
+
+The pair style computes the ReaxFF potential of van Duin, Goddard and
+co-workers.  ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  Details of the interatomic potential energy calculation are
+given in the following publications: "(van Duin 2001)"_#van_Duin_2001
+and "(van Duin 2003)"_#van_Duin_2003.
+
+Parameters for the elements C, H, O, N, S, and Si are given in the
+parameter file ffield.reax in the potentials directory.  For other
+elements, or for specific chemical systems, other parameter files may be
+available elsewhere. The format of the parameter file is assumed to be
+indentical to that used by van Duin and co-workers.
+
+The hbcut and precision settings are optional arguments.  If neither
+is provided, default settings of hbcut = 10 (Angstroms in real units)
+and precision = 1.0e-6 (one part in 10^6) are used.  If you wish to
+override either of these defaults, then both settings must be specified.
+
+Use of this pair style requires that a charge be defined for every
+atom.  See the "atom_style"_atom_style.html and
+"read_data"_read_data.html commands for details.
+
+The thermo variable {evdwl} stores the sum of all the ReaxFF potential
+energy contributions, with the exception of the Coulombic and charge
+equilibration contributions which are stored in the thermo variable
+{ecoul}.  The output of these quantities is controlled by the
+"thermo"_thermo.html command.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This pair style does not support the "pair_modify"_pair_modify.html
+mix, shift, table, and tail options.
+
+This pair style does not write its information to "binary restart
+files"_restart.html, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+[Restrictions:]
+
+This pair style is part of the "reax" package.  It is only enabled
+if LAMMPS was built with that package.  See
+the "Making LAMMPS"_Section_start.html#2_3 section for more info.
+
+This pair potential ignores the "newton"_newton.html settings. Internally,
+the newton setting is "on" for the force calculation, but "off" for
+the neighbor list.
+
+The ffield.reax potential file provided with LAMMPS (see the
+potentials directory) is parameterized for real "units"_units.html.
+You can use the ReaxFF potential with any LAMMPS units, but you would
+need to create your own ffield.reax potential file with coefficients
+listed in the appropriate units if your simulation doesn't use "real"
+units.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(van_Duin_2001)
+[(van Duin 2001)] van Duin, Dasgupta, Lorant, Goddard
+Journal of Physical Chemistry A, 105, 9396-9409 (2001).
+
+:link(van_Duin_2003)
+[(van Duin 2003)] van Duin, Strachan, Stewman, Zhang, Xu, Goddard,
+Journal of Physical Chemistry A, 107, 3803-3811 (2003).

@@ -1,0 +1,108 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style reax command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style reax hbcut precision 
+</PRE>
+<UL><LI>hbcut = hydrogen-bond cutoff (distance units)
+<LI>precision = precision for charge equilibration 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style reax
+pair_style reax 10.0 1.0e-5
+pair_coeff * * C H O N 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The pair style computes the ReaxFF potential of van Duin, Goddard and
+co-workers.  ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  Details of the interatomic potential energy calculation are
+given in the following publications: <A HREF = "#van_Duin_2001">(van Duin 2001)</A>
+and <A HREF = "#van_Duin_2003">(van Duin 2003)</A>.
+</P>
+<P>Parameters for the elements C, H, O, N, S, and Si are given in the
+parameter file ffield.reax in the potentials directory.  For other
+elements, or for specific chemical systems, other parameter files may be
+available elsewhere. The format of the parameter file is assumed to be
+indentical to that used by van Duin and co-workers.
+</P>
+<P>The hbcut and precision settings are optional arguments.  If neither
+is provided, default settings of hbcut = 10 (Angstroms in real units)
+and precision = 1.0e-6 (one part in 10^6) are used.  If you wish to
+override either of these defaults, then both settings must be specified.
+</P>
+<P>Use of this pair style requires that a charge be defined for every
+atom.  See the <A HREF = "atom_style.html">atom_style</A> and
+<A HREF = "read_data.html">read_data</A> commands for details.
+</P>
+<P>The thermo variable <I>evdwl</I> stores the sum of all the ReaxFF potential
+energy contributions, with the exception of the Coulombic and charge
+equilibration contributions which are stored in the thermo variable
+<I>ecoul</I>.  The output of these quantities is controlled by the
+<A HREF = "thermo.html">thermo</A> command.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+mix, shift, table, and tail options.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This pair style is part of the "reax" package.  It is only enabled
+if LAMMPS was built with that package.  See
+the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+</P>
+<P>This pair potential ignores the <A HREF = "newton.html">newton</A> settings. Internally,
+the newton setting is "on" for the force calculation, but "off" for
+the neighbor list.
+</P>
+<P>The ffield.reax potential file provided with LAMMPS (see the
+potentials directory) is parameterized for real <A HREF = "units.html">units</A>.
+You can use the ReaxFF potential with any LAMMPS units, but you would
+need to create your own ffield.reax potential file with coefficients
+listed in the appropriate units if your simulation doesn't use "real"
+units.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "van_Duin_2001"></A>
+
+<P><B>(van Duin 2001)</B> van Duin, Dasgupta, Lorant, Goddard
+Journal of Physical Chemistry A, 105, 9396-9409 (2001).
+</P>
+<A NAME = "van_Duin_2003"></A>
+
+<P><B>(van Duin 2003)</B> van Duin, Strachan, Stewman, Zhang, Xu, Goddard,
+Journal of Physical Chemistry A, 107, 3803-3811 (2003).
+</P>
+</HTML>

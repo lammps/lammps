@@ -1,6 +1,7 @@
 /////:EOH~
 
-#include "../../lib/reax/reax_defs.h"
+#include "reax_defs.h"
+
 class ReaxParams {
  public:
   enum {nneighmax=NNEIGHMAXDEF, 

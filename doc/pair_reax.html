@@ -22,7 +22,7 @@
 </P>
 <PRE>pair_style reax
 pair_style reax 10.0 1.0e-5
-pair_coeff * * C H O N 
+pair_coeff * * ffield.reax C H O N 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -33,16 +33,16 @@ energy.  Details of the interatomic potential energy calculation are
 given in the following publications: <A HREF = "#van_Duin_2001">(van Duin 2001)</A>
 and <A HREF = "#van_Duin_2003">(van Duin 2003)</A>.
 </P>
-<P>Parameters for the elements C, H, O, N, S, and Si are given in the
-parameter file ffield.reax in the potentials directory.  For other
-elements, or for specific chemical systems, other parameter files may be
-available elsewhere. The format of the parameter file is assumed to be
-indentical to that used by van Duin and co-workers.
+<P>ReaxFF parameters for the elements C, H, O, N, S, and Si are provided
+in the parameter file ffield.reax in the potentials directory.  For
+other elements, or for specific chemical systems, other parameter
+files may be available elsewhere.
 </P>
-<P>The hbcut and precision settings are optional arguments.  If neither
-is provided, default settings of hbcut = 10 (Angstroms in real units)
-and precision = 1.0e-6 (one part in 10^6) are used.  If you wish to
-override either of these defaults, then both settings must be specified.
+<P>The <I>hbcut</I> and <I>precision</I> settings are optional arguments.  If
+neither is provided, default settings are used: <I>hbcut</I> = 10 (which is
+Angstroms in real units) and <I>precision</I> = 1.0e-6 (one part in 10^6).
+If you wish to override either of these defaults, then both settings
+must be specified.
 </P>
 <P>Use of this pair style requires that a charge be defined for every
 atom.  See the <A HREF = "atom_style.html">atom_style</A> and
@@ -53,6 +53,24 @@ energy contributions, with the exception of the Coulombic and charge
 equilibration contributions which are stored in the thermo variable
 <I>ecoul</I>.  The output of these quantities is controlled by the
 <A HREF = "thermo.html">thermo</A> command.
+</P>
+<P>Only a single pair_coeff command is used with the <I>reax</I> style which
+specifies a ReaxFF potential file with parameters for all needed
+elements.  These are mapped to LAMMPS atom types by specifying N
+additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>filename
+<LI>N element names = mapping of ReaxFF elements to atom types 
+</UL>
+<P>As an example, if your LAMMPS simulation has 4 atoms types and you
+want the 1st 3 to be C, and the 4th to be H, you would use the
+following pair_coeff command:
+</P>
+<PRE>pair_coeff * * ffield.reax C C C H 
+</PRE>
+<P>The format of the ReaxFF parameter file is identical to that used by
+van Duin and co-workers.
 </P>
 <HR>
 
@@ -72,20 +90,20 @@ script that reads a restart file.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This pair style is part of the "reax" package.  It is only enabled
-if LAMMPS was built with that package.  See
-the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+<P>This pair style is part of the "reax" package.  It is only enabled if
+LAMMPS was built with that package, which also requires the REAX
+library be built and linked with LAMMPS.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
-<P>This pair potential ignores the <A HREF = "newton.html">newton</A> settings. Internally,
-the newton setting is "on" for the force calculation, but "off" for
-the neighbor list.
+<P>This pair potential ignores the <A HREF = "newton.html">newton</A>
+settings. Internally, the newton setting is "on" for the force
+calculation, but "off" for the neighbor list.
 </P>
-<P>The ffield.reax potential file provided with LAMMPS (see the
-potentials directory) is parameterized for real <A HREF = "units.html">units</A>.
-You can use the ReaxFF potential with any LAMMPS units, but you would
-need to create your own ffield.reax potential file with coefficients
-listed in the appropriate units if your simulation doesn't use "real"
-units.
+<P>The ffield.reax potential file provided with LAMMPS in the potentials
+directory is parameterized for real <A HREF = "units.html">units</A>.  You can use
+the ReaxFF potential with any LAMMPS units, but you would need to
+create your own potential file with coefficients listed in the
+appropriate units if your simulation doesn't use "real" units.
 </P>
 <P><B>Related commands:</B>
 </P>

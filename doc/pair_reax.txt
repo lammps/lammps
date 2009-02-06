@@ -19,7 +19,7 @@ precision = precision for charge equilibration :ul
 
 pair_style reax
 pair_style reax 10.0 1.0e-5
-pair_coeff * * C H O N :pre
+pair_coeff * * ffield.reax C H O N :pre
 
 [Description:]
 
@@ -30,16 +30,16 @@ energy.  Details of the interatomic potential energy calculation are
 given in the following publications: "(van Duin 2001)"_#van_Duin_2001
 and "(van Duin 2003)"_#van_Duin_2003.
 
-Parameters for the elements C, H, O, N, S, and Si are given in the
-parameter file ffield.reax in the potentials directory.  For other
-elements, or for specific chemical systems, other parameter files may be
-available elsewhere. The format of the parameter file is assumed to be
-indentical to that used by van Duin and co-workers.
+ReaxFF parameters for the elements C, H, O, N, S, and Si are provided
+in the parameter file ffield.reax in the potentials directory.  For
+other elements, or for specific chemical systems, other parameter
+files may be available elsewhere.
 
-The hbcut and precision settings are optional arguments.  If neither
-is provided, default settings of hbcut = 10 (Angstroms in real units)
-and precision = 1.0e-6 (one part in 10^6) are used.  If you wish to
-override either of these defaults, then both settings must be specified.
+The {hbcut} and {precision} settings are optional arguments.  If
+neither is provided, default settings are used: {hbcut} = 10 (which is
+Angstroms in real units) and {precision} = 1.0e-6 (one part in 10^6).
+If you wish to override either of these defaults, then both settings
+must be specified.
 
 Use of this pair style requires that a charge be defined for every
 atom.  See the "atom_style"_atom_style.html and
@@ -50,6 +50,24 @@ energy contributions, with the exception of the Coulombic and charge
 equilibration contributions which are stored in the thermo variable
 {ecoul}.  The output of these quantities is controlled by the
 "thermo"_thermo.html command.
+
+Only a single pair_coeff command is used with the {reax} style which
+specifies a ReaxFF potential file with parameters for all needed
+elements.  These are mapped to LAMMPS atom types by specifying N
+additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+
+filename
+N element names = mapping of ReaxFF elements to atom types :ul
+
+As an example, if your LAMMPS simulation has 4 atoms types and you
+want the 1st 3 to be C, and the 4th to be H, you would use the
+following pair_coeff command:
+
+pair_coeff * * ffield.reax C C C H :pre
+
+The format of the ReaxFF parameter file is identical to that used by
+van Duin and co-workers.
 
 :line
 
@@ -69,20 +87,20 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This pair style is part of the "reax" package.  It is only enabled
-if LAMMPS was built with that package.  See
-the "Making LAMMPS"_Section_start.html#2_3 section for more info.
+This pair style is part of the "reax" package.  It is only enabled if
+LAMMPS was built with that package, which also requires the REAX
+library be built and linked with LAMMPS.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
-This pair potential ignores the "newton"_newton.html settings. Internally,
-the newton setting is "on" for the force calculation, but "off" for
-the neighbor list.
+This pair potential ignores the "newton"_newton.html
+settings. Internally, the newton setting is "on" for the force
+calculation, but "off" for the neighbor list.
 
-The ffield.reax potential file provided with LAMMPS (see the
-potentials directory) is parameterized for real "units"_units.html.
-You can use the ReaxFF potential with any LAMMPS units, but you would
-need to create your own ffield.reax potential file with coefficients
-listed in the appropriate units if your simulation doesn't use "real"
-units.
+The ffield.reax potential file provided with LAMMPS in the potentials
+directory is parameterized for real "units"_units.html.  You can use
+the ReaxFF potential with any LAMMPS units, but you would need to
+create your own potential file with coefficients listed in the
+appropriate units if your simulation doesn't use "real" units.
 
 [Related commands:]
 

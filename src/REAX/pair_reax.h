@@ -35,31 +35,11 @@ class PairREAX : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   
  private:
- 
-  double cutmax;                // max cutoff for all elements
-
-  void allocate();
-  void read_files(char *, char *);
-  void neigh_f2c(int, int *, int *, int **);
-  void neigh_c2f(int, int *, int *, int **);
-
-  // For ReaxFF Verlet list
-
-  double rcutvsq, rcutbsq; 
+  double cutmax;
+  double rcutvsq,rcutbsq; 
   int iprune,ihb;
-  
-  // For the midpoint method in REAX
   bool Lmidpoint; 
-
-  // Cutoff for hydrogen bond, Taper value for Coulomb interactions
   double hbcut,swb;
-
-  void write_reax_positions(); // particle positions into reax fortran
-  void write_reax_vlist();  // Verlet neighbor lists into reax fortran
-  void read_reax_forces();  // forces in reax fortran into LAMMPS
-  void read_reax_atom_virial(); // virial stress per atom in reax fortran into LAMMPS
-
-  // For charge equilibration
   double swa;
   double swc0, swc1, swc2, swc3, swc4, swc5, swc6, swc7;
   double precision;
@@ -67,8 +47,17 @@ class PairREAX : public Pair {
   ff_params* param_list;
   int nentries;
   double chpot;
-  // For communication of w[i] in CG solve
   double *w;
+
+  void allocate();
+  void read_files(char *, char *);
+  void neigh_f2c(int, int *, int *, int **);
+  void neigh_c2f(int, int *, int *, int **);
+
+  void write_reax_positions();
+  void write_reax_vlist();
+  void read_reax_forces();
+  void read_reax_atom_virial();
 
   void taper_setup();
   double taper_E(const double &, const double &);
@@ -79,7 +68,6 @@ class PairREAX : public Pair {
 		      int[], int[], double[], double[]);
   void cg_solve(const int &, const int &, double[], int[], 
 		       int[], double[], double[]);
-
   void charge_reax(const int &, const int &, double[],
 		   double[], int[], int[], double[]);
 };

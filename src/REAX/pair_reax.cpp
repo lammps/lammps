@@ -176,16 +176,16 @@ void PairREAX::compute(int eflag, int vflag)
 
     // LAMMPS eVDWL energy does not include the Coulomb energy in ReaxFF
 
-      evdwl = evdwl - reax_energy_pieces[11];
+    evdwl = evdwl - reax_energy_pieces[11];
 
-      // LAMMPS eCOUL energy includes the Coulomb energy and
-      // charge equilibation energy
-
-      ecoul = reax_energy_pieces[11] + energy_charge_equilibration;
-
-      eng_vdwl += evdwl;
-      eng_coul += ecoul;
-    }
+    // LAMMPS eCOUL energy includes the Coulomb energy and
+    // charge equilibation energy
+    
+    ecoul = reax_energy_pieces[11] + energy_charge_equilibration;
+    
+    eng_vdwl += evdwl;
+    eng_coul += ecoul;
+  }
 
   int nval, ntor, nhb, nbonall, nbon, na, na_local, nvpair;
   int reaxsize[8];
@@ -265,267 +265,6 @@ void PairREAX::write_reax_positions()
 
 /* ---------------------------------------------------------------------- */
 
-void PairREAX::write_reax_vlist()
-{
-  double **x = atom->x;
-  int *type = atom->type;
-  int *tag = atom->tag;
- 
-  int nlocal, nghost;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
-
-  int inum, jnum;
-  int *ilist;
-  int *jlist;
-  int *numneigh, **firstneigh;
-
-  double xitmp, yitmp, zitmp;
-  double xjtmp, yjtmp, zjtmp;
-
-  int itype, jtype, itag, jtag;
-
-  int ii, jj, i, j, iii, jjj;
-
-  int nvpair, nvlself, nvpairmax;
-  int nbond;
-  double delr2;
-  double delx, dely, delz;
-  double rtmp[3];
-
-  nvpairmax = ReaxParams::nneighmax * ReaxParams::nat;
-
-  nvpair = 0;
-  nvlself =0;
-  nbond = 0;
-
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-   for (ii = 0; ii < inum; ii++)
-    {
-      i = ilist[ii]; // the local index for the ii th atom having neighbors
-      xitmp = x[i][0];
-      yitmp = x[i][1];
-      zitmp = x[i][2];
-      itype = type[i];
-      itag = tag[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-
-      for (jj = 0; jj < jnum; jj++)
-	{
-	  j = jlist[jj];
-	  xjtmp = x[j][0];
-	  yjtmp = x[j][1];
-	  zjtmp = x[j][2];
-	  jtype = type[j];
-	  jtag = tag[j];
-
-	  delx = xitmp - xjtmp;
-	  dely = yitmp - yjtmp;
-	  delz = zitmp - zjtmp;
-
-	  delr2 = delx*delx+dely*dely+delz*delz;
-
-	  if (delr2 <= rcutvsq)
-	    {
-	      // Avoid the double check for the vpairs
-	      if (i < j)
-		{
-		  // Index for the FORTRAN array
-		  iii = i+1;
-		  jjj = j+1;
-		}
-	      else
-		{
-		  iii = j+1;
-		  jjj = i+1;
-		}
-	      if (nvpair >= nvpairmax)
-		{
-		  break;
-		}
-	      FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
-	      FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
-	      FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 0;
-	      if (delr2 <= rcutbsq)
-		{
-		  FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 1;
-		  nbond++;
-		}
-
-	      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 0;
-
-	      // Midpoint check
-	      if (Lmidpoint)
-		{
-		/*	{
-		  if (jjj <= nlocal)
-		    {
-		      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-		    }
-		  else
-		    {
-		      rtmp[0] = 0.5*(xitmp + xjtmp);
-		      rtmp[1] = 0.5*(yitmp + yjtmp);
-		      rtmp[2] = 0.5*(zitmp + zjtmp);
-		      if (sub_check_strict(rtmp))
-			{
-			  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] =1;
-			}
-		    }
-		    }*/
-		}
-	      else
-		{    
-		  if (i < nlocal)
-		    {
-		      if (j < nlocal)
-			{
-			  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-			}
-		      else if (itag < jtag)
-			{
-			  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-			}
-		      else if (itag == jtag)
-			{
-			  if (delz > SMALL)
-			    {
-			      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-			    }
-			  else if (fabs(delz) < SMALL)
-			    {
-			      if (dely > SMALL)
-				{
-				  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-				}
-			      else if (fabs(dely) < SMALL)
-				{
-				  if (delx > SMALL)
-				    {
-				      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	      nvpair++;
-	    }
-	}
-    }
-
-  for (int i = nlocal; i < nlocal + nghost; i++)
-    {
-      xitmp = x[i][0];
-      yitmp = x[i][1];
-      zitmp = x[i][2];
-      itype = type[i];
-      itag = tag[i];
-      for (int j = i+1; j < nlocal + nghost; j++)
-	{
-	  xjtmp = x[j][0];
-	  yjtmp = x[j][1];
-	  zjtmp = x[j][2];
-	  jtype = type[j];
-	  jtag = tag[j];
-
-	  delx = xitmp - xjtmp;
-	  dely = yitmp - yjtmp;
-	  delz = zitmp - zjtmp;
-
-	  delr2 = delx*delx+dely*dely+delz*delz;
-
-	  // Don't need to check the double count since i < j in the ghost region
-	  if (delr2 <= rcutvsq)
-	    {
-	      {
-		iii = i+1;
-		jjj = j+1;
-	      }
-
-	      if (nvpair >= nvpairmax)
-		{
-		  break;
-		}
-	      FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
-	      FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
-	      FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 0;
-	      if (delr2 <= rcutbsq)
-		{
-		  FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 1;
-		  nbond++;
-		}
-
-	      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 0;
-
-	      if (Lmidpoint)
-		{
-		  /*		  if (jjj <= nlocal)
-		    {
-		      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-		    }
-		  else
-		    {
-		      rtmp[0] = 0.5*(xitmp + xjtmp);
-		      rtmp[1] = 0.5*(yitmp + yjtmp);
-		      rtmp[2] = 0.5*(zitmp + zjtmp);
-		      if (sub_check_strict(rtmp))
-			{
-			  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] =1;
-			}
-			}*/
-		}
-	      
-	      else
-		{
-		  if (i < nlocal)
-		    {
-		      if (j < nlocal)
-			{
-			  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-			}
-		      else if (itag < jtag)
-			{
-			  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-			}
-		      else if (itag == jtag)
-			{
-			  if (delz > SMALL)
-			    {
-			      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-			    }
-			  else if (fabs(delz) < SMALL)
-			    {
-			      if (dely > SMALL)
-				{
-				  FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-				}
-			      else if (fabs(dely) < SMALL)
-				{
-				  if (delx > SMALL)
-				    {
-				      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	      nvpair++;
-	    }
-	}
-    }
-
-  FORTRAN(cbkpairs, CBKPAIRS).nvpair = nvpair;
-  FORTRAN(cbkpairs, CBKPAIRS).nvlself = nvlself;
-}
-						      
-/*
 void PairREAX::write_reax_vlist()
 {
   int ii, jj, i, j, iii, jjj;
@@ -622,8 +361,8 @@ void PairREAX::write_reax_vlist()
 	    }
 	  }
 	}
+	nvpair++;
       }
-      nvpair++;
     }
   }
 
@@ -686,16 +425,15 @@ void PairREAX::write_reax_vlist()
 	    }
 	  }
 	}
+	nvpair++;
       }
-      nvpair++;
     }
   }
 
   FORTRAN(cbkpairs, CBKPAIRS).nvpair = nvpair;
   FORTRAN(cbkpairs, CBKPAIRS).nvlself = nvlself;
 }
-*/
-						      
+					      
 /* ---------------------------------------------------------------------- */
 
 void PairREAX::read_reax_forces()
@@ -788,15 +526,10 @@ void PairREAX::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all("Incorrect args for pair coefficients");
 
-  // Clear setflag since coeff() called once with I,J = * *
-
-  int  n = atom->ntypes;
+  int n = atom->ntypes;
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-  // set mass for i,i in atom class
 
   int count = 0;
   for (int i = 1; i <= n; i++)
@@ -966,8 +699,7 @@ void PairREAX::taper_setup()
 
 double PairREAX::taper_E(const double &r, const double &r2)
 {
-  double r3;
-  r3=r2*r;
+  double r3=r2*r;
   return swc7*r3*r3*r+swc6*r3*r3+swc5*r3*r2+swc4*r2*r2+swc3*r3+swc2*r2+
      swc1*r+swc0;
 }
@@ -976,8 +708,7 @@ double PairREAX::taper_E(const double &r, const double &r2)
 
 double PairREAX::taper_F(const double &r, const double &r2)
 {
-  double r3;
-  r3=r2*r;
+  double r3=r2*r;
   return 7.0e0*swc7*r3*r3+6.0e0*swc6*r3*r2+5.0e0*swc5*r2*r2+
     4.0e0*swc4*r3+3.0e0*swc3*r2+2.0e0*swc2*r+swc1;
 }
@@ -988,21 +719,6 @@ double PairREAX::taper_F(const double &r, const double &r2)
 
 void PairREAX::compute_charge(double &energy_charge_equilibration)
 {
-  
-  double **x = atom->x;
-  int *type = atom->type;
-  int *tag = atom->tag;
-
-  double *q = atom->q;
-
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
-
-  int inum, jnum;
-  int *ilist;
-  int *jlist;
-  int *numneigh, **firstneigh;
-
   double xitmp, yitmp, zitmp;
   double xjtmp, yjtmp, zjtmp;
 
@@ -1023,6 +739,19 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   double sw;
   double rtmp[3];
 
+  double **x = atom->x;
+  double *q = atom->q;
+  int *type = atom->type;
+  int *tag = atom->tag;
+
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+
+  int inum, jnum;
+  int *ilist;
+  int *jlist;
+  int *numneigh, **firstneigh;
+
   node = comm -> me;
   inum = list->inum;
   ilist = list->ilist;
@@ -1031,9 +760,7 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
 
   int numneigh_total = 0;
   for (ii =0; ii < inum; ii++)
-    {
-      numneigh_total += numneigh[ilist[ii]];
-    }
+    numneigh_total += numneigh[ilist[ii]];
 
   arow_ptr = new int[nlocal+nghost+1];
   ch = new double[nlocal+nghost+1];
@@ -1043,146 +770,128 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   acol_ind = new int[maxmatentries];
   nmatentries = 0;
 
-  // Construct a linear system for this processor
-  for (ii =0; ii<inum; ii++)
-    {
-      i = ilist[ii];
-      xitmp = x[i][0];
-      yitmp = x[i][1];
-      zitmp = x[i][2];
-      itype = type[i];
-      itag = tag[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+  // build linear system
 
-      // Caution : index of i and ii
-      arow_ptr[i] = nmatentries;
-      aval[nmatentries] = 2.0*param_list[itype].params[1];
-      // Caution : index of i and ii
-      acol_ind[nmatentries] = i;
+  for (ii =0; ii<inum; ii++) {
+    i = ilist[ii];
+    xitmp = x[i][0];
+    yitmp = x[i][1];
+    zitmp = x[i][2];
+    itype = type[i];
+    itag = tag[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    
+    arow_ptr[i] = nmatentries;
+    aval[nmatentries] = 2.0*param_list[itype].params[1];
+    acol_ind[nmatentries] = i;
+    nmatentries++;
+    
+    aval[nmatentries] = 1.0;
+    acol_ind[nmatentries] = nlocal + nghost;
+    nmatentries++;   
+    
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      xjtmp = x[j][0];
+      yjtmp = x[j][1];
+      zjtmp = x[j][2];
+      jtype = type[j];
+      jtag = tag[j];
+      
+      delx = xitmp - xjtmp;
+      dely = yitmp - yjtmp;
+      delz = zitmp - zjtmp;
+      
+      delr2 = delx*delx+dely*dely+delz*delz;
+      
+      // ReaxFF uses half neigh list with newton off
+      // in charge equil, local-ghost pair should be stored only on one proc
+      // thus filtering is necessary when local-ghost pair is counted twice
 
-      nmatentries++;
-
-      aval[nmatentries] = 1.0;
-      acol_ind[nmatentries] = nlocal + nghost;
-      nmatentries++;   
-	  
-      for (jj = 0; jj < jnum; jj++)
-	{
-	  j = jlist[jj];
-	  xjtmp = x[j][0];
-	  yjtmp = x[j][1];
-	  zjtmp = x[j][2];
-	  jtype = type[j];
-	  jtag = tag[j];
-
-	  delx = xitmp - xjtmp;
-	  dely = yitmp - yjtmp;
-	  delz = zitmp - zjtmp;
-	  
-	  delr2 = delx*delx+dely*dely+delz*delz;
-
-	  // We did construct half neighbor list with no Newton flag for ReaxFF
-	  // However, in Charge Equilibration, local-ghost pair should be stored only in one processor
-	  // So, filtering is necessary when local-ghost pair is counted twice
-	  neighbor->style;
-	  if (j >= nlocal) 
-	    {
-	      if (neighbor->style==0)
-		{  
-		  if (itag > jtag) 
-		    {
-		      if ((itag+jtag) % 2 == 0) continue;
-		    } 
-		  else if (itag < jtag) 
-		    {
-		      if ((itag+jtag) % 2 == 1) continue;
-		    }
-		  else
+      if (j >= nlocal) {
+	if (neighbor->style==0)
+	  {  
+	    if (itag > jtag) 
+	      {
+		if ((itag+jtag) % 2 == 0) continue;
+	      } 
+	    else if (itag < jtag) 
+	      {
+		if ((itag+jtag) % 2 == 1) continue;
+	      }
+	    else
 	      // if (itag == jtag)
-		    {
-		      if (zjtmp < zitmp) continue;
-		      else if (zjtmp == zitmp && yjtmp < yitmp) continue;
-		      else if (zjtmp == zitmp && yjtmp == yitmp && xjtmp < xitmp)
-			continue;
-		    } 
-		}
-	      else if (neighbor->style==1)
-		{
-		  if (zjtmp < zitmp) continue;
-		  else if (zjtmp == zitmp && yjtmp < yitmp) continue;
-		  else if (zjtmp == zitmp && yjtmp == yitmp && xjtmp < xitmp)
-		    continue;
-		}
-	      else
-		{
-		  error->all("ReaxFF does not support multi style neiborlist");
-		}
-	    }
-
- 
-	  // rcutvsq = cutmax*cutmax, in ReaxFF
-	  if (delr2 <= rcutvsq)
-	    {
-	      gamt = sqrt(param_list[itype].params[2]*
-			  param_list[jtype].params[2]);
-	      delr_norm = sqrt(delr2);
-	      sw = taper_E(delr_norm, delr2);	
-	      hulp1=(delr_norm*delr2+(1.0/(gamt*gamt*gamt)));
-	      hulp2=sw*14.40/cbrt(hulp1);
-	      aval[nmatentries] = hulp2;
-	      acol_ind[nmatentries] = j;
-	      nmatentries++;
-	    }
+	      {
+		if (zjtmp < zitmp) continue;
+		else if (zjtmp == zitmp && yjtmp < yitmp) continue;
+		else if (zjtmp == zitmp && yjtmp == yitmp && xjtmp < xitmp)
+		  continue;
+	      } 
+	  }
+	else if (neighbor->style==1)
+	  {
+	    if (zjtmp < zitmp) continue;
+	    else if (zjtmp == zitmp && yjtmp < yitmp) continue;
+	    else if (zjtmp == zitmp && yjtmp == yitmp && xjtmp < xitmp)
+	      continue;
+	  }
+	else
+	  {
+	    error->all("ReaxFF does not support multi style neiborlist");
+	  }
+      }
+      
+      
+      // rcutvsq = cutmax*cutmax, in ReaxFF
+      if (delr2 <= rcutvsq)
+	{
+	  gamt = sqrt(param_list[itype].params[2]*
+		      param_list[jtype].params[2]);
+	  delr_norm = sqrt(delr2);
+	  sw = taper_E(delr_norm, delr2);	
+	  hulp1=(delr_norm*delr2+(1.0/(gamt*gamt*gamt)));
+	  hulp2=sw*14.40/cbrt(hulp1);
+	  aval[nmatentries] = hulp2;
+	  acol_ind[nmatentries] = j;
+	  nmatentries++;
 	}
     }
+  }
 
   // In this case, we don't use Midpoint method
   // So, we don't need to consider ghost-ghost interactions
   // But, need to fill the arow_ptr[] arrays for the ghost atoms
-  for (i = nlocal; i < nlocal+nghost; i++)
-    {
-      arow_ptr[i] = nmatentries;
-    }
 
+  for (i = nlocal; i < nlocal+nghost; i++)
+    arow_ptr[i] = nmatentries;
   arow_ptr[nlocal+nghost] = nmatentries;
 
-  // Add rhs matentries to linear system
+  // add rhs matentries to linear system
  
-  for (ii =0; ii<inum; ii++)
-    {
-      i = ilist[ii];
-      itype = type[i];
-      elcvec[i] = -param_list[itype].params[0];
-    }
+  for (ii =0; ii<inum; ii++) {
+    i = ilist[ii];
+    itype = type[i];
+    elcvec[i] = -param_list[itype].params[0];
+  }
 
-  for (i = nlocal; i < nlocal+nghost; i++)
-    {
-      elcvec[i] = 0.0;
-    }
+  for (i = nlocal; i < nlocal+nghost; i++) elcvec[i] = 0.0;
 
   // Assign current charges to charge vector
-  qsum = 0.0;
-  for (ii =0; ii<inum; ii++)
-    {
-      i = ilist[ii];
-      qi = q[i];
-      ch[i] = qi;
-      if (i<nlocal)
-	{
-	  qsum += qi;
-	}
-    }
 
-  for (i = nlocal; i < nlocal+nghost; i++)
-    {
-      qi = q[i];
-      ch[i] = qi;
-      if (i<nlocal)
-	{
-	  qsum += qi;
-	}
-    }
+  qsum = 0.0;
+  for (ii =0; ii<inum; ii++) {
+    i = ilist[ii];
+    qi = q[i];
+    ch[i] = qi;
+    if (i<nlocal) qsum += qi;
+  }
+
+  for (i = nlocal; i < nlocal+nghost; i++) {
+    qi = q[i];
+    ch[i] = qi;
+    if (i<nlocal) qsum += qi;
+  }
 
   double qtot;
 
@@ -1190,40 +899,39 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   elcvec[nlocal+nghost] = 0.0;
   ch[nlocal+nghost] = chpot;
 
-  // Solve the linear system using CG sover
+  // solve the linear system using CG sover
+
   charge_reax(nlocal, nghost, ch, aval, acol_ind, arow_ptr, elcvec);
 
-  // Calculate the charge equilibration energy
+  // calculate the charge equilibration energy
+
   energy_charge_equilibration = 0;
 
   // We already have the updated charge distributions for the current structure
-  for (ii = 0; ii < inum; ii++)
-    {
-      i = ilist[ii];
-      itype = type[i];
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    itype = type[i];
 
       // 23.02 is the ReaxFF conversion from eV to kcal/mol
       // Should really use constants.evfactor ~ 23.06, but
       // that would break consistency with serial ReaxFF code.
-      qi = 23.02 * (param_list[itype].params[0]*ch[i]+
-		    param_list[itype].params[1]*ch[i]*ch[i]);
-      energy_charge_equilibration += qi;
-    }
+
+    qi = 23.02 * (param_list[itype].params[0]*ch[i]+
+		  param_list[itype].params[1]*ch[i]*ch[i]);
+    energy_charge_equilibration += qi;
+  }
 
   // Copy charge vector back to particles from the calculated values
 
-  for (i = 0; i < nlocal+nghost; i++)
-    {
-      q[i] = ch[i];
-    }
+  for (i = 0; i < nlocal+nghost; i++) q[i] = ch[i];
   chpot = ch[nlocal+nghost];
 
-  delete []aval;
-  delete []arow_ptr;
-  delete []elcvec;
-  delete []ch;
-  delete []acol_ind;
-
+  delete [] aval;
+  delete [] arow_ptr;
+  delete [] elcvec;
+  delete [] ch;
+  delete [] acol_ind;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1277,97 +985,70 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
   zero = 0.0;
   maxiter = 100;
 
-  // For w1, need to zero
-  for (int i = 0; i < n; i++)
-    {
-      w[i] = 0;
-    }
+  for (int i = 0; i < n; i++) w[i] = 0;
   
-  // Construct r = b-Ax
+  // construct r = b-Ax
+
   sparse_product(n, nlocal, nghost, aval, acol_ind, arow_ptr, x, r);
   
   // We will not use BLAS library
 
-  for (int i=0; i<n; i++)
-    {
-      r[i] = b[i] - r[i];
-      w[i] = r[i];
-    }
+  for (int i=0; i<n; i++) {
+    r[i] = b[i] - r[i];
+    w[i] = r[i];
+  }
   
-
-  comm -> reverse_comm_pair(this);
-  comm -> comm_pair(this);
+  comm->reverse_comm_pair(this);
+  comm->comm_pair(this);
   
   MPI_Allreduce(&w[n-1], &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
   w[n-1] = sumtmp;
   rho_old = one;
 
-   for (iter = 1; iter < maxiter; iter++)
-    {
-      rho = 0.0;
-      for (int i=0; i<nlocal; i++)
-	{
-	  rho += w[i]*w[i];
-	}
+  for (iter = 1; iter < maxiter; iter++) {
+    rho = 0.0;
+    for (int i=0; i<nlocal; i++) rho += w[i]*w[i];
 
-      MPI_Allreduce(&rho, &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
-      rho = sumtmp + w[n-1]*w[n-1];
+    MPI_Allreduce(&rho, &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
+    rho = sumtmp + w[n-1]*w[n-1];
+    if (rho < precision) break;
 
-      if (rho < precision) break;
+    for (int i = 0; i<n; i++) p[i] = w[i];
 
-      for (int i = 0; i<n; i++)
-	{
-	  p[i] = w[i];
-	}
-
-      if (iter > 1)
-	{
-	  beta = rho/rho_old;
-	  for (int i = 0; i<n; i++)
-	    {
-	      p[i] += beta*p_old[i];
-	    }
-	}
-
-      sparse_product(n, nlocal, nghost, aval, acol_ind, arow_ptr, p, q);
-    
-      gamma = 0.0;
-      for (int i=0; i<n; i++)
-	{
-	  gamma += p[i]*q[i];
-
-	}
-
-      MPI_Allreduce(&gamma, &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
-
-      gamma = sumtmp;
-      alpha = rho/gamma;
-
-      for (int i=0; i<n; i++)
-	{
-	  x[i] += alpha*p[i];
-	  r[i] -= alpha*q[i];
-	  w[i] = r[i];
-	}
-      
-      comm -> reverse_comm_pair(this);
-      comm -> comm_pair(this);
-
-      MPI_Allreduce(&w[n-1], &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
-      w[n-1] = sumtmp;
-
-      for (int i=0; i<n; i++)
-	{
-	  p_old[i] = p[i];
-	}
-
-      rho_old = rho;
+    if (iter > 1) {
+      beta = rho/rho_old;
+      for (int i = 0; i<n; i++) p[i] += beta*p_old[i];
     }
+
+    sparse_product(n, nlocal, nghost, aval, acol_ind, arow_ptr, p, q);
+    
+    gamma = 0.0;
+    for (int i=0; i<n; i++) gamma += p[i]*q[i];
+    MPI_Allreduce(&gamma, &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
+
+    gamma = sumtmp;
+    alpha = rho/gamma;
+
+    for (int i=0; i<n; i++) {
+      x[i] += alpha*p[i];
+      r[i] -= alpha*q[i];
+      w[i] = r[i];
+    }
+      
+    comm->reverse_comm_pair(this);
+    comm->comm_pair(this);
+
+    MPI_Allreduce(&w[n-1], &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
+    w[n-1] = sumtmp;
+
+    for (int i=0; i<n; i++) p_old[i] = p[i];
+    rho_old = rho;
+  }
   
-  delete []r;
-  delete []p;
-  delete []p_old;
-  delete []q; 
+  delete [] r;
+  delete [] p;
+  delete [] p_old;
+  delete [] q; 
 }
 
 /* ----------------------------------------------------------------------
@@ -1379,34 +1060,33 @@ void PairREAX::sparse_product(const int & n, const int & nlocal,
 			      double aval[], int acol_ind[], int arow_ptr[],
 			      double x[], double r[])
 {
-  int jj;
-  for (int i=0; i<n; i++)
-    {
-      r[i] = 0.0;
-    }
+  int i,j,jj;
 
-  // Loop over local particle matentries
-  for (int i=0; i<nlocal; i++)
-    {
-      // Diagonal terms
-      r[i]+=aval[arow_ptr[i]]*x[i];
-      // Loop over remaining matrix entries and transposes
-      for (int j=arow_ptr[i]+1; j<arow_ptr[i+1]; j++)
-	{
-	  jj = acol_ind[j];
-	  r[i] += aval[j]*x[jj];
-	  r[jj] += aval[j]*x[i];
-	}
-    }
+  for (i=0; i<n; i++) r[i] = 0.0;
 
-  // Loop over ghost particle matentries
-  for (int i=nlocal; i<nlocal+nghost; i++)
-    {
-      for (int j=arow_ptr[i]; j<arow_ptr[i+1]; j++)
-	{
-	  jj = acol_ind[j];
-	  r[i] += aval[j]*x[jj];
-	  r[jj] += aval[j]*x[i];
-	}
+  // loop over local particle matentries
+
+  for (i=0; i<nlocal; i++) {
+
+    // diagonal terms
+    
+    r[i] += aval[arow_ptr[i]]*x[i];
+
+    // loop over remaining matrix entries and transposes
+
+    for (j=arow_ptr[i]+1; j<arow_ptr[i+1]; j++) {
+      jj = acol_ind[j];
+      r[i] += aval[j]*x[jj];
+      r[jj] += aval[j]*x[i];
+    }
+  }
+
+  // loop over ghost particle matentries
+
+  for (i=nlocal; i<nlocal+nghost; i++)
+    for (j=arow_ptr[i]; j<arow_ptr[i+1]; j++) {
+      jj = acol_ind[j];
+      r[i] += aval[j]*x[jj];
+      r[jj] += aval[j]*x[i];
     }
 }

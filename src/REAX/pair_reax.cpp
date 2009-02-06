@@ -14,8 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Hansohl Cho (MIT, hansohl@mit.edu)
                          Aidan Thompson (Sandia, athomps@sandia.gov)
-   Reactive Force Field (ReaxFF)
-   the LAMMPS implementation of the ReaxFF is based on
+   LAMMPS implementation of the Reactive Force Field (ReaxFF) is based on
      Aidan Thompson's GRASP code
        (General Reactive Atomistic Simulation Program)
      Ardi Van Duin's original ReaxFF code
@@ -98,7 +97,7 @@ PairREAX::~PairREAX()
 
 void PairREAX::compute(int eflag, int vflag)
 {
-  double evdwl, ecoul;
+  double evdwl,ecoul;
   double reax_energy_pieces[13];
 
   double energy_charge_equilibration;
@@ -112,47 +111,38 @@ void PairREAX::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
 
   if (eflag)
-    {
-      for (int k = 0; k < 14; k++)
-	{
-	  reax_energy_pieces[k]=0;
-	}
-    }
+    for (int k = 0; k < 14; k++)
+      reax_energy_pieces[k]=0;
 
-  if (vflag)
-    {
-      FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
-    }
-  else
-    {
-      FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 0;
-    }
+  if (vflag) FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
+  else FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 0;
 
-  if (evflag)
-    {
-      FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
-      FORTRAN(cbkvirial, CBKVIRIAL).Latomvirial = 1;
-    }
-  else
-    {
-      FORTRAN(cbkvirial, CBKVIRIAL).Latomvirial = 0;
-    }
+  if (evflag) {
+    FORTRAN(cbkvirial, CBKVIRIAL).Lvirial = 1;
+    FORTRAN(cbkvirial, CBKVIRIAL).Latomvirial = 1;
+  } else FORTRAN(cbkvirial, CBKVIRIAL).Latomvirial = 0;
 
-  // Call compute_charge() to calculate the atomic charge distribution
+  // calculate the atomic charge distribution
+
   compute_charge(energy_charge_equilibration);
 
-  // Call write_reax methods to transfer LAMMPS positions and neighbor lists
-  // into REAX Fortran positions and Verlet lists
+  // transfer LAMMPS positions and neighbor lists
+  // to REAX Fortran positions and Verlet lists
+
   write_reax_positions();
   write_reax_vlist();
 
-  // Determine whether this bond is owned by the processor or not. 
+  // determine whether this bond is owned by the processor or not
+
   FORTRAN(srtbon1, SRTBON1)(&iprune, &ihb, &hbcut);
 
-  // Need to communicate with other processors for the atomic bond order calculations
+  // communicate with other processors for the atomic bond order calculations
+
   FORTRAN(cbkabo, CBKABO).abo;
-  // Communicate the local atomic bond order in this processor into the ghost atomic bond order in other processors
-  comm -> comm_pair(this);
+
+  // communicate local atomic bond order to ghost atomic bond order
+
+  comm->comm_pair(this);
 
   FORTRAN(molec, MOLEC)();
   FORTRAN(encalc, ENCALC)();
@@ -160,37 +150,39 @@ void PairREAX::compute(int eflag, int vflag)
   int node = comm -> me;
   FORTRAN(mdsav, MDSAV)(&node);
 
-  // Read in the forces from ReaxFF Fortran
+  // read forces from ReaxFF Fortran
+
   read_reax_forces();
 
-  // Read in the reax energy pieces from ReaxFF Fortran
-  if (eflag)
-    {
-      reax_energy_pieces[0] = FORTRAN(cbkenergies, CBKENERGIES).eb;
-      reax_energy_pieces[1] = FORTRAN(cbkenergies, CBKENERGIES).ea;
-      reax_energy_pieces[2] = FORTRAN(cbkenergies, CBKENERGIES).elp;
-      reax_energy_pieces[3] = FORTRAN(cbkenergies, CBKENERGIES).emol;
-      reax_energy_pieces[4] = FORTRAN(cbkenergies, CBKENERGIES).ev;
-      reax_energy_pieces[5] = FORTRAN(cbkenergies, CBKENERGIES).epen;
-      reax_energy_pieces[6] = FORTRAN(cbkenergies, CBKENERGIES).ecoa;
-      reax_energy_pieces[7] = FORTRAN(cbkenergies, CBKENERGIES).ehb;
-      reax_energy_pieces[8] = FORTRAN(cbkenergies, CBKENERGIES).et;
-      reax_energy_pieces[9] = FORTRAN(cbkenergies, CBKENERGIES).eco;
-      reax_energy_pieces[10] = FORTRAN(cbkenergies, CBKENERGIES).ew;
-      reax_energy_pieces[11] = FORTRAN(cbkenergies, CBKENERGIES).ep;
-      reax_energy_pieces[12] = FORTRAN(cbkenergies, CBKENERGIES).efi;
+  // read energy from ReaxFF Fortran
 
-      for (int k = 0; k < 13; k++)
-        {
-          evdwl += reax_energy_pieces[k];
-        }
+  if (eflag) {
+    reax_energy_pieces[0] = FORTRAN(cbkenergies, CBKENERGIES).eb;
+    reax_energy_pieces[1] = FORTRAN(cbkenergies, CBKENERGIES).ea;
+    reax_energy_pieces[2] = FORTRAN(cbkenergies, CBKENERGIES).elp;
+    reax_energy_pieces[3] = FORTRAN(cbkenergies, CBKENERGIES).emol;
+    reax_energy_pieces[4] = FORTRAN(cbkenergies, CBKENERGIES).ev;
+    reax_energy_pieces[5] = FORTRAN(cbkenergies, CBKENERGIES).epen;
+    reax_energy_pieces[6] = FORTRAN(cbkenergies, CBKENERGIES).ecoa;
+    reax_energy_pieces[7] = FORTRAN(cbkenergies, CBKENERGIES).ehb;
+    reax_energy_pieces[8] = FORTRAN(cbkenergies, CBKENERGIES).et;
+    reax_energy_pieces[9] = FORTRAN(cbkenergies, CBKENERGIES).eco;
+    reax_energy_pieces[10] = FORTRAN(cbkenergies, CBKENERGIES).ew;
+    reax_energy_pieces[11] = FORTRAN(cbkenergies, CBKENERGIES).ep;
+    reax_energy_pieces[12] = FORTRAN(cbkenergies, CBKENERGIES).efi;
+    
+    for (int k = 0; k < 13; k++)
+      evdwl += reax_energy_pieces[k];
 
-      // eVDWL energy in LAMMPS does not include the Coulomb energy in ReaxFF
+    // LAMMPS eVDWL energy does not include the Coulomb energy in ReaxFF
+
       evdwl = evdwl - reax_energy_pieces[11];
-      // eCOUL energy in LAMMPS does include the Coulomb energy and charge equilibation energy based on the calculated charge distribution in ReaxFF
-      ecoul = reax_energy_pieces[11]+energy_charge_equilibration;
 
-      // Call the global energy pieces at this step
+      // LAMMPS eCOUL energy includes the Coulomb energy and
+      // charge equilibation energy
+
+      ecoul = reax_energy_pieces[11] + energy_charge_equilibration;
+
       eng_vdwl += evdwl;
       eng_coul += ecoul;
     }
@@ -216,42 +208,35 @@ void PairREAX::compute(int eflag, int vflag)
   reaxsize[6] = nhb;
   reaxsize[7] = nvpair;
  
-  // Need to call ev_tally to update the global energy and virial
+  // call ev_tally to update the global energy and virial
 
-  if (vflag)
-    {
-      virial[0] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[0];
-      virial[1] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[1];
-      virial[2] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[2];
-      virial[3] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[3];
-      virial[4] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[4];
-      virial[5] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[5];
-    }
+  if (vflag) {
+    virial[0] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[0];
+    virial[1] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[1];
+    virial[2] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[2];
+    virial[3] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[3];
+    virial[4] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[4];
+    virial[5] = -FORTRAN(cbkvirial, CBKVIRIAL).virial[5];
+  }
 
-  if (vflag_atom)
-    {
-      read_reax_atom_virial();
-    }
+  if (vflag_atom) read_reax_atom_virial();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairREAX::write_reax_positions()
 {
-  // Write atomic positions used in ReaxFF Fortran
-  // Copy from atomic position data in LAMMPS into ReaxFF Fortran
-  double **x = atom->x;
-  // Copy calculated charge distribution into ReaxFF Fortran
-  double *q = atom->q;
-  int *type = atom->type;
-  int *tag = atom->tag;
   double xtmp, ytmp, ztmp;
   int itype;
   int itag; 
   int j, jx, jy, jz, jia;
-  int nlocal, nghost;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
+
+  double **x = atom->x;
+  double *q = atom->q;
+  int *type = atom->type;
+  int *tag = atom->tag;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
 
   FORTRAN(rsmall, RSMALL).na = nlocal+nghost;
   FORTRAN(rsmall, RSMALL).na_local = nlocal;
@@ -262,24 +247,23 @@ void PairREAX::write_reax_positions()
   jz = 2*ReaxParams::nat;
   jia = 0;
 
-  for (int i = 0; i < nlocal+nghost; i++)
-    {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      itype = type[i];
-      itag = tag[i];
-      FORTRAN(cbkc, CBKC).c[j+jx] = xtmp;
-      FORTRAN(cbkc, CBKC).c[j+jy] = ytmp;
-      FORTRAN(cbkc, CBKC).c[j+jz] = ztmp;
-      FORTRAN(cbkch, CBKCH).ch[j] = q[i];
-      FORTRAN(cbkia, CBKIA).ia[j+jia] = itype;
-      FORTRAN(cbkia, CBKIA).iag[j+jia] = itype;
-      FORTRAN(cbkc, CBKC).itag[j]= itag;
-      j++;
-    }
-
+  for (int i = 0; i < nlocal+nghost; i++, j++) {
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    itag = tag[i];
+    FORTRAN(cbkc, CBKC).c[j+jx] = xtmp;
+    FORTRAN(cbkc, CBKC).c[j+jy] = ytmp;
+    FORTRAN(cbkc, CBKC).c[j+jz] = ztmp;
+    FORTRAN(cbkch, CBKCH).ch[j] = q[i];
+    FORTRAN(cbkia, CBKIA).ia[j+jia] = itype;
+    FORTRAN(cbkia, CBKIA).iag[j+jia] = itype;
+    FORTRAN(cbkc, CBKC).itag[j]= itag;
+  }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairREAX::write_reax_vlist()
 {
@@ -541,69 +525,229 @@ void PairREAX::write_reax_vlist()
   FORTRAN(cbkpairs, CBKPAIRS).nvlself = nvlself;
 }
 						      
+/*
+void PairREAX::write_reax_vlist()
+{
+  int ii, jj, i, j, iii, jjj;
+  double xitmp, yitmp, zitmp;
+  double xjtmp, yjtmp, zjtmp;
+  int itype, jtype, itag, jtag;
+  int nvpair, nvlself, nvpairmax;
+  int nbond;
+  int inum, jnum;
+  int *ilist;
+  int *jlist;
+  int *numneigh,**firstneigh;
+  double delr2;
+  double delx, dely, delz;
+  double rtmp[3];
 
+  double **x = atom->x;
+  int *type = atom->type;
+  int *tag = atom->tag;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
 
+  nvpairmax = ReaxParams::nneighmax * ReaxParams::nat;
+
+  nvpair = 0;
+  nvlself =0;
+  nbond = 0;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xitmp = x[i][0];
+    yitmp = x[i][1];
+    zitmp = x[i][2];
+    itype = type[i];
+    itag = tag[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      xjtmp = x[j][0];
+      yjtmp = x[j][1];
+      zjtmp = x[j][2];
+      jtype = type[j];
+      jtag = tag[j];
+      
+      delx = xitmp - xjtmp;
+      dely = yitmp - yjtmp;
+      delz = zitmp - zjtmp;
+      
+      delr2 = delx*delx+dely*dely+delz*delz;
+      
+      if (delr2 <= rcutvsq) {
+	if (i < j) {
+	  iii = i+1;
+	  jjj = j+1;
+	} else {
+	  iii = j+1;
+	  jjj = i+1;
+	}
+	if (nvpair >= nvpairmax) break;
+	
+	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
+	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
+	FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 0;
+	
+	if (delr2 <= rcutbsq) {
+	  FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 1;
+	  nbond++;
+	}
+	
+	FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 0;
+	
+	// this is for Lmidpoint = false
+	
+	if (i < nlocal) {
+	  if (j < nlocal)
+	    FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	  else if (itag < jtag)
+	    FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	  else if (itag == jtag) {
+	    if (delz > SMALL)
+	      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	    else if (fabs(delz) < SMALL) {
+	      if (dely > SMALL)
+		FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	      else if (fabs(dely) < SMALL && delx > SMALL)
+		FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	    }
+	  }
+	}
+      }
+      nvpair++;
+    }
+  }
+
+  int ntotal = nlocal + nghost;
+
+  for (int i = nlocal; i < ntotal; i++) {
+    xitmp = x[i][0];
+    yitmp = x[i][1];
+    zitmp = x[i][2];
+    itype = type[i];
+    itag = tag[i];
+
+    for (int j = i+1; j < ntotal; j++) {
+      xjtmp = x[j][0];
+      yjtmp = x[j][1];
+      zjtmp = x[j][2];
+      jtype = type[j];
+      jtag = tag[j];
+      
+      delx = xitmp - xjtmp;
+      dely = yitmp - yjtmp;
+      delz = zitmp - zjtmp;
+      
+      delr2 = delx*delx+dely*dely+delz*delz;
+      
+      // don't need to check the double count since i < j in the ghost region
+
+      if (delr2 <= rcutvsq) {
+	iii = i+1;
+	jjj = j+1;
+	      
+	if (nvpair >= nvpairmax) break;
+	
+	FORTRAN(cbkpairs, CBKPAIRS).nvl1[nvpair] = iii;
+	FORTRAN(cbkpairs, CBKPAIRS).nvl2[nvpair] = jjj;
+	FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 0;
+
+	if (delr2 <= rcutbsq) {
+	  FORTRAN(cbknvlbo, CBKNVLBO).nvlbo[nvpair] = 1;
+	  nbond++;
+	}
+	
+	FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 0;
+	
+	// this is for Lmidpoint = false
+	
+	if (i < nlocal) {
+	  if (j < nlocal)
+	    FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	  else if (itag < jtag)
+	    FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	  else if (itag == jtag) {
+	    if (delz > SMALL)
+	      FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	    else if (fabs(delz) < SMALL) {
+	      if (dely > SMALL)
+		FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	      else if (fabs(dely) < SMALL && delx > SMALL)
+		FORTRAN(cbknvlown, CBKNVLOWN).nvlown[nvpair] = 1;
+	    }
+	  }
+	}
+      }
+      nvpair++;
+    }
+  }
+
+  FORTRAN(cbkpairs, CBKPAIRS).nvpair = nvpair;
+  FORTRAN(cbkpairs, CBKPAIRS).nvlself = nvlself;
+}
+*/
+						      
+/* ---------------------------------------------------------------------- */
 
 void PairREAX::read_reax_forces()
 {
-  double **f = atom->f;
   double ftmp[3];
-  int j, jx, jy, jz;
-  int nlocal, nghost;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
 
-  j = 0;
-  jx = 0;
-  jy = 1;
-  jz = 2;
+  double **f = atom->f;
+  int ntotal = atom->nlocal + atom->nghost;
 
-  for (int i = 0; i < nlocal + nghost; i++)
-    {
-      ftmp[0] = -FORTRAN(cbkd, CBKD).d[j+jx];
-      ftmp[1] = -FORTRAN(cbkd, CBKD).d[j+jy];
-      ftmp[2] = -FORTRAN(cbkd, CBKD).d[j+jz];
-      f[i][0] = ftmp[0];
-      f[i][1] = ftmp[1];
-      f[i][2] = ftmp[2];
-      j += 3;
-    }
-}
+  int j = 0;
+  int jx = 0;
+  int jy = 1;
+  int jz = 2;
 
-void PairREAX::read_reax_atom_virial()
-{
-  error->warning("read_reax_atom_virial");
-
-  double vatomtmp[6];
-  int j;
-  int nlocal, nghost;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
-
-  j = 0;
-
-  for (int i =0; i < nlocal + nghost; i++)
-    {
-      vatomtmp[0] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+0];
-      vatomtmp[1] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+1];
-      vatomtmp[2] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+2];
-      vatomtmp[3] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+3];
-      vatomtmp[4] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+4];
-      vatomtmp[5] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+5];
-
-      vatom[i][0] = vatomtmp[0];
-      vatom[i][1] = vatomtmp[1];
-      vatom[i][2] = vatomtmp[2];
-      vatom[i][3] = vatomtmp[3];
-      vatom[i][4] = vatomtmp[4];
-      vatom[i][5] = vatomtmp[5];
-
-      j += 6;
-    }
+  for (int i = 0; i < ntotal; i++) {
+    ftmp[0] = -FORTRAN(cbkd, CBKD).d[j+jx];
+    ftmp[1] = -FORTRAN(cbkd, CBKD).d[j+jy];
+    ftmp[2] = -FORTRAN(cbkd, CBKD).d[j+jz];
+    f[i][0] = ftmp[0];
+    f[i][1] = ftmp[1];
+    f[i][2] = ftmp[2];
+    j += 3;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
+void PairREAX::read_reax_atom_virial()
+{
+  double vatomtmp[6];
+
+  int ntotal = atom->nlocal + atom->nghost;
+
+  int j = 0;
+  for (int i =0; i < ntotal; i++) {
+    vatomtmp[0] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+0];
+    vatomtmp[1] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+1];
+    vatomtmp[2] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+2];
+    vatomtmp[3] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+3];
+    vatomtmp[4] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+4];
+    vatomtmp[5] = -FORTRAN(cbkvirial, CBKVIRIAL).atomvirial[j+5];
+    
+    vatom[i][0] = vatomtmp[0];
+    vatom[i][1] = vatomtmp[1];
+    vatom[i][2] = vatomtmp[2];
+    vatom[i][3] = vatomtmp[3];
+    vatom[i][4] = vatomtmp[4];
+    vatom[i][5] = vatomtmp[5];
+    
+    j += 6;
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -614,7 +758,6 @@ void PairREAX::allocate()
 
   setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
   cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-
 }
 
 /* ----------------------------------------------------------------------
@@ -623,12 +766,14 @@ void PairREAX::allocate()
 
 void PairREAX::settings(int narg, char **arg)
 {
-
   if (narg != 0 && narg !=2) error->all("Illegal pair_style command");
   
   if (narg == 2) {
-    hbcut = atof (arg[0]); // User-specifed hydrogen-bond cutoff
-    precision = atof (arg[1]); // User-specified charge equilibration precision
+    hbcut = atof(arg[0]);
+    precision = atof(arg[1]);
+
+    if (hbcut <= 0.0 || precision <= 0.0)
+      error->all("Illegal pair_style command");
   }
 }
 
@@ -655,14 +800,12 @@ void PairREAX::coeff(int narg, char **arg)
 
   int count = 0;
   for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      {
-	setflag[i][j] = 1;
-	count++;
-      }
+    for (int j = i; j <= n; j++) {
+      setflag[i][j] = 1;
+      count++;
+    }
 
   if (count == 0) error->all("Incorrect args for pair coefficients");
- 
 }
 
 /* ----------------------------------------------------------------------
@@ -671,15 +814,13 @@ void PairREAX::coeff(int narg, char **arg)
 
 void PairREAX::init_style()
 {
-  // Need a half neighbor list for REAX
-  // if (force->newton_pair == 0)
-  // error->all("Pair interactions in ReaxFF require newton pair on");
+  // REAX requires pair newton off
+
+  if (force->newton_pair)
+    error->all("Pair style reax requires newton pair off");
 
   int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
 
-  // Initial setup for ReaxFF
   int node = comm->me;
 
   FORTRAN(readc, READC)();
@@ -687,15 +828,13 @@ void PairREAX::init_style()
   FORTRAN(ffinpt, FFINPT)();
   FORTRAN(tap7th, TAP7TH)();
 
-  // Need to turn off read_in by fort.3 in REAX Fortran
+  // turn off read_in by fort.3 in REAX Fortran
+
   int ngeofor_tmp = -1;
   FORTRAN(setngeofor, SETNGEOFOR)(&ngeofor_tmp);
-  if (node == 0)
-    {
-      FORTRAN(readgeo, READGEO)();
-    }
+  if (node == 0) FORTRAN(readgeo, READGEO)();
 
-  // Initial setup for cutoff radius of VLIST and BLIST in ReaxFF
+  // initial setup for cutoff radius of VLIST and BLIST in ReaxFF
 
   double vlbora;
   
@@ -705,38 +844,30 @@ void PairREAX::init_style()
   FORTRAN(getvlbora, GETVLBORA)(&vlbora);
   rcutbsq=vlbora*vlbora;
 
-  // Parameters for charge equilibration from ReaxFF input, fort.4
+  // parameters for charge equilibration from ReaxFF input, fort.4
+
   FORTRAN(getswa, GETSWA)(&swa);
   ff_params ff_param_tmp;
   double chi, eta, gamma;
-  int nparams;
-  nparams = 5;
-  // FORTRAN(getnso, GETNSO)(&ntypes);
+  int nparams = 5;
   param_list = new ff_params[atom->ntypes+1];
-  for (int itype = 1; itype <= atom->ntypes; itype++)
-    {
-      chi = FORTRAN(cbkchb, CBKCHB).chi[itype-1];
-      eta = FORTRAN(cbkchb, CBKCHB).eta[itype-1];
-      gamma = FORTRAN(cbkchb, CBKCHB).gam[itype-1];
-      ff_param_tmp.np = nparams;
-      ff_param_tmp.rcutsq = cutmax;
-      ff_param_tmp.params = new double[nparams];
-      ff_param_tmp.params[0] = chi;
-      ff_param_tmp.params[1] = eta;
-      ff_param_tmp.params[2] = gamma;
-      ff_param_tmp.params[3] = swa;
-      ff_param_tmp.params[4] = swb;
-      param_list[itype] = ff_param_tmp;
-    }
+  for (int itype = 1; itype <= atom->ntypes; itype++) {
+    chi = FORTRAN(cbkchb, CBKCHB).chi[itype-1];
+    eta = FORTRAN(cbkchb, CBKCHB).eta[itype-1];
+    gamma = FORTRAN(cbkchb, CBKCHB).gam[itype-1];
+    ff_param_tmp.np = nparams;
+    ff_param_tmp.rcutsq = cutmax;
+    ff_param_tmp.params = new double[nparams];
+    ff_param_tmp.params[0] = chi;
+    ff_param_tmp.params[1] = eta;
+    ff_param_tmp.params[2] = gamma;
+    ff_param_tmp.params[3] = swa;
+    ff_param_tmp.params[4] = swb;
+    param_list[itype] = ff_param_tmp;
+  }
 
   taper_setup();
-
-  // Need to turn off newton_pair flag for the neighbor list for ReaxFF
-  // In ReaxFF, local-ghost pairs should be stored in both processors
-  force -> newton_pair = 0;
-  force -> newton = 1;
 }
-
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
@@ -744,10 +875,8 @@ void PairREAX::init_style()
 
 double PairREAX::init_one(int i, int j)
 {
-
   return cutmax;
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -756,13 +885,11 @@ int PairREAX::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
   int i,j,m;
 
   m = 0;
-  for (i = 0; i < n; i++) 
-    {
-      j = list[i];
-      buf[m++] = FORTRAN(cbkabo, CBKABO).abo[j];
-
-      buf[m++] = w[j];
-    }
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = FORTRAN(cbkabo, CBKABO).abo[j];
+    buf[m++] = w[j];
+  }
   return 2;
 }
 
@@ -774,11 +901,10 @@ void PairREAX::unpack_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) 
-     {
-       FORTRAN(cbkabo, CBKABO).abo[i] = buf[m++];
-       w[i] = buf[m++];
-     } 
+  for (i = first; i < last; i++) {
+    FORTRAN(cbkabo, CBKABO).abo[i] = buf[m++];
+    w[i] = buf[m++];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -790,9 +916,7 @@ int PairREAX::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) 
-    {
-      buf[m++] = w[i];
-    }
+    buf[m++] = w[i];
 
   return 1;
 }
@@ -804,11 +928,10 @@ void PairREAX::unpack_reverse_comm(int n, int *list, double *buf)
   int i,j,k,m;
 
   m = 0;
-  for (i = 0; i < n; i++) 
-    {
+  for (i = 0; i < n; i++) {
     j = list[i];
     w[j] += buf[m++];
-    }
+  }
 }
 
 /* ----------------------------------------------------------------------

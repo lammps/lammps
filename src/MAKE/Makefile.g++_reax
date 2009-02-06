@@ -1,0 +1,41 @@
+# g++_reax = RedHat Linux box, g++, MPICH2, FFTW, REAX lib
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+CC =		g++
+CCFLAGS =	-g -O -I../../lib/reax \
+		-DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
+DEPFLAGS =	-M
+LINK =		g++
+LINKFLAGS =	-g -O  -L../../lib/reax -L/opt/intel/fce/10.0.023/lib
+USRLIB =	-lfftw -lmpich -lreax
+SYSLIB =	-lpthread  -lifcore -lsvml -lompstub -limf
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

@@ -1,0 +1,32 @@
+# mac_reax = Apple PowerBook G4 laptop, Finked LAM/MPI, Finked FFTW 2.1.5, REAX lib
+
+SHELL = /bin/sh
+
+# System-specific settings
+
+FFTW =	/sw
+
+CC =		mpic++
+CCFLAGS =	-O -MMD	-MG -DFFT_FFTW -I../../lib/reax -I${FFTW}/include \
+		-DOMPI_SKIP_MPICXX
+LINK =		mpic++
+LINKFLAGS =	-O  -L${FFTW}/lib -L../../lib/reax -L/sw/lib/gcc4.2/lib
+USRLIB =	-lfftw -lreax
+SYSLIB =	-lgfortran 
+SIZE =		size
+
+# Link rule
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+-include $(DEPENDS)

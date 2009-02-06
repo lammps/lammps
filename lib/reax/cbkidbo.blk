@@ -1,0 +1,7 @@
+ 
+       
+                   
+      common
+     $/cbkidbo/ idbo(nbomax,2*mbond+2),dbondc(nbomax,3,2*mbond+2),
+     $          idbo1(nbomax)
+

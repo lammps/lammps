@@ -1,0 +1,4 @@
+      common
+     $/cbkcharmol/ vmcha(nmolmax),
+     $             iat1mc(nmolmax),iat2mc(nmolmax)
+

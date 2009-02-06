@@ -1,0 +1,3 @@
+      common
+     $/cbkatomcoord/ id(nat,3),xmasat(nat),vel(3,nat),accel(3,nat)
+

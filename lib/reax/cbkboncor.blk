@@ -1,0 +1,5 @@
+      common
+     $/cbkboncor/ dbosindc(nbomax,3,2*mbond+2),dbosidc(nbomax,3,2),
+     $            bo131(nsort),bo132(nsort),bo133(nsort),
+     $            ovc(nbotym),v13cor(nbotym)
+

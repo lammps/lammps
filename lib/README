@@ -11,3 +11,4 @@ The libraries included with LAMMPS are the following:
 
 poems	      POEMS rigid-body integration package from RPI
 meam	      modified embedded atom method (MEAM) potential from Greg Wagner
+reax          ReaxFF potential, from Adri van Duin via Aidan Thompson

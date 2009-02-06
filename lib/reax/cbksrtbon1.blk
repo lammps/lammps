@@ -1,0 +1,13 @@
+      character*60 qmol
+      common
+     $/cbksrtbon1/ dbodr(nbomax),dbopidr(nbomax),
+     $             dbopi2dr(nbomax),
+     $             rob1(nsort,nsort),rob2(nsort,nsort),
+     $             rob3(nsort,nsort),
+     $             rat(nsort),rapt(nsort),vnq(nsort),bom(nbotym),
+     $             pdp(nbotym),ptp(nbotym),pdo(nbotym),
+     $             popi(nbotym),bop1(nbotym),bop2(nbotym),cutoff,
+     $             nbs(nbotym,2),
+     $             nsbma2,nsbmax,nboty2,nbonall,qfile(nmolset),qmol
+
+

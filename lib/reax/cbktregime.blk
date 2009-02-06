@@ -1,0 +1,8 @@
+      common
+     $/cbktregime/ dttreg(mtreg,mtzone),tdamptreg(mtreg,mtzone),
+     $             ia1treg(mtreg,mtzone),ia2treg(mtreg,mtzone), 
+     $             tsettreg(mtreg,mtzone),nntreg(mtreg),ittc(mtreg),
+     $             nittc(mtreg),ifieldz,ifieldx,ifieldy,
+     $             nrestra,nrestram,nrestrat,nrestrav,ntrc
+
+

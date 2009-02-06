@@ -1,0 +1,6 @@
+ 
+      character*40 qruid
+      common
+     $/cbkinit/ tsetor,nzero,none,ntwo,nthree,qruid,systime,
+     $          ustime,two,pi,avognr,axiss(3),pset,rdndgr
+

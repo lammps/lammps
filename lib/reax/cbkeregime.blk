@@ -1,0 +1,5 @@
+      character*5 qetype
+      common
+     $/cbkeregime/ qetype(mereg,mezone),nnereg(mereg),nerc,
+     $             ereg(mereg,mezone),nitec(mereg) 
+

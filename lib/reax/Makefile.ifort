@@ -1,0 +1,50 @@
+# *
+# *_________________________________________________________________________*
+# *      Fortran Library for Reactive Force Field                           *
+# *      DESCRIPTION: SEE READ-ME                                           *
+# *      FILE NAME: Makefile                                                *
+# *      CONTRIBUTING AUTHORS: Hansohl Cho(MIT), Aidan Thompson(SNL)        *
+# *                            and Greg Wagner(SNL)                         * 
+# *      CONTACT: hansohl@mit.edu, athompson@sandia.gov, gjwagne@sandia.gov *
+# *_________________________________________________________________________*/
+
+SHELL = /bin/sh
+
+# ------ FILES ------
+
+SRC = reax_connect.F reax_inout.F reax_lammps.F reax_poten.F reax_reac.F reax_charges.F
+
+FILES = $(SRC) Makefile 
+
+# ------ DEFINITIONS ------
+
+LIB = libreax.a
+OBJ =   $(SRC:.F=.o)
+
+# ------ SETTINGS ------
+
+F90 =           ifort
+F90FLAGS =      -O 
+ARCHIVE =	ar
+ARCHFLAG =	-rc
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+# ------ COMPILE RULES ------
+
+%.o:%.F
+	$(F90) $(F90FLAGS) -c $<
+
+# ------ CLEAN ------
+
+clean:
+	-rm *.o *.mod *~ $(LIB)
+
+tar:
+	-tar -cvf ../REAX.tar $(FILES)
+

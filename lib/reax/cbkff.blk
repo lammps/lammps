@@ -1,0 +1,9 @@
+      character*2 qas
+      common
+     $/cbkff/ gamcco(nsort,nsort),vpar(npamax),vovun(nsort),
+     $        stlp(nsort),aval(nsort),vlp1(nsort),
+     $        vover(nbotym),valp1(nsort),
+     $        vka(nvatym),qas(nsort),amas(nsort),e1(nbotym),
+     $        valf(nsort),de1(nbotym),swb,nvs(nvatym,3),nso,nvaty
+
+

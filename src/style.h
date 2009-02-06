@@ -364,6 +364,7 @@ RegionStyle(union,RegUnion)
 #include "style_opt.h"
 #include "style_peri.h"
 #include "style_poems.h"
+#include "style_reax.h"
 #include "style_xtc.h"
 
 // user add-ons: individual classes and packages

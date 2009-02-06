@@ -82,8 +82,6 @@ class PairREAX : public Pair {
 
   void charge_reax(const int &, const int &, double[],
 		   double[], int[], int[], double[]);
-
-  double get_cutghost_midpoint() {} // to update cutghost in REAX
 };
 
 }

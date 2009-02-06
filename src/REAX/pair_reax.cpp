@@ -810,12 +810,11 @@ void PairREAX::unpack_reverse_comm(int n, int *list, double *buf)
     w[j] += buf[m++];
     }
 }
- 
 
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-/* ---------------------Charge Equilibation Caculation------------------- */
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   charge equilibration routines
+------------------------------------------------------------------------- */
+
 /* ---------------------------------------------------------------------- */
 
 void PairREAX::taper_setup()
@@ -840,6 +839,8 @@ void PairREAX::taper_setup()
 	7.0e0*swa*swb3*swb3+swb3*swb3*swb)/d7;
 }
 
+/* ---------------------------------------------------------------------- */
+
 double PairREAX::taper_E(const double &r, const double &r2)
 {
   double r3;
@@ -847,6 +848,8 @@ double PairREAX::taper_E(const double &r, const double &r2)
   return swc7*r3*r3*r+swc6*r3*r3+swc5*r3*r2+swc4*r2*r2+swc3*r3+swc2*r2+
      swc1*r+swc0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double PairREAX::taper_F(const double &r, const double &r2)
 {
@@ -856,7 +859,10 @@ double PairREAX::taper_F(const double &r, const double &r2)
     4.0e0*swc4*r3+3.0e0*swc3*r2+2.0e0*swc2*r+swc1;
 }
 
-// Compute current charge distributions based on the charge equilibration
+/* ----------------------------------------------------------------------
+   compute current charge distributions based on the charge equilibration
+------------------------------------------------------------------------- */
+
 void PairREAX::compute_charge(double &energy_charge_equilibration)
 {
   
@@ -1097,7 +1103,8 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
 
 }
 
-// Call the CG solver
+/* ---------------------------------------------------------------------- */
+
 void PairREAX::charge_reax(const int & nlocal, const int & nghost,
 			   double ch[], double aval[], int acol_ind[],
 			   int arow_ptr[], double elcvec[])
@@ -1108,11 +1115,13 @@ void PairREAX::charge_reax(const int & nlocal, const int & nghost,
   cg_solve(nlocal, nghost, aval, acol_ind, arow_ptr, ch, elcvec);
 }
 
-// Conjugate gradient solver for linear systems
+/* ----------------------------------------------------------------------
+   CG solver for linear systems
+------------------------------------------------------------------------- */
+
 void PairREAX::cg_solve(const int & nlocal, const int & nghost, 
 			double aval[], int acol_ind[], int arow_ptr[],
 			double x[], double b[])
-
 {
   double one, zero, rho, rho_old, alpha, beta, gamma;
   int iter, maxiter;
@@ -1238,7 +1247,10 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
   delete []q; 
 }
 
-// Sparse maxtrix operations
+/* ----------------------------------------------------------------------
+   sparse maxtrix operations
+------------------------------------------------------------------------- */
+
 void PairREAX::sparse_product(const int & n, const int & nlocal,
 			      const int & nghost,
 			      double aval[], int acol_ind[], int arow_ptr[],
@@ -1274,5 +1286,4 @@ void PairREAX::sparse_product(const int & n, const int & nlocal,
 	  r[jj] += aval[j]*x[i];
 	}
     }
-
 }

@@ -16,10 +16,11 @@ citation information.
 
 The suffix of each file indicates the pair style it is used with:
 
+airebo	      AI-REBO (Brenner) potential
 eam	      embedded atom method (EAM) single element, DYNAMO funcfl format
 eam.alloy     EAM multi-element alloy, DYNAMO setfl format
 eam.fs	      Finnis-Sinclair EAM format (single element or alloy)
 meam	      modified EAM (MEAM) library and individual elements/alloys
+reax	      ReaxFF potential
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential
-airebo	      AI-REBO (Brenner) potential

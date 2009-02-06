@@ -11,17 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Reactive Force Field (ReaxFF) class inherited from PAIR_H:
-   The ReaxFF is implemented in LAMMPS based on Aidan P. Thompson's GRASP 
-   (General Reactive Atomistic Simulation Program) and Ardi Van Duin's 
-   ReaxFF Fortran codes.
-   Contributing authors: Hansohl Cho (MIT, hansohl@mit.edu)
-                         Aidan P. Thompson (SNL, athompson@sandia.gov)
-------------------------------------------------------------------------- */
-
-   
-
 #ifndef PAIR_REAX_H
 #define PAIR_REAX_H
 
@@ -44,30 +33,10 @@ class PairREAX : public Pair {
   void unpack_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  //  double memory_usage();
   
  private:
  
   double cutmax;                // max cutoff for all elements
-
-  // Don't need to read potential coefficient files in ReaxFF
-
-  /* 
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  double *mass;                 // mass of each element
-
-  int *map;                     // mapping from atom types to elements
-  int *fmap;                    // Fortran version of map array for MEAM lib
- 
-  int maxneigh;
-  double *scrfcn,*dscrfcn,*fcpair;
-
-  int nmax;
-  double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
-  double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
-  double **arho1,**arho2,**arho3,**arho3b,**t_ave;
-  */
 
   void allocate();
   void read_files(char *, char *);
@@ -75,6 +44,7 @@ class PairREAX : public Pair {
   void neigh_c2f(int, int *, int *, int **);
 
   // For ReaxFF Verlet list
+
   double rcutvsq, rcutbsq; 
   int iprune,ihb;
   
@@ -114,7 +84,6 @@ class PairREAX : public Pair {
 		   double[], int[], int[], double[]);
 
   double get_cutghost_midpoint() {} // to update cutghost in REAX
-
 };
 
 }

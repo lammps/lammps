@@ -12,6 +12,16 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing authors: Hansohl Cho (MIT, hansohl@mit.edu)
+                         Aidan Thompson (Sandia, athomps@sandia.gov)
+   Reactive Force Field (ReaxFF)
+   the LAMMPS implementation of the ReaxFF is based on
+     Aidan Thompson's GRASP code
+       (General Reactive Atomistic Simulation Program)
+     Ardi Van Duin's original ReaxFF code
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
    Contributing authors: Aidan Thompson (SNL), Hansohl Cho (MIT)
 ------------------------------------------------------------------------- */
 
@@ -32,18 +42,17 @@
 #include "memory.h"
 #include "error.h"
 
-#include "../REAX/reax_fortran.h"
-#include "../REAX/reax_params.h"
-#include "../REAX/reax_cbkc.h"
-#include "../REAX/reax_cbkd.h"
-#include "../REAX/reax_cbkch.h"
-#include "../REAX/reax_cbkabo.h"
-#include "../REAX/reax_cbkia.h"
-#include "../REAX/reax_cbkpairs.h"
-#include "../REAX/reax_energies.h"
-#include "../REAX/reax_small.h"
-#include "../REAX/reax_functions.h"
-
+#include "reax_fortran.h"
+#include "reax_params.h"
+#include "reax_cbkc.h"
+#include "reax_cbkd.h"
+#include "reax_cbkch.h"
+#include "reax_cbkabo.h"
+#include "reax_cbkia.h"
+#include "reax_cbkpairs.h"
+#include "reax_energies.h"
+#include "reax_small.h"
+#include "reax_functions.h"
 
 using namespace LAMMPS_NS;
 
@@ -66,12 +75,10 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 
   chpot = 0;
 
-  // Set communication size needed by ReaxFF
   comm_forward = 2;
   comm_reverse = 1;
 
   precision = 1.0e-6;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -81,11 +88,9 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 
 PairREAX::~PairREAX()
 {
-  // memory->sfree(w);
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_double_array(cutsq);
-
   }
 }
 
@@ -93,7 +98,6 @@ PairREAX::~PairREAX()
 
 void PairREAX::compute(int eflag, int vflag)
 {
-  
   double evdwl, ecoul;
   double reax_energy_pieces[13];
 

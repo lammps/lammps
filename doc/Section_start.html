@@ -356,38 +356,53 @@ overwrite files in the package directories with src files.  Typing
 "make package-check" will list differences between src and package
 versions of the same files.
 </P>
-<P>To use the "meam" package you must build LAMMPS with the MEAM library
-in lib/meam, which computes the modified embedded atom method
-potential, which is a generalization of EAM potentials that can be
-used to model a wider variety of materials.  This MEAM implementation
-was written by Greg Wagner at Sandia.  To build LAMMPS with MEAM, you
-must use a low-level LAMMPS Makefile that includes the MEAM directory
-in its paths.  See Makefile.linux_meam as an example.  You must also
-build MEAM itself as a library before building LAMMPS, so that LAMMPS
-can link against it.  This requires a F90 compiler.  The library is
-built by typing "make" from within the meam directory with the
-appropriate Makefile, e.g. "make -f Makefile.icc".  If one of the
-provided Makefiles is not appropriate for your system you can edit or
-add one as needed.
+<P>Some packages require that additional libraries first be compiled,
+which LAMMPS will link to when it builds.  Currently, these are the
+"meam", "poems", and "reax" packages.  You should look at the README
+files in the lib directories (e.g. lib/reax/README) for instructions
+on how to build the libraries themselves.
 </P>
-<P>Note that linking a Fortran library to a C++ code can be problematic
-(e.g. Fortran routine names can't be found due to non-standard
-underscore rules) and typically requires additional C++ or F90
-libraries be included in the link.  You may need to read documentation
-for your compiler about how to do this correctly.
+<P>The "meam" library in lib/meam computes the modified embedded atom
+method potential, which is a generalization of EAM potentials that can
+be used to model a wider variety of materials.  This MEAM
+implementation was written by Greg Wagner at Sandia.  It requires a
+F90 compiler to build.
 </P>
-<P>To use the "poems" package you must build LAMMPS with the POEMS
-library in lib/poems, which computes the constrained rigid-body motion
-of articulated (jointed) multibody systems.  POEMS was written and is
-distributed by Prof Kurt Anderson's group at Rensselaer Polytechnic
-Institute (RPI).  To build LAMMPS with POEMS, you must use a low-level
-LAMMPS Makefile that includes the POEMS directory in its paths.  See
-Makefile.g++_poems as an example.  You must also build POEMS itself as
-a library before building LAMMPS, so that LAMMPS can link against it.
-The POEMS library is built by typing "make" from within the poems
-directory with the appropriate Makefile, e.g. "make -f Makefile.g++".
-If one of the provided Makefiles is not appropriate for your system
-you can edit or add one as needed.
+<P>The "reax" library in lib/reax computes the Reactive Force Field
+(ReaxFF) potential, developed by Adri van Duin in Bill Goddard's group
+at CalTech.  This implementation in LAMMPS uses many of Adri's files
+and was developed by Aidan Thompson at Sandia and Hansohl Cho at MIT.
+It requires a F77 or F90 compiler to build.
+</P>
+<P>The "poems" library in lib/poems computes the constrained rigid-body
+motion of articulated (jointed) multibody systems.  POEMS was written
+and is distributed by Prof Kurt Anderson's group at Rensselaer
+Polytechnic Institute (RPI). 
+</P>
+<P>In all cases, these libraries are built by typing
+</P>
+<PRE>make -f Makefile.foo 
+</PRE>
+<P>in the appropriate directory, e.g. in lib/reax.
+</P>
+<P>You should use the Makefile that is a match for your system.  If one
+of the provided Makefiles is not appropriate for your system you can
+edit or add one as needed.
+</P>
+<P>Once the desired library or libraries are built, you can build LAMMPS.
+You will need to create and use a lo-level LAMMPS makefile in src/MAKE
+that links with the specific libraries you want.  See a Makefile.foo
+that has the library name in it to see how this is done.
+E.g. Makefile.g++_reax or Makefile.g++_poems_meam.  Typically these
+will have additional -I, -L, and -l arguments that enable compiling
+and linking with files from the library.
+</P>
+<P>Note that linking a Fortran library (like MEAM or REAX) to a C++ code
+(like LAMMPS) can be tricky.  E.g. Fortran routine may not be found
+due to non-standard underscore rules.  It typically requires
+additional C++ or Fortran libraries be included in the link.  You may
+need to read documentation for your Fortran and C++ compilers about
+how to do this correctly.
 </P>
 <HR>
 

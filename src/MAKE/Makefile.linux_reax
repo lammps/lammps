@@ -9,8 +9,7 @@ CCFLAGS =	-O -I../../lib/reax \
 		-DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		icc
-LINKFLAGS =	-O -L../../lib/reax \
-		-L/opt/intel/fce/10.0.023/lib
+LINKFLAGS =	-O -L../../lib/reax -L/opt/intel/fce/10.0.023/lib
 USRLIB =	-lfftw -lmpich -lreax
 SYSLIB =	-lpthread -lstdc++ -lifcore -lsvml -lompstub -limf
 ARCHIVE =	ar

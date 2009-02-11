@@ -41,6 +41,7 @@
 #endif
 
 // hard-wired array sizes set in Fortran library
+// accesses include file from Fortran library
 
 #include "reax_defs.h"
 

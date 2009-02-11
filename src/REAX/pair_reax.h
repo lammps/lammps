@@ -28,6 +28,7 @@ class PairREAX : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  double memory_usage();
 
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
@@ -43,11 +44,19 @@ class PairREAX : public Pair {
   double swa;
   double swc0, swc1, swc2, swc3, swc4, swc5, swc6, swc7;
   double precision;
-  struct ff_params {double rcutsq; int np; double* params;};
-  ff_params* param_list;
+  int packflag;
+
+  struct ff_params {
+    double rcutsq;
+    int np;
+    double *params;
+  };
+  ff_params *param_list;
+
   int nentries;
   double chpot;
-  double *w;
+  double *rcg,*wcg,*pcg,*poldcg,*qcg;
+  int nmax;
 
   void allocate();
   void read_files(char *, char *);

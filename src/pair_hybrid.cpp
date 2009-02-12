@@ -71,14 +71,14 @@ void PairHybrid::compute(int eflag, int vflag)
 {
   int i,j,m,n;
 
-  // if no_virial_compute is set and global component of incoming vflag = 2,
-  // reset vflag as if it were 1
+  // if no_virial_compute is set and global component of incoming vflag = 2
+  // reset vflag as if global component were 1
   // necessary since one or more sub-styles cannot compute virial as F dot r
   
   if (no_virial_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  else evflag = vflag_fdotr = 0;
 
   // check if global component of incoming vflag = 2
   // if so, reset vflag passed to substyle as if it were 0

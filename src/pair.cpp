@@ -285,11 +285,11 @@ void Pair::ev_setup(int eflag, int vflag)
     }
   }
 
-  // if vflag_global = 2
+  // if vflag_global = 2 and pair::compute() calls virial_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
   // unset other flags as appropriate
 
-  if (vflag_global == 2) {
+  if (vflag_global == 2 && no_virial_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
     if (vflag_atom == 0) vflag_either = 0;

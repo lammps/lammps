@@ -52,6 +52,12 @@ class NeighRequest : protected Pointers {
 
   int occasional;
 
+  // 0 if use force::newton_pair setting
+  // 1 if override with pair newton on
+  // 2 if override with pair newton off
+
+  int newton;
+
   // number of auxiliary floating point values to store, 0 if none
   // set by requesting class
 
@@ -74,8 +80,8 @@ class NeighRequest : protected Pointers {
   ~NeighRequest();
   int identical(NeighRequest *);
   int same_kind(NeighRequest *);
-  void copy_kind(NeighRequest *);
   int same_skip(NeighRequest *);
+  void copy_request(NeighRequest *);
 };
 
 }

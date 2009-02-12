@@ -38,6 +38,10 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   respainner = respamiddle = respaouter = 0;
   half_from_full = 0;
 
+  // default is use newton_pair setting in force
+
+  newton = 0;
+
   // default is every reneighboring
 
   occasional = 0;
@@ -89,6 +93,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (respaouter != other->respaouter) same = 0;
   if (half_from_full != other->half_from_full) same = 0;
 
+  if (newton != other->newton) same = 0;
   if (occasional != other->occasional) same = 0;
   if (dnum != other->dnum) same = 0;
 
@@ -116,26 +121,9 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (respamiddle != other->respamiddle) same = 0;
   if (respaouter != other->respaouter) same = 0;
   if (half_from_full != other->half_from_full) same = 0;
+  if (newton != other->newton) same = 0;
 
   return same;
-}
-
-/* ----------------------------------------------------------------------
-   set kind value of this request to that of other request
-------------------------------------------------------------------------- */
-
-void NeighRequest::copy_kind(NeighRequest *other)
-{
-  half = 0;
-
-  if (other->half) half = 1;
-  if (other->full) full = 1;
-  if (other->gran) gran = 1;
-  if (other->granhistory) granhistory = 1;
-  if (other->respainner) respainner = 1;
-  if (other->respamiddle) respamiddle = 1;
-  if (other->respaouter) respaouter = 1;
-  if (other->half_from_full) half_from_full = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -162,3 +150,23 @@ int NeighRequest::same_skip(NeighRequest *other)
   return same;
 }
 
+/* ----------------------------------------------------------------------
+   set kind and other values of this request to that of other request
+------------------------------------------------------------------------- */
+
+void NeighRequest::copy_request(NeighRequest *other)
+{
+  half = 0;
+
+  if (other->half) half = 1;
+  if (other->full) full = 1;
+  if (other->gran) gran = 1;
+  if (other->granhistory) granhistory = 1;
+  if (other->respainner) respainner = 1;
+  if (other->respamiddle) respamiddle = 1;
+  if (other->respaouter) respaouter = 1;
+  if (other->half_from_full) half_from_full = 1;
+
+  newton = other->newton;
+  dnum = other->dnum;
+}

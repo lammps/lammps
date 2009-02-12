@@ -52,11 +52,15 @@ class PairREAX : public Pair {
     double *params;
   };
   ff_params *param_list;
+  int *map;
 
   int nentries;
   double chpot;
+  int *arow_ptr,*acol_ind;
+  double *ch,*elcvec;
   double *rcg,*wcg,*pcg,*poldcg,*qcg;
-  int nmax;
+  double *aval;
+  int nmax,matmax;
 
   void allocate();
   void read_files(char *, char *);

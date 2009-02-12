@@ -32,6 +32,7 @@
 #include "pair_reax.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -61,11 +62,18 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
   chpot = 0;
 
   nmax = 0;
+  arow_ptr = NULL;
+  ch = NULL;
+  elcvec = NULL;
   rcg = NULL;
   wcg = NULL;
   pcg = NULL;
   poldcg = NULL;
   qcg = NULL;
+
+  matmax = 0;
+  aval = NULL;
+  acol_ind = NULL;
 
   comm_forward = 1;
   comm_reverse = 1;
@@ -87,13 +95,21 @@ PairREAX::~PairREAX()
     for (int i = 1; i <= atom->ntypes; i++)
       delete [] param_list[i].params;
     delete [] param_list;
+
+    delete [] map;
   }
 
+  memory->sfree(arow_ptr);
+  memory->sfree(ch);
+  memory->sfree(elcvec);
   memory->sfree(rcg);
   memory->sfree(wcg);
   memory->sfree(pcg);
   memory->sfree(poldcg);
   memory->sfree(qcg);
+
+  memory->sfree(aval);
+  memory->sfree(acol_ind);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,7 +130,7 @@ void PairREAX::compute(int eflag, int vflag)
   if (vflag_atom) FORTRAN(cbkvirial, CBKVIRIAL).Latomvirial = 1;
   else FORTRAN(cbkvirial, CBKVIRIAL).Latomvirial = 0;
 
-  // reallocate CG arrays if necessary
+  // reallocate charge equilibration and CG arrays if necessary
 
   if (atom->nmax > nmax) {
     memory->sfree(rcg);
@@ -122,8 +138,13 @@ void PairREAX::compute(int eflag, int vflag)
     memory->sfree(pcg);
     memory->sfree(poldcg);
     memory->sfree(qcg);
+
     nmax = atom->nmax;
     int n = nmax+1;
+
+    arow_ptr = (int *) memory->smalloc(n*sizeof(int),"reax:arow_ptr");
+    ch = (double *) memory->smalloc(n*sizeof(double),"reax:ch");
+    elcvec = (double *) memory->smalloc(n*sizeof(double),"reax:elcvec");
     rcg = (double *) memory->smalloc(n*sizeof(double),"reax:rcg");
     wcg = (double *) memory->smalloc(n*sizeof(double),"reax:wcg");
     pcg = (double *) memory->smalloc(n*sizeof(double),"reax:pcg");
@@ -162,6 +183,7 @@ void PairREAX::compute(int eflag, int vflag)
   read_reax_forces();
 
   // extract global and per-atom energy from ReaxFF Fortran
+  // compute_charge already contributed to eatom
 
   if (eflag_global) {
     evdwl += FORTRAN(cbkenergies, CBKENERGIES).eb;
@@ -187,7 +209,7 @@ void PairREAX::compute(int eflag, int vflag)
   if (eflag_atom) {
     int ntotal = atom->nlocal + atom->nghost;
     for (i = 0; i < ntotal; i++)
-      eatom[i] = FORTRAN(cbkd,CBKD).estrain[i];
+      eatom[i] += FORTRAN(cbkd,CBKD).estrain[i];
   }
 
   // extract global and per-atom virial from ReaxFF Fortran
@@ -221,8 +243,6 @@ void PairREAX::compute(int eflag, int vflag)
 void PairREAX::write_reax_positions()
 {
   double xtmp, ytmp, ztmp;
-  int itype;
-  int itag; 
   int j, jx, jy, jz, jia;
 
   double **x = atom->x;
@@ -235,25 +255,20 @@ void PairREAX::write_reax_positions()
   FORTRAN(rsmall, RSMALL).na = nlocal+nghost;
   FORTRAN(rsmall, RSMALL).na_local = nlocal;
 
-  j = 0;
   jx = 0;
   jy = ReaxParams::nat;
   jz = 2*ReaxParams::nat;
   jia = 0;
 
+  j = 0;
   for (int i = 0; i < nlocal+nghost; i++, j++) {
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    itag = tag[i];
-    FORTRAN(cbkc, CBKC).c[j+jx] = xtmp;
-    FORTRAN(cbkc, CBKC).c[j+jy] = ytmp;
-    FORTRAN(cbkc, CBKC).c[j+jz] = ztmp;
+    FORTRAN(cbkc, CBKC).c[j+jx] = x[i][0];
+    FORTRAN(cbkc, CBKC).c[j+jy] = x[i][1];
+    FORTRAN(cbkc, CBKC).c[j+jz] = x[i][2];
     FORTRAN(cbkch, CBKCH).ch[j] = q[i];
-    FORTRAN(cbkia, CBKIA).ia[j+jia] = itype;
-    FORTRAN(cbkia, CBKIA).iag[j+jia] = itype;
-    FORTRAN(cbkc, CBKC).itag[j]= itag;
+    FORTRAN(cbkia, CBKIA).ia[j+jia] = map[type[i]];
+    FORTRAN(cbkia, CBKIA).iag[j+jia] = map[type[i]];
+    FORTRAN(cbkc, CBKC).itag[j] = tag[i];
   }
 }
 
@@ -264,10 +279,10 @@ void PairREAX::write_reax_vlist()
   int ii, jj, i, j, iii, jjj;
   double xitmp, yitmp, zitmp;
   double xjtmp, yjtmp, zjtmp;
-  int itype, jtype, itag, jtag;
+  int itag,jtag;
   int nvpair, nvlself, nvpairmax;
   int nbond;
-  int inum, jnum;
+  int inum,jnum;
   int *ilist;
   int *jlist;
   int *numneigh,**firstneigh;
@@ -276,7 +291,6 @@ void PairREAX::write_reax_vlist()
   double rtmp[3];
 
   double **x = atom->x;
-  int *type = atom->type;
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -297,7 +311,6 @@ void PairREAX::write_reax_vlist()
     xitmp = x[i][0];
     yitmp = x[i][1];
     zitmp = x[i][2];
-    itype = type[i];
     itag = tag[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -307,7 +320,6 @@ void PairREAX::write_reax_vlist()
       xjtmp = x[j][0];
       yjtmp = x[j][1];
       zjtmp = x[j][2];
-      jtype = type[j];
       jtag = tag[j];
       
       delx = xitmp - xjtmp;
@@ -362,14 +374,12 @@ void PairREAX::write_reax_vlist()
     xitmp = x[i][0];
     yitmp = x[i][1];
     zitmp = x[i][2];
-    itype = type[i];
     itag = tag[i];
 
     for (int j = i+1; j < ntotal; j++) {
       xjtmp = x[j][0];
       yjtmp = x[j][1];
       zjtmp = x[j][2];
-      jtype = type[j];
       jtag = tag[j];
       
       delx = xitmp - xjtmp;
@@ -415,14 +425,10 @@ void PairREAX::read_reax_forces()
   int ntotal = atom->nlocal + atom->nghost;
 
   int j = 0;
-  int jx = 0;
-  int jy = 1;
-  int jz = 2;
-
   for (int i = 0; i < ntotal; i++) {
-    ftmp[0] = -FORTRAN(cbkd, CBKD).d[j+jx];
-    ftmp[1] = -FORTRAN(cbkd, CBKD).d[j+jy];
-    ftmp[2] = -FORTRAN(cbkd, CBKD).d[j+jz];
+    ftmp[0] = -FORTRAN(cbkd, CBKD).d[j];
+    ftmp[1] = -FORTRAN(cbkd, CBKD).d[j+1];
+    ftmp[2] = -FORTRAN(cbkd, CBKD).d[j+2];
     f[i][0] = ftmp[0];
     f[i][1] = ftmp[1];
     f[i][2] = ftmp[2];
@@ -443,6 +449,8 @@ void PairREAX::allocate()
   param_list = new ff_params[n+1];
   for (int i = 1; i <= n; i++)
     param_list[i].params = new double[5];
+
+  map = new int[n+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -470,13 +478,32 @@ void PairREAX::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
+  if (narg != 3 + atom->ntypes)
+    error->all("Incorrect args for pair coefficients");
+
+  // insure I,J args are * *
+
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all("Incorrect args for pair coefficients");
 
+  // insure filename is ffield.reax
+
+  if (strcmp(arg[2],"ffield.reax") != 0) 
+    error->all("Incorrect args for pair coefficients");
+
+  // read args that map atom types to elements in potential file
+  // map[i] = which element the Ith atom type is, -1 if NULL
+
+  for (int i = 3; i < narg; i++) {
+    if (strcmp(arg[i],"NULL") == 0) {
+      map[i-2] = -1;
+      continue;
+    }
+    map[i-2] = atoi(arg[i]);
+    if (map[i-2] < 1) error->all("Incorrect args for pair coefficients");
+  }
+
   int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
 
   int count = 0;
   for (int i = 1; i <= n; i++)
@@ -494,14 +521,15 @@ void PairREAX::coeff(int narg, char **arg)
 
 void PairREAX::init_style()
 {
-  // REAX requires pair newton off
-
   if (atom->tag_enable == 0)
     error->all("Pair style reax requires atom IDs");
-  if (force->newton_pair)
+  if (force->newton_pair == 0)
     error->all("Pair style reax requires newton pair on");
+  if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
+    error->warning("Not using real units with pair reax");
 
   int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->newton = 2;
 
   FORTRAN(readc, READC)();
   FORTRAN(init, INIT)();
@@ -529,9 +557,9 @@ void PairREAX::init_style()
   FORTRAN(getswa, GETSWA)(&swa);
   double chi, eta, gamma;
   for (int itype = 1; itype <= atom->ntypes; itype++) {
-    chi = FORTRAN(cbkchb, CBKCHB).chi[itype-1];
-    eta = FORTRAN(cbkchb, CBKCHB).eta[itype-1];
-    gamma = FORTRAN(cbkchb, CBKCHB).gam[itype-1];
+    chi = FORTRAN(cbkchb, CBKCHB).chi[map[itype]-1];
+    eta = FORTRAN(cbkchb, CBKCHB).eta[map[itype]-1];
+    gamma = FORTRAN(cbkchb, CBKCHB).gam[map[itype]-1];
     param_list[itype].np = 5;
     param_list[itype].rcutsq = cutmax;
     param_list[itype].params[0] = chi;
@@ -681,19 +709,14 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   int ii, jj, i, j;
   double delr2, delr_norm, gamt, hulp1, hulp2;
   double delx, dely, delz;
-  double qsum, qi;
-  double *ch;
-  double *elcvec;
-  double *aval;
-  int *arow_ptr;
-  int *acol_ind;
-  int maxmatentries, nmatentries;
+  double qsum,qi;
+  int nmatentries;
   double sw;
   double rtmp[3];
-  int inum, jnum;
+  int inum,jnum;
   int *ilist;
   int *jlist;
-  int *numneigh, **firstneigh;
+  int *numneigh,**firstneigh;
 
   double **x = atom->x;
   double *q = atom->q;
@@ -708,19 +731,23 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // realloc neighbor based arrays if necessary
+
   int numneigh_total = 0;
   for (ii = 0; ii < inum; ii++)
     numneigh_total += numneigh[ilist[ii]];
 
-  arow_ptr = new int[nlocal+nghost+1];
-  ch = new double[nlocal+nghost+1];
-  elcvec = new double[nlocal+nghost+1];
-  maxmatentries = numneigh_total+2*nlocal;
-  aval = new double[maxmatentries];
-  acol_ind = new int[maxmatentries];
-  nmatentries = 0;
+  if (numneigh_total + 2*nlocal > matmax) {
+    memory->sfree(aval);
+    memory->sfree(acol_ind);
+    matmax = numneigh_total + 2*nlocal;
+    aval = (double *) memory->smalloc(matmax*sizeof(double),"reax:aval");
+    acol_ind = (int *) memory->smalloc(matmax*sizeof(int),"reax:acol_ind");
+  }
 
   // build linear system
+
+  nmatentries = 0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -816,7 +843,6 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
   for (i = nlocal; i < nlocal+nghost; i++) {
     qi = q[i];
     ch[i] = qi;
-    if (i<nlocal) qsum += qi;
   }
 
   double qtot;
@@ -839,24 +865,21 @@ void PairREAX::compute_charge(double &energy_charge_equilibration)
     itype = type[i];
 
     // 23.02 is the ReaxFF conversion from eV to kcal/mol
-    // Should really use constants.evfactor ~ 23.06, but
-    // that would break consistency with serial ReaxFF code
+    // should really use constants.evfactor ~23.06
+    // but that would break consistency with serial ReaxFF code
+    // NOTE: this hard-wired real units
+    //       if want other units would have to change params[] in file
 
     qi = 23.02 * (param_list[itype].params[0]*ch[i]+
 		  param_list[itype].params[1]*ch[i]*ch[i]);
     energy_charge_equilibration += qi;
+    if (eflag_atom) eatom[i] += qi;
   }
 
   // copy charge vector back to particles from the calculated values
 
   for (i = 0; i < nlocal+nghost; i++) q[i] = ch[i];
   chpot = ch[nlocal+nghost];
-
-  delete [] aval;
-  delete [] arow_ptr;
-  delete [] elcvec;
-  delete [] ch;
-  delete [] acol_ind;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1000,6 +1023,9 @@ void PairREAX::sparse_product(const int &n, const int &nlocal,
 
 double PairREAX::memory_usage()
 {
-  double bytes = 5 * nmax * sizeof(double);
+  double bytes = nmax * sizeof(int);
+  bytes += 7 * nmax * sizeof(double);
+  bytes += matmax * sizeof(int);
+  bytes += matmax * sizeof(double);
   return bytes;
 }

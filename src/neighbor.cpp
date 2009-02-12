@@ -750,7 +750,8 @@ int Neighbor::request(void *requestor)
    skip -> granular function if gran with granhistory
            respa function if respaouter
 	   skip_from function for everything else
-   half_from_full, half, full, gran, respaouter -> choose by newton and tri
+   half_from_full, half, full, gran, respaouter ->
+     choose by newton and rq->newton and tri settings
      style NSQ options = newton off, newton on
      style BIN options = newton off, newton on and not tri, newton on and tri
      stlye MULTI options = same options as BIN
@@ -776,16 +777,38 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 
   } else if (rq->half) {
     if (style == NSQ) {
-      if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton;
-      else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
+      if (rq->newton == 0) {
+	if (newton_pair == 0)
+	  pb = &Neighbor::half_nsq_no_newton;
+	else if (newton_pair == 1)
+	  pb = &Neighbor::half_nsq_newton;
+      } else if (rq->newton == 1) {
+	pb = &Neighbor::half_nsq_newton;
+      } else if (rq->newton == 2) {
+	pb = &Neighbor::half_nsq_no_newton;
+      }
     } else if (style == BIN) {
-      if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
-      else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
-      else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+      if (rq->newton == 0) {
+	if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
+	else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
+	else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+      } else if (rq->newton == 1) {
+	if (triclinic == 0) pb = &Neighbor::half_bin_newton;
+	else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+      } else if (rq->newton == 2) {
+	pb = &Neighbor::half_bin_no_newton;
+      }
     } else if (style == MULTI) {
-      if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
-      else if (triclinic == 0) pb = &Neighbor::half_multi_newton;
-      else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
+      if (rq->newton == 0) {
+	if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
+	else if (triclinic == 0) pb = &Neighbor::half_multi_newton;
+	else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
+      } else if (rq->newton == 1) {
+	if (triclinic == 0) pb = &Neighbor::half_multi_newton;
+	else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
+      } else if (rq->newton == 2) {
+	pb = &Neighbor::half_multi_no_newton;
+      } 
     }
 
   } else if (rq->full) {
@@ -836,29 +859,77 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
 
   else if (rq->half || rq->gran || rq->respaouter) {
     if (style == BIN) {
-      if (newton_pair == 0) {
-	if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_no_newton;
-	else if (dimension == 3) sc = &Neighbor::stencil_half_bin_3d_no_newton;
-      } else if (triclinic == 0) {
-	if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_newton;
-	else if (dimension == 3) sc = &Neighbor::stencil_half_bin_3d_newton;
-      } else if (triclinic == 1) {
-	if (dimension == 2) sc = &Neighbor::stencil_half_bin_2d_newton_tri;
-	else if (dimension == 3) 
-	  sc = &Neighbor::stencil_half_bin_3d_newton_tri;
+      if (rq->newton == 0) {
+	if (newton_pair == 0) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_bin_2d_no_newton;
+	  else if (dimension == 3)
+	    sc = &Neighbor::stencil_half_bin_3d_no_newton;
+	} else if (triclinic == 0) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_bin_2d_newton;
+	  else if (dimension == 3)
+	    sc = &Neighbor::stencil_half_bin_3d_newton;
+	} else if (triclinic == 1) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_bin_2d_newton_tri;
+	  else if (dimension == 3) 
+	    sc = &Neighbor::stencil_half_bin_3d_newton_tri;
+	}
+      } else if (rq->newton == 1) {
+	if (triclinic == 0) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_bin_2d_newton;
+	  else if (dimension == 3)
+	    sc = &Neighbor::stencil_half_bin_3d_newton;
+	} else if (triclinic == 1) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_bin_2d_newton_tri;
+	  else if (dimension == 3) 
+	    sc = &Neighbor::stencil_half_bin_3d_newton_tri;
+	}
+      } else if (rq->newton == 2) {
+	if (dimension == 2)
+	  sc = &Neighbor::stencil_half_bin_2d_no_newton;
+	else if (dimension == 3)
+	  sc = &Neighbor::stencil_half_bin_3d_no_newton;
       }
+
     } else if (style == MULTI) {
-      if (newton_pair == 0) {
-	if (dimension == 2) sc = &Neighbor::stencil_half_multi_2d_no_newton;
+      if (rq->newton == 0) {
+	if (newton_pair == 0) {
+	  if (dimension == 2) 
+	    sc = &Neighbor::stencil_half_multi_2d_no_newton;
+	  else if (dimension == 3)
+	    sc = &Neighbor::stencil_half_multi_3d_no_newton;
+	} else if (triclinic == 0) {
+	  if (dimension == 2) 
+	    sc = &Neighbor::stencil_half_multi_2d_newton;
+	  else if (dimension == 3)
+	    sc = &Neighbor::stencil_half_multi_3d_newton;
+	} else if (triclinic == 1) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_multi_2d_newton_tri;
+	  else if (dimension == 3) 
+	    sc = &Neighbor::stencil_half_multi_3d_newton_tri;
+	}
+      } else if (rq->newton == 1) {
+	if (triclinic == 0) {
+	  if (dimension == 2) 
+	    sc = &Neighbor::stencil_half_multi_2d_newton;
+	  else if (dimension == 3)
+	    sc = &Neighbor::stencil_half_multi_3d_newton;
+	} else if (triclinic == 1) {
+	  if (dimension == 2)
+	    sc = &Neighbor::stencil_half_multi_2d_newton_tri;
+	  else if (dimension == 3) 
+	    sc = &Neighbor::stencil_half_multi_3d_newton_tri;
+	}
+      } else if (rq->newton == 2) {
+	if (dimension == 2) 
+	  sc = &Neighbor::stencil_half_multi_2d_no_newton;
 	else if (dimension == 3)
 	  sc = &Neighbor::stencil_half_multi_3d_no_newton;
-      } else if (triclinic == 0) {
-	if (dimension == 2) sc = &Neighbor::stencil_half_multi_2d_newton;
-	else if (dimension == 3) sc = &Neighbor::stencil_half_multi_3d_newton;
-      } else if (triclinic == 1) {
-	if (dimension == 2) sc = &Neighbor::stencil_half_multi_2d_newton_tri;
-	else if (dimension == 3) 
-	  sc = &Neighbor::stencil_half_multi_3d_newton_tri;
       }
     }
 

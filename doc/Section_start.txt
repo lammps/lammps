@@ -293,6 +293,7 @@ molecule : force fields for molecular systems
 opt : optimized versions of a few pair potentials
 peri : Peridynamics model and potential
 poems : coupled rigid body motion
+reax : ReaxFF potential
 xtc : dump atom snapshots in XTC format :tb(s=:)
 
 There are also user-contributed packages which may be as simple as a

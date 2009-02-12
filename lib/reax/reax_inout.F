@@ -45,6 +45,7 @@ c$$$      write (65,*) 'In ffinpt'
 c$$$      call timer(65)
 c$$$      close (65)
 c$$$      end if
+      open (4,file='ffield.reax',status='old')
       rewind (4)
       iline=0
       read (4,'(a40)',end=990,err=990)qffield

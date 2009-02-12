@@ -24,7 +24,7 @@ OBJ =   $(SRC:.F=.o)
 # ------ SETTINGS ------
 
 F90 =           g77
-F90FLAGS =      -O 
+F90FLAGS =      -O -g
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

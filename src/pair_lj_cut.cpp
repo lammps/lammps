@@ -714,11 +714,3 @@ double PairLJCut::single(int i, int j, int itype, int jtype, double rsq,
     offset[itype][jtype];
   return factor_lj*philj;
 }
-
-/* ---------------------------------------------------------------------- */
-
-void *PairLJCut::extract(char *str)
-{
-  if (strcmp(str,"diameter") == 0) return (void *) sigma;
-  return NULL;
-}

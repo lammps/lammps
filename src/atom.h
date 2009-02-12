@@ -73,6 +73,7 @@ class Atom : protected Pointers {
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
   // per-atom array existence flags
+  // these can be checked before array is allocated
   // customize by adding new flag
 
   int molecule_flag;

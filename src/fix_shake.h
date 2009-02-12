@@ -52,7 +52,7 @@ class FixShake : public Fix {
   int *bond_flag,*angle_flag;            // bond/angle types to constrain
   int *type_flag;                        // constrain bonds to these types
   double *mass_list;                     // constrain bonds to these masses
-  int nmass;
+  int nmass;                             // # of masses in mass_list
 
   double *bond_distance,*angle_distance; // constraint distances
 
@@ -62,7 +62,7 @@ class FixShake : public Fix {
   double *step_respa;
 
   double **x,**v,**f;                    // local ptrs to atom class quantities
-  double *mass;
+  double *mass,*rmass;
   int *type;
   int nlocal;
                                          // atom-based arrays
@@ -93,6 +93,7 @@ class FixShake : public Fix {
   double *a_ave_all,*a_max_all,*a_min_all;
 
   void find_clusters();
+  int masscheck(double);
   void unconstrained_update();
   void shake2(int);
   void shake3(int);

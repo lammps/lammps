@@ -84,15 +84,15 @@ double ComputeTemp::compute_scalar()
 
   double t = 0.0;
 
-  if (mass) {
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+  } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
 	  mass[type[i]];
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
   }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -121,8 +121,8 @@ void ComputeTemp::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       t[0] += massone * v[i][0]*v[i][0];
       t[1] += massone * v[i][1]*v[i][1];
       t[2] += massone * v[i][2]*v[i][2];

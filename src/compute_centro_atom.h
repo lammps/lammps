@@ -31,8 +31,8 @@ class ComputeCentroAtom : public Compute {
   int nmax,maxneigh;
   double *distsq;
   int *nearest;
-  double *centro;
   class NeighList *list;
+  double *centro;
 
   void select(int, int, double *);
   void select2(int, int, double *, int *);

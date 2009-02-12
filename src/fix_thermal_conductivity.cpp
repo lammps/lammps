@@ -182,8 +182,8 @@ void FixThermalConductivity::end_of_step()
 
       if (coord >= slablo_lo && coord < slablo_hi) {
 	ke = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-	if (mass) ke *= 0.5*mass[type[i]];
-	else ke *= 0.5*rmass[i];
+	if (rmass) ke *= 0.5*rmass[i];
+	else ke *= 0.5*mass[type[i]];
 	if (nlo < nswap || ke > ke_lo[nswap-1]) {
 	  for (insert = nlo-1; insert >= 0; insert--)
 	    if (ke < ke_lo[insert]) break;
@@ -200,8 +200,8 @@ void FixThermalConductivity::end_of_step()
 
       if (coord >= slabhi_lo && coord < slabhi_hi) {
 	ke = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-	if (mass) ke *= 0.5*mass[type[i]];
-	else ke *= 0.5*rmass[i];
+	if (rmass) ke *= 0.5*rmass[i];
+	else ke *= 0.5*mass[type[i]];
 	if (nhi < nswap || ke < ke_hi[nswap-1]) {
 	  for (insert = nhi-1; insert >= 0; insert--)
 	    if (ke > ke_hi[insert]) break;

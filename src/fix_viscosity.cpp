@@ -176,8 +176,6 @@ void FixViscosity::end_of_step()
 
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -232,6 +230,9 @@ void FixViscosity::end_of_step()
   // exchange momenta between the 2 particles
   // if I own both particles just swap, else point2point comm of vel,mass
 
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+
   int ipos,ineg;
   double sbuf[2],rbuf[2];
 
@@ -254,10 +255,10 @@ void FixViscosity::end_of_step()
       ipos = pos_index[ipositive++];
       ineg = neg_index[inegative++];
       rbuf[0] = v[ipos][vdim];
-      if (mass) rbuf[1] = mass[type[ipos]];
-      else rbuf[1] = rmass[ipos];
+      if (rmass) rbuf[1] = rmass[ipos];
+      else rbuf[1] = mass[type[ipos]];
       sbuf[0] = v[ineg][vdim];
-      if (mass) sbuf[1] = mass[type[ineg]];
+      if (rmass) sbuf[1] = mass[type[ineg]];
       else sbuf[1] = rmass[ineg];
       v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
       v[ipos][vdim] = sbuf[0] * sbuf[1]/rbuf[1];
@@ -266,8 +267,8 @@ void FixViscosity::end_of_step()
     } else if (me == all[0].proc) {
       ipos = pos_index[ipositive++];
       sbuf[0] = v[ipos][vdim];
-      if (mass) sbuf[1] = mass[type[ipos]];
-      else sbuf[1] = rmass[ipos];
+      if (rmass) sbuf[1] = rmass[ipos];
+      else sbuf[1] = mass[type[ipos]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
 		   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
       v[ipos][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
@@ -276,8 +277,8 @@ void FixViscosity::end_of_step()
     } else if (me == all[1].proc) {
       ineg = neg_index[inegative++];
       sbuf[0] = v[ineg][vdim];
-      if (mass) sbuf[1] = mass[type[ineg]];
-      else sbuf[1] = rmass[ineg];
+      if (rmass) sbuf[1] = rmass[ineg];
+      else sbuf[1] = mass[type[ineg]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
 		   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
       v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];

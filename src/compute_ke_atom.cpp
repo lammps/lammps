@@ -80,10 +80,10 @@ void ComputeKEAtom::compute_peratom()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  if (mass)
+  if (rmass)
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	ke[i] = 0.5 * mvv2e * mass[type[i]] *
+	ke[i] = 0.5 * mvv2e * rmass[i] *
 	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
       } else ke[i] = 0.0;
     }
@@ -91,7 +91,7 @@ void ComputeKEAtom::compute_peratom()
   else
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	ke[i] = 0.5 * mvv2e * rmass[i] *
+	ke[i] = 0.5 * mvv2e * mass[type[i]] *
 	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
       } else ke[i] = 0.0;
     }

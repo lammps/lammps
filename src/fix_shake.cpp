@@ -121,10 +121,10 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double rmass = atof(arg[next]);
-      if (rmass == 0.0) error->all("Invalid atom mass for fix shake");
+      double massone = atof(arg[next]);
+      if (massone == 0.0) error->all("Invalid atom mass for fix shake");
       if (nmass == atom->ntypes) error->all("Too many masses for fix shake");
-      mass_list[nmass++] = rmass;
+      mass_list[nmass++] = massone;
 
     } else error->all("Illegal fix shake command");
     next++;
@@ -428,6 +428,7 @@ void FixShake::pre_neighbor()
   v = atom->v;
   f = atom->f;
   mass = atom->mass;
+  rmass = atom->rmass;
   type = atom->type;
   nlocal = atom->nlocal;
 
@@ -562,7 +563,7 @@ void FixShake::find_clusters()
 {
   int i,j,m,n;
   int flag,flag_all,messtag,loop,nbuf,nbufmax,size;
-  double imass,jmass,rmass;
+  double massone;
   int *buf,*bufcopy;
   MPI_Request request;
   MPI_Status status;
@@ -575,6 +576,7 @@ void FixShake::find_clusters()
   int *type = atom->type;
   int *mask = atom->mask;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int **bond_type = atom->bond_type;
   int **angle_type = atom->angle_type;
   int **nspecial = atom->nspecial;
@@ -596,6 +598,7 @@ void FixShake::find_clusters()
   // partner_tag[i][] = global IDs of each partner
   // partner_mask[i][] = mask of each partner
   // partner_type[i][] = type of each partner
+  // partner_massflag[i][] = 1 if partner meets mass criterion, 0 if not
   // partner_bondtype[i][] = type of bond attached to each partner
   // partner_shake[i][] = 1 if SHAKE bonded to partner, 0 if not
   // partner_nshake[i][] = nshake value for each partner
@@ -614,6 +617,8 @@ void FixShake::find_clusters()
     memory->create_2d_int_array(nlocal,max,"shake:partner_mask");
   int **partner_type = 
     memory->create_2d_int_array(nlocal,max,"shake:partner_type");
+  int **partner_massflag = 
+    memory->create_2d_int_array(nlocal,max,"shake:partner_massflag");
   int **partner_bondtype = 
     memory->create_2d_int_array(nlocal,max,"shake:partner_bondtype");
   int **partner_shake = 
@@ -631,33 +636,42 @@ void FixShake::find_clusters()
   }
 
   // -----------------------------------------------------
-  // set partner_mask, partner_type, partner_bondtype for bonded partners
+  // set partner_mask, partner_type, partner_massflag, partner_bondtype
+  //   for bonded partners
   // requires communication for off-proc partners
   // -----------------------------------------------------
 
-  // fill in mask, type, bondtype if own bond partner
-  // info to store in buf for each off-proc bond =
-  //   2 atoms IDs in bond, space for mask, type, bondtype
+  // fill in mask, type, massflag, bondtype if own bond partner
+  // info to store in buf for each off-proc bond = nper = 6
+  //   2 atoms IDs in bond, space for mask, type, massflag, bondtype
   // nbufmax = largest buffer needed to hold info from any proc
+
+  int nper = 6;
 
   nbuf = 0;
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < npartner[i]; j++) {
       partner_mask[i][j] = 0;
       partner_type[i][j] = 0;
+      partner_massflag[i][j] = 0;
       partner_bondtype[i][j] = 0;
 
       m = atom->map(partner_tag[i][j]);
       if (m >= 0 && m < nlocal) {
 	partner_mask[i][j] = mask[m];
 	partner_type[i][j] = type[m];
+	if (nmass) {
+	  if (rmass) massone = rmass[m];
+	  else massone = mass[type[m]];
+	  partner_massflag[i][j] = masscheck(massone);
+	}
 	n = bondfind(i,tag[i],partner_tag[i][j]);
 	if (n >= 0) partner_bondtype[i][j] = bond_type[i][n];
 	else {
 	  n = bondfind(m,tag[i],partner_tag[i][j]);
 	  if (n >= 0) partner_bondtype[i][j] = bond_type[m][n];
 	}
-      } else nbuf += 5;
+      } else nbuf += nper;
     }
   }
 
@@ -677,18 +691,20 @@ void FixShake::find_clusters()
 	buf[size+1] = partner_tag[i][j];
 	buf[size+2] = 0;
 	buf[size+3] = 0;
+	buf[size+4] = 0;
 	n = bondfind(i,tag[i],partner_tag[i][j]);
-	if (n >= 0) buf[size+4] = bond_type[i][n];
-	else buf[size+4] = 0;
-	size += 5;
+	if (n >= 0) buf[size+5] = bond_type[i][n];
+	else buf[size+5] = 0;
+	size += nper;
       }
     }
   }
 
   // cycle buffer around ring of procs back to self
   // when receive buffer, scan bond partner IDs for atoms I own
-  // if I own partner, fill in mask and type, search for bond with 1st atom
-  //   and fill in bondtype
+  // if I own partner:
+  //   fill in mask and type and massflag
+  //   search for bond with 1st atom and fill in bondtype
 
   messtag = 1;
   for (loop = 0; loop < nprocs; loop++) {
@@ -698,12 +714,17 @@ void FixShake::find_clusters()
       if (m >= 0 && m < nlocal) {
 	buf[i+2] = mask[m];
 	buf[i+3] = type[m];
-	if (buf[i+4] == 0) {
+	if (nmass) {
+	  if (rmass) massone = rmass[m];
+	  else massone = mass[type[m]];
+	  buf[i+4] = masscheck(massone);
+	}
+	if (buf[i+5] == 0) {
 	  n = bondfind(m,buf[i],buf[i+1]);
-	  if (n >= 0) buf[i+4] = bond_type[m][n];
+	  if (n >= 0) buf[i+5] = bond_type[m][n];
 	}
       }
-      i += 5;
+      i += nper;
     }
     if (me != next) {
       MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
@@ -723,8 +744,9 @@ void FixShake::find_clusters()
       if (buf[m+1] == partner_tag[i][j]) break;
     partner_mask[i][j] = buf[m+2];
     partner_type[i][j] = buf[m+3];
-    partner_bondtype[i][j] = buf[m+4];
-    m += 5;
+    partner_massflag[i][j] = buf[m+4];
+    partner_bondtype[i][j] = buf[m+5];
+    m += nper;
   }
 
   delete [] buf;
@@ -780,15 +802,17 @@ void FixShake::find_clusters()
 	continue;
       }
       if (nmass) {
-	imass = mass[type[i]];
-	jmass = mass[partner_type[i][j]];
-	for (m = 0; m < nmass; m++) {
-	  rmass = mass_list[m];
-	  if (fabs(rmass-imass) <= MASSDELTA ||
-	      fabs(rmass-jmass) <= MASSDELTA) {
+	if (partner_massflag[i][j]) {
+	  partner_shake[i][j] = 1;
+	  nshake[i]++;
+	  continue;
+	} else {
+	  if (rmass) massone = rmass[i];
+	  else massone = mass[type[i]];
+	  if (masscheck(massone)) {
 	    partner_shake[i][j] = 1;
 	    nshake[i]++;
-	    break;
+	    continue;
 	  }
 	}
       }
@@ -1049,6 +1073,7 @@ void FixShake::find_clusters()
   memory->destroy_2d_int_array(partner_tag);
   memory->destroy_2d_int_array(partner_mask);
   memory->destroy_2d_int_array(partner_type);
+  memory->destroy_2d_int_array(partner_massflag);
   memory->destroy_2d_int_array(partner_bondtype);
   memory->destroy_2d_int_array(partner_shake);
   memory->destroy_2d_int_array(partner_nshake);
@@ -1125,6 +1150,18 @@ void FixShake::find_clusters()
 }
 
 /* ----------------------------------------------------------------------
+   check if massone is within MASSDELTA of any mass in mass_list
+   return 1 if yes, 0 if not
+------------------------------------------------------------------------- */
+
+int FixShake::masscheck(double massone)
+{
+  for (int i = 0; i < nmass; i++)
+    if (fabs(mass_list[i]-massone) <= MASSDELTA) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    update the unconstrained position of each atom
    only for SHAKE clusters, else set to 0.0
    assumes NVE update, seems to be accurate enough for NVT,NPT,NPH as well 
@@ -1134,13 +1171,24 @@ void FixShake::unconstrained_update()
 {
   double dtfmsq;
   
-  for (int i = 0; i < nlocal; i++) {
-    if (shake_flag[i]) {
-      dtfmsq = dtfsq / mass[type[i]];
-      xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-      xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-      xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
-    } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i]) {
+	dtfmsq = dtfsq / rmass[i];
+	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i]) {
+	dtfmsq = dtfsq / mass[type[i]];
+	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+    }
   }
 }
 
@@ -1150,6 +1198,7 @@ void FixShake::shake2(int m)
 {
   int nlist,list[2];
   double v[6];
+  double invmass0,invmass1;
 
   // local atom IDs and constraint distances
 
@@ -1180,8 +1229,13 @@ void FixShake::shake2(int m)
 
   // a,b,c = coeffs in quadratic equation for lamda
   
-  double invmass0 = 1.0/mass[type[i0]];
-  double invmass1 = 1.0/mass[type[i1]];
+  if (rmass) {
+    invmass0 = 1.0/rmass[i0];
+    invmass1 = 1.0/rmass[i1];
+  } else {
+    invmass0 = 1.0/mass[type[i0]];
+    invmass1 = 1.0/mass[type[i1]];
+  }
 
   double a = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
   double b = 2.0 * (invmass0+invmass1) *
@@ -1243,6 +1297,7 @@ void FixShake::shake3(int m)
 {
   int nlist,list[3];
   double v[6];
+  double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
@@ -1289,9 +1344,15 @@ void FixShake::shake3(int m)
 
   // matrix coeffs and rhs for lamda equations
 
-  double invmass0 = 1.0/mass[type[i0]];
-  double invmass1 = 1.0/mass[type[i1]];
-  double invmass2 = 1.0/mass[type[i2]];
+  if (rmass) {
+    invmass0 = 1.0/rmass[i0];
+    invmass1 = 1.0/rmass[i1];
+    invmass2 = 1.0/rmass[i2];
+  } else {
+    invmass0 = 1.0/mass[type[i0]];
+    invmass1 = 1.0/mass[type[i1]];
+    invmass2 = 1.0/mass[type[i2]];
+  }
 
   double a11 = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
@@ -1401,6 +1462,7 @@ void FixShake::shake4(int m)
 {
   int nlist,list[4];
   double v[6];
+  double invmass0,invmass1,invmass2,invmass3;
 
   // local atom IDs and constraint distances
 
@@ -1463,10 +1525,17 @@ void FixShake::shake4(int m)
 
   // matrix coeffs and rhs for lamda equations
 
-  double invmass0 = 1.0/mass[type[i0]];
-  double invmass1 = 1.0/mass[type[i1]];
-  double invmass2 = 1.0/mass[type[i2]];
-  double invmass3 = 1.0/mass[type[i3]];
+  if (rmass) {
+    invmass0 = 1.0/rmass[i0];
+    invmass1 = 1.0/rmass[i1];
+    invmass2 = 1.0/rmass[i2];
+    invmass3 = 1.0/rmass[i3];
+  } else {
+    invmass0 = 1.0/mass[type[i0]];
+    invmass1 = 1.0/mass[type[i1]];
+    invmass2 = 1.0/mass[type[i2]];
+    invmass3 = 1.0/mass[type[i3]];
+  }
 
   double a11 = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
@@ -1636,6 +1705,7 @@ void FixShake::shake3angle(int m)
 {
   int nlist,list[3];
   double v[6];
+  double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
@@ -1697,9 +1767,15 @@ void FixShake::shake3angle(int m)
 
   // matrix coeffs and rhs for lamda equations
 
-  double invmass0 = 1.0/mass[type[i0]];
-  double invmass1 = 1.0/mass[type[i1]];
-  double invmass2 = 1.0/mass[type[i2]];
+  if (rmass) {
+    invmass0 = 1.0/rmass[i0];
+    invmass1 = 1.0/rmass[i1];
+    invmass2 = 1.0/rmass[i2];
+  } else {
+    invmass0 = 1.0/mass[type[i0]];
+    invmass1 = 1.0/mass[type[i1]];
+    invmass2 = 1.0/mass[type[i2]];
+  }
 
   double a11 = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
@@ -2204,20 +2280,39 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   double invmass,dtfmsq;
   int jlevel;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (shake_flag[i]) {
-      invmass = 1.0 / mass[type[i]];
-      dtfmsq = dtfsq * invmass;
-      xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-      xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-      xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
-      for (jlevel = 0; jlevel < ilevel; jlevel++) {
-	dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
-	xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
-	xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
-	xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
-      }
-    } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i]) {
+	invmass = 1.0 / rmass[i];
+	dtfmsq = dtfsq * invmass;
+	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+	for (jlevel = 0; jlevel < ilevel; jlevel++) {
+	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
+	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
+	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
+	}
+      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+    }
+
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i]) {
+	invmass = 1.0 / mass[type[i]];
+	dtfmsq = dtfsq * invmass;
+	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+	for (jlevel = 0; jlevel < ilevel; jlevel++) {
+	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
+	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
+	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
+	}
+      } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
+    }
   }
 
   // communicate results if necessary

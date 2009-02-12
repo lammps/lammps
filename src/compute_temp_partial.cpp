@@ -104,16 +104,16 @@ double ComputeTempPartial::compute_scalar()
 
   double t = 0.0;
 
-  if (mass) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
-	      zflag*v[i][2]*v[i][2]) * mass[type[i]];
-  } else {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
 	      zflag*v[i][2]*v[i][2]) * rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
+	      zflag*v[i][2]*v[i][2]) * mass[type[i]];
   }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -142,8 +142,8 @@ void ComputeTempPartial::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       t[0] += massone * xflag*v[i][0]*v[i][0];
       t[1] += massone * yflag*v[i][1]*v[i][1];
       t[2] += massone * zflag*v[i][2]*v[i][2];

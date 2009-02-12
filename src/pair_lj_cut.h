@@ -37,7 +37,6 @@ class PairLJCut : public Pair {
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
-  void *extract(char *);
 
  protected:
   double cut_global;

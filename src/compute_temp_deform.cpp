@@ -78,7 +78,8 @@ void ComputeTempDeform::init()
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP && 
 	  comm->me == 0)
-	error->warning("Using compute temp/deform with inconsistent fix deform remap option");
+	error->warning("Using compute temp/deform with inconsistent "
+		       "fix deform remap option");
       break;
     }
   if (i == modify->nfix && comm->me == 0)
@@ -131,12 +132,12 @@ double ComputeTempDeform::compute_scalar()
       vthermal[0] = v[i][0] - vstream[0];
       vthermal[1] = v[i][1] - vstream[1];
       vthermal[2] = v[i][2] - vstream[2];
-      if (mass)
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * mass[type[i]];
-      else 
+      if (rmass)
 	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
 	      vthermal[2]*vthermal[2]) * rmass[i];
+      else
+	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
+	      vthermal[2]*vthermal[2]) * mass[type[i]];
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -178,8 +179,8 @@ void ComputeTempDeform::compute_vector()
       vthermal[1] = v[i][1] - vstream[1];
       vthermal[2] = v[i][2] - vstream[2];
 
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       t[0] += massone * vthermal[0]*vthermal[0];
       t[1] += massone * vthermal[1]*vthermal[1];
       t[2] += massone * vthermal[2]*vthermal[2];

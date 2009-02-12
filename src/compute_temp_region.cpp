@@ -89,18 +89,18 @@ double ComputeTempRegion::compute_scalar()
   int count = 0;
   double t = 0.0;
 
-  if (mass) {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
 	count++;
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	  mass[type[i]];
+	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
 	count++;
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+	  mass[type[i]];
       }
   }
 
@@ -136,8 +136,8 @@ void ComputeTempRegion::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       t[0] += massone * v[i][0]*v[i][0];
       t[1] += massone * v[i][1]*v[i][1];
       t[2] += massone * v[i][2]*v[i][2];

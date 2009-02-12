@@ -84,10 +84,10 @@ void FixNVELimit::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  if (mass) {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
+	dtfm = dtf / rmass[i];
 	v[i][0] += dtfm * f[i][0];
 	v[i][1] += dtfm * f[i][1];
 	v[i][2] += dtfm * f[i][2];
@@ -110,7 +110,7 @@ void FixNVELimit::initial_integrate(int vflag)
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
+	dtfm = dtf / mass[type[i]];
 	v[i][0] += dtfm * f[i][0];
 	v[i][1] += dtfm * f[i][1];
 	v[i][2] += dtfm * f[i][2];
@@ -147,10 +147,10 @@ void FixNVELimit::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  if (mass) {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
+	dtfm = dtf / rmass[i];
 	v[i][0] += dtfm * f[i][0];
 	v[i][1] += dtfm * f[i][1];
 	v[i][2] += dtfm * f[i][2];
@@ -169,7 +169,7 @@ void FixNVELimit::final_integrate()
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
+	dtfm = dtf / mass[type[i]];
 	v[i][0] += dtfm * f[i][0];
 	v[i][1] += dtfm * f[i][1];
 	v[i][2] += dtfm * f[i][2];

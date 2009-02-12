@@ -170,12 +170,12 @@ double ComputeTempRamp::compute_scalar()
       vthermal[1] = v[i][1];
       vthermal[2] = v[i][2];
       vthermal[v_dim] -= vramp;
-      if (mass)
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * mass[type[i]];
-      else
+      if (rmass)
 	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
 	      vthermal[2]*vthermal[2]) * rmass[i];
+      else
+	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
+	      vthermal[2]*vthermal[2]) * mass[type[i]];
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -215,8 +215,8 @@ void ComputeTempRamp::compute_vector()
       vthermal[2] = v[i][2];
       vthermal[v_dim] -= vramp;
 
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       t[0] += massone * vthermal[0]*vthermal[0];
       t[1] += massone * vthermal[1]*vthermal[1];
       t[2] += massone * vthermal[2]*vthermal[2];

@@ -31,7 +31,6 @@ class PairColloid : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *);
 
  private:
   double cut_global;

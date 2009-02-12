@@ -29,9 +29,9 @@ class ComputeCoordAtom : public Compute {
 
  private:
   int nmax;
-  double cutoff;
-  double *coordination;
+  double cutsq;
   class NeighList *list;
+  double *coordination;
 };
 
 }

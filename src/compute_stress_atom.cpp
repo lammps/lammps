@@ -196,10 +196,10 @@ void ComputeStressAtom::compute_peratom()
     int *type = atom->type;
     double mvv2e = force->mvv2e;
 
-    if (mass) {
+    if (rmass) {
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) {
-	  onemass = mvv2e * mass[type[i]];
+	  onemass = mvv2e * rmass[i];
 	  stress[i][0] += onemass*v[i][0]*v[i][0];
 	  stress[i][1] += onemass*v[i][1]*v[i][1];
 	  stress[i][2] += onemass*v[i][2]*v[i][2];
@@ -211,7 +211,7 @@ void ComputeStressAtom::compute_peratom()
     } else {
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) {
-	  onemass = mvv2e * rmass[i];
+	  onemass = mvv2e * mass[type[i]];
 	  stress[i][0] += onemass*v[i][0]*v[i][0];
 	  stress[i][1] += onemass*v[i][1]*v[i][1];
 	  stress[i][2] += onemass*v[i][2]*v[i][2];

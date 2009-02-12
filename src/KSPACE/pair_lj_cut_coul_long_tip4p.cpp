@@ -54,6 +54,10 @@ PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp)
 {
   single_enable = 0;
+
+  // TIP4P cannot compute virial as F dot r
+  // due to find_M() finding bonded H atoms which are not near O atom
+
   no_virial_compute = 1;
 }
 
@@ -76,15 +80,9 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   float rsq;
   int *int_rsq = (int *) &rsq;
 
-  // if global component of incoming vflag = 2, reset vflag as if it were 1
-  // necessary since TIP4P cannot compute virial as F dot r
-  // due to find_M() finding bonded H atoms which are not near O atom
-  
-  if (vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
-
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  else evflag = vflag_fdotr = 0;
 
   double **f = atom->f;
   double **x = atom->x;

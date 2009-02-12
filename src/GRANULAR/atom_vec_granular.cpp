@@ -604,6 +604,7 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values)
   density[nlocal] = atof(values[3]);
   rmass[nlocal] = 4.0*PI/3.0 *
     radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
+  if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -633,6 +634,7 @@ int AtomVecGranular::data_atom_hybrid(int nlocal, char **values)
   density[nlocal] = atof(values[1]);
   rmass[nlocal] = 4.0*PI/3.0 *
     radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
+  if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
 
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;

@@ -125,9 +125,8 @@ void PairTersoff::compute(int eflag, int vflag)
 	if ((itag+jtag) % 2 == 1) continue;
       } else {
 	if (x[j][2] < x[i][2]) continue;
-	else if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	else if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp)
-	    continue;
+	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
       jtype = map[type[j]];

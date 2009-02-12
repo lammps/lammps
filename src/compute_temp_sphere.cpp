@@ -152,20 +152,20 @@ double ComputeTempSphere::compute_scalar()
 
   double t = 0.0;
 
-  if (mass) {
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+	t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
+	      omega[i][2]*omega[i][2]) * INERTIA*radius[i]*radius[i]*rmass[i];
+      }
+  } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
 	  mass[type[i]];
 	t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
 	      omega[i][2]*omega[i][2]) * inertia[type[i]];
-      }
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
-	t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-	      omega[i][2]*omega[i][2]) * INERTIA*radius[i]*radius[i]*rmass[i];
       }
   }
 
@@ -202,26 +202,7 @@ void ComputeTempSphere::compute_vector()
   double massone,inertiaone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
-  if (mass) {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-	massone = mass[type[i]];
-	t[0] += massone * v[i][0]*v[i][0];
-	t[1] += massone * v[i][1]*v[i][1];
-	t[2] += massone * v[i][2]*v[i][2];
-	t[3] += massone * v[i][0]*v[i][1];
-	t[4] += massone * v[i][0]*v[i][2];
-	t[5] += massone * v[i][1]*v[i][2];
-
-	inertiaone = inertia[type[i]];
-	t[0] += inertiaone * omega[i][0]*omega[i][0];
-	t[1] += inertiaone * omega[i][1]*omega[i][1];
-	t[2] += inertiaone * omega[i][2]*omega[i][2];
-	t[3] += inertiaone * omega[i][0]*omega[i][1];
-	t[4] += inertiaone * omega[i][0]*omega[i][2];
-	t[5] += inertiaone * omega[i][1]*omega[i][2];
-      }
-  } else {
+  if (rmass) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	massone = rmass[i];
@@ -233,6 +214,25 @@ void ComputeTempSphere::compute_vector()
 	t[5] += massone * v[i][1]*v[i][2];
 
 	inertiaone = INERTIA*radius[i]*radius[i]*rmass[i];
+	t[0] += inertiaone * omega[i][0]*omega[i][0];
+	t[1] += inertiaone * omega[i][1]*omega[i][1];
+	t[2] += inertiaone * omega[i][2]*omega[i][2];
+	t[3] += inertiaone * omega[i][0]*omega[i][1];
+	t[4] += inertiaone * omega[i][0]*omega[i][2];
+	t[5] += inertiaone * omega[i][1]*omega[i][2];
+      }
+  } else {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	massone = mass[type[i]];
+	t[0] += massone * v[i][0]*v[i][0];
+	t[1] += massone * v[i][1]*v[i][1];
+	t[2] += massone * v[i][2]*v[i][2];
+	t[3] += massone * v[i][0]*v[i][1];
+	t[4] += massone * v[i][0]*v[i][2];
+	t[5] += massone * v[i][1]*v[i][2];
+
+	inertiaone = inertia[type[i]];
 	t[0] += inertiaone * omega[i][0]*omega[i][0];
 	t[1] += inertiaone * omega[i][1]*omega[i][1];
 	t[2] += inertiaone * omega[i][2]*omega[i][2];

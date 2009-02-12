@@ -105,5 +105,3 @@ void FixLineForce::min_post_force(int vflag)
 {
   post_force(vflag);
 }
-
-

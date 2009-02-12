@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "compute_coord_atom.h"
@@ -35,7 +36,8 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all("Illegal compute coord/atom command");
 
-  cutoff = atof(arg[3]);
+  double cutoff = atof(arg[3]);
+  cutsq = cutoff*cutoff;
 
   peratom_flag = 1;
   size_peratom = 0;
@@ -55,7 +57,9 @@ ComputeCoordAtom::~ComputeCoordAtom()
 
 void ComputeCoordAtom::init()
 {
-  if (force->pair == NULL || cutoff > force->pair->cutforce) 
+  if (force->pair == NULL) 
+    error->all("Compute coord/atom requires a pair style be defined");
+  if (sqrt(cutsq) > force->pair->cutforce) 
     error->all("Compute coord/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
@@ -116,7 +120,6 @@ void ComputeCoordAtom::compute_peratom()
   double **x = atom->x;
   int *mask = atom->mask;
   int nall = atom->nlocal + atom->nghost;
-  double cutsq = cutoff*cutoff;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

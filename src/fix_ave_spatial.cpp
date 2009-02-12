@@ -615,8 +615,8 @@ void FixAveSpatial::end_of_step()
 
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit)
-	  if (mass) values_one[layer[i]][m] += mass[type[i]];
-	  else values_one[layer[i]][m] += rmass[i];
+	  if (rmass) values_one[layer[i]][m] += rmass[i];
+	  else values_one[layer[i]][m] += mass[type[i]];
 
     // COMPUTE adds its scalar or vector component to values
     // invoke compute if not previously invoked

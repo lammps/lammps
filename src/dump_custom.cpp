@@ -343,14 +343,14 @@ int DumpCustom::count()
 	ptr = dchoose;
 	nstride = 1;
       } else if (thresh_array[ithresh] == MASS) {
-	if (atom->mass) {
+	if (atom->rmass) {
+	  ptr = atom->rmass;
+	  nstride = 1;
+	} else {
 	  double *mass = atom->mass;
 	  int *type = atom->type;
 	  for (i = 0; i < nlocal; i++) dchoose[i] = mass[type[i]];
 	  ptr = dchoose;
-	  nstride = 1;
-	} else {
-	  ptr = atom->rmass;
 	  nstride = 1;
 	}
 
@@ -1450,16 +1450,16 @@ void DumpCustom::pack_mass(int n)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  if (mass) {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (choose[i]) {
-	buf[n] = mass[type[i]];
+	buf[n] = rmass[i];
 	n += size_one;
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (choose[i]) {
-	buf[n] = rmass[i];
+	buf[n] = mass[type[i]];
 	n += size_one;
       }
   }

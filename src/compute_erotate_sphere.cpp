@@ -55,8 +55,8 @@ void ComputeERotateSphere::init()
 
   if (atom->mass && !atom->shape)
     error->all("Compute erotate/sphere requires atom attribute shape");
-  if (!atom->mass && (!atom->radius_flag || !atom->rmass_flag))
-    error->all("Compute erotate/sphere requires atom attributes radius, rmass");
+  if (atom->rmass && !atom->radius_flag)
+    error->all("Compute erotate/sphere requires atom attribute radius");
 
   if (atom->mass) {
     double *mass = atom->mass;
@@ -86,16 +86,16 @@ double ComputeERotateSphere::compute_scalar()
 
   double erotate = 0.0;
 
-  if (mass) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-	erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		    omega[i][2]*omega[i][2]) * inertia[type[i]];
-  } else {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++) 
       if (mask[i] & groupbit)
 	erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
 		    omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
+		    omega[i][2]*omega[i][2]) * inertia[type[i]];
   }
 
   MPI_Allreduce(&erotate,&scalar,1,MPI_DOUBLE,MPI_SUM,world);

@@ -446,12 +446,12 @@ double Group::mass(int igroup)
 
   double one = 0.0;
 
-  if (mass) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) one += mass[type[i]];
-  } else {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) one += rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) one += mass[type[i]];
   }
 
   double all;
@@ -550,13 +550,13 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   int xbox,ybox,zbox;
   double massone;
 
-  if (mass) {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 	xbox = (image[i] & 1023) - 512;
 	ybox = (image[i] >> 10 & 1023) - 512;
 	zbox = (image[i] >> 20) - 512;
-	massone = mass[type[i]];
+	massone = rmass[i];
 	cmone[0] += (x[i][0] + xbox*xprd) * massone;
 	cmone[1] += (x[i][1] + ybox*yprd) * massone;
 	cmone[2] += (x[i][2] + zbox*zprd) * massone;
@@ -567,7 +567,7 @@ void Group::xcm(int igroup, double masstotal, double *cm)
 	xbox = (image[i] & 1023) - 512;
 	ybox = (image[i] >> 10 & 1023) - 512;
 	zbox = (image[i] >> 20) - 512;
-	massone = rmass[i];
+	massone = mass[type[i]];
 	cmone[0] += (x[i][0] + xbox*xprd) * massone;
 	cmone[1] += (x[i][1] + ybox*yprd) * massone;
 	cmone[2] += (x[i][2] + zbox*zprd) * massone;
@@ -599,10 +599,10 @@ void Group::vcm(int igroup, double masstotal, double *cm)
   double p[3],massone;
   p[0] = p[1] = p[2] = 0.0;
 
-  if (mass) {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = mass[type[i]];
+	massone = rmass[i];
 	p[0] += v[i][0]*massone;
 	p[1] += v[i][1]*massone;
 	p[2] += v[i][2]*massone;
@@ -610,7 +610,7 @@ void Group::vcm(int igroup, double masstotal, double *cm)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = rmass[i];
+	massone = mass[type[i]];
 	p[0] += v[i][0]*massone;
 	p[1] += v[i][1]*massone;
 	p[2] += v[i][2]*massone;
@@ -665,16 +665,16 @@ double Group::ke(int igroup)
 
   double one = 0.0;
 
-  if (mass) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
-	  mass[type[i]];
-  } else {
+  if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
 	  rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+	  mass[type[i]];
   }
   
   double all;
@@ -715,8 +715,8 @@ double Group::gyration(int igroup, double masstotal, double *cm)
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       rg += (dx*dx + dy*dy + dz*dz) * massone;
     }
   double rg_all;
@@ -759,8 +759,8 @@ void Group::angmom(int igroup, double *cm, double *lmom)
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       p[0] += massone * (dy*v[i][2] - dz*v[i][1]);
       p[1] += massone * (dz*v[i][0] - dx*v[i][2]);
       p[2] += massone * (dx*v[i][1] - dy*v[i][0]);
@@ -806,8 +806,8 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
-      if (mass) massone = mass[type[i]];
-      else massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       ione[0][0] += massone * (dy*dy + dz*dz);
       ione[1][1] += massone * (dx*dx + dz*dz);
       ione[2][2] += massone * (dx*dx + dy*dy);

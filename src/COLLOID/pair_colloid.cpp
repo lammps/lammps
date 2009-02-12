@@ -521,11 +521,3 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
 
   return factor_lj*phi;
 }
-
-/* ---------------------------------------------------------------------- */
-
-void *PairColloid::extract(char *str)
-{
-  if (strcmp(str,"diameter") == 0) return (void *) diameter;
-  return NULL;
-}

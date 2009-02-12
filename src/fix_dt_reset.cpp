@@ -152,8 +152,8 @@ void FixDtReset::end_of_step()
     if (mask[i] & groupbit) {
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       fsq = f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-      if (mass) ms = mass[type[i]];
-      else ms = rmass[i];
+      if (rmass) ms = rmass[i];
+      else ms = mass[type[i]];
       asq = fsq/ms/ms;
       bound[0] = MAX(bound[0],vsq);
       bound[1] = MAX(bound[1],asq);

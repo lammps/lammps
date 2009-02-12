@@ -288,25 +288,25 @@ c      end if
 ********************************************************************** 
 ************************************************************************
  
-      subroutine timer(nunit)
+c      subroutine timer(nunit)
  
 ************************************************************************
-#include "cbka.blk"
-#include "cbkinit.blk"
-      real timear
-      real tarray(2)
-#ifdef _IBM
-      call dtime_(tarray,timear)
-#else
-      call dtime(tarray,timear)
-#endif
+c#include "cbka.blk"
+c#include "cbkinit.blk"
+c      real timear
+c      real tarray(2)
+c#ifdef _IBM
+c      call dtime_(tarray,timear)
+c#else
+c      call dtime(tarray,timear)
+c#endif
 
-      ustime=ustime+tarray(1)
-      systime=systime+tarray(2)
-      write (nunit,100)ustime,systime,ustime+systime
-      return
-  100 format ('User time:',f20.4,' System time:',f20.4,
-     $' Total time:',f20.4)
-      end
+c      ustime=ustime+tarray(1)
+c      systime=systime+tarray(2)
+c      write (nunit,100)ustime,systime,ustime+systime
+c      return
+c  100 format ('User time:',f20.4,' System time:',f20.4,
+c     $' Total time:',f20.4)
+c      end
 ************************************************************************
 ************************************************************************

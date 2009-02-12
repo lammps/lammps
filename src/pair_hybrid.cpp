@@ -506,8 +506,7 @@ void PairHybrid::modify_requests()
     if (j < neighbor->nrequest) irq->otherlist = j;
     else {
       int newrequest = neighbor->request(this);
-      neighbor->requests[newrequest]->copy_kind(irq);
-      neighbor->requests[newrequest]->dnum = irq->dnum;
+      neighbor->requests[newrequest]->copy_request(irq);
       irq->otherlist = newrequest;
     }
 

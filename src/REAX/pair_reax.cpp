@@ -53,8 +53,8 @@ PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
+  no_virial_compute = 1;
   
-  Lmidpoint = false;
   cutmax = 0.0;
   hbcut = 6.0;
   iprune = 4;

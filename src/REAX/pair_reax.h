@@ -39,7 +39,6 @@ class PairREAX : public Pair {
   double cutmax;
   double rcutvsq,rcutbsq; 
   int iprune,ihb;
-  bool Lmidpoint; 
   double hbcut,swb;
   double swa;
   double swc0, swc1, swc2, swc3, swc4, swc5, swc6, swc7;

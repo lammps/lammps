@@ -1,4 +1,5 @@
       common
-     $/cbkc/ c(nat,3),cglobal(nattot,3),itag(nat)
+     $/cbkc/ c(nat,3),cglobal(nattot,3),itag(nat),
+     $chgglobal(nattot)
 
 

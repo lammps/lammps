@@ -33,6 +33,7 @@
 #include "valang.blk"
 #include "cbksrtbon1.blk"
 #include "cbkchb.blk"
+      dimension rcore2(nsort),ecore2(nsort),acore2(nsort)
 **********************************************************************
 *                                                                    *
 *     Read in force field                                            *
@@ -44,9 +45,6 @@ c$$$      write (65,*) 'In ffinpt'
 c$$$      call timer(65)
 c$$$      close (65)
 c$$$      end if
-
-      open (4,file='ffield.reax',status='old')
-
       rewind (4)
       iline=0
       read (4,'(a40)',end=990,err=990)qffield
@@ -96,7 +94,7 @@ c$$$      end if
      $bo131(i1),bo132(i1),bo133(i1),sigqeq(i1),default
       iline=iline+1
       read (4,1250,end=990,err=990)vovun(i1),vval1(i1),vrom,
-     $vval3(i1),vval4(i1)
+     $vval3(i1),vval4(i1),rcore2(i1),ecore2(i1),acore2(i1)
       iline=iline+1
       idef(i1)=int(default)
       nphb(i1)=int(vnphb)
@@ -108,6 +106,9 @@ c$$$      end if
 **********************************************************************
       do i1=1,nso
       do i2=1,nso
+      rcore(i1,i2)=sqrt(rcore2(i1)*rcore2(i2))
+      ecore(i1,i2)=sqrt(ecore2(i1)*ecore2(i2))
+      acore(i1,i2)=sqrt(acore2(i1)*acore2(i2))
       p1co(i1,i2)=sqrt(4.0*rvdw(i1)*rvdw(i2))
       p2co(i1,i2)=sqrt(eps(i1)*eps(i2))
       p3co(i1,i2)=sqrt(alf(i1)*alf(i2))
@@ -261,6 +262,7 @@ c$$$      end if
   990 write (*,*)'Error or end-of-file reading unit 4 on line:',iline
       stop
   999 continue
+      close(4)
 **********************************************************************
 *                                                                    *
 *     Format part                                                    *
@@ -2182,7 +2184,8 @@ c$$$      end if
      $,end=40,err=40)
      $ir,qlabel(na+1),qresi1(na+1),qresi2(na+1),qresi3(na+1),
      $cglobal(na+1,1),cglobal(na+1,2),
-     $cglobal(na+1,3),qffty(na+1),ibgr1(na+1),ibgr2(na+1),chgbgf(na+1)
+     $cglobal(na+1,3),qffty(na+1),ibgr1(na+1),ibgr2(na+1),
+     $chgglobal(na+1)
       else
       stop 'Unsupported Biograf-version'
       end if

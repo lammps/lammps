@@ -2805,8 +2805,6 @@ c$$$      end if
       exphuc=exp(-vpar(24)*boc)
       bocor4=(1.0-exphua)*(1.0-exphub)*(1.0-exphuc)
       eth=hsin*ethhulp*bocor4
-      estrain(j(2))=estrain(j(2))+0.50*eth
-      estrain(j(3))=estrain(j(3))+0.50*eth
 
       detdar=hsin*bocor4*(0.50*v1(ity)-2.0*v2(ity)*bocor2*arg+
      $v3(ity)*(6.0*arg2-1.5d0))

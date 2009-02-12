@@ -393,7 +393,6 @@ c$$$      call mdsav(1,qfile(nprob))
 *     lhb controls whether or not to unprune ghost bonds that        *
 *     may possibly form ghost hydrogen bonds.                        *
 *     Setting it to 1 causes unpruning, and so is the safe option.   *
-*     With the new midpoint method, lhb=0 may miss some h-bonds      *
 *     If lprune = 0, then pruning is not used, results are exact     *
 *     and lhb has no effect.                                         *
 *                                                                    *
@@ -604,17 +603,19 @@ c  but it does store bond entries in nubon2()
       ihhb2=nphb(ia(j2,1))
       end if
 
-*     Only need to compute bonds where j3 is local
+*     Only need to compute bonds where j1 is local
       if (j1 .le. na_local) then
 
       if (ihhb1.eq.1.and.ihhb2.eq.2) then
          call dista2(j1,j2,dishb,dxm,dym,dzm)
          if (dishb.lt.hbcut) then
             do i23=1,ia(j1,2)   !Search for acceptor atoms bound to donor atom
-               j3=ia(j1,2+i23)
-               if (nphb(ia(j3,1)).eq.2.and.j3.ne.j2) then
-                  nboncol(nubon2(j1,i23))=-1
-                  ntmphb = ntmphb+1
+               if (nboncol(nubon2(j1,i23)).eq.0) then
+                  j3=ia(j1,2+i23)
+                  if (nphb(ia(j3,1)).eq.2.and.j3.ne.j2) then
+                     nboncol(nubon2(j1,i23))=-1
+                     ntmphb = ntmphb+1
+                  endif
                endif
             end do
          end if
@@ -1475,7 +1476,7 @@ c
       ihhb2=nphb(ia(j2,1))
       end if
 
-* Only need to compute bonds where j3 is local
+* Only need to compute bonds where j1 is local
       if (j1 .le. na_local) then
 
       if (ihhb1.eq.1.and.ihhb2.eq.2) then

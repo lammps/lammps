@@ -54,6 +54,7 @@
      $       elmol(nmolmax),
      $       elaf(nsort),vpq(nsort),
      $       rvdw(nsort),alf(nsort),eps(nsort),chat(nsort),
+     $       rcore(nsort,nsort),ecore(nsort,nsort),acore(nsort,nsort),
      $       vlp2(nsort),
      $       valp2(nsort),vincr(nsort),
      $       vval3(nsort),

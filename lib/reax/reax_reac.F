@@ -93,9 +93,10 @@ c$$$      end if
       call lonpar
       call covbon
       call ovcor
+
       call srtang   !Determine valency angles
       call srttor   !Determine torsion angles
-      call srtoop   !Determine out of plane angles
+*     call srtoop   !Determine out of plane angles
       call srthb    !Determine hydrogen bonds
   
       call calval

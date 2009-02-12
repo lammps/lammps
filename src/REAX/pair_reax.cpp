@@ -17,11 +17,7 @@
    LAMMPS implementation of the Reactive Force Field (ReaxFF) is based on
      Aidan Thompson's GRASP code
        (General Reactive Atomistic Simulation Program)
-     Ardi Van Duin's original ReaxFF code
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   Contributing authors: Aidan Thompson (SNL), Hansohl Cho (MIT)
+     and Ardi Van Duin's original ReaxFF code
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"

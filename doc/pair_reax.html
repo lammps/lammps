@@ -29,14 +29,16 @@ pair_coeff * * ffield.reax C H O N
 <P>The pair style computes the ReaxFF potential of van Duin, Goddard and
 co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy.  Details of the interatomic potential energy calculation are
-given in the following publications: <A HREF = "#van_Duin_2001">(van Duin 2001)</A>
-and <A HREF = "#van_Duin_2003">(van Duin 2003)</A>.
+energy.  Details of the ReaxFF and its interatomic potential energy
+calculation are given in the following publications: <A HREF = "#van_Duin_2001">(van Duin
+2001)</A> and <A HREF = "#van_Duin_2003">(van Duin 2003)</A>.
 </P>
-<P>ReaxFF parameters for the elements C, H, O, N, S, and Si are provided
-in the parameter file ffield.reax in the potentials directory.  For
-other elements, or for specific chemical systems, other parameter
-files may be available elsewhere.
+<P>LAMMPS provides a ReaxFF potential file in its potentials dir, namely
+potentials/ffield.reax.  Its format is identical to that used by van
+Duin and co-workers.  It contains parameterizations for the following
+elements: C, H, O, N, S, and Si.  You can use your another file in
+place of it, and ReaxFF files with parameterizations for other
+elements or for specific chemical systems may be available elsewhere.
 </P>
 <P>The <I>hbcut</I> and <I>precision</I> settings are optional arguments.  If
 neither is provided, default settings are used: <I>hbcut</I> = 10 (which is
@@ -45,8 +47,9 @@ If you wish to override either of these defaults, then both settings
 must be specified.
 </P>
 <P>Use of this pair style requires that a charge be defined for every
-atom.  See the <A HREF = "atom_style.html">atom_style</A> and
-<A HREF = "read_data.html">read_data</A> commands for details.
+atom since the potential performs charge equilibration.  See the
+<A HREF = "atom_style.html">atom_style</A> and <A HREF = "read_data.html">read_data</A> commands
+for details on how to specify charges.
 </P>
 <P>The thermo variable <I>evdwl</I> stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -61,17 +64,34 @@ additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 </P>
 <UL><LI>filename
-<LI>N element names = mapping of ReaxFF elements to atom types 
+<LI>N indices = mapping of ReaxFF elements to atom types 
 </UL>
+<P>The specification of the filename and the mapping of LAMMPS atom types
+recognized by the ReaxFF is done differently than for other LAMMPS
+potentials, due to the non-portable difficulty of passing character
+strings (e.g. filename, element names) between C++ and Fortran.
+</P>
+<P>The filename has to be "ffield.reax" and it has to exist in the
+directory you are running LAMMPS in.  This means you cannot prepend a
+path to the file in the potentials dir.  Rather, you should copy that
+file into the directory you are running from.  If you wish to use
+another ReaxFF potential file, then name it "ffield.reax" and put in
+your running dir.
+</P>
+<P>In the ReaxFF potential file, near the top, is a section that contains
+element names, each with a couple dozen numeric parameters.  The
+ffield.reax provided with LAMMPS lists 6 elements: C, H, O, N, S, Si.
+Think of these as numbered 1 to 6.  Each of the N indices you specify
+for the N atom types of LAMMPS atoms must be an integer from 1 to 6.
+Atoms with LAMMPS type 1 will be mapped to whatever element you
+specify as the first index value, etc.
+</P>
 <P>As an example, if your LAMMPS simulation has 4 atoms types and you
-want the 1st 3 to be C, and the 4th to be H, you would use the
-following pair_coeff command:
+want the 1st two to be C, the 3rd to be N, and the 4th to be H, you
+would use the following pair_coeff command:
 </P>
-<PRE>pair_coeff * * ffield.reax C C C H 
+<PRE>pair_coeff * * ffield.reax 1 1 4 2 
 </PRE>
-<P>The format of the ReaxFF parameter file is identical to that used by
-van Duin and co-workers.
-</P>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
@@ -95,15 +115,13 @@ LAMMPS was built with that package, which also requires the REAX
 library be built and linked with LAMMPS.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This pair potential ignores the <A HREF = "newton.html">newton</A>
-settings. Internally, the newton setting is "on" for the force
-calculation, but "off" for the neighbor list.
-</P>
 <P>The ffield.reax potential file provided with LAMMPS in the potentials
 directory is parameterized for real <A HREF = "units.html">units</A>.  You can use
 the ReaxFF potential with any LAMMPS units, but you would need to
 create your own potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "real" units.
+appropriate units if your simulation doesn't use "real" units.  This
+would be somewhat tricky, so contact the LAMMPS authors if you wish to
+do this.
 </P>
 <P><B>Related commands:</B>
 </P>

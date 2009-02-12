@@ -500,7 +500,6 @@ void PairREAX::coeff(int narg, char **arg)
       continue;
     }
     map[i-2] = atoi(arg[i]);
-    if (map[i-2] < 1) error->all("Incorrect args for pair coefficients");
   }
 
   int n = atom->ntypes;
@@ -553,10 +552,16 @@ void PairREAX::init_style()
   rcutbsq=vlbora*vlbora;
 
   // parameters for charge equilibration from ReaxFF input, fort.4
+  // verify that no LAMMPS type to REAX type mapping was invalid
+
+  int nelements;
+  FORTRAN(getnso, GETNSO)(&nelements);
 
   FORTRAN(getswa, GETSWA)(&swa);
   double chi, eta, gamma;
   for (int itype = 1; itype <= atom->ntypes; itype++) {
+    if (map[itype] < 1 || map[itype] > nelements)
+      error->all("Invalid REAX atom type");
     chi = FORTRAN(cbkchb, CBKCHB).chi[map[itype]-1];
     eta = FORTRAN(cbkchb, CBKCHB).eta[map[itype]-1];
     gamma = FORTRAN(cbkchb, CBKCHB).gam[map[itype]-1];

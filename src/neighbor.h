@@ -78,6 +78,7 @@ class Neighbor : protected Pointers {
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
 
   int must_check;                  // 1 if must check other classes to reneigh
+  int build_once;                  // 1 if never rebuild
   int restart_check;               // 1 if restart enabled, 0 if no
   int fix_check;                   // # of fixes that induce reneigh
   int *fixchecklist;               // which fixes to check

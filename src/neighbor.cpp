@@ -70,6 +70,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   pgsize = 100000;
   oneatom = 2000;
   binsizeflag = 0;
+  build_once = 0;
 
   cutneighsq = NULL;
   cuttype = NULL;
@@ -967,6 +968,9 @@ void Neighbor::print_lists_of_lists()
 
 int Neighbor::decide()
 {
+
+  if (build_once) return 0;
+
   if (must_check) {
     int n = update->ntimestep;
     if (restart_check && n == output->next_restart) return 1;
@@ -1343,6 +1347,12 @@ void Neighbor::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal neigh_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) dist_check = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) dist_check = 0;
+      else error->all("Illegal neigh_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"once") == 0) {
+      if (iarg+2 > narg) error->all("Illegal neigh_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) build_once = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) build_once = 0;
       else error->all("Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {

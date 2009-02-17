@@ -434,10 +434,11 @@ Obviously, LAMMPS attempts to evaluate variables containing formulas
 evaluation is performed.  Depending on what is included in the
 formula, this may require invoking a "compute"_compute.html, either
 directly or indirectly via a thermo keyword, or accessing a value
-calculated and stored by a "fix"_fix.html.  If the compute is one that
-calculates the pressure or energy of the system, then these quantities
-need to be tallied during the evaluation of the interatomic potentials
-(pair, bond, etc) on timesteps that the variable will need the values.
+previously calculated by a compute, or accessing a value calculated
+and stored by a "fix"_fix.html.  If the compute is one that calculates
+the pressure or energy of the system, then these quantities need to be
+tallied during the evaluation of the interatomic potentials (pair,
+bond, etc) on timesteps that the variable will need the values.
 
 LAMMPS keeps track of all of this during a "run"_run.html or "energy
 minimization"_minimize.html.  An error will be generated if you
@@ -446,29 +447,29 @@ accurate values.  For example, if a "thermo_style
 custom"_thermo_style.html command prints a variable which accesses
 values stored by a "fix ave/time"_fix_ave_time.html command and the
 timesteps on which thermo output is generated are not multiples of the
-averaging frequency used in the fix command, then it is an error.
+averaging frequency used in the fix command, then an error will occur.
 
-However, your input script can also require variables to be evaluated
-before or after or inbetween runs.  In this case, one of three things
-may happen.
+An input script can also request variables be evaluated before or
+after or in between runs, e.g. by including them in a
+"print"_print.html command.  In this case, if a compute is needed to
+evaluate a variable (either directly or indirectly), LAMMPS will not
+invoke the compute, but it will use a value previously calculated by
+the compute if it is current.  Fixes will always provide a quantity
+needed by a variable, but the quantity may or may not be current.
+This leads to one of three kinds of behavior:
 
 (1) The variable may be evaluated accurately.  If it contains
-references to a compute or fix, and these values were calculated and
-stored on the last timestep of a preceeding run, then they can be
-accessed and used by the variable.
+references to a compute or fix, and these values were calculated on
+the last timestep of a preceeding run, then they will be accessed and
+used by the variable and the result will be accurate.
 
 (2) LAMMPS may not be able to evaluate the variable and generate an
-error.  For example, if the variable formula requires a
-"compute"_compute.html to be invoked, either directly or indirectly
-via a thermo keyword, then the variable cannot be evaluated before the
-first run has occurred.  The general rule is that if a variable uses a
-value calculated by a compute, and the variable is not being evaluated
-during a run, then the variable will not invoke the compute.  Instead,
-it can only use the value stored by the compute, which for accuracy
-requires that the compute was already invoked on the same timestep
-during a preceeding run.
+error.  For example, if the variable requires a quantity from a
+"compute"_compute.html that is not current, LAMMPS will not do it.
+This means, for example, that such a variable then the variable cannot
+be evaluated before the first run has occurred.
 
-Thus the way to get around this error is to perform a 0-timestep run
+One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands
 
 variable t equal temp
@@ -491,21 +492,20 @@ the one for temperature, so that the value it stores is current and
 can be accessed by the variable "t" after the run has completed.  Note
 that a 0-timestep run does not alter the state of the system, so it
 does not change the input state for the 1000-timestep run that
-follows.  Also note, that the 0-timestep run must actually use and
+follows.  Also note that the 0-timestep run must actually use and
 invoke the compute in question (e.g. via "thermo"_thermo_style.html or
 "dump"_dump.html output) in order for it to enable the compute to be
 used in a variable after the run.
 
-Note that unlike computes, "fixes"_fix.html will never generate an
-error if their values are accessed by a variable in between runs.
-They always return some value to the variable.  However, this value
-may not be what you expect if the fix has not yet calculated the
-quantity of interest.  For example, the "fix indent"_fix_indent.html
+Unlike computes, "fixes"_fix.html will never generate an error if
+their values are accessed by a variable in between runs.  They always
+return some value to the variable.  However, the value may not be what
+you expect if the fix has not yet calculated the quantity of interest
+or it is not current.  For example, the "fix indent"_fix_indent.html
 command stores the force on the indenter.  But this is not computed
 until a run is performed.  Thus if a variable attempts to print this
-value before the first run, values of zero will be output.  Again,
-performing a 0-timestep run before printing the variable has the
-desired effect.
+value before the first run, zeroes will be output.  Again, performing
+a 0-timestep run before printing the variable has the desired effect.
 
 (3) The variable may be evaluated incorrectly.  And LAMMPS may have
 no way to detect this has occurred.  Consider the following sequence
@@ -531,7 +531,7 @@ could alter the state of the system between runs, causing a variable
 to evaluate incorrectly.
 
 The solution to this issue is the same as for case (2) above, namely
-to perform a 0-timestep run before the variable is evaluated to insure
+perform a 0-timestep run before the variable is evaluated to insure
 the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:

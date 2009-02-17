@@ -13,7 +13,7 @@ neigh_modify command :h3
 neigh_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {one} or {binsize}
+keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {one} or {binsize} or {once}
   {delay} value = N
     N = delay building until this many steps since last build
   {every} value = M
@@ -38,6 +38,9 @@ keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {
     N = max number of neighbors of one atom :pre
   {binsize} value = size
     size = bin size for neighbor list construction (distance units) :pre
+  {once}
+    {yes} = only build neighbor list once at start and never rebuild
+    {no} = rebuild neighbor list according to other settings
 :ule
 
 [Examples:]
@@ -53,7 +56,7 @@ neigh_modify exclude molecule rigid :pre
 This command sets parameters that affect the building and use of
 pairwise neighbor lists.
 
-The {every}, {delay}, and {check} options affect how often lists are
+The {every}, {delay}, {check}, and {once} options affect how often lists are
 built as a simulation runs.  The {delay} setting means never build a
 new list until at least N steps after the previous build.  The {every}
 setting means build the list every M steps (after the delay has
@@ -61,7 +64,8 @@ passed).  If the {check} setting is {no}, the list is built on the 1st
 step that satisfies the {delay} and {every} settings.  If the {check}
 setting is {yes}, then the list is only built on a particular step if
 some atom has moved more than half the skin distance (specified in the
-"neighbor"_neighbor.html command) since the last build.
+"neighbor"_neighbor.html command) since the last build. If the {build} 
+setting is yes, then the neighbor list is never rebuilt.
 
 When the rRESPA integrator is used (see the "run_style"_run_style.html
 command), the {every} and {delay} parameters refer to the longest
@@ -150,5 +154,5 @@ space.
 
 [Default:]
 
-The option defaults are delay = 10, every = 1, check = yes, include =
-all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.
+The option defaults are delay = 10, every = 1, check = yes, once = no,
+include = all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.

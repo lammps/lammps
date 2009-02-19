@@ -13,7 +13,7 @@ neigh_modify command :h3
 neigh_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {one} or {binsize} or {once}
+keyword = {delay} or {every} or {check} or {once} or {include} or {exclude} or {page} or {one} or {binsize}
   {delay} value = N
     N = delay building until this many steps since last build
   {every} value = M
@@ -21,6 +21,9 @@ keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {
   {check} value = {yes} or {no}
     {yes} = only build if some atom has moved half the skin distance or more
     {no} = always build on 1st step that {every} and {delay} are satisfied
+  {once}
+    {yes} = only build neighbor list once at start of run and never rebuild
+    {no} = rebuild neighbor list according to other settings
   {include} value = group-ID
     group-ID = only build pair neighbor lists for atoms in this group
   {exclude} values:
@@ -38,9 +41,6 @@ keyword = {delay} or {every} or {check} or {include} or {exclude} or {page} or {
     N = max number of neighbors of one atom :pre
   {binsize} value = size
     size = bin size for neighbor list construction (distance units) :pre
-  {once}
-    {yes} = only build neighbor list once at start and never rebuild
-    {no} = rebuild neighbor list according to other settings
 :ule
 
 [Examples:]
@@ -56,16 +56,21 @@ neigh_modify exclude molecule rigid :pre
 This command sets parameters that affect the building and use of
 pairwise neighbor lists.
 
-The {every}, {delay}, {check}, and {once} options affect how often lists are
-built as a simulation runs.  The {delay} setting means never build a
-new list until at least N steps after the previous build.  The {every}
-setting means build the list every M steps (after the delay has
-passed).  If the {check} setting is {no}, the list is built on the 1st
-step that satisfies the {delay} and {every} settings.  If the {check}
-setting is {yes}, then the list is only built on a particular step if
-some atom has moved more than half the skin distance (specified in the
-"neighbor"_neighbor.html command) since the last build. If the {build} 
-setting is yes, then the neighbor list is never rebuilt.
+The {every}, {delay}, {check}, and {once} options affect how often
+lists are built as a simulation runs.  The {delay} setting means never
+build a new list until at least N steps after the previous build.  The
+{every} setting means build the list every M steps (after the delay
+has passed).  If the {check} setting is {no}, the list is built on the
+1st step that satisfies the {delay} and {every} settings.  If the
+{check} setting is {yes}, then the list is only built on a particular
+step if some atom has moved more than half the skin distance
+(specified in the "neighbor"_neighbor.html command) since the last
+build. If the {once} setting is yes, then the neighbor list is only
+built once at the beginning of each run, and never rebuilt.  This
+should only be done if you are certain atoms will not move far enough
+that the list should be rebuilt.  E.g. running a simulation of a cold
+crystal.  Note that it is not that expensive to check if neighbor
+lists should be rebuilt.
 
 When the rRESPA integrator is used (see the "run_style"_run_style.html
 command), the {every} and {delay} parameters refer to the longest

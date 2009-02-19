@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>include</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
+<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>once</I> or <I>include</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
   <I>delay</I> value = N
     N = delay building until this many steps since last build
   <I>every</I> value = M
@@ -25,6 +25,9 @@
   <I>check</I> value = <I>yes</I> or <I>no</I>
     <I>yes</I> = only build if some atom has moved half the skin distance or more
     <I>no</I> = always build on 1st step that <I>every</I> and <I>delay</I> are satisfied
+  <I>once</I>
+    <I>yes</I> = only build neighbor list once at start of run and never rebuild
+    <I>no</I> = rebuild neighbor list according to other settings
   <I>include</I> value = group-ID
     group-ID = only build pair neighbor lists for atoms in this group
   <I>exclude</I> values:
@@ -59,15 +62,21 @@ neigh_modify exclude molecule rigid
 <P>This command sets parameters that affect the building and use of
 pairwise neighbor lists.
 </P>
-<P>The <I>every</I>, <I>delay</I>, and <I>check</I> options affect how often lists are
-built as a simulation runs.  The <I>delay</I> setting means never build a
-new list until at least N steps after the previous build.  The <I>every</I>
-setting means build the list every M steps (after the delay has
-passed).  If the <I>check</I> setting is <I>no</I>, the list is built on the 1st
-step that satisfies the <I>delay</I> and <I>every</I> settings.  If the <I>check</I>
-setting is <I>yes</I>, then the list is only built on a particular step if
-some atom has moved more than half the skin distance (specified in the
-<A HREF = "neighbor.html">neighbor</A> command) since the last build.
+<P>The <I>every</I>, <I>delay</I>, <I>check</I>, and <I>once</I> options affect how often
+lists are built as a simulation runs.  The <I>delay</I> setting means never
+build a new list until at least N steps after the previous build.  The
+<I>every</I> setting means build the list every M steps (after the delay
+has passed).  If the <I>check</I> setting is <I>no</I>, the list is built on the
+1st step that satisfies the <I>delay</I> and <I>every</I> settings.  If the
+<I>check</I> setting is <I>yes</I>, then the list is only built on a particular
+step if some atom has moved more than half the skin distance
+(specified in the <A HREF = "neighbor.html">neighbor</A> command) since the last
+build. If the <I>once</I> setting is yes, then the neighbor list is only
+built once at the beginning of each run, and never rebuilt.  This
+should only be done if you are certain atoms will not move far enough
+that the list should be rebuilt.  E.g. running a simulation of a cold
+crystal.  Note that it is not that expensive to check if neighbor
+lists should be rebuilt.
 </P>
 <P>When the rRESPA integrator is used (see the <A HREF = "run_style.html">run_style</A>
 command), the <I>every</I> and <I>delay</I> parameters refer to the longest
@@ -156,7 +165,7 @@ space.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are delay = 10, every = 1, check = yes, include =
-all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.
+<P>The option defaults are delay = 10, every = 1, check = yes, once = no,
+include = all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.
 </P>
 </HTML>

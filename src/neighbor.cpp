@@ -238,6 +238,7 @@ void Neighbor::init()
   cutneighmaxsq = cutneighmax * cutneighmax;
 
   // check other classes that can induce reneighboring in decide()
+  // don't check if build_once is set
 
   restart_check = 0;
   if (output->restart_every) restart_check = 1;
@@ -253,6 +254,7 @@ void Neighbor::init()
 
   must_check = 0;
   if (restart_check || fix_check) must_check = 1;
+  if (build_once) must_check = 0;
 
   // set special_flag for 1-2, 1-3, 1-4 neighbors
   // flag[0] is not used, flag[1] = 1-2, flag[2] = 1-3, flag[3] = 1-4
@@ -968,9 +970,6 @@ void Neighbor::print_lists_of_lists()
 
 int Neighbor::decide()
 {
-
-  if (build_once) return 0;
-
   if (must_check) {
     int n = update->ntimestep;
     if (restart_check && n == output->next_restart) return 1;
@@ -980,8 +979,9 @@ int Neighbor::decide()
 
   ago++;
   if (ago >= delay && ago % every == 0) {
+    if (build_once) return 0;
     if (dist_check == 0) return 1;
-    else return check_distance();
+    return check_distance();
   } else return 0;
 }
 

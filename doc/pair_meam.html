@@ -157,6 +157,15 @@ lattce(I,J) = lattice structure of I-J reference structure:
                 bcc = body centered cubic
                 dim = dimer 
                 b1  = rock salt (NaCl structure)
+nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
+              I-J pair (see for example <A HREF = "#Lee">(Lee)</A>).  Only valid for I=J.
+                0 = second-nearest neighbor formulation off
+                1 = second-nearest neighbor formulation on
+                default = 0
+attrac(I,J) = additional cubic attraction term in Rose energy I-J pair potential
+                default = 0            
+repuls(I,J) = additional cubic repulsive term in Rose energy I-J pair potential
+                default = 0            
 gsmooth_factor  = factor determining the length of the G-function smoothing
                   region; only significant for ibar=0 or ibar=4.
                       99.0 = short smoothing region, sharp step
@@ -184,6 +193,30 @@ alpha(1,2) = 4.37
 </PRE>
 <P>set rho0 for the 2nd element to the value 2.25 and set alpha for the
 alloy interaction between elements 1 and 2 to 4.37.
+</P>
+<P>The augt1 parameter is related to modifications in the MEAM
+formulation of the partial electron density function.  In recent
+literature, an extra term is included in the expression for the
+third-order density in order to make the densities orthogonal (see for
+example <A HREF = "#Wang">(Wang)</A>, equation 3d); this term is included in the
+MEAM implementation in lammps.  However, in earlier published work
+this term was not included when deriving parameters, including most of
+those provided in the library.meam file included with lammps, and to
+account for this difference the parameter t1 must be augmented by
+3/5*t3.  If augt1=1, the default, this augmentation is done
+automatically.  When parameter values are fit using the modified
+density function, as in more recent literature, augt1 should be set to
+0.
+</P>
+<P>The parameters attrac and repuls can be used to modify the Rose energy
+function used to compute the pair potential.  This function gives the
+energy of the reference state as a function of interatomic spacing.
+The form of this function is:
+</P>
+<PRE>astar = alpha * (r/re - 1.d0)
+erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar) 
+</PRE>
+<P>In most cases the default values attrac = repulse = 0 are sufficient.
 </P>
 <HR>
 
@@ -234,4 +267,12 @@ This report may be accessed on-line via <A HREF = "http://www.prod.sandia.gov/cg
 </P>
 
 
+<A NAME = "Lee"></A>
+
+<P><B>(Lee)</B> Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
+</P>
+<A NAME = "Wang"></A>
+
+<P><B>(Wang)</B> Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
+</P>
 </HTML>

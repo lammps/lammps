@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class MinCG : public Min {
  public:
   MinCG(class LAMMPS *);
-  virtual ~MinCG() {}
+  virtual ~MinCG();
   void init();
   void run();
   virtual int iterate(int);
@@ -38,18 +38,26 @@ class MinCG : public Min {
 
   int ndof;                   // # of degrees-of-freedom on this proc
   double *g,*h;               // local portion of gradient, searchdir vectors
+  double *x0;                 // coords at start of linesearch
+
+  int nextra;                 // extra dof due to fixes
+  double *fextra;             // vectors for extra dof
+  double *gextra;
+  double *hextra;
 
   // ptr to linemin functions
 
-  typedef int (MinCG::*FnPtr)(int, double *, double *, double,
-			      double, double &, int &);
+  typedef int (MinCG::*FnPtr)(int, double *, double *, double *, double,
+			       double, double &, int &);
   FnPtr linemin;
-  int linemin_backtrack(int, double *, double *, double,
+  int linemin_backtrack(int, double *, double *, double *, double,
+			double, double &, int &);
+  int linemin_quadratic(int, double *, double *, double *, double,
 			double, double &, int &);
 
   void setup();
   void setup_vectors();
-  void eng_force(int *, double **, double **, double *);
+  void eng_force(int *, double **, double **, double **, double *);
   void force_clear();
 };
 

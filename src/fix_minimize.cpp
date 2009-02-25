@@ -28,6 +28,7 @@ FixMinimize::FixMinimize(LAMMPS *lmp, int narg, char **arg) :
 
   gradient = NULL;
   searchdir = NULL;
+  x0 = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 }
@@ -44,6 +45,7 @@ FixMinimize::~FixMinimize()
 
   memory->destroy_2d_double_array(gradient);
   memory->destroy_2d_double_array(searchdir);
+  memory->destroy_2d_double_array(x0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +61,7 @@ int FixMinimize::setmask()
 
 double FixMinimize::memory_usage()
 {
-  double bytes = 2 * atom->nmax*3 * sizeof(double);
+  double bytes = 3 * atom->nmax*3 * sizeof(double);
   return bytes;
 }
 
@@ -73,6 +75,8 @@ void FixMinimize::grow_arrays(int nmax)
     memory->grow_2d_double_array(gradient,nmax,3,"fix_minimize:gradient");
   searchdir =
     memory->grow_2d_double_array(searchdir,nmax,3,"fix_minimize:searchdir");
+  x0 =
+    memory->grow_2d_double_array(x0,nmax,3,"fix_minimize:x0");
 }
 
 /* ----------------------------------------------------------------------
@@ -87,6 +91,9 @@ void FixMinimize::copy_arrays(int i, int j)
   searchdir[j][0] = searchdir[i][0];
   searchdir[j][1] = searchdir[i][1];
   searchdir[j][2] = searchdir[i][2];
+  x0[j][0] = x0[i][0];
+  x0[j][1] = x0[i][1];
+  x0[j][2] = x0[i][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -101,7 +108,10 @@ int FixMinimize::pack_exchange(int i, double *buf)
   buf[3] = searchdir[i][0]; 
   buf[4] = searchdir[i][1]; 
   buf[5] = searchdir[i][2]; 
-  return 6;
+  buf[6] = x0[i][0]; 
+  buf[7] = x0[i][1]; 
+  buf[8] = x0[i][2]; 
+  return 9;
 }
 
 /* ----------------------------------------------------------------------
@@ -116,5 +126,8 @@ int FixMinimize::unpack_exchange(int nlocal, double *buf)
   searchdir[nlocal][0] = buf[3];
   searchdir[nlocal][1] = buf[4];
   searchdir[nlocal][2] = buf[5];
-  return 6;
+  x0[nlocal][0] = buf[6];
+  x0[nlocal][1] = buf[7];
+  x0[nlocal][2] = buf[8];
+  return 9;
 }

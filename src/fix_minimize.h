@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class FixMinimize : public Fix {
  public:
   double **gradient,**searchdir;      // gradient vectors
+  double **x0;                        // initial coords at start of linesearch
 
   FixMinimize(class LAMMPS *, int, char **);
   ~FixMinimize();

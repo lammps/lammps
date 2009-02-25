@@ -43,6 +43,9 @@ int MinSD::iterate(int n)
 
   if (ndof) f = atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = f[i];
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      hextra[i] = fextra[i];
 
   neval = 0;
 
@@ -54,7 +57,7 @@ int MinSD::iterate(int n)
 
     eprevious = ecurrent;
     if (ndof) x = atom->x[0];
-    fail = (this->*linemin)(ndof,x,h,ecurrent,dmax,alpha_final,neval);
+    fail = (this->*linemin)(ndof,x,h,x0,ecurrent,dmax,alpha_final,neval);
     if (fail) return FAIL;
 
     // function evaluation criterion
@@ -73,12 +76,18 @@ int MinSD::iterate(int n)
     dot = 0.0;
     for (i = 0; i < ndof; i++) dot += f[i]*f[i];
     MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
+    if (nextra)
+      for (i = 0; i < nextra; i++)
+	dotall += fextra[i]*fextra[i];
 
     if (dotall < update->ftol * update->ftol) return FTOL;
 
-    // set h to new f = -Grad(x)
+    // set new search direction h to f = -Grad(x)
 
     for (i = 0; i < ndof; i++) h[i] = f[i];
+    if (nextra)
+      for (i = 0; i < nextra; i++)
+	hextra[i] = fextra[i];
 
     // output for thermo, dump, restart files
 

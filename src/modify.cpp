@@ -234,7 +234,7 @@ void Modify::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   1st half of integrate call only for relevant fixes
+   1st half of integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::initial_integrate(int vflag)
@@ -244,7 +244,7 @@ void Modify::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   post_integrate call only for relevant fixes
+   post_integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::post_integrate()
@@ -254,7 +254,7 @@ void Modify::post_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   pre_exchange call only for relevant fixes
+   pre_exchange call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::pre_exchange()
@@ -264,7 +264,7 @@ void Modify::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
-   pre_neighbor call only for relevant fixes
+   pre_neighbor call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::pre_neighbor()
@@ -274,7 +274,7 @@ void Modify::pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-   pre_force call only for relevant fixes
+   pre_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::pre_force(int vflag)
@@ -284,7 +284,7 @@ void Modify::pre_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   post_force call only for relevant fixes
+   post_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::post_force(int vflag)
@@ -294,7 +294,7 @@ void Modify::post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   2nd half of integrate call only for relevant fixes
+   2nd half of integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::final_integrate()
@@ -304,7 +304,7 @@ void Modify::final_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   end-of-timestep call only for relevant fixes
+   end-of-timestep call, only for relevant fixes
    only call fix->end_of_step() on timesteps that are multiples of nevery
 ------------------------------------------------------------------------- */
 
@@ -316,7 +316,7 @@ void Modify::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   thermo energy call only for relevant fixes
+   thermo energy call, only for relevant fixes
    called by Thermo class
    compute_scalar() is fix call to return energy
 ------------------------------------------------------------------------- */
@@ -330,7 +330,7 @@ double Modify::thermo_energy()
 }
 
 /* ----------------------------------------------------------------------
-   1st half of rRESPA integrate call only for relevant fixes
+   1st half of rRESPA integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::initial_integrate_respa(int vflag, int ilevel, int flag)
@@ -341,7 +341,7 @@ void Modify::initial_integrate_respa(int vflag, int ilevel, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   rRESPA post_integrate call only for relevant fixes
+   rRESPA post_integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::post_integrate_respa(int ilevel, int flag)
@@ -351,7 +351,7 @@ void Modify::post_integrate_respa(int ilevel, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   rRESPA pre_force call only for relevant fixes
+   rRESPA pre_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
@@ -361,7 +361,7 @@ void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
 }
 
 /* ----------------------------------------------------------------------
-   rRESPA post_force call only for relevant fixes
+   rRESPA post_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::post_force_respa(int vflag, int ilevel, int iloop)
@@ -371,7 +371,7 @@ void Modify::post_force_respa(int vflag, int ilevel, int iloop)
 }
 
 /* ----------------------------------------------------------------------
-   2nd half of rRESPA integrate call only for relevant fixes
+   2nd half of rRESPA integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::final_integrate_respa(int ilevel)
@@ -381,7 +381,7 @@ void Modify::final_integrate_respa(int ilevel)
 }
 
 /* ----------------------------------------------------------------------
-   minimizer force adjustment call only for relevant fixes
+   minimizer force adjustment call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::min_post_force(int vflag)
@@ -391,7 +391,7 @@ void Modify::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   minimizer energy, force evaluation only for relevant fixes
+   minimizer energy/force evaluation, only for relevant fixes
    return energy and forces on extra degrees of freedom
 ------------------------------------------------------------------------- */
 
@@ -410,24 +410,33 @@ double Modify::min_energy(double *fextra)
 }
 
 /* ----------------------------------------------------------------------
-   minimizer energy, force evaluation only for relevant fixes
-   return energy and forces on extra degrees of freedom
+   store current state of extra dof, only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::min_step(double delta, double *fextra)
+void Modify::min_store()
+{
+  for (int i = 0; i < n_min_energy; i++)
+    fix[list_min_energy[i]]->min_store();
+}
+
+/* ----------------------------------------------------------------------
+   displace extra dof along vector fextra, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_step(double alpha, double *fextra)
 {
   int ifix,index;
 
   index = 0;
   for (int i = 0; i < n_min_energy; i++) {
     ifix = list_min_energy[i];
-    fix[ifix]->min_step(delta,&fextra[index]);
+    fix[ifix]->min_step(alpha,&fextra[index]);
     index += fix[ifix]->min_dof();
   }
 }
 
 /* ----------------------------------------------------------------------
-   minimizer extra degrees of freedom from relevant fixes
+   extract extra dof for minimization, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 int Modify::min_dof()

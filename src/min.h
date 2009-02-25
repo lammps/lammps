@@ -25,8 +25,6 @@ class Min : protected Pointers {
   double alpha_final;
   int niter,neval;
   char *stopstr;
-  double dmax;
-  int linestyle,lineiter;
 
   Min(class LAMMPS *);
   virtual ~Min();
@@ -40,6 +38,9 @@ class Min : protected Pointers {
  protected:
   int eflag,vflag;            // flags for energy/virial computation
   int virial_style;           // compute virial explicitly or implicitly
+
+  double dmax;                // max dist to move any atom in one linesearch
+  int linestyle;              // 0 = backtrack, 1 = quadratic
 
   int nelist_atom;                  // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

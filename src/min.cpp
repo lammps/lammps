@@ -26,6 +26,7 @@ using namespace LAMMPS_NS;
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
 {
   dmax = 0.1;
+  linestyle = 0;
 
   elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
@@ -51,6 +52,12 @@ void Min::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"dmax") == 0) {
       if (iarg+2 > narg) error->all("Illegal min_modify command");
       dmax = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"line") == 0) {
+      if (iarg+2 > narg) error->all("Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
+      else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
+      else error->all("Illegal min_modify command");
       iarg += 2;
     } else error->all("Illegal min_modify command");
   }

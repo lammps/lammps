@@ -48,19 +48,37 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
-#define EPS_ENERGY 1.0e-8
-#define BACKTRACK_SLOPE 0.5
+// ALPHA_REDUCE = reduction ratio, should be in range [0.5,1)
+// BACKTRACK_SLOPE, should be in range (0,0.5]
+// QUADRATIC_TOL = tolerance on alpha0, should be in range [0.1,1)
+// QUADRATIC_ENERGY = threshhold for switch to quadratic, small value > 0
+// EPS_ENERGY = minimum normalization for energy tolerance
+// EPS_QUAD = tolerance for quadratic projection
+
+#define BACKTRACK_SLOPE 0.01
 #define ALPHA_REDUCE 0.5
+#define QUADRATIC_TOL 0.1
+#define QUADRATIC_ENERGY 1.0e-4
+#define EPS_ENERGY 1.0e-8
+#define EPS_QUAD 1.0e-28
 
 enum{FAIL,MAXITER,MAXEVAL,ETOL,FTOL};   // same as in other min classes
 
-char *stopstrings[] = {"failed linesearch","max iterations",
-		       "max force evaluations","energy tolerance",
-		       "force tolerance"};
+/* ---------------------------------------------------------------------- */
+
+MinCG::MinCG(LAMMPS *lmp) : Min(lmp)
+{
+  fextra = gextra = hextra = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 
-MinCG::MinCG(LAMMPS *lmp) : Min(lmp) {}
+MinCG::~MinCG()
+{
+  delete [] fextra;
+  delete [] gextra;
+  delete [] hextra;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -94,7 +112,7 @@ void MinCG::init()
   ev_setup();
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques if array exists
+  // clear torques if array exists
 
   torqueflag = 0;
   if (atom->torque) torqueflag = 1;
@@ -108,7 +126,7 @@ void MinCG::init()
   neigh_every = neighbor->every;
   neigh_delay = neighbor->delay;
   neigh_dist_check = neighbor->dist_check;
-
+  
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
       error->warning("Resetting reneighboring criteria during minimization");
@@ -120,7 +138,8 @@ void MinCG::init()
 
   // set ptr to linemin function
 
-  linemin = &MinCG::linemin_backtrack;
+  if (linestyle == 0) linemin = &MinCG::linemin_backtrack;
+  else if (linestyle == 1) linemin = &MinCG::linemin_quadratic;
 }
 
 /* ----------------------------------------------------------------------
@@ -129,7 +148,14 @@ void MinCG::init()
 
 void MinCG::run()
 {
+  int i;
   double tmp,*f;
+
+  // possible stop conditions
+
+  char *stopstrings[] = {"failed linesearch","max iterations",
+			 "max force evaluations","energy tolerance",
+			 "force tolerance"};
 
   // set initial force & energy
   // normalize energy if thermo PE does
@@ -137,13 +163,31 @@ void MinCG::run()
   setup();
   setup_vectors();
 
+  // setup any extra dof due to fixes
+  // can't be done until now b/c update init() comes before modify init()
+
+  delete [] fextra;
+  delete [] gextra;
+  delete [] hextra;
+
+  nextra = modify->min_dof();
+  if (nextra) {
+    fextra = new double[nextra];
+    gextra = new double[nextra];
+    hextra = new double[nextra];
+  }
+
+  // compute potential energy of system
+  // normalize if thermo PE does
+
   int id = modify->find_compute("thermo_pe");
   if (id < 0) error->all("Minimization could not find thermo_pe compute");
   pe_compute = modify->compute[id];
 
   ecurrent = pe_compute->compute_scalar();
+  if (nextra) ecurrent += modify->min_energy(fextra);
   if (output->thermo->normflag) ecurrent /= atom->natoms;
-
+  
   // stats for Finish to print
 	
   einitial = ecurrent;
@@ -151,13 +195,18 @@ void MinCG::run()
   f = NULL;
   if (ndof) f = atom->f[0];
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
+  for (i = 0; i < ndof; i++) tmp += f[i]*f[i];
   MPI_Allreduce(&tmp,&fnorm2_init,1,MPI_DOUBLE,MPI_SUM,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++) fnorm2_init += fextra[i]*fextra[i];
   fnorm2_init = sqrt(fnorm2_init);
 
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
+  for (i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
   MPI_Allreduce(&tmp,&fnorminf_init,1,MPI_DOUBLE,MPI_MAX,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      fnorminf_init = MAX(fabs(fextra[i]),fnorminf_init);
 
   // minimizer iterations
 
@@ -171,7 +220,7 @@ void MinCG::run()
   // call eng_force to insure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
   // add ntimestep to all computes that store invocation times
-  //   since just hardwired call to thermo/dumps and computes may not be ready
+  //   since are hardwireing call to thermo/dumps and computes may not be ready
 
   if (niter < update->nsteps) {
     niter++;
@@ -186,8 +235,8 @@ void MinCG::run()
     modify->addstep_compute_all(update->ntimestep);
 
     int ntmp;
-    double *xtmp,*htmp,etmp;
-    eng_force(&ntmp,&xtmp,&htmp,&etmp);
+    double *xtmp,*htmp,*x0tmp,etmp;
+    eng_force(&ntmp,&xtmp,&htmp,&x0tmp,&etmp);
     output->write(update->ntimestep);
   }
 
@@ -210,13 +259,19 @@ void MinCG::run()
   f = NULL;
   if (ndof) f = atom->f[0];
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp += f[i]*f[i];
+  for (i = 0; i < ndof; i++) tmp += f[i]*f[i];
   MPI_Allreduce(&tmp,&fnorm2_final,1,MPI_DOUBLE,MPI_SUM,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      fnorm2_final += fextra[i]*fextra[i];
   fnorm2_final = sqrt(fnorm2_final);
 
   tmp = 0.0;
-  for (int i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
+  for (i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
   MPI_Allreduce(&tmp,&fnorminf_final,1,MPI_DOUBLE,MPI_MAX,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      fnorminf_final = MAX(fabs(fextra[i]),fnorminf_final);
 }
 
 /* ----------------------------------------------------------------------
@@ -271,7 +326,6 @@ void MinCG::setup()
 
 /* ----------------------------------------------------------------------
    minimization via conjugate gradient iterations
-   Polak-Ribiere formulation
 ------------------------------------------------------------------------- */
 
 int MinCG::iterate(int n)
@@ -284,10 +338,15 @@ int MinCG::iterate(int n)
 
   if (ndof) f = atom->f[0];
   for (i = 0; i < ndof; i++) h[i] = g[i] = f[i];
-
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      hextra[i] = gextra[i] = fextra[i];
+  
   dot[0] = 0.0;
   for (i = 0; i < ndof; i++) dot[0] += f[i]*f[i];
   MPI_Allreduce(dot,&gg,1,MPI_DOUBLE,MPI_SUM,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++) gg += fextra[i]*fextra[i];
 
   neval = 0;
 
@@ -299,7 +358,7 @@ int MinCG::iterate(int n)
 
     eprevious = ecurrent;
     if (ndof) x = atom->x[0];
-    fail = (this->*linemin)(ndof,x,h,ecurrent,dmax,alpha_final,neval);
+    fail = (this->*linemin)(ndof,x,h,x0,ecurrent,dmax,alpha_final,neval);
     if (fail) return FAIL;
 
     // function evaluation criterion
@@ -321,12 +380,18 @@ int MinCG::iterate(int n)
       dot[1] += f[i]*g[i];
     }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
+    if (nextra)
+      for (i = 0; i < nextra; i++) {
+	dotall[0] += fextra[i]*fextra[i];
+	dotall[1] += fextra[i]*gextra[i];
+      }
 
     if (dotall[0] < update->ftol * update->ftol) return FTOL;
 
-    // update h from new f = -Grad(x) and old g
-    // beta = dotall[0]/gg would be Fletcher-Reeves CG
-    
+    // update new search direction h from new f = -Grad(x) and old g
+    // this is Polak-Ribieri formulation
+    // beta = dotall[0]/gg would be Fletcher-Reeves
+
     beta = MAX(0.0,(dotall[0] - dotall[1])/gg);
     gg = dotall[0];
 
@@ -334,6 +399,30 @@ int MinCG::iterate(int n)
       g[i] = f[i];
       h[i] = g[i] + beta*h[i];
     }
+    if (nextra)
+      for (i = 0; i < nextra; i++) {
+	gextra[i] = fextra[i];
+	hextra[i] = gextra[i] + beta*hextra[i];
+      }
+
+    // reinitialize CG if new search direction h is not downhill
+    // also reinitialize CG every ndof iterations
+
+    dot[0] = 0.0;
+    for (i = 0; i < ndof; i++) dot[0] += g[i]*h[i];
+    MPI_Allreduce(dot,dotall,1,MPI_DOUBLE,MPI_SUM,world);
+    if (nextra)
+      for (i = 0; i < nextra; i++)
+	dotall[0] += gextra[i]*hextra[i];
+
+    if (dotall[0] <= 0.0) {
+      for (i = 0; i < ndof; i++) h[i] = g[i];
+      if (nextra)
+	for (i = 0; i < nextra; i++)
+	  hextra[i] = gextra[i];
+    }
+
+    if (niter % (ndof+nextra) == 0) beta = 0.0;
 
     // output for thermo, dump, restart files
 
@@ -358,6 +447,8 @@ void MinCG::setup_vectors()
   else g = NULL;
   if (ndof) h = fix_minimize->searchdir[0];
   else h = NULL;
+  if (ndof) x0 = fix_minimize->x0[0];
+  else x0 = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -367,7 +458,8 @@ void MinCG::setup_vectors()
    negative gradient will be stored in atom->f
 ------------------------------------------------------------------------- */
 
-void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
+void MinCG::eng_force(int *pndof, double **px, double **ph, double **px0,
+		      double *peng)
 {
   // check for reneighboring
   // always communicate since minimizer moved atoms
@@ -433,6 +525,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
   // normalize if thermo PE does
 
   ecurrent = pe_compute->compute_scalar();
+  if (nextra) ecurrent += modify->min_energy(fextra);
   if (output->thermo->normflag) ecurrent /= atom->natoms;
 
   // return updated ptrs to caller since atoms may have migrated
@@ -441,6 +534,7 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
   if (ndof) *px = atom->x[0];
   else *px = NULL;
   *ph = h;
+  *px0 = x0;
   *peng = ecurrent;
 }
 
@@ -451,8 +545,6 @@ void MinCG::eng_force(int *pndof, double **px, double **ph, double *peng)
 
 void MinCG::force_clear()
 {
-  int i;
-
   // clear global force array
   // nall includes ghosts only if either newton flag is set
 
@@ -461,7 +553,7 @@ void MinCG::force_clear()
   else nall = atom->nlocal;
 
   double **f = atom->f;
-  for (i = 0; i < nall; i++) {
+  for (int i = 0; i < nall; i++) {
     f[i][0] = 0.0;
     f[i][1] = 0.0;
     f[i][2] = 0.0;
@@ -469,7 +561,7 @@ void MinCG::force_clear()
 
   if (torqueflag) {
     double **torque = atom->torque;
-    for (i = 0; i < nall; i++) {
+    for (int i = 0; i < nall; i++) {
       torque[i][0] = 0.0;
       torque[i][1] = 0.0;
       torque[i][2] = 0.0;
@@ -483,6 +575,7 @@ void MinCG::force_clear()
    input: n = # of degrees of freedom on this proc
           x = ptr to atom->x[0] as vector
 	  dir = search direction as vector
+          x0 = ptr to fix->x0[0] as vector, for storing initial coords
 	  eng = current energy at initial x
 	  maxdist = max distance to move any atom coord
    output: return 0 if successful move, non-zero alpha alpha
@@ -495,7 +588,7 @@ void MinCG::force_clear()
              atom->x = coords at new configuration
 	     atom->f = force (-Grad) is evaulated at new configuration
 	     ecurrent = energy of new configuration
-   NOTE: when call eng_force: n,x,dir,eng may change due to atom migration
+   NOTE: when call eng_force: n,x,dir,x0,eng may change due to atom migration
 	 updated values are returned by eng_force()
 	 b/c of migration, linemin routines CANNOT store atom-based quantities
 ------------------------------------------------------------------------- */
@@ -506,52 +599,244 @@ void MinCG::force_clear()
    start at maxdist, backtrack until energy decrease is sufficient
 ------------------------------------------------------------------------- */
 
-int MinCG::linemin_backtrack(int n, double *x, double *dir, double eng,
-			     double maxdist, double &alpha, int &nfunc)
+int MinCG::linemin_backtrack(int n, double *x, double *dir,
+			     double *x0, double eng, double maxdist,
+			     double &alpha, int &nfunc)
 {
-  int i;
-
-  // stopping criterion, must be scaled by normflag
+  int i,m;
+  double fdotdirall,fdotdirme,hmax,hme,eoriginal;
+  double de_ideal,de;
 
   double *f = NULL;
   if (n) f = atom->f[0];
-  double fdotdirme = 0.0;
+
+  // fdotdirall = projection of search dir along downhill gradient
+  // if search direction is not downhill, exit with error
+
+  fdotdirme = 0.0;
   for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
-  double fdotdirall;
   MPI_Allreduce(&fdotdirme,&fdotdirall,1,MPI_DOUBLE,MPI_SUM,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++) fdotdirall += fextra[i]*hextra[i];
   if (output->thermo->normflag) fdotdirall /= atom->natoms;
+  if (fdotdirall <= 0.0) return 1;
 
-  // alphamax = step that moves some atom coord by maxdist
+  // initial alpha = stepsize to change any atom coord by maxdist
+  // limit alpha <= 1.0 else backtrack from huge value when forces are tiny
+  // if all search dir components are already 0.0, exit with error
 
-  double fme = 0.0;
-  for (i = 0; i < n; i++) fme = MAX(fme,fabs(dir[i]));
-  double fmax;
-  MPI_Allreduce(&fme,&fmax,1,MPI_DOUBLE,MPI_MAX,world);
-  if (fmax == 0.0) return 1;
+  hme = 0.0;
+  for (i = 0; i < n; i++) hme = MAX(hme,fabs(dir[i]));
+  MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      hmax = MAX(hmax,fabs(hextra[i]));
+  if (hmax == 0.0) return 1;
+  alpha = MIN(1.0,maxdist/hmax);
 
-  double alphamax = maxdist/fmax;
+  // store coords and other dof at start of linesearch
 
-  // reduce alpha by ALPHA_REDUCE until energy decrease is sufficient
+  for (i = 0; i < n; i++) x0[i] = x[i];
+  if (nextra) modify->min_store();
 
-  double eoriginal = eng;
-  alpha = alphamax;
-  double alpha_previous = 0.0;
-  double delta;
+  // eoriginal = energy at start of linesearch
+
+  eng_force(&n,&x,&dir,&x0,&eng);
+  nfunc++;
+  eoriginal = eng;
+
+  // backtrack with alpha until energy decrease is sufficient
 
   while (1) {
-    delta = alpha - alpha_previous;
-    for (i = 0; i < n; i++) x[i] += delta*dir[i];
-    eng_force(&n,&x,&dir,&eng);
+    for (i = 0; i < n; i++) x[i] = x0[i];
+    if (nextra) modify->min_step(0.0,hextra);
+    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
+    if (nextra) modify->min_step(alpha,hextra);
+    eng_force(&n,&x,&dir,&x0,&eng);
     nfunc++;
 
-    if (eng <= eoriginal - BACKTRACK_SLOPE*alpha*fdotdirall) return 0;
+    // if energy change is better than ideal, exit with success
 
-    alpha_previous = alpha;
+    de_ideal = -BACKTRACK_SLOPE*alpha*fdotdirall;
+    de = eng - eoriginal;
+    if (de <= de_ideal) return 0;
+
+    // reduce alpha
+
     alpha *= ALPHA_REDUCE;
-    if (alpha == 0.0) {
-      for (i = 0; i < n; i++) x[i] -= alpha_previous*dir[i];
-      eng_force(&n,&x,&dir,&eng);
+
+    // backtracked all the way to 0.0
+    // reset to starting point, exit with error
+
+    if (alpha <= 0.0 || de_ideal >= -1.0e-20) {
+      for (i = 0; i < n; i++) x[i] = x0[i];
+      if (nextra) modify->min_step(0.0,hextra);
+      eng_force(&n,&x,&dir,&x0,&eng);
+      nfunc++;
       return 1;
     }
-  }    
+  }
+}
+
+/* ----------------------------------------------------------------------
+   linemin: quadratic line search (adapted from Dennis and Schnabel)
+   basic idea is to backtrack until change in energy is sufficiently small
+     based on ENERGY_QUADRATIC, then use a quadratic approximation
+     using forces at two alpha values to project to minimum
+   use forces rather than energy change to do projection
+   this is b/c the forces are going to zero and can become very small
+     unlike energy differences which are the difference of two finite
+     values and are thus limited by machine precision
+   two changes that were critical to making this method work:
+     a) limit maximum step to alpha <= 1
+     b) ignore energy criterion if delE <= ENERGY_QUADRATIC
+   several other ideas also seemed to help:
+     c) making each step from starting point (alpha = 0), not previous alpha
+     d) quadratic model based on forces, not energy
+     e) exiting immediately if f.dir <= 0 (search direction not downhill)
+        so that CG can restart
+   a,c,e were also adopted for the backtracking linemin function
+------------------------------------------------------------------------- */
+
+int MinCG::linemin_quadratic(int n, double *x, double *dir,
+			     double *x0, double eng, double maxdist,
+			     double &alpha, int &nfunc)
+{
+  int i,m;
+  double fdotdirall,fdotdirme,hmax,hme,alphamax,eoriginal;
+  double de_ideal,de;
+  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
+  double dot[2],dotall[2];	
+  double *f = atom->f[0];
+
+  // fdotdirall = projection of search dir along downhill gradient
+  // if search direction is not downhill, exit with error
+
+  fdotdirme = 0.0;
+  for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
+  MPI_Allreduce(&fdotdirme,&fdotdirall,1,MPI_DOUBLE,MPI_SUM,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++) fdotdirall += fextra[i]*hextra[i];
+  if (output->thermo->normflag) fdotdirall /= atom->natoms;
+  if (fdotdirall <= 0.0) return 1;
+
+  // initial alpha = stepsize to change any atom coord by maxdist
+  // limit alpha <= 1.0 else backtrack from huge value when forces are tiny
+  // if all search dir components are already 0.0, exit with error
+
+  hme = 0.0;
+  for (i = 0; i < n; i++) hme = MAX(hme,fabs(dir[i]));
+  MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
+  if (nextra)
+    for (i = 0; i < nextra; i++)
+      hmax = MAX(hmax,fabs(hextra[i]));
+  if (hmax == 0.0) return 1;
+  alpha = MIN(1.0,maxdist/hmax);
+
+  // store coords and other dof at start of linesearch
+
+  for (i = 0; i < n; i++) x0[i] = x[i];
+  if (nextra) modify->min_store();
+
+  // eoriginal = energy at start of linesearch
+
+  eng_force(&n,&x,&dir,&x0,&eng);
+  nfunc++;
+  eoriginal = eng;
+
+  // backtrack with alpha until energy decrease is sufficient
+  // or until get to small energy change, then perform quadratic projection
+
+  fhprev = fdotdirall;
+  engprev = eoriginal;
+  alphaprev = 0.0;
+
+  while (1) {
+    for (i = 0; i < n; i++) x[i] = x0[i];
+    if (nextra) modify->min_step(0.0,hextra);
+    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
+    if (nextra) modify->min_step(alpha,hextra);
+    eng_force(&n,&x,&dir,&x0,&eng);
+    nfunc++;
+
+    // compute new fh, alpha, delfh
+
+    dot[0] = dot[1] = 0.0;
+    for (i = 0; i < ndof; i++) {
+      dot[0] += f[i]*f[i];
+      dot[1] += f[i]*dir[i];
+    }
+    MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
+    if (nextra) {
+      for (i = 0; i < nextra; i++) {
+	dotall[0] += fextra[i]*fextra[i];
+	dotall[1] += fextra[i]*hextra[i];
+      }
+    }
+    ff = dotall[0];
+    fh = dotall[1];
+    if (output->thermo->normflag) {
+      ff /= atom->natoms;
+      fh /= atom->natoms;
+    }
+
+    delfh = fh - fhprev;
+
+    // if fh or delfh is epsilon, reset to starting point, exit with error
+
+    if (fabs(fh) < EPS_QUAD || fabs(delfh) < EPS_QUAD) {
+      for (i = 0; i < n; i++) x[i] = x0[i];
+      if (nextra) modify->min_step(0.0,hextra);
+      eng_force(&n,&x,&dir,&x0,&eng);
+      nfunc++;
+      return 1;
+    }
+
+    // check if ready for quadratic projection, equivalent to secant method
+    // alpha0 = projected alpha, perform step, exit with success
+
+    de_ideal = -BACKTRACK_SLOPE*alpha*fdotdirall;
+    de = eng - eoriginal;
+    relerr = fabs(1.0+(0.5*alpha*(alpha-alphaprev)*(fh+fhprev)-eng)/engprev);
+    alpha0 = alpha-(alpha-alphaprev)*fh/delfh;
+
+    if (de_ideal >= -QUADRATIC_ENERGY && relerr <= QUADRATIC_TOL && 
+	alpha0 > 0.0) {
+      for (i = 0; i < n; i++) x[i] = x0[i];
+      if (nextra) modify->min_step(0.0,hextra);
+
+      alpha = alpha0;
+      for (i = 0; i < n; i++) x[i] += alpha*dir[i];
+      if (nextra) modify->min_step(alpha,hextra);
+      eng_force(&n,&x,&dir,&x0,&eng);
+      nfunc++;
+      
+      return 0;
+    }
+
+    // if backtracking energy change is better than ideal, exit with success
+    
+    if (de <= de_ideal) return 0;
+
+    // save previous state
+
+    fhprev = fh;
+    engprev = eng;
+    alphaprev = alpha;
+
+    // reduce alpha
+
+    alpha *= ALPHA_REDUCE;
+
+    // backtracked all the way to 0.0
+    // reset to starting point, exit with error
+
+    if (alpha <= 0.0 || de_ideal >= -1.0e-20) {
+      for (i = 0; i < n; i++) x[i] = x0[i];
+      if (nextra) modify->min_step(0.0,hextra);
+      eng_force(&n,&x,&dir,&x0,&eng);
+      nfunc++;
+      return 1;
+    }
+  }
 }

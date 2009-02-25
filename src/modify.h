@@ -61,6 +61,7 @@ class Modify : protected Pointers {
 
   void min_post_force(int);
   double min_energy(double *);
+  void min_store();
   void min_step(double, double *);
   int min_dof();
 
@@ -84,7 +85,8 @@ class Modify : protected Pointers {
   double memory_usage();
 
  private:
-                // lists of fixes to apply at different stages of timestep
+  // lists of fixes to apply at different stages of timestep
+
   int *list_initial_integrate,*list_post_integrate;
   int *list_pre_exchange,*list_pre_neighbor;
   int *list_pre_force,*list_post_force;

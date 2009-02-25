@@ -103,6 +103,7 @@ class Fix : protected Pointers {
 
   virtual void min_post_force(int) {}
   virtual double min_energy(double *) {return 0.0;}
+  virtual void min_store() {}
   virtual void min_step(double, double *) {}
   virtual int min_dof() {return 0;}
 

@@ -17,7 +17,7 @@ keyword = {dmax} or {line}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
   {line} value = {backtrack} or {quadratic}
-    value = style of linesearch to use
+    backtrack,quadratic = style of linesearch to use :pre
 :ule
 
 [Examples:]

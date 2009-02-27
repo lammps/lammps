@@ -1,0 +1,176 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix box/relax command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID box/relax style args keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>box/relax = style name of this fix command 
+
+<LI>style = <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> 
+
+<PRE>  <I>xyz</I> arg = P = desired pressure (pressure units)
+  <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>aniso</I> args = Px Py Pz
+    Px,Py,Pz = desired pressure in x,y,z (pressure units) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended to the args 
+
+<LI>keyword = <I>dilate</I> 
+
+<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all box/relax xyz 0.0
+fix 2 water box/relax aniso 0.0 0.0 1000.0 dilate partial 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a pressure to the simulation box during an <A HREF = "minimize.html">energy
+minimization</A>.  This allows the box dimensions to vary
+during the iterations of the minimizer so that the final configuration
+will be both an energy minimum for the potential energy of the atoms
+and the system pressure will be close to the desired pressure.
+Conceptually, specifying a positive pressure is like squeezing on the
+simulation box; a negative pressure typically allows the box to
+expand.
+</P>
+<P>The pressure can be specified in one of several styles, as determined
+by the <I>style</I> argument.
+</P>
+<P>Style <I>xyz</I> means couple all 3 dimensions together when pressure is
+computed (isotropic pressure), and dilate/contract the 3 dimensions
+together.  Styles <I>xy</I> or <I>yz</I> or <I>xz</I> means that the 2 specified
+dimensions are coupled together, both for pressure computation and for
+dilation/contraction.  The 3rd dimension dilates/contracts
+independently according to its specified pressure.  For style <I>aniso</I>,
+all 3 dimensions dilate/contract independently according to the 3
+specified pressure values.
+</P>
+<P>For any of the styles except <I>xyz</I>, the target pressure for any
+independent components (e.g. z in <I>xy</I>, or any dimension in <I>aniso</I>)
+can be specified as NULL.  This means that no pressure is applied to
+that dimension so that the box dimension remains unchanged during the
+minimization.
+</P>
+<P>For styles <I>xy</I> and <I>yz</I> and <I>xz</I>, the target pressures must be the
+same for the two coupled dimensions and cannot be specified as NULL.
+</P>
+<P>For all pressure styles, the simulation box stays rectangular in
+shape.  Tilted boxes (triclinic symmetry) are supported by other
+LAMMPS commands (see <A HREF = "Section_howto.html#4_12">this section</A> of the
+manual), but not yet by this command.
+</P>
+<P>When the size of the simulation box changes, all atoms are re-scaled
+to new positions, unless the keyword <I>dilate</I> is specified with a
+value of <I>partial</I>, in which case only the atoms in the fix group are
+re-scaled.  This can be useful for leaving the coordinates of atoms in
+a solid substrate unchanged and controlling the pressure of a
+surrounding fluid.
+</P>
+<HR>
+
+<P>This fix computes a temperature and pressure each timestep.  The
+temperature is used to compute the kinetic contribution to the
+pressure.  Since atom velocities do not change during minimization,
+that contribution will depend on what atom velocities are at the
+beginning of the minimization procedure, and will remain constant.  To
+do this, the fix creates its own computes of style "temp" and
+"pressure", as if these commands had been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
+pressure</A> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is the same
+as the fix group.
+</P>
+<P>Note that these are NOT the computes used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
+and <I>thermo_press</I>.  This means you can change the attributes of this
+fix's temperature or pressure via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+or pressure during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> or
+<I>thermo_press</I> will have no effect on this fix.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
+supported by this fix.  You can use them to assign a
+<A HREF = "compute.html">compute</A> you have defined to this fix which will be used
+in its temperature and pressure calculation, as described above.  If
+you do this, note that the kinetic energy derived from the compute
+temperature should be consistent with the virial term computed using
+all atoms for the pressure.  LAMMPS will warn you if you choose to
+compute temperature on a subset of atoms.
+</P>
+<P>IMPORTANT NOTE: If both the <I>temp</I> and <I>press</I> keywords are used in a
+single thermo_modify command (or in two separate commands), then the
+order in which the keywords are specified is important.  Note that a
+<A HREF = "compute_pressure.html">pressure compute</A> defines its own temperature
+compute as an argument when it is specified.  The <I>temp</I> keyword will
+override this (for the pressure compute being used by fix npt), but
+only if the <I>temp</I> keyword comes after the <I>press</I> keyword.  If the
+<I>temp</I> keyword comes before the <I>press</I> keyword, then the new pressure
+compute specified by the <I>press</I> keyword will be unaffected by the
+<I>temp</I> setting.
+</P>
+<P>No global scalar or vector or per-atom quantities are stored by this
+fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
+No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>, but
+not for the purpose of adding a contribution to the energy or forces
+being minimized.  Instead it alters the box geometry as described
+above.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>Any box dimension adjusted by this fix must be periodic.  A dimension
+whose target pressure is specified as NULL can be non-periodic or
+periodic.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nph.html">fix npt</A>, <A HREF = "minimize.html">minimize</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The keyword default is dilate = all.
+</P>
+</HTML>

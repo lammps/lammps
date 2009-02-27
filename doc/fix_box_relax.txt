@@ -1,0 +1,165 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix box/relax command :h3
+
+[Syntax:]
+
+fix ID group-ID box/relax style args keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+box/relax = style name of this fix command :l
+style = {xyz} or {xy} or {yz} or {xz} or {aniso} :l
+  {xyz} arg = P = desired pressure (pressure units)
+  {xy} or {yz} or {xz} or {aniso} args = Px Py Pz
+    Px,Py,Pz = desired pressure in x,y,z (pressure units) :pre
+
+zero or more keyword/value pairs may be appended to the args :l
+keyword = {dilate} :l
+  {dilate} value = {all} or {partial} :pre
+:ule
+
+[Examples:]
+
+fix 1 all box/relax xyz 0.0
+fix 2 water box/relax aniso 0.0 0.0 1000.0 dilate partial :pre
+
+[Description:]
+
+Apply a pressure to the simulation box during an "energy
+minimization"_minimize.html.  This allows the box dimensions to vary
+during the iterations of the minimizer so that the final configuration
+will be both an energy minimum for the potential energy of the atoms
+and the system pressure will be close to the desired pressure.
+Conceptually, specifying a positive pressure is like squeezing on the
+simulation box; a negative pressure typically allows the box to
+expand.
+
+The pressure can be specified in one of several styles, as determined
+by the {style} argument.
+
+Style {xyz} means couple all 3 dimensions together when pressure is
+computed (isotropic pressure), and dilate/contract the 3 dimensions
+together.  Styles {xy} or {yz} or {xz} means that the 2 specified
+dimensions are coupled together, both for pressure computation and for
+dilation/contraction.  The 3rd dimension dilates/contracts
+independently according to its specified pressure.  For style {aniso},
+all 3 dimensions dilate/contract independently according to the 3
+specified pressure values.
+
+For any of the styles except {xyz}, the target pressure for any
+independent components (e.g. z in {xy}, or any dimension in {aniso})
+can be specified as NULL.  This means that no pressure is applied to
+that dimension so that the box dimension remains unchanged during the
+minimization.
+
+For styles {xy} and {yz} and {xz}, the target pressures must be the
+same for the two coupled dimensions and cannot be specified as NULL.
+
+For all pressure styles, the simulation box stays rectangular in
+shape.  Tilted boxes (triclinic symmetry) are supported by other
+LAMMPS commands (see "this section"_Section_howto.html#4_12 of the
+manual), but not yet by this command.
+
+When the size of the simulation box changes, all atoms are re-scaled
+to new positions, unless the keyword {dilate} is specified with a
+value of {partial}, in which case only the atoms in the fix group are
+re-scaled.  This can be useful for leaving the coordinates of atoms in
+a solid substrate unchanged and controlling the pressure of a
+surrounding fluid.
+
+:line
+
+This fix computes a temperature and pressure each timestep.  The
+temperature is used to compute the kinetic contribution to the
+pressure.  Since atom velocities do not change during minimization,
+that contribution will depend on what atom velocities are at the
+beginning of the minimization procedure, and will remain constant.  To
+do this, the fix creates its own computes of style "temp" and
+"pressure", as if these commands had been issued:
+
+compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp :pre
+
+See the "compute temp"_compute_temp.html and "compute
+pressure"_compute_pressure.html commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is the same
+as the fix group.
+
+Note that these are NOT the computes used by thermodynamic output (see
+the "thermo_style"_thermo_style.html command) with ID = {thermo_temp}
+and {thermo_press}.  This means you can change the attributes of this
+fix's temperature or pressure via the
+"compute_modify"_compute_modify.html command or print this temperature
+or pressure during thermodynamic output via the "thermo_style
+custom"_thermo_style.html command using the appropriate compute-ID.
+It also means that changing attributes of {thermo_temp} or
+{thermo_press} will have no effect on this fix.
+
+Like other fixes that perform thermostatting, this fix can be used
+with "compute commands"_compute.html that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the "fix_modify"_fix_modify.html command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual "compute
+commands"_compute.html to determine which ones include a bias.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {temp} and {press} options are
+supported by this fix.  You can use them to assign a
+"compute"_compute.html you have defined to this fix which will be used
+in its temperature and pressure calculation, as described above.  If
+you do this, note that the kinetic energy derived from the compute
+temperature should be consistent with the virial term computed using
+all atoms for the pressure.  LAMMPS will warn you if you choose to
+compute temperature on a subset of atoms.
+
+IMPORTANT NOTE: If both the {temp} and {press} keywords are used in a
+single thermo_modify command (or in two separate commands), then the
+order in which the keywords are specified is important.  Note that a
+"pressure compute"_compute_pressure.html defines its own temperature
+compute as an argument when it is specified.  The {temp} keyword will
+override this (for the pressure compute being used by fix npt), but
+only if the {temp} keyword comes after the {press} keyword.  If the
+{temp} keyword comes before the {press} keyword, then the new pressure
+compute specified by the {press} keyword will be unaffected by the
+{temp} setting.
+
+No global scalar or vector or per-atom quantities are stored by this
+fix for access by various "output commands"_Section_howto.html#4_15.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
+This fix is invoked during "energy minimization"_minimize.html, but
+not for the purpose of adding a contribution to the energy or forces
+being minimized.  Instead it alters the box geometry as described
+above.
+
+[Restrictions:]
+
+Any box dimension adjusted by this fix must be periodic.  A dimension
+whose target pressure is specified as NULL can be non-periodic or
+periodic.
+
+[Related commands:]
+
+"fix npt"_fix_nph.html, "minimize"_minimize.html
+
+[Default:]
+
+The keyword default is dilate = all.

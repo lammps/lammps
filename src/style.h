@@ -147,6 +147,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ave_force.h"
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
+#include "fix_box_relax.h"
 #include "fix_com.h"
 #include "fix_coord_original.h"
 #include "fix_deform.h"
@@ -206,6 +207,7 @@ FixStyle(ave/atom,FixAveAtom)
 FixStyle(aveforce,FixAveForce)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
+FixStyle(box/relax,FixBoxRelax)
 FixStyle(com,FixCOM)
 FixStyle(coord/original,FixCoordOriginal)
 FixStyle(deform,FixDeform)

@@ -23,7 +23,9 @@ using namespace LAMMPS_NS;
 
 #define EPS_ENERGY 1.0e-8
 
-enum{FAIL,MAXITER,MAXEVAL,ETOL,FTOL};   // same as in other min classes
+// same as in other min classes
+
+enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,7 +60,7 @@ int MinSD::iterate(int n)
     eprevious = ecurrent;
     if (ndof) x = atom->x[0];
     fail = (this->*linemin)(ndof,x,h,x0,ecurrent,dmax,alpha_final,neval);
-    if (fail) return FAIL;
+    if (fail) return fail;
 
     // function evaluation criterion
 

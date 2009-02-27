@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+                        improved CG and backtrack ls, added quadratic ls
    Sources: Numerical Recipes frprmn routine
             "Conjugate Gradient Method Without the Agonizing Pain" by
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
@@ -48,21 +50,25 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
+// ALPHA_MAX = max alpha allowed to avoid long backtracks
 // ALPHA_REDUCE = reduction ratio, should be in range [0.5,1)
 // BACKTRACK_SLOPE, should be in range (0,0.5]
 // QUADRATIC_TOL = tolerance on alpha0, should be in range [0.1,1)
-// QUADRATIC_ENERGY = threshhold for switch to quadratic, small value > 0
 // EPS_ENERGY = minimum normalization for energy tolerance
+// IDEAL_TOL = ideal energy tolerance for backtracking
 // EPS_QUAD = tolerance for quadratic projection
 
-#define BACKTRACK_SLOPE 0.01
+#define ALPHA_MAX 1.0
 #define ALPHA_REDUCE 0.5
+#define BACKTRACK_SLOPE 0.4
 #define QUADRATIC_TOL 0.1
-#define QUADRATIC_ENERGY 1.0e-4
 #define EPS_ENERGY 1.0e-8
+#define IDEAL_TOL 1.0e-8
 #define EPS_QUAD 1.0e-28
 
-enum{FAIL,MAXITER,MAXEVAL,ETOL,FTOL};   // same as in other min classes
+// same as in other min classes
+
+enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
@@ -153,9 +159,11 @@ void MinCG::run()
 
   // possible stop conditions
 
-  char *stopstrings[] = {"failed linesearch","max iterations",
-			 "max force evaluations","energy tolerance",
-			 "force tolerance"};
+  char *stopstrings[] = {"max iterations","max force evaluations",
+                         "energy tolerance","force tolerance",
+			 "search direction is not downhill",
+			 "linesearch alpha is zero",
+			 "forces are zero","quadratic factors are zero"};
 
   // set initial force & energy
   // normalize energy if thermo PE does
@@ -348,6 +356,7 @@ int MinCG::iterate(int n)
   if (nextra)
     for (i = 0; i < nextra; i++) gg += fextra[i]*fextra[i];
 
+  int ndoftotal = ndof + nextra;
   neval = 0;
 
   for (niter = 0; niter < n; niter++) {
@@ -359,7 +368,7 @@ int MinCG::iterate(int n)
     eprevious = ecurrent;
     if (ndof) x = atom->x[0];
     fail = (this->*linemin)(ndof,x,h,x0,ecurrent,dmax,alpha_final,neval);
-    if (fail) return FAIL;
+    if (fail) return fail;
 
     // function evaluation criterion
 
@@ -391,8 +400,10 @@ int MinCG::iterate(int n)
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation
     // beta = dotall[0]/gg would be Fletcher-Reeves
+    // reinitialize CG every ndof iterations by setting beta = 0.0
 
     beta = MAX(0.0,(dotall[0] - dotall[1])/gg);
+    if ((niter+1) % ndoftotal == 0) beta = 0.0;
     gg = dotall[0];
 
     for (i = 0; i < ndof; i++) {
@@ -406,7 +417,6 @@ int MinCG::iterate(int n)
       }
 
     // reinitialize CG if new search direction h is not downhill
-    // also reinitialize CG every ndof iterations
 
     dot[0] = 0.0;
     for (i = 0; i < ndof; i++) dot[0] += g[i]*h[i];
@@ -421,8 +431,6 @@ int MinCG::iterate(int n)
 	for (i = 0; i < nextra; i++)
 	  hextra[i] = gextra[i];
     }
-
-    if (niter % (ndof+nextra) == 0) beta = 0.0;
 
     // output for thermo, dump, restart files
 
@@ -578,8 +586,8 @@ void MinCG::force_clear()
           x0 = ptr to fix->x0[0] as vector, for storing initial coords
 	  eng = current energy at initial x
 	  maxdist = max distance to move any atom coord
-   output: return 0 if successful move, non-zero alpha alpha
-           return 1 if failed, alpha = 0.0
+   output: return 0 if successful move, non-zero alpha
+           return non-zero if failed
            alpha = distance moved along dir to set x to minimun eng config
            caller has several quantities set via last call to eng_force()
 	     must insure last call to eng_force() is consistent with returns
@@ -619,7 +627,7 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir,
   if (nextra)
     for (i = 0; i < nextra; i++) fdotdirall += fextra[i]*hextra[i];
   if (output->thermo->normflag) fdotdirall /= atom->natoms;
-  if (fdotdirall <= 0.0) return 1;
+  if (fdotdirall <= 0.0) return DOWNHILL;
 
   // initial alpha = stepsize to change any atom coord by maxdist
   // limit alpha <= 1.0 else backtrack from huge value when forces are tiny
@@ -631,8 +639,8 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir,
   if (nextra)
     for (i = 0; i < nextra; i++)
       hmax = MAX(hmax,fabs(hextra[i]));
-  if (hmax == 0.0) return 1;
-  alpha = MIN(1.0,maxdist/hmax);
+  if (hmax == 0.0) return ZEROFORCE;
+  alpha = MIN(ALPHA_MAX,maxdist/hmax);
 
   // store coords and other dof at start of linesearch
 
@@ -648,10 +656,10 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir,
   // backtrack with alpha until energy decrease is sufficient
 
   while (1) {
-    for (i = 0; i < n; i++) x[i] = x0[i];
     if (nextra) modify->min_step(0.0,hextra);
-    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
+    for (i = 0; i < n; i++) x[i] = x0[i];
     if (nextra) modify->min_step(alpha,hextra);
+    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
     eng_force(&n,&x,&dir,&x0,&eng);
     nfunc++;
 
@@ -668,12 +676,12 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir,
     // backtracked all the way to 0.0
     // reset to starting point, exit with error
 
-    if (alpha <= 0.0 || de_ideal >= -1.0e-20) {
-      for (i = 0; i < n; i++) x[i] = x0[i];
+    if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
       if (nextra) modify->min_step(0.0,hextra);
+      for (i = 0; i < n; i++) x[i] = x0[i];
       eng_force(&n,&x,&dir,&x0,&eng);
       nfunc++;
-      return 1;
+      return ZEROALPHA;
     }
   }
 }
@@ -718,7 +726,7 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
   if (nextra)
     for (i = 0; i < nextra; i++) fdotdirall += fextra[i]*hextra[i];
   if (output->thermo->normflag) fdotdirall /= atom->natoms;
-  if (fdotdirall <= 0.0) return 1;
+  if (fdotdirall <= 0.0) return DOWNHILL;
 
   // initial alpha = stepsize to change any atom coord by maxdist
   // limit alpha <= 1.0 else backtrack from huge value when forces are tiny
@@ -730,8 +738,8 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
   if (nextra)
     for (i = 0; i < nextra; i++)
       hmax = MAX(hmax,fabs(hextra[i]));
-  if (hmax == 0.0) return 1;
-  alpha = MIN(1.0,maxdist/hmax);
+  if (hmax == 0.0) return ZEROFORCE;
+  alpha = MIN(ALPHA_MAX,maxdist/hmax);
 
   // store coords and other dof at start of linesearch
 
@@ -752,10 +760,10 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
   alphaprev = 0.0;
 
   while (1) {
-    for (i = 0; i < n; i++) x[i] = x0[i];
     if (nextra) modify->min_step(0.0,hextra);
-    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
+    for (i = 0; i < n; i++) x[i] = x0[i];
     if (nextra) modify->min_step(alpha,hextra);
+    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
     eng_force(&n,&x,&dir,&x0,&eng);
     nfunc++;
 
@@ -785,29 +793,26 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
     // if fh or delfh is epsilon, reset to starting point, exit with error
 
     if (fabs(fh) < EPS_QUAD || fabs(delfh) < EPS_QUAD) {
-      for (i = 0; i < n; i++) x[i] = x0[i];
       if (nextra) modify->min_step(0.0,hextra);
+      for (i = 0; i < n; i++) x[i] = x0[i];
       eng_force(&n,&x,&dir,&x0,&eng);
       nfunc++;
-      return 1;
+      return ZEROQUAD;
     }
 
     // check if ready for quadratic projection, equivalent to secant method
     // alpha0 = projected alpha, perform step, exit with success
 
-    de_ideal = -BACKTRACK_SLOPE*alpha*fdotdirall;
-    de = eng - eoriginal;
     relerr = fabs(1.0+(0.5*alpha*(alpha-alphaprev)*(fh+fhprev)-eng)/engprev);
-    alpha0 = alpha-(alpha-alphaprev)*fh/delfh;
+    alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
-    if (de_ideal >= -QUADRATIC_ENERGY && relerr <= QUADRATIC_TOL && 
-	alpha0 > 0.0) {
-      for (i = 0; i < n; i++) x[i] = x0[i];
+    if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
       if (nextra) modify->min_step(0.0,hextra);
+      for (i = 0; i < n; i++) x[i] = x0[i];
 
       alpha = alpha0;
-      for (i = 0; i < n; i++) x[i] += alpha*dir[i];
       if (nextra) modify->min_step(alpha,hextra);
+      for (i = 0; i < n; i++) x[i] += alpha*dir[i];
       eng_force(&n,&x,&dir,&x0,&eng);
       nfunc++;
       
@@ -815,7 +820,9 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
     }
 
     // if backtracking energy change is better than ideal, exit with success
-    
+
+    de_ideal = -BACKTRACK_SLOPE*alpha*fdotdirall;
+    de = eng - eoriginal;
     if (de <= de_ideal) return 0;
 
     // save previous state
@@ -831,12 +838,12 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
     // backtracked all the way to 0.0
     // reset to starting point, exit with error
 
-    if (alpha <= 0.0 || de_ideal >= -1.0e-20) {
-      for (i = 0; i < n; i++) x[i] = x0[i];
+    if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
       if (nextra) modify->min_step(0.0,hextra);
+      for (i = 0; i < n; i++) x[i] = x0[i];
       eng_force(&n,&x,&dir,&x0,&eng);
       nfunc++;
-      return 1;
+      return ZEROALPHA;
     }
   }
 }

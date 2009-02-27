@@ -848,12 +848,12 @@ int FixNPT::modify_param(int narg, char **arg)
     if (temperature->tempflag == 0)
       error->all("Fix_modify temp ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning("Temperature for NPT is not for group all");
+      error->warning("Temperature for fix modify is not for group all");
 
     // reset id_pre of pressure to new temp ID
     
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all("Press ID for fix npt does not exist");
+    if (icompute < 0) error->all("Pressure ID for fix modify does not exist");
     delete [] modify->compute[icompute]->id_pre;
     modify->compute[icompute]->id_pre = new char[n];
     strcpy(modify->compute[icompute]->id_pre,id_temp);
@@ -872,11 +872,11 @@ int FixNPT::modify_param(int narg, char **arg)
     strcpy(id_press,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all("Could not find fix_modify press ID");
+    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
     pressure = modify->compute[icompute];
 
     if (pressure->pressflag == 0)
-      error->all("Fix_modify press ID does not compute pressure");
+      error->all("Fix_modify pressure ID does not compute pressure");
     return 2;
   }
   return 0;

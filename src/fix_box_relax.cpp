@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
@@ -96,18 +100,18 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (press_couple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all("Invalid fix npt command");
+    error->all("Invalid fix box/relax command");
   if (press_couple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix npt command");
+    error->all("Invalid fix box/relax command");
   if (press_couple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix npt command");
+    error->all("Invalid fix box/relax command");
 
   if (press_couple == XY && p_target[0] != p_target[1])
-    error->all("Invalid fix npt command");
+    error->all("Invalid fix box/relax command");
   if (press_couple == YZ && p_target[1] != p_target[2])
-    error->all("Invalid fix npt command");
+    error->all("Invalid fix box/relax command");
   if (press_couple == XZ && p_target[0] != p_target[2])
-    error->all("Invalid fix npt command");
+    error->all("Invalid fix box/relax command");
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix box/relax on a non-periodic dimension");
@@ -152,6 +156,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   pflag = 1;
 
+  dimension = domain->dimension;
   nrigid = 0;
   rfix = 0;
 }
@@ -186,11 +191,11 @@ void FixBoxRelax::init()
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Temp ID for fix npt does not exist");
+  if (icompute < 0) error->all("Temp ID for fix box/relax does not exist");
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_press);
-  if (icompute < 0) error->all("Press ID for fix npt does not exist");
+  if (icompute < 0) error->all("Press ID for fix box/relax does not exist");
   pressure = modify->compute[icompute];
 
   // initial box dimensions
@@ -198,7 +203,7 @@ void FixBoxRelax::init()
   xprdinit = domain->xprd;
   yprdinit = domain->yprd;
   zprdinit = domain->zprd;
-  if (domain->dimension == 3) volinit = domain->xprd*domain->yprd*domain->zprd;
+  if (dimension == 3) volinit = domain->xprd*domain->yprd*domain->zprd;
   else volinit = domain->xprd*domain->yprd;
   pv2e = 1.0 / force->nktv2p;
 
@@ -225,7 +230,7 @@ void FixBoxRelax::init()
 
 double FixBoxRelax::min_energy(double *fextra)
 {
-  double scale, scalex, scaley, scalez;
+  double eng,scale,scalex,scaley,scalez;
 
   double t_current = temperature->compute_scalar();
   if (press_couple == XYZ) {
@@ -240,53 +245,54 @@ double FixBoxRelax::min_energy(double *fextra)
 
   pressure->addstep(update->ntimestep+1);
 
-  // compute new energy, forces for each extra degree of freedom
-  // PV must be in units of energy
-  
-  double eng;
+  // compute energy, forces for each extra degree of freedom
+  // returned eng = PV must be in units of energy
+  // returned force = Ptarget - Pcurrent must be in units of
+
   if (press_couple == XYZ) {
     scale = domain->xprd/xprdinit;
-    if (domain->dimension == 3) {
+    if (dimension == 3) {
       eng = pv2e * p_target[0] * (scale*scale*scale-1.0)*volinit;
       fextra[0] = pv2e * (p_current[0] - p_target[0])*3.0*volinit*scale*scale;
     } else {
       eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
       fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*volinit*scale;
     }
-  }
-  if (press_couple == ANISO) {
+
+  } else if (press_couple == XY) {
+    scale = domain->xprd/xprdinit;
+    eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
+    fextra[0] = pv2e * (p_current[0] - p_target[0])*scale*volinit;
+    if (p_flag[2]) {
+      scale = domain->zprd/zprdinit;
+      eng = pv2e * p_target[2] * (scale*scale-1.0)*volinit;
+      fextra[1] = pv2e * (p_current[1] - p_target[1])*scale*volinit;
+    }
+
+  } else if (press_couple == YZ) {
+    scale = domain->yprd/yprdinit;
+    eng = pv2e * p_target[1] * (scale*scale-1.0)*volinit;
+    fextra[1] = pv2e * (p_current[1] - p_target[1])*scale*volinit;
+    fextra[0] = 0.0;
+
+  } else if (press_couple == XZ) {
+    scale = domain->xprd/xprdinit;
+    eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
+    fextra[0] = pv2e * (p_current[0] - p_target[0])*scale*volinit;
+    fextra[1] = 0.0;
+
+  } else if (press_couple == ANISO) {
     scalex = domain->xprd/xprdinit;
     scaley = domain->yprd/yprdinit;
     scalez = domain->zprd/zprdinit;
     eng = pv2e * p_target[0] * (scalex*scaley*scalez-1.0)*volinit;
-    fextra[0] = fextra[1] = fextra[2] = 0.0;
-    if (p_flag[0]) {
-      fextra[0] = pv2e * (p_current[0] - p_target[0])*scaley*scalez*volinit;
-    }
-    if (p_flag[1]) {
-      fextra[1] = pv2e * (p_current[1] - p_target[1])*scalex*scalez*volinit;
-    }
-    if (p_flag[2]) {
-      fextra[2] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
-    }
-  }
-  if (press_couple == XY) {
-    scale = domain->xprd/xprdinit;
-    eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
-    fextra[0] = fextra[1] = pv2e * (p_current[0] - p_target[0])*scale*volinit;
-    fextra[2] = 0.0;
-  }
-  if (press_couple == YZ) {
-    scale = domain->yprd/yprdinit;
-    eng = pv2e * p_target[1] * (scale*scale-1.0)*volinit;
-    fextra[1] = fextra[2] = pv2e * (p_current[1] - p_target[1])*scale*volinit;
-    fextra[0] = 0.0;
-  }
-  if (press_couple == XZ) {
-    scale = domain->xprd/xprdinit;
-    eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
-    fextra[0] = fextra[2] = pv2e * (p_current[0] - p_target[0])*scale*volinit;
-    fextra[1] = 0.0;
+    int i = 0;
+    if (p_flag[0])
+      fextra[i++] = pv2e * (p_current[0] - p_target[0])*scaley*scalez*volinit;
+    if (p_flag[1])
+      fextra[i++] = pv2e * (p_current[1] - p_target[1])*scalex*scalez*volinit;
+    if (p_flag[2])
+      fextra[i++] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
   }
 
   return eng;
@@ -294,6 +300,8 @@ double FixBoxRelax::min_energy(double *fextra)
 
 /* ----------------------------------------------------------------------
    store extra dof values for linesearch starting point
+   boxlo0,boxhi0 = box dimensions
+   s0 = ratio of current boxsize to initial boxsize
 ------------------------------------------------------------------------- */
 
 void FixBoxRelax::min_store()
@@ -308,35 +316,26 @@ void FixBoxRelax::min_store()
 }
 
 /* ----------------------------------------------------------------------
-   change the box dimensions by alpha from 
-   x0extra along linesearch direction fextra
+   change the box dimensions by fraction ds = alpha*fextra
 ------------------------------------------------------------------------- */
 
 void FixBoxRelax::min_step(double alpha, double *fextra)
 {
-  double htmp;
   if (press_couple == XYZ) {
-    ds[0] = alpha*fextra[0];
-    ds[1] = alpha*fextra[0];
-    ds[2] = alpha*fextra[0];
-  }
-  if (press_couple == ANISO) {
-    ds[0] = ds[1] = ds[2] = 0.0;
+    ds[0] = ds[1] = ds[2] = alpha*fextra[0];
+  } else if (press_couple == XY) {
+    ds[0] = ds[1] = alpha*fextra[0];
+    if (p_flag[2]) ds[2] = alpha*fextra[1];
+  } else if (press_couple == YZ) {
+    ds[1] = ds[2] = alpha*fextra[0];
+    if (p_flag[0]) ds[0] = alpha*fextra[1];
+  } else if (press_couple == XZ) {
+    ds[0] = ds[2] = alpha*fextra[0];
+    if (p_flag[1]) ds[1] = alpha*fextra[1];
+  } else if (press_couple == ANISO) {
     if (p_flag[0]) ds[0] = alpha*fextra[0];
     if (p_flag[1]) ds[1] = alpha*fextra[1];
     if (p_flag[2]) ds[2] = alpha*fextra[2];
-  }
-  if (press_couple == XY) {
-    ds[0] = ds[1] = alpha*fextra[0];
-    ds[2] = 0.0;
-  }
-  if (press_couple == XZ) {
-    ds[0] = ds[2] = alpha*fextra[0];
-    ds[1] = 0.0;
-  }
-  if (press_couple == YZ) {
-    ds[1] = ds[2] = alpha*fextra[1];
-    ds[0] = 0.0;
   }
 
   remap();
@@ -349,7 +348,11 @@ void FixBoxRelax::min_step(double alpha, double *fextra)
 int FixBoxRelax::min_dof()
 {
   if (press_couple == XYZ) return 1;
-  else return 3;
+  else if (press_couple == XY) return (1 + p_flag[2]);
+  else if (press_couple == YZ) return (1 + p_flag[0]);
+  else if (press_couple == XZ) return (1 + p_flag[1]);
+  else if (press_couple == ANISO) return (p_flag[0] + p_flag[1] + p_flag[2]);
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -364,11 +367,6 @@ void FixBoxRelax::remap()
   // ctr = geometric center of box in a dimension
   // rescale simulation box from linesearch starting point
   // scale atom coords for all atoms or only for fix group atoms
-  // don't do anything if non-periodic or style is constant volume
-
-  // we assume initially the atoms positions and box dimensions 
-  // are at linesearch starting point. 
-  // If not, atom positions will not be scaled correctly.
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -389,13 +387,12 @@ void FixBoxRelax::remap()
 
   // reset global and local box to new size/shape
 
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++)
     if (p_flag[i]) {
-      ctr = 0.5 * ( boxlo0[i] + boxhi0[i]);
+      ctr = 0.5 * (boxlo0[i] + boxhi0[i]);
       domain->boxlo[i] = boxlo0[i] + (boxlo0[i]-ctr)*ds[i]/s0[i];
       domain->boxhi[i] = boxhi0[i] + (boxhi0[i]-ctr)*ds[i]/s0[i];
     }
-  }
 
   domain->set_global_box();
   domain->set_local_box();
@@ -412,8 +409,6 @@ void FixBoxRelax::remap()
   if (nrigid)
     for (i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(1);
-
-
 }
 
 /* ---------------------------------------------------------------------- */

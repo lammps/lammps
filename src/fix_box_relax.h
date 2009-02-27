@@ -32,15 +32,15 @@ class FixBoxRelax : public Fix {
  private:
   int p_flag[3];
   int press_couple,allremap;
+  int dimension;
   double p_target[3],p_current[3];
   double dilation[3];
   double volinit,xprdinit,yprdinit,zprdinit;
   double pv2e;
 
-  // These variables are for linesearch
-  double boxlo0[3],boxhi0[3];              // x0extra box bounds
-  double s0[6];	          	           // x0extra scale matrix in Voigt notation
-  double ds[6];                            // increment in scale matrix in Voigt notation
+  double boxlo0[3],boxhi0[3];     // box bounds at start of line search
+  double s0[6];	          	  // scale matrix in Voigt notation
+  double ds[6];                   // increment in scale matrix
 
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;

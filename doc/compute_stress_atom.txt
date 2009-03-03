@@ -109,7 +109,6 @@ xx, yy, zz, xy, xz, yz.
 
 [Related commands:]
 
-"compute pe"_compute_pe.html, "compute
-stress/atom"_compute_stress_atom.html
+"compute pe"_compute_pe.html, "compute pressure"_compute_pressure.html
 
 [Default:] none

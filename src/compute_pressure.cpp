@@ -42,7 +42,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extscalar = 0;
-  extvector = 1;
+  extvector = 0;
   pressflag = 1;
   timeflag = 1;
 

@@ -83,12 +83,12 @@ pressure-volume.  It would need to be divided by a per-atom volume to
 have units of stress (pressure), but an individual atom's volume is
 not easy to compute in a deformed solid or a liquid.  Thus, if the
 diagonal components of the per-atom stress tensor are summed for all
-atoms in the system and the sum is divided by 3V, where V is the
-volume of the system, the result should be -P, where P is the total
-pressure of the system.
+atoms in the system and the sum is divided by dV, where d = dimension
+and V is the volume of the system, the result should be -P, where P is
+the total pressure of the system.
 </P>
-<P>These lines in an input script should yield that result.  I.e. the
-last 2 columns of thermo output will be the same:
+<P>These lines in an input script for a 3d system should yield that
+result.  I.e. the last 2 columns of thermo output will be the same:
 </P>
 <PRE>compute		peratom all stress/atom
 compute		p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]

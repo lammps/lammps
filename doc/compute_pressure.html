@@ -50,9 +50,8 @@ virial term.
 <P>A 6-component symmetric pressure tensor is also calculated by this
 compute whose components can be output by the <A HREF = "thermo_style.html">thermo_style
 custom</A> command or accessed by other
-<A HREF = "compute.html">compute</A> and <A HREF = "fix.html">fix</A> commands.  The 6 values are
-1 = Pxx, 2 = Pyy, 3 = Pzz, 4 = Pxy, 5 = Pxz, 6 = Pyz.  The equation
-for the I,J components (where I and J = x,y,z) is similar to the above
+<A HREF = "compute.html">compute</A> and <A HREF = "fix.html">fix</A> commands.  The equation for
+the I,J components (where I and J = x,y,z) is similar to the above
 formula, except that the first term uses components of the kinetic
 energy tensor and the second term uses components of the virial
 tensor:
@@ -88,10 +87,10 @@ LAMMPS starts up, as if this command were in the input script:
 </P>
 <P><B>Output info:</B>
 </P>
-<P>The scalar value calculated by this compute is "intensive", meaning it
-is independent of the number of atoms in the simulation.  The vector
-values are "extensive", meaning they scale with the number of atoms in
-the simulation.
+<P>The scalar and vector values calculated by this compute are
+"intensive", meaning they are independent of the number of atoms in
+the simulation.  The 6 components of the vector are ordered xx, yy,
+zz, xy, xz, yz.
 </P>
 <P><B>Restrictions:</B> none
 </P>

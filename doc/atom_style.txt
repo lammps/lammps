@@ -50,17 +50,17 @@ coordinates, velocities, atom IDs and types.  See the
 "set"_set.html commands for info on how to set these various
 quantities.
 
-{angle} : bonds and angles : bead-spring polymers with stiffness
-{atomic} : only the default values : coarse-grain liquids, solids, metals
-{bond} : bonds : bead-spring polymers
-{charge} : charge : atomic system with charges
-{dipole} : charge and dipole moment : atomic system with dipoles
-{dpd} : default values, also communicates velocities : DPD models
-{ellipsoid} : quaternion for particle orientation, angular momentum : aspherical particles
-{full} : molecular + charge : bio-molecules
-{granular} : diameter, density, angular velocity : granular models
-{molecular} : bonds, angles, dihedrals, impropers : uncharged molecules
-{peri} : density, volume - mesocopic Peridynamic models :tb(c=3,s=:)
+{angle} | bonds and angles | bead-spring polymers with stiffness |
+{atomic} | only the default values | coarse-grain liquids, solids, metals |
+{bond} | bonds | bead-spring polymers |
+{charge} | charge | atomic system with charges |
+{dipole} | charge and dipole moment | atomic system with dipoles |
+{dpd} | default values, also communicates velocities | DPD models |
+{ellipsoid} | quaternion for particle orientation, angular momentum | aspherical particles |
+{full} | molecular + charge | bio-molecules |
+{granular} | diameter, density, angular velocity | granular models |
+{molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
+{peri} | density, volume | mesocopic Peridynamic models :tb(c=3,s=|)
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined

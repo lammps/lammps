@@ -47,11 +47,13 @@ means that each timestep the total force and torque on each rigid body
 is computed and the coordinates and velocities of the atoms in each
 body are updated so that they move as a rigid body.  This can be
 useful for freezing one or more portions of a large biomolecule, or
-for simulating a system of colloidal particles.
+for simulating a system of colloidal particles.  See the Restrictions
+section if you simply want to hold a group of atoms motionless or have
+them move with constant velocity.
 
-This fix updates the positions and velocities of the rigid atoms with
-a constant-energy time integration, so you should not update the same
-atoms via other fixes (e.g. nve, nvt, npt).
+IMPORTANT NOTE: This fix updates the positions and velocities of the
+rigid atoms with a constant-energy time integration, so you should not
+update the same atoms via other fixes (e.g. nve, nvt, npt).
 
 Each body must have two or more atoms.  An atom can belong to at most
 one rigid body.  Which atoms are in which bodies can be defined via
@@ -184,12 +186,16 @@ boundary, the input data file must define the image flags for each
 atom correctly, so that LAMMPS can "unwrap" the atoms into a valid
 rigid body.
 
-You should not use this fix if you just want to hold group of atoms
-stationary.  A better way to do this is to not include those atoms in
-your time integration fix.  E.g. use "fix 1 mobile nve" instead of
-"fix 1 all nve", where "mobile" is the group of atoms that you want to
-move.  Alternatively, you can also set the force on those atoms to 0.0
-via the "fix setforce"_fix_setforce.html command.
+This fix is overkill if you just want to hold group of atoms
+stationary of have them move with a constant velocity.  A simpler way
+to hold atoms stationary is to not include those atoms in your time
+integration fix.  E.g. use "fix 1 mobile nve" instead of "fix 1 all
+nve", where "mobile" is the group of atoms that you want to move.  You
+can move atoms with a constant velocity by assigning them an initial
+velocity (via the "velocity"_velocity.html command), setting the force
+on them to 0.0 (via the "fix setforce"_fix_setforce.html command), and
+integrating them as usual (e.g. via the "fix nve"_fix_nve.html
+command).
 
 [Related commands:]
 

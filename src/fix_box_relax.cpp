@@ -249,50 +249,59 @@ double FixBoxRelax::min_energy(double *fextra)
   // returned eng = PV must be in units of energy
   // returned force = Ptarget - Pcurrent must be in units of
 
+  fextra[0] = fextra[1] = fextra[2] = 0.0;
+
   if (press_couple == XYZ) {
     scale = domain->xprd/xprdinit;
     if (dimension == 3) {
       eng = pv2e * p_target[0] * (scale*scale*scale-1.0)*volinit;
-      fextra[0] = pv2e * (p_current[0] - p_target[0])*3.0*volinit*scale*scale;
+      fextra[0] = pv2e * (p_current[0] - p_target[0])*3.0*scale*scale*volinit;
     } else {
       eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
-      fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*volinit*scale;
+      fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*scale*volinit;
     }
 
   } else if (press_couple == XY) {
-    scale = domain->xprd/xprdinit;
-    eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
-    fextra[0] = pv2e * (p_current[0] - p_target[0])*scale*volinit;
+    scalex = domain->xprd/xprdinit;
+    scaley = domain->yprd/yprdinit;
+    scalez = domain->zprd/zprdinit;
+    eng = pv2e * (p_target[0] + p_flag[2]*p_target[2])/3.0 * 
+	(scalex*scaley*scalez-1.0)*volinit;
+    scalex = scaley = domain->xprd/xprdinit;
+    eng = pv2e * p_target[0] * (scalex*scaley-1.0)*volinit;
+    fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*scale*volinit;
     if (p_flag[2]) {
-      scale = domain->zprd/zprdinit;
-      eng = pv2e * p_target[2] * (scale*scale-1.0)*volinit;
-      fextra[1] = pv2e * (p_current[1] - p_target[1])*scale*volinit;
+      scalez = domain->zprd/zprdinit;
+      eng += pv2e * p_target[2] * (scalez-1.0)*volinit;
+      fextra[1] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
     }
 
   } else if (press_couple == YZ) {
-    scale = domain->yprd/yprdinit;
-    eng = pv2e * p_target[1] * (scale*scale-1.0)*volinit;
-    fextra[1] = pv2e * (p_current[1] - p_target[1])*scale*volinit;
-    fextra[0] = 0.0;
 
   } else if (press_couple == XZ) {
-    scale = domain->xprd/xprdinit;
-    eng = pv2e * p_target[0] * (scale*scale-1.0)*volinit;
-    fextra[0] = pv2e * (p_current[0] - p_target[0])*scale*volinit;
-    fextra[1] = 0.0;
 
   } else if (press_couple == ANISO) {
     scalex = domain->xprd/xprdinit;
     scaley = domain->yprd/yprdinit;
     scalez = domain->zprd/zprdinit;
-    eng = pv2e * p_target[0] * (scalex*scaley*scalez-1.0)*volinit;
-    int i = 0;
-    if (p_flag[0])
-      fextra[i++] = pv2e * (p_current[0] - p_target[0])*scaley*scalez*volinit;
-    if (p_flag[1])
-      fextra[i++] = pv2e * (p_current[1] - p_target[1])*scalex*scalez*volinit;
-    if (p_flag[2])
-      fextra[i++] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
+    if (dimension == 3) {
+      eng = pv2e * (p_flag[0]*p_target[0] + p_flag[1]*p_target[1] + 
+		    p_flag[2]*p_target[2])/3.0 * 
+	(scalex*scaley*scalez-1.0)*volinit;
+      if (p_flag[0])
+	fextra[0] = pv2e * (p_current[0] - p_target[0])*scaley*scalez*volinit;
+      if (p_flag[1])
+	fextra[1] = pv2e * (p_current[1] - p_target[1])*scalex*scalez*volinit;
+      if (p_flag[2])
+	fextra[2] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
+    } else {
+      eng = pv2e * (p_flag[0]*p_target[0] + p_flag[1]*p_target[1])/2.0 * 
+	(scalex*scaley-1.0)*volinit;
+      if (p_flag[0])
+	fextra[0] = pv2e * (p_current[0] - p_target[0])*scaley*volinit;
+      if (p_flag[1])
+	fextra[1] = pv2e * (p_current[1] - p_target[1])*scalex*volinit;
+    }
   }
 
   return eng;
@@ -348,11 +357,7 @@ void FixBoxRelax::min_step(double alpha, double *fextra)
 int FixBoxRelax::min_dof()
 {
   if (press_couple == XYZ) return 1;
-  else if (press_couple == XY) return (1 + p_flag[2]);
-  else if (press_couple == YZ) return (1 + p_flag[0]);
-  else if (press_couple == XZ) return (1 + p_flag[1]);
-  else if (press_couple == ANISO) return (p_flag[0] + p_flag[1] + p_flag[2]);
-  return 0;
+  return 3;
 }
 
 /* ----------------------------------------------------------------------

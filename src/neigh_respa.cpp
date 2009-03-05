@@ -50,15 +50,17 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   int **pages = list->pages;
 
   NeighList *listinner = list->listinner;
+  int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
   int **pages_inner = listinner->pages;
 
   NeighList *listmiddle;
-  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
+    ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
     pages_middle = listmiddle->pages;
@@ -137,13 +139,14 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
+    ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -151,15 +154,20 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
+      ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
+
+    inum++;
   }
 
   list->inum = inum;
+  listinner->inum = inum;
+  if (respamiddle) listmiddle->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -195,15 +203,17 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   int **pages = list->pages;
 
   NeighList *listinner = list->listinner;
+  int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
   int **pages_inner = listinner->pages;
 
   NeighList *listmiddle;
-  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
+    ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
     pages_middle = listmiddle->pages;
@@ -299,13 +309,14 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
+    ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -313,15 +324,20 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
+      ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
+
+    inum++;
   }
 
   list->inum = inum;
+  listinner->inum = inum;
+  if (respamiddle) listmiddle->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -361,15 +377,17 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   int *stencil = list->stencil;
 
   NeighList *listinner = list->listinner;
+  int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
   int **pages_inner = listinner->pages;
 
   NeighList *listmiddle;
-  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
+    ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
     pages_middle = listmiddle->pages;
@@ -456,13 +474,14 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
+    ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -470,15 +489,20 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
+      ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
+
+    inum++;
   }
 
   list->inum = inum;
+  listinner->inum = inum;
+  if (respamiddle) listmiddle->inum = inum;
 }
       
 /* ----------------------------------------------------------------------
@@ -517,15 +541,17 @@ void Neighbor::respa_bin_newton(NeighList *list)
   int *stencil = list->stencil;
 
   NeighList *listinner = list->listinner;
+  int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
   int **pages_inner = listinner->pages;
 
   NeighList *listmiddle;
-  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
+    ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
     pages_middle = listmiddle->pages;
@@ -645,13 +671,14 @@ void Neighbor::respa_bin_newton(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
+    ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -659,15 +686,20 @@ void Neighbor::respa_bin_newton(NeighList *list)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
+      ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
+
+    inum++;
   }
 
   list->inum = inum;
+  listinner->inum = inum;
+  if (respamiddle) listmiddle->inum = inum;
 }
 
 /* ----------------------------------------------------------------------
@@ -706,15 +738,17 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   int *stencil = list->stencil;
 
   NeighList *listinner = list->listinner;
+  int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
   int **pages_inner = listinner->pages;
 
   NeighList *listmiddle;
-  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
+    ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
     pages_middle = listmiddle->pages;
@@ -803,13 +837,14 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
+    ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
@@ -817,13 +852,18 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
+      ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
 	error->one("Neighbor list overflow, boost neigh_modify one or page");
     }
+
+    inum++;
   }
 
   list->inum = inum;
+  listinner->inum = inum;
+  if (respamiddle) listmiddle->inum = inum;
 }

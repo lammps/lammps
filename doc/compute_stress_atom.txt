@@ -15,7 +15,7 @@ compute ID group-ID stress/atom keyword ... :pre
 ID, group-ID are documented in "compute"_compute.html command
 stress/atom = style name of this compute command
 zero or more keywords may be appended
-keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {fix} :ul
+keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {fix} or {virial} :ul
 
 [Examples:]
 
@@ -64,7 +64,9 @@ command.
 
 If no extra keywords are listed, all of the terms in this formula are
 included in the per-atom stress tensor.  If any extra keywords are
-listed, only those terms are summed to compute the tensor.
+listed, only those terms are summed to compute the tensor.  The
+{virial} keyword means include all terms except the kinetic energy
+{ke}.
 
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.

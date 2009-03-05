@@ -18,7 +18,7 @@
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>stress/atom = style name of this compute command
 <LI>zero or more keywords may be appended
-<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>fix</I> 
+<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>fix</I> or <I>virial</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -67,7 +67,9 @@ command.
 </P>
 <P>If no extra keywords are listed, all of the terms in this formula are
 included in the per-atom stress tensor.  If any extra keywords are
-listed, only those terms are summed to compute the tensor.
+listed, only those terms are summed to compute the tensor.  The
+<I>virial</I> keyword means include all terms except the kinetic energy
+<I>ke</I>.
 </P>
 <P>Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.

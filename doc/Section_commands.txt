@@ -383,7 +383,7 @@ of each style or click on the style itself for a full description:
 "bond/break"_fix_bond_break.html,
 "bond/create"_fix_bond_create.html,
 "bond/swap"_fix_bond_swap.html,
-"box"_fix_box_relax.html,
+"box/relax"_fix_box_relax.html,
 "com"_fix_com.html,
 "coord/original"_fix_coord_original.html,
 "deform"_fix_deform.html,

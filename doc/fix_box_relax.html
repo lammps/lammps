@@ -27,15 +27,16 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended to the args 
 
-<LI>keyword = <I>dilate</I> 
+<LI>keyword = <I>dilate</I> or <I>vmax</I> 
 
-<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+<PRE>  <I>dilate</I> value = <I>all</I> or <I>partial</I>
+  <I>vmax</I> value = fraction = max allowed volume change in one iteration 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all box/relax xyz 0.0
+<PRE>fix 1 all box/relax xyz 0.0 vmax 0.001
 fix 2 water box/relax aniso 0.0 0.0 1000.0 dilate partial 
 </PRE>
 <P><B>Description:</B>
@@ -82,24 +83,57 @@ re-scaled.  This can be useful for leaving the coordinates of atoms in
 a solid substrate unchanged and controlling the pressure of a
 surrounding fluid.
 </P>
+<P>The <I>vmax</I> keyword can be used to limit the fractional change in the
+volume of the simulation box that can occur in one iteration of the
+minimizer.  If the pressure is not settling down during the
+minimization this can be because the volume is fluctuating too much.
+The specfied fraction must be greater than 0.0 and should be << 1.0.
+A value of 0.001 means the volume cannot change by more than 1/10 of a
+percent in one iteration for style <I>xyz</I>.  For the other styles it
+means no linear dimension of the simulation box can change by more
+than 1/10 of a percent.
+</P>
+<P>IMPORTANT NOTE: As normally computed, pressure includes a kinetic-
+energy or temperature-dependent component; see the <A HREF = "compute_pressure.html">compute
+pressure</A> command.  However, atom velocities are
+ignored during a minimization, and the applied pressure(s) specified
+with this command are assumed to only be the virial component of the
+pressure (the non-kinetic portion).  Thus if atoms have a non-zero
+temperature and you print the usual thermodynamic pressure, it may not
+appear the system is converging to your specified pressure.  The
+solution for this is to either (a) zero the velocities of all atoms
+before performing the minimization, or (b) make sure you are
+monitoring the pressure without its kinetic component.  The latter
+can be done by outputting the pressure from the fix this command
+creates (see below) or a pressure fix you define yourself.
+</P>
+<P>IMPORTANT NOTE: Because pressure is often a very sensitive function of
+volume, it can be difficult for the minimizer to equilibrate the
+system the desired pressure with high precision.  Some techiniques
+that seem to help are (a) use the "min_modify line quadratic" option
+when minimizing with box relaxtions, and (b) minimize several times in
+succession if need be, to drive the pressure closer to the target
+pressure.  Also note that some systems (e.g. liquids) will not sustain
+an anisotropic applied pressure, which means the minimizer will not
+converge.
+</P>
 <HR>
 
 <P>This fix computes a temperature and pressure each timestep.  The
 temperature is used to compute the kinetic contribution to the
-pressure.  Since atom velocities do not change during minimization,
-that contribution will depend on what atom velocities are at the
-beginning of the minimization procedure, and will remain constant.  To
-do this, the fix creates its own computes of style "temp" and
-"pressure", as if these commands had been issued:
+pressure, even though this is subsequently ignored by default.  To do
+this, the fix creates its own computes of style "temp" and "pressure",
+as if these commands had been issued:
 </P>
 <PRE>compute fix-ID_temp group-ID temp
-compute fix-ID_press group-ID pressure fix-ID_temp 
+compute fix-ID_press group-ID pressure fix-ID_temp virial 
 </PRE>
 <P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
 pressure</A> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
 + underscore + "press", and the group for the new computes is the same
-as the fix group.
+as the fix group.  Also note that the pressure compute does not
+include a kinetic component.
 </P>
 <P>Note that these are NOT the computes used by thermodynamic output (see
 the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
@@ -111,17 +145,6 @@ custom</A> command using the appropriate compute-ID.
 It also means that changing attributes of <I>thermo_temp</I> or
 <I>thermo_press</I> will have no effect on this fix.
 </P>
-<P>Like other fixes that perform thermostatting, this fix can be used
-with <A HREF = "compute.html">compute commands</A> that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
-center-of-mass velocity from a group of atoms or only calculating
-temperature on the x-component of velocity or only calculating
-temperature for atoms in a geometric region.  This is not done by
-default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual <A HREF = "compute.html">compute
-commands</A> to determine which ones include a bias.
-</P>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
@@ -132,11 +155,10 @@ files</A>.
 <P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
 supported by this fix.  You can use them to assign a
 <A HREF = "compute.html">compute</A> you have defined to this fix which will be used
-in its temperature and pressure calculation, as described above.  If
-you do this, note that the kinetic energy derived from the compute
-temperature should be consistent with the virial term computed using
-all atoms for the pressure.  LAMMPS will warn you if you choose to
-compute temperature on a subset of atoms.
+in its temperature and pressure calculation, as described above.  Note
+that as described above, if you assign a pressure compute to this fix
+that includes a kinetic energy component it will affect the
+minimization, most likely in an undesirable way.
 </P>
 <P>IMPORTANT NOTE: If both the <I>temp</I> and <I>press</I> keywords are used in a
 single thermo_modify command (or in two separate commands), then the
@@ -156,8 +178,8 @@ the <A HREF = "run.html">run</A> command.
 </P>
 <P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>, but
 not for the purpose of adding a contribution to the energy or forces
-being minimized.  Instead it alters the box geometry as described
-above.
+being minimized.  Instead it alters the simulation box geometry as
+described above.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -171,6 +193,6 @@ periodic.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword default is dilate = all.
+<P>The keyword defaults are dilate = all and vmax = 0.0001.
 </P>
 </HTML>

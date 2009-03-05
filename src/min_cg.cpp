@@ -612,7 +612,7 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir,
 			     double &alpha, int &nfunc)
 {
   int i,m;
-  double fdotdirall,fdotdirme,hmax,hme,eoriginal;
+  double fdotdirall,fdotdirme,hmax,hme,alpha_extra,eoriginal;
   double de_ideal,de;
 
   double *f = NULL;
@@ -630,17 +630,20 @@ int MinCG::linemin_backtrack(int n, double *x, double *dir,
   if (fdotdirall <= 0.0) return DOWNHILL;
 
   // initial alpha = stepsize to change any atom coord by maxdist
-  // limit alpha <= 1.0 else backtrack from huge value when forces are tiny
+  // alpha <= ALPHA_MAX, else backtrack from huge value when forces are tiny
   // if all search dir components are already 0.0, exit with error
 
   hme = 0.0;
   for (i = 0; i < n; i++) hme = MAX(hme,fabs(dir[i]));
   MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
-  if (nextra)
+  alpha = MIN(ALPHA_MAX,maxdist/hmax);
+  if (nextra) {
+    double alpha_extra = modify->max_alpha(hextra);
+    alpha = MIN(alpha,alpha_extra);
     for (i = 0; i < nextra; i++)
       hmax = MAX(hmax,fabs(hextra[i]));
+  }
   if (hmax == 0.0) return ZEROFORCE;
-  alpha = MIN(ALPHA_MAX,maxdist/hmax);
 
   // store coords and other dof at start of linesearch
 
@@ -711,7 +714,7 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
 			     double &alpha, int &nfunc)
 {
   int i,m;
-  double fdotdirall,fdotdirme,hmax,hme,alphamax,eoriginal;
+  double fdotdirall,fdotdirme,hmax,hme,alphamax,alpha_extra,eoriginal;
   double de_ideal,de;
   double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
   double dot[2],dotall[2];	
@@ -729,17 +732,20 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
   if (fdotdirall <= 0.0) return DOWNHILL;
 
   // initial alpha = stepsize to change any atom coord by maxdist
-  // limit alpha <= 1.0 else backtrack from huge value when forces are tiny
+  // alpha <= ALPHA_MAX, else backtrack from huge value when forces are tiny
   // if all search dir components are already 0.0, exit with error
 
   hme = 0.0;
   for (i = 0; i < n; i++) hme = MAX(hme,fabs(dir[i]));
   MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
-  if (nextra)
+  alpha = MIN(ALPHA_MAX,maxdist/hmax);
+  if (nextra) {
+    double alpha_extra = modify->max_alpha(hextra);
+    alpha = MIN(alpha,alpha_extra);
     for (i = 0; i < nextra; i++)
       hmax = MAX(hmax,fabs(hextra[i]));
+  }
   if (hmax == 0.0) return ZEROFORCE;
-  alpha = MIN(ALPHA_MAX,maxdist/hmax);
 
   // store coords and other dof at start of linesearch
 

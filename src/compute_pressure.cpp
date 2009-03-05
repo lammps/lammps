@@ -64,12 +64,12 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     keflag = 1;
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
-    fixflag = kspaceflag = 1;
+    kspaceflag = fixflag = 1;
   } else {
     keflag = 0;
     pairflag = 0;
     bondflag = angleflag = dihedralflag = improperflag = 0;
-    fixflag = kspaceflag = 0;
+    kspaceflag = fixflag = 0;
     int iarg = 4;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
@@ -80,6 +80,11 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
       else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
       else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
+      else if (strcmp(arg[iarg],"virial") == 0) {
+	pairflag = 1;
+	bondflag = angleflag = dihedralflag = improperflag = 1;
+	kspaceflag = fixflag = 1;
+      }
       else error->all("Illegal compute pressure command");
       iarg++;
     }

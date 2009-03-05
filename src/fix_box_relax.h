@@ -27,6 +27,7 @@ class FixBoxRelax : public Fix {
   double min_energy(double *);
   void min_store();
   void min_step(double, double *);
+  double max_alpha(double *);
   int min_dof();
 
  private:
@@ -36,7 +37,7 @@ class FixBoxRelax : public Fix {
   double p_target[3],p_current[3];
   double dilation[3];
   double volinit,xprdinit,yprdinit,zprdinit;
-  double pv2e;
+  double smax,pv2e,pflagsum;
 
   double boxlo0[3],boxhi0[3];     // box bounds at start of line search
   double s0[6];	          	  // scale matrix in Voigt notation

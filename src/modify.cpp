@@ -53,6 +53,11 @@ using namespace LAMMPS_NS;
 #define MIN_POST_FORCE          16384
 #define MIN_ENERGY              32768
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
+#define BIG 1.0e20
+
 /* ---------------------------------------------------------------------- */
 
 Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
@@ -433,6 +438,25 @@ void Modify::min_step(double alpha, double *fextra)
     fix[ifix]->min_step(alpha,&fextra[index]);
     index += fix[ifix]->min_dof();
   }
+}
+
+/* ----------------------------------------------------------------------
+   compute max allowed step size along vector fextra, only for relevant fixes
+------------------------------------------------------------------------- */
+
+double Modify::max_alpha(double *fextra)
+{
+  int ifix,index;
+
+  double alpha = BIG;
+  index = 0;
+  for (int i = 0; i < n_min_energy; i++) {
+    ifix = list_min_energy[i];
+    double alpha_one = fix[ifix]->max_alpha(&fextra[index]);
+    alpha = MIN(alpha,alpha_one);
+    index += fix[ifix]->min_dof();
+  }
+  return alpha;
 }
 
 /* ----------------------------------------------------------------------

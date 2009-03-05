@@ -29,6 +29,9 @@
 
 using namespace LAMMPS_NS;
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
 enum{XYZ,XY,YZ,XZ,ANISO};
 
 /* ---------------------------------------------------------------------- */
@@ -60,18 +63,24 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 	(press_couple == XY || press_couple == YZ || press_couple == XZ))
       error->all("Invalid fix box/relax command for a 2d simulation");
 
-    if (strcmp(arg[4],"NULL") == 0) p_flag[0] = 0;
-    else {
+    if (strcmp(arg[4],"NULL") == 0) {
+      p_target[0] = 0.0;
+      p_flag[0] = 0;
+    } else {
       p_target[0] = atof(arg[4]);
       p_flag[0] = 1;
     }
-    if (strcmp(arg[5],"NULL") == 0) p_flag[1] = 0;
-    else {
+    if (strcmp(arg[5],"NULL") == 0) {
+      p_target[1] = 0.0;
+      p_flag[1] = 0;
+    } else {
       p_target[1] = atof(arg[5]);
       p_flag[1] = 1;
     }
-    if (strcmp(arg[6],"NULL") == 0) p_flag[2] = 0;
-    else {
+    if (strcmp(arg[6],"NULL") == 0) {
+      p_target[2] = 0.0;
+      p_flag[2] = 0;
+    } else {
       if (domain->dimension == 2)
 	error->all("Invalid fix box/relax command for a 2d simulation");
       p_target[2] = atof(arg[6]);
@@ -79,9 +88,12 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  pflagsum = p_flag[0] + p_flag[1] + p_flag[2];
+
   // process extra keywords
 
   allremap = 0;
+  smax = 0.0001;
 
   int iarg;
   if (press_couple == XYZ) iarg = 5;
@@ -93,6 +105,10 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 0;
       else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 1;
       else error->all("Illegal fix box/relax command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"smax") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix box/relax command");
+      smax = atof(arg[iarg+1]);
       iarg += 2;
     } else error->all("Illegal fix box/relax command");
   }
@@ -138,7 +154,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   tflag = 1;
 
-  // create a new compute pressure style
+  // create a new compute pressure style (virial only)
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
@@ -147,12 +163,13 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_press,id);
   strcat(id_press,"_press");
 
-  newarg = new char*[4];
+  newarg = new char*[5];
   newarg[0] = id_press;
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
   newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
+  newarg[4] = (char *) "virial";
+  modify->add_compute(5,newarg);
   delete [] newarg;
   pflag = 1;
 
@@ -261,47 +278,20 @@ double FixBoxRelax::min_energy(double *fextra)
       fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*scale*volinit;
     }
 
-  } else if (press_couple == XY) {
-    scalex = domain->xprd/xprdinit;
-    scaley = domain->yprd/yprdinit;
-    scalez = domain->zprd/zprdinit;
-    eng = pv2e * (p_target[0] + p_flag[2]*p_target[2])/3.0 * 
-	(scalex*scaley*scalez-1.0)*volinit;
-    scalex = scaley = domain->xprd/xprdinit;
-    eng = pv2e * p_target[0] * (scalex*scaley-1.0)*volinit;
-    fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*scale*volinit;
-    if (p_flag[2]) {
-      scalez = domain->zprd/zprdinit;
-      eng += pv2e * p_target[2] * (scalez-1.0)*volinit;
-      fextra[1] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
-    }
-
-  } else if (press_couple == YZ) {
-
-  } else if (press_couple == XZ) {
-
-  } else if (press_couple == ANISO) {
-    scalex = domain->xprd/xprdinit;
-    scaley = domain->yprd/yprdinit;
-    scalez = domain->zprd/zprdinit;
-    if (dimension == 3) {
-      eng = pv2e * (p_flag[0]*p_target[0] + p_flag[1]*p_target[1] + 
-		    p_flag[2]*p_target[2])/3.0 * 
-	(scalex*scaley*scalez-1.0)*volinit;
-      if (p_flag[0])
-	fextra[0] = pv2e * (p_current[0] - p_target[0])*scaley*scalez*volinit;
-      if (p_flag[1])
-	fextra[1] = pv2e * (p_current[1] - p_target[1])*scalex*scalez*volinit;
-      if (p_flag[2])
-	fextra[2] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
-    } else {
-      eng = pv2e * (p_flag[0]*p_target[0] + p_flag[1]*p_target[1])/2.0 * 
-	(scalex*scaley-1.0)*volinit;
-      if (p_flag[0])
-	fextra[0] = pv2e * (p_current[0] - p_target[0])*scaley*volinit;
-      if (p_flag[1])
-	fextra[1] = pv2e * (p_current[1] - p_target[1])*scalex*volinit;
-    }
+  } else {
+    scalex = scaley = scalez = 1.0;
+    if (p_flag[0]) scalex = domain->xprd/xprdinit;
+    if (p_flag[1]) scaley = domain->yprd/yprdinit;
+    if (p_flag[2]) scalez = domain->zprd/zprdinit;
+    eng = pv2e * (p_flag[0]*p_target[0] + p_flag[1]*p_target[1] + 
+		  p_flag[2]*p_target[2])/pflagsum * 
+      (scalex*scaley*scalez-1.0)*volinit;
+    if (p_flag[0])
+      fextra[0] = pv2e * (p_current[0] - p_target[0])*scaley*scalez*volinit;
+    if (p_flag[1])
+      fextra[1] = pv2e * (p_current[1] - p_target[1])*scalex*scalez*volinit;
+    if (p_flag[2])
+      fextra[2] = pv2e * (p_current[2] - p_target[2])*scalex*scaley*volinit;
   }
 
   return eng;
@@ -332,22 +322,29 @@ void FixBoxRelax::min_step(double alpha, double *fextra)
 {
   if (press_couple == XYZ) {
     ds[0] = ds[1] = ds[2] = alpha*fextra[0];
-  } else if (press_couple == XY) {
-    ds[0] = ds[1] = alpha*fextra[0];
-    if (p_flag[2]) ds[2] = alpha*fextra[1];
-  } else if (press_couple == YZ) {
-    ds[1] = ds[2] = alpha*fextra[0];
-    if (p_flag[0]) ds[0] = alpha*fextra[1];
-  } else if (press_couple == XZ) {
-    ds[0] = ds[2] = alpha*fextra[0];
-    if (p_flag[1]) ds[1] = alpha*fextra[1];
-  } else if (press_couple == ANISO) {
+  } else {
     if (p_flag[0]) ds[0] = alpha*fextra[0];
     if (p_flag[1]) ds[1] = alpha*fextra[1];
     if (p_flag[2]) ds[2] = alpha*fextra[2];
   }
 
   remap();
+}
+
+/* ----------------------------------------------------------------------
+   max allowed step size along fextra
+------------------------------------------------------------------------- */
+
+double FixBoxRelax::max_alpha(double *fextra)
+{
+  double alpha = 0.0;
+  if (press_couple == XYZ) alpha = smax/fabs(fextra[0]);
+  else {
+    alpha = smax/fabs(fextra[0]);
+    alpha = MIN(alpha,smax/fabs(fextra[1]));
+    alpha = MIN(alpha,smax/fabs(fextra[2]));
+  }
+  return alpha;
 }
 
 /* ----------------------------------------------------------------------

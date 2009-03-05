@@ -63,6 +63,7 @@ class Modify : protected Pointers {
   double min_energy(double *);
   void min_store();
   void min_step(double, double *);
+  double max_alpha(double *);
   int min_dof();
 
   void add_fix(int, char **);

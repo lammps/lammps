@@ -93,7 +93,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // process extra keywords
 
   allremap = 0;
-  smax = 0.0001;
+  vmax = 0.0001;
 
   int iarg;
   if (press_couple == XYZ) iarg = 5;
@@ -106,9 +106,9 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 1;
       else error->all("Illegal fix box/relax command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"smax") == 0) {
+    } else if (strcmp(arg[iarg],"vmax") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix box/relax command");
-      smax = atof(arg[iarg+1]);
+      vmax = atof(arg[iarg+1]);
       iarg += 2;
     } else error->all("Illegal fix box/relax command");
   }
@@ -135,6 +135,8 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     error->all("Cannot use fix box/relax on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all("Cannot use fix box/relax on a non-periodic dimension");
+
+  if (vmax <= 0.0) error->all("Illegal fix box/relax command");
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -338,11 +340,11 @@ void FixBoxRelax::min_step(double alpha, double *fextra)
 double FixBoxRelax::max_alpha(double *fextra)
 {
   double alpha = 0.0;
-  if (press_couple == XYZ) alpha = smax/fabs(fextra[0]);
+  if (press_couple == XYZ) alpha = vmax/fabs(fextra[0]);
   else {
-    alpha = smax/fabs(fextra[0]);
-    alpha = MIN(alpha,smax/fabs(fextra[1]));
-    alpha = MIN(alpha,smax/fabs(fextra[2]));
+    alpha = vmax/fabs(fextra[0]);
+    alpha = MIN(alpha,vmax/fabs(fextra[1]));
+    alpha = MIN(alpha,vmax/fabs(fextra[2]));
   }
   return alpha;
 }

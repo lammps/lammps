@@ -581,9 +581,11 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   double esum = 0.0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
-    esum += styles[map[itype][jtype][m]]->
-      single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
-    fforce += fone;
+    if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
+      esum += styles[map[itype][jtype][m]]->
+	single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
+      fforce += fone;
+    }
   }
 
   return esum;

@@ -62,7 +62,11 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
       else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
-      else error->all("Illegal compute stress/atom command");
+      else if (strcmp(arg[iarg],"virial") == 0) {
+	pairflag = 1;
+	bondflag = angleflag = dihedralflag = improperflag = 1;
+	fixflag = 1;
+      } else error->all("Illegal compute stress/atom command");
       iarg++;
     }
   }

@@ -84,8 +84,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 	pairflag = 1;
 	bondflag = angleflag = dihedralflag = improperflag = 1;
 	kspaceflag = fixflag = 1;
-      }
-      else error->all("Illegal compute pressure command");
+      } else error->all("Illegal compute pressure command");
       iarg++;
     }
   }

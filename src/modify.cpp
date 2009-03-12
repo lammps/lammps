@@ -185,7 +185,7 @@ void Modify::init()
   //   b/c some may be holdovers from previous run, like for ave fixes
 
   for (i = 0; i < ncompute; i++) compute[i]->init();
-  modify->addstep_compute_all(update->ntimestep);
+  addstep_compute_all(update->ntimestep);
 
   // init each fix
 

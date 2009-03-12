@@ -311,21 +311,20 @@ c$$$      call mdsav(1,qfile(nprob))
       ehulp=zero
       ehulpp=zero
       ehulppp=zero
-      bomh=bom(itype)
       if (rapt(ih1).gt.zero.and.rapt(ih2).gt.zero) then
       rhulp2=dis/rob2(ih1,ih2)
       rh2p=rhulp2**ptp(itype)
-      ehulpp=bomh*exp(pdp(itype)*rh2p)
+      ehulpp=exp(pdp(itype)*rh2p)
       end if
       if (vnq(ih1).gt.zero.and.vnq(ih2).gt.zero) then
       rhulp3=dis/rob3(ih1,ih2)
       rh2pp=rhulp3**popi(itype)
-      ehulppp=bomh*exp(pdo(itype)*rh2pp)
+      ehulppp=exp(pdo(itype)*rh2pp)
       end if
 
       if (rat(ih1).gt.zero.and.rat(ih2).gt.zero) then
       rh2=rhulp**bop2(itype)
-      ehulp=bomh*(1.0+cutoff)*exp(bop1(itype)*rh2)
+      ehulp=(1.0+cutoff)*exp(bop1(itype)*rh2)
       end if
 
       bor=ehulp+ehulpp+ehulppp
@@ -724,21 +723,20 @@ c$$$      call mdsav(1,qfile(nprob))
       ehulp=zero
       ehulpp=zero
       ehulppp=zero
-      bomh=bom(itype)
       if (rapt(ih1).gt.zero.and.rapt(ih2).gt.zero) then
       rhulp2=dis/rob2(ih1,ih2)
       rh2p=rhulp2**ptp(itype)
-      ehulpp=bomh*exp(pdp(itype)*rh2p)
+      ehulpp=exp(pdp(itype)*rh2p)
       end if
       if (vnq(ih1).gt.zero.and.vnq(ih2).gt.zero) then
       rhulp3=dis/rob3(ih1,ih2)
       rh2pp=rhulp3**popi(itype)
-      ehulppp=bomh*exp(pdo(itype)*rh2pp)
+      ehulppp=exp(pdo(itype)*rh2pp)
       end if
 
       if (rat(ih1).gt.zero.and.rat(ih2).gt.zero) then
       rh2=rhulp**bop2(itype)
-      ehulp=bomh*(1.0+cutoff)*exp(bop1(itype)*rh2)
+      ehulp=(1.0+cutoff)*exp(bop1(itype)*rh2)
       end if
 
       bor=ehulp+ehulpp+ehulppp

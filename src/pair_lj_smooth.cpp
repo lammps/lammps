@@ -285,7 +285,7 @@ double PairLJSmooth::init_one(int i, int j)
     double r6inv = 1.0/pow(cut_inner[i][j],6.0);
     double t = cut[i][j] - cut_inner[i][j];
     double tsq = t*t;
-    double ratio = sigma[i][j]/cut[i][j];
+    double ratio = sigma[i][j] / cut_inner[i][j];
     ljsw0[i][j] = 4.0*epsilon[i][j]*(pow(ratio,12.0) - pow(ratio,6.0));
     ljsw1[i][j] = r6inv*(lj1[i][j]*r6inv-lj2[i][j]) / cut_inner[i][j];
     ljsw2[i][j] = -r6inv * (13.0*lj1[i][j]*r6inv - 7.0*lj2[i][j]) /
@@ -302,7 +302,7 @@ double PairLJSmooth::init_one(int i, int j)
     ljsw2[i][j] = 0.0;
     ljsw3[i][j] = 0.0;
     ljsw4[i][j] = 0.0;
-    double ratio = sigma[i][j] / cut[i][j];
+    double ratio = sigma[i][j] / cut_inner[i][j];
     if (offset_flag)
       offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
     else offset[i][j] = 0.0;

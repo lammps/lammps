@@ -88,7 +88,8 @@ There can be no more than 32 defined groups, including "all".
 
 [Related commands:]
 
-region, fix, velocity, dump, temperature
+"dump"_dump.html, "fix"_fix.html, "region"_region.html,
+"temperature"_temperature.html, "velocity"_velocity.html
 
 [Default:]
 

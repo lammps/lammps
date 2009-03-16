@@ -61,7 +61,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   thresh_op = NULL;
   thresh_value = NULL;
 
-  // compute, fix, variables the dump accesses
+  // computes, fixes, variables which the dump accesses
 
   field2index = (int *) memory->smalloc(nfield*sizeof(int),"dump:field2index");
   argindex = (int *) memory->smalloc(nfield*sizeof(int),"dump:argindex");
@@ -102,6 +102,17 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     vformat[i] = NULL;
   }
 
+  // setup column string
+
+  int n = 0;
+  for (int iarg = 5; iarg < narg; iarg++) n += strlen(arg[iarg]) + 2;
+  columns = new char[n];
+  columns[0] = '\0';
+  for (int iarg = 5; iarg < narg; iarg++) {
+    strcat(columns,arg[iarg]);
+    strcat(columns," ");
+  }
+
   // one-time file open
 
   if (multifile == 0) openfile();
@@ -140,6 +151,8 @@ DumpCustom::~DumpCustom()
 
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
+
+  delete [] columns;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,8 +182,14 @@ void DumpCustom::init()
 
   // setup function ptrs
 
-  if (binary) header_choice = &DumpCustom::header_binary;
-  else header_choice = &DumpCustom::header_item;
+  if (binary && domain->triclinic == 0)
+    header_choice = &DumpCustom::header_binary;
+  else if (binary && domain->triclinic == 1)
+    header_choice = &DumpCustom::header_binary_triclinic;
+  else if (!binary && domain->triclinic == 0)
+    header_choice = &DumpCustom::header_item;
+  else if (!binary && domain->triclinic == 1)
+    header_choice = &DumpCustom::header_item_triclinic;
 
   if (binary) write_choice = &DumpCustom::write_binary;
   else write_choice = &DumpCustom::write_text;
@@ -215,12 +234,36 @@ void DumpCustom::header_binary(int ndump)
 {
   fwrite(&update->ntimestep,sizeof(int),1,fp);
   fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
   fwrite(&boxylo,sizeof(double),1,fp);
   fwrite(&boxyhi,sizeof(double),1,fp);
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
+  fwrite(&size_one,sizeof(int),1,fp);
+  if (multiproc) {
+    int one = 1;
+    fwrite(&one,sizeof(int),1,fp);
+  } else fwrite(&nprocs,sizeof(int),1,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_binary_triclinic(int ndump)
+{
+  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&domain->triclinic,sizeof(int),1,fp);
+  fwrite(&boxxlo,sizeof(double),1,fp);
+  fwrite(&boxxhi,sizeof(double),1,fp);
+  fwrite(&boxylo,sizeof(double),1,fp);
+  fwrite(&boxyhi,sizeof(double),1,fp);
+  fwrite(&boxzlo,sizeof(double),1,fp);
+  fwrite(&boxzhi,sizeof(double),1,fp);
+  fwrite(&boxxy,sizeof(double),1,fp);
+  fwrite(&boxxz,sizeof(double),1,fp);
+  fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
   if (multiproc) {
     int one = 1;
@@ -240,7 +283,22 @@ void DumpCustom::header_item(int ndump)
   fprintf(fp,"%g %g\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g\n",boxylo,boxyhi);
   fprintf(fp,"%g %g\n",boxzlo,boxzhi);
-  fprintf(fp,"ITEM: ATOMS\n");
+  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_item_triclinic(int ndump)
+{
+  fprintf(fp,"ITEM: TIMESTEP\n");
+  fprintf(fp,"%d\n",update->ntimestep);
+  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
+  fprintf(fp,"%d\n",ndump);
+  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz\n");
+  fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
+  fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
+  fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+  fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */

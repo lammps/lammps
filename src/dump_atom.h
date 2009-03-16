@@ -27,6 +27,8 @@ class DumpAtom : public Dump {
   int scale_flag;            // 1 if atom coords are scaled, 0 if no
   int image_flag;            // 1 if append box count to atom coords, 0 if no
 
+  char *columns;             // column labels
+
   int modify_param(int, char **);
   void write_header(int);
   int count();
@@ -36,7 +38,9 @@ class DumpAtom : public Dump {
   typedef void (DumpAtom::*FnPtrHeader)(int);
   FnPtrHeader header_choice;           // ptr to write header functions
   void header_binary(int);
+  void header_binary_triclinic(int);
   void header_item(int);
+  void header_item_triclinic(int);
 
   typedef int (DumpAtom::*FnPtrPack)();
   FnPtrPack pack_choice;               // ptr to pack functions

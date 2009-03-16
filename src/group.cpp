@@ -84,7 +84,7 @@ void Group::assign(int narg, char **arg)
   if (narg < 2) error->all("Illegal group command");
 
   // find group in existing list
-  // igroup = -1 is a new group name, add it
+  // igroup = -1 requires a new group, add it
 
   int igroup = find(arg[0]);
 
@@ -329,7 +329,7 @@ void Group::create(char *name, int *flag)
   int i;
 
   // find group in existing list
-  // igroup = -1 is a new group name, add it
+  // igroup = -1 requires a new group, add it
 
   int igroup = find(name);
 

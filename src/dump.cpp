@@ -135,6 +135,9 @@ void Dump::write()
     boxyhi = domain->boxhi_bound[1];
     boxzlo = domain->boxlo_bound[2];
     boxzhi = domain->boxhi_bound[2];
+    boxxy = domain->xy;
+    boxxz = domain->xz;
+    boxyz = domain->yz;
   }
 
   // nme = # of dump lines this proc will contribute to dump

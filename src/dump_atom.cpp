@@ -61,10 +61,27 @@ void DumpAtom::init()
     strcat(format,"\n");
   }
 
+  // setup column string
+
+  if (scale_flag == 0 && image_flag == 0)
+    columns = "id type x y z";
+  else if (scale_flag == 0 && image_flag == 1)
+    columns = "id type x y z ix iy iz";
+  else if (scale_flag == 1 && image_flag == 0)
+    columns = "id type xs ys zs";
+  else if (scale_flag == 1 && image_flag == 1)
+    columns = "id type xs ys zs ix iy iz";
+
   // setup function ptrs
 
-  if (binary) header_choice = &DumpAtom::header_binary;
-  else header_choice = &DumpAtom::header_item;
+  if (binary && domain->triclinic == 0)
+    header_choice = &DumpAtom::header_binary;
+  else if (binary && domain->triclinic == 1)
+    header_choice = &DumpAtom::header_binary_triclinic;
+  else if (!binary && domain->triclinic == 0)
+    header_choice = &DumpAtom::header_item;
+  else if (!binary && domain->triclinic == 1)
+    header_choice = &DumpAtom::header_item_triclinic;
 
   if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 0)
     pack_choice = &DumpAtom::pack_scale_noimage;
@@ -146,12 +163,36 @@ void DumpAtom::header_binary(int ndump)
 {
   fwrite(&update->ntimestep,sizeof(int),1,fp);
   fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&domain->triclinic,sizeof(int),1,fp);
   fwrite(&boxxlo,sizeof(double),1,fp);
   fwrite(&boxxhi,sizeof(double),1,fp);
   fwrite(&boxylo,sizeof(double),1,fp);
   fwrite(&boxyhi,sizeof(double),1,fp);
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
+  fwrite(&size_one,sizeof(int),1,fp);
+  if (multiproc) {
+    int one = 1;
+    fwrite(&one,sizeof(int),1,fp);
+  } else fwrite(&nprocs,sizeof(int),1,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_binary_triclinic(int ndump)
+{
+  fwrite(&update->ntimestep,sizeof(int),1,fp);
+  fwrite(&ndump,sizeof(int),1,fp);
+  fwrite(&domain->triclinic,sizeof(int),1,fp);
+  fwrite(&boxxlo,sizeof(double),1,fp);
+  fwrite(&boxxhi,sizeof(double),1,fp);
+  fwrite(&boxylo,sizeof(double),1,fp);
+  fwrite(&boxyhi,sizeof(double),1,fp);
+  fwrite(&boxzlo,sizeof(double),1,fp);
+  fwrite(&boxzhi,sizeof(double),1,fp);
+  fwrite(&boxxy,sizeof(double),1,fp);
+  fwrite(&boxxz,sizeof(double),1,fp);
+  fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
   if (multiproc) {
     int one = 1;
@@ -171,7 +212,22 @@ void DumpAtom::header_item(int ndump)
   fprintf(fp,"%g %g\n",boxxlo,boxxhi);
   fprintf(fp,"%g %g\n",boxylo,boxyhi);
   fprintf(fp,"%g %g\n",boxzlo,boxzhi);
-  fprintf(fp,"ITEM: ATOMS\n");
+  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_item_triclinic(int ndump)
+{
+  fprintf(fp,"ITEM: TIMESTEP\n");
+  fprintf(fp,"%d\n",update->ntimestep);
+  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
+  fprintf(fp,"%d\n",ndump);
+  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz\n");
+  fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
+  fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
+  fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+  fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -37,6 +37,8 @@ class DumpCustom : public Dump {
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element
 
+  char *columns;             // column labels
+
   int maxlocal;              // size of atom selection and variable arrays
   int *choose;               // 1 if output this atom, 0 if no
   double *dchoose;           // value for each atom to threshhold against
@@ -76,7 +78,9 @@ class DumpCustom : public Dump {
   typedef void (DumpCustom::*FnPtrHeader)(int);
   FnPtrHeader header_choice;           // ptr to write header functions
   void header_binary(int);
+  void header_binary_triclinic(int);
   void header_item(int);
+  void header_item_triclinic(int);
 
   typedef void (DumpCustom::*FnPtrData)(int, double *);
   FnPtrData write_choice;              // ptr to write data functions

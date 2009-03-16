@@ -30,6 +30,8 @@ time = d.next()             	  read next snapshot from dump files
 
 d.map(1,"id",3,"x")               assign names to atom columns (1-N)
 
+  not needed if dump file is self-describing
+  
 d.tselect.all()			  select all timesteps
 d.tselect.one(N)		  select only timestep N
 d.tselect.none()		  deselect all timesteps
@@ -246,10 +248,12 @@ class dump:
 
     self.tselect.all()
 
-    # set default names for atom columns
+    # set default names for atom columns if file wasn't self-describing
     
     if len(self.snaps) == 0:
       print "no column assignments made"
+    elif len(self.names):
+      print "column assignments made from self-describing file"
     elif self.snaps[0].atoms == None:
       print "no column assignments made"
     elif len(self.snaps[0].atoms[0]) == 5:
@@ -263,7 +267,9 @@ class dump:
 
     # if snapshots are scaled, unscale them
 
-    if not self.names.has_key("x"):
+    if (not self.names.has_key("x")) or \
+       (not self.names.has_key("y")) or \
+       (not self.names.has_key("z")):
       print "no unscaling could be performed"
     elif self.nsnaps > 0:
       if self.scaled(self.nsnaps-1): self.unscale()
@@ -312,12 +318,13 @@ class dump:
   # --------------------------------------------------------------------
   # read a single snapshot from file f
   # return snapshot or 0 if failed
-
+  # assign column names if not already done and file is self-describing
+  
   def read_snapshot(self,f):
     try:
       snap = Snap()
       item = f.readline()
-      snap.time = int(f.readline())
+      snap.time = int(f.readline().split()[0])    # just grab 1st field
       item = f.readline()
       snap.natoms = int(f.readline())
 
@@ -332,6 +339,12 @@ class dump:
       snap.zlo,snap.zhi = float(words[0]),float(words[1])
 
       item = f.readline()
+      if len(self.names) == 0:
+        words = item.split()[2:]
+        if len(words):
+          for i in range(len(words)):
+            self.names[words[i]] = i
+
       if snap.natoms:
         words = f.readline().split()
         ncol = len(words)

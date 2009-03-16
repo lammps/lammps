@@ -48,15 +48,18 @@ both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
 respectively.
 </P>
-<P>Use of this pair style requires the use of the <A HREF = "fix_nve_dipole.html">fix
-nve/dipole</A> command to integrate rotation of the
-dipole moments.  Additionally, <A HREF = "atom_style.html">atom_style dipole</A>
-should be used since it defines the point dipoles and their rotational
-state.  The magnitude of the dipole moment for each type of particle
-can be defined by the <A HREF = "dipole.html">dipole</A> command or in the "Dipoles"
-section of the data file read in by the <A HREF = "read_data.html">read_data</A>
-command.  Their initial orientation can be defined by the <A HREF = "set.html">set
-dipole</A> command or in the "Atoms" section of the data file.
+<P>Atoms with dipole moments should be integrated using the <A HREF = "fix_nve_sphere.html">fix
+nve/sphere update dipole</A> command to rotate the
+dipole moments.  The <A HREF = "compute_temp_sphere.html">compute temp/sphere</A>
+command can be used to monitor the temperature, since it includes
+rotational degrees of freedom.  The <A HREF = "atom_style.html">atom_style
+dipole</A> command should be used since it defines the
+point dipoles and their rotational state.  The magnitude of the dipole
+moment for each type of particle can be defined by the
+<A HREF = "dipole.html">dipole</A> command or in the "Dipoles" section of the data
+file read in by the <A HREF = "read_data.html">read_data</A> command.  Their initial
+orientation can be defined by the <A HREF = "set.html">set dipole</A> command or in
+the "Atoms" section of the data file.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

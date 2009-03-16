@@ -109,7 +109,20 @@ individual values and the file itself.
 format that is self-explanatory when viewing a dump file.  Many of the
 LAMMPS <A HREF = "Section_tools.html">post-processing tools</A>, including
 <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>, work with
-this format.
+this format.  
+</P>
+<P>For post-processing purposes the <I>atom</I> and <I>custom</I> text files are
+self-describing in the following sense.  The simulation box bounds are
+included in each snapshot and if the box is triclinic
+(non-orthogonal), then the tilt factors are also printed; see the
+<A HREF = "region.html">region prism</A> command for a description of tilt factors.
+For triclinic boxes the box bounds themselves (first 2 quantities on
+each line) are a true "bounding box" around the simulation domain,
+which means they include the effect of any tilt.  The "ITEM: ATOMS"
+line in each snapshot also lists the meaning of each column of the
+per-atom lines that follow.  For example, this would be "id type xs ys
+zs" for the default <I>atom</I> style, and it will be the atom attributes
+you specify in the dump command for the <I>custom</I> style.
 </P>
 <P>For style <I>atom</I>, atom coordinates are written to the file, along with
 the atom ID and atom type.  By default, atom coords are written in a

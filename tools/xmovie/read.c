@@ -418,11 +418,8 @@ PRIVATE int parser(char *token, PARSETABLE *table, int cnt)
 	int		i;
 
 	for(i = cnt, t = table; i; i--, t++)
-	  if (strcmp(t->string, token))
-	    continue;
-	  else
-	    return(t->state);
-
+	  if (strstr(token,t->string) == token)
+	    return t->state;
 	return(BAD_STATE);
 }
 

@@ -49,6 +49,8 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
+  group2 = NULL;
+
   if (strcmp(arg[3],"tether") == 0) {
     if (narg != 9) error->all("Illegal fix spring command");
     styleflag = TETHER;
@@ -66,12 +68,17 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[3],"couple") == 0) {
     if (narg != 10) error->all("Illegal fix spring command");
     styleflag = COUPLE;
+
+    int n = strlen(arg[4]) + 1;
+    group2 = new char[n];
+    strcpy(group2,arg[4]);
     igroup2 = group->find(arg[4]);
     if (igroup2 == -1) 
-      error->all("Could not find fix spring couple group ID"); 
+      error->all("Fix spring couple group ID does not exist"); 
     if (igroup2 == igroup) 
       error->all("Two groups cannot be the same in fix spring couple"); 
     group2bit = group->bitmask[igroup2];
+
     k_spring = atof(arg[5]);
     xflag = yflag = zflag = 1;
     if (strcmp(arg[6],"NULL") == 0) xflag = 0;
@@ -90,6 +97,13 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
+FixSpring::~FixSpring()
+{
+  delete [] group2;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixSpring::setmask()
 {
   int mask = 0;
@@ -104,6 +118,15 @@ int FixSpring::setmask()
 
 void FixSpring::init()
 {
+  // recheck that group 2 has not been deleted
+
+  if (group2) {
+    igroup2 = group->find(group2);
+    if (igroup2 == -1) 
+      error->all("Fix spring couple group ID does not exist"); 
+    group2bit = group->bitmask[igroup2];
+  }
+
   masstotal = group->mass(igroup);
   if (styleflag == COUPLE) masstotal2 = group->mass(igroup2);
   

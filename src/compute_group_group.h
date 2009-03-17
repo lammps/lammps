@@ -28,6 +28,7 @@ class ComputeGroupGroup : public Compute {
   void compute_vector();
 
  private:
+  char *group2;
   int jgroup,jgroupbit,othergroupbit;
   double **cutsq;
   class Pair *pair;

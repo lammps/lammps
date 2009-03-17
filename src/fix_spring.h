@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class FixSpring : public Fix {
  public:
   FixSpring(class LAMMPS *, int, char **);
+  ~FixSpring();
   int setmask();
   void init();
   void setup(int);
@@ -36,6 +37,7 @@ class FixSpring : public Fix {
   double k_spring;
   int xflag,yflag,zflag;
   int styleflag;
+  char *group2;
   int igroup2,group2bit;
   double masstotal,masstotal2;
   int nlevels_respa;

@@ -21,7 +21,11 @@
 #include "atom.h"
 #include "force.h"
 #include "region.h"
-#include "memory.h"
+#include "modify.h"
+#include "fix.h"
+#include "compute.h"
+#include "output.h"
+#include "dump.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -44,9 +48,11 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
-  names = (char **) memory->smalloc(MAX_GROUP*sizeof(char *),"group:names");
+  names = new char*[MAX_GROUP];
   bitmask = new int[MAX_GROUP];
   inversemask = new int[MAX_GROUP];
+
+  for (int i = 0; i < MAX_GROUP; i++) names[i] = NULL;
   for (int i = 0; i < MAX_GROUP; i++) bitmask[i] = 1 << i;
   for (int i = 0; i < MAX_GROUP; i++) inversemask[i] = bitmask[i] ^ ~0;
 
@@ -54,7 +60,7 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 
   char *str = (char *) "all";
   int n = strlen(str) + 1;
-  names[0] = (char *) memory->smalloc(n*sizeof(char),"group:names[]");
+  names[0] = new char[n];
   strcpy(names[0],str);
   ngroup = 1;
 }
@@ -65,8 +71,8 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 
 Group::~Group()
 {
-  for (int i = 0; i < ngroup; i++) memory->sfree(names[i]);
-  memory->sfree(names);
+  for (int i = 0; i < MAX_GROUP; i++) delete [] names[i];
+  delete [] names;
   delete [] bitmask;
   delete [] inversemask;
 }
@@ -83,18 +89,49 @@ void Group::assign(int narg, char **arg)
     error->all("Group command before simulation box is defined");
   if (narg < 2) error->all("Illegal group command");
 
+  // delete the group if not being used elsewhere
+  // clear mask of each atom assigned to this group
+
+  if (strcmp(arg[1],"delete") == 0) {
+    int igroup = find(arg[0]);
+    if (igroup == -1) error->all("Could not find delete group ID");
+    if (igroup == 0) error->all("Cannot delete group all");
+    for (i = 0; i < modify->nfix; i++)
+      if (modify->fix[i]->igroup == igroup)
+	error->all("Cannot delete group currently used by a fix");
+    for (i = 0; i < modify->ncompute; i++)
+      if (modify->compute[i]->igroup == igroup)
+	error->all("Cannot delete group currently used by a compute");
+    for (i = 0; i < output->ndump; i++)
+      if (output->dump[i]->igroup == igroup)
+	error->all("Cannot delete group currently used by a dump");
+    if (atom->firstgroupname && strcmp(arg[0],atom->firstgroupname) == 0)
+      error->all("Cannot delete group currently used by atom_modify first");
+
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int bits = inversemask[igroup];
+    for (i = 0; i < nlocal; i++) mask[i] &= bits;
+
+    delete [] names[igroup];
+    names[igroup] = NULL;
+    ngroup--;
+
+    return;
+  }
+
   // find group in existing list
-  // igroup = -1 requires a new group, add it
+  // add a new group if igroup = -1
 
   int igroup = find(arg[0]);
 
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all("Too many groups");
-    igroup = ngroup;
-    ngroup++;
+    igroup = find_unused();
     int n = strlen(arg[0]) + 1;
-    names[igroup] = (char *) memory->smalloc(n*sizeof(char),"group:names[]");
+    names[igroup] = new char[n];
     strcpy(names[igroup],arg[0]);
+    ngroup++;
   }
 
   double **x = atom->x;
@@ -329,20 +366,20 @@ void Group::create(char *name, int *flag)
   int i;
 
   // find group in existing list
-  // igroup = -1 requires a new group, add it
+  // add a new group if igroup = -1
 
   int igroup = find(name);
 
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all("Too many groups");
-    igroup = ngroup;
-    ngroup++;
+    igroup = find_unused();
     int n = strlen(name) + 1;
-    names[igroup] = (char *) memory->smalloc(n*sizeof(char),"group:names[]");
+    names[igroup] = new char[n];
     strcpy(names[igroup],name);
+    ngroup++;
   }
 
-  // add atom to group if flag is set
+  // add atoms to group whose flags are set
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -358,8 +395,20 @@ void Group::create(char *name, int *flag)
 
 int Group::find(const char *name)
 {
-  for (int igroup = 0; igroup < ngroup; igroup++)
-    if (strcmp(name,names[igroup]) == 0) return igroup;
+  for (int igroup = 0; igroup < MAX_GROUP; igroup++)
+    if (names[igroup] && strcmp(name,names[igroup]) == 0) return igroup;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return index of first available group
+   should never be called when group limit has been reached
+------------------------------------------------------------------------- */
+
+int Group::find_unused()
+{
+  for (int igroup = 0; igroup < MAX_GROUP; igroup++)
+    if (names[igroup] == NULL) return igroup;
   return -1;
 }
 
@@ -373,10 +422,11 @@ void Group::write_restart(FILE *fp)
   fwrite(&ngroup,sizeof(int),1,fp);
 
   int n;
-  for (int i = 0; i < ngroup; i++) {
-    n = strlen(names[i]) + 1;
+  for (int i = 0; i < MAX_GROUP; i++) {
+    if (names[i]) n = strlen(names[i]) + 1;
+    else n = 0;
     fwrite(&n,sizeof(int),1,fp);
-    fwrite(names[i],sizeof(char),n,fp);
+    if (n) fwrite(names[i],sizeof(char),n,fp);
   }
 }
 
@@ -389,17 +439,22 @@ void Group::read_restart(FILE *fp)
 {
   int i,n;
 
-  for (i = 0; i < ngroup; i++) memory->sfree(names[i]);
+  // delete existing group names
+  // atom masks will be overwritten by reading of restart file
+
+  for (i = 0; i < MAX_GROUP; i++) delete [] names[i];
 
   if (me == 0) fread(&ngroup,sizeof(int),1,fp);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
   
-  for (i = 0; i < ngroup; i++) {
+  for (i = 0; i < MAX_GROUP; i++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    names[i] = (char *) memory->smalloc(n*sizeof(char),"group:names[]");
-    if (me == 0) fread(names[i],sizeof(char),n,fp);
-    MPI_Bcast(names[i],n,MPI_CHAR,0,world);
+    if (n) {
+      names[i] = new char[n];
+      if (me == 0) fread(names[i],sizeof(char),n,fp);
+      MPI_Bcast(names[i],n,MPI_CHAR,0,world);
+    } else names[i] = NULL;
   }
 }
 

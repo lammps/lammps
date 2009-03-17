@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "string.h"
 #include "compute_group_group.h"
 #include "atom.h"
 #include "update.h"
@@ -41,7 +42,11 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  jgroup = group->find(arg[3]);
+  int n = strlen(arg[3]) + 1;
+  group2 = new char[n];
+  strcpy(group2,arg[3]);
+
+  jgroup = group->find(group2);
   if (jgroup == -1) error->all("Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
@@ -52,6 +57,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeGroupGroup::~ComputeGroupGroup()
 {
+  delete [] group2;
   delete [] vector;
 }
 
@@ -63,6 +69,12 @@ void ComputeGroupGroup::init()
     error->all("Compute group/group requires a pair style be defined");
   pair = force->pair;
   cutsq = force->pair->cutsq;
+
+  // recheck that group 2 has not been deleted
+
+  jgroup = group->find(group2);
+  if (jgroup == -1) error->all("Compute group/group group ID does not exist");
+  jgroupbit = group->bitmask[jgroup];
 
   // need an occasional half neighbor list
 

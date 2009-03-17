@@ -21,11 +21,8 @@ namespace LAMMPS_NS {
 
 class Group : protected Pointers {
  public:
-  int me;
-  int ngroup;                  // # of defined groups
   char **names;                // name of each group
   int *bitmask;                // one-bit mask for each group
-  int *inversemask;            // inverse mask for each group
 
   Group(class LAMMPS *);
   ~Group();
@@ -47,6 +44,13 @@ class Group : protected Pointers {
   void angmom(int, double *, double *);    // angular momentum of group
   void inertia(int, double *, double [3][3]);     // inertia tensor
   void omega(double *, double [3][3], double *);  // angular velocity
+
+ private:
+  int me;
+  int ngroup;                  // # of defined groups
+  int *inversemask;            // inverse mask for each group
+
+  int find_unused();
 };
 
 }

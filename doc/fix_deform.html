@@ -40,6 +40,9 @@
       <I>trate</I> value = R
         R = true strain rate (1/time units)
       <I>volume</I> value = none = adjust this dim to preserve volume of system
+      <I>wiggle</I> value = A Tp
+        A = amplitude of oscillation (distance units)
+	Tp = period of oscillation (time units)
   <I>xy</I>, <I>xz</I>, <I>yz</I> args = style value
     style = <I>final</I> or <I>delta</I> or <I>vel</I> or <I>erate</I> or <I>trate</I>
       <I>final</I> value = tilt
@@ -52,7 +55,10 @@
       <I>erate</I> value = R
         R = engineering shear strain rate (1/time units)
       <I>trate</I> value = R
-        R = true shear strain rate (1/time units) 
+        R = true shear strain rate (1/time units)
+      <I>wiggle</I> value = A Tp
+        A = amplitude of oscillation (distance units)
+	Tp = period of oscillation (time units) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -213,8 +219,20 @@ potentials whose Poisson ratio is not 0.5.  An alternative is to use
 <A HREF = "fix_npt.html">fix npt aniso</A> with zero applied pressure on those 2
 dimensions, so that they respond to the tensile strain dynamically.
 </P>
-<P>For the <I>scale</I>, <I>vel</I>, <I>erate</I>, <I>trate</I>, and <I>volume</I> styles, the box
-length is expanded or compressed around its mid point.
+<P>The <I>wiggle</I> style oscillates the specified box length dimension
+sinusoidally with the specified amplitude and period.  I.e. the box
+length L as a function of time is given by
+</P>
+<PRE>L(t) = L0 + A sin(2*pi t/Tp) 
+</PRE>
+<P>where L0 is its initial length.  If the amplitude A is a positive
+number the box initially expands, then contracts, etc.  If A is
+negative then the box initially contracts, then expands, etc.  The
+amplitude can be in lattice or box distance units.  See the discussion
+of the units keyword below.
+</P>
+<P>For the <I>scale</I>, <I>vel</I>, <I>erate</I>, <I>trate</I>, <I>volume</I>, and <I>wiggle</I>
+styles, the box length is expanded or compressed around its mid point.
 </P>
 <HR>
 
@@ -292,6 +310,19 @@ perpendicular box length.  The <I>erate</I> and <I>trate</I> styles control the
 tilt factor, but assume the perpendicular box length remains constant.
 If this is not the case (e.g. it changes due to another fix deform
 parameter), then this effect on the shear strain is ignored.
+</P>
+<P>The <I>wiggle</I> style oscillates the specified tilt factor sinusoidally
+with the specified amplitude and period.  I.e. the tilt factor Tf as a
+function of time is given by
+</P>
+<PRE>Tf(t) = Tf0 + A sin(2*pi t/Tp) 
+</PRE>
+<P>where Tf0 is its initial value.  If the amplitude A is a positive
+number the tilt factor initially becomes more positive, then more
+negative, etc.  If A is negative then the tilt factor initially
+becomes more negative, then more positive, etc.  The amplitude can be
+in lattice or box distance units.  See the discussion of the units
+keyword below.
 </P>
 <P>All of these styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes

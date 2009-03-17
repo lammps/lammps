@@ -27,9 +27,9 @@
 
 <LI>one or more values can be listed 
 
-<LI>value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name 
+<LI>value = x, y, z, xu, yu, zu, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name 
 
-<PRE>  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+<PRE>  x,y,z,xu,yu,zu,vx,vy,vz,fx,fy,fz = atom attribute (position, unwrapped position, velocity, force component)
   c_ID = per-atom scalar value calculated by a compute with ID
   c_ID[N] = Nth component of per-atom vector calculated by a compute with ID
   f_ID = per-atom scalar value calculated by a fix with ID
@@ -55,13 +55,14 @@ ave/spatial</A> or <A HREF = "dump.html">dump custom</A> commands.
 the command means only atoms within the group have their averages
 computed.  Atoms not in the group have their result(s) set to 0.0.
 </P>
-<P>Each listed value can be an atom attribute (position, velocity, force
-component) or can be the result of a <A HREF = "compute.html">compute</A> or
-<A HREF = "fix.html">fix</A> or the evaluation of an atom-style
-<A HREF = "variable.html">variable</A>.  In the latter cases, the compute, fix, or
-variable must produce a per-atom quantity, not a global quantity.  If
-you wish to time-average global quantities from a compute, fix, or
-variable, then see the <A HREF = "fix_ave_time.html">fix ave/time</A> command.
+<P>Each listed value can be an atom attribute (position, unwrapped
+position, velocity, force component) or can be the result of a
+<A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A> or the evaluation of an
+atom-style <A HREF = "variable.html">variable</A>.  In the latter cases, the
+compute, fix, or variable must produce a per-atom quantity, not a
+global quantity.  If you wish to time-average global quantities from a
+compute, fix, or variable, then see the <A HREF = "fix_ave_time.html">fix
+ave/time</A> command.
 </P>
 <P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
 which have the word <I>atom</I> in their style name.  See the doc pages for
@@ -89,7 +90,14 @@ timestep 200, etc.
 <HR>
 
 <P>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.
+self-explanatory.  The unwrapped values (xu,yu,zu) mean that the
+coordinates are "unwrapped" by the images flags for each atom.  This
+means that if the atom has passed thru a periodic boundary one or more
+times, its unwrapped value is what the coordinate would be if it had
+not been wrapped back into the periodic box.  Note that this means the
+coordinate value may be far outside the box.  The
+<A HREF = "dump_modify.html">dump_modify</A> command describes in more detail what
+is meant by image flags.
 </P>
 <P>If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is

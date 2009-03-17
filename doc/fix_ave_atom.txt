@@ -18,8 +18,8 @@ Nevery = calculate property every this many timesteps :l
 Nrepeat = # of times to repeat the Nevery calculation before averaging :l
 Nfreq = timestep frequency at which the average value is calculated :l
 one or more values can be listed :l
-value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
-  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+value = x, y, z, xu, yu, zu, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+  x,y,z,xu,yu,zu,vx,vy,vz,fx,fy,fz = atom attribute (position, unwrapped position, velocity, force component)
   c_ID = per-atom scalar value calculated by a compute with ID
   c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
   f_ID = per-atom scalar value calculated by a fix with ID
@@ -44,13 +44,14 @@ Each listed value is averaged independently.  The group specified with
 the command means only atoms within the group have their averages
 computed.  Atoms not in the group have their result(s) set to 0.0.
 
-Each listed value can be an atom attribute (position, velocity, force
-component) or can be the result of a "compute"_compute.html or
-"fix"_fix.html or the evaluation of an atom-style
-"variable"_variable.html.  In the latter cases, the compute, fix, or
-variable must produce a per-atom quantity, not a global quantity.  If
-you wish to time-average global quantities from a compute, fix, or
-variable, then see the "fix ave/time"_fix_ave_time.html command.
+Each listed value can be an atom attribute (position, unwrapped
+position, velocity, force component) or can be the result of a
+"compute"_compute.html or "fix"_fix.html or the evaluation of an
+atom-style "variable"_variable.html.  In the latter cases, the
+compute, fix, or variable must produce a per-atom quantity, not a
+global quantity.  If you wish to time-average global quantities from a
+compute, fix, or variable, then see the "fix
+ave/time"_fix_ave_time.html command.
 
 "Computes"_compute.html that produce per-atom quantities are those
 which have the word {atom} in their style name.  See the doc pages for
@@ -78,7 +79,14 @@ timestep 200, etc.
 :line
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.
+self-explanatory.  The unwrapped values (xu,yu,zu) mean that the
+coordinates are "unwrapped" by the images flags for each atom.  This
+means that if the atom has passed thru a periodic boundary one or more
+times, its unwrapped value is what the coordinate would be if it had
+not been wrapped back into the periodic box.  Note that this means the
+coordinate value may be far outside the box.  The
+"dump_modify"_dump_modify.html command describes in more detail what
+is meant by image flags.
 
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is

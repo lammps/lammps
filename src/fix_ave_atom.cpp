@@ -15,6 +15,7 @@
 #include "string.h"
 #include "fix_ave_atom.h"
 #include "atom.h"
+#include "domain.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -25,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{X,V,F,COMPUTE,FIX,VARIABLE};
+enum{X,XU,V,F,COMPUTE,FIX,VARIABLE};
 enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 
 /* ---------------------------------------------------------------------- */
@@ -61,6 +62,16 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
       argindex[nvalues++] = 1;
     } else if (strcmp(arg[iarg],"z") == 0) {
       which[nvalues] = X;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"xu") == 0) {
+      which[nvalues] = XU;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"yu") == 0) {
+      which[nvalues] = XU;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"zu") == 0) {
+      which[nvalues] = XU;
       argindex[nvalues++] = 2;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
@@ -297,10 +308,32 @@ void FixAveAtom::end_of_step()
       double **x = atom->x;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) vector[i][m] += x[i][j];
+
+    } else if (which[m] == XU) {
+      double **x = atom->x;
+      int *image = atom->image;
+      if (j == 0) {
+	double xprd = domain->xprd;
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) 
+	    vector[i][m] += x[i][0] + ((image[i] & 1023) - 512) * xprd;
+      } else if (j == 1) {
+	double yprd = domain->yprd;
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) 
+	    vector[i][m] += x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
+      } else {
+	double zprd = domain->zprd;
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) 
+	    vector[i][m] += x[i][2] + ((image[i] >> 20) - 512) * zprd;
+      }
+
     } else if (which[m] == V) {
       double **v = atom->v;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) vector[i][m] += v[i][j];
+
     } else if (which[m] == F) {
       double **f = atom->f;
       for (i = 0; i < nlocal; i++)

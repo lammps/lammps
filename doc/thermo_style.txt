@@ -22,7 +22,8 @@ args = list of arguments for a particular style :l
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-			  pxx, pyy, pzz, pxy, pxz, pyz
+			  xy, xz, yz,
+			  pxx, pyy, pzz, pxy, pxz, pyz,
 			  c_ID, c_ID\[n\], f_ID, f_ID\[n\], v_name
       step = timestep
       atoms = # of atoms
@@ -46,6 +47,7 @@ args = list of arguments for a particular style :l
       vol = volume
       lx,ly,lz = box lengths in x,y,z
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
+      xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[N\] = Nth component of global vector calculated by a compute with ID

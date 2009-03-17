@@ -38,7 +38,7 @@ keyword = {delay} or {every} or {check} or {once} or {include} or {exclude} or {
   {page} value = N
     N = number of pairs stored in a single neighbor page
   {one} value = N
-    N = max number of neighbors of one atom :pre
+    N = max number of neighbors of one atom
   {binsize} value = size
     size = bin size for neighbor list construction (distance units) :pre
 :ule

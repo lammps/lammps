@@ -13,8 +13,9 @@ group command :h3
 group ID style args :pre
 
 ID = user-defined name of the group :ulb,l
-style = {region} or {type} or {id} or {molecule} or {subtract} or \
+style = {delete} or {region} or {type} or {id} or {molecule} or {subtract} or \
         {union} or {intersect} :l
+  {delete} = no args
   {region} args = region-ID
   {type} or {id} or {molecule}
     args = one or more atom types, atom IDs, or molecule IDs
@@ -38,16 +39,26 @@ group sub id <= 150
 group polyA molecule <> 50 250
 group boundary subtract all a2 a3
 group boundary union lower upper
-group boundary intersect upper flow :pre
+group boundary intersect upper flow
+group boundary delete :pre
 
 [Description:]
 
 Identify a collection of atoms as belonging to a group.  The group ID
-can then be used in other commands such as fix, velocity, dump, or
-temperature to act on the atoms together.
+can then be used in other commands such as "fix"_fix.html,
+"compute"_compute.html, "dump"_dump.html, or "velocity"_velocity.html
+to act on those atoms together.
 
 If the group ID already exists, the group command adds the specified
 atoms to the group.
+
+The {delete} style removes the named group and un-assigns all atoms
+that were assigned to that group.  Since there is a restriction (see
+below) that no more than 32 groups can be defined at any time, the
+{delete} style allows you to remove groups that are no longer needed,
+so that more can be specified.  You cannot delete a group if it has
+been used to define a current "fix"_fix.html or "compute"_compute.html
+or "dump"_dump.html.
 
 The {region} style puts all atoms in the region volume into the group.
 Note that this is a static one-time assignment.  The atoms remain
@@ -80,11 +91,12 @@ as arguments.  Atoms that belong to every one of the listed groups are
 added to the specified group.
 
 A group with the ID {all} is predefined.  All atoms belong to this
-group.
+group.  This group cannot be deleted.
 
 [Restrictions:]
 
-There can be no more than 32 defined groups, including "all".
+There can be no more than 32 groups defined at one time, including
+"all".
 
 [Related commands:]
 

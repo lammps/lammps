@@ -112,7 +112,7 @@ for example, in a loop.
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed
 from the list of active variables, and is thus available to be
-re-defined in a subsequent variable command.  The {delete} option does
+re-defined in a subsequent variable command.  The {delete} style does
 the same thing.
 
 :line
@@ -132,7 +132,7 @@ skipped.  This enables the construction of simple loops in the input
 script that are iterated over and then exited from.
 
 As explained above, an exhausted variable can be re-used in an input
-script.  The {delete} option also removes the variable, the same as if
+script.  The {delete} style also removes the variable, the same as if
 it were exhausted, allowing it to be redefined later in the input
 script or when the input script is looped over.  This can be useful
 when breaking out of a loop via the "if"_if.html and "jump"_jump.html

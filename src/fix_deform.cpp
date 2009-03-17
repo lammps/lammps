@@ -31,7 +31,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME};
+enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 
 // same as domain.cpp, fix_nvt_sllod.cpp, compute_temp_deform.cpp
@@ -108,6 +108,14 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
 	set[index].style = VOLUME;
 	iarg += 2;
+      } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
+	if (iarg+4 > narg) error->all("Illegal fix deform command");
+	set[index].style = WIGGLE;
+	set[index].amplitude = atof(arg[iarg+2]);
+	set[index].tperiod = atof(arg[iarg+3]);
+	if (set[index].tperiod <= 0.0) 
+	  error->all("Illegal fix deform command");
+	iarg += 4;
       } else error->all("Illegal fix deform command");
       
     } else if (strcmp(arg[iarg],"xy") == 0 || 
@@ -119,6 +127,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (strcmp(arg[iarg],"xy") == 0) index = 5;
       else if (strcmp(arg[iarg],"xz") == 0) index = 4;
       else if (strcmp(arg[iarg],"yz") == 0) index = 3;
+
       if (iarg+2 > narg) error->all("Illegal fix deform command");
       if (strcmp(arg[iarg+1],"final") == 0) {
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
@@ -145,6 +154,14 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
 	iarg += 3;
+      } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
+	if (iarg+4 > narg) error->all("Illegal fix deform command");
+	set[index].style = WIGGLE;
+	set[index].amplitude = atof(arg[iarg+2]);
+	set[index].tperiod = atof(arg[iarg+3]);
+	if (set[index].tperiod <= 0.0) 
+	  error->all("Illegal fix deform command");
+	iarg += 4;
       } else error->all("Illegal fix deform command");
 
     } else break;
@@ -174,12 +191,12 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (set[5].style && (domain->xperiodic == 0 || domain->yperiodic == 0))
     error->all("Cannot fix deform on a non-periodic boundary");
 
-  // apply scaling to FINAL,DELTA,VEL since they have distance/vel units
+  // apply scaling to FINAL,DELTA,VEL,WIGGLE since they have distance/vel units
 
   int flag = 0;
   for (int i = 0; i < 6; i++)
     if (set[i].style == FINAL || set[i].style == DELTA || 
-	set[i].style == VEL) flag = 1;
+	set[i].style == VEL || set[i].style == WIGGLE) flag = 1;
 
   if (flag && scaleflag && domain->lattice == NULL)
     error->all("Use of fix deform with undefined lattice");
@@ -207,6 +224,8 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       set[i].dhi *= map[i];
     } else if (set[i].style == VEL) {
       set[i].vel *= map[i];
+    } else if (set[i].style == WIGGLE) {
+      set[i].amplitude *= map[i];
     }
   }
 
@@ -214,6 +233,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (set[i].style == FINAL) set[i].ftilt *= map[i];
     else if (set[i].style == DELTA) set[i].dtilt *= map[i];
     else if (set[i].style == VEL) set[i].vel *= map[i];
+    else if (set[i].style == WIGGLE) set[i].amplitude *= map[i];
   }
 
   // for VOLUME, setup links to other dims
@@ -276,6 +296,8 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nrigid = 0;
   rfix = NULL;
   flip = 0;
+  
+  TWOPI = 8.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -502,7 +524,8 @@ void FixDeform::end_of_step()
   delta /= update->endstep - update->beginstep;
 
   // set new box size
-  // for TRATE, set target directly based on current time and set h_rate
+  // for TRATE, set target directly based on current time, also set h_rate
+  // for WIGGLE, set target directly based on current time, also set h_rate
   // for NONE, target is current box size
   // for others except VOLUME, target is linear value between start and stop
 
@@ -514,6 +537,15 @@ void FixDeform::end_of_step()
       set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) + 
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
       h_rate[i] = set[i].rate * domain->h[i];
+      h_ratelo[i] = -0.5*h_rate[i];
+    } else if (set[i].style == WIGGLE) {
+      double delt = (update->ntimestep - update->beginstep) * update->dt;
+      set[i].lo_target = set[i].lo_start -
+	0.5*set[i].amplitude * sin(TWOPI * delt/set[i].tperiod);
+      set[i].hi_target = set[i].hi_start +
+	0.5*set[i].amplitude * sin(TWOPI * delt/set[i].tperiod);
+      h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude * 
+	cos(TWOPI * delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == NONE) {
       set[i].lo_target = domain->boxlo[i];
@@ -578,6 +610,7 @@ void FixDeform::end_of_step()
 
   // for triclinic, set new box shape
   // for TRATE, set target directly based on current time. also set h_rate
+  // for WIGGLE, set target directly based on current time. also set h_rate
   // for NONE, target is current tilt
   // for other styles, target is linear value between start and stop values
 
@@ -589,6 +622,12 @@ void FixDeform::end_of_step()
 	double delt = (update->ntimestep - update->beginstep) * update->dt;
 	set[i].tilt_target = set[i].tilt_start * pow(1.0+set[i].rate,delt);
 	h_rate[i] = set[i].rate * domain->h[i];
+      } else if (set[i].style == WIGGLE) {
+	double delt = (update->ntimestep - update->beginstep) * update->dt;
+	set[i].tilt_target = set[i].tilt_start +
+	  0.5*set[i].amplitude * sin(TWOPI * delt/set[i].tperiod);
+	h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude * 
+	  cos(TWOPI * delt/set[i].tperiod);
       } else if (set[i].style == NONE) {
 	if (i == 5) set[i].tilt_target = domain->xy;
 	else if (i == 4) set[i].tilt_target = domain->xz;

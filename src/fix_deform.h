@@ -37,11 +37,14 @@ class FixDeform : public Fix {
   int nrigid;                      // number of rigid fixes
   int *rfix;                       // indices of rigid fixes
 
+  double TWOPI;
+
   struct Set {
     int style,substyle;
     double flo,fhi,ftilt;
     double dlo,dhi,dtilt;
     double scale,vel,rate;
+    double amplitude,tperiod;
     double lo_initial,hi_initial;
     double lo_start,hi_start,lo_stop,hi_stop,lo_target,hi_target;
     double tilt_initial,tilt_start,tilt_stop,tilt_target,tilt_flip;

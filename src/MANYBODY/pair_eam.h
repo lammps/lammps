@@ -20,6 +20,24 @@ namespace LAMMPS_NS {
 
 class PairEAM : public Pair {
  public:
+  double cutforcesq,cutmax;
+
+  // per-atom arrays
+
+  double *rho,*fp;
+
+  // potentials as array data
+
+  int nrho,nr;
+  int nfrho,nrhor,nz2r;
+  double **frho,**rhor,**z2r;
+  int *type2frho,**type2rhor,**type2z2r;
+  
+  // potentials in spline form used for force computation
+
+  double dr,rdr,drho,rdrho;
+  double ***rhor_spline,***frho_spline,***z2r_spline;
+
   PairEAM(class LAMMPS *);
   virtual ~PairEAM();
   void compute(int, int);
@@ -37,12 +55,7 @@ class PairEAM : public Pair {
   void swap_eam(double *, double **);
 
  protected:
-  double cutforcesq,cutmax;
-
-  // per-atom arrays
-
-  int nmax;
-  double *rho,*fp;
+  int nmax;                   // allocated size of per-atom arrays
 
   // potentials as file data
 
@@ -74,18 +87,6 @@ class PairEAM : public Pair {
     double **frho,***rhor,***z2r;
   };
   Fs *fs;
-
-  // potentials as array data
-
-  int nrho,nr;
-  int nfrho,nrhor,nz2r;
-  double **frho,**rhor,**z2r;
-  int *type2frho,**type2rhor,**type2z2r;
-  
-  // potentials in spline form used for force computation
-
-  double dr,rdr,drho,rdrho;
-  double ***rhor_spline,***frho_spline,***z2r_spline;
 
   void allocate();
   void array2spline();

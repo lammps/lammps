@@ -559,9 +559,15 @@ void groups(FILE *fp)
   int n;
   char *name;
 
+  // use count to not change restart format with deleted groups
+  // remove this on next major release
+
+  int count = 0;
   for (int i = 0; i < MAX_GROUP; i++) {
     name = read_char(fp);
     delete [] name;
+    count++;
+    if (count == ngroup) break;
   }
 }
 

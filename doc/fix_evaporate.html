@@ -29,11 +29,15 @@
 <P><B>Description:</B>
 </P>
 <P>Remove M atoms from the simulation every N steps.  This can be used,
-for example, to model evaporation of a solvent or drying of a system.
-Every N steps, the number of atoms in the fix group and within the
-specifed region are counted.  M of these are chosen at random and
-deleted.  If there are less than M eligible particles, then all of
-them are deleted.
+for example, to model evaporation of solvent particles (i.e. drying)
+of a system.  Every N steps, the number of atoms in the fix group and
+within the specifed region are counted.  M of these are chosen at
+random and deleted.  If there are less than M eligible particles, then
+all of them are deleted.
+</P>
+<P>Note that you cannot currently delete solvent molecules with this
+command, only individual atoms.  If you delete only one atom in a
+molecule, an error will result.
 </P>
 <P>Note that neighbor lists are re-built on timesteps that atoms are
 removed.  Thus you should not remove atoms too frequently or you will

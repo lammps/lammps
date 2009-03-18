@@ -69,5 +69,5 @@ This command must be used before the simulation box is defined by a
 [Default:]
 
 By default, atomic (non-molecular) problems do not allocate maps.  For
-molecular problems, the option default is map = array.  By default,
-first = all.
+molecular problems, the option default is map = array.  By default, a
+"first" group is not defined.

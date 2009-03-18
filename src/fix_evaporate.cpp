@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "region.h"
 #include "comm.h"
+#include "group.h"
 #include "random_park.h"
 #include "random_mars.h"
 #include "memory.h"
@@ -82,6 +83,30 @@ int FixEvaporate::setmask()
   int mask = 0;
   mask |= PRE_EXCHANGE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixEvaporate::init()
+{
+  // check that no deletable atoms are in atom->firstgroup
+  // deleting such an atom would not leave firstgroup atoms first
+
+  if (atom->firstgroup >= 0) {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int firstgroupbit = group->bitmask[atom->firstgroup];
+
+    int flag = 0;
+    for (int i = 0; i < nlocal; i++)
+      if ((mask[i] & groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+
+    if (flagall)
+      error->all("Cannot evaporate atoms in atom_modify first group");
+  }
 }
 
 /* ----------------------------------------------------------------------

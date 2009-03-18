@@ -23,6 +23,7 @@ class FixEvaporate : public Fix {
   FixEvaporate(class LAMMPS *, int, char **);
   ~FixEvaporate();
   int setmask();
+  void init();
   void pre_exchange();
   double compute_scalar();
   double memory_usage();

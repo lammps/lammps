@@ -678,8 +678,8 @@ c
         else if (astar.lt.0) then
           a3 = repuls
         endif
-c        erose = -Ec * (1 + astar + a3*(astar**3)/(r/re)) * exp(-astar)
-      erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar)
+        erose = -Ec * (1 + astar + a3*(astar**3)/(r/re)) * exp(-astar)
+c      erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar)
       endif
 
       return

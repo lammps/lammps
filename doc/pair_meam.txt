@@ -211,7 +211,9 @@ energy of the reference state as a function of interatomic spacing.
 The form of this function is:
 
 astar = alpha * (r/re - 1.d0)
-erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar) :pre
+erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar) 
+a3 = repuls, astar < 0
+a3 = attrac, astar >= 0 :pre
 
 In most cases the default values attrac = repulse = 0 are sufficient.
 

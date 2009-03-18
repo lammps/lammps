@@ -215,7 +215,9 @@ erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar)
 a3 = repuls, astar < 0
 a3 = attrac, astar >= 0 :pre
 
-In most cases the default values attrac = repulse = 0 are sufficient.
+Most published MEAM parameter sets use the default values attrac=repulse=0. 
+Setting repuls=attrac=delta corresponds to the form used in several 
+recent published MEAM parameter sets, such as "(Vallone)"_#Vallone
 
 :line
 
@@ -269,4 +271,7 @@ This report may be accessed on-line via "this link"_sandreport.
 
 :link(Wang)
 [(Wang)] Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
+
+:link(Valone)
+[(Valone)] Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
 

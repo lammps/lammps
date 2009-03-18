@@ -32,6 +32,8 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#define MAX_GROUP 32
+
 // same as write_restart.cpp
 
 enum{VERSION,UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
@@ -557,7 +559,7 @@ void groups(FILE *fp)
   int n;
   char *name;
 
-  for (int i = 0; i < ngroup; i++) {
+  for (int i = 0; i < MAX_GROUP; i++) {
     name = read_char(fp);
     delete [] name;
   }

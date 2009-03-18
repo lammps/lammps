@@ -117,6 +117,7 @@ list of fix styles available in LAMMPS:
 "dt/reset"_fix_dt_reset.html - reset the timestep based on velocity, forces
 "efield"_fix_efield.html - impose electric field on system
 "enforce2d"_fix_enforce2d.html - zero out z-dimension velocity and force
+"evaporate"_fix_evaporate.html - remove atoms from simulation periodically
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "gyration"_fix_gyration.html - compute radius of gyration

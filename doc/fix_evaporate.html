@@ -1,0 +1,65 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix evaporate command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID evaporate N M region-ID seed 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>evaporate = style name of this fix command
+<LI>N = delete atoms every this many timesteps
+<LI>M = number of atoms to delete each time
+<LI>region-ID = ID of region within which to perform deletions
+<LI>seed = random number seed to use for choosing atoms to delete 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 solvent evaporate 1000 10 surface 49892 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Remove M atoms from the simulation every N steps.  This can be used,
+for example, to model evaporation of a solvent or drying of a system.
+Every N steps, the number of atoms in the fix group and within the
+specifed region are counted.  M of these are chosen at random and
+deleted.  If there are less than M eligible particles, then all of
+them are deleted.
+</P>
+<P>Note that neighbor lists are re-built on timesteps that atoms are
+removed.  Thus you should not remove atoms too frequently or you will
+incur overhead due to the cost of building neighbor lists.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>The cummulative number of deleted atoms is stored as a scalar quantity
+by this fix.  This quantity can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  The scalar value is "intensive",
+meaning it is independent of the number of atoms in the simulation.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_deposit.html">fix deposit</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

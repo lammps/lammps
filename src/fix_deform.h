@@ -48,6 +48,7 @@ class FixDeform : public Fix {
     double lo_initial,hi_initial;
     double lo_start,hi_start,lo_stop,hi_stop,lo_target,hi_target;
     double tilt_initial,tilt_start,tilt_stop,tilt_target,tilt_flip;
+    double tilt_min,tilt_max;
     double vol_initial,vol_start;
     int fixed,dynamic1,dynamic2;
   };

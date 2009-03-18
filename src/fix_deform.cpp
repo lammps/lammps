@@ -382,6 +382,11 @@ void FixDeform::init()
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
       set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
 	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
+    } else if (set[i].style == WIGGLE) {
+      set[i].lo_stop = set[i].lo_start -
+	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+      set[i].hi_stop = set[i].hi_start +
+	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
     }
   }
 
@@ -407,6 +412,45 @@ void FixDeform::init()
 		    delt*set[i].rate * (set[1].hi_start-set[1].lo_start);
     } else if (set[i].style == TRATE) {
       set[i].tilt_stop = set[i].tilt_start * pow(1.0+set[i].rate,delt);
+    } else if (set[i].style == WIGGLE) {
+      set[i].tilt_stop = set[i].tilt_start +
+	set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+
+      // compute min/max for WIGGLE = extrema tilt factor will ever reach
+
+      if (set[i].amplitude >= 0.0) {
+	if (delt < 0.25*set[i].tperiod) {
+	  set[i].tilt_min = set[i].tilt_start;
+	  set[i].tilt_max = set[i].tilt_start + 
+	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+	} else if (delt < 0.5*set[i].tperiod) {
+	  set[i].tilt_min = set[i].tilt_start;
+	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+	} else if (delt < 0.75*set[i].tperiod) {
+	  set[i].tilt_min = set[i].tilt_start - 
+	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+	} else {
+	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+	}
+      } else {
+	if (delt < 0.25*set[i].tperiod) {
+	  set[i].tilt_min = set[i].tilt_start - 
+	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+	  set[i].tilt_max = set[i].tilt_start;
+	} else if (delt < 0.5*set[i].tperiod) {
+	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+	  set[i].tilt_max = set[i].tilt_start;
+	} else if (delt < 0.75*set[i].tperiod) {
+	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+	  set[i].tilt_max = set[i].tilt_start + 
+	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+	} else {
+	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+	}
+      }
     }
   }
 
@@ -417,17 +461,23 @@ void FixDeform::init()
       error->all("Cannot use fix deform trate on a box with zero tilt");
 
   // if yz changes and will cause box flip, then xy cannot be changing
+  // test for WIGGLE is on min/max oscillation limit, not tilt_stop
   // this is b/c the flips would induce continuous changes in xz
   //   in order to keep the edge vectors of the flipped shape matrix
   //   a linear combination of the edge vectors of the unflipped shape matrix
 
   if (set[3].style && set[5].style) {
     int flag = 0;
-    if (set[3].tilt_stop < -0.5*(set[1].hi_start-set[1].lo_start) ||
-	set[3].tilt_stop > 0.5*(set[1].hi_start-set[1].lo_start)) flag = 1;
+    double lo,hi;
+    if (set[3].style == WIGGLE) {
+      lo = set[3].tilt_min;
+      hi = set[3].tilt_max;
+    } else lo = hi = set[3].tilt_stop;
+    if (lo < -0.5*(set[1].hi_start-set[1].lo_start) ||
+	hi > 0.5*(set[1].hi_start-set[1].lo_start)) flag = 1;
     if (set[1].style) {
-      if (set[3].tilt_stop < -0.5*(set[1].hi_stop-set[1].lo_stop) ||
-	  set[3].tilt_stop > 0.5*(set[1].hi_stop-set[1].lo_stop)) flag = 1;
+      if (lo < -0.5*(set[1].hi_stop-set[1].lo_stop) ||
+	  hi > 0.5*(set[1].hi_stop-set[1].lo_stop)) flag = 1;
     }
     if (flag)
       error->all("Fix deform is changing yz by too much with changing xy");
@@ -435,7 +485,7 @@ void FixDeform::init()
 
   // set domain->h_rate values for use by domain and other fixes/computes
   // initialize all rates to 0.0
-  // cannot set h_rate for TRATE,VOLUME styles since not constant
+  // cannot set here for TRATE,VOLUME,WIGGLE styles since not constant
 
   h_rate = domain->h_rate;
   h_ratelo = domain->h_ratelo;
@@ -541,11 +591,11 @@ void FixDeform::end_of_step()
     } else if (set[i].style == WIGGLE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = set[i].lo_start -
-	0.5*set[i].amplitude * sin(TWOPI * delt/set[i].tperiod);
+	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
       set[i].hi_target = set[i].hi_start +
-	0.5*set[i].amplitude * sin(TWOPI * delt/set[i].tperiod);
+	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
       h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude * 
-	cos(TWOPI * delt/set[i].tperiod);
+	cos(TWOPI*delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == NONE) {
       set[i].lo_target = domain->boxlo[i];
@@ -625,9 +675,9 @@ void FixDeform::end_of_step()
       } else if (set[i].style == WIGGLE) {
 	double delt = (update->ntimestep - update->beginstep) * update->dt;
 	set[i].tilt_target = set[i].tilt_start +
-	  0.5*set[i].amplitude * sin(TWOPI * delt/set[i].tperiod);
+	  set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
 	h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude * 
-	  cos(TWOPI * delt/set[i].tperiod);
+	  cos(TWOPI*delt/set[i].tperiod);
       } else if (set[i].style == NONE) {
 	if (i == 5) set[i].tilt_target = domain->xy;
 	else if (i == 4) set[i].tilt_target = domain->xz;

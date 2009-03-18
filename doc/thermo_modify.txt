@@ -39,7 +39,7 @@ by LAMMPS.
 IMPORTANT NOTE: These options apply to the currently defined thermo
 style.  When you specify a "thermo_style"_thermo_style.html command,
 all thermodynamic settings are restored to their default values,
-including those previously set by a thermo_modify command.  Thus if
+including those previously reset by a thermo_modify command.  Thus if
 your input script specifies a thermo_style command, you should use the
 thermo_modify command after it.
 

@@ -94,6 +94,7 @@ void ComputeStressAtom::compute_peratom()
     error->all("Per-atom virial was not tallied on needed timestep");
 
   // grow local stress array if necessary
+  // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
     memory->destroy_2d_double_array(stress);

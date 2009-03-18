@@ -441,7 +441,7 @@ void ReadData::atoms()
   if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
   
   // if any atom ID < 0, error
-  // if all atom IDs == 0, tag_enable = 0
+  // if all atom IDs = 0, tag_enable = 0
   // if any atom ID > 0, error if any atom ID == 0
   // not checking if atom IDs > natoms or are unique
   

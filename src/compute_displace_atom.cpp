@@ -78,7 +78,7 @@ void ComputeDisplaceAtom::compute_peratom()
 
   // grow local displacement array if necessary
 
-  if (atom->nmax > nmax) {
+  if (atom->nlocal > nmax) {
     memory->destroy_2d_double_array(displace);
     nmax = atom->nmax;
     displace =

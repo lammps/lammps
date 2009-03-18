@@ -156,6 +156,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_dt_reset.h"
 #include "fix_efield.h"
 #include "fix_enforce2d.h"
+#include "fix_evaporate.h"
 #include "fix_gravity.h"
 #include "fix_gyration.h"
 #include "fix_heat.h"
@@ -216,6 +217,7 @@ FixStyle(drag,FixDrag)
 FixStyle(dt/reset,FixDtReset)
 FixStyle(efield,FixEfield)
 FixStyle(enforce2d,FixEnforce2D)
+FixStyle(evaporate,FixEvaporate)
 FixStyle(gravity,FixGravity)
 FixStyle(gyration,FixGyration)
 FixStyle(heat,FixHeat)

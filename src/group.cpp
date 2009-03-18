@@ -421,12 +421,20 @@ void Group::write_restart(FILE *fp)
 {
   fwrite(&ngroup,sizeof(int),1,fp);
 
+  // use count to not change restart format with deleted groups
+  // remove this on next major release
+
   int n;
+  int count = 0;
   for (int i = 0; i < MAX_GROUP; i++) {
     if (names[i]) n = strlen(names[i]) + 1;
     else n = 0;
     fwrite(&n,sizeof(int),1,fp);
-    if (n) fwrite(names[i],sizeof(char),n,fp);
+    if (n) {
+      fwrite(names[i],sizeof(char),n,fp);
+      count++;
+    }
+    if (count == ngroup) break;
   }
 }
 
@@ -446,14 +454,23 @@ void Group::read_restart(FILE *fp)
 
   if (me == 0) fread(&ngroup,sizeof(int),1,fp);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
-  
+
+  // use count to not change restart format with deleted groups
+  // remove this on next major release
+
+  int count = 0;
   for (i = 0; i < MAX_GROUP; i++) {
+    if (count == ngroup) {
+      names[i] = NULL;
+      continue;
+    }
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
       names[i] = new char[n];
       if (me == 0) fread(names[i],sizeof(char),n,fp);
       MPI_Bcast(names[i],n,MPI_CHAR,0,world);
+      count++;
     } else names[i] = NULL;
   }
 }

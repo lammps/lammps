@@ -513,7 +513,10 @@ void Comm::exchange()
   MPI_Status status;
   AtomVec *avec = atom->avec;
 
-  // clear global->local map since atoms move & new ghosts are created
+  // clear global->local map for owned and ghost atoms
+  // b/c atoms migrate to new procs in exchange() and 
+  // new ghosts are created in borders()
+  // map_set() is done at end of borders()
 
   if (map_style) atom->map_clear();
 

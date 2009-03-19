@@ -182,10 +182,12 @@ void FixEvaporate::pre_exchange()
   }
 
   // reset global natoms
-  // if global map exists, reset it
+  // if global map exists, reset it now instead of waiting for comm
+  // since deleting atoms messes up ghosts
 
   atom->natoms -= nwhack;
   if (nwhack && atom->map_style) {
+    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }

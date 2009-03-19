@@ -306,7 +306,8 @@ void FixDeposit::pre_exchange()
 
   // set tag # of new particle beyond all previous atoms
   // reset global natoms
-  // if global map exists, reset it
+  // if global map exists, reset it now instead of waiting for comm
+  // since deleting atoms messes up ghosts
 
   if (success && atom->tag_enable) {
     atom->tag_extend();

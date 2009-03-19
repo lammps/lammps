@@ -716,7 +716,7 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
   int i,m;
   double fdotdirall,fdotdirme,hmax,hme,alphamax,alpha_extra,eoriginal;
   double de_ideal,de;
-  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
+  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0,fh0,ff0;
   double dot[2],dotall[2];	
   double *f = atom->f[0];
 
@@ -816,13 +816,27 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
       if (nextra) modify->min_step(0.0,hextra);
       for (i = 0; i < n; i++) x[i] = x0[i];
 
-      alpha = alpha0;
+      if (nextra) modify->min_step(alpha0,hextra);
+      for (i = 0; i < n; i++) x[i] += alpha0*dir[i];
+      eng_force(&n,&x,&dir,&x0,&eng);
+      nfunc++;
+
+      // if backtracking energy change is better than ideal, exit with success
+
+      de_ideal = -BACKTRACK_SLOPE*alpha0*fdotdirall;
+      de = eng - eoriginal;
+      if (de <= de_ideal) {
+	return 0;
+      }
+
+      // Drop back from alpha0 to alpha
+
+      if (nextra) modify->min_step(0.0,hextra);
+      for (i = 0; i < n; i++) x[i] = x0[i];
       if (nextra) modify->min_step(alpha,hextra);
       for (i = 0; i < n; i++) x[i] += alpha*dir[i];
       eng_force(&n,&x,&dir,&x0,&eng);
       nfunc++;
-      
-      return 0;
     }
 
     // if backtracking energy change is better than ideal, exit with success

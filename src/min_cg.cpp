@@ -825,7 +825,7 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
 
       de_ideal = -BACKTRACK_SLOPE*alpha0*fdotdirall;
       de = eng - eoriginal;
-      if (de <= de_ideal) {
+      if (de <= de_ideal || de_ideal >= -IDEAL_TOL) {
 	return 0;
       }
 

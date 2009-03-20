@@ -273,7 +273,7 @@ void Temper::command(int narg, char **arg)
     if (swap) {
       new_temp = set_temp[partner_set_temp];
       modify->fix[whichfix]->reset_target(new_temp);
-  }
+    }
 
     // update my_set_temp and temp2world on every proc
     // root procs update their value if swap took place

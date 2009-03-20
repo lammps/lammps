@@ -548,7 +548,7 @@ int DumpCustom::count()
 	  dchoose[i] = (image[i] >> 10 & 1023) - 512;
 	ptr = dchoose;
 	nstride = 1;
-      } else if (thresh_array[ithresh] == IX) {
+      } else if (thresh_array[ithresh] == IZ) {
 	int *image = atom->image;
 	for (i = 0; i < nlocal; i++)
 	  dchoose[i] = (image[i] >> 20) - 512;

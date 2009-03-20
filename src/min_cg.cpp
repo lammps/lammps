@@ -169,7 +169,6 @@ void MinCG::run()
   // normalize energy if thermo PE does
 
   setup();
-  setup_vectors();
 
   // setup any extra dof due to fixes
   // can't be done until now b/c update init() comes before modify init()
@@ -807,7 +806,7 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
     }
 
     // check if ready for quadratic projection, equivalent to secant method
-    // alpha0 = projected alpha, perform step, exit with success
+    // alpha0 = projected alpha
 
     relerr = fabs(1.0+(0.5*alpha*(alpha-alphaprev)*(fh+fhprev)-eng)/engprev);
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
@@ -825,11 +824,9 @@ int MinCG::linemin_quadratic(int n, double *x, double *dir,
 
       de_ideal = -BACKTRACK_SLOPE*alpha0*fdotdirall;
       de = eng - eoriginal;
-      if (de <= de_ideal || de_ideal >= -IDEAL_TOL) {
-	return 0;
-      }
+      if (de <= de_ideal || de_ideal >= -IDEAL_TOL) return 0;
 
-      // Drop back from alpha0 to alpha
+      // drop back from alpha0 to alpha
 
       if (nextra) modify->min_step(0.0,hextra);
       for (i = 0; i < n; i++) x[i] = x0[i];

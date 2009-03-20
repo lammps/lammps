@@ -110,7 +110,7 @@ void Run::command(int narg, char **arg)
 
   // adjust nsteps if upto was specified
 
-  if (uptoflag) nsteps = nsteps - update->ntimestep;
+  if (uptoflag) nsteps -= update->ntimestep;
 
   // error check
 

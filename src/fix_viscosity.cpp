@@ -258,8 +258,8 @@ void FixViscosity::end_of_step()
       if (rmass) rbuf[1] = rmass[ipos];
       else rbuf[1] = mass[type[ipos]];
       sbuf[0] = v[ineg][vdim];
-      if (rmass) sbuf[1] = mass[type[ineg]];
-      else sbuf[1] = rmass[ineg];
+      if (rmass) sbuf[1] = rmass[ineg];
+      else sbuf[1] = mass[type[ineg]];
       v[ineg][vdim] = rbuf[0] * rbuf[1]/sbuf[1];
       v[ipos][vdim] = sbuf[0] * sbuf[1]/rbuf[1];
       pswap += rbuf[0]*rbuf[1] - sbuf[0]*sbuf[1];

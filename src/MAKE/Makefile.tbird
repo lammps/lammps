@@ -1,4 +1,4 @@
-# tbird2 = Dell cluster with dual 3.6 GHz Xeons, Intel mpicxx, native MPI, FFTW
+# tbird = Dell cluster with dual 3.6 GHz Xeons, Intel mpicxx, native MPI, FFTW
 
 SHELL = /bin/sh
 .IGNORE:

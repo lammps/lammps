@@ -1,30 +1,36 @@
-# tbird = Dell cluster with dual 3.6 GHz Xeons, Intel mpicxx, native MPI, FFTW
+# tbird2 = Dell cluster with dual 3.6 GHz Xeons, Intel mpicxx, native MPI, FFTW
 
 SHELL = /bin/sh
 .IGNORE:
 
+# this Makefile builds LAMMPS for openMPI running on Tbird
+# to invoke this Makefile, you need these modules loaded:
+#   compilers/intel-10.1-f015-c015
+#   misc/env-openmpi-1.2
+#   mpi/openmpi-1.2.7_ofed_intel-10.1-f015-c015
+#   libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
+# you can determine which modules are loaded by typing:
+#   module list
+# the first 3 should be in your default environment, the 4th (FFTW) will not be
+# you can load any of these modules by putting
+#   a line like this in your .cshrc or other start-up shell file
+#   or by typing it before you build LAMMPS:
+#   module load libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
+# these same modules need to be loaded to submit a LAMMPS job,
+#   either interactively or via a batch script
+
 # System-specific settings
 
-# NOTE: you may need to invoke (by entering in your job-submission script
-#  or in your .cshrc file)
-#   module load libraries/fftw-2.1.5-openmpi-1.1.2-ofed-intel-9.1
-# before running LAMMPS. 
-#
-# Additional Note:
-# Even when using the OpenMPI build 10.0,
-# DO NOT USE: module load libraries/fftw-2.1.5_openmpi-1.2.4_ofed_intel-10.0-f025-c025
-# This build of FFTW exhibits fatal memory errors in long runs. 
-
-FFTW = /apps/x86_64/libraries/fftw/openmpi-1.1.2-ofed-intel-9.1/fftw-2.1.5
-
 CC =		mpicxx
-CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/include
+CCFLAGS =	-O -DFFT_FFTW -I${FFTW_INCLUDE}
 DEPFLAGS =	-M
 LINK =		mpicxx
-LINKFLAGS =	-O -L${FFTW}/lib
+LINKFLAGS =	-O -L${FFTW_LIB}
 USRLIB =	-lfftw -lstdc++
 SYSLIB =	-lm
 SIZE =		size
+ARCHIVE =       ar
+ARFLAGS =       -rc
 
 # Link rule
 

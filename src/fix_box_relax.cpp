@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
+#include "comm.h"
 #include "force.h"
 #include "modify.h"
 #include "compute.h"
@@ -92,7 +93,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
   // process extra keywords
 
-  allremap = 0;
+  allremap = 1;
   vmax = 0.0001;
 
   int iarg;
@@ -102,8 +103,8 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dilate") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"all") == 0) allremap = 0;
-      else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 1;
+      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+      else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
       else error->all("Illegal fix box/relax command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vmax") == 0) {
@@ -266,7 +267,7 @@ double FixBoxRelax::min_energy(double *fextra)
 
   // compute energy, forces for each extra degree of freedom
   // returned eng = PV must be in units of energy
-  // returned force = Ptarget - Pcurrent must be in units of
+  // returned fextra must likewise be in units of energy
 
   fextra[0] = fextra[1] = fextra[2] = 0.0;
 
@@ -440,4 +441,60 @@ void FixBoxRelax::couple()
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixBoxRelax::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"temp") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    if (tflag) {
+      modify->delete_compute(id_temp);
+      tflag = 0;
+    }
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(arg[1]);
+    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all("Fix_modify temp ID does not compute temperature");
+    if (temperature->igroup != 0 && comm->me == 0)
+      error->warning("Temperature for fix modify is not for group all");
+
+    // reset id_pre of pressure to new temp ID
+    
+    icompute = modify->find_compute(id_press);
+    if (icompute < 0) error->all("Pressure ID for fix modify does not exist");
+    delete [] modify->compute[icompute]->id_pre;
+    modify->compute[icompute]->id_pre = new char[n];
+    strcpy(modify->compute[icompute]->id_pre,id_temp);
+
+    return 2;
+
+  } else if (strcmp(arg[0],"press") == 0) {
+    if (narg < 2) error->all("Illegal fix_modify command");
+    if (pflag) {
+      modify->delete_compute(id_press);
+      pflag = 0;
+    }
+    delete [] id_press;
+    int n = strlen(arg[1]) + 1;
+    id_press = new char[n];
+    strcpy(id_press,arg[1]);
+
+    int icompute = modify->find_compute(arg[1]);
+    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
+    pressure = modify->compute[icompute];
+
+    if (pressure->pressflag == 0)
+      error->all("Fix_modify pressure ID does not compute pressure");
+    return 2;
+  }
+  return 0;
 }

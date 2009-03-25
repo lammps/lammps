@@ -29,6 +29,7 @@ class FixBoxRelax : public Fix {
   void min_step(double, double *);
   double max_alpha(double *);
   int min_dof();
+  int modify_param(int, char **);
 
  private:
   int p_flag[3];

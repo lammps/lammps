@@ -1,20 +1,20 @@
-# tbird = Dell cluster with dual 3.6 GHz Xeons, Intel mpicxx, native MPI, FFTW
+# glory = Linux cluster with 4-way quad cores, Intel mpicxx, native MPI, FFTW
 
 SHELL = /bin/sh
 .IGNORE:
 
-# this Makefile builds LAMMPS for openMPI running on Tbird
+# this Makefile builds LAMMPS for mvapich running on Glory
 # to invoke this Makefile, you need these modules loaded:
 #   compilers/intel-10.1-f015-c015
-#   misc/env-openmpi-1.2
-#   mpi/openmpi-1.2.7_ofed_intel-10.1-f015-c015
+#   misc/env-mvapich
+#   mpi/mvapich-1.0.1_ofed_intel-10.1-f015-c015
 #   libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
 # you can determine which modules are loaded by typing:
 #   module list
-# the first 3 should be in your default environment, the 4th (FFTW) will not be
-# you can load any of these modules by putting
-#   a line like this in your .cshrc or other start-up shell file
-#   or by typing it before you build LAMMPS:
+# these modules are not the default ones, but can be enabled by 
+#   lines like this in your .cshrc or other start-up shell file
+#   or by typing them before you build LAMMPS:
+#     module swap mpi mpi/mvapich-1.0.1_ofed_intel-10.1-f015-c015
 #     module load libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
 # these same modules need to be loaded to submit a LAMMPS job,
 #   either interactively or via a batch script

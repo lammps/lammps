@@ -3102,10 +3102,11 @@ boundary of a processor's sub-domain has moved more than 1/2 the
 rebuilt and atoms being migrated to new processors.  This also means
 you may be missing pairwise interactions that need to be computed.
 The solution is to change the re-neighboring criteria via the
-<A HREF = "neigh_modify">neigh_modify</A> command.  Second, it may mean that an atom
-has moved far outside a processor's sub-domain or even the entire
-simulation box.  This indicates bad physics, e.g. due to highly
-overlapping atoms, too large a timestep, etc. 
+<A HREF = "neigh_modify">neigh_modify</A> command.  The safest settings are "delay 0
+every 1 check yes".  Second, it may mean that an atom has moved far
+outside a processor's sub-domain or even the entire simulation box.
+This indicates bad physics, e.g. due to highly overlapping atoms, too
+large a timestep, etc. 
 
 <DT><I>POEMS fix must come before NPT/NPH fix</I> 
 

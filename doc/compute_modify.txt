@@ -51,9 +51,9 @@ temperature is correctly normalized.
 
 The {thermo} keyword determines whether the potential energy
 contribution calculated by some "fixes"_fix.html is added to the
-potential energy calculated by the compute.  Only the compute of style
-{pe} uses this option.  See the doc pages for "individual
-fixes"_fix.html for details.
+potential energy calculated by the compute.  Currently, only the
+compute of style {pe} uses this option.  See the doc pages for
+"individual fixes"_fix.html for details.
 
 [Restrictions:] none
 

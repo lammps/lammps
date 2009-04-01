@@ -105,9 +105,8 @@ f_ID keyword and accessing a fix that does time-averaging such as the
 <P>Options invoked by the <A HREF = "thermo_modify.html">thermo_modify</A> command can
 be used to set the one- or multi-line format of the print-out, the
 normalization of thermodynamic output (total values versus per-atom
-values for "extensive quantities, meaning ones which scale with the
-number of atoms in the system), and the numeric precision of each
-printed value.
+values for extensive quantities (ones which scale with the number of
+atoms in the system), and the numeric precision of each printed value.
 </P>
 <P>IMPORTANT NOTE: When you use a "thermo_style" command, all
 thermodynamic settings are restored to their default values, including
@@ -119,8 +118,8 @@ use the thermo_modify command after it.
 
 <P>Several of the thermodynamic quantities require a temperature to be
 computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx etc".  By
-default this is done by using the "thermo_temp" compute which is
-created when LAMMPS starts up, as if this command had been issued:
+default this is done by using a <I>temperature</I> compute which is created
+when LAMMPS starts up, as if this command had been issued:
 </P>
 <PRE>compute thermo_temp all temp 
 </PRE>
@@ -135,7 +134,7 @@ This is done via the <A HREF = "thermo_modify.html">thermo_modify</A> command.
 </P>
 <P>Several of the thermodynamic quantities require a pressure to be
 computed: "press", "enthalpy", "pxx", etc.  By default this is done by
-using the pressure compute which is created when LAMMPS starts up, as
+using a <I>pressure</I> compute which is created when LAMMPS starts up, as
 if this command had been issued:
 </P>
 <PRE>compute thermo_press all pressure thermo_temp 
@@ -150,8 +149,8 @@ that requires a pressure.  This is done via the
 <A HREF = "thermo_modify.html">thermo_modify</A> command.
 </P>
 <P>Several of the thermodynamic quantities require a potential energy to
-be computed: "pe", "etotal", "ebond", etc.  This is done by using the
-"thermo_pe" compute which is created when LAMMPS starts up, as if this
+be computed: "pe", "etotal", "ebond", etc.  This is done by using a
+<I>pe</I> compute which is created when LAMMPS starts up, as if this
 command had been issued:
 </P>
 <PRE>compute thermo_pe all pe 

@@ -269,8 +269,6 @@ double FixBoxRelax::min_energy(double *fextra)
   // returned eng = PV must be in units of energy
   // returned fextra must likewise be in units of energy
 
-  fextra[0] = fextra[1] = fextra[2] = 0.0;
-
   if (press_couple == XYZ) {
     scale = domain->xprd/xprdinit;
     if (dimension == 3) {
@@ -282,6 +280,7 @@ double FixBoxRelax::min_energy(double *fextra)
     }
 
   } else {
+    fextra[0] = fextra[1] = fextra[2] = 0.0;
     scalex = scaley = scalez = 1.0;
     if (p_flag[0]) scalex = domain->xprd/xprdinit;
     if (p_flag[1]) scaley = domain->yprd/yprdinit;

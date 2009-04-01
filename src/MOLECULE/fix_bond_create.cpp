@@ -278,6 +278,7 @@ void FixBondCreate::post_integrate()
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
+  // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
     memory->sfree(partner);

@@ -214,10 +214,9 @@ void Ewald::compute(int eflag, int vflag)
   energy = 0.0;
   if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
 
-  // extend size of nlocal-dependent arrays if necessary
+  // extend size of per-atom arrays if necessary
 
-  int nlocal = atom->nlocal;
-  if (nlocal > nmax) {
+  if (atom->nlocal > nmax) {
     memory->destroy_2d_double_array(ek);
     memory->destroy_3d_double_array(cs,-kmax_created);
     memory->destroy_3d_double_array(sn,-kmax_created);
@@ -240,6 +239,7 @@ void Ewald::compute(int eflag, int vflag)
 
   double **f = atom->f;
   double *q = atom->q;
+  int nlocal = atom->nlocal;
 
   int kx,ky,kz;
   double cypz,sypz,exprl,expim,partial;

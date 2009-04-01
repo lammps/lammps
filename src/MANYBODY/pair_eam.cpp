@@ -134,7 +134,8 @@ void PairEAM::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  // grow energy array if necessary
+  // grow energy and fp arrays if necessary
+  // need to be atom->nmax in length
 
   if (atom->nmax > nmax) {
     memory->sfree(rho);

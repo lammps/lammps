@@ -470,7 +470,8 @@ void FixPour::pre_exchange()
 
   // set tag # of new particles beyond all previous atoms
   // reset global natoms
-  // if global map exists, reset it
+  // if global map exists, reset it now instead of waiting for comm
+  // since deleting atoms messes up ghosts
 
   if (atom->tag_enable) {
     atom->tag_extend();

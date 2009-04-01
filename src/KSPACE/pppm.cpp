@@ -646,7 +646,7 @@ void PPPM::compute(int eflag, int vflag)
     domain->x2lamda(atom->nlocal);
   }
 
-  // extend size of nlocal-dependent arrays if necessary
+  // extend size of per-atom arrays if necessary
 
   if (atom->nlocal > nmax) {
     memory->destroy_2d_int_array(part2grid);

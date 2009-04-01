@@ -183,9 +183,9 @@ void PairPeriPMB::compute(int eflag, int vflag)
     }
   }
 
-  // bond forces
+  // grow bond forces array if necessary
 
-  if (atom->nmax > nmax) {
+  if (nlocal > nmax) {
     memory->sfree(s0_new);
     nmax = atom->nmax;
     s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");

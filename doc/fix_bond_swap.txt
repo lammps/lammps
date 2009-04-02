@@ -33,9 +33,10 @@ alone would do it, by enabling instantaneous large conformational
 changes in a dense polymer melt.  The polymer chains should thus more
 rapidly converge to the proper end-to-end distances and radii of
 gyration.  It is designed for use with systems of
-"FENE"_bond_fene.html bead-spring polymer chains where each polymer is
-a linear chain of monomers, but LAMMPS does not enforce this
-requirement.
+"FENE"_bond_fene.html or "harmonic"_bond_harmonic.html bead-spring
+polymer chains where each polymer is a linear chain of monomers, but
+LAMMPS does not enforce this requirement, i.e. any
+"bond_style"_bond_style.html can be used.
 
 A schematic of the kinds of bond swaps that can occur is shown here:
 
@@ -158,10 +159,10 @@ minimization"_minimize.html.
 [Restrictions:]
 
 The setings of the "special_bond" command must be 0,1,1 in order to
-use this fix, which is typical of FENE bead-spring chains.
-I.e. pairwise interactions between bonded atoms are turned off, but
-are turned on between atoms two or three hops away along the chain
-backbone.
+use this fix, which is typical of bead-spring chains with FENE or
+harmonic bonds.  This means that pairwise interactions between bonded
+atoms are turned off, but are turned on between atoms two or three
+hops away along the chain backbone.
 
 Currently, energy changes in dihedral and improper interactions due to
 a bond swap are not considered.  Thus a simulation that uses this fix

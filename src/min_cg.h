@@ -21,44 +21,7 @@ namespace LAMMPS_NS {
 class MinCG : public Min {
  public:
   MinCG(class LAMMPS *);
-  virtual ~MinCG();
-  void init();
-  void run();
-  virtual int iterate(int);
-
- protected:
-  int pairflag,torqueflag;
-  int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
-  int triclinic;              // 0 if domain is orthog, 1 if triclinic
-
-  class FixMinimize *fix_minimize;  // fix that stores gradient vecs
-  class Compute *pe_compute;        // compute for potential energy
-  double ecurrent;                  // current potential energy
-  double mindist,maxdist;     // min/max dist for coord delta in line search
-
-  int ndof;                   // # of degrees-of-freedom on this proc
-  double *g,*h;               // local portion of gradient, searchdir vectors
-  double *x0;                 // coords at start of linesearch
-
-  int nextra;                 // extra dof due to fixes
-  double *fextra;             // vectors for extra dof
-  double *gextra;
-  double *hextra;
-
-  // ptr to linemin functions
-
-  typedef int (MinCG::*FnPtr)(int, double *, double *, double *, double,
-			       double, double &, int &);
-  FnPtr linemin;
-  int linemin_backtrack(int, double *, double *, double *, double,
-			double, double &, int &);
-  int linemin_quadratic(int, double *, double *, double *, double,
-			double, double &, int &);
-
-  void setup();
-  void setup_vectors();
-  void eng_force(int *, double **, double **, double **, double *);
-  void force_clear();
+  int iterate(int);
 };
 
 }

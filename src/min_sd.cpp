@@ -21,6 +21,8 @@
 
 using namespace LAMMPS_NS;
 
+// EPS_ENERGY = minimum normalization for energy tolerance
+
 #define EPS_ENERGY 1.0e-8
 
 // same as in other min classes
@@ -29,7 +31,7 @@ enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
-MinSD::MinSD(LAMMPS *lmp) : MinCG(lmp) {}
+MinSD::MinSD(LAMMPS *lmp) : Min(lmp) {}
 
 /* ----------------------------------------------------------------------
    minimization via steepest descent

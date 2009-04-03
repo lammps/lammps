@@ -18,7 +18,7 @@
 
 namespace LAMMPS_NS {
 
-class MinSD : public MinCG {
+class MinSD : public Min {
  public:
   MinSD(class LAMMPS *);
   int iterate(int);

@@ -28,12 +28,12 @@ class Min : protected Pointers {
 
   Min(class LAMMPS *);
   virtual ~Min();
-  virtual void init() = 0;
-  virtual void run() = 0;
-  virtual int iterate(int) = 0;
-  virtual double memory_usage() {return 0.0;}
-
+  void init();
+  void run();
+  double memory_usage() {return 0.0;}
   void modify_params(int, char **);
+
+  virtual int iterate(int) = 0;
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation
@@ -47,6 +47,39 @@ class Min : protected Pointers {
   class Compute **elist_atom;       // list of PE,virial Computes
   class Compute **vlist_global;
   class Compute **vlist_atom;
+
+  int pairflag,torqueflag;
+  int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
+  int triclinic;              // 0 if domain is orthog, 1 if triclinic
+
+  class FixMinimize *fix_minimize;  // fix that stores gradient vecs
+  class Compute *pe_compute;        // compute for potential energy
+  double ecurrent;                  // current potential energy
+  double mindist,maxdist;     // min/max dist for coord delta in line search
+
+  int ndof;                   // # of degrees-of-freedom on this proc
+  double *g,*h;               // local portion of gradient, searchdir vectors
+  double *x0;                 // coords at start of linesearch
+
+  int nextra;                 // extra dof due to fixes
+  double *fextra;             // vectors for extra dof
+  double *gextra;
+  double *hextra;
+
+  // ptr to linemin functions
+
+  void setup();
+  void eng_force(int *, double **, double **, double **, double *, int);
+  void setup_vectors();
+  void force_clear();
+
+  typedef int (Min::*FnPtr)(int, double *, double *, double *, double,
+			    double, double &, int &);
+  FnPtr linemin;
+  int linemin_backtrack(int, double *, double *, double *, double,
+			double, double &, int &);
+  int linemin_quadratic(int, double *, double *, double *, double,
+			double, double &, int &);
 
   void ev_setup();
   void ev_set(int);

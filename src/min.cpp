@@ -231,6 +231,9 @@ void Min::run()
   delete [] fextra;
   delete [] gextra;
   delete [] hextra;
+  fextra = NULL;
+  gextra = NULL;
+  hextra = NULL;
 
   nextra = modify->min_dof();
   if (nextra) {

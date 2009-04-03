@@ -122,8 +122,8 @@ valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
 and yz tilt factors must be 0.0.
 </P>
 <P>If the system is periodic (in a dimension), then atom coordinates can
-be outside the bounds; they will be remapped (in a periodic sense)
-back inside the box.
+be outside the bounds (in that dimension); they will be remapped (in a
+periodic sense) back inside the box.
 </P>
 <P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
 all atoms in the data file must have coordinates (in that dimension)
@@ -137,8 +137,8 @@ For example, if your atoms extend from 0 to 50, you should not specify
 the box bounds as -10000 and 10000.  This is because LAMMPS uses the
 specified box size to layout the 3d grid of processors.  A huge
 (mostly empty) box will be sub-optimal for performance and may cause a
-parallel simulation to lose atoms if LAMMPS shrink-wraps the box
-around the atoms.
+parallel simulation to lose atoms the first time that LAMMPS
+shrink-wraps the box around the atoms.
 </P>
 <P>The "extra bond per atom" setting should be used if new bonds will be
 added to the system when a simulation runs, e.g. by using the <A HREF = "fix_bond_create.html">fix

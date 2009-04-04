@@ -4,18 +4,21 @@ SHELL = /bin/sh
 .IGNORE:
 
 # this Makefile builds LAMMPS for openMPI running on Tbird
-# to invoke this Makefile, you need these modules loaded:
-#   compilers/intel-10.1-f015-c015
+# as of April 09, you want these modules loaded, which are not the default:
+#   mpi/openmpi-1.2.8_intel-11.0-f074-c074
 #   misc/env-openmpi-1.2
-#   mpi/openmpi-1.2.7_ofed_intel-10.1-f015-c015
-#   libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
+#   compilers/intel-11.0-f074-c074
+#   libraries/intel-mkl
+#   libraries/intel_fftw-10.0.4.023
+#   libraries/intel-mkl-11.0.074
 # you can determine which modules are loaded by typing:
 #   module list
-# the first 3 should be in your default environment, the 4th (FFTW) will not be
-# you can load any of these modules by putting
-#   a line like this in your .cshrc or other start-up shell file
-#   or by typing it before you build LAMMPS:
-#     module load libraries/fftw-2.1.5_openmpi-1.2.7_ofed_intel-10.1-f015-c015
+# you can load these modules by putting
+#   these lines in your .cshrc or other start-up shell file
+#   or by typing them before you build LAMMPS:
+#     module switch mpi mpi/openmpi-1.2.8_intel-11.0-f074-c074
+#     module load libraries/intel_fftw-10.0.4.023
+#     module load libraries/intel-mkl-11.0.074
 # these same modules need to be loaded to submit a LAMMPS job,
 #   either interactively or via a batch script
 

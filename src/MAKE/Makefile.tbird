@@ -25,11 +25,11 @@ SHELL = /bin/sh
 # System-specific settings
 
 CC =		mpicxx
-CCFLAGS =	-O -DFFT_FFTW -I${FFTW_INCLUDE}
+CCFLAGS =	-O -DFFT_FFTW -I$(FFTW_INCLUDE)
 DEPFLAGS =	-M
 LINK =		mpicxx
-LINKFLAGS =	-O -L${FFTW_LIB}
-USRLIB =	-lfftw -lstdc++
+LINKFLAGS =	-O
+USRLIB =	$(BLASLIB) $(FFTW_LINK_LINE) -lstdc++
 SYSLIB =	-lm
 SIZE =		size
 ARCHIVE =       ar

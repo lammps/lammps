@@ -194,6 +194,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_temp_rescale.h"
 #include "fix_thermal_conductivity.h"
 #include "fix_tmd.h"
+#include "fix_ttm.h"
 #include "fix_viscosity.h"
 #include "fix_viscous.h"
 #include "fix_wall_lj126.h"
@@ -255,6 +256,7 @@ FixStyle(temp/berendsen,FixTempBerendsen)
 FixStyle(temp/rescale,FixTempRescale)
 FixStyle(thermal/conductivity,FixThermalConductivity)
 FixStyle(tmd,FixTMD)
+FixStyle(ttm,FixTTM)
 FixStyle(viscosity,FixViscosity)
 FixStyle(viscous,FixViscous)
 FixStyle(wall/lj126,FixWallLJ126)

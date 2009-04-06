@@ -18,9 +18,9 @@
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>ttm = style name of this fix command
 <LI>seed = random number seed to use for white noise (positive integer)
-<LI>e_specific_heat = electronic specific heat (energy/(electron*temperature) units)
-<LI>e_density = electronic density (electrons/volume units)
-<LI>e_thermal_conductivity = electronic thermal conductivity (energy/(time*distance*temperature) units)
+<LI>C_e  = electronic specific heat (energy/(electron*temperature) units)
+<LI>rho_e = electronic density (electrons/volume units)
+<LI>kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
 <LI>gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
 <LI>gamma_s = friction coefficient due to electronic stopping (mass/time units)
 <LI>v_0 = electronic stopping critical velocity (velocity units)
@@ -57,15 +57,16 @@ out via an inhomogeneous Langevin thermostat.  This thermostat differs
 from the regular Langevin thermostat (<A HREF = "fix_langevin.html">fix
 langevin</A>) in three important ways.  First, the
 Langevin thermostat is applied uniformly to all atoms in the
-user-specified group, whereas the TTM fix applies Langevin
-thermostatting locally within the volumes represented by the
-user-specified grid points.  Second, the Langevin thermostat couples
-the temperature of the atoms to an infinite heat reservoir, whereas
-the heat reservoir for fix TTM is finite and represents the local
-electrons.  Third, the TTM fix allows users to specify not just one
-friction coefficient, but rather two independent friction
-coefficients: one for the electron-ion interactions and one for
-electron stopping.
+user-specified group for a single target temperature, whereas the TTM
+fix applies Langevin thermostatting locally to atoms within the
+volumes represented by the user-specified grid points with a target
+temperature specific to that grid point.  Second, the Langevin
+thermostat couples the temperature of the atoms to an infinite heat
+reservoir, whereas the heat reservoir for fix TTM is finite and
+represents the local electrons.  Third, the TTM fix allows users to
+specify not just one friction coefficient, but rather two independent
+friction coefficients: one for the electron-ion interactions and one
+for electron stopping.
 </P>
 <P>When the friction coefficient due to electron stopping, <I>gamma_s</I>, is
 non-zero, electron stopping effects are included for atoms moving
@@ -79,14 +80,16 @@ transfer between the subsystems:
 </P>
 <CENTER><IMG SRC = "Eqs/fix_ttm.jpg">
 </CENTER>
-<P>where C is the specific heat, rho is the density, kappa is the thermal
-conductivity, and the "e" and "a" subscripts represent the electronic
-and atomic subsystems respectively. g_p is the coupling constant for
-the electron-ion interaction, and g_s is the electron stopping
-coupling parameter.  The form of the heat diffusion equation used here
-is almost the same as that in equation 6 of <A HREF = "#Duffy">(Duffy)</A>, with the
-exception that the electronic density is explicitly reprensented,
-rather than being part of the the specific heat parameter.
+<P>where C_e is the specific heat, rho_e is the density, kappa_e is the
+thermal conductivity, T is temperature, the "e" and "a" subscripts
+represent electronic and atomic subsystems respectively, g_p is the
+coupling constant for the electron-ion interaction, and g_s is the
+electron stopping coupling parameter.  C_e, rho_e, and kappa_e are
+specified as parameters to the fix.  The other quantities are derived.
+The form of the heat diffusion equation used here is almost the same
+as that in equation 6 of <A HREF = "#Duffy">(Duffy)</A>, with the exception that the
+electronic density is explicitly reprensented, rather than being part
+of the the specific heat parameter.
 </P>
 <P>Currently, this fix assumes that none of the user-supplied parameters
 will vary with temperature.  This assumption can be relaxed by

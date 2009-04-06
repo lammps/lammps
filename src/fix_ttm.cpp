@@ -97,6 +97,32 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   gfactor2 = new double[atom->ntypes+1];
 
   total_nnodes = nxnodes*nynodes*nznodes;
+
+  // allocate memory for 3d vectors
+  nsum = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum");
+  nsum_prime = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_prime");
+  nsum_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_all");
+  nsum_prime_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_prime_all");
+  T_initial_set = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:T_initial_set");
+  sum_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq");
+  sum_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_prime");
+  sum_mass_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq");
+  sum_mass_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_prime");
+  sum_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_all");
+  sum_vsq_prime_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_prime_all");
+  sum_mass_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_all");
+  sum_mass_vsq_prime_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_prime_all");
+  T_electron_old = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_electron_old");
+  T_electron = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_electron");
+  T_a = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_a");
+  T_a_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_a_prime");
+  g_s = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:g_s");
+  g_p = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:g_p");
+
+  // set initial electron temperatures from user-supplied file
+
+  if (me == 0) read_initial_electron_temperatures();
+  MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,32 +182,6 @@ void FixTTM::init()
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  // allocate memory for 3d vectors
-  nsum = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum");
-  nsum_prime = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_prime");
-  nsum_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_all");
-  nsum_prime_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_prime_all");
-  T_initial_set = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:T_initial_set");
-  sum_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq");
-  sum_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_prime");
-  sum_mass_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq");
-  sum_mass_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_prime");
-  sum_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_all");
-  sum_vsq_prime_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_prime_all");
-  sum_mass_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_all");
-  sum_mass_vsq_prime_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_prime_all");
-  T_electron_old = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_electron_old");
-  T_electron = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_electron");
-  T_a = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_a");
-  T_a_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_a_prime");
-  g_s = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:g_s");
-  g_p = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:g_p");
-
-  // set initial electron temperatures from user-supplied file
-
-  if (me == 0) read_initial_electron_temperatures();
-  MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

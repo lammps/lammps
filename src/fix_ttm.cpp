@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Paul Crozier (SNL)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
@@ -27,18 +31,19 @@
 #include "memory.h"
 #include "error.h"
 
+using namespace LAMMPS_NS;
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 #define MAXLINE 1024
-
-using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 15) error->all("Illegal fix TTM command");
+  if (narg < 15) error->all("Illegal fix ttm command");
 
   int seed = atoi(arg[3]);
   electronic_specific_heat = atof(arg[4]);
@@ -73,19 +78,22 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (seed <= 0) error->all("Fix TTM seed must be >= 0");
-  if (electronic_specific_heat <= 0.0) error->all("Fix TTM electronic_specific_heat must be > 0.0");
-  if (electronic_density <= 0.0) error->all("Fix TTM electronic_density must be > 0.0");
-  if (electronic_thermal_conductivity < 0.0) error->all("Fix TTM electronic_thermal_conductivity must be >= 0.0");
-  if (gamma_p <= 0.0) error->all("Fix TTM gamma_p must be > 0.0");
-  if (gamma_s < 0.0) error->all("Fix TTM gamma_s must be >= 0.0");
-  if (v_0 < 0.0) error->all("Fix TTM v_0 must be >= 0.0");
-  v_0_sq = v_0*v_0;
-  if ((nxnodes <= 0) or (nynodes <= 0) or (nznodes <= 0)) error->all("Fix TTM nnodes must be > 0");
+  // error check
 
-  nsum = nsum_prime = nsum_all = nsum_prime_all = T_initial_set = NULL;
-  sum_vsq = sum_vsq_prime = sum_mass_vsq = sum_mass_vsq_prime = sum_vsq_all = sum_vsq_prime_all = NULL;
-  sum_mass_vsq_all = sum_mass_vsq_prime_all = T_electron_old = T_electron = T_a = T_a_prime = g_s = g_p = NULL;
+  if (seed <= 0) error->all("Fix ttm seed must be >= 0");
+  if (electronic_specific_heat <= 0.0) 
+    error->all("Fix ttm electronic_specific_heat must be > 0.0");
+  if (electronic_density <= 0.0) 
+    error->all("Fix ttm electronic_density must be > 0.0");
+  if (electronic_thermal_conductivity < 0.0)
+    error->all("Fix ttm electronic_thermal_conductivity must be >= 0.0");
+  if (gamma_p <= 0.0) error->all("Fix ttm gamma_p must be > 0.0");
+  if (gamma_s < 0.0) error->all("Fix ttm gamma_s must be >= 0.0");
+  if (v_0 < 0.0) error->all("Fix ttm v_0 must be >= 0.0");
+  if (nxnodes <= 0 or nynodes <= 0 or nznodes <= 0)
+    error->all("Fix ttm number of nodes must be > 0");
+
+  v_0_sq = v_0*v_0;
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -96,30 +104,52 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   gfactor1 = new double[atom->ntypes+1];
   gfactor2 = new double[atom->ntypes+1];
 
+  // allocate 3d grid variables
+
   total_nnodes = nxnodes*nynodes*nznodes;
 
-  // allocate memory for 3d vectors
-  nsum = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum");
-  nsum_prime = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_prime");
-  nsum_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_all");
-  nsum_prime_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:nsum_prime_all");
-  T_initial_set = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"TTM:T_initial_set");
-  sum_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq");
-  sum_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_prime");
-  sum_mass_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq");
-  sum_mass_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_prime");
-  sum_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_all");
-  sum_vsq_prime_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_vsq_prime_all");
-  sum_mass_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_all");
-  sum_mass_vsq_prime_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:sum_mass_vsq_prime_all");
-  T_electron_old = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_electron_old");
-  T_electron = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_electron");
-  T_a = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_a");
-  T_a_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:T_a_prime");
-  g_s = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:g_s");
-  g_p = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"TTM:g_p");
+  nsum = memory->create_3d_int_array(nxnodes,nynodes,nznodes,"ttm:nsum");
+  nsum_prime = memory->create_3d_int_array(nxnodes,nynodes,nznodes,
+					   "ttm:nsum_prime");
+  nsum_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,
+					 "ttm:nsum_all");
+  nsum_prime_all = memory->create_3d_int_array(nxnodes,nynodes,nznodes,
+					       "ttm:nsum_prime_all");
+  T_initial_set = memory->create_3d_int_array(nxnodes,nynodes,nznodes,
+					      "ttm:T_initial_set");
+  sum_vsq = memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+					   "ttm:sum_vsq");
+  sum_vsq_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+						 "ttm:sum_vsq_prime");
+  sum_mass_vsq = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+				   "ttm:sum_mass_vsq");
+  sum_mass_vsq_prime = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+				   "ttm:sum_mass_vsq_prime");
+  sum_vsq_all = memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+					       "ttm:sum_vsq_all");
+  sum_vsq_prime_all = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+				   "ttm:sum_vsq_prime_all");
+  sum_mass_vsq_all = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+				   "ttm:sum_mass_vsq_all");
+  sum_mass_vsq_prime_all = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+				   "ttm:sum_mass_vsq_prime_all");
+  T_electron_old = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+				   "ttm:T_electron_old");
+  T_electron = 
+    memory->create_3d_double_array(nxnodes,nynodes,nznodes,"ttm:T_electron");
+  T_a = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"ttm:T_a");
+  T_a_prime = memory->create_3d_double_array(nxnodes,nynodes,nznodes,
+					     "ttm:T_a_prime");
+  g_s = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"ttm:g_s");
+  g_p = memory->create_3d_double_array(nxnodes,nynodes,nznodes,"ttm:g_p");
 
-  // set initial electron temperatures from user-supplied file
+  // set initial electron temperatures from user input file
 
   if (me == 0) read_initial_electron_temperatures();
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
@@ -132,6 +162,7 @@ FixTTM::~FixTTM()
   if (nfileevery && me == 0) fclose(fp);
 
   delete random;
+
   delete [] gfactor1;
   delete [] gfactor2;
 
@@ -170,61 +201,23 @@ int FixTTM::setmask()
 
 void FixTTM::init()
 {
-  if (atom->mass == NULL)
-    error->all("Cannot use fix TTM without per-type mass defined");
+  if (domain->dimension == 2)
+    error->all("Cannot use fix ttm with 2d simulation");
+  if (domain->nonperiodic != 0)
+    error->all("Cannot use nonperiodic boundares with fix ttm");
+  if (domain->triclinic)
+    error->all("Cannot use fix ttm with triclinic box");
 
   // set force prefactors
 
   for (int i = 1; i <= atom->ntypes; i++) {
     gfactor1[i] = - gamma_p / force->ftm2v;
-    gfactor2[i] = sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
+    gfactor2[i] = 
+      sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
   }
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-}
-
-/* ----------------------------------------------------------------------
-   read in initial electron temperatures from a user-specified file
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void FixTTM::read_initial_electron_temperatures()
-{
-  char line[MAXLINE];
-
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-    for (int iynode = 0; iynode < nynodes; iynode++) {
-      for (int iznode = 0; iznode < nznodes; iznode++) {
-        T_initial_set[ixnode][iynode][iznode] = 0;
-      } 
-    } 
-  }
-
-  // read initial electron temperature values from file
-
-  int ixnode,iynode,iznode;
-  double T_tmp;
-  while (1) {
-    if (fgets(line,MAXLINE,fpr) == NULL) break;
-    sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->all("Fix TTM electron temperatures must be > 0.0");
-    T_electron[ixnode][iynode][iznode] = T_tmp;
-    T_initial_set[ixnode][iynode][iznode] = 1;
-  }
-
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-    for (int iynode = 0; iynode < nynodes; iynode++) {
-      for (int iznode = 0; iznode < nznodes; iznode++) {
-        if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->all("All initial temperatures have not been set in the TTM fix.");
-      } 
-    } 
-  }
-
-  // close file
-
-  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,9 +291,46 @@ void FixTTM::post_force_respa(int vflag, int ilevel, int iloop)
 
 void FixTTM::reset_dt()
 {
-  for (int i = 1; i <= atom->ntypes; i++) {
-    gfactor2[i] = sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
+  for (int i = 1; i <= atom->ntypes; i++)
+    gfactor2[i] = 
+      sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
+}
+
+/* ----------------------------------------------------------------------
+   read in initial electron temperatures from a user-specified file
+   only called by proc 0
+------------------------------------------------------------------------- */
+
+void FixTTM::read_initial_electron_temperatures()
+{
+  char line[MAXLINE];
+
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        T_initial_set[ixnode][iynode][iznode] = 0;
+
+  // read initial electron temperature values from file
+
+  int ixnode,iynode,iznode;
+  double T_tmp;
+  while (1) {
+    if (fgets(line,MAXLINE,fpr) == NULL) break;
+    sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
+    if (T_tmp < 0.0) error->one("Fix ttm electron temperatures must be > 0.0");
+    T_electron[ixnode][iynode][iznode] = T_tmp;
+    T_initial_set[ixnode][iynode][iznode] = 1;
   }
+
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        if (T_initial_set[ixnode][iynode][iznode] == 0)
+          error->one("Initial temperatures not all set in fix ttm");
+
+  // close file
+
+  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -309,14 +339,18 @@ void FixTTM::update_electron_temperatures()
 {
   double **x = atom->x;
   double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  // compute atomic Ta, and Ta' (for high v atoms) for each node
+  double massone;
 
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-    for (int iynode = 0; iynode < nynodes; iynode++) {
+  // compute atomic Ta, and Ta' (for high v atoms) for each grid point
+
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++) {
         nsum[ixnode][iynode][iznode] = 0;
         nsum_prime[ixnode][iynode][iznode] = 0;
@@ -331,12 +365,11 @@ void FixTTM::update_electron_temperatures()
         sum_mass_vsq_all[ixnode][iynode][iznode] = 0.0;
         sum_mass_vsq_prime_all[ixnode][iynode][iznode] = 0.0;
       } 
-    } 
-  }
 
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      double mass = atom->mass[type[i]];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
       double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
       double zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
@@ -352,36 +385,42 @@ void FixTTM::update_electron_temperatures()
       double vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       nsum[ixnode][iynode][iznode] += 1;
       sum_vsq[ixnode][iynode][iznode] += vsq;
-      sum_mass_vsq[ixnode][iynode][iznode] += mass*vsq;
+      sum_mass_vsq[ixnode][iynode][iznode] += massone*vsq;
       if (vsq > v_0_sq) {
         nsum_prime[ixnode][iynode][iznode] += 1;
         sum_vsq_prime[ixnode][iynode][iznode] += vsq;
-        sum_mass_vsq_prime[ixnode][iynode][iznode] += mass*vsq;
+        sum_mass_vsq_prime[ixnode][iynode][iznode] += massone*vsq;
       }
     }
-  }
 
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
   double dz = domain->zprd/nznodes;
   double del_vol = dx*dy*dz;
 
-  MPI_Allreduce(&nsum[0][0][0],&nsum_all[0][0][0],total_nnodes,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(&nsum_prime[0][0][0],&nsum_prime_all[0][0][0],total_nnodes,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(&sum_vsq[0][0][0],&sum_vsq_all[0][0][0],total_nnodes,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&sum_vsq_prime[0][0][0],&sum_vsq_prime_all[0][0][0],total_nnodes,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],total_nnodes,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&sum_mass_vsq_prime[0][0][0],&sum_mass_vsq_prime_all[0][0][0],total_nnodes,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&nsum[0][0][0],&nsum_all[0][0][0],total_nnodes,
+		MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nsum_prime[0][0][0],&nsum_prime_all[0][0][0],total_nnodes,
+		MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&sum_vsq[0][0][0],&sum_vsq_all[0][0][0],total_nnodes,
+		MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&sum_vsq_prime[0][0][0],&sum_vsq_prime_all[0][0][0],
+		total_nnodes,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
+		total_nnodes,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&sum_mass_vsq_prime[0][0][0],&sum_mass_vsq_prime_all[0][0][0],
+		total_nnodes,MPI_DOUBLE,MPI_SUM,world);
 
   double max_g_p = 0.0;
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-    for (int iynode = 0; iynode < nynodes; iynode++) {
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++) {
         if (nsum_all[ixnode][iynode][iznode] > 0) {
-          T_a[ixnode][iynode][iznode] = sum_mass_vsq_all[ixnode][iynode][iznode]/
-                                        (3*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
+          T_a[ixnode][iynode][iznode] = 
+	    sum_mass_vsq_all[ixnode][iynode][iznode]/
+	    (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
           double g_p_tmp = gamma_p*sum_vsq_all[ixnode][iynode][iznode]/
-                                        T_a[ixnode][iynode][iznode]/del_vol;
+	    T_a[ixnode][iynode][iznode]/del_vol;
           max_g_p = MAX(max_g_p,g_p_tmp);
           g_p[ixnode][iynode][iznode] = g_p_tmp;
         } else { 
@@ -389,43 +428,51 @@ void FixTTM::update_electron_temperatures()
           g_p[ixnode][iynode][iznode] = 0;
         }
         if (nsum_prime_all[ixnode][iynode][iznode] > 0) {
-          T_a_prime[ixnode][iynode][iznode] = sum_mass_vsq_prime_all[ixnode][iynode][iznode]/
-                                              (3*force->boltz*nsum_prime_all[ixnode][iynode][iznode]/force->mvv2e);
-          g_s[ixnode][iynode][iznode] = gamma_s*sum_vsq_prime_all[ixnode][iynode][iznode]/
-                                        T_a_prime[ixnode][iynode][iznode]/del_vol;
+          T_a_prime[ixnode][iynode][iznode] = 
+	    sum_mass_vsq_prime_all[ixnode][iynode][iznode]/
+	    (3.0*force->boltz*nsum_prime_all[ixnode][iynode][iznode] / 
+	     force->mvv2e);
+          g_s[ixnode][iynode][iznode] = 
+	    gamma_s*sum_vsq_prime_all[ixnode][iynode][iznode]/
+	    T_a_prime[ixnode][iynode][iznode]/del_vol;
         } else {
           T_a_prime[ixnode][iynode][iznode] = 0;
           g_s[ixnode][iynode][iznode] = 0;
         }
       }
-    }
-  }
 
-  // figure out how many inner steps (thermal solves) are required this MD timestep in order to maintain a stable explicit solve
+  // num_inner_timesteps = # of inner steps (thermal solves)
+  // required this MD step to maintain a stable explicit solve
+
   int num_inner_timesteps = 1;
   double inner_dt = update->dt;
-  double stability_criterion = 1.0 - 2.0*inner_dt/(electronic_specific_heat*electronic_density)* 
-   (electronic_thermal_conductivity*(1/dx/dx + 1/dy/dy + 1/dz/dz) + 0.5*max_g_p);
+  double stability_criterion = 1.0 - 
+    2.0*inner_dt/(electronic_specific_heat*electronic_density) * 
+    (electronic_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz) + 
+     0.5*max_g_p);
   if (stability_criterion < 0.0) {
-    inner_dt = 0.5*(electronic_specific_heat*electronic_density)/(electronic_thermal_conductivity*(1/dx/dx + 1/dy/dy + 1/dz/dz) + 0.5*max_g_p);
+    inner_dt = 0.5*(electronic_specific_heat*electronic_density) / 
+      (electronic_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz) + 
+       0.5*max_g_p);
     num_inner_timesteps = static_cast<int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
-    if (num_inner_timesteps > 1e6) error->warning("In the TTM fix, trying to do more than a million inner timesteps!");
+    if (num_inner_timesteps > 1000000) 
+      error->warning("Too many inner timesteps in fix ttm");
   }
 
-  for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps; ith_inner_timestep++) {
-    
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-      for (int iynode = 0; iynode < nynodes; iynode++) {
-        for (int iznode = 0; iznode < nznodes; iznode++) {
-          T_electron_old[ixnode][iynode][iznode] = T_electron[ixnode][iynode][iznode];
-        } 
-      } 
-    }
+  for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps; 
+       ith_inner_timestep++) {
+
+    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+      for (int iynode = 0; iynode < nynodes; iynode++)
+        for (int iznode = 0; iznode < nznodes; iznode++)
+          T_electron_old[ixnode][iynode][iznode] =
+	    T_electron[ixnode][iynode][iznode];
     
     // compute new electron T profile
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-      for (int iynode = 0; iynode < nynodes; iynode++) {
+
+    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+      for (int iynode = 0; iynode < nynodes; iynode++)
         for (int iznode = 0; iznode < nznodes; iznode++) {
           int right_xnode = ixnode + 1;
           int right_ynode = iynode + 1;
@@ -439,36 +486,51 @@ void FixTTM::update_electron_temperatures()
           if (left_xnode == -1) left_xnode = nxnodes - 1;
           if (left_ynode == -1) left_ynode = nynodes - 1;
           if (left_znode == -1) left_znode = nznodes - 1;
-          T_electron[ixnode][iynode][iznode] = T_electron_old[ixnode][iynode][iznode] + 
-           inner_dt/(electronic_specific_heat*electronic_density)*(electronic_thermal_conductivity*
-           ((T_electron_old[right_xnode][iynode][iznode] + T_electron_old[left_xnode][iynode][iznode] - 2*T_electron_old[ixnode][iynode][iznode])/dx/dx +
-            (T_electron_old[ixnode][right_ynode][iznode] + T_electron_old[ixnode][left_ynode][iznode] - 2*T_electron_old[ixnode][iynode][iznode])/dy/dy +
-            (T_electron_old[ixnode][iynode][right_znode] + T_electron_old[ixnode][iynode][left_znode] - 2*T_electron_old[ixnode][iynode][iznode])/dz/dz) +
-           g_p[ixnode][iynode][iznode]*(T_a[ixnode][iynode][iznode] - T_electron_old[ixnode][iynode][iznode]) + 
-           g_s[ixnode][iynode][iznode]*T_a_prime[ixnode][iynode][iznode]);   
+          T_electron[ixnode][iynode][iznode] = 
+	    T_electron_old[ixnode][iynode][iznode] + 
+	    inner_dt/(electronic_specific_heat*electronic_density) * 
+	    (electronic_thermal_conductivity *
+	     ((T_electron_old[right_xnode][iynode][iznode] + 
+	       T_electron_old[left_xnode][iynode][iznode] - 
+	       2*T_electron_old[ixnode][iynode][iznode])/dx/dx +
+	      (T_electron_old[ixnode][right_ynode][iznode] + 
+	       T_electron_old[ixnode][left_ynode][iznode] - 
+	       2*T_electron_old[ixnode][iynode][iznode])/dy/dy +
+	      (T_electron_old[ixnode][iynode][right_znode] + 
+	       T_electron_old[ixnode][iynode][left_znode] - 
+	       2*T_electron_old[ixnode][iynode][iznode])/dz/dz) +
+	     g_p[ixnode][iynode][iznode] * 
+	     (T_a[ixnode][iynode][iznode] - 
+	      T_electron_old[ixnode][iynode][iznode]) + 
+	     g_s[ixnode][iynode][iznode]*T_a_prime[ixnode][iynode][iznode]);   
         }
-      }
-    }
   }
+
+  // output nodal temperatures for current timestep
 
   if (!(update->ntimestep % nfileevery) && (me == 0)) { 
     fprintf(fp,"%d ",update->ntimestep);
-    // print nodal temperatures for current timestep
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-      for (int iynode = 0; iynode < nynodes; iynode++) {
-        for (int iznode = 0; iznode < nznodes; iznode++) {
+    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+      for (int iynode = 0; iynode < nynodes; iynode++)
+        for (int iznode = 0; iznode < nznodes; iznode++)
           fprintf(fp,"%f ",T_a[ixnode][iynode][iznode]);
-        }
-      }
-    }
     fprintf(fp,"\t");
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++) {
-      for (int iynode = 0; iynode < nynodes; iynode++) {
-        for (int iznode = 0; iznode < nznodes; iznode++) {
+    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+      for (int iynode = 0; iynode < nynodes; iynode++)
+        for (int iznode = 0; iznode < nznodes; iznode++)
           fprintf(fp,"%f ",T_electron[ixnode][iynode][iznode]);
-        }
-      }
-    }
     fprintf(fp,"\n");
   }
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of 3d grid
+------------------------------------------------------------------------- */
+
+double FixTTM::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += 5*total_nnodes * sizeof(int);
+  bytes += 14*total_nnodes * sizeof(double);
+  return bytes;
 }

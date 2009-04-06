@@ -266,7 +266,7 @@ double FixMSD::memory_usage()
 void FixMSD::grow_arrays(int nmax)
 {
   xoriginal =
-    memory->grow_2d_double_array(xoriginal,nmax,3,"fix_msd:xoriginal");
+    memory->grow_2d_double_array(xoriginal,nmax,3,"msd:xoriginal");
 }
 
 /* ----------------------------------------------------------------------

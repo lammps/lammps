@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ttm seed e_specific_heat e_density e_thermal_conductivity gamma_p gamma_s v_0 nxnodes nynodes nznodes T_infile N T_outfile 
+<PRE>fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>ttm = style name of this fix command
@@ -24,9 +24,9 @@
 <LI>gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
 <LI>gamma_s = friction coefficient due to electronic stopping (mass/time units)
 <LI>v_0 = electronic stopping critical velocity (velocity units)
-<LI>nxnodes = number of thermal solve grid points in the x-direction (positive integer)
-<LI>nynodes = number of thermal solve grid points in the y-direction (positive integer)
-<LI>nznodes = number of thermal solve grid points in the z-direction (positive integer)
+<LI>Nx = number of thermal solve grid points in the x-direction (positive integer)
+<LI>Ny = number of thermal solve grid points in the y-direction (positive integer)
+<LI>Nz = number of thermal solve grid points in the z-direction (positive integer)
 <LI>T_infile = filename to read initial electronic temperature from
 <LI>N = dump TTM temperatures every this many timesteps, 0 = no dump
 <LI>T_outfile = filename to write TTM temperatures to (only needed if N > 0) 
@@ -109,10 +109,10 @@ subsystem.
 <P>The initial electronic temperature input file, <I>T_infile</I>, is a text
 file LAMMPS reads in with no header and with four numeric columns
 (ix,iy,iz,Temp) and with a number of rows equal to the number of
-user-specified grid points (nxnodes*nynodes*nznodes).  The ix,iy,iz
-are node indices from 0 to nxnodes-1, etc.  For example, the initial
-electronic temperatures on a 1 by 2 by 3 grid could be specified in a
-<I>T_infile</I> as follows:
+user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are node
+indices from 0 to nxnodes-1, etc.  For example, the initial electronic
+temperatures on a 1 by 2 by 3 grid could be specified in a <I>T_infile</I>
+as follows:
 </P>
 <PRE>0 0 0 1.0
 0 0 1 1.0
@@ -121,11 +121,10 @@ electronic temperatures on a 1 by 2 by 3 grid could be specified in a
 0 1 1 2.0
 0 1 2 2.0 
 </PRE>
-<P>where the electronic temperatures along the nynodes=0 plane have been
-set to 1.0, and the electronic temperatures along the nynodes=1 plane
-have been set to 2.0.  The order of lines in this file is unimportant.
-If all the nodal values are not specified, LAMMPS will generate an
-error.
+<P>where the electronic temperatures along the y=0 plane have been set to
+1.0, and the electronic temperatures along the y=1 plane have been set
+to 2.0.  The order of lines in this file is no important.  If all the
+nodal values are not specified, LAMMPS will generate an error.
 </P>
 <P>The temperature output file, <I>T_oufile</I>, is created and written by
 this fix.  Temperatures for both the electronic and atomic subsystems
@@ -133,11 +132,11 @@ at every node and every N timesteps are output.  If N is specified as
 zero, no output is generated, and no output filename is needed.  The
 format of the output is as follows.  One long line is written every
 output timestep.  The timestep itself is given in the first column.
-The next nxnodes*nynodes*nznodes columns contain the temperatures for
-the atomic subsystem, and the final nxnodes*nynodes*nznodes columns
-contain the temperatures for the electronic subsystem.  The ordering
-of the nxnodes*nynodes*nznodes columns is with the z index varing
-fastest, y the next fastest, and x the slowest.
+The next Nx*Ny*Nz columns contain the temperatures for the atomic
+subsystem, and the final Nx*Ny*Nz columns contain the temperatures for
+the electronic subsystem.  The ordering of the Nx*Ny*Nz columns is
+with the z index varing fastest, y the next fastest, and x the
+slowest.
 </P>
 <P>This fix does not change the coordinates of its atoms; it only scales
 their velocities.  Thus a time integration fix (e.g. <A HREF = "fix_nve.html">fix

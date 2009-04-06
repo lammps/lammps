@@ -65,7 +65,7 @@ thermostat couples the temperature of the atoms to an infinite heat
 reservoir, whereas the heat reservoir for fix TTM is finite and
 represents the local electrons.  Third, the TTM fix allows users to
 specify not just one friction coefficient, but rather two independent
-friction coefficients: one for the electron-ion interactions 
+friction coefficients: one for the electron-ion interactions
 (<I>gamma_p</I>), and one for electron stopping (<I>gamma_s</I>).
 </P>
 <P>When the friction coefficient due to electron stopping, <I>gamma_s</I>, is
@@ -144,6 +144,12 @@ nve</A>) should still be used to time integrate the affected
 atoms.  This fix should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. <A HREF = "fix_nvt.html">fix nvt</A> or
 <A HREF = "fix_langevin.html">fix langevin</A>.
+</P>
+<P>IMPORTANT NOTE: The current implementation creates a copy of the
+electron grid that overlays the entire simulation domain, for each
+processor.  Values on the grid are summed across all processors.  Thus
+you should insure that this grid is not too large, else your
+simulation could incur high memory and communication costs.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

@@ -168,6 +168,7 @@ list of fix styles available in LAMMPS:
 "thermal/conductivity"_fix_thermal_conductivity.html - Muller-Plathe kinetic energy exchange for \
      thermal conductivity calculation
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration
+"ttm"_fix_ttm.html - two-temperature model for electronic/atomic coupling
 "viscosity"_fix_viscosity.html - Muller-Plathe momentum exchange for \
      viscosity calculation
 "viscous"_fix_viscous.html - viscous damping for granular simulations

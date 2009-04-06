@@ -433,6 +433,7 @@ of each style or click on the style itself for a full description:
 "temp/rescale"_fix_temp_rescale.html,
 "thermal/conductivity"_fix_thermal_conductivity.html,
 "tmd"_fix_tmd.html,
+"ttm"_fix_ttm.html,
 "viscosity"_fix_viscosity.html,
 "viscous"_fix_viscous.html,
 "wall/gran"_fix_wall_gran.html,

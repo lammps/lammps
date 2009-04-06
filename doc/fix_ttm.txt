@@ -62,8 +62,8 @@ thermostat couples the temperature of the atoms to an infinite heat
 reservoir, whereas the heat reservoir for fix TTM is finite and
 represents the local electrons.  Third, the TTM fix allows users to
 specify not just one friction coefficient, but rather two independent
-friction coefficients: one for the electron-ion interactions and one
-for electron stopping.
+friction coefficients: one for the electron-ion interactions 
+({gamma_p}), and one for electron stopping ({gamma_s}).
 
 When the friction coefficient due to electron stopping, {gamma_s}, is
 non-zero, electron stopping effects are included for atoms moving

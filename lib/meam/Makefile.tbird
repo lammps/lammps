@@ -11,9 +11,9 @@
 # created by this file, using the following changes to the
 # standard version of src/MAKE/Makefile.tbird
 #
-# CCFLAGS =      -O -DFFT_FFTW -I$(FFTW_INCLUDE) -I../../lib/reax -I../../lib/meam
-# LINKFLAGS =    -O -L../../lib/reax -L../../lib/meam -L/projects/global/x86_64/compilers/intel/intel-11.0-cprof-074/lib/intel64
-# USRLIB =       $(BLASLIB) $(FFTW_LINK_LINE) -lstdc++ -lreax -lmeam
+# CCFLAGS =      -O -DFFT_FFTW -I$(FFTW_INCLUDE)
+# LINKFLAGS =    -O -L../../lib/meam -L/projects/global/x86_64/compilers/intel/intel-11.0-cprof-074/lib/intel64
+# USRLIB =       $(BLASLIB) $(FFTW_LINK_LINE) -lstdc++ -lmeam
 # SYSLIB =       -lm -lsvml -lifport -lifcore
 #
 

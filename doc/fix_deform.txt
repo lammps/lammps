@@ -18,7 +18,7 @@ N = perform box deformation every this many timesteps :l
 one or more parameter/arg pairs may be appended :l
 parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
   {x}, {y}, {z} args = style value(s)
-    style = {final} or {delta} or {scale} or {vel} or {erate} or {trate} or {volume}
+    style = {final} or {delta} or {scale} or {vel} or {erate} or {trate} or {volume} or {wiggle}
       {final} values = lo hi
         lo hi = box boundaries at end of run (distance units)
       {delta} values = dlo dhi
@@ -37,7 +37,7 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
         A = amplitude of oscillation (distance units)
 	Tp = period of oscillation (time units)
   {xy}, {xz}, {yz} args = style value
-    style = {final} or {delta} or {vel} or {erate} or {trate}
+    style = {final} or {delta} or {vel} or {erate} or {trate} or {wiggle}
       {final} value = tilt
         tilt = tilt factor at end of run (distance units)
       {delta} value = dtilt

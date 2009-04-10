@@ -19,7 +19,7 @@ Tdamp = temperature damping parameter (time units) :ul
 
 [Examples:]
 
-fix 1 all nvt 300.0 300.0 100.0 :pre
+fix 1 all temp/berendsen 300.0 300.0 100.0 :pre
 
 [Description:]
 

@@ -62,7 +62,7 @@ nve"_fix_nve.html or "fix nvt"_fix_nvt.html to actually update the
 positions and velocities of atoms.  This fix can be used in
 conjunction with thermostatting fixes to control the temperature, such
 as "fix nvt"_fix_nvt.html or "fix langevin"_fix_langevin.html or "fix
-temp/berendsen"_fix_temp_berendsen,html.
+temp/berendsen"_fix_temp_berendsen.html.
 
 See "this howto section"_Section_howto.html#4_16 of the manual for a
 discussion of different ways to compute temperature and perform

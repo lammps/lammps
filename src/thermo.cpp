@@ -73,6 +73,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // set thermo_modify defaults
 
+  modified = 0;
   normuserflag = 0;
   lineflag = ONELINE;
   lostflag = ERROR;
@@ -357,6 +358,8 @@ double Thermo::lost_check()
 void Thermo::modify_params(int narg, char **arg)
 {
   if (narg == 0) error->all("Illegal thermo_modify command");
+
+  modified = 1;
 
   int iarg = 0;
   while (iarg < narg) {

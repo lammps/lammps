@@ -90,7 +90,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   if (gamma_p <= 0.0) error->all("Fix ttm gamma_p must be > 0.0");
   if (gamma_s < 0.0) error->all("Fix ttm gamma_s must be >= 0.0");
   if (v_0 < 0.0) error->all("Fix ttm v_0 must be >= 0.0");
-  if (nxnodes <= 0 or nynodes <= 0 or nznodes <= 0)
+  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
     error->all("Fix ttm number of nodes must be > 0");
 
   v_0_sq = v_0*v_0;

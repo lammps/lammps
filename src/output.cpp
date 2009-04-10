@@ -363,6 +363,12 @@ void Output::create_thermo(int narg, char **arg)
   if (domain->box_exist == 0) 
     error->all("Thermo_style command before simulation box is defined");
 
+  // warn if previous thermo had been modified via thermo_modify command
+
+  if (thermo->modified && comm->me == 0)
+    error->warning("New thermo_style command, "
+		   "previous thermo_modify settings will be lost");
+
   // set thermo = NULL in case new Thermo throws an error
 
   delete thermo;

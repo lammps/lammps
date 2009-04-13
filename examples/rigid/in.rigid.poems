@@ -21,7 +21,7 @@ velocity 	all create 100.0 4928459
 #group		clump8 id <> 64 72
 #group		clump9 id <> 73 81
 
-#fix 1 all rigid group clump1 clump2 clump3 clump4 clump5 &
+#fix 1 all rigid group 9 clump1 clump2 clump3 clump4 clump5 &
 #	  	      clump6 clump7 clump8 clump9
 
 # 1 chain of connected bodies

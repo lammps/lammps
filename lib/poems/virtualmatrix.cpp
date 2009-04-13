@@ -18,6 +18,7 @@
 
 #include "virtualmatrix.h"
 #include "matrixfun.h"
+#include <cstdlib>
 
 using namespace std;
 

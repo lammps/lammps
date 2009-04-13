@@ -18,6 +18,7 @@
 #include "colmatmap.h"
 #include "colmatrix.h"
 #include <iostream>
+#include <cstdlib>
 
 using namespace std;
 

@@ -17,6 +17,7 @@
 
 
 #include "mat3x3.h"
+#include <cstdlib>
 
 using namespace std;
 

@@ -19,6 +19,7 @@
 #define _POEMSLIST_H_
 
 #include <iostream>
+#include <cstdlib>
 
 using namespace std;
 

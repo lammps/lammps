@@ -17,7 +17,7 @@
  
 
 #include "poemsobject.h"
-#include <string>
+#include <cstring>
 
 POEMSObject::POEMSObject(){
   name = 0;

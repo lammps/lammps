@@ -419,7 +419,7 @@ void FixTTM::update_electron_temperatures()
           T_a[ixnode][iynode][iznode] = 
 	    sum_mass_vsq_all[ixnode][iynode][iznode]/
 	    (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-          double g_p_tmp = gamma_p*sum_vsq_all[ixnode][iynode][iznode]/
+          double g_p_tmp = force->mvv2e*gamma_p*sum_vsq_all[ixnode][iynode][iznode]/
 	    T_a[ixnode][iynode][iznode]/del_vol;
           max_g_p = MAX(max_g_p,g_p_tmp);
           g_p[ixnode][iynode][iznode] = g_p_tmp;
@@ -433,7 +433,7 @@ void FixTTM::update_electron_temperatures()
 	    (3.0*force->boltz*nsum_prime_all[ixnode][iynode][iznode] / 
 	     force->mvv2e);
           g_s[ixnode][iynode][iznode] = 
-	    gamma_s*sum_vsq_prime_all[ixnode][iynode][iznode]/
+	    force->mvv2e*gamma_s*sum_vsq_prime_all[ixnode][iynode][iznode]/
 	    T_a_prime[ixnode][iynode][iznode]/del_vol;
         } else {
           T_a_prime[ixnode][iynode][iznode] = 0;

@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
+#include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -97,6 +98,7 @@ int FixGravity::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   return mask;
 }
 
@@ -104,6 +106,9 @@ int FixGravity::setmask()
 
 void FixGravity::init()
 {
+  if (strcmp(update->integrate_style,"respa") == 0)
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
   dt = update->dt;
 
   xacc = magnitude*xgrav;
@@ -115,7 +120,13 @@ void FixGravity::init()
 
 void FixGravity::setup(int vflag)
 {
-  post_force(vflag);
+  if (strcmp(update->integrate_style,"verlet") == 0)
+    post_force(vflag);
+  else {
+    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    post_force_respa(vflag,nlevels_respa-1,0);
+    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,4 +180,11 @@ void FixGravity::post_force(int vflag)
 	f[i][2] += massone*zacc;
       }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixGravity::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_force(vflag);
 }

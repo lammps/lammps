@@ -27,6 +27,7 @@ class FixGravity : public Fix {
   void init();
   void setup(int);
   void post_force(int);
+  void post_force_respa(int, int, int);
 
  private:
   int style,time_initial;
@@ -35,6 +36,7 @@ class FixGravity : public Fix {
   double xdir,ydir,zdir;
   double xgrav,ygrav,zgrav,xacc,yacc,zacc;
   double degree2rad;
+  int nlevels_respa;
 };
 
 }

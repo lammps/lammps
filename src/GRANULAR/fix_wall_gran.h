@@ -26,6 +26,7 @@ class FixWallGran : public Fix {
   void init();
   void setup(int);
   void post_force(int);
+  void post_force_respa(int, int, int);
 
   double memory_usage();
   void grow_arrays(int);
@@ -44,6 +45,7 @@ class FixWallGran : public Fix {
   double lo,hi,cylradius;
   double amplitude,period,omega,time_origin,vshear;
   double dt;
+  int nlevels_respa;
 
   int *touch;
   double **shear;

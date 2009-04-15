@@ -25,6 +25,7 @@
 #include "force.h"
 #include "pair.h"
 #include "modify.h"
+#include "respa.h"
 #include "memory.h"
 #include "error.h"
 
@@ -202,6 +203,7 @@ int FixWallGran::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   return mask;
 }
 
@@ -210,6 +212,9 @@ int FixWallGran::setmask()
 void FixWallGran::init()
 {
   dt = update->dt;
+
+  if (strcmp(update->integrate_style,"respa") == 0)
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // set pairstyle from granular pair style
 
@@ -226,7 +231,13 @@ void FixWallGran::init()
 
 void FixWallGran::setup(int vflag)
 {
-  post_force(vflag);
+  if (strcmp(update->integrate_style,"verlet") == 0)
+    post_force(vflag);
+  else {
+    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    post_force_respa(vflag,nlevels_respa-1,0);
+    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -324,6 +335,13 @@ void FixWallGran::post_force(int vflag)
       }
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixWallGran::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

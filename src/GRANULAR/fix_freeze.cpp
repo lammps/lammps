@@ -14,8 +14,10 @@
 #include "string.h"
 #include "fix_freeze.h"
 #include "atom.h"
+#include "update.h"
 #include "modify.h"
 #include "comm.h"
+#include "respa.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -37,6 +39,7 @@ int FixFreeze::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   return mask;
 }
 
@@ -57,7 +60,16 @@ void FixFreeze::init()
 
 void FixFreeze::setup(int vflag)
 {
-  post_force(vflag);
+  if (strcmp(update->integrate_style,"verlet") == 0)
+    post_force(vflag);
+  else {
+    int nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
+      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      post_force_respa(vflag,ilevel,0);
+      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,3 +92,11 @@ void FixFreeze::post_force(int vflag)
       torque[i][2] = 0.0;
     }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixFreeze::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  post_force(vflag);
+}
+

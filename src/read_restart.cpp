@@ -372,7 +372,7 @@ void ReadRestart::header()
   int flag = read_int();
   while (flag >= 0) {
 
-    // check restart file version, compare to LAMMPS version
+    // check restart file version, warn if different
 
     if (flag == VERSION) {
       char *version = read_char();
@@ -394,7 +394,7 @@ void ReadRestart::header()
     } else if (flag == NTIMESTEP) {
       update->ntimestep = read_int();
 
-      // set dimension from restart file, warn if different
+      // set dimension from restart file
 
     } else if (flag == DIMENSION) {
       int dimension = read_int();
@@ -402,7 +402,7 @@ void ReadRestart::header()
       if (domain->dimension == 2 && domain->zperiodic == 0)
 	error->all("Cannot run 2d simulation with nonperiodic Z dimension");
 
-      // read nprocs_file from restart file, warn if different
+      // read nprocs from restart file, warn if different
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
@@ -422,18 +422,30 @@ void ReadRestart::header()
 	   pz != comm->user_procgrid[2]) && me == 0)
 	error->warning("Restart file used different 3d processor grid");
 
-      // don't set newton_pair, warn if different
-      // set newton_bond from restart file, warn if different
+      // don't set newton_pair, leave input script value unchanged
+      // set newton_bond from restart file
+      // warn if different and input script settings are not default
 
     } else if (flag == NEWTON_PAIR) {
-      int newton_pair = read_int();
+      int newton_pair_file = read_int();
+      if (force->newton_pair != 1) {
+	if (newton_pair_file != force->newton_pair && me == 0)
+	  error->warning("Restart file used different newton pair setting, "
+			 "using input script value");
+      }
     } else if (flag == NEWTON_BOND) {
-      int newton_bond = read_int();
-      force->newton_bond = newton_bond;
+      int newton_bond_file = read_int();
+      if (force->newton_bond != 1) {
+	if (newton_bond_file != force->newton_bond && me == 0)
+	  error->warning("Restart file used different newton bond setting, "
+			 "using restart file value");
+      }
+      force->newton_bond = newton_bond_file;
       if (force->newton_pair || force->newton_bond) force->newton = 1;
       else force->newton = 0;
 
-      // set boundary settings from restart file, warn if different
+      // set boundary settings from restart file
+      // warn if different and input script settings are not default
 
     } else if (flag == XPERIODIC) {
       xperiodic = read_int();
@@ -453,6 +465,21 @@ void ReadRestart::header()
       boundary[2][0] = read_int();
     } else if (flag == BOUNDARY_21) {
       boundary[2][1] = read_int();
+
+      if (domain->boundary[0][0] || domain->boundary[0][1] || 
+	  domain->boundary[1][0] || domain->boundary[1][1] || 
+	  domain->boundary[2][0] || domain->boundary[2][1]) {
+	if (boundary[0][0] != domain->boundary[0][0] ||
+	    boundary[0][1] != domain->boundary[0][1] ||
+	    boundary[1][0] != domain->boundary[1][0] ||
+	    boundary[1][1] != domain->boundary[1][1] ||
+	    boundary[2][0] != domain->boundary[2][0] ||
+	    boundary[2][1] != domain->boundary[2][1]) {
+	  if (me == 0) 
+	    error->warning("Restart file used different boundary settings, "
+			   "using restart file values");
+	}
+      }
 
       int flag = 0;
       if ((xperiodic != domain->xperiodic || yperiodic != domain->yperiodic ||

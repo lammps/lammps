@@ -108,17 +108,19 @@ void Update::set_units(const char *style)
     force->qqr2e = 1.0;
     force->qe2f = 1.0;
     force->vxmu2f = 1.0;
+    force->xxt2kmu = 1.0;
     dt = 0.005;
     neighbor->skin = 0.3;
     
   } else if (strcmp(style,"real") == 0) {
-    force->boltz = 0.0019872067; 
+    force->boltz = 0.0019872067;
     force->mvv2e = 48.88821291 * 48.88821291;
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
     force->nktv2p = 68568.415;
     force->qqr2e = 332.06371;
     force->qe2f = 23.060549; 
     force->vxmu2f = 1.4393264316e4;
+    force->xxt2kmu = 0.1;
     dt = 1.0;
     neighbor->skin = 2.0;
 
@@ -130,6 +132,7 @@ void Update::set_units(const char *style)
     force->qqr2e = 14.399645;
     force->qe2f = 1.0;
     force->vxmu2f = 0.6241509647;
+    force->xxt2kmu = 1.0e-4;
     dt = 0.001;
     neighbor->skin = 2.0;
 
@@ -140,6 +143,8 @@ void Update::set_units(const char *style)
     force->nktv2p = 1.0;
     force->qqr2e = 8.9876e9;
     force->qe2f = 1.0;
+    force->vxmu2f = 1.0;
+    force->xxt2kmu = 1.0;
     dt = 1.0e-8;
     neighbor->skin = 0.001;
 
@@ -150,6 +155,8 @@ void Update::set_units(const char *style)
     force->nktv2p = 1.0;
     force->qqr2e = 1.0;
     force->qe2f = 1.0;
+    force->vxmu2f = 1.0;
+    force->xxt2kmu = 1.0;
     dt = 1.0e-8;
     neighbor->skin = 0.1;
 

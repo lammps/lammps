@@ -49,7 +49,7 @@ force = epsilon/sigma, where f* = f sigma / epsilon
 torque = epsilon, where t* = t / epsilon
 temperature = reduced LJ temperature, where T* = T Kb / epsilon
 pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
-viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
+dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
 charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
 dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
 electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon :ul
@@ -65,7 +65,7 @@ force = Kcal/mole-Angstrom
 torque = Kcal/mole
 temperature = degrees K
 pressure = atmospheres
-viscosity = Poise
+dynamic viscosity = Poise
 charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
 electric field = volts/Angstrom :ul
@@ -81,7 +81,7 @@ force = eV/Angstrom
 torque = eV
 temperature = degrees K
 pressure = bars
-viscosity = Poise
+dynamic viscosity = Poise
 charge = multiple of electron charge (+1.0 is a proton)
 dipole = charge*Angstroms
 electric field = volts/Angstrom :ul
@@ -97,7 +97,7 @@ force = Newtons
 torque = Newton-meters
 temperature = degrees K
 pressure = Pascals
-viscosity = Pascal*second
+dynamic viscosity = Pascal*second
 charge = Coulombs
 dipole = Coulombs*meters
 electric field = volts/meter :ul
@@ -113,7 +113,7 @@ force = dynes
 torque = dyne-centimeters
 temperature = degrees K
 pressure = dyne/cm^2 or barye = 1.0e-6 bars
-viscosity = Poise
+dynamic viscosity = Poise
 charge = statcoulombs or esu
 dipole = statcoul-cm = 10^18 debye
 electric field = statvolt/cm or dyne/esu :ul

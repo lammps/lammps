@@ -12,7 +12,7 @@ pair_style lubricate command :h3
 
 pair_style lubricate mu squeeze shear pump twist cutinner cutoff T_target seed :pre
 
-mu = viscosity (mass/distance/time units)
+mu = dynamic viscosity (dynamic viscosity units)
 squeeze = 0/1 for squeeze force off/on
 shear = 0/1 for shear force off/on
 pump = 0/1 for pump force off/on
@@ -36,18 +36,21 @@ spherical particles via this formula from "(Ball and Melrose)"_#Ball
 :c,image(Eqs/pair_lubricate.jpg)
 
 which represents the dissipation W between two nearby particles due to
-their relative velocities in the presence of a background solvent.  Rc
-is the outer cutoff specified in the pair_style command, the
+their relative velocities in the presence of a background solvent with
+viscosity mu.  Note that this is dynamic viscosity which has units of
+mass/distance/time, not kinematic viscosity.
+
+Rc is the outer cutoff specified in the pair_style command, the
 translational velocities of the 2 particles are v1 and v2, the angular
 velocities are w1 and w2, and n is the unit vector in the direction
 from particle 1 to 2.  The 4 terms represent four modes of pairwise
 interaction: squeezing, shearing, pumping, and twisting.  The 4 flags
 in the pair_style command turn on or off each of these modes by
 including or excluding each term.  The 4 coefficients on each term are
-functions of the separation distance of the particles.  Details are
-given in "(Ball and Melrose)"_#Ball, including the forces and torques
-that result from taking derivatives of this equation with respect to
-velocity (see Appendix A).
+functions of the separation distance of the particles and the
+viscosity.  Details are given in "(Ball and Melrose)"_#Ball, including
+the forces and torques that result from taking derivatives of this
+equation with respect to velocity (see Appendix A).
 
 Unlike most pair potentials, the two specified cutoffs (cutinner and
 cutoff) refer to the surface-to-surface separation between two

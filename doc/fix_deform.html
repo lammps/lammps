@@ -354,18 +354,29 @@ remapped into the new box in the appropriate manner.
 <P>Each time the box size or shape is changed, the <I>remap</I> keyword
 determines whether atom positions are re-mapped to the new box.  If
 <I>remap</I> is set to <I>x</I> (the default), atoms in the fix group are
-re-mapped; otherwise they are not.  If <I>remap</I> is set to <I>v</I>, then any
-atom in the fix group that crosses a periodic boundary will have a
-delta added to its velocity equal to the difference in velocities
-between the lo and hi boundaries.  Note that this velocity difference
-can include tilt components, e.g. a delta in the x velocity when an
-atom crosses the y periodic boundary.  If <I>remap</I> is set to <I>none</I>,
-then neither of these remappings take place.
+re-mapped; otherwise they are not.  Note that their velocities are not
+changed, just their positions are altered.  If <I>remap</I> is set to <I>v</I>,
+then any atom in the fix group that crosses a periodic boundary will
+have a delta added to its velocity equal to the difference in
+velocities between the lo and hi boundaries.  Note that this velocity
+difference can include tilt components, e.g. a delta in the x velocity
+when an atom crosses the y periodic boundary.  If <I>remap</I> is set to
+<I>none</I>, then neither of these remappings take place.
+</P>
+<P>Conceptually, setting <I>remap</I> to <I>x</I> is forcing the atoms to deform
+via an affine transformation that exactly matches the box deformation.
+Though the atoms are moving, it is not due to them having a velocity
+that matches the box change.  This setting is typically appropriate
+for solids.  Setting <I>remap</I> to <I>v</I> is typically appropriate for
+fluids, where you want the atoms to respond to the change in box
+size/shape on their own and acquire a velocity that matches the box
+change, so that they will naturally move with the box without explicit
+remapping of their coordinates.
 </P>
 <P>IMPORTANT NOTE: When non-equilibrium MD (NEMD) simulations are
 performed using this fix, the option "remap v" should normally be
 used.  This is because <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A> adjusts the
-atom positions and velocities to provide a velocity profile that
+atom positions and velocities to induce a velocity profile that
 matches the changing box size/shape.  Thus atom coordinates should NOT
 be remapped by fix deform, but velocities SHOULD be when atoms cross
 periodic boundaries, since that is consistent with maintaining the

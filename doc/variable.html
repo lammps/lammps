@@ -34,7 +34,10 @@
                       ceil(x), floor(x), round(x)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
-		      bound(group,xmin), gyration(group)
+		      bound(group,xmin), gyration(group), ke(group)
+    region functions = count(group,region), mass(group,region), charge(group,region),
+		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
+		      bound(group,xmin,region), gyration(group,region), ke(group,reigon)
     atom value = mass[N], x[N], y[N], z[N],
                  vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]
     atom vector = mass[], x[], y[], z[],
@@ -245,7 +248,8 @@ references, fix references, and references to other variables.
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operations</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), ceil(x), floor(x), round(x)</TD></TR>
-<TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID)</TD></TR>
+<TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID)</TD></TR>
+<TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR),                  vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[N], x[N], y[N], z[N],              vx[N], vy[N], vz[N], fx[N], fy[N], fz[N]</TD></TR>
 <TR><TD >Atom vectors</TD><TD > mass[], x[], y[], z[],               vx[], vy[], vz[], fx[], fy[], fz[]</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID, c_ID[2], c_ID[N], c_ID[N][2], c_ID[], c_ID[][2]</TD></TR>
@@ -301,6 +305,12 @@ group of atoms.  Bound() returns the min/max of a particular
 coordinate for all atoms in the group.  Gyration() computes the
 radius-of-gyration of the group of atoms.  See the <A HREF = "fix_gyration.html">fix
 gyration</A> command for a definition of the formula.
+</P>
+<P>Region functions are exactly the same as group functions with an
+extra argument which is the region ID.  The function is computed
+for all atoms that are in both the group and the region.  If the
+group is "all", then the only criteria for atom inclusion is
+that it be in the region.
 </P>
 <P>Atom values take a single integer argument from 1-N, which is the
 desired atom-ID, e.g. x[243]., which means use the x coordinate of

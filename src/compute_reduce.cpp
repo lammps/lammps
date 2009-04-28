@@ -16,6 +16,7 @@
 #include "compute_reduce.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "force.h"
@@ -40,12 +41,22 @@ enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
 ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal compute reduce command");
+  int iarg;
+  if (strcmp(style,"reduce") == 0) {
+    if (narg < 5) error->all("Illegal compute reduce command");
+    iarg = 3;
+  } else if (strcmp(style,"reduce/region") == 0) {
+    if (narg < 6) error->all("Illegal compute reduce/region command");
+    iregion = domain->find_region(arg[3]);
+    if (iregion == -1) error->all("Compute reduce region ID does not exist");
+    iarg = 4;
+  }
 
-  if (strcmp(arg[3],"sum") == 0) mode = SUM;
-  else if (strcmp(arg[3],"min") == 0) mode = MINN;
-  else if (strcmp(arg[3],"max") == 0) mode = MAXX;
+  if (strcmp(arg[iarg],"sum") == 0) mode = SUM;
+  else if (strcmp(arg[iarg],"min") == 0) mode = MINN;
+  else if (strcmp(arg[iarg],"max") == 0) mode = MAXX;
   else error->all("Illegal compute reduce command");
+  iarg++;
 
   // parse remaining values
 
@@ -55,7 +66,6 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[narg-4];
   nvalues = 0;
 
-  int iarg = 4;
   while (iarg < narg) {
     ids[nvalues] = NULL;
 

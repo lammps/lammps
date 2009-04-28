@@ -11,33 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_REDUCE_H
-#define COMPUTE_REDUCE_H
+#ifndef COMPUTE_REDUCE_REGION_H
+#define COMPUTE_REDUCE_REGION_H
 
-#include "compute.h"
+#include "compute_reduce.h"
 
 namespace LAMMPS_NS {
 
-class ComputeReduce : public Compute {
+class ComputeReduceRegion : public ComputeReduce {
  public:
-  ComputeReduce(class LAMMPS *, int, char **);
-  virtual ~ComputeReduce();
-  void init();
-  double compute_scalar();
-  void compute_vector();
-  double memory_usage();
+  ComputeReduceRegion(class LAMMPS *, int, char **);
+  ~ComputeReduceRegion() {}
 
- protected:
-  int mode,nvalues,iregion;
-  int *which,*argindex,*value2index;
-  char **ids;
-  double *onevec;
-
-  int maxatom;
-  double *varatom;
-
-  virtual double compute_one(int);
-  void combine(double &, double);
+ private:
+  double compute_one(int);
 };
 
 }

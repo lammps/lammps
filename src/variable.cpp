@@ -1408,35 +1408,46 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
 }
 
 /* ----------------------------------------------------------------------
-   process a group function in formula
+   process a group function in formula with optional region arg
    push result onto tree or arg stack
    word = group function
-   contents = str bewteen parentheses with one or two args
+   contents = str bewteen parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
    customize by adding a group function:
      count(group),mass(group),charge(group),
      xcm(group,dim),vcm(group,dim),fcm(group,dim),
-     bound(group,xmin),gyration(group)
+     bound(group,xmin),gyration(group),ke(group)
 ------------------------------------------------------------------------- */
 
 int Variable::group_function(char *word, char *contents, Tree **tree,
 			     Tree **treestack, int &ntreestack,
 			     double *argstack, int &nargstack)
 {
-  // parse contents for arg1,arg2 separated by comma
+  // parse contents for arg1,arg2,arg3 separated by commas
 
-  char *arg1,*arg2;
-  char *ptr = strchr(contents,',');
-  if (ptr) *ptr = '\0';
+  char *ptr1 = strchr(contents,',');
+  if (ptr1) *ptr1 = '\0';
+  char *ptr2 = strchr(ptr1+1,',');
+  if (ptr2) *ptr2 = '\0';
+
+  char *arg1,*arg2,*arg3;
   int n = strlen(contents) + 1;
   arg1 = new char[n];
   strcpy(arg1,contents);
-  if (ptr) {
-    n = strlen(ptr+1) + 1;
+  int narg = 1;
+  if (ptr1) {
+    n = strlen(ptr1+1) + 1;
     arg2 = new char[n];
-    strcpy(arg2,ptr+1);
+    strcpy(arg2,ptr1+1);
+    narg = 2;
   } else arg2 = NULL;
-  
+  if (ptr2) {
+    n = strlen(ptr2+1) + 1;
+    arg3 = new char[n];
+    strcpy(arg3,ptr1+1);
+    narg = 3;
+  } else arg3 = NULL;
+
   int igroup = group->find(arg1);
   if (igroup == -1)
     error->all("Group ID in variable formula does not exist");
@@ -1454,59 +1465,67 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   // match word to group function
 
   if (strcmp(word,"count") == 0) {
-    if (arg2)
-      error->all("Invalid group function in variable formula");
-    value = group->count(igroup);
+    if (narg == 1) value = group->count(igroup);
+    else if (narg == 2) value = group->count(igroup,region_function(arg2));
+    else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"mass") == 0) {
-    if (arg2)
-      error->all("Invalid group function in variable formula");
-    value = group->mass(igroup);
+    if (narg == 1) value = group->mass(igroup);
+    else if (narg == 2) value = group->mass(igroup,region_function(arg2));
+    else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"charge") == 0) {
-    if (arg2)
-      error->all("Invalid group function in variable formula");
-    value = group->charge(igroup);
+    if (narg == 1) value = group->charge(igroup);
+    else if (narg == 2) value = group->charge(igroup,region_function(arg2));
+    else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"xcm") == 0) {
-    if (!arg2)
-      error->all("Invalid group function in variable formula");
     atom->check_mass();
-    double masstotal = group->mass(igroup);
     double xcm[3];
-    group->xcm(igroup,masstotal,xcm);
+    if (narg == 2) {
+      double masstotal = group->mass(igroup);
+      group->xcm(igroup,masstotal,xcm);
+    } else if (narg == 3) {
+      int iregion = region_function(arg3);
+      double masstotal = group->mass(igroup,iregion);
+      group->xcm(igroup,masstotal,xcm,iregion);
+    } else error->all("Invalid group function in variable formula");
     if (strcmp(arg2,"x") == 0) value = xcm[0];
     else if (strcmp(arg2,"y") == 0) value = xcm[1];
     else if (strcmp(arg2,"z") == 0) value = xcm[2];
     else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"vcm") == 0) {
-    if (!arg2)
-      error->all("Invalid group function in variable formula");
     atom->check_mass();
-    double masstotal = group->mass(igroup);
     double vcm[3];
-    group->vcm(igroup,masstotal,vcm);
+    if (narg == 2) {
+      double masstotal = group->mass(igroup);
+      group->vcm(igroup,masstotal,vcm);
+    } else if (narg == 3) {
+      int iregion = region_function(arg3);
+      double masstotal = group->mass(igroup,iregion);
+      group->vcm(igroup,masstotal,vcm,iregion);
+    } else error->all("Invalid group function in variable formula");
     if (strcmp(arg2,"x") == 0) value = vcm[0];
     else if (strcmp(arg2,"y") == 0) value = vcm[1];
     else if (strcmp(arg2,"z") == 0) value = vcm[2];
     else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"fcm") == 0) {
-    if (!arg2)
-      error->all("Invalid group function in variable formula");
     double fcm[3];
-    group->fcm(igroup,fcm);
+    if (narg == 2) group->fcm(igroup,fcm);
+    else if (narg == 3) group->fcm(igroup,fcm,region_function(arg3));
+    else error->all("Invalid group function in variable formula");
     if (strcmp(arg2,"x") == 0) value = fcm[0];
     else if (strcmp(arg2,"y") == 0) value = fcm[1];
     else if (strcmp(arg2,"z") == 0) value = fcm[2];
     else error->all("Invalid group function in variable formula");
 
   } else if (strcmp(word,"bound") == 0) {
-    if (!arg2)
-      error->all("Invalid group function in variable formula");
     double minmax[6];
-    group->bounds(igroup,minmax);
+    if (narg == 2) group->bounds(igroup,minmax);
+    else if (narg == 3) group->bounds(igroup,minmax,region_function(arg3));
+    else error->all("Invalid group function in variable formula");
     if (strcmp(arg2,"xmin") == 0) value = minmax[0];
     else if (strcmp(arg2,"xmax") == 0) value = minmax[1];
     else if (strcmp(arg2,"ymin") == 0) value = minmax[2];
@@ -1517,10 +1536,22 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   } else if (strcmp(word,"gyration") == 0) {
     atom->check_mass();
-    double masstotal = group->mass(igroup);
     double xcm[3];
-    group->xcm(igroup,masstotal,xcm);
-    value = group->gyration(igroup,masstotal,xcm);
+    if (narg == 1) {
+      double masstotal = group->mass(igroup);
+      group->xcm(igroup,masstotal,xcm);
+      value = group->gyration(igroup,masstotal,xcm);
+    } else if (narg == 2) {
+      int iregion = region_function(arg2);
+      double masstotal = group->mass(igroup,iregion);
+      group->xcm(igroup,masstotal,xcm,iregion);
+      value = group->gyration(igroup,masstotal,xcm,iregion);
+    } else error->all("Invalid group function in variable formula");
+
+  } else if (strcmp(word,"ke") == 0) {
+    if (narg == 1) value = group->ke(igroup);
+    else if (narg == 2) value = group->ke(igroup,region_function(arg2));
+    else error->all("Invalid group function in variable formula");
 
   } else return 0;
     
@@ -1531,6 +1562,26 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   else argstack[nargstack++] = value;
 
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   process a group function in formula with optional region arg
+   push result onto tree or arg stack
+   word = group function
+   contents = str bewteen parentheses with one,two,three args
+   return 0 if not a match, 1 if successfully processed
+   customize by adding a group function:
+     count(group),mass(group),charge(group),
+     xcm(group,dim),vcm(group,dim),fcm(group,dim),
+     bound(group,xmin),gyration(group)
+------------------------------------------------------------------------- */
+
+int Variable::region_function(char *id)
+{
+  int iregion = domain->find_region(id);
+  if (iregion == -1)
+    error->all("Invalid region in group function in variable formula");
+  return iregion;
 }
 
 /* ----------------------------------------------------------------------

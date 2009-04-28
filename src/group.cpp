@@ -502,6 +502,30 @@ double Group::count(int igroup)
 }
 
 /* ----------------------------------------------------------------------
+   count atoms in group and region
+   compute in double precision in case system is huge
+------------------------------------------------------------------------- */
+
+double Group::count(int igroup, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int n = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) n++;
+
+  double nsingle = n;
+  double nall;
+  MPI_Allreduce(&nsingle,&nall,1,MPI_DOUBLE,MPI_SUM,world);
+  return nall;
+}
+
+/* ----------------------------------------------------------------------
    compute the total mass of group of atoms
    use either per-type mass or per-atom rmass
 ------------------------------------------------------------------------- */
@@ -510,10 +534,10 @@ double Group::mass(int igroup)
 {
   int groupbit = bitmask[igroup];
 
-  int *mask = atom->mask;
-  int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  int *type = atom->type;
   int nlocal = atom->nlocal;
 
   double one = 0.0;
@@ -532,6 +556,40 @@ double Group::mass(int igroup)
 }
 
 /* ----------------------------------------------------------------------
+   compute the total mass of group of atoms in region
+   use either per-type mass or per-atom rmass
+------------------------------------------------------------------------- */
+
+double Group::mass(int igroup, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double one = 0.0;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	one += rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	one += mass[type[i]];
+  }
+
+  double all;
+  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  return all;
+}
+
+/* ----------------------------------------------------------------------
    compute the total charge of group of atoms
 ------------------------------------------------------------------------- */
 
@@ -539,13 +597,37 @@ double Group::charge(int igroup)
 {
   int groupbit = bitmask[igroup];
 
-  int *mask = atom->mask;
   double *q = atom->q;
+  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   double qone = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) qone += q[i];
+
+  double qall;
+  MPI_Allreduce(&qone,&qall,1,MPI_DOUBLE,MPI_SUM,world);
+  return qall;
+}
+
+/* ----------------------------------------------------------------------
+   compute the total charge of group of atoms in region
+------------------------------------------------------------------------- */
+
+double Group::charge(int igroup, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double *q = atom->q;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double qone = 0.0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      qone += q[i];
 
   double qall;
   MPI_Allreduce(&qone,&qall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -596,7 +678,52 @@ void Group::bounds(int igroup, double *minmax)
 }
 
 /* ----------------------------------------------------------------------
-   compute the center-of-mass coords of group with total mass = masstotal
+   compute the coordinate bounds of the group of atoms in region
+   periodic images are not considered, so atoms are NOT unwrapped
+------------------------------------------------------------------------- */
+
+void Group::bounds(int igroup, double *minmax, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double extent[6];
+  extent[0] = extent[2] = extent[4] = BIG;
+  extent[1] = extent[3] = extent[5] = -BIG;
+  
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      extent[0] = MIN(extent[0],x[i][0]);
+      extent[1] = MAX(extent[1],x[i][0]);
+      extent[2] = MIN(extent[2],x[i][1]);
+      extent[3] = MAX(extent[3],x[i][1]);
+      extent[4] = MIN(extent[4],x[i][2]);
+      extent[5] = MAX(extent[5],x[i][2]);
+    }
+  }
+  
+  // compute extent across all procs
+  // flip sign of MIN to do it in one Allreduce MAX
+  // set box by extent in shrink-wrapped dims
+  
+  extent[0] = -extent[0];
+  extent[2] = -extent[2];
+  extent[4] = -extent[4];
+  
+  MPI_Allreduce(extent,minmax,6,MPI_DOUBLE,MPI_MAX,world);
+
+  minmax[0] = -minmax[0];
+  minmax[2] = -minmax[2];
+  minmax[4] = -minmax[4];
+}
+
+/* ----------------------------------------------------------------------
+   compute the center-of-mass coords of group of atoms
+   masstotal = total mass
    return center-of-mass coords in cm[]
    must unwrap atoms to compute center-of-mass correctly
 ------------------------------------------------------------------------- */
@@ -653,7 +780,67 @@ void Group::xcm(int igroup, double masstotal, double *cm)
 }
 
 /* ----------------------------------------------------------------------
-   compute the center-of-mass velocity of group with total mass = masstotal
+   compute the center-of-mass coords of group of atoms in region
+   mastotal = total mass
+   return center-of-mass coords in cm[]
+   must unwrap atoms to compute center-of-mass correctly
+------------------------------------------------------------------------- */
+
+void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int *image = atom->image;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  double cmone[3];
+  cmone[0] = cmone[1] = cmone[2] = 0.0;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+
+  int xbox,ybox,zbox;
+  double massone;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	xbox = (image[i] & 1023) - 512;
+	ybox = (image[i] >> 10 & 1023) - 512;
+	zbox = (image[i] >> 20) - 512;
+	massone = rmass[i];
+	cmone[0] += (x[i][0] + xbox*xprd) * massone;
+	cmone[1] += (x[i][1] + ybox*yprd) * massone;
+	cmone[2] += (x[i][2] + zbox*zprd) * massone;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	xbox = (image[i] & 1023) - 512;
+	ybox = (image[i] >> 10 & 1023) - 512;
+	zbox = (image[i] >> 20) - 512;
+	massone = mass[type[i]];
+	cmone[0] += (x[i][0] + xbox*xprd) * massone;
+	cmone[1] += (x[i][1] + ybox*yprd) * massone;
+	cmone[2] += (x[i][2] + zbox*zprd) * massone;
+      }
+  }
+
+  MPI_Allreduce(cmone,cm,3,MPI_DOUBLE,MPI_SUM,world);
+  cm[0] /= masstotal;
+  cm[1] /= masstotal;
+  cm[2] /= masstotal;
+}
+
+/* ----------------------------------------------------------------------
+   compute the center-of-mass velocity of group of atoms
+   masstotal = total mass
    return center-of-mass velocity in cm[]
 ------------------------------------------------------------------------- */
 
@@ -696,6 +883,52 @@ void Group::vcm(int igroup, double masstotal, double *cm)
 }
 
 /* ----------------------------------------------------------------------
+   compute the center-of-mass velocity of group of atoms in region
+   masstotal = total mass
+   return center-of-mass velocity in cm[]
+------------------------------------------------------------------------- */
+
+void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  double p[3],massone;
+  p[0] = p[1] = p[2] = 0.0;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	massone = rmass[i];
+	p[0] += v[i][0]*massone;
+	p[1] += v[i][1]*massone;
+	p[2] += v[i][2]*massone;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+	massone = mass[type[i]];
+	p[0] += v[i][0]*massone;
+	p[1] += v[i][1]*massone;
+	p[2] += v[i][2]*massone;
+      }
+  }
+
+  MPI_Allreduce(p,cm,3,MPI_DOUBLE,MPI_SUM,world);
+  cm[0] /= masstotal;
+  cm[1] /= masstotal;
+  cm[2] /= masstotal;
+}
+
+/* ----------------------------------------------------------------------
    compute the total force on group of atoms
 ------------------------------------------------------------------------- */
 
@@ -721,7 +954,34 @@ void Group::fcm(int igroup, double *cm)
 }
 
 /* ----------------------------------------------------------------------
-   compute the total kinetic energy of group and return it
+   compute the total force on group of atoms in region
+------------------------------------------------------------------------- */
+
+void Group::fcm(int igroup, double *cm, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double flocal[3];
+  flocal[0] = flocal[1] = flocal[2] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      flocal[0] += f[i][0];
+      flocal[1] += f[i][1];
+      flocal[2] += f[i][2];
+    }
+
+  MPI_Allreduce(flocal,cm,3,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
+   compute the total kinetic energy of group of atoms and return it
 ------------------------------------------------------------------------- */
 
 double Group::ke(int igroup)
@@ -756,7 +1016,45 @@ double Group::ke(int igroup)
 }
 
 /* ----------------------------------------------------------------------
-   compute the radius-of-gyration of group around center-of-mass cm
+   compute the total kinetic energy of group of atoms in region and return it
+------------------------------------------------------------------------- */
+
+double Group::ke(int igroup, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  double one = 0.0;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+	  rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	one += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+	  mass[type[i]];
+  }
+  
+  double all;
+  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  all *= 0.5 * force->mvv2e;
+  return all;
+}
+
+/* ----------------------------------------------------------------------
+   compute the radius-of-gyration of group of atoms
+   around center-of-mass cm
    must unwrap atoms to compute Rg correctly
 ------------------------------------------------------------------------- */
 
@@ -781,6 +1079,50 @@ double Group::gyration(int igroup, double masstotal, double *cm)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      xbox = (image[i] & 1023) - 512;
+      ybox = (image[i] >> 10 & 1023) - 512;
+      zbox = (image[i] >> 20) - 512;
+      dx = (x[i][0] + xbox*xprd) - cm[0];
+      dy = (x[i][1] + ybox*yprd) - cm[1];
+      dz = (x[i][2] + zbox*zprd) - cm[2];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+      rg += (dx*dx + dy*dy + dz*dz) * massone;
+    }
+  double rg_all;
+  MPI_Allreduce(&rg,&rg_all,1,MPI_DOUBLE,MPI_SUM,world);
+  
+  return sqrt(rg_all/masstotal);
+}
+
+/* ----------------------------------------------------------------------
+   compute the radius-of-gyration of group of atoms in region
+   around center-of-mass cm
+   must unwrap atoms to compute Rg correctly
+------------------------------------------------------------------------- */
+
+double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
+{
+  int groupbit = bitmask[igroup];
+  Region *region = domain->regions[iregion];
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int *image = atom->image;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  int xbox,ybox,zbox;
+  double dx,dy,dz,massone;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double rg = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       xbox = (image[i] & 1023) - 512;
       ybox = (image[i] >> 10 & 1023) - 512;
       zbox = (image[i] >> 20) - 512;

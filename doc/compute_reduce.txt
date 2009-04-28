@@ -7,13 +7,17 @@
 :line
 
 compute reduce command :h3
+compute reduce/region command :h3
 
 [Syntax:]
 
-compute ID group-ID reduce mode input1 input2 ... :pre
+compute ID group-ID style arg mode input1 input2 ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
-reduce = style name of this compute command :l
+style = {reduce} or {reduce/region} :l
+  {reduce} arg = none
+  {reduce/region} arg = region-ID
+    region-ID = ID of region to use for choosing atoms :pre
 mode = {sum} or {min} or {max} :l
 one or more inputs can be listed :l
 input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
@@ -28,18 +32,20 @@ input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_nam
 [Examples:]
 
 compute 1 all reduce sum c_force
+compute 1 all reduce/region subbox sum c_force
 compute 2 all reduce min c_press[2] f_ave v_myKE :pre
 
 [Description:]
 
 Define a calculation that "reduces" one or more per-atom inputs across
 all atoms in the group to yield a single global scalar for each listed
-input.  The resulting value(s) can be accessed by any command that
-uses global computes, e.g. the "thermo custom"_therml_style.html
-command or "fix ave/time"_fix_ave_time.html command or by a
-"variable"_variable.html command.  See "this
-section"_Section_howto.html#4_15 of the documentation for an overview
-of output options.
+input.  If the compute reduce/region command is used, the selection of
+atoms is limited to atoms in the region as well as in the group.  The
+resulting value(s) can be accessed by any command that uses global
+computes, e.g. the "thermo custom"_therml_style.html command or "fix
+ave/time"_fix_ave_time.html command or by a "variable"_variable.html
+command.  See "this section"_Section_howto.html#4_15 of the
+documentation for an overview of output options.
 
 The reduction operation is specified by the {mode} setting.  The {sum}
 option adds the per-atom quantities into a global total.  The {min} or
@@ -48,11 +54,12 @@ quantities.
 
 Each listed input is operated on independently.  The group specified
 with the command means only atoms within the group contribute to the
-result.  Note that the input that produces the per-atom quantities may
-define its own group which affects the quantities it returns.  For
-example, if a per-atom compute is used as an input, it will generate
-values of 0.0 for atoms that are not in the group specified for that
-compute.
+result.  If the compute reduce/region command is used, the atoms must
+also be within the region.  Note that the input that produces the
+per-atom quantities may define its own group which affects the
+quantities it returns.  For example, if a per-atom compute is used as
+an input, it will generate values of 0.0 for atoms that are not in the
+group specified for that compute.
 
 Each listed input can be an atom attribute (position, velocity, force
 component) or can be the result of a "compute"_compute.html or

@@ -352,9 +352,9 @@ remapped into the new box in the appropriate manner.
 <HR>
 
 <P>Each time the box size or shape is changed, the <I>remap</I> keyword
-determines whether atom positions are re-mapped to the new box.  If
+determines whether atom positions are remapped to the new box.  If
 <I>remap</I> is set to <I>x</I> (the default), atoms in the fix group are
-re-mapped; otherwise they are not.  Note that their velocities are not
+remapped; otherwise they are not.  Note that their velocities are not
 changed, just their positions are altered.  If <I>remap</I> is set to <I>v</I>,
 then any atom in the fix group that crosses a periodic boundary will
 have a delta added to its velocity equal to the difference in
@@ -363,15 +363,16 @@ difference can include tilt components, e.g. a delta in the x velocity
 when an atom crosses the y periodic boundary.  If <I>remap</I> is set to
 <I>none</I>, then neither of these remappings take place.
 </P>
-<P>Conceptually, setting <I>remap</I> to <I>x</I> is forcing the atoms to deform
-via an affine transformation that exactly matches the box deformation.
-Though the atoms are moving, it is not due to them having a velocity
-that matches the box change.  This setting is typically appropriate
-for solids.  Setting <I>remap</I> to <I>v</I> is typically appropriate for
-fluids, where you want the atoms to respond to the change in box
-size/shape on their own and acquire a velocity that matches the box
-change, so that they will naturally move with the box without explicit
-remapping of their coordinates.
+<P>Conceptually, setting <I>remap</I> to <I>x</I> forces the atoms to deform via an
+affine transformation that exactly matches the box deformation.  This
+setting is typically appropriate for solids.  Note that though the
+atoms are effectively "moving" with the box over time, it is not due
+to their having a velocity that tracks the box change, but only due to
+the remapping.  By contrast, setting <I>remap</I> to <I>v</I> is typically
+appropriate for fluids, where you want the atoms to respond to the
+change in box size/shape on their own and acquire a velocity that
+matches the box change, so that their motion will naturally track the
+box without explicit remapping of their coordinates.
 </P>
 <P>IMPORTANT NOTE: When non-equilibrium MD (NEMD) simulations are
 performed using this fix, the option "remap v" should normally be

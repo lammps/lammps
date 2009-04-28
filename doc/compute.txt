@@ -120,6 +120,7 @@ available in LAMMPS:
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
+"reduce/region"_compute_reduce.html - same as compute reduce, within a region
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles

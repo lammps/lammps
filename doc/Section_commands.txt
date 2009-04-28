@@ -467,6 +467,7 @@ description:
 "pe/atom"_compute_pe_atom.html,
 "pressure"_compute_pressure.html,
 "reduce"_compute_reduce.html,
+"reduce/region"_compute_reduce.html,
 "stress/atom"_compute_stress_atom.html,
 "temp"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,

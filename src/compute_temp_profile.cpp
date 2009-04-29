@@ -395,7 +395,7 @@ void ComputeTempProfile::bin_average()
 
   // sum bins across processors
 
-  MPI_Allreduce(vbin[0],binave[0],nbins*ncount,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(vbin[0],binave[0],nbins*(ncount+1),MPI_DOUBLE,MPI_SUM,world);
 
   // compute ave velocity in each bin, checking for no particles
 

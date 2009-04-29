@@ -1,0 +1,133 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/profile command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/profile xflag yflag zflag binstyle args :pre
+
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+temp/profile = style name of this compute command :l
+xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension :l
+binstyle = {x} or {y} or {z} or {xy} or {yz} or {xz} or {xyz} :l
+  {x} arg = Nx
+  {y} arg = Ny
+  {z} arg = Nz
+  {xy} args = Nx Ny
+  {yz} args = Ny Nz
+  {xz} args = Nx Nz
+  {xyz} args = Nx Ny Nz
+    Nx,Ny,Nz = number of velocity bins in x,y,z dimensions :pre
+:ule
+
+[Examples:]
+
+compute myTemp flow temp/profile 1 1 1 x 10
+compute myTemp flow temp/profile 0 1 1 xyz 20 20 20 :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of a group of
+atoms, after subtracting out a spatially-averaged velocity field,
+before computing the kinetic energy.  This can be useful for
+thermostatting a collection of atoms undergoing a complex flow,
+e.g. via a profile-unbiased thermostat (PUT) as described in
+"(Evans)"_#Evans.  A compute of this style can be used by any command
+that computes a temperature, e.g. "thermo_modify"_thermo_modify.html,
+"fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
+
+The {xflag}, {yflag}, {zflag} settings determine which components of
+velocity are subtracted out.
+
+The {binstyle} setting and its {Nx}, {Ny}, {Nz} arguments determine
+how bins are setup to perform spatial averaging.  "Bins" can be 1d
+slabs, 2d pencils, or 3d bricks depending on which {binstyle} is used.
+The simulation box is partitioned conceptually into {Nx} by {Ny} by
+{Nz} bins.  Depending on the {binstyle}, you may only specify one or
+two of these values; the others are effectively set to 1 (no binning
+in that dimension).  For non-orthogonal (triclinic) simulation boxes,
+the bins are "tilted" slabs or pencils or bricks that are parallel to
+the tilted faces of the box.  See the "region prism"_region.html
+command for a discussion of the geometry of tilted boxes in LAMMPS.
+
+When a temperature is computed, the velocity for the set of atoms that
+are both in the compute group and in the same spatial bin is summed to
+compute an average velocity for the bin.  This bias velocity is then
+subtracted from the velocities of individual atoms in the bin to yield
+a thermal velocity.
+
+After the spatially-averaged velocity field has been subtracted from
+each atom, the temperature is calculated by the formula KE = dim/2 N k
+T, where KE = total kinetic energy of the group of atoms (sum of 1/2 m
+v^2), dim = 2 or 3 = dimensionality of the simulation, N = number of
+atoms in the group, k = Boltzmann constant, and T = temperature.
+
+A 6-component kinetic energy tensor is also calculated by this compute
+for use in the calculation of a pressure tensor.  The formula for the
+components of the tensor is the same as the above formula, except that
+v^2 is replaced by vx * vy for the xy component, etc.
+
+The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the {dynamic} option of the
+"compute_modify"_compute_modify.html command if this is not the case.
+
+The removal of the spatially-averaged velocity field by this fix is
+essentially computing the temperature after a "bias" has been removed
+from the velocity of the atoms.  If this compute is used with a fix
+command that performs thermostatting then this bias will be subtracted
+from each atom, thermostatting of the remaining thermal velocity will
+be performed, and the bias will be added back in.  Thermostatting
+fixes that work in this way include "fix nvt"_fix_nvt.html, "fix
+temp/rescale"_fix_temp_rescale.html, "fix
+temp/berendsen"_fix_temp_berendsen, and "fix
+langevin"_fix_langevin.html.
+
+This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as "fix shake"_fix_shake.html and
+"fix rigid"_fix_rigid.html.  This means the temperature of groups of
+atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+{extra} option of the "compute_modify"_compute_modify.html command.
+
+See "this howto section"_Section_howto.html#4_16 of the manual for a
+discussion of different ways to compute temperature and perform
+thermostatting.  Using this compute in conjunction with a
+thermostatting fix will effectively implement a PUT, as described in
+"(Evans)"_#Evans.
+
+[Output info:]
+
+The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.  The vector
+values are "extensive", meaning they scale with the number of atoms in
+the simulation.
+
+[Restrictions:]
+
+You should not use too large a velocity-binning grid, especially in
+3d.  In the current implementation, the binned velocity averages are
+summed across all processors, so this will be inefficient if the grid
+is too large, and the operation is performed every timestep, as it
+will be for most thermostats.
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "compute
+temp/ramp"_compute_temp_ramp.html, "compute
+temp/deform"_compute_temp_deform.html, "compute
+pressure"_compute_pressure.html
+
+[Default:]
+
+The option default is units = lattice.
+
+:line
+
+:link(Evans)
+[(Evans)] Evans and Morriss, Phys Rev Lett, 56, 2172-2175 (1986).

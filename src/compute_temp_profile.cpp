@@ -53,7 +53,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"x") == 0) {
     if (narg != 8) error->all("Illegal compute temp/profile command");
     nbinx = atoi(arg[7]);
-    ivx = 1;
+    ivx = 0;
     ncount = 1;
   } else if (strcmp(arg[6],"y") == 0) {
     if (narg != 8) error->all("Illegal compute temp/profile command");

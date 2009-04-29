@@ -43,7 +43,7 @@ that computes a temperature, e.g. "thermo_modify"_thermo_modify.html,
 "fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
 
 The {xflag}, {yflag}, {zflag} settings determine which components of
-velocity are subtracted out.
+average velocity are subtracted out.
 
 The {binstyle} setting and its {Nx}, {Ny}, {Nz} arguments determine
 how bins are setup to perform spatial averaging.  "Bins" can be 1d

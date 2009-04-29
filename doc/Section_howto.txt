@@ -1169,6 +1169,7 @@ pressure"_compute_pressure.html command calculates pressure.
 "compute temp/com"_compute_temp_com.html
 "compute temp/deform"_compute_temp_deform.html
 "compute temp/partial"_compute_temp_partial.html
+"compute temp/profile"_compute_temp_profile.html
 "compute temp/ramp"_compute_temp_ramp.html
 "compute temp/region"_compute_temp_region.html :ul
 
@@ -1177,9 +1178,10 @@ velocities) that are removed when computing the thermal temperature.
 "Fix temp/sphere"_fix_temp_sphere.html and "fix
 temp/asphere"_fix_temp_asphere.html compute kinetic energy for
 extended particles that includes rotational degrees of freedom.  They
-both allow, as an extra argument, another temperature compute that
-subtracts a velocity bias, so the translational velocity of extended
-spherical or aspherical particles can be adjusted in prescribed ways.
+both allow, as an extra argument, which is another temperature compute
+that subtracts a velocity bias.  This allows the translational
+velocity of extended spherical or aspherical particles to be adjusted
+in prescribed ways.
 
 Thermostatting in LAMMPS is performed by "fixes"_fix.html.  Four
 thermostatting fixes are currently available: Nose-Hoover (nvt),
@@ -1194,7 +1196,7 @@ Berendsen, Langevin, and direct rescaling (temp/rescale):
 "fix temp/rescale"_fix_temp_rescale.html :ul
 
 "Fix nvt"_fix_nvt.html only thermostats the translational velocity of
-particles.  "Fix nvt/sllod"_fix_nvt_sllod.html does as well, except
+particles.  "Fix nvt/sllod"_fix_nvt_sllod.html also does this, except
 that it subtracts out a velocity bias due to a deforming box and
 integrates the SLLOD equations of motion.  See the "NEMD
 simulations"_#4_13 section of this page for further details.  "Fix
@@ -1216,8 +1218,9 @@ the x and z components of velocity by using it in conjunction with
 IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
 they update the velocities and positions of particles due to forces
 and velocities respectively.  The other thermostat fixes only adjust
-velocities; they do NOT perform time integration.  Thus they should be
-used in conjunction with a constant NVE integration fix such as these:
+velocities; they do NOT perform time integration updates.  Thus they
+should be used in conjunction with a constant NVE integration fix such
+as these:
 
 "fix nve"_fix_nve.html
 "fix nve/sphere"_fix_nve_sphere.html
@@ -1249,12 +1252,15 @@ and aspherical particles.
 
 All of the barostatting fixes use the "compute
 pressure"_compute_pressure.html compute to calculate a current
-pressure.  The barostatting fixes can also use temperature computes
-that remove bias for the purpose of computing the current temperature
-which contributes to the current pressure.  See the doc pages for the
-individual fixes and for the "fix_modify"_fix_modify.html command for
-instructions on how to assign a temperature or pressure compute to a
-barostatting fix.
+pressure.  By default, this compute is created with a simple "compute
+temp"_compute_temp.html (see the last argument of the "compute
+pressure"_compute_pressure.html command), which is used to calculated
+the kinetic componenet of the pressure.  The barostatting fixes can
+also use temperature computes that remove bias for the purpose of
+computing the kinetic componenet which contributes to the current
+pressure.  See the doc pages for the individual fixes and for the
+"fix_modify"_fix_modify.html command for instructions on how to assign
+a temperature or pressure compute to a barostatting fix.
 
 IMPORTANT NOTE: As with the thermostats, the Nose/Hoover methods ("fix
 npt"_fix_npt.html and "fix nph"_fix_nph.html) perform time

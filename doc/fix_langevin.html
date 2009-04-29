@@ -97,19 +97,17 @@ thermostatting.
 run from <I>Tstart</I> to <I>Tstop</I>.
 </P>
 <P>Like other fixes that perform thermostatting, this fix can be used
-with <A HREF = "compute.html">compute commands</A> that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
-center-of-mass velocity from a group of atoms or only calculating
-temperature on the x-component of velocity or only calculating
-temperature for atoms in a geometric region.  This is not done by
-default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual <A HREF = "compute.html">compute
-commands</A> to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+with <A HREF = "compute.html">compute commands</A> that remove a "bias" from the
+atom velocities.  E.g. removing the center-of-mass velocity from a
+group of atoms or removing the x-component of velocity from the
+calculation.  This is not done by default, but only if the
+<A HREF = "fix_modify.html">fix_modify</A> command is used to assign a temperature
+compute to this fix that includes such a bias term.  See the doc pages
+for individual <A HREF = "compute.html">compute commands</A> to determine which ones
+include a bias.  In this case, the thermostat works in the following
+manner: bias is removed from each atom, thermostatting is performed on
+the remaining thermal degrees of freedom, and the bias is added back
+in.
 </P>
 <P>The <I>damp</I> parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0

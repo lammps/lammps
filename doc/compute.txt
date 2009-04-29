@@ -127,6 +127,7 @@ available in LAMMPS:
 "temp/com"_compute_temp_com.html - temperature after subtracting center-of-mass velocity
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
+"temp/profile"_compute_temp_profile.html - temperature excluding a binned velocity profile
 "temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
 "temp/sphere"_compute_temp_sphere.html - temperature of spherical particles :ul

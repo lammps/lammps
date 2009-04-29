@@ -47,9 +47,11 @@ rotational motion to the extra degrees of freedom.  E.g. the "GayBerne
 pair potential"_pair_gayberne.html does not impart torque to spherical
 particles, so they do not rotate.
 
-The rotational kinetic energy is computed as 1/2 I w^2, where I is the
-inertia tensor for the aspherical particle and w is its angular
-velocity, which is computed from its angular momentum.
+The translational kinetic energy is computed the same as is described
+by the "compute temp"_compute_temp.html command.  The rotational
+kinetic energy is computed as 1/2 I w^2, where I is the inertia tensor
+for the aspherical particle and w is its angular velocity, which is
+computed from its angular momentum.
 
 IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
 as ellipsoids, not ellipses, meaning their moments of inertia will be

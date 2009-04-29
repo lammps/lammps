@@ -36,10 +36,10 @@ that computes a temperature, e.g. <A HREF = "thermo_modify.html">thermo_modify</
 <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_npt.html">fix npt</A>, etc.
 </P>
 <P>The deformation fix changes the box size and/or shape over time, so
-each point in the simulation box can be thought of as having a
+each atom in the simulation box can be thought of as having a
 "streaming" velocity.  For example, if the box is being sheared in x,
-relative to y, then points at the bottom of the box (low y) have a
-small x velocity, while points at the top of the box (hi y) have a
+relative to y, then atoms at the bottom of the box (low y) have a
+small x velocity, while atoms at the top of the box (hi y) have a
 large x velocity.  This position-dependent streaming velocity is
 subtracted from each atom's actual velocity to yield a thermal
 velocity which is used to compute the temperature.
@@ -56,11 +56,12 @@ not changed, and thus they do NOT have the streaming velocity assumed
 by this compute.  LAMMPS will warn you if fix deform is defined and
 its remap setting is not consistent with this compute.
 </P>
-<P>The temperature is calculated by the formula KE = dim/2 N k T, where
-KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
-dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
-in the group, k = Boltzmann constant, and T = temperature.  Note that
-v in the kinetic energy formula is the atom's thermal velocity.
+<P>After the streaming velocity has been subtracted from each atom, the
+temperature is calculated by the formula KE = dim/2 N k T, where KE =
+total kinetic energy of the group of atoms (sum of 1/2 m v^2), dim = 2
+or 3 = dimensionality of the simulation, N = number of atoms in the
+group, k = Boltzmann constant, and T = temperature.  Note that v in
+the kinetic energy formula is the atom's thermal velocity.
 </P>
 <P>A 6-component kinetic energy tensor is also calculated by this compute
 for use in the computation of a pressure tensor.  The formula for the
@@ -104,8 +105,9 @@ the simulation.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_temp_ramp.html">compute temp/ramp</A>, <A HREF = "fix_deform.html">fix
-deform</A>, <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>
+<P><A HREF = "compute_temp_ramp.html">compute temp/ramp</A>, <A HREF = "compute_temp_profile.html">compute
+temp/profile</A>, <A HREF = "fix_deform.html">fix deform</A>,
+<A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>
 </P>
 <P><B>Default:</B> none
 </P>

@@ -30,7 +30,8 @@ command that computes a temperature,
 e.g. "thermo_modify"_thermo_modify.html, "fix
 temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_npt.html, etc.
 
-The temperature is calculated by the formula KE = dim/2 N k T, where
+After the center-of-mass velocity has been subtracted from each atom,
+the temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
 dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
 in the group, k = Boltzmann constant, and T = temperature.

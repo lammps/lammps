@@ -33,9 +33,10 @@ For 3d spherical particles, each has 6 degrees of freedom (3
 translational, 3 rotational).  For 2d spherical particles, each has 3
 degrees of freedom (2 translational, 1 rotational).
 
-The rotational kinetic energy is computed as 1/2 I w^2, where I is the
-moment of inertia for a sphere and w is the particle's angular
-velocity.
+The translational kinetic energy is computed the same as is described
+by the "compute temp"_compute_temp.html command.  The rotational
+kinetic energy is computed as 1/2 I w^2, where I is the moment of
+inertia for a sphere and w is the particle's angular velocity.
 
 IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
 as spheres, not disks, meaning their moment of inertia will be the

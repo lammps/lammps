@@ -50,9 +50,11 @@ rotational motion to the extra degrees of freedom.  E.g. the <A HREF = "pair_gay
 pair potential</A> does not impart torque to spherical
 particles, so they do not rotate.
 </P>
-<P>The rotational kinetic energy is computed as 1/2 I w^2, where I is the
-inertia tensor for the aspherical particle and w is its angular
-velocity, which is computed from its angular momentum.
+<P>The translational kinetic energy is computed the same as is described
+by the <A HREF = "compute_temp.html">compute temp</A> command.  The rotational
+kinetic energy is computed as 1/2 I w^2, where I is the inertia tensor
+for the aspherical particle and w is its angular velocity, which is
+computed from its angular momentum.
 </P>
 <P>IMPORTANT NOTE: For <A HREF = "dimension.html">2d models</A>, particles are treated
 as ellipsoids, not ellipses, meaning their moments of inertia will be

@@ -33,16 +33,16 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all("Illegal compute temp/partial command");
 
-  xflag = atoi(arg[3]);
-  yflag = atoi(arg[4]);
-  zflag = atoi(arg[5]);
-
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
   tempbias = 1;
+
+  xflag = atoi(arg[3]);
+  yflag = atoi(arg[4]);
+  zflag = atoi(arg[5]);
 
   maxbias = 0;
   vbiasall = NULL;
@@ -193,21 +193,27 @@ void ComputeTempPartial::remove_bias_all()
 					      "compute/temp:vbiasall");
   }
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      if (!xflag) {
+  if (!xflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
 	vbiasall[i][0] = v[i][0];
 	v[i][0] = 0.0;
       }
-      if (!yflag) {
+  }
+  if (!yflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
 	vbiasall[i][1] = v[i][1];
 	v[i][1] = 0.0;
       }
-      if (!zflag) {
+  }
+  if (!zflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
 	vbiasall[i][2] = v[i][2];
 	v[i][2] = 0.0;
       }
-    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -233,12 +239,21 @@ void ComputeTempPartial::restore_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      if (!xflag) v[i][0] += vbiasall[i][0];
-      if (!yflag) v[i][1] += vbiasall[i][1];
-      if (!zflag) v[i][2] += vbiasall[i][2];
-    }
+  if (!xflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	v[i][0] += vbiasall[i][0];
+  }
+  if (!yflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	v[i][1] += vbiasall[i][1];
+  }
+  if (!zflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	v[i][2] += vbiasall[i][2];
+  }
 }
 
 /* ---------------------------------------------------------------------- */

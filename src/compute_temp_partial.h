@@ -37,9 +37,6 @@ class ComputeTempPartial : public Compute {
   int xflag,yflag,zflag;
   int fix_dof;
   double tfactor;
-  double vbias[3];    // stored velocity bias for one atom
-  double **vbiasall;  // stored velocity bias for all atoms
-  int maxbias;        // size of vbiasall array
 
   void dof_compute();
 };

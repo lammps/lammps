@@ -38,6 +38,13 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 9) error->all("Illegal compute temp command");
 
+  scalar_flag = vector_flag = 1;
+  size_vector = 6;
+  extscalar = 0;
+  extvector = 1;
+  tempflag = 1;
+  tempbias = 1;
+
   // parse optional args
 
   scaleflag = 1;
@@ -98,15 +105,6 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
     coord_lo = zscale*atof(arg[7]);
     coord_hi = zscale*atof(arg[8]);
   }
-
-  // settings
-
-  scalar_flag = vector_flag = 1;
-  size_vector = 6;
-  extscalar = 0;
-  extvector = 1;
-  tempflag = 1;
-  tempbias = 1;
 
   maxbias = 0;
   vbiasall = NULL;

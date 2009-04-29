@@ -96,6 +96,10 @@ class Compute : protected Pointers {
   int extra_dof;               // extra DOF for temperature computes
   int dynamic;                 // recount atoms for temperature computes
   int thermoflag;              // 1 if include fix PE for PE computes
+
+  double vbias[3];             // stored velocity bias for one atom
+  double **vbiasall;           // stored velocity bias for all atoms
+  int maxbias;                 // size of vbiasall array
 };
 
 }

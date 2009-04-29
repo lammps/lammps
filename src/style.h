@@ -94,6 +94,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_temp_com.h"
 #include "compute_temp_deform.h"
 #include "compute_temp_partial.h"
+#include "compute_temp_profile.h"
 #include "compute_temp_ramp.h"
 #include "compute_temp_region.h"
 #include "compute_temp_sphere.h"
@@ -118,6 +119,7 @@ ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/com,ComputeTempCOM)
 ComputeStyle(temp/deform,ComputeTempDeform)
 ComputeStyle(temp/partial,ComputeTempPartial)
+ComputeStyle(temp/profile,ComputeTempProfile)
 ComputeStyle(temp/ramp,ComputeTempRamp)
 ComputeStyle(temp/region,ComputeTempRegion)
 ComputeStyle(temp/sphere,ComputeTempSphere)

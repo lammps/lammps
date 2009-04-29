@@ -110,8 +110,8 @@ void ComputePressure::init()
   nktv2p = force->nktv2p;
   dimension = domain->dimension;
 
-  // set temperature used by pressure
-  // must be done in init() since user can change it via modify command
+  // set temperature compute, must be done in init()
+  // fixes could have changed or compute_modify could have changed it
 
   int icompute = modify->find_compute(id_pre);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");

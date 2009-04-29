@@ -774,9 +774,11 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   }
 
   MPI_Allreduce(cmone,cm,3,MPI_DOUBLE,MPI_SUM,world);
-  cm[0] /= masstotal;
-  cm[1] /= masstotal;
-  cm[2] /= masstotal;
+  if (masstotal > 0.0) {
+    cm[0] /= masstotal;
+    cm[1] /= masstotal;
+    cm[2] /= masstotal;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -833,9 +835,11 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
   }
 
   MPI_Allreduce(cmone,cm,3,MPI_DOUBLE,MPI_SUM,world);
-  cm[0] /= masstotal;
-  cm[1] /= masstotal;
-  cm[2] /= masstotal;
+  if (masstotal > 0.0) {
+    cm[0] /= masstotal;
+    cm[1] /= masstotal;
+    cm[2] /= masstotal;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -877,9 +881,11 @@ void Group::vcm(int igroup, double masstotal, double *cm)
   }
 
   MPI_Allreduce(p,cm,3,MPI_DOUBLE,MPI_SUM,world);
-  cm[0] /= masstotal;
-  cm[1] /= masstotal;
-  cm[2] /= masstotal;
+  if (masstotal > 0.0) {
+    cm[0] /= masstotal;
+    cm[1] /= masstotal;
+    cm[2] /= masstotal;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -923,9 +929,11 @@ void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
   }
 
   MPI_Allreduce(p,cm,3,MPI_DOUBLE,MPI_SUM,world);
-  cm[0] /= masstotal;
-  cm[1] /= masstotal;
-  cm[2] /= masstotal;
+  if (masstotal > 0.0) {
+    cm[0] /= masstotal;
+    cm[1] /= masstotal;
+    cm[2] /= masstotal;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1092,7 +1100,8 @@ double Group::gyration(int igroup, double masstotal, double *cm)
   double rg_all;
   MPI_Allreduce(&rg,&rg_all,1,MPI_DOUBLE,MPI_SUM,world);
   
-  return sqrt(rg_all/masstotal);
+  if (masstotal > 0.0) return sqrt(rg_all/masstotal);
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1136,7 +1145,8 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
   double rg_all;
   MPI_Allreduce(&rg,&rg_all,1,MPI_DOUBLE,MPI_SUM,world);
   
-  return sqrt(rg_all/masstotal);
+  if (masstotal > 0.0) return sqrt(rg_all/masstotal);
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1264,10 +1274,10 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
     inertia[0][1]*inertia[1][0]*inertia[2][2] - 
     inertia[2][0]*inertia[1][1]*inertia[0][2]; 
 
-  int i,j;
-  for (i = 0; i < 3; i++)
-    for (j = 0; j < 3; j++)
-      inverse[i][j] /= determinant;
+  if (determinant > 0.0)
+    for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+	inverse[i][j] /= determinant;
 
   w[0] = inverse[0][0]*angmom[0] + inverse[0][1]*angmom[1] + 
     inverse[0][2]*angmom[2];

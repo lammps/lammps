@@ -39,9 +39,6 @@ class ComputeTempRamp : public Compute {
   double v_lo,v_hi;
   int scaleflag,fix_dof;
   double tfactor,xscale,yscale,zscale;
-  double vbias[3];    // stored velocity bias for one atom
-  double **vbiasall;  // stored velocity bias for all atoms
-  int maxbias;        // size of vbiasall array
 
   void dof_compute();
 };

@@ -156,7 +156,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
       firstshear[i] = shearptr;
     }
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -253,7 +253,7 @@ void Neighbor::granular_nsq_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -407,7 +407,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
       firstshear[i] = shearptr;
     }
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -514,7 +514,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -605,7 +605,7 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 

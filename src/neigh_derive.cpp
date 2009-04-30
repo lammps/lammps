@@ -71,7 +71,7 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -148,7 +148,7 @@ void Neighbor::half_from_full_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -219,7 +219,7 @@ void Neighbor::skip_from(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -314,7 +314,7 @@ void Neighbor::skip_from_granular(NeighList *list)
     firsttouch[i] = touchptr;
     firstshear[i] = shearptr;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -454,7 +454,7 @@ void Neighbor::skip_from_respa(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
 
     firstneigh_inner[i] = neighptr_inner;

@@ -92,7 +92,7 @@ void Neighbor::full_nsq(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -182,7 +182,7 @@ void Neighbor::full_bin(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 
@@ -280,7 +280,7 @@ void Neighbor::full_multi(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (npnt >= pgsize)
+    if (n > oneatom || npnt >= pgsize)
       error->one("Neighbor list overflow, boost neigh_modify one or page");
   }
 

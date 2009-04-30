@@ -47,51 +47,44 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   xflag = atoi(arg[3]);
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
+  if (zflag && domain->dimension == 2)
+    error->all("Compute temp/profile cannot use vz for 2d systemx");
+
+  ncount = 0;
+  ivx = ivy = ivz = 0;
+  if (xflag) ivx = ncount++;
+  if (yflag) ivy = ncount++;
+  if (zflag) ivz = ncount++;
 
   nbinx = nbiny = nbinz = 1;
 
   if (strcmp(arg[6],"x") == 0) {
     if (narg != 8) error->all("Illegal compute temp/profile command");
     nbinx = atoi(arg[7]);
-    ivx = 0;
-    ncount = 1;
   } else if (strcmp(arg[6],"y") == 0) {
     if (narg != 8) error->all("Illegal compute temp/profile command");
     nbiny = atoi(arg[7]);
-    ivy = 0;
-    ncount = 1;
   } else if (strcmp(arg[6],"z") == 0) {
     if (narg != 8) error->all("Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all("Compute temp/profile command cannot bin z for 2d systems");
     nbinz = atoi(arg[7]);
-    ivz = 0;
-    ncount = 1;
   } else if (strcmp(arg[6],"xy") == 0) {
     if (narg != 9) error->all("Illegal compute temp/profile command");
     nbinx = atoi(arg[7]);
     nbiny = atoi(arg[8]);
-    ivx = 0;
-    ivy = 1;
-    ncount = 2;
   } else if (strcmp(arg[6],"yz") == 0) {
     if (narg != 9) error->all("Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all("Compute temp/profile command cannot bin z for 2d systems");
     nbiny = atoi(arg[7]);
     nbinz = atoi(arg[8]);
-    ivy = 0;
-    ivz = 1;
-    ncount = 2;
   } else if (strcmp(arg[6],"xz") == 0) {
     if (narg != 9) error->all("Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all("Compute temp/profile command cannot bin z for 2d systems");
     nbinx = atoi(arg[7]);
     nbinz = atoi(arg[8]);
-    ivx = 0;
-    ivz = 1;
-    ncount = 2;
   } else if (strcmp(arg[6],"xyz") == 0) {
     if (narg != 10) error->all("Illegal compute temp/profile command");
     if (domain->dimension == 2)
@@ -99,10 +92,6 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
     nbinx = atoi(arg[7]);
     nbiny = atoi(arg[8]);
     nbinz = atoi(arg[9]);
-    ivx = 0;
-    ivy = 1;
-    ivz = 2;
-    ncount = 3;
   } else error->all("Illegal compute temp/profile command");
 
   nbins = nbinx*nbiny*nbinz;
@@ -372,9 +361,8 @@ void ComputeTempProfile::bin_average()
 
   // clear bins, including particle count
 
-  int nc1 = ncount + 1;
   for (i = 0; i < nbins; i++)
-    for (j = 0; j < nc1; j++)
+    for (j = 0; j <= ncount; j++)
       vbin[i][j] = 0.0;
 
   // sum each particle's velocity to appropriate bin
@@ -489,6 +477,6 @@ double ComputeTempProfile::memory_usage()
 {
   double bytes = maxbias * sizeof(double);
   bytes += maxatom * sizeof(int);
-  bytes += nbins*ncount * sizeof(double);
+  bytes += nbins*(ncount+1) * sizeof(double);
   return bytes;
 }

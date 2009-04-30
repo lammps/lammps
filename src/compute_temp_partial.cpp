@@ -43,6 +43,8 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   xflag = atoi(arg[3]);
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
+  if (zflag && domain->dimension == 2)
+    error->all("Compute temp/partial cannot use vz for 2d systemx");
 
   maxbias = 0;
   vbiasall = NULL;
@@ -73,7 +75,6 @@ void ComputeTempPartial::dof_compute()
 {
   double natoms = group->count(igroup);
   int nper = xflag+yflag+zflag;
-  if (domain->dimension == 2) nper = xflag+yflag;
   dof = nper * natoms;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
@@ -85,7 +86,6 @@ void ComputeTempPartial::dof_compute()
 int ComputeTempPartial::dof_remove(int i)
 {
   int nper = xflag+yflag+zflag;
-  if (domain->dimension == 2) nper = xflag+yflag;
   return (domain->dimension - nper);
 }
 

@@ -11,18 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FixInclude
-#include "fix_write_reax_bonds.h"
-#endif
+#ifndef FIX_WRITE_REAX_BONDS_H
+#define FIX_WRITE_REAX_BONDS_H
 
-#ifdef PairInclude
-#include "pair_reax.h"
-#endif
+#include "stdio.h"
+#include "fix.h"
 
-#ifdef FixClass
-FixStyle(write/reax/bonds,FixWriteReaxBonds)
-#endif
+namespace LAMMPS_NS {
 
-#ifdef PairClass
-PairStyle(reax,PairREAX)
+class FixWriteReaxBonds : public Fix {
+ public:
+  FixWriteReaxBonds(class LAMMPS *, int, char **);
+  ~FixWriteReaxBonds();
+  int setmask();
+  void init();
+  void setup(int);
+  void end_of_step();
+  double memory_usage();
+  void OutputReaxBonds(int, FILE*);
+  int nint(const double&);
+
+ private:
+  int me;
+  int nfreq;
+  FILE *fp;
+
+};
+
+}
+
 #endif

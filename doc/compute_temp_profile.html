@@ -68,7 +68,8 @@ command for a discussion of the geometry of tilted boxes in LAMMPS.
 are both in the compute group and in the same spatial bin is summed to
 compute an average velocity for the bin.  This bias velocity is then
 subtracted from the velocities of individual atoms in the bin to yield
-a thermal velocity.
+a thermal velocity for each atom.  Note that if there is only one
+atom in the bin, it's thermal velocity will thus be 0.0.
 </P>
 <P>After the spatially-averaged velocity field has been subtracted from
 each atom, the temperature is calculated by the formula KE = dim/2 N k
@@ -106,8 +107,8 @@ needed, the subtracted degrees-of-freedom can be altered using the
 <P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
 discussion of different ways to compute temperature and perform
 thermostatting.  Using this compute in conjunction with a
-thermostatting fix will effectively implement a PUT, as described in
-<A HREF = "#Evans">(Evans)</A>.
+thermostatting fix, as explained there, will effectively implement a
+profile-unbiased thermostat (PUT), as described in <A HREF = "#Evans">(Evans)</A>.
 </P>
 <P><B>Output info:</B>
 </P>

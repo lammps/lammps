@@ -133,6 +133,17 @@ could potentially overflow the list.  This threshold is set by the
 <I>one</I> value which tells LAMMPS the maximum number of neighbor's one
 atom can have.
 </P>
+<P>IMPORTANT NOTE: LAMMPS can crash without an error message if the
+number of neighbors for a single particle is larger than the <I>page</I>
+setting, which means it is much, much larger than the <I>one</I> setting.
+This is because LAMMPS doesn't error check these limits for every
+pairwise interaction (too costly), but only after all the particle's
+neighbors have been found.  This problem usually means something is
+very wrong with the way you've setup your problem (particle spacing,
+cutoff length, neighbor skin distance, etc).  If you really expect
+that many neighbors per particle, then boost the <I>one</I> and <I>page</I>
+settings accordingly.
+</P>
 <P>The <I>binsize</I> option allows you to specify what size of bins will be
 used in neighbor list construction to sort and find neighboring atoms.
 By default, for <A HREF = "neighbor.html">neighbor style bin</A>, LAMMPS uses bins

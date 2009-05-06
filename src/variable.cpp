@@ -1444,7 +1444,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
   if (ptr2) {
     n = strlen(ptr2+1) + 1;
     arg3 = new char[n];
-    strcpy(arg3,ptr1+1);
+    strcpy(arg3,ptr2+1);
     narg = 3;
   } else arg3 = NULL;
 

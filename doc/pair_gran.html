@@ -50,10 +50,11 @@ pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0
 <P><B>Description:</B>
 </P>
 <P>The <I>gran</I> styles use the following formulas for the frictional force
-between two granular particles, as described in <A HREF = "#Silbert">(Silbert)</A>
-and in <A HREF = "#Zhang">(Zhang)</A>, when the distance r between two particles of
-radii Ri and Rj is less than their contact distance d = Ri + Rj.
-There is no force between the particles when r > d.
+between two granular particles, as described in
+<A HREF = "#Brilliantov">(Brilliantov)</A>, <A HREF = "#Silbert">(Silbert)</A>, and
+<A HREF = "#Zhang">(Zhang)</A>, when the distance r between two particles of radii
+Ri and Rj is less than their contact distance d = Ri + Rj.  There is
+no force between the particles when r > d.
 </P>
 <P>The two Hookean styles use this formula:
 </P>
@@ -196,6 +197,11 @@ is only enabled if LAMMPS was built with that package.  See the
 </P>
 <HR>
 
+<A NAME = "Brilliantov"></A>
+
+<P><B>(Brilliantov)</B> Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
+p 5382-5392 (1996).
+</P>
 <A NAME = "Silbert"></A>
 
 <P><B>(Silbert)</B> Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev

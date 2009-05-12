@@ -114,19 +114,13 @@ this fix and by the compute should be the same.
 <P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
 fix to add the energy change implied by a velocity rescaling to the
 system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.  Note that because this fix is invoked
-every N steps and thermodynamic info is printed every M steps, that
-unless M is a multiple of N, the energy contribution will be zero.
+output</A>.
 </P>
-<P>The potential energy change due to this fix is stored as a scalar
+<P>The cummulative energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
 commands</A>.  The scalar value calculated by
 this fix is "extensive", meaning it scales with the number of atoms in
 the simulation.
-</P>
-<P>The energy change can be printed as part of thermodynamic output via
-the keyword f_ID, where ID is the fix-ID of this fix.  See the
-<A HREF = "thermo_style.html">thermo_style custom</A> command for details.
 </P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the

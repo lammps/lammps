@@ -101,7 +101,6 @@ void FixTempRescale::init()
 
   temperature->init();              // not yet called by Modify::init()
   efactor = (0.5 * force->boltz * temperature->dof);
-  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,7 +148,7 @@ void FixTempRescale::end_of_step()
       }
     }
 
-  } else energy = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

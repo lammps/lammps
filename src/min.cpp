@@ -353,7 +353,7 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
   // check for reneighboring
   // always communicate since minimizer moved atoms
   // if reneighbor, have to setup_vectors() since atoms migrated
-  
+
   int nflag = neighbor->decide();
 
   if (nflag == 0) {
@@ -377,22 +377,23 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
     timer->stamp(TIME_NEIGHBOR);
     setup_vectors();
 
-    if (resetflag) {
-      double **x = atom->x;
-      double **x0 = fix_minimize->x0;
-      int nlocal = atom->nlocal;
+//     if (resetflag) {
+//       double **x = atom->x;
+//       double **x0 = fix_minimize->x0;
+//       int nlocal = atom->nlocal;
 
-      double dx,dy,dz,dx0,dy0,dz0;
-      for (int i = 0; i < nlocal; i++) {
-	dx = dx0 = x[i][0] - x0[i][0];
-	dy = dy0 = x[i][1] - x0[i][1];
-	dz = dz0 = x[i][2] - x0[i][2];
-	domain->minimum_image(dx,dy,dz);
-	if (dx != dx0) x0[i][0] = x[i][0] - dx;
-	if (dy != dy0) x0[i][1] = x[i][1] - dy;
-	if (dz != dz0) x0[i][2] = x[i][2] - dz;
-      }
-    }
+//       double dx,dy,dz,dx0,dy0,dz0;
+//       for (int i = 0; i < nlocal; i++) {
+// 	dx = dx0 = x[i][0] - x0[i][0];
+// 	dy = dy0 = x[i][1] - x0[i][1];
+// 	dz = dz0 = x[i][2] - x0[i][2];
+// 	domain->minimum_image(dx,dy,dz);
+// 	if (dx != dx0) x0[i][0] = x[i][0] - dx;
+// 	if (dy != dy0) x0[i][1] = x[i][1] - dy;
+// 	if (dz != dz0) x0[i][2] = x[i][2] - dz;
+//       }
+//     }
+
   }
 
   ev_set(update->ntimestep);
@@ -442,6 +443,7 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
   *ph = h;
   *px0 = x0;
   *peng = ecurrent;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -566,8 +568,7 @@ int Min::linemin_backtrack(int n, double *x, double *dir,
   // backtrack with alpha until energy decrease is sufficient
 
   while (1) {
-    if (nextra) modify->min_step(0.0,hextra);
-    for (i = 0; i < n; i++) x[i] = x0[i];
+    reset_original(n,x);
     if (nextra) modify->min_step(alpha,hextra);
     for (i = 0; i < n; i++) x[i] += alpha*dir[i];
     eng_force(&n,&x,&dir,&x0,&eng,1);
@@ -587,8 +588,7 @@ int Min::linemin_backtrack(int n, double *x, double *dir,
     // reset to starting point, exit with error
 
     if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
+      reset_original(n,x);
       eng_force(&n,&x,&dir,&x0,&eng,0);
       nfunc++;
       return ZEROALPHA;
@@ -667,8 +667,7 @@ int Min::linemin_quadratic(int n, double *x, double *dir,
   alphaprev = 0.0;
 
   while (1) {
-    if (nextra) modify->min_step(0.0,hextra);
-    for (i = 0; i < n; i++) x[i] = x0[i];
+    reset_original(n,x);
     if (nextra) modify->min_step(alpha,hextra);
     for (i = 0; i < n; i++) x[i] += alpha*dir[i];
     eng_force(&n,&x,&dir,&x0,&eng,1);
@@ -700,8 +699,7 @@ int Min::linemin_quadratic(int n, double *x, double *dir,
     // if fh or delfh is epsilon, reset to starting point, exit with error
 
     if (fabs(fh) < EPS_QUAD || fabs(delfh) < EPS_QUAD) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
+      reset_original(n,x);
       eng_force(&n,&x,&dir,&x0,&eng,0);
       nfunc++;
       return ZEROQUAD;
@@ -714,9 +712,7 @@ int Min::linemin_quadratic(int n, double *x, double *dir,
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
-
+      reset_original(n,x);
       if (nextra) modify->min_step(alpha0,hextra);
       for (i = 0; i < n; i++) x[i] += alpha0*dir[i];
       eng_force(&n,&x,&dir,&x0,&eng,1);
@@ -730,8 +726,7 @@ int Min::linemin_quadratic(int n, double *x, double *dir,
 
       // drop back from alpha0 to alpha
 
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
+      reset_original(n,x);
       if (nextra) modify->min_step(alpha,hextra);
       for (i = 0; i < n; i++) x[i] += alpha*dir[i];
       eng_force(&n,&x,&dir,&x0,&eng,1);
@@ -758,8 +753,7 @@ int Min::linemin_quadratic(int n, double *x, double *dir,
     // reset to starting point, exit with error
 
     if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
+      reset_original(n,x);
       eng_force(&n,&x,&dir,&x0,&eng,0);
       nfunc++;
       return ZEROALPHA;
@@ -867,4 +861,25 @@ void Min::ev_set(int ntimestep)
   if (vflag_global) update->vflag_global = update->ntimestep;
   if (vflag_atom) update->vflag_atom = update->ntimestep;
   vflag = vflag_global + vflag_atom;
+}
+
+/* ----------------------------------------------------------------------
+   reset x and extra variables to original position
+------------------------------------------------------------------------- */
+
+void Min::reset_original(int n, double *x) {
+  double dx,dy,dz,dx0,dy0,dz0;
+  if (nextra) modify->min_step(0.0,hextra);
+
+  // Use image of x0 closest to previous x, to avoid reneighboring 
+
+  for (int i = 0; i < n; i+=3) {
+    dx = dx0 = x[i]   - x0[i];
+    dy = dy0 = x[i+1] - x0[i+1];
+    dz = dz0 = x[i+2] - x0[i+2];
+    domain->minimum_image(dx,dy,dz);
+    x[i]   = x0[i]   + dx0 - dx;
+    x[i+1] = x0[i+1] + dy0 - dy;
+    x[i+2] = x0[i+2] + dz0 - dz;
+  }
 }

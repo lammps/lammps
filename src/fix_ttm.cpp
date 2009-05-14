@@ -508,7 +508,7 @@ void FixTTM::update_electron_temperatures()
 
   // output nodal temperatures for current timestep
 
-  if (!(update->ntimestep % nfileevery) && (me == 0)) { 
+  if ((nfileevery) && !(update->ntimestep % nfileevery) && (me == 0)) { 
     fprintf(fp,"%d ",update->ntimestep);
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
       for (int iynode = 0; iynode < nynodes; iynode++)

@@ -26,10 +26,10 @@ mass 2* 62.5
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Set the mass for all atoms of one or more atom types.  Mass values can
-also be set in the <A HREF = "read_data.html">read_data</A> data file using the
-"Masses" keyword.  See the <A HREF = "units.html">units</A> command for what mass
-units to use.
+<P>Set the mass for all atoms of one or more atom types.  Per-type mass
+values can also be set in the <A HREF = "read_data.html">read_data</A> data file
+using the "Masses" keyword.  See the <A HREF = "units.html">units</A> command for
+what mass units to use.
 </P>
 <P>The I index can be specified in one of two ways.  An explicit numeric
 value can be used, as in the 1st example above.  Or a wild-card
@@ -50,13 +50,14 @@ line that corresponds to the 1st example above would be listed as
 <PRE>1 1.0 
 </PRE>
 <P>Note that the mass command can only be used if the <A HREF = "atom_style.html">atom
-style</A> requires per-type atom mass to be set, which
-most do.  Exceptions are <A HREF = "atom_style.html">atom_style granular</A> or
-<A HREF = "atom_style.html">atom_style peri</A>, which require mass to be set for
-individual particles, not types.  Per-atom masses are defined in the
-data file read by the <A HREF = "read_data.html">read_data</A> command, or set to
-default values by the <A HREF = "create_atoms.html">create_atoms</A> command, or set
-to new values by the <A HREF = "set.html">set density</A> command.
+style</A> requires per-type atom mass to be set.
+Currently, all but the <I>granular</I> and <I>peri</I> styles do.  They require
+mass to be set for individual particles, not types.  Per-atom masses
+are defined in the data file read by the <A HREF = "read_data.html">read_data</A>
+command, or set to default values by the
+<A HREF = "create_atoms.html">create_atoms</A> command.  Per-atom masses can also be
+set to new values by the <A HREF = "set.html">set diameter</A> or <A HREF = "set.html">set
+density</A> command.
 </P>
 <P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> defines the masses of
 atom types in the EAM potential file, in which case the mass command
@@ -64,9 +65,9 @@ is normally not used.
 </P>
 <P>If you define a <A HREF = "atom_style.html">hybrid atom style</A> which includes one
 (or more) sub-styles which require per-type mass and one (or more)
-sub-styles which require per-atom mass, then you must define both.
-However, the per-type mass is ignored in this case; only the per-atom
-mass is used.
+sub-styles which require per-atom mass, then you must define both.  In
+this case the per-type mass will be ignored; only the per-atom mass is
+used by LAMMPS.
 </P>
 <P><B>Restrictions:</B>
 </P>

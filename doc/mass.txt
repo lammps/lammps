@@ -23,10 +23,10 @@ mass 2* 62.5 :pre
 
 [Description:]
 
-Set the mass for all atoms of one or more atom types.  Mass values can
-also be set in the "read_data"_read_data.html data file using the
-"Masses" keyword.  See the "units"_units.html command for what mass
-units to use.
+Set the mass for all atoms of one or more atom types.  Per-type mass
+values can also be set in the "read_data"_read_data.html data file
+using the "Masses" keyword.  See the "units"_units.html command for
+what mass units to use.
 
 The I index can be specified in one of two ways.  An explicit numeric
 value can be used, as in the 1st example above.  Or a wild-card
@@ -47,13 +47,14 @@ line that corresponds to the 1st example above would be listed as
 1 1.0 :pre
 
 Note that the mass command can only be used if the "atom
-style"_atom_style.html requires per-type atom mass to be set, which
-most do.  Exceptions are "atom_style granular"_atom_style.html or
-"atom_style peri"_atom_style.html, which require mass to be set for
-individual particles, not types.  Per-atom masses are defined in the
-data file read by the "read_data"_read_data.html command, or set to
-default values by the "create_atoms"_create_atoms.html command, or set
-to new values by the "set density"_set.html command.
+style"_atom_style.html requires per-type atom mass to be set.
+Currently, all but the {granular} and {peri} styles do.  They require
+mass to be set for individual particles, not types.  Per-atom masses
+are defined in the data file read by the "read_data"_read_data.html
+command, or set to default values by the
+"create_atoms"_create_atoms.html command.  Per-atom masses can also be
+set to new values by the "set diameter"_set.html or "set
+density"_set.html command.
 
 Also note that "pair_style eam"_pair_eam.html defines the masses of
 atom types in the EAM potential file, in which case the mass command
@@ -61,9 +62,9 @@ is normally not used.
 
 If you define a "hybrid atom style"_atom_style.html which includes one
 (or more) sub-styles which require per-type mass and one (or more)
-sub-styles which require per-atom mass, then you must define both.
-However, the per-type mass is ignored in this case; only the per-atom
-mass is used.
+sub-styles which require per-atom mass, then you must define both.  In
+this case the per-type mass will be ignored; only the per-atom mass is
+used by LAMMPS.
 
 [Restrictions:]
 

@@ -145,12 +145,17 @@ xy plane are generated.
 <P>For the <I>dipole</I> and <I>quat</I> keywords, the <A HREF = "atom_style.html">atom style</A>
 being used must support the use of dipoles or quaternions.
 </P>
-<P>Keyword <I>diameter</I> sets the size of all selected particles.
+<P>Keyword <I>diameter</I> sets the size of all selected particles.  If the
+particles have a per-atom mass and density, then it also sets their
+mass.
 </P>
-<P>Keyword <I>density</I> sets the density of all selected particles, which
-combined with its density determines their mass.
+<P>Keyword <I>density</I> sets the density of all selected particles.  If the
+particles have a per-atom mass and diameter, then it also sets their
+mass.  If the particles have a per-atom mass and volume (as defined by
+PeriDynamics), then it also sets their mass.
 </P>
-<P>Keyword <I>volume</I> sets the effective size of all selected particles.
+<P>Keyword <I>volume</I> sets the volume of all selected particles, as defined
+by PeriDynamics.
 </P>
 <P>Keyword <I>image</I> sets which image of the simulation box the atom is
 considered to be in.  It is only applied to periodic dimensions.  An

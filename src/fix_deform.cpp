@@ -306,6 +306,15 @@ FixDeform::~FixDeform()
 {
   delete [] set;
   delete [] rfix;
+
+  // reset domain's h_rate = 0.0, since this fix may have made it non-zero
+
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  h_rate[0] = h_rate[1] = h_rate[2] = 
+    h_rate[3] = h_rate[4] = h_rate[5] = 0.0;
+  h_ratelo[0] = h_ratelo[1] = h_ratelo[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

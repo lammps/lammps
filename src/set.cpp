@@ -317,13 +317,6 @@ void Set::selection(int n)
 
 void Set::set(int keyword)
 {
-  // set granular and peridynamic flags
-
-  int granflag = 0;
-  int periflag = 0;
-  if (atom->style_match("granular")) granflag = 1;
-  if (atom->style_match("peri")) periflag = 1;
-  
   if (keyword == DIPOLE) atom->check_dipole();
 
   selection(atom->nlocal);
@@ -341,24 +334,27 @@ void Set::set(int keyword)
       else if (keyword == VZ) atom->v[i][2] = dvalue;
       else if (keyword == CHARGE) atom->q[i] = dvalue;
 
-      // diameter setting triggers setting of rmass
+      // set radius from diameter
+      // set rmass if both rmass and density are defined
 
       else if (keyword == DIAMETER) {
 	atom->radius[i] = 0.5 * dvalue;
-	atom->rmass[i] = 4.0*PI/3.0 * 
-	  atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
+	if (atom->rmass_flag && atom->density_flag) 
+	  atom->rmass[i] = 4.0*PI/3.0 * 
+	    atom->radius[i]*atom->radius[i]*atom->radius[i] * atom->density[i];
 
-      // density setting triggers setting of rmass
-      // for granular, rmass is function of diameter and density
-      // for peri, rmass stores density directly
+      // set density
+      // set rmass (granular) if both rmass and radius are defined
+      // set rmass (peri) if both rmass and vfrac are defined
 	
       } else if (keyword == DENSITY) {
 	atom->density[i] = dvalue;
-	if (granflag)
+	if (atom->rmass_flag && atom->radius_flag) 
 	  atom->rmass[i] = 4.0*PI/3.0 * 
 	    atom->radius[i]*atom->radius[i]*atom->radius[i] * 
 	    atom->density[i];
-	if (periflag) atom->rmass[i] = dvalue;
+	else if (atom->rmass_flag && atom->vfrac_flag)
+	  atom->rmass[i] = dvalue;
 
       } else if (keyword == VOLUME) atom->vfrac[i] = dvalue;
 

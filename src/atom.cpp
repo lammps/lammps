@@ -1126,6 +1126,15 @@ void Atom::set_shape(const char *str)
 
   if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 || shape[itype][2] < 0.0)
     error->all("Invalid shape value");
+  if (shape[itype][0] == 0.0 &&
+      (shape[itype][1] != 0.0 || shape[itype][2] != 0.0))
+    error->all("Invalid shape value");
+  if (shape[itype][1] == 0.0 &&
+      (shape[itype][0] != 0.0 || shape[itype][2] != 0.0))
+    error->all("Invalid shape value");
+  if (shape[itype][2] == 0.0 &&
+      (shape[itype][0] != 0.0 || shape[itype][1] != 0.0))
+    error->all("Invalid shape value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1152,6 +1161,15 @@ void Atom::set_shape(int narg, char **arg)
 
     if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 ||
 	shape[itype][2] < 0.0)
+      error->all("Invalid shape value");
+    if (shape[itype][0] == 0.0 &&
+	(shape[itype][1] != 0.0 || shape[itype][2] != 0.0))
+      error->all("Invalid shape value");
+    if (shape[itype][1] == 0.0 &&
+	(shape[itype][0] != 0.0 || shape[itype][2] != 0.0))
+      error->all("Invalid shape value");
+    if (shape[itype][2] == 0.0 &&
+	(shape[itype][0] != 0.0 || shape[itype][1] != 0.0))
       error->all("Invalid shape value");
   }
 }

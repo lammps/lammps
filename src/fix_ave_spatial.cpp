@@ -203,7 +203,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     error->all("Illegal fix ave/spatial command");
 
   if (delta <= 0.0) error->all("Illegal fix ave/spatial command");
-  invdelta = 1.0/delta;
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
@@ -286,6 +285,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (dim == 2) scale = zscale;
   delta *= scale;
   if (originflag == COORD) origin *= scale;
+
+  invdelta = 1.0/delta;
 
   // initializations
 

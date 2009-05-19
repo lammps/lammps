@@ -1886,6 +1886,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"reax") == 0) {
+
   } else if (strcmp(style,"soft") == 0) {
 
     double cut_global = read_double(fp);

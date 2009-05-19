@@ -83,9 +83,6 @@ class Min : protected Pointers {
 
   void ev_setup();
   void ev_set(int);
-
-  void reset_original(int, double *);
-
 };
 
 }

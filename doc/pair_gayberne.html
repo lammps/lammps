@@ -51,16 +51,19 @@ curvatures <A HREF = "#Everaers">(Everaers)</A>:
 <P>The variable names utilized as potential parameters are for the most
 part taken from <A HREF = "#Everaers">(Everaers)</A> in order to be consistent with
 its RE-squared potential fix.  Details on the upsilon and mu
-parameters are given <A HREF = "gbdoc">here</A>.  Use of this pair style requires
-the NVE, NVT, or NPT fixes with the <I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix
-nve/asphere</A>) in order to integrate particle
-rotation.  Additionally, <A HREF = "atom_style.html">atom_style ellipsoid</A> should
-be used since it defines the rotational state of the ellipsoidal
-particles.
+parameters are given <A HREF = "gbdoc">here</A>.
 </P>
 <P>More details of the Gay-Berne formulation are given in the references
 listed below and in <A HREF = "PDF/pair_gayberne_extra.pdf">this supplementary
 document</A>.
+</P>
+<P>Use of this pair style requires the NVE, NVT, or NPT fixes with the
+<I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>) in
+order to integrate particle rotation.  Additionally, <A HREF = "atom_style.html">atom_style
+ellipsoid</A> should be used since it defines the
+rotational state of the ellipsoidal particles.  The size and shape of
+the ellipsoidal particles are defined by the <A HREF = "shape.html">shape</A>
+command.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -80,6 +83,11 @@ commands, or by mixing as described below:
 </UL>
 <P>The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
+</P>
+<P>It is typical for the Gay-Berne potential to define <I>sigma</I> as the
+minimum of the 3 "shape" diameters for a I,I interaction, though this
+is not required.  Note that this is a different meaning for <I>sigma</I>
+than the <A HREF = "pair_resquared.html">pair_style resquared</A> potential uses.
 </P>
 <P>The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
@@ -149,7 +157,10 @@ to be specified in an input script that reads a restart file.
 </P>
 <P>This style is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
+LAMMPS</A> section for more info.  You must also
+define a size and shape for each particle type via the
+<A HREF = "shape.html">shape</A> command which requires <A HREF = "atom_style.html">atom_style
+ellipsoid</A>.
 </P>
 <P>The Gay-Berne potential does not become isotropic as r increases
 <A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach

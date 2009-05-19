@@ -202,6 +202,6 @@ exclude
 
 [Default:]
 
-The option defaults are force * 1 1 1 and torque * 1 1 1, meaning
+The option defaults are force * on on on and torque * on on on meaning
 all rigid bodies are acted on by center-of-mass force and torque.
 

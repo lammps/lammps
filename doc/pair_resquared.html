@@ -28,7 +28,7 @@ pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0
 <A HREF = "#Everaers">(Everaers)</A>, <A HREF = "#Babadi">(Babadi)</A> between pairs of
 ellipsoidal and/or spherical Lennard-Jones particles.  For ellipsoidal
 interactions, the potential considers the ellipsoid as being comprised
-of small spheres of size sigma. LJ particles are a single sphere of
+of small spheres of size sigma.  LJ particles are a single sphere of
 size sigma.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
 </P>
@@ -39,9 +39,9 @@ in <A HREF = "PDF/pair_resquared_extra.pdf">this supplementary document</A>.
 <I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>) in
 order to integrate particle rotation.  Additionally, <A HREF = "atom_style.html">atom_style
 ellipsoid</A> should be used since it defines the
-rotational state of the ellipsoidal particles and the
-<A HREF = "shape.html">shape</A> command should be used to specify ellipsoid
-diameters.
+rotational state of the ellipsoidal particles.  The size and shape of
+the ellipsoidal particles are defined by the <A HREF = "shape.html">shape</A>
+command.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -59,6 +59,14 @@ commands:
 <LI>epsilon_j_c = relative well depth of type J for end-to-end interactions
 <LI>cutoff (distance units) 
 </UL>
+<P>The last coefficient is optional.  If not specified, the global
+cutoff specified in the pair_style command is used.
+</P>
+<P>As described above, <I>sigma</I> is the size of the small spheres which are
+integrated over to create the potential.  Note that this is a
+different meaning for <I>sigma</I> than the <A HREF = "pair_gayberne.html">pair_style
+gayberne</A> potential uses.
+</P>
 <P>The parameters used depend on the type of the interacting particles,
 i.e. ellipsoid or LJ sphere.  The type of particle is determined by
 the diameters specified with the <A HREF = "shape.html">shape</A> command.  LJ
@@ -173,7 +181,10 @@ command</A>.
 </P>
 <P>This style is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.
+LAMMPS</A> section for more info.  You must also
+define a size and shape for each particle type via the
+<A HREF = "shape.html">shape</A> command which requires <A HREF = "atom_style.html">atom_style
+ellipsoid</A>.
 </P>
 <P>The distance-of-closest-approach approximation used by LAMMPS becomes 
 less accurate when high-aspect ratio ellipsoids are used.

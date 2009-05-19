@@ -48,16 +48,19 @@ curvatures "(Everaers)"_#Everaers:
 The variable names utilized as potential parameters are for the most
 part taken from "(Everaers)"_#Everaers in order to be consistent with
 its RE-squared potential fix.  Details on the upsilon and mu
-parameters are given "here"_gbdoc.  Use of this pair style requires
-the NVE, NVT, or NPT fixes with the {asphere} extension (e.g. "fix
-nve/asphere"_fix_nve_asphere.html) in order to integrate particle
-rotation.  Additionally, "atom_style ellipsoid"_atom_style.html should
-be used since it defines the rotational state of the ellipsoidal
-particles.
+parameters are given "here"_gbdoc.
 
 More details of the Gay-Berne formulation are given in the references
 listed below and in "this supplementary
 document"_PDF/pair_gayberne_extra.pdf.
+
+Use of this pair style requires the NVE, NVT, or NPT fixes with the
+{asphere} extension (e.g. "fix nve/asphere"_fix_nve_asphere.html) in
+order to integrate particle rotation.  Additionally, "atom_style
+ellipsoid"_atom_style.html should be used since it defines the
+rotational state of the ellipsoidal particles.  The size and shape of
+the ellipsoidal particles are defined by the "shape"_shape.html
+command.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -78,6 +81,11 @@ cutoff (distance units) :ul
 The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
 
+It is typical for the Gay-Berne potential to define {sigma} as the
+minimum of the 3 "shape" diameters for a I,I interaction, though this
+is not required.  Note that this is a different meaning for {sigma}
+than the "pair_style resquared"_pair_resquared.html potential uses.
+ 
 The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
 commands, they only need to be specified once for each atom type.
@@ -146,7 +154,10 @@ This pair style can only be used via the {pair} keyword of the
 
 This style is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#2_3 section for more info.  You must also
+define a size and shape for each particle type via the
+"shape"_shape.html command which requires "atom_style
+ellipsoid"_atom_style.html.
 
 The Gay-Berne potential does not become isotropic as r increases
 "(Everaers)"_#Everaers.  The distance-of-closest-approach

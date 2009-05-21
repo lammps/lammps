@@ -26,10 +26,13 @@ pair_coeff * * ffield.reax C H O N :pre
 The pair style computes the ReaxFF potential of van Duin, Goddard and
 co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy. There is more than one version of ReaxFF. The version implemented 
-in LAMMPS uses the functional forms and parameters documented in the
-supplemental information of the following paper: "(Chenoweth, 
-van Duin and Goddard 2008)"_#Chenoweth_2008.
+energy.  There is more than one version of ReaxFF.  The version
+implemented in LAMMPS uses the functional forms and parameters
+documented in the supplemental information of the 2008
+"(Chenoweth)"_#Chenoweth paper.  This functional form is essentialy
+unchanged since the new terms and modifications presented in the 2005
+"(Strachan)"_#Strachan paper, but it is different than the earlier
+2003 "(van Duin)"_#vanDuin paper.
 
 LAMMPS provides a ReaxFF potential file in its potentials dir, namely
 potentials/ffield.reax.  Its format is identical to that used by van
@@ -129,6 +132,14 @@ do this.
 
 :line
 
-:link(Chenoweth_2008) 
-[(Chenoweth 2008)] Chenoweth, van Duin and Goddard III, 
+:link(Chenoweth) 
+[(Chenoweth)] Chenoweth, van Duin, and Goddard III, 
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
+
+:link(Strachan) 
+[(Strachan)] Strachan, Kober, van Duin,
+Journal of Chemical Physics, 122, 054502 (2005).
+
+:link(vanDuin) 
+[(van Duin)] van Duin, Strachan, Stweman, et al
+Journal of Physical Chemistry A, 107, 3803-3811 (2003).

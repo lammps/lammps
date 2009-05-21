@@ -1,5 +1,5 @@
 <HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+<CENTER>M<A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
 </CENTER>
 
 
@@ -29,9 +29,13 @@ pair_coeff * * ffield.reax C H O N
 <P>The pair style computes the ReaxFF potential of van Duin, Goddard and
 co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy.  Details of the ReaxFF and its interatomic potential energy
-calculation are given in the following publications: <A HREF = "#van_Duin_2001">(van Duin
-2001)</A> and <A HREF = "#van_Duin_2003">(van Duin 2003)</A>.
+energy.  There is more than one version of ReaxFF.  The version
+implemented in LAMMPS uses the functional forms and parameters
+documented in the supplemental information of the 2008
+<A HREF = "#Chenoweth">(Chenoweth)</A> paper.  This functional form is essentialy
+unchanged since the new terms and modifications presented in the 2005
+<A HREF = "#Strachan">(Strachan)</A> paper, but it is different than the earlier
+2003 <A HREF = "#vanDuin">(van Duin)</A> paper.
 </P>
 <P>LAMMPS provides a ReaxFF potential file in its potentials dir, namely
 potentials/ffield.reax.  Its format is identical to that used by van
@@ -131,14 +135,19 @@ do this.
 </P>
 <HR>
 
-<A NAME = "van_Duin_2001"></A>
+<A NAME = "Chenoweth"></A>
 
-<P><B>(van Duin 2001)</B> van Duin, Dasgupta, Lorant, Goddard
-Journal of Physical Chemistry A, 105, 9396-9409 (2001).
+<P><B>(Chenoweth)</B> Chenoweth, van Duin, and Goddard III, 
+Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 </P>
-<A NAME = "van_Duin_2003"></A>
+<A NAME = "Strachan"></A>
 
-<P><B>(van Duin 2003)</B> van Duin, Strachan, Stewman, Zhang, Xu, Goddard,
+<P><B>(Strachan)</B> Strachan, Kober, van Duin,
+Journal of Chemical Physics, 122, 054502 (2005).
+</P>
+<A NAME = "vanDuin"></A>
+
+<P><B>(van Duin)</B> van Duin, Strachan, Stweman, et al
 Journal of Physical Chemistry A, 107, 3803-3811 (2003).
 </P>
 </HTML>

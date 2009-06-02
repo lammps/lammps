@@ -527,7 +527,7 @@ void PairREAX::init_style()
   neighbor->requests[irequest]->newton = 2;
 
   FORTRAN(readc, READC)();
-  FORTRAN(init, INIT)();
+  FORTRAN(reaxinit, REAXINIT)();
   FORTRAN(ffinpt, FFINPT)();
   FORTRAN(tap7th, TAP7TH)();
 

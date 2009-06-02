@@ -20,6 +20,12 @@
 #define CONS(a,b) a/**/b
 #endif
 
+#define CONS(string1,string2)
+#ifndef string1string2
+#error "Unable to create concatenation macro. You must modify pair_reax_fortran.h by hand."
+#endif
+ 
+
 #ifdef _ARDENT
 #define FORTRAN(lcname,ucname)  ucname
 #endif

@@ -12,19 +12,27 @@
 ------------------------------------------------------------------------- */
 
 // machine-specific C++ -> Fortran calling syntax
-// CONS(a,b) should return ab, the concatenation of its arguments
+// It defines the FORTRAN macro for converting variable and function
+// names from FORTRAN to C. Different compilers do this in different
+// ways. The default is add an underscore to the lower case string.
+// Other definitions of the macro can be invoked by defining the
+// corresponding macro at compile time using -D e.g. -D_IBM
+
+// CONS(a,b) should return ab, the concatenation of its arguments.
+// If compiler is using strict ISO C standards, the ## works. 
+// Otherwise try the old /**/ trick and test.
+// If that fails, you will need to figure out 
+// a definition for the FORTRAN macro that works on your machine.
 
 #if  __STDC__ 
 #define CONS(a,b) a##b
 #else
 #define CONS(a,b) a/**/b
+#warning "The following declaration is a test of the CONS macro."
+#warning "If it fails with an error, pair_reax_fortran.h must be modified by hand."
+static int my_apples_my_oranges = 1;
+static int my_applesoroanges = CONS(my_apples,_my_oranges);
 #endif
-
-#define CONS(string1,string2)
-#ifndef string1string2
-#error "Unable to create concatenation macro. You must modify pair_reax_fortran.h by hand."
-#endif
- 
 
 #ifdef _ARDENT
 #define FORTRAN(lcname,ucname)  ucname
@@ -173,7 +181,7 @@ extern struct {
 // external routines provided by Fortran library
 
 extern "C" void FORTRAN(readc,READC)();
-extern "C" void FORTRAN(init,INIT)();
+extern "C" void FORTRAN(reaxinit,REAXINIT)();
 extern "C" void FORTRAN(ffinpt,FFINPT)();
 extern "C" void FORTRAN(tap7th,TAP7TH)();
 extern "C" void FORTRAN(taper,TAPER)(double*,double*);

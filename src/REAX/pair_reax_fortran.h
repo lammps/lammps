@@ -34,15 +34,8 @@ static int my_apples_my_oranges = 1;
 static int my_applesoroanges = CONS(my_apples,_my_oranges);
 #endif
 
-#ifdef _ARDENT
-#define FORTRAN(lcname,ucname)  ucname
-#endif
 
 #ifdef _IBM
-#define FORTRAN(lcname,ucname)  lcname
-#endif
-
-#ifdef _HP
 #define FORTRAN(lcname,ucname)  lcname
 #endif
 

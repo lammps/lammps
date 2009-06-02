@@ -360,13 +360,26 @@ The "meam" library in lib/meam computes the modified embedded atom
 method potential, which is a generalization of EAM potentials that can
 be used to model a wider variety of materials.  This MEAM
 implementation was written by Greg Wagner at Sandia.  It requires a
-F90 compiler to build.
+F90 compiler to build. The C++ to FORTRAN function calls in pair_meam.cpp
+assumes that FORTRAN object names are converted to C object names by 
+appending an underscore character. This is generally the case, but 
+on machines that do not conform to this convention, you will need to 
+modify either the C++ code or your compiler settings.
 
 The "reax" library in lib/reax computes the Reactive Force Field
 (ReaxFF) potential, developed by Adri van Duin in Bill Goddard's group
 at CalTech.  This implementation in LAMMPS uses many of Adri's files
 and was developed by Aidan Thompson at Sandia and Hansohl Cho at MIT.
-It requires a F77 or F90 compiler to build.
+It requires a F77 or F90 compiler to build. 
+The C++ to FORTRAN function calls in pair_reax.cpp
+assume that FORTRAN object names are converted to C object names by 
+appending an underscore character. This is generally the case, but 
+on machines that do not conform to this convention, you will need to 
+modify either the C++ code or your compiler settings. The name conversion
+is handled by the preprocessor macro called FORTRAN in pair_reax_fortran.h.
+Different definitions of this macro can be obtained by adding a 
+machine-specific macro definition to the CCFLAGS variable in your Makefile
+e.g. -D_IBM. See pair_reax_fortran.h for more info.
 
 The "poems" library in lib/poems computes the constrained rigid-body
 motion of articulated (jointed) multibody systems.  POEMS was written

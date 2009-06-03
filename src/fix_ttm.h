@@ -27,8 +27,11 @@ class FixTTM : public Fix {
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  void end_of_step();
   void reset_dt();
   double memory_usage();
+  void grow_arrays(int); 
+  double compute_vector(int);
 
  private:
   int me;
@@ -37,21 +40,19 @@ class FixTTM : public Fix {
   class RanMars *random;
   FILE *fp,*fpr;
   int nxnodes,nynodes,nznodes,total_nnodes;
-  int ***nsum,***nsum_prime;
-  int ***nsum_all,***nsum_prime_all,***T_initial_set;
+  int ***nsum;
+  int ***nsum_all,***T_initial_set;
   double *gfactor1,*gfactor2,*ratio;
-  double ***T_electron,***T_a,***T_a_prime,***g_p,***g_s;
-  double ***sum_vsq,***sum_vsq_prime;
-  double ***sum_mass_vsq,***sum_mass_vsq_prime;
-  double ***sum_vsq_all,***sum_vsq_prime_all;
-  double ***sum_mass_vsq_all,***sum_mass_vsq_prime_all;
-  double ***T_electron_old;
+  double **flangevin; 
+  double ***T_electron,***T_electron_old;
+  double ***sum_vsq,***sum_mass_vsq;
+  double ***sum_vsq_all,***sum_mass_vsq_all;
+  double ***net_energy_transfer,***net_energy_transfer_all;
   double electronic_specific_heat,electronic_density;
   double electronic_thermal_conductivity;
   double gamma_p,gamma_s,v_0,v_0_sq;
 
   void read_initial_electron_temperatures();
-  void update_electron_temperatures();
 };
 
 }

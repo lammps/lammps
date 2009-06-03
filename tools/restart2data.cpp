@@ -2964,6 +2964,11 @@ void Data::write(FILE *fp, FILE *fp2)
 		dihedral_harmonic_k[i],dihedral_harmonic_multiplicity[i],
 		dihedral_harmonic_sign[i]);
 
+    } else if (strcmp(dihedral_style,"helix") == 0) {
+      for (int i = 1; i <= ndihedraltypes; i++) 
+	fprintf(fp,"%d %g %g %g\n",i,dihedral_helix_aphi[i],
+		dihedral_helix_bphi[i],dihedral_helix_cphi[i]);
+
     } else if (strcmp(dihedral_style,"multi/harmonic") == 0) {
       for (int i = 1; i <= ndihedraltypes; i++)
 	fprintf(fp,"%d %g %g %g %g %g\n",i,

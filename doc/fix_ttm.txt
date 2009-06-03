@@ -142,6 +142,23 @@ atoms.  This fix should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. "fix nvt"_fix_nvt.html or
 "fix langevin"_fix_langevin.html.
 
+This fix computes 2 output quantities stored in a vector of
+length 2, which can be accessed by various "output
+commands"_Section_howto.html#4_15.  The first quantity is
+the total energy of the electronic subsystem. The second quantity
+is the energy transferred from the electronic to the atomic subsystem
+on that timestep. Note that the velocity verlet integrator applies the
+fix ttm forces to the atomic subsystem as two half-step velocity 
+updates: one on the current timestep and one on the subsequent timestep.
+Consequently, the change in the atomic subsystem energy is lagged by
+half a timestep relative to the change in the electronic subsystem 
+energy. As a result of this, users may notice slight fluctuations in
+the sum of the atomic and electronic subsystem energies reported at 
+the end of the timestep. 
+
+The vector values calculated by this fix are "extensive",
+meaning they scale with the number of atoms in the simulation.
+
 IMPORTANT NOTE: The current implementation creates a copy of the
 electron grid that overlays the entire simulation domain, for each
 processor.  Values on the grid are summed across all processors.  Thus
@@ -169,6 +186,8 @@ conditions with this fix.
 "fix langevin"_fix_langevin.html, "fix dt/reset"_fix_dt_reset.html
 
 [Default:] none
+
+:line
 
 :link(Duffy)
 [(Duffy)] D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19,

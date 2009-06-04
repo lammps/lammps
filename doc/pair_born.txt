@@ -1,0 +1,118 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style born/coul/long command :h3
+
+[Syntax:]
+
+pair_style born/coul/long cutoff (cutoff2) :pre
+
+cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units) :l
+cutoff2 = global cutoff for Coulombic (optional) (distance units) :l,ule
+
+[Examples:]
+
+pair_style born/coul/long 10.0
+pair_style born/coul/long 10.0 8.0
+pair_coeff * * 6.08 0.317 2.340 24.18 11.51
+pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
+
+[Description:]
+
+This pair style compute the Born-Mayer-Huggins potential described in
+"(Fumi and Tosi)"_#FumiTosi, given by
+
+:c,image(Eqs/pair_born.jpg)
+
+where sigma is an interaction-dependent length parameter, rho is an
+ionic-pair dependent length parameter, and the last term represents
+the usual Coulombic pairwise interaction between atoms I and J.  In
+the Coulombic term, k is an energy-conversion constant, Qi and Qj are
+the charges on the 2 atoms, and epsilon is the dielectric constant
+which can be set by the "dielectric"_dielectric.html command.
+
+If one cutoff is specified in the pair_style command, it is used for
+both the A,C,D and Coulombic terms.  If two cutoffs are specified, the
+first is used as the cutoff for the A,C,D terms, and the second is the
+cutoff for the Coulombic term.
+
+Note that this potential is identical to the "Buckingham
+potential"_pair_buck.html when sigma = D = 0.
+
+An additional damping factor is applied to the Coulombic term so it
+can be used in conjunction with the "kspace_style"_kspace_style.html
+command and its {ewald} or {pppm} option.  The Coulombic cutoff
+specified for this style means that pairwise interactions within this
+distance are computed directly; interactions outside that distance are
+computed in reciprocal space.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+A (energy units)
+rho (distance units)
+sigma (distance units)
+C (energy units * distance units^6)
+D (energy units * distance units^8)
+cutoff (distance units) :ul
+
+The last coefficient is optional.  If not specified, the global A,C,D
+cutoff specified in the pair_style command is used.  Only the A,C,D
+cutoff can be specified since a Coulombic cutoff cannot be specified
+for an individual I,J type pair.  All type pairs use the same global
+Coulombic cutoff specified in the pair_style command.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+This style supports the "pair_modify"_pair_modify.html shift option
+for the energy of the exp(), 1/r^6, and 1/r^8 portion of the pair
+interaction.
+
+This style does not support the "pair_modify"_pair_modify.html
+table option since a tabulation capability has not yet been added to
+this potential.
+
+This style does not support the pair_modify tail option for
+adding long-range tail corrections to energy and pressure.
+
+This style writes its information to binary
+"restart"_restart.html files, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+
+This style only supports the {pair} keyword of run_style respa.
+See the "run_style"_run_style.html command for details.
+
+:line
+
+[Restrictions:]
+
+The {born/coul/long} style is part of the "kspace" package.  It is
+only enabled if LAMMPS was built with that package (which it is by
+default).  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "pair_style buck"_pair_buck.html
+
+[Default:] none
+
+:line
+
+:link(FumiTosi)
+Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
+Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).

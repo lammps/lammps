@@ -494,6 +494,7 @@ full description:
 "hybrid"_pair_hybrid.html,
 "hybrid/overlay"_pair_hybrid.html,
 "airebo"_pair_airebo.html,
+"born/coul/long"_pair_born.html,
 "buck"_pair_buck.html,
 "buck/coul/cut"_pair_buck.html,
 "buck/coul/long"_pair_buck.html,

@@ -54,6 +54,9 @@ Rc is the cutoff.
 The {buck/coul/cut} and {buck/coul/long} styles add a Coulombic term
 as described for the "lj/cut"_pair_lj.html pair styles.
 
+Note that this potential is related to the "Born-Mayer-Huggins
+potential"_pair_born.html.
+
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the
@@ -116,6 +119,6 @@ more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_style born"_pair_born.html
 
 [Default:] none

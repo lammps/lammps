@@ -24,6 +24,7 @@ KSpaceStyle(pppm/tip4p,PPPMTIP4P)
 #endif
 
 #ifdef PairInclude
+#include "pair_born_coul_long.h"
 #include "pair_buck_coul_long.h"
 #include "pair_coul_long.h"
 #include "pair_lj_cut_coul_long.h"
@@ -32,6 +33,7 @@ KSpaceStyle(pppm/tip4p,PPPMTIP4P)
 #endif
 
 #ifdef PairClass
+PairStyle(born/coul/long,PairBornCoulLong)
 PairStyle(buck/coul/long,PairBuckCoulLong)
 PairStyle(coul/long,PairCoulLong)
 PairStyle(lj/cut/coul/long,PairLJCutCoulLong)

@@ -377,7 +377,14 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
     timer->stamp(TIME_NEIGHBOR);
     setup_vectors();
 
+    // update x0 for atoms that migrated
+    // must do minimum_image on box size when x0 was stored
+    // domain->set_global_box() changes to x0 box, then restores current box
+
     if (resetflag) {
+      box_swap();
+      domain->set_global_box();
+
       double **x = atom->x;
       double **x0 = fix_minimize->x0;
       int nlocal = atom->nlocal;
@@ -392,6 +399,9 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
 	if (dy != dy0) x0[i][1] = x[i][1] - dy;
 	if (dz != dz0) x0[i][2] = x[i][2] - dz;
       }
+
+      box_swap();
+      domain->set_global_box();
     }
   }
 
@@ -560,6 +570,7 @@ int Min::linemin_backtrack(int n, double *x, double *dir,
 
   // store coords and other dof at start of linesearch
 
+  box_store();
   for (i = 0; i < n; i++) x0[i] = x[i];
   if (nextra) modify->min_store();
 
@@ -656,6 +667,7 @@ int Min::linemin_quadratic(int n, double *x, double *dir,
 
   // store coords and other dof at start of linesearch
 
+  box_store();
   for (i = 0; i < n; i++) x0[i] = x[i];
   if (nextra) modify->min_store();
 
@@ -867,4 +879,48 @@ void Min::ev_set(int ntimestep)
   if (vflag_global) update->vflag_global = update->ntimestep;
   if (vflag_atom) update->vflag_atom = update->ntimestep;
   vflag = vflag_global + vflag_atom;
+}
+
+/* ----------------------------------------------------------------------
+   store box size at beginning of line search
+------------------------------------------------------------------------- */
+
+void Min::box_store()
+{
+  boxlo0[0] = domain->boxlo[0];
+  boxlo0[1] = domain->boxlo[1];
+  boxlo0[2] = domain->boxlo[2];
+
+  boxhi0[0] = domain->boxhi[0];
+  boxhi0[1] = domain->boxhi[1];
+  boxhi0[2] = domain->boxhi[2];
+}
+
+/* ----------------------------------------------------------------------
+   swap current box size with stored box size
+------------------------------------------------------------------------- */
+
+void Min::box_swap()
+{
+  double tmp;
+
+  tmp = boxlo0[0];
+  boxlo0[0] = domain->boxlo[0];
+  domain->boxlo[0] = tmp;
+  tmp = boxlo0[1];
+  boxlo0[1] = domain->boxlo[1];
+  domain->boxlo[1] = tmp;
+  tmp = boxlo0[2];
+  boxlo0[2] = domain->boxlo[2];
+  domain->boxlo[2] = tmp;
+
+  tmp = boxhi0[0];
+  boxhi0[0] = domain->boxhi[0];
+  domain->boxhi[0] = tmp;
+  tmp = boxhi0[1];
+  boxhi0[1] = domain->boxhi[1];
+  domain->boxhi[1] = tmp;
+  tmp = boxhi0[2];
+  boxhi0[2] = domain->boxhi[2];
+  domain->boxhi[2] = tmp;
 }

@@ -66,6 +66,9 @@ class Min : protected Pointers {
   double *gextra;
   double *hextra;
 
+  double boxlo0[3];           // box size at start of linesearch
+  double boxhi0[3];
+
   // ptr to linemin functions
 
   void setup();
@@ -83,6 +86,8 @@ class Min : protected Pointers {
 
   void ev_setup();
   void ev_set(int);
+  void box_store();
+  void box_swap();
 };
 
 }

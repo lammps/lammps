@@ -33,7 +33,7 @@ KSpaceStyle(pppm/tip4p,PPPMTIP4P)
 #endif
 
 #ifdef PairClass
-PairStyle(born/coul/long,PairBuckCoulLong)
+PairStyle(born/coul/long,PairBornCoulLong)
 PairStyle(buck/coul/long,PairBuckCoulLong)
 PairStyle(coul/long,PairCoulLong)
 PairStyle(lj/cut/coul/long,PairLJCutCoulLong)

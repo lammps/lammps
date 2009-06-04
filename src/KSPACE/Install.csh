@@ -7,6 +7,7 @@ if ($1 == 1) then
   cp ewald.cpp ..
   cp pppm.cpp ..
   cp pppm_tip4p.cpp ..
+  cp pair_born_coul_long.cpp ..
   cp pair_buck_coul_long.cpp ..
   cp pair_coul_long.cpp ..
   cp pair_lj_cut_coul_long.cpp ..
@@ -20,6 +21,7 @@ if ($1 == 1) then
   cp ewald.h ..
   cp pppm.h ..
   cp pppm_tip4p.h ..
+  cp pair_born_coul_long.h ..
   cp pair_buck_coul_long.h ..
   cp pair_coul_long.h ..
   cp pair_lj_cut_coul_long.h ..
@@ -38,6 +40,7 @@ else if ($1 == 0) then
   rm ../ewald.cpp
   rm ../pppm.cpp
   rm ../pppm_tip4p.cpp
+  rm ../pair_born_coul_long.cpp
   rm ../pair_buck_coul_long.cpp
   rm ../pair_coul_long.cpp
   rm ../pair_lj_cut_coul_long.cpp
@@ -51,6 +54,7 @@ else if ($1 == 0) then
   rm ../ewald.h
   rm ../pppm.h
   rm ../pppm_tip4p.h
+  rm ../pair_born_coul_long.h
   rm ../pair_buck_coul_long.h
   rm ../pair_coul_long.h
   rm ../pair_lj_cut_coul_long.h

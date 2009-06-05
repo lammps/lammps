@@ -488,6 +488,7 @@ void PairEAM::file2array()
 {
   int i,j,k,m,n;
   int ntypes = atom->ntypes;
+  double sixth = 1.0/6.0;
 
   // determine max function params from all active funcfl files
   // active means some element is pointing at it via map
@@ -540,10 +541,10 @@ void PairEAM::file2array()
       k = MAX(k,2);
       p -= k;
       p = MIN(p,2.0);
-      cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+      cof1 = -sixth*p*(p-1.0)*(p-2.0);
       cof2 = 0.5*(p*p-1.0)*(p-2.0);
       cof3 = -0.5*p*(p+1.0)*(p-2.0);
-      cof4 = 0.166666667*p*(p*p-1.0);
+      cof4 = sixth*p*(p*p-1.0);
       frho[n][m] = cof1*file->frho[k-1] + cof2*file->frho[k] + 
 	cof3*file->frho[k+1] + cof4*file->frho[k+2];
     }
@@ -587,10 +588,10 @@ void PairEAM::file2array()
       k = MAX(k,2);
       p -= k;
       p = MIN(p,2.0);
-      cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+      cof1 = -sixth*p*(p-1.0)*(p-2.0);
       cof2 = 0.5*(p*p-1.0)*(p-2.0);
       cof3 = -0.5*p*(p+1.0)*(p-2.0);
-      cof4 = 0.166666667*p*(p*p-1.0);
+      cof4 = sixth*p*(p*p-1.0);
       rhor[n][m] = cof1*file->rhor[k-1] + cof2*file->rhor[k] +
 	cof3*file->rhor[k+1] + cof4*file->rhor[k+2];
     }
@@ -636,10 +637,10 @@ void PairEAM::file2array()
 	k = MAX(k,2);
 	p -= k;
 	p = MIN(p,2.0);
-	cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+	cof1 = -sixth*p*(p-1.0)*(p-2.0);
 	cof2 = 0.5*(p*p-1.0)*(p-2.0);
 	cof3 = -0.5*p*(p+1.0)*(p-2.0);
-	cof4 = 0.166666667*p*(p*p-1.0);
+	cof4 = sixth*p*(p*p-1.0);
 	zri = cof1*ifile->zr[k-1] + cof2*ifile->zr[k] +
 	  cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
 
@@ -649,10 +650,10 @@ void PairEAM::file2array()
 	k = MAX(k,2);
 	p -= k;
 	p = MIN(p,2.0);
-	cof1 = -0.166666667*p*(p-1.0)*(p-2.0);
+	cof1 = -sixth*p*(p-1.0)*(p-2.0);
 	cof2 = 0.5*(p*p-1.0)*(p-2.0);
 	cof3 = -0.5*p*(p+1.0)*(p-2.0);
-	cof4 = 0.166666667*p*(p*p-1.0);
+	cof4 = sixth*p*(p*p-1.0);
 	zrj = cof1*jfile->zr[k-1] + cof2*jfile->zr[k] +
 	  cof3*jfile->zr[k+1] + cof4*jfile->zr[k+2];
 

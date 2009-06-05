@@ -32,6 +32,7 @@ class FixDtReset : public Fix {
  private:
   int minbound,maxbound,laststep;
   double tmin,tmax,xmax;
+  double ftm2v;
   double t_elapsed;
   int respaflag;
 };

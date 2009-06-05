@@ -56,15 +56,15 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 
   minbound = maxbound = 1;
   tmin = tmax = 0.0;
-  if (strcmp(arg[4],"INF") == 0) minbound = 0;
+  if (strcmp(arg[4],"NULL") == 0) minbound = 0;
   else tmin = atof(arg[4]);
-  if (strcmp(arg[5],"INF") == 0) maxbound = 0;
+  if (strcmp(arg[5],"NULL") == 0) maxbound = 0;
   else tmax = atof(arg[5]);
   xmax = atof(arg[6]);
 
   if (minbound && tmin < 0.0) error->all("Illegal fix dt/reset command");
   if (maxbound && tmax < 0.0) error->all("Illegal fix dt/reset command");
-  if (minbound && maxbound && tmin > tmax)
+  if (minbound && maxbound && tmin >= tmax)
     error->all("Illegal fix dt/reset command");
   if (xmax <= 0.0) error->all("Illegal fix dt/reset command");
 
@@ -117,6 +117,8 @@ void FixDtReset::init()
     if ((strcmp(output->dump[i]->style,"dcd") == 0 ||
 	strcmp(output->dump[i]->style,"xtc") == 0) && comm->me == 0)
       error->warning("Dump dcd/xtc timestamp may be wrong with fix dt/reset");
+
+  ftm2v = force->ftm2v;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,6 +132,10 @@ void FixDtReset::setup(int vflag)
 
 void FixDtReset::end_of_step()
 {
+  double dt,dtv,dtf,dtsq;
+  double vsq,fsq,massinv;
+  double delx,dely,delz,delr;
+
   // accumulate total time based on previous timestep
 
   t_elapsed += (update->ntimestep - laststep) * update->dt;
@@ -144,33 +150,29 @@ void FixDtReset::end_of_step()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double vsq,fsq,asq,ms;
-  double bound[2],bound_all[2];
-  bound[0] = bound[1] = 0.0;
+  double dtmin = BIG;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      if (rmass) massinv = 1.0/rmass[i];
+      else massinv = 1.0/mass[type[i]];
       vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       fsq = f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-      if (rmass) ms = rmass[i];
-      else ms = mass[type[i]];
-      asq = fsq/ms/ms;
-      bound[0] = MAX(bound[0],vsq);
-      bound[1] = MAX(bound[1],asq);
+      dtv = dtf = BIG;
+      if (vsq > 0.0) dtv = xmax/sqrt(vsq);
+      if (fsq > 0.0) dtf = sqrt(2.0*xmax/(ftm2v*sqrt(fsq)*massinv));
+      dt = MIN(dtv,dtf);
+      dtsq = dt*dt;
+      delx = dt*v[i][0] + 0.5*dtsq*massinv*f[i][0] * ftm2v;
+      dely = dt*v[i][1] + 0.5*dtsq*massinv*f[i][1] * ftm2v;
+      delz = dt*v[i][2] + 0.5*dtsq*massinv*f[i][2] * ftm2v;
+      delr = sqrt(delx*delx + dely*dely + delz*delz);
+      if (delr > xmax) dt *= xmax/delr;
+      dtmin = MIN(dtmin,dt);
     }
 
-  MPI_Allreduce(bound,bound_all,2,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&dtmin,&dt,1,MPI_DOUBLE,MPI_MIN,world);
 
-  // set new timestep
-
-  double dt,dt1,dt2;
-
-  if (bound_all[0] > 0.0) dt1 = xmax/sqrt(bound_all[0]);
-  else dt1 = BIG;
-  if (bound_all[1] > 0.0) dt2 = sqrt(2.0 * xmax/sqrt(bound_all[1]));
-  else dt2 = BIG;
-
-  dt = MIN(dt1,dt2);
   if (minbound) dt = MAX(dt,tmin);
   if (maxbound) dt = MIN(dt,tmax);
   

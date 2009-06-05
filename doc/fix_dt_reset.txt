@@ -15,8 +15,8 @@ fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command
 dt/reset = style name of this fix command
 N = recompute dt every N timesteps
-Tmin = minimum dt allowed (can be INF) (time units)
-Tmax = maximum dt allowed (can be INF) (time units)
+Tmin = minimum dt allowed (can be NULL) (time units)
+Tmax = maximum dt allowed (can be NULL) (time units)
 Xmax = maximum distance for an atom to move in one timestep (distance units)
 zero or more keyword/value pairs may be appended
 keyword = {units} :ul
@@ -31,27 +31,29 @@ fix 5 all dt/reset 10 0.01 2.0 0.2 units box :pre
 
 [Description:]
 
-Reset the timestep size every N steps during a run, based on current
-atom velocities and forces.  This can be useful when starting from a
-configuration with overlapping atoms, where forces will be large.  Or
-it can be useful when running an impact simulation where one or more
-high-energy atoms collide with a solid, causing a damage cascade.
+Reset the timestep size every N steps during a run, so that no atom
+moves further than Xmax, based on current atom velocities and forces.
+This can be useful when starting from a configuration with overlapping
+atoms, where forces will be large.  Or it can be useful when running
+an impact simulation where one or more high-energy atoms collide with
+a solid, causing a damage cascade.
 
 This fix overrides the timestep size setting made by the
 "timestep"_timestep.html command.  The new timestep size {dt} is
-computed in the following way.
+computed in the following manner.
 
-compute Vmax of any atom in group
-compute Amax of any atom in group
-dt1 = Xmax/Vmax
-dt2 = sqrt(2 Xmax/Amax)
-new dt = MIN(dt1,dt2)
-if dt < Tmin, dt = Tmin
-if dt > Tmax, dt = Tmax :ul
+For each atom, the timestep is computed that would cause it to
+displace {Xmax} on the next integration step, as a function of its
+current velocity and force.  Since performing this calculation exactly
+would require the solution to a quartic equation, a cheaper estimate
+is generated.  The estimate is conservative in that the atom's
+displacement is guaranteed not to exceed {Xmax}, though it may be
+smaller.
 
-Vmax is the maximum velocity; Amax is the maximum acceleration =
-force/mass.  Note that Tmin or Tmax can be specified as INF, in which
-case one or both of the last 2 checks will not be performed.
+Given this putative timestep for each atom, the minimum timestep value
+across all atoms is computed.  Then the {Tmin} and {Tmax} bounds are
+applied, if specified.  If one (or both) is specified as NULL, it is
+not applied.
 
 When the "run style"_run_style.html is {respa}, this fix resets the
 outer loop (largest) timestep, which is the same timestep that the

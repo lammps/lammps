@@ -691,6 +691,72 @@ void Pair::v_tally4(int i, int j, int k, int m,
 }
 
 /* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   called by pair lubricate potential with 6 tensor components
+------------------------------------------------------------------------- */
+
+void Pair::v_tally_tensor(int i, int j, int nlocal, int newton_pair,
+			  double vxx, double vyy, double vzz,
+			  double vxy, double vxz, double vyz)
+{
+  double v[6];
+
+  v[0] = vxx;
+  v[1] = vyy;
+  v[2] = vzz;
+  v[3] = vxy;
+  v[4] = vxz;
+  v[5] = vyz;
+  
+  if (vflag_global) {
+    if (newton_pair) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    } else {
+      if (i < nlocal) {
+	virial[0] += 0.5*v[0];
+	virial[1] += 0.5*v[1];
+	virial[2] += 0.5*v[2];
+	virial[3] += 0.5*v[3];
+	virial[4] += 0.5*v[4];
+	virial[5] += 0.5*v[5];
+      }
+      if (j < nlocal) {
+	virial[0] += 0.5*v[0];
+	virial[1] += 0.5*v[1];
+	virial[2] += 0.5*v[2];
+	virial[3] += 0.5*v[3];
+	virial[4] += 0.5*v[4];
+	virial[5] += 0.5*v[5];
+      }
+    }
+  }
+
+  if (vflag_atom) {
+    if (newton_pair || i < nlocal) {
+      vatom[i][0] += 0.5*v[0];
+      vatom[i][1] += 0.5*v[1];
+      vatom[i][2] += 0.5*v[2];
+      vatom[i][3] += 0.5*v[3];
+      vatom[i][4] += 0.5*v[4];
+      vatom[i][5] += 0.5*v[5];
+    }
+    if (newton_pair || j < nlocal) {
+      vatom[j][0] += 0.5*v[0];
+      vatom[j][1] += 0.5*v[1];
+      vatom[j][2] += 0.5*v[2];
+      vatom[j][3] += 0.5*v[3];
+      vatom[j][4] += 0.5*v[4];
+      vatom[j][5] += 0.5*v[5];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    compute global pair virial via summing F dot r over own & ghost atoms
    at this point, only pairwise forces have been accumulated in atom->f
 ------------------------------------------------------------------------- */

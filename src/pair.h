@@ -127,6 +127,8 @@ class Pair : protected Pointers {
   void v_tally3(int, int, int, double *, double *, double *, double *);
   void v_tally4(int, int, int, int, double *, double *, double *,
 		double *, double *, double *);
+  void v_tally_tensor(int, int, int, int,
+		      double, double, double, double, double, double);
   void virial_compute();
 };
 

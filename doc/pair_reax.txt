@@ -36,7 +36,8 @@ used in: "(Strachan et al., 2005)"_#Strachan_2005.
 LAMMPS provides a ReaxFF potential file in its potentials dir, namely
 potentials/ffield.reax.  Its format is identical to that used by van
 Duin and co-workers.  It contains parameterizations for the following
-elements: C, H, O, N, S, and Si.  You can use your another file in
+elements: C, H, O, N, S (Si has been temporarily removed).
+You can use another file in
 place of it, and ReaxFF files with parameterizations for other
 elements or for specific chemical systems may be available elsewhere.
 

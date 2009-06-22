@@ -31,6 +31,14 @@ FixFreeze::FixFreeze(LAMMPS *lmp, int narg, char **arg) :
 
   if (!atom->torque_flag)
     error->all("Fix freeze requires atom attribute torque");
+
+  vector_flag = 1;
+  size_vector = 3;
+  scalar_vector_freq = 1;
+  extvector = 1;
+
+  force_flag = 0;
+  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,8 +90,14 @@ void FixFreeze::post_force(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
+  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+  force_flag = 0;
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      foriginal[0] += f[i][0];
+      foriginal[1] += f[i][1];
+      foriginal[2] += f[i][2];
       f[i][0] = 0.0;
       f[i][1] = 0.0;
       f[i][2] = 0.0;
@@ -100,3 +114,17 @@ void FixFreeze::post_force_respa(int vflag, int ilevel, int iloop)
   post_force(vflag);
 }
 
+/* ----------------------------------------------------------------------
+   return components of total force on fix group before force was changed
+------------------------------------------------------------------------- */
+
+double FixFreeze::compute_vector(int n)
+{
+  // only sum across procs one time
+
+  if (force_flag == 0) {
+    MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return foriginal_all[n];
+}

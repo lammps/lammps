@@ -11,20 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WRITE_REAX_BONDS_H
-#define FIX_WRITE_REAX_BONDS_H
+#ifndef FIX_REAX_BONDS_H
+#define FIX_REAX_BONDS_H
 
 #include "stdio.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixWriteReaxBonds : public Fix {
+class FixReaxBonds : public Fix {
  public:
-  FixWriteReaxBonds(class LAMMPS *, int, char **);
-  ~FixWriteReaxBonds();
+  FixReaxBonds(class LAMMPS *, int, char **);
+  ~FixReaxBonds();
   int setmask();
-  void init();
+  void init() {}
   void setup(int);
   void end_of_step();
   double memory_usage();

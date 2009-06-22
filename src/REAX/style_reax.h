@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FixInclude
-#include "fix_write_reax_bonds.h"
+#include "fix_reax_bonds.h"
 #endif
 
 #ifdef PairInclude
@@ -20,7 +20,7 @@
 #endif
 
 #ifdef FixClass
-FixStyle(write/reax/bonds,FixWriteReaxBonds)
+FixStyle(reax/bonds,FixReaxBonds)
 #endif
 
 #ifdef PairClass

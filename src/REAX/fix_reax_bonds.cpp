@@ -12,13 +12,12 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Pieter in 't Veld (SNL)
+   Contributing author: Aidan Thompson (Sandia)
 ------------------------------------------------------------------------- */
 
 #include "stdlib.h"
-#include <vector>
 #include "string.h"
-#include "fix_write_reax_bonds.h"
+#include "fix_reax_bonds.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
 #include "update.h"
@@ -35,73 +34,55 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixWriteReaxBonds::FixWriteReaxBonds(LAMMPS *lmp, int narg, char **arg) :
+FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix write/reax/bonds command");
+  if (narg < 5) error->all("Illegal fix reax/bonds command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
+  if (nevery < 1) error->all("Illegal fix reax/bonds command");
 
   if (me == 0) {
     fp = fopen(arg[4],"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix ave/spatial file %s",arg[4]);
+      sprintf(str,"Cannot open fix reax/bonds file %s",arg[4]);
       error->one(str);
     }
   }
-
-  // setup and error check
-
-  if (nevery < 1)
-    error->all("Illegal fix ave/spatial command");
-
-
-  // print header into file
-
-  if (fp && me == 0) {
-  }
-  
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixWriteReaxBonds::~FixWriteReaxBonds()
+FixReaxBonds::~FixReaxBonds()
 {
   if (fp && me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixWriteReaxBonds::setmask()
+int FixReaxBonds::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
   return mask;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixWriteReaxBonds::init()
-{
-}
-
 /* ----------------------------------------------------------------------
- perform initial write
+   perform initial write
 ------------------------------------------------------------------------- */
 
-void FixWriteReaxBonds::setup(int vflag)
+void FixReaxBonds::setup(int vflag)
 {
   end_of_step();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixWriteReaxBonds::end_of_step()
+void FixReaxBonds::end_of_step()
 {
-
   // skip if not step which requires doing something
 
   int ntimestep = update->ntimestep;
@@ -110,9 +91,6 @@ void FixWriteReaxBonds::end_of_step()
   // output result to file
 
   OutputReaxBonds(ntimestep,fp);
-
-  if (fp && me == 0) {
-  }
   fflush(fp);
 }
 
@@ -121,19 +99,21 @@ void FixWriteReaxBonds::end_of_step()
    memory usage of varatom and layer
 ------------------------------------------------------------------------- */
 
-double FixWriteReaxBonds::memory_usage()
+double FixReaxBonds::memory_usage()
 {
   double bytes = 0;
   return bytes;
 }
 
+/* ---------------------------------------------------------------------- */
 
-void FixWriteReaxBonds::OutputReaxBonds(int timestep, FILE *fp) {
+void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp) 
+{
   int nparticles,nparticles_tot,nbuf,nbuf_local,most,j;
   int ii,jn,mbond,numbonds,nsbmax,nsbmax_most;
-  double cutof3;
-  std::vector<double> buf;
   int node,nprocs,nlocal_tmp,itmp;
+  double cutof3;
+  double *buf;
   MPI_Request irequest;
   MPI_Status istatus;
 
@@ -154,8 +134,8 @@ void FixWriteReaxBonds::OutputReaxBonds(int timestep, FILE *fp) {
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",nparticles_tot);
     fprintf(fp,"# \n");
-    fprintf(fp,
-	    "# Max.number of bonds per atom %d with coarse bond order cutoff %5.3f \n",
+    fprintf(fp,"# Max.number of bonds per atom %d with "
+	    "coarse bond order cutoff %5.3f \n",
 	    nsbmax_most,cutof3);
     fprintf(fp,"# Particle connection table and bond orders \n");
     fprintf(fp,"# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q \n");
@@ -166,7 +146,7 @@ void FixWriteReaxBonds::OutputReaxBonds(int timestep, FILE *fp) {
   // nbuf_local = size of local buffer for table of atom bonds
  
   nbuf = 1+(2*nsbmax_most+7)*most;
-  buf.resize(nbuf);
+  buf = memory->smalloc(nbuf*sizeof(double),"reax/bonds:buf");
  
   j = 2;
   jn = ReaxParams::nat;
@@ -177,29 +157,31 @@ void FixWriteReaxBonds::OutputReaxBonds(int timestep, FILE *fp) {
     buf[j+1] = FORTRAN(cbkia,CBKIA).iag[iparticle+jn]; //no.bonds
     int k;
     numbonds = nint(buf[j+1]);
-// connection table based on coarse bond order cutoff (> cutof3)
+
+    // connection table based on coarse bond order cutoff (> cutof3)
     for (k=2;k<2+numbonds;k++) {
       ii = FORTRAN(cbkia,CBKIA).iag[iparticle+jn*k];
       buf[j+k] = FORTRAN(cbkc,CBKC).itag[ii-1];
     }
     buf[j+k]=FORTRAN(cbkia,CBKIA).iag[iparticle+jn*(mbond+2)]; //molec.id
     j+=(3+numbonds);
-// bond orders (> cutof3)
-        for (k=0;k<numbonds;k++) {
-          ii = FORTRAN(cbknubon2,CBKNUBON2).nubon1[iparticle+jn*k];
+
+    // bond orders (> cutof3)
+    for (k=0;k<numbonds;k++) {
+      ii = FORTRAN(cbknubon2,CBKNUBON2).nubon1[iparticle+jn*k];
       buf[j+k] = FORTRAN(cbkbo,CBKBO).bo[ii-1];
     }
-// sum of bond orders (abo), no. of lone pairs (vlp), charge (ch)
-        buf[j+k] = FORTRAN(cbkabo,CBKABO).abo[iparticle];
+    // sum of bond orders (abo), no. of lone pairs (vlp), charge (ch)
+    buf[j+k] = FORTRAN(cbkabo,CBKABO).abo[iparticle];
     buf[j+k+1] = FORTRAN(cbklonpar,CBKLONPAR).vlp[iparticle];
-//    buf[j+k+2] = FORTRAN(cbkch,CBKCH).ch[iparticle];
+    //    buf[j+k+2] = FORTRAN(cbkch,CBKCH).ch[iparticle];
     buf[j+k+2] = atom->q[iparticle];
-        j+=(4+numbonds);
+    j+=(4+numbonds);
   }
   nbuf_local = j-1;
  
-  //c node 0 pings each node, receives their buffer, writes to file
-  //c  all other nodes wait for ping, send buffer to node 0
+  // node 0 pings each node, receives their buffer, writes to file
+  // all other nodes wait for ping, send buffer to node 0
  
   if (node == 0) {
  
@@ -239,30 +221,23 @@ void FixWriteReaxBonds::OutputReaxBonds(int timestep, FILE *fp) {
 	j+=(4+numbonds);
       }
     }
+
   } else {
-    
     MPI_Recv(&itmp,0,MPI_INT,0,0,world,&istatus);
     MPI_Rsend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world);
- 
   }
- 
-  if (node == 0 ) {
-    fprintf(fp,"# \n");
-  }
- 
+
+  if (node == 0) fprintf(fp,"# \n");
+
+  memory->sfree(buf);
 }
 
-  int FixWriteReaxBonds::nint(const double& r) {
-    int i;
-    
-    i = 0;
-    
-    if (r>0.0) {
-      i = static_cast<int>(r+0.5);
-    } else if (r<0.0) {
-      i = static_cast<int>(r-0.5);
-    }
-    
-    return i;
-  }
-  
+/* ---------------------------------------------------------------------- */
+
+int FixReaxBonds::nint(const double& r)
+{
+  int i = 0;
+  if (r>0.0) i = static_cast<int>(r+0.5);
+  else if (r<0.0) i = static_cast<int>(r-0.5);
+  return i;
+}

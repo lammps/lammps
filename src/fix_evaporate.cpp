@@ -127,8 +127,8 @@ void FixEvaporate::pre_exchange()
     memory->sfree(list);
     memory->sfree(mark);
     nmax = atom->nmax;
-    list = (int *) memory->smalloc(nmax*sizeof(int),"fix/evaporate:list");
-    mark = (int *) memory->smalloc(nmax*sizeof(int),"fix/evaporate:mark");
+    list = (int *) memory->smalloc(nmax*sizeof(int),"evaporate:list");
+    mark = (int *) memory->smalloc(nmax*sizeof(int),"evaporate:mark");
   }
 
   // nall = # of deletable atoms in region

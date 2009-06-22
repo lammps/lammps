@@ -9,8 +9,8 @@ if ($1 == 1) then
   cp pair_reax.h ..
   cp pair_reax_fortran.h ..
 
-  cp fix_write_reax_bonds.h ..
-  cp fix_write_reax_bonds.cpp ..
+  cp fix_reax_bonds.h ..
+  cp fix_reax_bonds.cpp ..
 
 else if ($1 == 0) then
 
@@ -22,7 +22,7 @@ else if ($1 == 0) then
   rm ../pair_reax.h
   rm ../pair_reax_fortran.h
 
-  rm ../fix_write_reax_bonds.h
-  rm ../fix_write_reax_bonds.cpp
+  rm ../fix_reax_bonds.h
+  rm ../fix_reax_bonds.cpp
 
 endif

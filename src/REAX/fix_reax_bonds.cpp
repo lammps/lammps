@@ -121,7 +121,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
   MPI_Comm_size(world,&nprocs);
  
   nparticles = atom->nlocal;
-  nparticles_tot = atom->natoms;
+  nparticles_tot = static_cast<int> (atom->natoms);
  
   mbond = ReaxParams::mbond;
   FORTRAN(getnsbmax,GETNSBMAX)(&nsbmax);
@@ -146,7 +146,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
   // nbuf_local = size of local buffer for table of atom bonds
  
   nbuf = 1+(2*nsbmax_most+7)*most;
-  buf = memory->smalloc(nbuf*sizeof(double),"reax/bonds:buf");
+  buf = (double *) memory->smalloc(nbuf*sizeof(double),"reax/bonds:buf");
  
   j = 2;
   jn = ReaxParams::nat;

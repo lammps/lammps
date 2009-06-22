@@ -1851,6 +1851,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"meam") == 0) {
+
   } else if ((strcmp(style,"morse") == 0) ||
 	     (strcmp(style,"morse/opt") == 0)) {
 

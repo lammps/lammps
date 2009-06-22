@@ -288,7 +288,7 @@ int AtomVecAngle::pack_border(int n, int *list, double *buf,
 
 int AtomVecAngle::pack_border_one(int i, double *buf)
 {
-  buf[0] = v[i][0];
+  buf[0] = molecule[i];
   return 1;
 }
 

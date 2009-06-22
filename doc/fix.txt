@@ -151,6 +151,7 @@ list of fix styles available in LAMMPS:
      Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
 "rdf"_fix_rdf.html - compute radial distribution functions
+"reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
 "rigid"_fix_rigid.html - constrain one or more clusters of atoms to \

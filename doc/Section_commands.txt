@@ -422,6 +422,7 @@ of each style or click on the style itself for a full description:
 "press/berendsen"_fix_press_berendsen.html,
 "print"_fix_print.html,
 "rdf"_fix_rdf.html,
+"reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
 "rigid"_fix_rigid.html,
 "setforce"_fix_setforce.html,

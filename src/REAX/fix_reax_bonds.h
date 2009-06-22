@@ -24,18 +24,17 @@ class FixReaxBonds : public Fix {
   FixReaxBonds(class LAMMPS *, int, char **);
   ~FixReaxBonds();
   int setmask();
-  void init() {}
+  void init();
   void setup(int);
   void end_of_step();
-  double memory_usage();
-  void OutputReaxBonds(int, FILE*);
-  int nint(const double&);
 
  private:
   int me;
   int nfreq;
   FILE *fp;
 
+  void OutputReaxBonds(int, FILE*);
+  int nint(const double&);
 };
 
 }

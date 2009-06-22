@@ -21,8 +21,7 @@
 #include "pair_reax_fortran.h"
 #include "atom.h"
 #include "update.h"
-#include "domain.h"
-#include "lattice.h"
+#include "force.h"
 #include "modify.h"
 #include "compute.h"
 #include "input.h"
@@ -81,28 +80,20 @@ void FixReaxBonds::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxBonds::end_of_step()
+void FixReaxBonds::init()
 {
-  // skip if not step which requires doing something
+  // insure ReaxFF is defined
 
-  int ntimestep = update->ntimestep;
-  if (ntimestep % nevery > 0) return;
-
-  // output result to file
-
-  OutputReaxBonds(ntimestep,fp);
-  fflush(fp);
+  if (force->pair_match("reax",1) == NULL)
+    error->all("Cannot use fix reax/bonds without pair_style reax");
 }
 
+/* ---------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   memory usage of varatom and layer
-------------------------------------------------------------------------- */
-
-double FixReaxBonds::memory_usage()
+void FixReaxBonds::end_of_step()
 {
-  double bytes = 0;
-  return bytes;
+  OutputReaxBonds(update->ntimestep,fp);
+  fflush(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,7 +225,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-int FixReaxBonds::nint(const double& r)
+int FixReaxBonds::nint(const double &r)
 {
   int i = 0;
   if (r>0.0) i = static_cast<int>(r+0.5);

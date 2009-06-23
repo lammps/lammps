@@ -17,24 +17,28 @@
 </PRE>
 <UL><LI>ID = user-assigned name for the region 
 
-<LI>style = <I>block</I> or <I>cylinder</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
+<LI>style = <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
 
-<PRE>  <I>block</I> args = xlo xhi ylo yhi zlo zhi
-      xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all
-        dimensions (distance units)
+<PRE>  <I>block</I> args = dim c1 c2 radlo radhi lo hi
+    xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
+  <I>cone</I> args = xlo xhi ylo yhi zlo zhi
+    dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cone
+    c1,c2 = coords of cone axis in other 2 dimensions (distance units)
+    radlo,radhi = cone radii at lo and hi end (distance units)
+    lo,hi = bounds of cone in dim (distance units)
   <I>cylinder</I> args = dim c1 c2 radius lo hi
     dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
     lo,hi = bounds of cylinder in dim (distance units)
   <I>prism</I> args = xlo xhi ylo yhi zlo zhi xy xz yz
-      xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
-      xy = distance to tilt y in x direction (distance units)
-      xz = distance to tilt z in x direction (distance units)
-      yz = distance to tilt z in y direction (distance units)
+    xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
+    xy = distance to tilt y in x direction (distance units)
+    xz = distance to tilt z in x direction (distance units)
+    yz = distance to tilt z in y direction (distance units)
   <I>sphere</I> args = x y z radius
-      x,y,z = center of sphere (distance units)
-      radius = radius of sphere (distance units)
+    x,y,z = center of sphere (distance units)
+    radius = radius of sphere (distance units)
   <I>union</I> args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together
@@ -71,21 +75,25 @@ atoms via the <A HREF = "create_atoms.html">create_atoms</A> command.  Or the at
 in the region can be identified as a group via the <A HREF = "group.html">group</A>
 command, or deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.
 </P>
-<P>The lo/hi values for <I>block</I> or <I>cylinder</I> or <I>prism</I> styles can be
-specified as EDGE or INF.  EDGE means they extend all the way to the
-global simulation box boundary.  Note that this is the current box
-boundary; if the box changes size during a simulation the region does
-not.  INF means a large negative or positive number (1.0e20), so it
-should encompass the simulation box even if it changes size.  If a
+<P>The lo/hi values for <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>prism</I> styles
+can be specified as EDGE or INF.  EDGE means they extend all the way
+to the global simulation box boundary.  Note that this is the current
+box boundary; if the box changes size during a simulation, the region
+does not.  INF means a large negative or positive number (1.0e20), so
+it should encompass the simulation box even if it changes size.  If a
 region is defined before the simulation box has been created (via
 <A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> or
 <A HREF = "read_restart.html">read_restart</A> commands), then an EDGE or INF
 parameter cannot be used.
 </P>
-<P>For style <I>cylinder</I>, the c1,c2 params are coordinates in the 2 other
-dimensions besides the cylinder axis dimension.  For dim = x, c1/c2 =
-y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.  Thus the
-third example above specifies a cylinder with its axis in the
+<P>For style <I>cone</I>, an axis-aligned cone is defined which is like a
+<I>cylinder</I> except that two different radii (one at each end) can be
+defined.
+</P>
+<P>For style <I>cone</I> and <I>cylinder</I>, the c1,c2 params are coordinates in
+the 2 other dimensions besides the cylinder axis dimension.  For dim =
+x, c1/c2 = y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.
+Thus the third example above specifies a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
 </P>

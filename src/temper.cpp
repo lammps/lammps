@@ -176,7 +176,7 @@ void Temper::command(int narg, char **arg)
   // setup tempering runs
 
   int i,which,partner,swap,partner_set_temp,partner_world;
-  double pe,pe_partner,boltz_factor,new_temp;
+  double pe,pe_partner,ke,boltz_factor,new_temp;
   MPI_Status status;
 
   if (me_universe == 0 && universe->uscreen) 
@@ -193,16 +193,15 @@ void Temper::command(int narg, char **arg)
   timer->barrier_start(TIME_LOOP);
 
   for (int iswap = 0; iswap < nswaps; iswap++) {
-
+	
     // run for nevery timesteps
 
     update->integrate->iterate(nevery);
-
-    // compute PE, normalize if thermo PE does
+	
+    // compute PE
     // notify compute it will be called at next swap
 
     pe = pe_compute->compute_scalar();
-    if (output->thermo->normflag) pe /= atom->natoms;
     pe_compute->addstep(update->ntimestep + nevery);
 
     // which = which of 2 kinds of swaps to do (0,1)
@@ -268,6 +267,10 @@ void Temper::command(int narg, char **arg)
 
     MPI_Bcast(&swap,1,MPI_INT,0,world);
 
+    // rescale kinetic energy via velocities if move is accepted
+
+    if (swap) scale_velocities(partner_set_temp,my_set_temp);
+	
     // if my world swapped, all procs in world reset temp target of Fix
 
     if (swap) {
@@ -302,6 +305,24 @@ void Temper::command(int narg, char **arg)
   update->whichflag = -1;
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
+}
+
+/* ----------------------------------------------------------------------
+   scale kinetic energy via velocities a la Sugita
+------------------------------------------------------------------------- */
+
+void Temper::scale_velocities(int t_partner, int t_me)
+{
+  double sfactor = sqrt(set_temp[t_partner]/set_temp[t_me]);
+
+  double **v = atom->v;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    v[i][0] = v[i][0]*sfactor;
+    v[i][1] = v[i][1]*sfactor;
+    v[i][2] = v[i][2]*sfactor;
+  }
 }
 
 /* ----------------------------------------------------------------------

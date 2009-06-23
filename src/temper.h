@@ -43,6 +43,7 @@ class Temper : protected Pointers {
   int *world2temp;             // world2temp[i] = temp simulated by world i
   int *world2root;             // world2root[i] = root proc of world i
 
+  void scale_velocities(int, int);
   void print_status();
 };
 

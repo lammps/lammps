@@ -65,8 +65,9 @@ ComputeGroupGroup::~ComputeGroupGroup()
 
 void ComputeGroupGroup::init()
 {
-  if (force->pair == NULL)
-    error->all("Compute group/group requires a pair style be defined");
+  if (force->pair == NULL || force->pair->single_enable == 0)
+    error->all("Pair style does not support compute group/group");
+
   pair = force->pair;
   cutsq = force->pair->cutsq;
 

@@ -124,6 +124,9 @@ void FixBondSwap::init()
   if (force->pair == NULL || force->bond == NULL)
     error->all("Fix bond/swap requires pair and bond styles");
 
+  if (force->pair->single_enable == 0)
+    error->all("Pair style does not support fix bond/swap");
+
   if (force->angle == NULL && atom->nangles > 0 && comm->me == 0)
     error->warning("Fix bond/swap will ignore defined angles");
 

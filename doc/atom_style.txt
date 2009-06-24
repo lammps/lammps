@@ -88,7 +88,7 @@ The {angle}, {bond}, {full}, and {molecular} styles are part of the
 "molecular" package.  The {granular} style is part of the "granular"
 package.  The {dpd} style is part of the "dpd" package.  The {dipole}
 style is part of the "dipole" package.  The {ellipsoid} style is part
-of the "ellipsoid" package.  The {peri} style is part of the "peri"
+of the "asphere" package.  The {peri} style is part of the "peri"
 package for Peridynamics.  They are only enabled if LAMMPS was built
 with that package.  See the "Making LAMMPS"_Section_start.html#2_3
 section for more info.

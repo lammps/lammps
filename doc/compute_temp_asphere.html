@@ -32,23 +32,26 @@ translational and rotational kinetic energy.  This differs from the
 usual <A HREF = "compute_temp.html">compute temp</A> command, which assumes point
 particles with only translational kinetic energy.
 </P>
-<P>For 3d aspherical particles, each has 3, 5, or 6 degrees of freedom (3
-translational, remainder rotational), depending on whether the
-particle is spherical, uniaxial, or biaxial.  This is determined by
-the <A HREF = "shape.html">shape</A> command.  Uniaxial means two of its three shape
-parameters are equal.  Biaxial means all 3 shape parameters are
-different.
+<P>For 3d aspherical particles, each has 6 degrees of freedom (3
+translational, 3 rotational).  For 2d aspherical particles, each has 3
+degrees of freedom (2 translational, 1 rotational).
 </P>
-<P>For 2d aspherical particles, each has 3 or 4 degrees of freedom (3
-translational, remainder rotational), depending on whether the
-particle is spherical, or biaxial.  Biaxial means the x,y shape
-parameters are unequal.
+<P>IMPORTANT NOTE: This choice for degrees of freedom (dof) makes the
+assumption that all aspherical particles in your model will freely
+rotate, sampling all their rotational dof.  It is possible to use a
+combination of interaction potentials and fixes that induce no torque
+or otherwise constrain some of all of your particles so that this is
+not the case.  Then there are less dof and you should use the
+<A HREF = "compute_modify.html">compute_modify extra</A> command to adjust the dof
+accordingly.
 </P>
-<P>IMPORTANT NOTE: These degrees of freedom assume that the interaction
-potential between degenerate aspherical particles does not impart
-rotational motion to the extra degrees of freedom.  E.g. the <A HREF = "pair_gayberne.html">GayBerne
-pair potential</A> does not impart torque to spherical
-particles, so they do not rotate.
+<P>For example, an aspherical particle with all three of its
+<A HREF = "shape.html">shape</A> parameters the same is a sphere.  If it does not
+rotate, then it should have 3 dof instead of 6 in 3d (or 2 instead of
+3 in 2d).  A uniaxial aspherical particle has two of its three shape
+parameters the same.  If it does not rotate around the axis
+perpendicular to its circular cross section, then it should have 5 dof
+instead of 6 in 3d.
 </P>
 <P>The translational kinetic energy is computed the same as is described
 by the <A HREF = "compute_temp.html">compute temp</A> command.  The rotational

@@ -36,6 +36,15 @@ particles with only translational kinetic energy.
 translational, 3 rotational).  For 2d spherical particles, each has 3
 degrees of freedom (2 translational, 1 rotational).
 </P>
+<P>IMPORTANT NOTE: This choice for degrees of freedom (dof) makes the
+assumption that all spherical particles in your model will freely
+rotate, sampling all their rotational dof.  It is possible to use a
+combination of interaction potentials and fixes that induce no torque
+or otherwise constrain some of all of your particles so that this is
+not the case.  Then there are less dof and you should use the
+<A HREF = "compute_modify.html">compute_modify extra</A> command to adjust the dof
+accordingly.
+</P>
 <P>The translational kinetic energy is computed the same as is described
 by the <A HREF = "compute_temp.html">compute temp</A> command.  The rotational
 kinetic energy is computed as 1/2 I w^2, where I is the moment of

@@ -774,11 +774,11 @@ An alternative method for calculating viscosities is provided via the
 4.14 Extended spherical and aspherical particles :link(4_14),h4
 
 Typical MD models treat atoms or particles as point masses.
-Sometimes, however, it is desirable to have a model where the
-particles are extended spherioids or extended aspherical paticles such
-as an ellipsoid.  The difference is that such particles have a moment
-of inertia, rotational energy, and angular momentum.  Rotation is
-induced by torque from interactions with other particles.
+Sometimes, however, it is desirable to have a model with finite-size
+particles such as spherioids or aspherical ellipsoids.  The difference
+is that such particles have a moment of inertia, rotational energy,
+and angular momentum.  Rotation is induced by torque from interactions
+with other particles.
 
 LAMMPS has several options for running simulations with these kinds of
 particles.  The following aspects are discussed in turn:
@@ -791,14 +791,14 @@ rigid bodies composed of extended particles :ul
 
 Atom styles :h5
 
-There are 3 "atom styles"_atom_style.html that define extended
-particles: granular, dipole, ellipsoid.
+There are 3 "atom styles"_atom_style.html that allow for definition of
+finite-size particles: granular, dipole, ellipsoid.
 
-Granular particles are extended spheriods and each particle can have a
-unique diameter and mass (or density).  These particles store
-an angular velocity (omega) and can be acted upon by torque.
+Granular particles are spheriods and each particle can have a unique
+diameter and mass (or density).  These particles store an angular
+velocity (omega) and can be acted upon by torque.
 
-Dipole particles are extended spheriods with a point dipole and each
+Dipolar particles are typically spheriods with a point dipole and each
 particle type has a diamater and mass, set by the "shape"_shape.html
 and "mass"_mass.html commands.  These particles store an angular
 velocity (omega) and can be acted upon by torque.  They also store an
@@ -810,31 +810,36 @@ Ellipsoid particles are aspherical.  Each particle type has an
 ellipsoidal shape and mass, defined by the "shape"_shape.html and
 "mass"_mass.html commands.  These particles store an angular momentum
 and their orientation (quaternion), and can be acted upon by torque.
-They do not store an angular velocity (omega) which can be in a
-different direction than angular momentum.  The "set"_set.html command
-can be used to initialize the orientation of ellipsoidal particles and
-has a brief explanation of quaternions.
+They do not store an angular velocity (omega), which can be in a
+different direction than angular momentum, rather they compute it as
+needed.  Ellipsoidal particles can also store a dipole moment if an
+"atom_style hybrid ellipsoid dipole"_atom_style.html is used.  The
+"set"_set.html command can be used to initialize the orientation of
+ellipsoidal particles and has a brief explanation of quaternions.
 
 Note that if one of these atom styles is used (or multiple styles via
 the "atom_style hybrid"_atom_style.html command), not all particles in
-the system are required to be extended or aspherical.  For example, if
-the 3 shape parameters are set to the same value, the particle will be
-a spheroid rather than an ellipsoid.  If the dipole moment is set to
-zero, the particle will not have a point dipole associated with it.
-The pair styles used to compute pairwise interactions will typically
-compute the correct interaction in these simplified (cheaper) cases.
-"Pair_style hybrid"_pair_hybrid.html can be used to insure the correct
+the system are required to be finite-size or aspherical.  For example,
+if the 3 shape parameters are set to the same value, the particle will
+be a spheroid rather than an ellipsoid.  If the 3 shape parameters are
+all set to 0.0 or if the diameter is set to 0.0, it will be a point
+particle.  If the dipole moment is set to zero, the particle will not
+have a point dipole associated with it.  The pair styles used to
+compute pairwise interactions will typically compute the correct
+interaction in these simplified (cheaper) cases.  "Pair_style
+hybrid"_pair_hybrid.html can be used to insure the correct
 interactions are computed for the appropriate style of interactions.
 Likewise, using groups to partition particles (ellipsoid versus
 spheroid versus point particles) will allow you to use the appropriate
 time integrators and temperature computations for each class of
 particles.  See the doc pages for various commands for details.
 
-Also note that for "2d simulations"_dimension.html, extended spheroids
-and ellipsoids are still treated as 3d particles, rather than as disks
-or ellipses.  This means they still have a moment of inertia for a 3d
-extended object.  When their temperature is coomputed, the correct
-degrees of freedom are used for rotation in a 2d versus 3d system.
+Also note that for "2d simulations"_dimension.html, finite-size
+spheroids and ellipsoids are still treated as 3d particles, rather
+than as disks or ellipses.  This means they have the same moment of
+inertia for a 3d extended object.  When their temperature is
+coomputed, the correct degrees of freedom are used for rotation in a
+2d versus 3d system.
 
 Pair potentials :h5
 
@@ -920,8 +925,8 @@ particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 
-(NOTE: 6/08 the feature described in the following paragraph has
-not yet been released.  It will be soon.)
+(NOTE: the feature described in the following paragraph has not yet
+been released.  It will be soon.)
 
 If any of the constituent particles of a rigid body are extended
 particles (spheroids or ellipsoids), then their contribution to the

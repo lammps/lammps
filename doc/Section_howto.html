@@ -781,11 +781,11 @@ profile consistent with the applied shear strain rate.
 <A NAME = "4_14"></A><H4>4.14 Extended spherical and aspherical particles 
 </H4>
 <P>Typical MD models treat atoms or particles as point masses.
-Sometimes, however, it is desirable to have a model where the
-particles are extended spherioids or extended aspherical paticles such
-as an ellipsoid.  The difference is that such particles have a moment
-of inertia, rotational energy, and angular momentum.  Rotation is
-induced by torque from interactions with other particles.
+Sometimes, however, it is desirable to have a model with finite-size
+particles such as spherioids or aspherical ellipsoids.  The difference
+is that such particles have a moment of inertia, rotational energy,
+and angular momentum.  Rotation is induced by torque from interactions
+with other particles.
 </P>
 <P>LAMMPS has several options for running simulations with these kinds of
 particles.  The following aspects are discussed in turn:
@@ -798,14 +798,14 @@ particles.  The following aspects are discussed in turn:
 </UL>
 <H5>Atom styles 
 </H5>
-<P>There are 3 <A HREF = "atom_style.html">atom styles</A> that define extended
-particles: granular, dipole, ellipsoid.
+<P>There are 3 <A HREF = "atom_style.html">atom styles</A> that allow for definition of
+finite-size particles: granular, dipole, ellipsoid.
 </P>
-<P>Granular particles are extended spheriods and each particle can have a
-unique diameter and mass (or density).  These particles store
-an angular velocity (omega) and can be acted upon by torque.
+<P>Granular particles are spheriods and each particle can have a unique
+diameter and mass (or density).  These particles store an angular
+velocity (omega) and can be acted upon by torque.
 </P>
-<P>Dipole particles are extended spheriods with a point dipole and each
+<P>Dipolar particles are typically spheriods with a point dipole and each
 particle type has a diamater and mass, set by the <A HREF = "shape.html">shape</A>
 and <A HREF = "mass.html">mass</A> commands.  These particles store an angular
 velocity (omega) and can be acted upon by torque.  They also store an
@@ -817,31 +817,36 @@ to initialize the orientation of dipole moments.
 ellipsoidal shape and mass, defined by the <A HREF = "shape.html">shape</A> and
 <A HREF = "mass.html">mass</A> commands.  These particles store an angular momentum
 and their orientation (quaternion), and can be acted upon by torque.
-They do not store an angular velocity (omega) which can be in a
-different direction than angular momentum.  The <A HREF = "set.html">set</A> command
-can be used to initialize the orientation of ellipsoidal particles and
-has a brief explanation of quaternions.
+They do not store an angular velocity (omega), which can be in a
+different direction than angular momentum, rather they compute it as
+needed.  Ellipsoidal particles can also store a dipole moment if an
+<A HREF = "atom_style.html">atom_style hybrid ellipsoid dipole</A> is used.  The
+<A HREF = "set.html">set</A> command can be used to initialize the orientation of
+ellipsoidal particles and has a brief explanation of quaternions.
 </P>
 <P>Note that if one of these atom styles is used (or multiple styles via
 the <A HREF = "atom_style.html">atom_style hybrid</A> command), not all particles in
-the system are required to be extended or aspherical.  For example, if
-the 3 shape parameters are set to the same value, the particle will be
-a spheroid rather than an ellipsoid.  If the dipole moment is set to
-zero, the particle will not have a point dipole associated with it.
-The pair styles used to compute pairwise interactions will typically
-compute the correct interaction in these simplified (cheaper) cases.
-<A HREF = "pair_hybrid.html">Pair_style hybrid</A> can be used to insure the correct
+the system are required to be finite-size or aspherical.  For example,
+if the 3 shape parameters are set to the same value, the particle will
+be a spheroid rather than an ellipsoid.  If the 3 shape parameters are
+all set to 0.0 or if the diameter is set to 0.0, it will be a point
+particle.  If the dipole moment is set to zero, the particle will not
+have a point dipole associated with it.  The pair styles used to
+compute pairwise interactions will typically compute the correct
+interaction in these simplified (cheaper) cases.  <A HREF = "pair_hybrid.html">Pair_style
+hybrid</A> can be used to insure the correct
 interactions are computed for the appropriate style of interactions.
 Likewise, using groups to partition particles (ellipsoid versus
 spheroid versus point particles) will allow you to use the appropriate
 time integrators and temperature computations for each class of
 particles.  See the doc pages for various commands for details.
 </P>
-<P>Also note that for <A HREF = "dimension.html">2d simulations</A>, extended spheroids
-and ellipsoids are still treated as 3d particles, rather than as disks
-or ellipses.  This means they still have a moment of inertia for a 3d
-extended object.  When their temperature is coomputed, the correct
-degrees of freedom are used for rotation in a 2d versus 3d system.
+<P>Also note that for <A HREF = "dimension.html">2d simulations</A>, finite-size
+spheroids and ellipsoids are still treated as 3d particles, rather
+than as disks or ellipses.  This means they have the same moment of
+inertia for a 3d extended object.  When their temperature is
+coomputed, the correct degrees of freedom are used for rotation in a
+2d versus 3d system.
 </P>
 <H5>Pair potentials 
 </H5>
@@ -927,8 +932,8 @@ particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 </P>
-<P>(NOTE: 6/08 the feature described in the following paragraph has
-not yet been released.  It will be soon.)
+<P>(NOTE: the feature described in the following paragraph has not yet
+been released.  It will be soon.)
 </P>
 <P>If any of the constituent particles of a rigid body are extended
 particles (spheroids or ellipsoids), then their contribution to the

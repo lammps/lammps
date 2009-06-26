@@ -39,7 +39,7 @@ PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 
 void PairGranHooke::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -59,6 +59,8 @@ void PairGranHooke::compute(int eflag, int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -121,9 +123,18 @@ void PairGranHooke::compute(int eflag, int vflag)
 
 	// normal forces = Hookian contact + normal velocity damping
 
-	meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-	if (mask[i] & freeze_group_bit) meff = rmass[j];
-	if (mask[j] & freeze_group_bit) meff = rmass[i];
+	if (rmass) {
+	  meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+	  if (mask[i] & freeze_group_bit) meff = rmass[j];
+	  if (mask[j] & freeze_group_bit) meff = rmass[i];
+	} else {
+	  itype = type[i];
+	  jtype = type[j];
+	  meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
+	  if (mask[i] & freeze_group_bit) meff = mass[jtype];
+	  if (mask[j] & freeze_group_bit) meff = mass[itype];
+	}
+
 	damp = meff*gamman*vnnr*rsqinv;
 	ccel = kn*(radsum-r)*rinv - damp;
 

@@ -22,6 +22,7 @@
 #include "pair_resquared.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -323,8 +324,10 @@ void PairRESquared::coeff(int narg, char **arg)
 
 void PairRESquared::init_style()
 {
-  if (!atom->quat_flag || !atom->torque_flag)
-    error->all("Pair resquared requires atom attributes quat, torque");
+  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
+    error->all("Pair resquared requires atom attributes quat, torque, shape");
+  if (atom->radius_flag)
+    error->all("Pair resquared cannot be used with atom attribute diameter");
 
   int irequest = neighbor->request(this);
 
@@ -353,9 +356,11 @@ double PairRESquared::init_one(int i, int j)
     error->all("Pair resquared epsilon a,b,c coeffs are not all set");
 
   int ishape = 0;
-  if (shape[i][0] != 0 && shape[i][1] != 0 && shape[i][2] != 0) ishape = 1;
+  if (shape[i][0] != 0.0 && shape[i][1] != 0.0 && shape[i][2] != 0.0) 
+    ishape = 1;
   int jshape = 0;
-  if (shape[j][0] != 0 && shape[j][1] != 0 && shape[j][2] != 0) jshape = 1;
+  if (shape[j][0] != 0.0 && shape[j][1] != 0.0 && shape[j][2] != 0.0) 
+    jshape = 1;
   
   if (ishape == 0 && jshape == 0) {
     form[i][j] = SPHERE_SPHERE;

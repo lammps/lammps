@@ -234,15 +234,14 @@ void FixPressBerendsen::init()
 {
   if (domain->triclinic) 
     error->all("Cannot use fix press/berendsen with triclinic box");
-  if (atom->mass == NULL)
-    error->all("Cannot use fix press/berendsen without per-type mass defined");
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
       if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
 	  (p_flag[2] && dimflag[2]))
-	error->all("Cannot use fix press/berendsen and fix deform on same dimension");
+	error->all("Cannot use fix press/berendsen and "
+		   "fix deform on same dimension");
     }
 
   // set temperature and pressure ptrs

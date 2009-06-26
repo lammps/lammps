@@ -1424,13 +1424,18 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 			     double *argstack, int &nargstack)
 {
   // parse contents for arg1,arg2,arg3 separated by commas
-
-  char *ptr1 = strchr(contents,',');
-  if (ptr1) *ptr1 = '\0';
-  char *ptr2 = strchr(ptr1+1,',');
-  if (ptr2) *ptr2 = '\0';
+  // ptr1,ptr2 = location of 1st and 2nd comma, NULL if none
 
   char *arg1,*arg2,*arg3;
+  char *ptr1,*ptr2;
+
+  ptr1 = strchr(contents,',');
+  if (ptr1) {
+    *ptr1 = '\0';
+    ptr2 = strchr(ptr1+1,',');
+    if (ptr2) *ptr2 = '\0';
+  } else ptr2 = NULL;
+
   int n = strlen(contents) + 1;
   arg1 = new char[n];
   strcpy(arg1,contents);

@@ -36,32 +36,54 @@ enum{NOBIAS,BIAS};
 FixNVTSphere::FixNVTSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVT(lmp, narg, arg)
 {
+  // error checks
+
   if (!atom->omega_flag || !atom->torque_flag)
     error->all("Fix nvt/sphere requires atom attributes omega, torque");
-
-  dttype = new double[atom->ntypes+1];
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixNVTSphere::~FixNVTSphere()
-{
-  delete [] dttype;
+  if (!atom->radius_flag && !atom->avec->shape_type)
+    error->all("Fix nvt/sphere requires atom attribute radius or shape");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNVTSphere::init()
 {
+  int i,itype;
+
+  // check that all particles are finite-size and spherical
+  // no point particles allowed
+
+  if (atom->radius_flag) {
+    double *radius = atom->radius;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	if (radius[i] == 0.0)
+	  error->one("Fix nvt/sphere requires extended particles");
+      }
+
+  } else {
+    double **shape = atom->shape;
+    int *type = atom->type;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	itype = type[i];
+	if (shape[itype][0] == 0.0)
+	  error->one("Fix nvt/sphere requires extended particles");
+	if (shape[itype][0] != shape[itype][1] || 
+	    shape[itype][0] != shape[itype][2])
+	  error->one("Fix nvt/sphere requires spherical particle shapes");
+      }
+  }
+
   FixNVT::init();
-
-  if (!atom->shape)
-    error->all("Fix nvt/sphere requires atom attribute shape");
-
-  double **shape = atom->shape;
-  for (int i = 1; i <= atom->ntypes; i++)
-    if (shape[i][0] != shape[i][1] || shape[i][0] != shape[i][2])
-      error->all("Fix nvt/sphere requires spherical particle shapes");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,59 +112,188 @@ void FixNVTSphere::initial_integrate(int vflag)
   double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
+  double *radius = atom->radius;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
+  double **shape = atom->shape;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // recompute timesteps since dt may have changed or come via rRESPA
+  // set timestep here since dt may have changed or come via rRESPA
 
   double dtfrotate = dtf / INERTIA;
-  int ntypes = atom->ntypes;
-  double **shape = atom->shape;
-  for (int i = 1; i <= ntypes; i++)
-    dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
 
-  if (which == NOBIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	itype = type[i];
+  // update v,x,omega for all particles
+  // d_omega/dt = torque / inertia
+  // 8 cases depending on radius vs shape, rmass vs mass, bias vs nobias
 
-	dtfm = dtf / mass[itype];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
-	
-	dtirotate = dttype[itype];
-	omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
-	omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
-	omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+  if (radius) {
+    if (rmass) {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    dtfm = dtf / rmass[i];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
+      } else if (which == BIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / rmass[i];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
+      }
+
+    } else {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    dtfm = dtf / mass[itype];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*mass[itype]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
+      } else if (which == BIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / mass[itype];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*mass[itype]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
       }
     }
 
-  } else if (which == BIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	itype = type[i];
+  } else {
+    if (rmass) {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    dtfm = dtf / rmass[i];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
+      } else if (which == BIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / rmass[i];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
+      }
 
-	temperature->remove_bias(i,v[i]);
-	dtfm = dtf / mass[itype];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(i,v[i]);
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
-	
-	dtirotate = dttype[itype];
-	omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
-	omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
-	omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+    } else {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    dtfm = dtf / mass[itype];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / 
+	      (shape[itype][0]*shape[itype][0]*mass[itype]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
+      } else if (which == BIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / mass[itype];
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    x[i][0] += dtv * v[i][0];
+	    x[i][1] += dtv * v[i][1];
+	    x[i][2] += dtv * v[i][2];
+	    
+	    dtirotate = dtfrotate / 
+	      (shape[itype][0]*shape[itype][0]*mass[itype]);
+	    omega[i][0] = omega[i][0]*factor + dtirotate*torque[i][0];
+	    omega[i][1] = omega[i][1]*factor + dtirotate*torque[i][1];
+	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
+	  }
+	}
       }
     }
   }
@@ -161,53 +312,164 @@ void FixNVTSphere::final_integrate()
   double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
+  double *radius = atom->radius;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
+  double **shape = atom->shape;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // recompute timesteps since dt may have changed or come via rRESPA
+  // set timestep here since dt may have changed or come via rRESPA
 
   double dtfrotate = dtf / INERTIA;
-  int ntypes = atom->ntypes;
-  double **shape = atom->shape;
-  for (int i = 1; i <= ntypes; i++)
-    dttype[i] = dtfrotate / (shape[i][0]*shape[i][0]*mass[i]);
 
-  if (which == NOBIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	itype = type[i];
+  // update v,omega for all particles
+  // d_omega/dt = torque / inertia
+  // 8 cases depending on radius vs shape, rmass vs mass, bias vs nobias
 
-	dtfm = dtf / mass[itype] * factor;
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+  if (radius) {
+    if (rmass) {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    dtfm = dtf / rmass[i] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
+      } else {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / rmass[i] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
+      }
 
-	dtirotate = dttype[itype];
-	omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
-	omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
-	omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+    } else {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    dtfm = dtf / mass[itype] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*mass[itype]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
+      } else {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / mass[itype] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    
+	    dtirotate = dtfrotate / (radius[i]*radius[i]*mass[itype]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
       }
     }
 
   } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	itype = type[i];
+    if (rmass) {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    dtfm = dtf / rmass[i] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    
+	    dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
+      } else {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / rmass[i] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    
+	    dtirotate = dtfrotate / (shape[itype][0]*shape[itype][0]*rmass[i]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
+      }
 
-	temperature->remove_bias(i,v[i]);
-	dtfm = dtf / mass[itype] * factor;
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(i,v[i]);
-	
-	dtirotate = dttype[itype];
-	omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
-	omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
-	omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+    } else {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    dtfm = dtf / mass[itype] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    
+	    dtirotate = dtfrotate / 
+	      (shape[itype][0]*shape[itype][0]*mass[itype]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
+      } else {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    itype = type[i];
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / mass[itype] * factor;
+	    v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	    v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	    v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	    temperature->restore_bias(i,v[i]);
+	    
+	    dtirotate = dtfrotate / 
+	      (shape[itype][0]*shape[itype][0]*mass[itype]);
+	    omega[i][0] = (omega[i][0] + dtirotate*torque[i][0]) * factor;
+	    omega[i][1] = (omega[i][1] + dtirotate*torque[i][1]) * factor;
+	    omega[i][2] = (omega[i][2] + dtirotate*torque[i][2]) * factor;
+	  }
+	}
       }
     }
   }

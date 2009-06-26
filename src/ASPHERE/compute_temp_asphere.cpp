@@ -19,6 +19,7 @@
 #include "compute_temp_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
@@ -38,9 +39,6 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3 && narg != 4)
     error->all("Illegal compute temp/asphere command");
 
-  if (!atom->quat_flag || !atom->angmom_flag)
-    error->all("Compute temp/asphere requires atom attributes quat, angmom");
-
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extscalar = 0;
@@ -59,6 +57,16 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   vector = new double[6];
   inertia = 
     memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
+
+  // error checks
+
+  if (!atom->angmom_flag || !atom->quat_flag ||
+      !atom->avec->shape_type)
+    error->all("Compute temp/asphere requires atom attributes "
+	       "angmom, quat, shape");
+  if (atom->radius_flag || atom->rmass_flag)
+    error->all("Compute temp/asphere cannot be used with atom attributes "
+	       "diameter or rmass");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,6 +82,20 @@ ComputeTempAsphere::~ComputeTempAsphere()
 
 void ComputeTempAsphere::init()
 {
+  // check that all particles are finite-size
+  // no point particles allowed, spherical is OK
+
+  double **shape = atom->shape;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (shape[type[i]][0] == 0.0)
+	error->one("Compue temp/asphere requires extended particles");
+
   if (tempbias) {
     int i = modify->find_compute(id_bias);
     if (i < 0) error->all("Could not find compute ID for temperature bias");
@@ -101,44 +123,30 @@ void ComputeTempAsphere::init()
 
 void ComputeTempAsphere::dof_compute()
 {
+  // 6 dof for 3d, 3 dof for 2d
+  // assume full rotation of extended particles
+  // user can correct this via compute_modify if needed
+
   double natoms = group->count(igroup);
-  int dimension = domain->dimension;
-  dof = dimension * natoms;
+  if (domain->dimension == 3) dof = 6*natoms;
+  else dof = 3*natoms;
+
+  // additional adjustments to dof
 
   if (tempbias == 1) dof -= tbias->dof_remove(-1) * natoms;
+  else if (tempbias == 2) {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int count = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+	if (tbias->dof_remove(i)) count++;
+    int count_all;
+    MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
+    if (domain->dimension == 3) dof -= 6*count_all;
+    else dof -= 3*count_all;
+  }
 
-  // rotational degrees of freedom
-  // 0 for sphere, 2 for uniaxial, 3 for biaxial
-
-  double **shape = atom->shape;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int itype;
-  int count = 0;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      if (tempbias == 2 && tbias->dof_remove(i)) continue;
-      itype = type[i];
-      if (dimension == 2) {
-	if (shape[itype][0] == shape[itype][1]) continue;
-	else count++;
-      } else {
-	if (shape[itype][0] == shape[itype][1] && 
-	    shape[itype][1] == shape[itype][2]) continue;
-	else if (shape[itype][0] == shape[itype][1] || 
-		 shape[itype][1] == shape[itype][2] ||
-		 shape[itype][0] == shape[itype][2]) count += 2;
-	else count += 3;
-      }
-    }
-
-  int count_all;
-  MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
-  dof += count_all;
-    
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -169,31 +177,26 @@ double ComputeTempAsphere::compute_scalar()
   double rot[3][3];
   double t = 0.0;
   
+  // sum translationals and rotational energy for each particle
+  // no point particles since divide by inertia
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
 
-      // translational kinetic energy
-      
       itype = type[i];
       t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * mass[itype];
 
       // wbody = angular velocity in body frame
+      
+      MathExtra::quat_to_mat(quat[i],rot);
+      MathExtra::transpose_times_column3(rot,angmom[i],wbody);
+      wbody[0] /= inertia[itype][0];
+      wbody[1] /= inertia[itype][1];
+      wbody[2] /= inertia[itype][2];
 
-      if (!(shape[itype][0] == shape[itype][1] && 
-            shape[itype][1] == shape[itype][2])) {
-
-        MathExtra::quat_to_mat(quat[i],rot);
-        MathExtra::transpose_times_column3(rot,angmom[i],wbody);
-        wbody[0] /= inertia[itype][0];
-        wbody[1] /= inertia[itype][1];
-        wbody[2] /= inertia[itype][2];
-
-        // rotational kinetic energy
-
-        t += inertia[itype][0]*wbody[0]*wbody[0]+
-             inertia[itype][1]*wbody[1]*wbody[1]+
-             inertia[itype][2]*wbody[2]*wbody[2];
-      }
+      t += inertia[itype][0]*wbody[0]*wbody[0] +
+	inertia[itype][1]*wbody[1]*wbody[1] +
+	inertia[itype][2]*wbody[2]*wbody[2];
     }
 
   if (tempbias) tbias->restore_bias_all();

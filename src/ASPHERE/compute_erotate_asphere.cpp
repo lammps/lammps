@@ -15,6 +15,7 @@
 #include "compute_erotate_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
 #include "memory.h"
@@ -24,19 +25,27 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeERotateAsphere::ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
+ComputeERotateAsphere::
+ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 3) error->all("Illegal compute erotate/asphere command");
-
-  if (!atom->angmom_flag || !atom->quat_flag)
-    error->all("Compute erotate/asphere requires atom attributes angmom, quat");
 
   scalar_flag = 1;
   extscalar = 1;
 
   inertia = 
     memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
+
+  // error checks
+
+  if (!atom->angmom_flag || !atom->quat_flag ||
+      !atom->avec->shape_type)
+    error->all("Compute erotate/asphere requires atom attributes "
+	       "angmom, quat, shape");
+  if (atom->radius_flag || atom->rmass_flag)
+    error->all("Compute erotate/asphere cannot be used with atom attributes "
+	       "diameter or rmass");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -50,11 +59,21 @@ ComputeERotateAsphere::~ComputeERotateAsphere()
 
 void ComputeERotateAsphere::init()
 {
+  // check that all particles are finite-size
+  // no point particles allowed, spherical is OK
+
+  double **shape = atom->shape;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (shape[type[i]][0] == 0.0)
+	error->one("Compue erotate/asphere requires extended particles");
+
   pfactor = 0.5 * force->mvv2e;
-
-  if (!atom->shape)
-    error->all("Compute erotate/asphere requires atom attribute shape");
-
   calculate_inertia();
 }
 
@@ -62,6 +81,8 @@ void ComputeERotateAsphere::init()
 
 double ComputeERotateAsphere::compute_scalar()
 {
+  int i,itype;
+
   invoked_scalar = update->ntimestep;
 
   double **quat = atom->quat;
@@ -70,12 +91,14 @@ double ComputeERotateAsphere::compute_scalar()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  int itype;
+  // sum rotational energy for each particle
+  // no point particles since divide by inertia
+
   double wbody[3];
   double rot[3][3];
   double erotate = 0.0;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       itype = type[i];
 

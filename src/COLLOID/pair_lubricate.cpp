@@ -21,6 +21,7 @@
 #include "string.h"
 #include "pair_lubricate.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -56,6 +57,7 @@ PairLubricate::~PairLubricate()
     memory->destroy_2d_double_array(cut);
     memory->destroy_2d_double_array(cut_inner);
   }
+
   delete random;
 }
 
@@ -99,9 +101,9 @@ void PairLubricate::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  a_squeeze = a_shear = a_pump = a_twist = 0.0;
-
   // loop over neighbors of my atoms
+
+  a_squeeze = a_shear = a_pump = a_twist = 0.0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -388,17 +390,21 @@ void PairLubricate::coeff(int narg, char **arg)
 
 void PairLubricate::init_style()
 {
-  if (!atom->torque_flag || atom->shape == NULL)
-    error->all("Pair lubricate requires atom attributes torque, shape");
+  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
+    error->all("Pair lubricate requires atom attributes quat, torque, shape");
+  if (atom->radius_flag || atom->rmass_flag)
+    error->all("Pair lubricate cannot be used with atom attributes"
+	       "diameter or rmass");
 
-  // insure all particle shapes are spherical
+  // insure all particle shapes are finite-size, spherical, and monodisperse
 
+  double value = atom->shape[1][0];
+  if (value == 0.0) error->all("Pair lubricate requires extended particles");
   for (int i = 1; i <= atom->ntypes; i++)
-    if ((atom->shape[i][0] != atom->shape[i][1]) ||
-	(atom->shape[i][0] != atom->shape[i][2]) ||
-	(atom->shape[i][1] != atom->shape[i][2]) )
-      error->all("Pair lubricate requires spherical particles");
-
+    if (atom->shape[i][0] != value || atom->shape[i][0] != value || 
+	atom->shape[i][0] != value)
+      error->all("Pair lubricate requires spherical, mono-disperse particles");
+  
   int irequest = neighbor->request(this);
 }
 

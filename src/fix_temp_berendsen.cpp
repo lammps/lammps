@@ -87,9 +87,6 @@ int FixTempBerendsen::setmask()
 
 void FixTempBerendsen::init()
 {
-  if (atom->mass == NULL)
-    error->all("Cannot use fix temp/berendsen without per-type mass defined");
-
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
     error->all("Temp ID for fix temp/berendsen does not exist");
@@ -127,7 +124,6 @@ void FixTempBerendsen::end_of_step()
 	v[i][2] *= lamda;
       }
     }
-
   } else if (which == BIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {

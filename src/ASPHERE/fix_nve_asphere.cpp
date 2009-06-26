@@ -37,12 +37,18 @@ using namespace LAMMPS_NS;
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) : 
   FixNVE(lmp, narg, arg)
 {
-  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
-      !atom->shape)
-    error->all("Fix nve/asphere requires atom attributes "
-	       "quat, angmom, torque, shape");
   inertia = 
-    memory->create_2d_double_array(atom->ntypes+1,3,"fix_temp_sphere:inertia");
+    memory->create_2d_double_array(atom->ntypes+1,3,"fix_nve_asphere:inertia");
+
+  // error checks
+
+  if (!atom->angmom_flag || !atom->quat_flag || !atom->torque_flag ||
+      !atom->avec->shape_type)
+    error->all("Fix nve/asphere requires atom attributes "
+	       "angmom, quat, torque, shape");
+  if (atom->radius_flag || atom->rmass_flag)
+    error->all("Fix nve/asphere cannot be used with atom attributes "
+	       "diameter or rmass");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,6 +62,20 @@ FixNVEAsphere::~FixNVEAsphere()
 
 void FixNVEAsphere::init()
 {
+  // check that all particles are finite-size
+  // no point particles allowed, spherical is OK
+
+  double **shape = atom->shape;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (shape[type[i]][0] == 0.0)
+	error->one("Fix nve/asphere requires extended particles");
+
   FixNVE::init();
   calculate_inertia();
 }
@@ -65,8 +85,6 @@ void FixNVEAsphere::init()
 void FixNVEAsphere::initial_integrate(int vflag)
 {
   double dtfm;
-
-  dtq = 0.5 * dtv;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -79,6 +97,10 @@ void FixNVEAsphere::initial_integrate(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // set timestep here since dt may have changed or come via rRESPA
+
+  dtq = 0.5 * dtv;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -216,7 +238,7 @@ void FixNVEAsphere::calculate_inertia()
 {
   double *mass = atom->mass;
   double **shape = atom->shape;
-
+  
   for (int i = 1; i <= atom->ntypes; i++) {
     inertia[i][0] = 0.2*mass[i] *
       (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);

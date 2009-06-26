@@ -368,9 +368,6 @@ void FixRigid::init()
 
   triclinic = domain->triclinic;
 
-  if (atom->mass == NULL)
-    error->all("Cannot use fix rigid without per-type mass defined");
-
   // warn if more than one rigid fix
 
   int count = 0;
@@ -401,10 +398,11 @@ void FixRigid::init()
 
   // compute masstotal & center-of-mass of each rigid body
   
-  int *type = atom->type;
-  int *image = atom->image;
-  double *mass = atom->mass;
   double **x = atom->x;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *image = atom->image;
+  int *type = atom->type;
   int nlocal = atom->nlocal;
   
   double xprd = domain->xprd;
@@ -426,7 +424,8 @@ void FixRigid::init()
     xbox = (image[i] & 1023) - 512;
     ybox = (image[i] >> 10 & 1023) - 512;
     zbox = (image[i] >> 20) - 512;
-    massone = mass[type[i]];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
     
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -486,7 +485,8 @@ void FixRigid::init()
     dx = xunwrap - xcm[ibody][0];
     dy = yunwrap - xcm[ibody][1];
     dz = zunwrap - xcm[ibody][2];
-    massone = mass[type[i]];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
     
     sum[ibody][0] += massone * (dy*dy + dz*dz);
     sum[ibody][1] += massone * (dx*dx + dz*dz);
@@ -613,7 +613,8 @@ void FixRigid::init()
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
-    massone = mass[type[i]];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
 
     sum[ibody][0] += massone * 
       (displace[i][1]*displace[i][1] + displace[i][2]*displace[i][2]);
@@ -669,6 +670,7 @@ void FixRigid::setup(int vflag)
   int *type = atom->type;
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
 
@@ -679,7 +681,9 @@ void FixRigid::setup(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
-    massone = mass[type[i]];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
     sum[ibody][0] += v[i][0] * massone;
     sum[ibody][1] += v[i][1] * massone;
     sum[ibody][2] += v[i][2] * massone;
@@ -739,7 +743,9 @@ void FixRigid::setup(int vflag)
     dy = yunwrap - xcm[ibody][1];
     dz = zunwrap - xcm[ibody][2];
     
-    massone = mass[type[i]];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
     sum[ibody][0] += dy * massone*v[i][2] - dz * massone*v[i][1];
     sum[ibody][1] += dz * massone*v[i][0] - dx * massone*v[i][2];
     sum[ibody][2] += dx * massone*v[i][1] - dy * massone*v[i][0];
@@ -1413,6 +1419,7 @@ void FixRigid::set_xv()
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass; 
   double *mass = atom->mass; 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -1495,7 +1502,9 @@ void FixRigid::set_xv()
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
-      massone = mass[type[i]];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+
       fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
       fc2 = massone*(v[i][2] - v2)/dtf - f[i][2]; 
@@ -1526,10 +1535,11 @@ void FixRigid::set_v()
   double xy,xz,yz;
   double vr[6];
 
-  double *mass = atom->mass; 
   double **f = atom->f;
   double **v = atom->v;
   double **x = atom->x;
+  double *rmass = atom->rmass; 
+  double *mass = atom->mass; 
   int *type = atom->type;
   int *image = atom->image;
   int nlocal = atom->nlocal;
@@ -1578,7 +1588,9 @@ void FixRigid::set_v()
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
-      massone = mass[type[i]];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+
       fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
       fc2 = massone*(v[i][2] - v2)/dtf - f[i][2]; 

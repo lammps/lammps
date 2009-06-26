@@ -117,9 +117,6 @@ int FixNVT::setmask()
 
 void FixNVT::init()
 {
-  if (atom->mass == NULL)
-    error->all("Cannot use fix nvt without per-type mass defined");
-
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Temp ID for fix nvt does not exist");
   temperature = modify->compute[icompute];
@@ -132,7 +129,6 @@ void FixNVT::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dthalf = 0.5 * update->dt;
-
   drag_factor = 1.0 - (update->dt * t_freq * drag);
 
   if (strcmp(update->integrate_style,"respa") == 0) {
@@ -172,37 +168,70 @@ void FixNVT::initial_integrate(int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  if (which == NOBIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
+  if (rmass) {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  x[i][0] += dtv * v[i][0];
+	  x[i][1] += dtv * v[i][1];
+	  x[i][2] += dtv * v[i][2];
+	}
+      }
+
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / rmass[i];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  temperature->restore_bias(i,v[i]);
+	  x[i][0] += dtv * v[i][0];
+	  x[i][1] += dtv * v[i][1];
+	  x[i][2] += dtv * v[i][2];
+	}
       }
     }
 
-  } else if (which == BIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	temperature->remove_bias(i,v[i]);
-	dtfm = dtf / mass[type[i]];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(i,v[i]);
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
+  } else {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  x[i][0] += dtv * v[i][0];
+	  x[i][1] += dtv * v[i][1];
+	  x[i][2] += dtv * v[i][2];
+	}
+      }
+
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  temperature->restore_bias(i,v[i]);
+	  x[i][0] += dtv * v[i][0];
+	  x[i][1] += dtv * v[i][1];
+	  x[i][2] += dtv * v[i][2];
+	}
       }
     }
   }
@@ -218,31 +247,58 @@ void FixNVT::final_integrate()
 
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  if (which == NOBIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]] * factor;
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+  if (rmass) {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i] * factor;
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	}
+      }
+      
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / rmass[i] * factor;
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  temperature->restore_bias(i,v[i]);
+	}
       }
     }
 
-  } else if (which == BIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	temperature->remove_bias(i,v[i]);
-	dtfm = dtf / mass[type[i]] * factor;
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(i,v[i]);
+  } else {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]] * factor;
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	}
+      }
+      
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / mass[type[i]] * factor;
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  temperature->restore_bias(i,v[i]);
+	}
       }
     }
   }
@@ -276,6 +332,7 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -300,25 +357,51 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
     factor = exp(-dthalf*eta_dot);
   } else factor = 1.0;
 
-  if (which == NOBIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+  if (rmass) {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	}
+      }
+
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / rmass[i];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  temperature->restore_bias(i,v[i]);
+	}
       }
     }
 
-  } else if (which == BIAS) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	temperature->remove_bias(i,v[i]);
-	dtfm = dtf / mass[type[i]];
-	v[i][0] = v[i][0]*factor + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor + dtfm*f[i][2];
-	temperature->restore_bias(i,v[i]);
+  } else {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	}
+      }
+
+    } else if (which == BIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  temperature->remove_bias(i,v[i]);
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] = v[i][0]*factor + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
+	  temperature->restore_bias(i,v[i]);
+	}
       }
     }
   }
@@ -351,18 +434,31 @@ void FixNVT::final_integrate_respa(int ilevel)
   else {
     double **v = atom->v;
     double **f = atom->f;
+    double *rmass = atom->rmass;
     double *mass = atom->mass;
     int *type = atom->type;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
     if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
+      }
+      
+    } else {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
       }
     }
   }
@@ -440,7 +536,6 @@ void FixNVT::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dthalf = 0.5 * update->dt;
-
   drag_factor = 1.0 - (update->dt * t_freq * drag);
 }
 

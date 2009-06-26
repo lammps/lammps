@@ -22,6 +22,7 @@
 #include "pair_gayberne.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -334,8 +335,10 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
-  if (!atom->quat_flag || !atom->torque_flag)
-    error->all("Pair gayberne requires atom attributes quat, torque");
+  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
+    error->all("Pair gayberne requires atom attributes quat, torque, shape");
+  if (atom->radius_flag)
+    error->all("Pair gayberne cannot be used with atom attribute diameter");
 
   int irequest = neighbor->request(this);
 

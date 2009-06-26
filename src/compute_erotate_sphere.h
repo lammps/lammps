@@ -21,13 +21,12 @@ namespace LAMMPS_NS {
 class ComputeERotateSphere : public Compute {
  public:
   ComputeERotateSphere(class LAMMPS *, int, char **);
-  ~ComputeERotateSphere();
+  ~ComputeERotateSphere() {}
   void init();
   double compute_scalar();
 
  private:
   double pfactor;
-  double *inertia;
 };
 
 }

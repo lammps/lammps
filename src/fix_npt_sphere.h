@@ -21,13 +21,12 @@ namespace LAMMPS_NS {
 class FixNPTSphere : public FixNPT {
  public:
   FixNPTSphere(class LAMMPS *, int, char **);
-  ~FixNPTSphere();
+  ~FixNPTSphere() {}
   void init();
   void initial_integrate(int);
   void final_integrate();
 
  private:
-  double *dttype;
   double factor_rotate;
 };
 

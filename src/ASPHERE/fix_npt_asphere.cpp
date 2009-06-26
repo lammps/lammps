@@ -27,6 +27,7 @@
 #include "kspace.h"
 #include "update.h"
 #include "domain.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -38,22 +39,55 @@ enum{NOBIAS,BIAS};
 FixNPTAsphere::FixNPTAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNPT(lmp, narg, arg)
 {
+  inertia = 
+    memory->create_2d_double_array(atom->ntypes+1,3,"fix_npt_asphere:inertia");
+
+  // error checks
+
   if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
-      !atom->shape)
+      !atom->avec->shape_type)
     error->all("Fix npt/asphere requires atom attributes "
 	       "quat, angmom, torque, shape");
+  if (atom->radius_flag || atom->rmass_flag)
+    error->all("Fix npt/asphere cannot be used with atom attributes "
+	       "diameter or rmass");
 }
 
-/* ----------------------------------------------------------------------
-   1st half of Verlet update 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+FixNPTAsphere::~FixNPTAsphere()
+{
+  memory->destroy_2d_double_array(inertia);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNPTAsphere::init()
+{
+  // check that all particles are finite-size
+  // no point particles allowed, spherical is OK
+
+  double **shape = atom->shape;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (shape[type[i]][0] == 0.0)
+	error->one("Fix nvt/asphere requires extended particles");
+
+  FixNPT::init();
+  calculate_inertia();
+}
+
+/* ---------------------------------------------------------------------- */
 
 void FixNPTAsphere::initial_integrate(int vflag)
 {
   int i;
   double dtfm;
-
-  dtq = 0.5 * dtv;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -84,8 +118,6 @@ void FixNPTAsphere::initial_integrate(int vflag)
     dilation[i] = exp(dthalf*omega_dot[i]);
   }
   factor_rotate = exp(-dthalf*eta_dot);
-
-  // update v of only atoms in group
 
   double **x = atom->x;
   double **v = atom->v;
@@ -135,7 +167,11 @@ void FixNPTAsphere::initial_integrate(int vflag)
     }
   }
 
-  // update angular momentum by 1/2 step
+  // set timestep here since dt may have changed or come via rRESPA
+
+  dtq = 0.5 * dtv;
+
+  // update angular momentum by 1/2 step for all particles
   // update quaternion a full step via Richardson iteration
   // returns new normalized quaternion
 
@@ -145,9 +181,7 @@ void FixNPTAsphere::initial_integrate(int vflag)
       angmom[i][1] = angmom[i][1]*factor_rotate + dtf*torque[i][1];
       angmom[i][2] = angmom[i][2]*factor_rotate + dtf*torque[i][2];
 		
-      double inertia[3];
-      calculate_inertia(atom->mass[type[i]],atom->shape[type[i]],inertia);
-      richardson(quat[i],angmom[i],inertia);
+      richardson(quat[i],angmom[i],inertia[type[i]]);
     }
   }
 
@@ -158,9 +192,7 @@ void FixNPTAsphere::initial_integrate(int vflag)
   if (kspace_flag) force->kspace->setup();
 }
 
-/* ----------------------------------------------------------------------
-   2nd half of Verlet update 
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void FixNPTAsphere::final_integrate()
 {
@@ -320,15 +352,22 @@ void FixNPTAsphere::omega_from_mq(double *q, double *m, double *inertia,
   MathExtra::times_column3(rot,wbody,w);
 }
 
+
 /* ----------------------------------------------------------------------
-   calculate the moment of inertia for an ellipsoid, from mass and radii
-   shape = x,y,z radii in body frame
+   principal moments of inertia for ellipsoids
 ------------------------------------------------------------------------- */
 
-void FixNPTAsphere::calculate_inertia(double mass, double *shape,
-				      double *inertia)
+void FixNPTAsphere::calculate_inertia()
 {
-  inertia[0] = 0.2*mass*(shape[1]*shape[1]+shape[2]*shape[2]);
-  inertia[1] = 0.2*mass*(shape[0]*shape[0]+shape[2]*shape[2]);
-  inertia[2] = 0.2*mass*(shape[0]*shape[0]+shape[1]*shape[1]);
+  double *mass = atom->mass;
+  double **shape = atom->shape;
+  
+  for (int i = 1; i <= atom->ntypes; i++) {
+    inertia[i][0] = 0.2*mass[i] *
+      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);
+    inertia[i][1] = 0.2*mass[i] *
+      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
+    inertia[i][2] = 0.2*mass[i] * 
+      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
+  }
 }

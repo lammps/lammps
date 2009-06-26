@@ -250,8 +250,6 @@ int FixNPH::setmask()
 void FixNPH::init()
 {
   if (domain->triclinic) error->all("Cannot use fix nph with triclinic box");
-  if (atom->mass == NULL)
-    error->all("Cannot use fix nph without per-type mass defined");
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
@@ -353,6 +351,7 @@ void FixNPH::setup(int vflag)
 void FixNPH::initial_integrate(int vflag)
 {
   int i;
+  double dtfm;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -380,18 +379,29 @@ void FixNPH::initial_integrate(int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double dtfm;
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
-      v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
-      v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+  if (rmass) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / rmass[i];
+	v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+      }
+    }
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
+	v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
+	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+      }
     }
   }
 
@@ -423,23 +433,35 @@ void FixNPH::initial_integrate(int vflag)
 void FixNPH::final_integrate()
 {
   int i;
+  double dtfm;
 
   // v update only for atoms in NPH group
 
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double dtfm;
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
-      v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
-      v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
+  if (rmass) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / rmass[i];
+	v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
+	v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
+	v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
+      }
+    }
+  } else {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	dtfm = dtf / mass[type[i]];
+	v[i][0] = (v[i][0] + dtfm*f[i][0]) * factor[0];
+	v[i][1] = (v[i][1] + dtfm*f[i][1]) * factor[1];
+	v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
+      }
     }
   }
 
@@ -499,6 +521,7 @@ void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -533,12 +556,23 @@ void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
 
     // v update only for atoms in NPH group
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
-	v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
-	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+	}
+      }
+    } else {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] = v[i][0]*factor[0] + dtfm*f[i][0];
+	  v[i][1] = v[i][1]*factor[1] + dtfm*f[i][1];
+	  v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
+	}
       }
     }
 
@@ -550,12 +584,23 @@ void FixNPH::initial_integrate_respa(int vflag, int ilevel, int flag)
 
     // v update only for atoms in NPH group
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
+      }
+    } else {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
       }
     }
   }
@@ -595,17 +640,29 @@ void FixNPH::final_integrate_respa(int ilevel)
 
     double **v = atom->v;
     double **f = atom->f;
+    double *rmass = atom->rmass;
     double *mass = atom->mass;
     int *type = atom->type;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
+      }
+    } else {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
+	}
       }
     }
   }

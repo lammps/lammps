@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class FixNVESphere : public FixNVE {
  public:
   FixNVESphere(class LAMMPS *, int, char **);
-  ~FixNVESphere();
+  ~FixNVESphere() {}
   int setmask();
   void init();
   void initial_integrate(int);
@@ -29,8 +29,6 @@ class FixNVESphere : public FixNVE {
 
  private:
   int extra;
-  double dtfrotate;
-  double *dttype;
 };
 
 }

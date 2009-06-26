@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
+   Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"

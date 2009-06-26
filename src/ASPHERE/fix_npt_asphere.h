@@ -21,16 +21,19 @@ namespace LAMMPS_NS {
 class FixNPTAsphere : public FixNPT {
  public:
   FixNPTAsphere(class LAMMPS *, int, char **);
+  ~FixNPTAsphere();
+  void init();
   void initial_integrate(int);
   void final_integrate();
 
  private:
   double dtq;
   double factor_rotate;
+  double **inertia;
 
   void richardson(double *, double *, double *);
   void omega_from_mq(double *, double *, double *, double *);
-  void calculate_inertia(double mass, double *shape, double *inertia);
+  void calculate_inertia();
 };
 
 }

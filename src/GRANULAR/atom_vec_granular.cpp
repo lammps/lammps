@@ -533,8 +533,11 @@ int AtomVecGranular::unpack_restart(double *buf)
 
   radius[nlocal] = buf[m++];
   density[nlocal] = buf[m++];
-  rmass[nlocal] = 4.0*PI/3.0 * 
-    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
+
+  if (radius[nlocal] == 0.0) rmass[nlocal] = density[nlocal];
+  else 
+    rmass[nlocal] = 4.0*PI/3.0 * 
+      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
@@ -601,10 +604,17 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values)
     error->one("Invalid atom type in Atoms section of data file");
 
   radius[nlocal] = 0.5 * atof(values[2]);
+  if (radius[nlocal] < 0.0)
+    error->one("Invalid radius in Atoms section of data file");
+
   density[nlocal] = atof(values[3]);
-  rmass[nlocal] = 4.0*PI/3.0 *
-    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-  if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
+  if (density[nlocal] <= 0.0)
+    error->one("Invalid density in Atoms section of data file");
+
+  if (radius[nlocal] == 0.0) rmass[nlocal] = density[nlocal];
+  else 
+    rmass[nlocal] = 4.0*PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -631,10 +641,17 @@ void AtomVecGranular::data_atom(double *coord, int imagetmp, char **values)
 int AtomVecGranular::data_atom_hybrid(int nlocal, char **values)
 {
   radius[nlocal] = 0.5 * atof(values[0]);
+  if (radius[nlocal] < 0.0)
+    error->one("Invalid radius in Atoms section of data file");
+
   density[nlocal] = atof(values[1]);
-  rmass[nlocal] = 4.0*PI/3.0 *
-    radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
-  if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
+  if (density[nlocal] <= 0.0)
+    error->one("Invalid density in Atoms section of data file");
+
+  if (radius[nlocal] == 0.0) rmass[nlocal] = density[nlocal];
+  else 
+    rmass[nlocal] = 4.0*PI/3.0 *
+      radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;

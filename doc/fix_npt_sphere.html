@@ -215,10 +215,12 @@ this.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix requires that particles be represented as extended spheres
-and not point particles.  This means they will have an angular
-velocity and a diameter which is determined by the <A HREF = "shape.html">shape</A>
-command.
+<P>This fix requires that atoms store torque and angular velocity (omega)
+as defined by the <A HREF = "atom_style.html">atom_style</A>.  It also require they
+store either a per-particle diameter or per-type <A HREF = "shape.html">shape</A>.
+</P>
+<P>All particles in the group must be finite-size spheres.  They cannot
+be point particles, nor can they be aspherical.
 </P>
 <P>Any dimension being adjusted by this fix must be periodic.  A
 dimension whose target pressures are specified as NULL can be

@@ -154,10 +154,16 @@ This pair style can only be used via the {pair} keyword of the
 
 This style is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.  You must also
-define a size and shape for each particle type via the
-"shape"_shape.html command which requires "atom_style
-ellipsoid"_atom_style.html.
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+This pair style requires that atoms store torque and a quaternion to
+represent their orientation, as defined by the
+"atom_style"_atom_style.html.  It also require they store a per-type
+"shape"_shape.html.  The particles cannot store a per-particle
+diameter.
+
+Particles acted on by the potential can be extended aspherical or
+spherical particles, or point particles.
 
 The Gay-Berne potential does not become isotropic as r increases
 "(Everaers)"_#Everaers.  The distance-of-closest-approach

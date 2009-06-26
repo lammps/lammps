@@ -48,10 +48,14 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This fix requires that particles be represented as extended ellipsoids
-and not point particles.  This means they will have an angular
-momentum and a shape which is determined by the <A HREF = "shape.html">shape</A>
-command.
+<P>This fix requires that atoms store torque and angular momentum and a
+quaternion to represent their orientation, as defined by the
+<A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
+<A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
+diameter or per-particle mass.
+</P>
+<P>All particles in the group must be finite-size.  They cannot be point
+particles, but they can be aspherical or spherical.
 </P>
 <P><B>Related commands:</B>
 </P>

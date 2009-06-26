@@ -63,8 +63,8 @@ is normally not used.
 If you define a "hybrid atom style"_atom_style.html which includes one
 (or more) sub-styles which require per-type mass and one (or more)
 sub-styles which require per-atom mass, then you must define both.  In
-this case the per-type mass will be ignored; only the per-atom mass is
-used by LAMMPS.
+this case the per-type mass will be ignored; only the per-atom mass
+will be used by LAMMPS.
 
 [Restrictions:]
 

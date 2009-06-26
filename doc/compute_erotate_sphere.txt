@@ -38,12 +38,16 @@ it scales with the number of atoms in the simulation.
 
 [Restrictions:]
 
-This compute requires that particles be represented as extended
-spheres and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-"shape"_shape.html command or by each particle being assigned an
-individual radius, e.g. for "atom_style granular"_atom_style.html.
+This compute requires that atoms store angular velocity (omega) as
+defined by the "atom_style"_atom_style.html.  It also require they
+store either a per-particle diameter or per-type "shape"_shape.html.
 
-[Related commands:] none
+All particles in the group must be finite-size spheres or point
+particles.  They cannot be aspherical.  Point particles will not
+contribute to the rotational energy.
+
+[Related commands:]
+
+"compute erotate/asphere"_compute_rotate_asphere.html
 
 [Default:] none

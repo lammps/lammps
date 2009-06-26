@@ -61,11 +61,13 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 </P>
 <P><B>Restrictions:</B> 
 </P>
-<P>This fix requires that particles be represented as extended spheres
-and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-<A HREF = "shape.html">shape</A> command or by each particle being assigned an
-individual radius, e.g. for <A HREF = "atom_style.html">atom_style granular</A>.
+<P>This fix requires that atoms store torque and angular velocity (omega)
+as defined by the <A HREF = "atom_style.html">atom_style</A>.  It also require they
+store either a per-particle diameter or per-type <A HREF = "shape.html">shape</A>.  If
+the <I>dipole</I> keyword is used, then they must store a dipole moment.
+</P>
+<P>All particles in the group must be finite-size spheres.  They cannot
+be point particles, nor can they be aspherical.
 </P>
 <P><B>Related commands:</B>
 </P>

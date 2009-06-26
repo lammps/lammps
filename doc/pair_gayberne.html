@@ -157,10 +157,16 @@ to be specified in an input script that reads a restart file.
 </P>
 <P>This style is part of the "asphere" package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info.  You must also
-define a size and shape for each particle type via the
-<A HREF = "shape.html">shape</A> command which requires <A HREF = "atom_style.html">atom_style
-ellipsoid</A>.
+LAMMPS</A> section for more info.
+</P>
+<P>This pair style requires that atoms store torque and a quaternion to
+represent their orientation, as defined by the
+<A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
+<A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
+diameter.
+</P>
+<P>Particles acted on by the potential can be extended aspherical or
+spherical particles, or point particles.
 </P>
 <P>The Gay-Berne potential does not become isotropic as r increases
 <A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach

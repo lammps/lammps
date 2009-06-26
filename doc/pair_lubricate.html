@@ -118,12 +118,16 @@ to be specified in an input script that reads a restart file.
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>Because this potential computes forces and torques on particles, the
-atom style must support particles whose size is set via the
-<A HREF = "shape.html">shape</A> command.  This is <A HREF = "atom_style.html">atom_style</A>
-ellipsoid and dipole.  Since only spherical mono-disperse particles
-are currently allowed for pair_style lubricate, this means the 3 shape
-radii for all particle types must be the same.
+<P>This pair style requires that atoms store torque and a quaternion to
+represent their orientation, as defined by the
+<A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
+<A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
+diameter or per-particle mass.
+</P>
+<P>All the shape settings must be for finite-size spheres.  They cannot
+be point particles, nor can they be aspherical.  Additionally all the
+shape types must specify particles of the same size, i.e. a
+monodisperse system.
 </P>
 <P><B>Related commands:</B>
 </P>

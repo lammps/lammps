@@ -291,6 +291,19 @@ is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is an unbonded atom or if you don't care to
 keep track of molecule assignments.
 
+The diameter specifies the size of a finite size particle, analagous
+to the "shape"_shape.html command which sets the size on a per-type
+basis.  A diameter can be set to 0.0, which means that atom is a point
+particle and not a finite-size particles.  Some pair styles and fixes
+and computes that operate on finite-size particles allow for a mixture
+of finite-size and point particles.  See the doc pages of individual
+commands for details.
+
+The density is used in conjunction with the diameter to set the mass
+of a particle as mass = density * volume.  If the diameter and volume
+are 0.0 meaning a point particle, then the mass is not 0.0 but is set
+as mass = density.
+
 The values {quatw}, {quati}, {quatj}, and {quatk} set the orientation
 of the atom as a quaternion (4-vector).  Note that the
 "shape"_shape.html command or "Shapes" section of the data file

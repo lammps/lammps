@@ -44,6 +44,17 @@ ellipsoids and not point particles.  This means they will have an
 angular momentum and a shape which is determined by the
 "shape"_shape.html command.
 
+This compute requires that atoms store angular momentum and a
+quaternion to represent their orientation, as defined by the
+"atom_style"_atom_style.html.  It also require they store a per-type
+"shape"_shape.html.  The particles cannot store a per-particle
+diameter or per-particle mass.
+
+All particles in the group must be finite-size.  They cannot be point
+particles, but they can be aspherical or spherical.
+
 [Related commands:] none
+
+"compute erotate/sphere"_compute_rotate_sphere.html
 
 [Default:] none

@@ -179,6 +179,12 @@ All the granular pair styles are part of the "granular" package.  It
 is only enabled if LAMMPS was built with that package.  See the
 "Making LAMMPS"_Section_start.html#2_3 section for more info.
 
+These pair styles require that atoms store torque and angular velocity
+(omega) as defined by the "atom_style"_atom_style.html.  They also
+require they store a per-particle radius and that velocities are
+communicated with ghost atoms.  The {granular} and {dpd} atom styles
+are the ones that currently do this.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

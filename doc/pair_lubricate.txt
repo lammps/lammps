@@ -115,12 +115,16 @@ This style is part of the "colloid" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-Because this potential computes forces and torques on particles, the
-atom style must support particles whose size is set via the
-"shape"_shape.html command.  This is "atom_style"_atom_style.html
-ellipsoid and dipole.  Since only spherical mono-disperse particles
-are currently allowed for pair_style lubricate, this means the 3 shape
-radii for all particle types must be the same.
+This pair style requires that atoms store torque and a quaternion to
+represent their orientation, as defined by the
+"atom_style"_atom_style.html.  It also require they store a per-type
+"shape"_shape.html.  The particles cannot store a per-particle
+diameter or per-particle mass.
+
+All the shape settings must be for finite-size spheres.  They cannot
+be point particles, nor can they be aspherical.  Additionally all the
+shape types must specify particles of the same size, i.e. a
+monodisperse system.
 
 [Related commands:]
 

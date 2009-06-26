@@ -189,6 +189,12 @@ specified in an input script that reads a restart file.
 is only enabled if LAMMPS was built with that package.  See the
 <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
 </P>
+<P>These pair styles require that atoms store torque and angular velocity
+(omega) as defined by the <A HREF = "atom_style.html">atom_style</A>.  They also
+require they store a per-particle radius and that velocities are
+communicated with ghost atoms.  The <I>granular</I> and <I>dpd</I> atom styles
+are the ones that currently do this.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>

@@ -27,7 +27,9 @@ shape 2* 3.0 1.0 1.0 :pre
 
 Set the shape for all atoms of one or more atom types.  In LAMMPS,
 particles that have a finite size are said to have a "shape", as
-opposed to being a point mass.  Shape values can also be set in the
+opposed to being a point mass.  The shape can be spherical or
+aspherical, depending on whether the 3 shape values are the same or
+different.  Shape values can also be set in the
 "read_data"_read_data.html data file using the "Shapes" keyword.  See
 the "units"_units.html command for what distance units to use.
 
@@ -49,10 +51,11 @@ the line that corresponds to the 1st example above would be listed as
 
 1 1.0 1.0 1.0 :pre
 
-The shape values can be set to 0.0, which means that atoms of that
-type are point masses and not finite-size particles.  Pair styles and
-fixes that rely on particles having a finite size should not be used
-for such particles.
+The shape values can be set to all 0.0, which means that atoms of that
+type are point particles and not finite-size particles.  Some pair
+styles and fixes and computes that operate on finite-size particles
+allow for a mixture of finite-size and point particles.  See the doc
+pages of individual commands for details.
 
 Note that the shape command can only be used if the "atom
 style"_atom_style.html requires per-type atom shape to be set.
@@ -78,10 +81,10 @@ all 3 shape components the same.
 
 If you define a "hybrid atom style"_atom_style.html which includes one
 (or more) sub-styles which require per-type shape and one (or more)
-sub-styles which require per-atom shape, then you must define both.
-If the per-atom diameter is set to 0.0, the per-type shape is used.
-If the per-atom diameter is non-zero, then the per-type shape is
-ignored.
+sub-styles which require per-atom diameter, then you must define both.
+In this case the per-type shape will be ignored; only the per-atom
+diameter will be used by LAMMPS.  Note that this means you can not
+currently mix aspherical particles with per-atom diameter particles.
 
 [Restrictions:]
 

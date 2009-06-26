@@ -53,11 +53,13 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] 
 
-This fix requires that particles be represented as extended spheres
-and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-"shape"_shape.html command or by each particle being assigned an
-individual radius, e.g. for "atom_style granular"_atom_style.html.
+This fix requires that atoms store torque and angular velocity (omega)
+as defined by the "atom_style"_atom_style.html.  It also require they
+store either a per-particle diameter or per-type "shape"_shape.html.  If
+the {dipole} keyword is used, then they must store a dipole moment.
+
+All particles in the group must be finite-size spheres.  They cannot
+be point particles, nor can they be aspherical.
 
 [Related commands:]
 

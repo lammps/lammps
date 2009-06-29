@@ -42,7 +42,7 @@ enum{INDEX,LOOP,EQUAL,WORLD,UNIVERSE,ULOOP,ATOM};
 enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
        SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,
-       CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY};
+       CEIL,FLOOR,ROUND,VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
 
 /* ---------------------------------------------------------------------- */
 
@@ -1160,6 +1160,7 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == VALUE) return tree->value;
   if (tree->type == ATOMARRAY) return tree->array[i*tree->nstride];
   if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
+  if (tree->type == INTARRAY) return tree->iarray[i*tree->nstride];
 
   if (tree->type == ADD)
     return eval_tree(tree->left,i) + eval_tree(tree->right,i);
@@ -1595,7 +1596,7 @@ int Variable::region_function(char *id)
    flag = 1 -> vector is a per-atom compute or fix quantity with nstride
    id = positive global ID of atom, converted to local index
    push result onto tree or arg stack
-   customize by adding an atom vector: mass,x,y,z,vx,vy,vz,fx,fy,fz
+   customize by adding an atom vector: mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
@@ -1613,9 +1614,10 @@ void Variable::peratom2global(int flag, char *word,
 
     if (flag == 0) {
       if (strcmp(word,"mass") == 0) {
-	if (atom->mass) mine = atom->mass[atom->type[index]];
-	else mine = atom->rmass[index];
+	if (atom->rmass) mine = atom->rmass[index];
+	else mine = atom->mass[atom->type[index]];
       }
+      else if (strcmp(word,"type") == 0) mine = atom->type[index];
       else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
       else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
       else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
@@ -1648,7 +1650,7 @@ void Variable::peratom2global(int flag, char *word,
    process an atom vector in formula
    push result onto tree
    word = atom vector
-   customize by adding an atom vector: mass,x,y,z,vx,vy,vz,fx,fy,fz
+   customize by adding an atom vector: mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree,
@@ -1664,13 +1666,17 @@ void Variable::atom_vector(char *word, Tree **tree,
   treestack[ntreestack++] = newtree;
 	    
   if (strcmp(word,"mass") == 0) {
-    if (atom->mass) {
-      newtree->type = TYPEARRAY;
-      newtree->array = atom->mass;
-    } else {
+    if (atom->rmass) {
       newtree->nstride = 1;
       newtree->array = atom->rmass;
+    } else {
+      newtree->type = TYPEARRAY;
+      newtree->array = atom->mass;
     }
+  } else if (strcmp(word,"type") == 0) {
+    newtree->type = INTARRAY;
+    newtree->nstride = 1;
+    newtree->iarray = atom->type;
   }
   else if (strcmp(word,"x") == 0) newtree->array = &atom->x[0][0];
   else if (strcmp(word,"y") == 0) newtree->array = &atom->x[0][1];

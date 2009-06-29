@@ -46,6 +46,7 @@ class Variable : protected Pointers {
   struct Tree {            // parse tree for atom-style variables
     double value;
     double *array;
+    int *iarray;
     int nstride;
     int type;
     Tree *left,*right;

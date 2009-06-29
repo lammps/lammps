@@ -33,9 +33,9 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {eq
     region functions = count(group,region), mass(group,region), charge(group,region),
 		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
 		      bound(group,xmin,region), gyration(group,region), ke(group,reigon)
-    atom value = mass\[N\], x\[N\], y\[N\], z\[N\],
+    atom value = mass\[N\], type\[N\], x\[N\], y\[N\], z\[N\],
                  vx\[N\], vy\[N\], vz\[N\], fx\[N\], fy\[N\], fz\[N\]
-    atom vector = mass\[\], x\[\], y\[\], z\[\],
+    atom vector = mass\[\], type\[\], x\[\], y\[\], z\[\],
                   vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
     compute references = c_ID, c_ID\[2\], c_ID\[N\], c_ID\[N\]\[2\], c_ID\[\], c_ID\[\]\[2\]
     fix references = f_ID, f_ID\[2\], f_ID\[N\], f_ID\[N\]\[2\], f_ID\[\], f_ID\[\]\[2\]
@@ -245,9 +245,9 @@ Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID)
 Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), \
                  vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR)
-Atom values: mass\[N\], x\[N\], y\[N\], z\[N\], \
+Atom values: mass\[N\], type\[N\], x\[N\], y\[N\], z\[N\], \
              vx\[N\], vy\[N\], vz\[N\], fx\[N\], fy\[N\], fz\[N\]
-Atom vectors: mass\[\], x\[\], y\[\], z\[\], \
+Atom vectors: mass\[\], type\[\], x\[\], y\[\], z\[\], \
               vx\[\], vy\[\], vz\[\], fx\[\], fy\[\], fz\[\]
 Compute references: c_ID, c_ID\[2\], c_ID\[N\], c_ID\[N\]\[2\], c_ID\[\], c_ID\[\]\[2\]
 Fix references: f_ID, f_ID\[2\], f_ID\[N\], f_ID\[N\]\[2\], f_ID\[\], f_ID\[\]\[2\]

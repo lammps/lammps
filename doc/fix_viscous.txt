@@ -47,6 +47,11 @@ optional keyword {scale} is used, gamma can scaled up or down by the
 specified factor for atoms of that type.  It can be used multiple
 times to adjust gamma for several atom types.
 
+IMPORTANT NOTE: You should specify gamma in force/velocity units.
+This is not the same as mass/time units, at least for some of the
+LAMMPS "units"_units.html options like "real" or "metal" that are not
+self-consistent.
+
 In a Brownian dynamics context, gamma = kT / D, where k = Boltzmann's
 constant, T = temperature, and D = particle diffusion coefficient.  D
 can be written as kT / (3 pi eta d), where eta = dynamic viscosity of
@@ -66,8 +71,8 @@ viscous damping term as fix viscous and adds a random force to each
 atom.  Hence if using fix {langevin} you do not typically need to use
 fix {viscous}.  Also note that the gamma of fix viscous is related to
 the damping parameter of "fix langevin"_fix_langevin.html, except that
-the units of gamma are force/velocity (or mass/time) and the units of
-damp are time, so that it can more easily be used as a thermostat.
+the units of gamma are force/velocity and the units of damp are time,
+so that it can more easily be used as a thermostat.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

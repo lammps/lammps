@@ -53,13 +53,14 @@ Examples of large rigid bodies are a large colloidal particle, or
 portions of a large biomolecule such as a protein.
 
 Example of small rigid bodies are patchy nanoparticles, such as those
-modeled by the "Glotzer group"_Glotzer, clumps of granular particles,
-lipid molecules consiting of one or more point dipoles connected to
-other spheroids or ellipsoids, and coarse-grain models of nano or
-colloidal particles consisting of a small number of constituent
-particles.  Note that the "fix shake"_fix_shake command can also be
-used to rigidify small molecules of 2, 3, or 4 atoms, e.g. water
-molecules.  That fix treats the constituent atoms as point masses.
+modeled in "this paper"_#Zhang by Sharon Glotzer's group, clumps of
+granular particles, lipid molecules consiting of one or more point
+dipoles connected to other spheroids or ellipsoids, and coarse-grain
+models of nano or colloidal particles consisting of a small number of
+constituent particles.  Note that the "fix shake"_fix_shake.html
+command can also be used to rigidify small molecules of 2, 3, or 4
+atoms, e.g. water molecules.  That fix treats the constituent atoms as
+point masses.
 
 The constituent particles within a rigid body can be point particles
 (the default in LAMMPS) or finite-size particles, such as spheroids
@@ -240,5 +241,5 @@ all rigid bodies are acted on by center-of-mass force and torque.
 
 :line
 
-:link(Glotzer_group)
+:link(Zhang)
 [(Zhang)] Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).

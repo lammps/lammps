@@ -394,7 +394,7 @@ bool parse_to(const char * token,ifstream &in) {
     in.getline(iline,5000);
     if (in.eof() || !in)
       return false;
-    if (strcmp(token,iline)==0)
+    if (strncmp(token,iline,strlen(token))==0)
       return true;
   }
 }

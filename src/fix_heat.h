@@ -29,7 +29,7 @@ class FixHeat : public Fix {
  private:
   double heat;
   double masstotal;
-  double r;
+  double scale;
 };
 
 }

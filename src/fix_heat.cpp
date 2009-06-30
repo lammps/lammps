@@ -37,7 +37,6 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   scalar_flag = 1;
   scalar_vector_freq = 1;
   extscalar = 0;
-  r = 1.0;
 
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix heat command");
@@ -48,6 +47,8 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // cannot have 0 atoms in group
 
   if (group->count(igroup) == 0.0) error->all("Fix heat group has no atoms");
+
+  scale = 1.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,17 +82,17 @@ void FixHeat::end_of_step()
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
   double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
   if (escale < 0.0) error->all("Fix heat kinetic energy went negative");
-  r = sqrt(escale);
+  scale = sqrt(escale);
 
-  vsub[0] = (r-1.0) * vcm[0];
-  vsub[1] = (r-1.0) * vcm[1];
-  vsub[2] = (r-1.0) * vcm[2];
+  vsub[0] = (scale-1.0) * vcm[0];
+  vsub[1] = (scale-1.0) * vcm[1];
+  vsub[2] = (scale-1.0) * vcm[2];
   
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      v[i][0] = r*v[i][0] - vsub[0];
-      v[i][1] = r*v[i][1] - vsub[1];
-      v[i][2] = r*v[i][2] - vsub[2];
+      v[i][0] = scale*v[i][0] - vsub[0];
+      v[i][1] = scale*v[i][1] - vsub[1];
+      v[i][2] = scale*v[i][2] - vsub[2];
     }
 }
 
@@ -99,5 +100,5 @@ void FixHeat::end_of_step()
 
 double FixHeat::compute_scalar()
 {
-  return r;
+  return scale;
 }

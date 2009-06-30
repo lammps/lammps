@@ -139,8 +139,8 @@ void Output::setup(int flag)
     for (int idump = 0; idump < ndump; idump++) {
       if (strcmp(dump[idump]->style,"custom") == 0)
 	modify->clearstep_compute();
-      if (ntimestep % dump_every[idump] == 0 && 
-	  last_dump[idump] != ntimestep) {
+      if ((ntimestep % dump_every[idump] == 0 && 
+	  last_dump[idump] != ntimestep) || last_dump[idump] < 0) {
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }

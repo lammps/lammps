@@ -17,10 +17,11 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "math.h"
 #include "stdio.h"
 #include "string.h"
-#include "mpi.h"
+#include "stdlib.h"
 #include "workspace.h"
 #include "fix_poems.h"
 #include "atom.h"

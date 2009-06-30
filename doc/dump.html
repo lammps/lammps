@@ -194,7 +194,10 @@ require an initial snapshot from an XYZ formatted file to get started.
 
 <P>Dumps are performed on timesteps that are a multiple of N (including
 timestep 0) and on the last timestep of a minimization if the
-minimization converges.  N can be changed between runs by using the
+minimization converges.  A dump is also performed on the very first
+timestep after the dump command is invoked.  This can be useful
+following a <A HREF = "minimize.html">minimization</A> which may converge and end on
+an arbitrary timestep.  N can be changed between runs by using the
 <A HREF = "dump_modify.html">dump_modify</A> command (not allowed for <I>dcd</I> style).
 </P>
 <P>The specified filename determines how the dump file(s) is written.

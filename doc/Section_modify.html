@@ -324,13 +324,15 @@ derived class.  See fix.h for details.
 <P>Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
 will be invoked during the timestep.  Fixes that perform time
-integration (<I>nve</I>, <I>nvt</I>, <I>npt</I>) implement initial_integrate and
-final_integrate to perform velocity Verlet updates.  Fixes that
-constrain forces implement post_force.  Fixes that perform diagnostics
-typically implement end_of_step.  For an end_of_step fix, one of your
-fix arguments must be the variable "nevery" which is used to determine
-when to call the fix.  By convention, this is the first argument the
-fix defines (after the ID, group-ID, style).
+integration (<I>nve</I>, <I>nvt</I>, <I>npt</I>) implement initial_integrate() and
+final_integrate() to perform velocity Verlet updates.  Fixes that
+constrain forces implement post_force().
+</P>
+<P>Fixes that perform diagnostics typically implement end_of_step().  For
+an end_of_step fix, one of your fix arguments must be the variable
+"nevery" which is used to determine when to call the fix and you must
+set this variable in the constructor of your fix.  By convention, this
+is the first argument the fix defines (after the ID, group-ID, style).
 </P>
 <P>If the fix needs to store information for each atom that persists from
 timestep to timestep, it can manage that memory and migrate the info

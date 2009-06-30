@@ -311,13 +311,15 @@ thermo: compute quantities for thermodynamic output :tb(s=:)
 Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
 will be invoked during the timestep.  Fixes that perform time
-integration ({nve}, {nvt}, {npt}) implement initial_integrate and
-final_integrate to perform velocity Verlet updates.  Fixes that
-constrain forces implement post_force.  Fixes that perform diagnostics
-typically implement end_of_step.  For an end_of_step fix, one of your
-fix arguments must be the variable "nevery" which is used to determine
-when to call the fix.  By convention, this is the first argument the
-fix defines (after the ID, group-ID, style).
+integration ({nve}, {nvt}, {npt}) implement initial_integrate() and
+final_integrate() to perform velocity Verlet updates.  Fixes that
+constrain forces implement post_force().
+
+Fixes that perform diagnostics typically implement end_of_step().  For
+an end_of_step fix, one of your fix arguments must be the variable
+"nevery" which is used to determine when to call the fix and you must
+set this variable in the constructor of your fix.  By convention, this
+is the first argument the fix defines (after the ID, group-ID, style).
 
 If the fix needs to store information for each atom that persists from
 timestep to timestep, it can manage that memory and migrate the info

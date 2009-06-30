@@ -66,6 +66,27 @@ quantities.
 <TR><TD ><I>peri</I> </TD><TD > density, volume </TD><TD > mesocopic Peridynamic models 
 </TD></TR></TABLE></DIV>
 
+<P>All of the styles define point particles, except the <I>ellipsoid</I> and
+<I>granular</I> and <I>peri</I> styles.  These define finite-size particles.
+For <I>ellipsoidal</I> systems, the <A HREF = "shape.html">shape</A> command is used to
+specify the size and shape of particles, which can be spherical or
+aspherical.  For <I>granular</I> systems, the particles are spherical and
+each has a specified diameter.  For <I>peri</I> systems, the particles are
+spherical and each has a specified volume.
+</P>
+<P>All of the styles assign mass to particles on a per-type basis, using
+the <A HREF = "mass.html">mass</A> command, except the <I>granular</I> and <I>peri</I> styles.
+For <I>granular</I> systems, the specified diameter and density are used to
+calculate each particle's mass.  For <I>peri</I> systems, the speficied
+volume and density are used to calculate each particle's mass.
+</P>
+<P>Only the <I>dpd</I> and <I>granular</I> styles communicate velocities with ghost
+atoms; the others do not.  This is because the pairwise interactions
+calculated by the <A HREF = "pair_dpd.html">pair_style dpd</A> and <A HREF = "pair_gran.html">pair_style
+granular</A> commands require velocities.
+</P>
+<HR>
+
 <P>Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
 by a particular style, use the simplest style that defines all the
@@ -74,8 +95,8 @@ simulation are charged, but others are not, use the <I>charge</I> style.
 If some atoms have bonds, but others do not, use the <I>bond</I> style.
 </P>
 <P>The only scenario where the <I>hybrid</I> style is needed is if there is no
-single style which defines all needed properties of all atoms.
-E.g. if you want charged DPD particles, you would need to use
+single style which defines all needed properties of all atoms.  For
+example, if you want charged DPD particles, you would need to use
 "atom_style hybrid dpd charge".  When a hybrid style is used, atoms
 store and communicate the union of all quantities implied by the
 individual styles.

@@ -76,7 +76,7 @@ void FixHeat::end_of_step()
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
   double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
   if (escale < 0.0) error->all("Fix heat kinetic energy went negative");
-  double r = sqrt(escale);
+  r = sqrt(escale);
 
   vsub[0] = (r-1.0) * vcm[0];
   vsub[1] = (r-1.0) * vcm[1];
@@ -88,4 +88,11 @@ void FixHeat::end_of_step()
       v[i][1] = r*v[i][1] - vsub[1];
       v[i][2] = r*v[i][2] - vsub[2];
     }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixHeat::compute_scalar()
+{
+  return r;
 }

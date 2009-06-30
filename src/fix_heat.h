@@ -24,10 +24,12 @@ class FixHeat : public Fix {
   int setmask();
   void init();
   void end_of_step();
+  double compute_scalar();
 
  private:
   double heat;
   double masstotal;
+  double r;
 };
 
 }

@@ -28,6 +28,7 @@ namespace MathExtra {
   // 3 vector operations
 
   inline void normalize3(const double *v, double *ans);
+  inline void snormalize3(const double, const double *v, double *ans);
   inline double dot3(const double *v1, const double *v2);
   inline void cross3(const double *v1, const double *v2, double *ans);
 
@@ -86,10 +87,22 @@ namespace MathExtra {
 
 void MathExtra::normalize3(const double *v, double *ans)
 {
-  double den = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  ans[0] = v[0]/den;
-  ans[1] = v[1]/den;
-  ans[2] = v[2]/den;
+  double scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  ans[0] = v[0]*scale;
+  ans[1] = v[1]*scale;
+  ans[2] = v[2]*scale;
+}
+
+/* ----------------------------------------------------------------------
+   scale a vector to length
+------------------------------------------------------------------------- */
+
+void MathExtra::snormalize3(const double length, const double *v, double *ans)
+{
+  double scale = length/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  ans[0] = v[0]*scale;
+  ans[1] = v[1]*scale;
+  ans[2] = v[2]*scale;
 }
 
 /* ----------------------------------------------------------------------
@@ -347,12 +360,12 @@ void MathExtra::write3(const double mat[3][3])
 
 void MathExtra::normalize4(double *quat)
 {
-  double den = sqrt(quat[0]*quat[0]+quat[1]*quat[1] +
-		    quat[2]*quat[2]+quat[3]*quat[3]);
-  quat[0] /= den;
-  quat[1] /= den;
-  quat[2] /= den;
-  quat[3] /= den;
+  double scale = 1.0/sqrt(quat[0]*quat[0]+quat[1]*quat[1] +
+			  quat[2]*quat[2]+quat[3]*quat[3]);
+  quat[0] *= scale;
+  quat[1] *= scale;
+  quat[2] *= scale;
+  quat[3] *= scale;
 }
 
 /* ----------------------------------------------------------------------

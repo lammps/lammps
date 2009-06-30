@@ -61,13 +61,27 @@ class FixRigid : public Fix {
   double **torque;          // torque on each rigid body in space coords
   double **quat;            // quaternion of each rigid body
   int *image;               // image flags of xcm of each rigid body
-  int *body;                // which body each atom is part of (-1 if none)
-  double **displace;        // displacement of each atom in body coords
   double **fflag;           // flag for on/off of center-of-mass force
   double **tflag;           // flag for on/off of center-of-mass torque
 
+  int *body;                // which body each atom is part of (-1 if none)
+  double **displace;        // displacement of each atom in body coords
+
   double **sum,**all;       // work vectors for each rigid body
   int **remapflag;          // PBC remap flags for each rigid body
+
+  int extended;             // 1 if any particles have extended attributes
+  int dorientflag;          // 1 if particles store dipole orientation
+  int qorientflag;          // 1 if particles store quat orientation
+
+  int *eflags;              // flags for extended particles
+  double **qorient;         // rotation state of ext particle wrt rigid body
+  double **dorient;         // orientation of dipole mu wrt rigid body
+
+                            // bitmasks for eflags
+  int INERTIA_SPHERE_RADIUS,INERTIA_SPHERE_SHAPE,INERTIA_ELLIPSOID;
+  int ORIENT_DIPOLE,ORIENT_QUAT;
+  int OMEGA,ANGMOM,TORQUE;
 
   int jacobi(double **, double *, double **);
   void rotate(double **, int, int, int, int, double, double);
@@ -76,7 +90,8 @@ class FixRigid : public Fix {
   void vecquat(double *, double *, double *);
   void quatvec(double *, double *, double *);
   void quatquat(double *, double *, double *);
-  void normalize(double *);
+  void qconjugate(double *, double *);
+  void qnormalize(double *);
   void richardson(double *, double *, double *, double *,
 		  double *, double *, double *);
   void omega_from_angmom(double *, double *, double *,

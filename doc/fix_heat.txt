@@ -66,6 +66,12 @@ commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
+This fix computes a scalar which can be accessed by various
+"output commands"_Section_howto.html#4_15.  This scalar is the 
+value by which velocites were scaled. The scalar value calculated
+by this fix is "intensive", meaning it does not scale with the 
+number of atoms in the simulation.
+
 [Restrictions:] none
 
 [Related commands:]

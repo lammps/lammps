@@ -86,7 +86,8 @@ void ReadData::command(int narg, char **arg)
       header(0);
       scan(atom->bond_per_atom,atom->angle_per_atom,
 	   atom->dihedral_per_atom,atom->improper_per_atom);
-      fclose(fp);
+      if (compressed) pclose(fp);
+      else fclose(fp);
       atom->bond_per_atom += atom->extra_bond_per_atom;
     }
 
@@ -256,7 +257,10 @@ void ReadData::command(int narg, char **arg)
 
   // close file
 
-  if (me == 0) fclose(fp);
+  if (me == 0) {
+    if (compressed) pclose(fp);
+    else fclose(fp);
+  }
   
   // error if natoms > 0 yet no atoms were read
 
@@ -1219,7 +1223,7 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 void ReadData::open(char *file)
 {
-  int compressed = 0;
+  compressed = 0;
   char *suffix = file + strlen(file) - 3;
   if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
   if (!compressed) fp = fopen(file,"r");

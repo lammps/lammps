@@ -29,7 +29,7 @@ class ReadData : protected Pointers {
   int me;
   char *line,*keyword,*buffer;
   FILE *fp;
-  int narg,maxarg;
+  int narg,maxarg,compressed;
   char **arg;
 
   void open(char *);

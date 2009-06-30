@@ -106,8 +106,13 @@ Dump::~Dump()
   // XTC style sets fp to NULL since it closes file in its destructor
 
   if (multifile == 0 && fp != NULL) {
-    if (multiproc) fclose(fp);
-    else if (me == 0) fclose(fp);
+    if (compressed) {
+      if (multiproc) pclose(fp);
+      else if (me == 0) pclose(fp);
+    } else {
+      if (multiproc) fclose(fp);
+      else if (me == 0) fclose(fp);
+    }
   }
 }
 
@@ -205,8 +210,13 @@ void Dump::write()
   // if file per timestep, close file
 
   if (multifile) {
-    if (multiproc) fclose(fp);
-    else if (me == 0) fclose(fp);
+    if (compressed) {
+      if (multiproc) pclose(fp);
+      else if (me == 0) pclose(fp);
+    } else {
+      if (multiproc) fclose(fp);
+      else if (me == 0) fclose(fp);
+    }
   }
 }
 

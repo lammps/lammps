@@ -37,7 +37,7 @@ class FixTMD : public Fix {
 
  private:
   int me;
-  int nfileevery,previous_stat;
+  int nfileevery,previous_stat,compressed;
   FILE *fp;
   double rho_start,rho_stop,rho_old,masstotal;
   double dtv,dtf;

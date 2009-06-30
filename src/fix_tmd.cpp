@@ -500,7 +500,11 @@ void FixTMD::readfile(char *file)
   // clean up
 
   delete [] buffer;
-  if (me == 0) fclose(fp);
+
+  if (me == 0) {
+    if (compressed) pclose(fp);
+    else fclose(fp);
+  }
 
   // check that all atoms in group were listed in target file
   // set xf = 0.0 for atoms not in group
@@ -525,7 +529,7 @@ void FixTMD::readfile(char *file)
 
 void FixTMD::open(char *file)
 {
-  int compressed = 0;
+  compressed = 0;
   char *suffix = file + strlen(file) - 3;
   if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
   if (!compressed) fp = fopen(file,"r");

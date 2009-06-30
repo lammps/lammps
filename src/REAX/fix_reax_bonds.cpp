@@ -57,7 +57,7 @@ FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
 
 FixReaxBonds::~FixReaxBonds()
 {
-  if (fp && me == 0) fclose(fp);
+  if (me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,7 +93,7 @@ void FixReaxBonds::init()
 void FixReaxBonds::end_of_step()
 {
   OutputReaxBonds(update->ntimestep,fp);
-  fflush(fp);
+  if (me == 0) fflush(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,13 +102,12 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
 {
   int nparticles,nparticles_tot,nbuf,nbuf_local,most,j;
   int ii,jn,mbond,numbonds,nsbmax,nsbmax_most;
-  int node,nprocs,nlocal_tmp,itmp;
+  int nprocs,nlocal_tmp,itmp;
   double cutof3;
   double *buf;
   MPI_Request irequest;
   MPI_Status istatus;
 
-  node = me;
   MPI_Comm_size(world,&nprocs);
  
   nparticles = atom->nlocal;
@@ -120,7 +119,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
   MPI_Allreduce(&nparticles,&most,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&nsbmax,&nsbmax_most,1,MPI_INT,MPI_MAX,world);
  
-  if (node == 0) {
+  if (me == 0) {
     fprintf(fp,"# Timestep %d \n",timestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",nparticles_tot);
@@ -174,9 +173,8 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
   // node 0 pings each node, receives their buffer, writes to file
   // all other nodes wait for ping, send buffer to node 0
  
-  if (node == 0) {
- 
-    for (int inode = 0;inode<nprocs;inode++) {
+  if (me == 0) {
+    for (int inode = 0; inode<nprocs; inode++) {
       if (inode == 0) {
 	nlocal_tmp = nparticles;
       } else {
@@ -189,6 +187,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
       j = 2;
       for (int iparticle=0;iparticle<nlocal_tmp;iparticle++) {
 	// print atom tag, atom type, no.bonds
+
 	fprintf(fp," %d %d %d",nint(buf[j-1]),nint(buf[j+0]),nint(buf[j+1]));
 	int k;
 	numbonds = nint(buf[j+1]);
@@ -197,17 +196,21 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
 	  sprintf(str,"numbonds > nsbmax_most");
 	  error->one(str);
 	}
+
 	// print connection table
-	for (k=2;k<2+numbonds;k++) {
+
+	for (k=2;k<2+numbonds;k++)
 	  fprintf(fp," %d",nint(buf[j+k]));
-	}
 	fprintf(fp," %d",nint(buf[j+k]));
 	j+=(3+numbonds);
+
 	// print bond orders
-	for (k=0;k<numbonds;k++) {
+
+	for (k=0;k<numbonds;k++)
 	  fprintf(fp,"%14.3f",buf[j+k]);
-	}
+
 	// print sum of bond orders, no. of lone pairs, charge
+
 	fprintf(fp,"%14.3f%14.3f%14.3f\n",buf[j+k],buf[j+k+1],buf[j+k+2]);
 	j+=(4+numbonds);
       }
@@ -218,7 +221,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
     MPI_Rsend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world);
   }
 
-  if (node == 0) fprintf(fp,"# \n");
+  if (me == 0) fprintf(fp,"# \n");
 
   memory->sfree(buf);
 }

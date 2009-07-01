@@ -356,7 +356,7 @@ void FixAveTime::end_of_step()
 	  compute->compute_scalar();
 	  compute->invoked_flag |= INVOKED_SCALAR;
 	}
-	vector[i] += compute->compute_scalar();
+	vector[i] += compute->scalar;
       } else {
 	if (!(compute->invoked_flag & INVOKED_VECTOR)) {
 	  compute->compute_vector();

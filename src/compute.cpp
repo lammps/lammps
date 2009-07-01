@@ -64,7 +64,6 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   pressatomflag = peatomflag = 0;
   tempbias = 0;
 
-  id_pre = NULL;
   timeflag = 0;
   comm_forward = comm_reverse = 0;
 
@@ -87,7 +86,6 @@ Compute::~Compute()
 {
   delete [] id;
   delete [] style;
-  delete [] id_pre;
 
   memory->sfree(tlist);
 }
@@ -127,6 +125,13 @@ void Compute::modify_params(int narg, char **arg)
 void Compute::reset_extra_dof()
 {
   extra_dof = domain->dimension;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Compute::reset_extra_compute(char *)
+{
+  error->all("Compute does not allow an extra compute to be reset");
 }
 
 /* ----------------------------------------------------------------------

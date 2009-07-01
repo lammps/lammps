@@ -30,6 +30,7 @@
 using namespace LAMMPS_NS;
 
 enum{NONE,SPHERE,CYLINDER,PLANE};
+enum{INSIDE,OUTSIDE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,14 +48,6 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
 
   k = atof(arg[3]);
-
-  // set defaults
-
-  istyle = NONE;
-  vx = vy = vz = 0.0;
-  radflag = 0;
-  r0_start = 0.0;
-  scaleflag = 1;
 
   // read options from end of input line
 
@@ -198,9 +191,14 @@ void FixIndent::post_force(int vflag)
 	dely = x[i][1] - y1;
 	delz = x[i][2] - z1;
 	r = sqrt(delx*delx + dely*dely + delz*delz);
-	dr = r - r0;
+	if (side == OUTSIDE) {
+	  dr = r - r0;
+	  fmag = k*dr*dr;
+	} else {
+	  dr = r0 - r;
+	  fmag = -k*dr*dr;
+	}
 	if (dr >= 0.0) continue;
-	fmag = k*dr*dr;
 	fx = delx*fmag/r;
 	fy = dely*fmag/r;
 	fz = delz*fmag/r;
@@ -255,9 +253,14 @@ void FixIndent::post_force(int vflag)
 	  delz = 0;
 	}
 	r = sqrt(delx*delx + dely*dely + delz*delz);
-	dr = r - r0;
+	if (side == OUTSIDE) {
+	  dr = r - r0;
+	  fmag = k*dr*dr;
+	} else {
+	  dr = r0 - r;
+	  fmag = -k*dr*dr;
+	}
 	if (dr >= 0.0) continue;
-	fmag = k*dr*dr;
 	fx = delx*fmag/r;
 	fy = dely*fmag/r;
 	fz = delz*fmag/r;
@@ -353,6 +356,13 @@ void FixIndent::options(int narg, char **arg)
 {
   if (narg < 0) error->all("Illegal fix indent command");
 
+  istyle = NONE;
+  vx = vy = vz = 0.0;
+  radflag = 0;
+  r0_start = 0.0;
+  scaleflag = 1;
+  side = OUTSIDE;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sphere") == 0) {
@@ -401,6 +411,12 @@ void FixIndent::options(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal fix indent command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      else error->all("Illegal fix indent command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"side") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix indent command");
+      if (strcmp(arg[iarg+1],"in") == 0) side = INSIDE;
+      else if (strcmp(arg[iarg+1],"out") == 0) side = OUTSIDE;
       else error->all("Illegal fix indent command");
       iarg += 2;
     } else error->all("Illegal fix indent command");

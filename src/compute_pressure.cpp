@@ -31,6 +31,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
@@ -50,10 +52,10 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   // insure it is valid for temperature computation
 
   int n = strlen(arg[3]) + 1;
-  id_pre = new char[n];
-  strcpy(id_pre,arg[3]);
+  id_temp = new char[n];
+  strcpy(id_temp,arg[3]);
 
-  int icompute = modify->find_compute(id_pre);
+  int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   if (modify->compute[icompute]->tempflag == 0)
     error->all("Compute pressure temp ID does not compute temperature");
@@ -98,6 +100,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePressure::~ComputePressure()
 {
+  delete [] id_temp;
   delete [] vector;
   delete [] vptr;
 }
@@ -113,7 +116,7 @@ void ComputePressure::init()
   // set temperature compute, must be done in init()
   // fixes could have changed or compute_modify could have changed it
 
-  int icompute = modify->find_compute(id_pre);
+  int icompute = modify->find_compute(id_temp);
   if (icompute < 0) error->all("Could not find compute pressure temp ID");
   temperature = modify->compute[icompute];
 
@@ -169,9 +172,10 @@ double ComputePressure::compute_scalar()
 
   double t;
   if (keflag) {
-    if (temperature->invoked_scalar == update->ntimestep)
-      t = temperature->scalar;
-    else t = temperature->compute_scalar();
+    if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+      t = temperature->compute_scalar();
+      temperature->invoked_flag |= INVOKED_SCALAR;
+    } else t = temperature->scalar;
   }
 
   if (dimension == 3) {
@@ -210,8 +214,10 @@ void ComputePressure::compute_vector()
 
   double *ke_tensor;
   if (keflag) {
-    if (temperature->invoked_vector != update->ntimestep)
+    if (!(temperature->invoked_flag & INVOKED_VECTOR)) {
       temperature->compute_vector();
+      temperature->invoked_flag |= INVOKED_VECTOR;
+    }
     ke_tensor = temperature->vector;
   }
 
@@ -268,4 +274,14 @@ void ComputePressure::virial_compute(int n, int ndiag)
 
   if (force->pair && force->pair->tail_flag)
     for (i = 0; i < ndiag; i++) virial[i] += force->pair->ptail * inv_volume;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePressure::reset_extra_compute(char *id_new)
+{
+  delete [] id_temp;
+  int n = strlen(id_new) + 1;
+  id_temp = new char[n];
+  strcpy(id_temp,id_new);
 }

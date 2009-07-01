@@ -47,14 +47,12 @@ class Compute : protected Pointers {
 
   int tempbias;       // 0/1 if Compute temp includes self/extra bias
 
-  char *id_pre;       // ID of pre-compute the Compute may store
-
   int timeflag;       // 1 if Compute stores list of timesteps it's called on
   int ntime;          // # of entries in time list
   int maxtime;        // max # of entries time list can hold
   int *tlist;         // time list of steps the Compute is called on
 
-  int invoked_flag;     // 1 if invoked or accessed this step, 0 if not
+  int invoked_flag;     // non-zero if invoked or accessed this step, 0 if not
   int invoked_scalar;   // last timestep on which compute_scalar() was invoked
   int invoked_vector;   // ditto for compute_vector()
   int invoked_peratom;  // ditto for compute_peratom()
@@ -85,6 +83,8 @@ class Compute : protected Pointers {
   virtual void remove_bias_all() {}
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_all() {}
+
+  virtual void reset_extra_compute(char *);
 
   void addstep(int);
   int matchstep(int);

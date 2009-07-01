@@ -25,6 +25,7 @@ class ComputePressure : public Compute {
   void init();
   double compute_scalar();
   void compute_vector();
+  void reset_extra_compute(char *);
 
  private:
   double boltz,nktv2p,inv_volume;
@@ -32,6 +33,7 @@ class ComputePressure : public Compute {
   double **vptr;
   double *kspace_virial;
   Compute *temperature;
+  char *id_temp;
   double virial[6];
   int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
   int fixflag,kspaceflag;

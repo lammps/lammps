@@ -32,7 +32,7 @@ class FixIndent : public Fix {
   double compute_vector(int);
 
  private:
-  int istyle,scaleflag,radflag,thermo_flag,eflag_enable;
+  int istyle,scaleflag,radflag,thermo_flag,eflag_enable,side;
   double k,k3;
   double x0,y0,z0,r0_stop,r0_start,planepos;
   int indenter_flag,planeside;

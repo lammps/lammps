@@ -380,7 +380,7 @@ void Thermo::modify_params(int narg, char **arg)
       if (temperature->igroup != 0 && comm->me == 0)
 	error->warning("Temperature for thermo pressure is not for group all");
 
-      // reset id_pre of pressure to new temp ID
+      // reset id_temp of pressure to new temp ID
       // either pressure currently being used by thermo or "thermo_press"
 
       if (index_press_scalar >= 0) {
@@ -391,9 +391,7 @@ void Thermo::modify_params(int narg, char **arg)
 	if (icompute < 0) error->all("Press ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_press");
 
-      delete [] modify->compute[icompute]->id_pre;
-      modify->compute[icompute]->id_pre = new char[n];
-      strcpy(modify->compute[icompute]->id_pre,arg[iarg+1]);
+      modify->compute[icompute]->reset_extra_compute(arg[iarg+1]);
 
       iarg += 2;
 

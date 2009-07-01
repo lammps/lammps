@@ -26,6 +26,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+
 #define INERTIA 0.4          // moment of inertia for sphere
 
 /* ---------------------------------------------------------------------- */
@@ -240,7 +242,10 @@ double ComputeTempSphere::compute_scalar()
   invoked_scalar = update->ntimestep;
 
   if (tempbias) {
-    if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
+    if (!(tbias->invoked_flag & INVOKED_SCALAR)) {
+      tbias->compute_scalar();
+      tbias->invoked_flag |= INVOKED_SCALAR;
+    }
     tbias->remove_bias_all();
   }
 
@@ -324,7 +329,10 @@ void ComputeTempSphere::compute_vector()
   invoked_vector = update->ntimestep;
 
   if (tempbias) {
-    if (tbias->invoked_vector != update->ntimestep) tbias->compute_vector();
+    if (!(tbias->invoked_flag & INVOKED_VECTOR)) {
+      tbias->compute_vector();
+      tbias->invoked_flag |= INVOKED_VECTOR;
+    }
     tbias->remove_bias_all();
   }
 

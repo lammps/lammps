@@ -556,13 +556,34 @@ command.
 <DD>The create_box command cannot be used after a read_data, read_restart,
 or create_box command. 
 
+<DT><I>Cannot delete group all</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot delete group currently used by a compute</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot delete group currently used by a dump</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot delete group currently used by a fix</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot delete group currently used by atom_modify first</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot displace_box on a non-periodic boundary</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot dump scaled coords with triclinic box</I> 
+<DT><I>Cannot evaporate atoms in atom_modify first group</I> 
 
-<DD>Use dump custom with x,y,z instead. 
+<DD>This is a restriction due to the way atoms are organized in
+a list to enable the atom_modify first command. 
 
 <DT><I>Cannot find delete_bonds group ID</I> 
 
@@ -651,9 +672,19 @@ correct.
 <DD>The output file for the fix rdf command cannot be opened.  Check that
 the path and name are correct. 
 
+<DT><I>Cannot open fix reax/bonds file %s</I> 
+
+<DD>The output file for the fix reax/bonds command cannot be opened.
+Check that the path and name are correct. 
+
 <DT><I>Cannot open fix tmd file %s</I> 
 
 <DD>The output file for the fix tmd command cannot be opened.  Check that
+the path and name are correct. 
+
+<DT><I>Cannot open fix ttm file %s</I> 
+
+<DD>The output file for the fix ttm command cannot be opened.  Check that
 the path and name are correct. 
 
 <DT><I>Cannot open gzipped file</I> 
@@ -834,6 +865,10 @@ an atom map to be created.
 
 <DD>Self-explanatory. 
 
+<DT><I>Cannot use fix box/relax on a non-periodic dimension</I> 
+
+<DD>Only periodic dimensions can be controlled with this fix. 
+
 <DT><I>Cannot use fix deform trate on a box with zero tilt</I> 
 
 <DD>The trate style alters the current strain. 
@@ -850,10 +885,6 @@ an atom map to be created.
 
 <DD>This feature is not yet supported. 
 
-<DT><I>Cannot use fix nph without per-type mass defined</I> 
-
-<DD>The defined atom style uses per-atom mass, not per-type mass. 
-
 <DT><I>Cannot use fix npt and fix deform on same dimension</I> 
 
 <DD>These commands both change the box size/shape, so you cannot use both
@@ -866,14 +897,6 @@ together.
 <DT><I>Cannot use fix npt with triclinic box</I> 
 
 <DD>This feature is not yet supported. 
-
-<DT><I>Cannot use fix npt without per-type mass defined</I> 
-
-<DD>The defined atom style uses per-atom mass, not per-type mass. 
-
-<DT><I>Cannot use fix nvt without per-type mass defined</I> 
-
-<DD>The defined atom style uses per-atom mass, not per-type mass. 
 
 <DT><I>Cannot use fix pour with triclinic box</I> 
 
@@ -891,22 +914,21 @@ together.
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot use fix press/berendsen without per-type mass defined</I> 
+<DT><I>Cannot use fix reax/bonds without pair_style reax</I> 
 
-<DD>Self-explanatory. 
-
-<DT><I>Cannot use fix rigid without per-type mass defined</I> 
-
-<DD>This is a current restriction on the kinds of atoms fix rigid can
-be used with. 
+<DD>Self-explantory. 
 
 <DT><I>Cannot use fix shake with non-molecular system</I> 
 
 <DD>Your choice of atom style does not have bonds. 
 
-<DT><I>Cannot use fix temp/berendsen without per-type mass defined</I> 
+<DT><I>Cannot use fix ttm with 2d simulation</I> 
 
-<DD>Self-explanatory. 
+<DD>This is a current restriction of this fix due to the grid it creates. 
+
+<DT><I>Cannot use fix ttm with triclinic box</I> 
+
+<DD>This is a current restriction of this fix due to the grid it creates. 
 
 <DT><I>Cannot use kspace solver on system with no charge</I> 
 
@@ -917,6 +939,10 @@ be used with.
 <DD>Too many neighbor bins will be created.  This typically happens when
 the simulation box is very small in some dimension, compared to the
 neighbor cutoff.  Use the "nsq" style instead of "bin" style. 
+
+<DT><I>Cannot use nonperiodic boundares with fix ttm</I> 
+
+<DD>This fix requires a fully periodic simulation box. 
 
 <DT><I>Cannot use nonperiodic boundaries with Ewald</I> 
 
@@ -974,6 +1000,16 @@ triclinic.
 
 <DD>Self-explanatory. 
 
+<DT><I>Compute erotate/asphere requires extended particles</I> 
+
+<DD>This quantity can only be calculated for particles with a shape
+setting. 
+
+<DT><I>Compute temp/asphere requires extended particles</I> 
+
+<DD>This quantity can only be calculated for particles with a shape
+setting. 
+
 <DT><I>Compute ID for compute reduce does not exist</I> 
 
 <DD>Self-explanatory. 
@@ -999,35 +1035,44 @@ triclinic.
 <DD>This is because the computation of the centro-symmetry values
 uses a pairwise neighbor list. 
 
+<DT><I>Compute cna/atom cutoff is longer than pairwise cutoff</I> 
+
+<DD>Self-explantory. 
+
+<DT><I>Compute cna/atom requires a pair style be defined</I> 
+
+<DD>Self-explantory. 
+
 <DT><I>Compute coord/atom cutoff is longer than pairwise cutoff</I> 
 
 <DD>Cannot compute coordination at distances longer than the pair cutoff,
 since those atoms are not in the neighbor list. 
+
+<DT><I>Compute coord/atom requires a pair style be defined</I> 
+
+<DD>Self-explantory. 
 
 <DT><I>Compute damage/atom requires peridynamic potential</I> 
 
 <DD>Damage is a Peridynamic-specific metric.  It requires you
 to be running a Peridynamics simulation. 
 
-<DT><I>Compute erotate/asphere requires atom attribute shape</I> 
+<DT><I>Compute erotate/asphere cannot be used with atom attributes diameter or rmass</I> 
 
-<DD>An atom style that specifies atom shape is needed. 
+<DD>These attributes override the shape and mass settings, so cannot be
+used. 
 
-<DT><I>Compute erotate/asphere requires atom attributes angmom, quat</I> 
+<DT><I>Compute erotate/asphere requires atom attributes angmom, quat, shape</I> 
 
-<DD>An atom style is needed that has these attributes. 
+<DD>An atom style that defines these attributes must be used. 
 
 <DT><I>Compute erotate/sphere requires atom attribute omega</I> 
 
-<DD>An atom style is needed that has this attribute. 
+<DD>An atom style that defines this attribute must be used. 
 
-<DT><I>Compute erotate/sphere requires atom attribute shape</I> 
+<DT><I>Compute erotate/sphere requires atom attribute radius or shape</I> 
 
-<DD>An atom style that specifies atom shape is needed. 
-
-<DT><I>Compute erotate/sphere requires atom attributes radius, rmass</I> 
-
-<DD>An atom style is needed that has these attributes. 
+<DD>An atom style that defines these attributes must be used. 
 
 <DT><I>Compute erotate/sphere requires spherical particle shapes</I> 
 
@@ -1036,11 +1081,6 @@ to be running a Peridynamics simulation.
 <DT><I>Compute group/group group ID does not exist</I> 
 
 <DD>Self-explanatory. 
-
-<DT><I>Compute group/group requires a pair style be defined</I> 
-
-<DD>This is because the computation of the group-group interactions uses a
-pairwise neighbor list. 
 
 <DT><I>Compute pe must use group all</I> 
 
@@ -1081,17 +1121,42 @@ temperature.
 
 <DD>Self-explanatory. 
 
+<DT><I>Compute reduce region ID does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Compute reduce variable is not atom-style variable</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Compute temp/asphere requires atom attributes quat, angmom</I> 
+<DT><I>Compute temp/asphere cannot be used with atom attributes diameter or rmass</I> 
 
-<DD>The atom style defined does not have these attributes. 
+<DD>These attributes override the shape and mass settings, so cannot be
+used. 
+
+<DT><I>Compute temp/asphere requires atom attributes angmom, quat, shape</I> 
+
+<DD>An atom style that defines these attributes must be used. 
+
+<DT><I>Compute temp/partial cannot use vz for 2d systems</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Compute temp/profile cannot use vz for 2d systems</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Compute temp/profile cannot bin z for 2d systems</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Compute temp/sphere requires atom attribute omega</I> 
 
-<DD>An atom style is needed that has this attributes. 
+<DD>An atom style that defines this attribute must be used. 
+
+<DT><I>Compute temp/sphere requires atom attribute radius or shape</I> 
+
+<DD>An atom style that defines these attributes must be used. 
 
 <DT><I>Compute temp/sphere requires spherical particle shapes</I> 
 
@@ -1165,6 +1230,10 @@ temperature is 0.0.
 
 <DD>Self-explanatory. 
 
+<DT><I>Could not find group delete ID</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Could not find delete_atoms group ID</I> 
 
 <DD>Group ID used in the delete_atoms command does not exist. 
@@ -1175,11 +1244,11 @@ temperature is 0.0.
 
 <DT><I>Could not find displace_atoms group ID</I> 
 
-<DD>A group ID used in the displace_atoms command does not exist. 
+<DD>Group ID used in the displace_atoms command does not exist. 
 
 <DT><I>Could not find displace_box group ID</I> 
 
-<DD>Self-explanatory. 
+<DD>Group ID used in the displace_box command does not exist. 
 
 <DT><I>Could not find dump custom compute ID</I> 
 
@@ -1218,15 +1287,11 @@ does not exist.
 
 <DD>A group ID used in the fix rigid command does not exist. 
 
-<DT><I>Could not find fix spring couple group ID</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Could not find fix_modify ID</I> 
 
 <DD>A fix ID used in the fix_modify command does not exist. 
 
-<DT><I>Could not find fix_modify press ID</I> 
+<DT><I>Could not find fix_modify pressure ID</I> 
 
 <DD>The compute ID for computing pressure does not exist. 
 
@@ -1282,6 +1347,11 @@ not exist.
 
 <DD>The compute ID needed by the velocity command to compute temperature
 does not exist. 
+
+<DT><I>Could not set finite-size particle attribute in fix rigid</I> 
+
+<DD>The particle has a finite size but its attributes could not be
+determined. 
 
 <DT><I>Coulomb cutoffs of pair hybrid sub-styles do not match</I> 
 
@@ -1550,6 +1620,10 @@ dump output.
 <DD>The chosen atom style does not define the per-atom vector being
 dumped. 
 
+<DT><I>Electronic temperature dropped below zero</I> 
+
+<DD>Something has gone wrong with the fix ttm electron temperature model. 
+
 <DT><I>Empty brackets in variable formula</I> 
 
 <DD>A value inside the brackets is required for this formula element. 
@@ -1755,6 +1829,10 @@ is a triclinic (non-orthogonal) box.
 
 <DD>Self-explanatory 
 
+<DT><I>Fix evaporate region ID does not exist</I> 
+
+<DD>Self-explanatory 
+
 <DT><I>Fix for fix ave/atom not computed at compatible time</I> 
 
 <DD>Fixes generate their values on specific timesteps.  Fix ave/atom is
@@ -1808,41 +1886,50 @@ requesting the values on a non-allowed timestep.
 
 <DD>The time window for temperature or pressure relaxation must be > 0 
 
+<DT><I>Fix npt/asphere cannot be used with atom attributes diameter or rmass</I> 
+
+<DD>An atom style that defines these attributes must be used. 
+
 <DT><I>Fix npt/asphere requires atom attributes quat, angmom, torque, shape</I> 
 
 <DD>An atom style that specifies these quantities is needed. 
 
-<DT><I>Fix npt/sphere requires atom attribute shape</I> 
+<DT><I>Fix npt/sphere requires atom attribute radius or shape</I> 
 
-<DD>An atom style that specifies atom shape is needed. 
+<DD>An atom style that defines these attributes must be used. 
 
 <DT><I>Fix npt/sphere requires atom attributes omega, torque</I> 
 
 <DD>An atom style that specifies these quantities is needed. 
 
-<DT><I>Fix npt/sphere requires spherical particle shapes</I> 
+<DT><I>Fix nve/asphere cannot be used with atom attributes diameter or rmass</I> 
 
-<DD>Self-explanatory. 
+<DD>These attributes override the shape and mass settings, so cannot be
+used. 
 
-<DT><I>Fix nve/asphere requires atom attributes quat, angmom, torque, shape</I> 
+<DT><I>Fix nve/asphere requires atom attributes angmom, quat, torque, shape</I> 
 
 <DD>An atom style that specifies these quantities is needed. 
+
+<DT><I>Fix nve/asphere requires extended particles</I> 
+
+<DD>This fix can only be used for particles with a shape setting. 
 
 <DT><I>Fix nve/sphere requires atom attribute mu</I> 
 
 <DD>An atom style with this attribute is needed. 
 
-<DT><I>Fix nve/sphere requires atom attribute shape</I> 
+<DT><I>Fix nve/sphere requires atom attribute radius or shape</I> 
 
-<DD>An atom style with this attribute is needed. 
+<DD>An atom style that specifies these quantities is needed. 
 
 <DT><I>Fix nve/sphere requires atom attributes omega, torque</I> 
 
 <DD>An atom style with these attributes is needed. 
 
-<DT><I>Fix nve/sphere requires atom attributes radius, rmass</I> 
+<DT><I>Fix nve/sphere requires extended particles</I> 
 
-<DD>An atom style with these attributes is needed. 
+<DD>This fix can only be used for particles of a finite size. 
 
 <DT><I>Fix nve/sphere requires spherical particle shapes</I> 
 
@@ -1852,17 +1939,30 @@ requesting the values on a non-allowed timestep.
 
 <DD>The time window for temperature relaxation must be > 0 
 
+<DT><I>Fix nvt/asphere cannot be used with atom attributes diameter or rmass</I> 
+
+<DD>These attributes override the shape and mass settings, so cannot be
+used. 
+
 <DT><I>Fix nvt/asphere requires atom attributes quat, angmom, torque, shape</I> 
 
 <DD>An atom style that specifies these quantities is needed. 
 
-<DT><I>Fix nvt/sphere requires atom attribute shape</I> 
+<DT><I>Fix nvt/asphere requires extended particles</I> 
 
-<DD>An atom style with this attribute is needed. 
+<DD>This fix can only be used for particles of a finite size. 
+
+<DT><I>Fix nvt/sphere requires atom attribute radius or shape</I> 
+
+<DD>An atom style with these attributes is needed. 
 
 <DT><I>Fix nvt/sphere requires atom attributes omega, torque</I> 
 
 <DD>An atom style with these attributes is needed. 
+
+<DT><I>Fix nvt/sphere requires extended particles</I> 
+
+<DD>This fix can only be used for particles of a finite size. 
 
 <DT><I>Fix nvt/sphere requires spherical particle shapes</I> 
 
@@ -1914,6 +2014,10 @@ are not within the required tolerances.
 <DD>Cannot use fix shake while doing an energy minimization since
 it turns off bonds that should contribute to the energy. 
 
+<DT><I>Fix spring couple group ID does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix temp/berendsen period must be > 0.0</I> 
 
 <DD>Self-explanatory. 
@@ -1927,6 +2031,42 @@ it turns off bonds that should contribute to the energy.
 <DD>Any fix tmd command must appear in the input script after all time
 integration fixes (nve, nvt, npt).  See the fix tmd documentation for
 details. 
+
+<DT><I>Fix ttm electron temperatures must be > 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ttm electronic_density must be > 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ttm electronic_specific_heat must be > 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ttm electronic_thermal_conductivity must be >= 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ttm gamma_p must be > 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ttm gamma_s must be >= 0.0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ttm number of nodes must be > 0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid random number seed in fix ttm command</I> 
+
+<DD>Random number seed must be > 0. 
+
+<DT><I>Fix ttm v_0 must be >= 0.0</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Fix used in compute reduce not computed at compatible time</I> 
 
@@ -1954,7 +2094,7 @@ this fix.
 
 <DD>The atom style defined does not have these attributes. 
 
-<DT><I>Fix_modify press ID does not compute pressure</I> 
+<DT><I>Fix_modify pressure ID does not compute pressure</I> 
 
 <DD>The compute ID assigned to the fix must compute pressure. 
 
@@ -2174,6 +2314,10 @@ map command will force an atom map to be created.
 
 <DD>The final tilt value must be between -1/2 and 1/2 of the perpendicular
 box length. 
+
+<DT><I>Initial temperatures not all set in fix ttm</I> 
+
+<DD>Self-explantory. 
 
 <DT><I>Input line too long after variable substitution</I> 
 
@@ -2590,9 +2734,17 @@ kspace, etc.
 
 <DD>Length of read-in pair table is invalid 
 
+<DT><I>Invalid radius in Atoms section of data file</I> 
+
+<DD>Radius must be >= 0.0. 
+
 <DT><I>Invalid random number seed in set command</I> 
 
 <DD>Random number seed must be > 0. 
+
+<DT><I>Invalid region in group function in variable formula</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid region style</I> 
 
@@ -3155,14 +3307,18 @@ rRESPA cutoffs.
 
 <DD>An atom style that stores this, like atom_style dpd, must be used. 
 
+<DT><I>Pair gayberne cannot be used with atom attribute diameter</I> 
+
+<DD>Finite-size particles must be defined with the shape command. 
+
 <DT><I>Pair gayberne epsilon a,b,c coeffs are not all set</I> 
 
 <DD>Each atom type involved in pair_style gayberne must
 have these 3 coefficients set at least once. 
 
-<DT><I>Pair gayberne requires atom attributes quat, torque</I> 
+<DT><I>Pair gayberne requires atom attributes quat, torque, shape</I> 
 
-<DD>The atom style defined does not have these attributes. 
+<DD>An atom style that defines these attributes must be used. 
 
 <DT><I>Pair granular requires atom attributes radius, omega, torque</I> 
 
@@ -3192,15 +3348,25 @@ rRESPA cutoffs.
 
 <DD>The specified cutoffs for the pair style are inconsistent. 
 
-<DT><I>Pair lubricate requires atom attributes torque, shape</I> 
+<DT><I>Pair lubricate cannot be used with atom attributes diameter or rmass</I> 
 
-<DD>Use a different atom style. 
+<DD>These attributes override the shape and mass settings, so cannot be
+used. 
+
+<DT><I>Pair lubricate requires atom attributes quat, torque, shape</I> 
+
+<DD>An atom style that defines these attributes must be used. 
+
+<DT><I>Pair lubricate requires extended particles</I> 
+
+<DD>This pair style can only be used for particles with a shape
+setting. 
 
 <DT><I>Pair lubricate requires mono-disperse particles</I> 
 
 <DD>This is a current restriction of this pair style. 
 
-<DT><I>Pair lubricate requires spherical particles</I> 
+<DT><I>Pair lubricate requires spherical, mono-disperse particles</I> 
 
 <DD>This is a current restriction of this pair style. 
 
@@ -3217,6 +3383,10 @@ rRESPA cutoffs.
 <DD>Even for atomic systems, an atom map is required to find Peridynamic
 bonds.  Use the atom_modify command to define one. 
 
+<DT><I>Pair resquared cannot be used with atom attribute diameter</I> 
+
+<DD>This attribute overrides the shape settings, so cannot be used. 
+
 <DT><I>Pair resquared epsilon a,b,c coeffs are not all set</I> 
 
 <DD>Self-explanatory. 
@@ -3225,13 +3395,13 @@ bonds.  Use the atom_modify command to define one.
 
 <DD>Self-explanatory. 
 
-<DT><I>Pair resquared requires atom attributes quat, torque</I> 
+<DT><I>Pair resquared requires atom attributes quat, torque, shape</I> 
 
-<DD>Use a different atom style. 
+<DD>An atom style that defines these attributes must be used. 
 
 <DT><I>Pair style AIREBO requires atom IDs</I> 
 
-<DD>Self-explanatory. 
+<DD>This is a requirement to use the AIREBO potential. 
 
 <DT><I>Pair style AIREBO requires newton pair on</I> 
 
@@ -3260,6 +3430,10 @@ potential.
 <DD>See the newton command.  This is a restriction to use the Tersoff
 potential. 
 
+<DT><I>Pair style born/coul/long requires atom attribute q</I> 
+
+<DD>An atom style that defines this attribute must be used. 
+
 <DT><I>Pair style buck/coul/cut requires atom attribute q</I> 
 
 <DD>The atom style defined does not have this attribute. 
@@ -3277,10 +3451,20 @@ potential.
 <DD>The pair style does not have a single() function, so it can
 not be invoked by bond_style quartic. 
 
+<DT><I>Pair style does not support compute group/group</I> 
+
+<P>The pair_style does not have a single() function, so it cannot be
+invokded by the compute group/group command.
+</P>
+<DT><I>Pair style does not support fix bond/swap</I> 
+
+<P>The pair_style does not have a single() function, so it cannot be
+invokded by the fix bond/swap command.
+</P>
 <DT><I>Pair style does not support pair_write</I> 
 
-<DD>The pair style does not have a single() function, so it can
-not be invoked by the pair_write command. 
+<DD>The pair style does not have a single() function, so it cannot be
+invoked by the pair_write command. 
 
 <DT><I>Pair style does not support rRESPA inner/middle/outer</I> 
 
@@ -3357,6 +3541,14 @@ molecule adds forces to atoms owned by other processors.
 <DD>This is because atom style peri stores quantities needed by
 the peridynamic potential. 
 
+<DT><I>Pair style reax requires atom IDs</I> 
+
+<DD>This is a requirement to use the ReaxFF potential. 
+
+<DT><I>Pair style reax requires newton pair on</I> 
+
+<DD>This is a requirement to use the ReaxFF potential. 
+
 <DT><I>Pair table cutoffs must all be equal to use with KSpace</I> 
 
 <DD>When using pair style table with a long-range KSpace solver, the
@@ -3422,25 +3614,34 @@ needed entry.
 
 <DD>Self-explanatory. 
 
-<DT><I>Press ID for fix nph does not exist</I> 
+<DT><I>Pressure ID for fix box/relax does not exist</I> 
 
 <DD>The compute ID needed to compute pressure for the fix does not
 exist. 
 
-<DT><I>Press ID for fix npt does not exist</I> 
+<DT><I>Pressure ID for fix nph does not exist</I> 
 
 <DD>The compute ID needed to compute pressure for the fix does not
 exist. 
 
-<DT><I>Press ID for fix press/berendsen does not exist</I> 
+<DT><I>Pressure ID for fix npt does not exist</I> 
 
 <DD>The compute ID needed to compute pressure for the fix does not
 exist. 
 
-<DT><I>Press ID for thermo does not exist</I> 
+<DT><I>Pressure ID for fix press/berendsen does not exist</I> 
+
+<DD>The compute ID needed to compute pressure for the fix does not
+exist. 
+
+<DT><I>Pressure ID for thermo does not exist</I> 
 
 <DD>The compute ID needed to compute pressure for thermodynamics does not
 exist. 
+
+<DT><I>Pressure ID for fix modify does not exist</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Proc grid in z != 1 for 2d simulation</I> 
 
@@ -3648,30 +3849,35 @@ fix group.
 
 <DD>Self-explanatory. 
 
-<DT><I>Temp ID for fix nph does not exist</I> 
+<DT><I>Temperature ID for fix box/relax does not exist</I> 
 
 <DD>The compute ID needed to compute temperature for the fix does not
 exist. 
 
-<DT><I>Temp ID for fix npt does not exist</I> 
+<DT><I>Temperature ID for fix nph does not exist</I> 
 
 <DD>The compute ID needed to compute temperature for the fix does not
 exist. 
 
-<DT><I>Temp ID for fix nvt does not exist</I> 
+<DT><I>Temperature ID for fix npt does not exist</I> 
 
 <DD>The compute ID needed to compute temperature for the fix does not
 exist. 
 
-<DT><I>Temp ID for fix press/berendsen does not exist</I> 
+<DT><I>Temperature ID for fix nvt does not exist</I> 
+
+<DD>The compute ID needed to compute temperature for the fix does not
+exist. 
+
+<DT><I>Temperature ID for fix press/berendsen does not exist</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Temp ID for fix temp/berendsen does not exist</I> 
+<DT><I>Temperature ID for fix temp/berendsen does not exist</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Temp ID for fix temp/rescale does not exist</I> 
+<DT><I>Temperature ID for fix temp/rescale does not exist</I> 
 
 <DD>The compute ID needed to compute temperature for the fix does not
 exist. 
@@ -4120,6 +4326,10 @@ on the same group of atoms that velocities are being set for.
 
 <DD>It is not efficient to use compute centro/atom  more than once. 
 
+<DT><I>More than one compute cna/atom defined</I> 
+
+<DD>It is not efficient to use compute cna/atom  more than once. 
+
 <DT><I>More than one compute coord/atom</I> 
 
 <DD>It is not efficient to use compute coord/atom more than once. 
@@ -4144,6 +4354,14 @@ on the same group of atoms that velocities are being set for.
 
 <DD>It is not efficient to use fix rigid more than once. 
 
+<DT><I>New thermo_style command, previous thermo_modify settings will be lost</I> 
+
+<DD>If a thermo_style command is used after a thermo_modify command, the
+settings changed by the thermo_modify command will be reset to their
+default values.  This is because the thermo_modify commmand acts on
+the currently defined thermo style, and a thermo_style command creates
+a new style. 
+
 <DT><I>No fixes defined, atoms won't move</I> 
 
 <DD>If you are not using a fix like nve, nvt, npt then atom velocities and
@@ -4154,6 +4372,11 @@ coordinates will not be updated during timestepping.
 <DD>The bodies defined by fix poems are not connected by joints.  POEMS
 will integrate the body motion, but it would be more efficient to use
 fix rigid. 
+
+<DT><I>Not using real units with pair reax</I> 
+
+<DD>This is most likely an error, unless you have created your own ReaxFF
+parameter file in a different set of units. 
 
 <DT><I>One or more atoms are time integrated more than once</I> 
 
@@ -4208,6 +4431,19 @@ different 3d grid of processors.  Due to round-off, the trajectories
 of your restarted simulation may diverge a little more quickly than if
 you ran on the same # of processors. 
 
+<DT><I>Restart file used different boundary settings, using restart file values</I> 
+
+<P>Your input script cannot change these settings in the restart file.
+</P>
+<DT><I>Restart file used different newton bond setting, using restart file value</I> 
+
+<P>Your input script cannot change this setting in the restart file.
+</P>
+<DT><I>Restart file used different newton pair setting, using input script value</I> 
+
+<P>Your input script can change this setting in the restart file, but you
+may not wish to do so.
+</P>
 <DT><I>Restart file version does not match LAMMPS version</I> 
 
 <DD>The version of LAMMPS that wrote the restart file does not match the
@@ -4254,13 +4490,17 @@ pressure, the kinetic energy contribution from the temperature is
 assumed to also be for all atoms.  Thus the pressure printed by thermo
 could be inaccurate. 
 
+<DT><I>Too many inner timesteps in fix ttm</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Use special bonds = 0,1,1 with bond style fene/expand</I> 
 
-<DD>Most FENE models use this setting for the special_bonds command. 
+<DD>Most FENE models need this setting for the special_bonds command. 
 
 <DT><I>Use special bonds = 0,1,1 with bond style fene</I> 
 
-<DD>Most FENE models use this setting for the special_bonds command. 
+<DD>Most FENE models need this setting for the special_bonds command. 
 
 <DT><I>Using compute temp/deform with inconsistent fix deform remap option</I> 
 
@@ -4269,7 +4509,8 @@ by "remap v" or "remap none" as a fix deform option.
 
 <DT><I>Using compute temp/deform with no fix deform defined</I> 
 
-<DD>Self-explanatory. 
+<DD>This is probably an error, since it makes little sense to use
+compute temp/deform in this case. 
 
 <DT><I>Using pair tail corrections with nonperiodic system</I> 
 

@@ -23,7 +23,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>sphere</I> or <I>cylinder</I> or <I>plane</I> or <I>vel</I> or <I>rstart</I> or <I>units</I> 
+<LI>keyword = <I>sphere</I> or <I>cylinder</I> or <I>plane</I> or <I>vel</I> or <I>rstart</I> or <I>side</I> or <I>units</I> 
 
 <PRE>  <I>sphere</I> args = x y z R
     x,y,z = initial position of center of indenter (distance units)
@@ -41,6 +41,9 @@
   <I>rstart</I> value = R0
     R0 = sphere or cylinder radius at start of run (distance units)
     R is value at end of run, so indenter expands/contracts over time
+  <I>side</I> value = <I>in</I> or <I>out</I>
+    <I>in</I> = the indenter acts on particles inside the sphere or cylinder
+    <I>out</I> = the indenter acts on particles outside the sphere or cylinder
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     lattice = the geometry is defined in lattice units
     box = the geometry is defined in simulation box units 
@@ -56,7 +59,8 @@ fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box
 </P>
 <P>Insert an indenter within a simulation box.  The indenter repels all
 atoms that touch it, so it can be used to push into a material or as
-an obstacle in a flow.
+an obstacle in a flow.  Or it can be used as a constraining wall
+around a simulation; see the discussion of the <I>side</I> keyword below.
 </P>
 <P>The indenter can either be spherical or cylindrical or planar.  You
 must set one of those 3 keywords.
@@ -92,11 +96,20 @@ of the indenter (x,y,z) does not change, so it will continue to move
 at the specified velocity.
 </P>
 <P>If the <I>rstart</I> keyword is specified, then the radius of the indenter
-is a time-dependent quantity.  R0 is the value assigned at the start
-of the run; R is the value at the end.  At intermediate times, the
-radius is linearly interpolated between these two values.  This option
-can be used, for example, to grow/shrink a void within the simulation
-box.
+is a time-dependent quantity.  This only applies to spherical or
+cylindrical indenters.  R0 is the value assigned at the start of the
+run; R is the value at the end.  At intermediate times, the radius is
+linearly interpolated between these two values.  This option can be
+used, for example, to grow/shrink a void within the simulation box.
+</P>
+<P>If the <I>side</I> keyword is specified as <I>out</I>, which is the default,
+then particles outside the indenter are pushded away from its outer
+surface, as described above.  This only applies to spherical or
+cylindrical indenters.  If the <I>side</I> keyword is specified as <I>in</I>,
+the action of the indenter is reversed.  Particles inside the indenter
+are pushed away from its inner surface.  In other words, the indenter
+is now a containing wall that traps the particles inside it.  If the
+radius shrinks over time, it will squeeze the particles.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to define the indenter.  A <I>box</I> value selects standard distance units
@@ -151,6 +164,6 @@ being minimized), you must enable the <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are vel = 0,0,0 and units = lattice.
+<P>The option defaults are vel = 0,0,0, side = out, and units = lattice.
 </P>
 </HTML>

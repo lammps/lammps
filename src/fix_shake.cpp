@@ -532,8 +532,8 @@ int FixShake::dof(int igroup)
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
-  // count dof in a cluster if and only if the central atom is in group
-  //   and this atom i is the central atom
+  // count dof in a cluster if and only if
+  // the central atom is in group and atom i is the central atom
 
   int n = 0;
   for (int i = 0; i < nlocal; i++) {

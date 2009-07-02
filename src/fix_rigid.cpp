@@ -418,6 +418,8 @@ void FixRigid::init()
 
   // extended = 1 if any particle in a rigid body is finite size
 
+  extended = dorientflag = qorientflag = 0;
+
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -1357,51 +1359,68 @@ int FixRigid::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
 
-  // nall = # of atoms in each rigid body that are also in temperature group
+  // nall = # of point particles in each rigid body
+  // mall = # of finite-size particles in each rigid body
+  // particles must also be in temperature group
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int *ncount = new int[nbody];
-  for (int ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
+  int *mcount = new int[nbody];
+  for (int ibody = 0; ibody < nbody; ibody++)
+    ncount[ibody] = mcount[ibody] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (body[i] >= 0 && mask[i] & groupbit) ncount[body[i]]++;
+    if (body[i] >= 0 && mask[i] & groupbit) {
+      if (extended && eflags[i]) mcount[body[i]]++;
+      else ncount[body[i]]++;
+    }
 
   int *nall = new int[nbody];
+  int *mall = new int[nbody];
   MPI_Allreduce(ncount,nall,nbody,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(mcount,mall,nbody,MPI_INT,MPI_SUM,world);
 
-  // warn if nall != nrigid for any body included in temperature group
+  // warn if nall+mall != nrigid for any body included in temperature group
 
   int flag = 0;
   for (int ibody = 0; ibody < nbody; ibody++) {
-    if (nall[ibody] && nall[ibody] != nrigid[ibody]) flag = 1;
+    if (nall[ibody]+mall[ibody] > 0 && 
+	nall[ibody]+mall[ibody] != nrigid[ibody]) flag = 1;
   }
   if (flag && comm->me == 0)
     error->warning("Computing temperature of portions of rigid bodies");
 
   // remove appropriate DOFs for each rigid body wholly in temperature group
-  // each has 3N (3d) or 2N (2d) to start with
-  // 3d N>2 rigid body should have 6 dof, so remove 3N-6 dof
-  // 3d N=2 rigid dimer should have 5 dof, so remove 1 dof
-  // 2d N>=2 rigid body should have 3 dof, so remove 2N-3 dof
+  // N = # of point particles in body
+  // M = # of finite-size particles in body
+  // 3d body has 3N + 6M dof to start with
+  // 2d body has 2N + 3M dof to start with
+  // 3d point-particle body with all non-zero I should have 6 dof, remove 3N-6
+  // 3d point-particle body (linear) with a 0 I should have 5 dof, remove 3N-5
+  // 2d point-particle body should have 3 dof, remove 2N-3
+  // 3d body with any finite-size M should have 6 dof, remove (3N+6M) - 6
+  // 2d body with any finite-size M should have 3 dof, remove (2N+3M) - 3
 
   int n = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nbody; ibody++)
-      if (nall[ibody] == nrigid[ibody]) {
-	n += 3*nrigid[ibody] - 6;
-	if (nrigid[ibody] == 2) n++;
+      if (nall[ibody]+mall[ibody] == nrigid[ibody]) {
+	n += 3*nall[ibody] + 6*mall[ibody] - 6;
+	if (inertia[ibody][0] == 0.0 || inertia[ibody][1] == 0.0 || 
+	    inertia[ibody][2] == 0.0) n++;
       }
   } else if (domain->dimension == 2) {
     for (int ibody = 0; ibody < nbody; ibody++)
-      if (nall[ibody] == nrigid[ibody]) {
-	n += 2*nrigid[ibody] - 3;
-      }
+      if (nall[ibody]+mall[ibody] == nrigid[ibody])
+	n += 2*nall[ibody] + 3*mall[ibody] - 3;
   }
 
   delete [] ncount;
+  delete [] mcount;
   delete [] nall;
+  delete [] mall;
 
   return n;
 }

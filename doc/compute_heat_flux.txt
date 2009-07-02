@@ -28,6 +28,10 @@ by itself to measure the heat flux between a hot and cold reservoir of
 particles or to calculate a thermal conductivity using the Green-Kubo
 formalism.
 
+See the "fix thermal/conductivity"_fix_thermal_conductivity.html
+command for details on how to compute thermal conductivity in an
+alternate way, via the Muller-Plathe method.
+
 The compute takes a {pe-ID} argument which is the ID of a "compute
 pe/atom"_compute_pe_atom.html that calculates per-atom potential
 energy.  Normally, it should be defined for the same group used by
@@ -96,7 +100,9 @@ included in this calculation.
 To use this compute you must define an atom_style, such as dpd or
 granular, that communicates the velocites of ghost atoms.
 
-[Related commands:] none
+[Related commands:]
+
+"fix thermal/conductivity"_fix_thermal_conductivity.html
 
 [Default:] none
 

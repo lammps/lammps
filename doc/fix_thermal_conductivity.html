@@ -52,6 +52,10 @@ and measure the response as the resulting heat flux.  In the
 Muller-Plathe method, the heat flux is imposed, and the temperature
 gradient is the system's response.
 </P>
+<P>See the <A HREF = "compute_heat_flux.html">compute heat/flux</A> command for details
+on how to compute thermal conductivity in an alternate way, via the
+Green-Kubo formalism.
+</P>
 <P>The simulation box is divided into <I>Nbin</I> layers in the <I>edim</I>
 direction, where the layer 1 is at the low end of that dimension and
 the layer <I>Nbin</I> is at the high end.  Every N steps, Nswap pairs of
@@ -141,7 +145,8 @@ bewteen solvent particles.
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_ave_spatial.html">fix ave/spatial</A>, <A HREF = "fix_viscosity.html">fix
-viscosity</A>
+viscosity</A>, <A HREF = "compute_heat_flux.html">compute
+heat/flux</A>
 </P>
 <P><B>Default:</B>
 </P>

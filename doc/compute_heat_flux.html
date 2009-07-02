@@ -31,10 +31,14 @@ by itself to measure the heat flux between a hot and cold reservoir of
 particles or to calculate a thermal conductivity using the Green-Kubo
 formalism.
 </P>
+<P>See the <A HREF = "fix_thermal_conductivity.html">fix thermal/conductivity</A>
+command for details on how to compute thermal conductivity in an
+alternate way, via the Muller-Plathe method.
+</P>
 <P>The compute takes a <I>pe-ID</I> argument which is the ID of a <A HREF = "compute_pe_atom.html">compute
 pe/atom</A> that calculates per-atom potential
-energy.  It should be defined for the same group used by compute
-heat/flux, though LAMMPS does not check for this.
+energy.  Normally, it should be defined for the same group used by
+compute heat/flux, though LAMMPS does not check for this.
 </P>
 <P>The Green-Kubo formulas relate the ensemble average of the
 auto-correlation of the heat flux J to the thermal conductivity kappa.
@@ -43,28 +47,27 @@ auto-correlation of the heat flux J to the thermal conductivity kappa.
 </CENTER>
 <CENTER><IMG SRC = "Eqs/heat_flux_J.jpg">
 </CENTER>
-<P>Ei is the per-atom energy (potential and kinetic).  The potential term
-is calculated by the compute <I>pe-ID</I> specified as an argument to
-the compute heat/flux command.
+<P>Ei is the per-atom energy (potential and kinetic).  The potential
+portion is calculated by the compute <I>pe-ID</I> specified as an argument
+to the compute heat/flux command.
 </P>
 <P>IMPORTANT NOTE: The per-atom potential energy calculated by the
 <I>pe-ID</I> compute should only include pairwise energy, to be consistent
-with the full heat-flux calculation.  Thus if any bonds, angles, etc
-exist in the system, the compute should limit its calculation to only
-the pair contribution.  E.g. it could be defined as
+with the second virial-like term in the formula for J.  Thus if any
+bonds, angles, etc exist in the system, the compute should limit its
+calculation to only the pair contribution.  E.g. it could be defined
+as follows.  Note that if <I>pair</I> is not listed as the last argument,
+it will be included by default, but so will other contributions such
+as bond, angle, etc.
 </P>
 <PRE>compute myPE all pe/atom pair 
 </PRE>
-<P>Note that if <I>pair</I> is not listed as the last argument, it will be
-included by default, but so will other contributions such as bond,
-angle, etc.
-</P>
-<P>The heat flux J is calculated by this compute for pairwise
-interactions for any I,J pair where one of the 2 atoms in is the
-compute group.  It can be output every so many timesteps (e.g. via the
-thermo_style custom command).  Then as post-processing steps, an
-autocorrelation can be performed, its integral estimated, and the
-Green-Kubo formula evaluated.
+<P>The second term of the heat flux equation for J is calculated by
+compute heat/flux for pairwise interactions for any I,J pair where one
+of the 2 atoms in is the compute group.  It can be output every so
+many timesteps (e.g. via the thermo_style custom command).  Then as
+post-processing steps, an autocorrelation can be performed, its
+integral estimated, and the Green-Kubo formula evaluated.
 </P>
 <P>Here is an example of this procedure.  First a LAMMPS input script for
 solid Ar is appended below.  A Python script
@@ -100,7 +103,9 @@ included in this calculation.
 <P>To use this compute you must define an atom_style, such as dpd or
 granular, that communicates the velocites of ghost atoms.
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_thermal_conductivity.html">fix thermal/conductivity</A>
 </P>
 <P><B>Default:</B> none
 </P>

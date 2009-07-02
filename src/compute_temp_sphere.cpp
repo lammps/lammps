@@ -242,10 +242,7 @@ double ComputeTempSphere::compute_scalar()
   invoked_scalar = update->ntimestep;
 
   if (tempbias) {
-    if (!(tbias->invoked_flag & INVOKED_SCALAR)) {
-      tbias->compute_scalar();
-      tbias->invoked_flag |= INVOKED_SCALAR;
-    }
+    if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
     tbias->remove_bias_all();
   }
 
@@ -329,10 +326,7 @@ void ComputeTempSphere::compute_vector()
   invoked_vector = update->ntimestep;
 
   if (tempbias) {
-    if (!(tbias->invoked_flag & INVOKED_VECTOR)) {
-      tbias->compute_vector();
-      tbias->invoked_flag |= INVOKED_VECTOR;
-    }
+    if (tbias->invoked_vector != update->ntimestep) tbias->compute_vector();
     tbias->remove_bias_all();
   }
 

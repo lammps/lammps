@@ -174,10 +174,9 @@ double ComputePressure::compute_scalar()
 
   double t;
   if (keflag) {
-    if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    if (temperature->invoked_scalar == update->ntimestep)
       t = temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
-    } else t = temperature->scalar;
+    else t = temperature->scalar;
   }
 
   if (dimension == 3) {
@@ -216,10 +215,8 @@ void ComputePressure::compute_vector()
 
   double *ke_tensor;
   if (keflag) {
-    if (!(temperature->invoked_flag & INVOKED_VECTOR)) {
+    if (temperature->invoked_vector != update->ntimestep)
       temperature->compute_vector();
-      temperature->invoked_flag |= INVOKED_VECTOR;
-    }
     ke_tensor = temperature->vector;
   }
 

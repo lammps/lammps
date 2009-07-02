@@ -192,6 +192,11 @@ commands)
 <LI>  rRESPA hierarchical timestepping
 <LI>  parallel tempering (replica exchange) 
 </UL>
+<P>Diagnostics: h4
+(<A HREF = "fix.html">fix</A> command, <A HREF = "compute.html">compute</A> command) 
+</P>
+<P>  see the various flavors of the fix and compute commands
+</P>
 <H4>Output 
 </H4>
 <P>(<A HREF = "dump.html">dump</A>, <A HREF = "restart.html">restart</A> commands) 
@@ -208,9 +213,9 @@ commands)
 <H4>Pre- and post-processing 
 </H4>
 <P>Our group has also written and released a separate toolkit called
-<A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools for doing setup, analysis,
+<A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools for doing setup, analysis,
 plotting, and visualization for LAMMPS simulations.  Pizza.py is
-written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">the
+written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">the
 Pizza.py WWW site</A>.
 </P>
 
@@ -246,10 +251,10 @@ section</A>.  However, many people use other codes or
 write their own tools for these tasks.
 </P>
 <P>As noted above, our group has also written and released a separate
-toolkit called <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which addresses some of the listed
+toolkit called <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which addresses some of the listed
 bullets.  It provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.  Pizza.py is written in
-<A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.cs.sandia.gov/~sjplimp/pizza.html">the Pizza.py WWW
+<A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">the Pizza.py WWW
 site</A>.
 </P>
 <P>LAMMPS requires as input a list of initial atom coordinates and types,
@@ -471,6 +476,14 @@ the list.
 
 
 <DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >compute heat/flux for Green-Kubo </TD><TD > Reese Jones (Sandia), Philip Howell (Siemens), Vikas Varsney (AFRL)</TD></TR>
+<TR><TD >region cone </TD><TD > Pim Schravendijk</TD></TR>
+<TR><TD >fix reax/bonds </TD><TD > Aidan Thompson (Sandia)</TD></TR>
+<TR><TD >pair born/coul/long </TD><TD > Ahmed Ismail (Sandia)</TD></TR>
+<TR><TD >fix ttm </TD><TD > Paul Crozier (Sandia) and Carolyn Phillips (U Michigan)</TD></TR>
+<TR><TD >fix box/relax </TD><TD > Aidan Thompson and David Olmsted (Sandia)</TD></TR>
+<TR><TD >ReaxFF potential </TD><TD > Aidan Thompson (Sandia) and Hansohl Cho (MIT)</TD></TR>
+<TR><TD >compute cna/atom </TD><TD > Wan Liang (Chinese Academy of Sciences)</TD></TR>
 <TR><TD >Tersoff/ZBL potential </TD><TD > Dave Farrell (Northwestern U)</TD></TR>
 <TR><TD >peridynamics </TD><TD > Mike Parks (Sandia)</TD></TR>
 <TR><TD >fix smd for steered MD </TD><TD > Axel Kohlmeyer (U Penn)</TD></TR>

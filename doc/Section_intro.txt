@@ -191,6 +191,11 @@ Integrators :h4
   rRESPA hierarchical timestepping
   parallel tempering (replica exchange) :ul
 
+Diagnostics: h4
+("fix"_fix.html command, "compute"_compute.html command) 
+
+  see the various flavors of the fix and compute commands
+
 Output :h4
 ("dump"_dump.html, "restart"_restart.html commands) 
 
@@ -211,7 +216,7 @@ plotting, and visualization for LAMMPS simulations.  Pizza.py is
 written in "Python"_python and is available for download from "the
 Pizza.py WWW site"_pizza.
 
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
+:link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(python,http://www.python.org)
 
 :line
@@ -457,6 +462,14 @@ the list.
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
+compute heat/flux for Green-Kubo : Reese Jones (Sandia), Philip Howell (Siemens), Vikas Varsney (AFRL)
+region cone : Pim Schravendijk
+fix reax/bonds : Aidan Thompson (Sandia)
+pair born/coul/long : Ahmed Ismail (Sandia)
+fix ttm : Paul Crozier (Sandia) and Carolyn Phillips (U Michigan)
+fix box/relax : Aidan Thompson and David Olmsted (Sandia)
+ReaxFF potential : Aidan Thompson (Sandia) and Hansohl Cho (MIT)
+compute cna/atom : Wan Liang (Chinese Academy of Sciences)
 Tersoff/ZBL potential : Dave Farrell (Northwestern U)
 peridynamics : Mike Parks (Sandia)
 fix smd for steered MD : Axel Kohlmeyer (U Penn)

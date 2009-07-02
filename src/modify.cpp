@@ -174,6 +174,20 @@ void Modify::init()
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
+  // init each fix
+  // needs to come before compute init
+  // this is b/c some computes call fix->dof()
+  // FixRigid::dof() depends on its own init having been called
+
+  comm->maxforward_fix = comm->maxreverse_fix = 0;
+  for (i = 0; i < nfix; i++) fix[i]->init();
+
+  // set global flag if any fix has its restart_pbc flag set
+
+  restart_pbc_any = 0;
+  for (i = 0; i < nfix; i++)
+    if (fix[i]->restart_pbc) restart_pbc_any = 1;
+  
   // create list of computes that store invocation times
 
   list_init_compute();
@@ -187,17 +201,6 @@ void Modify::init()
   for (i = 0; i < ncompute; i++) compute[i]->init();
   addstep_compute_all(update->ntimestep);
 
-  // init each fix
-
-  comm->maxforward_fix = comm->maxreverse_fix = 0;
-  for (i = 0; i < nfix; i++) fix[i]->init();
-
-  // set global flag if any fix has its restart_pbc flag set
-
-  restart_pbc_any = 0;
-  for (i = 0; i < nfix; i++)
-    if (fix[i]->restart_pbc) restart_pbc_any = 1;
-  
   // warn if any particle is time integrated more than once
 
   int nlocal = atom->nlocal;

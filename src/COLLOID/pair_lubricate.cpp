@@ -90,7 +90,6 @@ void PairLubricate::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  int omega_flag = atom->omega_flag;
   double vxmu2f = force->vxmu2f;
 
   double prethermostat = sqrt(2.0 * force->boltz * t_target / update->dt);
@@ -390,11 +389,15 @@ void PairLubricate::coeff(int narg, char **arg)
 
 void PairLubricate::init_style()
 {
-  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
-    error->all("Pair lubricate requires atom attributes quat, torque, shape");
+  if (!atom->torque_flag || !atom->avec->shape_type)
+    error->all("Pair lubricate requires atom attributes torque and shape");
   if (atom->radius_flag || atom->rmass_flag)
     error->all("Pair lubricate cannot be used with atom attributes "
 	       "diameter or rmass");
+
+  if (atom->omega_flag) omega_flag = 1;
+  else if (atom->angmom_flag) omega_flag = 0;
+  else error->all("Pair lubricate requires atom attribute omega or angmom");
 
   // insure all particle shapes are finite-size, spherical, and monodisperse
 
@@ -414,19 +417,6 @@ void PairLubricate::init_style()
 
 double PairLubricate::init_one(int i, int j)
 {
-  // insure mono-dispersity when i = j if non-zero cutoff
-  // cannot do this in init_style() b/c cut[][] may not be set (in error)
-  
-  if (i == j && cut[i][i] > 0.0) {
-    for (int m = 1; m <= atom->ntypes; m++) {
-      if (cut[m][m] > 0.0) {
-	if (atom->shape[i][0] != atom->shape[m][0])
-	  error->all("Pair lubricate requires mono-disperse particles");
-	break;
-      }
-    }
-  }
-
   if (setflag[i][j] == 0) {
     cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);

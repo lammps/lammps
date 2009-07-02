@@ -171,23 +171,15 @@ degrees-of-freedom removed by each rigid body are accounted for in the
 temperature (and pressure) computation, but only if the temperature
 group includes all the particles in a particular rigid body.
 </P>
-<P>For rigid bodies consisting of point particles, a 3d body has 6
-degrees of freedom (3 translational, 3 rotational), except for a dimer
-which only has 5.  A 2d body has 3 degrees of freedom (2
-translational, 1 rotational).
+<P>A 3d rigid body has 6 degrees of freedom (3 translational, 3
+rotational), except for a collection of point particles lying on a
+straight line, which has only 5, e.g a dimer.  A 2d rigid body has 3
+degrees of freedom (2 translational, 1 rotational).
 </P>
-<P>For rigid bodies containing one or more finite-size particles, a 3d
-body has 6 degrees of freedom, while a 2d body has 3.
-</P>
-<P>IMPORTANT NOTE: A "linear rigid body" is one consisting of 3 or more
-point particles in a straight line.  Linear rigid bodies in 3d have 5
-degrees of freedom (like a dimer) instead of 6, but LAMMPS will not
-detect this.  Thus if your model contains linear rigid bodies you
-should use the <A HREF = "compute_modify.html">compute_modify</A> command to
-subtract an additional degree of freedom for each one.  You may also
-wish to explicitly subtract additional degrees-of-freedom if you use
-the <I>force</I> and <I>torque</I> keywords to eliminate certain motions of the
-rigid body, as LAMMPS does not do this automatically.
+<P>IMPORTANT NOTE: You may wish to explicitly subtract additional
+degrees-of-freedom if you use the <I>force</I> and <I>torque</I> keywords to
+eliminate certain motions of one or more rigid bodies, as LAMMPS does
+not do this automatically.
 </P>
 <P>The rigid body contribution to the pressure of the system (virial) is
 also accounted for by this fix.

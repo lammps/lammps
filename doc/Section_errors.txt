@@ -997,15 +997,9 @@ triclinic. :dd
 
 Self-explanatory. :dd
 
-{Compute erotate/asphere requires extended particles} :dt
+{Compute ID for compute heat/flux does not exist} :dt
 
-This quantity can only be calculated for particles with a shape
-setting. :dd
-
-{Compute temp/asphere requires extended particles} :dt
-
-This quantity can only be calculated for particles with a shape
-setting. :dd
+Self-explanatory. :dd
 
 {Compute ID for compute reduce does not exist} :dt
 
@@ -1054,6 +1048,11 @@ Self-explantory. :dd
 Damage is a Peridynamic-specific metric.  It requires you
 to be running a Peridynamics simulation. :dd
 
+{Compute does not allow an extra compute to be reset} :dt
+
+This is an internal LAMMPS error.  Please report it to the
+developers. :dd
+
 {Compute erotate/asphere cannot be used with atom attributes diameter or rmass} :dt
 
 These attributes override the shape and mass settings, so cannot be
@@ -1062,6 +1061,10 @@ used. :dd
 {Compute erotate/asphere requires atom attributes angmom, quat, shape} :dt
 
 An atom style that defines these attributes must be used. :dd
+
+{Compute erotate/asphere requires extended particles} :dt
+
+This compute cannot be used with point paritlces. :dd
 
 {Compute erotate/sphere requires atom attribute omega} :dt
 
@@ -1079,6 +1082,14 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Compute heat/flux compute ID does not compute pe/atom} :dt
+
+Self-explanatory. :dd
+
+{Compute heat/flux requires ghost atoms store velocity} :dt
+
+An atom style that stores this, like atom_style dpd, must be used. :dd
+
 {Compute pe must use group all} :dt
 
 Energies computed by potentials (pair, bond, etc) are computed on all
@@ -1089,7 +1100,7 @@ atoms. :dd
 Virial contributions computed by potentials (pair, bond, etc) are
 computed on all atoms. :dd
 
-{Compute pressure temp ID does not compute temperature} :dt
+{Compute pressure temperature ID does not compute temperature} :dt
 
 The compute ID assigned to a pressure computation must compute
 temperature. :dd
@@ -1135,15 +1146,19 @@ used. :dd
 
 An atom style that defines these attributes must be used. :dd
 
-{Compute temp/partial cannot use vz for 2d systems} :dt
+{Compute temp/asphere requires extended particles} :dt
 
-Self-explanatory. :dd
+This compute cannot be used with point paritlces. :dd
 
-{Compute temp/profile cannot use vz for 2d systems} :dt
+{Compute temp/partial cannot use vz for 2d systemx} :dt
 
 Self-explanatory. :dd
 
 {Compute temp/profile cannot bin z for 2d systems} :dt
+
+Self-explanatory. :dd
+
+{Compute temp/profile cannot use vz for 2d systemx} :dt
 
 Self-explanatory. :dd
 
@@ -1219,15 +1234,15 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Could not find compute pressure temp ID} :dt
+{Could not find compute heat/flux compute ID} :dt
+
+Self-explanatory. :dd
+
+{Could not find compute pressure temperature ID} :dt
 
 The compute ID for calculating temperature does not exist. :dd
 
 {Could not find compute_modify ID} :dt
-
-Self-explanatory. :dd
-
-{Could not find group delete ID} :dt
 
 Self-explanatory. :dd
 
@@ -1292,9 +1307,13 @@ A fix ID used in the fix_modify command does not exist. :dd
 
 The compute ID for computing pressure does not exist. :dd
 
-{Could not find fix_modify temp ID} :dt
+{Could not find fix_modify temperature ID} :dt
 
 The compute ID for computing temperature does not exist. :dd
+
+{Could not find group delete group ID} :dt
+
+Self-explanatory. :dd
 
 {Could not find set group ID} :dt
 
@@ -1322,12 +1341,12 @@ Self-explanatory. :dd
 
 Fix ID specified in thermo_style command does not exist. :dd
 
-{Could not find thermo_modify press ID} :dt
+{Could not find thermo_modify pressure ID} :dt
 
 The compute ID needed by thermo style custom to compute pressure does
 not exist. :dd
 
-{Could not find thermo_modify temp ID} :dt
+{Could not find thermo_modify temperature ID} :dt
 
 The compute ID needed by thermo style custom to compute temperature does
 not exist. :dd
@@ -1340,7 +1359,7 @@ A dump ID used in the undump command does not exist. :dd
 
 A group ID used in the velocity command does not exist. :dd
 
-{Could not find velocity temp ID} :dt
+{Could not find velocity temperature ID} :dt
 
 The compute ID needed by the velocity command to compute temperature
 does not exist. :dd
@@ -1997,6 +2016,11 @@ Self-explanatory. :dd
 Cannot use the rdf fix unless a pair style with a cutoff has been
 defined. :dd
 
+{Fix reax/bonds numbonds > nsbmax_most} :dt
+
+The limit of the number of bonds expected by the ReaxFF force field
+was exceeded. :dd
+
 {Fix recenter group has no atoms} :dt
 
 Self-explanatory. :dd
@@ -2057,10 +2081,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Invalid random number seed in fix ttm command} :dt
-
-Random number seed must be > 0. :dd
-
 {Fix ttm v_0 must be >= 0.0} :dt
 
 Self-explanatory. :dd
@@ -2095,7 +2115,7 @@ The atom style defined does not have these attributes. :dd
 
 The compute ID assigned to the fix must compute pressure. :dd
 
-{Fix_modify temp ID does not compute temperature} :dt
+{Fix_modify temperature ID does not compute temperature} :dt
 
 The compute ID assigned to the fix must compute temperature. :dd
 
@@ -2337,6 +2357,11 @@ Eigensolve for rigid body was not sufficiently accurate. :dd
 
 Eigensolve for rigid body was not sufficiently accurate. :dd
 
+{Invalid REAX atom type} :dt
+
+There is a mis-match between LAMMPS atom types and the elements
+listed in the ReaxFF force field file. :dd
+
 {Invalid angle style} :dt
 
 The choice of angle style is unknown. :dd
@@ -2542,6 +2567,10 @@ Atom style does not allow impropers. :dd
 
 Atom style does not allow dihedrals. :dd
 
+{Invalid density in Atoms section of data file} :dt
+
+Density value cannot be <= 0.0. :dd
+
 {Invalid dihedral style} :dt
 
 The choice of dihedral style is unknown. :dd
@@ -2589,6 +2618,11 @@ Operator keyword used for threshold specification in not recognized. :dd
 {Invalid fix ID in variable formula} :dt
 
 The fix is not recognized. :dd
+
+{Invalid fix box/relax command for a 2d simulation} :dt
+
+Fix box/relax styles involving the z dimension cannot be used in
+a 2d simulation. :dd
 
 {Invalid fix nph command for a 2d simulation} :dt
 
@@ -2734,6 +2768,10 @@ Length of read-in pair table is invalid :dd
 {Invalid radius in Atoms section of data file} :dt
 
 Radius must be >= 0.0. :dd
+
+{Invalid random number seed in fix ttm command} :dt
+
+Random number seed must be > 0. :dd
 
 {Invalid random number seed in set command} :dt
 
@@ -3451,17 +3489,22 @@ not be invoked by bond_style quartic. :dd
 {Pair style does not support compute group/group} :dt
 
 The pair_style does not have a single() function, so it cannot be
-invokded by the compute group/group command.
+invokded by the compute group/group command. :dd
+
+{Pair style does not support compute heat/flux} :dt
+
+The pair style does not have a single() function, so it can
+not be invoked by compute heat/flux. :dd
 
 {Pair style does not support fix bond/swap} :dt
 
-The pair_style does not have a single() function, so it cannot be
-invokded by the fix bond/swap command.
+The pair style does not have a single() function, so it can
+not be invoked by fix bond/swap. :dd
 
 {Pair style does not support pair_write} :dt
 
-The pair style does not have a single() function, so it cannot be
-invoked by the pair_write command. :dd
+The pair style does not have a single() function, so it can
+not be invoked by pair write. :dd
 
 {Pair style does not support rRESPA inner/middle/outer} :dt
 
@@ -3616,6 +3659,10 @@ Self-explanatory. :dd
 The compute ID needed to compute pressure for the fix does not
 exist. :dd
 
+{Pressure ID for fix modify does not exist} :dt
+
+Self-explanatory. :dd
+
 {Pressure ID for fix nph does not exist} :dt
 
 The compute ID needed to compute pressure for the fix does not
@@ -3635,10 +3682,6 @@ exist. :dd
 
 The compute ID needed to compute pressure for thermodynamics does not
 exist. :dd
-
-{Pressure ID for fix modify does not exist} :dt
-
-Self-explanatory. :dd
 
 {Proc grid in z != 1 for 2d simulation} :dt
 
@@ -3842,29 +3885,30 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Temp ID for fix bond/swap does not exist} :dt
+{Temper command before simulation box is defined} :dt
+
+The temper command cannot be used before a read_data, read_restart, or
+create_box command. :dd
+
+{Temperature ID for fix bond/swap does not exist} :dt
 
 Self-explanatory. :dd
 
 {Temperature ID for fix box/relax does not exist} :dt
 
-The compute ID needed to compute temperature for the fix does not
-exist. :dd
+Self-explanatory. :dd
 
 {Temperature ID for fix nph does not exist} :dt
 
-The compute ID needed to compute temperature for the fix does not
-exist. :dd
+Self-explanatory. :dd
 
 {Temperature ID for fix npt does not exist} :dt
 
-The compute ID needed to compute temperature for the fix does not
-exist. :dd
+Self-explanatory. :dd
 
 {Temperature ID for fix nvt does not exist} :dt
 
-The compute ID needed to compute temperature for the fix does not
-exist. :dd
+Self-explanatory. :dd
 
 {Temperature ID for fix press/berendsen does not exist} :dt
 
@@ -3876,13 +3920,7 @@ Self-explanatory. :dd
 
 {Temperature ID for fix temp/rescale does not exist} :dt
 
-The compute ID needed to compute temperature for the fix does not
-exist. :dd
-
-{Temper command before simulation box is defined} :dt
-
-The temper command cannot be used before a read_data, read_restart, or
-create_box command. :dd
+Self-explanatory. :dd
 
 {Temperature for fix nvt/sllod does not have a bias} :dt
 
@@ -3973,11 +4011,11 @@ is not computing this quantity. :dd
 Cannot use thermo_modify to set this parameter since the thermo_style
 is not computing this quantity. :dd
 
-{Thermo_modify press ID does not compute pressure} :dt
+{Thermo_modify pressure ID does not compute pressure} :dt
 
 The specified compute ID does not compute pressure. :dd
 
-{Thermo_modify temp ID does not compute temperature} :dt
+{Thermo_modify temperature ID does not compute temperature} :dt
 
 The specified compute ID does not compute temperature. :dd
 
@@ -4199,7 +4237,7 @@ A velocity command has been used, but no atoms yet exist. :dd
 
 Self-explanatory. :dd
 
-{Velocity temp ID does not compute temperature} :dt
+{Velocity temperature ID does not compute temperature} :dt
 
 The compute ID given to the velocity command must compute
 temperature. :dd
@@ -4234,6 +4272,18 @@ Warnings: :h4,link(warn)
 
 See the doc page for fix bond/break for more info on this
 restriction. :dd
+
+{Compute cna/atom cutoff may be too large to find ghost atom neighbors} :dt
+
+The neighbor cutoff used may not encompass enough ghost atoms
+to perform this operation correctly. :dd
+
+{Computing temperature of portions of rigid bodies} :dt
+
+The group defined by the temperature compute does not encompass all
+the atoms in one or more rigid bodies, so the change in
+degrees-of-freedom for the atoms in those partial rigid bodies will
+not be accounted for. :dd
 
 {Created bonds will not create angles, dihedrals, or impropers} :dt
 
@@ -4430,24 +4480,19 @@ you ran on the same # of processors. :dd
 
 {Restart file used different boundary settings, using restart file values} :dt
 
-Your input script cannot change these settings in the restart file.
+Your input script cannot change these restart file settings. :dd
 
 {Restart file used different newton bond setting, using restart file value} :dt
 
-Your input script cannot change this setting in the restart file.
+The restart file value will override the setting in the input script. :dd
 
 {Restart file used different newton pair setting, using input script value} :dt
 
-Your input script can change this setting in the restart file, but you
-may not wish to do so.
+The input script value will override the setting in the restart file. :dd
 
 {Restart file version does not match LAMMPS version} :dt
 
-The version of LAMMPS that wrote the restart file does not match the
-version of LAMMPS that is reading the restart file.  Generally this
-shouldn't be a problem, since restart file formats won't change very
-often if at all.  But if they do, the code will probably crash trying
-to read the file.  Versions of LAMMPS are specified by a date. :dd
+This may cause problems when reading the restart file. :dd
 
 {Shake determinant < 0.0} :dt
 
@@ -4479,6 +4524,11 @@ all atoms.  Since NPT computes a global pressure, the kinetic energy
 contribution from the temperature is assumed to also be for all atoms.
 Thus the pressure used by NPT could be inaccurate. :dd
 
+{Temperature for fix modify is not for group all} :dt
+
+The temperature compute is being used with a pressure calculation
+which does operate on group all, so this may be inconsistent. :dd
+
 {Temperature for thermo pressure is not for group all} :dt
 
 User-assigned temperature to thermo via the thermo_modify command does
@@ -4487,9 +4537,19 @@ pressure, the kinetic energy contribution from the temperature is
 assumed to also be for all atoms.  Thus the pressure printed by thermo
 could be inaccurate. :dd
 
+{Too many common neighbors in CNA %d times} :dt
+
+More than the maximum # of neighbors was found multiple times.  This
+was unexpected. :dd
+
 {Too many inner timesteps in fix ttm} :dt
 
 Self-explanatory. :dd
+
+{Too many neighbors in CNA for %d atoms} :dt
+
+More than the maximum # of neighbors was found multiple times.  This
+was unexpected. :dd
 
 {Use special bonds = 0,1,1 with bond style fene/expand} :dt
 

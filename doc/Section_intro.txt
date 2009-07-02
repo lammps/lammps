@@ -191,10 +191,10 @@ Integrators :h4
   rRESPA hierarchical timestepping
   parallel tempering (replica exchange) :ul
 
-Diagnostics: h4
+Diagnostics :h4
 ("fix"_fix.html command, "compute"_compute.html command) 
 
-  see the various flavors of the fix and compute commands
+  see the various flavors of the fix and compute commands :ul
 
 Output :h4
 ("dump"_dump.html, "restart"_restart.html commands) 

@@ -127,7 +127,7 @@ void ComputeTempSphere::dof_compute()
   // 6 or 3 dof for extended/point particles for 3d
   // 3 or 2 dof for extended/point particles for 2d
   // assume full rotation of extended particles
-  // user can correct this via compute_modify if needed
+  // user should correct this via compute_modify if needed
 
   int dimension = domain->dimension;
 

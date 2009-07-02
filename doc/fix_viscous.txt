@@ -52,12 +52,12 @@ This is not the same as mass/time units, at least for some of the
 LAMMPS "units"_units.html options like "real" or "metal" that are not
 self-consistent.
 
-In a Brownian dynamics context, gamma = kT / D, where k = Boltzmann's
-constant, T = temperature, and D = particle diffusion coefficient.  D
-can be written as kT / (3 pi eta d), where eta = dynamic viscosity of
-the frictional fluid and d = diameter of particle.  This means gamma =
-3 pi eta d, and thus is proportional to the viscosity of the fluid and
-the particle diameter.
+In a Brownian dynamics context, gamma = Kb T / D, where Kb =
+Boltzmann's constant, T = temperature, and D = particle diffusion
+coefficient.  D can be written as Kb T / (3 pi eta d), where eta =
+dynamic viscosity of the frictional fluid and d = diameter of
+particle.  This means gamma = 3 pi eta d, and thus is proportional to
+the viscosity of the fluid and the particle diameter.
 
 In the current implementation, rather than have the user specify a
 viscosity, gamma is specified directly in force/velocity units.  If

@@ -127,11 +127,12 @@ void ComputeTempAsphere::dof_compute()
 {
   // 6 dof for 3d, 3 dof for 2d
   // assume full rotation of extended particles
-  // user can correct this via compute_modify if needed
+  // user should correct this via compute_modify if needed
 
   double natoms = group->count(igroup);
-  if (domain->dimension == 3) dof = 6*natoms;
-  else dof = 3*natoms;
+  int nper = 6;
+  if (domain->dimension == 2) nper = 3;
+  dof = nper*natoms;
 
   // additional adjustments to dof
 
@@ -145,8 +146,7 @@ void ComputeTempAsphere::dof_compute()
 	if (tbias->dof_remove(i)) count++;
     int count_all;
     MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
-    if (domain->dimension == 3) dof -= 6*count_all;
-    else dof -= 3*count_all;
+    dof -= nper*count_all;
   }
 
   dof -= extra_dof + fix_dof;

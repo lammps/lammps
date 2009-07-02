@@ -56,9 +56,10 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_temp,arg[3]);
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Could not find compute pressure temp ID");
+  if (icompute < 0) 
+    error->all("Could not find compute pressure temperature ID");
   if (modify->compute[icompute]->tempflag == 0)
-    error->all("Compute pressure temp ID does not compute temperature");
+    error->all("Compute pressure temperature ID does not compute temperature");
 
   // process optional args
 
@@ -117,7 +118,8 @@ void ComputePressure::init()
   // fixes could have changed or compute_modify could have changed it
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Could not find compute pressure temp ID");
+  if (icompute < 0) 
+    error->all("Could not find compute pressure temperature ID");
   temperature = modify->compute[icompute];
 
   // detect contributions to virial

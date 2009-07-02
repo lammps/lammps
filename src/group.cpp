@@ -94,7 +94,7 @@ void Group::assign(int narg, char **arg)
 
   if (strcmp(arg[1],"delete") == 0) {
     int igroup = find(arg[0]);
-    if (igroup == -1) error->all("Could not find delete group ID");
+    if (igroup == -1) error->all("Could not find group delete group ID");
     if (igroup == 0) error->all("Cannot delete group all");
     for (i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->igroup == igroup)

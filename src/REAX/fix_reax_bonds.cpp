@@ -193,7 +193,7 @@ void FixReaxBonds::OutputReaxBonds(int timestep, FILE *fp)
 	numbonds = nint(buf[j+1]);
 	if (numbonds > nsbmax_most) {
 	  char str[128];
-	  sprintf(str,"numbonds > nsbmax_most");
+	  sprintf(str,"Fix reax/bonds numbonds > nsbmax_most");
 	  error->one(str);
 	}
 

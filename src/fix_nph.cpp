@@ -262,11 +262,11 @@ void FixNPH::init()
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Temp ID for fix nph does not exist");
+  if (icompute < 0) error->all("Temperature ID for fix nph does not exist");
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_press);
-  if (icompute < 0) error->all("Press ID for fix nph does not exist");
+  if (icompute < 0) error->all("Pressure ID for fix nph does not exist");
   pressure = modify->compute[icompute];
 
   // set timesteps and frequencies
@@ -808,18 +808,18 @@ int FixNPH::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temp ID does not compute temperature");
+      error->all("Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for NPH is not for group all");
 
-    // reset id_temp of pressure to new temp ID
+    // reset id_temp of pressure to new temperature ID
     
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all("Press ID for fix npt does not exist");
+    if (icompute < 0) error->all("Pressure ID for fix npt does not exist");
     modify->compute[icompute]->reset_extra_compute(id_temp);
 
     return 2;
@@ -836,11 +836,11 @@ int FixNPH::modify_param(int narg, char **arg)
     strcpy(id_press,arg[1]);
 
     int icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all("Could not find fix_modify press ID");
+    if (icompute < 0) error->all("Could not find fix_modify pressure ID");
     pressure = modify->compute[icompute];
 
     if (pressure->pressflag == 0)
-      error->all("Fix_modify press ID does not compute pressure");
+      error->all("Fix_modify pressure ID does not compute pressure");
     return 2;
   }
   return 0;

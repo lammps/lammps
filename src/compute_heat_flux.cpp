@@ -55,7 +55,7 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_atomPE,arg[3]);
 
   int icompute = modify->find_compute(id_atomPE);
-  if (icompute < 0) error->all("Could not find compute heat/flux pe/atom ID");
+  if (icompute < 0) error->all("Could not find compute heat/flux compute ID");
   if (modify->compute[icompute]->peatomflag == 0)
     error->all("Compute heat/flux compute ID does not compute pe/atom");
 
@@ -83,7 +83,7 @@ void ComputeHeatFlux::init()
 
   int icompute = modify->find_compute(id_atomPE);
   if (icompute < 0) 
-    error->all("Pe/atom ID for compute heat/flux does not exist");
+    error->all("Compute ID for compute heat/flux does not exist");
   atomPE = modify->compute[icompute];
 
   pair = force->pair;

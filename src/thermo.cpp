@@ -372,23 +372,25 @@ void Thermo::modify_params(int narg, char **arg)
       strcpy(id_compute[index_temp],arg[iarg+1]);
 
       int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0) error->all("Could not find thermo_modify temp ID");
+      if (icompute < 0) 
+	error->all("Could not find thermo_modify temperature ID");
       temperature = modify->compute[icompute];
 
       if (temperature->tempflag == 0)
-	error->all("Thermo_modify temp ID does not compute temperature");
+	error->all("Thermo_modify temperature ID does not "
+		   "compute temperature");
       if (temperature->igroup != 0 && comm->me == 0)
 	error->warning("Temperature for thermo pressure is not for group all");
 
-      // reset id_temp of pressure to new temp ID
+      // reset id_temp of pressure to new temperature ID
       // either pressure currently being used by thermo or "thermo_press"
 
       if (index_press_scalar >= 0) {
 	icompute = modify->find_compute(id_compute[index_press_scalar]);
-	if (icompute < 0) error->all("Press ID for thermo does not exist");
+	if (icompute < 0) error->all("Pressure ID for thermo does not exist");
       } else if (index_press_vector >= 0) {
 	icompute = modify->find_compute(id_compute[index_press_vector]);
-	if (icompute < 0) error->all("Press ID for thermo does not exist");
+	if (icompute < 0) error->all("Pressure ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_press");
 
       modify->compute[icompute]->reset_extra_compute(arg[iarg+1]);
@@ -414,11 +416,11 @@ void Thermo::modify_params(int narg, char **arg)
       }
 
       int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0) error->all("Could not find thermo_modify press ID");
+      if (icompute < 0) error->all("Could not find thermo_modify pressure ID");
       pressure = modify->compute[icompute];
 
       if (pressure->pressflag == 0)
-	error->all("Thermo_modify press ID does not compute pressure");
+	error->all("Thermo_modify pressure ID does not compute pressure");
 
       iarg += 2;
 

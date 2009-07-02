@@ -626,10 +626,10 @@ void Velocity::options(int narg, char **arg)
       for (icompute = 0; icompute < modify->ncompute; icompute++)
 	if (strcmp(arg[iarg+1],modify->compute[icompute]->id) == 0) break;
       if (icompute == modify->ncompute) 
-	error->all("Could not find velocity temp ID");
+	error->all("Could not find velocity temperature ID");
       temperature = modify->compute[icompute];
       if (temperature->tempflag == 0)
-	error->all("Velocity temp ID does not compute temperature");
+	error->all("Velocity temperature ID does not compute temperature");
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
       if (iarg+2 > narg) error->all("Illegal velocity command");

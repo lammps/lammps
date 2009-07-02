@@ -96,7 +96,7 @@ void ComputeTempAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (shape[type[i]][0] == 0.0)
-	error->one("Compue temp/asphere requires extended particles");
+	error->one("Compute temp/asphere requires extended particles");
 
   if (tempbias) {
     int i = modify->find_compute(id_bias);

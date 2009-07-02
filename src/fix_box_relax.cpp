@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+,/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -117,18 +117,18 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (press_couple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all("Invalid fix box/relax command");
+    error->all("Illegal fix box/relax command");
   if (press_couple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix box/relax command");
+    error->all("Illegal fix box/relax command");
   if (press_couple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all("Invalid fix box/relax command");
+    error->all("Illegal fix box/relax command");
 
   if (press_couple == XY && p_target[0] != p_target[1])
-    error->all("Invalid fix box/relax command");
+    error->all("Illegal fix box/relax command");
   if (press_couple == YZ && p_target[1] != p_target[2])
-    error->all("Invalid fix box/relax command");
+    error->all("Illegal fix box/relax command");
   if (press_couple == XZ && p_target[0] != p_target[2])
-    error->all("Invalid fix box/relax command");
+    error->all("Illegal fix box/relax command");
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all("Cannot use fix box/relax on a non-periodic dimension");
@@ -211,11 +211,12 @@ void FixBoxRelax::init()
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Temp ID for fix box/relax does not exist");
+  if (icompute < 0) 
+    error->all("Temperature ID for fix box/relax does not exist");
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_press);
-  if (icompute < 0) error->all("Press ID for fix box/relax does not exist");
+  if (icompute < 0) error->all("Pressure ID for fix box/relax does not exist");
   pressure = modify->compute[icompute];
 
   // initial box dimensions
@@ -458,15 +459,15 @@ int FixBoxRelax::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temp ID does not compute temperature");
+      error->all("Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning("Temperature for fix modify is not for group all");
 
-    // reset id_temp of pressure to new temp ID
+    // reset id_temp of pressure to new temperature ID
     
     icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all("Pressure ID for fix modify does not exist");

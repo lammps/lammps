@@ -93,7 +93,8 @@ int FixTempRescale::setmask()
 void FixTempRescale::init()
 {
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) error->all("Temp ID for fix temp/rescale does not exist");
+  if (icompute < 0) 
+    error->all("Temperature ID for fix temp/rescale does not exist");
   temperature = modify->compute[icompute];
 
   if (temperature->tempbias) which = BIAS;
@@ -167,11 +168,11 @@ int FixTempRescale::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temp ID");
+    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temp ID does not compute temperature");
+      error->all("Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning("Group for fix_modify temp != fix group");
     return 2;

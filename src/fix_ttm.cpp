@@ -87,7 +87,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (seed <= 0) error->all("Fix ttm seed must be >= 0");
+  if (seed <= 0) error->all("Invalid random number seed in fix ttm command");
   if (electronic_specific_heat <= 0.0) 
     error->all("Fix ttm electronic_specific_heat must be > 0.0");
   if (electronic_density <= 0.0) 
@@ -261,7 +261,7 @@ void FixTTM::post_force(int vflag)
       while (iznode < 0) iznode += nznodes;
 
       if (T_electron[ixnode][iynode][iznode] < 0) 
-        error->all("Electronic temperature dropped to below zero");
+        error->all("Electronic temperature dropped below zero");
 
       double tsqrt = sqrt(T_electron[ixnode][iynode][iznode]);
 

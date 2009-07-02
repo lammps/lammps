@@ -393,7 +393,7 @@ void PairLubricate::init_style()
   if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
     error->all("Pair lubricate requires atom attributes quat, torque, shape");
   if (atom->radius_flag || atom->rmass_flag)
-    error->all("Pair lubricate cannot be used with atom attributes"
+    error->all("Pair lubricate cannot be used with atom attributes "
 	       "diameter or rmass");
 
   // insure all particle shapes are finite-size, spherical, and monodisperse

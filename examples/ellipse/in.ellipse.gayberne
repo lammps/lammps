@@ -18,6 +18,10 @@ shape	     1 1 1 1
 shape	     2 3 1 1
 
 compute	     rot all temp/asphere
+group	     spheroid type 1
+variable     dof equal count(spheroid)+2
+compute_modify rot extra ${dof}
+
 velocity     all create 2.4 87287 loop geom
 
 pair_style   gayberne 1.0 3.0 1.0 4.0
@@ -45,6 +49,8 @@ dump	     1 all custom 100 dump.ellipse.gayberne &
 
 fix	     1 all npt/asphere 2.0 2.0 0.1 xyz 0.0 1.0 1.0
 fix	     2 all enforce2d
+
+compute_modify 1_temp extra ${dof}
 
 # equilibrate to shrink box around dilute system
 

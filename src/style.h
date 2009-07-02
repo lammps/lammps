@@ -81,6 +81,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_coord_atom.h"
 #include "compute_displace_atom.h"
 #include "compute_group_group.h"
+#include "compute_heat_flux.h"
 #include "compute_ke.h"
 #include "compute_ke_atom.h"
 #include "compute_pe.h"
@@ -106,6 +107,7 @@ ComputeStyle(cna/atom,ComputeCNAAtom)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(group/group,ComputeGroupGroup)
+ComputeStyle(heat/flux,ComputeHeatFlux)
 ComputeStyle(ke,ComputeKE)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(pe,ComputePE)

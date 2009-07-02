@@ -1,0 +1,147 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute heat/flux command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID heat/flux pe-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>heat/flux = style name of this compute command
+<LI>pe-ID = ID of a compute that calculates per-atom potential energy 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute myFlux all heat/flux myPE 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the heat flux vector based on
+interactions between atoms in the specified group.  This can be used
+by itself to measure the heat flux between a hot and cold reservoir of
+particles or to calculate a thermal conductivity using the Green-Kubo
+formalism.
+</P>
+<P>The compute takes a <I>pe-ID</I> argument which is the ID of a <A HREF = "compute_pe_atom.html">compute
+pe/atom</A> that calculates per-atom potential
+energy.  It should be defined for the same group used by compute
+heat/flux, though LAMMPS does not check for this.
+</P>
+<P>The Green-Kubo formulas relate the ensemble average of the
+auto-correlation of the heat flux J to the thermal conductivity kappa.
+</P>
+<CENTER><IMG SRC = "Eqs/heat_flux_k.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/heat_flux_J.jpg">
+</CENTER>
+<P>Ei is the per-atom energy (potential and kinetic).  The potential term
+is calculated by the compute <I>pe-ID</I> specified as an argument to
+the compute heat/flux command.
+</P>
+<P>IMPORTANT NOTE: The per-atom potential energy calculated by the
+<I>pe-ID</I> compute should only include pairwise energy, to be consistent
+with the full heat-flux calculation.  Thus if any bonds, angles, etc
+exist in the system, the compute should limit its calculation to only
+the pair contribution.  E.g. it could be defined as
+</P>
+<PRE>compute myPE all pe/atom pair 
+</PRE>
+<P>Note that if <I>pair</I> is not listed as the last argument, it will be
+included by default, but so will other contributions such as bond,
+angle, etc.
+</P>
+<P>The heat flux J is calculated by this compute for pairwise
+interactions for any I,J pair where one of the 2 atoms in is the
+compute group.  It can be output every so many timesteps (e.g. via the
+thermo_style custom command).  Then as post-processing steps, an
+autocorrelation can be performed, its integral estimated, and the
+Green-Kubo formula evaluated.
+</P>
+<P>Here is an example of this procedure.  First a LAMMPS input script for
+solid Ar is appended below.  A Python script
+<A HREF = "Scripts/correlate.py">correlate.py</A> is also given, which calculates
+the autocorrelation of the flux output in the logfile flux.log,
+produced by the LAMMPS run.  It is invoked as
+</P>
+<PRE>correlate.py flux.log -c 3 -s 200 
+</PRE>
+<P>The resulting data lists the autocorrelation in column 1 and the
+integral of the autocorrelation in column 2.  The integral of the
+correlation needs to be multiplied by V/(kB T^2) times the sample
+interval and the appropriate unit conversion factors.  For real
+<A HREF = "units.html">units</A> in LAMMPS, this is 2917703220.0 in this case.  The
+final thermal conductivity value obtained is 0.25 W/mK.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a vector of length 6.  The 6 components are
+the x, y, z components of the full heat flux, followed by the x, y, z
+components of just the convective portion of the flux, which is the
+energy per atom times the velocity of the atom.
+</P>
+<P>The vector values calculated by this compute are "extensive", meaning
+they scale with the number of atoms in the simulation.  They should be
+divided by the appropriate volume to get a flux.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>Only pairwise interactions, as defined by the pair_style command, are
+included in this calculation.
+</P>
+<P>To use this compute you must define an atom_style, such as dpd or
+granular, that communicates the velocites of ghost atoms.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<H4>Sample LAMMPS input script 
+</H4>
+<PRE>atom_style      dpd
+units 		real
+dimension	3
+boundary	p p p
+lattice 	fcc  5.376  orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region  	box block 0 4 0 4 0 4
+create_box 	1 box
+create_atoms 	1 box
+mass 		1 39.948
+pair_style	lj/cut 13.0
+pair_coeff	* * 0.2381 3.405
+group 		every region box
+velocity 	all create 70 102486 mom yes rot yes dist gaussian
+timestep 	4.0
+thermo	        10 
+</PRE>
+<PRE># ------------- Equilibration and thermalisation ---------------- 
+</PRE>
+<PRE>fix 		NPT all npt 70 70 10 xyz 0.0 0.0 100.0 drag 0.2
+run 		8000
+unfix           NPT 
+</PRE>
+<PRE># --------------- Equilibration in nve ----------------- 
+</PRE>
+<PRE>fix 		NVE all nve
+run 		8000 
+</PRE>
+<PRE># -------------- Flux calculation in nve --------------- 
+</PRE>
+<PRE>reset_timestep 0
+compute 	flux all heat_flux
+log     	flux.log
+variable        J  equal c_flux<B>1</B>/vol
+thermo_style 	custom step temp v_J 
+run 	        100000 
+</PRE>
+</HTML>

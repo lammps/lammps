@@ -462,6 +462,7 @@ description:
 "erotate/asphere"_compute_erotate_asphere.html,
 "erotate/sphere"_compute_erotate_sphere.html,
 "group/group"_compute_group_group.html,
+"heat/flux"_compute_heat_flux.html,
 "ke"_compute_ke.html,
 "ke/atom"_compute_ke_atom.html,
 "pe"_compute_pe.html,

@@ -45,7 +45,10 @@ subtracted (typically from 3N) as a normalizing factor in a
 temperature computation.  Only computes that compute a temperature use
 this option.  The default is 2 or 3 for <A HREF = "dimension.html">2d or 3d
 systems</A> which is a correction factor for an ensemble
-of velocities with zero total linear momentum.
+of velocities with zero total linear momentum.  You can use a negative
+number for the <I>extra</I> parameter if you need to add
+degrees-of-freedom.  See the <A HREF = "compute_temp_aspher.html">compute
+temp/asphere</A> command for an example.
 </P>
 <P>The <I>dynamic</I> keyword determines whether the number of atoms N in the
 compute group is re-computed each time a temperature is computed.

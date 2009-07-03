@@ -139,10 +139,10 @@ run 		8000 :pre
 
 # -------------- Flux calculation in nve --------------- :pre
 
-reset_timestep 0
-compute 	flux all heat_flux
+reset_timestep  0
+compute	        myPE all pe/atom pair
+compute 	flux all heat_flux myPE
 log     	flux.log
-variable        J  equal c_flux[1]/vol
+variable        J equal c_flux\[1\]/vol
 thermo_style 	custom step temp v_J 
 run 	        100000 :pre
-

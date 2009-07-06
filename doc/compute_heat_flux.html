@@ -144,7 +144,7 @@ run 		8000
 </PRE>
 <PRE>reset_timestep  0
 compute	        myPE all pe/atom pair
-compute 	flux all heat_flux myPE
+compute 	flux all heat/flux myPE
 log     	flux.log
 variable        J equal c_flux[1]/vol
 thermo_style 	custom step temp v_J 

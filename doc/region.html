@@ -19,9 +19,9 @@
 
 <LI>style = <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
 
-<PRE>  <I>block</I> args = dim c1 c2 radlo radhi lo hi
+<PRE>  <I>block</I> args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-  <I>cone</I> args = xlo xhi ylo yhi zlo zhi
+  <I>cone</I> args = dim c1 c2 radlo radhi lo hi
     dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cone
     c1,c2 = coords of cone axis in other 2 dimensions (distance units)
     radlo,radhi = cone radii at lo and hi end (distance units)

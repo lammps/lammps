@@ -14,9 +14,9 @@ region ID style args keyword value ... :pre
 
 ID = user-assigned name for the region :ulb,l
 style = {block} or {cone} or {cylinder} or {prism} or {sphere} or {union} or {intersect} :l
-  {block} args = dim c1 c2 radlo radhi lo hi
+  {block} args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-  {cone} args = xlo xhi ylo yhi zlo zhi
+  {cone} args = dim c1 c2 radlo radhi lo hi
     dim = {x} or {y} or {z} = axis of cone
     c1,c2 = coords of cone axis in other 2 dimensions (distance units)
     radlo,radhi = cone radii at lo and hi end (distance units)

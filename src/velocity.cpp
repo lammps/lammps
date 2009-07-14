@@ -175,10 +175,10 @@ void Velocity::create(int narg, char **arg)
   // adjust by factor for atom mass
   // for 2d, set Vz to 0.0
 
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int dimension = domain->dimension;
 
   int m;
@@ -226,7 +226,7 @@ void Velocity::create(int narg, char **arg)
       if (m >= 0 && m < nlocal) {
 	if (mask[m] & groupbit) {
 	  if (rmass) factor = 1.0/sqrt(rmass[m]);
-	  factor = 1.0/sqrt(mass[type[m]]);
+	  else factor = 1.0/sqrt(mass[type[m]]);
 	  v[m][0] = vx * factor;
 	  v[m][1] = vy * factor;
 	  if (dimension == 3) v[m][2] = vz * factor;
@@ -258,7 +258,7 @@ void Velocity::create(int narg, char **arg)
 	  vz = random->gaussian();
 	}
 	if (rmass) factor = 1.0/sqrt(rmass[i]);
-	factor = 1.0/sqrt(mass[type[i]]);
+	else factor = 1.0/sqrt(mass[type[i]]);
 	v[i][0] = vx * factor;
 	v[i][1] = vy * factor;
 	if (dimension == 3) v[i][2] = vz * factor;
@@ -284,7 +284,7 @@ void Velocity::create(int narg, char **arg)
 	}
 
 	if (rmass) factor = 1.0/sqrt(rmass[i]);
-	factor = 1.0/sqrt(mass[type[i]]);
+	else factor = 1.0/sqrt(mass[type[i]]);
 	v[i][0] = vx * factor;
 	v[i][1] = vy * factor;
 	if (dimension == 3) v[i][2] = vz * factor;

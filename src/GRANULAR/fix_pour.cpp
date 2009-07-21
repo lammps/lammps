@@ -22,7 +22,6 @@
 #include "comm.h"
 #include "modify.h"
 #include "fix_gravity.h"
-#include "fix_shear_history.h"
 #include "domain.h"
 #include "region.h"
 #include "region_block.h"
@@ -270,15 +269,6 @@ void FixPour::init()
 	fabs(zgrav) > EPSILON)
       error->all("Gravity must point in -y to use with fix pour in 2d");
   }
-
-  // check if a shear history fix exists
-
-  fix_history = NULL;
-  if (force->pair_match("gran/hooke/history",1) || 
-      force->pair_match("gran/hertz/history",1))
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"SHEAR_HISTORY") == 0)
-	fix_history = (FixShearHistory *) modify->fix[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -419,11 +409,14 @@ void FixPour::pre_exchange()
   // set npartner for new atom to 0 (assume not touching any others)
 
   AtomVec *avec = atom->avec;
-  int m,flag;
+  int j,m,flag;
   double denstmp,vxtmp,vytmp,vztmp;
   double g = 1.0;
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
+
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
 
   for (i = nprevious; i < nnear; i++) {
     coord[0] = xnear[i][0];
@@ -464,7 +457,8 @@ void FixPour::pre_exchange()
       atom->v[m][0] = vxtmp;
       atom->v[m][1] = vytmp;
       atom->v[m][2] = vztmp;
-      if (fix_history) fix_history->npartner[m] = 0;
+      for (j = 0; j < nfix; j++)
+	if (fix[j]->create_attribute) fix[j]->set_arrays(m);
     }
   }
 

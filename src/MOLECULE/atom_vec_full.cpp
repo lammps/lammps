@@ -713,6 +713,7 @@ void AtomVecFull::create_atom(int itype, double *coord)
   num_angle[nlocal] = 0;
   num_dihedral[nlocal] = 0;
   num_improper[nlocal] = 0;
+  nspecial[nlocal][0] = nspecial[nlocal][1] = nspecial[nlocal][2] = 0;
 
   atom->nlocal++;
 }

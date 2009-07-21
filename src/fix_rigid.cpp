@@ -49,6 +49,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  create_attribute = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -2051,6 +2052,18 @@ void FixRigid::copy_arrays(int i, int j)
       qorient[j][3] = qorient[i][3];
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixRigid::set_arrays(int i)
+{
+  body[i] = -1;
+  displace[i][0] = 0.0;
+  displace[i][1] = 0.0;
+  displace[i][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

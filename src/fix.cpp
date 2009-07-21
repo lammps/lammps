@@ -54,6 +54,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   no_change_box = 0;
   time_integrate = 0;
   time_depend = 0;
+  create_attribute = 0;
   restart_pbc = 0;
 
   scalar_flag = vector_flag = peratom_flag = 0;

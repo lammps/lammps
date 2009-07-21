@@ -34,6 +34,7 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   restart_peratom = 1;
+  create_attribute = 1;
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -197,6 +198,15 @@ void FixShearHistory::copy_arrays(int i, int j)
     shearpartner[j][m][1] = shearpartner[i][m][1];
     shearpartner[j][m][2] = shearpartner[i][m][2];
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixShearHistory::set_arrays(int i)
+{
+  npartner[i] = 0;
 }
 
 /* ----------------------------------------------------------------------

@@ -35,6 +35,8 @@ class Fix : protected Pointers {
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
   int time_integrate;            // 1 if fix performs time integration, 0 if no
   int time_depend;               // 1 if fix is timestep dependent, 0 if not
+  int create_attribute;          // 1 if fix stores attributes that need
+                                 //   setting when a new atom is created
   int restart_pbc;               // 1 if fix moves atoms (except integrate)
                                  //   so that write_restart must remap to PBC
 
@@ -88,6 +90,7 @@ class Fix : protected Pointers {
 
   virtual void grow_arrays(int) {}
   virtual void copy_arrays(int, int) {}
+  virtual void set_arrays(int) {}
   virtual int pack_exchange(int, double *) {return 0;}
   virtual int unpack_exchange(int, double *) {return 0;}
   virtual int pack_restart(int, double *) {return 0;}

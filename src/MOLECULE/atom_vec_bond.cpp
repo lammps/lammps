@@ -512,6 +512,7 @@ void AtomVecBond::create_atom(int itype, double *coord)
 
   molecule[nlocal] = 0;
   num_bond[nlocal] = 0;
+  nspecial[nlocal][0] = nspecial[nlocal][1] = nspecial[nlocal][2] = 0;
 
   atom->nlocal++;
 }

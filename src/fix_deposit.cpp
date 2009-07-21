@@ -19,6 +19,8 @@
 #include "atom_vec.h"
 #include "force.h"
 #include "update.h"
+#include "modify.h"
+#include "fix.h"
 #include "comm.h"
 #include "domain.h"
 #include "lattice.h"
@@ -155,6 +157,7 @@ int FixDeposit::setmask()
 
 void FixDeposit::pre_exchange()
 {
+  int i,j;
   int flag,flagall;
   double coord[3],lamda[3],delx,dely,delz,rsq;
   double *newcoord;
@@ -178,7 +181,10 @@ void FixDeposit::pre_exchange()
   }
 
   // attempt an insertion until successful
-  
+
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
   int success = 0;
   int attempt = 0;
   while (attempt < maxattempt) {
@@ -218,7 +224,7 @@ void FixDeposit::pre_exchange()
 
       double **x = atom->x;
       int nlocal = atom->nlocal;
-      for (int i = 0; i < nlocal; i++) {
+      for (i = 0; i < nlocal; i++) {
 	if (localflag) {
 	  delx = coord[0] - x[i][0];
 	  dely = coord[1] - x[i][1];
@@ -245,7 +251,7 @@ void FixDeposit::pre_exchange()
     int nlocal = atom->nlocal;
 
     flag = 0;
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       delx = coord[0] - x[i][0];
       dely = coord[1] - x[i][1];
       delz = coord[2] - x[i][2];
@@ -293,6 +299,8 @@ void FixDeposit::pre_exchange()
       atom->v[m][0] = vxtmp;
       atom->v[m][1] = vytmp;
       atom->v[m][2] = vztmp;
+      for (j = 0; j < nfix; j++)
+	if (fix[j]->create_attribute) fix[j]->set_arrays(m);
     }
     MPI_Allreduce(&flag,&success,1,MPI_INT,MPI_MAX,world);
     break;

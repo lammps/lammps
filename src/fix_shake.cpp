@@ -43,11 +43,13 @@ using namespace LAMMPS_NS;
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  virial_flag = 1;
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
   PI = 4.0*atan(1.0);
+
+  virial_flag = 1;
+  create_attribute = 1;
 
   // error check
 
@@ -2174,6 +2176,15 @@ void FixShake::copy_arrays(int i, int j)
     shake_type[j][1] = shake_type[i][1];
     shake_type[j][2] = shake_type[i][2];
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixShake::set_arrays(int i)
+{
+  shake_flag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------

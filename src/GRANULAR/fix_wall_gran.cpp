@@ -52,7 +52,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     error->all("Fix wall/gran requires atom attributes radius, omega, torque");
 
   restart_peratom = 1;
-  
+  create_attribute = 1;
+
   // wall/particle coefficients
 
   kn = atof(arg[3]);
@@ -687,6 +688,15 @@ void FixWallGran::copy_arrays(int i, int j)
   shear[j][0] = shear[i][0];
   shear[j][1] = shear[i][1];
   shear[j][2] = shear[i][2];
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixWallGran::set_arrays(int i)
+{
+  shear[i][0] = shear[i][1] = shear[i][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

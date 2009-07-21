@@ -432,7 +432,8 @@ void Force::set_special(int narg, char **arg)
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterik
    nmax = upper bound
-   5 possibilities: (1) i = i to i, (2) * = 1 to nmax,
+   5 possibilities:
+     (1) i = i to i, (2) * = 1 to nmax,
      (3) i* = i to nmax, (4) *j = 1 to j, (5) i*j = i to j
    return nlo,nhi
 ------------------------------------------------------------------------- */

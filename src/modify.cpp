@@ -187,7 +187,7 @@ void Modify::init()
   restart_pbc_any = 0;
   for (i = 0; i < nfix; i++)
     if (fix[i]->restart_pbc) restart_pbc_any = 1;
-  
+
   // create list of computes that store invocation times
 
   list_init_compute();

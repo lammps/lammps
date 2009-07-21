@@ -99,9 +99,6 @@ void FixTempRescale::init()
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
-
-  temperature->init();              // not yet called by Modify::init()
-  efactor = (0.5 * force->boltz * temperature->dof);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,6 +118,7 @@ void FixTempRescale::end_of_step()
   if (fabs(t_current-t_target) > t_window) {
     t_target = t_current - fraction*(t_current-t_target);
     double factor = sqrt(t_target/t_current);
+    double efactor = 0.5 * force->boltz * temperature->dof;
 
     double **v = atom->v;
     int *mask = atom->mask;

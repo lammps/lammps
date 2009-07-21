@@ -270,8 +270,6 @@ void FixNPH::init()
   pressure = modify->compute[icompute];
 
   // set timesteps and frequencies
-  // Nkt = initial value for piston mass and energy conservation
-  // guesstimate a unit-dependent t_initial if actual T = 0.0
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -286,14 +284,6 @@ void FixNPH::init()
   dimension = domain->dimension;
   if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
   else vol0 = domain->xprd * domain->yprd;
-
-  temperature->init();           // not yet called by Modify::init()
-  double t_initial = temperature->compute_scalar();
-  if (t_initial == 0.0) {
-    if (strcmp(update->unit_style,"lj") == 0) t_initial = 1.0;
-    else t_initial = 300.0;
-  }
-  nkt = atom->natoms * boltz * t_initial;
 
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
@@ -326,6 +316,18 @@ void FixNPH::init()
 
 void FixNPH::setup(int vflag)
 {
+  // Nkt = initial value for piston mass and energy conservation
+  // cannot be done in init() b/c temperature cannot be called there
+  // is b/c Modify::init() inits computes after fixes due to dof dependence
+  // guesstimate a unit-dependent t_initial if actual T = 0.0
+
+  double t_initial = temperature->compute_scalar();
+  if (t_initial == 0.0) {
+    if (strcmp(update->unit_style,"lj") == 0) t_initial = 1.0;
+    else t_initial = 300.0;
+  }
+  nkt = atom->natoms * boltz * t_initial;
+
   p_target[0] = p_start[0];                 // used by compute_scalar()
   p_target[1] = p_start[1];
   p_target[2] = p_start[2];

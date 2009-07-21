@@ -172,7 +172,7 @@ void Dump::write()
   }
 
   // pack my data into buf
-  // send_size = # of quantities in buf
+  // me_size = # of quantities in buf
 
   int me_size = pack();
 
@@ -312,7 +312,7 @@ void Dump::openfile()
     }
 
     if (fp == NULL) error->one("Cannot open dump file");
-  }
+  } else fp = NULL;
 
   // delete string with timestep replaced
 

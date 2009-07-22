@@ -125,7 +125,8 @@ int DumpAtom::modify_param(int narg, char **arg)
 
 void DumpAtom::write_header(int ndump)
 {
-  if (me == 0) (this->*header_choice)(ndump);
+  if (multiproc) (this->*header_choice)(ndump);
+  else if (me == 0) (this->*header_choice)(ndump);
 }
 
 /* ---------------------------------------------------------------------- */

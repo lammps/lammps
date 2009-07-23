@@ -441,8 +441,7 @@ void FixTTM::end_of_step()
 
   // output nodal temperatures for current timestep
 
-  if ((nfileevery) && !(update->ntimestep % nfileevery) && (me == 0)) { 
-    fprintf(fp,"%d ",update->ntimestep);
+  if ((nfileevery) && !(update->ntimestep % nfileevery)) { 
 
     // compute atomic Ta for each grid point
   
@@ -487,23 +486,27 @@ void FixTTM::end_of_step()
     MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
   
-    double T_a;
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-      for (int iynode = 0; iynode < nynodes; iynode++)
-        for (int iznode = 0; iznode < nznodes; iznode++) {
-          T_a = 0;
-          if (nsum_all[ixnode][iynode][iznode] > 0)
-            T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
-              (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-          fprintf(fp,"%f ",T_a);
-        }
-          
-    fprintf(fp,"\t");
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-      for (int iynode = 0; iynode < nynodes; iynode++)
-        for (int iznode = 0; iznode < nznodes; iznode++)
-          fprintf(fp,"%f ",T_electron[ixnode][iynode][iznode]);
-    fprintf(fp,"\n");
+    if (me == 0) {
+      fprintf(fp,"%d ",update->ntimestep);
+
+      double T_a;
+      for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+        for (int iynode = 0; iynode < nynodes; iynode++)
+          for (int iznode = 0; iznode < nznodes; iznode++) {
+            T_a = 0;
+            if (nsum_all[ixnode][iynode][iznode] > 0)
+              T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
+                (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
+            fprintf(fp,"%f ",T_a);
+          }
+            
+      fprintf(fp,"\t");
+      for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+        for (int iynode = 0; iynode < nynodes; iynode++)
+          for (int iznode = 0; iznode < nznodes; iznode++)
+            fprintf(fp,"%f ",T_electron[ixnode][iynode][iznode]);
+      fprintf(fp,"\n");
+    }
   }
 }
 

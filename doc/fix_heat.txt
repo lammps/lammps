@@ -35,11 +35,13 @@ they may move to.
 
 Heat addition/subtraction is performed every N timesteps.  The {eflux}
 parameter determines the change in aggregate energy of the entire
-group of atoms.  Since eflux is in units of energy/time, this means a
-larger value of N will add/subtract a larger amount of energy each
-timestep the fix is invoked.  If heat is subtracted from the system
-too aggressively so that the group's kinetic energy goes to zero,
-LAMMPS halts with an error message.
+group of atoms.  Thus it is an "extensive" quantity, meaning its
+magnitude should be scaled with the number of atoms in the group.
+Since eflux is in units of energy/time, this means a larger value of N
+will add/subtract a larger amount of energy each timestep the fix is
+invoked.  If heat is subtracted from the system too aggressively so
+that the group's kinetic energy goes to zero, LAMMPS halts with an
+error message.
 
 Fix heat is different from a thermostat such as "fix nvt"_fix_nvt.html
 or "fix temp/rescale"_fix_temp_rescale.html in that energy is
@@ -65,7 +67,7 @@ are relevant to this fix.
 This fix computes a scalar which can be accessed by various "output
 commands"_Section_howto.html#4_15.  This scalar is the most recent
 value by which velocites were scaled.  The scalar value calculated by
-this fix is "intensive", meaning it does not scale with the number of
+this fix is "intensive", meaning it is independent of the number of
 atoms in the simulation.
 
 No parameter of this fix can be used with the {start/stop} keywords of

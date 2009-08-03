@@ -111,8 +111,9 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   if (atom->molecular == 0)
     error->all("Cannot use fix bond/create with non-molecular systems");
-  if (iatomtype == jatomtype && inewtype != jnewtype)
-    error->all("Inconsistent new atom types in fix bond/create command");
+  if (iatomtype == jatomtype && 
+      ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
+    error->all("Inconsistent iparam/jparam values in fix bond/create command");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -254,12 +255,10 @@ void FixBondCreate::setup(int vflag)
       }
     }
 
-  // if newton_bond is set, need to communicate ghost counts
-  // use reverseflag to toggle operations inside pack/unpack methods
+  // if newton_bond is set, need to sum bondcount
 
-  reverseflag = 0;
+  commflag = 0;
   if (newton_bond) comm->reverse_comm_fix(this);
-  reverseflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -275,6 +274,11 @@ void FixBondCreate::post_integrate()
   // need updated ghost atom positions
 
   comm->communicate();
+
+  // forward comm of bondcount, so ghosts have it
+
+  commflag = 0;
+  comm->comm_fix(this);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -300,7 +304,7 @@ void FixBondCreate::post_integrate()
   }
 
   // loop over neighbors of my atoms
-  // setup possible partner list of bonds to create
+  // each atom sets one closest eligible partner atom ID to bond with
 
   double **x = atom->x;
   int *tag = atom->tag;
@@ -329,9 +333,13 @@ void FixBondCreate::post_integrate()
 
       possible = 0;
       if (itype == iatomtype && jtype == jatomtype) {
-	if (imaxbond == 0 || bondcount[i] < imaxbond) possible = 1;
+	if ((imaxbond == 0 || bondcount[i] < imaxbond) &&
+	    (jmaxbond == 0 || bondcount[j] < jmaxbond))
+	  possible = 1;
       } else if (itype == jatomtype && jtype == iatomtype) {
-	if (jmaxbond == 0 || bondcount[i] < jmaxbond) possible = 1;
+	if ((jmaxbond == 0 || bondcount[i] < jmaxbond) &&
+	    (imaxbond == 0 || bondcount[j] < imaxbond))
+	  possible = 1;
       }
       if (!possible) continue;
 
@@ -352,8 +360,10 @@ void FixBondCreate::post_integrate()
     }
   }
 
-  // reverse comm of partner info
+  // reverse comm of distsq and partner
+  // not needed if newton_pair off since I,J pair was seen by both procs
 
+  commflag = 1;
   if (force->newton_pair) comm->reverse_comm_fix(this);
 
   // each atom now knows its winning partner
@@ -364,10 +374,12 @@ void FixBondCreate::post_integrate()
     for (i = 0; i < nlocal; i++)
       if (partner[i]) probability[i] = random->uniform();
   }
-
+ 
+  commflag = 1;
   comm->comm_fix(this);
 
-  // create bonds
+  // create bonds for atoms I own
+  // if other atom is owned by another proc, it should create same bond
   // if both atoms list each other as winning bond partner
   // and probability constraint is satisfied
 
@@ -393,8 +405,8 @@ void FixBondCreate::post_integrate()
       if (0.5*(min+max) >= fraction) continue;
     }
 
-    // store bond with atom I
     // if newton_bond is set, only store with I or J
+    // if not newton_bond, store bond with both I and J
 
     if (!newton_bond || tag[i] < tag[j]) {
       if (num_bond[i] == atom->bond_per_atom)
@@ -458,12 +470,22 @@ int FixBondCreate::pack_comm(int n, int *list, double *buf,
   int i,j,m;
 
   m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = partner[j];
-    buf[m++] = probability[j];
+
+  if (commflag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = bondcount[j];
+    }
+    return 1;
+
+  } else {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = partner[j];
+      buf[m++] = probability[j];
+    }
+    return 2;
   }
-  return 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -474,9 +496,16 @@ void FixBondCreate::unpack_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    partner[i] = static_cast<int> (buf[m++]);
-    probability[i] = buf[m++];
+
+  if (commflag == 0) {
+    for (i = first; i < last; i++)
+      bondcount[i] = static_cast<int> (buf[m++]);
+
+  } else {
+    for (i = first; i < last; i++) {
+      partner[i] = static_cast<int> (buf[m++]);
+      probability[i] = buf[m++];
+    }
   }
 }
 
@@ -489,17 +518,17 @@ int FixBondCreate::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
 
-  if (reverseflag) {
-    for (i = first; i < last; i++) {
-      buf[m++] = partner[i];
-      buf[m++] = distsq[i];
-    }
-    return 2;
-
-  } else {
+  if (commflag == 0) {
     for (i = first; i < last; i++) 
       buf[m++] = bondcount[i];
     return 1;
+
+  } else {
+    for (i = first; i < last; i++) {
+      buf[m++] = distsq[i];
+      buf[m++] = partner[i];
+    }
+    return 2;
   }
 }
 
@@ -511,19 +540,19 @@ void FixBondCreate::unpack_reverse_comm(int n, int *list, double *buf)
 
   m = 0;
 
-  if (reverseflag) {
+  if (commflag == 0) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      if (buf[m+1] < distsq[j]) {
-	partner[j] = static_cast<int> (buf[m++]);
-	distsq[j] = buf[m++];
-      } else m += 2;
+      bondcount[j] += static_cast<int> (buf[m++]);
     }
 
   } else {
     for (i = 0; i < n; i++) {
       j = list[i];
-      bondcount[j] += static_cast<int> (buf[m++]);
+      if (buf[m] < distsq[j]) {
+	distsq[j] = buf[m++];
+	partner[j] = static_cast<int> (buf[m++]);
+      } else m += 2;
     }
   }
 }

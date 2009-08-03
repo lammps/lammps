@@ -48,14 +48,17 @@ class FixBondCreate : public Fix {
   int inewtype,jnewtype;
   double cutsq,fraction;
 
-  int createcount,createcounttotal;
+  int createcount,createcounttotal;   // bond formation stats
+
   int nmax;
-  int *partner,*bondcount;
-  double *distsq,*probability;
+  int *bondcount;        // count of created bonds this atom is part of
+  int *partner;          // ID of preferred atom for this atom to bond to
+  double *distsq;        // distance to preferred bond partner
+  double *probability;   // random # to use in decision to form bond
 
   class RanMars *random;
   class NeighList *list;
-  int countflag,reverseflag;
+  int countflag,commflag;
   int nlevels_respa;
 };
 

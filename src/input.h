@@ -21,7 +21,6 @@ namespace LAMMPS_NS {
 
 class Input : protected Pointers {
  public:
- public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
   class Variable *variable;    // defined variables

@@ -41,8 +41,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix heat command");
 
-  heat = atof(arg[4]);
-  heat *= nevery*update->dt*force->ftm2v;
+  heat_input = atof(arg[4]);
 
   // cannot have 0 atoms in group
 
@@ -77,6 +76,7 @@ void FixHeat::end_of_step()
 
   double vsub[3],vcm[3];
 
+  double heat = heat_input*nevery*update->dt*force->ftm2v;
   double ke = group->ke(igroup)*force->ftm2v;
   group->vcm(igroup,masstotal,vcm);
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];

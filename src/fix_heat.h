@@ -27,7 +27,7 @@ class FixHeat : public Fix {
   double compute_scalar();
 
  private:
-  double heat;
+  double heat_input;
   double masstotal;
   double scale;
 };

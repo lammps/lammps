@@ -74,8 +74,8 @@ char *lammps_command(void *ptr, char *str)
 
 /* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS value or data structure
-   category: 0 = general, 1 = fix, 2 = compute
-   id = ID of fix or compute (else not used)
+   category: 0 = general, 1 = atom, 2 = fix, 3 = compute
+   id = ID of fix or compute (else not used, just pass NULL)
    name = desired quantity, e.g. x or dt
    returns a void pointer which the caller can cast to the desired data type
    returns a NULL if LAMMPS does not recognize the name

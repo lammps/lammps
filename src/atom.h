@@ -146,6 +146,8 @@ class Atom : protected Pointers {
   void delete_callback(const char *, int);
   void update_callback(int);
 
+  void *extract(char *);
+
   double memory_usage();
   int memcheck(const char *);
 

@@ -83,6 +83,9 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate();
 
+  void *extract_fix(char *, char *);
+  void *extract_compute(char *, char *);
+
   double memory_usage();
 
  private:
@@ -110,6 +113,8 @@ class Modify : protected Pointers {
   char **id_restart_peratom;
   char **style_restart_peratom;
   int *index_restart_peratom;
+
+  int index_permanent;        // fix/compute index returned to library call
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);

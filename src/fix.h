@@ -126,6 +126,7 @@ class Fix : protected Pointers {
 
   virtual int modify_param(int, char **) {return 0;}
 
+  virtual void *extract(char *) {return NULL;}
   virtual double memory_usage() {return 0.0;}
 
  protected:

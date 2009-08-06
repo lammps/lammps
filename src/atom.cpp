@@ -1370,6 +1370,27 @@ void Atom::update_callback(int ifix)
 }
 
 /* ----------------------------------------------------------------------
+   return a pointer to a named internal variable
+   if don't recognize name, return NULL
+------------------------------------------------------------------------- */
+
+void *Atom::extract(char *name)
+{
+  if (strcmp(name,"natoms") == 0) return (void *) &natoms;
+  if (strcmp(name,"nlocal") == 0) return (void *) &nlocal;
+
+  if (strcmp(name,"id") == 0) return (void *) tag;
+  if (strcmp(name,"type") == 0) return (void *) type;
+  if (strcmp(name,"x") == 0) return (void *) x;
+  if (strcmp(name,"v") == 0) return (void *) v;
+  if (strcmp(name,"f") == 0) return (void *) f;
+  if (strcmp(name,"mass") == 0) return (void *) mass;
+  if (strcmp(name,"rmass") == 0) return (void *) rmass;
+
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
    call to avec sums per-atom vectors
    add in global to local mapping storage

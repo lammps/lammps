@@ -24,14 +24,15 @@
 extern "C" {
 #endif
 
-void lammps_open(int, char **, MPI_Comm, void **);  /* start-up LAMMPS */
-void lammps_close(void *);                          /* shut-down LAMMPS */
-void lammps_file(void *, char *);                   /* run an input script */
-char *lammps_command(void *, char *);               /* execute a command */
+void lammps_open(int, char **, MPI_Comm, void **);
+void lammps_close(void *);
+void lammps_file(void *, char *);
+char *lammps_command(void *, char *);
 
-int lammps_get_natoms(void *);              /* return # of atoms */
-void lammps_get_coords(void *, double *);   /* get atom x from all procs */
-void lammps_put_coords(void *, double *);   /* put atom x on all procs */
+void *lammps_extract(void *, int, char *, char *);
+int lammps_get_natoms(void *);
+void lammps_get_coords(void *, double *);
+void lammps_put_coords(void *, double *);
 
 #ifdef __cplusplus
 }

@@ -90,6 +90,7 @@ class Compute : protected Pointers {
   int matchstep(int);
   void clearstep();
 
+  virtual void *extract(char *) {return NULL;}
   virtual double memory_usage() {return 0.0;}
 
  protected:

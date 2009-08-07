@@ -325,18 +325,18 @@ run a bit faster.
 
 By default, LAMMPS includes only the "kspace", "manybody", and
 "molecule" packages.  As described below, some standard packages
-require LAMMPS be linked to separately built library files, which will
-require editing of your src/MAKE/Makefile.machine.
+require LAMMPS be linked to separately built libraries.
 
 Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package.  You can also type
 "make yes-standard", "make no-standard", "make yes-user", "make
 no-user", "make yes-all" or "make no-all" to include/exclude various
-sets of packages.  These commands work by simply moving files back and
-forth between the main src directory and sub-directories with the
-package name, so that the files are seen or not seen when LAMMPS is
-built.  After you have included or excluded a package, you must
-re-build LAMMPS.
+sets of packages.  Type "make package" to see the various options.
+
+These make commands work by simply moving files back and forth between
+the main src directory and sub-directories with the package name, so
+that the files are seen or not seen when LAMMPS is built.  After you
+have included or excluded a package, you must re-build LAMMPS.
 
 Additional make options exist to help manage LAMMPS files that exist
 in both the src directory and in package sub-directories.  You do not
@@ -348,13 +348,13 @@ used after a patch is installed, since patches only update the master
 package version of a file.  Typing "make package-overwrite" will
 overwrite files in the package directories with src files.  Typing
 "make package-check" will list differences between src and package
-versions of the same files.
+versions of the same files.  Again, type "make package" to see the
+various options.
 
-Some packages require that additional libraries first be compiled,
-which LAMMPS will link to when it builds.  Currently, these are the
-"meam", "poems", and "reax" packages.  You should look at the README
-files in the lib directories (e.g. lib/reax/README) for instructions
-on how to build the libraries themselves.
+A few packages require that additional libraries be compiled first,
+which LAMMPS will link to when it builds.  These are stored under
+under the lammps/lib directory of the distribution.  Currently, these
+include libraries for the "meam", "poems", and "reax" packages.
 
 The "meam" library in lib/meam computes the modified embedded atom
 method potential, which is a generalization of EAM potentials that can
@@ -365,6 +365,11 @@ assumes that FORTRAN object names are converted to C object names by
 appending an underscore character. This is generally the case, but 
 on machines that do not conform to this convention, you will need to 
 modify either the C++ code or your compiler settings.
+
+The "poems" library in lib/poems computes the constrained rigid-body
+motion of articulated (jointed) multibody systems.  POEMS was written
+and is distributed by Prof Kurt Anderson's group at Rensselaer
+Polytechnic Institute (RPI). 
 
 The "reax" library in lib/reax computes the Reactive Force Field
 (ReaxFF) potential, developed by Adri van Duin in Bill Goddard's group
@@ -381,35 +386,37 @@ Different definitions of this macro can be obtained by adding a
 machine-specific macro definition to the CCFLAGS variable in your Makefile
 e.g. -D_IBM. See pair_reax_fortran.h for more info.
 
-The "poems" library in lib/poems computes the constrained rigid-body
-motion of articulated (jointed) multibody systems.  POEMS was written
-and is distributed by Prof Kurt Anderson's group at Rensselaer
-Polytechnic Institute (RPI). 
-
-In all cases, these libraries are built by typing
+You should look at the README files in the lib directories
+(e.g. lib/reax/README) for instructions on how to build each library.
+In each cases, the library is built by typing something like
 
 make -f Makefile.foo :pre
 
 in the appropriate directory, e.g. in lib/reax.
 
-You should use the Makefile that is a match for your system.  If one
-of the provided Makefiles is not appropriate for your system you can
-edit or add one as needed.
+You should use the Makefile that is a match for your system.  In the
+case of libraries that consist of Fotran code, this requires your
+system have a Fortran compiler, the settings for which will be in the
+Makefile.  If one of the provided Makefiles is not appropriate for
+your system you can edit or add one as needed.
 
 Once the desired library or libraries are built, you can build LAMMPS.
-You will need to create and use a lo-level LAMMPS makefile in src/MAKE
-that links with the specific libraries you want.  See a Makefile.foo
-that has the library name in it to see how this is done.
-E.g. Makefile.g++_reax or Makefile.g++_poems_meam.  Typically these
-will have additional -I, -L, and -l arguments that enable compiling
-and linking with files from the library.
+From the lammps/src directory type this, for example, to build LAMMPS
+with ReaxFF:
 
-Note that linking a Fortran library (like MEAM or REAX) to a C++ code
-(like LAMMPS) can be tricky.  E.g. Fortran routine may not be found
-due to non-standard underscore rules.  It typically requires
-additional C++ or Fortran libraries be included in the link.  You may
-need to read documentation for your Fortran and C++ compilers about
-how to do this correctly.
+make yes-reax
+make g++ :pre
+
+Note that building the library (reax in this case) is not sufficient
+to use it from LAMMPS.  You must also include the package that
+uses/wraps the library before you build LAMMPS itself.
+
+Also note that to use a package and library that is Fortran based
+(like meam or reax), the lo-level Makefile in lammps/src/MAKE, which
+is Makefile.g++ in this example, must typically have settings for
+LINKFORT and FORTLIB that are specific to the Fortran compiler
+installed on your system.  This is so that the C++ compiler can
+perform a cross-language link using the appropriate Fortran libraries.
 
 :line
 

@@ -28,14 +28,14 @@ SHELL = /bin/sh
 include		Makefile.package
 
 CC =		mpicxx
-CCFLAGS =	$(PKGINC) -O -DFFT_FFTW -I$(FFTW_INCLUDE)
+CCFLAGS =	-O -DFFT_FFTW -I$(FFTW_INCLUDE) $(PKGINC)
 DEPFLAGS =	-M
 LINK =		mpicxx
 LINKFORT =	
-LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O
-USRLIB =	$(PKGLIB) $(BLASLIB) $(FFTW_LINK_LINE) -lstdc++
+LINKFLAGS =	-O $(PKGPATH) $(LINKFORT)
+USRLIB =	$(BLASLIB) $(FFTW_LINK_LINE) -lstdc++ $(PKGLIB)
 FORTLIB =	
-SYSLIB =	$(FORTLIB) -lm
+SYSLIB =	-lm $(FORTLIB)
 SIZE =		size
 ARCHIVE =       ar
 ARFLAGS =       -rc

@@ -4,17 +4,22 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =            CC --target=catamount
-CCFLAGS =       -O3 -fomit-frame-pointer -finline-functions \
+CCFLAGS =       $(PKGINC) -O3 -fomit-frame-pointer -finline-functions \
 		-Wall -Wno-unused -funroll-all-loops  \
                 -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK -DLAMMPS_XDR -I$(FFTW_INC) 
 NOALIAS =       -fno-strict-aliasing
 DEPFLAGS =      -M
 LINK =          CC --target=catamount
-LINKFLAGS =     -O -L$(FFTW_LIB)
-USRLIB =        -ldfftw -lgmalloc
-SYSLIB =
+LINKFORT =	
+LINKFLAGS =     $(PKGPATH) $(LINKFORT) -O -L$(FFTW_LIB)
+USRLIB =        $(PKGLIB) -ldfftw -lgmalloc
+FORTLIB =	
+SYSLIB =$(FORTLIB) 
 SIZE =          size
 
 # Link target

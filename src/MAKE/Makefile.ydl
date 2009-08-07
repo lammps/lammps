@@ -4,17 +4,22 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		xlc -q64
-CCFLAGS =	-g -O -I/opt/mpich/include  \
+CCFLAGS =	$(PKGINC) -g -O -I/opt/mpich/include  \
 		-I/usr/local/include -L/opt/mpich/lib64 \
 		-DFFT_FFTW -DLAMMPS_LAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		xlc -q64
-LINKFLAGS =	-g -O -L/opt/mpich/lib64 \
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -g -O -L/opt/mpich/lib64 \
 		-L/usr/local/lib -lstdc++ -lc
-USRLIB =	-lfftw -lmpich
-SYSLIB =
+USRLIB =	$(PKGLIB) -lfftw -lmpich
+FORTLIB =	
+SYSLIB =$(FORTLIB) 
 SIZE =		size
 
 # Link rule

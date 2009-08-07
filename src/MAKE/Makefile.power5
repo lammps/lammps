@@ -5,15 +5,20 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		mpCC_r
-CCFLAGS =	-O3 -qnoipa -qlanglvl=oldmath \
+CCFLAGS =	$(PKGINC) -O3 -qnoipa -qlanglvl=oldmath \
 		-I/scr/oppe/LAMMPS/fftw-2.1.5/include -DFFT_FFTW
 DEPFLAGS =	-M
 LINK =		mpCC_r
-LINKFLAGS =	-O -qnoipa -qlanglvl=oldmath -bmaxdata:0x70000000
-USRLIB =	-L/scr/oppe/LAMMPS/fftw-2.1.5/lib -lfftw
-SYSLIB =	-lm
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -qnoipa -qlanglvl=oldmath -bmaxdata:0x70000000
+USRLIB =	$(PKGLIB) -L/scr/oppe/LAMMPS/fftw-2.1.5/lib -lfftw
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -lm
 SIZE =		size
 
 # Link target

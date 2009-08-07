@@ -4,14 +4,19 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		mpicxx
-CCFLAGS =	-O -DFFT_FFTW -I/home/jlane/fftw-2.1.5/fftw
+CCFLAGS =	$(PKGINC) -O -DFFT_FFTW -I/home/jlane/fftw-2.1.5/fftw
 DEPFLAGS =	-M
 LINK =		mpicxx
-LINKFLAGS =	-O -L/home/jlane/fftw-2.1.5/fftw/.libs
-USRLIB =	-lstdc++ -lfftw
-SYSLIB =	-lm
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L/home/jlane/fftw-2.1.5/fftw/.libs
+USRLIB =	$(PKGLIB) -lstdc++ -lfftw
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -lm
 SIZE =		size
 
 ARCHIVE =       ar

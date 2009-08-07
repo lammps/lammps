@@ -1,16 +1,21 @@
-# g++ = RedHat Linux box, g++, MPICH2, FFTW
+# g++ = RedHat Linux box, g++, MPICH, FFTW
 
 SHELL = /bin/sh
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		g++
-CCFLAGS =	-g -O -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
+CCFLAGS =	-g $(PKGINC) -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O
-USRLIB =	-lfftw -lmpich
-SYSLIB =	-lpthread
+LINKFORT =	-L/opt/intel/fce/10.0.023/lib
+LINKFLAGS =	-g -O $(PKGPATH) $(LINKFORT)
+USRLIB =	-lfftw -lmpich $(PKGLIB)
+FORTLIB =	-lifcore -lsvml -lompstub -limf
+SYSLIB =	-lpthread $(FORTLIB)
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

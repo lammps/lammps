@@ -4,14 +4,19 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		g++
-CCFLAGS =	-O -I/opt/mpich-mx/include -DFFT_NONE -DLAMMPS_GZIP
+CCFLAGS =	$(PKGINC) -O -I/opt/mpich-mx/include -DFFT_NONE -DLAMMPS_GZIP
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-O -L/opt/mpich-mx/lib -L/opt/mx/lib
-USRLIB =	-lmpich -lmyriexpress
-SYSLIB =
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L/opt/mpich-mx/lib -L/opt/mx/lib
+USRLIB =	$(PKGLIB) -lmpich -lmyriexpress
+FORTLIB =	
+SYSLIB =$(FORTLIB) 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

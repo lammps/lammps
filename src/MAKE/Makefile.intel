@@ -4,16 +4,21 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		icpc
-CCFLAGS =	-O2  -unroll -DFFT_FFTW -DLAMMPS_GZIP \
+CCFLAGS =	$(PKGINC) -O2  -unroll -DFFT_FFTW -DLAMMPS_GZIP \
 		-fstrict-aliasing -I../STUBS
 NOALIAS = 	-fno-strict-aliasing
 DEPFLAGS =	-M
 LINK =		icpc
-LINKFLAGS =	-i-static
-USRLIB =	-L../STUBS -lmpi -lfftw 
-SYSLIB =	
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -i-static
+USRLIB =	$(PKGLIB) -L../STUBS -lmpi -lfftw 
+FORTLIB =	
+SYSLIB =	$(FORTLIB) 
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size

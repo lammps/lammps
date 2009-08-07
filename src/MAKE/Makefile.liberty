@@ -4,6 +4,9 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 # Note: this Makefile builds LAMMPS according to what modules you've loaded
 #   by default this is openmpi MPI
@@ -19,14 +22,16 @@ SHELL = /bin/sh
 #FFTW =		/home/sjplimp/fftw/fftw_liberty
 
 CC =		mpiCC
-#CCFLAGS =	-O -DFFT_FFTW -I${FFTW}/fftw
-CCFLAGS =	-O -DFFT_FFTW -I${FFTW_INCLUDE}
+#CCFLAGS =	$(PKGINC) -O -DFFT_FFTW -I${FFTW}/fftw
+CCFLAGS =	$(PKGINC) -O -DFFT_FFTW -I${FFTW_INCLUDE}
 DEPFLAGS =	-M
 LINK =		mpiCC
-#LINKFLAGS =	-O -L${FFTW}/fftw/.libs
-LINKFLAGS =	-O -L${FFTW_LIB}
-USRLIB =	-lfftw
-SYSLIB =	-lstdc++ -lm
+LINKFORT =	
+#LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L${FFTW}/fftw/.libs
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L${FFTW_LIB}
+USRLIB =	$(PKGLIB) -lfftw
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -lstdc++ -lm
 SIZE =		size
 
 # Link rule

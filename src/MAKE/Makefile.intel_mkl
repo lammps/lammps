@@ -10,14 +10,19 @@
 SHELL = /bin/sh
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =	        mpiicc	
-CCFLAGS =	-O3 -fno-alias -ip -unroll0 -g -DMPICH_IGNORE_CXX_SEEK -DLAMMPS_GZIP -DFFT_FFTW -I/opt/intel/mkl/10.0.011/include/fftw 
+CCFLAGS =	$(PKGINC) -O3 -fno-alias -ip -unroll0 -g -DMPICH_IGNORE_CXX_SEEK -DLAMMPS_GZIP -DFFT_FFTW -I/opt/intel/mkl/10.0.011/include/fftw 
 DEPFLAGS =	-M
 LINK =		mpiicc
-LINKFLAGS =	-mt_mpi -L/opt/intel/mkl/10.0.011/lib/em64t 
-USRLIB =	/opt/intel/mkl/10.0.011/lib/em64t/libfftw2xc_intel.a
-SYSLIB =        -lstdc++ -lpthread -lmkl_em64t -lguide 
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -mt_mpi -L/opt/intel/mkl/10.0.011/lib/em64t 
+USRLIB =	$(PKGLIB) /opt/intel/mkl/10.0.011/lib/em64t/libfftw2xc_intel.a
+FORTLIB =	
+SYSLIB =        $(FORTLIB) -lstdc++ -lpthread -lmkl_em64t -lguide 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

@@ -3,14 +3,19 @@
 SHELL = /bin/sh
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		g++
-CCFLAGS =	-g -O -I../STUBS -DFFT_NONE
+CCFLAGS =	-O -DFFT_NONE -I../STUBS $(PKGINC)
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O -L../STUBS
-USRLIB =	-lmpi
-SYSLIB =
+LINKFORT =	-L/opt/intel/fce/10.0.023/lib
+LINKFLAGS =	-O -L../STUBS $(PKGPATH) $(LINKFORT)
+USRLIB =	-lmpi $(PKGLIB)
+FORTLIB =	-lifcore -lsvml -lompstub -limf
+SYSLIB =	$(FORTLIB) 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

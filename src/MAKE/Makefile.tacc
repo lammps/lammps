@@ -3,18 +3,23 @@
 SHELL = /bin/sh
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 FFTW_INC = ${TACC_FFTW2_INC}
 FFTW_LIB = ${TACC_FFTW2_LIB}
 
 CC =		mpiCC
-CCFLAGS =	-O -DFFT_FFTW -I${FFTW_INC}
+CCFLAGS =	$(PKGINC) -O -DFFT_FFTW -I${FFTW_INC}
 DEPFLAGS =	-M
 LINK =		mpiCC
-LINKFLAGS =	-O -L${FFTW_LIB}
-USRLIB =	${FFTW_LIB}/libfftw.a
-SYSLIB =	-L/opt/apps/intel/10.1/fc/lib -lifcore
-#SYSLIB =	-L/opt/apps/intel/10.1/fc/lib -lifcore (use if linking to MEAM)
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L${FFTW_LIB}
+USRLIB =	$(PKGLIB) ${FFTW_LIB}/libfftw.a
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -L/opt/apps/intel/10.1/fc/lib -lifcore
+#SYSLIB =	$(FORTLIB) -L/opt/apps/intel/10.1/fc/lib -lifcore (use if linking to MEAM)
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

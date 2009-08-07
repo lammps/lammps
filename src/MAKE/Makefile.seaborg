@@ -5,14 +5,19 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		mpCC_r
-CCFLAGS =	-O2 -qnoipa -I/usr/common/usg/fftw/2.1.5/include -DFFT_FFTW  
+CCFLAGS =	$(PKGINC) -O2 -qnoipa -I/usr/common/usg/fftw/2.1.5/include -DFFT_FFTW  
 DEPFLAGS =	-M
 LINK =		mpCC_r
-LINKFLAGS =	-O -L/usr/lib -L/usr/common/usg/fftw/2.1.5/lib
-USRLIB =	-lfftw -lfftw_mpi
-SYSLIB =	-lm
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L/usr/lib -L/usr/common/usg/fftw/2.1.5/lib
+USRLIB =	$(PKGLIB) -lfftw -lfftw_mpi
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -lm
 SIZE =		size
 
 # Link rule

@@ -4,14 +4,19 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		/usr/local/cplant/ross/current/bin/c++
-CCFLAGS =	-O -DFFT_DEC
+CCFLAGS =	$(PKGINC) -O -DFFT_DEC
 DEPFLAGS =	-M
 LINK =		/usr/local/cplant/ross/current/bin/c++
-LINKFLAGS =	-O
-USRLIB =	-lmpi -lcxml
-SYSLIB =	-lm
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O
+USRLIB =	$(PKGLIB) -lmpi -lcxml
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -lm
 SIZE =		size
 
 # Link rule

@@ -11,14 +11,19 @@
 SHELL = /bin/sh
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		mpiCC
-CCFLAGS =       -DFFT_FFTW -I/home/athomps/tools/fftw-2.1.5/fftw
+CCFLAGS =       $(PKGINC) -DFFT_FFTW -I/home/athomps/tools/fftw-2.1.5/fftw
 DEPFLAGS =	-O2 -M
 LINK =		mpiCC
-LINKFLAGS =	-O2 -L/home/athomps/tools/fftw-2.1.5/fftw/.libs 
-USRLIB =	-lfftw -lmpi
-SYSLIB =	
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O2 -L/home/athomps/tools/fftw-2.1.5/fftw/.libs 
+USRLIB =	$(PKGLIB) -lfftw -lmpi
+FORTLIB =	
+SYSLIB =	$(FORTLIB) 
 SIZE =		size
 
 # Link rule

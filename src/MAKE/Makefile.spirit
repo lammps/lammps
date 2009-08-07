@@ -11,17 +11,22 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 FFTW =		/apps/x86_64/libraries/fftw/openmpi-1.2.2_mx_intel-9.1-f040-c045/fftw-2.1.5
 
 CC =		mpicxx
 OPTIMIZE =	-O
-CCFLAGS =	$(OPTIMIZE) -DFFT_FFTW -I$(FFTW)/include
+CCFLAGS =	$(PKGINC) $(OPTIMIZE) -DFFT_FFTW -I$(FFTW)/include
 DEPFLAGS =	-M
 LINK =		mpicxx
-LINKFLAGS =	$(OPTIMIZE) -L$(FFTW)/lib
-USRLIB =	-lfftw -lstdc++
-SYSLIB =	-lm
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) $(OPTIMIZE) -L$(FFTW)/lib
+USRLIB =	$(PKGLIB) -lfftw -lstdc++
+FORTLIB =	
+SYSLIB =	$(FORTLIB) -lm
 SIZE =		size
 
 # Link rule

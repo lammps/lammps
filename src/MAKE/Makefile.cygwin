@@ -4,14 +4,19 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC = mpicxx 
-CCFLAGS = -O -g -I/cygdrive/c/cygwin/fftw/include -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK
+CCFLAGS = $(PKGINC) -O -g -I/cygdrive/c/cygwin/fftw/include -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS = -M
 LINK = mpicxx 
-LINKFLAGS = -O -g -L/cygdrive/c/cygwin/fftw/lib -L/cygdrive/c/cygwin/mpich2-1.0.4p1/lib
-USRLIB = -lfftw -lmpich 
-SYSLIB = -lm 
+LINKFORT =	
+LINKFLAGS = $(PKGPATH) $(LINKFORT) -O -g -L/cygdrive/c/cygwin/fftw/lib -L/cygdrive/c/cygwin/mpich2-1.0.4p1/lib
+USRLIB = $(PKGLIB) -lfftw -lmpich 
+FORTLIB =	
+SYSLIB = $(FORTLIB) -lm 
 SIZE = size
 
 # Link rule

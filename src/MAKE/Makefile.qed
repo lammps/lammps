@@ -3,14 +3,19 @@
 SHELL = /bin/sh
 
 # System-specific settings
+# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+include		Makefile.package
 
 CC =		mpiCC
-CCFLAGS =	-O -I/usr/local/mpich-1.2.6-eth/include -DFFT_NONE
+CCFLAGS =	$(PKGINC) -O -I/usr/local/mpich-1.2.6-eth/include -DFFT_NONE
 DEPFLAGS =	-M
 LINK =		mpiCC
-LINKFLAGS =	-O -L/usr/local/mpich-1.2.6-eth/lib 
-USRLIB =	-lmpich
-SYSLIB =	
+LINKFORT =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L/usr/local/mpich-1.2.6-eth/lib 
+USRLIB =	$(PKGLIB) -lmpich
+FORTLIB =	
+SYSLIB =	$(FORTLIB) 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

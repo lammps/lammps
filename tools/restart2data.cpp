@@ -93,6 +93,8 @@ class Data {
 
   char *pair_style,*bond_style,*angle_style,*dihedral_style,*improper_style;
 
+  double *pair_born_A,*pair_born_rho,*pair_born_sigma;
+  double *pair_born_C,*pair_born_D;
   double *pair_buck_A,*pair_buck_rho,*pair_buck_C;
   double *pair_colloid_A12,*pair_colloid_sigma;
   double *pair_colloid_d1,*pair_colloid_d2;
@@ -1278,6 +1280,46 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   if (strcmp(style,"none") == 0) {
 
   } else if (strcmp(style,"airebo") == 0) {
+
+  } else if (strcmp(style,"born/coul/long") == 0) {
+    double cut_lj_global = read_double(fp);
+    double cut_coul = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_born_A = new double[data.ntypes+1];
+    data.pair_born_rho = new double[data.ntypes+1];
+    data.pair_born_sigma = new double[data.ntypes+1];
+    data.pair_born_C = new double[data.ntypes+1];
+    data.pair_born_D = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_born_A[i] = read_double(fp);
+	    data.pair_born_rho[i] = read_double(fp);
+	    data.pair_born_sigma[i] = read_double(fp);
+	    data.pair_born_C[i] = read_double(fp);
+	    data.pair_born_D[i] = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  } else {
+	    double born_A = read_double(fp);
+	    double born_rho = read_double(fp);
+	    double born_sigma = read_double(fp);
+	    double born_C = read_double(fp);
+	    double born_D = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  }
+	}
+      }
 
   } else if ((strcmp(style,"buck") == 0)  ||
 	   (strcmp(style,"buck/coul/cut") == 0) ||
@@ -2620,7 +2662,13 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"hybrid/overlay") != 0))
       fprintf(fp,"\nPair Coeffs\n\n");
     
-    if ((strcmp(pair_style,"buck") == 0) || 
+    if (strcmp(pair_style,"born/coul/long") == 0) {
+      for (int i = 1; i <= ntypes; i++)
+	fprintf(fp,"%d %g %g %g %g %g\n",i,
+		pair_born_A[i],pair_born_rho[i],pair_born_sigma[i],
+		pair_born_C[i],pair_born_D[i]);
+
+    } else if ((strcmp(pair_style,"buck") == 0) || 
 	(strcmp(pair_style,"buck/coul/cut") == 0) ||
 	(strcmp(pair_style,"buck/coul/long") == 0) ||
 	(strcmp(pair_style,"buck/long") == 0)) {

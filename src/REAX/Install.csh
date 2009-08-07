@@ -1,4 +1,5 @@
 # Install/unInstall package classes in LAMMPS
+# edit Makefile.package to include/exclude REAX library
 
 if ($1 == 1) then
 
@@ -12,6 +13,11 @@ if ($1 == 1) then
   cp fix_reax_bonds.h ..
   cp fix_reax_bonds.cpp ..
 
+  sed -i 's/\S*reax //' ../Makefile.package
+  sed -i 's|^PKGINC =\s*|&-I../../lib/reax |' ../Makefile.package
+  sed -i 's|^PKGPATH =\s*|&-L../../lib/reax |' ../Makefile.package
+  sed -i 's|^PKGLIB =\s*|&-lreax |' ../Makefile.package
+
 else if ($1 == 0) then
 
   rm ../style_reax.h
@@ -24,5 +30,7 @@ else if ($1 == 0) then
 
   rm ../fix_reax_bonds.h
   rm ../fix_reax_bonds.cpp
+
+  sed -i 's/\S*reax //' ../Makefile.package
 
 endif

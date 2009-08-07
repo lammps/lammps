@@ -63,6 +63,7 @@ help:
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@cp -p $(SRC) $(INC) Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
+	@cp Makefile.package Obj_$@
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
@@ -170,4 +171,4 @@ package-update:
 package-overwrite:
 	@for p in $(PACKAGEUC); do csh -f Package.csh $$p overwrite; done
 	@echo ''
-	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite; done
+	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite

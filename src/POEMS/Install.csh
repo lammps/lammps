@@ -3,18 +3,20 @@
 
 if ($1 == 1) then
 
+  sed -i 's/\S*poems //' ../Makefile.package
+  sed -i 's|^PKGINC =\s*|&-I../../lib/poems |' ../Makefile.package
+  sed -i 's|^PKGPATH =\s*|&-L../../lib/poems |' ../Makefile.package
+  sed -i 's|^PKGLIB =\s*|&-lpoems |' ../Makefile.package
+
   cp style_poems.h ..
 
   cp fix_poems.cpp ..
 
   cp fix_poems.h ..
 
-  sed -i 's/\S*poems //' ../Makefile.package
-  sed -i 's|^PKGINC =\s*|&-I../../lib/poems |' ../Makefile.package
-  sed -i 's|^PKGPATH =\s*|&-L../../lib/poems |' ../Makefile.package
-  sed -i 's|^PKGLIB =\s*|&-lpoems |' ../Makefile.package
-
 else if ($1 == 0) then
+
+  sed -i 's/\S*poems //' ../Makefile.package
 
   rm ../style_poems.h
   touch ../style_poems.h
@@ -22,7 +24,5 @@ else if ($1 == 0) then
   rm ../fix_poems.cpp
 
   rm ../fix_poems.h
-
-  sed -i 's/\S*poems //' ../Makefile.package
 
 endif

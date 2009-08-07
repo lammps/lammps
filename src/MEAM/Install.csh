@@ -3,18 +3,20 @@
 
 if ($1 == 1) then
 
+  sed -i 's/\S*meam //' ../Makefile.package
+  sed -i 's|^PKGINC =\s*|&-I../../lib/meam |' ../Makefile.package
+  sed -i 's|^PKGPATH =\s*|&-L../../lib/meam |' ../Makefile.package
+  sed -i 's|^PKGLIB =\s*|&-lmeam |' ../Makefile.package
+
   cp style_meam.h ..
 
   cp pair_meam.cpp ..
 
   cp pair_meam.h ..
 
-  sed -i 's/\S*meam //' ../Makefile.package
-  sed -i 's|^PKGINC =\s*|&-I../../lib/meam |' ../Makefile.package
-  sed -i 's|^PKGPATH =\s*|&-L../../lib/meam |' ../Makefile.package
-  sed -i 's|^PKGLIB =\s*|&-lmeam |' ../Makefile.package
-
 else if ($1 == 0) then
+
+  sed -i 's/\S*meam //' ../Makefile.package
 
   rm ../style_meam.h
   touch ../style_meam.h
@@ -22,7 +24,5 @@ else if ($1 == 0) then
   rm ../pair_meam.cpp
 
   rm ../pair_meam.h
-
-  sed -i 's/\S*meam //' ../Makefile.package
 
 endif

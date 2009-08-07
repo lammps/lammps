@@ -3,6 +3,11 @@
 
 if ($1 == 1) then
 
+  sed -i 's/\S*reax //' ../Makefile.package
+  sed -i 's|^PKGINC =\s*|&-I../../lib/reax |' ../Makefile.package
+  sed -i 's|^PKGPATH =\s*|&-L../../lib/reax |' ../Makefile.package
+  sed -i 's|^PKGLIB =\s*|&-lreax |' ../Makefile.package
+
   cp style_reax.h ..
 
   cp pair_reax.cpp ..
@@ -13,12 +18,9 @@ if ($1 == 1) then
   cp fix_reax_bonds.h ..
   cp fix_reax_bonds.cpp ..
 
-  sed -i 's/\S*reax //' ../Makefile.package
-  sed -i 's|^PKGINC =\s*|&-I../../lib/reax |' ../Makefile.package
-  sed -i 's|^PKGPATH =\s*|&-L../../lib/reax |' ../Makefile.package
-  sed -i 's|^PKGLIB =\s*|&-lreax |' ../Makefile.package
-
 else if ($1 == 0) then
+
+  sed -i 's/\S*reax //' ../Makefile.package
 
   rm ../style_reax.h
   touch ../style_reax.h
@@ -30,7 +32,5 @@ else if ($1 == 0) then
 
   rm ../fix_reax_bonds.h
   rm ../fix_reax_bonds.cpp
-
-  sed -i 's/\S*reax //' ../Makefile.package
 
 endif

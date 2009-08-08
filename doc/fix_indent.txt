@@ -63,11 +63,16 @@ F(r) = - k (r - R)^2 :pre
 on each atom where {k} is the specified force constant, {r} is the
 distance from the atom to the center of the indenter, and {R} is the
 radius of the indenter.  The force is repulsive and F(r) = 0 for {r} >
-{R}.
+{R}.  The calculation of distance to the indenter center accounts
+for periodic boundaries, which means the indenter can effectively
+straddle one or more periodic boundaries.
 
 A cylindrical indenter exerts the same force, except that {r} is the
 distance from the atom to the center axis of the cylinder.  The
-cylinder extends infinitely along its axis.
+cylinder extends infinitely along its axis.  The calculation of
+distance to the indenter axis accounts for periodic boundaries, which
+means the indenter can effectively straddle one or more periodic
+boundaries.
 
 A planar indenter is really an axis-aligned infinite-extent wall
 exerting the same force on atoms in the system, where {R} is the
@@ -84,7 +89,9 @@ the spherical (or cylindrical or planar) indenter will move during the
 simulation, based on its initial position (x,y,z) and the specified
 (vx,vy,vz).  Note that if you do multiple runs, the initial position
 of the indenter (x,y,z) does not change, so it will continue to move
-at the specified velocity.
+at the specified velocity.  For periodic systems and spherical or
+cylindrical indenters, the new position of the center or axis is
+wrapped back into the periodic box as needed.
 
 If the {rstart} keyword is specified, then the radius of the indenter
 is a time-dependent quantity.  This only applies to spherical or
@@ -111,11 +118,6 @@ previously used to define the lattice spacing.  Note that the units
 choice affects not only the indenter's physical geometry, but also its
 velocity and force constant since they are defined in terms of
 distance as well.
-
-IMPORTANT NOTE: For spherical and cylindrical indenters, you should
-insure the indenter's extent does not overlap a periodic boundary,
-either for a fixed indenter, or one that moves.  No check for such
-overlaps is performed by the code.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

@@ -90,6 +90,7 @@ class Domain : protected Pointers {
   void reset_box();
   void pbc();
   void remap(double *, int &);
+  void remap(double *);
   void unmap(double *, int);
   void unmap(double *, int, double *);
   void minimum_image(double &, double &, double &);

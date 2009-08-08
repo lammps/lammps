@@ -171,12 +171,15 @@ void FixIndent::post_force(int vflag)
 
   if (istyle == SPHERE) {
 
-    // x1,y1,z1 = current position of indenter from original x0,y0,z0
+    // ctr = current indenter center from original x0,y0,z0
+    // remap into periodic box
 
+    double ctr[3];
     double delta = (update->ntimestep - update->beginstep) * update->dt;
-    double x1 = x0 + delta*vx;
-    double y1 = y0 + delta*vy;
-    double z1 = z0 + delta*vz;
+    ctr[0] = x0 + delta*vx;
+    ctr[1] = y0 + delta*vy;
+    ctr[2] = z0 + delta*vz;
+    domain->remap(ctr);
 
     double **x = atom->x;
     double **f = atom->f;
@@ -187,9 +190,10 @@ void FixIndent::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	delx = x[i][0] - x1;
-	dely = x[i][1] - y1;
-	delz = x[i][2] - z1;
+	delx = x[i][0] - ctr[0];
+	dely = x[i][1] - ctr[1];
+	delz = x[i][2] - ctr[2];
+	domain->minimum_image(delx,dely,delz);
 	r = sqrt(delx*delx + dely*dely + delz*delz);
 	if (side == OUTSIDE) {
 	  dr = r - r0;
@@ -215,21 +219,27 @@ void FixIndent::post_force(int vflag)
 
   } else if (istyle == CYLINDER) {
 
-    // c1new,c2new = current coords of indenter axis from original c1,c2
+    // ctr = current indenter axis from original c1,c2
+    // remap into periodic box
+    // 3rd coord is just near box for remap(), since isn't used
 	      
+    double ctr[3];
     double delta = (update->ntimestep - update->beginstep) * update->dt;
-    double c1new,c2new;
     if (cdim == 0) {
-      c1new = c1 + delta*vy;
-      c2new = c2 + delta*vz;
+      ctr[0] = domain->boxlo[0];
+      ctr[1] = c1 + delta*vy;
+      ctr[2] = c2 + delta*vz;
     } else if (cdim == 1) {
-      c1new = c1 + delta*vx;
-      c2new = c2 + delta*vz;
+      ctr[0] = c1 + delta*vx;
+      ctr[1] = domain->boxlo[1];
+      ctr[2] = c2 + delta*vz;
     } else {
-      c1new = c1 + delta*vx;
-      c2new = c2 + delta*vy;
+      ctr[0] = c1 + delta*vx;
+      ctr[1] = c2 + delta*vy;
+      ctr[2] = domain->boxlo[2];
     }
-    
+    domain->remap(ctr);
+
     double **x = atom->x;
     double **f = atom->f;
     int *mask = atom->mask;
@@ -241,17 +251,18 @@ void FixIndent::post_force(int vflag)
       if (mask[i] & groupbit) {
 	if (cdim == 0) {
 	  delx = 0;
-	  dely = x[i][1] - c1new;
-	  delz = x[i][2] - c2new;
+	  dely = x[i][1] - ctr[1];
+	  delz = x[i][2] - ctr[2];
 	} else if (cdim == 1) {
-	  delx = x[i][0] - c1new;
+	  delx = x[i][0] - ctr[0];
 	  dely = 0;
-	  delz = x[i][2] - c2new;
+	  delz = x[i][2] - ctr[2];
 	} else {
-	  delx = x[i][0] - c1new;
-	  dely = x[i][1] - c2new;
+	  delx = x[i][0] - ctr[0];
+	  dely = x[i][1] - ctr[1];
 	  delz = 0;
 	}
+	domain->minimum_image(delx,dely,delz);
 	r = sqrt(delx*delx + dely*dely + delz*delz);
 	if (side == OUTSIDE) {
 	  dr = r - r0;

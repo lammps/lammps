@@ -677,6 +677,52 @@ void Domain::remap(double *x, int &image)
 }
 
 /* ----------------------------------------------------------------------
+   remap the point into the periodic box no matter how far away
+   resulting coord must satisfy lo <= coord < hi
+   MAX is important since coord - prd < lo can happen when coord = hi
+   for triclinic, point is converted to lamda coords (0-1) before doing remap
+------------------------------------------------------------------------- */
+
+void Domain::remap(double *x)
+{
+  double *lo,*hi,*period,*coord;
+  double lamda[3];
+
+  if (triclinic == 0) {
+    lo = boxlo;
+    hi = boxhi;
+    period = prd;
+    coord = x;
+  } else {
+    lo = boxlo_lamda;
+    hi = boxhi_lamda;
+    period = prd_lamda;
+    x2lamda(x,lamda);
+    coord = lamda;
+  }
+
+  if (xperiodic) {
+    while (coord[0] < lo[0]) coord[0] += period[0];
+    while (coord[0] >= hi[0]) coord[0] -= period[0];
+    coord[0] = MAX(coord[0],lo[0]);
+  }
+
+  if (yperiodic) {
+    while (coord[1] < lo[1]) coord[1] += period[1];
+    while (coord[1] >= hi[1]) coord[1] -= period[1];
+    coord[1] = MAX(coord[1],lo[1]);
+  }
+
+  if (zperiodic) {
+    while (coord[2] < lo[2]) coord[2] += period[2];
+    while (coord[2] >= hi[2]) coord[2] -= period[2];
+    coord[2] = MAX(coord[2],lo[2]);
+  }
+
+  if (triclinic) lamda2x(coord,x);
+}
+
+/* ----------------------------------------------------------------------
    unmap the point via image flags
    x overwritten with result, don't reset image flag
    for triclinic, use h[] to add in tilt factors in other dims as needed

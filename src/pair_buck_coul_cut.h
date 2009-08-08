@@ -21,19 +21,19 @@ namespace LAMMPS_NS {
 class PairBuckCoulCut : public Pair {
  public:
   PairBuckCoulCut(class LAMMPS *);
-  ~PairBuckCoulCut();
-  void compute(int, int);
-  void settings(int, char **);
+  virtual ~PairBuckCoulCut();
+  virtual void compute(int, int);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double cut_lj_global,cut_coul_global;
   double **cut_lj,**cut_ljsq;
   double **cut_coul,**cut_coulsq;

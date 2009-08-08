@@ -13,11 +13,22 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID addforce fx fy fz 
+<PRE>fix ID group-ID addforce fx fy fz keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>addforce = style name of this fix command
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>addforce = style name of this fix command 
+
 <LI>fx,fy,fz = force component values (force units) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I>  
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -29,6 +40,10 @@
 the group.  This command can be used to give an additional push to
 atoms in a simulation, such as for a simulation of Poiseuille flow in
 a channel.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have force added
+to it.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

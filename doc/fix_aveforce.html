@@ -13,16 +13,27 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID aveforce fx fy fz 
+<PRE>fix ID group-ID aveforce fx fy fz keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>aveforce = style name of this fix command
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>aveforce = style name of this fix command 
+
 <LI>fx,fy,fz = force component values (force units) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I>  
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix pressdown topwall aveforce 0.0 -1.0 0.0
-fix 2 bottomwall aveforce NULL -1.0 0.0 
+fix 2 bottomwall aveforce NULL -1.0 0.0 region top 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -40,6 +51,10 @@ atom in the group receives the same force.
 dimension are not changed.  Note that this is not the same as
 specifying a 0.0 value, since that sets all forces to the same average
 value without adding in any additional force.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have force added
+to it.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

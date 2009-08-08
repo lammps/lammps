@@ -10,11 +10,16 @@ fix addforce command :h3
 
 [Syntax:]
 
-fix ID group-ID addforce fx fy fz :pre
+fix ID group-ID addforce fx fy fz keyword value ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-addforce = style name of this fix command
-fx,fy,fz = force component values (force units) :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+addforce = style name of this fix command :l
+fx,fy,fz = force component values (force units) :l
+zero or more keyword/value pairs may be appended to args :l
+keyword = {region}  :l
+  {region} value = region-ID
+    region-ID = ID of region atoms must be in to have added force :pre
+:ule
 
 [Examples:]
 
@@ -26,6 +31,10 @@ Add fx,fy,fz to the corresponding component of force for each atom in
 the group.  This command can be used to give an additional push to
 atoms in a simulation, such as for a simulation of Poiseuille flow in
 a channel.
+
+If the {region} keyword is used, the atom must also be in the
+specified geometric "region"_region.html in order to have force added
+to it.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

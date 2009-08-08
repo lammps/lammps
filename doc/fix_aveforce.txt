@@ -10,16 +10,21 @@ fix aveforce command :h3
 
 [Syntax:]
 
-fix ID group-ID aveforce fx fy fz :pre
+fix ID group-ID aveforce fx fy fz keyword value ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-aveforce = style name of this fix command
-fx,fy,fz = force component values (force units) :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+aveforce = style name of this fix command :l
+fx,fy,fz = force component values (force units) :l
+zero or more keyword/value pairs may be appended to args :l
+keyword = {region}  :l
+  {region} value = region-ID
+    region-ID = ID of region atoms must be in to have added force :pre
+:ule
 
 [Examples:]
 
 fix pressdown topwall aveforce 0.0 -1.0 0.0
-fix 2 bottomwall aveforce NULL -1.0 0.0 :pre
+fix 2 bottomwall aveforce NULL -1.0 0.0 region top :pre
 
 [Description:]
 
@@ -37,6 +42,10 @@ If any of the arguments is specified as NULL then the forces in that
 dimension are not changed.  Note that this is not the same as
 specifying a 0.0 value, since that sets all forces to the same average
 value without adding in any additional force.
+
+If the {region} keyword is used, the atom must also be in the
+specified geometric "region"_region.html in order to have force added
+to it.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

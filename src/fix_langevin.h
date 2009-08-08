@@ -27,20 +27,30 @@ class FixLangevin : public Fix {
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  void end_of_step();
   void reset_target(double);
   void reset_dt();
   int modify_param(int, char **);
+  double compute_scalar();
+  double memory_usage();
 
  private:
-  int which,massflag;
+  int which,tally;
   double t_start,t_stop,t_period;
   double *gfactor1,*gfactor2,*ratio;
+  double energy,energy_onestep;
+
+  int nmax;
+  double **flangevin;
 
   char *id_temp;
   class Compute *temperature;
 
   int nlevels_respa;
   class RanMars *random;
+
+  void post_force_no_tally();
+  void post_force_tally();
 };
 
 }

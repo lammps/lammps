@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Carolyn Phillips (U Mich), reservoir energy tally
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
@@ -26,12 +30,12 @@
 #include "respa.h"
 #include "comm.h"
 #include "random_mars.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 enum{NOBIAS,BIAS};
-enum{MASS,RMASS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -41,6 +45,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all("Illegal fix langevin command");
 
   time_depend = 1;
+  scalar_flag = 1;
+  scalar_vector_freq = 1;
+  extscalar = 1;
+  nevery = 1;
 
   t_start = atof(arg[3]);
   t_stop = atof(arg[4]);
@@ -63,6 +71,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
+  tally = 0;
 
   int iarg = 7;
   while (iarg < narg) {
@@ -74,6 +83,12 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Illegal fix langevin command");
       ratio[itype] = scale;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"tally") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) tally = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) tally = 1;
+      else error->all("Illegal fix indent command");
+      iarg += 2;
     } else error->all("Illegal fix langevin command");
   }
 
@@ -81,6 +96,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   id_temp = NULL;
   temperature = NULL;
+
+  flangevin = NULL;
+  nmax = 0;
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,6 +111,7 @@ FixLangevin::~FixLangevin()
   delete [] gfactor2;
   delete [] ratio;
   delete [] id_temp;
+  memory->destroy_2d_double_array(flangevin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,6 +121,8 @@ int FixLangevin::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= END_OF_STEP;
+  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -110,7 +132,7 @@ void FixLangevin::init()
 {
   // set force prefactors
 
-  if (atom->mass) {
+  if (!atom->rmass) {
     for (int i = 1; i <= atom->ntypes; i++) {
       gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
       gfactor2[i] = sqrt(atom->mass[i]) * 
@@ -123,9 +145,6 @@ void FixLangevin::init()
 
   if (temperature && temperature->tempbias) which = BIAS;
   else which = NOBIAS;
-
-  if (atom->mass) massflag = MASS;
-  else massflag = RMASS;
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -148,10 +167,26 @@ void FixLangevin::setup(int vflag)
 
 void FixLangevin::post_force(int vflag)
 {
+  if (tally) post_force_tally();
+  else post_force_no_tally();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevin::post_force_no_tally()
+{
   double gamma1,gamma2;
 
   double **v = atom->v;
   double **f = atom->f;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -163,42 +198,7 @@ void FixLangevin::post_force(int vflag)
 
   // apply damping and thermostat to appropriate atoms
 
-  if (massflag == MASS) {
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = gfactor1[type[i]];
-	  gamma2 = gfactor2[type[i]] * tsqrt;
-	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-	}
-      }
-
-    // invoke temperature since some computes require it to remove bias
-    // test v = 0 since some computes mask non-participating atoms via v = 0
-
-    } else if (which == BIAS) {
-      double tmp = temperature->compute_scalar();
-      
-      for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  gamma1 = gfactor1[type[i]];
-	  gamma2 = gfactor2[type[i]] * tsqrt;
-	  temperature->remove_bias(i,v[i]);
-	  if (v[i][0] != 0.0)
-	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
-	  if (v[i][1] != 0.0)
-	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
-	  if (v[i][2] != 0.0)
-	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-	  temperature->restore_bias(i,v[i]);
-	}
-      }
-    }
-
-  } else {
-    double *rmass = atom->rmass;
+  if (rmass) {
     double boltz = force->boltz;
     double dt = update->dt;
     double mvv2e = force->mvv2e;
@@ -240,14 +240,182 @@ void FixLangevin::post_force(int vflag)
 	}
       }
     }
+
+  } else {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = gfactor1[type[i]];
+	  gamma2 = gfactor2[type[i]] * tsqrt;
+	  f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	}
+      }
+
+    // invoke temperature since some computes require it to remove bias
+    // test v = 0 since some computes mask non-participating atoms via v = 0
+
+    } else if (which == BIAS) {
+      double tmp = temperature->compute_scalar();
+      
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = gfactor1[type[i]];
+	  gamma2 = gfactor2[type[i]] * tsqrt;
+	  temperature->remove_bias(i,v[i]);
+	  if (v[i][0] != 0.0)
+	    f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  if (v[i][1] != 0.0)
+	    f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  if (v[i][2] != 0.0)
+	    f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  temperature->restore_bias(i,v[i]);
+	}
+      }
+    }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
+void FixLangevin::post_force_tally()
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  double gamma1,gamma2;
+
+  // reallocate flangevin if necessary
+
+  if (atom->nmax > nmax) {
+    memory->destroy_2d_double_array(flangevin);
+    nmax = atom->nmax;
+    flangevin = memory->create_2d_double_array(nmax,3,"langevin:flangevin");
+  }
+
+  double **v = atom->v;
+  double **f = atom->f;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double delta = update->ntimestep - update->beginstep;
+  delta /= update->endstep - update->beginstep;
+  double t_target = t_start + delta * (t_stop-t_start);
+  double tsqrt = sqrt(t_target);
+
+  // apply damping and thermostat to appropriate atoms
+
+  if (rmass) {
+    double boltz = force->boltz;
+    double dt = update->dt;
+    double mvv2e = force->mvv2e;
+    double ftm2v = force->ftm2v;
+
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = -rmass[i] / t_period / ftm2v;
+	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+	  gamma1 *= 1.0/ratio[type[i]];
+	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  f[i][0] += flangevin[i][0];
+	  f[i][1] += flangevin[i][1];
+	  f[i][2] += flangevin[i][2];
+	}
+      }
+
+    // invoke temperature since some computes require it to remove bias
+    // test v = 0 since some computes mask non-participating atoms via v = 0
+
+    } else if (which == BIAS) {
+      double tmp = temperature->compute_scalar();
+      
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = -rmass[i] / t_period / ftm2v;
+	  gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+	  gamma1 *= 1.0/ratio[type[i]];
+	  gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+	  temperature->remove_bias(i,v[i]);
+	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  if (v[i][0] != 0.0) f[i][0] += flangevin[i][0];
+	  else flangevin[i][0] = 0;
+	  if (v[i][1] != 0.0) f[i][1] += flangevin[i][1];
+	  else flangevin[i][1] = 0;
+	  if (v[i][2] != 0.0) f[i][2] += flangevin[i][2];
+	  else flangevin[i][2] = 0;
+	  temperature->restore_bias(i,v[i]);
+	}
+      }
+    }
+
+  } else {
+    if (which == NOBIAS) {
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = gfactor1[type[i]];
+	  gamma2 = gfactor2[type[i]] * tsqrt;
+	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  f[i][0] += flangevin[i][0];
+	  f[i][1] += flangevin[i][1];
+	  f[i][2] += flangevin[i][2];
+	}
+      }
+
+    // invoke temperature since some computes require it to remove bias
+    // test v = 0 since some computes mask non-participating atoms via v = 0
+
+    } else if (which == BIAS) {
+      double tmp = temperature->compute_scalar();
+      
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  gamma1 = gfactor1[type[i]];
+	  gamma2 = gfactor2[type[i]] * tsqrt;
+	  temperature->remove_bias(i,v[i]);
+	  flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
+	  flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
+	  if (v[i][0] != 0.0) f[i][0] += flangevin[i][0];
+	  else flangevin[i][0] = 0.0;
+	  if (v[i][1] != 0.0) f[i][1] += flangevin[i][1];
+	  else flangevin[i][1] = 0.0;
+	  if (v[i][2] != 0.0) f[i][2] += flangevin[i][2];
+	  else flangevin[i][2] = 0.0;
+	  temperature->restore_bias(i,v[i]);
+	}
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally energy transfer to thermal reservoir
+------------------------------------------------------------------------- */
+
+void FixLangevin::end_of_step()
+{
+  if (!tally) return;
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;  
+
+  energy_onestep = 0.0;
+ 
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] + 
+	flangevin[i][2]*v[i][2];
+
+  energy += energy_onestep*update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,14 +451,53 @@ int FixLangevin::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all("Could not find fix_modify temp ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all("Fix_modify temp ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning("Group for fix_modify temp != fix group");
     return 2;
   }
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixLangevin::compute_scalar()
+{
+  if (!tally) return 0.0;
+
+  // capture the very first energy transfer to thermal reservoir
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;  
+
+  if (update->ntimestep == update->beginstep) {
+    energy_onestep = 0.0;
+    for (int i = 0; i < nlocal; i++) 
+      if (mask[i] & groupbit) 
+	energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] + 
+	  flangevin[i][2]*v[i][2];
+    energy = 0.5*energy_onestep*update->dt;
+  }
+
+  double energy_me = energy - 0.5*energy_onestep*update->dt;
+
+  double energy_all;	 
+  MPI_Allreduce(&energy_me,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);	
+  return -energy_all;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of tally array
+------------------------------------------------------------------------- */
+
+double FixLangevin::memory_usage()
+{
+  if (!tally) return 0.0;
+  double bytes = atom->nmax*3 * sizeof(double);
+  return bytes;
 }

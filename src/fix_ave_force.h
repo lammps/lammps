@@ -31,10 +31,9 @@ class FixAveForce : public Fix {
   double compute_vector(int);
 
  private:
-  int xflag,yflag,zflag;
+  int xflag,yflag,zflag,iregion;
   double xvalue,yvalue,zvalue;
-  double foriginal_all[3];
-  int ncount;
+  double foriginal_all[4];
   int nlevels_respa;
 };
 

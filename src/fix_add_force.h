@@ -32,6 +32,7 @@ class FixAddForce : public Fix {
   double compute_vector(int);
 
  private:
+  int iregion;
   double xvalue,yvalue,zvalue;
   double foriginal[4],foriginal_all[4];
   int force_flag;

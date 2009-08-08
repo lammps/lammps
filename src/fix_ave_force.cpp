@@ -17,6 +17,8 @@
 #include "fix_ave_force.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
+#include "region.h"
 #include "respa.h"
 #include "error.h"
 
@@ -27,7 +29,7 @@ using namespace LAMMPS_NS;
 FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix aveforce command");
+  if (narg < 6) error->all("Illegal fix aveforce command");
 
   vector_flag = 1;
   size_vector = 3;
@@ -42,7 +44,22 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[5],"NULL") == 0) zflag = 0;
   else zvalue = atof(arg[5]);
 
-  foriginal_all[0] = foriginal_all[1] = foriginal_all[2] = 0.0;
+  // optional args
+
+  iregion = -1;
+
+  int iarg = 6;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix aveforce command");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1) error->all("Fix aveforce region ID does not exist");
+      iarg += 2;
+    }
+  }
+
+  foriginal_all[0] = foriginal_all[1] = 
+    foriginal_all[2] = foriginal_all[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,16 +79,6 @@ void FixAveForce::init()
 {
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  // ncount = total # of atoms in group
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int count = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) count++;
-  MPI_Allreduce(&count,&ncount,1,MPI_INT,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,24 +108,34 @@ void FixAveForce::post_force(int vflag)
 {
   // sum forces on participating atoms
 
+  double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double foriginal[3];
-  foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+  double foriginal[4];
+  foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      if (iregion >= 0 && 
+          !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	continue;
+
       foriginal[0] += f[i][0];
       foriginal[1] += f[i][1];
       foriginal[2] += f[i][2];
+      foriginal[3] += 1.0;
     }
 
   // average the force on participating atoms
   // add in requested amount
 
-  MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
+
+  int ncount = static_cast<int> (foriginal_all[3]);
+  if (ncount == 0) return;
+
   double fave[3];
   fave[0] = foriginal_all[0]/ncount + xvalue;
   fave[1] = foriginal_all[1]/ncount + yvalue;
@@ -129,6 +146,10 @@ void FixAveForce::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      if (iregion >= 0 && 
+          !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	continue;
+
       if (xflag) f[i][0] = fave[0];
       if (yflag) f[i][1] = fave[1];
       if (zflag) f[i][2] = fave[2];
@@ -144,21 +165,31 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
   if (ilevel == nlevels_respa-1) post_force(vflag);
   else {
+    double **x = atom->x;
     double **f = atom->f;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    double foriginal[3];
-    foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
+    double foriginal[4];
+    foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+	if (iregion >= 0 && 
+	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	  continue;
+
 	foriginal[0] += f[i][0];
 	foriginal[1] += f[i][1];
 	foriginal[2] += f[i][2];
+	foriginal[3] += 1.0;
       }
 
-    MPI_Allreduce(foriginal,foriginal_all,3,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
+
+    int ncount = static_cast<int> (foriginal_all[3]);
+    if (ncount == 0) return;
+
     double fave[3];
     fave[0] = foriginal_all[0]/ncount;
     fave[1] = foriginal_all[1]/ncount;
@@ -166,6 +197,10 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+	if (iregion >= 0 && 
+	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+	  continue;
+
 	if (xflag) f[i][0] = fave[0];
 	if (yflag) f[i][1] = fave[1];
 	if (zflag) f[i][2] = fave[2];

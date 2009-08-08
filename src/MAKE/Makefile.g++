@@ -8,7 +8,7 @@ SHELL = /bin/sh
 include		Makefile.package
 
 CC =		g++
-CCFLAGS =	-g -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK $(PKGINC)
+CCFLAGS =	-g -O -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK $(PKGINC)
 DEPFLAGS =	-M
 LINK =		g++
 LINKFORT =	-L/opt/intel/fce/10.0.023/lib

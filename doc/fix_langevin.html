@@ -27,10 +27,13 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>scale</I>
+<PRE>keyword = <I>scale</I> or <I>tally</I>
   <I>scale</I> values = type ratio
     type = atom type (1-N)
-    ratio = factor by which to scale the damping coefficient 
+    ratio = factor by which to scale the damping coefficient
+  <I>tally</I> values = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not tally the energy added/subtracted to atoms
+    <I>yes</I> = do tally the energy added/subtracted to atoms 
 </PRE>
 
 </UL>
@@ -139,6 +142,13 @@ particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass and size of
 different atom types should be accounted for in the choice of ratio
 values.
 </P>
+<P>The keyword <I>tally</I> enables the calculation of the cummulative energy
+added/subtracted to the atoms as they are thermostatted.  Effectively
+it is the energy exchanged between the infinite thermal reservoir and
+the particles.  As described below, this energy can then be printed
+out or added to the potential energy of the system to monitor energy
+conservation.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
@@ -154,8 +164,18 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 </P>
-<P>No global scalar or vector or per-atom quantities are stored by this
-fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Langevin thermostatting to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  Note that use of this option requires
+setting the <I>tally</I> keyword to <I>yes</I>.
+</P>
+<P>The cummulative energy change due to this fix is stored as a scalar
+quantity, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.  Note that use of this option requires setting the
+<I>tally</I> keyword to <I>yes</I>.
 </P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
@@ -172,8 +192,7 @@ viscous</A>, <A HREF = "fix_nvt.html">fix nvt</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are axes = 1 1 1, scale = 1.0 for all types, no
-region, and weight = 1.0.
+<P>The option defaults are scale = 1.0 for all types and tally = no.
 </P>
 <HR>
 

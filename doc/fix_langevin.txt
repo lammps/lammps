@@ -17,12 +17,14 @@ langevin = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
 damp = damping parameter (time units) :l
 seed = random number seed to use for white noise (positive integer) :l
-
 zero or more keyword/value pairs may be appended :l
-keyword = {scale}
+keyword = {scale} or {tally}
   {scale} values = type ratio
     type = atom type (1-N)
-    ratio = factor by which to scale the damping coefficient :pre
+    ratio = factor by which to scale the damping coefficient
+  {tally} values = {no} or {yes}
+    {no} = do not tally the energy added/subtracted to atoms
+    {yes} = do tally the energy added/subtracted to atoms :pre
 :ule
 
 [Examples:]
@@ -130,6 +132,13 @@ particle mass in Ff, unlike fix {viscous}.  Thus the mass and size of
 different atom types should be accounted for in the choice of ratio
 values.
 
+The keyword {tally} enables the calculation of the cummulative energy
+added/subtracted to the atoms as they are thermostatted.  Effectively
+it is the energy exchanged between the infinite thermal reservoir and
+the particles.  As described below, this energy can then be printed
+out or added to the potential energy of the system to monitor energy
+conservation.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
@@ -145,8 +154,18 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-No global scalar or vector or per-atom quantities are stored by this
-fix for access by various "output commands"_Section_howto.html#4_15.
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy change induced by Langevin thermostatting to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.  Note that use of this option requires
+setting the {tally} keyword to {yes}.
+
+The cummulative energy change due to this fix is stored as a scalar
+quantity, which can be accessed by various "output
+commands"_Section_howto.html#4_15.  The scalar value calculated by
+this fix is "extensive", meaning it scales with the number of atoms in
+the simulation.  Note that use of this option requires setting the
+{tally} keyword to {yes}.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
@@ -163,8 +182,7 @@ viscous"_fix_viscous.html, "fix nvt"_fix_nvt.html
 
 [Default:]
 
-The option defaults are axes = 1 1 1, scale = 1.0 for all types, no
-region, and weight = 1.0.
+The option defaults are scale = 1.0 for all types and tally = no.
 
 :line
 

@@ -95,9 +95,9 @@ void PairBuckCoul::settings(int narg, char **arg)
   if (!*(++arg)) error->all(PAIR_MISSING);
   if (ewald_off&(1<<6)) error->all(PAIR_LJ_OFF);
   if (!((ewald_order^ewald_off)&(1<<1))) error->all(PAIR_COUL_CUT);
-  cut_buck_global = atof(*(arg++));
+  cut_buck_global = force->numeric(*(arg++));
   if (*arg&&(ewald_order&0x42==0x42)) error->all(PAIR_CUTOFF);
-  cut_coul = *arg ? atof(*(arg++)) : cut_buck_global;
+  cut_coul = *arg ? force->numeric(*(arg++)) : cut_buck_global;
   if (*arg) error->all(PAIR_MANY);
 
   if (allocated) {					// reset explicit cuts
@@ -196,12 +196,12 @@ void PairBuckCoul::coeff(int narg, char **arg)
   force->bounds(*(arg++),atom->ntypes,ilo,ihi);
   force->bounds(*(arg++),atom->ntypes,jlo,jhi);
 
-  double buck_a_one = atof(*(arg++));
-  double buck_rho_one = atof(*(arg++));
-  double buck_c_one = atof(*(arg++));
+  double buck_a_one = force->numeric(*(arg++));
+  double buck_rho_one = force->numeric(*(arg++));
+  double buck_c_one = force->numeric(*(arg++));
 
   double cut_buck_one = cut_buck_global;
-  if (narg == 6) cut_buck_one = atof(*(arg++));
+  if (narg == 6) cut_buck_one = force->numeric(*(arg++));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

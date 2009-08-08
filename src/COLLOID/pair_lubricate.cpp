@@ -320,18 +320,19 @@ void PairLubricate::settings(int narg, char **arg)
 {
   if (narg != 9) error->all("Illegal pair_style command");
 
-  mu = atof(arg[0]);
-  flag1 = atoi(arg[1]);
-  flag2 = atoi(arg[2]);
-  flag3 = atoi(arg[3]);
-  flag4 = atoi(arg[4]);
-  cut_inner_global = atof(arg[5]);
-  cut_global = atof(arg[6]);
-  t_target = atof(arg[7]);
-  seed = atoi(arg[8]);
+  mu = force->numeric(arg[0]);
+  flag1 = force->inumeric(arg[1]);
+  flag2 = force->inumeric(arg[2]);
+  flag3 = force->inumeric(arg[3]);
+  flag4 = force->inumeric(arg[4]);
+  cut_inner_global = force->numeric(arg[5]);
+  cut_global = force->numeric(arg[6]);
+  t_target = force->numeric(arg[7]);
+  seed = force->inumeric(arg[8]);
 
   // initialize Marsaglia RNG with processor-unique seed
 
+  if (seed <= 0) error->all("Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -366,8 +367,8 @@ void PairLubricate::coeff(int narg, char **arg)
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 4) {
-    cut_inner_one = atof(arg[2]);
-    cut_one = atof(arg[3]);
+    cut_inner_one = force->numeric(arg[2]);
+    cut_one = force->numeric(arg[3]);
   }
 
   int count = 0;

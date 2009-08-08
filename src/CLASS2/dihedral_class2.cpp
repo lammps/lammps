@@ -666,12 +666,12 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
   if (which == 0) {
     if (narg != 7) error->all("Incorrect args for dihedral coefficients");
 
-    double k1_one = atof(arg[1]);
-    double phi1_one = atof(arg[2]);
-    double k2_one = atof(arg[3]);
-    double phi2_one = atof(arg[4]);
-    double k3_one = atof(arg[5]);
-    double phi3_one = atof(arg[6]);
+    double k1_one = force->numeric(arg[1]);
+    double phi1_one = force->numeric(arg[2]);
+    double k2_one = force->numeric(arg[3]);
+    double phi2_one = force->numeric(arg[4]);
+    double k3_one = force->numeric(arg[5]);
+    double phi3_one = force->numeric(arg[6]);
     
     // convert phi's from degrees to radians
 
@@ -690,10 +690,10 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
   if (which == 1) {
     if (narg != 5) error->all("Incorrect args for dihedral coefficients");
 
-    double f1_one = atof(arg[1]);
-    double f2_one = atof(arg[2]);
-    double f3_one = atof(arg[3]);
-    double r0_one = atof(arg[4]);
+    double f1_one = force->numeric(arg[1]);
+    double f2_one = force->numeric(arg[2]);
+    double f3_one = force->numeric(arg[3]);
+    double r0_one = force->numeric(arg[4]);
     
     for (int i = ilo; i <= ihi; i++) {
       mbt_f1[i] = f1_one;
@@ -708,14 +708,14 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
   if (which == 2) {
     if (narg != 9) error->all("Incorrect args for dihedral coefficients");
 
-    double f1_1_one = atof(arg[1]);
-    double f2_1_one = atof(arg[2]);
-    double f3_1_one = atof(arg[3]);
-    double f1_2_one = atof(arg[4]);
-    double f2_2_one = atof(arg[5]);
-    double f3_2_one = atof(arg[6]);
-    double r0_1_one = atof(arg[7]);
-    double r0_2_one = atof(arg[8]);
+    double f1_1_one = force->numeric(arg[1]);
+    double f2_1_one = force->numeric(arg[2]);
+    double f3_1_one = force->numeric(arg[3]);
+    double f1_2_one = force->numeric(arg[4]);
+    double f2_2_one = force->numeric(arg[5]);
+    double f3_2_one = force->numeric(arg[6]);
+    double r0_1_one = force->numeric(arg[7]);
+    double r0_2_one = force->numeric(arg[8]);
     
     for (int i = ilo; i <= ihi; i++) {
       ebt_f1_1[i] = f1_1_one;
@@ -734,14 +734,14 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
   if (which == 3) {
     if (narg != 9) error->all("Incorrect args for dihedral coefficients");
 
-    double f1_1_one = atof(arg[1]);
-    double f2_1_one = atof(arg[2]);
-    double f3_1_one = atof(arg[3]);
-    double f1_2_one = atof(arg[4]);
-    double f2_2_one = atof(arg[5]);
-    double f3_2_one = atof(arg[6]);
-    double theta0_1_one = atof(arg[7]);
-    double theta0_2_one = atof(arg[8]);
+    double f1_1_one = force->numeric(arg[1]);
+    double f2_1_one = force->numeric(arg[2]);
+    double f3_1_one = force->numeric(arg[3]);
+    double f1_2_one = force->numeric(arg[4]);
+    double f2_2_one = force->numeric(arg[5]);
+    double f3_2_one = force->numeric(arg[6]);
+    double theta0_1_one = force->numeric(arg[7]);
+    double theta0_2_one = force->numeric(arg[8]);
 
     // convert theta0's from degrees to radians
     
@@ -762,9 +762,9 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
   if (which == 4) {
     if (narg != 4) error->all("Incorrect args for dihedral coefficients");
 
-    double k_one = atof(arg[1]);
-    double theta0_1_one = atof(arg[2]);
-    double theta0_2_one = atof(arg[3]);
+    double k_one = force->numeric(arg[1]);
+    double theta0_1_one = force->numeric(arg[2]);
+    double theta0_2_one = force->numeric(arg[3]);
 
     // convert theta0's from degrees to radians
     
@@ -780,9 +780,9 @@ void DihedralClass2::coeff(int which, int narg, char **arg)
   if (which == 5) {
     if (narg != 4) error->all("Incorrect args for dihedral coefficients");
 
-    double k_one = atof(arg[1]);
-    double r10_one = atof(arg[2]);
-    double r30_one = atof(arg[3]);
+    double k_one = force->numeric(arg[1]);
+    double r10_one = force->numeric(arg[2]);
+    double r30_one = force->numeric(arg[3]);
     
     for (int i = ilo; i <= ihi; i++) {
       bb13t_k[i] = k_one;

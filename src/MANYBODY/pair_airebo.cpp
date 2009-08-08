@@ -135,12 +135,12 @@ void PairAIREBO::settings(int narg, char **arg)
 {
   if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
 
-  cutlj = atof(arg[0]);
+  cutlj = force->numeric(arg[0]);
 
   ljflag = torflag = 1;
   if (narg == 3) {
-    ljflag = atoi(arg[1]);
-    torflag = atoi(arg[2]);
+    ljflag = force->inumeric(arg[1]);
+    torflag = force->inumeric(arg[2]);
   }
 }
 

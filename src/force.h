@@ -82,6 +82,8 @@ class Force : protected Pointers {
 
   void set_special(int, char **);
   void bounds(char *, int, int &, int &);
+  double numeric(char *);
+  int inumeric(char *);
   double memory_usage();
 };
 

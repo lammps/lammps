@@ -157,8 +157,8 @@ void PairYukawa::settings(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal pair_style command");
 
-  kappa = atof(arg[0]);
-  cut_global = atof(arg[1]);
+  kappa = force->numeric(arg[0]);
+  cut_global = force->numeric(arg[1]);
 
   // reset cutoffs that have been explicitly set
 
@@ -183,10 +183,10 @@ void PairYukawa::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double a_one = atof(arg[2]);
+  double a_one = force->numeric(arg[2]);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = atof(arg[3]);
+  if (narg == 4) cut_one = force->numeric(arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

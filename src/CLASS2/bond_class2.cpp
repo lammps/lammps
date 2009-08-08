@@ -135,10 +135,10 @@ void BondClass2::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
-  double r0_one = atof(arg[1]);
-  double k2_one = atof(arg[2]);
-  double k3_one = atof(arg[3]);
-  double k4_one = atof(arg[4]);
+  double r0_one = force->numeric(arg[1]);
+  double k2_one = force->numeric(arg[2]);
+  double k3_one = force->numeric(arg[3]);
+  double k4_one = force->numeric(arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

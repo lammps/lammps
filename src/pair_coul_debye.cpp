@@ -124,8 +124,8 @@ void PairCoulDebye::settings(int narg, char **arg)
 {
   if (narg != 2) error->all("Illegal pair_style command");
 
-  kappa = atof(arg[0]);
-  cut_global = atof(arg[1]);
+  kappa = force->numeric(arg[0]);
+  cut_global = force->numeric(arg[1]);
 
   // reset cutoffs that have been explicitly set
 

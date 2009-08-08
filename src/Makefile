@@ -171,4 +171,4 @@ package-update:
 package-overwrite:
 	@for p in $(PACKAGEUC); do csh -f Package.csh $$p overwrite; done
 	@echo ''
-	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite
+	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite; done

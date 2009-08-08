@@ -220,7 +220,7 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all("Unknown table style in pair_style command");
 
-  n = atoi(arg[1]);
+  n = force->inumeric(arg[1]);
   nm1 = n - 1;
 
   // delete old tables, since cannot just change settings
@@ -263,7 +263,7 @@ void PairTable::coeff(int narg, char **arg)
 
   // set table cutoff
 
-  if (narg == 5) tb->cut = atof(arg[4]);
+  if (narg == 5) tb->cut = force->numeric(arg[4]);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 

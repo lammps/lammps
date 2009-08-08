@@ -338,10 +338,10 @@ void DihedralCharmm::coeff(int which, int narg, char **arg)
   // arbitrary phase angle shift could be allowed, but would break
   //   backwards compatibility and is probably not needed
   
-  double k_one = atof(arg[1]);
-  int multiplicity_one = atoi(arg[2]);
-  int shift_one = atoi(arg[3]);
-  double weight_one = atof(arg[4]);
+  double k_one = force->numeric(arg[1]);
+  int multiplicity_one = force->inumeric(arg[2]);
+  int shift_one = force->inumeric(arg[3]);
+  double weight_one = force->numeric(arg[4]);
 
   if (multiplicity_one < 0)
     error->all("Incorrect multiplicity arg for dihedral coefficients");

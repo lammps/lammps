@@ -198,7 +198,7 @@ void PairCoulLong::settings(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal pair_style command");
 
-  cut_coul = atof(arg[0]);
+  cut_coul = force->numeric(arg[0]);
 }
 
 /* ----------------------------------------------------------------------

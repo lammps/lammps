@@ -362,15 +362,15 @@ void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
 {
   if (narg < 6 || narg > 7) error->all("Illegal pair_style command");
 
-  typeO = atoi(arg[0]);
-  typeH = atoi(arg[1]);
-  typeB = atoi(arg[2]);
-  typeA = atoi(arg[3]);
-  qdist = atof(arg[4]);
+  typeO = force->inumeric(arg[0]);
+  typeH = force->inumeric(arg[1]);
+  typeB = force->inumeric(arg[2]);
+  typeA = force->inumeric(arg[3]);
+  qdist = force->numeric(arg[4]);
 
-  cut_lj_global = atof(arg[5]);
+  cut_lj_global = force->numeric(arg[5]);
   if (narg == 6) cut_coul = cut_lj_global;
-  else cut_coul = atof(arg[6]);
+  else cut_coul = force->numeric(arg[6]);
   
   // reset cutoffs that have been explicitly set
 

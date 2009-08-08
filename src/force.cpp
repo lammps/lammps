@@ -13,6 +13,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "force.h"
 #include "atom.h"
 #include "comm.h"
@@ -458,6 +459,42 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
     nlo = MAX(atoi(str),1);
     nhi = MIN(atoi(ptr+1),nmax);
   }
+}
+
+/* ----------------------------------------------------------------------
+   read a floating point value from a string
+   generate an error if not a legitimate floating point value
+   called by force fields to check validity of their arguments
+------------------------------------------------------------------------- */
+
+double Force::numeric(char *str)
+{
+  int n = strlen(str);
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i])) continue;
+    if (str[i] == '-' || str[i] == '.') continue;
+    if (str[i] == 'e' || str[i] == 'E') continue;
+    error->all("Expecting floating point argument in input script");
+  }
+
+  return atof(str);
+}
+
+/* ----------------------------------------------------------------------
+   read an integer value from a string
+   generate an error if not a legitimate integer value
+   called by force fields to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int Force::inumeric(char *str)
+{
+  int n = strlen(str);
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-') continue;
+    error->all("Expecting integer argument in input script");
+  }
+
+  return atoi(str);
 }
 
 /* ----------------------------------------------------------------------

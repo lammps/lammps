@@ -239,8 +239,8 @@ void ImproperHarmonic::coeff(int which, int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
 
-  double k_one = atof(arg[1]);
-  double chi_one = atof(arg[2]);
+  double k_one = force->numeric(arg[1]);
+  double chi_one = force->numeric(arg[2]);
 
   // convert chi from degrees to radians
 

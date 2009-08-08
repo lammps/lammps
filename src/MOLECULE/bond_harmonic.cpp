@@ -124,8 +124,8 @@ void BondHarmonic::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
-  double k_one = atof(arg[1]);
-  double r0_one = atof(arg[2]);
+  double k_one = force->numeric(arg[1]);
+  double r0_one = force->numeric(arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

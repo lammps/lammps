@@ -458,8 +458,8 @@ void PairREAX::settings(int narg, char **arg)
   if (narg != 0 && narg !=2) error->all("Illegal pair_style command");
   
   if (narg == 2) {
-    hbcut = atof(arg[0]);
-    precision = atof(arg[1]);
+    hbcut = force->numeric(arg[0]);
+    precision = force->numeric(arg[1]);
 
     if (hbcut <= 0.0 || precision <= 0.0)
       error->all("Illegal pair_style command");
@@ -495,7 +495,7 @@ void PairREAX::coeff(int narg, char **arg)
       map[i-2] = -1;
       continue;
     }
-    map[i-2] = atoi(arg[i]);
+    map[i-2] = force->inumeric(arg[i]);
   }
 
   int n = atom->ntypes;

@@ -153,7 +153,7 @@ void PairCoulCut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal pair_style command");
 
-  cut_global = atof(arg[0]);
+  cut_global = force->numeric(arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -179,7 +179,7 @@ void PairCoulCut::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = atof(arg[2]);
+  if (narg == 3) cut_one = force->numeric(arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

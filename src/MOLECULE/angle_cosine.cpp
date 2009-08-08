@@ -159,7 +159,7 @@ void AngleCosine::coeff(int which, int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double k_one = atof(arg[1]);
+  double k_one = force->numeric(arg[1]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

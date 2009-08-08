@@ -93,9 +93,9 @@ void PairLJCoul::settings(int narg, char **arg)
   if (!comm->me && ewald_order==((1<<1)|(1<<6))) error->warning(PAIR_LARGEST);
   if (!*(++arg)) error->all(PAIR_MISSING);
   if (!((ewald_order^ewald_off)&(1<<1))) error->all(PAIR_COUL_CUT);
-  cut_lj_global = atof(*(arg++));
+  cut_lj_global = force->numeric(*(arg++));
   if (*arg&&(ewald_order&0x42==0x42)) error->all(PAIR_CUTOFF);
-  cut_coul = *arg ? atof(*(arg++)) : cut_lj_global;
+  cut_coul = *arg ? force->numeric(*(arg++)) : cut_lj_global;
   if (*arg) error->all(PAIR_MANY);
 
   if (allocated) {					// reset explicit cuts
@@ -192,11 +192,11 @@ void PairLJCoul::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = atof(arg[2]);
-  double sigma_one = atof(arg[3]);
+  double epsilon_one = force->numeric(arg[2]);
+  double sigma_one = force->numeric(arg[3]);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = atof(arg[4]);
+  if (narg == 5) cut_lj_one = force->numeric(arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -249,7 +249,7 @@ void PairColloid::settings(int narg, char **arg)
 {
   if (narg != 1) error->all("Illegal pair_style command");
 
-  cut_global = atof(arg[0]);
+  cut_global = force->numeric(arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -274,13 +274,13 @@ void PairColloid::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double a12_one = atof(arg[2]);
-  double sigma_one = atof(arg[3]);
-  double d1_one = atof(arg[4]);
-  double d2_one = atof(arg[5]);
+  double a12_one = force->numeric(arg[2]);
+  double sigma_one = force->numeric(arg[3]);
+  double d1_one = force->numeric(arg[4]);
+  double d2_one = force->numeric(arg[5]);
 
   double cut_one = cut_global;
-  if (narg == 7) cut_one = atof(arg[6]);
+  if (narg == 7) cut_one = force->numeric(arg[6]);
 
   if (d1_one < 0.0 || d2_one < 0.0) 
     error->all("Invalid d1 or d2 value for pair colloid coeff");

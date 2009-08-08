@@ -231,14 +231,14 @@ void PairLJCharmmCoulCharmm::settings(int narg, char **arg)
   if (narg != 2 && narg != 4) 
     error->all("Illegal pair_style command");
 
-  cut_lj_inner = atof(arg[0]);
-  cut_lj = atof(arg[1]);
+  cut_lj_inner = force->numeric(arg[0]);
+  cut_lj = force->numeric(arg[1]);
   if (narg == 2) {
     cut_coul_inner = cut_lj_inner;
     cut_coul = cut_lj;
   } else {
-    cut_coul_inner = atof(arg[2]);
-    cut_coul = atof(arg[3]);
+    cut_coul_inner = force->numeric(arg[2]);
+    cut_coul = force->numeric(arg[3]);
   }
 }
 
@@ -256,13 +256,13 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = atof(arg[2]);
-  double sigma_one = atof(arg[3]);
+  double epsilon_one = force->numeric(arg[2]);
+  double sigma_one = force->numeric(arg[3]);
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 6) {
-    eps14_one = atof(arg[4]);
-    sigma14_one = atof(arg[5]);
+    eps14_one = force->numeric(arg[4]);
+    sigma14_one = force->numeric(arg[5]);
   }
 
   int count = 0;

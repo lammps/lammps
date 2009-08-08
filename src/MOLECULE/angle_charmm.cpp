@@ -200,10 +200,10 @@ void AngleCharmm::coeff(int which, int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double k_one = atof(arg[1]);
-  double theta0_one = atof(arg[2]);
-  double k_ub_one = atof(arg[3]);
-  double r_ub_one = atof(arg[4]);
+  double k_one = force->numeric(arg[1]);
+  double theta0_one = force->numeric(arg[2]);
+  double k_ub_one = force->numeric(arg[3]);
+  double r_ub_one = force->numeric(arg[4]);
 
   // convert theta0 from degrees to radians
 

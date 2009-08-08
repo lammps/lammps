@@ -192,14 +192,14 @@ void PairDPD::settings(int narg, char **arg)
 {
   if (narg != 3) error->all("Illegal pair_style command");
 
-  temperature = atof(arg[0]);
-  cut_global = atof(arg[1]);
-  seed = atoi(arg[2]);
+  temperature = force->numeric(arg[0]);
+  cut_global = force->numeric(arg[1]);
+  seed = force->inumeric(arg[2]);
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all("Illegal fix pair_style command");
-  if (random) delete random;
+  if (seed <= 0) error->all("Illegal pair_style command");
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 
   // reset cutoffs that have been explicitly set
@@ -225,11 +225,11 @@ void PairDPD::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double a0_one = atof(arg[2]);
-  double gamma_one = atof(arg[3]);
+  double a0_one = force->numeric(arg[2]);
+  double gamma_one = force->numeric(arg[3]);
 
   double cut_one = cut_global;
-  if (narg == 5) cut_one = atof(arg[4]);
+  if (narg == 5) cut_one = force->numeric(arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -19,7 +19,7 @@ precision = precision for charge equilibration :ul
 
 pair_style reax
 pair_style reax 10.0 1.0e-5
-pair_coeff * * ffield.reax C H O N :pre
+pair_coeff * * ffield.reax 3 1 2 2 :pre
 
 [Description:]
 
@@ -36,10 +36,10 @@ used in: "(Strachan et al., 2005)"_#Strachan_2005.
 LAMMPS provides a ReaxFF potential file in its potentials dir, namely
 potentials/ffield.reax.  Its format is identical to that used by van
 Duin and co-workers.  It contains parameterizations for the following
-elements: C, H, O, N, S (Si has been temporarily removed).
-You can use another file in
-place of it, and ReaxFF files with parameterizations for other
-elements or for specific chemical systems may be available elsewhere.
+elements: C, H, O, N, S.  Si has been temporarily removed.  You can
+use another file in place of it, and ReaxFF files with
+parameterizations for other elements or for specific chemical systems
+may be available elsewhere.
 
 The {hbcut} and {precision} settings are optional arguments.  If
 neither is provided, default settings are used: {hbcut} = 10 (which is
@@ -76,22 +76,25 @@ The filename has to be "ffield.reax" and it has to exist in the
 directory you are running LAMMPS in.  This means you cannot prepend a
 path to the file in the potentials dir.  Rather, you should copy that
 file into the directory you are running from.  If you wish to use
-another ReaxFF potential file, then name it "ffield.reax" and put in
-your running dir.
+another ReaxFF potential file, then name it "ffield.reax" and put it
+in the directory you run from.
 
 In the ReaxFF potential file, near the top, is a section that contains
 element names, each with a couple dozen numeric parameters.  The
-ffield.reax provided with LAMMPS lists 6 elements: C, H, O, N, S, Si.
-Think of these as numbered 1 to 6.  Each of the N indices you specify
-for the N atom types of LAMMPS atoms must be an integer from 1 to 6.
-Atoms with LAMMPS type 1 will be mapped to whatever element you
-specify as the first index value, etc.
+ffield.reax provided with LAMMPS lists 6 elements: C, H, O, N, S, Si,
+though Si has been temporarily removed.  Think of these as numbered 1
+to 6.  Each of the N indices you specify for the N atom types of
+LAMMPS atoms must be an integer from 1 to 6.  Atoms with LAMMPS type 1
+will be mapped to whatever element you specify as the first index
+value, etc.
 
-As an example, if your LAMMPS simulation has 4 atoms types and you
-want the 1st two to be C, the 3rd to be N, and the 4th to be H, you
-would use the following pair_coeff command:
+In the pair_coeff example above, the LAMMPS simulation has 4 atoms
+types and they are set as follows:
 
-pair_coeff * * ffield.reax 1 1 4 2 :pre
+type 1 = O
+type 2 = C
+type 3 = H
+type 4 = H :pre
 
 :line
 

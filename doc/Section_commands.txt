@@ -533,6 +533,7 @@ full description:
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
+"lj96/cut"_pair_lj96_cut.html,
 "lubricate"_pair_lubricate.html,
 "meam"_pair_meam.html,
 "morse"_pair_morse.html,
@@ -570,7 +571,8 @@ full description:
 "harmonic"_bond_harmonic.html,
 "morse"_bond_morse.html,
 "nonlinear"_bond_nonlinear.html,
-"quartic"_bond_quartic.html :tb(c=4,ea=c,w=100)
+"quartic"_bond_quartic.html,
+"table"_bond_table.html :tb(c=4,ea=c,w=100)
 
 :line
 
@@ -585,7 +587,8 @@ itself for a full description:
 "cosine"_angle_cosine.html,
 "cosine/delta"_angle_cosine_delta.html,
 "cosine/squared"_angle_cosine_squared.html,
-"harmonic"_angle_harmonic.html :tb(c=4,ea=c,w=100)
+"harmonic"_angle_harmonic.html,
+"table"_angle_table.html :tb(c=4,ea=c,w=100)
 
 These are angle styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.

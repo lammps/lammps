@@ -39,25 +39,23 @@ of 4 styles: {lookup}, {linear}, {spline}, or {bitmap}.
 For the {lookup} style, the distance between 2 atoms is used to find
 the nearest table entry, which is the energy or force.
 
-For the {linear} style, the distance is used to find 2 surrounding
-table values from which an energy or force is computed by linear
-interpolation.
+For the {linear} style, the pair distance is used to find 2
+surrounding table values from which an energy or force is computed by
+linear interpolation.
 
 For the {spline} style, a cubic spline coefficients are computed and
-stored each of the {N} values in the table.  The pair distance is used
-to find the appropriate set of coefficients which are used to evaluate
-a cubic polynomial which computes the energy or force.
+stored at each of the {N} values in the table.  The pair distance is
+used to find the appropriate set of coefficients which are used to
+evaluate a cubic polynomial which computes the energy or force.
 
 For the {bitmap} style, the N means to create interpolation tables
-that are 2^N in length.  The pair distance is used to index into the
+that are 2^N in length.  <The pair distance is used to index into the
 table via a fast bit-mapping technique "(Wolff)"_#Wolff and a linear
 interpolation is performed between adjacent table values.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands:
+above.
 
 filename
 keyword
@@ -85,11 +83,12 @@ interpolation "features" you may not like. :l
 
 Start with the linear style; it's the style least likely to have problems. :l
 
-Use as large an inner cutoff as possible.  This avoids fitting splines
-to very steep parts of the potential. :l
+Use {N} in the pair_style command equal to the "N" in the tabulation
+file, so additional interpolation is not needed.  See discussion
+below. :l
 
-Make sure the tabulated potential you are feeding to LAMMPS is not
-pathological. :l,ule
+Use as large an inner cutoff as possible.  This avoids fitting splines
+to very steep parts of the potential. :l,ule
 
 :line
 
@@ -115,12 +114,25 @@ command.  The next line lists (in any order) one or more parameters
 for the table.  Each parameter is a keyword followed by one or more
 numeric values.
 
-The parameter "N" is required; its value is the number of table
-entries that follow.  All other parameters are optional.  If "R" or
-"RSQ" or "BITMAP" does not appear, then the distances in each line of
-the table are used as-is to perform spline interpolation.  In this
-case, the table values can be spaced in {r} uniformly or however you
-wish to position table values in regions of large gradients.
+The parameter "N" is required and its value is the number of table
+entries that follow.  Note that this may be different than the {N}
+specified in the "pair_style table"_pair_style.html command.  Let
+Ntable = {N} in the pair_style command, and Nfile = "N" in the
+tabulated file.  What LAMMPS does is a preliminary interpolation by
+creating splines using the Nfile tabulated values as nodal points.  It
+uses these to interpolate as needed to generate energy and force
+values at Ntable different points.  The resulting tables of length
+Ntable are then used as described above, when computing energy and
+force for individual pair distances.  This means that if you want the
+interpolation tables of length Ntable to match exactly what is in the
+tabulated file (with effectively no preliminary interpolation), you
+should set Ntable = Nfile.
+
+All other parameters are optional.  If "R" or "RSQ" or "BITMAP" does
+not appear, then the distances in each line of the table are used
+as-is to perform spline interpolation.  In this case, the table values
+can be spaced in {r} uniformly or however you wish to position table
+values in regions of large gradients.
 
 If used, the parameters "R" or "RSQ" are followed by 2 values {rlo}
 and {rhi}.  If specified, the distance associated with each energy and

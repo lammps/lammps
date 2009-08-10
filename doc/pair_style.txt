@@ -124,6 +124,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/gromacs"_pair_gromacs.html - GROMACS-style Lennard-Jones potential
 "pair_style lj/gromacs/coul/gromacs"_pair_gromacs.html - GROMACS-style LJ and Coulombic potential
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
+"pair_style lj96/cut"_pair_lj96_cut.html - Lennard-Jones 9/6 potential
 "pair_style lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential

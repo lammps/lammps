@@ -74,7 +74,8 @@ specified by the associated "bond_coeff"_bond_coeff.html command:
 "bond_style harmonic"_bond_harmonic.html - harmonic bond
 "bond_style morse"_bond_morse.html - Morse bond
 "bond_style nonlinear"_bond_nonlinear.html - nonlinear bond
-"bond_style quartic"_bond_quartic.html - breakable quartic bond :ul
+"bond_style quartic"_bond_quartic.html - breakable quartic bond
+"bond_style table"_bond_table.html - tabulated by bond length :ul
 
 :line
 

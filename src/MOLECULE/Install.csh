@@ -14,6 +14,7 @@ if ($1 == 1) then
   cp angle_cosine_squared.cpp ..
   cp angle_harmonic.cpp ..
   cp angle_hybrid.cpp ..
+  cp angle_table.cpp ..
   cp atom_vec_angle.cpp ..
   cp atom_vec_bond.cpp ..
   cp atom_vec_full.cpp ..
@@ -26,6 +27,7 @@ if ($1 == 1) then
   cp bond_morse.cpp ..
   cp bond_nonlinear.cpp ..
   cp bond_quartic.cpp ..
+  cp bond_table.cpp ..
   cp dihedral.cpp ..
   cp dihedral_charmm.cpp ..
   cp dihedral_harmonic.cpp ..
@@ -51,6 +53,7 @@ if ($1 == 1) then
   cp angle_cosine_squared.h ..
   cp angle_harmonic.h ..
   cp angle_hybrid.h ..
+  cp angle_table.h ..
   cp atom_vec_angle.h ..
   cp atom_vec_bond.h ..
   cp atom_vec_full.h ..
@@ -63,6 +66,7 @@ if ($1 == 1) then
 #  cp bond_hybrid.h ..
   cp bond_nonlinear.h ..
   cp bond_quartic.h ..
+  cp bond_table.h ..
 #  cp dihedral.h ..
   cp dihedral_charmm.h ..
   cp dihedral_harmonic.h ..
@@ -93,6 +97,7 @@ else if ($1 == 0) then
   rm ../angle_cosine_squared.cpp
   rm ../angle_harmonic.cpp
   rm ../angle_hybrid.cpp
+  rm ../angle_table.cpp
   rm ../atom_vec_angle.cpp
   rm ../atom_vec_bond.cpp
   rm ../atom_vec_full.cpp
@@ -105,6 +110,7 @@ else if ($1 == 0) then
   rm ../bond_morse.cpp
   rm ../bond_nonlinear.cpp
   rm ../bond_quartic.cpp
+  rm ../bond_table.cpp
   rm ../dihedral.cpp
   rm ../dihedral_charmm.cpp
   rm ../dihedral_harmonic.cpp
@@ -130,6 +136,7 @@ else if ($1 == 0) then
   rm ../angle_cosine_squared.h
   rm ../angle_harmonic.h
   rm ../angle_hybrid.h
+  rm ../angle_table.h
   rm ../atom_vec_angle.h
   rm ../atom_vec_bond.h
   rm ../atom_vec_full.h
@@ -142,6 +149,7 @@ else if ($1 == 0) then
   rm ../bond_morse.h
   rm ../bond_nonlinear.h
   rm ../bond_quartic.h
+  rm ../bond_table.h
 #  rm ../dihedral.h
   rm ../dihedral_charmm.h
   rm ../dihedral_harmonic.h

@@ -317,6 +317,7 @@ MinimizeStyle(sd,MinSD)
 #include "pair_lj_gromacs.h"
 #include "pair_lj_gromacs_coul_gromacs.h"
 #include "pair_lj_smooth.h"
+#include "pair_lj96_cut.h"
 #include "pair_morse.h"
 #include "pair_soft.h"
 #include "pair_table.h"
@@ -337,6 +338,7 @@ PairStyle(lj/expand,PairLJExpand)
 PairStyle(lj/gromacs,PairLJGromacs)
 PairStyle(lj/gromacs/coul/gromacs,PairLJGromacsCoulGromacs)
 PairStyle(lj/smooth,PairLJSmooth)
+PairStyle(lj96/cut,PairLJ96Cut)
 PairStyle(morse,PairMorse)
 PairStyle(soft,PairSoft)
 PairStyle(table,PairTable)

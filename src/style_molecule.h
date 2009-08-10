@@ -18,6 +18,7 @@
 #include "angle_cosine_squared.h"
 #include "angle_harmonic.h"
 #include "angle_hybrid.h"
+#include "angle_table.h"
 #endif
 
 #ifdef AngleClass
@@ -27,6 +28,7 @@ AngleStyle(cosine/delta,AngleCosineDelta)
 AngleStyle(cosine/squared,AngleCosineSquared)
 AngleStyle(harmonic,AngleHarmonic)
 AngleStyle(hybrid,AngleHybrid)
+AngleStyle(table,AngleTable)
 #endif
 
 #ifdef AtomInclude
@@ -51,6 +53,7 @@ AtomStyle(molecular,AtomVecMolecular)
 #include "bond_morse.h"
 #include "bond_nonlinear.h"
 #include "bond_quartic.h"
+#include "bond_table.h"
 #endif
 
 #ifdef BondClass
@@ -61,6 +64,7 @@ BondStyle(hybrid,BondHybrid)
 BondStyle(morse,BondMorse)
 BondStyle(nonlinear,BondNonlinear)
 BondStyle(quartic,BondQuartic)
+BondStyle(table,BondTable)
 #endif
 
 #ifdef DihedralInclude

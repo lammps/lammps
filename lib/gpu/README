@@ -1,0 +1,84 @@
+/***************************************************************************
+                                   README
+                             -------------------
+                               W. Michael Brown
+
+  README for building LAMMPS GPU Library
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS GPU Library
+ __________________________________________________________________________
+
+    begin                : Thu Jun 25 2009
+    copyright            : (C) 2009 by W. Michael Brown
+    email                : wmbrown@sandia.gov
+ ***************************************************************************/
+
+/* -----------------------------------------------------------------------
+   Copyright (2009) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+   ----------------------------------------------------------------------- */
+
+                          GENERAL NOTES
+                          
+This library, pair_gpu_lib.a, provides routines for GPGPU acceleration
+of LAMMPS pair styles.  Currently, only CUDA enabled GPUs are
+supported.  Compilation of this library requires installing the CUDA
+GPU driver and CUDA toolkit for your operating system. In addition to
+the LAMMPS library, the binary nvc_get_devices will also be
+built. This can be used to query the names and properties of GPU
+devices on your system.
+
+NOTE: Installation of the CUDA SDK is not required.
+
+Current pair styles supporting GPU Accelartion:
+
+  1. lj/cut/gpu
+  2. gayberne/gpu
+
+                     MULTIPLE LAMMPS PROCESSES
+                     
+When using GPGPU acceleration, you are restricted to one physical GPU
+per LAMMPS process. This can be multiple GPUs on a single node or
+across multiple nodes. Intructions on GPU assignment can be found in
+the LAMMPS documentation.
+
+                            SPEEDUPS
+
+The speedups that can be obtained using this library are highly
+dependent on the GPU architecture and the computational expense of the
+pair potential. When comparing a single precision Tesla C1060 run to a
+serial Intel Xeon 5140 2.33 GHz serial run, the speedup is ~4.42x for
+lj/cut with a cutoff of 2.5. For gayberne with a cutoff of 7, the
+speedup is >103x for 8000 particles. The speedup will improve with an
+increase in the number of particles or an increase in the cutoff.
+
+                    BUILDING AND PRECISION MODES
+
+To build, edit the CUDA_CPP, CUDA_ARCH, CUDA_PREC, and CUDA_LINK files for
+your machine. Type make. Additionally, the GPU package must be installed and
+compiled for LAMMPS. The library supports 3 precision modes as determined by 
+the CUDA_PREC variable:
+
+  CUDA_PREC = -D_SINGLE_SINGLE  # Single precision for all calculations
+  CUDA_PREC = -D_DOUBLE_DOUBLE  # Double precision for all calculations
+  CUDA_PREC = -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+
+NOTE: Double precision is only supported on certain GPUS (with
+      compute capability>=1.3).
+      
+NOTE: The gayberne/gpu pair style will only be installed if the ASPHERE
+      package has been installed before installing the GPU package in LAMMPS.
+
+                           GPU MEMORY
+
+Upon initialization of the pair style, the library will reserve memory
+for 64K atoms per GPU or 70% of each cards GPU memory, whichever value
+is limiting.  The value of 70% can be changed by editing the
+PERCENT_GPU_MEMORY definition in the source file. The value of 64K
+cannot be increased and is the maximum number of atoms allowed per
+GPU. Using the 'neigh_modify one' modifier in your LAMMPS input script
+can help to increase maximum number of atoms per GPU for cards with
+limited memory.

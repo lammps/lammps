@@ -26,6 +26,14 @@
 #ifndef PAIR_GPU_TEXTURE_H
 #define PAIR_GPU_TEXTURE_H
 
+#ifdef _SINGLE_DOUBLE
+#define GB_GPU_DOUBLE
+#endif
+
+#ifdef _DOUBLE_DOUBLE
+#define GB_GPU_DOUBLE
+#endif
+
 template <class numtyp> class cu_vec_traits;
 template <> class cu_vec_traits<float> { public: typedef float2 vec2; };
 template <> class cu_vec_traits<double> { public: typedef double2 vec2; };

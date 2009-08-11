@@ -30,7 +30,7 @@ int LJ_GPU_MemoryT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int LJ_GPU_MemoryT::get_max_atoms(const int gpu_bytes, const int max_nbors) {
+int LJ_GPU_MemoryT::get_max_atoms(const size_t gpu_bytes, const int max_nbors) {
   int matoms=static_cast<int>(PERCENT_GPU_MEMORY*gpu_bytes/
                               bytes_per_atom(max_nbors));
   if (matoms>MAX_ATOMS)

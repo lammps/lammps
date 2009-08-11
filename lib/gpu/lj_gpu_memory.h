@@ -50,7 +50,7 @@ class LJ_GPU_Memory {
   /// Returns memory usage on GPU per atom
   int bytes_per_atom(const int max_nbors) const;
   /// Maximum number of atoms that can be stored on GPU
-  int get_max_atoms(const int gpu_bytes, const int max_nbors);
+  int get_max_atoms(const size_t gpu_bytes, const int max_nbors);
   /// Total host memory used by library
   double host_memory_usage() const;
   

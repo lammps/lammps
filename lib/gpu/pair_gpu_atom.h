@@ -29,19 +29,21 @@
 #ifdef _SINGLE_DOUBLE
 #define PRECISION float
 #define ACC_PRECISION double
+#define MAX_ATOMS 65536
 #endif
 
 #ifdef _DOUBLE_DOUBLE
 #define PRECISION double
 #define ACC_PRECISION double
+#define MAX_ATOMS 32768
 #endif
 
 #ifndef PRECISION
 #define PRECISION float
 #define ACC_PRECISION double
+#define MAX_ATOMS 65536
 #endif
 
-#define MAX_ATOMS 65536
 #include "nvc_timer.h"
 #include "pair_gpu_texture.h"
 

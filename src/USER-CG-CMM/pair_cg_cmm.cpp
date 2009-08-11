@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    CMM coarse grained MD potentials. Plain version w/o charges.
-   Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+   Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
 #include "pair_cg_cmm.h"

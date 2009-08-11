@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    Common parameters for the CMM coarse grained MD potentials.
-   Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+   Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
 #include "cg_cmm_parms.h"

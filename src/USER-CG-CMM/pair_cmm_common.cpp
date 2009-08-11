@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    Common functionality for the CMM coarse grained MD potentials.
-   Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+   Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
 #include "pair_cmm_common.h"

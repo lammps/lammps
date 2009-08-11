@@ -1,8 +1,7 @@
 The files in this directory are a user-contributed package for LAMMPS.
 
 The person who created these files is Axel Kohlmeyer
-(akohlmey@cmm.chem.upenn.edu).  Contact him directly if you have
-questions.
+(akohlmey@gmail.com).  Contact him directly if you have questions.
 
 The current version of this package should be considered beta
 quality. The CG potentials work correctly and well, but there will be

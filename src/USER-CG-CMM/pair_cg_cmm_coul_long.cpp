@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    CMM coarse grained MD potentials. Coulomb with k-space version.
-   Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+   Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
 #include "pair_cg_cmm_coul_long.h"

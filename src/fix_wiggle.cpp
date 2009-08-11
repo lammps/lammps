@@ -184,4 +184,3 @@ void FixWiggle::reset_dt()
 {
   dt = update->dt;
 }
-

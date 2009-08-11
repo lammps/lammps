@@ -372,6 +372,7 @@ RegionStyle(union,RegUnion)
 #include "style_colloid.h"
 #include "style_dipole.h"
 #include "style_dpd.h"
+#include "style_gpu.h"
 #include "style_granular.h"
 #include "style_kspace.h"
 #include "style_manybody.h"

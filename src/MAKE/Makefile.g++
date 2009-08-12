@@ -3,7 +3,9 @@
 SHELL = /bin/sh
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -12,10 +14,12 @@ CCFLAGS =	-g -O -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK $(PKGINC)
 DEPFLAGS =	-M
 LINK =		g++
 LINKFORT =	-L/opt/intel/fce/10.0.023/lib
-LINKFLAGS =	-g -O $(PKGPATH) $(LINKFORT)
+LINKGPU =	-L/usr/local/cuda/lib
+LINKFLAGS =	-g -O $(PKGPATH) $(LINKFORT) $(LINKGPU)
 USRLIB =	-lfftw -lmpich $(PKGLIB)
 FORTLIB =	-lifcore -lsvml -lompstub -limf
-SYSLIB =	-lpthread $(FORTLIB)
+GPULIB =	-lcudart
+SYSLIB =	-lpthread $(FORTLIB) $(GPULIB)
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

@@ -5,7 +5,9 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -15,10 +17,12 @@ CCFLAGS =	$(PKGINC) -fastsse -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK \
 DEPFLAGS =	-M
 LINK =		CC
 LINKFORT =	
-LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L/projects/fftw/fftw-2.1.5/lib
+LINKGPU =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -L/projects/fftw/fftw-2.1.5/lib $(LINKGPU)
 USRLIB =	$(PKGLIB) -lfftw
 FORTLIB =	
-SYSLIB =$(FORTLIB) 
+GPULIB =	
+SYSLIB =$(FORTLIB)  $(GPULIB)
 SIZE =		size
 
 # Link rule

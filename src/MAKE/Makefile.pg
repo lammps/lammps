@@ -4,7 +4,9 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -15,11 +17,13 @@ CCFLAGS =       $(PKGINC) -I/usr/local/mpich-1.2.6/pg/include \
 DEPFLAGS =	-M
 LINK =		pgCC
 LINKFORT =	
-LINKFLAGS =     $(PKGPATH) $(LINKFORT) -L/usr/local/mpich-1.2.6/pg/lib \
+LINKGPU =	
+LINKFLAGS =     $(PKGPATH) $(LINKFORT) -L/usr/local/mpich-1.2.6/pg/lib \ $(LINKGPU)
                 -L/usr/local/lib 
 USRLIB =	$(PKGLIB) -lfftw -lmpich 
 FORTLIB =	
-SYSLIB =	$(FORTLIB) 
+GPULIB =	
+SYSLIB =	$(FORTLIB)  $(GPULIB)
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

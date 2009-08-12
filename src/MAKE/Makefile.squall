@@ -11,7 +11,9 @@
 SHELL = /bin/sh
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -20,10 +22,12 @@ CCFLAGS =       $(PKGINC) -DFFT_FFTW -I/home/athomps/tools/fftw-2.1.5/fftw
 DEPFLAGS =	-O2 -M
 LINK =		mpiCC
 LINKFORT =	
-LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O2 -L/home/athomps/tools/fftw-2.1.5/fftw/.libs 
+LINKGPU =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O2 -L/home/athomps/tools/fftw-2.1.5/fftw/.libs  $(LINKGPU)
 USRLIB =	$(PKGLIB) -lfftw -lmpi
 FORTLIB =	
-SYSLIB =	$(FORTLIB) 
+GPULIB =	
+SYSLIB =	$(FORTLIB)  $(GPULIB)
 SIZE =		size
 
 # Link rule

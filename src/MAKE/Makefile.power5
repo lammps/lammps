@@ -5,7 +5,9 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -15,10 +17,12 @@ CCFLAGS =	$(PKGINC) -O3 -qnoipa -qlanglvl=oldmath \
 DEPFLAGS =	-M
 LINK =		mpCC_r
 LINKFORT =	
-LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -qnoipa -qlanglvl=oldmath -bmaxdata:0x70000000
+LINKGPU =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O -qnoipa -qlanglvl=oldmath -bmaxdata:0x70000000 $(LINKGPU)
 USRLIB =	$(PKGLIB) -L/scr/oppe/LAMMPS/fftw-2.1.5/lib -lfftw
 FORTLIB =	
-SYSLIB =	$(FORTLIB) -lm
+GPULIB =	
+SYSLIB =	$(FORTLIB) -lm $(GPULIB)
 SIZE =		size
 
 # Link target

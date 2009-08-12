@@ -4,7 +4,9 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -13,10 +15,12 @@ CCFLAGS = $(PKGINC) -O -g -I/cygdrive/c/cygwin/fftw/include -DFFT_FFTW -DMPICH_I
 DEPFLAGS = -M
 LINK = mpicxx 
 LINKFORT =	
-LINKFLAGS = $(PKGPATH) $(LINKFORT) -O -g -L/cygdrive/c/cygwin/fftw/lib -L/cygdrive/c/cygwin/mpich2-1.0.4p1/lib
+LINKGPU =	
+LINKFLAGS = $(PKGPATH) $(LINKFORT) -O -g -L/cygdrive/c/cygwin/fftw/lib -L/cygdrive/c/cygwin/mpich2-1.0.4p1/lib $(LINKGPU)
 USRLIB = $(PKGLIB) -lfftw -lmpich 
 FORTLIB =	
-SYSLIB = $(FORTLIB) -lm 
+GPULIB =	
+SYSLIB = $(FORTLIB) -lm  $(GPULIB)
 SIZE = size
 
 # Link rule

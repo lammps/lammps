@@ -4,7 +4,9 @@ SHELL = /bin/sh
 #.IGNORE:
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -14,10 +16,12 @@ DEPFLAGS =	-M
 # one user needed icpc to link
 LINK =		icc
 LINKFORT =	
-LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O2
+LINKGPU =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O2 $(LINKGPU)
 USRLIB =	$(PKGLIB) 
 FORTLIB =	
-SYSLIB =	$(FORTLIB) -lmpi -lscs_mp
+GPULIB =	
+SYSLIB =	$(FORTLIB) -lmpi -lscs_mp $(GPULIB)
 SIZE =		size
 
 # Link rule

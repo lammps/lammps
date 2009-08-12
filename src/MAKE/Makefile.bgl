@@ -5,7 +5,9 @@ SHELL = /bin/sh
 .IGNORE:
 
 # System-specific settings
-# LINKFORT & FORTLIB settings not needed if LAMMPS Fortran libs not used
+
+# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
+# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
 
 include		Makefile.package
 
@@ -16,15 +18,17 @@ CCFLAGS =       $(PKGINC) -O3 -DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK
 DEPFLAGS =	-M
 LINK =	        /opt/ibmcmp/vacpp/7.0/bin/blrts_xlC
 LINKFORT =	
-LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O3 -L/bgl/BlueLight/ppcfloor/bglsys/lib \
+LINKGPU =	
+LINKFLAGS =	$(PKGPATH) $(LINKFORT) -O3 -L/bgl/BlueLight/ppcfloor/bglsys/lib \ $(LINKGPU)
                 -L/opt/ibmcmp/xlf/9.1/blrts_lib \
                 -L/opt/ibmcmp/vacpp/7.0/blrts_lib \
                 -L/bgl/local/lib \
                 -L/bgl/local/bglfftwgel-2.1.5.pre5/lib
 USRLIB =	$(PKGLIB) -lxlopt -lxlomp_ser -lxl -lxlfmath -lm -lfftw \
 FORTLIB =	
+GPULIB =	
                 -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lmassv
-SYSLIB =$(FORTLIB) 
+SYSLIB =$(FORTLIB)  $(GPULIB)
 SIZE =		size
 
 # Link rule

@@ -7,6 +7,7 @@
 :line
 
 pair_style lj/cut command :h3
+pair_style lj/cut/gpu command :h3
 pair_style lj/cut/opt command :h3
 pair_style lj/cut/coul/cut command :h3
 pair_style lj/cut/coul/debye command :h3
@@ -17,10 +18,12 @@ pair_style lj/cut/coul/long/tip4p command :h3
 
 pair_style style args :pre
 
-style = {lj/cut} or {lj/cut/opt} or {lj/cut/coul/cut} or {lj/cut/coul/debye} \
+style = {lj/cut} or {lj/cut/gpu} or {lj/cut/opt} or {lj/cut/coul/cut} or {lj/cut/coul/debye} \
         or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+  {lj/cut/gpu} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   {lj/cut/opt} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -44,6 +47,7 @@ args = list of arguments for a particular style :ul
 [Examples:]
 
 pair_style lj/cut 2.5
+pair_style lj/cut/gpu 2.5
 pair_style lj/cut/opt 2.5
 pair_coeff * * 1 1
 pair_coeff 1 1 1 1.1 2.8 :pre
@@ -78,6 +82,11 @@ given by
 :c,image(Eqs/pair_lj.jpg)
 
 Rc is the cutoff.
+
+Style {gayberne/gpu} is a GPU-enabled version of style {lj/cut} that
+should give identical answers.  Depending on system size and the GPU
+processor you have on your system, it may be 4x faster (for the
+pairwise portion of the run time).  See more details below.
 
 Style {lj/cut/opt} is an optimized version of style {lj/cut} that
 should give identical answers.  Depending on system size and the
@@ -157,6 +166,30 @@ Coulombic cutoff specified in the pair_style command.
 
 :line
 
+The {lj/cut/gpu} style is identical to the {lj/cut} style, except that
+each processor off-loads its pairwise calculations to a GPU chip.
+Depending on the hardware available on your system this can provide a
+speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+
+Additional requirements in your input script to run with style
+{gayberne/gpu} are as follows:
+
+The "newton pair"_newton.html setting must be {off}.
+
+You should use the "neigh_modify one"_neigh_modify.html command and
+set its value to something close (but slightly larger) than the number
+of pairwise neighbors/atom you expect to have in your model.  This is
+a function of the pairwise cutoff.  Note that the default for this
+setting is 2000, which is much larger than most models need.  Unlike
+neighbor lists in LAMMPS itself, the GPU version of this pair style
+uses that setting to allocate memory on the GPU for neighbor
+information.  If the setting is too large, it will limit the number of
+atoms that can be stored on the GPU.
+
+:line
+
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -194,11 +227,11 @@ See the "run_style"_run_style.html command for details.
 [Restrictions:]
 
 The {lj/cut/coul/long} and {lj/cut/coul/long/tip4p} styles are part of
-the "kspace" package.  They are only enabled if LAMMPS was built with
-that package (which it is by default).  The {lj/cut/opt} style is part
-of the "opt" package.  It is only enabled if LAMMPS was built with
-that package.  See the "Making LAMMPS"_Section_start.html#2_3 section
-for more info.
+the "kspace" package.  The {lj/cut/gpu} style is part of the "gpu"
+package.  The {lj/cut/opt} style is part of the "opt" package.  They
+are only enabled if LAMMPS was built with those packages.  See the
+"Making LAMMPS"_Section_start.html#2_3 section for more info.  Note
+that the "kspace" package is installed by default.
 
 On some 64-bit machines, compiling with -O3 appears to break the
 Coulombic tabling option used by the {lj/cut/coul/long} style.  See

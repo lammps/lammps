@@ -104,6 +104,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style eam/fs"_pair_eam.html - Finnis-Sinclair EAM
 "pair_style eam/fs/opt"_pair_eam.html - optimized version of Finnis-Sinclair EAM
 "pair_style gayberne"_pair_gayberne.html - Gay-Berne ellipsoidal potential
+"pair_style gayberne/gpu"_pair_gayberne.html - GPU-enabled Gay-Berne ellipsoidal potential
 "pair_style gran/hertz/history"_pair_gran.html - granular potential with Hertzian interactions
 "pair_style gran/hooke"_pair_gran.html - granular potential with history effects
 "pair_style gran/hooke/history"_pair_gran.html - granular potential without history effects
@@ -115,6 +116,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
 "pair_style lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
 "pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
+"pair_style lj/cut/gpu"_pair_lj.html - GPU-enabled version of cutoff LJ
 "pair_style lj/cut/opt"_pair_lj.html - optimized version of cutoff LJ
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
 "pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye screening added to Coulomb

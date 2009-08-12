@@ -80,7 +80,8 @@ listed above.
   2.5 "Running LAMMPS"_2_5 :b
   2.6 "Command-line options"_2_6 :b
   2.7 "Screen output"_2_7 :b
-  2.8 "Tips for users of previous versions"_2_8 :ule,b
+  2.8 "Running on GPUs"_2_8 :b
+  2.9 "Tips for users of previous versions"_2_9 :ule,b
 "Commands"_Section_commands.html :l
   3.1 "LAMMPS input script"_3_1 :ulb,b
   3.2 "Parsing rules"_3_2 :b

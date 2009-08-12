@@ -18,7 +18,8 @@ new and experienced users.
 2.5 "Running LAMMPS"_#2_5
 2.6 "Command-line options"_#2_6
 2.7 "Screen output"_#2_7
-2.8 "Tips for users of previous versions"_#2_8 :all(b)
+2.8 "Running on GPUs"_#2_8
+2.9 "Tips for users of previous versions"_#2_9 :all(b)
 
 :line
 
@@ -285,6 +286,7 @@ class2 : class 2 force fields
 colloid : colloidal particle force fields
 dipole : point dipole particles and force fields
 dpd : dissipative particle dynamics (DPD) force field
+gpu : GPU-enabled force field styles
 granular : force fields and boundary conditions for granular systems
 kspace : long-range Ewald and particle-mesh (PPPM) solvers
 manybody : metal, 3-body, bond-order potentials
@@ -315,13 +317,21 @@ documentation.
 
 :line
 
-Any or all packages can be included or excluded when LAMMPS is built.
-The one exception is that to use the standard "opt" package, you must
-also be using the "molecule" and "manybody" packages.  You may wish to
-exclude certain packages if you will never run certain kinds of
-simulations.  This will keep you from having to build auxiliary
-libraries (see below) and will produce a smaller executable which may
-run a bit faster.
+Any or all packages can be included or excluded independently when
+LAMMPS is built.
+
+The two exceptions to this are the "gpu" and "opt" packages.  Some of
+the files in these packages require other packages to also be
+included.  If this is not the case, then those subsidiary files in
+"gpu" and "opt" will not be installed either.  To install all the
+files in package "gpu", the "asphere" package must also be installed.
+To install all the files in package "opt", the "kspace" and "manybody"
+packages must also be installed.
+
+You may wish to exclude certain packages if you will never run certain
+kinds of simulations.  This will keep you from having to build
+auxiliary libraries (see below) and will produce a smaller executable
+which may run a bit faster.
 
 By default, LAMMPS includes only the "kspace", "manybody", and
 "molecule" packages.  As described below, some standard packages
@@ -354,7 +364,15 @@ various options.
 A few packages require that additional libraries be compiled first,
 which LAMMPS will link to when it builds.  These are stored under
 under the lammps/lib directory of the distribution.  Currently, these
-include libraries for the "meam", "poems", and "reax" packages.
+include libraries for the "gpu", "meam", "poems", and "reax" packages.
+You should look at the README files in the lib directories
+(e.g. lib/reax/README) for instructions on how to build each library.
+
+The "gpu" library in lib/gpu contains code to enable portions of
+LAMMPS to run on a GPU chip associated with your CPU.  Currently, only
+NVIDIA GPUs are supported.  Building this library requires NVIDIA Cuda
+tools to be installed on your system.  See the "Running on GPUs"_#2_8
+section below for more info about installing and using Cuda.
 
 The "meam" library in lib/meam computes the modified embedded atom
 method potential, which is a generalization of EAM potentials that can
@@ -386,19 +404,18 @@ Different definitions of this macro can be obtained by adding a
 machine-specific macro definition to the CCFLAGS variable in your Makefile
 e.g. -D_IBM. See pair_reax_fortran.h for more info.
 
-You should look at the README files in the lib directories
-(e.g. lib/reax/README) for instructions on how to build each library.
-In each cases, the library is built by typing something like
+As its README file describes, for each library, the library is built
+by typing something like
 
 make -f Makefile.foo :pre
 
 in the appropriate directory, e.g. in lib/reax.
 
-You should use the Makefile that is a match for your system.  In the
-case of libraries that consist of Fotran code, this requires your
-system have a Fortran compiler, the settings for which will be in the
-Makefile.  If one of the provided Makefiles is not appropriate for
-your system you can edit or add one as needed.
+You must use a Makefile that is a match for your system.  If one of
+the provided Makefiles is not appropriate for your system you will
+need to edit or add one.  For example, in the case of libraries of
+Fortran code, your system must have a Fortran compiler, the settings
+for which will be in the Makefile.
 
 Once the desired library or libraries are built, you can build LAMMPS.
 From the lammps/src directory type this, for example, to build LAMMPS
@@ -407,16 +424,22 @@ with ReaxFF:
 make yes-reax
 make g++ :pre
 
-Note that building the library (reax in this case) is not sufficient
-to use it from LAMMPS.  You must also include the package that
-uses/wraps the library before you build LAMMPS itself.
+Note that simply building the library (reax in this case), which must
+be done first, is not sufficient to use it from LAMMPS.  You must also
+include the package that uses and wraps the library before you build
+LAMMPS itself.
 
-Also note that to use a package and library that is Fortran based
-(like meam or reax), the lo-level Makefile in lammps/src/MAKE, which
-is Makefile.g++ in this example, must typically have settings for
-LINKFORT and FORTLIB that are specific to the Fortran compiler
-installed on your system.  This is so that the C++ compiler can
-perform a cross-language link using the appropriate Fortran libraries.
+To use the gpu package and library, the lo-level Makefile in
+lammps/src/MAKE, such as Makefile.g++, must typically have settings
+for LINKGPU and GPULIB that are specific to the NVIDIA software
+installed on your system.
+
+To use the meam or reax packages and libraries that are Fortran based,
+the lo-level Makefile in lammps/src/MAKE, such as Makefile.g++, must
+typically have settings for LINKFORT and FORTLIB that are specific to
+the Fortran compiler installed on your system.  This is so that the
+C++ compiler can perform a cross-language link using the appropriate
+Fortran libraries.
 
 :line
 
@@ -716,40 +739,73 @@ communication, roughly 75% in the example above.
 
 :line
 
-2.8 Tips for users of previous LAMMPS versions :h4,link(2_8)
+2.8 Running on GPUs :h4,link(2_8)
 
-LAMMPS 2003 is a complete C++ rewrite of LAMMPS 2001, which was
-written in F90.  Features of earlier versions of LAMMPS are listed in
-"this section"_Section_history.html.  The F90 and F77 versions (2001
-and 99) are also freely distributed as open-source codes; check the
-"LAMMPS WWW Site"_lws for distribution information if you prefer those
-versions.  The 99 and 2001 versions are no longer under active
-development; they do not have all the features of LAMMPS 2003.
+  1. I assume you have nvidia card ( cat /proc/driver/nvidia/cards/0 )
+  2.  Go to http://www.nvidia.com/object/cuda_get.html
+  3.  Install latest driver and toolkit (SDK is not necessary)
+  4.  Run make in lib/gpu
+  5. ./nvc_get_devices will list supported devices and properties
+
+The pair styles supporting GPU acceleration have optional arguments to
+determine how GPUs are selected. Each GPU is selected based on its ID
+number reported by the graphics driver. A list of supported GPUs can be
+obtained using the 'nvc_get_devices' executable that is built with the
+library. To change how GPUs are selected, a GPU selection mode and a GPU
+selection parameter are supplied. If the mode is "one_node", the GPU ID
+is equal to the process rank plus the GPU parameter. For example,
+
+pair_style lj/cut/gpu 2.5 one_node 0
+
+will select GPUs 0, 1, and 2 for a 3 process run. If the mode is
+"one_gpu", every process will select the same GPU id identified by the
+GPU parameter. This option can be used to select a single GPU on
+multiple nodes and should be run with exactly 1 process per node. If the
+mode is "multi_gpu" the GPU parameter supplied should be the number of
+GPUs per node. The GPU selected by a particular process will then be
+equal to the rank%gpus_per_node. This final option can be used to run on
+multiple nodes that contain multiple GPUs per node. It assumes that
+processes will be filled in order by slots such that the ranks on any
+given node are always sequential.
+
+double/single precision
+atom limits
+
+:line
+
+2.9 Tips for users of previous LAMMPS versions :h4,link(2_9)
+
+The current C++ began with a complete rewrite of LAMMPS 2001, which
+was written in F90.  Features of earlier versions of LAMMPS are listed
+in "this section"_Section_history.html.  The F90 and F77 versions
+(2001 and 99) are also freely distributed as open-source codes; check
+the "LAMMPS WWW Site"_lws for distribution information if you prefer
+those versions.  The 99 and 2001 versions are no longer under active
+development; they do not have all the features of C++ LAMMPS.
 
 If you are a previous user of LAMMPS 2001, these are the most
-significant changes you will notice in LAMMPS 2003:
+significant changes you will notice in C++ LAMMPS:
 
 (1) The names and arguments of many input script commands have
 changed.  All commands are now a single word (e.g. read_data instead
 of read data).
 
-(2) All the functionality of LAMMPS 2001 is included in LAMMPS 2003,
+(2) All the functionality of LAMMPS 2001 is included in C++ LAMMPS,
 but you may need to specify the relevant commands in different ways.
 
 (3) The format of the data file can be streamlined for some problems.
 See the "read_data"_read_data.html command for details.  The data file
-section "Nonbond Coeff" has been renamed to "Pair Coeff" in LAMMPS
-2003.
+section "Nonbond Coeff" has been renamed to "Pair Coeff" in C++ LAMMPS.
 
-(4) Binary restart files written by LAMMPS 2001 cannot be read by
-LAMMPS 2003 with a "read_restart"_read_restart.html command.  This is
+(4) Binary restart files written by LAMMPS 2001 cannot be read by C++
+LAMMPS with a "read_restart"_read_restart.html command.  This is
 because they were output by F90 which writes in a different binary
 format than C or C++ writes or reads.  Use the {restart2data} tool
 provided with LAMMPS 2001 to convert the 2001 restart file to a text
-data file.  Then edit the data file as necessary before using the
-LAMMPS 2003 "read_data"_read_data.html command to read it in.
+data file.  Then edit the data file as necessary before using the C++
+LAMMPS "read_data"_read_data.html command to read it in.
 
-(5) There are numerous small numerical changes in LAMMPS 2003 that
-mean you will not get identical answers when comparing to a 2001 run.
+(5) There are numerous small numerical changes in C++ LAMMPS that mean
+you will not get identical answers when comparing to a 2001 run.
 However, your initial thermodynamic energy and MD trajectory should be
 close if you have setup the problem for both codes the same.

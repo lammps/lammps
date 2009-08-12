@@ -11,11 +11,18 @@
 
 <H3>pair_style gayberne command 
 </H3>
+<H3>pair_style gayberne/gpu command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style gayberne gamma upsilon mu cutoff 
 </PRE>
-<UL><LI>gamma = shift for potential minimum (typically 1)
+<PRE>pair_style gayberne/gpu gpuflag gpunum gamma upsilon mu cutoff 
+</PRE>
+<UL><LI>style = <I>gayberne</I> or <I>gayberne/gpu</I>
+<LI>gpuflag = <I>one/node</I> or <I>one/gpu</I> or <I>multi/gpu</I>, only used with gayberne/gpu
+<LI>gpunum = gpu ID or quantity, only used with gayberne/gpu
+<LI>gamma = shift for potential minimum (typically 1)
 <LI>upsilon = exponent for eta orientation-dependent energy function
 <LI>mu = exponent for chi orientation-dependent energy function
 <LI>cutoff = global cutoff for interactions (distance units) 
@@ -23,11 +30,12 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style gayberne 1.0 1.0 1.0 10.0
+pair_style gayberne/gpu 1.0 1.0 1.0 10.0
 pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>gayberne</I> computes a Gay-Berne anisotropic LJ interaction
+<P>The <I>gayberne</I> styles compute a Gay-Berne anisotropic LJ interaction
 <A HREF = "#Berardi">(Berardi)</A> between pairs of ellipsoidal particles or an
 ellipsoidal and spherical particle via the formulas
 </P>
@@ -41,6 +49,11 @@ particles (h12) and the user-specified shift parameter gamma.  When
 both particles are spherical, the formula reduces to the usual
 Lennard-Jones interaction (see details below for when Gay-Berne treats
 a particle as "spherical").
+</P>
+<P>Style <I>gayberne/gpu</I> is a GPU-enabled version of style <I>gayberne</I> that
+should give identical answers.  Depending on system size and the GPU
+processor you have on your system, it may be 100x faster (for the
+pairwise portion of the run time).  See more details below.
 </P>
 <P>For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -124,6 +137,45 @@ to specify its interaction with other spherical particles.
 </P>
 <HR>
 
+<P>The <I>gayberne/gpu</I> style is identical to the <I>gayberne</I> style, except
+that each processor off-loads its pairwise calculations to a GPU chip.
+Depending on the hardware available on your system this can provide a
+significant speed-up, espcially for the relatively expensive
+computations inherent in Gay-Berne interactions.  See the <A HREF = "Section_start.html#2_8">Running on
+GPUs</A> section of the manual for more details
+about hardware and software requirements for using GPUs.
+</P>
+<P>The <I>gpuflag</I> and <I>gpunum</I> settings in the pair_style command refer to
+how the GPUs on your system are configured.
+</P>
+<P>Set <I>gpuflag</I> to <I>one/node</I> if you have multiple gpus on 1 CPU node of
+your system.  In this case, <I>gpunum</I> should be the starting GPU ID.
+</P>
+<P>Set <I>gpuflag</I> to <I>one/node</I> if you have multiple gpus on 1 node
+of your system.  In this case, <I>gpunum</I> should be the starting GPU ID.
+</P>
+<P>  // set multi_gpu_mode to one/gpu to select the same gpu id on every node
+  // -- param is id of gpu
+  // set multi_gpu_mode to multi/gpu to get ma
+  // -- param is number of gpus per node
+</P>
+<P>Additional requirements in your input script to run with style
+<I>gayberne/gpu</I> are as follows:
+</P>
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>.
+</P>
+<P>You should use the <A HREF = "neigh_modify.html">neigh_modify one</A> command and
+set its value to something close (but slightly larger) than the number
+of pairwise neighbors/atom you expect to have in your model.  This is
+a function of the pairwise cutoff.  Note that the default for this
+setting is 2000, which is much larger than most models need.  Unlike
+neighbor lists in LAMMPS itself, the GPU version of this pair style
+uses that setting to allocate memory on the GPU for neighbor
+information.  If the setting is too large, it will limit the number of
+atoms that can be stored on the GPU.
+</P>
+<HR>
+
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -155,8 +207,9 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>The <I>gayberne</I> style is part of the "asphere" package.  The
+<I>gayberne/gpu</I> style is part of the "gpu" package.  They are only
+enabled if LAMMPS was built with the those packages.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P>This pair style requires that atoms store torque and a quaternion to

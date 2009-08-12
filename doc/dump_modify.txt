@@ -68,8 +68,6 @@ current coordinate.  Note that for dump style {custom} these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
 
-:link(pizza,http://www.cs.sandia.gov/~sjplimp/pizza.html)
-
 The {flush} option determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if

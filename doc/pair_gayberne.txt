@@ -7,11 +7,16 @@
 :line
 
 pair_style gayberne command :h3
+pair_style gayberne/gpu command :h3
 
 [Syntax:]
 
 pair_style gayberne gamma upsilon mu cutoff :pre
+pair_style gayberne/gpu gpuflag gpunum gamma upsilon mu cutoff :pre
 
+style = {gayberne} or {gayberne/gpu}
+gpuflag = {one/node} or {one/gpu} or {multi/gpu}, only used with gayberne/gpu
+gpunum = gpu ID or quantity, only used with gayberne/gpu
 gamma = shift for potential minimum (typically 1)
 upsilon = exponent for eta orientation-dependent energy function
 mu = exponent for chi orientation-dependent energy function
@@ -20,11 +25,12 @@ cutoff = global cutoff for interactions (distance units) :ul
 [Examples:]
 
 pair_style gayberne 1.0 1.0 1.0 10.0
+pair_style gayberne/gpu 1.0 1.0 1.0 10.0
 pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 
 [Description:]
 
-Style {gayberne} computes a Gay-Berne anisotropic LJ interaction
+The {gayberne} styles compute a Gay-Berne anisotropic LJ interaction
 "(Berardi)"_#Berardi between pairs of ellipsoidal particles or an
 ellipsoidal and spherical particle via the formulas
 
@@ -38,6 +44,11 @@ particles (h12) and the user-specified shift parameter gamma.  When
 both particles are spherical, the formula reduces to the usual
 Lennard-Jones interaction (see details below for when Gay-Berne treats
 a particle as "spherical").
+
+Style {gayberne/gpu} is a GPU-enabled version of style {gayberne} that
+should give identical answers.  Depending on system size and the GPU
+processor you have on your system, it may be 100x faster (for the
+pairwise portion of the run time).  See more details below.
 
 For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -121,6 +132,45 @@ to specify its interaction with other spherical particles.
 
 :line
 
+The {gayberne/gpu} style is identical to the {gayberne} style, except
+that each processor off-loads its pairwise calculations to a GPU chip.
+Depending on the hardware available on your system this can provide a
+significant speed-up, espcially for the relatively expensive
+computations inherent in Gay-Berne interactions.  See the "Running on
+GPUs"_Section_start.html#2_8 section of the manual for more details
+about hardware and software requirements for using GPUs.
+
+The {gpuflag} and {gpunum} settings in the pair_style command refer to
+how the GPUs on your system are configured.
+
+Set {gpuflag} to {one/node} if you have multiple gpus on 1 CPU node of
+your system.  In this case, {gpunum} should be the starting GPU ID.
+
+Set {gpuflag} to {one/node} if you have multiple gpus on 1 node
+of your system.  In this case, {gpunum} should be the starting GPU ID.
+
+  // set multi_gpu_mode to one/gpu to select the same gpu id on every node
+  // -- param is id of gpu
+  // set multi_gpu_mode to multi/gpu to get ma
+  // -- param is number of gpus per node
+
+Additional requirements in your input script to run with style
+{gayberne/gpu} are as follows:
+
+The "newton pair"_newton.html setting must be {off}.
+
+You should use the "neigh_modify one"_neigh_modify.html command and
+set its value to something close (but slightly larger) than the number
+of pairwise neighbors/atom you expect to have in your model.  This is
+a function of the pairwise cutoff.  Note that the default for this
+setting is 2000, which is much larger than most models need.  Unlike
+neighbor lists in LAMMPS itself, the GPU version of this pair style
+uses that setting to allocate memory on the GPU for neighbor
+information.  If the setting is too large, it will limit the number of
+atoms that can be stored on the GPU.
+
+:line
+
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -152,8 +202,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This style is part of the "asphere" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
+The {gayberne} style is part of the "asphere" package.  The
+{gayberne/gpu} style is part of the "gpu" package.  They are only
+enabled if LAMMPS was built with the those packages.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
 This pair style requires that atoms store torque and a quaternion to

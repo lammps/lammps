@@ -11,6 +11,8 @@
 
 <H3>pair_style lj/cut command 
 </H3>
+<H3>pair_style lj/cut/gpu command 
+</H3>
 <H3>pair_style lj/cut/opt command 
 </H3>
 <H3>pair_style lj/cut/coul/cut command 
@@ -25,10 +27,12 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/opt</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I>         or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
+<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/gpu</I> or <I>lj/cut/opt</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I>         or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/cut</I> args = cutoff
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+  <I>lj/cut/gpu</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   <I>lj/cut/opt</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -52,6 +56,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj/cut 2.5
+pair_style lj/cut/gpu 2.5
 pair_style lj/cut/opt 2.5
 pair_coeff * * 1 1
 pair_coeff 1 1 1 1.1 2.8 
@@ -86,6 +91,11 @@ given by
 <CENTER><IMG SRC = "Eqs/pair_lj.jpg">
 </CENTER>
 <P>Rc is the cutoff.
+</P>
+<P>Style <I>gayberne/gpu</I> is a GPU-enabled version of style <I>lj/cut</I> that
+should give identical answers.  Depending on system size and the GPU
+processor you have on your system, it may be 4x faster (for the
+pairwise portion of the run time).  See more details below.
 </P>
 <P>Style <I>lj/cut/opt</I> is an optimized version of style <I>lj/cut</I> that
 should give identical answers.  Depending on system size and the
@@ -165,6 +175,30 @@ Coulombic cutoff specified in the pair_style command.
 </P>
 <HR>
 
+<P>The <I>lj/cut/gpu</I> style is identical to the <I>lj/cut</I> style, except that
+each processor off-loads its pairwise calculations to a GPU chip.
+Depending on the hardware available on your system this can provide a
+speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
+the manual for more details about hardware and software requirements
+for using GPUs.
+</P>
+<P>Additional requirements in your input script to run with style
+<I>gayberne/gpu</I> are as follows:
+</P>
+<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>.
+</P>
+<P>You should use the <A HREF = "neigh_modify.html">neigh_modify one</A> command and
+set its value to something close (but slightly larger) than the number
+of pairwise neighbors/atom you expect to have in your model.  This is
+a function of the pairwise cutoff.  Note that the default for this
+setting is 2000, which is much larger than most models need.  Unlike
+neighbor lists in LAMMPS itself, the GPU version of this pair style
+uses that setting to allocate memory on the GPU for neighbor
+information.  If the setting is too large, it will limit the number of
+atoms that can be stored on the GPU.
+</P>
+<HR>
+
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
@@ -202,11 +236,11 @@ See the <A HREF = "run_style.html">run_style</A> command for details.
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> styles are part of
-the "kspace" package.  They are only enabled if LAMMPS was built with
-that package (which it is by default).  The <I>lj/cut/opt</I> style is part
-of the "opt" package.  It is only enabled if LAMMPS was built with
-that package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section
-for more info.
+the "kspace" package.  The <I>lj/cut/gpu</I> style is part of the "gpu"
+package.  The <I>lj/cut/opt</I> style is part of the "opt" package.  They
+are only enabled if LAMMPS was built with those packages.  See the
+<A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.  Note
+that the "kspace" package is installed by default.
 </P>
 <P>On some 64-bit machines, compiling with -O3 appears to break the
 Coulombic tabling option used by the <I>lj/cut/coul/long</I> style.  See

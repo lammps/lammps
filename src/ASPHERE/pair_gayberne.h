@@ -21,18 +21,18 @@ namespace LAMMPS_NS {
 class PairGayBerne : public Pair {
  public:
   PairGayBerne(LAMMPS *lmp);
-  ~PairGayBerne();
-  void compute(int, int);
-  void settings(int, char **);
+  virtual ~PairGayBerne();
+  virtual void compute(int, int);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
   double cut_global;
   double **cut;
 

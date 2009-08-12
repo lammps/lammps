@@ -18,7 +18,6 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "string.h"
 #include "pair_gayberne_gpu.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -33,6 +32,8 @@
 #include "neigh_request.h"
 #include "universe.h"
 
+#include <string>
+
 #ifdef GB_GPU_OMP
 #include "omp.h"
 #endif
@@ -41,6 +42,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // External functions from cuda library for atom decomposition
+
 int * gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
                   const double upsilon, const double mu, double **shape,
                   double **well, double **cutsq, double **sigma, 
@@ -91,7 +93,7 @@ PairGayBerneGPU::~PairGayBerneGPU()
     printf("\n-------------------------------------");
     printf("--------------------------------\n");
     gb_gpu_time(my_thread);
-    std::cout << "Procs: " << universe->nprocs << std::endl;
+    printf("Procs: %d\n",comm->nprocs);
     printf("-------------------------------------");
     printf("--------------------------------\n\n");
   }
@@ -226,32 +228,31 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
 void PairGayBerneGPU::settings(int narg, char **arg)
 {
-  if (narg != 4 && narg != 6) error->all("Illegal pair_style command");
-  
-  // Set multi_gpu_mode to one_node for multiple gpus on 1 node
-  // -- param is starting gpu id
-  // Set multi_gpu_mode to one_gpu to select the same gpu id on every node
-  // -- param is id of gpu
-  // Set multi_gpu_mode to multi_gpu to get ma
-  // -- param is number of gpus per node
-  multi_gpu_mode=ONE_NODE;
-  multi_gpu_param=0;
-  if (narg==6) {
-    multi_gpu_param=atoi(arg[5]);
-    if (strcmp("one_node",arg[4])==0)
-      multi_gpu_mode=ONE_NODE;
-    else if (strcmp("one_gpu",arg[4])==0)
-      multi_gpu_mode=ONE_GPU;
-    else if (strcmp("multi_gpu",arg[4])==0) {
-      multi_gpu_mode=MULTI_GPU;
-      if (multi_gpu_param<1)
-        error->all("Illegal pair_style command");
-    } else
-      error->all("Illegal pair_style command");
-    narg-=2;
-  }
+  // strip off GPU keyword/value and send remaining args to parent
 
-  PairGayBerne::settings(narg,arg);
+  if (narg < 2) error->all("Illegal pair_style command");
+  
+  // set multi_gpu_mode to one/node for multiple gpus on 1 node
+  // -- param is starting gpu id
+  // set multi_gpu_mode to one/gpu to select the same gpu id on every node
+  // -- param is id of gpu
+  // set multi_gpu_mode to multi/gpu to get ma
+  // -- param is number of gpus per node
+
+  if (strcmp(arg[0],"one/node") == 0)
+    multi_gpu_mode = ONE_NODE;
+  else if (strcmp(arg[0],"one/gpu") == 0)
+    multi_gpu_mode = ONE_GPU;
+  else if (strcmp(arg[0],"multi/gpu") == 0)
+    multi_gpu_mode = MULTI_GPU;
+  else error->all("Illegal pair_style command");
+
+  multi_gpu_param = atoi(arg[1]);
+
+  if (multi_gpu_mode == MULTI_GPU && multi_gpu_param < 1)
+    error->all("Illegal pair_style command");
+
+  PairGayBerne::settings(narg-2,&arg[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -260,7 +261,15 @@ void PairGayBerneGPU::settings(int narg, char **arg)
 
 void PairGayBerneGPU::init_style()
 {
-  // Set the GPU ID
+  if (force->pair_match("gpu",0) == NULL)
+    error->all("Cannot use pair hybrid with multiple GPU pair styles");
+  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
+    error->all("Pair gayberne requires atom attributes quat, torque, shape");
+  if (atom->radius_flag)
+    error->all("Pair gayberne cannot be used with atom attribute diameter");
+
+  // set the GPU ID
+
   int my_gpu=comm->me+multi_gpu_param;
   int ngpus=universe->nprocs;
   if (multi_gpu_mode==ONE_GPU) {
@@ -272,11 +281,6 @@ void PairGayBerneGPU::init_style()
     if (ngpus>universe->nprocs)
       ngpus=universe->nprocs;
   }
-  
-  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
-    error->all("Pair gayberne requires atom attributes quat, torque, shape");
-  if (atom->radius_flag)
-    error->all("Pair gayberne cannot be used with atom attribute diameter");
 
   int irequest = neighbor->request(this);
 

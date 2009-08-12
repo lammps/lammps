@@ -18,7 +18,6 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "string.h"
 #include "pair_lj_cut_gpu.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -33,10 +32,13 @@
 #include "neigh_request.h"
 #include "universe.h"
 
+#include <string>
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // External functions from cuda library for force decomposition
+
 int * lj_gpu_init(int &ij_size, const int ntypes, double **cutsq, 
                   double **sigma, double **epsilon, double **host_lj1, 
                   double **host_lj2, double **host_lj3, double **host_lj4, 
@@ -80,7 +82,7 @@ PairLJCutGPU::~PairLJCutGPU()
     printf("\n-------------------------------------");
     printf("--------------------------------\n");
     lj_gpu_time();
-    std::cout << "Procs: " << universe->nprocs << std::endl;
+    printf("Procs: %d\n",comm->nprocs);
     printf("-------------------------------------");
     printf("--------------------------------\n\n");
   }
@@ -167,32 +169,31 @@ void PairLJCutGPU::compute(int eflag, int vflag)
 
 void PairLJCutGPU::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
-  
-  // Set multi_gpu_mode to one_node for multiple gpus on 1 node
-  // -- param is starting gpu id
-  // Set multi_gpu_mode to one_gpu to select the same gpu id on every node
-  // -- param is id of gpu
-  // Set multi_gpu_mode to multi_gpu to get ma
-  // -- param is number of gpus per node
-  multi_gpu_mode=ONE_NODE;
-  multi_gpu_param=0;
-  if (narg==3) {
-    multi_gpu_param=atoi(arg[2]);
-    if (strcmp("one_node",arg[1])==0)
-      multi_gpu_mode=ONE_NODE;
-    else if (strcmp("one_gpu",arg[1])==0)
-      multi_gpu_mode=ONE_GPU;
-    else if (strcmp("multi_gpu",arg[1])==0) {
-      multi_gpu_mode=MULTI_GPU;
-      if (multi_gpu_param<1)
-        error->all("Illegal pair_style command");
-    } else
-      error->all("Illegal pair_style command");
-    narg-=2;
-  }
+  // strip off GPU keyword/value and send remaining args to parent
 
-  PairLJCut::settings(narg,arg);
+  if (narg < 2) error->all("Illegal pair_style command");
+
+  // set multi_gpu_mode to one/node for multiple gpus on 1 node
+  // -- param is starting gpu id
+  // set multi_gpu_mode to one/gpu to select the same gpu id on every node
+  // -- param is id of gpu
+  // set multi_gpu_mode to multi/gpu to get ma
+  // -- param is number of gpus per node
+
+  if (strcmp(arg[0],"one/node") == 0)
+    multi_gpu_mode = ONE_NODE;
+  else if (strcmp(arg[0],"one/gpu") == 0)
+    multi_gpu_mode = ONE_GPU;
+  else if (strcmp(arg[0],"multi/gpu") == 0)
+    multi_gpu_mode = MULTI_GPU;
+  else error->all("Illegal pair_style command");
+
+  multi_gpu_param = atoi(arg[1]);
+
+  if (multi_gpu_mode == MULTI_GPU && multi_gpu_param < 1)
+    error->all("Illegal pair_style command");
+
+  PairLJCut::settings(narg-2,&arg[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -201,7 +202,11 @@ void PairLJCutGPU::settings(int narg, char **arg)
 
 void PairLJCutGPU::init_style()
 {
-  // Set the GPU ID
+  if (force->pair_match("gpu",0) == NULL)
+    error->all("Cannot use pair hybrid with multiple GPU pair styles");
+
+  // set the GPU ID
+
   int my_gpu=comm->me+multi_gpu_param;
   int ngpus=universe->nprocs;
   if (multi_gpu_mode==ONE_GPU) {

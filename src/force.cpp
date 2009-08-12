@@ -156,30 +156,44 @@ Pair *Force::new_pair(const char *style)
    return ptr to current pair class or hybrid sub-class
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
-   else return NULL
+   return NULL if no match
+   return NULL if not exact and multiple hybrid sub-styles match
 ------------------------------------------------------------------------- */
 
 Pair *Force::pair_match(const char *word, int exact)
 {
+  int iwhich,count;
+
   if (exact && strcmp(pair_style,word) == 0) return pair;
   else if (!exact && strstr(pair_style,word)) return pair;
+
   else if (strcmp(pair_style,"hybrid") == 0) {
     PairHybrid *hybrid = (PairHybrid *) pair;
+    count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
       if (exact && strcmp(hybrid->keywords[i],word) == 0)
 	return hybrid->styles[i];
-      else if (!exact && strstr(hybrid->keywords[i],word))
-	return hybrid->styles[i];
+      if (!exact && strstr(hybrid->keywords[i],word)) {
+	iwhich = i;
+	count++;
+      }
     }
+    if (!exact && count == 1) return hybrid->styles[iwhich];
+
   } else if (strcmp(pair_style,"hybrid/overlay") == 0) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
+    count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
       if (exact && strcmp(hybrid->keywords[i],word) == 0)
 	return hybrid->styles[i];
-      else if (!exact && strstr(hybrid->keywords[i],word))
-	return hybrid->styles[i];
+      else if (!exact && strstr(hybrid->keywords[i],word)) {
+	iwhich = i;
+	count++;
+      }
     }
+    if (!exact && count == 1) return hybrid->styles[iwhich];
   }
+
   return NULL;
 }
 

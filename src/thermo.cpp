@@ -806,22 +806,6 @@ int Thermo::add_variable(const char *id)
 }
 
 /* ----------------------------------------------------------------------
-   create a Compute object for group all
-------------------------------------------------------------------------- */
-
-void Thermo::create_compute(char *id, char *cstyle, char *extra)
-{
-  char **newarg = new char*[4];
-  newarg[0] = id;
-  newarg[1] = (char *) "all";
-  newarg[2] = cstyle;
-  if (extra) newarg[3] = extra;
-  if (extra) modify->add_compute(4,newarg);
-  else modify->add_compute(3,newarg);
-  delete [] newarg;
-}
-
-/* ----------------------------------------------------------------------
    compute a single thermodyanmic value, word is any keyword in custom list
    called when a variable is evaluated by Variable class
    return value as double in answer

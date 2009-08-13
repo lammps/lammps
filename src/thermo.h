@@ -94,7 +94,6 @@ class Thermo : protected Pointers {
   int add_compute(const char *, int);
   int add_fix(const char *);
   int add_variable(const char *);
-  void create_compute(char *, char *, char *);
 
   typedef void (Thermo::*FnPtr)();
   void addfield(const char *, FnPtr, int);

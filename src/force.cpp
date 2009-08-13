@@ -486,7 +486,7 @@ double Force::numeric(char *str)
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i])) continue;
-    if (str[i] == '-' || str[i] == '.') continue;
+    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
     error->all("Expecting floating point argument in input script");
   }
@@ -504,7 +504,7 @@ int Force::inumeric(char *str)
 {
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-') continue;
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
     error->all("Expecting integer argument in input script");
   }
 

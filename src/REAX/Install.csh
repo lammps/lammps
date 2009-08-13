@@ -3,10 +3,10 @@
 
 if ($1 == 1) then
 
-  sed -i 's/\S*reax //' ../Makefile.package
-  sed -i 's|^PKGINC =\s*|&-I../../lib/reax |' ../Makefile.package
-  sed -i 's|^PKGPATH =\s*|&-L../../lib/reax |' ../Makefile.package
-  sed -i 's|^PKGLIB =\s*|&-lreax |' ../Makefile.package
+  sed -i -e 's/[^ \t]*reax //' ../Makefile.package
+  sed -i -e 's|^PKGINC =[ \t]*|&-I../../lib/reax |' ../Makefile.package
+  sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/reax |' ../Makefile.package
+  sed -i -e 's|^PKGLIB =[ \t]*|&-lreax |' ../Makefile.package
 
   cp style_reax.h ..
 
@@ -20,7 +20,7 @@ if ($1 == 1) then
 
 else if ($1 == 0) then
 
-  sed -i 's/\S*reax //' ../Makefile.package
+  sed -i -e 's/[^ \t]*reax //' ../Makefile.package
 
   rm ../style_reax.h
   touch ../style_reax.h

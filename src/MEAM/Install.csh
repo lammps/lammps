@@ -3,10 +3,10 @@
 
 if ($1 == 1) then
 
-  sed -i 's/\S*meam //' ../Makefile.package
-  sed -i 's|^PKGINC =\s*|&-I../../lib/meam |' ../Makefile.package
-  sed -i 's|^PKGPATH =\s*|&-L../../lib/meam |' ../Makefile.package
-  sed -i 's|^PKGLIB =\s*|&-lmeam |' ../Makefile.package
+  sed -i -e 's/[^ \t]*meam //' ../Makefile.package
+  sed -i -e 's|^PKGINC =[ \t]*|&-I../../lib/meam |' ../Makefile.package
+  sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/meam |' ../Makefile.package
+  sed -i -e 's|^PKGLIB =[ \t]*|&-lmeam |' ../Makefile.package
 
   cp style_meam.h ..
 
@@ -16,7 +16,7 @@ if ($1 == 1) then
 
 else if ($1 == 0) then
 
-  sed -i 's/\S*meam //' ../Makefile.package
+  sed -i -e 's/[^ \t]*meam //' ../Makefile.package
 
   rm ../style_meam.h
   touch ../style_meam.h

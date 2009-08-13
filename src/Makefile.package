@@ -1,6 +1,6 @@
 # Settings for libraries used by specific LAMMPS packages
 # this file is auto-edited when those packages are included/excluded
 
-PKGINC =   -I../../lib/reax -I../../lib/poems -I../../lib/meam 
-PKGPATH =  -L../../lib/reax -L../../lib/poems -L../../lib/meam 
-PKGLIB =   -lreax -lpoems -lmeam 
+PKGINC =   -I../../lib/meam -I../../lib/reax -I../../lib/poems 
+PKGPATH =  -L../../lib/meam -L../../lib/reax -L../../lib/poems 
+PKGLIB =   -lmeam -lreax -lpoems 

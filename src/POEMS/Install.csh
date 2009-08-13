@@ -3,10 +3,10 @@
 
 if ($1 == 1) then
 
-  sed -i 's/\S*poems //' ../Makefile.package
-  sed -i 's|^PKGINC =\s*|&-I../../lib/poems |' ../Makefile.package
-  sed -i 's|^PKGPATH =\s*|&-L../../lib/poems |' ../Makefile.package
-  sed -i 's|^PKGLIB =\s*|&-lpoems |' ../Makefile.package
+  sed -i -e 's/[^ \t]*poems //' ../Makefile.package
+  sed -i -e 's|^PKGINC =[ \t]*|&-I../../lib/poems |' ../Makefile.package
+  sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/poems |' ../Makefile.package
+  sed -i -e 's|^PKGLIB =[ \t]*|&-lpoems |' ../Makefile.package
 
   cp style_poems.h ..
 
@@ -16,7 +16,7 @@ if ($1 == 1) then
 
 else if ($1 == 0) then
 
-  sed -i 's/\S*poems //' ../Makefile.package
+  sed -i -e 's/[^ \t]*poems //' ../Makefile.package
 
   rm ../style_poems.h
   touch ../style_poems.h

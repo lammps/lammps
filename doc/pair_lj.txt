@@ -85,7 +85,7 @@ given by
 
 Rc is the cutoff.
 
-Style {gayberne/gpu} is a GPU-enabled version of style {lj/cut} that
+Style {lj/cut/gpu} is a GPU-enabled version of style {lj/cut} that
 should give identical answers.  Depending on system size and the GPU
 processor you have on your system, it may be 4x faster (for the
 pairwise portion of the run time).  See more details below.
@@ -196,7 +196,7 @@ configuration are in "this section"_Section_start.html#2_8 of the
 manual.
 
 Additional requirements in your input script to run with style
-{gayberne/gpu} are as follows:
+{lj/cut/gpu} are as follows:
 
 The "newton pair"_newton.html setting must be {off}.
 

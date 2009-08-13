@@ -19,7 +19,7 @@ AR = ar
 CUDA_CPP  = nvcc -I/usr/local/cuda/include -DUNIX -O3 -DDEBUG -Xptxas -v --use_fast_math
 CUDA_ARCH = -maxrregcount 128 #-arch=sm_13
 CUDA_PREC = -D_SINGLE_SINGLE
-CUDA_LINK = -L/usr/local/cuda/lib -lcudart $(CUDA_LIB)
+CUDA_LINK = -L/usr/local/cuda/lib64 -lcudart $(CUDA_LIB)
 
 CUDA = $(CUDA_CPP) $(CUDA_ARCH) $(CUDA_PREC)
 

@@ -748,35 +748,83 @@ communication, roughly 75% in the example above.
 
 <H4><A NAME = "2_8"></A>2.8 Running on GPUs 
 </H4>
-<P>  1. I assume you have nvidia card ( cat /proc/driver/nvidia/cards/0 )
-  2.  Go to http://www.nvidia.com/object/cuda_get.html
-  3.  Install latest driver and toolkit (SDK is not necessary)
-  4.  Run make in lib/gpu
-  5. ./nvc_get_devices will list supported devices and properties
+<P>A few LAMMPS <A HREF = "pair_style.html">pair styles</A> can be run on graphical
+processing units (GPUs).  We plan to add more over time.  Currently,
+they only support NVIDIA GPU cards.  To use them you need to install
+certain NVIDIA CUDA software on your system:
 </P>
-<P>The pair styles supporting GPU acceleration have optional arguments to
-determine how GPUs are selected. Each GPU is selected based on its ID
-number reported by the graphics driver. A list of supported GPUs can be
-obtained using the 'nvc_get_devices' executable that is built with the
-library. To change how GPUs are selected, a GPU selection mode and a GPU
-selection parameter are supplied. If the mode is "one_node", the GPU ID
-is equal to the process rank plus the GPU parameter. For example,
+<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
+<LI>Go to http://www.nvidia.com/object/cuda_get.html
+<LI>Install a driver and toolkit appopriate for your system (SDK is not necessary)
+<LI>Run make in lammps/lib/gpu, editing a Makefile if necessary
+<LI>Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties 
+</UL>
+<H4>GPU hardware 
+</H4>
+<P>When using GPUs, you are restricted to one physical GPU per LAMMPS
+process.  This can be multiple GPUs on a single node or across
+multiple nodes.  For each GPU pair style, the first two arguments (GPU
+mode followed by GPU parameter) control how GPUs are selected.  If you
+are running on a single node, the mode is "one/node" and the parameter
+is the ID of the first GPU to select:
 </P>
-<P>pair_style lj/cut/gpu 2.5 one_node 0
+<PRE>pair_style lj/cut/gpu one/node 0 2.5 
+</PRE>
+<P>The ID is the GPU ID reported by the driver for CUDA enabled graphics
+cards.  For multiple GPU cards on a node, an MPI process should be run
+for each graphics card.  In this case, each process will grab the GPU
+with ID equal to the process rank plus the GPU parameter.
 </P>
-<P>will select GPUs 0, 1, and 2 for a 3 process run. If the mode is
-"one_gpu", every process will select the same GPU id identified by the
-GPU parameter. This option can be used to select a single GPU on
-multiple nodes and should be run with exactly 1 process per node. If the
-mode is "multi_gpu" the GPU parameter supplied should be the number of
-GPUs per node. The GPU selected by a particular process will then be
-equal to the rank%gpus_per_node. This final option can be used to run on
-multiple nodes that contain multiple GPUs per node. It assumes that
-processes will be filled in order by slots such that the ranks on any
-given node are always sequential.
+<P>For multiple nodes with one GPU per node, the mode is "one/gpu" and
+the parameter is the ID of the GPU used on every node:
 </P>
-<P>double/single precision
-atom limits
+<PRE>pair_style lj/cut/gpu one/gpu 1 2.5 
+</PRE>
+<P>In this case, MPI should be run with exactly one process per node.
+</P>
+<P>For multiple nodes with multiple GPUs, the mode is "multi/gpu" and the
+parameter is the number of GPUs per node:
+</P>
+<PRE>pair_style lj/cut/gpu multi/gpu 3 2.5 
+</PRE>
+<P>In this case, LAMMPS will attempt to grab 3 GPUs per node and this
+requires that the number of processes per node be 3. The first GPU
+selected must have ID zero for this mode (in the example, GPUs 0, 1,
+and 2 will be selected on every node).  An additional constraint is
+that the MPI processes must be filled by slot on each node such that
+the process ranks on each node are always sequential. This is a option
+for the MPI launcher (mpirun/mpiexec) and will be the default on many
+clusters.
+</P>
+<H4>GPU single vs double precision 
+</H4>
+<P>See the lammps/lib/gpu/README for instructions on how to build the
+LAMMPS gpu library for single vs double precision.  The latter
+requires that your GPU card supports double precision.
+</P>
+<H4>GPU Memory 
+</H4>
+<P>Upon initialization of the pair style, LAMMPS will reserve memory for
+64K atoms per GPU or 70% of each card's GPU memory, whichever value is
+limiting.  If the GPU library is compiled for double precision, the
+maximum number of atoms per GPU is 32K.  When running a periodic
+system and/or in parallel, this maximum atom count includes ghost
+atoms.
+</P>
+<P>The value of 70% can be changed by editing the PERCENT_GPU_MEMORY
+definition in the appopriate lammps/lib/gpu source file.  The value of
+64K cannot be increased and is the maximum number of atoms allowed per
+GPU.  By default, enough memory to store at least the maximum number
+of neighbors per atom is reserved on the GPU, which is set by the
+<A HREF = "neigh_modify.html">neigh_modify one</A> command.  The default value of
+2000 will be very high for many cases.  If memory on the graphics card
+is limiting, the number of atoms allowed can be increased by
+decreasing the maximum number of neighbors.  For example placing,
+</P>
+<PRE>neigh_modify one 100 
+</PRE>
+<P>in the input script will decrease the maximum number of neighbors per
+atom to 100, allowing more atoms to be run on the GPU.
 </P>
 <HR>
 

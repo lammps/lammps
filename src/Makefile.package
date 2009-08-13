@@ -2,5 +2,5 @@
 # this file is auto-edited when those packages are included/excluded
 
 PKGINC =   -I../../lib/reax -I../../lib/poems -I../../lib/meam 
-PKGPATH =  -L../../lib/reax -L../../lib/poems -L../../lib/meam -L../../lib/gpu 
-PKGLIB =   -lreax -lpoems -lmeam -lgpu 
+PKGPATH =  -L../../lib/reax -L../../lib/poems -L../../lib/meam 
+PKGLIB =   -lreax -lpoems -lmeam 

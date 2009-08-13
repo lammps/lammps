@@ -148,16 +148,22 @@ about hardware and software requirements for using GPUs.
 <P>The <I>gpuflag</I> and <I>gpunum</I> settings in the pair_style command refer to
 how the GPUs on your system are configured.
 </P>
-<P>Set <I>gpuflag</I> to <I>one/node</I> if you have multiple gpus on 1 CPU node of
-your system.  In this case, <I>gpunum</I> should be the starting GPU ID.
+<P>Set <I>gpuflag</I> to <I>one/node</I> if you have a single compute "node" on
+your system, which may have multiple cores and/or GPUs.  <I>Gpunum</I>
+should be set to the ID of the (first) GPU you wish to use with LAMMPS
+(another GPU might be driving your display).
 </P>
-<P>Set <I>gpuflag</I> to <I>one/node</I> if you have multiple gpus on 1 node
-of your system.  In this case, <I>gpunum</I> should be the starting GPU ID.
+<P>Set <I>gpuflag</I> to <I>one/gpu</I> if you have multiple compute "nodes" on
+your system, with one GPU per node.  <I>Gpunum</I> should be set to the ID
+of the GPU.
 </P>
-<P>  // set multi_gpu_mode to one/gpu to select the same gpu id on every node
-  // -- param is id of gpu
-  // set multi_gpu_mode to multi/gpu to get ma
-  // -- param is number of gpus per node
+<P>Set <I>gpuflag</I> to <I>multi/gpu</I> if you have multiple compute "nodes" on
+your system, each with multiple GPUs.  <I>Gpunum</I> should be set to the
+number of GPUs per node.
+</P>
+<P>More details about these settings and various possible hardware
+configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
+manual.
 </P>
 <P>Additional requirements in your input script to run with style
 <I>gayberne/gpu</I> are as follows:

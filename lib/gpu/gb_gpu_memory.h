@@ -26,12 +26,11 @@
 
 #define MAX_GPU_THREADS 4
 #include "lj_gpu_memory.h"
-#define LJ_GPU_MemoryT LJ_GPU_Memory<numtyp,acctyp>
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 template <class numtyp, class acctyp>
-class GB_GPU_Memory : public LJ_GPU_MemoryT {
+class GB_GPU_Memory : public LJ_GPU_Memory<numtyp,acctyp> {
  public:
   GB_GPU_Memory();
   ~GB_GPU_Memory(); 

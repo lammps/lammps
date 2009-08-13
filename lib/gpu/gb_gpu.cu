@@ -28,7 +28,7 @@
 #include "nvc_macros.h"
 #include "nvc_timer.h"
 #include "nvc_device.h"
-#include "gb_gpu_memory.h"
+#include "gb_gpu_memory.cu"
 #include "gb_gpu_kernel.h"
 
 using namespace std;

@@ -153,7 +153,7 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
   
   int j=*nbor;
   if (j < nall) 
-    factor_lj = 1.0;
+    factor_lj = (numtyp)1.0;
   else {
     factor_lj = sp_lj[j/nall];
     j %= nall;
@@ -443,7 +443,7 @@ __global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
   
       int j=*nbor;
       if (j < nall) 
-        factor_lj = 1.0;
+        factor_lj = (numtyp)1.0;
       else {
         factor_lj = sp_lj[j/nall];
         j %= nall;
@@ -675,7 +675,7 @@ __global__ void kernel_lj(const numtyp *special_lj, const int *dev_nbor,
   
       int j=*list;
       if (j < nall) 
-        factor_lj = 1.0;
+        factor_lj = (numtyp)1.0;
       else {
         factor_lj = sp_lj[j/nall];
         j %= nall;
@@ -799,7 +799,7 @@ __global__ void kernel_lj_fast(const numtyp *special_lj, const int *dev_nbor,
   
       int j=*list;
       if (j < nall) 
-        factor_lj = 1.0;
+        factor_lj = (numtyp)1.0;
       else {
         factor_lj = sp_lj[j/nall];
         j %= nall;

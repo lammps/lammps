@@ -26,40 +26,30 @@ CUDA = $(CUDA_CPP) $(CUDA_ARCH) $(CUDA_PREC)
 CUDA_LIB = $(OBJ_DIR)/libgpu.a
 
 # Headers for CUDA Stuff
-NVC_H  = nvc_macros.h nvc_device.h nvc_timer.h nvc_memory.h
+NVC_H  = nvc_macros.h nvc_device.h nvc_timer.h nvc_memory.h nvc_traits.h
 # Headers for Pair Stuff
 PAIR_H  = pair_gpu_texture.h pair_gpu_atom.h pair_gpu_nbor.h
+# Dependencies for the Texture Tar
+TAR_H = $(NVC_H) $(PAIR_H) pair_gpu_atom.cu lj_gpu_memory.h lj_gpu_memory.cu \
+        lj_gpu_kernel.h lj_gpu.cu gb_gpu_memory.h gb_gpu_memory.cu \
+        gb_gpu_extra.h gb_gpu_kernel.h gb_gpu.cu
 
 ALL_H = $(NVC_H) $(PAIR_H)
 
 EXECS = $(BIN_DIR)/nvc_get_devices
-OBJS = $(OBJ_DIR)/nvc_device.o $(OBJ_DIR)/gb_gpu.cu_o \
-       $(OBJ_DIR)/gb_gpu_memory.cu_o $(OBJ_DIR)/lj_gpu.cu_o \
-       $(OBJ_DIR)/lj_gpu_memory.cu_o $(OBJ_DIR)/pair_gpu_atom.cu_o \
-       $(OBJ_DIR)/pair_gpu_nbor.cu_o
+OBJS = $(OBJ_DIR)/nvc_device.o $(OBJ_DIR)/pair_gpu_nbor.cu_o \
+       $(OBJ_DIR)/pair_tex_tar.cu_o
 
 all: $(CUDA_LIB) $(EXECS)
 
 $(OBJ_DIR)/nvc_device.o: nvc_device.cu $(NVC_H)
 	$(CUDA) -o $@ -c nvc_device.cu
 
-$(OBJ_DIR)/pair_gpu_atom.cu_o: pair_gpu_atom.cu pair_gpu_texture.h pair_gpu_atom.h $(NVC_H)
-	$(CUDA) -o $@ -c pair_gpu_atom.cu
-
 $(OBJ_DIR)/pair_gpu_nbor.cu_o: pair_gpu_nbor.cu pair_gpu_texture.h pair_gpu_nbor.h $(NVC_H)
 	$(CUDA) -o $@ -c pair_gpu_nbor.cu
 
-$(OBJ_DIR)/lj_gpu_memory.cu_o: lj_gpu_memory.cu lj_gpu_memory.h $(ALL_H)
-	$(CUDA) -o $@ -c lj_gpu_memory.cu
-
-$(OBJ_DIR)/lj_gpu.cu_o: lj_gpu.cu $(ALL_H) lj_gpu_memory.h lj_gpu_kernel.h
-	$(CUDA) -o $@ -c lj_gpu.cu
-
-$(OBJ_DIR)/gb_gpu_memory.cu_o: gb_gpu_memory.cu gb_gpu_memory.h $(ALL_H)
-	$(CUDA) -o $@ -c gb_gpu_memory.cu
-
-$(OBJ_DIR)/gb_gpu.cu_o: gb_gpu.cu $(ALL_H) gb_gpu_memory.h gb_gpu_kernel.h gb_gpu_extra.h
-	$(CUDA) -o $@ -c gb_gpu.cu
+$(OBJ_DIR)/pair_tex_tar.cu_o: $(TAR_H)
+	$(CUDA) -o $@ -c pair_tex_tar.cu
 
 $(BIN_DIR)/nvc_get_devices: nvc_get_devices.cu $(NVC_H) $(OBJ_DIR)/nvc_device.o
 	$(CUDA) -o $@ nvc_get_devices.cu $(CUDALNK) $(OBJ_DIR)/nvc_device.o 

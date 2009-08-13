@@ -21,7 +21,9 @@
    the GNU General Public License.
    ----------------------------------------------------------------------- */
 
+#include "pair_gpu_texture.h"
 #include "pair_gpu_atom.h"
+
 #define PairGPUAtomT PairGPUAtom<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
@@ -41,8 +43,7 @@ void PairGPUAtomT::init(const int max_atoms) {
   time_answer.init();
 
   // Device matrices for atom and force data
-  dev_x.safe_alloc(atom_fields(),max_atoms);
-  x_bind_texture<numtyp>(dev_x);
+  dev_x.safe_alloc(atom_fields(),max_atoms,x_get_texture<numtyp>());
   ans.safe_alloc(ans_fields(),max_atoms);
 
   // Get a host write only buffer
@@ -59,7 +60,7 @@ void PairGPUAtomT::clear() {
       return;
   allocated=false;
       
-  x_unbind_texture<numtyp>();
+  dev_x.unbind();
   ans.clear();                               
   host_write.clear();
   host_read.clear();

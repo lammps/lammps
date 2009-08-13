@@ -314,12 +314,12 @@ static __inline__ __device__ void gpu_quat_to_mat_trans(const int qi,
   numtyp i2 = qi4*qi4;
   numtyp j2 = qi5*qi5;
   numtyp k2 = qi6*qi6;
-  numtyp twoij = 2.0*qi4*qi5;
-  numtyp twoik = 2.0*qi4*qi6;
-  numtyp twojk = 2.0*qi5*qi6;
-  numtyp twoiw = 2.0*qi4*qi3;
-  numtyp twojw = 2.0*qi5*qi3;
-  numtyp twokw = 2.0*qi6*qi3;
+  numtyp twoij = (numtyp)2.0*qi4*qi5;
+  numtyp twoik = (numtyp)2.0*qi4*qi6;
+  numtyp twojk = (numtyp)2.0*qi5*qi6;
+  numtyp twoiw = (numtyp)2.0*qi4*qi3;
+  numtyp twojw = (numtyp)2.0*qi5*qi3;
+  numtyp twokw = (numtyp)2.0*qi6*qi3;
 
   mat[0] = w2+i2-j2-k2;
   mat[3] = twoij-twokw;

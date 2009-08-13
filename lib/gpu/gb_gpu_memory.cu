@@ -73,21 +73,21 @@ int* GB_GPU_MemoryT::init(const int ij_size, const int ntypes,
   host_write[2]=static_cast<numtyp>(mu);
   gamma_upsilon_mu.copy_from_host(host_write.begin());
 
-  lshape.safe_alloc(ntypes);
+  lshape.safe_alloc(ntypes,lshape_get_texture<numtyp>());
   lshape.cast_copy(host_lshape,host_write);
   lshape.copy_from_host(host_write.begin());
     
   // Copy shape, well, sigma, epsilon, and cutsq onto GPU
-  shape.safe_alloc(ntypes,3);
+  shape.safe_alloc(ntypes,3,shape_get_texture<numtyp>());
   shape.cast_copy(host_shape[0],host_write);
-  well.safe_alloc(ntypes,3);
+  well.safe_alloc(ntypes,3,well_get_texture<numtyp>());
   well.cast_copy(host_well[0],host_write);
 
   // Copy LJ data onto GPU
   int lj_types=ntypes;
   if (lj_types<=MAX_SHARED_TYPES)
     lj_types=MAX_SHARED_TYPES;
-  form.safe_alloc(lj_types,lj_types);
+  form.safe_alloc(lj_types,lj_types,form_get_texture());
   form.copy_2Dfrom_host(host_form[0],ntypes,ntypes);
 
   // See if we want fast GB-sphere or sphere-sphere calculations
@@ -99,12 +99,6 @@ int* GB_GPU_MemoryT::init(const int ij_size, const int ntypes,
         
   // Memory for ilist ordered by particle type
   host_olist.safe_alloc_rw(this->max_atoms);
-
-  // Bind constant data to textures
-  lshape_bind_texture<numtyp>(lshape);
-  shape_bind_texture<numtyp>(shape);
-  well_bind_texture<numtyp>(well);
-  form_bind_texture(form);
 
   return this->nbor.host_ij.begin();
 }
@@ -124,9 +118,7 @@ void GB_GPU_MemoryT::clear() {
 
   LJ_GPU_MemoryT::clear();      
   
-  shape_unbind_texture<numtyp>();
-  well_unbind_texture<numtyp>();
-  form_unbind_texture();
+  lshape.unbind();
 
   shape.clear();
   well.clear();

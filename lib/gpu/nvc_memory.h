@@ -25,6 +25,7 @@
 #define NVC_MEMORY_H
 
 #include <iostream>
+#include "nvc_macros.h"
 
 #define NVC_HostT NVC_Host<numtyp>
 #define NVC_HostD NVC_Host<double>
@@ -196,6 +197,10 @@ class NVC_Vec {
     _end=_array+cols;
   }
   
+  // Row vector on device (allocate and assign texture and bind)
+  inline void safe_alloc(const size_t cols, textureReference *t) 
+    { safe_alloc(cols); assign_texture(t); bind(); }
+
   /// Free any memory associated with device
   inline void clear() 
     { if (_cols>0) { _cols=0; CUDA_SAFE_CALL(cudaFree(_array)); } }
@@ -242,16 +247,21 @@ class NVC_Vec {
     copy_from_host(host_write.begin());
   }
   
+  /// Assign a texture to matrix
+  inline void assign_texture(textureReference *t) { _tex_ptr=t; }  
+
   /// Bind to texture
-  template <class texture>
-  inline void bind_texture(texture &texi, cudaChannelFormatDesc &channel) {
-    NVC::cuda_gb_get_channel<numtyp>(channel);
-    texi.addressMode[0] = cudaAddressModeClamp;
-    texi.addressMode[1] = cudaAddressModeClamp;
-    texi.filterMode = cudaFilterModePoint;
-    texi.normalized = false;
-    CUDA_SAFE_CALL(cudaBindTexture(NULL,&texi,_array,&channel));
+  inline void bind() {
+    NVC::cuda_gb_get_channel<numtyp>(_channel);
+    (*_tex_ptr).addressMode[0] = cudaAddressModeClamp;
+    (*_tex_ptr).addressMode[1] = cudaAddressModeClamp;
+    (*_tex_ptr).filterMode = cudaFilterModePoint;
+    (*_tex_ptr).normalized = false;
+    CUDA_SAFE_CALL(cudaBindTexture(NULL,_tex_ptr,_array,&_channel));
   }
+
+  /// Unbind texture
+  inline void unbind() { CUDA_SAFE_CALL(cudaUnbindTexture(_tex_ptr)); }
 
   /// Output the vector (debugging)
   inline void print(std::ostream &out) { print (out, numel()); }    
@@ -268,6 +278,8 @@ class NVC_Vec {
  private:
   numtyp *_array, *_end;
   size_t _row_bytes, _row_size, _rows, _cols;
+  cudaChannelFormatDesc _channel;
+  textureReference *_tex_ptr;
 };
 
 /// 2D Matrix on device (can have extra column storage to get correct alignment)
@@ -340,7 +352,10 @@ class NVC_ConstMat {
  public:
   NVC_ConstMat() { _rows=0; }
   ~NVC_ConstMat() { if (_rows>0) CUDA_SAFE_CALL(cudaFreeArray(_array)); }
-  
+
+  /// Assign a texture to matrix
+  inline void assign_texture(textureReference *t) { _tex_ptr=t; }  
+      
   /// Row major matrix on device
   inline void safe_alloc(const size_t rows, const size_t cols) {
     _rows=rows;
@@ -350,19 +365,31 @@ class NVC_ConstMat {
     CUDA_SAFE_CALL(cudaMallocArray(&_array, &_channel, cols, rows));
   }
   
+  /// Row major matrix on device (Allocate and bind texture)
+  inline void safe_alloc(const size_t rows, const size_t cols, 
+                         textureReference *t) 
+    { safe_alloc(rows,cols); assign_texture(t); bind(); }
+
   /// Bind to texture
-  template <class texture>
-  inline void bind_texture(texture &texi) {
-    texi.addressMode[0] = cudaAddressModeClamp;
-    texi.addressMode[1] = cudaAddressModeClamp;
-    texi.filterMode = cudaFilterModePoint;
-    texi.normalized = false;
-    CUDA_SAFE_CALL(cudaBindTextureToArray(&texi,_array,&_channel));
+  inline void bind() {
+    (*_tex_ptr).addressMode[0] = cudaAddressModeClamp;
+    (*_tex_ptr).addressMode[1] = cudaAddressModeClamp;
+    (*_tex_ptr).filterMode = cudaFilterModePoint;
+    (*_tex_ptr).normalized = false;
+    CUDA_SAFE_CALL(cudaBindTextureToArray(_tex_ptr,_array,&_channel));
   }
   
-  /// Free any memory associated with device
-  inline void clear() 
-    { if (_rows>0) { _rows=0; CUDA_SAFE_CALL(cudaFreeArray(_array)); } }
+  /// Unbind texture
+  inline void unbind() { CUDA_SAFE_CALL(cudaUnbindTexture(_tex_ptr)); }
+  
+  /// Free any memory associated with device and unbind
+  inline void clear() {
+    if (_rows>0) { 
+      _rows=0; 
+      CUDA_SAFE_CALL(cudaUnbindTexture(_tex_ptr)); 
+      CUDA_SAFE_CALL(cudaFreeArray(_array)); 
+    } 
+  }
 
   inline size_t numel() const { return _cols*_rows; }
   inline size_t rows() const { return _rows; }
@@ -442,6 +469,7 @@ class NVC_ConstMat {
   size_t _rows, _cols;
   cudaArray *_array;
   cudaChannelFormatDesc _channel;
+  textureReference *_tex_ptr;
 };
 
 #endif

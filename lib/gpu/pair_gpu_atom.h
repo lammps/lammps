@@ -40,12 +40,12 @@
 
 #ifndef PRECISION
 #define PRECISION float
-#define ACC_PRECISION double
+#define ACC_PRECISION float
 #define MAX_ATOMS 65536
 #endif
 
 #include "nvc_timer.h"
-#include "pair_gpu_texture.h"
+#include "nvc_memory.h"
 
 template <class numtyp, class acctyp>
 class PairGPUAtom {

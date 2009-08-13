@@ -75,11 +75,11 @@ int* LJ_GPU_MemoryT::init(const int ij_size, const int ntypes,
   special_lj.cast_copy(host_special_lj,host_write);
 
   // Copy sigma, epsilon, and cutsq onto GPU
-  sigma.safe_alloc(ntypes,ntypes);
+  sigma.safe_alloc(ntypes,ntypes,sigma_get_texture<numtyp>());
   sigma.cast_copy(host_sigma[0],host_write);
-  epsilon.safe_alloc(ntypes,ntypes);
+  epsilon.safe_alloc(ntypes,ntypes,epsilon_get_texture<numtyp>());
   epsilon.cast_copy(host_epsilon[0],host_write);
-  cutsq.safe_alloc(ntypes,ntypes);
+  cutsq.safe_alloc(ntypes,ntypes,cutsq_get_texture<numtyp>());
   cutsq.cast_copy(host_cutsq[0],host_write);
 
   // If atom type constants fit in shared memory use fast kernel
@@ -89,35 +89,27 @@ int* LJ_GPU_MemoryT::init(const int ij_size, const int ntypes,
     lj_types=MAX_SHARED_TYPES;
     shared_types=true;
   }
-  offset.safe_alloc(lj_types,lj_types);
+  offset.safe_alloc(lj_types,lj_types,offset_get_texture<numtyp>());
   offset.cast_copy2D(host_offset[0],host_write,ntypes,ntypes);
   double *t1=host_lj1[0];
   double *t2=host_lj2[0];
-  for (int i=0; i<lj_types*lj_types; i++) {
+  for (int i=0; i<ntypes*ntypes; i++) {
     host_write[i*2]=t1[i];
     host_write[i*2+1]=t2[i];
   }
-  lj1.safe_alloc(lj_types,lj_types);
-  lj1.copy_2Dfrom_host(reinterpret_cast<typename cu_vec_traits<numtyp>::vec2 *> (host_write.begin()),
+  lj1.safe_alloc(lj_types,lj_types,lj1_get_texture<numtyp>());
+  lj1.copy_2Dfrom_host(reinterpret_cast<typename nvc_vec_traits<numtyp>::vec2 *> (host_write.begin()),
                        ntypes,ntypes);
   t1=host_lj3[0];
   t2=host_lj4[0];
-  for (int i=0; i<lj_types*lj_types; i++) {
+  for (int i=0; i<ntypes*ntypes; i++) {
     host_write[i*2]=t1[i];
     host_write[i*2+1]=t2[i];
   }
-  lj3.safe_alloc(lj_types,lj_types);
-  lj3.copy_2Dfrom_host(reinterpret_cast<typename cu_vec_traits<numtyp>::vec2 *> (host_write.begin()),
+  lj3.safe_alloc(lj_types,lj_types,lj3_get_texture<numtyp>());
+  lj3.copy_2Dfrom_host(reinterpret_cast<typename nvc_vec_traits<numtyp>::vec2 *> (host_write.begin()),
                        ntypes,ntypes);
         
-  // Bind constant data to textures
-  sigma_bind_texture<numtyp>(sigma);
-  epsilon_bind_texture<numtyp>(epsilon);
-  cutsq_bind_texture<numtyp>(cutsq);
-  offset_bind_texture<numtyp>(offset);
-  lj1_bind_texture<typename cu_vec_traits<numtyp>::vec2>(lj1);
-  lj3_bind_texture<typename cu_vec_traits<numtyp>::vec2>(lj3);
-
   dev_error.safe_alloc(1);
   dev_error.zero();
     
@@ -139,13 +131,6 @@ void LJ_GPU_MemoryT::clear() {
   atom.clear();
   nbor.clear();
     
-  sigma_unbind_texture<numtyp>();
-  epsilon_unbind_texture<numtyp>();
-  cutsq_unbind_texture<numtyp>();
-  offset_unbind_texture<numtyp>();
-  lj1_unbind_texture<typename cu_vec_traits<numtyp>::vec2>();
-  lj3_unbind_texture<typename cu_vec_traits<numtyp>::vec2>();
-
   CUDA_SAFE_CALL(cudaStreamDestroy(pair_stream));
 
   dev_error.clear();

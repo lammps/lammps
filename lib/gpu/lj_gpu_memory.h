@@ -25,6 +25,7 @@
 #define LJ_GPU_MEMORY_H
 
 #include "nvc_device.h"
+#include "nvc_traits.h"
 #include "pair_gpu_atom.h"
 #include "pair_gpu_nbor.h"
 
@@ -70,7 +71,7 @@ class LJ_GPU_Memory {
   
   // --------------- Const Data for Atoms
   NVC_ConstMatT sigma, epsilon, cutsq, offset;
-  NVC_ConstMat< typename cu_vec_traits<numtyp>::vec2 > lj1, lj3;
+  NVC_ConstMat< typename nvc_vec_traits<numtyp>::vec2 > lj1, lj3;
   NVC_VecT special_lj;
   
   size_t max_atoms;

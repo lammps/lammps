@@ -20,8 +20,8 @@
 <PRE>pair_style gayberne/gpu gpuflag gpunum gamma upsilon mu cutoff 
 </PRE>
 <UL><LI>style = <I>gayberne</I> or <I>gayberne/gpu</I>
-<LI>gpuflag = <I>one/node</I> or <I>one/gpu</I> or <I>multi/gpu</I>, only used with gayberne/gpu
-<LI>gpunum = gpu ID or quantity, only used with gayberne/gpu
+<LI>gpumode = <I>one/node</I> or <I>one/gpu</I> or <I>multi/gpu</I>, only used with gayberne/gpu
+<LI>gpuID = ID or number of GPUs, only used with gayberne/gpu
 <LI>gamma = shift for potential minimum (typically 1)
 <LI>upsilon = exponent for eta orientation-dependent energy function
 <LI>mu = exponent for chi orientation-dependent energy function
@@ -145,20 +145,20 @@ computations inherent in Gay-Berne interactions.  See the <A HREF = "Section_sta
 GPUs</A> section of the manual for more details
 about hardware and software requirements for using GPUs.
 </P>
-<P>The <I>gpuflag</I> and <I>gpunum</I> settings in the pair_style command refer to
+<P>The <I>gpumode</I> and <I>gpuID</I> settings in the pair_style command refer to
 how the GPUs on your system are configured.
 </P>
-<P>Set <I>gpuflag</I> to <I>one/node</I> if you have a single compute "node" on
-your system, which may have multiple cores and/or GPUs.  <I>Gpunum</I>
+<P>Set <I>gpumode</I> to <I>one/node</I> if you have a single compute "node" on
+your system, which may have multiple cores and/or GPUs.  <I>GpuID</I>
 should be set to the ID of the (first) GPU you wish to use with LAMMPS
 (another GPU might be driving your display).
 </P>
-<P>Set <I>gpuflag</I> to <I>one/gpu</I> if you have multiple compute "nodes" on
-your system, with one GPU per node.  <I>Gpunum</I> should be set to the ID
+<P>Set <I>gpumode</I> to <I>one/gpu</I> if you have multiple compute "nodes" on
+your system, with one GPU per node.  <I>GpuID</I> should be set to the ID
 of the GPU.
 </P>
-<P>Set <I>gpuflag</I> to <I>multi/gpu</I> if you have multiple compute "nodes" on
-your system, each with multiple GPUs.  <I>Gpunum</I> should be set to the
+<P>Set <I>gpumode</I> to <I>multi/gpu</I> if you have multiple compute "nodes" on
+your system, each with multiple GPUs.  <I>GpuID</I> should be set to the
 number of GPUs per node.
 </P>
 <P>More details about these settings and various possible hardware

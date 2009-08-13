@@ -23,7 +23,9 @@ style = {lj/cut} or {lj/cut/gpu} or {lj/cut/opt} or {lj/cut/coul/cut} or {lj/cut
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
-  {lj/cut/gpu} args = cutoff
+  {lj/cut/gpu} args = gpumode gpuID cutoff
+    gpumode = {one/node} or {one/gpu} or {multi/gpu}
+    gpuID = ID or number of GPUs
     cutoff = global cutoff for Lennard Jones interactions (distance units)
   {lj/cut/opt} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -173,20 +175,20 @@ speed-up.  See the "Running on GPUs"_Section_start.html#2_8 section of
 the manual for more details about hardware and software requirements
 for using GPUs.
 
-The {gpuflag} and {gpunum} settings in the pair_style command refer to
+The {gpumode} and {gpuID} settings in the pair_style command refer to
 how the GPUs on your system are configured.
 
-Set {gpuflag} to {one/node} if you have a single compute "node" on
-your system, which may have multiple cores and/or GPUs.  {Gpunum}
+Set {gpumode} to {one/node} if you have a single compute "node" on
+your system, which may have multiple cores and/or GPUs.  {GpuID}
 should be set to the ID of the (first) GPU you wish to use with LAMMPS
 (another GPU might be driving your display).
 
-Set {gpuflag} to {one/gpu} if you have multiple compute "nodes" on
-your system, with one GPU per node.  {Gpunum} should be set to the ID
+Set {gpumode} to {one/gpu} if you have multiple compute "nodes" on
+your system, with one GPU per node.  {GpuID} should be set to the ID
 of the GPU.
 
-Set {gpuflag} to {multi/gpu} if you have multiple compute "nodes" on
-your system, each with multiple GPUs.  {Gpunum} should be set to the
+Set {gpumode} to {multi/gpu} if you have multiple compute "nodes" on
+your system, each with multiple GPUs.  {GpuID} should be set to the
 number of GPUs per node.
 
 More details about these settings and various possible hardware

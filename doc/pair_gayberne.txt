@@ -25,7 +25,7 @@ cutoff = global cutoff for interactions (distance units) :ul
 [Examples:]
 
 pair_style gayberne 1.0 1.0 1.0 10.0
-pair_style gayberne/gpu 1.0 1.0 1.0 10.0
+pair_style gayberne/gpu one/node 0 1.0 1.0 1.0 10.0
 pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 :pre
 
 [Description:]

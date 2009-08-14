@@ -764,9 +764,9 @@ certain NVIDIA CUDA software on your system:
 <P>When using GPUs, you are restricted to one physical GPU per LAMMPS
 process.  This can be multiple GPUs on a single node or across
 multiple nodes.  For each GPU pair style, the first two arguments (GPU
-mode followed by GPU parameter) control how GPUs are selected.  If you
-are running on a single node, the mode is "one/node" and the parameter
-is the ID of the first GPU to select:
+mode followed by GPU ID) control how GPUs are selected.  If you are
+running on a single node, the mode is "one/node" and the parameter is
+the ID of the first GPU to select:
 </P>
 <PRE>pair_style lj/cut/gpu one/node 0 2.5 
 </PRE>

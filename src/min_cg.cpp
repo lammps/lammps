@@ -22,6 +22,8 @@
 
 using namespace LAMMPS_NS;
 
+#define MAXATOMS 0x7FFFFFFF
+
 // EPS_ENERGY = minimum normalization for energy tolerance
 
 #define EPS_ENERGY 1.0e-8
@@ -35,47 +37,48 @@ enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
-MinCG::MinCG(LAMMPS *lmp) : Min(lmp) {}
+MinCG::MinCG(LAMMPS *lmp) : MinLineSearch(lmp) {}
 
 /* ----------------------------------------------------------------------
    minimization via conjugate gradient iterations
 ------------------------------------------------------------------------- */
 
-int MinCG::iterate(int n)
+int MinCG::iterate(int niter_max)
 {
-  int i,fail,ntimestep;
+  int i,m,n,fail,ntimestep;
   double beta,gg,dot[2],dotall[2];
+  double *fatom,*gatom,*hatom;
 
-  double *x = NULL;
-  double *f = NULL;
+  // nlimit = max # of CG iterations before restarting
+  // set to ndoftotal unless too big
 
-  int ndoftotal;
-  MPI_Allreduce(&ndof,&ndoftotal,1,MPI_INT,MPI_SUM,world);
-  ndoftotal += nextra;
+  int nlimit = static_cast<int> (MIN(MAXATOMS,ndoftotal));
 
-  if (ndof) f = atom->f[0];
-  for (i = 0; i < ndof; i++) h[i] = g[i] = f[i];
-  if (nextra)
-    for (i = 0; i < nextra; i++)
-      hextra[i] = gextra[i] = fextra[i];
-  
-  dot[0] = 0.0;
-  for (i = 0; i < ndof; i++) dot[0] += f[i]*f[i];
-  MPI_Allreduce(dot,&gg,1,MPI_DOUBLE,MPI_SUM,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++) gg += fextra[i]*fextra[i];
+  // initialize working vectors
+
+  for (i = 0; i < n3; i++) h[i] = g[i] = f[i];
+  if (nextra_atom)
+    for (m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      gatom = gextra_atom[m];
+      hatom = hextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i++) hatom[i] = gatom[i] = fatom[i];
+    }
+  if (nextra_global)
+    for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i] = fextra[i];
+
+  gg = fnorm_sqr();
 
   neval = 0;
-
-  for (niter = 0; niter < n; niter++) {
+  for (niter = 0; niter < niter_max; niter++) {
 
     ntimestep = ++update->ntimestep;
 
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    if (ndof) x = atom->x[0];
-    fail = (this->*linemin)(ndof,x,h,x0,ecurrent,dmax,alpha_final,neval);
+    fail = (this->*linemin)(ecurrent,alpha_final,neval);    
     if (fail) return fail;
 
     // function evaluation criterion
@@ -90,20 +93,29 @@ int MinCG::iterate(int n)
 
     // force tolerance criterion
 
-    if (ndof) f = atom->f[0];
     dot[0] = dot[1] = 0.0;
-    for (i = 0; i < ndof; i++) {
+    for (i = 0; i < n3; i++) {
       dot[0] += f[i]*f[i];
       dot[1] += f[i]*g[i];
     }
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+	fatom = fextra_atom[m];
+	gatom = gextra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) {
+	  dot[0] += fatom[i]*fatom[i];
+	  dot[1] += fatom[i]*gatom[i];
+	}
+      }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
-    if (nextra)
-      for (i = 0; i < nextra; i++) {
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++) {
 	dotall[0] += fextra[i]*fextra[i];
 	dotall[1] += fextra[i]*gextra[i];
       }
 
-    if (dotall[0] < update->ftol * update->ftol) return FTOL;
+    if (dotall[0] < update->ftol*update->ftol) return FTOL;
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation
@@ -111,15 +123,26 @@ int MinCG::iterate(int n)
     // reinitialize CG every ndof iterations by setting beta = 0.0
 
     beta = MAX(0.0,(dotall[0] - dotall[1])/gg);
-    if ((niter+1) % ndoftotal == 0) beta = 0.0;
+    if ((niter+1) % nlimit == 0) beta = 0.0;
     gg = dotall[0];
 
-    for (i = 0; i < ndof; i++) {
+    for (i = 0; i < n3; i++) {
       g[i] = f[i];
       h[i] = g[i] + beta*h[i];
     }
-    if (nextra)
-      for (i = 0; i < nextra; i++) {
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+	fatom = fextra_atom[m];
+	gatom = gextra_atom[m];
+	hatom = hextra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) {
+	  gatom[i] = fatom[i];
+	  hatom[i] = gatom[i] + beta*hatom[i];
+	}
+      }
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++) {
 	gextra[i] = fextra[i];
 	hextra[i] = gextra[i] + beta*hextra[i];
       }
@@ -127,18 +150,30 @@ int MinCG::iterate(int n)
     // reinitialize CG if new search direction h is not downhill
 
     dot[0] = 0.0;
-    for (i = 0; i < ndof; i++) dot[0] += g[i]*h[i];
+    for (i = 0; i < n3; i++) dot[0] += g[i]*h[i];
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+	gatom = gextra_atom[m];
+	hatom = hextra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) dot[0] += gatom[i]*hatom[i];
+      }
     MPI_Allreduce(dot,dotall,1,MPI_DOUBLE,MPI_SUM,world);
-
-    if (nextra)
-      for (i = 0; i < nextra; i++)
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++)
 	dotall[0] += gextra[i]*hextra[i];
 
     if (dotall[0] <= 0.0) {
-      for (i = 0; i < ndof; i++) h[i] = g[i];
-      if (nextra)
-	for (i = 0; i < nextra; i++)
-	  hextra[i] = gextra[i];
+      for (i = 0; i < n3; i++) h[i] = g[i];
+      if (nextra_atom)
+	for (m = 0; m < nextra_atom; m++) {
+	  gatom = gextra_atom[m];
+	  hatom = hextra_atom[m];
+	  n = extra_nlen[m];
+	  for (i = 0; i < n; i++) hatom[i] = gatom[i];
+	}
+      if (nextra_global)
+	for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i];
     }
 
     // output for thermo, dump, restart files
@@ -152,4 +187,3 @@ int MinCG::iterate(int n)
 
   return MAXITER;
 }
-

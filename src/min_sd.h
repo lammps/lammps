@@ -14,11 +14,11 @@
 #ifndef MIN_SD_H
 #define MIN_SD_H
 
-#include "min_cg.h"
+#include "min_linesearch.h"
 
 namespace LAMMPS_NS {
 
-class MinSD : public Min {
+class MinSD : public MinLineSearch {
  public:
   MinSD(class LAMMPS *);
   int iterate(int);

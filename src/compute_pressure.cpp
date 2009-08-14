@@ -236,10 +236,12 @@ void ComputePressure::compute_vector()
       vector[0] = (ke_tensor[0] + virial[0]) * inv_volume * nktv2p;
       vector[1] = (ke_tensor[1] + virial[1]) * inv_volume * nktv2p;
       vector[3] = (ke_tensor[3] + virial[3]) * inv_volume * nktv2p;
+      vector[2] = vector[4] = vector[5] = 0.0;
     } else {
       vector[0] = virial[0] * inv_volume * nktv2p;
       vector[1] = virial[1] * inv_volume * nktv2p;
       vector[3] = virial[3] * inv_volume * nktv2p;
+      vector[2] = vector[4] = vector[5] = 0.0;
     }
   }
 }

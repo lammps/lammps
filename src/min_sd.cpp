@@ -31,37 +31,41 @@ enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
-MinSD::MinSD(LAMMPS *lmp) : Min(lmp) {}
+MinSD::MinSD(LAMMPS *lmp) : MinLineSearch(lmp) {}
 
 /* ----------------------------------------------------------------------
    minimization via steepest descent
 ------------------------------------------------------------------------- */
 
-int MinSD::iterate(int n)
+int MinSD::iterate(int niter_max)
 {
-  int i,fail,ntimestep;
-  double dot,dotall;
+  int i,m,n,fail,ntimestep;
+  double fdotf;
+  double *fatom,*hatom;
 
-  double *x = NULL;
-  double *f = NULL;
+  // initialize working vectors
 
-  if (ndof) f = atom->f[0];
-  for (i = 0; i < ndof; i++) h[i] = f[i];
-  if (nextra)
-    for (i = 0; i < nextra; i++)
-      hextra[i] = fextra[i];
+  for (i = 0; i < n3; i++) h[i] = f[i];
+  if (nextra_atom)
+    for (m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      hatom = hextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i++) hatom[i] = fatom[i];
+    }
+  if (nextra_global)
+    for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
 
   neval = 0;
-
-  for (niter = 0; niter < n; niter++) {
+  for (niter = 0; niter < niter_max; niter++) {
 
     ntimestep = ++update->ntimestep;
 
-    // line minimization along direction h from current atom->x
+    // line minimization along h from current position x
+    // h = downhill gradient direction
 
     eprevious = ecurrent;
-    if (ndof) x = atom->x[0];
-    fail = (this->*linemin)(ndof,x,h,x0,ecurrent,dmax,alpha_final,neval);
+    fail = (this->*linemin)(ecurrent,alpha_final,neval);
     if (fail) return fail;
 
     // function evaluation criterion
@@ -76,22 +80,21 @@ int MinSD::iterate(int n)
 
     // force tolerance criterion
 
-    if (ndof) f = atom->f[0];
-    dot = 0.0;
-    for (i = 0; i < ndof; i++) dot += f[i]*f[i];
-    MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
-    if (nextra)
-      for (i = 0; i < nextra; i++)
-	dotall += fextra[i]*fextra[i];
-
-    if (dotall < update->ftol * update->ftol) return FTOL;
+    fdotf = fnorm_sqr();
+    if (fdotf < update->ftol*update->ftol) return FTOL;
 
     // set new search direction h to f = -Grad(x)
 
-    for (i = 0; i < ndof; i++) h[i] = f[i];
-    if (nextra)
-      for (i = 0; i < nextra; i++)
-	hextra[i] = fextra[i];
+    for (i = 0; i < n3; i++) h[i] = f[i];
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+	fatom = fextra_atom[m];
+	hatom = hextra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) hatom[i] = fatom[i];
+      }
+    if (nextra_global)
+      for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
 
     // output for thermo, dump, restart files
 

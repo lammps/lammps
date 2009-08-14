@@ -14,11 +14,11 @@
 #ifndef MIN_CG_H
 #define MIN_CG_H
 
-#include "min.h"
+#include "min_linesearch.h"
 
 namespace LAMMPS_NS {
 
-class MinCG : public Min {
+class MinCG : public MinLineSearch {
  public:
   MinCG(class LAMMPS *);
   int iterate(int);

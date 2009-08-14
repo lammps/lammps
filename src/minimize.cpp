@@ -48,6 +48,7 @@ void Minimize::command(int narg, char **arg)
   update->whichflag = 1;
 
   lmp->init();
+  update->minimize->setup();
   update->minimize->run();
 
   Finish finish(lmp);

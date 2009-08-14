@@ -24,11 +24,13 @@ class FixBoxRelax : public Fix {
   ~FixBoxRelax();
   int setmask();
   void init();
+
   double min_energy(double *);
   void min_store();
   void min_step(double, double *);
   double max_alpha(double *);
   int min_dof();
+
   int modify_param(int, char **);
 
  private:

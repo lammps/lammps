@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "stdlib.h"
 #include "fix_minimize.h"
 #include "atom.h"
+#include "domain.h"
 #include "memory.h"
 #include "error.h"
 
@@ -23,13 +25,13 @@ using namespace LAMMPS_NS;
 FixMinimize::FixMinimize(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  // perform initial allocation of atom-based arrays
-  // register with Atom class
+  nvector = 0;
+  peratom = NULL;
+  vectors = NULL;
 
-  gradient = NULL;
-  searchdir = NULL;
-  x0 = NULL;
-  grow_arrays(atom->nmax);
+  // register callback to this fix from Atom class
+  // don't perform initial allocation here, must wait until add_vector()
+
   atom->add_callback(0);
 }
 
@@ -41,11 +43,11 @@ FixMinimize::~FixMinimize()
 
   atom->delete_callback(id,0);
 
-  // delete locally stored arrays
+  // delete locally stored data
 
-  memory->destroy_2d_double_array(gradient);
-  memory->destroy_2d_double_array(searchdir);
-  memory->destroy_2d_double_array(x0);
+  memory->sfree(peratom);
+  for (int m = 0; m < nvector; m++) memory->sfree(vectors[m]);
+  memory->sfree(vectors);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,12 +58,119 @@ int FixMinimize::setmask()
 }
 
 /* ----------------------------------------------------------------------
+   allocate/initialize memory for a new vector with N elements per atom
+------------------------------------------------------------------------- */
+
+void FixMinimize::add_vector(int n)
+{
+  peratom = (int *)
+    memory->srealloc(peratom,(nvector+1)*sizeof(int),"minimize:peratom");
+  peratom[nvector] = n;
+
+  vectors = (double **)
+    memory->srealloc(vectors,(nvector+1)*sizeof(double *),"minimize:vectors");
+  vectors[nvector] = (double *)
+    memory->smalloc(atom->nmax*n*sizeof(double),"minimize:vector");
+
+  int ntotal = n*atom->nlocal;
+  for (int i = 0; i < ntotal; i++) vectors[nvector][i] = 0.0;
+  nvector++;
+}
+
+/* ----------------------------------------------------------------------
+   return a pointer to the Mth vector
+------------------------------------------------------------------------- */
+
+double *FixMinimize::request_vector(int m)
+{
+  return vectors[m];
+}
+
+/* ----------------------------------------------------------------------
+   store box size at beginning of line search
+------------------------------------------------------------------------- */
+
+void FixMinimize::store_box()
+{
+  boxlo[0] = domain->boxlo[0];
+  boxlo[1] = domain->boxlo[1];
+  boxlo[2] = domain->boxlo[2];
+  boxhi[0] = domain->boxhi[0];
+  boxhi[1] = domain->boxhi[1];
+  boxhi[2] = domain->boxhi[2];
+}
+
+/* ----------------------------------------------------------------------
+   reset x0 for atoms that moved across PBC via reneighboring in line search
+   x0 = 1st vector
+   must do minimum_image using original box stored at beginning of line search
+   swap & set_global_box() change to original box, then restore current box
+------------------------------------------------------------------------- */
+
+void FixMinimize::reset_coords()
+{
+  box_swap();
+  domain->set_global_box();
+    
+  double **x = atom->x;
+  double *x0 = vectors[0];
+  int nlocal = atom->nlocal;
+  double dx,dy,dz,dx0,dy0,dz0;
+
+  int n = 0;
+  for (int i = 0; i < nlocal; i++) {
+    dx = dx0 = x[i][0] - x0[n];
+    dy = dy0 = x[i][1] - x0[n+1];
+    dz = dz0 = x[i][2] - x0[n+2];
+    domain->minimum_image(dx,dy,dz);
+    if (dx != dx0) x0[n] = x[i][0] - dx;
+    if (dy != dy0) x0[n+1] = x[i][1] - dy;
+    if (dz != dz0) x0[n+2] = x[i][2] - dz;
+    n += 3;
+  }
+  
+  box_swap();
+  domain->set_global_box();
+}
+
+/* ----------------------------------------------------------------------
+   swap current box size with stored box size
+------------------------------------------------------------------------- */
+
+void FixMinimize::box_swap()
+{
+  double tmp;
+
+  tmp = boxlo[0];
+  boxlo[0] = domain->boxlo[0];
+  domain->boxlo[0] = tmp;
+  tmp = boxlo[1];
+  boxlo[1] = domain->boxlo[1];
+  domain->boxlo[1] = tmp;
+  tmp = boxlo[2];
+  boxlo[2] = domain->boxlo[2];
+  domain->boxlo[2] = tmp;
+
+  tmp = boxhi[0];
+  boxhi[0] = domain->boxhi[0];
+  domain->boxhi[0] = tmp;
+  tmp = boxhi[1];
+  boxhi[1] = domain->boxhi[1];
+  domain->boxhi[1] = tmp;
+  tmp = boxhi[2];
+  boxhi[2] = domain->boxhi[2];
+  domain->boxhi[2] = tmp;
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 
 double FixMinimize::memory_usage()
 {
-  double bytes = 3 * atom->nmax*3 * sizeof(double);
+  double bytes = 0.0;
+  for (int m = 0; m < nvector; m++)
+    bytes += atom->nmax*peratom[m]*sizeof(double);
   return bytes;
 }
 
@@ -71,12 +180,9 @@ double FixMinimize::memory_usage()
 
 void FixMinimize::grow_arrays(int nmax)
 {
-  gradient =
-    memory->grow_2d_double_array(gradient,nmax,3,"fix_minimize:gradient");
-  searchdir =
-    memory->grow_2d_double_array(searchdir,nmax,3,"fix_minimize:searchdir");
-  x0 =
-    memory->grow_2d_double_array(x0,nmax,3,"fix_minimize:x0");
+  for (int m = 0; m < nvector; m++)
+    vectors[m] = (double *) memory->srealloc(vectors[m],peratom[m]*nmax,
+					     "minimize:vector");
 }
 
 /* ----------------------------------------------------------------------
@@ -85,15 +191,14 @@ void FixMinimize::grow_arrays(int nmax)
 
 void FixMinimize::copy_arrays(int i, int j)
 {
-  gradient[j][0] = gradient[i][0];
-  gradient[j][1] = gradient[i][1];
-  gradient[j][2] = gradient[i][2];
-  searchdir[j][0] = searchdir[i][0];
-  searchdir[j][1] = searchdir[i][1];
-  searchdir[j][2] = searchdir[i][2];
-  x0[j][0] = x0[i][0];
-  x0[j][1] = x0[i][1];
-  x0[j][2] = x0[i][2];
+  int m,iper,nper,ni,nj;
+
+  for (m = 0; m < nvector; m++) {
+    nper = peratom[m];
+    ni = nper*i;
+    nj = nper*j;
+    for (iper = 0; iper < nper; iper++) vectors[m][nj++] = vectors[m][ni++];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -102,16 +207,15 @@ void FixMinimize::copy_arrays(int i, int j)
 
 int FixMinimize::pack_exchange(int i, double *buf)
 {
-  buf[0] = gradient[i][0]; 
-  buf[1] = gradient[i][1]; 
-  buf[2] = gradient[i][2]; 
-  buf[3] = searchdir[i][0]; 
-  buf[4] = searchdir[i][1]; 
-  buf[5] = searchdir[i][2]; 
-  buf[6] = x0[i][0]; 
-  buf[7] = x0[i][1]; 
-  buf[8] = x0[i][2]; 
-  return 9;
+  int m,iper,nper,ni;
+
+  int n = 0;
+  for (m = 0; m < nvector; m++) {
+    nper = peratom[m];
+    ni = nper*i;
+    for (iper = 0; iper < nper; iper++) buf[n++] = vectors[m][ni++];
+  }
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -120,14 +224,13 @@ int FixMinimize::pack_exchange(int i, double *buf)
 
 int FixMinimize::unpack_exchange(int nlocal, double *buf)
 {
-  gradient[nlocal][0] = buf[0];
-  gradient[nlocal][1] = buf[1];
-  gradient[nlocal][2] = buf[2];
-  searchdir[nlocal][0] = buf[3];
-  searchdir[nlocal][1] = buf[4];
-  searchdir[nlocal][2] = buf[5];
-  x0[nlocal][0] = buf[6];
-  x0[nlocal][1] = buf[7];
-  x0[nlocal][2] = buf[8];
-  return 9;
+  int m,iper,nper,ni;
+
+  int n = 0;
+  for (m = 0; m < nvector; m++) {
+    int nper = peratom[m];
+    ni = nper*nlocal;
+    for (iper = 0; iper < nper; iper++) vectors[m][ni++] = buf[n++];
+  }
+  return n;
 }

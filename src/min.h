@@ -29,17 +29,23 @@ class Min : protected Pointers {
   Min(class LAMMPS *);
   virtual ~Min();
   void init();
+  void setup();
   void run();
+
+  virtual void init_style() {}
+  virtual void setup_style() = 0;
+  virtual void reset_vectors() = 0;
+  virtual int iterate(int) = 0;
+
+  void request(class Pair *, int, double);
   double memory_usage() {return 0.0;}
   void modify_params(int, char **);
-
-  virtual int iterate(int) = 0;
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation
   int virial_style;           // compute virial explicitly or implicitly
 
-  double dmax;                // max dist to move any atom in one linesearch
+  double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic
 
   int nelist_atom;                  // # of PE,virial computes to check
@@ -49,45 +55,45 @@ class Min : protected Pointers {
   class Compute **vlist_atom;
 
   int pairflag,torqueflag;
-  int neigh_every,neigh_delay,neigh_dist_check;   // copies of reneigh criteria
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
 
-  class FixMinimize *fix_minimize;  // fix that stores gradient vecs
+  int narray;                       // # of arrays stored by fix_minimize
+  class FixMinimize *fix_minimize;  // fix that stores auxiliary data
+
   class Compute *pe_compute;        // compute for potential energy
   double ecurrent;                  // current potential energy
-  double mindist,maxdist;     // min/max dist for coord delta in line search
 
-  int ndof;                   // # of degrees-of-freedom on this proc
-  double *g,*h;               // local portion of gradient, searchdir vectors
-  double *x0;                 // coords at start of linesearch
+  double ndoftotal;           // total dof for entire problem
 
-  int nextra;                 // extra dof due to fixes
-  double *fextra;             // vectors for extra dof
-  double *gextra;
-  double *hextra;
+  int n3;                     // local atomic dof
+  double *x;                  // variables for atomic dof, as 1d vector
+  double *f;                  // force vector for atomic dof, as 1d vector
 
-  double boxlo0[3];           // box size at start of linesearch
-  double boxhi0[3];
+  int nextra_global;          // # of extra global dof due to fixes
+  double *fextra;             // force vector for extra global dof
+                              // xextra is stored by fix
 
-  // ptr to linemin functions
+  int nextra_atom;            // # of sets of extra per-atom dof
+  double **xextra_atom;       // variables for extra per-atom dof sets
+  double **fextra_atom;       // force vectors for extra per-atom dof sets
+  int *extra_peratom;         // # of per-atom values in each set
+  int *extra_nlen;            // total local length of each set, e.g 3*nlocal
+  double *extra_max;          // max allowed change in one iter for each set
+  class Pair **requestor;     // Pair that requested each set
 
-  void setup();
-  void eng_force(int *, double **, double **, double **, double *, int);
-  void setup_vectors();
+  int neigh_every,neigh_delay,neigh_dist_check;  // neighboring params
+
+  double energy_force(int);
   void force_clear();
 
-  typedef int (Min::*FnPtr)(int, double *, double *, double *, double,
-			    double, double &, int &);
-  FnPtr linemin;
-  int linemin_backtrack(int, double *, double *, double *, double,
-			double, double &, int &);
-  int linemin_quadratic(int, double *, double *, double *, double,
-			double, double &, int &);
+  double compute_force_norm_sqr();
+  double compute_force_norm_inf();
 
   void ev_setup();
   void ev_set(int);
-  void box_store();
-  void box_swap();
+
+  double fnorm_sqr();
+  double fnorm_inf();
 };
 
 }

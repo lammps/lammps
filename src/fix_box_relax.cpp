@@ -318,34 +318,34 @@ void FixBoxRelax::min_store()
 }
 
 /* ----------------------------------------------------------------------
-   change the box dimensions by fraction ds = alpha*fextra
+   change the box dimensions by fraction ds = alpha*hextra
 ------------------------------------------------------------------------- */
 
-void FixBoxRelax::min_step(double alpha, double *fextra)
+void FixBoxRelax::min_step(double alpha, double *hextra)
 {
   if (press_couple == XYZ) {
-    ds[0] = ds[1] = ds[2] = alpha*fextra[0];
+    ds[0] = ds[1] = ds[2] = alpha*hextra[0];
   } else {
-    if (p_flag[0]) ds[0] = alpha*fextra[0];
-    if (p_flag[1]) ds[1] = alpha*fextra[1];
-    if (p_flag[2]) ds[2] = alpha*fextra[2];
+    if (p_flag[0]) ds[0] = alpha*hextra[0];
+    if (p_flag[1]) ds[1] = alpha*hextra[1];
+    if (p_flag[2]) ds[2] = alpha*hextra[2];
   }
 
   remap();
 }
 
 /* ----------------------------------------------------------------------
-   max allowed step size along fextra
+   max allowed step size along hextra
 ------------------------------------------------------------------------- */
 
-double FixBoxRelax::max_alpha(double *fextra)
+double FixBoxRelax::max_alpha(double *hextra)
 {
   double alpha = 0.0;
-  if (press_couple == XYZ) alpha = vmax/fabs(fextra[0]);
+  if (press_couple == XYZ) alpha = vmax/fabs(hextra[0]);
   else {
-    alpha = vmax/fabs(fextra[0]);
-    alpha = MIN(alpha,vmax/fabs(fextra[1]));
-    alpha = MIN(alpha,vmax/fabs(fextra[2]));
+    alpha = vmax/fabs(hextra[0]);
+    alpha = MIN(alpha,vmax/fabs(hextra[1]));
+    alpha = MIN(alpha,vmax/fabs(hextra[2]));
   }
   return alpha;
 }

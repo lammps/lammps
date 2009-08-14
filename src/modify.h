@@ -60,6 +60,7 @@ class Modify : protected Pointers {
   void final_integrate_respa(int);
 
   void min_post_force(int);
+
   double min_energy(double *);
   void min_store();
   void min_step(double, double *);

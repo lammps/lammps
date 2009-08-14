@@ -41,27 +41,10 @@
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-// ALPHA_MAX = max alpha allowed to avoid long backtracks
-// ALPHA_REDUCE = reduction ratio, should be in range [0.5,1)
-// BACKTRACK_SLOPE, should be in range (0,0.5]
-// QUADRATIC_TOL = tolerance on alpha0, should be in range [0.1,1)
-// IDEAL_TOL = ideal energy tolerance for backtracking
-// EPS_QUAD = tolerance for quadratic projection
-
-#define ALPHA_MAX 1.0
-#define ALPHA_REDUCE 0.5
-#define BACKTRACK_SLOPE 0.4
-#define QUADRATIC_TOL 0.1
-#define IDEAL_TOL 1.0e-8
-#define EPS_QUAD 1.0e-28
-
-// same as in other min classes
-
-enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
@@ -76,7 +59,14 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
 
-  fextra = gextra = hextra = NULL;
+  nextra_global = 0;
+  fextra = NULL;
+
+  nextra_atom = 0;
+  xextra_atom = fextra_atom = NULL;
+  extra_peratom = extra_nlen = NULL;
+  extra_max = NULL;
+  requestor = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,15 +78,20 @@ Min::~Min()
   delete [] vlist_atom;
 
   delete [] fextra;
-  delete [] gextra;
-  delete [] hextra;
+
+  memory->sfree(xextra_atom);
+  memory->sfree(fextra_atom);
+  memory->sfree(extra_peratom);
+  memory->sfree(extra_nlen);
+  memory->sfree(extra_max);
+  memory->sfree(requestor);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Min::init()
 {
-  // create fix needed for storing atom-based gradient vectors
+  // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
   char **fixarg = new char*[3];
@@ -107,10 +102,25 @@ void Min::init()
   delete [] fixarg;
   fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
 
-  // zero gradient vectors before first atom exchange
+  // clear out extra global and per-atom dof
+  // will receive requests for new per-atom dof during pair init()
+  // can then add vectors to fix_minimize in setup()
 
-  setup_vectors();
-  for (int i = 0; i < ndof; i++) h[i] = g[i] = 0.0;
+  nextra_global = 0;
+  delete [] fextra;
+  fextra = NULL;
+
+  nextra_atom = 0;
+  memory->sfree(xextra_atom);
+  memory->sfree(fextra_atom);
+  memory->sfree(extra_peratom);
+  memory->sfree(extra_nlen);
+  memory->sfree(extra_max);
+  memory->sfree(requestor);
+  xextra_atom = fextra_atom = NULL;
+  extra_peratom = extra_nlen = NULL;
+  extra_max = NULL;
+  requestor = NULL;
 
   // virial_style:
   // 1 if computed explicitly by pair->compute via sum over pair interactions
@@ -139,6 +149,8 @@ void Min::init()
   neigh_delay = neighbor->delay;
   neigh_dist_check = neighbor->dist_check;
   
+  // reset reneighboring criteria if necessary
+
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
       error->warning("Resetting reneighboring criteria during minimization");
@@ -148,10 +160,9 @@ void Min::init()
   neighbor->delay = 0;
   neighbor->dist_check = 1;
 
-  // set ptr to linemin function
+  // style-specific initialization
 
-  if (linestyle == 0) linemin = &Min::linemin_backtrack;
-  else if (linestyle == 1) linemin = &Min::linemin_quadratic;
+  init_style();
 }
 
 /* ----------------------------------------------------------------------
@@ -161,6 +172,28 @@ void Min::init()
 void Min::setup()
 {
   if (comm->me == 0 && screen) fprintf(screen,"Setting up minimization ...\n");
+
+  // setup extra global dof due to fixes
+  // cannot be done in init() b/c update init() is before modify init()
+
+  nextra_global = modify->min_dof();
+  if (nextra_global) fextra = new double[nextra_global];
+
+  // style-specific setup does two tasks
+  // setup extra global dof vectors
+  // setup extra per-atom dof vectors due to requests from Pair classes
+  // cannot be done in init() b/c update init() is before modify/pair init()
+
+  setup_style();
+
+  // ndoftotal = total dof for entire minimization problem
+  // dof for atoms, extra per-atom, extra global
+
+  double ndofme = 3.0*atom->nlocal;
+  for (int m = 0; m < nextra_atom; m++)
+    ndofme += extra_peratom[m]*atom->nlocal;
+  MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_DOUBLE,MPI_SUM,world);
+  ndoftotal += nextra_global;
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -177,7 +210,6 @@ void Min::setup()
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build();
   neighbor->ncalls = 0;
-  setup_vectors();
 
   // compute all forces
 
@@ -202,6 +234,10 @@ void Min::setup()
 
   modify->setup(vflag);
   output->setup(1);
+
+  // atoms may have migrated in comm->exchange()
+
+  reset_vectors();
 }
 
 /* ----------------------------------------------------------------------
@@ -210,9 +246,6 @@ void Min::setup()
 
 void Min::run()
 {
-  int i;
-  double tmp,*f;
-
   // possible stop conditions
 
   char *stopstrings[] = {"max iterations","max force evaluations",
@@ -221,57 +254,21 @@ void Min::run()
 			 "linesearch alpha is zero",
 			 "forces are zero","quadratic factors are zero"};
 
-  // set initial force & energy
-
-  setup();
-
-  // setup any extra dof due to fixes
-  // can't be done until now b/c update init() comes before modify init()
-
-  delete [] fextra;
-  delete [] gextra;
-  delete [] hextra;
-  fextra = NULL;
-  gextra = NULL;
-  hextra = NULL;
-
-  nextra = modify->min_dof();
-  if (nextra) {
-    fextra = new double[nextra];
-    gextra = new double[nextra];
-    hextra = new double[nextra];
-  }
-
-  // compute potential energy of system
-  // normalize energy if thermo PE does
+  // compute for potential energy
 
   int id = modify->find_compute("thermo_pe");
   if (id < 0) error->all("Minimization could not find thermo_pe compute");
   pe_compute = modify->compute[id];
 
-  ecurrent = pe_compute->compute_scalar();
-  if (nextra) ecurrent += modify->min_energy(fextra);
-  if (output->thermo->normflag) ecurrent /= atom->natoms;
-  
   // stats for Finish to print
+
+  ecurrent = pe_compute->compute_scalar();
+  if (nextra_global) ecurrent += modify->min_energy(fextra);
+  if (output->thermo->normflag) ecurrent /= atom->natoms;
 	
   einitial = ecurrent;
-
-  f = NULL;
-  if (ndof) f = atom->f[0];
-  tmp = 0.0;
-  for (i = 0; i < ndof; i++) tmp += f[i]*f[i];
-  MPI_Allreduce(&tmp,&fnorm2_init,1,MPI_DOUBLE,MPI_SUM,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++) fnorm2_init += fextra[i]*fextra[i];
-  fnorm2_init = sqrt(fnorm2_init);
-
-  tmp = 0.0;
-  for (i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
-  MPI_Allreduce(&tmp,&fnorminf_init,1,MPI_DOUBLE,MPI_MAX,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++)
-      fnorminf_init = MAX(fabs(fextra[i]),fnorminf_init);
+  fnorm2_init = sqrt(fnorm_sqr());
+  fnorminf_init = fnorm_inf();
 
   // minimizer iterations
 
@@ -298,16 +295,13 @@ void Min::run()
     output->next_thermo = update->ntimestep;
 
     modify->addstep_compute_all(update->ntimestep);
-
-    int ntmp;
-    double *xtmp,*htmp,*x0tmp,etmp;
-    eng_force(&ntmp,&xtmp,&htmp,&x0tmp,&etmp,0);
+    ecurrent = energy_force(0);
     output->write(update->ntimestep);
   }
 
   timer->barrier_stop(TIME_LOOP);
 
-  // delete fix at end of run, so its atom arrays won't persist
+  // delete fix_minimize at end of run
 
   modify->delete_fix("MINIMIZE");
 
@@ -320,40 +314,23 @@ void Min::run()
   // stats for Finish to print
 	
   efinal = ecurrent;
-
-  f = NULL;
-  if (ndof) f = atom->f[0];
-  tmp = 0.0;
-  for (i = 0; i < ndof; i++) tmp += f[i]*f[i];
-  MPI_Allreduce(&tmp,&fnorm2_final,1,MPI_DOUBLE,MPI_SUM,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++)
-      fnorm2_final += fextra[i]*fextra[i];
-  fnorm2_final = sqrt(fnorm2_final);
-
-  tmp = 0.0;
-  for (i = 0; i < ndof; i++) tmp = MAX(fabs(f[i]),tmp);
-  MPI_Allreduce(&tmp,&fnorminf_final,1,MPI_DOUBLE,MPI_MAX,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++)
-      fnorminf_final = MAX(fabs(fextra[i]),fnorminf_final);
+  fnorm2_final = sqrt(fnorm_sqr());
+  fnorminf_final = fnorm_inf();
 }
 
 /* ----------------------------------------------------------------------
    evaluate potential energy and forces
-   may migrate atoms
-   if resetflag = 1, update x0 by PBC for atoms that migrate
-   new energy stored in ecurrent and returned (in case caller not in class)
-   negative gradient will be stored in atom->f
+   may migrate atoms due to reneighboring
+   return new energy, which should include nextra_global dof
+   return negative gradient stored in atom->f
+   return negative gradient for nextra_global dof in fextra
 ------------------------------------------------------------------------- */
 
-void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
-		    double *peng, int resetflag)
+double Min::energy_force(int resetflag)
 {
   // check for reneighboring
   // always communicate since minimizer moved atoms
-  // if reneighbor, have to setup_vectors() since atoms migrated
-  
+
   int nflag = neighbor->decide();
 
   if (nflag == 0) {
@@ -375,34 +352,6 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
     timer->stamp(TIME_COMM);
     neighbor->build();
     timer->stamp(TIME_NEIGHBOR);
-    setup_vectors();
-
-    // update x0 for atoms that migrated
-    // must do minimum_image on box size when x0 was stored
-    // domain->set_global_box() changes to x0 box, then restores current box
-
-    if (resetflag) {
-      box_swap();
-      domain->set_global_box();
-
-      double **x = atom->x;
-      double **x0 = fix_minimize->x0;
-      int nlocal = atom->nlocal;
-
-      double dx,dy,dz,dx0,dy0,dz0;
-      for (int i = 0; i < nlocal; i++) {
-	dx = dx0 = x[i][0] - x0[i][0];
-	dy = dy0 = x[i][1] - x0[i][1];
-	dz = dz0 = x[i][2] - x0[i][2];
-	domain->minimum_image(dx,dy,dz);
-	if (dx != dx0) x0[i][0] = x[i][0] - dx;
-	if (dy != dy0) x0[i][1] = x[i][1] - dy;
-	if (dz != dz0) x0[i][2] = x[i][2] - dz;
-      }
-
-      box_swap();
-      domain->set_global_box();
-    }
   }
 
   ev_set(update->ntimestep);
@@ -440,33 +389,20 @@ void Min::eng_force(int *pndof, double **px, double **ph, double **px0,
   // compute potential energy of system
   // normalize if thermo PE does
 
-  ecurrent = pe_compute->compute_scalar();
-  if (nextra) ecurrent += modify->min_energy(fextra);
-  if (output->thermo->normflag) ecurrent /= atom->natoms;
+  double energy = pe_compute->compute_scalar();
+  if (nextra_global) energy += modify->min_energy(fextra);
+  if (output->thermo->normflag) energy /= atom->natoms;
 
-  // return updated ptrs to caller since atoms may have migrated
+  // if reneighbored, atoms migrated
+  // if resetflag = 1, update x0 of atoms crossing PBC
+  // reset vectors used by lo-level minimizer
 
-  *pndof = ndof;
-  if (ndof) *px = atom->x[0];
-  else *px = NULL;
-  *ph = h;
-  *px0 = x0;
-  *peng = ecurrent;
-}
+  if (nflag) {
+    if (resetflag) fix_minimize->reset_coords();
+    reset_vectors();
+  }
 
-/* ----------------------------------------------------------------------
-   set ndof and vector pointers after atoms have migrated
-------------------------------------------------------------------------- */
-
-void Min::setup_vectors()
-{
-  ndof = 3 * atom->nlocal;
-  if (ndof) g = fix_minimize->gradient[0];
-  else g = NULL;
-  if (ndof) h = fix_minimize->searchdir[0];
-  else h = NULL;
-  if (ndof) x0 = fix_minimize->x0[0];
-  else x0 = NULL;
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -501,282 +437,30 @@ void Min::force_clear()
 }
 
 /* ----------------------------------------------------------------------
-   line minimization methods
-   find minimum-energy starting at x along dir direction
-   input: n = # of degrees of freedom on this proc
-          x = ptr to atom->x[0] as vector
-	  dir = search direction as vector
-          x0 = ptr to fix->x0[0] as vector, for storing initial coords
-	  eoriginal = energy at initial x
-	  maxdist = max distance to move any atom coord
-   output: return 0 if successful move, non-zero alpha
-           return non-zero if failed
-           alpha = distance moved along dir to set x to minimun eng config
-           caller has several quantities set via last call to eng_force()
-	     must insure last call to eng_force() is consistent with returns
-	       if fail, eng_force() of original x
-	       if succeed, eng_force() at x + alpha*dir
-             atom->x = coords at new configuration
-	     atom->f = force (-Grad) is evaulated at new configuration
-	     ecurrent = energy of new configuration
-   NOTE: when call eng_force: n,x,dir,x0,eng may change due to atom migration
-	 updated values are returned by eng_force()
-	 b/c of migration, linemin routines CANNOT store atom-based quantities
+   clear force on own & ghost atoms
+   setup and clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   linemin: backtracking line search (Proc 3.1, p 41 in Nocedal and Wright)
-   uses no gradient info, but should be very robust
-   start at maxdist, backtrack until energy decrease is sufficient
-------------------------------------------------------------------------- */
-
-int Min::linemin_backtrack(int n, double *x, double *dir,
-			   double *x0, double eoriginal, double maxdist,
-			   double &alpha, int &nfunc)
+void Min::request(Pair *pair, int peratom, double maxvalue)
 {
-  int i,m;
-  double fdotdirall,fdotdirme,hmax,hme,alpha_extra;
-  double eng,de_ideal,de;
+  int n = nextra_atom + 1;
+  xextra_atom = (double **) memory->srealloc(xextra_atom,n*sizeof(double *),
+					     "min:xextra_atom");
+  fextra_atom = (double **) memory->srealloc(fextra_atom,n*sizeof(double *),
+					     "min:fextra_atom");
+  extra_peratom = (int *) memory->srealloc(extra_peratom,n*sizeof(int),
+					   "min:extra_peratom");
+  extra_nlen = (int *) memory->srealloc(extra_nlen,n*sizeof(int),
+					"min:extra_nlen");
+  extra_max = (double *) memory->srealloc(extra_max,n*sizeof(double),
+					  "min:extra_max");
+  requestor = (Pair **) memory->srealloc(requestor,n*sizeof(Pair *),
+					 "min:requestor");
 
-  double *f = NULL;
-  if (n) f = atom->f[0];
-
-  // fdotdirall = projection of search dir along downhill gradient
-  // if search direction is not downhill, exit with error
-
-  fdotdirme = 0.0;
-  for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
-  MPI_Allreduce(&fdotdirme,&fdotdirall,1,MPI_DOUBLE,MPI_SUM,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++) fdotdirall += fextra[i]*hextra[i];
-  if (output->thermo->normflag) fdotdirall /= atom->natoms;
-  if (fdotdirall <= 0.0) return DOWNHILL;
-
-  // initial alpha = stepsize to change any atom coord by maxdist
-  // alpha <= ALPHA_MAX, else backtrack from huge value when forces are tiny
-  // if all search dir components are already 0.0, exit with error
-
-  hme = 0.0;
-  for (i = 0; i < n; i++) hme = MAX(hme,fabs(dir[i]));
-  MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
-  alpha = MIN(ALPHA_MAX,maxdist/hmax);
-  if (nextra) {
-    double alpha_extra = modify->max_alpha(hextra);
-    alpha = MIN(alpha,alpha_extra);
-    for (i = 0; i < nextra; i++)
-      hmax = MAX(hmax,fabs(hextra[i]));
-  }
-  if (hmax == 0.0) return ZEROFORCE;
-
-  // store coords and other dof at start of linesearch
-
-  box_store();
-  for (i = 0; i < n; i++) x0[i] = x[i];
-  if (nextra) modify->min_store();
-
-  // backtrack with alpha until energy decrease is sufficient
-
-  while (1) {
-    if (nextra) modify->min_step(0.0,hextra);
-    for (i = 0; i < n; i++) x[i] = x0[i];
-    if (nextra) modify->min_step(alpha,hextra);
-    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
-    eng_force(&n,&x,&dir,&x0,&eng,1);
-    nfunc++;
-
-    // if energy change is better than ideal, exit with success
-
-    de_ideal = -BACKTRACK_SLOPE*alpha*fdotdirall;
-    de = eng - eoriginal;
-    if (de <= de_ideal) return 0;
-
-    // reduce alpha
-
-    alpha *= ALPHA_REDUCE;
-
-    // backtracked all the way to 0.0
-    // reset to starting point, exit with error
-
-    if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
-      eng_force(&n,&x,&dir,&x0,&eng,0);
-      nfunc++;
-      return ZEROALPHA;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   linemin: quadratic line search (adapted from Dennis and Schnabel)
-   basic idea is to backtrack until change in energy is sufficiently small
-     based on ENERGY_QUADRATIC, then use a quadratic approximation
-     using forces at two alpha values to project to minimum
-   use forces rather than energy change to do projection
-   this is b/c the forces are going to zero and can become very small
-     unlike energy differences which are the difference of two finite
-     values and are thus limited by machine precision
-   two changes that were critical to making this method work:
-     a) limit maximum step to alpha <= 1
-     b) ignore energy criterion if delE <= ENERGY_QUADRATIC
-   several other ideas also seemed to help:
-     c) making each step from starting point (alpha = 0), not previous alpha
-     d) quadratic model based on forces, not energy
-     e) exiting immediately if f.dir <= 0 (search direction not downhill)
-        so that CG can restart
-   a,c,e were also adopted for the backtracking linemin function
-------------------------------------------------------------------------- */
-
-int Min::linemin_quadratic(int n, double *x, double *dir,
-			   double *x0, double eoriginal, double maxdist,
-			   double &alpha, int &nfunc)
-{
-  int i,m;
-  double fdotdirall,fdotdirme,hmax,hme,alphamax,alpha_extra;
-  double eng,de_ideal,de;
-  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0,fh0,ff0;
-  double dot[2],dotall[2];	
-  double *f = atom->f[0];
-
-  // fdotdirall = projection of search dir along downhill gradient
-  // if search direction is not downhill, exit with error
-
-  fdotdirme = 0.0;
-  for (i = 0; i < n; i++) fdotdirme += f[i]*dir[i];
-  MPI_Allreduce(&fdotdirme,&fdotdirall,1,MPI_DOUBLE,MPI_SUM,world);
-  if (nextra)
-    for (i = 0; i < nextra; i++) fdotdirall += fextra[i]*hextra[i];
-  if (output->thermo->normflag) fdotdirall /= atom->natoms;
-  if (fdotdirall <= 0.0) return DOWNHILL;
-
-  // initial alpha = stepsize to change any atom coord by maxdist
-  // alpha <= ALPHA_MAX, else backtrack from huge value when forces are tiny
-  // if all search dir components are already 0.0, exit with error
-
-  hme = 0.0;
-  for (i = 0; i < n; i++) hme = MAX(hme,fabs(dir[i]));
-  MPI_Allreduce(&hme,&hmax,1,MPI_DOUBLE,MPI_MAX,world);
-  alpha = MIN(ALPHA_MAX,maxdist/hmax);
-  if (nextra) {
-    double alpha_extra = modify->max_alpha(hextra);
-    alpha = MIN(alpha,alpha_extra);
-    for (i = 0; i < nextra; i++)
-      hmax = MAX(hmax,fabs(hextra[i]));
-  }
-  if (hmax == 0.0) return ZEROFORCE;
-
-  // store coords and other dof at start of linesearch
-
-  box_store();
-  for (i = 0; i < n; i++) x0[i] = x[i];
-  if (nextra) modify->min_store();
-
-  // backtrack with alpha until energy decrease is sufficient
-  // or until get to small energy change, then perform quadratic projection
-
-  fhprev = fdotdirall;
-  engprev = eoriginal;
-  alphaprev = 0.0;
-
-  while (1) {
-    if (nextra) modify->min_step(0.0,hextra);
-    for (i = 0; i < n; i++) x[i] = x0[i];
-    if (nextra) modify->min_step(alpha,hextra);
-    for (i = 0; i < n; i++) x[i] += alpha*dir[i];
-    eng_force(&n,&x,&dir,&x0,&eng,1);
-    nfunc++;
-
-    // compute new fh, alpha, delfh
-
-    dot[0] = dot[1] = 0.0;
-    for (i = 0; i < ndof; i++) {
-      dot[0] += f[i]*f[i];
-      dot[1] += f[i]*dir[i];
-    }
-    MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
-    if (nextra) {
-      for (i = 0; i < nextra; i++) {
-	dotall[0] += fextra[i]*fextra[i];
-	dotall[1] += fextra[i]*hextra[i];
-      }
-    }
-    ff = dotall[0];
-    fh = dotall[1];
-    if (output->thermo->normflag) {
-      ff /= atom->natoms;
-      fh /= atom->natoms;
-    }
-
-    delfh = fh - fhprev;
-
-    // if fh or delfh is epsilon, reset to starting point, exit with error
-
-    if (fabs(fh) < EPS_QUAD || fabs(delfh) < EPS_QUAD) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
-      eng_force(&n,&x,&dir,&x0,&eng,0);
-      nfunc++;
-      return ZEROQUAD;
-    }
-
-    // check if ready for quadratic projection, equivalent to secant method
-    // alpha0 = projected alpha
-
-    relerr = fabs(1.0+(0.5*alpha*(alpha-alphaprev)*(fh+fhprev)-eng)/engprev);
-    alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
-
-    if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
-
-      if (nextra) modify->min_step(alpha0,hextra);
-      for (i = 0; i < n; i++) x[i] += alpha0*dir[i];
-      eng_force(&n,&x,&dir,&x0,&eng,1);
-      nfunc++;
-
-      // if backtracking energy change is better than ideal, exit with success
-
-      de_ideal = -BACKTRACK_SLOPE*alpha0*fdotdirall;
-      de = eng - eoriginal;
-      if (de <= de_ideal || de_ideal >= -IDEAL_TOL) return 0;
-
-      // drop back from alpha0 to alpha
-
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
-      if (nextra) modify->min_step(alpha,hextra);
-      for (i = 0; i < n; i++) x[i] += alpha*dir[i];
-      eng_force(&n,&x,&dir,&x0,&eng,1);
-      nfunc++;
-    }
-
-    // if backtracking energy change is better than ideal, exit with success
-
-    de_ideal = -BACKTRACK_SLOPE*alpha*fdotdirall;
-    de = eng - eoriginal;
-    if (de <= de_ideal) return 0;
-
-    // save previous state
-
-    fhprev = fh;
-    engprev = eng;
-    alphaprev = alpha;
-
-    // reduce alpha
-
-    alpha *= ALPHA_REDUCE;
-
-    // backtracked all the way to 0.0
-    // reset to starting point, exit with error
-
-    if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      if (nextra) modify->min_step(0.0,hextra);
-      for (i = 0; i < n; i++) x[i] = x0[i];
-      eng_force(&n,&x,&dir,&x0,&eng,0);
-      nfunc++;
-      return ZEROALPHA;
-    }
-  }
+  requestor[nextra_atom] = pair;
+  extra_peratom[nextra_atom] = peratom;
+  extra_max[nextra_atom] = maxvalue;
+  nextra_atom++;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -882,45 +566,62 @@ void Min::ev_set(int ntimestep)
 }
 
 /* ----------------------------------------------------------------------
-   store box size at beginning of line search
+   compute and return ||force||_2^2
 ------------------------------------------------------------------------- */
 
-void Min::box_store()
+double Min::fnorm_sqr()
 {
-  boxlo0[0] = domain->boxlo[0];
-  boxlo0[1] = domain->boxlo[1];
-  boxlo0[2] = domain->boxlo[2];
+  int i,n;
+  double *fatom;
 
-  boxhi0[0] = domain->boxhi[0];
-  boxhi0[1] = domain->boxhi[1];
-  boxhi0[2] = domain->boxhi[2];
+  double local_norm2_sqr = 0.0;
+  for (i = 0; i < n3; i++) local_norm2_sqr += f[i]*f[i];
+  if (nextra_atom) {
+    for (int m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i++)
+	local_norm2_sqr += fatom[i]*fatom[i];
+    }
+  }
+
+  double norm2_sqr = 0.0;
+  MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (nextra_global)
+    for (i = 0; i < nextra_global; i++) 
+      norm2_sqr += fextra[i]*fextra[i];
+  
+  return norm2_sqr;
 }
 
 /* ----------------------------------------------------------------------
-   swap current box size with stored box size
+   compute and return ||force||_inf
 ------------------------------------------------------------------------- */
 
-void Min::box_swap()
+double Min::fnorm_inf()
 {
-  double tmp;
+  int i,n;
+  double *fatom;
 
-  tmp = boxlo0[0];
-  boxlo0[0] = domain->boxlo[0];
-  domain->boxlo[0] = tmp;
-  tmp = boxlo0[1];
-  boxlo0[1] = domain->boxlo[1];
-  domain->boxlo[1] = tmp;
-  tmp = boxlo0[2];
-  boxlo0[2] = domain->boxlo[2];
-  domain->boxlo[2] = tmp;
+  double local_norm_inf = 0.0;
+  for (i = 0; i < n3; i++)
+    local_norm_inf = MAX(fabs(f[i]),local_norm_inf);
+  if (nextra_atom) {
+    for (int m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i++)
+	local_norm_inf = MAX(fabs(fatom[i]),local_norm_inf);
+    }
+  }
 
-  tmp = boxhi0[0];
-  boxhi0[0] = domain->boxhi[0];
-  domain->boxhi[0] = tmp;
-  tmp = boxhi0[1];
-  boxhi0[1] = domain->boxhi[1];
-  domain->boxhi[1] = tmp;
-  tmp = boxhi0[2];
-  boxhi0[2] = domain->boxhi[2];
-  domain->boxhi[2] = tmp;
+  double norm_inf = 0.0;
+  MPI_Allreduce(&local_norm_inf,&norm_inf,1,MPI_DOUBLE,MPI_MAX,world);
+
+  if (nextra_global)
+    for (i = 0; i < nextra_global; i++) 
+      norm_inf = MAX(fabs(fextra[i]),norm_inf);
+
+  return norm_inf;
 }

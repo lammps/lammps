@@ -428,26 +428,26 @@ void Modify::min_store()
 }
 
 /* ----------------------------------------------------------------------
-   displace extra dof along vector fextra, only for relevant fixes
+   displace extra dof along vector hextra, only for relevant fixes
 ------------------------------------------------------------------------- */
 
-void Modify::min_step(double alpha, double *fextra)
+void Modify::min_step(double alpha, double *hextra)
 {
   int ifix,index;
 
   index = 0;
   for (int i = 0; i < n_min_energy; i++) {
     ifix = list_min_energy[i];
-    fix[ifix]->min_step(alpha,&fextra[index]);
+    fix[ifix]->min_step(alpha,&hextra[index]);
     index += fix[ifix]->min_dof();
   }
 }
 
 /* ----------------------------------------------------------------------
-   compute max allowed step size along vector fextra, only for relevant fixes
+   compute max allowed step size along vector hextra, only for relevant fixes
 ------------------------------------------------------------------------- */
 
-double Modify::max_alpha(double *fextra)
+double Modify::max_alpha(double *hextra)
 {
   int ifix,index;
 
@@ -455,7 +455,7 @@ double Modify::max_alpha(double *fextra)
   index = 0;
   for (int i = 0; i < n_min_energy; i++) {
     ifix = list_min_energy[i];
-    double alpha_one = fix[ifix]->max_alpha(&fextra[index]);
+    double alpha_one = fix[ifix]->max_alpha(&hextra[index]);
     alpha = MIN(alpha,alpha_one);
     index += fix[ifix]->min_dof();
   }

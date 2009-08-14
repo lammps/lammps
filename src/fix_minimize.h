@@ -19,10 +19,9 @@
 namespace LAMMPS_NS {
 
 class FixMinimize : public Fix {
- public:
-  double **gradient,**searchdir;      // gradient vectors
-  double **x0;                        // initial coords at start of linesearch
+  friend class MinLineSearch;
 
+ public:
   FixMinimize(class LAMMPS *, int, char **);
   ~FixMinimize();
   int setmask();
@@ -33,6 +32,19 @@ class FixMinimize : public Fix {
   void copy_arrays(int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
+
+  void add_vector(int);
+  double *request_vector(int);
+  void store_box();
+  void reset_coords();
+
+ private:
+  int nvector;
+  int *peratom;
+  double **vectors;
+  double boxlo[3],boxhi[3];
+
+  void box_swap();
 };
 
 }

@@ -304,7 +304,7 @@ void LAMMPS::create()
 void LAMMPS::init()
 {
   update->init();
-  force->init();
+  force->init();         // pair must come after update due to minimizer
   domain->init();
   atom->init();          // atom must come after force:
                          //   atom deletes extra array

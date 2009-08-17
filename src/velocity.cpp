@@ -50,15 +50,16 @@ Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Velocity::command(int narg, char **arg)
 {
-  // require atom masses to all be set
+  if (narg < 2) error->all("Illegal velocity command");
 
   if (domain->box_exist == 0) 
     error->all("Velocity command before simulation box is defined");
   if (atom->natoms == 0)
     error->all("Velocity command with no atoms existing");
-  atom->check_mass();
 
-  if (narg < 2) error->all("Illegal velocity command");
+  // atom masses must all be set
+
+  atom->check_mass();
 
   // identify group
 
@@ -109,22 +110,43 @@ void Velocity::command(int narg, char **arg)
   }
 
   // initialize velocities based on style
+  // create called differently, so can be called externally
 
-  if (style == CREATE) create(narg-2,&arg[2]);
+  if (style == CREATE) {
+    double t_desired = atof(arg[2]);
+    int seed = atoi(arg[3]);
+    create(t_desired,seed);
+  }
   else if (style == SET) set(narg-2,&arg[2]);
   else if (style == SCALE) scale(narg-2,&arg[2]);
   else if (style == RAMP) ramp(narg-2,&arg[2]);
   else if (style == ZERO) zero(narg-2,&arg[2]);
 }
 
+/* ----------------------------------------------------------------------
+   initialization of defaults before calling velocity methods externaly
+------------------------------------------------------------------------- */
+
+void Velocity::init_external(char *extgroup)
+{
+  igroup = group->find(extgroup);
+  if (igroup == -1) error->all("Could not find velocity group ID");
+  groupbit = group->bitmask[igroup];
+
+  temperature = NULL;
+  dist_flag = 0;
+  sum_flag = 0;
+  momentum_flag = 1;
+  rotation_flag = 0;
+  loop_flag = ALL;
+  scale_flag = 1;
+}
+
 /* ---------------------------------------------------------------------- */
 
-void Velocity::create(int narg, char **arg)
+void Velocity::create(double t_desired, int seed)
 {
   int i;
-
-  double t_desired = atof(arg[0]);
-  int seed = atoi(arg[1]);
 
   if (seed <= 0) error->all("Illegal velocity create command");
 

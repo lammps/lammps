@@ -42,14 +42,19 @@ write.  See the "undump"_undump.html command or "restart
 if necessary.  New specifications for dump and restart files can be
 given after the reset_timestep command is used.
 
-This command cannot be used when any fixes are defined that keep track
-of time or the timestep in order to perform time-dependent operations.
-Examples include the "ave" or "wall" fixes such as "fix
-ave/spatial"_fix_ave_spatial.html or "fix
-wall/lj126"_fix_wall_lj126.html, and also "fix
-indent"_fix_indent.html.  The wall and indeter fixes allow for a
-velocity or other time-dependent parameter to be specified, which
-would be messed up by resetting the timestep.
+This command cannot be used when any fixes are defined that keeps
+track of elapsed time to perform time-dependent operations.  Examples
+include the "ave" fixes such as "fix
+ave/spatial"_fix_ave_spatial.html.  Also "fix
+dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposity.html.
+
+There are other fixes which use the current timestep which may produce
+unexpected behavior, but LAMMPS allows them to be in place when
+resetting the timestep.  For example, commands which thermostat the
+system, e.g. "fix nvt"_fix_nvt.html, allow you to specify a target
+temperature which ramps from Tstart to Tstop which may persist over
+several runs.  If you change the timestep, you may change the target
+temperature.
 
 Restting the timestep will clear the flags for "computes"_compute.html
 that may have calculated some quantity from a previous run.  This

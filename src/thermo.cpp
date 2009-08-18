@@ -393,7 +393,7 @@ void Thermo::modify_params(int narg, char **arg)
 	if (icompute < 0) error->all("Pressure ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_press");
 
-      modify->compute[icompute]->reset_extra_compute(arg[iarg+1]);
+      modify->compute[icompute]->reset_extra_compute_fix(arg[iarg+1]);
 
       iarg += 2;
 
@@ -832,14 +832,14 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     dvalue = ivalue;
 
   } else if (strcmp(word,"cpu") == 0) {
-    if (update->whichflag < 0) firststep = 0;
+    if (update->whichflag == 0) firststep = 0;
     compute_cpu();
 
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init temp");	  
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -853,7 +853,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -866,7 +866,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"pe") == 0) {
     if (!pe)
       error->all("Thermo keyword in variable requires thermo to use/init pe");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -880,7 +880,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!temperature)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init temp");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -893,7 +893,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"etotal") == 0) {
     if (!pe)
       error->all("Thermo keyword in variable requires thermo to use/init pe");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -904,7 +904,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!temperature)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init temp");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -917,7 +917,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"enthalpy") == 0) {
     if (!pe)
       error->all("Thermo keyword in variable requires thermo to use/init pe");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -928,7 +928,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!temperature)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init temp");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -939,7 +939,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_scalar != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -1049,7 +1049,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -1063,7 +1063,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -1077,7 +1077,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -1091,7 +1091,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -1105,7 +1105,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");
@@ -1119,7 +1119,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
-    if (update->whichflag < 0) {
+    if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
 	error->all("Compute used in variable thermo keyword between runs "
 		   "is not current");

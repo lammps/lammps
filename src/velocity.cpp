@@ -110,7 +110,7 @@ void Velocity::command(int narg, char **arg)
   }
 
   // initialize velocities based on style
-  // create called differently, so can be called externally
+  // create() invoked differently, so can be called externally
 
   if (style == CREATE) {
     double t_desired = atof(arg[2]);

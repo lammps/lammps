@@ -129,9 +129,9 @@ void Compute::reset_extra_dof()
 
 /* ---------------------------------------------------------------------- */
 
-void Compute::reset_extra_compute(char *)
+void Compute::reset_extra_compute_fix(char *)
 {
-  error->all("Compute does not allow an extra compute to be reset");
+  error->all("Compute does not allow an extra compute or fix to be reset");
 }
 
 /* ----------------------------------------------------------------------

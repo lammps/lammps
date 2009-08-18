@@ -822,7 +822,7 @@ int FixNPH::modify_param(int narg, char **arg)
     
     icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all("Pressure ID for fix npt does not exist");
-    modify->compute[icompute]->reset_extra_compute(id_temp);
+    modify->compute[icompute]->reset_extra_compute_fix(id_temp);
 
     return 2;
 

@@ -235,9 +235,9 @@ void Modify::init()
 
 void Modify::setup(int vflag)
 {
-  if (update->whichflag == 0)
+  if (update->whichflag == 1)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
-  else
+  else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
 }
 

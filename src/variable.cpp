@@ -670,7 +670,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	if (nbracket == 0 && compute->scalar_flag) {
 
-	  if (update->whichflag < 0) {
+	  if (update->whichflag == 0) {
 	    if (compute->invoked_scalar != update->ntimestep)
 	      error->all("Compute used in variable between runs "
 			 "is not current");
@@ -694,7 +694,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index1 > compute->size_vector)
 	      error->all("Compute vector in variable formula is too small");
-	  if (update->whichflag < 0) {
+	  if (update->whichflag == 0) {
 	    if (compute->invoked_vector != update->ntimestep)
 	      error->all("Compute used in variable between runs "
 			 "is not current");
@@ -719,7 +719,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (tree == NULL)
 	    error->all("Per-atom compute in equal-style variable formula");
-	  if (update->whichflag < 0) {
+	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
 	      error->all("Compute used in variable between runs "
 			 "is not current");
@@ -740,7 +740,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	} else if (nbracket == 1 && index1 > 0 && 
 		   compute->peratom_flag && compute->size_peratom == 0) {
 
-	  if (update->whichflag < 0) {
+	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
 	      error->all("Compute used in variable between runs "
 			 "is not current");
@@ -761,7 +761,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Per-atom compute in equal-style variable formula");
 	  if (index2 > compute->size_peratom)
 	    error->all("Compute vector in variable formula is too small");
-	  if (update->whichflag < 0) {
+	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
 	      error->all("Compute used in variable between runs "
 			 "is not current");
@@ -784,7 +784,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index2 > compute->size_peratom)
 	    error->all("Compute vector in variable formula is too small");
-	  if (update->whichflag < 0) {
+	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
 	      error->all("Compute used in variable between runs "
 			 "is not current");
@@ -838,7 +838,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	if (nbracket == 0 && fix->scalar_flag) {
 
-	  if (update->whichflag >= 0 &&
+	  if (update->whichflag > 0 &&
 	      update->ntimestep % fix->scalar_vector_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  value1 = fix->compute_scalar();
@@ -856,7 +856,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index1 > fix->size_vector)
 	      error->all("Fix vector in variable formula is too small");
-	  if (update->whichflag >= 0 && 
+	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->scalar_vector_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  value1 = fix->compute_vector(index1-1);
@@ -875,7 +875,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (tree == NULL)
 	    error->all("Per-atom fix in equal-style variable formula");
-	  if (update->whichflag >= 0 && 
+	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  Tree *newtree = new Tree();
@@ -890,7 +890,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	} else if (nbracket == 1 && index1 > 0 && 
 		   fix->peratom_flag && fix->size_peratom == 0) {
 
-	  if (update->whichflag >= 0 && 
+	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  peratom2global(1,NULL,fix->scalar_atom,1,index1,
@@ -905,7 +905,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Per-atom fix in equal-style variable formula");
 	  if (index2 > fix->size_peratom)
 	    error->all("Fix vector in variable formula is too small");
-	  if (update->whichflag >= 0 && 
+	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  Tree *newtree = new Tree();
@@ -922,7 +922,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index2 > fix->size_peratom)
 	    error->all("Fix vector in variable formula is too small");
-	  if (update->whichflag >= 0 && 
+	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  peratom2global(1,NULL,&fix->vector_atom[0][index2-1],

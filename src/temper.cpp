@@ -101,7 +101,7 @@ void Temper::command(int narg, char **arg)
 
   // setup for long tempering run
 
-  update->whichflag = 0;
+  update->whichflag = 1;
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
@@ -302,7 +302,7 @@ void Temper::command(int narg, char **arg)
   Finish finish(lmp);
   finish.end(1);
 
-  update->whichflag = -1;
+  update->whichflag = 0;
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
 }

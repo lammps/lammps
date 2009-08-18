@@ -248,26 +248,8 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
   // backtrack with alpha until energy decrease is sufficient
 
   while (1) {
-    if (nextra_global) modify->min_step(0.0,hextra);
-    for (i = 0; i < n3; i++) x[i] = x0[i];
-    if (nextra_atom)
-      for (m = 0; m < nextra_atom; m++) {
-	xatom = xextra_atom[m];
-	x0atom = x0extra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-      }
-    if (nextra_global) modify->min_step(alpha,hextra);
-    for (i = 0; i < n3; i++) x[i] += alpha*h[i];
-    if (nextra_atom)
-      for (m = 0; m < nextra_atom; m++) {
-	xatom = xextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
-      }
-    ecurrent = energy_force(1);
-    nfunc++;
+
+    alpha_step(ecurrent, alpha, nfunc, 1);
 
     // if energy change is better than ideal, exit with success
 
@@ -283,17 +265,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
     // reset to starting point, exit with error
 
     if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      if (nextra_global) modify->min_step(0.0,hextra);
-      for (i = 0; i < n3; i++) x[i] = x0[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  x0atom = x0extra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-	}
-      ecurrent = energy_force(0);
-      nfunc++;
+      alpha_step(ecurrent, 0.0, nfunc, 0);
       return ZEROALPHA;
     }
   }
@@ -398,26 +370,8 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
   alphaprev = 0.0;
 
   while (1) {
-    if (nextra_global) modify->min_step(0.0,hextra);
-    for (i = 0; i < n3; i++) x[i] = x0[i];
-    if (nextra_atom)
-      for (m = 0; m < nextra_atom; m++) {
-	xatom = xextra_atom[m];
-	x0atom = x0extra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-      }
-    if (nextra_global) modify->min_step(alpha,hextra);
-    for (i = 0; i < n3; i++) x[i] += alpha*h[i];
-    if (nextra_atom)
-      for (m = 0; m < nextra_atom; m++) {
-	xatom = xextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
-      }
-    ecurrent = energy_force(1);
-    nfunc++;
+
+    alpha_step(ecurrent, alpha, nfunc, 1);
 
     // compute new fh, alpha, delfh
 
@@ -455,17 +409,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     // if fh or delfh is epsilon, reset to starting point, exit with error
 
     if (fabs(fh) < EPS_QUAD || fabs(delfh) < EPS_QUAD) {
-      if (nextra_global) modify->min_step(0.0,hextra);
-      for (i = 0; i < n3; i++) x[i] = x0[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  x0atom = x0extra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-	}
-      ecurrent = energy_force(0);
-      nfunc++;
+      alpha_step(ecurrent, 0.0, nfunc, 0);
       return ZEROQUAD;
     }
 
@@ -477,27 +421,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {
-      if (nextra_global) modify->min_step(0.0,hextra);
-      for (i = 0; i < n3; i++) x[i] = x0[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  x0atom = x0extra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-	}
-      if (nextra_global) modify->min_step(alpha0,hextra);
-      for (i = 0; i < n3; i++) x[i] += alpha0*h[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  hatom = hextra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] += alpha0*hatom[i];
-	}
-      ecurrent = energy_force(1);
-      nfunc++;
-
+      alpha_step(ecurrent, alpha0, nfunc, 1);
       return 0;
     }
 
@@ -521,18 +445,43 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
     // reset to starting point, exit with error
 
     if (alpha <= 0.0 || de_ideal >= -IDEAL_TOL) {
-      if (nextra_global) modify->min_step(0.0,hextra);
-      for (i = 0; i < n3; i++) x[i] = x0[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  x0atom = x0extra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-	}
-      ecurrent = energy_force(0);
-      nfunc++;
+      alpha_step(ecurrent, 0.0, nfunc, 0);
       return ZEROALPHA;
     }
   }
+}
+
+void MinLineSearch::alpha_step(double& ecurrent, double alpha, 
+			       int &nfunc, int resetflag)
+{
+  int i,n,m;
+  double *xatom,*x0atom,*hatom;
+
+  // First reset to starting point
+  if (nextra_global) modify->min_step(0.0,hextra);
+  for (i = 0; i < n3; i++) x[i] = x0[i];
+  if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+	xatom = xextra_atom[m];
+	x0atom = x0extra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) xatom[i] = x0atom[i];
+      }
+  
+  // If requested, step forward along line
+  if (alpha > 0.0) {
+    if (nextra_global) modify->min_step(alpha,hextra);
+    for (i = 0; i < n3; i++) x[i] += alpha*h[i];
+    if (nextra_atom)
+      for (m = 0; m < nextra_atom; m++) {
+	xatom = xextra_atom[m];
+	hatom = hextra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
+      }
+  }
+
+  // Compute energy
+  ecurrent = energy_force(resetflag);
+  nfunc++;
 }

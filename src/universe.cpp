@@ -35,6 +35,7 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
   uscreen = stdout;
   ulogfile = NULL;
 
+  existflag = 0;
   nworlds = 0;
   procs_per_world = NULL;
   root_proc = NULL;

@@ -30,6 +30,7 @@ class Universe : protected Pointers {
   FILE *uscreen;          // universe screen output
   FILE *ulogfile;         // universe logfile
 
+  int existflag;          // 1 if universe exists due to -partition flag
   int nworlds;            // # of worlds in universe
   int iworld;             // which world I am in
   int *procs_per_world;   // # of procs in each world

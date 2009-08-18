@@ -58,6 +58,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0) {
+      universe->existflag = 1;
       if (iarg+2 > narg) 
 	error->universe_all("Invalid command-line argument");
       iarg++;
@@ -91,18 +92,18 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     } else error->universe_all("Invalid command-line argument");
   }
 
-  // if procs was not a command-line switch, universe is one world w/ all procs
+  // if no partition command-line switch, universe is one world w/ all procs
 
-  if (universe->nworlds == 0) universe->add_world(NULL);
+  if (universe->existflag == 0) universe->add_world(NULL);
 
   // sum of procs in all worlds must equal total # of procs
 
   if (!universe->consistent())
     error->universe_all("Processor partitions are inconsistent");
 
-  // multiple-world universe must define input file
+  // universe cannot use stdin for input file
 
-  if (universe->nworlds > 1 && inflag == 0)
+  if (universe->existflag && inflag == 0)
     error->universe_all("Must use -in switch with multiple partitions");
 
   // set universe screen and logfile
@@ -136,12 +137,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     universe->ulogfile = NULL;
   }
 
-  // universe is single world
+  // universe does not exist on its own, only a single world
   // inherit settings from universe
   // set world screen, logfile, communicator, infile
   // open input script if from file
 
-  if (universe->nworlds == 1) {
+  if (universe->existflag == 0) {
     screen = universe->uscreen;
     logfile = universe->ulogfile;
     world = universe->uworld;
@@ -162,7 +163,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
     }
 
-  // universe is multiple worlds
+  // universe is one or more worlds
   // split into separate communicators
   // set world screen, logfile, communicator, infile
   // open input script

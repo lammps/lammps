@@ -42,14 +42,14 @@ void Minimize::command(int narg, char **arg)
   if (update->etol < 0.0 || update->ftol < 0.0)
     error->all("Illegal minimize command");
 
+  update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
-
-  update->whichflag = 2;
 
   lmp->init();
   update->minimize->setup();
   update->minimize->run();
+  update->minimize->cleanup();
 
   Finish finish(lmp);
   finish.end(1);

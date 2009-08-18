@@ -31,15 +31,15 @@ class Min : protected Pointers {
   void init();
   void setup();
   void run();
+  void cleanup();
+  void request(class Pair *, int, double);
+  double memory_usage() {return 0.0;}
+  void modify_params(int, char **);
 
   virtual void init_style() {}
   virtual void setup_style() = 0;
   virtual void reset_vectors() = 0;
   virtual int iterate(int) = 0;
-
-  void request(class Pair *, int, double);
-  double memory_usage() {return 0.0;}
-  void modify_params(int, char **);
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation

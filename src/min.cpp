@@ -301,10 +301,6 @@ void Min::run()
 
   timer->barrier_stop(TIME_LOOP);
 
-  // delete fix_minimize at end of run
-
-  modify->delete_fix("MINIMIZE");
-
   // reset reneighboring criteria
 
   neighbor->every = neigh_every;
@@ -316,6 +312,15 @@ void Min::run()
   efinal = ecurrent;
   fnorm2_final = sqrt(fnorm_sqr());
   fnorminf_final = fnorm_inf();
+}
+
+/* ----------------------------------------------------------------------
+   delete fix at end of run, so its atom arrays won't persist
+------------------------------------------------------------------------- */
+
+void Min::cleanup()
+{
+  modify->delete_fix("MINIMIZE");
 }
 
 /* ----------------------------------------------------------------------

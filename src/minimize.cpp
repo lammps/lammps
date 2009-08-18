@@ -45,7 +45,7 @@ void Minimize::command(int narg, char **arg)
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
 
-  update->whichflag = 1;
+  update->whichflag = 2;
 
   lmp->init();
   update->minimize->setup();
@@ -54,7 +54,7 @@ void Minimize::command(int narg, char **arg)
   Finish finish(lmp);
   finish.end(1);
 
-  update->whichflag = -1;
+  update->whichflag = 0;
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
 }

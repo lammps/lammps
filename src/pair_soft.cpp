@@ -69,7 +69,7 @@ void PairSoft::compute(int eflag, int vflag)
   // for 0-step dynamics, set to prestart
 
   double delta = update->ntimestep - update->beginstep;
-  if (update->whichflag == 1) delta = 1.0;
+  if (update->whichflag == 2) delta = 1.0;
   else if (update->nsteps) delta /= update->endstep - update->beginstep;
   else delta = 0.0;
   int ntypes = atom->ntypes;

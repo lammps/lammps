@@ -41,7 +41,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   ntimestep = 0;
   first_update = 0;
 
-  whichflag = -1;
+  whichflag = 0;
   firststep = laststep = 0;
   beginstep = endstep = 0;
 
@@ -80,12 +80,12 @@ Update::~Update()
 
 void Update::init()
 {
-  // init the appropriate integrate or minimize class
+  // init the appropriate integrate and/or minimize class
   // if neither (e.g. from write_restart) then just return
 
-  if (whichflag == -1) return;
-  else if (whichflag == 0) integrate->init();
-  else if (whichflag == 1) minimize->init();
+  if (whichflag == 0) return;
+  if (whichflag == 1) integrate->init();
+  else if (whichflag == 2) minimize->init();
 
   // only set first_update if a run or minimize is being performed
 
@@ -261,7 +261,7 @@ void Update::reset_timestep(int narg, char **arg)
 double Update::memory_usage()
 {
   double bytes = 0.0;
-  if (whichflag == 0) bytes += integrate->memory_usage();
-  else if (whichflag == 1) bytes += minimize->memory_usage();
+  if (whichflag == 1) bytes += integrate->memory_usage();
+  else if (whichflag == 2) bytes += minimize->memory_usage();
   return bytes;
 }

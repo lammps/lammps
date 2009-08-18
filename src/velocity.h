@@ -22,6 +22,9 @@ class Velocity : protected Pointers {
  public:
   Velocity(class LAMMPS *);
   void command(int, char **);
+  void init_external(char *);
+  void options(int, char **);
+  void create(double, int);
 
  private:
   int igroup,groupbit;
@@ -30,7 +33,6 @@ class Velocity : protected Pointers {
   double xscale,yscale,zscale;
   class Compute *temperature;
 
-  void create(int, char **);
   void set(int, char **);
   void scale(int, char **);
   void ramp(int, char **);
@@ -39,8 +41,6 @@ class Velocity : protected Pointers {
   void rescale(double, double);
   void zero_momentum();
   void zero_rotation();
-
-  void options(int, char **);
 };
 
 }

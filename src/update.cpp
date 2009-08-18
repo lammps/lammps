@@ -222,7 +222,7 @@ void Update::create_minimize(int narg, char **arg)
    do not allow any timestep-dependent fixes to be defined
    reset eflag/vflag global so nothing will think eng/virial are current
    reset invoked flags of computes, so nothing will think they are current
-   clear timestep list of computes that store one
+   clear timestep list of computes that store future invocation times
 ------------------------------------------------------------------------- */
 
 void Update::reset_timestep(int narg, char **arg)

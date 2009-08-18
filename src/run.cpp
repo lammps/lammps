@@ -127,7 +127,7 @@ void Run::command(int narg, char **arg)
   //   else just init timer and setup output
   // if post, do full Finish, else just print time
 
-  update->whichflag = 0;
+  update->whichflag = 1;
 
   if (nevery == 0) {
     update->nsteps = nsteps;
@@ -209,7 +209,7 @@ void Run::command(int narg, char **arg)
     }
   }
 
-  update->whichflag = -1;
+  update->whichflag = 0;
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
   delete [] commandstr;

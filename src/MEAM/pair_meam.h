@@ -26,12 +26,13 @@ extern "C" {
 		       double *, int *, int *, int *, int *,
 		       double *, double *, double *, double *,
 		       double *, double *,
-		       double *, double *, double *, double *, int *);
+		       double *, double *, double *, double *, double *,
+                       int *);
   
   void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
 			int *, int *, int *,
 			double *, double *, double *, double *, 
-			double *, double *,
+			double *, double *, double *,
 			double *, double *, double *, double *, 
 			double *, double *, 
 			double *, double *, double *, double *, int *);
@@ -41,7 +42,7 @@ extern "C" {
 		   double *, int *, int *, int *, int *, double *, double *,
 		   double *, double *, double *, double *, double *, double *,
 		   double *, double *, double *, double *, double *, double *,
-		   double *, double *, double *, double *, double *, int *);
+		   double *, double *, double *, double *, double *, double *, int *);
 
   void meam_cleanup_();
 }
@@ -83,7 +84,7 @@ class PairMEAM : public Pair {
   int nmax;
   double *rho,*rho0,*rho1,*rho2,*rho3,*frhop;
   double *gamma,*dgamma1,*dgamma2,*dgamma3,*arho2b;
-  double **arho1,**arho2,**arho3,**arho3b,**t_ave;
+  double **arho1,**arho2,**arho3,**arho3b,**t_ave,**tsq_ave;
 
   void allocate();
   void read_files(char *, char *);

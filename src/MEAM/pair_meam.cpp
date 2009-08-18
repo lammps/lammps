@@ -37,11 +37,11 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11};
-int nkeywords = 15;
+enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12};
+int nkeywords = 16;
 char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 		    "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
-		    "augt1","gsmooth_factor","re"};
+		    "augt1","gsmooth_factor","re","ialloy"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,7 +53,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = rho0 = rho1 = rho2 = rho3 = frhop = NULL;
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = NULL;
-  arho1 = arho2 = arho3 = arho3b = t_ave = NULL;
+  arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = NULL;
@@ -94,6 +94,7 @@ PairMEAM::~PairMEAM()
   memory->destroy_2d_double_array(arho3);
   memory->destroy_2d_double_array(arho3b);
   memory->destroy_2d_double_array(t_ave);
+  memory->destroy_2d_double_array(tsq_ave);
 
   memory->sfree(scrfcn);
   memory->sfree(dscrfcn);
@@ -145,6 +146,7 @@ void PairMEAM::compute(int eflag, int vflag)
     memory->destroy_2d_double_array(arho3);
     memory->destroy_2d_double_array(arho3b);
     memory->destroy_2d_double_array(t_ave);
+    memory->destroy_2d_double_array(tsq_ave);
 
     nmax = atom->nmax;
 
@@ -164,6 +166,7 @@ void PairMEAM::compute(int eflag, int vflag)
     arho3 = memory->create_2d_double_array(nmax,10,"pair:arho3");
     arho3b = memory->create_2d_double_array(nmax,3,"pair:arho3b");
     t_ave = memory->create_2d_double_array(nmax,3,"pair:t_ave");
+    tsq_ave = memory->create_2d_double_array(nmax,3,"pair:tsq_ave");
   }
 
   // neighbor list info
@@ -206,6 +209,7 @@ void PairMEAM::compute(int eflag, int vflag)
     for (j = 0; j < 10; j++) arho3[i][j] = 0.0;
     arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
+    tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
   }
 
   double **x = atom->x;
@@ -233,7 +237,8 @@ void PairMEAM::compute(int eflag, int vflag)
 		    &numneigh_full[i],firstneigh_full[i],
 		    &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 		    rho0,&arho1[0][0],&arho2[0][0],arho2b,
-		    &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&errorflag);
+		    &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],
+                    &errorflag);
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
@@ -247,7 +252,7 @@ void PairMEAM::compute(int eflag, int vflag)
   meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
 		   &eng_vdwl,eatom,&ntype,type,fmap,
 		   &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
-		   &arho3b[0][0],&t_ave[0][0],gamma,dgamma1,
+		   &arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],gamma,dgamma1,
 		   dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
   if (errorflag) {
     char str[128];
@@ -276,7 +281,7 @@ void PairMEAM::compute(int eflag, int vflag)
 		&scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 		dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
 		&arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
-		&t_ave[0][0],&f[0][0],vptr,&errorflag);
+		&t_ave[0][0],&tsq_ave[0][0],&f[0][0],vptr,&errorflag);
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
@@ -700,6 +705,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       else if (strcmp(params[nparams-1],"dia") == 0) value = DIAMOND;
       else if (strcmp(params[nparams-1],"b1")  == 0) value = B1;
       else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
+      else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
       else error->all("Unrecognized lattice type in MEAM file 2");
     }
     else value = atof(params[nparams-1]);
@@ -753,8 +759,11 @@ int PairMEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     buf[m++] = t_ave[j][0];
     buf[m++] = t_ave[j][1];
     buf[m++] = t_ave[j][2];
+    buf[m++] = tsq_ave[j][0];
+    buf[m++] = tsq_ave[j][1];
+    buf[m++] = tsq_ave[j][2];
   }
-  return 35;
+  return 38;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -792,6 +801,9 @@ void PairMEAM::unpack_comm(int n, int first, double *buf)
     t_ave[i][0] = buf[m++];
     t_ave[i][1] = buf[m++];
     t_ave[i][2] = buf[m++];
+    tsq_ave[i][0] = buf[m++];
+    tsq_ave[i][1] = buf[m++];
+    tsq_ave[i][2] = buf[m++];
   }
 }
 
@@ -822,9 +834,12 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = t_ave[i][0];
     buf[m++] = t_ave[i][1];
     buf[m++] = t_ave[i][2];
+    buf[m++] = tsq_ave[i][0];
+    buf[m++] = tsq_ave[i][1];
+    buf[m++] = tsq_ave[i][2];
   }
 
-  return 27;
+  return 30;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -854,6 +869,9 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     t_ave[j][0] += buf[m++];
     t_ave[j][1] += buf[m++];
     t_ave[j][2] += buf[m++];
+    tsq_ave[j][0] += buf[m++];
+    tsq_ave[j][1] += buf[m++];
+    tsq_ave[j][2] += buf[m++];
   }
 }
 
@@ -864,7 +882,7 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
 double PairMEAM::memory_usage()
 {
   double bytes = 11 * nmax * sizeof(double);
-  bytes += (3 + 6 + 10 + 3 + 3) * nmax * sizeof(double);
+  bytes += (3 + 6 + 10 + 3 + 3 + 3) * nmax * sizeof(double);
   bytes += 3 * maxneigh * sizeof(double);
   return bytes;
 }

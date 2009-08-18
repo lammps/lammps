@@ -155,7 +155,7 @@ void FixIndent::post_force(int vflag)
   // for minimization, always set to r0_stop
 
   double r0;
-  if (!radflag || update->whichflag) r0 = r0_stop;
+  if (!radflag || update->whichflag == 2) r0 = r0_stop;
   else {
     double delta = update->ntimestep - update->beginstep;
     delta /= update->endstep - update->beginstep;

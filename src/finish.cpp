@@ -84,7 +84,7 @@ void Finish::end(int flag)
 
   // minimization stats
 
-  if (update->whichflag == 1) {
+  if (update->whichflag == 2) {
     if (me == 0) {
       if (screen) {
 	fprintf(screen,"Minimization stats:\n");

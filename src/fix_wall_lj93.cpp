@@ -31,7 +31,6 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all("Illegal fix wall/lj93 command");
 
-  time_depend = 1;
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;

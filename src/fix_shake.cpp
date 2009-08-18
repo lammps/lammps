@@ -283,7 +283,7 @@ void FixShake::init()
   // cannot use with minimization since SHAKE turns off bonds
   // that should contribute to potential energy
 
-  if (update->whichflag == 1)
+  if (update->whichflag == 2)
     error->all("Fix shake cannot be used with minimization");
 
   // error if npt,nph fix comes before shake fix

@@ -47,7 +47,7 @@ class MinLineSearch : public Min {
   int linemin_backtrack(double, double &, int &);
   int linemin_quadratic(double, double &, int &);
 
-  void alpha_step(double &, double, int &, int);
+  double alpha_step(double, int, int &);
 };
 
 }

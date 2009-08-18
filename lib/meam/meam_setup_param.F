@@ -27,6 +27,7 @@ c     11 = delr_meam
 c     12 = augt1
 c     13 = gsmooth_factor
 c     14 = re_meam
+c     15 = ialloy
 
       subroutine meam_setup_param(which, value, nindex, 
      $     index, errorflag)
@@ -71,6 +72,8 @@ c     4 = lattce_meam
           lattce_meam(index(1),index(2)) = 'b1'
         else if (value.eq.6) then
           lattce_meam(index(1),index(2)) = 'c11'
+        else if (value.eq.7) then
+          lattce_meam(index(1),index(2)) = 'l12'
         endif
 
 c     5 = attrac_meam
@@ -112,6 +115,10 @@ c     13 = gsmooth
 c     14 = re_meam
       else if (which.eq.14) then
         re_meam(index(1),index(2)) = value
+
+c     15 = ialloy
+      else if (which.eq.15) then
+        ialloy = value
 
       else
         errorflag = 1

@@ -4,21 +4,21 @@ c  void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
 c                int *, int *, int *,
 c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *, 
-c		 double *, double *, double *, double *, int *);
+c		 double *, double *, double *, double *, double *, int *);
 c
 c Call from pair_meam.cpp has the form:
 c
 c  meam_dens_final_(&nlocal,&nmax,&eflag_either,&eflag_global,&eflag_atom,
 c            &eng_vdwl,eatom,ntype,type,fmap,
 c	     &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],
-c	     &arho3b[0][0],&t_ave[0][0],gamma,dgamma1,
+c	     &arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],gamma,dgamma1,
 c	     dgamma2,dgamma3,rho,rho0,rho1,rho2,rho3,frhop,&errorflag);
 c
 
       subroutine meam_dens_final(nlocal, nmax,
      $     eflag_either, eflag_global, eflag_atom, eng_vdwl, eatom,
      $     ntype, type, fmap,
-     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave,
+     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, tsq_ave,
      $     Gamma, dGamma1, dGamma2, dGamma3,
      $     rho, rho0, rho1, rho2, rho3, fp, errorflag)
 
@@ -29,7 +29,7 @@ c
       integer ntype, type, fmap
       real*8 eng_vdwl, eatom, Arho1, Arho2
       real*8 Arho2b, Arho3, Arho3b
-      real*8 t_ave
+      real*8 t_ave, tsq_ave
       real*8 Gamma, dGamma1, dGamma2, dGamma3
       real*8 rho, rho0, rho1, rho2, rho3
       real*8 fp
@@ -39,6 +39,7 @@ c
       dimension type(nmax), fmap(ntype)
       dimension Arho1(3,nmax), Arho2(6,nmax), Arho2b(nmax)
       dimension Arho3(10,nmax), Arho3b(3,nmax), t_ave(3,nmax)
+      dimension tsq_ave(3,nmax)
       dimension Gamma(nmax), dGamma1(nmax), dGamma2(nmax)
       dimension dGamma3(nmax), rho(nmax), rho0(nmax)
       dimension rho1(nmax), rho2(nmax), rho3(nmax)
@@ -70,9 +71,15 @@ c     Complete the calculation of density
           enddo
           
           if( rho0(i) .gt. 0.0 ) then
-            t_ave(1,i) = t_ave(1,i)/rho0(i)
-            t_ave(2,i) = t_ave(2,i)/rho0(i)
-            t_ave(3,i) = t_ave(3,i)/rho0(i)
+            if (ialloy.eq.1) then
+              t_ave(1,i) = t_ave(1,i)/tsq_ave(1,i)
+              t_ave(2,i) = t_ave(2,i)/tsq_ave(2,i)
+              t_ave(3,i) = t_ave(3,i)/tsq_ave(3,i)
+            else
+              t_ave(1,i) = t_ave(1,i)/rho0(i)
+              t_ave(2,i) = t_ave(2,i)/rho0(i)
+              t_ave(3,i) = t_ave(3,i)/rho0(i)
+            endif
           endif
           
           Gamma(i) = t_ave(1,i)*rho1(i) 

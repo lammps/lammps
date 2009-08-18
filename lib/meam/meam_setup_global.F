@@ -98,6 +98,7 @@ c Set some defaults
       nn2_meam(:,:) = 0
       gsmooth_factor = 99.0
       augt1 = 1
+      ialloy = 0
 
       return
       end

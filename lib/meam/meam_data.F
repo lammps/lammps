@@ -34,6 +34,7 @@ c rc_meam = cutoff distance for meam
 c delr_meam = cutoff region for meam
 c ebound_meam = factor giving maximum boundary of sceen fcn ellipse
 c augt1 = flag for whether t1 coefficient should be augmented
+c ialloy = flag for newer alloy formulation (as in dynamo code)
 c gsmooth_factor = factor determining length of G smoothing region
 c vind[23]D = Voight notation index maps for 2 and 3D
 c v2D,v3D = array of factors to apply for Voight notation
@@ -65,7 +66,7 @@ c nrar,rdrar = spline coeff array parameters
       real*8 Cmin_meam(maxelt,maxelt,maxelt)
       real*8 Cmax_meam(maxelt,maxelt,maxelt)
       real*8 rc_meam,delr_meam,ebound_meam(maxelt,maxelt)
-      integer augt1
+      integer augt1, ialloy
       real*8  gsmooth_factor
       integer vind2D(3,3),vind3D(3,3,3)
       integer v2D(6),v3D(10)

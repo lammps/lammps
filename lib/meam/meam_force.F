@@ -4,7 +4,7 @@ c  void meam_force_(int *, int *, int *, double *, int *, int *, int *, double *
 c		 int *, int *, int *, int *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *,
-c		 double *, double *, double *, double *, double *, int *);
+c		 double *, double *, double *, double *, double *, double *, int *);
 c     
 c     Call from pair_meam.cpp has the form:
 c     
@@ -14,7 +14,7 @@ c	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
 c	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 c	       dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
 c	       &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
-c	       &t_ave[0][0],&f[0][0],&vatom[0][0],&errorflag);
+c	       &t_ave[0][0],&tsq_ave[0][0],&f[0][0],&vatom[0][0],&errorflag);
 c     
 
       subroutine meam_force(i, nmax,
@@ -23,8 +23,8 @@ c
      $     numneigh, firstneigh, numneigh_full, firstneigh_full,
      $     scrfcn, dscrfcn, fcpair, 
      $     dGamma1, dGamma2, dGamma3, rho0, rho1, rho2, rho3, fp,
-     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, f, vatom,
-     $     errorflag)
+     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, tsq_ave, f, 
+     $     vatom, errorflag)
 
       use meam_data
       implicit none
@@ -38,7 +38,7 @@ c
       real*8  rho0, rho1, rho2, rho3, fp
       real*8  Arho1, Arho2, Arho2b
       real*8  Arho3, Arho3b
-      real*8  t_ave, f, vatom
+      real*8  t_ave, tsq_ave, f, vatom
       integer errorflag
 
       dimension eatom(nmax)
@@ -50,7 +50,7 @@ c
       dimension rho0(nmax), rho1(nmax), rho2(nmax), rho3(nmax), fp(nmax)
       dimension Arho1(3,nmax), Arho2(6,nmax), Arho2b(nmax)
       dimension Arho3(10,nmax), Arho3b(3,nmax)
-      dimension t_ave(3,nmax), f(3,nmax), vatom(6,nmax)
+      dimension t_ave(3,nmax), tsq_ave(3,nmax), f(3,nmax), vatom(6,nmax)
 
       integer i,j,jn,k,kn,kk,m,n,p,q
       integer nv2,nv3,elti,eltj,eltk,ind
@@ -176,6 +176,21 @@ c     Compute pair densities and derivatives
                 drhoa3j = drhoa3i
               endif
               
+              if (ialloy.eq.1) then
+                rhoa1j = rhoa1j * t1_meam(eltj)
+                rhoa2j = rhoa2j * t2_meam(eltj)
+                rhoa3j = rhoa3j * t3_meam(eltj)
+                rhoa1i = rhoa1i * t1_meam(elti)
+                rhoa2i = rhoa2i * t2_meam(elti)
+                rhoa3i = rhoa3i * t3_meam(elti)
+                drhoa1j = drhoa1j * t1_meam(eltj)
+                drhoa2j = drhoa2j * t2_meam(eltj)
+                drhoa3j = drhoa3j * t3_meam(eltj)
+                drhoa1i = drhoa1i * t1_meam(elti)
+                drhoa2i = drhoa2i * t2_meam(elti)
+                drhoa3i = drhoa3i * t3_meam(elti)
+              endif
+
               nv2 = 1
               nv3 = 1
               arg1i1 = 0.d0
@@ -277,21 +292,59 @@ c     Compute derivatives of weighting functions t wrt rij
               t2j = t_ave(2,j)
               t3j = t_ave(3,j)
 
-              ai = 0.d0
-              if( rho0(i) .ne. 0.d0 ) then
-                ai = drhoa0j*sij/rho0(i)
-              end if
-              aj = 0.d0
-              if( rho0(j) .ne. 0.d0 ) then
-                aj = drhoa0i*sij/rho0(j)
-              end if
+              if (ialloy.eq.1) then
 
-              dt1dr1 = ai*(t1_meam(eltj)-t1i)
-              dt1dr2 = aj*(t1_meam(elti)-t1j)
-              dt2dr1 = ai*(t2_meam(eltj)-t2i)
-              dt2dr2 = aj*(t2_meam(elti)-t2j)
-              dt3dr1 = ai*(t3_meam(eltj)-t3i)
-              dt3dr2 = aj*(t3_meam(elti)-t3j)
+                a1i = 0.d0
+                a1j = 0.d0
+                a2i = 0.d0
+                a2j = 0.d0
+                a3i = 0.d0
+                a3j = 0.d0
+                if ( tsq_ave(1,i) .ne. 0.d0 ) then
+                  a1i = drhoa0j*sij/tsq_ave(1,i)
+                endif
+                if ( tsq_ave(1,j) .ne. 0.d0 ) then
+                  a1j = drhoa0i*sij/tsq_ave(1,j)
+                endif
+                if ( tsq_ave(2,i) .ne. 0.d0 ) then
+                  a2i = drhoa0j*sij/tsq_ave(2,i)
+                endif
+                if ( tsq_ave(2,j) .ne. 0.d0 ) then
+                  a2j = drhoa0i*sij/tsq_ave(2,j)
+                endif
+                if ( tsq_ave(3,i) .ne. 0.d0 ) then
+                  a3i = drhoa0j*sij/tsq_ave(3,i)
+                endif
+                if ( tsq_ave(3,j) .ne. 0.d0 ) then
+                  a3j = drhoa0i*sij/tsq_ave(3,j)
+                endif
+
+                dt1dr1 = a1i*(t1_meam(eltj)-t1i*t1_meam(eltj)**2)
+                dt1dr2 = a1j*(t1_meam(elti)-t1j*t1_meam(elti)**2)
+                dt2dr1 = a2i*(t2_meam(eltj)-t2i*t2_meam(eltj)**2)
+                dt2dr2 = a2j*(t2_meam(elti)-t2j*t2_meam(elti)**2)
+                dt3dr1 = a3i*(t3_meam(eltj)-t3i*t3_meam(eltj)**2)
+                dt3dr2 = a3j*(t3_meam(elti)-t3j*t3_meam(elti)**2)
+
+              else
+
+                ai = 0.d0
+                if( rho0(i) .ne. 0.d0 ) then
+                  ai = drhoa0j*sij/rho0(i)
+                end if
+                aj = 0.d0
+                if( rho0(j) .ne. 0.d0 ) then
+                  aj = drhoa0i*sij/rho0(j)
+                end if
+
+                dt1dr1 = ai*(t1_meam(eltj)-t1i)
+                dt1dr2 = aj*(t1_meam(elti)-t1j)
+                dt2dr1 = ai*(t2_meam(eltj)-t2i)
+                dt2dr2 = aj*(t2_meam(elti)-t2j)
+                dt3dr1 = ai*(t3_meam(eltj)-t3i)
+                dt3dr2 = aj*(t3_meam(elti)-t3j)
+                
+              endif
 
 c     Compute derivatives of total density wrt rij, sij and rij(3)
               call get_shpfcn(shpi,lattce_meam(elti,elti))
@@ -340,21 +393,60 @@ c     Compute derivatives wrt sij, but only if necessary
                 drho3ds1 = a3*rhoa3j*arg1i3 - a3a*rhoa3j*arg3i3
                 drho3ds2 = a3*rhoa3i*arg1j3 - a3a*rhoa3i*arg3j3
 
-                ai = 0.d0
-                if( rho0(i) .ne. 0.d0 ) then
-                  ai = rhoa0j/rho0(i)
-                end if
-                aj = 0.d0
-                if( rho0(j) .ne. 0.d0 ) then
-                  aj = rhoa0i/rho0(j)
-                end if
+                if (ialloy.eq.1) then
+                  
+                  a1i = 0.d0
+                  a1j = 0.d0
+                  a2i = 0.d0
+                  a2j = 0.d0
+                  a3i = 0.d0
+                  a3j = 0.d0
+                  if ( tsq_ave(1,i) .ne. 0.d0 ) then
+                    a1i = rhoa0j/tsq_ave(1,i)
+                  endif
+                  if ( tsq_ave(1,j) .ne. 0.d0 ) then
+                    a1j = rhoa0i/tsq_ave(1,j)
+                  endif
+                  if ( tsq_ave(2,i) .ne. 0.d0 ) then
+                    a2i = rhoa0j/tsq_ave(2,i)
+                  endif
+                  if ( tsq_ave(2,j) .ne. 0.d0 ) then
+                    a2j = rhoa0i/tsq_ave(2,j)
+                  endif
+                  if ( tsq_ave(3,i) .ne. 0.d0 ) then
+                    a3i = rhoa0j/tsq_ave(3,i)
+                  endif
+                  if ( tsq_ave(3,j) .ne. 0.d0 ) then
+                    a3j = rhoa0i/tsq_ave(3,j)
+                  endif
 
-                dt1ds1 = ai*(t1_meam(eltj)-t1i)
-                dt1ds2 = aj*(t1_meam(elti)-t1j)
-                dt2ds1 = ai*(t2_meam(eltj)-t2i)
-                dt2ds2 = aj*(t2_meam(elti)-t2j)
-                dt3ds1 = ai*(t3_meam(eltj)-t3i)
-                dt3ds2 = aj*(t3_meam(elti)-t3j)
+                  dt1ds1 = a1i*(t1_meam(eltj)-t1i*t1_meam(eltj)**2)
+                  dt1ds2 = a1j*(t1_meam(elti)-t1j*t1_meam(elti)**2)
+                  dt2ds1 = a2i*(t2_meam(eltj)-t2i*t2_meam(eltj)**2)
+                  dt2ds2 = a2j*(t2_meam(elti)-t2j*t2_meam(elti)**2)
+                  dt3ds1 = a3i*(t3_meam(eltj)-t3i*t3_meam(eltj)**2)
+                  dt3ds2 = a3j*(t3_meam(elti)-t3j*t3_meam(elti)**2)
+
+                else
+
+                  ai = 0.d0
+                  if( rho0(i) .ne. 0.d0 ) then
+                    ai = rhoa0j/rho0(i)
+                  end if
+                  aj = 0.d0
+                  if( rho0(j) .ne. 0.d0 ) then
+                    aj = rhoa0i/rho0(j)
+                  end if
+                  
+                  dt1ds1 = ai*(t1_meam(eltj)-t1i)
+                  dt1ds2 = aj*(t1_meam(elti)-t1j)
+                  dt2ds1 = ai*(t2_meam(eltj)-t2i)
+                  dt2ds2 = aj*(t2_meam(elti)-t2j)
+                  dt3ds1 = ai*(t3_meam(eltj)-t3i)
+                  dt3ds2 = aj*(t3_meam(elti)-t3j)
+
+                endif
+
                 drhods1 = dGamma1(i)*drho0ds1
      $               + dGamma2(i)*
      $               (dt1ds1*rho1(i)+t1i*drho1ds1

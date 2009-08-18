@@ -3,7 +3,7 @@ c
 c  void meam_dens_init_(int *, int *, int *, double *, int *, int *, int *, double *,
 c		 int *, int *, int *, int *,
 c		 double *, double *, double *, double *, double *, double *,
-c		 double *, double *, double *, double *, int *);
+c		 double *, double *, double *, double *, double *, int *);
 c     
 c     
 c     Call from pair_meam.cpp has the form:
@@ -12,7 +12,7 @@ c    meam_dens_init_(&i,&nmax,ntype,type,fmap,&x[0][0],
 c	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
 c	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 c	       rho0,&arho1[0][0],&arho2[0][0],arho2b,
-c	       &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&errorflag);
+c	       &arho3[0][0],&arho3b[0][0],&t_ave[0][0],&tsq_ave[0][0],&errorflag);
 c     
 
       subroutine meam_dens_init(i, nmax,
@@ -20,7 +20,7 @@ c
      $     numneigh, firstneigh, 
      $     numneigh_full, firstneigh_full,
      $     scrfcn, dscrfcn, fcpair, rho0, arho1, arho2, arho2b,
-     $     arho3, arho3b, t_ave, errorflag)
+     $     arho3, arho3b, t_ave, tsq_ave, errorflag)
 
       use meam_data
       implicit none
@@ -30,7 +30,7 @@ c
       integer numneigh, firstneigh, numneigh_full, firstneigh_full
       real*8 scrfcn, dscrfcn, fcpair
       real*8 rho0, arho1, arho2
-      real*8 arho2b, arho3, arho3b, t_ave
+      real*8 arho2b, arho3, arho3b, t_ave, tsq_ave
       integer errorflag
       integer j,jn
 
@@ -40,7 +40,7 @@ c
       dimension scrfcn(numneigh), dscrfcn(numneigh), fcpair(numneigh)
       dimension rho0(nmax), arho1(3,nmax), arho2(6,nmax)
       dimension arho2b(nmax), arho3(10,nmax), arho3b(3,nmax)
-      dimension t_ave(3,nmax)
+      dimension t_ave(3,nmax), tsq_ave(3,nmax)
 
       errorflag = 0
 
@@ -54,7 +54,7 @@ c     Calculate intermediate density terms to be communicated
       call calc_rho1(i, nmax, ntype, type, fmap, x, 
      $     numneigh, firstneigh,
      $     scrfcn, fcpair, rho0, arho1, arho2, arho2b,
-     $     arho3, arho3b, t_ave)
+     $     arho3, arho3b, t_ave, tsq_ave)
 
       return
       end
@@ -194,7 +194,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine calc_rho1(i, nmax, ntype, type, fmap, x, 
      $     numneigh, firstneigh,
      $     scrfcn, fcpair, rho0, arho1, arho2, arho2b,
-     $     arho3, arho3b, t_ave)
+     $     arho3, arho3b, t_ave, tsq_ave)
 
       use meam_data
       implicit none
@@ -203,14 +203,14 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       real*8  x
       integer numneigh, firstneigh
       real*8 scrfcn, fcpair, rho0, arho1, arho2
-      real*8 arho2b, arho3, arho3b, t_ave
+      real*8 arho2b, arho3, arho3b, t_ave, tsq_ave
 
       dimension type(nmax), fmap(ntype), x(3,nmax)
       dimension firstneigh(numneigh)
       dimension scrfcn(numneigh), fcpair(numneigh)
       dimension rho0(nmax), arho1(3,nmax), arho2(6,nmax)
       dimension arho2b(nmax), arho3(10,nmax), arho3b(3,nmax)
-      dimension t_ave(3,nmax)
+      dimension t_ave(3,nmax), tsq_ave(3,nmax)
 
       integer jn,j,m,n,p,elti,eltj
       integer nv2,nv3
@@ -248,6 +248,14 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
             rhoa1i = ro0i*exp(-beta1_meam(elti)*ai)*sij
             rhoa2i = ro0i*exp(-beta2_meam(elti)*ai)*sij
             rhoa3i = ro0i*exp(-beta3_meam(elti)*ai)*sij
+            if (ialloy.eq.1) then
+              rhoa1j = rhoa1j * t1_meam(eltj)
+              rhoa2j = rhoa2j * t2_meam(eltj)
+              rhoa3j = rhoa3j * t3_meam(eltj)
+              rhoa1i = rhoa1i * t1_meam(elti)
+              rhoa2i = rhoa2i * t2_meam(elti)
+              rhoa3i = rhoa3i * t3_meam(elti)
+            endif
             rho0(i) = rho0(i) + rhoa0j
             rho0(j) = rho0(j) + rhoa0i
             t_ave(1,i) = t_ave(1,i) + t1_meam(eltj)*rhoa0j
@@ -256,6 +264,20 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
             t_ave(1,j) = t_ave(1,j) + t1_meam(elti)*rhoa0i
             t_ave(2,j) = t_ave(2,j) + t2_meam(elti)*rhoa0i
             t_ave(3,j) = t_ave(3,j) + t3_meam(elti)*rhoa0i
+            if (ialloy.eq.1) then
+              tsq_ave(1,i) = tsq_ave(1,i) +
+     $             t1_meam(eltj)*t1_meam(eltj)*rhoa0j
+              tsq_ave(2,i) = tsq_ave(2,i) +
+     $             t2_meam(eltj)*t2_meam(eltj)*rhoa0j
+              tsq_ave(3,i) = tsq_ave(3,i) +
+     $             t3_meam(eltj)*t3_meam(eltj)*rhoa0j
+              tsq_ave(1,j) = tsq_ave(1,j) +
+     $             t1_meam(elti)*t1_meam(elti)*rhoa0i
+              tsq_ave(2,j) = tsq_ave(2,j) +
+     $             t2_meam(elti)*t2_meam(elti)*rhoa0i
+              tsq_ave(3,j) = tsq_ave(3,j) +
+     $             t3_meam(elti)*t3_meam(elti)*rhoa0i
+            endif
             Arho2b(i) = Arho2b(i) + rhoa2j
             Arho2b(j) = Arho2b(j) + rhoa2i
 

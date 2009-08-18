@@ -498,37 +498,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
       ecurrent = energy_force(1);
       nfunc++;
 
-      // if backtracking energy change is better than ideal, exit with success
-
-      de_ideal = -BACKTRACK_SLOPE*alpha0*fdothall;
-      de = ecurrent - eoriginal;
-      if (de <= de_ideal || de_ideal >= -IDEAL_TOL) {
-        alpha = alpha0;
-        return 0;
-      }
-
-      // drop back from alpha0 to alpha
-
-      if (nextra_global) modify->min_step(0.0,hextra);
-      for (i = 0; i < n3; i++) x[i] = x0[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  x0atom = x0extra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] = x0atom[i];
-	}
-      if (nextra_global) modify->min_step(alpha,hextra);
-      for (i = 0; i < n3; i++) x[i] += alpha*h[i];
-      if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  xatom = xextra_atom[m];
-	  hatom = hextra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
-	}
-      ecurrent = energy_force(1);
-      nfunc++;
+      return 0;
     }
 
     // if backtracking energy change is better than ideal, exit with success

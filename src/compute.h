@@ -84,7 +84,7 @@ class Compute : protected Pointers {
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_all() {}
 
-  virtual void reset_extra_compute(char *);
+  virtual void reset_extra_compute_fix(char *);
 
   void addstep(int);
   int matchstep(int);

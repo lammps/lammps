@@ -86,12 +86,12 @@ is specified as {hi}.
 
 If the {vel} keyword is specified, the center (or axis or position) of
 the spherical (or cylindrical or planar) indenter will move during the
-simulation, based on its initial position (x,y,z) and the specified
-(vx,vy,vz).  Note that if you do multiple runs, the initial position
-of the indenter (x,y,z) does not change, so it will continue to move
-at the specified velocity.  For periodic systems and spherical or
-cylindrical indenters, the new position of the center or axis is
-wrapped back into the periodic box as needed.
+simulation, based on its initial position (x,y,z), the specified
+(vx,vy,vz), and the time elapsed since the beginning of the
+simulation.  For periodic systems and spherical or cylindrical
+indenters, the new position of the center or axis is wrapped back into
+the periodic box as needed.  See the note below about making the
+indenter move continuously across multiple runs.
 
 If the {rstart} keyword is specified, then the radius of the indenter
 is a time-dependent quantity.  This only applies to spherical or
@@ -99,6 +99,8 @@ cylindrical indenters.  R0 is the value assigned at the start of the
 run; R is the value at the end.  At intermediate times, the radius is
 linearly interpolated between these two values.  This option can be
 used, for example, to grow/shrink a void within the simulation box.
+See the note below about making the radius change continuously across
+multiple runs.
 
 If the {side} keyword is specified as {out}, which is the default,
 then particles outside the indenter are pushded away from its outer
@@ -139,7 +141,9 @@ number of atoms in the simulation.
 This fix can adjust the indenter position and radius over multiple
 runs, using the {start} and {stop} keywords of the "run"_run.html
 command.  See the "run"_run.html command for details of how to do
-this.
+this.  If you do not do this, the indenter position and readius will
+be reset to their specified initial values at the beginning of each
+run.
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.  The {rstart} keyword

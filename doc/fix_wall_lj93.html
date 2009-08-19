@@ -62,12 +62,12 @@ wall/lj126</A> command.
 interaction is 0.0 at the cutoff distance.
 </P>
 <P>If the <I>vel</I> keyword is specified, the position of wall will move
-during the simulation, based on its initial position (coord) and the
-specified velocity (vel).  <I>Xlo</I> or <I>xhi</I> walls move in the x
-direction with whatever sign you give the <I>v</I> argument.  Ditto for <I>y</I>
-and <I>z</I> walls.  Note that if you do multiple runs, the initial
-position of the wall does not change, so it will continue to move at
-the specified velocity.
+during the simulation, based on its initial position (coord), the
+specified velocity (vel), and the time elapsed since the beginning of
+the simulation.  <I>Xlo</I> or <I>xhi</I> walls move in the x direction with
+whatever sign you give the <I>v</I> argument.  Ditto for <I>y</I> and <I>z</I> walls.
+See the note below about making the wall move continuously across
+multiple runs.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -85,8 +85,10 @@ commands</A>.  The scalar and vector values
 calculated by this fix are "extensive", meaning they scale with the
 number of atoms in the simulation.
 </P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.
+<P>This fix can change the position of the wall, due to the <I>vel</I>
+keyword, continuously over multiple runs, using the <I>start</I> and <I>stop</I>
+keywords of the <A HREF = "run.html">run</A> command.  If you do not do this, the
+wall position will be reset to <I>coord</I> at the beginning of each run.
 </P>
 <P>The forces due to this fix are imposed during an energy minimization,
 invoked by the <A HREF = "minimize.html">minimize</A> command.

@@ -196,7 +196,7 @@ void Temper::command(int narg, char **arg)
 	
     // run for nevery timesteps
 
-    update->integrate->iterate(nevery);
+    update->integrate->run(nevery);
 	
     // compute PE
     // notify compute it will be called at next swap

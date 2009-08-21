@@ -363,10 +363,69 @@ void Respa::setup()
 }
 
 /* ----------------------------------------------------------------------
-   iterate for n steps
+   setup without output
+   flag = 0 = just force calculation
+   flag = 1 = reneighbor and force calculation
 ------------------------------------------------------------------------- */
 
-void Respa::iterate(int n)
+void Respa::setup_minimal(int flag)
+{
+  // setup domain, communication and neighboring
+  // acquire ghosts
+  // build neighbor lists
+
+  if (flag) {
+    if (triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+    comm->exchange();
+    comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    neighbor->build();
+    neighbor->ncalls = 0;
+  }
+
+  // compute all forces
+
+  ev_set(update->ntimestep);
+
+  for (int ilevel = 0; ilevel < nlevels; ilevel++) {
+    force_clear(newton[ilevel]);
+    if (level_bond == ilevel && force->bond)
+      force->bond->compute(eflag,vflag);
+    if (level_angle == ilevel && force->angle) 
+      force->angle->compute(eflag,vflag);
+    if (level_dihedral == ilevel && force->dihedral) 
+      force->dihedral->compute(eflag,vflag);
+    if (level_improper == ilevel && force->improper) 
+      force->improper->compute(eflag,vflag);
+    if (level_pair == ilevel && force->pair)
+      force->pair->compute(eflag,vflag);
+    if (level_inner == ilevel && force->pair)
+      force->pair->compute_inner();
+    if (level_middle == ilevel && force->pair)
+      force->pair->compute_middle();
+    if (level_outer == ilevel && force->pair)
+      force->pair->compute_outer(eflag,vflag);
+    if (level_kspace == ilevel && force->kspace) {
+      force->kspace->setup();
+      force->kspace->compute(eflag,vflag);
+    }
+    if (newton[ilevel]) comm->reverse_communicate();
+    copy_f_flevel(ilevel);
+  }
+  
+  modify->setup(vflag);
+  sum_flevel_f();
+}
+
+/* ----------------------------------------------------------------------
+   run for N steps
+------------------------------------------------------------------------- */
+
+void Respa::run(int n)
 {
   int ntimestep;
 

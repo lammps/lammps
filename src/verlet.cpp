@@ -122,10 +122,59 @@ void Verlet::setup()
 }
 
 /* ----------------------------------------------------------------------
-   iterate for n steps
+   setup without output
+   flag = 0 = just force calculation
+   flag = 1 = reneighbor and force calculation
 ------------------------------------------------------------------------- */
 
-void Verlet::iterate(int n)
+void Verlet::setup_minimal(int flag)
+{
+  // setup domain, communication and neighboring
+  // acquire ghosts
+  // build neighbor lists
+
+  if (flag) {
+    if (triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+    comm->exchange();
+    comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    neighbor->build();
+    neighbor->ncalls = 0;
+  }
+
+  // compute all forces
+
+  ev_set(update->ntimestep);
+  force_clear();
+
+  if (force->pair) force->pair->compute(eflag,vflag);
+
+  if (atom->molecular) {
+    if (force->bond) force->bond->compute(eflag,vflag);
+    if (force->angle) force->angle->compute(eflag,vflag);
+    if (force->dihedral) force->dihedral->compute(eflag,vflag);
+    if (force->improper) force->improper->compute(eflag,vflag);
+  }
+
+  if (force->kspace) {
+    force->kspace->setup();
+    force->kspace->compute(eflag,vflag);
+  }
+
+  if (force->newton) comm->reverse_communicate();
+
+  modify->setup(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   run for N steps
+------------------------------------------------------------------------- */
+
+void Verlet::run(int n)
 {
   int nflag,ntimestep;
 

@@ -24,7 +24,8 @@ class Verlet : public Integrate {
   ~Verlet() {}
   void init();
   void setup();
-  void iterate(int);
+  void setup_minimal(int);
+  void run(int);
 
  private:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic

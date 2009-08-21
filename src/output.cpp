@@ -135,7 +135,7 @@ void Output::setup(int flag)
   // if no dumps, set next_dump_any to last+1 so will not influence next
   // dump custom may invoke computes so wrap with clear/add
 
-  if (ndump) {
+  if (ndump && update->restrict_output == 0) {
     for (int idump = 0; idump < ndump; idump++) {
       if (strcmp(dump[idump]->style,"custom") == 0)
 	modify->clearstep_compute();
@@ -158,7 +158,7 @@ void Output::setup(int flag)
   // will not write on last step of run unless multiple of every
   // if every = 0, set next_restart to last+1 so will not influence next
 
-  if (restart_every)
+  if (restart_every && update->restrict_output == 0)
     next_restart = (ntimestep/restart_every)*restart_every + restart_every;
   else next_restart = update->laststep + 1;
 
@@ -256,6 +256,43 @@ void Output::write(int ntimestep)
 
   next = MYMIN(next_dump_any,next_restart);
   next = MYMIN(next,next_thermo);
+}
+
+/* ----------------------------------------------------------------------
+   force a snapshot to be written for all dumps
+------------------------------------------------------------------------- */
+
+void Output::write_dump(int ntimestep)
+{
+  for (int idump = 0; idump < ndump; idump++) {
+    dump[idump]->write();
+    last_dump[idump] = ntimestep;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   force a restart file to be written
+------------------------------------------------------------------------- */
+
+void Output::write_restart(int ntimestep)
+{
+  if (restart_toggle == 0) {
+    char *file = new char[strlen(restart1) + 16];
+    char *ptr = strchr(restart1,'*');
+    *ptr = '\0';
+    sprintf(file,"%s%d%s",restart1,ntimestep,ptr+1);
+    *ptr = '*';
+    restart->write(file);
+    delete [] file;
+  } else if (restart_toggle == 1) {
+    restart->write(restart1);
+    restart_toggle = 2;
+  } else if (restart_toggle == 2) {
+    restart->write(restart2);
+    restart_toggle = 1;
+  }
+
+  last_restart = ntimestep;
 }
 
 /* ----------------------------------------------------------------------

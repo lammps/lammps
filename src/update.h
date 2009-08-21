@@ -29,8 +29,9 @@ class Update : protected Pointers {
   int beginstep,endstep;          // 1st and last step of multiple runs
   int first_update;               // 0 before initial update, 1 after
   int max_eval;                   // max force evaluations for minimizer
+  int restrict_output;            // 1 if output should not write dump/restart
 
-  int eflag_global,eflag_atom;    // timestep global/peratom eng is tallied
+  int eflag_global,eflag_atom;    // timestep global/peratom eng is tallied on
   int vflag_global,vflag_atom;    // ditto for virial
 
   char *unit_style;

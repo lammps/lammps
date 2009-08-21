@@ -37,7 +37,8 @@ class Respa : public Integrate {
   ~Respa();
   void init();
   void setup();
-  void iterate(int);
+  void setup_minimal(int);
+  void run(int);
   void cleanup();
   void reset_dt();
 

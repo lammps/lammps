@@ -181,8 +181,9 @@ double FixMinimize::memory_usage()
 void FixMinimize::grow_arrays(int nmax)
 {
   for (int m = 0; m < nvector; m++)
-    vectors[m] = (double *) memory->srealloc(vectors[m],peratom[m]*nmax,
-					     "minimize:vector");
+    vectors[m] = (double *) 
+      memory->srealloc(vectors[m],peratom[m]*nmax*sizeof(double),
+		       "minimize:vector");
 }
 
 /* ----------------------------------------------------------------------

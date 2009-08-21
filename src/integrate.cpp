@@ -79,7 +79,8 @@ void Integrate::ev_setup()
 }
 
 /* ----------------------------------------------------------------------
-   set eflag,vflag for current iteration with ntimestep
+   set eflag,vflag for current iteration
+   based on computes that need info on this ntimestep
    eflag = 0 = no energy computation
    eflag = 1 = global energy only
    eflag = 2 = per-atom energy only

@@ -48,6 +48,8 @@ class Output : protected Pointers {
   void init();
   void setup(int);                   // initial output before run/min
   void write(int);                   // output for current timestep
+  void write_dump(int);              // force output of dump snapshots
+  void write_restart(int);           // force output of a restart file
 
   void add_dump(int, char **);       // add a Dump to Dump list
   void modify_dump(int, char **);    // modify a Dump

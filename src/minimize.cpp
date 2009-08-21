@@ -17,6 +17,7 @@
 #include "update.h"
 #include "min.h"
 #include "finish.h"
+#include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -48,7 +49,11 @@ void Minimize::command(int narg, char **arg)
 
   lmp->init();
   update->minimize->setup();
-  update->minimize->run();
+
+  timer->barrier_start(TIME_LOOP);
+  update->minimize->run(update->nsteps);
+  timer->barrier_stop(TIME_LOOP);
+
   update->minimize->cleanup();
 
   Finish finish(lmp);

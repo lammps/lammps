@@ -149,8 +149,6 @@ void Min::init()
   neigh_delay = neighbor->delay;
   neigh_dist_check = neighbor->dist_check;
   
-  // reset reneighboring criteria if necessary
-
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
       error->warning("Resetting reneighboring criteria during minimization");
@@ -179,6 +177,12 @@ void Min::setup()
   nextra_global = modify->min_dof();
   if (nextra_global) fextra = new double[nextra_global];
 
+  // compute for potential energy
+
+  int id = modify->find_compute("thermo_pe");
+  if (id < 0) error->all("Minimization could not find thermo_pe compute");
+  pe_compute = modify->compute[id];
+
   // style-specific setup does two tasks
   // setup extra global dof vectors
   // setup extra per-atom dof vectors due to requests from Pair classes
@@ -198,7 +202,6 @@ void Min::setup()
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
-  // reset gradient vector ptrs
 
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
@@ -241,10 +244,63 @@ void Min::setup()
 }
 
 /* ----------------------------------------------------------------------
-   perform minimization, with setup first
+   setup without output or one-time post-init setup
+   flag = 0 = just force calculation
+   flag = 1 = reneighbor and force calculation
 ------------------------------------------------------------------------- */
 
-void Min::run()
+void Min::setup_minimal(int flag)
+{
+  // setup domain, communication and neighboring
+  // acquire ghosts
+  // build neighbor lists
+
+  if (flag) {
+    if (triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+    comm->exchange();
+    comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    neighbor->build();
+    neighbor->ncalls = 0;
+  }
+
+  // compute all forces
+
+  ev_set(update->ntimestep);
+  force_clear();
+  
+  if (force->pair) force->pair->compute(eflag,vflag);
+
+  if (atom->molecular) {
+    if (force->bond) force->bond->compute(eflag,vflag);
+    if (force->angle) force->angle->compute(eflag,vflag);
+    if (force->dihedral) force->dihedral->compute(eflag,vflag);
+    if (force->improper) force->improper->compute(eflag,vflag);
+  }
+
+  if (force->kspace) {
+    force->kspace->setup();
+    force->kspace->compute(eflag,vflag);
+  }
+
+  if (force->newton) comm->reverse_communicate();
+
+  modify->setup(vflag);
+
+  // atoms may have migrated in comm->exchange()
+
+  reset_vectors();
+}
+
+/* ----------------------------------------------------------------------
+   perform minimization, calling iterate() for nsteps
+------------------------------------------------------------------------- */
+
+void Min::run(int nsteps)
 {
   // possible stop conditions
 
@@ -253,12 +309,6 @@ void Min::run()
 			 "search direction is not downhill",
 			 "linesearch alpha is zero",
 			 "forces are zero","quadratic factors are zero"};
-
-  // compute for potential energy
-
-  int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all("Minimization could not find thermo_pe compute");
-  pe_compute = modify->compute[id];
 
   // stats for Finish to print
 
@@ -272,8 +322,7 @@ void Min::run()
 
   // minimizer iterations
 
-  timer->barrier_start(TIME_LOOP);
-  int stop_condition = iterate(update->nsteps);
+  int stop_condition = iterate(nsteps);
   stopstr = stopstrings[stop_condition];
 
   // account for early exit from iterate loop due to convergence
@@ -284,28 +333,23 @@ void Min::run()
   // add ntimestep to all computes that store invocation times
   //   since are hardwireing call to thermo/dumps and computes may not be ready
 
-  if (niter < update->nsteps) {
+  if (niter < nsteps) {
     niter++;
     update->nsteps = niter;
 
-    for (int idump = 0; idump < output->ndump; idump++)
-      output->next_dump[idump] = update->ntimestep;
-    output->next_dump_any = update->ntimestep;
-    if (output->restart_every) output->next_restart = update->ntimestep;
+    if (update->restrict_output == 0) {
+      for (int idump = 0; idump < output->ndump; idump++)
+	output->next_dump[idump] = update->ntimestep;
+      output->next_dump_any = update->ntimestep;
+      if (output->restart_every == 0) 
+	output->next_restart = update->ntimestep;
+    }
     output->next_thermo = update->ntimestep;
 
     modify->addstep_compute_all(update->ntimestep);
     ecurrent = energy_force(0);
     output->write(update->ntimestep);
   }
-
-  timer->barrier_stop(TIME_LOOP);
-
-  // reset reneighboring criteria
-
-  neighbor->every = neigh_every;
-  neighbor->delay = neigh_delay;
-  neighbor->dist_check = neigh_dist_check;
 
   // stats for Finish to print
 	
@@ -314,12 +358,18 @@ void Min::run()
   fnorminf_final = fnorm_inf();
 }
 
-/* ----------------------------------------------------------------------
-   delete fix at end of run, so its atom arrays won't persist
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void Min::cleanup()
 {
+  // reset reneighboring criteria
+
+  neighbor->every = neigh_every;
+  neighbor->delay = neigh_delay;
+  neighbor->dist_check = neigh_dist_check;
+
+  // delete fix at end of run, so its atom arrays won't persist
+
   modify->delete_fix("MINIMIZE");
 }
 
@@ -527,7 +577,8 @@ void Min::ev_setup()
 }
 
 /* ----------------------------------------------------------------------
-   set eflag,vflag for current iteration with ntimestep
+   set eflag,vflag for current iteration
+   based on computes that need info on this ntimestep
    always set eflag_global = 1, since need energy every iteration
    eflag = 0 = no energy computation
    eflag = 1 = global energy only

@@ -30,7 +30,8 @@ class Min : protected Pointers {
   virtual ~Min();
   void init();
   void setup();
-  void run();
+  void setup_minimal(int);
+  void run(int);
   void cleanup();
   void request(class Pair *, int, double);
   double memory_usage() {return 0.0;}

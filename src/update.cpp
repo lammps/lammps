@@ -45,6 +45,8 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   firststep = laststep = 0;
   beginstep = endstep = 0;
 
+  restrict_output = 0;
+
   eflag_global = vflag_global = -1;
 
   unit_style = NULL;

@@ -24,7 +24,8 @@ class Integrate : protected Pointers {
   virtual ~Integrate();
   virtual void init() = 0;
   virtual void setup() = 0;
-  virtual void iterate(int) = 0;
+  virtual void setup_minimal(int) = 0;
+  virtual void run(int) = 0;
   virtual void cleanup() {}
   virtual void reset_dt() {}
   virtual double memory_usage() {return 0.0;}

@@ -341,8 +341,7 @@ void Min::run(int nsteps)
       for (int idump = 0; idump < output->ndump; idump++)
 	output->next_dump[idump] = update->ntimestep;
       output->next_dump_any = update->ntimestep;
-      if (output->restart_every == 0) 
-	output->next_restart = update->ntimestep;
+      if (output->restart_every) output->next_restart = update->ntimestep;
     }
     output->next_thermo = update->ntimestep;
 

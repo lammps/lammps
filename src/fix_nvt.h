@@ -37,12 +37,12 @@ class FixNVT : public Fix {
   void reset_dt();
 
  protected:
-  int which;
+  int which,chain;
   double t_start,t_stop;
   double t_current,t_target;
   double t_freq,drag,drag_factor;
-  double f_eta,eta_dot,eta,factor;
-  double dtv,dtf,dthalf;
+  double f_eta,eta_dot,eta,eta2_dot,eta2,factor,factor2;
+  double dtv,dtf,dthalf,dt4,dt8;
 
   int nlevels_respa;
   double *step_respa;

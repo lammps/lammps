@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mark Stevens (SNL)
+   Contributing authors: Mark Stevens (SNL)
+                         Andy Ballard (U Maryland) for chains
 ------------------------------------------------------------------------- */
 
 #include "string.h"
@@ -50,9 +51,24 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   t_stop = atof(arg[4]);
   double t_period = atof(arg[5]);
 
-  if (narg == 6) drag = 0.0;
-  else if (narg == 8 && strcmp(arg[6],"drag") == 0) drag = atof(arg[7]);
-  else error->all("Illegal fix nvt command");
+  drag = 0.0;
+  chain = 1;
+
+  int iarg = 6;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"drag") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt command");
+      drag = atof(arg[iarg+1]);
+      if (drag < 0.0) error->all("Illegal fix nvt command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"chain") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix nvt command");
+      if (strcmp(arg[iarg+1],"yes") == 0) chain = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) chain = 0;
+      else error->all("Illegal fix nvt command");
+      iarg += 2;
+    } else error->all("Illegal fix nvt command");
+  }
   
   // error checks
   // convert input period to frequency
@@ -88,6 +104,7 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   // Nose/Hoover temp init
 
   eta = eta_dot = 0.0;
+  eta2 = eta2_dot = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,6 +146,9 @@ void FixNVT::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dthalf = 0.5 * update->dt;
+  dt4 = 0.25 * update->dt;
+  dt8 = 0.125 * update->dt;
+
   drag_factor = 1.0 - (update->dt * t_freq * drag);
 
   if (strcmp(update->integrate_style,"respa") == 0) {
@@ -155,12 +175,29 @@ void FixNVT::initial_integrate(int vflag)
   delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop-t_start);
 
-  // update eta_dot
+  // update eta, eta_dot, eta2, eta2_dot
 
-  f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
-  eta_dot += f_eta*dthalf;
-  eta_dot *= drag_factor;
-  eta += dtv*eta_dot;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  if (chain) {
+    eta2_dot += (temperature->dof * eta_dot*eta_dot - t_freq*t_freq) * dt4;
+    factor2 = exp(-dt8*eta2_dot);
+    eta_dot *= factor2;
+    f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+    eta_dot += f_eta*dt4;
+    eta_dot *= drag_factor;
+    eta_dot *= factor2;
+    eta += dthalf*eta_dot;
+    eta2 += dthalf*eta2_dot;
+
+  } else {
+    f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+    eta_dot += f_eta*dthalf;
+    eta_dot *= drag_factor;
+    eta += dtv*eta_dot;
+  }
+
   factor = exp(-dthalf*eta_dot);
 
   // update v and x of only atoms in group
@@ -172,8 +209,6 @@ void FixNVT::initial_integrate(int vflag)
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   if (rmass) {
     if (which == NOBIAS) {
@@ -188,7 +223,6 @@ void FixNVT::initial_integrate(int vflag)
 	  x[i][2] += dtv * v[i][2];
 	}
       }
-
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -218,7 +252,6 @@ void FixNVT::initial_integrate(int vflag)
 	  x[i][2] += dtv * v[i][2];
 	}
       }
-
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -234,6 +267,14 @@ void FixNVT::initial_integrate(int vflag)
 	}
       }
     }
+  }
+
+  if (chain) {
+    eta_dot *= factor2;
+    f_eta = t_freq*t_freq * (factor * factor * t_current/t_target - 1.0);
+    eta_dot += f_eta * dt4;
+    eta_dot *= factor2;
+    eta2_dot += (temperature->dof * eta_dot*eta_dot - t_freq*t_freq) * dt4;
   }
 }
 
@@ -254,6 +295,8 @@ void FixNVT::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
+  if (chain) factor = 1.0;
+
   if (rmass) {
     if (which == NOBIAS) {
       for (int i = 0; i < nlocal; i++) {
@@ -264,7 +307,6 @@ void FixNVT::final_integrate()
 	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
 	}
       }
-      
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -288,7 +330,6 @@ void FixNVT::final_integrate()
 	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
 	}
       }
-      
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -307,11 +348,82 @@ void FixNVT::final_integrate()
 
   t_current = temperature->compute_scalar();
 
-  // update eta_dot
+  // update eta, eta_dot, eta2, eta2_dot
+  // chains require additional velocity update and recompute of current T
 
-  f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
-  eta_dot += f_eta*dthalf;
-  eta_dot *= drag_factor;
+  if (chain) {
+    eta2_dot += (temperature->dof * eta_dot*eta_dot - t_freq*t_freq) * dt4;
+    factor2 = exp(-dt8*eta2_dot);
+    eta_dot *= factor2;
+    f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+    eta_dot += f_eta*dt4;
+    eta_dot *= drag_factor;
+    eta_dot *= factor2;
+    eta += dthalf*eta_dot;
+    eta2 += dthalf*eta2_dot;
+ 
+    factor = exp(-dthalf*eta_dot);
+
+    if (rmass) {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    dtfm = dtf / mass[type[i]];
+	    v[i][0] = v[i][0] * factor;
+	    v[i][1] = v[i][1] * factor;
+	    v[i][2] = v[i][2] * factor;
+	  }
+	}
+      } else if (which == BIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / mass[type[i]];
+	    v[i][0] = v[i][0] * factor;
+	    v[i][1] = v[i][1] * factor;
+	    v[i][2] = v[i][2] * factor;
+	    temperature->restore_bias(i,v[i]);
+	  }
+	}
+      }
+
+    } else {
+      if (which == NOBIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    dtfm = dtf / mass[type[i]];
+	    v[i][0] = v[i][0] * factor;
+	    v[i][1] = v[i][1] * factor;
+	    v[i][2] = v[i][2] * factor;
+	  }
+	}
+      } else if (which == BIAS) {
+	for (int i = 0; i < nlocal; i++) {
+	  if (mask[i] & groupbit) {
+	    temperature->remove_bias(i,v[i]);
+	    dtfm = dtf / mass[type[i]];
+	    v[i][0] = v[i][0] * factor;
+	    v[i][1] = v[i][1] * factor;
+	    v[i][2] = v[i][2] * factor;
+	    temperature->restore_bias(i,v[i]);
+	  }
+	}
+      }
+    }
+
+    t_current = temperature->compute_scalar();
+
+    eta_dot *= factor2;
+    f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+    eta_dot += f_eta * dt4;
+    eta_dot *= factor2;
+    eta2_dot += (temperature->dof * eta_dot*eta_dot - t_freq*t_freq) * dt4;
+
+  } else {
+    f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+    eta_dot += f_eta*dthalf;
+    eta_dot *= drag_factor;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -348,13 +460,26 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
     delta /= update->endstep - update->beginstep;
     t_target = t_start + delta * (t_stop-t_start);
 
-    // update eta_dot
+    if (chain) {
+      eta2_dot += (temperature->dof * eta_dot*eta_dot - t_freq*t_freq) * dt4;
+      factor2 = exp(-dt8*eta2_dot);
+      eta_dot *= factor2;
+      f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+      eta_dot += f_eta*dt4;
+      eta_dot *= drag_factor;
+      eta_dot *= factor2;
+      eta += dthalf*eta_dot;
+      eta2 += dthalf*eta2_dot;
+      
+    } else {
+      f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
+      eta_dot += f_eta*dthalf;
+      eta_dot *= drag_factor;
+      eta += dtv*eta_dot;
+    }
     
-    f_eta = t_freq*t_freq * (t_current/t_target - 1.0);
-    eta_dot += f_eta*dthalf;
-    eta_dot *= drag_factor;
-    eta += dtv*eta_dot;
     factor = exp(-dthalf*eta_dot);
+
   } else factor = 1.0;
 
   if (rmass) {
@@ -367,7 +492,6 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
 	}
       }
-
     } else if (which == BIAS) {
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -414,6 +538,14 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	x[i][2] += dtv * v[i][2];
       }
     }
+  }
+
+  if (ilevel == nlevels_respa-1 && chain) {
+    eta_dot *= factor2;
+    f_eta = t_freq*t_freq * (factor * factor * t_current/t_target - 1.0);
+    eta_dot += f_eta * dt4;
+    eta_dot *= factor2;
+    eta2_dot += (temperature->dof * eta_dot*eta_dot - t_freq*t_freq) * dt4;
   }
 }
 
@@ -471,9 +603,11 @@ void FixNVT::final_integrate_respa(int ilevel)
 void FixNVT::write_restart(FILE *fp)
 {
   int n = 0;
-  double list[2];
+  double list[4];
   list[n++] = eta;
   list[n++] = eta_dot;
+  list[n++] = eta2;
+  list[n++] = eta2_dot;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -492,6 +626,8 @@ void FixNVT::restart(char *buf)
   double *list = (double *) buf;
   eta = list[n++];
   eta_dot = list[n++];
+  eta2 = list[n++];
+  eta2_dot = list[n++];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -519,6 +655,7 @@ int FixNVT::modify_param(int narg, char **arg)
       error->warning("Group for fix_modify temp != fix group");
     return 2;
   }
+
   return 0;
 }
 
@@ -536,6 +673,9 @@ void FixNVT::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dthalf = 0.5 * update->dt;
+  dt4 = 0.25 * update->dt;
+  dt8 = 0.125 * update->dt;
+
   drag_factor = 1.0 - (update->dt * t_freq * drag);
 }
 

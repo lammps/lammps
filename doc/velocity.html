@@ -140,7 +140,7 @@ is issued.
 simulation to create velocities, but only stores velocities for atoms
 it owns.  This can be a slow loop for a large simulation.  If atoms
 were read from a data file, the velocity assigned to a particular atom
-will be the same, regardless of how many processors are being used.
+will be the same, independent of how many processors are being used.
 This will not be the case if atoms were created using the
 <A HREF = "create_atoms.html">create_atoms</A> command, since atom IDs will likely
 be assigned to atoms differently.
@@ -155,9 +155,10 @@ simulation is run on a different number of processors.
 <P>If loop = geom, then each processor loops over only its atoms.  For
 each atom a unique random number seed is created, based on the atom's
 xyz coordinates.  A velocity is generated using that seed.  This is a
-fast loop and will always give the same set of velocities, independent
-of how many processors are used.  However, the generated velocities
-may be more correlated than if the <I>all</I> or <I>local</I> options are used.
+fast loop and the velocity assigned to a particular atom will be the
+same, independent of how many processors are used.  However, the set
+of generated velocities may be more correlated than if the <I>all</I> or
+<I>local</I> options are used.
 </P>
 <P>Note that the <I>loop geom</I> option will not necessarily assign identical
 velocities for two simulations run on different machines.  This is

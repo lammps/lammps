@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Mark Stevens (SNL)
-                         Andy Ballard (U Maryland) for chains
+                         Andy Ballard (U Maryland) for Nose/Hoover chains
 ------------------------------------------------------------------------- */
 
 #include "string.h"

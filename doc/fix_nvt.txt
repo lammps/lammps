@@ -18,14 +18,15 @@ Tstart,Tstop = desired temperature at start/end of run :l
 Tdamp = temperature damping parameter (time units) :l
 
 zero or more keyword/value pairs may be appended :l
-keyword = {drag} :l
-  {drag} value = drag factor added to thermostat (0.0 = no drag) :pre
+keyword = {drag} or {chain} :l
+  {drag} value = drag factor added to thermostat (0.0 = no drag)
+  {chain} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
 
 fix 1 all nvt 300.0 300.0 100.0
-fix 1 all nvt 300.0 300.0 100.0 drag 0.2 :pre
+fix 1 all nvt 300.0 300.0 100.0 drag 0.2 chain no :pre
 
 [Description:]
 
@@ -46,15 +47,29 @@ example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 "units"_units.html command).
 
+The {chain} keyword determines whether Nose/Hoover chains are used or
+not.  If {chain} is specified as {no}, then the original Nose/Hoover
+formulation is used.  If {chain} is specified as {yes}, which is the
+default, then chains as described in "(Martyna)"_#Martyna are used
+which include extra non-physical variables which couple to the
+thermostat.  Nose/Hoover chains provide a more robust NVT integrator,
+overcoming non-ergodic sampling issues and energy oscillations found
+with ordinary Nose/Hoover dynamics.  Our implementation uses one chain
+and integrates the equations of motion via a Trotter expansion good to
+2nd order accuracy in the timestep size.
+
 In some cases (e.g. for solids) the temperature of the system can
-oscillate undesirably when a Nose/Hoover thermostat is applied.  The
-optional {drag} keyword will damp these oscillations, although it
-alters the Nose/Hoover equations.  A value of 0.0 (no drag) leaves the
-Nose/Hoover formalism unchanged.  A non-zero value adds a drag term;
-the larger the value specified, the greater the damping effect.
-Performing a short run and monitoring the temperature is the best way
-to determine if the drag term is working.  Typically a value between
-0.2 to 2.0 is sufficient to damp oscillations after a few periods.
+oscillate undesirably when a Nose/Hoover thermostat is applied, though
+this should be less of a problem if Nose/Hoover chains are used.  The
+optional {drag} keyword will damp these oscillations in an ad-hoc
+fashion, by altering the Nose/Hoover equations so that they no longer
+exactly sample the canonical ensemble.  A value of 0.0 (no drag)
+leaves the Nose/Hoover formalism unchanged.  A non-zero value adds a
+drag term; the larger the value specified, the greater the damping
+effect.  Performing a short run and monitoring the temperature is the
+best way to determine if the drag term is working.  Typically a value
+between 0.2 to 2.0 is sufficient to damp oscillations after a few
+periods.
 
 IMPORTANT NOTE: Unlike the "fix temp/berendsen"_fix_berendsen.html
 command which performs thermostatting but NO time integration, this
@@ -150,9 +165,13 @@ temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
 
 [Default:]
 
-The keyword defaults are drag = 0.0.
+The keyword defaults are drag = 0.0 and chain = yes.
 
 :line
 
 :link(Hoover)
 [(Hoover)] Hoover, Phys Rev A, 31, 1695 (1985).
+
+:link(Martyna)
+[(Martyna)] Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
+Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.

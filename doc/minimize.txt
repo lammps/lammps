@@ -15,7 +15,7 @@ minimize etol ftol maxiter maxeval :pre
 etol = stopping tolerance for energy (unitless)
 ftol = stopping tolerance for force (force units)
 maxiter = max iterations of minimizer
-maxeval = max number of total force/energy evaluations :ul
+maxeval = max number of force/energy evaluations :ul
 
 [Examples:]
 

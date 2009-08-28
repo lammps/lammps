@@ -80,8 +80,9 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   PRE_FORCE_RESPA = 2048;
   POST_FORCE_RESPA = 4096;
   FINAL_INTEGRATE_RESPA = 8192;
-  MIN_POST_FORCE = 16384;
-  MIN_ENERGY = 32768;
+  MIN_PRE_EXCHANGE = 16384;
+  MIN_POST_FORCE = 32768;
+  MIN_ENERGY = 65536;
 }
 
 /* ---------------------------------------------------------------------- */

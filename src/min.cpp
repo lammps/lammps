@@ -328,7 +328,7 @@ void Min::run(int nsteps)
   // account for early exit from iterate loop due to convergence
   // set niter/nsteps for Finish stats to print
   // set output->next values to this timestep
-  // call eng_force to insure vflag is set when forces computed
+  // call engergy_force() to insure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
   // add ntimestep to all computes that store invocation times
   //   since are hardwireing call to thermo/dumps and computes may not be ready
@@ -392,6 +392,7 @@ double Min::energy_force(int resetflag)
     comm->communicate();
     timer->stamp(TIME_COMM);
   } else {
+    if (modify->n_min_pre_exchange) modify->min_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     if (domain->box_change) {

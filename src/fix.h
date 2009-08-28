@@ -65,7 +65,7 @@ class Fix : protected Pointers {
   int PRE_FORCE,POST_FORCE,FINAL_INTEGRATE,END_OF_STEP,THERMO_ENERGY;
   int INITIAL_INTEGRATE_RESPA,POST_INTEGRATE_RESPA;
   int PRE_FORCE_RESPA,POST_FORCE_RESPA,FINAL_INTEGRATE_RESPA;
-  int MIN_POST_FORCE,MIN_ENERGY;
+  int MIN_PRE_EXCHANGE,MIN_POST_FORCE,MIN_ENERGY;
 
   Fix(class LAMMPS *, int, char **);
   virtual ~Fix();
@@ -104,6 +104,7 @@ class Fix : protected Pointers {
   virtual void post_force_respa(int, int, int) {}
   virtual void final_integrate_respa(int) {}
 
+  virtual void min_pre_exchange() {}
   virtual void min_post_force(int) {}
 
   virtual double min_energy(double *) {return 0.0;}

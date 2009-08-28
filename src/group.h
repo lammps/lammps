@@ -21,8 +21,10 @@ namespace LAMMPS_NS {
 
 class Group : protected Pointers {
  public:
+  int ngroup;                  // # of defined groups
   char **names;                // name of each group
   int *bitmask;                // one-bit mask for each group
+  int *inversemask;            // inverse mask for each group
 
   Group(class LAMMPS *);
   ~Group();
@@ -56,8 +58,6 @@ class Group : protected Pointers {
 
  private:
   int me;
-  int ngroup;                  // # of defined groups
-  int *inversemask;            // inverse mask for each group
 
   int find_unused();
 };

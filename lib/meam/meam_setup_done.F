@@ -192,10 +192,6 @@ c allocate coeff memory
       allocate(phirar5(nr,(neltypes*(neltypes+1))/2))
       allocate(phirar6(nr,(neltypes*(neltypes+1))/2))
 
-c HACK for debug: compute phi_meam for NiC equilibrium spacing
-      r = 2.007
-      phitmp = phi_meam(r,1,2)
-
 c loop over pairs of element types
       nv2 = 0
       do a = 1,neltypes

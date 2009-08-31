@@ -105,8 +105,21 @@ c here or in the input file)
 c If i<j and term is unset, use default values (e.g. mean of i-i and j-j)
           else if (j.gt.i) then
             if (Ec_meam(i,j).eq.0.d0) then
-              Ec_meam(i,j) = (Ec_meam(i,i)+Ec_meam(j,j))/2.d0 
-     $             - delta_meam(i,j)
+              if (lattce_meam(i,j).eq.'l12') then
+                Ec_meam(i,j) = (3*Ec_meam(i,i)+Ec_meam(j,j))/4.d0
+     $               - delta_meam(i,j)
+              else if (lattce_meam(i,j).eq.'c11') then
+                if (lattce_meam(i,i).eq.'dia') then
+                  Ec_meam(i,j) = (2*Ec_meam(i,i)+Ec_meam(j,j))/3.d0
+     $                 - delta_meam(i,j)
+                else
+                  Ec_meam(i,j) = (Ec_meam(i,i)+2*Ec_meam(j,j))/3.d0
+     $                 - delta_meam(i,j)
+                endif
+              else
+                Ec_meam(i,j) = (Ec_meam(i,i)+Ec_meam(j,j))/2.d0 
+     $               - delta_meam(i,j)
+              endif
             endif
             if (alpha_meam(i,j).eq.0.d0) then
               alpha_meam(i,j) = (alpha_meam(i,i)+alpha_meam(j,j))/2.d0
@@ -179,8 +192,8 @@ c allocate coeff memory
       allocate(phirar5(nr,(neltypes*(neltypes+1))/2))
       allocate(phirar6(nr,(neltypes*(neltypes+1))/2))
 
-c HACK for debug: compute phi_meam for Ni3Si equilibrium spacing
-      r = 2.47770216
+c HACK for debug: compute phi_meam for NiC equilibrium spacing
+      r = 2.007
       phitmp = phi_meam(r,1,2)
 
 c loop over pairs of element types

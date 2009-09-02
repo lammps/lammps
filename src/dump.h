@@ -34,6 +34,7 @@ class Dump : protected Pointers {
 
   int header_flag;           // 0 = item, 2 = xyz
   int flush_flag;            // 0 if no flush, 1 if flush every dump
+  int sort_flag;             // 1 if write in sorted order, 0 if not
 
   char *format_default;      // default format string
   char *format_user;         // format string set by user

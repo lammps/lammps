@@ -228,6 +228,25 @@ void MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
 
 /* ---------------------------------------------------------------------- */
 
+/* copy values from data1 to data2 */
+
+void MPI_Reduce(void *sendbuf, void *recvbuf, int count,
+		   MPI_Datatype datatype, MPI_Op op,
+		   int root, MPI_Comm comm)
+{
+  int n;
+  if (datatype == MPI_INT) n = count*sizeof(int);
+  else if (datatype == MPI_FLOAT) n = count*sizeof(float);
+  else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
+  else if (datatype == MPI_CHAR) n = count*sizeof(char);
+  else if (datatype == MPI_BYTE) n = count*sizeof(char);
+  else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void MPI_Scan(void *sendbuf, void *recvbuf, int count,
 	      MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
@@ -305,6 +324,25 @@ void MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
 void MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		   void *recvbuf, int recvcount, MPI_Datatype recvtype,
 		   int root, MPI_Comm comm)
+{
+  int n;
+  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
+  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
+  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
+  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
+  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
+
+  memcpy(recvbuf,sendbuf,n);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* copy values from data1 to data2 */
+
+void MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
+		    void *recvbuf, int *recvcounts, int *displs,
+		    MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
   int n;
   if (sendtype == MPI_INT) n = sendcount*sizeof(int);

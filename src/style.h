@@ -135,6 +135,7 @@ ComputeStyle(temp/sphere,ComputeTempSphere)
 
 #ifdef DumpInclude
 #include "dump_atom.h"
+#include "dump_cfg.h"
 #include "dump_custom.h"
 #include "dump_dcd.h"
 #include "dump_xyz.h"
@@ -142,6 +143,7 @@ ComputeStyle(temp/sphere,ComputeTempSphere)
 
 #ifdef DumpClass
 DumpStyle(atom,DumpAtom)
+DumpStyle(cfg,DumpCFG)
 DumpStyle(custom,DumpCustom)
 DumpStyle(dcd,DumpDCD)
 DumpStyle(xyz,DumpXYZ)

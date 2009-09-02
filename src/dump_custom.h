@@ -21,11 +21,11 @@ namespace LAMMPS_NS {
 class DumpCustom : public Dump {
  public:
   DumpCustom(class LAMMPS *, int, char **);
-  ~DumpCustom();
-  void init();
+  virtual ~DumpCustom();
+  virtual void init();
   double memory_usage();
 
- private:
+ protected:
   int nevery;                // dump frequency to check Fix against
   int iregion;               // -1 if no region, else which region
   int nthresh;               // # of defined threshholds
@@ -64,16 +64,17 @@ class DumpCustom : public Dump {
 
   // private methods
 
-  void write_header(int);
+  virtual void write_header(int);
   int count();
   int pack();
-  void write_data(int, double *);
+  virtual void write_data(int, double *);
 
   void parse_fields(int, char **);
   int add_compute(char *);
   int add_fix(char *);
   int add_variable(char *);
   int modify_param(int, char **);
+  virtual int modify_param2(int, char **) {return 0;}
 
   typedef void (DumpCustom::*FnPtrHeader)(int);
   FnPtrHeader header_choice;           // ptr to write header functions

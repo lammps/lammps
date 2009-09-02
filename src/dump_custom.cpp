@@ -1365,6 +1365,12 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     nthresh++;
     return 4;
+
+  // pass along params to child class
+
+  } else {
+    int n = modify_param2(narg,arg);
+    return n;
   }
 
   return 0;

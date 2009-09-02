@@ -52,6 +52,8 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format = NULL;
   format_user = NULL;
 
+  sort_flag = 0;
+
   maxbuf = 0;
   buf = NULL;
 
@@ -255,6 +257,12 @@ void Dump::modify_params(int narg, char **arg)
       for (idump = 0; idump < output->ndump; idump++)
 	if (strcmp(id,output->dump[idump]->id) == 0) break;
       output->dump_every[idump] = n;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sort") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) sort_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) sort_flag = 0;
+      else error->all("Illegal dump_modify command");
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);

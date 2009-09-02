@@ -187,8 +187,8 @@ every picosecond.  Note that for a "true" rate the change is
 continuous and based on the current length, so running with R = 1 for
 10 picoseconds does not expand the box length by a factor of 10 as it
 would with <I>erate</I>, but by a factor of 1024 since it doubles every
-picosecond.  Note that the <I>trate</I> value must be < -1.0 to be valid,
-since a value of -1.0 would mean shrink the box size or tilt by 100%
+picosecond.  Note that the <I>trate</I> value must be greater than -1.0 to
+be valid, since a value of -1.0 would mean shrink the box size by 100%
 to a value of 0.0.
 </P>
 <P>Note that to change the volume (or cross-sectional area) of the
@@ -304,8 +304,10 @@ triple every picosecond.  R = -0.01 means the tilt factor will shrink
 by 1% every picosecond.  Note that the change is continuous, so
 running with R = 1 for 10 picoseconds does not change the tilt factor
 by a factor of 10, but by a factor of 1024 since it doubles every
-picosecond.  Also note that the initial tilt factor must be non-zero
-to use the <I>trate</I> option.
+picosecond.  Note that the <I>trate</I> value must be greater than -1.0 to
+be valid, since a value of -1.0 would mean shrink the tilt by 100% to
+a value of 0.0.  Also note that the initial tilt factor must be
+non-zero to use the <I>trate</I> option.
 </P>
 <P>Note that shear strain is defined as the tilt factor divided by the
 perpendicular box length.  The <I>erate</I> and <I>trate</I> styles control the

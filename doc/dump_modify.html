@@ -19,7 +19,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>thresh</I> or <I>unwrap</I> 
+<LI>keyword = <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
 
 <PRE>  <I>element</I> args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
@@ -31,6 +31,7 @@
   <I>precision</I> arg = power-of-10 value from 10 to 1000000
   <I>region</I> arg = region-ID or "none"
   <I>scale</I> arg = <I>yes</I> or <I>no</I>
+  <I>sort</I> arg = <I>yes</I> or <I>no</I>
   <I>thresh</I> args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
@@ -110,6 +111,12 @@ value of <I>yes</I> means atom coords are written in normalized units from
 value of <I>no</I> means they are written in absolute distance units
 (e.g. Angstroms or sigma).
 </P>
+<P>The <I>sort</I> keyword applies only to the dump <I>cfg</I> style.  A sort value
+of <I>yes</I> means atoms will be written into the CFG file in sorted
+order, sorted by the atom ID.  A value of <I>no</I> means a sort will not
+be performed and that atoms may be in an indeterminate order,
+depending on which processor owns which atoms.
+</P>
 <P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> and <I>cfg</I>
 styles.  Multiple thresholds can be specified.  Specifying "none"
 turns off all threshold criteria.  If thresholds are specified, only
@@ -147,6 +154,7 @@ box size stored with the snapshot.
 <LI>precision = 1000
 <LI>region = none
 <LI>scale = yes
+<LI>sort = no
 <LI>thresh = none
 <LI>unwrap = no 
 </UL>

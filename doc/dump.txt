@@ -91,7 +91,7 @@ collected from multiple processors.  This is always the case for the
 the {dcd} and {xtc} styles which always write atoms in sorted order.
 So does the {xyz} style if the dump group is {all}.  The {cfg} style
 supports the {sort} option of the "dump_modify"_dump_modify.html
-command which allows for allows sorting to be turned on or off.
+command which allows sorting to be turned on or off.
 
 :line
 

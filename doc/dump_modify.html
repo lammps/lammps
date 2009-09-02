@@ -19,23 +19,24 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>format</I> or <I>scale</I> or <I>image</I> or <I>flush</I> or <I>unwrap</I> or <I>every</I> or <I>precision</I> or <I>region</I> or <I>thresh</I> 
+<LI>keyword = <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>thresh</I> or <I>unwrap</I> 
 
-<PRE>  <I>format</I> arg = C-style format string for one line of output
-  <I>scale</I> arg = <I>yes</I> or <I>no</I>
-  <I>image</I> arg = <I>yes</I> or <I>no</I>
-  <I>flush</I> arg = <I>yes</I> or <I>no</I>
-  <I>unwrap</I> arg = <I>yes</I> or <I>no</I>
+<PRE>  <I>element</I> args = E1 E2 ... EN, where N = # of atom types
+    E1,...,EN = element name, e.g. C or Fe or Ga
   <I>every</I> arg = N
     N = dump every this many timesteps
+  <I>format</I> arg = C-style format string for one line of output
+  <I>flush</I> arg = <I>yes</I> or <I>no</I>
+  <I>image</I> arg = <I>yes</I> or <I>no</I>
   <I>precision</I> arg = power-of-10 value from 10 to 1000000
   <I>region</I> arg = region-ID or "none"
+  <I>scale</I> arg = <I>yes</I> or <I>no</I>
   <I>thresh</I> args = attribute operation value
     attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
     operation = "<" or "<=" or ">" or ">=" or "==" or "!="
     value = numeric value to compare to
     these 3 args can be replaced by the word "none" to turn off thresholding
-
+  <I>unwrap</I> arg = <I>yes</I> or <I>no</I> 
 </PRE>
 
 </UL>
@@ -51,71 +52,82 @@ dump_modify xtcdump precision 10000
 <P>Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
 </P>
-<P>The text-based dump styles have a default C-style format string which
-simply specifies %d for integers and %g for real values.  The <I>format</I>
-keyword can be used to override the default with a new C-style format
-string.  Do not include a trailing "\n" newline character in the
-format string.  This option has no effect on the <I>dcd</I> and <I>xtc</I> dump
-styles since they write binary files.
+<P>The <I>element</I> keyword applies only to the the dump <I>cfg</I> style.  It
+associates element names (e.g. H, C, Fe) with LAMMPS atom types, so
+that the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A>
+visualization package can render atoms with the appropriate size and
+color.  An element name is specified for each atom type (1 to Ntype)
+in the simulation.  The same element name can be given to multiple
+atom types.
 </P>
-<P>The <I>scale</I> and <I>image</I> keywords apply only to the dump <I>atom</I> style.
+<P>The <I>every</I> keyword changes the dump frequency originally specified by
+the <A HREF = "dump.html">dump</A> command to a new value which must be > 0.  The
+dump frequency cannot be changed for the dump <I>dcd</I> style.
 </P>
-<P>A scale value of <I>yes</I> means atom coords are written in normalized
-units from 0.0 to 1.0 in each box dimension.  If the simluation box is
-triclinic (tilted), then all atom coords will still be between 0.0 and
-1.0.  A value of <I>no</I> means they are written in absolute distance
-units (e.g. Angstroms or sigma).
-</P>
-<P>If the image value is <I>yes</I>, 3 flags are appended to each atom's
-coords which are the absolute box image of the atom in each dimension.
-For example, an x image flag of -2 with a normalized coord of 0.5
-means the atom is in the center of the box, but has passed thru the
-box boundary 2 times and is really 2 box lengths to the left of its
-current coordinate.  Note that for dump style <I>custom</I> these various
-values can be printed in the dump file by using the appropriate atom
-attributes in the dump command itself.
-</P>
-<P>The <I>flush</I> option determines whether a flush operation in invoked
+<P>The <I>flush</I> keyword determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style <I>xtc</I>.
 </P>
-<P>The <I>unwrap</I> option only applies to the dump <I>dcd</I> and <I>xtc</I> styles.
+<P>The text-based dump styles have a default C-style format string which
+simply specifies %d for integers and %g for real values.  The <I>format</I>
+keyword can be used to override the default with a new C-style format
+string.  Do not include a trailing "\n" newline character in the
+format string.  This option has no effect on the <I>dcd</I> and <I>xtc</I> dump
+styles since they write binary files.  Note that for the <I>cfg</I> style,
+the first two fields (atom id and type) are not actually written into
+the CFG file, though you must include formats for them in the format
+string.
+</P>
+<P>The <I>image</I> keyword applies only to the dump <I>atom</I> style.  If the
+image value is <I>yes</I>, 3 flags are appended to each atom's coords which
+are the absolute box image of the atom in each dimension.  For
+example, an x image flag of -2 with a normalized coord of 0.5 means
+the atom is in the center of the box, but has passed thru the box
+boundary 2 times and is really 2 box lengths to the left of its
+current coordinate.  Note that for dump style <I>custom</I> these various
+values can be printed in the dump file by using the appropriate atom
+attributes in the dump command itself.
+</P>
+<P>The <I>precision</I> keyword only applies to the dump <I>xtc</I> style.  A
+specified value of N means that coordinates are stored to 1/N
+nanometer accuracy, e.g. for N = 1000, the coordinates are written to
+1/1000 nanometer accuracy.
+</P>
+<P>The <I>region</I> keyword only applies to the dump <I>custom</I> and <I>cfg</I>
+styles.  If specified, only atoms in the region will be written to the
+dump file.  Only one region can be applied as a filter (the last one
+specified).  See the <A HREF = "region.html">region</A> command for more details.
+Note that a region can be defined as the "inside" or "outside" of a
+geometric shape, and it can be the "union" or "intersection" of a
+series of simpler regions.
+</P>
+<P>The <I>scale</I> keyword applies only to the dump <I>atom</I> style.  A scale
+value of <I>yes</I> means atom coords are written in normalized units from
+0.0 to 1.0 in each box dimension.  If the simluation box is triclinic
+(tilted), then all atom coords will still be between 0.0 and 1.0.  A
+value of <I>no</I> means they are written in absolute distance units
+(e.g. Angstroms or sigma).
+</P>
+<P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> and <I>cfg</I>
+styles.  Multiple thresholds can be specified.  Specifying "none"
+turns off all threshold criteria.  If thresholds are specified, only
+atoms whose attributes meet all the threshold criteria are written to
+the dump file.  The possible attributes that can be tested for are the
+same as those that can be specified in the <A HREF = "dump.html">dump custom</A>
+command.  Note that different attributes can be output by the dump
+custom command than are used as threshold criteria by the dump_modify
+command.  E.g. you can output the coordinates and stress of atoms
+whose energy is above some threshold.
+</P>
+<P>The <I>unwrap</I> keyword only applies to the dump <I>dcd</I> and <I>xtc</I> styles.
 If set to <I>yes</I>, coordinates will be written "unwrapped" by the image
 flags for each atom.  Unwrapped means that if the atom has passed thru
 a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the
 box size stored with the snapshot.
-</P>
-<P>The <I>every</I> option changes the dump frequency originally specified by
-the <A HREF = "dump.html">dump</A> command to a new value which must be > 0.  The
-dump frequency cannot be changed for the dump <I>dcd</I> style.
-</P>
-<P>The <I>precision</I> option only applies to the dump <I>xtc</I> style.  A
-specified value of N means that coordinates are stored to 1/N
-nanometer accuracy, e.g. for N = 1000, the coordinates are written to
-1/1000 nanometer accuracy.
-</P>
-<P>The <I>region</I> keyword only applies to the dump <I>custom</I> style.  If
-specified, only atoms in the region will be written to the dump file.
-Only one region can be applied as a filter (the last one specified).
-See the <A HREF = "region.html">region</A> command for more details.  Note that a
-region can be defined as the "inside" or "outside" of a geometric
-shape, and it can be the "union" or "intersection" of a series of
-simpler regions.
-</P>
-<P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> style.
-Multiple thresholds can be specified.  Specifying "none" turns off
-all threshold criteria.  If thresholds are specified, only atoms
-whose attributes meet all the threshold criteria are written to the
-dump file.  The possible attributes that can be tested for are the
-same as those that can be specified in the <A HREF = "dump.html">dump custom</A>
-command.  Note that different attributes can be output by the dump
-custom command than are used as threshold criteria by the dump_modify
-command.  E.g. you can output the coordinates and stress of atoms
-whose energy is above some threshold.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -125,10 +137,17 @@ whose energy is above some threshold.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are format = %d and %g for each integer or
-floating point value, scale = yes, image = no, flush = yes (except for
-the dump <I>xtc</I> style), unwrap = no, every = whatever it was set to via
-the <A HREF = "dump.html">dump</A> command, precision = 1000, region = none, and
-thresh = none.
+<P>The option defaults are
 </P>
+<UL><LI>element = "C" for every atom type
+<LI>every = whatever it was set to via the <A HREF = "dump.html">dump</A> command
+<LI>flush = yes (except for the dump <I>xtc</I> style)
+<LI>format = %d and %g for each integer or floating point value
+<LI>image = no
+<LI>precision = 1000
+<LI>region = none
+<LI>scale = yes
+<LI>thresh = none
+<LI>unwrap = no 
+</UL>
 </HTML>

@@ -19,7 +19,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>bond</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>custom</I> 
+<LI>style = <I>atom</I> or <I>bond</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>custom</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -29,6 +29,7 @@
 
 <PRE>  <I>atom</I> args = none
   <I>bond</I> args = none
+  <I>cfg</I> args = same as <I>custom</I> args, see below
   <I>dcd</I> args = none
   <I>xtc</I> args = none
   <I>xyz</I> args = none
@@ -71,6 +72,8 @@
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
+dump 2 inner cfg 10 dump.snap.*.cfg id type xs ys zs vx vy vz
+dump snap all cfg 100 dump.config.*.cfg id type xs ys zs id type c_Stress<B>2</B>
 dump 1 all xtc 1000 file.xtc 
 </PRE>
 <P><B>Description:</B>
@@ -96,7 +99,9 @@ collected from multiple processors.  This is always the case for the
 <I>atom</I>, <I>bond</I>, and <I>custom</I> styles.  It is also the case for the
 <I>xyz</I> style if the dump group is not <I>all</I>.  It is not the case for
 the <I>dcd</I> and <I>xtc</I> styles which always write atoms in sorted order.
-So does the <I>xyz</I> style if the dump group is <I>all</I>.
+So does the <I>xyz</I> style if the dump group is <I>all</I>.  The <I>cfg</I> style
+supports the <I>sort</I> option of the <A HREF = "dump_modify.html">dump_modify</A>
+command which allows for allows sorting to be turned on or off.
 </P>
 <HR>
 
@@ -151,6 +156,21 @@ assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
 the timestep.  An explanation of the dump custom quantities is given
 below.
+</P>
+<P>Style <I>cfg</I> has the same command syntax as style <I>custom</I> and writes
+extended CFG format files, as used by the
+<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization
+package.  Since the extended CFG format uses a single snapshot of the
+system per file, a wild-card "*" must be included in the filename, as
+discussed below.  The list of atom attributes for style <I>cfg</I> must
+begin with "id tag xs ys zs", since these quantities are needed to
+write the CFG files in the appropriate format (though the "id" and
+"type" fields do not appear explicitly in the file).  Any remaining
+attributes will be stored as "auxiliary properties" in the CFG files.
+Note that you will typically want to use the <A HREF = "dump_modify.html">dump_modify
+element</A> command with CFG-formatted files, to
+associate element names with atom types, so that AtomEye can render
+atoms appropriately.
 </P>
 <P>The <I>dcd</I> style writes DCD files, a standard atomic trajectory format
 used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
@@ -243,7 +263,7 @@ styles.
 <HR>
 
 <P>This section explains the atom quantities that can be specified as
-part of the <I>custom</I> style.
+part of the <I>custom</I> and <I>cfg</I> styles.
 </P>
 <P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
 <I>fz</I>, <I>q</I> keywords are self-explanatory.

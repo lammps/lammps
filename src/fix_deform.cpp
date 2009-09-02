@@ -103,6 +103,8 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
 	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
+	if (set[index].rate <= -1.0) 
+	  error->all("Fix deform trate must be > -1.0");
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
 	set[index].style = VOLUME;
@@ -152,6 +154,8 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
 	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
+	if (set[index].rate <= -1.0) 
+	  error->all("Fix deform trate must be > -1.0");
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
 	if (iarg+4 > narg) error->all("Illegal fix deform command");

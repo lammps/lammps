@@ -45,8 +45,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
 
   nelements = 0;
   elements = NULL;
-  nparams = 0;
-  maxparam = 0;
+  nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
 }
@@ -326,7 +325,7 @@ void PairSW::read_file(char *file)
 
   memory->sfree(params);
   params = NULL;
-  nparams = 0;
+  nparams = maxparam = 0;
 
   // open file on proc 0
 

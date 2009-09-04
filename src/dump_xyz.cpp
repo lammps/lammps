@@ -45,9 +45,6 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
   }
 
-  // one-time file open
-
-  if (multifile == 0) openfile();
   ntotal = 0;
 }
 
@@ -74,6 +71,10 @@ void DumpXYZ::init()
   format = new char[n];
   strcpy(format,str);
   strcat(format,"\n");
+
+  // open single file, one time only
+
+  if (multifile == 0) openfile();
 }
 
 /* ----------------------------------------------------------------------

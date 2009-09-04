@@ -30,10 +30,6 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   scale_flag = 1;
   image_flag = 0;
   format_default = NULL;
-
-  // one-time file open
-
-  if (multifile == 0) openfile();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,6 +95,10 @@ void DumpAtom::init()
   if (binary) write_choice = &DumpAtom::write_binary;
   else if (image_flag == 0) write_choice = &DumpAtom::write_noimage;
   else if (image_flag == 1) write_choice = &DumpAtom::write_image;
+
+  // open single file, one time only
+
+  if (multifile == 0) openfile();
 }
 
 /* ---------------------------------------------------------------------- */

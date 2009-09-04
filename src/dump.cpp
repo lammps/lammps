@@ -53,6 +53,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_user = NULL;
 
   sort_flag = 0;
+  append_flag = 0;
 
   maxbuf = 0;
   buf = NULL;
@@ -65,6 +66,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   //   else if ends in .gz = gzipped text file
   //   else ASCII text file
 
+  singlefile_opened = 0;
   compressed = 0;
   binary = 0;
   multifile = 0;
@@ -233,7 +235,22 @@ void Dump::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"format") == 0) {
+    if (strcmp(arg[iarg],"append") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) append_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) append_flag = 0;
+      else error->all("Illegal dump_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"every") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      int n = atoi(arg[iarg+1]);
+      if (n <= 0) error->all("Illegal dump_modify command");
+      int idump;
+      for (idump = 0; idump < output->ndump; idump++)
+	if (strcmp(id,output->dump[idump]->id) == 0) break;
+      output->dump_every[idump] = n;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
       delete [] format_user;
       format_user = NULL;
@@ -248,15 +265,6 @@ void Dump::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
       else error->all("Illegal dump_modify command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
-      int n = atoi(arg[iarg+1]);
-      if (n <= 0) error->all("Illegal dump_modify command");
-      int idump;
-      for (idump = 0; idump < output->ndump; idump++)
-	if (strcmp(id,output->dump[idump]->id) == 0) break;
-      output->dump_every[idump] = n;
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
@@ -290,6 +298,11 @@ double Dump::memory_usage()
 
 void Dump::openfile()
 {
+  // single file, already opened, so just return
+
+  if (singlefile_opened) return;
+  if (multifile == 0) singlefile_opened = 1;
+
   // if one file per timestep, replace '*' with current timestep
 
   char *filecurrent;
@@ -315,6 +328,8 @@ void Dump::openfile()
 #endif
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
+    } else if (append_flag) {
+      fp = fopen(filecurrent,"a");
     } else {
       fp = fopen(filecurrent,"w");
     }

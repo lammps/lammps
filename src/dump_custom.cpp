@@ -112,10 +112,6 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     strcat(columns,arg[iarg]);
     strcat(columns," ");
   }
-
-  // one-time file open
-
-  if (multifile == 0) openfile();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,6 +215,10 @@ void DumpCustom::init()
     if (ivariable < 0) error->all("Could not find dump custom variable name");
     variable[i] = ivariable;
   }
+
+  // open single file, one time only
+
+  if (multifile == 0) openfile();
 }
 
 /* ---------------------------------------------------------------------- */

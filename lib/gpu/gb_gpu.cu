@@ -116,6 +116,7 @@ __global__ void kernel_pack_nbor_fast(int *dev_nbor, const int nbor_pitch,
     form[ii]=_form_(itype,jtype);
   }
   ii+=INT_MUL(blockIdx.x,blockDim.x)+start;
+  __syncthreads();
 
   if (ii<inum) {
     int *nbor=dev_nbor+ii;

@@ -111,6 +111,7 @@ __global__ void kernel_gayberne(const numtyp *gum, const numtyp *special_lj,
   if (ii<4)
     sp_lj[ii]=special_lj[ii];    
   ii+=INT_MUL(blockIdx.x,blockDim.x);                                  
+  __syncthreads();
 
   if (ii<inum) {
   
@@ -410,6 +411,7 @@ __global__ void kernel_sphere_gb(const numtyp *gum, const numtyp *special_lj,
   if (ii<4)
     sp_lj[ii]=special_lj[ii];    
   ii+=INT_MUL(blockIdx.x,blockDim.x)+start;
+  __syncthreads();
 
   if (ii<inum) {
   
@@ -646,6 +648,7 @@ __global__ void kernel_lj(const numtyp *special_lj, const int *dev_nbor,
   if (ii<4)
     sp_lj[ii]=special_lj[ii];    
   ii+=INT_MUL(blockIdx.x,blockDim.x)+start;
+  __syncthreads();
 
   if (ii<inum) {
   
@@ -770,6 +773,7 @@ __global__ void kernel_lj_fast(const numtyp *special_lj, const int *dev_nbor,
     }
   }
   ii+=INT_MUL(blockIdx.x,blockDim.x)+start;
+  __syncthreads();
   
   if (ii<inum) {
   

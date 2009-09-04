@@ -147,16 +147,21 @@ engineering strain rate".  The units of the specified strain rate are
 1/time.  See the "units"_units.html command for the time units
 associated with different choices of simulation units,
 e.g. picoseconds for "metal" units).  Tensile strain is unitless and
-is defined as delta/length0, where length0 is the original box length
-and delta is the change relative to the original length.  Thus if the
-{erate} R is 0.1 and time units are picoseconds, this means the box
+is defined as delta/L0, where L0 is the original box length and delta
+is the change relative to the original length.  The box length L as a
+function of time will change as
+
+L(t) = L0 (1 + erate*dt) :pre
+
+where dt is the elapsed time (in time units).  Thus if {erate} R is
+specified as 0.1 and time units are picoseconds, this means the box
 length will increase by 10% of its original length every picosecond.
-I.e. strain after 1 psec = 0.1, strain after 2 psec = 0.2, etc.
-R = -0.01 means the box length will shrink by 1% of its original
-length every picosecond.  Note that for an "engineering" rate the
-change is based on the original box length, so running with R = 1 for
-10 picoseconds expands the box length by a factor of 10, not 1024 as
-it would with {trate}.
+I.e. strain after 1 psec = 0.1, strain after 2 psec = 0.2, etc.  R =
+-0.01 means the box length will shrink by 1% of its original length
+every picosecond.  Note that for an "engineering" rate the change is
+based on the original box length, so running with R = 1 for 10
+picoseconds expands the box length by a factor of 11 (strain of 10),
+which is different that what the {trate} style would induce.
 
 The {trate} style changes a dimension of the box at a "constant true
 strain rate".  Note that this is not an "engineering strain rate", as
@@ -166,20 +171,24 @@ time from its initial to final value.  The units of the specified
 strain rate are 1/time.  See the "units"_units.html command for the
 time units associated with different choices of simulation units,
 e.g. picoseconds for "metal" units).  Tensile strain is unitless and
-is defined as delta/length0, where length0 is the original box length
-and delta is the change relative to the original length.  Thus if the
-{trate} R is 0.1 and time units are picoseconds, this means the box
-length will increase by 10% of its current length every picosecond.
-I.e. strain after 1 psec = 0.1, strain after 2 psec = 0.21, etc.  R =
-1 or 2 means the box length will double or triple every picosecond.  R
-= -0.01 means the box length will shrink by 1% of its current length
-every picosecond.  Note that for a "true" rate the change is
-continuous and based on the current length, so running with R = 1 for
-10 picoseconds does not expand the box length by a factor of 10 as it
-would with {erate}, but by a factor of 1024 since it doubles every
-picosecond.  Note that the {trate} value must be greater than -1.0 to
-be valid, since a value of -1.0 would mean shrink the box size by 100%
-to a value of 0.0.
+is defined as delta/L0, where L0 is the original box length and delta
+is the change relative to the original length.
+
+The box length L as a function of time will change as
+
+L(t) = L0 exp(trate*dt) :pre
+
+where dt is the elapsed time (in time units).  Thus if {trate} R is
+specified as ln(1.1) and time units are picoseconds, this means the
+box length will increase by 10% of its current (not original) length
+every picosecond.  I.e. strain after 1 psec = 0.1, strain after 2 psec
+= 0.21, etc.  R = ln(2) or ln(3) means the box length will double or
+triple every picosecond.  R = ln(0.99) means the box length will
+shrink by 1% of its current length every picosecond.  Note that for a
+"true" rate the change is continuous and based on the current length,
+so running with R = ln(2) for 10 picoseconds does not expand the box
+length by a factor of 11 as it would with {erate}, but by a factor of
+1024 since the box length will double every picosecond.
 
 Note that to change the volume (or cross-sectional area) of the
 simulation box at a constant rate, you can change multiple dimensions
@@ -263,15 +272,21 @@ e.g. picoseconds for "metal" units).  Shear strain is unitless and is
 defined as offset/length, where length is the box length perpendicular
 to the shear direction (e.g. y box length for xy deformation) and
 offset is the displacement distance in the shear direction (e.g. x
-direction for xy deformation) from the unstrained orientation.  Thus
-if the {erate} R is 0.1 and time units are picoseconds, this means the
-shear strain will increase by 0.1 every picosecond.  I.e. if the xy
-shear strain was initially 0.0, then strain after 1 psec = 0.1, strain
-after 2 psec = 0.2, etc.  Thus the tilt factor would be 0.0 at time 0,
-0.1*ybox at 1 psec, 0.2*ybox at 2 psec, etc, where ybox is the
-original y box length.  R = 1 or 2 means the tilt factor will increase
-by 1 or 2 every picosecond.  R = -0.01 means a decrease in shear
-strain by 0.01 every picosecond.
+direction for xy deformation) from the unstrained orientation.
+
+The tilt factor T as a function of time will change as
+
+T(t) = T0 + erate*dt :pre
+
+where T0 is the initial tilt factor and dt is the elapsed time (in
+time units).  Thus if {erate} R is specified as 0.1 and time units are
+picoseconds, this means the shear strain will increase by 0.1 every
+picosecond.  I.e. if the xy shear strain was initially 0.0, then
+strain after 1 psec = 0.1, strain after 2 psec = 0.2, etc.  Thus the
+tilt factor would be 0.0 at time 0, 0.1*ybox at 1 psec, 0.2*ybox at 2
+psec, etc, where ybox is the original y box length.  R = 1 or 2 means
+the tilt factor will increase by 1 or 2 every picosecond.  R = -0.01
+means a decrease in shear strain by 0.01 every picosecond.
 
 The {trate} style changes a tilt factor at a "constant true shear
 strain rate".  Note that this is not an "engineering shear strain
@@ -285,19 +300,24 @@ units).  Shear strain is unitless and is defined as offset/length,
 where length is the box length perpendicular to the shear direction
 (e.g. y box length for xy deformation) and offset is the displacement
 distance in the shear direction (e.g. x direction for xy deformation)
-from the unstrained orientation.  Thus if the {trate} R is 0.1 and
-time units are picoseconds, this means the shear strain or tilt factor
-will increase by 10% every picosecond.  I.e. if the xy shear strain
-was initially 0.1, then strain after 1 psec = 0.11, strain after 2
-psec = 0.121, etc.  R = 1 or 2 means the tilt factor will double or
-triple every picosecond.  R = -0.01 means the tilt factor will shrink
-by 1% every picosecond.  Note that the change is continuous, so
-running with R = 1 for 10 picoseconds does not change the tilt factor
-by a factor of 10, but by a factor of 1024 since it doubles every
-picosecond.  Note that the {trate} value must be greater than -1.0 to
-be valid, since a value of -1.0 would mean shrink the tilt by 100% to
-a value of 0.0.  Also note that the initial tilt factor must be
-non-zero to use the {trate} option.
+from the unstrained orientation.
+
+The tilt factor T as a function of time will change as
+
+T(t) = T0 exp(trate*dt) :pre
+
+where T0 is the initial tilt factor and dt is the elapsed time (in
+time units).  Thus if {trate} R is specified as ln(1.1) and time units
+are picoseconds, this means the shear strain or tilt factor will
+increase by 10% every picosecond.  I.e. if the xy shear strain was
+initially 0.1, then strain after 1 psec = 0.11, strain after 2 psec =
+0.121, etc.  R = ln(2) or ln(3) means the tilt factor will double or
+triple every picosecond.  R = ln(0.99) means the tilt factor will
+shrink by 1% every picosecond.  Note that the change is continuous, so
+running with R = ln(2) for 10 picoseconds does not change the tilt
+factor by a factor of 10, but by a factor of 1024 since it doubles
+every picosecond.  Note that the initial tilt factor must be non-zero
+to use the {trate} option.
 
 Note that shear strain is defined as the tilt factor divided by the
 perpendicular box length.  The {erate} and {trate} styles control the
@@ -306,12 +326,12 @@ If this is not the case (e.g. it changes due to another fix deform
 parameter), then this effect on the shear strain is ignored.
 
 The {wiggle} style oscillates the specified tilt factor sinusoidally
-with the specified amplitude and period.  I.e. the tilt factor Tf as a
+with the specified amplitude and period.  I.e. the tilt factor T as a
 function of time is given by
 
-Tf(t) = Tf0 + A sin(2*pi t/Tp) :pre
+T(t) = T0 + A sin(2*pi t/Tp) :pre
 
-where Tf0 is its initial value.  If the amplitude A is a positive
+where T0 is its initial value.  If the amplitude A is a positive
 number the tilt factor initially becomes more positive, then more
 negative, etc.  If A is negative then the tilt factor initially
 becomes more negative, then more positive, etc.  The amplitude can be

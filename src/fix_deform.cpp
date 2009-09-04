@@ -103,8 +103,6 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
 	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
-	if (set[index].rate <= -1.0) 
-	  error->all("Fix deform trate must be > -1.0");
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
 	set[index].style = VOLUME;
@@ -154,8 +152,6 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	if (iarg+3 > narg) error->all("Illegal fix deform command");
 	set[index].style = TRATE;
 	set[index].rate = atof(arg[iarg+2]);
-	if (set[index].rate <= -1.0) 
-	  error->all("Fix deform trate must be > -1.0");
 	iarg += 3;
       } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
 	if (iarg+4 > narg) error->all("Illegal fix deform command");
@@ -391,9 +387,9 @@ void FixDeform::init()
 	error->all("Final box dimension due to fix deform is < 0.0");
     } else if (set[i].style == TRATE) {
       set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) - 
-	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
+	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
       set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
-	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
+	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
     } else if (set[i].style == WIGGLE) {
       set[i].lo_stop = set[i].lo_start -
 	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
@@ -423,7 +419,7 @@ void FixDeform::init()
       if (i == 5) set[i].tilt_stop = set[i].tilt_start + 
 		    delt*set[i].rate * (set[1].hi_start-set[1].lo_start);
     } else if (set[i].style == TRATE) {
-      set[i].tilt_stop = set[i].tilt_start * pow(1.0+set[i].rate,delt);
+      set[i].tilt_stop = set[i].tilt_start * exp(set[i].rate*delt);
     } else if (set[i].style == WIGGLE) {
       set[i].tilt_stop = set[i].tilt_start +
 	set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
@@ -595,9 +591,9 @@ void FixDeform::end_of_step()
     if (set[i].style == TRATE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) - 
-	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
+	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
       set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) + 
-	0.5*((set[i].hi_start-set[i].lo_start)*pow(1.0+set[i].rate,delt));
+	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
       h_rate[i] = set[i].rate * domain->h[i];
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == WIGGLE) {
@@ -682,7 +678,7 @@ void FixDeform::end_of_step()
     for (i = 3; i < 6; i++) {
       if (set[i].style == TRATE) {
 	double delt = (update->ntimestep - update->beginstep) * update->dt;
-	set[i].tilt_target = set[i].tilt_start * pow(1.0+set[i].rate,delt);
+	set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
 	h_rate[i] = set[i].rate * domain->h[i];
       } else if (set[i].style == WIGGLE) {
 	double delt = (update->ntimestep - update->beginstep) * update->dt;

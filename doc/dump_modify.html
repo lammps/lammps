@@ -19,9 +19,10 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
+<LI>keyword = <I>append</I> or <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
 
-<PRE>  <I>element</I> args = E1 E2 ... EN, where N = # of atom types
+<PRE>  <I>append</I> arg = <I>yes</I> or <I>no</I>
+  <I>element</I> args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   <I>every</I> arg = N
     N = dump every this many timesteps
@@ -52,6 +53,17 @@ dump_modify xtcdump precision 10000
 </P>
 <P>Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
+</P>
+<P>The <I>append</I> keyword applies to all dump styles except <I>cfg</I> and <I>xtc</I>
+and <I>dcd</I>.  It also applies only to text output files, not to binary
+or gzipped files.  If specified as <I>yes</I>, then dump snapshots are
+appended to the end of an existing dump file.  If specified as <I>no</I>,
+then a new dump file will be created which will overwrite an existing
+file with the same name.  This keyword can only take effect if the
+dump_modify command is used after the <A HREF = "dump.html">dump</A> command, but
+before the first command that causes dump snapshots to be output,
+e.g. a <A HREF = "run.html">run</A> or <A HREF = "minimize.html">minimize</A> command.  Once the
+dump file has been opened, this keyword has no further effect.
 </P>
 <P>The <I>element</I> keyword applies only to the the dump <I>cfg</I> style.  It
 associates element names (e.g. H, C, Fe) with LAMMPS atom types, so
@@ -146,7 +158,8 @@ box size stored with the snapshot.
 </P>
 <P>The option defaults are
 </P>
-<UL><LI>element = "C" for every atom type
+<UL><LI>append = no
+<LI>element = "C" for every atom type
 <LI>every = whatever it was set to via the <A HREF = "dump.html">dump</A> command
 <LI>flush = yes (except for the dump <I>xtc</I> style)
 <LI>format = %d and %g for each integer or floating point value

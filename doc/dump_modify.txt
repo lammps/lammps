@@ -14,7 +14,8 @@ dump_modify dump-ID keyword values ... :pre
 
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {every} or {flush} or {format} or {image} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {every} or {flush} or {format} or {image} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+  {append} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   {every} arg = N
@@ -45,6 +46,17 @@ dump_modify xtcdump precision 10000 :pre
 
 Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
+
+The {append} keyword applies to all dump styles except {cfg} and {xtc}
+and {dcd}.  It also applies only to text output files, not to binary
+or gzipped files.  If specified as {yes}, then dump snapshots are
+appended to the end of an existing dump file.  If specified as {no},
+then a new dump file will be created which will overwrite an existing
+file with the same name.  This keyword can only take effect if the
+dump_modify command is used after the "dump"_dump.html command, but
+before the first command that causes dump snapshots to be output,
+e.g. a "run"_run.html or "minimize"_minimize.html command.  Once the
+dump file has been opened, this keyword has no further effect.
 
 The {element} keyword applies only to the the dump {cfg} style.  It
 associates element names (e.g. H, C, Fe) with LAMMPS atom types, so
@@ -139,6 +151,7 @@ box size stored with the snapshot.
 
 The option defaults are
 
+append = no
 element = "C" for every atom type
 every = whatever it was set to via the "dump"_dump.html command
 flush = yes (except for the dump {xtc} style)

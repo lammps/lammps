@@ -167,8 +167,20 @@ simulation could incur high memory and communication costs.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+This fix writes the state of the electronic subsystem and the energy
+exchange between the subsystems to "binary restart
+files"_restart.html.  See the "read_restart"_read_restart.html command
+for info on how to re-specify a fix in an input script that reads a
+restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+
+Because the state of the random number generator is not saved in the
+restart files, this means you cannot do "exact" restarts with this
+fix, where the simulation continues on the same as if no restart had
+taken place.  However, in a statistical sense, a restarted simulation
+should produce the same behavior.
+
+None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global scalar or vector or per-atom
 quantities are stored by this fix for access by various "output
 commands"_Section_howto.html#4_15.  No parameter of this fix can be

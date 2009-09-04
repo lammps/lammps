@@ -6,7 +6,6 @@
 #   module load libraries/fftw-2.1.5_openmpi-1.2.2_mx_intel-9.1-f040-c045
 # fi;
 
-
 SHELL = /bin/sh
 .IGNORE:
 

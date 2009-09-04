@@ -50,9 +50,11 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 2;
   scalar_vector_freq = 1;
   extvector = 1;
-  nevery = 1;  
+  nevery = 1;
+  restart_peratom = 1;
+  restart_global = 1;
 
-  int seed = atoi(arg[3]);
+  seed = atoi(arg[3]);
   electronic_specific_heat = atof(arg[4]);
   electronic_density = atof(arg[5]);
   electronic_thermal_conductivity = atof(arg[6]);
@@ -144,7 +146,17 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
  
   flangevin = NULL;
   grow_arrays(atom->nmax);
+
+  // zero out the flangevin array
+
+  for (int i = 0; i < atom->nmax; i++) {
+    flangevin[i][0] = 0;
+    flangevin[i][1] = 0;
+    flangevin[i][2] = 0;
+  }
+
   atom->add_callback(0);
+  atom->add_callback(1);
 
   // set initial electron temperatures from user input file
 
@@ -221,10 +233,10 @@ void FixTTM::init()
 void FixTTM::setup(int vflag)
 {
   if (strcmp(update->integrate_style,"verlet") == 0)
-    post_force(vflag);
+    post_force_setup(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
+    post_force_respa_setup(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
@@ -283,9 +295,35 @@ void FixTTM::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixTTM::post_force_setup(int vflag)
+{
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  // apply langevin forces that have been stored from previous run
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      f[i][0] += flangevin[i][0];
+      f[i][1] += flangevin[i][1];
+      f[i][2] += flangevin[i][2];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixTTM::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTTM::post_force_respa_setup(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_force_setup(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -559,4 +597,99 @@ double FixTTM::compute_vector(int n)
   if (n == 0) return e_energy;
   if (n == 1) return transfer_energy;
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write 
+------------------------------------------------------------------------- */
+
+void FixTTM::write_restart(FILE *fp)
+{
+ 
+  int n = 0;
+  double list[1 + nxnodes*nynodes*nznodes];  
+  
+  list[n++] = seed;
+ 
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        list[n++] =  T_electron[ixnode][iynode][iznode];
+  
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(&list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix 
+------------------------------------------------------------------------- */
+
+void FixTTM::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+  
+  // the seed must be changed from the initial seed
+  seed = static_cast<int> (2*list[n++]);  
+  
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        T_electron[ixnode][iynode][iznode] = list[n++];  
+  
+  delete random;
+  random = new RanMars(lmp,seed+comm->me);
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+------------------------------------------------------------------------- */
+
+int FixTTM::pack_restart(int i, double *buf)
+{
+  buf[0] = 4;
+  buf[1] = flangevin[i][0];
+  buf[2] = flangevin[i][1];
+  buf[3] = flangevin[i][2];
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+------------------------------------------------------------------------- */
+
+void FixTTM::unpack_restart(int nlocal, int nth)
+{
+  double **extra = atom->extra;
+
+  // skip to Nth set of extra values
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
+  m++;
+
+  flangevin[nlocal][0] = extra[nlocal][m++];
+  flangevin[nlocal][1] = extra[nlocal][m++];
+  flangevin[nlocal][2] = extra[nlocal][m++];
+}
+
+/* ----------------------------------------------------------------------
+   maxsize of any atom's restart data
+------------------------------------------------------------------------- */
+
+int FixTTM::maxsize_restart()
+{
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
+------------------------------------------------------------------------- */
+
+int FixTTM::size_restart(int nlocal)
+{
+  return 4;
 }

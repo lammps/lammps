@@ -27,8 +27,16 @@ class FixTTM : public Fix {
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  void post_force_setup(int);
+  void post_force_respa_setup(int, int, int);
   void end_of_step();
   void reset_dt();
+  void write_restart(FILE *);
+  void restart(char *);
+  int pack_restart(int, double *);
+  void unpack_restart(int, int);
+  int size_restart(int);
+  int maxsize_restart();
   double memory_usage();
   void grow_arrays(int); 
   double compute_vector(int);
@@ -37,6 +45,7 @@ class FixTTM : public Fix {
   int me;
   int nfileevery;
   int nlevels_respa;
+  int seed;
   class RanMars *random;
   FILE *fp,*fpr;
   int nxnodes,nynodes,nznodes,total_nnodes;

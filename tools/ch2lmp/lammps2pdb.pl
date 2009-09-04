@@ -776,7 +776,8 @@
     my $subject		= "item: ".lc(shift(@_));
     my $advance		= 1;
 
-    while (!eof(TRAJECT)&&(lc(join(" ", split(" ", <TRAJECT>))) ne $subject)) {}
+    while (!eof(TRAJECT)&&(substr(lc(join(" ", split(" ", <TRAJECT>))),
+				  0,length($subject)) ne $subject)) {}
   }
   
   

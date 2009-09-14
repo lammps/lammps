@@ -1,4 +1,4 @@
-"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+ "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -153,7 +153,7 @@ extended CFG format files, as used by the
 package.  Since the extended CFG format uses a single snapshot of the
 system per file, a wild-card "*" must be included in the filename, as
 discussed below.  The list of atom attributes for style {cfg} must
-begin with "id tag xs ys zs", since these quantities are needed to
+begin with "id type xs ys zs", since these quantities are needed to
 write the CFG files in the appropriate format (though the "id" and
 "type" fields do not appear explicitly in the file).  Any remaining
 attributes will be stored as "auxiliary properties" in the CFG files.

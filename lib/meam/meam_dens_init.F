@@ -158,7 +158,7 @@ c     Now compute derivatives
               cikj = (2.d0*(xik+xjk) + a - 2.d0)/a
               Cmax = Cmax_meam(elti,eltj,eltk)
               Cmin = Cmin_meam(elti,eltj,eltk)
-              if (cikj.ge.Cmax.or.cikj.lt.0.d0) then
+              if (cikj.ge.Cmax) then
                 goto 10
 c     Note that we never have 0<cikj<Cmin here, else sij=0 (rejected above)
               else
@@ -368,7 +368,7 @@ c     if rjksq > ebound*rijsq, atom k is definitely outside the ellipse
         cikj = (2.d0*(xik+xjk) + a - 2.d0)/a
         Cmax = Cmax_meam(elti,eltj,eltk)
         Cmin = Cmin_meam(elti,eltj,eltk)
-        if (cikj.ge.Cmax.or.cikj.lt.0.d0) then
+        if (cikj.ge.Cmax) then
           goto 10
         else if (cikj.le.Cmin) then
           sij = 0.d0

@@ -562,8 +562,7 @@ void FixDeform::pre_exchange()
   double **x = atom->x;
   int *image = atom->image;
   int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    domain->remap(x[i],image[i]);
+  for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
   domain->x2lamda(atom->nlocal);
   comm->irregular();

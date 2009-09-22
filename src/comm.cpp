@@ -984,8 +984,9 @@ void Comm::reverse_comm_compute(Compute *compute)
    can be used in place of exchange()
    unlike exchange(), allows atoms to have moved arbitrarily long distances
    first setup irregular comm pattern, then invoke it
-   for triclinic,
-     atoms must be in lamda coords (0-1) before irregular is called
+   atoms must be remapped to be inside simulation box before this is called
+   for triclinic:
+     atoms must be in lamda coords (0-1) before this is called
 ------------------------------------------------------------------------- */
 
 void Comm::irregular()
@@ -1012,6 +1013,8 @@ void Comm::irregular()
   // loop over atoms, flag any that are not in my sub-box
   // fill buffer with atoms leaving my box, using < and >=
   // assign which proc it belongs to via irregular_lookup()
+  // if irregular_lookup() returns me, due to round-off
+  //   in triclinic x2lamda(), then keep atom and don't send
   // when atom is deleted, fill it in with last atom
 
   AtomVec *avec = atom->avec;
@@ -1028,13 +1031,15 @@ void Comm::irregular()
     if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
 	x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
 	x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
-      if (nsend > maxsend) grow_send(nsend,1);
-      sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
-      nsend += sizes[nsendatom];
       proclist[nsendatom] = irregular_lookup(x[i]);
-      nsendatom++;
-      avec->copy(nlocal-1,i);
-      nlocal--;
+      if (proclist[nsendatom] != me) {
+	if (nsend > maxsend) grow_send(nsend,1);
+	sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
+	nsend += sizes[nsendatom];
+	nsendatom++;
+	avec->copy(nlocal-1,i);
+	nlocal--;
+      } else i++;
     } else i++;
   }
   atom->nlocal = nlocal;

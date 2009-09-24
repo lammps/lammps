@@ -4,8 +4,9 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-# LINKFORT & FORTLIB settings can be blank if not using LAMMPS Fortran libs
-# LINKGPU & GPULIB settings can be blank if not using LAMMPS gpu lib
+# LINKFORT/FORTLIB settings can be removed if not using meam or reax packages
+# LINKBLAS/BLASLIB settings can be removed if not using user-atc package
+# LINKGPU/GPULIB settings can be removed if not using gpu package
 
 include		Makefile.package
 
@@ -14,12 +15,14 @@ CCFLAGS =	-O -DFFT_NONE -I../STUBS $(PKGINC)
 DEPFLAGS =	-M
 LINK =		g++
 LINKFORT =	-L/opt/intel/fce/10.0.023/lib
+LINKBLAS =	
 LINKGPU =	
-LINKFLAGS =	-O -L../STUBS $(PKGPATH) $(LINKFORT) $(LINKGPU)
+LINKFLAGS =	-O -L../STUBS $(PKGPATH) $(LINKFORT) $(LINKBLAS) $(LINKGPU)
 USRLIB =	-lmpi $(PKGLIB)
 FORTLIB =	-lifcore -lsvml -lompstub -limf
+BLASLIB =	
 GPULIB =	
-SYSLIB =	$(FORTLIB)  $(GPULIB)
+SYSLIB =	$(FORTLIB) $(BLASLIB) $(GPULIB)
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

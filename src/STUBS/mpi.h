@@ -30,6 +30,7 @@
 #define MPI_MIN 3
 #define MPI_MAXLOC 4
 #define MPI_MINLOC 5
+#define MPI_LOR 6
 
 #define MPI_ANY_SOURCE -1
 

@@ -1,0 +1,226 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix atc command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID groupID atc type paramfile 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>atc = style name of this fix command 
+
+<LI>type = <I>thermal</I> or <I>two_temperature</I> or <I>hardy</I> 
+
+<LI> <I>thermal</I> = thermal coupling with field: temperature
+ <I>two_temperature</I> = electron-phonon coupling with field, temperature and electron_temperature
+ <I>hardy</I> = Hardy on-the-fly post-processing
+paramfile = file with material parameters (not specified for <I>hardy</I> type) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix AtC atc_atoms atc thermal Ar_thermal.dat
+fix AtC atc_atoms atc transfer hardy 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix creates a coupled finite element (FE) and molecular dynamics
+(MD) simulation and/or an on-the-fly estimation of continuum fields.
+Interscale operators are defined that construct continuum fields from
+atomic data.  Coupled simulations use FE projection approximated on a
+discrete field.  Currently, coupling is restricted to thermal physics.
+The Hardy module can use either FE projection or integration Kernels
+evaluated at mesh points.
+</P>
+<P>Coupling methods enable appropriate corrections to the atomic data to
+be made based on the FE field.  For example, a Gaussian isokinetic
+thermostat can apply heat sources to the atoms that varies in space on
+the same scale as the FE element size.  Meshes are not created
+automatically and must be specified on LAMMPS regions with prescribed
+element sizes.  Note that mesh computations and storage run in serial
+(not parallelized) so performance will degrade when large element
+counts are used.
+</P>
+<P>Note that coupling and post-processing can be combined in the same
+simulations using separate fix atc commands.
+</P>
+<P>For detailed exposition of the theory and algorithms implemented in
+this fix, please see the papers <A HREF = "#Wagner">here</A> and <A HREF = "#Zimmerman">here</A>.
+Please refer to the standard finite element (FE) texts, such as <A HREF = "#Hughes">this
+book</A>, for the basics of FE simulation.
+</P>
+<HR>
+
+<P>Thermal and two_temperature (coupling) types use a Verlet
+time-integration algorithm.  The hardy type does not contain its own
+time-integrator and must be used with a separate fix that does contain
+one, e.g. <A HREF = "fix_nve.html<A HREF = "fix_nvt.html">>fix nve</A>, fix nvt</A>, etc.
+</P>
+<P>A set of example input files with the attendant material files are
+included in the examples/USER/atc directory of the LAMMPS
+distribution.
+</P>
+<P>An extensive set of additional documentation pages for the options
+turned on via the <A HREF = "fix_modify.html">fix_modify</A> command for this fix
+are inlcluded in the doc/USER/atc directory of the LAMMPS
+distribution.  Individual doc pages are listed and linked to below.
+</P>
+<P>The following commands are typical of a coupling problem:
+</P>
+<PRE> # ... commands to create and initialize the MD system 
+</PRE>
+<PRE> # initial fix to designate coupling type and group to apply it to
+ # tag group physics material_file
+ fix AtC internal atc thermal Ar_thermal.mat 
+</PRE>
+<PRE> # create a uniform 12 x 2 x 2 mesh that covers region contain the group
+ # nx ny nz region periodicity
+ fix_modify AtC fem create mesh 12 2 2 mdRegion f p p 
+</PRE>
+<PRE> # specify the control method for the type of coupling
+ # physics control_type
+ fix_modify AtC transfer thermal control flux 
+</PRE>
+<PRE> # specify the initial values for the empirical field "temperature"
+ # field node_group value
+ fix_modify AtC transfer initial temperature all 30.0 
+</PRE>
+<PRE> # create an output stream for nodal fields
+ # filename output_frequency
+ fix_modify AtC transfer output atc_fe_output 100 
+</PRE>
+<PRE> run 1000 
+</PRE>
+<P>The following commands are typical of a post-processing (Hardy) problem:
+</P>
+<PRE> # ... commands to create and initialize the MD system 
+</PRE>
+<PRE> # initial fix to designate post-processing and the group to apply it to
+ # no material file is allowed nor required
+ fix AtC internal atc hardy 
+</PRE>
+<PRE> # create a uniform 1 x 1 x 1 mesh that covers region contain the group
+ # with periodicity this effectively creats a system average
+ fix_modify AtC fem create mesh 1 1 1 box p p p 
+</PRE>
+<PRE> # change from default lagrangian map to eulerian
+ # refreshed every 100 steps
+ fix_modify AtC atom_element_map eulerian 100 
+</PRE>
+<PRE> # start with no field defined
+ fix_modify AtC transfer fields none 
+</PRE>
+<PRE> # add mass density, potential energy density, stress and temperature
+ fix_modify AtC transfer fields add density energy stress temperature 
+</PRE>
+<PRE> # create an output stream for nodal fields
+ # filename output_frequency
+ fix_modify AtC transfer output nvtFE 100 text 
+</PRE>
+<PRE> run 1000 
+</PRE>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  The <A HREF = "fix_modify.html">fix_modify</A> options
+relevant to this fix are listed below.  No global scalar or vector or
+per-atom quantities are stored by this fix for access by various
+<A HREF = "Section_howto.html#4_15">output commands</A>.  No parameter of this fix
+can be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A>
+command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P>After specifying this fix in your input script, several other
+<A HREF = "fix_modify.html">fix_modify</A> commands are used to setup the problem,
+e.g. define the finite element mesh and prescribe initial and boundary
+conditions.
+</P>
+<P>fix_modify commands for setup:
+</P>
+<UL><LI><A HREF = "USER/atc/man_fem_mesh.html">fix_modify AtC fem create mesh</A>
+<LI><A HREF = "USER/atc/man_mesh_nodeset.html">fix_modify AtC mesh create_nodeset</A>
+<LI><A HREF = "USER/atc/man_mesh_faceset.html">fix_modify AtC mesh create_faceset</A>
+<LI><A HREF = "USER/atc/man_mesh_elemset.html">fix_modify AtC mesh create_elementset</A>
+<LI><A HREF = "USER/atc/man_transfer_internal.html">fix_modify AtC transfer internal</A>
+<LI><A HREF = "USER/atc/man_transfer_boundary.html">fix_modify AtC transfer boundary</A>
+<LI><A HREF = "USER/atc/man_internal_quadrature.html">fix_modify AtC transfer internal_quadrature</A>
+<LI><A HREF = "USER/atc/man_time_integration.html">fix_modify AtC transfer pmfc</A>
+<LI><A HREF = "USER/atc/man_electron_integration.html">fix_modify AtC extrinsic electron_integration</A> 
+</UL>
+<P>fix_modify commands for boundary and initial conditions:
+</P>
+<UL><LI><A HREF = "USER/atc/man_initial.html">fix_modify AtC transfer initial</A>
+<LI><A HREF = "USER/atc/man_fix_nodes.html">fix_modify AtC transfer fix</A>
+<LI><A HREF = "USER/atc/man_unfix_nodes.html">fix_modify AtC transfer unfix</A>
+<LI><A HREF = "USER/atc/man_fix_flux.html">fix_modify AtC transfer fix_flux</A>
+<LI><A HREF = "USER/atc/man_unfix_flux.html">fix_modify AtC transferunfix_flux</A>
+<LI><A HREF = "USER/atc/man_source.html">fix_modify AtC transfer source</A>
+<LI><A HREF = "USER/atc/man_remove_source.html">fix_modify AtC transfer remove_source</A> 
+</UL>
+<P>fix_modify commands for control and filtering:
+</P>
+<UL><LI><A HREF = "USER/atc/man_thermal_control.html">fix_modify AtC transfer thermal control</A>
+<LI><A HREF = "USER/atc/man_time_filter.html">fix_modify AtC transfer filter</A>
+<LI><A HREF = "USER/atc/man_filter_scale.html">fix_modify AtC transfer filter scale</A>
+<LI><A HREF = "USER/atc/man_equilibrium_start.html">fix_modify AtC transfer equilibrium_start</A>
+<LI><A HREF = "USER/atc/man_extrinsic_exchange.html">fix_modify AtC extrinsic exchange</A> 
+</UL>
+<P>fix_modify commands for output:
+</P>
+<UL><LI><A HREF = "USER/atc/man_transfer_output.html">fix_modify AtC transfer output</A>
+<LI><A HREF = "USER/atc/man_transfer_atomic_output.html">fix_modify AtC transfer atomic_output</A>
+<LI><A HREF = "USER/atc/man_mesh_output.html">fix_modify AtC mesh output</A>
+<LI><A HREF = "USER/atc/man_write_restart.html">fix_modify AtC transfer write_restart</A>
+<LI><A HREF = "USER/atc/man_read_restart.html">fix_modify AtC transfer read_restart</A> 
+</UL>
+<P>fix_modify commands for post-processing:
+</P>
+<UL><LI><A HREF = "USER/atc/man_hardy_fields.html">fix_modify AtC transfer fields</A>
+<LI><A HREF = "USER/atc/man_hardy_gradients.html">fix_modify AtC transfer gradients</A>
+<LI><A HREF = "USER/atc/man_hardy_rates.htm">fix_modify AtC transfer rates</A>
+<LI><A HREF = "USER/atc/man_hardy_computes.html">fix_modify AtC transfer computes</A>
+<LI><A HREF = "USER/atc/man_hardy_set.html">fix_modify AtC set</A>
+<LI><A HREF = "USER/atc/man_hardy_on_the_fly.html">fix_modify AtC transfer on_the_fly</A>
+<LI><A HREF = "USER/atc/man_boundary_integral.html">fix_modify AtC boundary_integral</A>
+<LI><A HREF = "USER/atc/man_contour_integral.html">fix_modify AtC contour_integral</A> 
+</UL>
+<P>miscellaneous fix_modify commands:
+</P>
+<UL><LI><A HREF = "USER/atc/man_atom_element_map.htm">fix_modify AtC transfer atom_element_map</A>
+<LI><A HREF = "USER/atc/man_neighbor_reset_frequency.html">fix_modify AtC transfer neighbor_reset_frequency</A> 
+</UL>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Wagner"></A>
+
+<P><B>(Wagner)</B> Wagner, Jones, Templeton, Parks, Special Issue of
+Computer Methods and Applied Mechanics, 197, 3351-3365 (2008).
+</P>
+<A NAME = "Zimmerman"></A>
+
+<P><B>(Zimmerman)</B> Zimmerman, Webb, Hoyt, Jones, Klein, Bammann, Special
+Issue of Modelling and Simulation in Materials Science and
+Engineering, 12, S319 (2004).
+</P>
+<A NAME = "Hughes"></A>
+
+<P><B>(Hughes)</B> T.J.R Hughes, "The Finite Element Method," Dover (2003).
+</P>
+</HTML>

@@ -8,8 +8,8 @@
 
 2. Getting Started :h3
 
-This section describes how to unpack, make, and run LAMMPS, for both
-new and experienced users.
+This section describes how to build and run LAMMPS, for both new and
+experienced users.
 
 2.1 "What's in the LAMMPS distribution"_#2_1
 2.2 "Making LAMMPS"_#2_2
@@ -48,7 +48,17 @@ tools: pre- and post-processing tools :tb(s=:)
 
 2.2 Making LAMMPS :h4,link(2_2)
 
-[{Read this first:}]
+This section has the following sub-sections:
+
+"Read this first"_#2_2_1
+"Building a LAMMPS executable"_#2_2_2
+"Errors that can occur when making LAMMPS"_#2_2_3
+"Editing a new low-level Makefile"_#2_2_4
+"Additional build tips"_#2_2_5 :ul
+
+:line
+
+[{Read this first:}] :link(2_2_1)
 
 Building LAMMPS can be non-trivial.  You will likely need to edit a
 makefile, there are compiler options, additional libraries can be used
@@ -69,7 +79,9 @@ If you succeed in building LAMMPS on a new kind of machine (which
 there isn't a similar Makefile for in the distribution), send it to
 the developers and we'll include it in future LAMMPS releases.
 
-[{Building a LAMMPS executable:}]
+:line
+
+[{Building a LAMMPS executable:}] :link(2_2_2)
 
 The src directory contains the C++ source and header files for LAMMPS.
 It also contains a top-level Makefile and a MAKE sub-directory with
@@ -88,7 +100,9 @@ will typically build LAMMPS more quickly.
 If you get no errors and an executable like lmp_linux or lmp_mac is
 produced, you're done; it's your lucky day.
 
-[{Errors that can occur when making LAMMPS:}]
+:line
+
+[{Errors that can occur when making LAMMPS:}] :link(2_2_3)
 
 (1) If the make command breaks immediately with errors that indicate
 it can't find files with a "*" in their names, this can be because
@@ -111,16 +125,29 @@ you need to create a Makefile.foo in the MAKE sub-directory.  Use
 whatever existing file is closest to your platform as a starting
 point.  See the next section for more instructions.
 
-[{Editing a new low-level Makefile.foo:}]
+(3) If you get a link-time error about missing libraries or missing
+dependencies, then it can be because:
+
+you have not pre-built the necessary "add-on LAMMPS library"_#2_3_3
+you are linking to a library that doesn't exist on your system
+you are not linking to the necessary system library :ul
+
+The first issue is discussed below.  The other two issue mean you need
+to edit your low-level Makefile.foo, as discussed in the next
+sub-section.
+
+:line
+
+[{Editing a new low-level Makefile.foo:}] :link(2_2_4)
 
 These are the issues you need to address when editing a low-level
-Makefile for your machine.  With a couple exceptions, the only portion
-of the file you should need to edit is the "System-specific Settings"
+Makefile for your machine.  The only portion of the file you should
+need to edit is the first line and the "System-specific Settings"
 section.
 
-(1) Change the first line of Makefile.foo to include the word "foo"
-and whatever other options you set.  This is the line you will see if
-you just type "make".
+(1) Change the first line of Makefile.foo to list the word "foo" after
+the "#", and whatever other options you set.  This is the line you
+will see if you just type "make".
 
 (2) Set the paths and flags for your C++ compiler, including
 optimization flags.  You can use g++, the open-source GNU compiler,
@@ -205,6 +232,17 @@ files (a long list of errors involving *.d files), then you'll need to
 create a Makefile.foo patterned after Makefile.tflop, which uses
 different rules that do not involve dependency files.
 
+(9) The comments after the "System-specific Settings" heading refer to
+Fortran, BLAS, GPU, etc system libraries.  You only need to include
+these settings if you intend to build LAMMPS with the optional
+packages that use add-on LAMMPS libraries that need these system
+libraries.  See the "section below"_#2_3_3 for more details.  If you
+are not using these packages and their associated LAMMPS libraries,
+then you can either comment out the relevant lines in the Makefile, or
+leave the setting blank.  If you do not do this, and your system does
+not have the specified system library (e.g. a BLAS or CUDA library)
+then you will get an error when you build LAMMPS.
+
 That's it.  Once you have a correct Makefile.foo and you have
 pre-built the MPI and FFT libraries it will use, all you need to do
 from the src directory is type one of these 2 commands:
@@ -214,7 +252,9 @@ gmake foo :pre
 
 You should get the executable lmp_foo when the build is complete.
 
-[{Additional build tips:}]
+:line
+
+[{Additional build tips:}] :link(2_2_5)
 
 (1) Building LAMMPS for multiple platforms.
 
@@ -254,7 +294,7 @@ pair_lj_charmm_coul_long.o : pair_lj_charmm_coul_long.cpp
 On a Macintosh, try compiling the pair "long" files without the -fast
 compiler option.
 
-(4) Building for a Macintosh.
+(4) Building for a Mac.
 
 OS X is BSD Unix, so it already works.  See the Makefile.mac file.
 
@@ -272,12 +312,23 @@ instructions for tips.  Good luck - we can't help you on this one.
 
 2.3 Making LAMMPS with optional packages :h4,link(2_3)
 
+This section has the following sub-sections:
+
+"Package basics"_#2_3_1
+"Including/excluding packages"_#2_3_2
+"Packages that require extra LAMMPS libraries"_#2_3_3
+"Additional Makefile settings for extra libraries"_#2_3_4 :ul
+
+:line
+
+[{Package basics:}] :link(2_3_1)
+
 The source code for LAMMPS is structured as a large set of core files
-which are always used, plus optional packages, which are groups of
-files that enable a specific set of features.  For example, force
-fields for molecular systems or granular systems are in packages.  You
-can see the list of both standard and user-contributed packages by
-typing "make package".
+which are always included, plus optional packages.  Packages are
+groups of files that enable a specific set of features.  For example,
+force fields for molecular systems or granular systems are in
+packages.  You can see the list of all packages by typing "make
+package".
 
 The current list of standard packages is as follows:
 
@@ -300,8 +351,10 @@ xtc : dump atom snapshots in XTC format :tb(s=:)
 
 There are also user-contributed packages which may be as simple as a
 single additional file or many files grouped together which add a
-specific functionality to the code.  The difference between a
-{standard} package versus a {user} package is as follows.
+specific functionality to the code.
+
+The difference between a {standard} package versus a {user} package is
+as follows.
 
 Standard packages are supported by the LAMMPS developers and are
 written in a syntax and style consistent with the rest of LAMMPS.
@@ -317,11 +370,13 @@ documentation.
 
 :line
 
-Any or all packages can be included or excluded independently when
+[{Including/excluding packages:}] :link(2_3_2)
+
+Any or all packages can be included or excluded independently BEFORE
 LAMMPS is built.
 
-The two exceptions to this are the "gpu" and "opt" packages.  Some of
-the files in these packages require other packages to also be
+Note: The two exceptions to this are the "gpu" and "opt" packages.
+Some of the files in these packages require other packages to also be
 included.  If this is not the case, then those subsidiary files in
 "gpu" and "opt" will not be installed either.  To install all the
 files in package "gpu", the "asphere" package must also be installed.
@@ -343,103 +398,136 @@ no-name", where "name" is the name of the package.  You can also type
 no-user", "make yes-all" or "make no-all" to include/exclude various
 sets of packages.  Type "make package" to see the various options.
 
-These make commands work by simply moving files back and forth between
-the main src directory and sub-directories with the package name, so
-that the files are seen or not seen when LAMMPS is built.  After you
-have included or excluded a package, you must re-build LAMMPS.
+IMPORTANT NOTE: These make commands work by simply moving files back
+and forth between the main src directory and sub-directories with the
+package name, so that the files are seen or not seen when LAMMPS is
+built.  After you have included or excluded a package, you must
+re-build LAMMPS.
 
 Additional make options exist to help manage LAMMPS files that exist
 in both the src directory and in package sub-directories.  You do not
 normally need to use these commands unless you are editing LAMMPS
-files or have downloaded a patch from the LAMMPS WWW site.  Typing
-"make package-update" will overwrite src files with files from the
-package directories if the package has been included.  It should be
-used after a patch is installed, since patches only update the master
-package version of a file.  Typing "make package-overwrite" will
-overwrite files in the package directories with src files.  Typing
-"make package-check" will list differences between src and package
-versions of the same files.  Again, type "make package" to see the
-various options.
+files or have downloaded a patch from the LAMMPS WWW site.
 
-A few packages require that additional libraries be compiled first,
-which LAMMPS will link to when it builds.  These are stored under
-under the lammps/lib directory of the distribution.  Currently, these
-include libraries for the "gpu", "meam", "poems", and "reax" packages.
-You should look at the README files in the lib directories
+Typing "make package-update" will overwrite src files with files from
+the package directories if the package has been included.  It should
+be used after a patch is installed, since patches only update the
+master package version of a file.  Typing "make package-overwrite"
+will overwrite files in the package directories with src files.
+Typing "make package-check" will list differences between src and
+package versions of the same files.  Again, type "make package" to see
+the various options.
+
+:line
+
+[{Packages that require extra LAMMPS libraries:}] :link(2_3_3)
+
+A few packages (standard or user) require that add-on libraries be
+compiled first, which LAMMPS will link to when it builds.  The source
+code for these libraries are included in the LAMMPS distribution under
+the "lib" directory.  Look at the README files in the lib directories
 (e.g. lib/reax/README) for instructions on how to build each library.
 
-The "gpu" library in lib/gpu contains code to enable portions of
-LAMMPS to run on a GPU chip associated with your CPU.  Currently, only
-NVIDIA GPUs are supported.  Building this library requires NVIDIA Cuda
-tools to be installed on your system.  See the "Running on GPUs"_#2_8
-section below for more info about installing and using Cuda.
+IMPORTANT NOTE: If you have included a package that uses
+one of the libraries, then you must build the library BEFORE
+building LAMMPS itself, as the LAMMPS build will link with
+the library file.
 
-The "meam" library in lib/meam computes the modified embedded atom
-method potential, which is a generalization of EAM potentials that can
-be used to model a wider variety of materials.  This MEAM
-implementation was written by Greg Wagner at Sandia.  It requires a
-F90 compiler to build. The C++ to FORTRAN function calls in pair_meam.cpp
-assumes that FORTRAN object names are converted to C object names by 
-appending an underscore character. This is generally the case, but 
-on machines that do not conform to this convention, you will need to 
-modify either the C++ code or your compiler settings.
+Here is a bit of information about each library:
 
-The "poems" library in lib/poems computes the constrained rigid-body
-motion of articulated (jointed) multibody systems.  POEMS was written
-and is distributed by Prof Kurt Anderson's group at Rensselaer
-Polytechnic Institute (RPI). 
+The "atc" library in lib/atc is used by the user-atc package.  It
+provides continuum field estimation and molecular dynamics-finite
+element coupling methods.  It was written primarily by Reese Jones,
+Jeremy Templeton and Jonathan Zimmerman at Sandia.
 
-The "reax" library in lib/reax computes the Reactive Force Field
-(ReaxFF) potential, developed by Adri van Duin in Bill Goddard's group
-at CalTech.  This implementation in LAMMPS uses many of Adri's files
-and was developed by Aidan Thompson at Sandia and Hansohl Cho at MIT.
-It requires a F77 or F90 compiler to build. 
-The C++ to FORTRAN function calls in pair_reax.cpp
-assume that FORTRAN object names are converted to C object names by 
-appending an underscore character. This is generally the case, but 
-on machines that do not conform to this convention, you will need to 
-modify either the C++ code or your compiler settings. The name conversion
-is handled by the preprocessor macro called FORTRAN in pair_reax_fortran.h.
-Different definitions of this macro can be obtained by adding a 
-machine-specific macro definition to the CCFLAGS variable in your Makefile
-e.g. -D_IBM. See pair_reax_fortran.h for more info.
+The "gpu" library in lib/gpu is used by the gpu package.  It
+contains code to enable portions of LAMMPS to run on a GPU chip
+associated with your CPU.  Currently, only NVIDIA GPUs are supported.
+Building this library requires NVIDIA Cuda tools to be installed on
+your system.  See the "Running on GPUs"_#2_8 section below for more
+info about installing and using Cuda.
 
-As its README file describes, for each library, the library is built
-by typing something like
+The "meam" library in lib/meam is used by the meam package.
+computes the modified embedded atom method potential, which is a
+generalization of EAM potentials that can be used to model a wider
+variety of materials.  This MEAM implementation was written by Greg
+Wagner at Sandia.  It requires a F90 compiler to build.  The C++ to
+FORTRAN function calls in pair_meam.cpp assumes that FORTRAN object
+names are converted to C object names by appending an underscore
+character. This is generally the case, but on machines that do not
+conform to this convention, you will need to modify either the C++
+code or your compiler settings.
 
-make -f Makefile.foo :pre
+The "poems" library in lib/poems is used by the poems package.
+computes the constrained rigid-body motion of articulated (jointed)
+multibody systems.  POEMS was written and is distributed by Prof Kurt
+Anderson's group at Rensselaer Polytechnic Institute (RPI).
+
+The "reax" library in lib/reax is used by the reax package.  It
+computes the Reactive Force Field (ReaxFF) potential, developed by
+Adri van Duin in Bill Goddard's group at CalTech.  This implementation
+in LAMMPS uses many of Adri's files and was developed by Aidan
+Thompson at Sandia and Hansohl Cho at MIT.  It requires a F77 or F90
+compiler to build.  The C++ to FORTRAN function calls in pair_reax.cpp
+assume that FORTRAN object names are converted to C object names by
+appending an underscore character. This is generally the case, but on
+machines that do not conform to this convention, you will need to
+modify either the C++ code or your compiler settings. The name
+conversion is handled by the preprocessor macro called FORTRAN in
+pair_reax_fortran.h.  Different definitions of this macro can be
+obtained by adding a machine-specific macro definition to the CCFLAGS
+variable in your Makefile e.g. -D_IBM. See pair_reax_fortran.h for
+more info.
+
+As described in its README file, each library is built by typing
+something like
+
+make -f Makefile.g++ :pre
 
 in the appropriate directory, e.g. in lib/reax.
 
 You must use a Makefile that is a match for your system.  If one of
 the provided Makefiles is not appropriate for your system you will
-need to edit or add one.  For example, in the case of libraries of
-Fortran code, your system must have a Fortran compiler, the settings
-for which will be in the Makefile.
+need to edit or add one.  For example, in the case of Fotran-based
+libraries, your system must have a Fortran compiler, the settings for
+which will be in the Makefile.
 
-Once the desired library or libraries are built, you can build LAMMPS.
-From the lammps/src directory type this, for example, to build LAMMPS
-with ReaxFF:
+:line
+
+[{Additional Makefile settings for extra libraries:}] :link(2_3_4)
+
+After the desired library or libraries are built, and the package has
+been included, you can build LAMMPS itself.  For example, from the
+lammps/src directory you would type this, to build LAMMPS with ReaxFF.
+Note that the library itself, namely lib/reax/libreax.a, must already
+have been built, as dicussed in the preceding section, for the
+LAMMPS build to be successful.
 
 make yes-reax
 make g++ :pre
 
-Note that simply building the library (reax in this case), which must
-be done first, is not sufficient to use it from LAMMPS.  You must also
-include the package that uses and wraps the library before you build
-LAMMPS itself.
+Note that simply building the library is not sufficient to use it from
+LAMMPS.  You must also include the package that uses and wraps the
+library before you build LAMMPS itself.
 
-To use the gpu package and library, the lo-level Makefile in
-lammps/src/MAKE, such as Makefile.g++, must typically have settings
-for LINKGPU and GPULIB that are specific to the NVIDIA software
-installed on your system.
+As discussed in point (9) of "this section"_#2_2_4 above, there are
+settings in the low-level Makefile that specify additional system
+libraries needed by individual LAMMPS add-on libraries.  These are the
+settings you must specify correctly in your low-level Makefile in
+lammps/src/MAKE, such as Makefile.foo:
 
-To use the meam or reax packages and libraries that are Fortran based,
-the lo-level Makefile in lammps/src/MAKE, such as Makefile.g++, must
-typically have settings for LINKFORT and FORTLIB that are specific to
-the Fortran compiler installed on your system.  This is so that the
-C++ compiler can perform a cross-language link using the appropriate
-Fortran libraries.
+To use the user-atc package and library, the settings for LINKBLAS and
+BLASLIB must be correct.  This is so that the appropriate BLAS and
+LAPACK libs, used by the user-atc library, can be found.
+
+To use the gpu package and library, the settings for LINKGPU and
+GPULIB must be correct.  These are specific to the NVIDIA CUDA
+software which must be installed on your system.
+
+To use the meam or reax packages and their libraries which are Fortran
+based, the settings for LINKFORT and FORTLIB must be correct.  This is
+so that the C++ compiler can perform a cross-language link using the
+appropriate system Fortran libraries.
 
 :line
 

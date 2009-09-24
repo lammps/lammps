@@ -54,10 +54,10 @@ book"_#Hughes, for the basics of FE simulation.
 
 :line
 
-Thermal and two_temperature (coupling) types use a Verlet
-time-integration algorithm.  The hardy type does not contain its own
+{Thermal} and {two_temperature} (coupling) types use a Verlet
+time-integration algorithm.  The {hardy} type does not contain its own
 time-integrator and must be used with a separate fix that does contain
-one, e.g. "fix nve"_fix_nve.html, fix nvt"_fix_nvt.html, etc.
+one, e.g. "fix nve"_fix_nve.html, "fix nvt"_fix_nvt.html, etc.
 
 A set of example input files with the attendant material files are
 included in the examples/USER/atc directory of the LAMMPS

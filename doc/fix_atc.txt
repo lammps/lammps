@@ -17,7 +17,7 @@ atc = style name of this fix command :l
 type = {thermal} or {two_temperature} or {hardy} :l
  {thermal} = thermal coupling with field: temperature
  {two_temperature} = electron-phonon coupling with field, temperature and electron_temperature
- {hardy} = Hardy on-the-fly post-processing
+ {hardy} = Hardy on-the-fly post-processing :pre
 paramfile = file with material parameters (not specified for {hardy} type) :l,ule
 
 [Examples:]

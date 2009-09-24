@@ -1,0 +1,133 @@
+LAMMPS (7 Jul 2009)
+
+units		metal	
+atom_style	atomic
+
+# create domain
+lattice         fcc 3.615 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 3.615 3.615 3.615
+region		simRegion  block -3 3 -3 3 -3 3
+region		feRegion   block -3 3 -3 3 -3 3
+region		mdRegion   block -3 3 -3 3 -3 3
+region		mdInternal block -3 3 -3 3 -3 3
+boundary	p p p
+create_box	1 simRegion
+Created orthogonal box = (-10.845 -10.845 -10.845) to (10.845 10.845 10.845)
+  1 by 1 by 1 processor grid
+
+# create atoms
+create_atoms	1 region mdRegion
+Created 864 atoms
+mass		1 63.550 
+
+# specify interal/ghost atoms
+group		internal region mdInternal
+864 atoms in group internal
+#group		ghost subtract all internal
+
+# specify inter-atomic potential
+pair_style	eam
+pair_coeff  	* * ../../../../potentials/Cu_u3.eam
+
+# specify neighbor/re-neighboring parameters
+neighbor	0.3 bin
+neigh_modify	every 10 delay 0 check no
+
+# setup thermal output
+thermo		10
+thermo_style custom step pe ke press lx ly lz
+
+
+# time integrator
+fix		NVE all nve 
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc hardy
+Constructing ATC transfer (hardy)
+atomPE compute created with ID: 3
+fix_modify      AtC transfer fields none 
+fix_modify      AtC transfer fields add density
+fix_modify      AtC transfer fields add energy
+fix_modify      AtC transfer fields add stress
+fix_modify      AtC neighbor_reset_frequency 100000
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC fem  create mesh 2 2 2 feRegion p p p
+ ATC:: created FEM Mesh with 27 Global Nodes, 8 Unique Nodes, and 8 Elements
+
+log		eam_volume_stretch.log
+
+# equilibrate MD field
+
+timestep 0.001
+reset_timestep	0	
+run 		1
+Setting up run ...
+ ATC:: computing bond matrix ...........done
+ ATC:: conversion factor for energy/vol -> stress 1.60218e+06
+ ATC:: cutoff radius 4.95
+Memory usage per processor = 4.02971 Mbytes
+Step PotEng KinEng Press Lx Ly Lz 
+       0     -3058.56            0 -0.027860375        21.69        21.69        21.69 
+       1     -3058.56 1.8391755e-30 -0.027860375        21.69        21.69        21.69 
+Loop time of 0.00839496 on 1 procs for 1 steps with 864 atoms
+
+Pair  time (%) = 0.00306296 (36.4858)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 3.79086e-05 (0.451563)
+Outpt time (%) = 3.09944e-05 (0.369203)
+Other time (%) = 0.00526309 (62.6935)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2052 ave 2052 max 2052 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    23328 ave 23328 max 23328 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  46656 ave 46656 max 46656 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46656
+Ave neighs/atom = 54
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# stretch system 
+displace_box	all x scale 1.001 y scale 1.001 z scale 1.001
+System init for displace_box ...
+Displacing box ...
+
+fix_modify	AtC transfer output eam_volume_stretchFE 1 text tensor_components
+ ATC:: Warning : text output can create _LARGE_ files
+# fix_modify	AtC transfer atomic_output eam_volume_stretchMD 1 text
+
+run		1
+Setting up run ...
+ ATC:: conversion factor for energy/vol -> stress 1.60218e+06
+ ATC:: cutoff radius 4.95
+Memory usage per processor = 4.02971 Mbytes
+Step PotEng KinEng Press Lx Ly Lz 
+       1   -3058.5204 1.8391755e-30   -4126.8763     21.71169     21.71169     21.71169 
+       2   -3058.5204 2.3402676e-29   -4126.8763     21.71169     21.71169     21.71169 
+Loop time of 0.0824161 on 1 procs for 1 steps with 864 atoms
+
+Pair  time (%) = 0.00323987 (3.93112)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 5.57899e-05 (0.0676931)
+Outpt time (%) = 2.69413e-05 (0.0326894)
+Other time (%) = 0.0790935 (95.9685)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2052 ave 2052 max 2052 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    23328 ave 23328 max 23328 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  46656 ave 46656 max 46656 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46656
+Ave neighs/atom = 54
+Neighbor list builds = 0
+Dangerous builds = 0
+

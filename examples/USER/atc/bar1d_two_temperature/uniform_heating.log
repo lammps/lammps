@@ -1,0 +1,91 @@
+
+# make thermo output the correct temperature by removing ghost dof
+# variable xdof equal 3*count(ghost)
+# compute_modify thermo_temp extra ${xdof}
+
+# equilibrate MD field
+timestep	5
+run 		400
+Memory usage per processor = 12.6012 Mbytes
+Step CPU PotEng TotEng Temp AtC[1] AtC[2] 
+       0            0   -4406.6687   -4200.7544    29.995658    206.60693           20 
+     100     4.374239   -4258.7421   -4155.7253    15.006513    206.60693           20 
+     200    8.7224889   -4317.7651   -4214.7483    15.006513    206.60693           20 
+     300    13.107087   -4308.7092   -4205.6924    15.006513    206.60693           20 
+     400    17.471487   -4305.0489   -4202.0322    15.006513    206.60693           20 
+Loop time of 17.4723 on 1 procs for 400 steps with 2304 atoms
+
+Pair  time (%) = 7.26201 (41.563)
+Neigh time (%) = 3.21221 (18.3845)
+Comm  time (%) = 0.0692339 (0.396249)
+Outpt time (%) = 0.0033679 (0.0192756)
+Other time (%) = 6.92549 (39.637)
+
+Nlocal:    2304 ave 2304 max 2304 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    8512 ave 8512 max 8512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    708396 ave 708396 max 708396 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 1.41679e+06 ave 1.41679e+06 max 1.41679e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1416792
+Ave neighs/atom = 614.927
+Neighbor list builds = 40
+Dangerous builds = 0
+
+# change thermostat
+fix_modify  AtC transfer output uniform_heatingFE 100 text
+fix_modify  AtC transfer unfix temperature all
+fix_modify  AtC transfer thermal control flux  
+
+# fix boundary
+fix_modify AtC mesh create_nodeset lbc -6.1 -5.9 -12  12 -12  12
+fix_modify AtC transfer fix temperature lbc 20.
+fix_modify AtC mesh create_nodeset rbc  5.9  6.1 -12  12 -12  12
+fix_modify AtC transfer fix temperature rbc 20.
+
+
+# add source
+fix_modify AtC transfer internal_quadrature on 
+#fix_modify AtC transfer source temperature  all 0.01
+fix_modify AtC transfer source temperature  all 6.3363e-10
+
+# run with FE
+reset_timestep 0
+run 		1000
+Memory usage per processor = 12.8301 Mbytes
+Step CPU PotEng TotEng Temp AtC[1] AtC[2] 
+       0            0   -4305.0489   -4202.0322    15.006513    206.60693           20 
+     100     4.999783   -4284.0298    -4161.843    17.799024     245.0222    23.187441 
+     200    10.004533   -4271.7421   -4126.3033    21.186144    291.62708    27.054401 
+     300    14.997962   -4252.1549   -4092.7431    23.221608     319.6337    29.378203 
+     400    19.994763   -4243.1541   -4066.5034    25.732803    354.18694    32.245199 
+     500    24.995776   -4220.6621   -4038.0194    26.605674     366.2029    33.242202 
+     600    30.001314   -4216.5541   -4017.5256    28.992598    399.04557    35.967267 
+     700    35.011217   -4214.2511   -3996.8157    31.673926     435.9421    39.028694 
+     800    40.015315   -4198.8979   -3978.4057    32.119215    442.05328    39.535758 
+     900    45.030258   -4186.3755   -3963.2872    32.497398    447.23921    39.966052 
+    1000     50.05034   -4182.9374   -3949.4046    34.018854    468.17469    41.703138 
+Loop time of 50.0512 on 1 procs for 1000 steps with 2304 atoms
+
+Pair  time (%) = 18.1533 (36.2694)
+Neigh time (%) = 8.00558 (15.9948)
+Comm  time (%) = 0.15968 (0.319034)
+Outpt time (%) = 0.00851512 (0.0170128)
+Other time (%) = 23.7241 (47.3998)
+
+Nlocal:    2304 ave 2304 max 2304 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    8512 ave 8512 max 8512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    703501 ave 703501 max 703501 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 1.407e+06 ave 1.407e+06 max 1.407e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1407002
+Ave neighs/atom = 610.678
+Neighbor list builds = 100
+Dangerous builds = 0

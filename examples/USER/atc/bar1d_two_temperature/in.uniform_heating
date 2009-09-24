@@ -1,0 +1,74 @@
+#AtC Thermal Coupling
+
+echo both
+units		real
+atom_style	atomic
+boundary	f p p
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+
+pair_style	lj/cut 13.5
+
+read_data	uniform_heating_init.data
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+
+region		mdRegion block   -8 8 -3 3 -3 3
+region		mdInternal block -6 6 -3 3 -3 3
+
+group		internal region mdInternal
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature Ar_ttm.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC fem  create mesh 6 1  1  mdInternal f p p
+
+# specify atom types
+#fix_modify      AtC transfer internal type internal
+
+# fix a temperature
+fix_modify     	AtC transfer initial temperature all 20.
+fix_modify     	AtC transfer fix     temperature all 20.
+fix_modify     	AtC transfer initial electron_temperature all 20.
+fix_modify     	AtC transfer fix     electron_temperature all 20.
+
+# turn on thermostat
+fix_modify	AtC transfer thermal control rescale 10
+
+# output
+thermo_style custom step cpu pe etotal temp f_AtC[1] f_AtC[2]
+thermo		100
+log uniform_heating.log
+
+# make thermo output the correct temperature by removing ghost dof
+# variable xdof equal 3*count(ghost)
+# compute_modify thermo_temp extra ${xdof}
+
+# equilibrate MD field
+timestep	5
+run 		400
+
+# change thermostat
+fix_modify  AtC transfer output uniform_heatingFE 100 text
+fix_modify  AtC transfer unfix temperature all
+fix_modify  AtC transfer thermal control flux  
+
+# fix boundary
+fix_modify AtC mesh create_nodeset lbc -6.1 -5.9 -12  12 -12  12
+fix_modify AtC transfer fix temperature lbc 20.
+fix_modify AtC mesh create_nodeset rbc  5.9  6.1 -12  12 -12  12
+fix_modify AtC transfer fix temperature rbc 20.
+
+
+# add source
+fix_modify AtC transfer internal_quadrature on 
+#fix_modify AtC transfer source temperature  all 0.01
+fix_modify AtC transfer source temperature  all 6.3363e-10
+
+# run with FE
+reset_timestep 0
+run 		1000

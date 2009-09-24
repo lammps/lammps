@@ -1,0 +1,26 @@
+read_restart	nvt.restart
+
+lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region  	box block 0 5 0 5 0 5
+
+pair_coeff	1 1 0.2381 3.405
+
+group		internal region box
+
+fix             ATC internal atc hardy
+fix_modify	ATC fem create mesh 1 1 1 box p p p
+fix_modify	ATC atom_element_map eulerian 100
+fix_modify	ATC transfer fields none
+fix_modify	ATC transfer fields add density energy stress temperature
+fix_modify	ATC transfer output nvtFE 100 text
+
+thermo		100
+compute_modify	thermo_temp extra 0
+thermo_style 	custom step temp etotal ke pe press
+log		nvt.log
+
+timestep 	4.0
+reset_timestep	0
+fix 		NVT all nvt 30 30 10 drag 0.2 
+run 		1000
+

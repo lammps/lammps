@@ -1,0 +1,286 @@
+LAMMPS (7 Jul 2009)
+#AtC Thermal Coupling
+# This benchmark tests heat conducting into and out of the MD region.  The
+# temperature is intially 20 everywhere and the left boundary BC is fixed at 40.
+# The result should show heat diffusing through the FEM to the MD and back out 
+# to the FEM on the right.  Insufficient time is captured to reach the linear 
+# steady state, but heat crossing both boundaries should be observed.
+ 
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+# NOTE following 3 lines added for restart
+boundary        f p p
+pair_style      lj/cut 13.5
+read_data       temp.init
+  orthogonal box = (-27.025 -16.215 -16.215) to (27.025 16.215 16.215)
+  1 by 1 by 1 processor grid
+  1440 atoms
+  1440 velocities
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region		simRegion block -12 12 -3 3 -3 3
+
+# create atoms, NOTE commented out for restart
+#region		mdRegion block -5 5 -3 3 -3 3
+#boundary	f p p
+#create_box	1 mdRegion
+#create_atoms	1 region mdRegion
+#mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -4 4 -3 3 -3 3
+group		internal region mdInternal
+1152 atoms in group internal
+group		ghost subtract all internal
+288 atoms in group ghost
+
+# velocities have Vcm = 0, NOTE next four lines commented out for restart
+#velocity	internal create 40. 87287 mom yes loop geom
+
+#pair_style	lj/cut 13.5
+##pair_coeff	1 1 0.010323166 3.405 13.5
+#pair_coeff  	1 1 .238 3.405 13.5
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc thermal     Ar_thermal.mat
+
+#               ID  part keywords    nx ny nz region
+#fix_modify      AtC fem  create mesh 12 2  2  simRegion f p p
+fix_modify      AtC fem  create mesh 12 1  1  simRegion f p p
+
+# specify atom types
+#fix_modify      AtC transfer internal type internal
+fix_modify      AtC transfer boundary type ghost
+
+# fix a temperature
+fix_modify     	AtC transfer fix temperature all 20.
+
+# turn on thermostat
+fix_modify	AtC transfer thermal control rescale 10
+
+# equilibrate MD field
+#dump            D1 all atom 100 dump.bar1d
+#fix_modify      AtC transfer output bar1dfe 100
+timestep	5
+variable xdof equal 3*count(ghost)
+compute_modify thermo_temp extra ${xdof}
+compute_modify thermo_temp extra 864
+thermo_style custom step cpu etotal pe f_AtC[1] temp f_AtC[2] 
+thermo_modify  format 1 %6i format 2 %7.2g
+thermo		100
+run 		400
+Memory usage per processor = 8.7506 Mbytes
+Step CPU TotEng PotEng AtC[1] Temp AtC[2] 
+     0       0   -2573.6428   -2710.8793    412.06718    39.965279           20 
+   100     2.7   -2537.6764   -2606.3542    412.06718           20           20 
+   200     5.5   -2584.8754   -2653.5532    412.06718           20           20 
+   300     8.2   -2575.3126   -2643.9904    412.06718           20           20 
+   400      11   -2573.4199   -2642.0977    412.06718           20           20 
+Loop time of 10.9925 on 1 procs for 400 steps with 1440 atoms
+
+Pair  time (%) = 4.30201 (39.1358)
+Neigh time (%) = 1.867 (16.9842)
+Comm  time (%) = 0.0373757 (0.34001)
+Outpt time (%) = 0.00606346 (0.0551598)
+Other time (%) = 4.78008 (43.4848)
+
+Nlocal:    1440 ave 1440 max 1440 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5320 ave 5320 max 5320 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    419459 ave 419459 max 419459 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 838918 ave 838918 max 838918 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 838918
+Ave neighs/atom = 582.582
+Neighbor list builds = 40
+Dangerous builds = 0
+
+# change thermostat to hoover
+fix_modify	AtC transfer unfix temperature all
+fix_modify     	AtC transfer thermal control hoover
+fix_modify	AtC transfer filter type exponential
+fix_modify	AtC transfer filter scale 10000.0
+fix_modify	AtC transfer filter on
+fix_modify	AtC transfer internal_quadrature off
+
+# add nodesets
+#               ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify      AtC mesh create_nodeset lbc -12.1  -11.9   -12  12   -12  12
+fix_modify      AtC mesh create_nodeset rbc  11.9   12.1   -12  12   -12  12
+fix_modify      AtC transfer fix temperature lbc 40.
+fix_modify      AtC transfer fix temperature rbc 20.
+
+# initialize filter
+#thermo		1
+run		100
+Memory usage per processor = 8.97948 Mbytes
+Step CPU TotEng PotEng AtC[1] Temp AtC[2] 
+   400       0   -2573.4199   -2642.0977    274.71145           20           20 
+   500     2.7   -2573.7738   -2643.7447    295.61002    20.376549    21.713472 
+Loop time of 2.67287 on 1 procs for 100 steps with 1440 atoms
+
+Pair  time (%) = 1.07427 (40.1917)
+Neigh time (%) = 0.466434 (17.4507)
+Comm  time (%) = 0.00930166 (0.348003)
+Outpt time (%) = 0.00103688 (0.0387928)
+Other time (%) = 1.12183 (41.9709)
+
+Nlocal:    1440 ave 1440 max 1440 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5320 ave 5320 max 5320 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    419059 ave 419059 max 419059 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 838118 ave 838118 max 838118 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 838118
+Ave neighs/atom = 582.026
+Neighbor list builds = 10
+Dangerous builds = 0
+
+# set up output, should be before a "run"
+fix_modify      AtC transfer output bar1dFE 100 text
+
+# ouput command
+#dump            D1 all atom 1000 dump.bar1d
+fix_modify      AtC transfer atomic_output bar1dMD 100
+
+# run with FE
+reset_timestep 0
+thermo		100
+run 		10000
+Memory usage per processor = 8.97948 Mbytes
+Step CPU TotEng PotEng AtC[1] Temp AtC[2] 
+     0       0   -2573.7738   -2643.7447    295.61002    20.376549    21.713472 
+   100     2.7    -2573.654   -2645.0562      298.997    20.793359     21.86901 
+   200     5.4   -2574.0035    -2642.057    302.05784    19.818184    22.007349 
+   300       8   -2573.5186   -2646.5507    304.88852    21.268004    22.143129 
+   400      11   -2573.2662    -2641.032    307.48549    19.734394    22.262531 
+   500      13   -2573.5673   -2644.7553    309.92162    20.730998    22.376015 
+   600      16   -2572.9368   -2641.5818    312.18796    19.990452    22.483808 
+   700      19   -2573.2457   -2642.9406     314.3431    20.296183    22.586025 
+   800      21    -2573.215   -2642.7311    316.37915    20.244129    22.681635 
+   900      24   -2572.7227   -2643.5215    318.29866    20.617655    22.772405 
+  1000      27    -2572.411   -2644.5969    320.08215    21.021606     22.85772 
+  1100      29   -2571.4099     -2642.08    321.74721    20.580181    22.940424 
+  1200      32   -2570.5495   -2641.7296    323.29152    20.728698     23.01806 
+  1300      35   -2570.2491   -2640.8115    324.79381    20.548784     23.09183 
+  1400      37    -2570.159   -2641.2853    326.14846    20.713008    23.158731 
+  1500      40   -2569.5061   -2642.2055    327.46482    21.171117    23.230527 
+  1600      43   -2568.7522   -2639.5246    328.68994    20.609988    23.295442 
+  1700      45   -2569.1809   -2642.0975    329.85636    21.234392    23.355365 
+  1800      48   -2568.7484   -2643.2103    330.95066    21.684387    23.414458 
+  1900      51    -2568.258   -2641.5017    332.02069    21.329638    23.476702 
+  2000      54    -2568.192   -2641.4646    333.04827    21.338079    23.534077 
+  2100      56   -2568.0746   -2639.9335    334.04476    20.926349    23.588633 
+  2200      59   -2567.2717   -2642.2868    334.99014     21.84549    23.639739 
+  2300      62   -2566.7209   -2639.9022    335.89195    21.311463    23.692327 
+  2400      64   -2566.6054   -2638.8118    336.73569     21.02756    23.743177 
+  2500      67   -2565.7629   -2639.6423    337.51835    21.514764    23.792702 
+  2600      70   -2565.9251   -2642.5797    338.26277    22.322947    23.837067 
+  2700      72   -2564.9995   -2640.0503    339.00006    21.855897    23.885327 
+  2800      75   -2565.2468    -2638.033    339.72187    21.196396    23.929976 
+  2900      78   -2565.0496   -2639.4905     340.4486    21.678289    23.975728 
+  3000      80   -2565.1382   -2637.5132    341.15766    21.076651    24.018275 
+  3100      83   -2564.4793    -2636.786    341.85076    21.056788    24.060818 
+  3200      86   -2564.1799   -2637.5024    342.51347    21.352563    24.105465 
+  3300      88   -2564.4531   -2641.3463    343.13584    22.392438    24.145599 
+  3400      91   -2564.2323   -2641.0072    343.75483    22.357976    24.184764 
+  3500      94    -2563.378   -2635.3819    344.36945    20.968577     24.22365 
+  3600      96   -2563.5014   -2637.8324    345.00242    21.646292    24.265399 
+  3700      99   -2563.4092   -2638.0479    345.63031     21.73589    24.302306 
+  3800   1e+02   -2563.0307   -2637.5397    346.23705    21.698125    24.340069 
+  3900   1e+02   -2562.1415   -2637.2704    346.79157    21.878655    24.379583 
+  4000 1.1e+02   -2561.9968   -2637.3928     347.2934    21.956417    24.413166 
+  4100 1.1e+02   -2560.7688   -2636.0902    347.76126    21.934696    24.449405 
+  4200 1.1e+02   -2561.3033   -2638.2325    348.21187    22.402893     24.48165 
+  4300 1.2e+02   -2560.9897   -2637.0909    348.67188    22.161792    24.517482 
+  4400 1.2e+02   -2561.1676   -2638.5003     349.1221     22.52042    24.551399 
+  4500 1.2e+02   -2560.4797   -2637.3716    349.57016    22.392068     24.58389 
+  4600 1.2e+02   -2560.5787   -2637.0577    350.03085      22.2718    24.616821 
+  4700 1.3e+02   -2560.9645   -2639.5114    350.46283    22.874034    24.648359 
+  4800 1.3e+02    -2560.445   -2637.6681    350.93668    22.488484    24.682119 
+  4900 1.3e+02   -2559.5243   -2635.9383    351.38797    22.252882    24.713605 
+  5000 1.3e+02   -2559.4948   -2637.7238    351.82736    22.781448    24.746433 
+  5100 1.4e+02   -2559.6822    -2636.169    352.25581    22.274077     24.77752 
+  5200 1.4e+02   -2559.6398   -2637.3169    352.67163    22.620718    24.810244 
+  5300 1.4e+02   -2558.6285   -2634.5293    353.06226    22.103426    24.836256 
+  5400 1.4e+02   -2558.6394   -2637.9486    353.46662    23.096021    24.869663 
+  5500 1.5e+02   -2558.1403    -2636.176    353.85792    22.725147    24.897758 
+  5600 1.5e+02   -2558.0703   -2635.1367    354.27521    22.442874    24.929906 
+  5700 1.5e+02   -2558.0656   -2636.7197    354.66462    22.905238    24.956168 
+  5800 1.6e+02   -2557.3776   -2634.8266    355.06619    22.554271    24.987034 
+  5900 1.6e+02   -2557.2526   -2635.9743    355.44501    22.924934    25.016353 
+  6000 1.6e+02   -2557.3833   -2637.2292    355.80121    23.252296    25.043949 
+  6100 1.6e+02   -2556.0263   -2633.5408    356.13412    22.573353    25.072447 
+  6200 1.7e+02   -2555.7442   -2634.4378    356.46167    22.916748    25.100704 
+  6300 1.7e+02    -2555.855   -2635.6231    356.75569     23.22965    25.127725 
+  6400 1.7e+02    -2555.933   -2634.2031    357.04516    22.793407    25.152406 
+  6500 1.7e+02   -2555.6529   -2635.6086    357.33016     23.28426    25.178081 
+  6600 1.8e+02   -2554.8702   -2633.8043    357.60713    22.986754    25.203066 
+  6700 1.8e+02   -2555.4594   -2637.4198    357.91044    23.868096    25.228913 
+  6800 1.8e+02   -2555.1344   -2633.0306    358.23055    22.684511    25.254519 
+  6900 1.8e+02    -2555.203   -2635.8935    358.56704    23.498239    25.281995 
+  7000 1.9e+02   -2554.4151   -2634.9963    358.89735    23.466408    25.305952 
+  7100 1.9e+02   -2555.5652   -2636.9959    359.27174    23.713819    25.334106 
+  7200 1.9e+02   -2554.6218   -2632.7376    359.62885    22.748439    25.361455 
+  7300   2e+02   -2553.7347   -2633.5173    359.96531    23.233845    25.386903 
+  7400   2e+02   -2553.6833   -2632.7482    360.28731    23.024868    25.412373 
+  7500   2e+02   -2554.1584   -2634.2224    360.62311     23.31579    25.437173 
+  7600   2e+02   -2553.7146   -2636.4165    360.95078    24.084027    25.461273 
+  7700 2.1e+02   -2553.0976   -2633.1652     361.2731    23.316874    25.488376 
+  7800 2.1e+02   -2553.7234    -2633.641    361.58496    23.273177     25.51462 
+  7900 2.1e+02   -2553.1572   -2635.2359    361.88331    23.902505    25.537243 
+  8000 2.1e+02   -2553.0069   -2632.9284    362.20064    23.274304    25.562883 
+  8100 2.2e+02   -2552.2172   -2632.9342     362.5047    23.505977     25.58597 
+  8200 2.2e+02   -2552.6328   -2633.7047    362.84446    23.609337    25.610996 
+  8300 2.2e+02   -2553.0514    -2636.536    363.15344    24.311943    25.634632 
+  8400 2.3e+02   -2551.9163   -2634.5593     363.4457    24.066867    25.656569 
+  8500 2.3e+02   -2551.1621   -2632.5819    363.73408    23.710645    25.680723 
+  8600 2.3e+02   -2551.3228   -2631.8791    364.03489    23.459181    25.706041 
+  8700 2.3e+02   -2551.3997   -2634.1928    364.32604    24.110586    25.728322 
+  8800 2.4e+02   -2551.5524   -2635.9592    364.60259     24.58049    25.751881 
+  8900 2.4e+02   -2550.9861   -2634.5125    364.87711    24.324098    25.772874 
+  9000 2.4e+02   -2550.3983   -2630.9444    365.15409    23.456228    25.797098 
+  9100 2.4e+02   -2550.2259   -2632.4851    365.42126    23.955067    25.819654 
+  9200 2.5e+02   -2549.7275    -2633.251    365.67315    24.323271     25.84363 
+  9300 2.5e+02   -2549.2312   -2632.0116    365.91463    24.106861    25.865763 
+  9400 2.5e+02   -2549.1796   -2631.7916    366.12014    24.057833    25.884164 
+  9500 2.5e+02   -2549.3237   -2632.8582    366.34704    24.326456    25.907195 
+  9600 2.6e+02   -2548.7761   -2630.2005    366.56572    23.711991    25.926896 
+  9700 2.6e+02   -2548.5538   -2631.9243    366.75569    24.278711    25.946464 
+  9800 2.6e+02   -2548.3631   -2632.4881    366.94867    24.498431    25.965165 
+  9900 2.7e+02   -2548.2213   -2631.2185    367.15325    24.169994    25.986899 
+ 10000 2.7e+02   -2547.7789   -2631.2241    367.37155     24.30047    26.007162 
+Loop time of 267.8 on 1 procs for 10000 steps with 1440 atoms
+
+Pair  time (%) = 107.528 (40.1525)
+Neigh time (%) = 46.6868 (17.4335)
+Comm  time (%) = 0.952441 (0.355655)
+Outpt time (%) = 0.106937 (0.0399319)
+Other time (%) = 112.525 (42.0184)
+
+Nlocal:    1440 ave 1440 max 1440 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5320 ave 5320 max 5320 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    419294 ave 419294 max 419294 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 838588 ave 838588 max 838588 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 838588
+Ave neighs/atom = 582.353
+Neighbor list builds = 1000
+Dangerous builds = 0

@@ -1,0 +1,105 @@
+# in this example the electron temperature on the left is ramped up in time 
+# and held fixed on the right. the phonon temperature is free on the left 
+# and fixed and consistent with the electron temperature on the right. 
+# this mimics some simplified pumped system
+# also a volume source is added to mimic Joule heating
+
+#echo both
+
+# units
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, 
+#   where N = 4 for fcc, 
+#         s = 3.405 A (Wagner) 
+#         a = 5.25 A (Ashcroft & Mermin, p. 70)
+#if {restart}
+boundary        f p p
+pair_style      lj/cut 13.5
+read_data       temp.init
+#endif
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+region feRegion   block -14 14 -3 3 -3 3
+region mdRegion   block -12 12 -3 3 -3 3
+region mdInternal block -10 10 -3 3 -3 3
+
+# NOTE: don't define ghosts if they are outside the feRegion
+group		internal region mdInternal
+group		ghost subtract all internal
+
+# create atoms
+#if !{restart}
+#boundary	f p p
+#create_box	1 mdRegion
+#create_atoms	1 region mdRegion
+#mass		1 39.95
+#pair_style	lj/cut 13.5
+#pair_coeff  	1 1 .238 3.405 13.5
+#velocity  internal create 40 87287 mom yes loop geom
+#endif
+
+# timestep & neighboring
+timestep	5.0
+thermo		10
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC fem  create mesh 14 1  1  feRegion f p p
+
+# specify atom types for the atc fix
+#fix_modify      AtC transfer internal type internal
+fix_modify      AtC transfer boundary type ghost
+
+# fix initial temperatures
+#if !{restart}
+#velocity	internal create 40 87287 mom yes loop geom
+#endif
+fix_modify AtC transfer initial temperature      all 20
+fix_modify AtC transfer fix temperature          all 20
+fix_modify AtC transfer initial electron_temperature all 20
+fix_modify AtC transfer fix electron_temperature     all 20
+
+# equilibrate MD field with rescale
+fix_modify AtC extrinsic exchange off
+fix_modify	AtC transfer thermal control rescale 10
+#if !{restart}
+#run 		1000
+#endif
+
+# change thermostat 
+fix_modify AtC extrinsic exchange on
+fix_modify	AtC transfer unfix          temperature all
+fix_modify	AtC transfer unfix electron_temperature all
+# note does not handle "inf"s
+#fix_modify  AtC mesh create_faceset bndy -8 8 inf inf inf inf
+fix_modify  AtC mesh create_faceset bndy box -10 10 -10 10 -10 10
+fix_modify  AtC transfer thermal control flux faceset bndy 
+# .. this controls the time filtering ....
+#fix_modify	AtC transfer filter scale 500.0
+
+# add nodesets & boundary temperature controls
+#               ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+# NOTE create_nodeset doesn't handle "inf"
+fix_modify      AtC mesh create_nodeset lbc -14.1 -13.9  -6 6 -6 6
+fix_modify      AtC mesh create_nodeset rbc  13.9  14.1  -6 6 -6 6
+fix_modify      AtC transfer fix electron_temperature lbc 40.
+fix_modify      AtC transfer fix electron_temperature rbc 20.
+fix_modify      AtC transfer fix          temperature rbc 20. 
+#fix_modify      AtC transfer source electron_temperature all 0.0015
+fix_modify      AtC transfer source electron_temperature all 9.50445e-11
+
+
+# output                                   filename frequency [text output]
+fix_modify      AtC transfer output        bar1d_ttmFE 100 text
+
+# run transient to steady state
+thermo		10
+reset_timestep 0
+run 		4000

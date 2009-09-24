@@ -1,0 +1,67 @@
+#AtC Two temperature Coupling
+# DESCRIPTION:
+# full overlap of MD and FE regions with full periodic boundary conditions.
+# initial electron and phonon temperatures are different and then allowed to 
+# relax.
+#
+
+units    real
+atom_style  atomic
+boundary  p p p
+
+# create domain
+#lattice  type reduced density rho* = 4*(sigma/a)^3, 
+#   where N = 4 for fcc, 
+#         s = 3.405 A (Wagner) 
+#         a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+
+pair_style  lj/cut 13.5
+
+read_data   uniform_exchange_init.data
+
+region    simRegion block -12 12 -3 3 -3 3
+region     feRegion block -12 12 -3 3 -3 3
+
+# create atoms
+region    mdRegion block -12 12  -3 3 -3 3
+
+# specify interal/ghost atoms
+region    mdInternal block -12 12 -3 3 -3 3
+group    internal region mdInternal
+
+neighbor  5. bin
+neigh_modify  every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC fem  create mesh 4 1  1  feRegion p p p
+
+# fix a temperature
+fix_modify AtC transfer fix temperature          all 20.0
+fix_modify AtC transfer fix electron_temperature all 30.0
+
+timestep  5.0
+
+# output
+thermo_style custom step pe temp f_AtC[2] f_AtC[4]
+thermo    10
+
+# equilibrate MD field
+fix_modify  AtC transfer thermal control rescale 13
+run     500
+
+# relax
+fix_modify      AtC transfer output        uniform_exchangeFE 100 text
+fix_modify      AtC transfer atomic_output uniform_exchangeMD 10000
+fix_modify	AtC transfer filter type exponential
+fix_modify	AtC transfer filter scale 5.0e2
+fix_modify	AtC transfer filter on
+fix_modify	AtC transfer unfix          temperature all
+fix_modify	AtC transfer unfix electron_temperature all
+fix_modify	AtC transfer thermal control flux
+
+# run with FE
+run     5000

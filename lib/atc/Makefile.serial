@@ -1,0 +1,129 @@
+SHELL = /bin/sh
+
+# ------ FILES ------
+
+SRC = ATC_HardyKernel.cpp \
+ATC_Transfer.cpp \
+ATC_TransferHardy.cpp \
+ATC_TransferThermal.cpp \
+ATC_TransferUtility.cpp \
+AtomicRegulator.cpp \
+ElasticTimeIntegrator.cpp \
+ElectronFlux.cpp \
+ElectronHeatCapacity.cpp \
+ElectronHeatFlux.cpp \
+ElectronPhononExchange.cpp \
+ExtrinsicModel.cpp \
+ExtrinsicModelTwoTemperature.cpp \
+FE_Element.cpp \
+FE_Engine.cpp \
+FE_Mesh.cpp \
+FieldEulerIntegrator.cpp \
+ImplicitSolveOperator.cpp \
+Kinetostat.cpp \
+LammpsInterface.cpp \
+Material.cpp \
+Matrix.cpp \
+OutputManager.cpp \
+PhysicsModelThermal.cpp \
+PhysicsModelTwoTemperature.cpp \
+PrescribedDataManager.cpp \
+Solver.cpp \
+Thermostat.cpp \
+TimeFilter.cpp \
+TimeIntegrator.cpp \
+Vector.cpp \
+XT_Function.cpp
+
+INC = Array2D.h \
+Array.h \
+ATC_Error.h \
+ATC_HardyKernel.h \
+ATC_Transfer.h \
+ATC_TransferHardy.h \
+ATC_TransferThermal.h \
+ATC_TypeDefs.h \ \
+AtomicRegulator.h \
+CG.h \
+CloneVector.h \
+DenseMatrix.h \
+DenseVector.h \
+DiagonalMatrix.h \
+ElasticTimeIntegrator.h \
+ElectronFlux.h \
+ElectronHeatCapacity.h \
+ElectronHeatFlux.h \
+ElectronPhononExchange.h \
+ExtrinsicModel.h \
+ExtrinsicModelTwoTemperature.h \
+FE_Element.h \
+FE_Engine.h \
+FE_Mesh.h \
+FieldEulerIntegrator.h \
+GMRES.h \
+ImplicitSolveOperator.h \
+Kinetostat.h \
+LammpsInterface.h \
+Material.h \
+MatrixDef.h \
+Matrix.h \
+MatrixLibrary.h \
+OutputManager.h \
+PhysicsModel.h \
+PhysicsModelThermal.h \
+PhysicsModelTwoTemperature.h \
+PrescribedDataManager.h \
+Quadrature.h \
+Solver.h \
+SparseMatrix.h \
+SparseMatrix-inl.h \
+SparseVector.h \
+SparseVector-inl.h \
+StringManip.h \
+Thermostat.h \
+TimeFilter.h \
+TimeIntegrator.h \
+Utility.h \
+Vector.h \
+XT_Function.h
+
+# ------ DEFINITIONS ------
+
+LIB = libatc.a
+OBJ =   $(SRC:.cpp=.o)
+
+# ------ SETTINGS ------
+
+# include any MPI settings needed for the ATC library to build with
+# the same MPI library that LAMMPS is built with
+
+CC =	        g++
+CCFLAGS =       -O -g -I../../src -I../../src/STUBS
+ARCHIVE =	ar
+ARCHFLAG =	-rc
+DEPFLAGS =      -M
+LINK =         	g++
+LINKFLAGS =	-O
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+# ------ COMPILE RULES ------
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@		
+
+# ------ DEPENDENCIES ------
+
+DEPENDS = $(OBJ:.o=.d)
+
+# ------ CLEAN ------
+
+clean:
+	rm *.o *.d *~ $(LIB)

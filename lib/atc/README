@@ -1,0 +1,25 @@
+ATC (Atom To Continuum methods)
+
+Reese Jones, Jeremy Templeton, Jonathan Zimmerman 
+September 2009
+
+--------------
+
+This is version 1.0 of the ATC library, which provides continuum field
+estimation and molecular dynamics-finite element coupling methods.
+
+This library must be built with a C++ compiler, before LAMMPS is
+built, so LAMMPS can link against it. This library is dependent on the
+system libraries MPI, BLAS and LAPACK which will be linked when LAMMPS
+is built.
+
+Build the library using one of the provided Makefiles or creating your
+own, specific to your compiler and system.  For example:
+
+make -f Makefile.g++
+
+Note that the ATC library makes MPI calls, so you should
+build it with the same MPI library that is used to build
+LAMMPS, e.g. in the lammps/src/MAKE/Makefile.foo file.
+
+If the build is successful, you should end up with a libatc.a file.

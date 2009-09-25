@@ -2,11 +2,11 @@
 
 if ($1 == 1) then
 
-  cp -p style_user_ackland.h ..
+  cp style_user_ackland.h ..
 
-  cp -p compute_ackland_atom.cpp ..
+  cp compute_ackland_atom.cpp ..
 
-  cp -p compute_ackland_atom.h ..
+  cp compute_ackland_atom.h ..
 
 else if ($1 == 0) then
 

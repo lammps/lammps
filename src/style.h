@@ -386,7 +386,8 @@ RegionStyle(union,RegUnion)
 #include "style_reax.h"
 #include "style_xtc.h"
 
-// user add-ons: individual classes and packages
+// package and user add-ons
 
+#include "style_packages.h"
 #include "style_user.h"
 #include "style_user_packages.h"

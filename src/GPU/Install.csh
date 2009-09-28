@@ -5,8 +5,11 @@
 if ($1 == 1) then
 
   sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
+  sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
   sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
   sed -i -e 's|^PKGLIB =[ \t]*|&-lgpu |' ../Makefile.package
+  sed -i -e 's|^PKGPATHSYS =[ \t]*|&$(gpu_SYSLIBPATH) |' ../Makefile.package
+  sed -i -e 's|^PKGLIBSYS =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
 
   cp style_gpu.h tmp.h
   if (! -e ../pair_gayberne.cpp) then
@@ -26,6 +29,7 @@ if ($1 == 1) then
 else if ($1 == 0) then
 
   sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
+  sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
 
   rm ../style_gpu.h
   touch ../style_gpu.h

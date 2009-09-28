@@ -28,8 +28,6 @@ include	Makefile.package
 #       either an MPI installed on your machine, or the src/STUBS dummy lib
 # NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
 
-
-
 CC =		mpic++
 CCFLAGS =	$(PKGINC) -O2  -funroll-loops  -DFFT_FFTW -DLAMMPS_GZIP \
 		-fstrict-aliasing -Wall -W -Wno-uninitialized

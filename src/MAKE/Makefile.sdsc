@@ -29,8 +29,6 @@ include	Makefile.package
 #       either an MPI installed on your machine, or the src/STUBS dummy lib
 # NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
 
-
-
 CC =	        blrts_xlC \
 	       -I/bgl/BlueLight/ppcfloor/bglsys/include \
 	       -I//usr/local/apps/V1R3/fftw-2.1.5d/include/

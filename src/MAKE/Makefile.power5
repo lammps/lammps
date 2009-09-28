@@ -29,8 +29,6 @@ include	Makefile.package
 #       either an MPI installed on your machine, or the src/STUBS dummy lib
 # NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
 
-
-
 CC =		mpCC_r
 CCFLAGS =	$(PKGINC) -O3 -qnoipa -qlanglvl=oldmath \
 		-I/scr/oppe/LAMMPS/fftw-2.1.5/include -DFFT_FFTW

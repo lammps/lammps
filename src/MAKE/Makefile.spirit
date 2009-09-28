@@ -34,8 +34,6 @@ include	Makefile.package
 #       either an MPI installed on your machine, or the src/STUBS dummy lib
 # NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
 
-
-
 FFTW =		/apps/x86_64/libraries/fftw/openmpi-1.2.2_mx_intel-9.1-f040-c045/fftw-2.1.5
 
 CC =		mpicxx

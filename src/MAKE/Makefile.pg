@@ -28,8 +28,6 @@ include	Makefile.package
 #       either an MPI installed on your machine, or the src/STUBS dummy lib
 # NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
 
-
-
 CC =		pgCC -fast
 CCFLAGS =       $(PKGINC) -I/usr/local/mpich-1.2.6/pg/include \
                 -I/usr/local/include \

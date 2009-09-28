@@ -27,8 +27,6 @@ include	Makefile.package
 #       either an MPI installed on your machine, or the src/STUBS dummy lib
 # NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
 
-
-
 CC =		c++
 CCFLAGS =	$(PKGINC) -O -I../STUBS -I/sw/include -DFFT_FFTW
 DEPFLAGS =	-M
@@ -45,7 +43,6 @@ $(EXE):	$(OBJ)
 	$(SIZE) $(EXE)
 
 # Compilation rules
-
 
 %.o:%.cpp
 	$(CC) $(CCFLAGS) -c $<

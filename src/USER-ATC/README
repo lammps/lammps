@@ -1,0 +1,12 @@
+The files in this directory are a user-contributed package for LAMMPS.
+
+The primary people who created these files are Reese Jones
+(rjones@sandia.gov), Jeremy Templeton (jatemple@sandia.gov) and Jon
+Zimmerman (jzimmer@sandia.gov).  Contact them directly if you have
+questions.
+
+This package implements a "fix atc" command which can be used in a
+LAMMPS input script.  This fix can be employed to either do concurrent
+coupling of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.  See the
+doc page for the fix atc command to get started.

@@ -148,13 +148,24 @@ sub-section.
 <P>These are the issues you need to address when editing a low-level
 Makefile for your machine.  The only portion of the file you should
 need to edit is the first line and the "System-specific Settings"
-section.
+section, which has two parts.  The first part lists additional system
+libraries needed by certain LAMMPS libraries; see (2).  The second
+part is compiler and linker settings, as well as MPI and FFT settings;
+see (3-9).
 </P>
 <P>(1) Change the first line of Makefile.foo to list the word "foo" after
 the "#", and whatever other options you set.  This is the line you
 will see if you just type "make".
 </P>
-<P>(2) Set the paths and flags for your C++ compiler, including
+<P>(2) The system library section can be ignored unless you are building
+LAMMPS with one or more of the listed LAMMPS packages that use these
+libraries.  See the <A HREF = "#2_3_4">section below</A> for more details.  The
+SYSLIB settings are the libraries themselves.  The SYSLIBPATH settings
+are where they are located on your machine, which is typically only
+needed if they are in some non-standard place, that is not in your
+library search path.
+</P>
+<P>(3) Set the paths and flags for your C++ compiler, including
 optimization flags.  You can use g++, the open-source GNU compiler,
 which is available on all Unix systems.  Vendor compilers often
 produce faster code.  On boxes with Intel CPUs, we suggest using the
@@ -163,7 +174,7 @@ site</A>.
 </P>
 
 
-<P>(3) If you want LAMMPS to run in parallel, you must have an MPI
+<P>(4) If you want LAMMPS to run in parallel, you must have an MPI
 library installed on your platform.  If you do not use "mpicc" as your
 compiler/linker, then Makefile.foo needs to specify where the mpi.h
 file (-I switch) and the libmpi.a library (-L switch) is found.  If
@@ -179,7 +190,7 @@ to enable you to use the same compiler you are using for the LAMMPS
 build, which can avoid problems that may arise when linking LAMMPS to
 the MPI library.
 </P>
-<P>(4) If you just want LAMMPS to run on a single processor, you can use
+<P>(5) If you just want LAMMPS to run on a single processor, you can use
 the STUBS library in place of MPI, since you don't need an MPI library
 installed on your system.  See the Makefile.serial file for how to
 specify the -I and -L switches.  You will also need to build the STUBS
@@ -194,7 +205,7 @@ you'll need to insert code to call another timer.  Note that the
 ANSI-standard function clock() rolls over after an hour or so, and is
 therefore insufficient for timing long LAMMPS simulations.
 </P>
-<P>(5) If you want to use the particle-particle particle-mesh (PPPM)
+<P>(6) If you want to use the particle-particle particle-mesh (PPPM)
 option in LAMMPS for long-range Coulombics, you must have a 1d FFT
 library installed on your platform.  This is specified by a switch of
 the form -DFFT_XXX where XXX = INTEL, DEC, SGI, SCSL, or FFTW.  All
@@ -212,11 +223,11 @@ places.  If you successfully add a new FFT option, like -DFFT_IBM,
 please send the <A HREF = "http://lammps.sandia.gov">developers</A> an email; we'd
 like to add it to LAMMPS.
 </P>
-<P>(6) If you don't plan to use PPPM, you don't need an FFT library.  Use
+<P>(7) If you don't plan to use PPPM, you don't need an FFT library.  Use
 a -DFFT_NONE switch in the CCFLAGS setting of Makefile.foo, or exclude
 the KSPACE package (see below).
 </P>
-<P>(7) There are a few other -D compiler switches you can set as part of
+<P>(8) There are a few other -D compiler switches you can set as part of
 CCFLAGS.  The read_data and dump commands will read/write gzipped
 files if you compile with -DLAMMPS_GZIP.  It requires that your Unix
 support the "popen" command.  Using one of the -DPACK_ARRAY,
@@ -228,7 +239,7 @@ format.  This is only necessary if your platform does have its own XDR
 files available.  See the Restrictions section of the <A HREF = "dump.html">dump</A>
 command for details.
 </P>
-<P>(8) The DEPFLAGS setting is how the C++ compiler creates a dependency
+<P>(9) The DEPFLAGS setting is how the C++ compiler creates a dependency
 file for each source file.  This speeds re-compilation when source
 (*.cpp) or header (*.h) files are edited.  Some compilers do not
 support dependency file creation, or may use a different switch than
@@ -236,17 +247,6 @@ support dependency file creation, or may use a different switch than
 files (a long list of errors involving *.d files), then you'll need to
 create a Makefile.foo patterned after Makefile.tflop, which uses
 different rules that do not involve dependency files.
-</P>
-<P>(9) The comments after the "System-specific Settings" heading refer to
-Fortran, BLAS, GPU, etc system libraries.  You only need to include
-these settings if you intend to build LAMMPS with the optional
-packages that use add-on LAMMPS libraries that need these system
-libraries.  See the <A HREF = "#2_3_3">section below</A> for more details.  If you
-are not using these packages and their associated LAMMPS libraries,
-then you can either comment out the relevant lines in the Makefile, or
-leave the setting blank.  If you do not do this, and your system does
-not have the specified system library (e.g. a BLAS or CUDA library)
-then you will get an error when you build LAMMPS.
 </P>
 <P>That's it.  Once you have a correct Makefile.foo and you have
 pre-built the MPI and FFT libraries it will use, all you need to do
@@ -517,24 +517,26 @@ make g++
 LAMMPS.  You must also include the package that uses and wraps the
 library before you build LAMMPS itself.
 </P>
-<P>As discussed in point (9) of <A HREF = "#2_2_4">this section</A> above, there are
+<P>As discussed in point (2) of <A HREF = "#2_2_4">this section</A> above, there are
 settings in the low-level Makefile that specify additional system
 libraries needed by individual LAMMPS add-on libraries.  These are the
 settings you must specify correctly in your low-level Makefile in
 lammps/src/MAKE, such as Makefile.foo:
 </P>
-<P>To use the user-atc package and library, the settings for LINKBLAS and
-BLASLIB must be correct.  This is so that the appropriate BLAS and
-LAPACK libs, used by the user-atc library, can be found.
-</P>
-<P>To use the gpu package and library, the settings for LINKGPU and
-GPULIB must be correct.  These are specific to the NVIDIA CUDA
+<P>To use the gpu package and library, the settings for gpu_SYSLIB and
+gpu_SYSLIBPATH must be correct.  These are specific to the NVIDIA CUDA
 software which must be installed on your system.
 </P>
 <P>To use the meam or reax packages and their libraries which are Fortran
-based, the settings for LINKFORT and FORTLIB must be correct.  This is
-so that the C++ compiler can perform a cross-language link using the
-appropriate system Fortran libraries.
+based, the settings for meam_SYSLIB, reax_SYSLIB, meam_SYSLIBPATH, and
+reax_SYSLIBPATH must be correct.  This is so that the C++ compiler can
+perform a cross-language link using the appropriate system Fortran
+libraries.
+</P>
+<P>To use the user-atc package and library, the settings for
+user-atc_SYSLIB and user-atc_SYSLIBPATH must be correct.  This is so
+that the appropriate BLAS and LAPACK libs, used by the user-atc
+library, can be found.
 </P>
 <HR>
 

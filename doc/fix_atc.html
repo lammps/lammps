@@ -35,8 +35,13 @@ fix AtC atc_atoms atc transfer hardy
 <P><B>Description:</B>
 </P>
 <P>This fix creates a coupled finite element (FE) and molecular dynamics
-(MD) simulation and/or an on-the-fly estimation of continuum fields.
-Interscale operators are defined that construct continuum fields from
+(MD) simulation and/or an on-the-fly estimation of continuum fields,
+where a FE mesh is specified and overlaps the particles, something
+like this:
+</P>
+<CENTER><IMG SRC = "JPG/atc_nanotube.jpg">
+</CENTER>
+<P>Interscale operators are defined that construct continuum fields from
 atomic data.  Coupled simulations use FE projection approximated on a
 discrete field.  Currently, coupling is restricted to thermal physics.
 The Hardy module can use either FE projection or integration Kernels
@@ -47,12 +52,14 @@ be made based on the FE field.  For example, a Gaussian isokinetic
 thermostat can apply heat sources to the atoms that varies in space on
 the same scale as the FE element size.  Meshes are not created
 automatically and must be specified on LAMMPS regions with prescribed
-element sizes.  Note that mesh computations and storage run in serial
-(not parallelized) so performance will degrade when large element
-counts are used.
+element sizes.
 </P>
-<P>Note that coupling and post-processing can be combined in the same
-simulations using separate fix atc commands.
+<P>Coupling and post-processing can be combined in the same simulations
+using separate fix atc commands.
+</P>
+<P>Note that mesh computations and storage run in serial (not
+parallelized) so performance will degrade when large element counts
+are used.
 </P>
 <P>For detailed exposition of the theory and algorithms implemented in
 this fix, please see the papers <A HREF = "#Wagner">here</A> and <A HREF = "#Zimmerman">here</A>.

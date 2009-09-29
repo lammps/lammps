@@ -179,6 +179,8 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   dimension = domain->dimension;
   nrigid = 0;
   rfix = 0;
+
+  current_lifo = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -301,20 +303,60 @@ double FixBoxRelax::min_energy(double *fextra)
 }
 
 /* ----------------------------------------------------------------------
-   store extra dof values for linesearch starting point
+   store extra dof values for minimization linesearch starting point
    boxlo0,boxhi0 = box dimensions
    s0 = ratio of current boxsize to initial boxsize
+   box values are pushed onto a LIFO stack so nested calls can be made
+   values are popped by calling min_step(0.0)
 ------------------------------------------------------------------------- */
 
 void FixBoxRelax::min_store()
 {
   for (int i = 0; i < 3; i++) {
-    boxlo0[i] = domain->boxlo[i];
-    boxhi0[i] = domain->boxhi[i];
+    boxlo0[current_lifo][i] = domain->boxlo[i];
+    boxhi0[current_lifo][i] = domain->boxhi[i];
   }
-  s0[0] = (boxhi0[0]-boxlo0[0])/xprdinit;
-  s0[1] = (boxhi0[1]-boxlo0[1])/yprdinit;
-  s0[2] = (boxhi0[2]-boxlo0[2])/zprdinit;
+  s0[0] = (boxhi0[current_lifo][0]-boxlo0[current_lifo][0])/xprdinit;
+  s0[1] = (boxhi0[current_lifo][1]-boxlo0[current_lifo][1])/yprdinit;
+  s0[2] = (boxhi0[current_lifo][2]-boxlo0[current_lifo][2])/zprdinit;
+}
+
+/* ----------------------------------------------------------------------
+   clear the LIFO stack for min_store
+------------------------------------------------------------------------- */
+
+void FixBoxRelax::min_clearstore()
+{
+  current_lifo = 0;
+}
+
+/* ----------------------------------------------------------------------
+   push the LIFO stack for min_store
+------------------------------------------------------------------------- */
+
+void FixBoxRelax::min_pushstore()
+{
+  if (current_lifo >= MAX_LIFO_DEPTH) {
+    error->all("Attempt to push beyond stack limit <FixBoxRelax>");
+    return;
+  }
+
+  current_lifo++;
+}
+
+
+/* ----------------------------------------------------------------------
+   pop the LIFO stack for min_store
+------------------------------------------------------------------------- */
+
+void FixBoxRelax::min_popstore()
+{
+  if (current_lifo <= 0) {
+    error->all("Attempt to pop empty stack <FixBoxRelax>");
+    return;
+  }
+
+  current_lifo--;
 }
 
 /* ----------------------------------------------------------------------
@@ -394,9 +436,11 @@ void FixBoxRelax::remap()
 
   for (i = 0; i < 3; i++)
     if (p_flag[i]) {
-      ctr = 0.5 * (boxlo0[i] + boxhi0[i]);
-      domain->boxlo[i] = boxlo0[i] + (boxlo0[i]-ctr)*ds[i]/s0[i];
-      domain->boxhi[i] = boxhi0[i] + (boxhi0[i]-ctr)*ds[i]/s0[i];
+      double currentBoxLo0 = boxlo0[current_lifo][i];
+      double currentBoxHi0 = boxhi0[current_lifo][i];
+      ctr = 0.5 * (currentBoxLo0 + currentBoxHi0);
+      domain->boxlo[i] = currentBoxLo0 + (currentBoxLo0-ctr)*ds[i]/s0[i];
+      domain->boxhi[i] = currentBoxHi0 + (currentBoxHi0-ctr)*ds[i]/s0[i];
     }
 
   domain->set_global_box();

@@ -109,6 +109,9 @@ class Fix : protected Pointers {
 
   virtual double min_energy(double *) {return 0.0;}
   virtual void min_store() {}
+  virtual void min_clearstore() {}
+  virtual void min_pushstore() {}
+  virtual void min_popstore() {}
   virtual void min_step(double, double *) {}
   virtual double max_alpha(double *) {return 0.0;}
   virtual int min_dof() {return 0;}

@@ -441,6 +441,28 @@ void Modify::min_store()
 }
 
 /* ----------------------------------------------------------------------
+   mange state of extra dof on a stack, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_clearstore()
+{
+  for (int i = 0; i < n_min_energy; i++)
+    fix[list_min_energy[i]]->min_clearstore();
+}
+
+void Modify::min_pushstore()
+{
+  for (int i = 0; i < n_min_energy; i++)
+    fix[list_min_energy[i]]->min_pushstore();
+}
+
+void Modify::min_popstore()
+{
+  for (int i = 0; i < n_min_energy; i++)
+    fix[list_min_energy[i]]->min_popstore();
+}
+
+/* ----------------------------------------------------------------------
    displace extra dof along vector hextra, only for relevant fixes
 ------------------------------------------------------------------------- */
 

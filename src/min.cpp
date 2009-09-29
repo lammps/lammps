@@ -304,11 +304,16 @@ void Min::run(int nsteps)
 {
   // possible stop conditions
 
-  char *stopstrings[] = {"max iterations","max force evaluations",
-                         "energy tolerance","force tolerance",
-			 "search direction is not downhill",
-			 "linesearch alpha is zero",
-			 "forces are zero","quadratic factors are zero"};
+  char *stopstrings[] = {"max iterations",
+                         "max force evaluations",
+                         "energy tolerance",
+                         "force tolerance",
+                         "search direction is not downhill",
+                         "linesearch alpha is zero",
+                         "forces are zero",
+                         "quadratic factors are zero",
+                         "trust region too small",
+                         "HFTN minimizer error"};
 
   // stats for Finish to print
 

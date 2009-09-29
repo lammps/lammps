@@ -27,9 +27,6 @@
 #include "memory.h"
 #include "error.h"
 
-#define TOLERANCE 1.0e-6
-#define EPSILON 1.0e-7
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

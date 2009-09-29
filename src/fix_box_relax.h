@@ -16,6 +16,8 @@
 
 #include "fix.h"
 
+const int  MAX_LIFO_DEPTH = 2;    // to meet the needs of min_hftn
+
 namespace LAMMPS_NS {
 
 class FixBoxRelax : public Fix {
@@ -27,6 +29,9 @@ class FixBoxRelax : public Fix {
 
   double min_energy(double *);
   void min_store();
+  void min_clearstore();
+  void min_pushstore();
+  void min_popstore();
   void min_step(double, double *);
   double max_alpha(double *);
   int min_dof();
@@ -42,9 +47,11 @@ class FixBoxRelax : public Fix {
   double volinit,xprdinit,yprdinit,zprdinit;
   double vmax,pv2e,pflagsum;
 
-  double boxlo0[3],boxhi0[3];     // box bounds at start of line search
-  double s0[6];	          	  // scale matrix in Voigt notation
-  double ds[6];                   // increment in scale matrix
+  int    current_lifo;                  // LIFO stack pointer
+  double boxlo0[MAX_LIFO_DEPTH][3];     // box bounds at start of line search
+  double boxhi0[MAX_LIFO_DEPTH][3];
+  double s0[6];                         // scale matrix in Voigt notation
+  double ds[6];                         // increment in scale matrix
 
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;

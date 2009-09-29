@@ -11,12 +11,12 @@ min_style command :h3
 
 min_style style :pre
 
-style = {cg} or {sd} :ul
+style = {cg} or {hftn} or {sd} :ul
 
 [Examples:]
 
 min_style cg
-min_style sd :pre
+min_style hftn :pre
 
 [Description:]
 
@@ -30,6 +30,18 @@ perpendicular (conjugate) to the previous search direction.  The PR
 variant affects how the direction is chosen and how the CG method is
 restarted when it ceases to make progress.  The PR variant is thought
 to be the most effective CG choice.
+
+Style {hftn} is a Hessian-free truncated Newton algorithm.  At each
+iteration a quadratic model of the energy potential is solved by a
+conjugate gradient inner iteration.  The Hessian (second derivatives)
+of the energy is not formed directly, but approximated in each
+conjugate search direction by a finite difference directional
+derivative.  When close to an energy minimum, the algorithm behaves
+like a Newton method and exhibits a quadratic convergence rate to high
+accuracy.  In most cases the behavior of {hftn} is similar to {cg},
+but it offers another minimizer alternative if {cg} seems to perform
+poorly.  This style is not affected by the
+"min_modify"_min_modify.html command.
 
 Style {sd} is a steepest descent algorithm.  At each iteration, the
 search direction is set to the downhill direction corresponding to the

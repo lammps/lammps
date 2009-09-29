@@ -82,8 +82,8 @@ all 3 shape components the same.
 If you define a "hybrid atom style"_atom_style.html which includes one
 (or more) sub-styles which require per-type shape and one (or more)
 sub-styles which require per-atom diameter, then you must define both.
-In this case the per-type shape will be ignored; only the per-atom
-diameter will be used by LAMMPS.  Note that this means you can not
+However, in this case the per-type shape will be ignored; only the
+per-atom diameter will be used by LAMMPS.  This means you cannot
 currently mix aspherical particles with per-atom diameter particles.
 
 [Restrictions:]

@@ -264,7 +264,7 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 [(Gullet)] Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
 This report may be accessed on-line via "this link"_sandreport.
 
-:link(sandreport,http://www.prod.sandia.gov/cgi-bin/techlib/access-control.pl/2003/038782.pdf)
+:link(sandreport,http://infoserve.sandia.gov/sand_doc/2003/038782.pdf)
 
 :link(Lee)
 [(Lee)] Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
@@ -274,4 +274,3 @@ This report may be accessed on-line via "this link"_sandreport.
 
 :link(Valone)
 [(Valone)] Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
-

@@ -79,7 +79,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     }
     if (axis == 'y') {
       if (strcmp(arg[7],"INF") == 0) hi = BIG;
-      if (domain->triclinic == 0) hi = domain->boxhi[1];
+      else if (domain->triclinic == 0) hi = domain->boxhi[1];
       else hi = domain->boxhi_bound[1];
     }
     if (axis == 'z') {

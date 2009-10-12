@@ -52,7 +52,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1) error->all("Fix addforce region ID does not exist");
       iarg += 2;
-    }
+    } else error->all("Illegal fix addforce command");
   }
 
   force_flag = 0;

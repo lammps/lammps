@@ -47,7 +47,7 @@ void PairGPUAtomT::init(const int max_atoms) {
   ans.safe_alloc(ans_fields(),max_atoms);
 
   // Get a host write only buffer
-  host_write.safe_alloc_w(max_atoms*4);
+  host_write.safe_alloc_w(max_atoms*atom_fields());
   // Get a host read/write buffer
   host_read.safe_alloc_rw(ans.row_size()*ans_fields());
     

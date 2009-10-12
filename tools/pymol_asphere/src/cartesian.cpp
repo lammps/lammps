@@ -18,36 +18,6 @@
 
 #include "cartesian.h"
 
-template class TwoD<double>;
-template class TwoD<float>;
-template class TwoD<unsigned>;
-template ostream & operator<< <double>(ostream &out, const TwoD<double> &t);
-template ostream & operator<< <float>(ostream &out, const TwoD<float> &t);
-template istream & operator>> <double>(istream &in, TwoD<double> &t);
-template istream & operator>> <float>(istream &in, TwoD<float> &t);
-template class ThreeD<int>;
-template class ThreeD<float>;
-template class ThreeD<double>;
-template class ThreeD<unsigned>;
-template ostream & operator<< <float>(ostream &out, const ThreeD<float> &t);
-template istream & operator>> <float>(istream &in, ThreeD<float> &t);
-template ostream & operator<< <double>(ostream &out, const ThreeD<double> &t);
-template istream & operator>> <double>(istream &in, ThreeD<double> &t);
-template ostream & operator<< <unsigned>(ostream &out, const ThreeD<unsigned> &t);
-template istream & operator>> <unsigned>(istream &in, ThreeD<unsigned> &t);
-template ThreeD<unsigned> operator+ (const unsigned one,
-																		 const ThreeD<unsigned> &two);
-template ThreeD<double> operator+(const double one, const ThreeD<double> &two);
-template ThreeD<unsigned> operator- (const unsigned one,
-																		 const ThreeD<unsigned> &two);
-template ThreeD<double> operator-(const double one, const ThreeD<double> &two);
-template ThreeD<unsigned> operator* (const unsigned one,
-																		 const ThreeD<unsigned> &two);
-template ThreeD<double> operator*(const double one, const ThreeD<double> &two);
-template ThreeD<unsigned> operator/ (const unsigned one,
-																		 const ThreeD<unsigned> &two);
-template ThreeD<double> operator/(const double one, const ThreeD<double> &two);
-
 
 // ------------------------ TwoD Stuff
 
@@ -1043,5 +1013,35 @@ cPt c::mean(vector<cPt> &vec) {
     average+=vec[i];
   return average/vec.size();
 }
+
+template class TwoD<double>;
+template class TwoD<float>;
+template class TwoD<unsigned>;
+template ostream & operator<< <double>(ostream &out, const TwoD<double> &t);
+template ostream & operator<< <float>(ostream &out, const TwoD<float> &t);
+template istream & operator>> <double>(istream &in, TwoD<double> &t);
+template istream & operator>> <float>(istream &in, TwoD<float> &t);
+template class ThreeD<int>;
+template class ThreeD<float>;
+template class ThreeD<double>;
+template class ThreeD<unsigned>;
+template ostream & operator<< <float>(ostream &out, const ThreeD<float> &t);
+template istream & operator>> <float>(istream &in, ThreeD<float> &t);
+template ostream & operator<< <double>(ostream &out, const ThreeD<double> &t);
+template istream & operator>> <double>(istream &in, ThreeD<double> &t);
+template ostream & operator<< <unsigned>(ostream &out, const ThreeD<unsigned> &t);
+template istream & operator>> <unsigned>(istream &in, ThreeD<unsigned> &t);
+template ThreeD<unsigned> operator+ (const unsigned one,
+																		 const ThreeD<unsigned> &two);
+template ThreeD<double> operator+(const double one, const ThreeD<double> &two);
+template ThreeD<unsigned> operator- (const unsigned one,
+																		 const ThreeD<unsigned> &two);
+template ThreeD<double> operator-(const double one, const ThreeD<double> &two);
+template ThreeD<unsigned> operator* (const unsigned one,
+																		 const ThreeD<unsigned> &two);
+template ThreeD<double> operator*(const double one, const ThreeD<double> &two);
+template ThreeD<unsigned> operator/ (const unsigned one,
+																		 const ThreeD<unsigned> &two);
+template ThreeD<double> operator/(const double one, const ThreeD<double> &two);
 
 

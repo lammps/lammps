@@ -17,13 +17,6 @@
 
 #include "spherical.h"
 
-template class Ball<double>;
-template class Ball<float>;
-template ostream & operator<< <double>(ostream &out, const Ball<double> &t);
-template ostream & operator<< <float>(ostream &out, const Ball<float> &t);
-template istream & operator>> <double>(istream &in, Ball<double> &t);
-template istream & operator>> <float>(istream &in, Ball<float> &t);
-
 // Empty construct. Not necessarily initialized to [0 0]
 template<class numtyp>
 Ball<numtyp>::Ball() {
@@ -143,3 +136,12 @@ template<class numtyp>
 bool Ball<numtyp>::check_bounds(numtyp min,numtyp max) {
   return true;
 }
+
+template class Ball<double>;
+template class Ball<float>;
+template ostream & operator<< <double>(ostream &out, const Ball<double> &t);
+template ostream & operator<< <float>(ostream &out, const Ball<float> &t);
+template istream & operator>> <double>(istream &in, Ball<double> &t);
+template istream & operator>> <float>(istream &in, Ball<float> &t);
+
+

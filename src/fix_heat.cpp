@@ -43,10 +43,6 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   heat_input = atof(arg[4]);
 
-  // cannot have 0 atoms in group
-
-  if (group->count(igroup) == 0.0) error->all("Fix heat group has no atoms");
-
   scale = 1.0;
 }
 
@@ -63,6 +59,9 @@ int FixHeat::setmask()
 
 void FixHeat::init()
 {
+  // cannot have 0 atoms in group
+
+  if (group->count(igroup) == 0.0) error->all("Fix heat group has no atoms");
   masstotal = group->mass(igroup);
 }
 

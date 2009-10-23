@@ -35,13 +35,14 @@ they may move to.
 
 Heat addition/subtraction is performed every N timesteps.  The {eflux}
 parameter determines the change in aggregate energy of the entire
-group of atoms.  Thus it is an "extensive" quantity, meaning its
+group of atoms per unit time, e.g. in eV/psec for "metal
+units"_units.html.  Thus it is an "extensive" quantity, meaning its
 magnitude should be scaled with the number of atoms in the group.
-Since eflux is in units of energy/time, this means a larger value of N
-will add/subtract a larger amount of energy each timestep the fix is
-invoked.  If heat is subtracted from the system too aggressively so
-that the group's kinetic energy goes to zero, LAMMPS halts with an
-error message.
+Since {eflux} is independent of N or the "timestep"_timestep.html, a
+larger value of N will add/subtract a larger amount of energy each
+time the fix is invoked.  If heat is subtracted from the system too
+aggressively so that the group's kinetic energy would go to zero,
+LAMMPS halts with an error message.
 
 Fix heat is different from a thermostat such as "fix nvt"_fix_nvt.html
 or "fix temp/rescale"_fix_temp_rescale.html in that energy is

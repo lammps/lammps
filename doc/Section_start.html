@@ -49,6 +49,26 @@ sub-directories:
 <TR><TD >tools</TD><TD > pre- and post-processing tools 
 </TD></TR></TABLE></DIV>
 
+<P>If you download the Windows executable from the download page,
+then you just get a single file:
+</P>
+<PRE>lmp_windows.exe 
+</PRE>
+<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> section, to learn how to launch it
+on a Windows box.
+</P>
+<P>Note that this executable does not include an MPI or FFT library, so
+it can only be run on a single processor and it cannot perform
+simulations with long-range Coulombics using a
+<A HREF = "kspace_style.html">PPPM</A> solver.
+</P>
+<P>The Windows executage also only includes certain packages and
+bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
+page</A> up to a certain date, as
+stated on the download page.  If you want something with more packages
+or more current, you'll have to download the source tarball and build
+it yourself, as described in the next section.
+</P>
 <HR>
 
 <H4><A NAME = "2_2"></A>2.2 Making LAMMPS 
@@ -616,6 +636,18 @@ cp lmp_linux ../examples/lj
 cd ../examples/lj
 mpirun -np 4 lmp_linux < in.lj.nve 
 </PRE>
+<P>On a Windows machine, when you have downloaded the Windows executable
+lmp_windows.exe, you do something different:
+</P>
+<UL><LI>Get a command prompt by going to Start->Run... , then typing "cmd"
+and OK. 
+
+<LI>Move to the directory where you have saved lmp_windows.exe
+(e.g. by typing: cd "My Documents"). 
+
+<LI>At the command prompt, type "lmp_windows < in.lj", replacing in.lj
+with the name of your LAMMPS input script. 
+</UL>
 <P>The screen output from LAMMPS is described in the next section.  As it
 runs, LAMMPS also writes a log.lammps file with the same information.
 </P>

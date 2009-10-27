@@ -36,9 +36,11 @@ void Shell::command(int narg, char **arg)
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all("Illegal shell command");
+#ifndef WINDOWS
     if (comm->me == 0)
       for (int i = 1; i < narg; i++)
 	mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
+#endif
 
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all("Illegal shell command");

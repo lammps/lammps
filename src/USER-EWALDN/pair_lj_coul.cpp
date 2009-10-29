@@ -220,7 +220,7 @@ void PairLJCoul::init_style()
 {
   char *style1[] = {"ewald", "ewald/n", "pppm", NULL};
   char *style6[] = {"ewald/n", NULL};
-  int i,j;
+  int i;
 
   // require an atom style with charge defined
 
@@ -508,17 +508,18 @@ void PairLJCoul::compute(int eflag, int vflag)
 	  }
 	}						// table real space
 	else {
-	  register float t = rsq;
-	  register int k = (((int *) &t)[0] & ncoulmask)>>ncoulshiftbits;
+      register table_lookup_t t;
+      t.f = rsq;
+	  register const int k = (t.i & ncoulmask)>>ncoulshiftbits;
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
 	  if (ni < 0) {
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
 	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
 	  }
 	  else {					// special case
-	    t = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t);
+	    t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
+	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t.f);
+	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
 	  }
 	}
       }
@@ -841,17 +842,18 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
 	  if (respa_flag) respa_coul = ni<0 ?		// correct for respa
 	      frespa*qri*q[j]/sqrt(rsq) :
 	      frespa*qri*q[j]/sqrt(rsq)*special_coul[ni];
-	  register float t = rsq;
-	  register int k = (((int *) &t)[0] & ncoulmask)>>ncoulshiftbits;
+	  register table_lookup_t t;
+      t.f = rsq;
+	  register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
 	  if (ni < 0) {
 	    force_coul = qiqj*(ftable[k]+f*dftable[k]);
 	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
 	  }
 	  else {					// correct for special
-	    t = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t);
+	    t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
+	    force_coul = qiqj*(ftable[k]+f*dftable[k]-t.f);
+	    if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
 	  }
 	}
       }
@@ -955,39 +957,37 @@ void PairLJCoul::init_tables()
     dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
   }
 
-  float rsq;
-  int *int_rsq = (int *) &rsq;  
-  float minrsq;
-  int *int_minrsq = (int *) &minrsq;
+  table_lookup_t rsq_lookup;
+  table_lookup_t minrsq_lookup;
   int itablemin;
-  *int_minrsq = 0 << ncoulshiftbits;
-  *int_minrsq = *int_minrsq | maskhi;
+  minrsq_lookup.i = 0 << ncoulshiftbits;
+  minrsq_lookup.i |= maskhi;
     
   for (int i = 0; i < ntable; i++) {
-    *int_rsq = i << ncoulshiftbits;
-    *int_rsq = *int_rsq | masklo;
-    if (rsq < tabinnersq) {
-      *int_rsq = i << ncoulshiftbits;
-      *int_rsq = *int_rsq | maskhi;
+    rsq_lookup.i = i << ncoulshiftbits;
+    rsq_lookup.i |= masklo;
+    if (rsq_lookup.f < tabinnersq) {
+      rsq_lookup.i = i << ncoulshiftbits;
+      rsq_lookup.i |= maskhi;
     }
-    r = sqrt(rsq);
+    r = sqrtf(rsq_lookup.f);
     grij = g_ewald * r;
     expm2 = exp(-grij*grij);
     derfc = erfc(grij);
     if (cut_respa == NULL) {
-      rtable[i] = rsq;
+      rtable[i] = rsq_lookup.f;
       ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
       ctable[i] = qqrd2e/r;
       etable[i] = qqrd2e/r * derfc;
     } else {
-      rtable[i] = rsq;
+      rtable[i] = rsq_lookup.f;
       ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2 - 1.0);
       ctable[i] = 0.0;
       etable[i] = qqrd2e/r * derfc;
       ptable[i] = qqrd2e/r;
       vtable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
-      if (rsq > cut_respa[2]*cut_respa[2]) {
-	if (rsq < cut_respa[3]*cut_respa[3]) {
+      if (rsq_lookup.f > cut_respa[2]*cut_respa[2]) {
+	if (rsq_lookup.f < cut_respa[3]*cut_respa[3]) {
 	  rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]); 
 	  ftable[i] += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
 	  ctable[i] = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
@@ -997,10 +997,10 @@ void PairLJCoul::init_tables()
 	}
       }
     }
-    minrsq = MIN(minrsq,rsq);
+    minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
   }
 
-  tabinnersq = minrsq;
+  tabinnersq = minrsq_lookup.f;
   
   int ntablem1 = ntable - 1;
   
@@ -1038,16 +1038,16 @@ void PairLJCoul::init_tables()
   // if so, compute deltas between rsq and cut*cut 
 	
   double f_tmp,c_tmp,e_tmp,p_tmp,v_tmp;
-  itablemin = *int_minrsq & ncoulmask;
+  itablemin = minrsq_lookup.i & ncoulmask;
   itablemin >>= ncoulshiftbits;  
   int itablemax = itablemin - 1; 
   if (itablemin == 0) itablemax = ntablem1;     
-  *int_rsq = itablemax << ncoulshiftbits;
-  *int_rsq = *int_rsq | maskhi;
+  rsq_lookup.i = itablemax << ncoulshiftbits;
+  rsq_lookup.i |= maskhi;
 
-  if (rsq < cut_coulsq) {
-    rsq = cut_coulsq;  
-    r = sqrt(rsq);
+  if (rsq_lookup.f < cut_coulsq) {
+    rsq_lookup.f = cut_coulsq;  
+    r = sqrtf(rsq_lookup.f);
     grij = g_ewald * r;
     expm2 = exp(-grij*grij);
     derfc = erfc(grij);
@@ -1062,8 +1062,8 @@ void PairLJCoul::init_tables()
       e_tmp = qqrd2e/r * derfc;
       p_tmp = qqrd2e/r;
       v_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
-      if (rsq > cut_respa[2]*cut_respa[2]) {
-        if (rsq < cut_respa[3]*cut_respa[3]) {
+      if (rsq_lookup.f > cut_respa[2]*cut_respa[2]) {
+        if (rsq_lookup.f < cut_respa[3]*cut_respa[3]) {
           rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]); 
           f_tmp += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
           c_tmp = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
@@ -1074,7 +1074,7 @@ void PairLJCoul::init_tables()
       }
     }
 
-    drtable[itablemax] = 1.0/(rsq - rtable[itablemax]);   
+    drtable[itablemax] = 1.0/(rsq_lookup.f - rtable[itablemax]);   
     dftable[itablemax] = f_tmp - ftable[itablemax];
     dctable[itablemax] = c_tmp - ctable[itablemax];
     detable[itablemax] = e_tmp - etable[itablemax];
@@ -1126,12 +1126,13 @@ double PairLJCoul::single(int i, int j, int itype, int jtype,
       eng += t-r;
     }
     else {						// table real space
-      register float t = rsq;
-      register int k = (((int *) &t)[0] & ncoulmask)>>ncoulshiftbits;
+      register table_lookup_t t;
+      t.f = rsq;
+      register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
       register double f = (rsq-rtable[k])*drtable[k], qiqj = q[i]*q[j];
-      t = (1.0-factor_coul)*(ctable[k]+f*dctable[k]);
-      force_coul = qiqj*(ftable[k]+f*dftable[k]-t);
-      eng += qiqj*(etable[k]+f*detable[k]-t);
+      t.f = (1.0-factor_coul)*(ctable[k]+f*dctable[k]);
+      force_coul = qiqj*(ftable[k]+f*dftable[k]-t.f);
+      eng += qiqj*(etable[k]+f*detable[k]-t.f);
     }
   } else force_coul = 0.0;
   

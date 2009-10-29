@@ -105,6 +105,7 @@ class Pair : protected Pointers {
   int offset_flag,mix_flag;            // flags for offset and mixing
   int ncoultablebits;                  // size of Coulomb table
   double tabinner;                     // inner cutoff for Coulomb table
+  typedef union { int i; float f;} table_lookup_t; // custom data type for accessing Coulomb tables.
 
   double THIRD;
 

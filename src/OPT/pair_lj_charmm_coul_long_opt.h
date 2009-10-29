@@ -65,9 +65,8 @@ void PairLJCharmmCoulLongOpt::eval()
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double philj,switch1,switch2;
-  
-  float rsq;
-  int *int_rsq = (int *) &rsq;
+ 
+  double rsq; 
   
   double evdwl = 0.0;
   double ecoul = 0.0;
@@ -142,7 +141,7 @@ void PairLJCharmmCoulLongOpt::eval()
 	  forcecoul = 0.0;
 	  if (rsq < cut_coulsq) {
 	    if (!ncoultablebits || rsq <= tabinnersq) {
-	      r = sqrtf(rsq);
+	      r = sqrt(rsq);
 	      grij = g_ewald * r;
 	      expm2 = exp(-grij*grij);
 	      t = 1.0 / (1.0 + EWALD_P*grij);
@@ -152,9 +151,11 @@ void PairLJCharmmCoulLongOpt::eval()
 	      prefactor = qqrd2e * tmp_coef3/r;
 	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	    } else {
-	      itable = *int_rsq & ncoulmask;
+          table_lookup_t rsq_lookup;
+          rsq_lookup.f = rsq;
+	      itable = rsq_lookup.i & ncoulmask;
 	      itable >>= ncoulshiftbits;
-	      fraction = (rsq - rtable[itable]) * drtable[itable];
+	      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	      table = ftable[itable] + fraction*dftable[itable];
 	      forcecoul = tmp_coef3 * table;
 	    }
@@ -228,7 +229,7 @@ void PairLJCharmmCoulLongOpt::eval()
 	  forcecoul = 0.0;
 	  if (rsq < cut_coulsq) {
 	    if (!ncoultablebits || rsq <= tabinnersq) {
-	      r = sqrtf(rsq);
+	      r = sqrt(rsq);
 	      grij = g_ewald * r;
 	      expm2 = exp(-grij*grij);
 	      t = 1.0 / (1.0 + EWALD_P*grij);
@@ -241,9 +242,11 @@ void PairLJCharmmCoulLongOpt::eval()
 		forcecoul -= (1.0-factor_coul)*prefactor;
 	      }
 	    } else {
-	      itable = *int_rsq & ncoulmask;
+          table_lookup_t rsq_lookup;
+          rsq_lookup.f = rsq;
+	      itable = rsq_lookup.i & ncoulmask;
 	      itable >>= ncoulshiftbits;
-	      fraction = (rsq - rtable[itable]) * drtable[itable];
+	      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	      table = ftable[itable] + fraction*dftable[itable];
 	      forcecoul = tmp_coef3 * table;
 	      if (factor_coul < 1.0) {

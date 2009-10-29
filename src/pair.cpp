@@ -899,8 +899,7 @@ void Pair::write_file(int narg, char **arg)
   }
 
   double r,e,f,rsq;  
-  float rsq_float;
-  int *int_rsq = (int *) &rsq_float;
+  table_lookup_t rsq_lookup;
 
   for (int i = 0; i < n; i++) {
     if (style == R) {
@@ -910,13 +909,13 @@ void Pair::write_file(int narg, char **arg)
       rsq = inner*inner + (outer*outer - inner*inner) * i/(n-1);
       r = sqrt(rsq);
     } else if (style == BMP) {
-      *int_rsq = i << nshiftbits;
-      *int_rsq = *int_rsq | masklo;
-      if (rsq_float < inner*inner) {
-        *int_rsq = i << nshiftbits;
-        *int_rsq = *int_rsq | maskhi;
+      rsq_lookup.i = i << nshiftbits;
+      rsq_lookup.i |= masklo;
+      if (rsq_lookup.f < inner*inner) {
+        rsq_lookup.i = i << nshiftbits;
+        rsq_lookup.i |= maskhi;
       }
-      rsq = rsq_float;
+      rsq = rsq_lookup.f;
       r = sqrt(rsq);
     }
 
@@ -981,12 +980,11 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   for (int j = 0; j < ntablebits+nshiftbits; j++) nmask *= 2;
   nmask -= 1;
 
-  float rsq;
-  int *int_rsq = (int *) &rsq;
-  rsq = outer*outer;
-  maskhi = *int_rsq & ~(nmask);
-  rsq = inner*inner;
-  masklo = *int_rsq & ~(nmask);
+  table_lookup_t rsq_lookup;
+  rsq_lookup.f = outer*outer;
+  maskhi = rsq_lookup.i & ~(nmask);
+  rsq_lookup.f = inner*inner;
+  masklo = rsq_lookup.i & ~(nmask);
 }
 
 /* ---------------------------------------------------------------------- */

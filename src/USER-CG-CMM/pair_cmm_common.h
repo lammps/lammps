@@ -257,9 +257,8 @@ namespace LAMMPS_NS {
 
             if (COUL_TYPE == CG_COUL_LONG) {
               if (rsq < cut_coulsq_global) {
-                const float rsqf = rsq;
                 if (!ncoultablebits || rsq <= tabinnersq) {
-                  const float r = sqrtf(rsq);
+                  const double r = sqrt(rsq);
                   
                   const double grij = g_ewald * r;
                   const double expm2 = exp(-grij*grij);
@@ -273,10 +272,11 @@ namespace LAMMPS_NS {
                     if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
                   }
                 } else {
-                  const int *int_rsq = (int *) &rsqf;
-                  int itable = *int_rsq & ncoulmask;
+                  table_lookup_t rsq_lookup;
+                  rsq_lookup.f = rsq;
+                  int itable = rsq_lookup.i & ncoulmask;
                   itable >>= ncoulshiftbits;
-                  const double fraction = (rsq - rtable[itable]) * drtable[itable];
+                  const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
                   const double table = ftable[itable] + fraction*dftable[itable];
                   forcecoul = qtmp*q[j] * table;
                   if (EFLAG) {
@@ -654,9 +654,8 @@ namespace LAMMPS_NS {
 
             if (COUL_TYPE == CG_COUL_LONG) {
               if (rsq < cut_coulsq_global) {
-                const float rsqf = rsq;
                 if (!ncoultablebits || rsq <= tabinnersq) {
-                  const float r = sqrtf(rsq);
+                  const double r = sqrt(rsq);
                   
                   const double grij = g_ewald * r;
                   const double expm2 = exp(-grij*grij);
@@ -670,10 +669,11 @@ namespace LAMMPS_NS {
                     if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
                   }
                 } else {
-                  const int *int_rsq = (int *) &rsqf;
-                  int itable = *int_rsq & ncoulmask;
+                  table_lookup_t rsq_lookup;
+                  rsq_lookup.f = rsq;
+                  int itable = rsq_lookup.i & ncoulmask;
                   itable >>= ncoulshiftbits;
-                  const double fraction = (rsq - rtable[itable]) * drtable[itable];
+                  const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
                   const double table = ftable[itable] + fraction*dftable[itable];
                   forcecoul = qtmp*q[j] * table;
                   if (EFLAG) {

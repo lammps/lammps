@@ -163,38 +163,36 @@ void PairCGCMMCoulLong::init_tables()
     dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
   }
 
-  float rsq;
-  int *int_rsq = (int *) &rsq;  
-  float minrsq;
-  int *int_minrsq = (int *) &minrsq;
+  table_lookup_t rsq_lookup;
+  table_lookup_t minrsq_lookup;
   int itablemin;
-  *int_minrsq = 0 << ncoulshiftbits;
-  *int_minrsq = *int_minrsq | maskhi;
+  minrsq_lookup.i = 0 << ncoulshiftbits;
+  minrsq_lookup.i |= maskhi;
   for (int i = 0; i < ntable; i++) {
-    *int_rsq = i << ncoulshiftbits;
-    *int_rsq = *int_rsq | masklo;
-    if (rsq < tabinnersq) {
-      *int_rsq = i << ncoulshiftbits;
-      *int_rsq = *int_rsq | maskhi;
+    rsq_lookup.i = i << ncoulshiftbits;
+    rsq_lookup.i |= masklo;
+    if (rsq_lookup.f < tabinnersq) {
+      rsq_lookup.i = i << ncoulshiftbits;
+      rsq_lookup.i |= maskhi;
     }
-    r = sqrtf(rsq);
+    r = sqrtf(rsq_lookup.f);
     grij = g_ewald * r;
     expm2 = exp(-grij*grij);
     derfc = erfc(grij);
     if (cut_respa == NULL) {
-      rtable[i] = rsq;
+      rtable[i] = rsq_lookup.f;
       ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
       ctable[i] = qqrd2e/r;
       etable[i] = qqrd2e/r * derfc;
     } else {
-      rtable[i] = rsq;
+      rtable[i] = rsq_lookup.f;
       ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2 - 1.0);
       ctable[i] = 0.0;
       etable[i] = qqrd2e/r * derfc;
       ptable[i] = qqrd2e/r;
       vtable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
-      if (rsq > cut_respa[2]*cut_respa[2]) {
-        if (rsq < cut_respa[3]*cut_respa[3]) {
+      if (rsq_lookup.f > cut_respa[2]*cut_respa[2]) {
+        if (rsq_lookup.f < cut_respa[3]*cut_respa[3]) {
           rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]); 
           ftable[i] += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
           ctable[i] = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
@@ -204,9 +202,9 @@ void PairCGCMMCoulLong::init_tables()
         }
       }
     }
-    minrsq = MIN(minrsq,rsq);
+    minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
   }
-  tabinnersq = minrsq;
+  tabinnersq = minrsq_lookup.f;
   
   int ntablem1 = ntable - 1;
   
@@ -244,15 +242,15 @@ void PairCGCMMCoulLong::init_tables()
   // if so, compute deltas between rsq and cut*cut 
         
   double f_tmp,c_tmp,e_tmp,p_tmp,v_tmp;
-  itablemin = *int_minrsq & ncoulmask;
+  itablemin = minrsq_lookup.i & ncoulmask;
   itablemin >>= ncoulshiftbits;  
   int itablemax = itablemin - 1; 
   if (itablemin == 0) itablemax = ntablem1;     
-  *int_rsq = itablemax << ncoulshiftbits;
-  *int_rsq = *int_rsq | maskhi;
-  if (rsq < cut_coulsq_global) {
-    rsq = cut_coulsq_global;  
-    r = sqrtf(rsq);
+  rsq_lookup.i = itablemax << ncoulshiftbits;
+  rsq_lookup.i |= maskhi;
+  if (rsq_lookup.f < cut_coulsq_global) {
+    rsq_lookup.f = cut_coulsq_global;  
+    r = sqrtf(rsq_lookup.f);
     grij = g_ewald * r;
     expm2 = exp(-grij*grij);
     derfc = erfc(grij);
@@ -267,8 +265,8 @@ void PairCGCMMCoulLong::init_tables()
       e_tmp = qqrd2e/r * derfc;
       p_tmp = qqrd2e/r;
       v_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
-      if (rsq > cut_respa[2]*cut_respa[2]) {
-        if (rsq < cut_respa[3]*cut_respa[3]) {
+      if (rsq_lookup.f > cut_respa[2]*cut_respa[2]) {
+        if (rsq_lookup.f < cut_respa[3]*cut_respa[3]) {
           rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]); 
           f_tmp += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
           c_tmp = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
@@ -279,7 +277,7 @@ void PairCGCMMCoulLong::init_tables()
       }
     }
 
-    drtable[itablemax] = 1.0/(rsq - rtable[itablemax]);   
+    drtable[itablemax] = 1.0/(rsq_lookup.f - rtable[itablemax]);   
     dftable[itablemax] = f_tmp - ftable[itablemax];
     dctable[itablemax] = c_tmp - ctable[itablemax];
     detable[itablemax] = e_tmp - etable[itablemax];

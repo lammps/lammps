@@ -77,8 +77,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double xiM[3],xjM[3],fO[3],fH[3],v[6];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  float rsq;
-  int *int_rsq = (int *) &rsq;
+  double rsq;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -174,9 +173,9 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	// test current rsq against cutoff and compute Coulombic force
 
 	if (rsq < cut_coulsq) {
+      r2inv = 1 / rsq;
 	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrtf(rsq);
-	    r2inv = 1 / rsq;
+	    r = sqrt(rsq);
 	    grij = g_ewald * r;
 	    expm2 = exp(-grij*grij);
 	    t = 1.0 / (1.0 + EWALD_P*grij);
@@ -187,10 +186,11 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 	      forcecoul -= (1.0-factor_coul)*prefactor; 
 	    }
 	  } else {
-	    r2inv = 1 / rsq;
-	    itable = *int_rsq & ncoulmask;
+        table_lookup_t rsq_lookup;
+	    rsq_lookup.f = rsq;
+	    itable = rsq_lookup.i & ncoulmask;
 	    itable >>= ncoulshiftbits;
-	    fraction = (rsq - rtable[itable]) * drtable[itable];
+	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	    table = ftable[itable] + fraction*dftable[itable];
 	    forcecoul = qtmp*q[j] * table;
 	    if (factor_coul < 1.0) {

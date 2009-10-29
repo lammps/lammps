@@ -18,7 +18,7 @@ LMP_INC =	-DLAMMPS_GZIP
 
 MPI_INC =       -DMPICH_IGNORE_CXX_SEEK
 MPI_PATH = 
-MPI_LIB =	
+MPI_LIB =	-lmpich.rts 
 
 # FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
@@ -49,24 +49,17 @@ user-atc_SYSPATH =
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-include	Makefile.package
-
-EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
-EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
-
 CC =		/opt/ibmcmp/vacpp/7.0/bin/blrts_xlC
-CCFLAGS =	-O3 $(EXTRA_INC)
+CCFLAGS =	-O3
 DEPFLAGS =	-M
 LINK =		/opt/ibmcmp/vacpp/7.0/bin/blrts_xlC
-LINKFLAGS =	-O $(EXTRA_PATH) \
+LINKFLAGS =	-O \
                 -L/opt/ibmcmp/xlf/9.1/blrts_lib \
                 -L/opt/ibmcmp/vacpp/7.0/blrts_lib \
                 -L/bgl/local/lib \
                 -L/bgl/local/bglfftwgel-2.1.5.pre5/lib
-LIB =           $(EXTRA_LIB) \
-		-lxlopt -lxlomp_ser -lxl -lxlfmath -lm \
-                -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lmassv
+LIB =           -lxlopt -lxlomp_ser -lxl -lxlfmath -lm \
+                -lmsglayer.rts -lrts.rts -ldevices.rts -lmassv
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
@@ -75,10 +68,16 @@ SIZE =		size
 # build rules and dependencies
 # no need to edit this section
 
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
 # Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(LIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library target
@@ -89,10 +88,10 @@ lib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

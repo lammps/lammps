@@ -4,7 +4,7 @@ SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
 # system-specific settings
-# edit as needed for your machine
+# specify settings for LAMMPS features you will use
 
 # LAMMPS ifdef options, see doc/Section_start.html
 
@@ -19,7 +19,7 @@ MPI_INC =       -DMPICH_IGNORE_CXX_SEEK
 MPI_PATH = 
 MPI_LIB =	-lmpich -lpthread
 
-# FFT library, can be -DFFT_NONE if not using PPPM from kspace package
+# FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
 # INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
@@ -46,21 +46,14 @@ user-atc_SYSPATH =
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
-# generally no need to edit this section
-# unless additional compiler/linker flags or libraries needed for your machine
-
-include	Makefile.package
-
-EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
-EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+# specify flags and libraries needed for your compiler
 
 CC =		g++
-CCFLAGS =	-g -O $(EXTRA_INC)
+CCFLAGS =	-g -O
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O $(EXTRA_PATH)
-LIB =           $(EXTRA_LIB)
+LINKFLAGS =	-g -O
+LIB =           
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
@@ -69,10 +62,16 @@ SIZE =		size
 # build rules and dependencies
 # no need to edit this section
 
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
 # Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(LIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library target
@@ -83,10 +82,10 @@ lib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

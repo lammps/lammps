@@ -49,22 +49,16 @@ user-atc_SYSPATH =
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-include	Makefile.package
-
-EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
-EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
-
 CC =		blrts_xlC
-CCFLAGS =	-I/bgl/BlueLight/ppcfloor/bglsys/include $(EXTRA_INC) \
+CCFLAGS =	-I/bgl/BlueLight/ppcfloor/bglsys/include \
 		-O2 -qarch=440 -qtune=440
 DEPFLAGS =	-M -qmakedep=gcc
 LINK =		blrts_xlC
-LINKFLAGS =	-O $(EXTRA_PATH) \
+LINKFLAGS =	-O \
 		-L/bgl/BlueLight/ppcfloor/bglsys/lib \
 		-L/opt/ibmcmp/xlf/bg/10.1/blrts_lib \
 		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib
-LIB =           $(EXTRA_LIB) -lm
+LIB =           -lm
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
@@ -73,10 +67,16 @@ SIZE =		size
 # build rules and dependencies
 # no need to edit this section
 
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
 # Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(LIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library target
@@ -87,10 +87,10 @@ lib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

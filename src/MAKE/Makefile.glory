@@ -65,18 +65,12 @@ user-atc_SYSPATH =
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-include	Makefile.package
-
-EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
-EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
-
 CC =		mpicxx
-CCFLAGS =	-O $(EXTRA_INC)
+CCFLAGS =	-O
 DEPFLAGS =	-M
 LINK =		mpicxx
-LINKFLAGS =	-O $(EXTRA_PATH)
-LIB =           $(EXTRA_LIB) -lstdc++ -lm
+LINKFLAGS =	-O
+LIB =           -lstdc++ -lm
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
@@ -85,10 +79,16 @@ SIZE =		size
 # build rules and dependencies
 # no need to edit this section
 
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
 # Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(LIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library target
@@ -99,10 +99,10 @@ lib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

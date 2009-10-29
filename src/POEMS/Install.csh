@@ -4,9 +4,9 @@
 if ($1 == 1) then
 
   sed -i -e 's/[^ \t]*poems //' ../Makefile.package
-  sed -i -e 's|^PKGINC =[ \t]*|&-I../../lib/poems |' ../Makefile.package
-  sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/poems |' ../Makefile.package
-  sed -i -e 's|^PKGLIB =[ \t]*|&-lpoems |' ../Makefile.package
+  sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/poems |' ../Makefile.package
+  sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/poems |' ../Makefile.package
+  sed -i -e 's|^PKG_LIB =[ \t]*|&-lpoems |' ../Makefile.package
 
   cp style_poems.h ..
 

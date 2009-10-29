@@ -5,11 +5,11 @@ if ($1 == 1) then
 
   sed -i -e 's/[^ \t]*atc //' ../Makefile.package
   sed -i -e 's/[^ \t]*atc_[^ \t]*) //' ../Makefile.package
-  sed -i -e 's|^PKGINC =[ \t]*|&-I../../lib/atc |' ../Makefile.package
-  sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/atc |' ../Makefile.package
-  sed -i -e 's|^PKGLIB =[ \t]*|&-latc |' ../Makefile.package
-  sed -i -e 's|^PKGPATHSYS =[ \t]*|&$(user-atc_SYSLIBPATH) |' ../Makefile.package
-  sed -i -e 's|^PKGLIBSYS =[ \t]*|&$(user-atc_SYSLIB) |' ../Makefile.package
+  sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/atc |' ../Makefile.package
+  sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/atc |' ../Makefile.package
+  sed -i -e 's|^PKG_LIB =[ \t]*|&-latc |' ../Makefile.package
+  sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(user-atc_SYSPATH) |' ../Makefile.package
+  sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(user-atc_SYSLIB) |' ../Makefile.package
 
   cp style_user_atc.h ..
 

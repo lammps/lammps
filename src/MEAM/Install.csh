@@ -5,11 +5,11 @@ if ($1 == 1) then
 
   sed -i -e 's/[^ \t]*meam //' ../Makefile.package
   sed -i -e 's/[^ \t]*meam_[^ \t]*) //' ../Makefile.package
-  sed -i -e 's|^PKGINC =[ \t]*|&-I../../lib/meam |' ../Makefile.package
-  sed -i -e 's|^PKGPATH =[ \t]*|&-L../../lib/meam |' ../Makefile.package
-  sed -i -e 's|^PKGLIB =[ \t]*|&-lmeam |' ../Makefile.package
-  sed -i -e 's|^PKGPATHSYS =[ \t]*|&$(meam_SYSLIBPATH) |' ../Makefile.package
-  sed -i -e 's|^PKGLIBSYS =[ \t]*|&$(meam_SYSLIB) |' ../Makefile.package
+  sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/meam |' ../Makefile.package
+  sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/meam |' ../Makefile.package
+  sed -i -e 's|^PKG_LIB =[ \t]*|&-lmeam |' ../Makefile.package
+  sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(meam_SYSPATH) |' ../Makefile.package
+  sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(meam_SYSLIB) |' ../Makefile.package
 
   cp style_meam.h ..
 

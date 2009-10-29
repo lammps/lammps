@@ -2,54 +2,87 @@
 
 SHELL = /bin/sh
 .SUFFIXES: .cpp .u 
-.IGNORE:
 
 # ---------------------------------------------------------------------
-# System-specific settings
-# edit as needed for your machine
+# system-specific settings
+# specify settings for LAMMPS features you will use
 
-# additional system libs needed by LAMMPS libs
-# NOTE: these settings are ignored if the LAMMPS package (e.g. gpu, meam)
-#       which needs these libs is not included in the LAMMPS build
+# LAMMPS ifdef options, see doc/Section_start.html
 
-gpu_SYSLIB =          -lcudart
-meam_SYSLIB =         -lifcore -lsvml -lompstub -limf
-reax_SYSLIB =         -lifcore -lsvml -lompstub -limf
-user-atc_SYSLIB =     -lblas -llapack
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_XDR
 
-gpu_SYSLIBPATH =      -L/usr/local/cuda/lib64
-meam_SYSLIBPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSLIBPATH =     -L/opt/intel/fce/10.0.023/lib
-user-atc_SYSLIBPATH = 
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_PATH = 
+MPI_LIB =	-lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts 
+
+# FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
+# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =       -DFFT_FFTW -I//usr/local/apps/V1R3/fftw-2.1.5d/include
+FFT_PATH =	-L/usr/local/apps/V1R3/fftw-2.1.5d/lib
+FFT_LIB =	-lfftw
+
+# additional system libraries needed by LAMMPS package libraries
+# these settings are IGNORED if the corresponding LAMMPS package
+#   (e.g. gpu, meam) is NOT included in the LAMMPS build
+# SYSLIB = names of libraries
+# SYSPATH = paths of libraries
+
+gpu_SYSLIB =       -lcudart
+meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
+reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
+user-atc_SYSLIB =  -lblas -llapack
+
+gpu_SYSPATH =      -L/usr/local/cuda/lib64
+meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+user-atc_SYSPATH = 	
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
 
 include	Makefile.package
 
-# compiler/linker settings
-# NOTE: specify how to compile/link with MPI
-#       either an MPI installed on your machine, or the src/STUBS dummy lib
-# NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
 
-CC =	        blrts_xlC \
-	       -I/bgl/BlueLight/ppcfloor/bglsys/include \
-	       -I//usr/local/apps/V1R3/fftw-2.1.5d/include/
-CCFLAGS =       $(PKGINC) -O2 -qarch=440 -qtune=440 \
-		-DFFT_FFTW -DMPICH_IGNORE_CXX_SEEK  -DLAMMPS_XDR
-NOALIAS = 	-qalias=noansi
+CC =		blrts_xlC
+CCFLAGS =	-I/bgl/BlueLight/ppcfloor/bglsys/include $(EXTRA_INC) \
+		-O2 -qarch=440 -qtune=440
 DEPFLAGS =	-M -qmakedep=gcc
-LINK =	        blrts_xlC
-LINKFLAGS =	$(PKGPATH) $(PKGPATHSYS)
+LINK =		blrts_xlC
+LINKFLAGS =	-O $(EXTRA_PATH) \
+		-L/bgl/BlueLight/ppcfloor/bglsys/lib \
 		-L/opt/ibmcmp/xlf/bg/10.1/blrts_lib \
-		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib \
-		-L/usr/local/apps/V1R3/fftw-2.1.5d/lib
-USRLIB =	$(PKGLIB) -lfftw -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lm
-SYSLIB = $(PKGLIBSYS)
+		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib
+LIB =           $(EXTRA_LIB) -lm
+ARCHIVE =	ar
+ARFLAGS =	-rc
 SIZE =		size
 
-# Link rule
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+# Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
 # Compilation rules
 
@@ -57,48 +90,7 @@ $(EXE):	$(OBJ)
 	$(CC) $(CCFLAGS) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(DEPFLAGS) -MF$@ -c $< 
-
-# explicit overrides for files that violate ansi aliasing rules
-
-pair.o : pair.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_table.o : pair_table.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_eam_alloy_opt.o : pair_eam_alloy_opt.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_eam_fs_opt.o : pair_eam_fs_opt.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_eam_opt.o : pair_eam_opt.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_lj_charmm_coul_long_opt.o : pair_lj_charmm_coul_long_opt.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_lj_cut_opt.o : pair_lj_cut_opt.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_morse_opt.o : pair_morse_opt.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_lj_cut_coul_long.o : pair_lj_cut_coul_long.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_cg_cmm_coul_long.o : pair_cg_cmm_coul_long.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_coul_long.o: pair_coul_long.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_lj_charmm_coul_long.o : pair_lj_charmm_coul_long.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
-
-pair_lj_cut_coul_long_tip4p.o : pair_lj_cut_coul_long_tip4p.cpp
-	$(CC) $(CCFLAGS) $(NOALIAS) -c $<
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
 

@@ -1,50 +1,78 @@
-# g++ = RedHat Linux box, g++, MPICH, FFTW
+# g++ = RedHat Linux box, g++, MPICH2, FFTW
 
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
-# System-specific settings
+# system-specific settings
 # edit as needed for your machine
 
-# additional system libs needed by LAMMPS libs
-# NOTE: these settings are ignored if the LAMMPS package (e.g. gpu, meam)
-#       which needs these libs is not included in the LAMMPS build
+# LAMMPS ifdef options, see doc/Section_start.html
 
-gpu_SYSLIB =          -lcudart
-meam_SYSLIB =         -lifcore -lsvml -lompstub -limf
-reax_SYSLIB =         -lifcore -lsvml -lompstub -limf
-user-atc_SYSLIB =     -lblas -llapack
+LMP_INC =	-DLAMMPS_GZIP
 
-gpu_SYSLIBPATH =      -L/usr/local/cuda/lib64
-meam_SYSLIBPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSLIBPATH =     -L/opt/intel/fce/10.0.023/lib
-user-atc_SYSLIBPATH = 	
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -DMPICH_IGNORE_CXX_SEEK 
+MPI_PATH = 
+MPI_LIB =	-lmpich -lpthread
+
+# FFT library, can be -DFFT_NONE if not using PPPM from kspace package
+# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =       -DFFT_FFTW
+FFT_PATH = 
+FFT_LIB =	-lfftw
+
+# additional system libraries needed by LAMMPS package libraries
+# these settings are IGNORED if the corresponding LAMMPS package
+#   (e.g. gpu, meam) is NOT included in the LAMMPS build
+# SYSLIB = names of libraries
+# SYSPATH = paths of libraries
+
+gpu_SYSLIB =       -lcudart
+meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
+reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
+user-atc_SYSLIB =  -lblas -llapack
+
+gpu_SYSPATH =      -L/usr/local/cuda/lib64
+meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
+user-atc_SYSPATH = 	
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# generally no need to edit this section
+# unless additional compiler/linker flags or libraries needed for your machine
 
 include	Makefile.package
 
-# compiler/linker settings
-# NOTE: specify how to compile/link with MPI
-#       either an MPI installed on your machine, or the src/STUBS dummy lib
-# NOTE: specify an FFT option, e.g. -DFFT_NONE, -DFFT_FFTW, etc
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
 
 CC =		g++
-CCFLAGS =	-g -O -DFFT_FFTW -DLAMMPS_GZIP -DMPICH_IGNORE_CXX_SEEK $(PKGINC)
+CCFLAGS =	-g -O $(EXTRA_INC)
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-g -O $(PKGPATH) $(PKGPATHSYS)
-USRLIB =	-lfftw -lmpich $(PKGLIB)
-SYSLIB =	-lpthread $(PKGLIBSYS)
+LINKFLAGS =	-g -O $(EXTRA_PATH)
+LIB =           $(EXTRA_LIB)
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
 
 # ---------------------------------------------------------------------
-# no need to edit below here
+# build rules and dependencies
+# no need to edit this section
 
 # Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(OBJ) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library target

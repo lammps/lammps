@@ -112,14 +112,17 @@ For bodystyle {group}, each of the listed groups is treated as a
 separate rigid body.  Only atoms that are also in the fix group are
 included in each rigid body.
 
-By default, each rigid body is acted on by other atoms which induce a
-force and torque on its center of mass, causing it to translate and
-rotate.  Components of the center-of-mass force and torque can be
-turned off by the {force} and {torque} keywords.  This may be useful
-if you wish a body to rotate but not translate, or vice versa.  Note
-that if you expect a rigid body not to move or rotate by using these
-keywords, you must insure its initial center-of-mass translational or
-angular velocity is 0.0.
+By default, each rigid body is acted on by other atoms which induce an
+external force and torque on its center of mass, causing it to
+translate and rotate.  Components of the external center-of-mass force
+and torque can be turned off by the {force} and {torque} keywords.
+This may be useful if you wish a body to rotate but not translate, or
+vice versa, or if you wish it to rotate or translate continuously
+unaffected by interactions with other particles.  Note that if you
+expect a rigid body not to move or rotate by using these keywords, you
+must insure its initial center-of-mass translational or angular
+velocity is 0.0.  Otherwise the initial translational or angular
+momentum the body has will persist.
 
 An xflag, yflag, or zflag set to {off} means turn off the component of
 force of torque in that dimension.  A setting of {on} means turn on

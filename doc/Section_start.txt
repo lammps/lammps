@@ -306,38 +306,11 @@ Typing "make clean-all" or "make clean-foo" will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.
 
-(3) On some machines with some compiler options, the Coulomb tabling
-option that is enabled by default for "long" "pair
-styles"_pair_style.html such as {lj/cut/coul/long} and
-{lj/charmm/coul/long} does not work.  Tables are used by these styles
-since it can offer a 2x speed-up.  A symptom of this problem is
-getting wildly large energies on timestep 0 of the examples/peptide
-simulation.
-
-Here are several work-arounds.  Coulomb tables can be disabled by
-setting "table 0" in the "pair_modify"_pair_modify.html command.
-
-The associated files (e.g. pair_lj_cut_coul_long.cpp) can be compiled
-at a lower optimization level like -O2, or with the compiler flag
-{-fno-strict-aliasing}.  The latter can be done by adding something
-like these lines in your Makefile.machine:
-
-NOALIAS =       -fno-strict-aliasing :pre
-
-pair_lj_cut_coul_long.o : pair_lj_cut_coul_long.cpp
-         $(CC) $(CCFLAGS) $(NOALIAS) -c $< :pre
-
-pair_lj_charmm_coul_long.o : pair_lj_charmm_coul_long.cpp
-         $(CC) $(CCFLAGS) $(NOALIAS) -c $< :pre
-
-On a Macintosh, try compiling the pair "long" files without the -fast
-compiler option.
-
-(4) Building for a Mac.
+(3) Building for a Mac.
 
 OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 
-(5) Building for MicroSoft Windows.
+(4) Building for MicroSoft Windows.
 
 The LAMMPS download page has an option to download a pre-built Windows
 exeutable.  See below for instructions for running this executable on

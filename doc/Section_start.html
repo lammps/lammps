@@ -77,7 +77,7 @@ and build it yourself, as described in the next section.
 </P>
 <UL><LI><A HREF = "#2_2_1">Read this first</A>
 <LI><A HREF = "#2_2_2">Building a LAMMPS executable</A>
-<LI><A HREF = "#2_2_3">Errors that can occur when making LAMMPS</A>
+<LI><A HREF = "#2_2_3">Common errors that can occur when making LAMMPS</A>
 <LI><A HREF = "#2_2_4">Editing a new low-level Makefile</A>
 <LI><A HREF = "#2_2_5">Additional build tips</A> 
 </UL>
@@ -127,7 +127,7 @@ produced, you're done; it's your lucky day.
 </P>
 <HR>
 
-<A NAME = "2_2_3"></A><B><I>Errors that can occur when making LAMMPS:</I></B> 
+<A NAME = "2_2_3"></A><B><I>Common errors that can occur when making LAMMPS:</I></B> 
 
 <P>(1) If the make command breaks immediately with errors that indicate
 it can't find files with a "*" in their names, this can be because
@@ -167,16 +167,39 @@ sub-section.
 
 <P>These are the issues you need to address when editing a low-level
 Makefile for your machine.  The portions of the file you typically
-need to edit are the first line, the "system-specific settings"
-section, and the "compiler/linker settings" section.
+need to edit are the first line, the "compiler/linker settings"
+section, and the "system-specific settings" section.
 </P>
 <P>(1) Change the first line of Makefile.foo to list the word "foo" after
 the "#", and whatever other options you set.  This is the line you
 will see if you just type "make".
 </P>
-<P>(2) The "system-specific settings" section has 4 parts.
+<P>(3) The "compiler/linker settings" section lists compiler and linker
+settings for your C++ compiler, including optimization flags.  You can
+use g++, the open-source GNU compiler, which is available on all Unix
+systems.  You can also use mpicc which will typically be available if
+MPI is installed on your system, though you should check which actual
+compiler it wraps.  Vendor compilers often produce faster code.  On
+boxes with Intel CPUs, we suggest using the free Intel icc compiler,
+which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler site</A>.
 </P>
-<P>(2.1) The LMP_INC variable is used to include options that turn on
+
+
+<P>If building a C++ code on your machine requires additional libraries,
+then you should list them as part of the LIB variable.
+</P>
+<P>The DEPFLAGS setting is what triggers the C++ compiler to create a
+dependency list for a source file.  This speeds re-compilation when
+source (*.cpp) or header (*.h) files are edited.  Some compilers do
+not support dependency file creation, or may use a different switch
+than -D.  GNU g++ works with -D.  If your compiler can't create
+dependency files (a long list of errors involving *.d files), then
+you'll need to create a Makefile.foo patterned after Makefile.storm,
+which uses different rules that do not involve dependency files.
+</P>
+<P>(3) The "system-specific settings" section has 4 parts.
+</P>
+<P>(3.a) The LMP_INC variable is used to include options that turn on
 system-dependent ifdefs within the LAMMPS code.
 </P>
 <P>The read_data and dump commands will read/write gzipped files if you
@@ -189,15 +212,18 @@ files for doing particle dumps in XTC format.  This is only necessary
 if your platform does have its own XDR files available.  See the
 Restrictions section of the <A HREF = "dump.html">dump</A> command for details.
 </P>
-<P>(2.2) The 3 MPI variables are used to specify an MPI library to build
+<P>(3.b) The 3 MPI variables are used to specify an MPI library to build
 LAMMPS with.
 </P>
 <P>If you want LAMMPS to run in parallel, you must have an MPI library
-installed on your platform.  If you do not use "mpicc" as your
-compiler/linker, then Makefile.foo needs to specify where the mpi.h
-file (MPI_INC) and the MPI library (MPI_PATH) is found and its name
-(MPI_LIB).  If you are installing MPI yourself, we recommend Argonne's
-MPICH 1.2 or 2.0 which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
+installed on your platform.  If you use an MPI-wrapped compiler, such
+as "mpicc" to build LAMMPS, you can probably leave these 3 variables
+blank.  If you do not use "mpicc" as your compiler/linker, then you
+need to specify where the mpi.h file (MPI_INC) and the MPI library
+(MPI_PATH) is found and its name (MPI_LIB).
+</P>
+<P>If you are installing MPI yourself, we recommend Argonne's MPICH 1.2
+or 2.0 which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
 site</A>.  LAM MPI should also work.  If
 you are running on a big parallel platform, your system people or the
 vendor should have already installed a version of MPI, which will be
@@ -223,12 +249,12 @@ you'll need to insert code to call another timer.  Note that the
 ANSI-standard function clock() rolls over after an hour or so, and is
 therefore insufficient for timing long LAMMPS simulations.
 </P>
-<P>(2.3) The 3 FFT variables are used to specify an FFT library which
+<P>(3.c) The 3 FFT variables are used to specify an FFT library which
 LAMMPS uses when using the particle-particle particle-mesh (PPPM)
 option in LAMMPS for long-range Coulombics via the
 <A HREF = "kspace_style.html">kspace_style</A> command.
 </P>
-<P>To use this opttion, you must have a 1d FFT library installed on your
+<P>To use this option, you must have a 1d FFT library installed on your
 platform.  This is specified by a switch of the form -DFFT_XXX where
 XXX = INTEL, DEC, SGI, SCSL, or FFTW.  All but the last one are native
 vendor-provided libraries.  FFTW is a fast, portable library that
@@ -250,7 +276,7 @@ case you can set FFT_INC to -DFFT_NONE and leave the other 2 FFT
 variables blank.  Or you can exclude the KSPACE package when you build
 LAMMPS (see below).
 </P>
-<P>(2.4) The several SYSLIB and SYSPATH variables can be ignored unless
+<P>(3.d) The several SYSLIB and SYSPATH variables can be ignored unless
 you are building LAMMPS with one or more of the LAMMPS packages that
 require these extra system libraries.  The names of these packages are
 the prefixes on the SYSLIB and SYSPATH variables.  See the <A HREF = "#2_3_4">section
@@ -258,30 +284,6 @@ below</A> for more details.  The SYSLIB variables list the system
 libraries.  The SYSPATH variables are where they are located on your
 machine, which is typically only needed if they are in some
 non-standard place, that is not in your library search path.
-</P>
-<P>(3) The "compiler/linker settings" section lists compiler and linker
-settings for your C++ compiler, including optimization flags.  You can
-use g++, the open-source GNU compiler, which is available on all Unix
-systems.  You can also use mpicc which will typically be available if
-MPI is installed on your system, though you should check which actual
-compiler it wraps.  Vendor compilers often produce faster code.  On
-boxes with Intel CPUs, we suggest using the free Intel icc compiler,
-which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler site</A>.
-</P>
-
-
-<P>If building a C++ code on your machine requires additional libraries,
-then you should list them as part of the LIB variable, after
-EXTRA_LIB.
-</P>
-<P>The DEPFLAGS setting is what triggers the C++ compiler to create a
-dependency list for a source file.  This speeds re-compilation when
-source (*.cpp) or header (*.h) files are edited.  Some compilers do
-not support dependency file creation, or may use a different switch
-than -D.  GNU g++ works with -D.  If your compiler can't create
-dependency files (a long list of errors involving *.d files), then
-you'll need to create a Makefile.foo patterned after Makefile.tflop,
-which uses different rules that do not involve dependency files.
 </P>
 <P>That's it.  Once you have a correct Makefile.foo and you have
 pre-built any other libraries it will use (e.g. MPI, FFT, package

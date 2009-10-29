@@ -3,7 +3,21 @@
 SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
-# system-specific settings
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =		mpiCC
+CCFLAGS =	-O
+DEPFLAGS =	-M
+LINK =		mpiCC
+LINKFLAGS =	-O
+LIB =           
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings
 # specify settings for LAMMPS features you will use
 
 # LAMMPS ifdef options, see doc/Section_start.html
@@ -46,20 +60,6 @@ gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =     -L/opt/apps/intel/10.1/fc/lib
 reax_SYSPATH =     -L/opt/apps/intel/10.1/fc/lib
 user-atc_SYSPATH = 	
-
-# ---------------------------------------------------------------------
-# compiler/linker settings
-# specify flags and libraries needed for your compiler
-
-CC =		mpiCC
-CCFLAGS =	-O
-DEPFLAGS =	-M
-LINK =		mpiCC
-LINKFLAGS =	-O
-LIB =           
-ARCHIVE =	ar
-ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

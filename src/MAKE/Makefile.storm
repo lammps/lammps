@@ -3,9 +3,22 @@
 SHELL = /bin/sh
 .SUFFIXES: .cpp .d
 
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =		CC
+CCFLAGS =	-fastsse
+DEPFLAGS =	-M
+LINK =		CC
+LINKFLAGS =	-O
+LIB =           -lstdc++
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
 
 # ---------------------------------------------------------------------
-# system-specific settings
+# LAMMPS-specific settings
 # specify settings for LAMMPS features you will use
 
 # LAMMPS ifdef options, see doc/Section_start.html
@@ -45,20 +58,6 @@ gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
 reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
 user-atc_SYSPATH = 	
-
-# ---------------------------------------------------------------------
-# compiler/linker settings
-# specify flags and libraries needed for your compiler
-
-CC =		CC
-CCFLAGS =	-fastsse
-DEPFLAGS =	-M
-LINK =		CC
-LINKFLAGS =	-O
-LIB =           -lstdc++
-ARCHIVE =	ar
-ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

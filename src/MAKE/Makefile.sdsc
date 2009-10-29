@@ -4,7 +4,25 @@ SHELL = /bin/sh
 .SUFFIXES: .cpp .u 
 
 # ---------------------------------------------------------------------
-# system-specific settings
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =		blrts_xlC
+CCFLAGS =	-I/bgl/BlueLight/ppcfloor/bglsys/include \
+		-O2 -qarch=440 -qtune=440
+DEPFLAGS =	-M -qmakedep=gcc
+LINK =		blrts_xlC
+LINKFLAGS =	-O \
+		-L/bgl/BlueLight/ppcfloor/bglsys/lib \
+		-L/opt/ibmcmp/xlf/bg/10.1/blrts_lib \
+		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib
+LIB =           -lm
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings
 # specify settings for LAMMPS features you will use
 
 # LAMMPS ifdef options, see doc/Section_start.html
@@ -44,24 +62,6 @@ gpu_SYSPATH =      -L/usr/local/cuda/lib64
 meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
 reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
 user-atc_SYSPATH = 	
-
-# ---------------------------------------------------------------------
-# compiler/linker settings
-# specify flags and libraries needed for your compiler
-
-CC =		blrts_xlC
-CCFLAGS =	-I/bgl/BlueLight/ppcfloor/bglsys/include \
-		-O2 -qarch=440 -qtune=440
-DEPFLAGS =	-M -qmakedep=gcc
-LINK =		blrts_xlC
-LINKFLAGS =	-O \
-		-L/bgl/BlueLight/ppcfloor/bglsys/lib \
-		-L/opt/ibmcmp/xlf/bg/10.1/blrts_lib \
-		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib
-LIB =           -lm
-ARCHIVE =	ar
-ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

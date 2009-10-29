@@ -58,8 +58,9 @@ curvatures "(Everaers)"_#Everaers:
 
 The variable names utilized as potential parameters are for the most
 part taken from "(Everaers)"_#Everaers in order to be consistent with
-its RE-squared potential fix.  Details on the upsilon and mu
-parameters are given "here"_gbdoc.
+the "RE-squared pair potential"_pair_resquared.html.  Details on the
+upsilon and mu parameters are given
+"here"_PDF/pair_resquared_extra.pdf.
 
 More details of the Gay-Berne formulation are given in the references
 listed below and in "this supplementary

@@ -54,8 +54,8 @@ then you just get a single file:
 </P>
 <PRE>lmp_windows.exe 
 </PRE>
-<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> section, to learn how to launch it
-on a Windows box.
+<P>Skip to the <A HREF = "#2_5">Running LAMMPS</A> section, to learn how to launch this
+executable on a Windows box.
 </P>
 <P>Note that this executable does not include an MPI or FFT library, so
 it can only be run on a single processor and it cannot perform
@@ -66,8 +66,8 @@ simulations with long-range Coulombics using a
 bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
 page</A> up to a certain date, as
 stated on the download page.  If you want something with more packages
-or more current, you'll have to download the source tarball and build
-it yourself, as described in the next section.
+or that is more current, you'll have to download the source tarball
+and build it yourself, as described in the next section.
 </P>
 <HR>
 
@@ -100,9 +100,9 @@ local expert.
 please send an email to the
 <A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.
 </P>
-<P>If you succeed in building LAMMPS on a new kind of machine (which
-there isn't a similar Makefile for in the distribution), send it to
-the developers and we'll include it in future LAMMPS releases.
+<P>If you succeed in building LAMMPS on a new kind of machine, for which
+there isn't a similar Makefile for in the src/MAKE directory, send it
+to the developers and we'll include it in future LAMMPS releases.
 </P>
 <HR>
 
@@ -120,7 +120,7 @@ gmake mac
 </PRE>
 <P>Note that on a multi-processor or multi-core platform you can launch a
 parallel make, by using the "-j" switch with the make command, which
-will typically build LAMMPS more quickly.
+will build LAMMPS more quickly.
 </P>
 <P>If you get no errors and an executable like lmp_linux or lmp_mac is
 produced, you're done; it's your lucky day.
@@ -146,14 +146,14 @@ gmake) will use it to build LAMMPS.
 </P>
 <P>(2) Other errors typically occur because the low-level Makefile isn't
 setup correctly for your machine.  If your platform is named "foo",
-you need to create a Makefile.foo in the MAKE sub-directory.  Use
+you will need to create a Makefile.foo in the MAKE sub-directory.  Use
 whatever existing file is closest to your platform as a starting
 point.  See the next section for more instructions.
 </P>
 <P>(3) If you get a link-time error about missing libraries or missing
 dependencies, then it can be because:
 </P>
-<UL><LI>you have not pre-built the necessary <A HREF = "#2_3_3">add-on LAMMPS library</A>
+<UL><LI>you are including a package that needs an extra library, but have not pre-built the necessary <A HREF = "#2_3_3">package library</A>
 <LI>you are linking to a library that doesn't exist on your system
 <LI>you are not linking to the necessary system library 
 </UL>
@@ -166,40 +166,38 @@ sub-section.
 <A NAME = "2_2_4"></A><B><I>Editing a new low-level Makefile.foo:</I></B> 
 
 <P>These are the issues you need to address when editing a low-level
-Makefile for your machine.  The only portion of the file you should
-need to edit is the first line and the "System-specific Settings"
-section, which has two parts.  The first part lists additional system
-libraries needed by certain LAMMPS libraries; see (2).  The second
-part is compiler and linker settings, as well as MPI and FFT settings;
-see (3-9).
+Makefile for your machine.  The portions of the file you typically
+need to edit are the first line, the "system-specific settings"
+section, and the "compiler/linker settings" section.
 </P>
 <P>(1) Change the first line of Makefile.foo to list the word "foo" after
 the "#", and whatever other options you set.  This is the line you
 will see if you just type "make".
 </P>
-<P>(2) The system library section can be ignored unless you are building
-LAMMPS with one or more of the listed LAMMPS packages that use these
-libraries.  See the <A HREF = "#2_3_4">section below</A> for more details.  The
-SYSLIB settings are the libraries themselves.  The SYSLIBPATH settings
-are where they are located on your machine, which is typically only
-needed if they are in some non-standard place, that is not in your
-library search path.
+<P>(2) The "system-specific settings" section has 4 parts.
 </P>
-<P>(3) Set the paths and flags for your C++ compiler, including
-optimization flags.  You can use g++, the open-source GNU compiler,
-which is available on all Unix systems.  Vendor compilers often
-produce faster code.  On boxes with Intel CPUs, we suggest using the
-free Intel icc compiler, which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler
-site</A>.
+<P>(2.1) The LMP_INC variable is used to include options that turn on
+system-dependent ifdefs within the LAMMPS code.
 </P>
-
-
-<P>(4) If you want LAMMPS to run in parallel, you must have an MPI
-library installed on your platform.  If you do not use "mpicc" as your
+<P>The read_data and dump commands will read/write gzipped files if you
+compile with -DLAMMPS_GZIP.  It requires that your Unix support the
+"popen" command.  Using one of the -DPACK_ARRAY, -DPACK_POINTER, and
+-DPACK_MEMCPY options can make for faster parallel FFTs (in the PPPM
+solver) on some platforms.  The -DPACK_ARRAY setting is the default.
+If you use -DLAMMPS_XDR, the build will include XDR compatibility
+files for doing particle dumps in XTC format.  This is only necessary
+if your platform does have its own XDR files available.  See the
+Restrictions section of the <A HREF = "dump.html">dump</A> command for details.
+</P>
+<P>(2.2) The 3 MPI variables are used to specify an MPI library to build
+LAMMPS with.
+</P>
+<P>If you want LAMMPS to run in parallel, you must have an MPI library
+installed on your platform.  If you do not use "mpicc" as your
 compiler/linker, then Makefile.foo needs to specify where the mpi.h
-file (-I switch) and the libmpi.a library (-L switch) is found.  If
-you are installing MPI yourself, we recommend Argonne's MPICH 1.2
-which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
+file (MPI_INC) and the MPI library (MPI_PATH) is found and its name
+(MPI_LIB).  If you are installing MPI yourself, we recommend Argonne's
+MPICH 1.2 or 2.0 which can be downloaded from the <A HREF = "http://www-unix.mcs.anl.gov/mpi">Argonne MPI
 site</A>.  LAM MPI should also work.  If
 you are running on a big parallel platform, your system people or the
 vendor should have already installed a version of MPI, which will be
@@ -207,16 +205,16 @@ faster than MPICH or LAM, so find out how to build and link with it.
 If you use MPICH or LAM, you will have to configure and build it for
 your platform.  The MPI configure script should have compiler options
 to enable you to use the same compiler you are using for the LAMMPS
-build, which can avoid problems that may arise when linking LAMMPS to
+build, which can avoid problems that can arise when linking LAMMPS to
 the MPI library.
 </P>
-<P>(5) If you just want LAMMPS to run on a single processor, you can use
-the STUBS library in place of MPI, since you don't need an MPI library
+<P>If you just want LAMMPS to run on a single processor, you can use the
+STUBS library in place of MPI, since you don't need an MPI library
 installed on your system.  See the Makefile.serial file for how to
-specify the -I and -L switches.  You will also need to build the STUBS
+specify the 3 MPI variables.  You will also need to build the STUBS
 library for your platform before making LAMMPS itself.  From the STUBS
 dir, type "make" and it will hopefully create a libmpi.a suitable for
-linking to LAMMPS.  If the build fails, you will need to edit the
+linking to LAMMPS.  If this build fails, you will need to edit the
 STUBS/Makefile for your platform.
 </P>
 <P>The file STUBS/mpi.cpp has a CPU timer function MPI_Wtime() that calls
@@ -225,52 +223,70 @@ you'll need to insert code to call another timer.  Note that the
 ANSI-standard function clock() rolls over after an hour or so, and is
 therefore insufficient for timing long LAMMPS simulations.
 </P>
-<P>(6) If you want to use the particle-particle particle-mesh (PPPM)
-option in LAMMPS for long-range Coulombics, you must have a 1d FFT
-library installed on your platform.  This is specified by a switch of
-the form -DFFT_XXX where XXX = INTEL, DEC, SGI, SCSL, or FFTW.  All
-but the last one are native vendor-provided libraries.  FFTW is a
-fast, portable library that should work on any platform.  You can
-download it from <A HREF = "http://www.fftw.org">www.fftw.org</A>.  Use version
-2.1.X, not the newer 3.0.X.  Building FFTW for your box should be as
-simple as ./configure; make.  Whichever FFT library you have on your
-platform, you'll need to set the appropriate -I and -L switches in
+<P>(2.3) The 3 FFT variables are used to specify an FFT library which
+LAMMPS uses when using the particle-particle particle-mesh (PPPM)
+option in LAMMPS for long-range Coulombics via the
+<A HREF = "kspace_style.html">kspace_style</A> command.
+</P>
+<P>To use this opttion, you must have a 1d FFT library installed on your
+platform.  This is specified by a switch of the form -DFFT_XXX where
+XXX = INTEL, DEC, SGI, SCSL, or FFTW.  All but the last one are native
+vendor-provided libraries.  FFTW is a fast, portable library that
+should work on any platform.  You can download it from
+<A HREF = "http://www.fftw.org">www.fftw.org</A>.  Use version 2.1.X, not the newer
+3.0.X.  Building FFTW for your box should be as simple as ./configure;
+make.  Whichever FFT library you have on your platform, you'll need to
+set the appropriate FFT_INC, FFT_PATH, and FFT_LIB variables in
 Makefile.foo.
 </P>
-<P>If you examine fft3d.c and fft3d.h you'll see it's possible to add
-other vendor FFT libraries via #ifdef statements in the appropriate
-places.  If you successfully add a new FFT option, like -DFFT_IBM,
-please send the <A HREF = "http://lammps.sandia.gov">developers</A> an email; we'd
-like to add it to LAMMPS.
+<P>If you examine src/fft3d.c and src.fft3d.h you'll see it's possible to
+add other vendor FFT libraries via #ifdef statements in the
+appropriate places.  If you successfully add a new FFT option, like
+-DFFT_IBM, please send the LAMMPS developers an email; we'd like to
+add it to LAMMPS.
 </P>
-<P>(7) If you don't plan to use PPPM, you don't need an FFT library.  Use
-a -DFFT_NONE switch in the CCFLAGS setting of Makefile.foo, or exclude
-the KSPACE package (see below).
+<P>If you don't plan to use PPPM, you don't need an FFT library.  In this
+case you can set FFT_INC to -DFFT_NONE and leave the other 2 FFT
+variables blank.  Or you can exclude the KSPACE package when you build
+LAMMPS (see below).
 </P>
-<P>(8) There are a few other -D compiler switches you can set as part of
-CCFLAGS.  The read_data and dump commands will read/write gzipped
-files if you compile with -DLAMMPS_GZIP.  It requires that your Unix
-support the "popen" command.  Using one of the -DPACK_ARRAY,
--DPACK_POINTER, and -DPACK_MEMCPY options can make for faster parallel
-FFTs (in the PPPM solver) on some platforms.  The -DPACK_ARRAY setting
-is the default.  If you compile with -DLAMMPS_XDR, the build will
-include XDR compatibility files for doing particle dumps in XTC
-format.  This is only necessary if your platform does have its own XDR
-files available.  See the Restrictions section of the <A HREF = "dump.html">dump</A>
-command for details.
+<P>(2.4) The several SYSLIB and SYSPATH variables can be ignored unless
+you are building LAMMPS with one or more of the LAMMPS packages that
+require these extra system libraries.  The names of these packages are
+the prefixes on the SYSLIB and SYSPATH variables.  See the <A HREF = "#2_3_4">section
+below</A> for more details.  The SYSLIB variables list the system
+libraries.  The SYSPATH variables are where they are located on your
+machine, which is typically only needed if they are in some
+non-standard place, that is not in your library search path.
 </P>
-<P>(9) The DEPFLAGS setting is how the C++ compiler creates a dependency
-file for each source file.  This speeds re-compilation when source
-(*.cpp) or header (*.h) files are edited.  Some compilers do not
-support dependency file creation, or may use a different switch than
--D.  GNU g++ works with -D.  If your compiler can't create dependency
-files (a long list of errors involving *.d files), then you'll need to
-create a Makefile.foo patterned after Makefile.tflop, which uses
-different rules that do not involve dependency files.
+<P>(3) The "compiler/linker settings" section lists compiler and linker
+settings for your C++ compiler, including optimization flags.  You can
+use g++, the open-source GNU compiler, which is available on all Unix
+systems.  You can also use mpicc which will typically be available if
+MPI is installed on your system, though you should check which actual
+compiler it wraps.  Vendor compilers often produce faster code.  On
+boxes with Intel CPUs, we suggest using the free Intel icc compiler,
+which you can download from <A HREF = "http://www.intel.com/software/products/noncom">Intel's compiler site</A>.
+</P>
+
+
+<P>If building a C++ code on your machine requires additional libraries,
+then you should list them as part of the LIB variable, after
+EXTRA_LIB.
+</P>
+<P>The DEPFLAGS setting is what triggers the C++ compiler to create a
+dependency list for a source file.  This speeds re-compilation when
+source (*.cpp) or header (*.h) files are edited.  Some compilers do
+not support dependency file creation, or may use a different switch
+than -D.  GNU g++ works with -D.  If your compiler can't create
+dependency files (a long list of errors involving *.d files), then
+you'll need to create a Makefile.foo patterned after Makefile.tflop,
+which uses different rules that do not involve dependency files.
 </P>
 <P>That's it.  Once you have a correct Makefile.foo and you have
-pre-built the MPI and FFT libraries it will use, all you need to do
-from the src directory is type one of these 2 commands:
+pre-built any other libraries it will use (e.g. MPI, FFT, package
+libraries), all you need to do from the src directory is type one of
+these 2 commands:
 </P>
 <PRE>make foo
 gmake foo 
@@ -289,8 +305,9 @@ Obj_name where it stores the system-specific *.o files.
 </P>
 <P>(2) Cleaning up.
 </P>
-<P>Typing "make clean" will delete all *.o object files created when
-LAMMPS is built.
+<P>Typing "make clean-all" or "make clean-foo" will delete *.o object
+files created when LAMMPS is built, for either all builds or for a
+particular machine.
 </P>
 <P>(3) On some machines with some compiler options, the Coulomb tabling
 option that is enabled by default for "long" <A HREF = "pair_style.html">pair
@@ -321,11 +338,17 @@ compiler option.
 </P>
 <P>(4) Building for a Mac.
 </P>
-<P>OS X is BSD Unix, so it already works.  See the Makefile.mac file.
+<P>OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 </P>
 <P>(5) Building for MicroSoft Windows.
 </P>
-<P>I've never done this, but LAMMPS is just standard C++ with MPI and FFT
+<P>The LAMMPS download page has an option to download a pre-built Windows
+exeutable.  See below for instructions for running this executable on
+a Windows box.
+</P>
+<P>If the pre-built executable doesn't have the options you want, then
+you should be able to build LAMMPS from source files on a Windows box.
+I've never done this, but LAMMPS is just standard C++ with MPI and FFT
 calls.  You can use cygwin to build LAMMPS with a Unix make; see
 Makefile.cygwin.  Or you should be able to pull all the source files
 into Visual C++ (ugh) or some similar development environment and
@@ -402,8 +425,8 @@ documentation.
 <P>Any or all packages can be included or excluded independently BEFORE
 LAMMPS is built.
 </P>
-<P>Note: The two exceptions to this are the "gpu" and "opt" packages.
-Some of the files in these packages require other packages to also be
+<P>The two exceptions to this are the "gpu" and "opt" packages.  Some of
+the files in these packages require other packages to also be
 included.  If this is not the case, then those subsidiary files in
 "gpu" and "opt" will not be installed either.  To install all the
 files in package "gpu", the "asphere" package must also be installed.
@@ -416,8 +439,7 @@ auxiliary libraries (see below) and will produce a smaller executable
 which may run a bit faster.
 </P>
 <P>By default, LAMMPS includes only the "kspace", "manybody", and
-"molecule" packages.  As described below, some standard packages
-require LAMMPS be linked to separately built libraries.
+"molecule" packages.
 </P>
 <P>Packages are included or excluded by typing "make yes-name" or "make
 no-name", where "name" is the name of the package.  You can also type
@@ -449,16 +471,16 @@ the various options.
 
 <A NAME = "2_3_3"></A><B><I>Packages that require extra LAMMPS libraries:</I></B> 
 
-<P>A few packages (standard or user) require that add-on libraries be
+<P>A few packages (standard or user) require that additional libraries be
 compiled first, which LAMMPS will link to when it builds.  The source
 code for these libraries are included in the LAMMPS distribution under
 the "lib" directory.  Look at the README files in the lib directories
 (e.g. lib/reax/README) for instructions on how to build each library.
 </P>
-<P>IMPORTANT NOTE: If you have included a package that uses
-one of the libraries, then you must build the library BEFORE
-building LAMMPS itself, as the LAMMPS build will link with
-the library file.
+<P>IMPORTANT NOTE: If you are including a package in your LAMMPS build
+that uses one of these libraries, then you must build the library
+BEFORE building LAMMPS itself, since the LAMMPS build will attempt to
+link with the library file.
 </P>
 <P>Here is a bit of information about each library:
 </P>
@@ -526,37 +548,37 @@ which will be in the Makefile.
 <P>After the desired library or libraries are built, and the package has
 been included, you can build LAMMPS itself.  For example, from the
 lammps/src directory you would type this, to build LAMMPS with ReaxFF.
-Note that the library itself, namely lib/reax/libreax.a, must already
-have been built, as dicussed in the preceding section, for the
-LAMMPS build to be successful.
+Note that as discussed in the preceding section, the package library
+itself, namely lib/reax/libreax.a, must already have been built, for
+the LAMMPS build to be successful.
 </P>
 <PRE>make yes-reax
 make g++ 
 </PRE>
-<P>Note that simply building the library is not sufficient to use it from
-LAMMPS.  You must also include the package that uses and wraps the
-library before you build LAMMPS itself.
+<P>Also note that simply building the library is not sufficient to use it
+from LAMMPS.  As in this example, you must also include the package
+that uses and wraps the library before you build LAMMPS itself.
 </P>
-<P>As discussed in point (2) of <A HREF = "#2_2_4">this section</A> above, there are
+<P>As discussed in point (2.4) of <A HREF = "#2_2_4">this section</A> above, there are
 settings in the low-level Makefile that specify additional system
 libraries needed by individual LAMMPS add-on libraries.  These are the
 settings you must specify correctly in your low-level Makefile in
 lammps/src/MAKE, such as Makefile.foo:
 </P>
 <P>To use the gpu package and library, the settings for gpu_SYSLIB and
-gpu_SYSLIBPATH must be correct.  These are specific to the NVIDIA CUDA
+gpu_SYSPATH must be correct.  These are specific to the NVIDIA CUDA
 software which must be installed on your system.
 </P>
 <P>To use the meam or reax packages and their libraries which are Fortran
-based, the settings for meam_SYSLIB, reax_SYSLIB, meam_SYSLIBPATH, and
-reax_SYSLIBPATH must be correct.  This is so that the C++ compiler can
+based, the settings for meam_SYSLIB, reax_SYSLIB, meam_SYSPATH, and
+reax_SYSPATH must be correct.  This is so that the C++ compiler can
 perform a cross-language link using the appropriate system Fortran
 libraries.
 </P>
 <P>To use the user-atc package and library, the settings for
-user-atc_SYSLIB and user-atc_SYSLIBPATH must be correct.  This is so
-that the appropriate BLAS and LAPACK libs, used by the user-atc
-library, can be found.
+user-atc_SYSLIB and user-atc_SYSPATH must be correct.  This is so that
+the appropriate BLAS and LAPACK libs, used by the user-atc library,
+can be found.
 </P>
 <HR>
 

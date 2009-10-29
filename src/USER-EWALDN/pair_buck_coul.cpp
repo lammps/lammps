@@ -507,8 +507,8 @@ void PairBuckCoul::compute(int eflag, int vflag)
 	  }
 	}						// table real space
 	else {
-      register table_lookup_t t;
-      t.f = rsq;
+	  register union_int_float_t t;
+	  t.f = rsq;
 	  register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
 	  if (ni < 0) {
@@ -848,8 +848,8 @@ void PairBuckCoul::compute_outer(int eflag, int vflag)
 	  if (respa_flag) respa_coul = ni<0 ?		// correct for respa
 	      frespa*qri*q[j]/r :
 	      frespa*qri*q[j]/r*special_coul[ni];
-	  register table_lookup_t t;
-      t.f = rsq;
+	  register union_int_float_t t;
+	  t.f = rsq;
 	  register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
 	  register double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
 	  if (ni < 0) {
@@ -965,8 +965,8 @@ void PairBuckCoul::init_tables()
     dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
   }
 
-  table_lookup_t rsq_lookup;
-  table_lookup_t minrsq_lookup;
+  union_int_float_t rsq_lookup;
+  union_int_float_t minrsq_lookup;
   int itablemin;
   minrsq_lookup.i = 0 << ncoulshiftbits;
   minrsq_lookup.i |= maskhi;
@@ -1135,7 +1135,7 @@ double PairBuckCoul::single(int i, int j, int itype, int jtype,
       eng += t-f;
     }
     else {						// table real space
-      register table_lookup_t t;
+      register union_int_float_t t;
       t.f = rsq;
       register const int k = (t.i & ncoulmask) >> ncoulshiftbits;
       register double f = (rsq-rtable[k])*drtable[k], qiqj = q[i]*q[j];

@@ -163,8 +163,8 @@ void PairCGCMMCoulLong::init_tables()
     dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
   }
 
-  table_lookup_t rsq_lookup;
-  table_lookup_t minrsq_lookup;
+  union_int_float_t rsq_lookup;
+  union_int_float_t minrsq_lookup;
   int itablemin;
   minrsq_lookup.i = 0 << ncoulshiftbits;
   minrsq_lookup.i |= maskhi;

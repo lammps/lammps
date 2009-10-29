@@ -151,8 +151,8 @@ void PairLJCharmmCoulLongOpt::eval()
 	      prefactor = qqrd2e * tmp_coef3/r;
 	      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	    } else {
-          table_lookup_t rsq_lookup;
-          rsq_lookup.f = rsq;
+	      union_int_float_t rsq_lookup;
+	      rsq_lookup.f = rsq;
 	      itable = rsq_lookup.i & ncoulmask;
 	      itable >>= ncoulshiftbits;
 	      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
@@ -242,8 +242,8 @@ void PairLJCharmmCoulLongOpt::eval()
 		forcecoul -= (1.0-factor_coul)*prefactor;
 	      }
 	    } else {
-          table_lookup_t rsq_lookup;
-          rsq_lookup.f = rsq;
+	      union_int_float_t rsq_lookup;
+	      rsq_lookup.f = rsq;
 	      itable = rsq_lookup.i & ncoulmask;
 	      itable >>= ncoulshiftbits;
 	      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];

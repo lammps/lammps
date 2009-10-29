@@ -108,7 +108,7 @@ class Pair : protected Pointers {
 
   // custom data type for accessing Coulomb tables
 
-  typedef union {int i; float f;} table_lookup_t;
+  typedef union {int i; float f;} union_int_float_t;
 
   double THIRD;
 

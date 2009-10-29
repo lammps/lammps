@@ -899,7 +899,7 @@ void Pair::write_file(int narg, char **arg)
   }
 
   double r,e,f,rsq;  
-  table_lookup_t rsq_lookup;
+  union_int_float_t rsq_lookup;
 
   for (int i = 0; i < n; i++) {
     if (style == R) {
@@ -980,7 +980,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   for (int j = 0; j < ntablebits+nshiftbits; j++) nmask *= 2;
   nmask -= 1;
 
-  table_lookup_t rsq_lookup;
+  union_int_float_t rsq_lookup;
   rsq_lookup.f = outer*outer;
   maskhi = rsq_lookup.i & ~(nmask);
   rsq_lookup.f = inner*inner;

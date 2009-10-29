@@ -272,7 +272,7 @@ namespace LAMMPS_NS {
                     if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
                   }
                 } else {
-                  table_lookup_t rsq_lookup;
+                  union_int_float_t rsq_lookup;
                   rsq_lookup.f = rsq;
                   int itable = rsq_lookup.i & ncoulmask;
                   itable >>= ncoulshiftbits;
@@ -669,7 +669,7 @@ namespace LAMMPS_NS {
                     if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
                   }
                 } else {
-                  table_lookup_t rsq_lookup;
+                  union_int_float_t rsq_lookup;
                   rsq_lookup.f = rsq;
                   int itable = rsq_lookup.i & ncoulmask;
                   itable >>= ncoulshiftbits;

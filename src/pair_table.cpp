@@ -75,7 +75,7 @@ void PairTable::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
   
-  table_lookup_t rsq_lookup;
+  union_int_float_t rsq_lookup;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -394,7 +394,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   int itmp;
   double rtmp;
-  table_lookup_t rsq_lookup;
+  union_int_float_t rsq_lookup;
 
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
@@ -677,7 +677,7 @@ void PairTable::compute_table(Table *tb)
 
   if (tabstyle == BITMAP) {
     double r;
-    table_lookup_t rsq_lookup;
+    union_int_float_t rsq_lookup;
     int masklo,maskhi;
 
     // linear lookup tables of length ntable = 2^n
@@ -694,7 +694,7 @@ void PairTable::compute_table(Table *tb)
     tb->df = (double *) memory->smalloc(ntable*sizeof(double),"pair:df");
     tb->drsq = (double *) memory->smalloc(ntable*sizeof(double),"pair:drsq");
   
-    table_lookup_t minrsq_lookup;
+    union_int_float_t minrsq_lookup;
     minrsq_lookup.i = 0 << tb->nshiftbits;
     minrsq_lookup.i |= maskhi;
 
@@ -935,7 +935,7 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
       tb->deltasq6;
     fforce = factor_lj * value;
   } else {
-    table_lookup_t rsq_lookup;
+    union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     itable = rsq_lookup.i & tb->nmask;
     itable >>= tb->nshiftbits;

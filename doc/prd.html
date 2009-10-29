@@ -1,0 +1,182 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>prd command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>prd steps t_event n_dephase t_dephase t_corr compute-ID seed keyword value ... 
+</PRE>
+<UL><LI>steps = total # of timesteps to run (not including dephasing/quenching) 
+
+<LI>t_event = timestep interval between event checks 
+
+<LI>n_dephase = number of velocity randomizations to perform in each dephase run 
+
+<LI>t_dephase = number of timesteps to run dynamics after each velocity randomization during dephase 
+
+<LI>t_corr = number of timesteps within which 2 consecutive events are considered to be correlated 
+
+<LI>compute-id = ID of the compute used for event detection 
+
+<LI>random_seed = random # seed (positive integer) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>min</I> or <I>temp</I> or <I>vel</I> 
+
+<PRE>  <I>min</I> values = etol ftol maxiter maxeval
+    etol = stopping tolerance for energy, used in quenching
+    ftol = stopping tolerance for force, used in quenching
+    maxiter = max iterations of minimize, used in quenching
+    maxeval = max number of force/energy evaluations, used in quenching
+  <I>temp</I> value = Tdephase
+    Tdephase = target temperature for velocity randomization, used in dephasing
+  <I>vel</I> values = loop dist
+    loop = <I>all</I> or <I>local</I> or <I>geom</I>, used in dephasing
+    dist = <I>uniform</I> or <I>gaussian</I>, used in dephasing 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>prd 5000 100 10 10 100 1 54982
+prd 5000 100 10 10 100 1 54982 maxiter 100 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Run Parallel Replica Dynamics (PRD) as described in <A HREF = "#Voter">(Voter)</A>.
+PRD is a method for accelerated dynamics that is suitable for
+infrequent-event systems that obey first-order kinetics.  To quote
+from the paper: "The dynamical evolution is characterized by
+vibrational excursions within a potential basin, punctuated by
+occasional transitions between basins."  The transition probability is
+characterized by p(t) = k*exp(-kt) where k is the rate constant.
+</P>
+<P>PRD is performed by replicating a system in a particular state on M
+processor partitions.  Dephasing is performed with <I>n_dephase</I>
+velocity randomizations each followed by <I>t_dephase</I> MD timesteps to
+eliminate correlations between replicas. If the <I>temp</I> keyword is not
+specified, the target temperature for velocity randomization on each
+replica is the temperature at the timestep replication occured,
+otherwise, it is the temperature specified. Velocity randomization is
+controlled using keywords similar to the <A HREF = "velocity.html">velocity</A>
+command. Following dephasing, independent dynamics runs are performed
+on each partition with periodic stops to check for transition events.
+The number of timesteps between each event check is given by the
+<I>t_event</I> parameter.
+</P>
+<P>Event detection is performed by quenching each replica to make a
+comparison to the previous event. The minimum for detection of
+the first event in each PRD run is obtained from quenching the 
+initial configuration. The decision as to whether or not a 
+transition event has occurred is determined by the compute with id
+equal to <I>compute_id</I>. For example, the
+<A HREF = "compute_event_displace.html">event/displace</A> compute will detect when
+a given particle in the group has moved greater than a threshold
+distance, signalling that an event has occurred.
+</P>
+<P>The algorithm used for quenching is determined by the
+<A HREF = "min_style.html">min_style</A> command. Parameters for minimization are
+specified with keywords analogous to the <A HREF = "minimize.html">minimize</A>
+command. If a transition event is detected, all replicas are stopped,
+and the simulation clock is advanced by the time accumulated on all
+replica partitions. The clock time between events will be drawn from
+p(t). The simulation on the replica where the transition occurred is
+continued for <I>t_corr</I> timesteps to detect any correlated event
+transitions. The final state from this continued run is replicated on
+all partitions to start the whole process again with a new dephasing
+run.
+</P>
+<P>Each replica within PRD can be simulated on 1 or multiple processors.
+The processor partitions are controlled using the -partition
+command-line switch (see <A HREF = "Section_start.html#2_6">this section</A>).  By
+default, the timestep, clock, event number, correlation flag, and
+replica number are written to the screen/log at each event. The clock
+value is the total number of timesteps accumulated on all replicas.
+This value will not necessarily be a multiple of the current timestep
+because the checks for correlated events occur on only 1 replica 
+(During a correlated event check, the clock advance will be equal to
+the number of timesteps; otherwise, the clock advance will be equal 
+to the number of timesteps multiplied by the number of replicas.) The
+correlation flag will be 1 when an event occurs within <I>t_corr</I>
+timesteps from the previous event and 0 otherwise. The replica is the
+replica number where the event occurred. When restarting a PRD run,
+information from the last event that occurred will be written to the
+screen. The PRD run will terminate when the total number of timesteps
+(not including timesteps used for quenching or dephasing) is equal to
+<I>steps</I>.
+</P>
+<P>The <A HREF = "thermo.html">thermo</A> for the dephasing, quenching, and dynamics 
+can be output to the log files specific to each partition. You will 
+notice that following dephasing and quenching, the timestep is reset 
+back its' value to continue dynamics at the correct timestep. Timing
+information for the PRD run will be output to the screen/log files
+for each replica. <A HREF = "dump.html">Dump files</A> will only be written at 
+timesteps corresponding to an event (during PRD, the dump frequency 
+will be ignored). The coordinates within a dump will correspond to 
+the new minimum obtained from quenching following a transition. The
+timesteps written into the dump files correspond to the timestep
+at which each event occurred and not the clock. A dump snapshot  
+corresponding to the initial minimum used for event detection is
+written at the beginning of each PRD run.
+</P>
+<P>If a restart file is specified, a single restart file will be
+written for a PRD run to allow the run to be continued from the
+last event. It is important to note that restart files will
+only be generated following correlated event detection after 
+each event. Therefore, the timestep of a restart file will
+be equal to the timestep of the event plus <I>t_corr</I> if no
+correlated event is detected and a larger timestep if 
+correlated events are found. If a PRD run ends without 
+detecting an event, no restart file will be written. 
+During PRD, the restart interval is taken to be the
+number of events between each write, and not the number of
+timesteps. This interval does not consider correlated
+events. Restart files can use a different number of
+processors or partitions, however, it is assumed that
+<I>t_corr</I> is not changed when restarting a previous run.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>steps</I> and <I>t_corr</I> settings must be integer multiples of
+<I>t_event</I>.
+</P>
+<P>Runs restarted from restart file written during a PRD run will not
+produce identical results due to changes in the random numbers used
+for dephasing.
+</P>
+<P>This command cannot be used when any fixes are defined that keep track
+of elapsed time to perform time-dependent operations.  Examples
+include the "ave" fixes such as <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A>.  Also <A HREF = "fix_dt_reset.html">fix
+dt/reset</A> and <A HREF = "fix_deposity.html">fix deposit</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_event_displace.html">compute event/displace</A>,
+<A HREF = "min_modify.html">min_modify</A>, <A HREF = "min_style.html">min_style</A>,
+<A HREF = "run_style.html">run_style</A>, <A HREF = "minimize.html">minimize</A>,
+<A HREF = "velocity.html">velocity</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>The option defaults are <I>min</I> = 40 50 0.1 0.1, no <I>temp</I> setting, and
+<I>vel</I> = <I>geom</I> <I>gaussian</I>.
+</P>
+<HR>
+
+<A NAME = "Voter"></A>
+
+<P><B>(Voter)</B> Voter, Montalenti, Germann, Annual Review of Materials
+Research 32, 321 (2002).
+</P>
+</HTML>

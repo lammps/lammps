@@ -1,0 +1,52 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute event/displace command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID event/displace threshold 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>event/displace = style name of this compute command
+<LI>threshold = minimum distance a single particle must move to trigger an event (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all event/displace 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that flags an event if any particle in the group
+has moved a distance greater than the specified threshold distance
+when compared to a previously stored reference state (i.e. the
+previous event).  This compute is typically used in conjunction with
+the <A HREF = "prd.html">prd</A> command to detect if a transition to a new minimum
+energy basin has occurred.
+</P>
+<P>This flag value calculates is equal to 0 if no particle has moved far
+enough and 1 if one or more particles have moved further than the
+threshold distance.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>The scalar value calculated by this compute is "intensive", meaning it
+is independent of the number of atoms in the simulation.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "prd.html">prd</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,164 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+prd command :h3
+
+[Syntax:]
+
+prd steps t_event n_dephase t_dephase t_corr compute-ID seed keyword value ... :pre
+
+steps = total # of timesteps to run (not including dephasing/quenching) :ulb,l
+t_event = timestep interval between event checks :l
+n_dephase = number of velocity randomizations to perform in each dephase run :l
+t_dephase = number of timesteps to run dynamics after each velocity randomization during dephase :l
+t_corr = number of timesteps within which 2 consecutive events are considered to be correlated :l
+compute-id = ID of the compute used for event detection :l
+random_seed = random # seed (positive integer) :l
+zero or more keyword/value pairs may be appended :l
+keyword = {min} or {temp} or {vel} :l
+  {min} values = etol ftol maxiter maxeval
+    etol = stopping tolerance for energy, used in quenching
+    ftol = stopping tolerance for force, used in quenching
+    maxiter = max iterations of minimize, used in quenching
+    maxeval = max number of force/energy evaluations, used in quenching
+  {temp} value = Tdephase
+    Tdephase = target temperature for velocity randomization, used in dephasing
+  {vel} values = loop dist
+    loop = {all} or {local} or {geom}, used in dephasing
+    dist = {uniform} or {gaussian}, used in dephasing :pre
+:ule
+
+[Examples:]
+
+prd 5000 100 10 10 100 1 54982
+prd 5000 100 10 10 100 1 54982 maxiter 100 :pre
+
+[Description:]
+
+Run Parallel Replica Dynamics (PRD) as described in "(Voter)"_#Voter.
+PRD is a method for accelerated dynamics that is suitable for
+infrequent-event systems that obey first-order kinetics.  To quote
+from the paper: "The dynamical evolution is characterized by
+vibrational excursions within a potential basin, punctuated by
+occasional transitions between basins."  The transition probability is
+characterized by p(t) = k*exp(-kt) where k is the rate constant.
+
+PRD is performed by replicating a system in a particular state on M
+processor partitions.  Dephasing is performed with {n_dephase}
+velocity randomizations each followed by {t_dephase} MD timesteps to
+eliminate correlations between replicas. If the {temp} keyword is not
+specified, the target temperature for velocity randomization on each
+replica is the temperature at the timestep replication occured,
+otherwise, it is the temperature specified. Velocity randomization is
+controlled using keywords similar to the "velocity"_velocity.html
+command. Following dephasing, independent dynamics runs are performed
+on each partition with periodic stops to check for transition events.
+The number of timesteps between each event check is given by the
+{t_event} parameter.
+
+Event detection is performed by quenching each replica to make a
+comparison to the previous event. The minimum for detection of the
+first event in each PRD run is obtained from quenching the initial
+configuration. The decision as to whether or not a transition event
+has occurred is determined by the compute with id equal to
+{compute_id}. For example, the
+"event/displace"_compute_event_displace.html compute will detect when
+a given particle in the group has moved greater than a threshold
+distance, signalling that an event has occurred.
+
+The algorithm used for quenching is determined by the
+"min_style"_min_style.html command. Parameters for minimization are
+specified with keywords analogous to the "minimize"_minimize.html
+command. If a transition event is detected, all replicas are stopped,
+and the simulation clock is advanced by the time accumulated on all
+replica partitions. The clock time between events will be drawn from
+p(t). The simulation on the replica where the transition occurred is
+continued for {t_corr} timesteps to detect any correlated event
+transitions. The final state from this continued run is replicated on
+all partitions to start the whole process again with a new dephasing
+run.
+
+Each replica within PRD can be simulated on 1 or multiple processors.
+The processor partitions are controlled using the -partition
+command-line switch (see "this section"_Section_start.html#2_6).  By
+default, the timestep, clock, event number, correlation flag, and
+replica number are written to the screen/log at each event. The clock
+value is the total number of timesteps accumulated on all replicas.
+This value will not necessarily be a multiple of the current timestep
+because the checks for correlated events occur on only 1 replica 
+(During a correlated event check, the clock advance will be equal to
+the number of timesteps; otherwise, the clock advance will be equal 
+to the number of timesteps multiplied by the number of replicas.) The
+correlation flag will be 1 when an event occurs within {t_corr}
+timesteps from the previous event and 0 otherwise. The replica is the
+replica number where the event occurred. When restarting a PRD run,
+information from the last event that occurred will be written to the
+screen. The PRD run will terminate when the total number of timesteps
+(not including timesteps used for quenching or dephasing) is equal to
+{steps}.
+
+The "thermodynamic output"_thermo.html for the dephasing, quenching,
+and dynamics will be output to the log files specific to each
+partition.  Following dephasing and quenching, the timestep is reset
+back its' value to continue dynamics at the correct timestep.  Timing
+information for the PRD run is also output to the screen/log files for
+each replica.  "Dump files"_dump.html are be written at timesteps
+corresponding to an event; during PRD, the requested dump frequency is
+ignored.  The coordinates within a dump will correspond to the new
+minimum obtained from quenching following a transition.  The timesteps
+written into the dump files correspond to the timestep at which each
+event occurred and not the clock.  A dump snapshot corresponding to
+the initial minimum used for event detection is written at the
+beginning of each PRD run.
+
+If a restart file is specified, a single restart file will be written
+for a PRD run to allow the run to be continued from the last event.
+It is important to note that restart files will only be generated
+following correlated event detection after each event.  Therefore, the
+timestep of a restart file will be equal to the timestep of the event
+plus {t_corr} if no correlated event is detected and a larger timestep
+if correlated events are found. If a PRD run ends without detecting an
+event, no restart file will be written.  During PRD, the restart
+interval is taken to be the number of events between each write, and
+not the number of timesteps. This interval does not consider
+correlated events. Restart files can use a different number of
+processors or partitions, however, it is assumed that {t_corr} is not
+changed when restarting a previous run.
+
+[Restrictions:]
+
+The {steps} and {t_corr} settings must be integer multiples of
+{t_event}.
+
+Runs restarted from restart file written during a PRD run will not
+produce identical results due to changes in the random numbers used
+for dephasing.
+
+This command cannot be used when any fixes are defined that keep track
+of elapsed time to perform time-dependent operations.  Examples
+include the "ave" fixes such as "fix
+ave/spatial"_fix_ave_spatial.html.  Also "fix
+dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposity.html.
+
+[Related commands:]
+
+"compute event/displace"_compute_event_displace.html,
+"min_modify"_min_modify.html, "min_style"_min_style.html,
+"run_style"_run_style.html, "minimize"_minimize.html,
+"velocity"_velocity.html
+
+[Default:] 
+
+The option defaults are {min} = 40 50 0.1 0.1, no {temp} setting, and
+{vel} = {geom} {gaussian}.
+
+:line
+
+:link(Voter)
+[(Voter)] Voter, Montalenti, Germann, Annual Review of Materials
+Research 32, 321 (2002).

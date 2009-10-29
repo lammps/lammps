@@ -270,7 +270,7 @@ Actions:
 "delete_atoms"_delete_atoms.html, "delete_bonds"_delete_bonds.html,
 "displace_atoms"_displace_atoms.html,
 "displace_box"_displace_box.html, "minimize"_minimize.html,
-"run"_run.html, "temper"_temper.html
+"prd"_prd.html, "run"_run.html, "temper"_temper.html
 
 Miscellaneous:
 
@@ -343,6 +343,7 @@ in the command's documentation.
 "pair_modify"_pair_modify.html,
 "pair_style"_pair_style.html,
 "pair_write"_pair_write.html,
+"prd"_prd.html,
 "print"_print.html,
 "processors"_processors.html,
 "read_data"_read_data.html,
@@ -462,6 +463,7 @@ description:
 "displace/atom"_compute_displace_atom.html,
 "erotate/asphere"_compute_erotate_asphere.html,
 "erotate/sphere"_compute_erotate_sphere.html,
+"event/displace"_compute_event_displace.html,
 "group/group"_compute_group_group.html,
 "heat/flux"_compute_heat_flux.html,
 "ke"_compute_ke.html,

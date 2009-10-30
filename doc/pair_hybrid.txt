@@ -87,11 +87,11 @@ type pair in a second pair_coeff command, a second sub-style is added
 to the list of potentials that will be calculated for two interactings
 atoms of those types.
 
-The following coefficients must be defined for each pair of atoms
-types via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands, or by mixing as described below:
+Coefficients must be defined for each pair of atoms types via the
+"pair_coeff"_pair_coeff.html command as described above, or in the
+data file or restart files read by the "read_data"_read_data.html or
+"read_restart"_read_restart.html commands, or by mixing as described
+below.
 
 For both the {hybrid} and {hybrid/overlay} styles, every atom type
 pair I,J (where I <= J) must be assigned to at least one sub-style via

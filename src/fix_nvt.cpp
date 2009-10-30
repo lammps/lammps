@@ -612,7 +612,7 @@ void FixNVT::write_restart(FILE *fp)
   if (comm->me == 0) {
     int size = n * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
-    fwrite(&list,sizeof(double),n,fp);
+    fwrite(list,sizeof(double),n,fp);
   }
 }
 

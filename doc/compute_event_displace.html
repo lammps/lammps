@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>event/displace = style name of this compute command
-<LI>threshold = minimum distance a single particle must move to trigger an event (distance units) 
+<LI>threshold = minimum distance anyparticle must move to trigger an event (distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -25,16 +25,16 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that flags an event if any particle in the group
-has moved a distance greater than the specified threshold distance
-when compared to a previously stored reference state (i.e. the
-previous event).  This compute is typically used in conjunction with
-the <A HREF = "prd.html">prd</A> command to detect if a transition to a new minimum
-energy basin has occurred.
+<P>Define a computation that flags an "event" if any particle in the
+group has moved a distance greater than the specified threshold
+distance when compared to a previously stored reference state
+(i.e. the previous event).  This compute is typically used in
+conjunction with the <A HREF = "prd.html">prd</A> command, to detect if a transition
+to a new minimum energy basin has occurred.
 </P>
-<P>This flag value calculates is equal to 0 if no particle has moved far
-enough and 1 if one or more particles have moved further than the
-threshold distance.
+<P>This value calculated by the compute is equal to 0 if no particle has
+moved far enough, and equal to 1 if one or more particles have moved
+further than the threshold distance.
 </P>
 <P><B>Output info:</B>
 </P>

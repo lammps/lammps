@@ -226,7 +226,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
       else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
       else error->all("Illegal fix rigid command");
-      if (strcmp(arg[iarg+2],"off") == 0) yflag = 0.0;
+      if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
       else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
       else error->all("Illegal fix rigid command");
       if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;

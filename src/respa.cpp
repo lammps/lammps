@@ -246,7 +246,7 @@ void Respa::init()
 {
   // warn if no fixes
 
-  if (modify->nfix == 0)
+  if (modify->nfix == 0 && comm->me == 0)
     error->warning("No fixes defined, atoms won't move");
 
   // create fix needed for storing atom-based respa level forces

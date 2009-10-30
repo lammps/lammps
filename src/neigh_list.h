@@ -44,8 +44,8 @@ class NeighList : protected Pointers {
   // atom types to skip when building list
   // iskip,ijskip are just ptrs to corresponding request
 
-  int *iskip;            // iskip[i] if atoms of type I are not in list
-  int **ijskip;          // ijskip[i][j] if pairs of type I,J are not in list
+  int *iskip;         // iskip[i] = 1 if atoms of type I are not in list
+  int **ijskip;       // ijskip[i][j] =1 if pairs of type I,J are not in list
 
   // settings and pointers for related neighbor lists and fixes
 

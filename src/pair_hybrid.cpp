@@ -364,7 +364,7 @@ void PairHybrid::init_style()
   for (i = 0; i < neighbor->nrequest; i++) {
     if (!neighbor->requests[i]->pair) continue;
 
-    // find associated sub-style
+    // istyle = associated sub-style
 
     for (istyle = 0; istyle < nstyles; istyle++)
       if (styles[istyle] == neighbor->requests[i]->requestor) break;
@@ -373,7 +373,8 @@ void PairHybrid::init_style()
     // initialize so as to skip all pair types
     // set ijskip = 0 if type pair matches any entry in sub-style map
     // set ijskip = 0 if mixing will assign type pair to this sub-style
-    //   will occur if both I,I and J,J are assigned to single sub-style
+    //   will occur if type pair is currently unassigned
+    //   and both I,I and J,J are assigned to single sub-style
     //   and sub-style for both I,I and J,J match istyle
     // set iskip = 1 only if all ijskip for itype are 1
 
@@ -390,7 +391,8 @@ void PairHybrid::init_style()
 	for (m = 0; m < nmap[itype][jtype]; m++)
 	  if (map[itype][jtype][m] == istyle) 
 	    ijskip[itype][jtype] = ijskip[jtype][itype] = 0;
-	if (nmap[itype][itype] == 1 && map[itype][itype][0] == istyle &&
+	if (nmap[itype][jtype] == 0 &&
+	    nmap[itype][itype] == 1 && map[itype][itype][0] == istyle &&
 	    nmap[jtype][jtype] == 1 && map[jtype][jtype][0] == istyle)
 	  ijskip[itype][jtype] = ijskip[jtype][itype] = 0;
       }
@@ -433,7 +435,7 @@ double PairHybrid::init_one(int i, int j)
 {
   // if I,J is not set explicitly:
   // perform mixing only if I,I sub-style = J,J sub-style
-  // also require I,I and J,J both are assigned to single sub-style
+  // also require I,I and J,J are both assigned to single sub-style
 
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])

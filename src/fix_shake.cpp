@@ -784,9 +784,12 @@ void FixShake::find_clusters()
   // check if mass of either atom is in input mass_list
   // -----------------------------------------------------
 
+  int np;
+
   for (i = 0; i < nlocal; i++) {
     nshake[i] = 0;
-    for (j = 0; j < npartner[i]; j++) {
+    np = npartner[i];
+    for (j = 0; j < np; j++) {
       partner_shake[i][j] = 0;
 
       if (!(mask[i] & groupbit)) continue;

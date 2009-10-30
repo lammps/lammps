@@ -92,9 +92,10 @@ run is as follows:
   event replica shares state with all replicas 
 </PRE>
 <P>Before this loop begins, the state of the system on replica 0 is
-quenched (an energy minimization, see below) and the resulting
-coordinates are shared with all replicas, so that all replicas begin
-from the same initial state.
+shared with all replicas, so that all replicas begin from the same
+initial state. The first basin is identified by quenching (an energy
+minimization, see below) the initial state and storing the resulting
+coordinates for reference.
 </P>
 <P>In the first stage, dephasing is performed by each replica
 independently to eliminate correlations between replicas.  This is
@@ -111,16 +112,16 @@ with arguments that have the same meaning as their counterparts in the
 <P>In the second stage, each replica runs dynamics continuously, stopping
 every <I>t_event</I> steps to check if a transition event has occurred.
 This check is performed by quenching the system and comparing the
-resulting atom coordinates to the coordinates of the previous event.
-The first time through the PRD loop, the "previous event" is the
-initial state of the system.
+resulting atom coordinates to the coordinates from the previous basin.
+The first time through the PRD loop, the "previous basin" is the set
+of quenched coordinates from the initial state of the system.
 </P>
 <P>A quench is an energy minimization and is performed by whichever
 algorithm has been defined by the <A HREF = "min_style.html">min_style</A> command.
 Minimization parameters may be set via the
 <A HREF = "min_modify.html">min_modify</A> command and by the <I>min</I> keyword of the
 PRD command.  The latter are the settings that would be used with the
-<A HREF = "minimize.html">minimize</A> command.  Note that yypically, you do not
+<A HREF = "minimize.html">minimize</A> command.  Note that typically, you do not
 need to perform a highly-converged minimization to detect a transition
 event.
 </P>
@@ -135,10 +136,11 @@ If so, an "event" has occurred.
 </P>
 <P>In the third stage, the replica on which the event occurred continues
 to run dynamics to search for correlated events.  This is done by
-running dynamics for <I>t_correlate</I> steps, quenching, and checking if
-another event has occurred.  The first time no correlated event
-occurs, the final state of the system is shared with all replicas, and
-the outer loop begins again.
+running dynamics for <I>t_correlate</I> steps, quenching every <I>t_event</I>
+steps, and checking if another event has occurred.  The first time no
+correlated event occurs, the final state of the system is shared with
+all replicas, the new basin reference coordinates are updated with the
+quenched state, and the outer loop begins again.
 </P>
 <HR>
 
@@ -168,8 +170,8 @@ replicas are running independently.  The clock represents the real
 time that effectively elapses during a PRD simulation of <I>N</I> steps on
 M replicas.  If most of the PRD run is spent in the second stage of
 the loop above, searching for infrequent events, then the clock will
-advance nearly N*M steps.  Note The
-clock time between events will be drawn from p(t). 
+advance nearly N*M steps.  Note the clock time between events will be
+drawn from p(t).
 </P>
 <P>The event number is a counter that increments with each event, whether
 it is uncorrelated or correlated.
@@ -224,15 +226,15 @@ no correlated events are found, this means it contains a snapshot of
 the system at time T + <I>t_correlate</I>, where T is the time at which the
 uncorrelated event occurred.  If correlated events were found, then it
 contains a snapshot of the system at time T + <I>t_correlate</I>, where T
-is the time of the last correlated event.  Note that the state of the
-system is not quenched when written to the restart file.
+is the time of the last correlated event.
 </P>
 <P>The restart frequency specified in the <A HREF = "restart.html">restart</A> command
 is interpreted differently when performing a PRD run.  It does not
 mean the timestep interval between restart files.  Instead it means an
 event interval for uncorrelated events.  Thus a frequency of 1 means
-write a restart file every time an uncorrelated event occurs.  A frequency
-of 10 means write a restart file every 10th uncorrelated event.
+write a restart file every time an uncorrelated event occurs.  A
+frequency of 10 means write a restart file every 10th uncorrelated
+event.
 </P>
 <P>When an input script reads a restart file from a previous PRD run, the
 new script can be run on a different number of replicas or processors.

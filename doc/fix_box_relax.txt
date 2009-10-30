@@ -32,7 +32,7 @@ fix 2 water box/relax aniso 0.0 0.0 1000.0 dilate partial :pre
 
 [Description:]
 
-Apply a pressure to the simulation box during an "energy
+Apply an external pressure to the simulation box during an "energy
 minimization"_minimize.html.  This allows the box dimensions to vary
 during the iterations of the minimizer so that the final configuration
 will be both an energy minimum for the potential energy of the atoms

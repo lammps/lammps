@@ -172,8 +172,12 @@ lj/charmm/coul/charmm</A>, as do the GROMACS potentials
 <P>If a soft potential (<A HREF = "pair_soft.html">pair_style soft</A>) is used the
 Astop value is used for the prefactor (no time dependence).
 </P>
-<P>Only some fixes (typically those that apply force constraints) are
-invoked during minimization.  See the doc pages for individual
+<P>The <A HREF = "fix_box_relax.html">fix box/relax</A> command can be used to apply an
+external pressure to the simulation box and allow it to shrink/expand
+during the minimization.
+</P>
+<P>Only a few other fixes (typically those that apply force constraints)
+are invoked during minimization.  See the doc pages for individual
 <A HREF = "fix.html">fix</A> commands to see which ones are relevant.
 </P>
 <P>IMPORTANT NOTE: Some fixes which are invoked during minimization have
@@ -204,12 +208,6 @@ if bonds, angles, etc internal to a rigid body have been turned off
 (e.g. via <A HREF = "neigh_modify.html">neigh_modify exclude</A>), they will not
 contribute to the potential energy which is probably not what is
 desired.
-</P>
-<P>The volume of the simulation domain is not allowed to change during a
-minimization.  Ideally we would allow a fix such as <I>npt</I> to impose an
-external pressure that would be included in the minimization
-(i.e. allow the box dimensions to change), but this has not yet been
-implemented.
 </P>
 <P>Pair potentials that produce torque on a particle (e.g. <A HREF = "pair_gran.html">granular
 potentials</A> or the <A HREF = "pair_gayberne.html">GayBerne

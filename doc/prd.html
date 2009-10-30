@@ -84,12 +84,12 @@ run is as follows:
   until (event occurs on some replica):
     run dynamics for t_event steps
     quench
-    check for event on any replica
-  while (correlated event occurs):
+    check for uncorrelated event on any replica
+  until (no correlated event occurs):
     run dynamics for t_correlate steps
     quench
-    check for event on this replica
-  share post-correlation state with all replicas 
+    check for correlated event on this replica
+  event replica shares state with all replicas 
 </PRE>
 <P>Before this loop begins, the state of the system on replica 0 is
 quenched (an energy minimization, see below) and the resulting
@@ -136,9 +136,9 @@ If so, an "event" has occurred.
 <P>In the third stage, the replica on which the event occurred continues
 to run dynamics to search for correlated events.  This is done by
 running dynamics for <I>t_correlate</I> steps, quenching, and checking if
-another event has occurred.  The first time no such event occurs, the
-final state of the system is shared with all replicas, and the outer
-loop begins again.
+another event has occurred.  The first time no correlated event
+occurs, the final state of the system is shared with all replicas, and
+the outer loop begins again.
 </P>
 <HR>
 
@@ -240,9 +240,11 @@ However, it is assumed that <I>t_correlate</I> in the new PRD command is
 the same as it was previously.  If not, the calculation of the "clock"
 value for the first event in the new run will be slightly off.
 </P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>N</I> and <I>t_correlate</I> settings must be integer multiples of
+<P><I>N</I> and <I>t_correlate</I> settings must be integer multiples of
 <I>t_event</I>.
 </P>
 <P>Runs restarted from restart file written during a PRD run will not

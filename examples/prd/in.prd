@@ -1,5 +1,7 @@
 # Parallel replica dynamics model for a single vacancy in bulk Si
 # events occur when a neighboring atom diffuses to the vacant site
+# run this on multiple partitions as
+#   mpirun -np 4 lmp_g++ -partition 4x1 -in in.prd
 
 units           metal
 
@@ -57,7 +59,7 @@ group del id 300
 delete_atoms group del
 
 pair_style      sw
-pair_coeff * * si.sw Si
+pair_coeff * * Si.sw Si
 
 thermo          10
 
@@ -71,14 +73,11 @@ neigh_modify    every 1 delay 10 check yes
 
 run             1000
 
-# output settings
 # only output atoms near vacancy
 
 compute coord all coord/atom $r
-dump events all custom 1 dump.events id type x y z
+dump events all custom 1 dump.prd id type x y z
 dump_modify events thresh c_coord != 4
-
-restart  1 tmp.restart
 
 compute  patom all pe/atom
 compute  pe all reduce sum c_patom
@@ -92,4 +91,3 @@ compute         1 all event/displace 0.5
 
 prd  2000 100 10 10 100 1 54985 temp $t &
      min ${etol} ${ftol} ${maxiter} ${maxeval} vel all uniform
-

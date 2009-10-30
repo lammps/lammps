@@ -73,8 +73,10 @@ void DihedralHybrid::compute(int eflag, int vflag)
 
   if (neighbor->ago == 0) {
     for (m = 0; m < nstyles; m++) ndihedrallist[m] = 0;
-    for (i = 0; i < ndihedrallist_orig; i++)
-      ndihedrallist[map[dihedrallist_orig[i][4]]]++;
+    for (i = 0; i < ndihedrallist_orig; i++) {
+      m = map[dihedrallist_orig[i][4]];
+      if (m >= 0) ndihedrallist[m]++;
+    }
     for (m = 0; m < nstyles; m++) {
       if (ndihedrallist[m] > maxdihedral[m]) {
 	memory->destroy_2d_int_array(dihedrallist[m]);
@@ -87,6 +89,7 @@ void DihedralHybrid::compute(int eflag, int vflag)
     }
     for (i = 0; i < ndihedrallist_orig; i++) {
       m = map[dihedrallist_orig[i][4]];
+      if (m < 0) continue;
       n = ndihedrallist[m];
       dihedrallist[m][n][0] = dihedrallist_orig[i][0];
       dihedrallist[m][n][1] = dihedrallist_orig[i][1];

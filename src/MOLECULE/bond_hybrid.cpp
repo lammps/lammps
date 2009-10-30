@@ -73,8 +73,10 @@ void BondHybrid::compute(int eflag, int vflag)
 
   if (neighbor->ago == 0) {
     for (m = 0; m < nstyles; m++) nbondlist[m] = 0;
-    for (i = 0; i < nbondlist_orig; i++)
-      nbondlist[map[bondlist_orig[i][2]]]++;
+    for (i = 0; i < nbondlist_orig; i++) {
+      m = map[bondlist_orig[i][2]];
+      if (m >= 0) nbondlist[m]++;
+    }
     for (m = 0; m < nstyles; m++) {
       if (nbondlist[m] > maxbond[m]) {
 	memory->destroy_2d_int_array(bondlist[m]);
@@ -86,6 +88,7 @@ void BondHybrid::compute(int eflag, int vflag)
     }
     for (i = 0; i < nbondlist_orig; i++) {
       m = map[bondlist_orig[i][2]];
+      if (m < 0) continue;
       n = nbondlist[m];
       bondlist[m][n][0] = bondlist_orig[i][0];
       bondlist[m][n][1] = bondlist_orig[i][1];

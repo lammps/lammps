@@ -73,8 +73,10 @@ void AngleHybrid::compute(int eflag, int vflag)
 
   if (neighbor->ago == 0) {
     for (m = 0; m < nstyles; m++) nanglelist[m] = 0;
-    for (i = 0; i < nanglelist_orig; i++)
-      nanglelist[map[anglelist_orig[i][3]]]++;
+    for (i = 0; i < nanglelist_orig; i++) {
+      m = map[anglelist_orig[i][3]];
+      if (m >= 0) nanglelist[m]++;
+    }
     for (m = 0; m < nstyles; m++) {
       if (nanglelist[m] > maxangle[m]) {
 	memory->destroy_2d_int_array(anglelist[m]);
@@ -86,6 +88,7 @@ void AngleHybrid::compute(int eflag, int vflag)
     }
     for (i = 0; i < nanglelist_orig; i++) {
       m = map[anglelist_orig[i][3]];
+      if (m < 0) continue;
       n = nanglelist[m];
       anglelist[m][n][0] = anglelist_orig[i][0];
       anglelist[m][n][1] = anglelist_orig[i][1];

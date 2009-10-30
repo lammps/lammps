@@ -73,8 +73,10 @@ void ImproperHybrid::compute(int eflag, int vflag)
 
   if (neighbor->ago == 0) {
     for (m = 0; m < nstyles; m++) nimproperlist[m] = 0;
-    for (i = 0; i < nimproperlist_orig; i++)
-      nimproperlist[map[improperlist_orig[i][4]]]++;
+    for (i = 0; i < nimproperlist_orig; i++) {
+      m = map[improperlist_orig[i][4]];
+      nimproperlist[m]++;
+    }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {
 	memory->destroy_2d_int_array(improperlist[m]);
@@ -87,6 +89,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
     }
     for (i = 0; i < nimproperlist_orig; i++) {
       m = map[improperlist_orig[i][4]];
+      if (m < 0) continue;
       n = nimproperlist[m];
       improperlist[m][n][0] = improperlist_orig[i][0];
       improperlist[m][n][1] = improperlist_orig[i][1];

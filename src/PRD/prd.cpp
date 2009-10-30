@@ -15,6 +15,7 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
@@ -50,6 +51,14 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+PRD::~PRD()
+{
+  delete [] loop_setting;
+  delete [] dist_setting;
+}
 
 /* ----------------------------------------------------------------------
    perform PRD
@@ -243,7 +252,7 @@ void PRD::command(int narg, char **arg)
   // this insures all start from same place
 
   // need this line if quench() does only setup_minimal()
-  //update->minimize->setup();
+  // update->minimize->setup();
 
   fix_event->store_state();
   quench();
@@ -251,13 +260,14 @@ void PRD::command(int narg, char **arg)
   log_event();
 
   // do full init/setup since are starting all replicas after event
-  // replica 0 bcasts temp to all replicas if user did not set temp_dephase
+  // replica 0 bcasts temp to all replicas if temp_dephase is not set
+
   update->whichflag = 1;
   lmp->init();
   update->integrate->setup();
+
   if (temp_flag == 0) {
-    if (universe->iworld == 0)
-      temp_dephase = temperature->compute_scalar();
+    if (universe->iworld == 0) temp_dephase = temperature->compute_scalar();
     MPI_Bcast(&temp_dephase,1,MPI_DOUBLE,universe->root_proc[0],
               universe->uworld);
   }
@@ -287,9 +297,10 @@ void PRD::command(int narg, char **arg)
     }
     if (ireplica < 0) break;
 
-    // Can potentially be more efficient for correlated events by not
-    // sharing until correlated check has completed (this will complicate
-    // the dump (always on replica 0)).
+    // potentially more efficient for correlated events if don't
+    // share until correlated check has completed
+    // this will complicate the dump (always on replica 0)
+
     share_event(ireplica,1);
     log_event();
     
@@ -298,8 +309,9 @@ void PRD::command(int narg, char **arg)
       if (fix_event->event_number % output->restart_every == 0)
         restart_flag = 1;
 
-    // Correlated event loop
-    // -- We could have other procs doing dephasing during this time
+    // correlated event loop
+    // other procs could be dephasing during this time
+
     int corr_endstep = update->ntimestep + t_corr;
     while (update->ntimestep < corr_endstep) {
       if (update->ntimestep == update->endstep) {
@@ -314,23 +326,21 @@ void PRD::command(int narg, char **arg)
         share_event(ireplica,2);
         log_event();
         corr_endstep = update->ntimestep + t_corr;
-      } else
-        fix_event->restore_state();
+      } else fix_event->restore_state();
     }
     
-    // do full init/setup since are starting all replicas after event
-    // -- also, need to get reneighbor before restart
+    // full init/setup since are starting all replicas after event
+    // event replica bcasts temp to all replicas if temp_dephase is not set
+
     update->whichflag = 1;
     lmp->init();
     update->integrate->setup();
 
     timer->barrier_start(TIME_LOOP);
     if (t_corr > 0) replicate(ireplica);
-
-    // event replica bcasts temp to all replicas if user did not set temp_dephase
     if (temp_flag == 0) {
       if (ireplica == universe->iworld)
-        temp_dephase = temperature->compute_scalar();
+	temp_dephase = temperature->compute_scalar();
       MPI_Bcast(&temp_dephase,1,MPI_DOUBLE,universe->root_proc[ireplica],
         	      universe->uworld);
     }
@@ -338,13 +348,13 @@ void PRD::command(int narg, char **arg)
     time_comm += timer->array[TIME_LOOP];
     
     // write restart file of hot coords
+
     if (restart_flag) {
       timer->barrier_start(TIME_LOOP);
       output->write_restart(update->ntimestep);
       timer->barrier_stop(TIME_LOOP);
       time_output += timer->array[TIME_LOOP];
     }
-    
   }
 
   // set total timers and counters so Finish() will process them
@@ -365,7 +375,7 @@ void PRD::command(int narg, char **arg)
     if (universe->uscreen) 
       fprintf(universe->uscreen,
               "Loop time of %g on %d procs for %d steps with %.15g atoms\n",
-		          timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
       fprintf(universe->ulogfile,
               "Loop time of %g on %d procs for %d steps with %.15g atoms\n",
@@ -399,6 +409,8 @@ void PRD::command(int narg, char **arg)
   delete finish;
   modify->delete_compute("prd_temp");
   modify->delete_fix("prd_event");
+
+  compute_event->reset_extra_compute_fix(NULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -447,6 +459,7 @@ void PRD::dynamics()
 
   lmp->init();
   update->integrate->setup();
+  // this may be needed if don't do full init
   //modify->addstep_compute_all(update->ntimestep);
   int ncalls = neighbor->ncalls;
 
@@ -476,11 +489,11 @@ void PRD::quench()
   update->whichflag = 2;
   update->nsteps = maxiter;
 
-  // these work
+  // full init works
   lmp->init();
   update->minimize->setup();
 
-  // these do not work
+  // partial init does not work
   //modify->addstep_compute_all(update->ntimestep);
   //update->minimize->setup_minimal(1);
 
@@ -525,13 +538,13 @@ int PRD::check_event(int replica_num)
   if (me == 0) MPI_Allreduce(&worldflag,&universeflag,1,
 		             MPI_INT,MPI_SUM,comm_replica);
   MPI_Bcast(&universeflag,1,MPI_INT,0,world);
-  if (!universeflag) 
-    ireplica = -1;
+  if (!universeflag) ireplica = -1;
   else {
     if (universeflag > 1) {
-      int iwhich = static_cast<int> (universeflag*random_select->uniform()) + 1;
+      int iwhich = static_cast<int> 
+	(universeflag*random_select->uniform()) + 1;
       if (me == 0) MPI_Scan(&worldflag,&scanflag,1,
-  	                  MPI_INT,MPI_SUM,comm_replica);
+			    MPI_INT,MPI_SUM,comm_replica);
       MPI_Bcast(&scanflag,1,MPI_INT,0,world);
       if (scanflag != iwhich) worldflag = 0;
     }
@@ -568,15 +581,22 @@ void PRD::share_event(int ireplica, int flag)
   timer->barrier_stop(TIME_LOOP);
   time_comm += timer->array[TIME_LOOP];
   
-  // Adjust time for last correlated event check (Not on first event)
+  // adjust time for last correlated event check (not on first event)
+
   int corr_adjust = t_corr;
-  if (fix_event->event_number<1 || flag == 2) corr_adjust = 0;
-  // Time since last correlated event check
+  if (fix_event->event_number < 1 || flag == 2) corr_adjust = 0;
+
+  // delta = time since last correlated event check
+
   int delta = update->ntimestep - fix_event->event_timestep - corr_adjust;
-  // If this is a correlated event, time was only on one partition
+
+  // if this is a correlated event, time elapsed only on one partition
+
   if (flag != 2) delta *= universe->nworlds;
   delta += corr_adjust;
-  // Don't change the clock or timestep if this is a restart
+
+  // don't change the clock or timestep if this is a restart
+
   if (flag == 0 && fix_event->event_number != 0) 
     fix_event->store_event(fix_event->event_timestep,0);
   else {
@@ -717,8 +737,16 @@ void PRD::options(int narg, char **arg)
   maxiter = 40;
   maxeval = 50;
   temp_flag = 0;
-  loop_setting = NULL;
-  dist_setting = NULL;
+
+  char *str = "geom";
+  int n = strlen(str) + 1;
+  loop_setting = new char[n];
+  strcpy(loop_setting,str);
+
+  str = "gaussian";
+  n = strlen(str) + 1;
+  dist_setting = new char[n];
+  strcpy(dist_setting,str);
 
   int iarg = 0;
   while (iarg < narg) {
@@ -740,6 +768,8 @@ void PRD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+3 > narg) error->all("Illegal prd command");
+      delete [] loop_setting;
+      delete [] dist_setting;
 
       if (strcmp(arg[iarg+1],"all") == 0) loop_setting = NULL;
       else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = NULL;
@@ -758,15 +788,5 @@ void PRD::options(int narg, char **arg)
 
       iarg += 3;
     } else error->all("Illegal prd command");
-  }
-  
-  // Set defaults
-  if (loop_setting == NULL) {
-    loop_setting = new char[5];
-    strcpy(loop_setting,"geom");
-  }
-  if (dist_setting == NULL) {
-    dist_setting = new char[9];
-    strcpy(dist_setting,"gaussian");
   }
 }

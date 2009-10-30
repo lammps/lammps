@@ -48,7 +48,7 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
 
   event_number = 0;
-  event_timestep = 0;
+  event_timestep = update->ntimestep;
   clock = 0;
 }
 

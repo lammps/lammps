@@ -15,6 +15,7 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
@@ -62,18 +63,18 @@ ComputeEventDisplace::~ComputeEventDisplace()
 
 void ComputeEventDisplace::init()
 {
-  // set fix which stores original atom coords
-  // check if is correct style
+  // if id_event is not set, this compute is not active
+  // if set by PRD, then find fix which stores original atom coords
+  // check if it is correct style
 
-  if (id_event == NULL) 
-    error->all("Compute event/displace has not had fix event assigned");
-
-  int ifix = modify->find_fix(id_event);
-  if (ifix < 0) error->all("Could not find compute event/displace fix ID");
-  fix = modify->fix[ifix];
-
-  if (strcmp(fix->style,"EVENT") != 0)
-    error->all("Compute event/displace has invalid fix event assigned");
+  if (id_event != NULL) {
+    int ifix = modify->find_fix(id_event);
+    if (ifix < 0) error->all("Could not find compute event/displace fix ID");
+    fix = modify->fix[ifix];
+    
+    if (strcmp(fix->style,"EVENT") != 0)
+      error->all("Compute event/displace has invalid fix event assigned");
+  }
 
   triclinic = domain->triclinic;
 }
@@ -85,6 +86,8 @@ void ComputeEventDisplace::init()
 double ComputeEventDisplace::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
+
+  if (id_event == NULL) return 0.0;
 
   double event = 0.0;
   double **xevent = fix->vector_atom;
@@ -144,6 +147,9 @@ double ComputeEventDisplace::compute_scalar()
 void ComputeEventDisplace::reset_extra_compute_fix(char *id_new)
 {
   delete [] id_event;
+  id_event = NULL;
+  if (id_new == NULL) return;
+
   int n = strlen(id_new) + 1;
   id_event = new char[n];
   strcpy(id_event,id_new);

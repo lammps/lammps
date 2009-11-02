@@ -1,4 +1,7 @@
 # Install/unInstall package classes in LAMMPS
+# for unInstall, also unInstall/Install GPU package if installed
+#   so it will remove GPU files that depend on ASPHERE files,
+#   then replace others
 
 if ($1 == 1) then
 
@@ -44,5 +47,9 @@ else if ($1 == 0) then
   rm ../fix_nvt_asphere.h
   rm ../pair_gayberne.h
   rm ../pair_resquared.h
+
+  if (! -z ../style_gpu.h) then
+    cd ../GPU; csh -f Install.csh 0; csh -f Install.csh 1
+  endif
 
 endif

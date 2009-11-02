@@ -1,4 +1,7 @@
 # Install/unInstall package classes in LAMMPS
+# for unInstall, also unInstall/Install OPT package if installed
+#   so it will remove OPT files that depend on MANYBODY files,
+#   then replace others
 
 if ($1 == 1) then
 
@@ -40,5 +43,9 @@ else if ($1 == 0) then
   rm ../pair_sw.h
   rm ../pair_tersoff.h
   rm ../pair_tersoff_zbl.h
+
+  if (! -z ../style_opt.h) then
+    cd ../OPT; csh -f Install.csh 0; csh -f Install.csh 1
+  endif
 
 endif

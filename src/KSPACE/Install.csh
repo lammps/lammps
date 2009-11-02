@@ -1,4 +1,7 @@
 # Install/unInstall package classes in LAMMPS
+# for unInstall, also unInstall/Install OPT package if installed
+#   so it will remove OPT files that depend on KSPACE files,
+#   then replace others
 
 if ($1 == 1) then
 
@@ -64,5 +67,9 @@ else if ($1 == 0) then
   rm ../fft3d_wrap.h
   rm ../remap.h
   rm ../remap_wrap.h
+
+  if (! -z ../style_opt.h) then
+    cd ../OPT; csh -f Install.csh 0; csh -f Install.csh 1
+  endif
 
 endif

@@ -47,7 +47,7 @@ given by
 :c,image(Eqs/pair_cmm.jpg)
 
 as required for the CMM Coarse-grained MD parametrization discussed in
-"(Shinoda)"_#Shinoda.  Rc is the cutoff.
+"(Shinoda)"_#Shinoda and "(DeVane)"_#DeVane.  Rc is the cutoff.
 
 Style {cg/cmm/coul/cut} adds a Coulombic pairwise interaction given by
 
@@ -159,3 +159,7 @@ pages for workarounds on this issue.
 
 :link(Shinoda)
 [(Shinoda)] Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
+
+:link(DeVane)
+[(DeVane)]  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
+

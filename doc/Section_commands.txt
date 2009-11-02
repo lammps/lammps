@@ -81,11 +81,12 @@ file names or user-chosen ID strings.
 
 Here is how each line in the input script is parsed by LAMMPS:
 
-(1) If the line ends with a "&" character (with no trailing
-whitespace), the command is assumed to continue on the next line.  The
-next line is concatenated to the previous line by removing the "&"
-character and newline.  This allows long commands to be continued
-across two or more lines.
+(1) If the line ends with a "&" character (the "and" character which
+is shift-7 on most keyboards) with no trailing whitespace (and no
+surrounding quotes), the command is assumed to continue on the next
+line.  The next line is concatenated to the previous line by removing
+the "&" character ("and" character) and newline.  This allows long
+commands to be continued across two or more lines.
 
 (2) All characters from the first "#" character onward are treated as
 comment and discarded.

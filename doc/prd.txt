@@ -40,27 +40,30 @@ prd 5000 100 10 10 100 1 54982 maxiter 100 :pre
 
 [Description:]
 
-Run Parallel Replica Dynamics (PRD) as described in "(Voter)"_#Voter.
-PRD is a method for performing accelerated dynamics that is suitable
-for infrequent-event systems that obey first-order kinetics.  To quote
-from the paper: "The dynamical evolution is characterized by
-vibrational excursions within a potential basin, punctuated by
-occasional transitions between basins."  The transition probability is
-characterized by p(t) = k*exp(-kt) where k is the rate constant.
+Run Parallel Replica Dynamics (PRD) as described in "Art Voter's
+paper"_#Voter.  PRD is a method for performing accelerated dynamics
+that is suitable for infrequent-event systems that obey first-order
+kinetics.  To quote from the paper: "The dynamical evolution is
+characterized by vibrational excursions within a potential basin,
+punctuated by occasional transitions between basins."  The transition
+probability is characterized by p(t) = k*exp(-kt) where k is the rate
+constant.
 
 A PRD run is performed by running independent simulations on multiple
-replicas of the same system.  To run with M replicas, you must launch
-LAMMPS on M partitions, where a partition is one or more processors.
-This is done by using the "-partition" command-line argument when
-LAMMPS is launched.  See "this section"_Section_start.html#2_6 of the
-manual for details.  A PRD run can be performed on a single partition,
-though this offers no effective parallel speed-up in searching for
-infrequent events.
+replicas of the same system, which gives an effective enhancement in
+the timescale spanned by the multiple simulations, waiting for an
+event to occur.  To run with M replicas, you must launch LAMMPS on M
+partitions, where a partition is one or more processors.  This is done
+by using the "-partition" command-line argument when LAMMPS is
+launched.  See "this section"_Section_start.html#2_6 of the manual for
+details.  A PRD run can be performed on a single partition, though
+this offers no effective parallel speed-up in searching for infrequent
+events.
 
 When a PRD run is performed, it is assumed that each replica is
-running the same model, though LAMMPS does not check that this is the
-case.  I.e. the simulation domain, the number of atoms, the
-interaction potentials, etc are the same for every replica.
+running the same model, though LAMMPS does not check for this.
+I.e. the simulation domain, the number of atoms, the interaction
+potentials, etc are the same for every replica.
 
 A PRD run has several stages, which are repeated each time an "event"
 occurs in one of the replicas, as defined below.  The logic for a PRD
@@ -80,9 +83,9 @@ while (time remains):
 
 Before this loop begins, the state of the system on replica 0 is
 shared with all replicas, so that all replicas begin from the same
-initial state. The first basin is identified by quenching (an energy
-minimization, see below) the initial state and storing the resulting
-coordinates for reference.
+initial state. The first potential energy basin is identified by
+quenching (an energy minimization, see below) the initial state and
+storing the resulting coordinates for reference.
     
 In the first stage, dephasing is performed by each replica
 independently to eliminate correlations between replicas.  This is

@@ -271,7 +271,7 @@ double PairDPD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
 
-  sigma[i][j] = sqrt(2.0*temperature*gamma[i][j]);
+  sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
      
   cut[j][i] = cut[i][j];
   a0[j][i] = a0[i][j];

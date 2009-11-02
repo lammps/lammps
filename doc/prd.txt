@@ -236,6 +236,10 @@ value for the first event in the new run will be slightly off.
 
 [Restrictions:]
 
+This command can only be used if LAMMPS was built with the "prd"
+package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info on packages.
+
 {N} and {t_correlate} settings must be integer multiples of
 {t_event}.
 

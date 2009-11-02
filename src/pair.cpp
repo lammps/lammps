@@ -390,6 +390,44 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
   }
 }
 
+/* ---------------------------------------------------------------------- 
+   tally eng_vdwl and virial into global and per-atom accumulators
+   can use this version with full neighbor lists
+------------------------------------------------------------------------- */
+
+void Pair::ev_tally_full(int i, double evdwl, double ecoul, double fpair, 
+                         double delx, double dely, double delz)
+{
+
+  if (eflag_either) {
+    if (eflag_global) {
+      eng_vdwl += 0.5*evdwl;
+      eng_coul += 0.5*ecoul;
+    }
+    if (eflag_atom) eatom[i] += 0.5 * (evdwl + ecoul);
+  }
+
+  if (vflag_either) {
+    if (vflag_global) {
+      virial[0] += 0.5*delx*delx*fpair;
+      virial[1] += 0.5*dely*dely*fpair;
+      virial[2] += 0.5*delz*delz*fpair;
+      virial[3] += 0.5*delx*dely*fpair;
+      virial[4] += 0.5*delx*delz*fpair;
+      virial[5] += 0.5*dely*delz*fpair;
+    }
+  }
+
+  if (vflag_atom) {
+    vatom[i][0] += 0.5*delx*delx*fpair;
+    vatom[i][1] += 0.5*dely*dely*fpair;
+    vatom[i][2] += 0.5*delz*delz*fpair;
+    vatom[i][3] += 0.5*delx*dely*fpair;
+    vatom[i][4] += 0.5*delx*delz*fpair;
+    vatom[i][5] += 0.5*dely*delz*fpair;
+  }
+}
+
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    for virial, have delx,dely,delz and fx,fy,fz

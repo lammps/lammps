@@ -82,7 +82,6 @@ void Finish::end(int flag)
     // overall loop time
     // use actual natoms, in case atoms were lost
 
-    natoms;
     double rlocal = atom->nlocal;
     MPI_Allreduce(&rlocal,&natoms,1,MPI_DOUBLE,MPI_SUM,world);
     

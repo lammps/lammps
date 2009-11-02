@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    Common functionality for the CMM coarse grained MD potentials.
-   Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+   Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
 #ifndef PAIR_CMM_COMMON_H
@@ -247,11 +247,11 @@ namespace LAMMPS_NS {
             if ((COUL_TYPE == CG_COUL_CUT) || (COUL_TYPE == CG_COUL_DEBYE)) {
               if (rsq < cut_coulsq[itype][jtype]) {
                 double r=sqrt(rsq);
-                double screen=exp(-kappa*r);
+                double qscreen=exp(-kappa*r);
                 forcecoul = factor_coul * qqrd2e
-                  * qtmp * q[j] * screen * (kappa + 1.0/r);
+                  * qtmp * q[j] * qscreen * (kappa + 1.0/r);
                 if (EFLAG) ecoul=factor_coul*qqrd2e 
-                  * qtmp*q[j] * screen / r;
+                  * qtmp*q[j] * qscreen / r;
               }
             }
 
@@ -644,11 +644,11 @@ namespace LAMMPS_NS {
             if ((COUL_TYPE == CG_COUL_CUT) || (COUL_TYPE == CG_COUL_DEBYE)) {
               if (rsq < cut_coulsq[itype][jtype]) {
                 double r=sqrt(rsq);
-                double screen=exp(-kappa*r);
+                double qscreen=exp(-kappa*r);
                 forcecoul = factor_coul * qqrd2e
-                  * qtmp * q[j] * screen * (kappa + 1.0/r);
+                  * qtmp * q[j] * qscreen * (kappa + 1.0/r);
                 if (EFLAG) ecoul=factor_coul*qqrd2e 
-                  * qtmp*q[j] * screen / r;
+                  * qtmp*q[j] * qscreen / r;
               }
             }
 

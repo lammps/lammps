@@ -41,8 +41,7 @@ PairCMMCommon::PairCMMCommon(class LAMMPS *lmp) : Pair(lmp)
  * clean up common arrays                                                 *
  * ---------------------------------------------------------------------- */
 
-PairCMMCommon::~PairCMMCommon()
-{
+PairCMMCommon::~PairCMMCommon() {
   if (allocated) {
     memory->destroy_2d_int_array(setflag);
     memory->destroy_2d_int_array(cg_type);
@@ -447,16 +446,21 @@ double PairCMMCommon::eval_single(int coul_type, int i, int j, int itype, int jt
     const double ratio = sigma[itype][jtype]/sqrt(rsq);
     const double eps = epsilon[itype][jtype];
 
-    lj_force = cgpref*eps * rsq * (cgpow1*pow(ratio,cgpow1) 
-                                       - cgpow2*pow(ratio,cgpow2));
+    lj_force = cgpref*eps * (cgpow1*pow(ratio,cgpow1) 
+                            - cgpow2*pow(ratio,cgpow2))/rsq;
     lj_erg = cgpref*eps * (pow(ratio,cgpow1) - pow(ratio,cgpow2));
   }
   
   if (rsq < cut_coul[itype][jtype]) {
     if(coul_type == CG_COUL_LONG) {
-      error->all("single energy computation with coulomb not supported by CG potentials.");
+      error->all("single energy computation with long-range coulomb not supported by CG potentials.");
     } else if ((coul_type == CG_COUL_CUT) || (coul_type == CG_COUL_DEBYE)) {
-      error->all("single energy computation with coulomb not supported by CG potentials.");
+      const double r2inv = 1.0/rsq;
+      const double rinv = sqrt(r2inv);
+      const double qscreen=exp(-kappa*sqrt(rsq));
+      coul_force = force->qqrd2e * atom->q[i]*atom->q[j]*rinv * qscreen * (kappa + rinv);
+      coul_erg   = force->qqrd2e * atom->q[i]*atom->q[j]*rinv * qscreen;
+      // error->all("single energy computation with coulomb not supported by CG potentials.");
     } else if (coul_type == CG_COUL_NONE) {
       ; // do nothing
     } else {

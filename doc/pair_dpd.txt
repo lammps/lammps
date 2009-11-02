@@ -35,8 +35,9 @@ a random force.  Rij is a unit vector in the direction Ri - Rj, Vij is
 the vector difference in velocities of the two atoms = Vi - Vj, alpha
 is a Gaussian random number with zero mean and unit variance, dt is
 the timestep size, and w(r) is a weighting factor that varies between
-0 and 1.  Rc is the cutoff.  Sigma is set equal to sqrt(2 T gamma),
-where T is a parameter in the pair_style command.
+0 and 1.  Rc is the cutoff.  Sigma is set equal to sqrt(2 Kb T gamma),
+where Kb is the Boltzmann constant and T is the temperature parameter
+in the pair_style command.
 
 The pairwise energy associated with this potential is only due to the
 conservative force term Fc.

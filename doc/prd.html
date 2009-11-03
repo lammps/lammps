@@ -53,14 +53,16 @@ prd 5000 100 10 10 100 1 54982 maxiter 100
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Run Parallel Replica Dynamics (PRD) as described in <A HREF = "#Voter">Art Voter's
-paper</A>.  PRD is a method for performing accelerated dynamics
-that is suitable for infrequent-event systems that obey first-order
-kinetics.  To quote from the paper: "The dynamical evolution is
-characterized by vibrational excursions within a potential basin,
-punctuated by occasional transitions between basins."  The transition
-probability is characterized by p(t) = k*exp(-kt) where k is the rate
-constant.
+<P>Run Parallel Replica Dynamics (PRD) as described in <A HREF = "#Voter">this
+paper</A> by Art Voter.  PRD is a method for performing
+accelerated dynamics that is suitable for infrequent-event systems
+that obey first-order kinetics.  A good overview of accelerated
+dynamics methods for such systems in given in <A HREF = "#Voter2">this review
+paper</A> from the same group.  To quote from the paper: "The
+dynamical evolution is characterized by vibrational excursions within
+a potential basin, punctuated by occasional transitions between
+basins."  The transition probability is characterized by p(t) =
+k*exp(-kt) where k is the rate constant.
 </P>
 <P>A PRD run is performed by running independent simulations on multiple
 replicas of the same system, which gives an effective enhancement in
@@ -282,7 +284,11 @@ dt/reset</A> and <A HREF = "fix_deposity.html">fix deposit</A>.
 
 <A NAME = "Voter"></A>
 
-<P><B>(Voter)</B> Voter, Montalenti, Germann, Annual Review of Materials
+<P><B>(Voter)</B> Voter, Phys Rev B, 57, 13985 (1998).
+</P>
+<A NAME = "Voter2"></A>
+
+<P><B>(Voter2)</B> Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).
 </P>
 </HTML>

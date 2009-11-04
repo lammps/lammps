@@ -374,7 +374,9 @@ in the command's documentation.
 
 :line
 
-Fix styles.  See the "fix"_fix.html command for one-line descriptions
+Fix styles :h4
+
+See the "fix"_fix.html command for one-line descriptions
 of each style or click on the style itself for a full description:
 
 "addforce"_fix_addforce.html,
@@ -453,9 +455,10 @@ These are fix styles contributed by users, which can be used if
 
 :line
 
-Compute styles.  See the "compute"_compute.html command for one-line
-descriptions of each style or click on the style itself for a full
-description:
+Compute styles :h4
+
+See the "compute"_compute.html command for one-line descriptions of
+each style or click on the style itself for a full description:
 
 "centro/atom"_compute_centro_atom.html,
 "cna/atom"_compute_cna_atom.html,
@@ -492,9 +495,10 @@ These are compute styles contributed by users, which can be used if
 
 :line
 
-Pair_style potentials.  See the "pair_style"_pair_style.html command
-for an overview of pair potentials.  Click on the style itself for a
-full description:
+Pair_style potentials :h4
+
+See the "pair_style"_pair_style.html command for an overview of pair
+potentials.  Click on the style itself for a full description:
 
 "none"_pair_none.html,
 "hybrid"_pair_hybrid.html,
@@ -565,9 +569,10 @@ These are pair styles contributed by users, which can be used if
 
 :line
 
-Bond_style potentials.  See the "bond_style"_bond_style.html command
-for an overview of bond potentials.  Click on the style itself for a
-full description:
+Bond_style potentials :h4
+
+See the "bond_style"_bond_style.html command for an overview of bond
+potentials.  Click on the style itself for a full description:
 
 "none"_bond_none.html,
 "hybrid"_bond_hybrid.html,
@@ -582,9 +587,10 @@ full description:
 
 :line
 
-Angle_style potentials.  See the "angle_style"_angle_style.html
-command for an overview of angle potentials.  Click on the style
-itself for a full description:
+Angle_style potentials :h4
+
+See the "angle_style"_angle_style.html command for an overview of
+angle potentials.  Click on the style itself for a full description:
 
 "none"_angle_none.html,
 "hybrid"_angle_hybrid.html,
@@ -603,9 +609,10 @@ These are angle styles contributed by users, which can be used if
 
 :line
 
-Dihedral_style potentials.  See the
-"dihedral_style"_dihedral_style.html command for an overview of
-dihedral potentials.  Click on the style itself for a full
+Dihedral_style potentials :h4
+
+See the "dihedral_style"_dihedral_style.html command for an overview
+of dihedral potentials.  Click on the style itself for a full
 description:
 
 "none"_dihedral_none.html,
@@ -619,9 +626,10 @@ description:
 
 :line
 
-Improper_style potentials.  See the
-"improper_style"_improper_style.html command for an overview of
-improper potentials.  Click on the style itself for a full
+Improper_style potentials :h4
+
+See the "improper_style"_improper_style.html command for an overview
+of improper potentials.  Click on the style itself for a full
 description:
 
 "none"_improper_none.html,
@@ -632,9 +640,10 @@ description:
 
 :line
 
-Kspace solvers.  See the "kspace_style"_kspace_style.html command for
-an overview of Kspace solvers.  Click on the style itself for a full
-description:
+Kspace solvers :h4
+
+See the "kspace_style"_kspace_style.html command for an overview of
+Kspace solvers.  Click on the style itself for a full description:
 
 "ewald"_kspace_style.html,
 "pppm"_kspace_style.html,

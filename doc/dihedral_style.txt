@@ -84,6 +84,11 @@ specified by the associated "dihedral_coeff"_dihedral_coeff.html command:
 "dihedral_style multi/harmonic"_dihedral_multi_harmonic.html - multi-harmonic dihedral
 "dihedral_style opls"_dihedral_opls.html - OPLS dihedral :ul
 
+There are also additional dihedral styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the dihedral section of "this
+page"_Section_commands.html#3_5.
+
 :line
 
 [Restrictions:]

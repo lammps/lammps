@@ -68,6 +68,11 @@ specified by the associated "angle_coeff"_angle_coeff.html command:
 "angle_style harmonic"_angle_harmonic.html - harmonic angle
 "angle_style table"_angle_table.html - tabulated by angle :ul
 
+There are also additional angle styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the angle section of "this
+page"_Section_commands.html#3_5.
+
 :line
 
 [Restrictions:]

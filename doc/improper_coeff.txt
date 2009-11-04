@@ -68,6 +68,11 @@ specified by the associated "improper_coeff"_improper_coeff.html command:
 "improper_style cvff"_improper_cvff.html - CVFF improper
 "improper_style harmonic"_improper_harmonic.html - harmonic improper :ul
 
+There are also additional improper styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the improper section of "this
+page"_Section_commands.html#3_5.
+
 :line
 
 [Restrictions:]

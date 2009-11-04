@@ -81,7 +81,7 @@ the style to display the formula it computes, arguments specified in
 the pair_style command, and coefficients specified by the associated
 "pair_coeff"_pair_coeff.html command:
 
-"pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions :ul
+"pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions
 "pair_style hybrid/overlay"_pair_hybrid.html - multiple styles of superposed pairwise interactions :ul
 
 "pair_style airebo"_pair_airebo.html - AI-REBO potential

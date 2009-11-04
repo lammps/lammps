@@ -72,6 +72,11 @@ specified by the associated "bond_coeff"_bond_coeff.html command:
 "bond_style quartic"_bond_quartic.html - breakable quartic bond
 "bond_style table"_bond_table.html - tabulated by bond length :ul
 
+There are also additional bond styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the bond section of "this
+page"_Section_commands.html#3_5.
+
 :line
 
 [Restrictions:]

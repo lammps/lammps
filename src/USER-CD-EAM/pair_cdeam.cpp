@@ -12,33 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Alexander Stukowski (stukowski at mm.tu-darmstadt.de)
+   Contributing author: Alexander Stukowski
+                        Technical University of Darmstadt,
+                        Germany Department of Materials Science
 ------------------------------------------------------------------------- */
-
-/*
- Concentration-dependent EAM (CD-EAM) potential for multi-component
- systems.
-
- This potential class implements an improved version of the original
- CD-EAM formalism.  The new version (a.k.a. one-site model;
- cdeamVersion==1) has been published in
- 
-   A. Stukowski, B. Sadigh, P. Erhart and A. Caro
-   Efficient implementation of the concentration-dependent embedded
-   atom method for molecular-dynamics and Monte-Carlo simulations
-   Model. Simul. Mater. Sci. Eng., 2009, 075005
-
- This new formulation is more efficient for MD and Monte-Carlo
- simulations and is the default.
- 
- The original formulation (a.k.a. two-site model; cdeamVersion==2) is
- also implemented and has been published in
-
-   A. Caro, D. A. Crowson and M. Caro
-   Classical Many-Body Potential for Concentrated Alloys and the
-   Inversion of Order in Iron-Chromium Alloys
-   Phys. Rev. Lett., APS, 2005, 95, 075702
-*/
 
 #include "math.h"
 #include "stdio.h"
@@ -54,7 +31,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-//using namespace std;
 
 // This is for debugging purposes. The ASSERT() macro is used in the code to check
 // if everything runs as expected. Change this to #if 0 if you don't need the checking.

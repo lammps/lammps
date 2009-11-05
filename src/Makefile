@@ -16,7 +16,7 @@ OBJ = 	$(SRC:.cpp=.o)
 PACKAGE = asphere class2 colloid dipole dpd gpu granular \
 	  kspace manybody meam molecule opt peri poems prd reax xtc
 
-PACKUSER = user-ackland user-atc user-cg-cmm user-ewaldn user-smd
+PACKUSER = user-ackland user-atc user-cd-eam user-cg-cmm user-ewaldn user-smd
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 

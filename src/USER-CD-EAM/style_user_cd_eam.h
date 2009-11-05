@@ -11,22 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef AngleInclude
-#include "angle_cg_cmm.h"
-#endif
-
-#ifdef AngleClass
-AngleStyle(cg/cmm,AngleCGCMM)
-#endif
-
 #ifdef PairInclude
-#include "pair_cg_cmm.h"
-#include "pair_cg_cmm_coul_cut.h"
-#include "pair_cg_cmm_coul_long.h"
+#include "pair_cdeam.h"
 #endif
 
 #ifdef PairClass
-PairStyle(cg/cmm,PairCGCMM)
-PairStyle(cg/cmm/coul/cut,PairCGCMMCoulCut)
-PairStyle(cg/cmm/coul/long,PairCGCMMCoulLong)
+PairStyle(eam/cd,PairCDEAM_OneSite)
+PairStyle(eam/cd/old,PairCDEAM_TwoSite)
 #endif

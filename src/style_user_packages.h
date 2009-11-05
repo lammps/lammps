@@ -16,6 +16,7 @@
 
 #include "style_user_ackland.h"
 #include "style_user_atc.h"
+#include "style_user_cd_eam.h"
 #include "style_user_cg_cmm.h"
 #include "style_user_ewaldn.h"
 #include "style_user_smd.h"

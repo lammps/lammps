@@ -17,6 +17,8 @@
 </H3>
 <H3>pair_style eam/alloy/opt command 
 </H3>
+<H3>pair_style eam/cd command 
+</H3>
 <H3>pair_style eam/fs command 
 </H3>
 <H3>pair_style eam/fs/opt command 
@@ -25,7 +27,7 @@
 </P>
 <PRE>pair_style style 
 </PRE>
-<UL><LI>style = <I>eam</I> or <I>eam/alloy</I> or <I>eam/fs</I> or <I>eam/opt</I> or <I>eam/alloy/opt</I> or <I>eam/fs/opt</I> 
+<UL><LI>style = <I>eam</I> or <I>eam/alloy</I> or <I>eam/cd</I> or <I>eam/fs</I> or <I>eam/opt</I> or <I>eam/alloy/opt</I> or <I>eam/fs/opt</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -37,6 +39,9 @@ pair_coeff 1*3 1*3 niu3.eam
 <PRE>pair_style eam/alloy
 pair_style eam/alloy/opt
 pair_coeff * * ../potentials/nialhjea.eam.alloy Ni Al Ni Ni 
+</PRE>
+<PRE>pair_style eam/cd
+pair_coeff * * ../potentials/FeCr.cdeam Fe Cr 
 </PRE>
 <PRE>pair_style eam/fs
 pair_style eam/fs/opt
@@ -77,9 +82,9 @@ can be modeled using multiple <I>funcfl</I> files and style <I>eam</I>.  For the
 alloy case LAMMPS mixes the single-element potentials to produce alloy
 potentials, the same way that DYNAMO does.  Alternatively, a single
 DYNAMO <I>setfl</I> file or Finnis/Sinclair EAM file can be used by LAMMPS
-to model alloy systems by invoking the <I>eam/alloy</I> or <I>eam/fs</I> styles
-as described below.  These files require no mixing since they specify
-alloy interactions explicitly.
+to model alloy systems by invoking the <I>eam/alloy</I> or <I>eam/cd</I> or
+<I>eam/fs</I> styles as described below.  These files require no mixing
+since they specify alloy interactions explicitly.
 </P>
 <P>There are several WWW sites that distribute and document EAM
 potentials stored in DYNAMO or other formats:
@@ -257,6 +262,34 @@ pairs.
 </P>
 <HR>
 
+<P>Style <I>eam/cd</I> is similar to the <I>eam/alloy</I> style, except that it
+computes alloy pairwise interactions using the concentration-dependent
+embedded-atom method (CD-EAM).  This model can reproduce the enthalpy
+of mixing of alloys over the full composition range, as described in
+<A HREF = "#Stukowski">(Stukowski)</A>.
+</P>
+<P>The pair_coeff command is specified the same as for the <I>eam/alloy</I>
+style.  However the DYNAMO <I>setfl</I> file must has two
+lines added to it, at the end of the file:
+</P>
+<UL><LI>line 1: Comment line (ignored)
+<LI>line 2: N Coefficient0 Coefficient1 ... CoeffincientN 
+</UL>
+<P>The last line begins with the degree <I>N</I> of the polynomial function
+<I>h(x)</I> that modifies the cross interaction between A and B elements.
+Then <I>N+1</I> coefficients for the terms of the polynomial are then
+listed.
+</P>
+<P>Modified EAM <I>setfl</I> files used with the <I>eam/cd</I> style must contain
+exactly two elements, i.e. in the current implementation the <I>cd/eam</I>
+style only supports binary alloys.  The first and second elements in
+the input EAM file are always taken as the <I>A</I> and <I>B</I> species.
+</P>
+<P><I>CD-EAM</I> files in the <I>potentials</I> directory of the LAMMPS
+distribution have a ".cdeam" suffix.
+</P>
+<HR>
+
 <P>Style <I>eam/fs</I> computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
 Sinclair <A HREF = "#Finnis">(Finnis)</A>.  The total energy Ei of an atom I is
@@ -360,12 +393,19 @@ an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>All of these styles except those ending in <I>opt</I> are part of the
-"manybody" package.  They are only enabled if LAMMPS was built with
-that package (which it is by default).  The styles ending in <I>opt</I> are
-part of the "opt" package and also require the "manybody" package.
-They are only enabled if LAMMPS was built with those packages.  See
-the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+<P>All of these styles except those ending in <I>opt</I> and the <I>eam/cd</I>
+style are part of the "manybody" package.  They are only enabled if
+LAMMPS was built with that package (which it is by default).
+</P>
+<P>The styles ending in <I>opt</I> are part of the "opt" package and also
+require the "manybody" package.  They are only enabled if LAMMPS was
+built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The <I>eam/cd</I> style is part of the "user-cd-eam" package and also
+requires the "manybody" package.  It is only enabled if LAMMPS was
+built with those packages.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -392,5 +432,10 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 <A NAME = "Finnis"></A>
 
 <P><B>(Finnis)</B> Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
+</P>
+<A NAME = "Stukowski"></A>
+
+<P><B>(Stukowski)</B> Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
+Materials Science & Engineering, 7, 075005 (2009).
 </P>
 </HTML>

@@ -10,6 +10,7 @@ pair_style eam command :h3
 pair_style eam/opt command :h3
 pair_style eam/alloy command :h3
 pair_style eam/alloy/opt command :h3
+pair_style eam/cd command :h3
 pair_style eam/fs command :h3
 pair_style eam/fs/opt command :h3
 
@@ -17,7 +18,7 @@ pair_style eam/fs/opt command :h3
 
 pair_style style :pre
 
-style = {eam} or {eam/alloy} or {eam/fs} or {eam/opt} or {eam/alloy/opt} or {eam/fs/opt} :ul
+style = {eam} or {eam/alloy} or {eam/cd} or {eam/fs} or {eam/opt} or {eam/alloy/opt} or {eam/fs/opt} :ul
 
 [Examples:]
 
@@ -29,6 +30,9 @@ pair_coeff 1*3 1*3 niu3.eam :pre
 pair_style eam/alloy
 pair_style eam/alloy/opt
 pair_coeff * * ../potentials/nialhjea.eam.alloy Ni Al Ni Ni :pre
+
+pair_style eam/cd
+pair_coeff * * ../potentials/FeCr.cdeam Fe Cr :pre
 
 pair_style eam/fs
 pair_style eam/fs/opt
@@ -69,9 +73,9 @@ can be modeled using multiple {funcfl} files and style {eam}.  For the
 alloy case LAMMPS mixes the single-element potentials to produce alloy
 potentials, the same way that DYNAMO does.  Alternatively, a single
 DYNAMO {setfl} file or Finnis/Sinclair EAM file can be used by LAMMPS
-to model alloy systems by invoking the {eam/alloy} or {eam/fs} styles
-as described below.  These files require no mixing since they specify
-alloy interactions explicitly.
+to model alloy systems by invoking the {eam/alloy} or {eam/cd} or
+{eam/fs} styles as described below.  These files require no mixing
+since they specify alloy interactions explicitly.
 
 There are several WWW sites that distribute and document EAM
 potentials stored in DYNAMO or other formats:
@@ -249,6 +253,34 @@ pairs.
 
 :line
 
+Style {eam/cd} is similar to the {eam/alloy} style, except that it
+computes alloy pairwise interactions using the concentration-dependent
+embedded-atom method (CD-EAM).  This model can reproduce the enthalpy
+of mixing of alloys over the full composition range, as described in
+"(Stukowski)"_#Stukowski.
+
+The pair_coeff command is specified the same as for the {eam/alloy}
+style.  However the DYNAMO {setfl} file must has two
+lines added to it, at the end of the file:
+
+line 1: Comment line (ignored)
+line 2: N Coefficient0 Coefficient1 ... CoeffincientN :ul
+
+The last line begins with the degree {N} of the polynomial function
+{h(x)} that modifies the cross interaction between A and B elements.
+Then {N+1} coefficients for the terms of the polynomial are then
+listed.
+
+Modified EAM {setfl} files used with the {eam/cd} style must contain
+exactly two elements, i.e. in the current implementation the {cd/eam}
+style only supports binary alloys.  The first and second elements in
+the input EAM file are always taken as the {A} and {B} species.
+
+{CD-EAM} files in the {potentials} directory of the LAMMPS
+distribution have a ".cdeam" suffix.
+
+:line
+
 Style {eam/fs} computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
 Sinclair "(Finnis)"_#Finnis.  The total energy Ei of an atom I is
@@ -352,12 +384,19 @@ The eam pair styles can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-All of these styles except those ending in {opt} are part of the
-"manybody" package.  They are only enabled if LAMMPS was built with
-that package (which it is by default).  The styles ending in {opt} are
-part of the "opt" package and also require the "manybody" package.
-They are only enabled if LAMMPS was built with those packages.  See
-the "Making LAMMPS"_Section_start.html#2_3 section for more info.
+All of these styles except those ending in {opt} and the {eam/cd}
+style are part of the "manybody" package.  They are only enabled if
+LAMMPS was built with that package (which it is by default).
+
+The styles ending in {opt} are part of the "opt" package and also
+require the "manybody" package.  They are only enabled if LAMMPS was
+built with those packages.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+The {eam/cd} style is part of the "user-cd-eam" package and also
+requires the "manybody" package.  It is only enabled if LAMMPS was
+built with those packages.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
 
 [Related commands:]
 
@@ -380,3 +419,7 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
 :link(Finnis)
 [(Finnis)] Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
+
+:link(Stukowski)
+[(Stukowski)] Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
+Materials Science & Engineering, 7, 075005 (2009).

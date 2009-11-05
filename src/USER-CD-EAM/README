@@ -1,7 +1,9 @@
 The files in this directory are a user-contributed package for LAMMPS.
 
-The person who created these files is Alexander Stukowski (stukowski
-at mm.tu-darmstadt.de) Contact him directly if you have questions.
+The person who created these files is Alexander Stukowski of the
+Technical University of Darmstadt, Germany Department of Materials
+Science (stukowski at mm.tu-darmstadt.de).  Contact him directly if
+you have questions.
 
 This package implements the concentration-dependent EAM (CD-EAM)
 potential for multi-component systems.

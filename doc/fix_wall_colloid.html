@@ -13,12 +13,12 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID wall/lj93 style coord A sigma cutoff 
+<PRE>fix ID group-ID wall/colloid style coord A sigma cutoff 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>wall/lj93 = style name of this fix command
+<LI>wall/colloid = style name of this fix command
 <LI>style = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I>
-<LI>coord = position of wall
+<LI>coord = position of wall (distance units)
 <LI>A = Hamaker constant for colloid-wall interactions (energy units)
 <LI>sigma = size of constituent LJ particle that integration is done over (distance units)
 <LI>cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
@@ -32,7 +32,7 @@ fix leftwall all wall/colloid zlo 0.0 10.0 1.0 0.858
 </P>
 <P>Bound the simulation domain on one of its faces with a wall of
 Lennard-Jones particles that interacts with finite-size colloidal
-particles in the group.  The energy E of wall-particle interactions is
+particles in the group.  The energy E of wall-colloid interactions is
 given by an integrated form of the <A HREF = "pair_colloid.html">pair_style
 colloid</A> potential
 </P>
@@ -86,7 +86,8 @@ being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_wall_lj93.html">fix wall/lj93</A>
+<P><A HREF = "fix_wall_lj93.html">fix wall/lj93</A>, <A HREF = "pair_colloid.html">pair_style
+colloid</A>
 </P>
 <P><B>Default:</B> none
 </P>

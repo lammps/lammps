@@ -10,12 +10,12 @@ fix wall/colloid command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/lj93 style coord A sigma cutoff :pre
+fix ID group-ID wall/colloid style coord A sigma cutoff :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-wall/lj93 = style name of this fix command
+wall/colloid = style name of this fix command
 style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi}
-coord = position of wall
+coord = position of wall (distance units)
 A = Hamaker constant for colloid-wall interactions (energy units)
 sigma = size of constituent LJ particle that integration is done over (distance units)
 cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :ul
@@ -29,7 +29,7 @@ fix leftwall all wall/colloid zlo 0.0 10.0 1.0 0.858 :pre
 
 Bound the simulation domain on one of its faces with a wall of
 Lennard-Jones particles that interacts with finite-size colloidal
-particles in the group.  The energy E of wall-particle interactions is
+particles in the group.  The energy E of wall-colloid interactions is
 given by an integrated form of the "pair_style
 colloid"_pair_colloid.html potential
 
@@ -83,6 +83,7 @@ Any dimension (xyz) that has a colloid wall must be non-periodic.
 
 [Related commands:]
 
-"fix wall/lj93"_fix_wall_lj93.html
+"fix wall/lj93"_fix_wall_lj93.html, "pair_style
+colloid"_pair_colloid.html
 
 [Default:] none

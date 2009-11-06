@@ -34,7 +34,7 @@ class FixWallColloid : public Fix {
 
  private:
   int dim,side,thermo_flag,eflag_enable;
-  double coord,epsilon,sigma,diam,cutoff;
+  double coord,epsilon,sigma,cutoff;
   double coeff1,coeff2,coeff3,coeff4,offset;
   double wall[4],wall_all[4];
   int wall_flag;

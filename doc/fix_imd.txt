@@ -31,10 +31,16 @@ fix comm all imd 8888 trate 5 unwrap on fscale 10.0 :pre
 
 [Description:]
 
-This fix implements the "Interactive MD" (IMD) protocol which allows 
-to connect an IMD client, for example the VMD visualization program, 
-to a running LAMMPS simulation and monitor the progress of the simulation
-and interactively apply forces to selected atoms.
+This fix implements the "Interactive MD" (IMD) protocol which allows
+to connect an IMD client, for example the "VMD visualization
+program"_VMD, to a running LAMMPS simulation and monitor the progress
+of the simulation and interactively apply forces to selected atoms.
+
+The source code for this fix includes code developed by the
+Theoretical and Computational Biophysics Group in the Beckman
+Institute for Advanced Science and Technology at the University of
+Illinois at Urbana-Champaign.  We thank them for providing a software
+interface that allows codes like LAMMPS to hook to "VMD"_VMD.
 
 Upon initialization of the fix, it will open a communication port
 on the node with MPI task 0 and wait for an incoming connection.
@@ -89,39 +95,34 @@ PHANTOM allow you to feel the forces you are applying to your molecules,
 as if they were real objects. See the "VMD IMD Homepage"_imdvmd for
 more details.
 
+If IMD control messages are received, a line of text describing the
+message and its effect will be printed to the LAMMPS output screen, if
+screen output is active.
+
+:link(VMD,http://www.ks.uiuc.edu/Research/vmd)x
 :link(imdvmd,http://www.ks.uiuc.edu/Research/vmd/imd/) 
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-The fix does not write any information to restart files.
-
-None of the "fix_modify"_fix_modify.html options are relevant 
-to this fix.
-
-If IMD control messages are received, a line of text describing
-the message and its effect will be printed to the screen, if
-screen output is active.
-
-No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global scalar or vector or per-atom
+quantities are stored by this fix for access by various "output
+commands"_Section_howto.html#4_15.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
-
-This source code for this fix includes code developed by the
-Theoretical and Computational Biophysics Group in the Beckman
-Institute for Advanced Science and Technology at the University of
-Illinois at Urbana-Champaign.
 
 This fix is part of the "user-imd" package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#2_3 section for more info.
 
-When used in combination with VMD, a topology or coordinate file 
-has to be loaded, which matches in number and ordering of atoms 
-the group the fix is applied to. The fix internally sorts atom
-IDs by ascending integer value; in VMD (and thus the IMD protocol)
-those will be assigned 0-based consecutive index numbers.
+When used in combination with VMD, a topology or coordinate file has
+to be loaded, which matches (in number and ordering of atoms) the
+group the fix is applied to. The fix internally sorts atom IDs by
+ascending integer value; in VMD (and thus the IMD protocol) those will
+be assigned 0-based consecutive index numbers.
 
 When using multiple active IMD connections at the same time,
 each needs to use a different port number.
@@ -129,5 +130,3 @@ each needs to use a different port number.
 [Related commands:] none
 
 [Default:] none
- 
-:line

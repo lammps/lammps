@@ -18,8 +18,8 @@ and angle_style cg/cmm.
 
 See the documentation files for these commands for details.
 
-There is also an cg-cmm example directory under examples/USER with
-sample inputs and outputs.
+There are example scripts for using this package with LAMMPS in
+examples/USER/cg-cmm.
 
 These styles allow coarse grained MD simulations with the
 parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)

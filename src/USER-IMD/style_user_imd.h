@@ -11,13 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// style flies for user-contributed packages
-// see the README files in individual user-package directories for details
+#ifdef FixInclude
+#include "fix_imd.h"
+#endif
 
-#include "style_user_ackland.h"
-#include "style_user_atc.h"
-#include "style_user_cd_eam.h"
-#include "style_user_cg_cmm.h"
-#include "style_user_ewaldn.h"
-#include "style_user_imd.h"
-#include "style_user_smd.h"
+#ifdef FixClass
+FixStyle(imd,FixIMD)
+#endif

@@ -1,0 +1,17 @@
+The files in this directory are a user-contributed package for LAMMPS.
+
+The person who created these files is Axel Kohlmeyer
+(axel.kohlmeyer@temple.edu).  Contact him directly if you 
+have questions or for example scripts that use it.
+
+This package implements a "fix imd" command which can be used in a
+LAMMPS input script.  IMD stands for interactive molecular dynamics,
+and allows realtime visualization and manipulation of MD simulations
+through the IMD protocol, initially implemented in VMD and NAMD.
+
+There are example scripts for using this package with LAMMPS in
+examples/USER/imd.
+
+This software includes code developed by the Theoretical and Computational 
+Biophysics Group in the Beckman Institute for Advanced Science and 
+Technology at the University of Illinois at Urbana-Champaign.

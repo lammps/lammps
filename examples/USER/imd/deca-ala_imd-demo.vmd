@@ -1,0 +1,16 @@
+#!/usr/local/bin/vmd
+# Display settings
+display projection   Orthographic
+
+mol new deca-ala.psf type psf first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation Licorice
+mol color Name
+mol selection {all}
+mol material Glossy
+mol addrep top
+
+imd connect localhost 5678
+sleep 1
+display resetview
+mouse mode forceres

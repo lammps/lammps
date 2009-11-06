@@ -1,0 +1,18 @@
+#!/usr/local/bin/vmd
+# Display settings
+display projection   Orthographic
+
+mol new melt.psf type psf first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation VDW 0.400000 8.000000
+mol color Name
+mol selection {all}
+mol material Glossy
+mol addrep top
+mol selection {index 0}
+mol color ColorID 0
+mol representation VDW 0.600000 8.000000
+mol addrep top
+
+imd connect localhost 5678
+mouse mode forceatom

@@ -1,0 +1,28 @@
+#!/usr/local/bin/vmd
+# Display settings
+display projection   Orthographic
+
+mol new deca-ala-solv.psf type psf first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+mol delrep 0 top
+mol representation Licorice
+mol color Name
+mol selection {protein}
+mol material Glossy
+mol addrep top
+mol selupdate 0 top 1
+mol representation HBonds 4.000000 30.000000 3.000000
+mol color ColorID 4
+mol selection {same residue as within 3.1 of protein}
+mol material Opaque
+mol addrep top
+mol selupdate 1 top 1
+mol representation Lines 2.000000
+mol color Name
+mol selection {(same residue as within 3.1 of protein) and water}
+mol addrep top
+mol selupdate 2 top 1
+
+imd connect localhost 5678
+sleep 1
+display resetview
+mouse mode forceres

@@ -63,16 +63,14 @@ FixWallColloid::FixWallColloid(LAMMPS *lmp, int narg, char **arg) :
   } else error->all("Illegal fix wall/colloid command");
 
   coord = atof(arg[4]);
-  //NOTE: this next variable should become Hamaker pre-factor
-  epsilon = atof(arg[5]);
+  hamaker = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
 
-  //NOTE: coeff2 uses diam, so will need to be computed below for each particle?
-  coeff1 = -576.0/315.0 * epsilon * pow(sigma,6.0);
-  coeff2 = -288.0/3.0 * 0.125*diam*diam*diam* epsilon;
-  coeff3 = 144.0 * epsilon * pow(sigma,6.0)/7560.0;
-  coeff4 = 144.0 * epsilon/6.0;
+  coeff1 = -4.0/315.0 * hamaker * pow(sigma,6.0);
+  coeff2 = -2.0/3.0 * hamaker;
+  coeff3 = hamaker * pow(sigma,6.0)/7560.0;
+  coeff4 = hamaker/6.0;
 
   double rinv = 1.0/cutoff;
   double r2inv = rinv*rinv;
@@ -154,7 +152,7 @@ void FixWallColloid::post_force(int vflag)
   double delta,delta2,rinv,r2inv,r4inv,r8inv,fwall;
   double r2,rinv2,r2inv2,r4inv2,r6inv2;
   double r3,rinv3,r2inv3,r4inv3,r6inv3;
-  double rad,rad2,rad4,rad8,diam;
+  double rad,rad2,rad4,rad8,diam,new_coeff2;
   wall[0] = wall[1] = wall[2] = wall[3] = 0.0;
   wall_flag = 0;
 
@@ -165,6 +163,7 @@ void FixWallColloid::post_force(int vflag)
       if (delta <= 0.0) continue;
       if (delta > cutoff) continue;
       rad = atom->shape[type[i]][0];
+      new_coeff2 = coeff2*rad*rad*rad;
       diam = 2.0*rad;
       rad2 = rad*rad;
       rad4 = rad2*rad2;
@@ -177,7 +176,7 @@ void FixWallColloid::post_force(int vflag)
       fwall = (coeff1*(rad8*rad + 27.0*rad4*rad2*rad*pow(delta,2.0)
                        + 63.0*rad4*rad*pow(delta,4.0)
                        + 21.0*rad2*rad*pow(delta,6.0))*r8inv - 
-	       coeff2*r2inv) * side;
+	       new_coeff2*r2inv) * side;
       f[i][dim] -= fwall;
       r2 = 0.5*diam - delta;
       rinv2 = 1.0/r2;

@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Randy Schunk (SNL)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "stdlib.h"
 #include "pair_yukawa_colloid.h"

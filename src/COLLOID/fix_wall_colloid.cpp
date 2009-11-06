@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Jeremy Lechman (SNL)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
@@ -172,8 +176,9 @@ void FixWallColloid::post_force(int vflag)
       r4inv3 = r2inv3*r2inv3;
       r6inv3 = r4inv3*r2inv3;
       wall[0] += coeff3*((-3.5*diam+delta)*r4inv2*r2inv2*rinv2
-                       + (3.5*diam+delta)*r4inv3*r2inv3*rinv3) 
-               - coeff4*((-diam*delta+r2*r3*(log(-r2)-log(r3)))*(-rinv2)*rinv3) - offset;
+			 + (3.5*diam+delta)*r4inv3*r2inv3*rinv3) 
+	- coeff4*((-diam*delta+r2*r3*(log(-r2)-log(r3)))*
+		  (-rinv2)*rinv3) - offset;
       wall[dim+1] += fwall;
     }
 }

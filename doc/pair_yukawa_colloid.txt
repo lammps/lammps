@@ -110,9 +110,9 @@ LAMMPS"_Section_start.html#2_3 section for more info.
 Because this potential uses the radii of the particles, the atom style
 must support particles whose size is set via the "shape"_shape.html
 command.  For example "atom_style"_atom_style.html colloid or
-ellipsoid.  Only spherical mono-disperse particles are currently
-allowed for pair_style yukawa/colloid, which means the 3 shape
-diameters for all particle types must be the same.
+ellipsoid.  Only spherical particles are currently allowed for
+pair_style yukawa/colloid, which means that for each particle type,
+its 3 shape diameters must be equal to each other.
 
 [Related commands:]
 

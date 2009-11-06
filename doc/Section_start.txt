@@ -355,6 +355,7 @@ class2 : class 2 force fields
 colloid : colloidal particle force fields
 dipole : point dipole particles and force fields
 dpd : dissipative particle dynamics (DPD) force field
+dsmc : Direct Simulation Monte Carlo (DMSC) pair style
 gpu : GPU-enabled force field styles
 granular : force fields and boundary conditions for granular systems
 kspace : long-range Ewald and particle-mesh (PPPM) solvers
@@ -364,6 +365,7 @@ molecule : force fields for molecular systems
 opt : optimized versions of a few pair potentials
 peri : Peridynamics model and potential
 poems : coupled rigid body motion
+prd : parallel replica dynamics
 reax : ReaxFF potential
 xtc : dump atom snapshots in XTC format :tb(s=:)
 

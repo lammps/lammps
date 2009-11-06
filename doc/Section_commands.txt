@@ -451,6 +451,7 @@ These are fix styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.
 
 "atc"_fix_atc.html,
+"imd"_fix_imd.html,
 "smd"_fix_smd.html :tb(c=4,ea=c)
 
 :line

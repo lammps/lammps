@@ -272,7 +272,7 @@ Then {N+1} coefficients for the terms of the polynomial are then
 listed.
 
 Modified EAM {setfl} files used with the {eam/cd} style must contain
-exactly two elements, i.e. in the current implementation the {cd/eam}
+exactly two elements, i.e. in the current implementation the {eam/cd}
 style only supports binary alloys.  The first and second elements in
 the input EAM file are always taken as the {A} and {B} species.
 

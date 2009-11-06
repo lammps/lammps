@@ -59,14 +59,13 @@ pages of individual commands for details.
 
 Note that the shape command can only be used if the "atom
 style"_atom_style.html requires per-type atom shape to be set.
-Currently, only the {dipole} and {ellipsoid} styles do.  The
-{granular} and {peri} styles require the shape to be set for indivual
-particles, not types.  For these styles, the only option currently
-allowed is for spherical particles, so a single diameter value
-suffices to determine the shape.  Per-atom diameters are defined in
-the data file read by the "read_data"_read_data.html command, or set
-to default values by the "create_atoms"_create_atoms.html command, or
-set to new values by the "set diamter"_set.html command.
+Currently, only the {colloid}, {dipole}, and {ellipsoid} styles do.
+The {granular} and {peri} styles also define finite-size spherical
+particles, but their size is set on a per-particle basis.  These are
+are defined in the data file read by the "read_data"_read_data.html
+command, or set to default values by the
+"create_atoms"_create_atoms.html command, or set to new values by the
+"set diameter"_set.html command.
 
 Dipoles use the atom shape to compute a moment of inertia for
 rotational energy.  See the "pair_style dipole"_pair_dipole.html
@@ -76,8 +75,8 @@ particles are assumed to be spherical.
 Ellipsoids use the atom shape to compute a generalized inertia tensor.
 For example, a shape setting of 3.0 1.0 1.0 defines a particle 3x
 longer in x than in y or z and with a circular cross-section in yz.
-Degenerate ellipsoids which are spherical can be defined by setting
-all 3 shape components the same.
+Ellipsoids which are in fact spherical can be defined by setting all 3
+shape components the same.
 
 If you define a "hybrid atom style"_atom_style.html which includes one
 (or more) sub-styles which require per-type shape and one (or more)

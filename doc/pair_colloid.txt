@@ -56,6 +56,11 @@ Lennard-Jones formula
 with A_ss set appropriately, which results from letting both particle
 sizes go to zero.
 
+When used in combination with "pair_style
+yukawa/colloid"_pair_colloid.html, the two terms become the so-called
+DLVO potential, which combines electrostatic repulsion and van der
+Waals attraction.
+
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
 above, or in the data file or restart files read by the

@@ -138,7 +138,8 @@ the pair_style command, and coefficients specified by the associated
 "pair_style table"_pair_table.html - tabulated pair potential
 "pair_style tersoff"_pair_tersoff.html - Tersoff 3-body potential
 "pair_style tersoff/zbl"_pair_tersoff.html - Tersoff/ZBL 3-body potential
-"pair_style yukawa"_pair_yukawa.html - Yukawa potential :ul
+"pair_style yukawa"_pair_yukawa.html - Yukawa potential
+"pair_style yukawa/colloid"_pair_yukawa_colloid.html - screened Yukawa potential for finite-size particles :ul
 
 There are also additional pair styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

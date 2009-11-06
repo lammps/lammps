@@ -62,14 +62,13 @@ pages of individual commands for details.
 </P>
 <P>Note that the shape command can only be used if the <A HREF = "atom_style.html">atom
 style</A> requires per-type atom shape to be set.
-Currently, only the <I>dipole</I> and <I>ellipsoid</I> styles do.  The
-<I>granular</I> and <I>peri</I> styles require the shape to be set for indivual
-particles, not types.  For these styles, the only option currently
-allowed is for spherical particles, so a single diameter value
-suffices to determine the shape.  Per-atom diameters are defined in
-the data file read by the <A HREF = "read_data.html">read_data</A> command, or set
-to default values by the <A HREF = "create_atoms.html">create_atoms</A> command, or
-set to new values by the <A HREF = "set.html">set diamter</A> command.
+Currently, only the <I>colloid</I>, <I>dipole</I>, and <I>ellipsoid</I> styles do.
+The <I>granular</I> and <I>peri</I> styles also define finite-size spherical
+particles, but their size is set on a per-particle basis.  These are
+are defined in the data file read by the <A HREF = "read_data.html">read_data</A>
+command, or set to default values by the
+<A HREF = "create_atoms.html">create_atoms</A> command, or set to new values by the
+<A HREF = "set.html">set diameter</A> command.
 </P>
 <P>Dipoles use the atom shape to compute a moment of inertia for
 rotational energy.  See the <A HREF = "pair_dipole.html">pair_style dipole</A>
@@ -79,8 +78,8 @@ particles are assumed to be spherical.
 <P>Ellipsoids use the atom shape to compute a generalized inertia tensor.
 For example, a shape setting of 3.0 1.0 1.0 defines a particle 3x
 longer in x than in y or z and with a circular cross-section in yz.
-Degenerate ellipsoids which are spherical can be defined by setting
-all 3 shape components the same.
+Ellipsoids which are in fact spherical can be defined by setting all 3
+shape components the same.
 </P>
 <P>If you define a <A HREF = "atom_style.html">hybrid atom style</A> which includes one
 (or more) sub-styles which require per-type shape and one (or more)

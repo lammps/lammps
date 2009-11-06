@@ -12,7 +12,7 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
+style = {angle} or {atomic} or {bond} or {charge} or {colloid} or {dipole} or \
         {dpd} or {ellipsoid} or {full} or {granular} or {molecular} or \
 	{peri} or {hybrid} :ul
   args = none for any style except {hybrid}
@@ -54,32 +54,39 @@ quantities.
 {atomic} | only the default values | coarse-grain liquids, solids, metals |
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
+{colloid} | angular velocity | extended spherical particles |
 {dipole} | charge and dipole moment | atomic system with dipoles |
 {dpd} | default values, also communicates velocities | DPD models |
-{ellipsoid} | quaternion for particle orientation, angular momentum | aspherical particles |
+{ellipsoid} | quaternion for particle orientation, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
 {granular} | diameter, density, angular velocity | granular models |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | density, volume | mesocopic Peridynamic models :tb(c=3,s=|)
 
-All of the styles define point particles, except the {ellipsoid} and
-{granular} and {peri} styles.  These define finite-size particles.
-For {ellipsoidal} systems, the "shape"_shape.html command is used to
-specify the size and shape of particles, which can be spherical or
-aspherical.  For {granular} systems, the particles are spherical and
-each has a specified diameter.  For {peri} systems, the particles are
-spherical and each has a specified volume.
+All of the styles define point particles, except the {colloid},
+{dipole}, {ellipsoid}, {granular}, and {peri} styles.  These define
+finite-size particles.  For {colloid}, {dipole}, and {ellipsoid}
+systems, the "shape"_shape.html command is used to specify the size
+and shape of particles on a per-type basis, which is spherical for
+{colloid} and {dipole} particles and spherical or aspherical for
+{ellipsoid} particles.  For {granular} systems, the particles are
+spherical and each has a per-particle specified diameter.  For {peri}
+systems, the particles are spherical and each has a per-particle
+specified volume.
 
 All of the styles assign mass to particles on a per-type basis, using
-the "mass"_mass.html command, except the {granular} and {peri} styles.
-For {granular} systems, the specified diameter and density are used to
-calculate each particle's mass.  For {peri} systems, the speficied
-volume and density are used to calculate each particle's mass.
+the "mass"_mass.html command, except the {granular} and {peri} styles
+which assign mass on a per-particle basis.  For {granular} systems,
+the specified diameter and density are used to calculate each
+particle's mass.  For {peri} systems, the speficied volume and density
+are used to calculate each particle's mass.
 
-Only the {dpd} and {granular} styles communicate velocities with ghost
-atoms; the others do not.  This is because the pairwise interactions
-calculated by the "pair_style dpd"_pair_dpd.html and "pair_style
-granular"_pair_gran.html commands require velocities.
+Only the {colloid}, {dpd}, and {granular} styles communicate
+velocities and angular velocities (if defined) with ghost atoms; the
+others do not.  This is because the pairwise interactions calculated
+by the pair styles that typically use these atom styles
+(e.g. "pair_style dpd"_pair_dpd.html and "pair_style
+granular"_pair_gran.html) require velocities of both particles.
 
 :line
 
@@ -107,12 +114,13 @@ This command cannot be used after the simulation box is defined by a
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
 "molecular" package.  The {granular} style is part of the "granular"
-package.  The {dpd} style is part of the "dpd" package.  The {dipole}
-style is part of the "dipole" package.  The {ellipsoid} style is part
-of the "asphere" package.  The {peri} style is part of the "peri"
-package for Peridynamics.  They are only enabled if LAMMPS was built
-with that package.  See the "Making LAMMPS"_Section_start.html#2_3
-section for more info.
+package.  The {dpd} style is part of the "dpd" package.  The {colloid}
+style is part of the "colloid" package.  The {dipole} style is part of
+the "dipole" package.  The {ellipsoid} style is part of the "asphere"
+package.  The {peri} style is part of the "peri" package for
+Peridynamics.  They are only enabled if LAMMPS was built with that
+package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
+more info.
 
 [Related commands:]
 

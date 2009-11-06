@@ -250,6 +250,7 @@ angle: atom-ID molecule-ID atom-type x y z
 atomic: atom-ID atom-type x y z
 bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
+colloid: atom-ID atom-type x y z
 dipole: atom-ID atom-type q x y z mux muy muz
 dpd: atom-ID atom-type x y z
 ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk

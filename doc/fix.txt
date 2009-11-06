@@ -173,8 +173,8 @@ list of fix styles available in LAMMPS:
 "viscosity"_fix_viscosity.html - Muller-Plathe momentum exchange for \
      viscosity calculation
 "viscous"_fix_viscous.html - viscous damping for granular simulations
-"wall/gran"_fix_wall_gran.html - frictional wall(s) for \
-     granular simulations
+"wall/colloid"_fix_wall_colloid.html - Lennard-Jones wall interacting with finite-size particles
+"wall/gran"_fix_wall_gran.html - frictional wall(s) for granular simulations
 "wall/lj126"_fix_wall_lj126.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)

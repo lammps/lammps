@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Paul Crozier (SNL)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"

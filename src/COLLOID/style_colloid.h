@@ -11,12 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef AtomInclude
+#include "atom_vec_colloid.h"
+#endif
+
+#ifdef AtomClass
+AtomStyle(colloid,AtomVecColloid)
+#endif
+
+#ifdef FixInclude
+#include "fix_wall_colloid.h"
+#endif
+
+#ifdef FixClass
+FixStyle(wall/colloid,FixWallColloid)
+#endif
+
 #ifdef PairInclude
 #include "pair_colloid.h"
 #include "pair_lubricate.h"
+#include "pair_yukawa_colloid.h"
 #endif
 
 #ifdef PairClass
 PairStyle(colloid,PairColloid)
 PairStyle(lubricate,PairLubricate)
+PairStyle(yukawa/colloid,PairYukawaColloid)
 #endif

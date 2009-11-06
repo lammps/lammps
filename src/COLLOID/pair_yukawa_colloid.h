@@ -11,33 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_YUKAWA_H
-#define PAIR_YUKAWA_H
+#ifndef PAIR_YUKAWA_COLLOID_H
+#define PAIR_YUKAWA_COLLOID_H
 
-#include "pair.h"
+#include "pair_yukawa.h"
 
 namespace LAMMPS_NS {
 
-class PairYukawa : public Pair {
+class PairYukawaColloid : public PairYukawa {
  public:
-  PairYukawa(class LAMMPS *);
-  virtual ~PairYukawa();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-
- protected:
-  double cut_global;
-  double kappa;
-  double **cut,**a,**offset;
-
-  void allocate();
+  PairYukawaColloid(class LAMMPS *);
+  ~PairYukawaColloid() {}
+  void compute(int, int);
+  void init_style();
+  double init_one(int, int);
+  double single(int, int, int, int, double, double, double, double &);
 };
 
 }

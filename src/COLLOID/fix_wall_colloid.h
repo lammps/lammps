@@ -11,33 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_YUKAWA_H
-#define PAIR_YUKAWA_H
+#ifndef FIX_WALL_COLLOID_H
+#define FIX_WALL_COLLOID_H
 
-#include "pair.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class PairYukawa : public Pair {
+class FixWallColloid : public Fix {
  public:
-  PairYukawa(class LAMMPS *);
-  virtual ~PairYukawa();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  FixWallColloid(class LAMMPS *, int, char **);
+  ~FixWallColloid() {}
+  int setmask();
+  void init();
+  void setup(int);
+  void min_setup(int);
+  void post_force(int);
+  void post_force_respa(int, int, int);
+  void min_post_force(int);
+  double compute_scalar();
+  double compute_vector(int);
 
- protected:
-  double cut_global;
-  double kappa;
-  double **cut,**a,**offset;
-
-  void allocate();
+ private:
+  int dim,side,thermo_flag,eflag_enable;
+  double coord,epsilon,sigma,diam,cutoff;
+  double coeff1,coeff2,coeff3,coeff4,offset;
+  double wall[4],wall_all[4];
+  int wall_flag;
+  int nlevels_respa;
 };
 
 }

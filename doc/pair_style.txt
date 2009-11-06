@@ -97,6 +97,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential
 "pair_style dipole/cut"_pair_dipole.html - point dipoles with cutoff
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
+"pair_style dsmc"_pair_dsmc.html - Direct Simulation Monte Carlo (DSMC)
 "pair_style eam"_pair_eam.html - embedded atom method (EAM)
 "pair_style eam/opt"_pair_eam.html - optimized version of EAM
 "pair_style eam/alloy"_pair_eam.html - alloy EAM

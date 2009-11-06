@@ -33,6 +33,7 @@ class Comm : protected Pointers {
   int maxforward_pair;
   int maxreverse_pair;
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
+  double cutghostuser;              // user-specified ghost cutoff
   
   Comm(class LAMMPS *);
   ~Comm();
@@ -74,7 +75,6 @@ class Comm : protected Pointers {
   int map_style;                    // non-0 if global->local mapping is done
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
   int bordergroup;                  // only communicate this group in borders
-  double cutghostuser;              // user-specified ghost cutoff
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap

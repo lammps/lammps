@@ -15,9 +15,9 @@ fix ID group-ID wall/lj126 style coord epsilon sigma cutoff keyword values ... :
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/lj126 = style name of this fix command :l
 style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
-coord = position of wall :l
-epsilon = Lennard-Jones epsilon for wall-particle interaction :l
-sigma = Lennard-Jones sigma for wall-particle interaction :l
+coord = position of wall (distance units) :l
+epsilon = Lennard-Jones epsilon for wall-particle interaction (energy units) :l
+sigma = Lennard-Jones sigma for wall-particle interaction (distance units) :l
 cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :l
 one or more keyword/value pairs may be appended :l
 keyword = {vel} :l

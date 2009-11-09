@@ -92,10 +92,6 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This style is part of the "dpd" package.  It is only enabled if
-LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
-
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the "neigh_modify"_neigh_modify.html command). This may be too
 infrequent for DPD simulations since particles move rapidly and can

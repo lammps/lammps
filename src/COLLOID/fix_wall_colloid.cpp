@@ -20,6 +20,7 @@
 #include "string.h"
 #include "fix_wall_colloid.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "update.h"
 #include "output.h"
@@ -104,8 +105,10 @@ int FixWallColloid::setmask()
 
 void FixWallColloid::init()
 {
-  if (!atom->shape)
+  if (!atom->avec->shape_type)
     error->all("Fix wall/colloid requires atom attribute shape");
+  if (atom->radius_flag)
+    error->all("Fix wall/colloid cannot be used with atom attribute diameter");
 
   // insure all particle shapes are spherical
 
@@ -145,6 +148,7 @@ void FixWallColloid::post_force(int vflag)
 {
   double **x = atom->x;
   double **f = atom->f;
+  double **shape = atom->shape;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -162,7 +166,7 @@ void FixWallColloid::post_force(int vflag)
       else delta = coord - x[i][dim];
       if (delta <= 0.0) continue;
       if (delta > cutoff) continue;
-      rad = atom->shape[type[i]][0];
+      rad = shape[type[i]][0];
       new_coeff2 = coeff2*rad*rad*rad;
       diam = 2.0*rad;
       rad2 = rad*rad;

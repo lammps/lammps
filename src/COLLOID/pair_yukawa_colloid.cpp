@@ -19,6 +19,7 @@
 #include "stdlib.h"
 #include "pair_yukawa_colloid.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -47,6 +48,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
+  double **shape = atom->shape;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -66,7 +68,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    radi = atom->shape[itype][0];
+    radi = shape[itype][0];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -84,7 +86,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      radj = atom->shape[jtype][0];
+      radj = shape[jtype][0];
     
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
@@ -124,9 +126,12 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 
 void PairYukawaColloid::init_style()
 {
-  if (!atom->shape)
+  if (!atom->avec->shape_type)
     error->all("Pair yukawa/colloid requires atom attribute shape");
-
+  if (atom->radius_flag)
+    error->all("Pair yukawa/colloid cannot be used with "
+	       "atom attribute diameter");
+  
   // insure all particle shapes are spherical
 
   for (int i = 1; i <= atom->ntypes; i++)

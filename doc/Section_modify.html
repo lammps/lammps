@@ -164,11 +164,21 @@ class.  See atom.h for details.
 <TR><TD >grow</TD><TD > re-allocate atom arrays to longer lengths</TD></TR>
 <TR><TD >copy</TD><TD > copy info for one atom to another atom's array locations</TD></TR>
 <TR><TD >pack_comm</TD><TD > store an atom's info in a buffer communicated every timestep</TD></TR>
+<TR><TD >pack_comm_vel</TD><TD > add velocity info to buffer</TD></TR>
+<TR><TD >pack_comm_one</TD><TD > store extra info unique to this atom style</TD></TR>
 <TR><TD >unpack_comm</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >unpack_comm_vel</TD><TD > also retrieve velocity info</TD></TR>
+<TR><TD >unpack_comm_one</TD><TD > retreive extra info unique to this atom style</TD></TR>
 <TR><TD >pack_reverse</TD><TD > store an atom's info in a buffer communicating partial forces</TD></TR>
+<TR><TD >pack_reverse_one</TD><TD > store extra info unique to this atom style</TD></TR>
 <TR><TD >unpack_reverse</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >unpack_reverse_one</TD><TD > retreive extra info unique to this atom style</TD></TR>
 <TR><TD >pack_border</TD><TD > store an atom's info in a buffer communicated on neighbor re-builds</TD></TR>
+<TR><TD >pack_border_vel</TD><TD > add velocity info to buffer</TD></TR>
+<TR><TD >pack_border_one</TD><TD > store extra info unique to this atom style</TD></TR>
 <TR><TD >unpack_border</TD><TD > retrieve an atom's info from the buffer</TD></TR>
+<TR><TD >unpack_border_vel</TD><TD > also retrieve velocity info</TD></TR>
+<TR><TD >unpack_border_one</TD><TD > retreive extra info unique to this atom style</TD></TR>
 <TR><TD >pack_exchange</TD><TD > store all an atom's info to migrate to another processor</TD></TR>
 <TR><TD >unpack_exchange</TD><TD > retrieve an atom's info from the buffer</TD></TR>
 <TR><TD >size_restart</TD><TD > number of restart quantities associated with proc's atoms</TD></TR>
@@ -180,9 +190,10 @@ class.  See atom.h for details.
 </TD></TR></TABLE></DIV>
 
 <P>The constructor of the derived class sets values for several variables
-that you must set when defining a new atom style.  The atom arrays
-themselves are defined in atom.cpp.  Search for the word "customize"
-and you will find locations you will need to modify.
+that you must set when defining a new atom style, which are documented
+in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
+the word "customize" and you will find locations you will need to
+modify.
 </P>
 <HR>
 

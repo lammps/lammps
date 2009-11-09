@@ -161,11 +161,21 @@ class.  See atom.h for details.
 grow: re-allocate atom arrays to longer lengths
 copy: copy info for one atom to another atom's array locations
 pack_comm: store an atom's info in a buffer communicated every timestep
+pack_comm_vel: add velocity info to buffer
+pack_comm_one: store extra info unique to this atom style
 unpack_comm: retrieve an atom's info from the buffer
+unpack_comm_vel: also retrieve velocity info
+unpack_comm_one: retreive extra info unique to this atom style
 pack_reverse: store an atom's info in a buffer communicating partial forces
+pack_reverse_one: store extra info unique to this atom style
 unpack_reverse: retrieve an atom's info from the buffer
+unpack_reverse_one: retreive extra info unique to this atom style
 pack_border: store an atom's info in a buffer communicated on neighbor re-builds
+pack_border_vel: add velocity info to buffer
+pack_border_one: store extra info unique to this atom style
 unpack_border: retrieve an atom's info from the buffer
+unpack_border_vel: also retrieve velocity info
+unpack_border_one: retreive extra info unique to this atom style
 pack_exchange: store all an atom's info to migrate to another processor
 unpack_exchange: retrieve an atom's info from the buffer
 size_restart: number of restart quantities associated with proc's atoms
@@ -176,9 +186,10 @@ data_atom: parse an atom line from the data file
 memory_usage: tally memory allocated by atom arrays :tb(s=:)
 
 The constructor of the derived class sets values for several variables
-that you must set when defining a new atom style.  The atom arrays
-themselves are defined in atom.cpp.  Search for the word "customize"
-and you will find locations you will need to modify.
+that you must set when defining a new atom style, which are documented
+in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
+the word "customize" and you will find locations you will need to
+modify.
 
 :line
 

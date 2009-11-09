@@ -28,6 +28,7 @@ class Comm : protected Pointers {
   int procneigh[3][2];              // my 6 neighboring procs
   int nswap;                        // # of swaps to perform
   int need[3];                      // procs I need atoms from in each dim
+  int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
   int maxforward_fix;               // comm sizes called from Fix,Pair
   int maxreverse_fix;
   int maxforward_pair;
@@ -35,6 +36,7 @@ class Comm : protected Pointers {
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
   
+
   Comm(class LAMMPS *);
   ~Comm();
 
@@ -61,9 +63,12 @@ class Comm : protected Pointers {
  private:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int maxswap;                      // max # of swaps memory is allocated for
+  int size_forward;                 // # of per-atom datums in forward comm
+  int size_reverse;                 // # of datums in reverse comm
+  int size_border;                  // # of datums in forward border comm
   int *sendnum,*recvnum;            // # of atoms to send/recv in each swap
   int *sendproc,*recvproc;          // proc to send/recv to/from at each swap
-  int *size_comm_recv;              // # of values to recv in each forward comm
+  int *size_forward_recv;           // # of values to recv in each forward comm
   int *size_reverse_send;           // # to send in each reverse comm
   int *size_reverse_recv;           // # to recv in each reverse comm
   double *slablo,*slabhi;           // bounds of slab to send at each swap

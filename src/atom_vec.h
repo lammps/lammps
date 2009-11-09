@@ -26,13 +26,14 @@ class AtomVec : protected Pointers {
   int mass_type;                       // 1 if per-type masses
   int shape_type;                      // 1 if per-type shape array
   int dipole_type;                     // 1 if per-type dipole moments
+
   int comm_x_only;                     // 1 if only exchange x in forward comm
   int comm_f_only;                     // 1 if only exchange f in reverse comm
-  int ghost_velocity;                  // 1 if ghost atoms store velocity
 
-  int size_comm;                       // # of values per atom in comm       
+  int size_forward;                    // # of values per atom in comm       
   int size_reverse;                    // # in reverse comm
   int size_border;                     // # in border comm
+  int size_velocity;                   // # of velocity based quantities
   int size_data_atom;                  // number of values in Atom line
   int size_data_vel;                   // number of values in Velocity line
   int xcol_data;                       // column (1-N) where x is in Atom line
@@ -46,8 +47,10 @@ class AtomVec : protected Pointers {
   virtual void copy(int, int) = 0;
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
+  virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_one(int, double *) {return 0;}
   virtual void unpack_comm(int, int, double *) = 0;
+  virtual void unpack_comm_vel(int, int, double *) = 0;
   virtual int unpack_comm_one(int, double *) {return 0;}
 
   virtual int pack_reverse(int, int, double *) = 0;
@@ -56,8 +59,10 @@ class AtomVec : protected Pointers {
   virtual int unpack_reverse_one(int, double *) {return 0;}
 
   virtual int pack_border(int, int *, double *, int, int *) = 0;
+  virtual int pack_border_vel(int, int *, double *, int, int *) = 0;
   virtual int pack_border_one(int, double *) {return 0;}
   virtual void unpack_border(int, int, double *) = 0;
+  virtual void unpack_border_vel(int, int, double *) = 0;
   virtual int unpack_border_one(int, double *) {return 0;}
 
   virtual int pack_exchange(int, double *) = 0;

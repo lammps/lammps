@@ -17,7 +17,6 @@
 #include "style_class2.h"
 #include "style_colloid.h"
 #include "style_dipole.h"
-#include "style_dpd.h"
 #include "style_dsmc.h"
 #include "style_gpu.h"
 #include "style_granular.h"

@@ -22,12 +22,8 @@ using namespace LAMMPS_NS;
 AtomVec::AtomVec(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   nmax = 0;
-  molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
   mass_type = shape_type = dipole_type = 0;
-  comm_x_only = comm_f_only = 1;
-  ghost_velocity = 0;
-  size_comm = size_reverse = size_border = 0;
 }
 
 /* ----------------------------------------------------------------------

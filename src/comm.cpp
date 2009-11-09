@@ -63,6 +63,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   multilo = multihi = NULL;
   cutghostmulti = NULL;
   cutghostuser = 0.0;
+  ghost_velocity = 0;
 
   // initialize comm buffers & exchange memory
 
@@ -175,16 +176,28 @@ void Comm::init()
   map_style = atom->map_style;
 
   // comm_only = 1 if only x,f are exchanged in forward/reverse comm
+  // comm_x_only = 0 if ghost_velocity since velocities are added
 
   comm_x_only = atom->avec->comm_x_only;
   comm_f_only = atom->avec->comm_f_only;
+  if (ghost_velocity) comm_x_only = 0;
+
+  // set per-atom sizes for forward/reverse/border comm
+  // augment by velocity quantities if needed
+
+  size_forward = atom->avec->size_forward;
+  size_reverse = atom->avec->size_reverse;
+  size_border = atom->avec->size_border;
+
+  if (ghost_velocity) size_forward += atom->avec->size_velocity;
+  if (ghost_velocity) size_border += atom->avec->size_velocity;
 
   // maxforward = # of datums in largest forward communication
   // maxreverse = # of datums in largest reverse communication
   // query pair,fix,compute for their requirements
 
-  maxforward = MAX(atom->avec->size_comm,atom->avec->size_border);
-  maxreverse = atom->avec->size_reverse;
+  maxforward = MAX(size_forward,size_border);
+  maxreverse = size_reverse;
 
   if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
@@ -391,7 +404,7 @@ void Comm::setup()
 
 /* ----------------------------------------------------------------------
    communication of atom coords every timestep
-   other stuff may also be sent via pack/unpack routines
+   other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
 void Comm::communicate()
@@ -410,16 +423,24 @@ void Comm::communicate()
   for (int iswap = 0; iswap < nswap; iswap++) {
     if (sendproc[iswap] != me) {
       if (comm_x_only) {
-	if (size_comm_recv[iswap]) buf = x[firstrecv[iswap]];
+	if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
 	else buf = NULL;
-	MPI_Irecv(buf,size_comm_recv[iswap],MPI_DOUBLE,
+	MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
 			    buf_send,pbc_flag[iswap],pbc[iswap]);
 	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
 	MPI_Wait(&request,&status);
+      } else if (ghost_velocity) {
+	MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+		  recvproc[iswap],0,world,&request);
+	n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+				buf_send,pbc_flag[iswap],pbc[iswap]);
+	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+	MPI_Wait(&request,&status);
+	avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
       } else {
-	MPI_Irecv(buf_recv,size_comm_recv[iswap],MPI_DOUBLE,
+	MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
 		  recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
 			    buf_send,pbc_flag[iswap],pbc[iswap]);
@@ -430,13 +451,19 @@ void Comm::communicate()
 
     } else {
       if (comm_x_only) {
-	if (sendnum[iswap])
+	if (sendnum[iswap]) {
 	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			      x[firstrecv[iswap]],pbc_flag[iswap],pbc[iswap]);
-      } else {
-	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+			      x[firstrecv[iswap]],pbc_flag[iswap],
+			      pbc[iswap]);
+	} else if (ghost_velocity) {
+	  n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+				  buf_send,pbc_flag[iswap],pbc[iswap]);
+	  avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
+	} else {
+	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+			      buf_send,pbc_flag[iswap],pbc[iswap]);
+	  avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+	}
       }
     }
   }
@@ -444,7 +471,7 @@ void Comm::communicate()
 
 /* ----------------------------------------------------------------------
    reverse communication of forces on atoms every timestep 
-   other stuff can also be sent via pack/unpack routines
+   other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
       
 void Comm::reverse_communicate()
@@ -623,7 +650,6 @@ void Comm::borders()
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-  int size_border = avec->size_border;
 
   // clear old ghosts
 
@@ -719,8 +745,12 @@ void Comm::borders()
 
       if (nsend*size_border > maxsend)
 	grow_send(nsend*size_border,0);
-      n = avec->pack_border(nsend,sendlist[iswap],buf_send,
-			    pbc_flag[iswap],pbc[iswap]);
+      if (ghost_velocity)
+	n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
+				  pbc_flag[iswap],pbc[iswap]);
+      else
+	n = avec->pack_border(nsend,sendlist[iswap],buf_send,
+			      pbc_flag[iswap],pbc[iswap]);
       
       // swap atoms with other proc
       // put incoming ghosts at end of my atom arrays
@@ -743,7 +773,10 @@ void Comm::borders()
 
       // unpack buffer
 
-      avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
+      if (ghost_velocity)
+	avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
+      else
+	avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
 
       // set all pointers & counters
 
@@ -751,9 +784,9 @@ void Comm::borders()
       rmax = MAX(rmax,nrecv);
       sendnum[iswap] = nsend;
       recvnum[iswap] = nrecv;
-      size_comm_recv[iswap] = nrecv * avec->size_comm;
-      size_reverse_send[iswap] = nrecv * avec->size_reverse;
-      size_reverse_recv[iswap] = nsend * avec->size_reverse;
+      size_forward_recv[iswap] = nrecv*size_forward;
+      size_reverse_send[iswap] = nrecv*size_reverse;
+      size_reverse_recv[iswap] = nsend*size_reverse;
       firstrecv[iswap] = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
       iswap++;
@@ -1469,7 +1502,7 @@ void Comm::allocate_swap(int n)
   recvnum = (int *) memory->smalloc(n*sizeof(int),"comm:recvnum");
   sendproc = (int *) memory->smalloc(n*sizeof(int),"comm:sendproc");
   recvproc = (int *) memory->smalloc(n*sizeof(int),"comm:recvproc");
-  size_comm_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
+  size_forward_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
   size_reverse_send = (int *) memory->smalloc(n*sizeof(int),"comm:size");
   size_reverse_recv = (int *) memory->smalloc(n*sizeof(int),"comm:size");
   slablo = (double *) memory->smalloc(n*sizeof(double),"comm:slablo");
@@ -1500,7 +1533,7 @@ void Comm::free_swap()
   memory->sfree(recvnum);
   memory->sfree(sendproc);
   memory->sfree(recvproc);
-  memory->sfree(size_comm_recv);
+  memory->sfree(size_forward_recv);
   memory->sfree(size_reverse_send);
   memory->sfree(size_reverse_recv);
   memory->sfree(slablo);
@@ -1548,6 +1581,12 @@ void Comm::set(int narg, char **arg)
       cutghostuser = atof(arg[iarg+1]);
       if (cutghostuser < 0.0) 
 	error->all("Invalid cutoff in communicate command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vel") == 0) {
+      if (iarg+2 > narg) error->all("Illegal communicate command");
+      if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
+      else if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 0;
+      else error->all("Illegal communicate command");
       iarg += 2;
     } else error->all("Illegal communicate command");
   }

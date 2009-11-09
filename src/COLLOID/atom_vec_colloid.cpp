@@ -30,13 +30,16 @@ using namespace LAMMPS_NS;
 AtomVecColloid::AtomVecColloid(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
+  molecular = 0;
   mass_type = 1;
   shape_type = 1;
-  comm_x_only = comm_f_only = 0;
-  ghost_velocity = 1;
-  size_comm = 9;
+
+  comm_x_only = 1;
+  comm_f_only = 0;
+  size_forward = 3;
   size_reverse = 6;
-  size_border = 12;
+  size_border = 6;
+  size_velocity = 6;
   size_data_atom = 5;
   size_data_vel = 7;
   xcol_data = 3;
@@ -117,6 +120,42 @@ int AtomVecColloid::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+      dz = pbc[2]*domain->zprd;
+    }
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecColloid::pack_comm_vel(int n, int *list, double *buf,
+				  int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -152,20 +191,23 @@ int AtomVecColloid::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecColloid::pack_comm_one(int i, double *buf)
+void AtomVecColloid::unpack_comm(int n, int first, double *buf)
 {
-  buf[0] = v[i][0];
-  buf[1] = v[i][1];
-  buf[2] = v[i][2];
-  buf[3] = omega[i][0];
-  buf[4] = omega[i][1];
-  buf[5] = omega[i][2];
-  return 6;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+  }
 }
+
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecColloid::unpack_comm(int n, int first, double *buf)
+void AtomVecColloid::unpack_comm_vel(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -182,19 +224,6 @@ void AtomVecColloid::unpack_comm(int n, int first, double *buf)
     omega[i][1] = buf[m++];
     omega[i][2] = buf[m++];
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecColloid::unpack_comm_one(int i, double *buf)
-{
-  v[i][0] = buf[0];
-  v[i][1] = buf[1];
-  v[i][2] = buf[2];
-  omega[i][0] = buf[3];
-  omega[i][1] = buf[4];
-  omega[i][2] = buf[5];
-  return 6;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -272,6 +301,48 @@ int AtomVecColloid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0];
+      dy = pbc[1];
+      dz = pbc[2];
+    }
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecColloid::pack_border_vel(int n, int *list, double *buf,
+				    int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -310,20 +381,26 @@ int AtomVecColloid::pack_border(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecColloid::pack_border_one(int i, double *buf)
+void AtomVecColloid::unpack_border(int n, int first, double *buf)
 {
-  buf[0] = v[i][0];
-  buf[1] = v[i][1];
-  buf[2] = v[i][2];
-  buf[3] = omega[i][0];
-  buf[4] = omega[i][1];
-  buf[5] = omega[i][2];
-  return 6;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    if (i == nmax) grow(0);
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    tag[i] = static_cast<int> (buf[m++]);
+    type[i] = static_cast<int> (buf[m++]);
+    mask[i] = static_cast<int> (buf[m++]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecColloid::unpack_border(int n, int first, double *buf)
+void AtomVecColloid::unpack_border_vel(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -344,19 +421,6 @@ void AtomVecColloid::unpack_border(int n, int first, double *buf)
     omega[i][1] = buf[m++];
     omega[i][2] = buf[m++];
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecColloid::unpack_border_one(int i, double *buf)
-{
-  v[i][0] = buf[0];
-  v[i][1] = buf[1];
-  v[i][2] = buf[2];
-  omega[i][0] = buf[3];
-  omega[i][1] = buf[4];
-  omega[i][2] = buf[5];
-  return 6;
 }
 
 /* ----------------------------------------------------------------------

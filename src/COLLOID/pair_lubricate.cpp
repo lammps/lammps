@@ -390,6 +390,8 @@ void PairLubricate::coeff(int narg, char **arg)
 
 void PairLubricate::init_style()
 {
+  if (comm->ghost_velocity == 0)
+    error->all("Pair lubricate requires ghost atoms store velocity");
   if (!atom->torque_flag || !atom->avec->shape_type)
     error->all("Pair lubricate requires atom attributes torque and shape");
   if (atom->radius_flag || atom->rmass_flag)

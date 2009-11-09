@@ -29,13 +29,16 @@ using namespace LAMMPS_NS;
 AtomVecDipole::AtomVecDipole(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
+  molecular = 0;
   mass_type = 1;
   shape_type = 1;
   dipole_type = 1;
+
   comm_x_only = comm_f_only = 0;
-  size_comm = 6;
+  size_forward = 6;
   size_reverse = 6;
   size_border = 10;
+  size_velocity = 6;
   size_data_atom = 9;
   size_data_vel = 7;
   xcol_data = 4;
@@ -153,6 +156,60 @@ int AtomVecDipole::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecDipole::pack_comm_vel(int n, int *list, double *buf,
+				 int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = mu[j][0];
+      buf[m++] = mu[j][1];
+      buf[m++] = mu[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+      dz = pbc[2]*domain->zprd;
+    }
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
+      buf[m++] = mu[j][0];
+      buf[m++] = mu[j][1];
+      buf[m++] = mu[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int AtomVecDipole::pack_comm_one(int i, double *buf)
 {
   buf[0] = mu[i][0];
@@ -176,6 +233,30 @@ void AtomVecDipole::unpack_comm(int n, int first, double *buf)
     mu[i][0] = buf[m++];
     mu[i][1] = buf[m++];
     mu[i][2] = buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecDipole::unpack_comm_vel(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    mu[i][0] = buf[m++];
+    mu[i][1] = buf[m++];
+    mu[i][2] = buf[m++];
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
+    omega[i][0] = buf[m++];
+    omega[i][1] = buf[m++];
+    omega[i][2] = buf[m++];
   }
 }
 
@@ -298,6 +379,68 @@ int AtomVecDipole::pack_border(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecDipole::pack_border_vel(int n, int *list, double *buf,
+				   int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = q[j];
+      buf[m++] = mu[j][0];
+      buf[m++] = mu[j][1];
+      buf[m++] = mu[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0];
+      dy = pbc[1];
+      dz = pbc[2];
+    }
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = q[j];
+      buf[m++] = mu[j][0];
+      buf[m++] = mu[j][1];
+      buf[m++] = mu[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      buf[m++] = omega[j][0];
+      buf[m++] = omega[j][1];
+      buf[m++] = omega[j][2];
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int AtomVecDipole::pack_border_one(int i, double *buf)
 {
   buf[0] = q[i];
@@ -327,6 +470,35 @@ void AtomVecDipole::unpack_border(int n, int first, double *buf)
     mu[i][0] = buf[m++];
     mu[i][1] = buf[m++];
     mu[i][2] = buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecDipole::unpack_border_vel(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    if (i == nmax) grow(0);
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    tag[i] = static_cast<int> (buf[m++]);
+    type[i] = static_cast<int> (buf[m++]);
+    mask[i] = static_cast<int> (buf[m++]);
+    q[i] = buf[m++];
+    mu[i][0] = buf[m++];
+    mu[i][1] = buf[m++];
+    mu[i][2] = buf[m++];
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
+    omega[i][0] = buf[m++];
+    omega[i][1] = buf[m++];
+    omega[i][2] = buf[m++];
   }
 }
 

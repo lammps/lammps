@@ -343,7 +343,7 @@ void PairGranHookeHistory::init_style()
 
   if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Pair granular requires atom attributes radius, omega, torque");
-  if (atom->avec->ghost_velocity == 0)
+  if (comm->ghost_velocity == 0)
     error->all("Pair granular requires ghost atoms store velocity");
 
   // need a half neigh list and optionally a granular history neigh list

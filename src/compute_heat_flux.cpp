@@ -24,6 +24,7 @@
 #include "atom_vec.h"
 #include "update.h"
 #include "force.h"
+#include "comm.h"
 #include "pair.h"
 #include "modify.h"
 #include "group.h"
@@ -75,7 +76,7 @@ void ComputeHeatFlux::init()
 {
   // error checks
 
-  if (atom->avec->ghost_velocity == 0)
+  if (comm->ghost_velocity == 0)
     error->all("Compute heat/flux requires ghost atoms store velocity");
 
   if (force->pair == NULL || force->pair->single_enable == 0)

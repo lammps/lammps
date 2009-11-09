@@ -30,11 +30,15 @@ class AtomVecHybrid : public AtomVec {
   void reset_special();
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
+  int pack_comm_vel(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
+  void unpack_comm_vel(int, int, double *);
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
   int pack_border(int, int *, double *, int, int *);
+  int pack_border_vel(int, int *, double *, int, int *);
   void unpack_border(int, int, double *);
+  void unpack_border_vel(int, int, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
   int size_restart();
@@ -49,6 +53,7 @@ class AtomVecHybrid : public AtomVec {
  private:
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
+  double **omega,**angmom;
 };
 
 }

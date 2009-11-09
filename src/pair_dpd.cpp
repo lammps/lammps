@@ -251,7 +251,7 @@ void PairDPD::coeff(int narg, char **arg)
 
 void PairDPD::init_style()
 {
-  if (atom->avec->ghost_velocity == 0)
+  if (comm->ghost_velocity == 0)
     error->all("Pair dpd requires ghost atoms store velocity");
 
   // if newton off, forces between atoms ij will be double computed

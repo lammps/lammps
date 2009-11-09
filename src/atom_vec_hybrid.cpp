@@ -57,7 +57,7 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   // hybrid settings are MAX or MIN of sub-style settings
   // hybrid sizes are minimial values plus extra values for each sub-style
 
-  size_comm = 3;
+  size_forward = 3;
   size_reverse = 3;
   size_border = 6;
   size_data_atom = 5;
@@ -73,16 +73,19 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
     mass_type = MAX(mass_type,styles[k]->mass_type);
     shape_type = MAX(shape_type,styles[k]->shape_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
+
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
-    ghost_velocity = MAX(ghost_velocity,styles[k]->ghost_velocity);
-
-    size_comm += styles[k]->size_comm - 3;
+    size_forward += styles[k]->size_forward - 3;
     size_reverse += styles[k]->size_reverse - 3;
     size_border += styles[k]->size_border - 6;
     size_data_atom += styles[k]->size_data_atom - 5;
     size_data_vel += styles[k]->size_data_vel - 4;
   }
+
+  size_velocity = 3;
+  if (atom->omega_flag) size_velocity += 3;
+  if (atom->angmom_flag) size_velocity += 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,6 +124,9 @@ void AtomVecHybrid::grow(int n)
   x = atom->x;
   v = atom->v;
   f = atom->f;
+
+  omega = atom->omega;
+  angmom = atom->angmom;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
@@ -192,6 +198,74 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
+				 int pbc_flag, int *pbc)
+{
+  int i,j,k,m;
+  double dx,dy,dz;
+  int omega_flag = atom->omega_flag;
+  int angmom_flag = atom->angmom_flag;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      if (omega_flag) {
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
+      if (angmom_flag) {
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_comm_one(j,&buf[m]);
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+      dz = pbc[2]*domain->zprd;
+    }
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      if (omega_flag) {
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
+      if (angmom_flag) {
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_comm_one(j,&buf[m]);
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecHybrid::unpack_comm(int n, int first, double *buf)
 {
   int i,k,last;
@@ -202,6 +276,38 @@ void AtomVecHybrid::unpack_comm(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->unpack_comm_one(i,&buf[m]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::unpack_comm_vel(int n, int first, double *buf)
+{
+  int i,k,last;
+  int omega_flag = atom->omega_flag;
+  int angmom_flag = atom->angmom_flag;
+
+  int m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
+    if (omega_flag) {
+      omega[i][0] = buf[m++];
+      omega[i][1] = buf[m++];
+      omega[i][2] = buf[m++];
+    }
+    if (angmom_flag) {
+      angmom[i][0] = buf[m++];
+      angmom[i][1] = buf[m++];
+      angmom[i][2] = buf[m++];
+    }
     for (k = 0; k < nstyles; k++)
       m += styles[k]->unpack_comm_one(i,&buf[m]);
   }
@@ -290,6 +396,80 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
+				   int pbc_flag, int *pbc)
+{
+  int i,j,k,m;
+  double dx,dy,dz;
+  int omega_flag = atom->omega_flag;
+  int angmom_flag = atom->angmom_flag;
+
+  m = 0;
+  if (pbc_flag == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0];
+      buf[m++] = x[j][1];
+      buf[m++] = x[j][2];
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      if (omega_flag) {
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
+      if (angmom_flag) {
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_border_one(j,&buf[m]);
+    }
+  } else {
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0];
+      dy = pbc[1];
+      dz = pbc[2];
+    }
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = x[j][0] + dx;
+      buf[m++] = x[j][1] + dy;
+      buf[m++] = x[j][2] + dz;
+      buf[m++] = tag[j];
+      buf[m++] = type[j];
+      buf[m++] = mask[j];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
+      if (omega_flag) {
+	buf[m++] = omega[j][0];
+	buf[m++] = omega[j][1];
+	buf[m++] = omega[j][2];
+      }
+      if (angmom_flag) {
+	buf[m++] = angmom[j][0];
+	buf[m++] = angmom[j][1];
+	buf[m++] = angmom[j][2];
+      }
+      for (k = 0; k < nstyles; k++)
+	m += styles[k]->pack_border_one(j,&buf[m]);
+    }
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecHybrid::unpack_border(int n, int first, double *buf)
 {
   int i,k,m,last;
@@ -304,6 +484,42 @@ void AtomVecHybrid::unpack_border(int n, int first, double *buf)
     tag[i] = static_cast<int> (buf[m++]);
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->unpack_border_one(i,&buf[m]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::unpack_border_vel(int n, int first, double *buf)
+{
+  int i,k,m,last;
+  int omega_flag = atom->omega_flag;
+  int angmom_flag = atom->angmom_flag;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    if (i == nmax) grow(0);
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+    tag[i] = static_cast<int> (buf[m++]);
+    type[i] = static_cast<int> (buf[m++]);
+    mask[i] = static_cast<int> (buf[m++]);
+    v[i][0] = buf[m++];
+    v[i][1] = buf[m++];
+    v[i][2] = buf[m++];
+    if (omega_flag) {
+      omega[i][0] = buf[m++];
+      omega[i][1] = buf[m++];
+      omega[i][2] = buf[m++];
+    }
+    if (angmom_flag) {
+      angmom[i][0] = buf[m++];
+      angmom[i][1] = buf[m++];
+      angmom[i][2] = buf[m++];
+    }
     for (k = 0; k < nstyles; k++)
       m += styles[k]->unpack_border_one(i,&buf[m]);
   }

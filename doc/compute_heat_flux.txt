@@ -97,8 +97,9 @@ divided by the appropriate volume to get a flux.
 Only pairwise interactions, as defined by the pair_style command, are
 included in this calculation.
 
-To use this compute you must define an atom_style, such as dpd or
-granular, that communicates the velocites of ghost atoms.
+This compute requires you to use the "communicate vel
+yes"_communicate.html option so that velocites are stored by ghost
+atoms.
 
 [Related commands:]
 

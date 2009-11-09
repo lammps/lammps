@@ -126,6 +126,10 @@ be point particles, nor can they be aspherical.  Additionally all the
 shape types must specify particles of the same size, i.e. a
 monodisperse system.
 
+This pair style requires you to use the "communicate vel
+yes"_communicate.html option so that velocites are stored by ghost
+atoms.
+
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html

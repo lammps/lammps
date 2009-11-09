@@ -181,9 +181,12 @@ is only enabled if LAMMPS was built with that package.  See the
 
 These pair styles require that atoms store torque and angular velocity
 (omega) as defined by the "atom_style"_atom_style.html.  They also
-require they store a per-particle radius and that velocities are
-communicated with ghost atoms.  The {granular} and {dpd} atom styles
-are the ones that currently do this.
+require a per-particle radius is stored.  The {granular} atom style
+does all of this.
+
+This pair style requires you to use the "communicate vel
+yes"_communicate.html option so that velocites are stored by ghost
+atoms.
 
 [Related commands:]
 

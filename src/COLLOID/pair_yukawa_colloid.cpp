@@ -133,15 +133,13 @@ void PairYukawaColloid::init_style()
 	       "atom attribute diameter");
   
   // insure all particle shapes are spherical
+  // can be point particles or polydisperse
 
   for (int i = 1; i <= atom->ntypes; i++)
     if ((atom->shape[i][0] != atom->shape[i][1]) || 
 	(atom->shape[i][0] != atom->shape[i][2]) ||
 	(atom->shape[i][1] != atom->shape[i][2]))
       error->all("Pair yukawa/colloid requires spherical particles");
-
-  if (force->newton_pair != 1)
-    error->all("Pair lubricate requires newton_pair on");
 
   int irequest = neighbor->request(this);
 }

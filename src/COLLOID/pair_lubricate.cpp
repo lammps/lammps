@@ -87,6 +87,7 @@ void PairLubricate::compute(int eflag, int vflag)
   double **omega = atom->omega;
   double **angmom = atom->angmom;
   double **torque = atom->torque;
+  double **shape = atom->shape;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -110,7 +111,7 @@ void PairLubricate::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    radi = atom->shape[itype][0];
+    radi = shape[itype][0];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -403,12 +404,13 @@ void PairLubricate::init_style()
   else error->all("Pair lubricate requires atom attribute omega or angmom");
 
   // insure all particle shapes are finite-size, spherical, and monodisperse
+  // for pair hybrid, should limit test to types using the pair style
 
-  double value = atom->shape[1][0];
-  if (value == 0.0) error->all("Pair lubricate requires extended particles");
+  double radi = atom->shape[1][0];
+  if (radi == 0.0) error->all("Pair lubricate requires extended particles");
   for (int i = 1; i <= atom->ntypes; i++)
-    if (atom->shape[i][0] != value || atom->shape[i][0] != value || 
-	atom->shape[i][0] != value)
+    if (atom->shape[i][0] != radi || atom->shape[i][0] != radi || 
+	atom->shape[i][0] != radi)
       error->all("Pair lubricate requires spherical, mono-disperse particles");
   
   int irequest = neighbor->request(this);

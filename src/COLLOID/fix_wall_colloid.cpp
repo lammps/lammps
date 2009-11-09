@@ -111,12 +111,29 @@ void FixWallColloid::init()
     error->all("Fix wall/colloid cannot be used with atom attribute diameter");
 
   // insure all particle shapes are spherical
+  // can be polydisperse
 
   for (int i = 1; i <= atom->ntypes; i++)
     if ((atom->shape[i][0] != atom->shape[i][1]) || 
 	(atom->shape[i][0] != atom->shape[i][2]) ||
 	(atom->shape[i][1] != atom->shape[i][2]))
       error->all("Fix wall/colloid requires spherical particles");
+
+  // insure all particles in group are finite-size
+
+  double **shape = atom->shape;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      if (atom->shape[type[i]][0] == 0.0) flag = 1;
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("Fix wall/colloid requires finite-size particles");
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

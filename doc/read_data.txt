@@ -252,7 +252,6 @@ bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 colloid: atom-ID atom-type x y z
 dipole: atom-ID atom-type q x y z mux muy muz
-dpd: atom-ID atom-type x y z
 ellipsoid: atom-ID atom-type x y z quatw quati quatj quatk
 full: atom-ID molecule-ID atom-type q x y z
 granular: atom-ID atom-type diameter density x y z

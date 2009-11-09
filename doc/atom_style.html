@@ -15,7 +15,7 @@
 </P>
 <PRE>atom_style style args 
 </PRE>
-<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>bond</I> or <I>charge</I> or <I>colloid</I> or <I>dipole</I> or         <I>dpd</I> or <I>ellipsoid</I> or <I>full</I> or <I>granular</I> or <I>molecular</I> or 	<I>peri</I> or <I>hybrid</I> 
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>bond</I> or <I>charge</I> or <I>colloid</I> or <I>dipole</I> or         <I>ellipsoid</I> or <I>full</I> or <I>granular</I> or <I>molecular</I> or 	<I>peri</I> or <I>hybrid</I> 
 </UL>
 <PRE>  args = none for any style except <I>hybrid</I>
   <I>hybrid</I> args = list of one or more sub-styles 
@@ -59,7 +59,6 @@ quantities.
 <TR><TD ><I>charge</I> </TD><TD > charge </TD><TD > atomic system with charges </TD></TR>
 <TR><TD ><I>colloid</I> </TD><TD > angular velocity </TD><TD > extended spherical particles </TD></TR>
 <TR><TD ><I>dipole</I> </TD><TD > charge and dipole moment </TD><TD > atomic system with dipoles </TD></TR>
-<TR><TD ><I>dpd</I> </TD><TD > default values, also communicates velocities </TD><TD > DPD models </TD></TR>
 <TR><TD ><I>ellipsoid</I> </TD><TD > quaternion for particle orientation, angular momentum </TD><TD > extended aspherical particles </TD></TR>
 <TR><TD ><I>full</I> </TD><TD > molecular + charge </TD><TD > bio-molecules </TD></TR>
 <TR><TD ><I>granular</I> </TD><TD > diameter, density, angular velocity </TD><TD > granular models </TD></TR>
@@ -68,7 +67,7 @@ quantities.
 </TD></TR></TABLE></DIV>
 
 <P>All of the styles define point particles, except the <I>colloid</I>,
-<I>dipole</I>, <I>ellipsoid</I>, <I>granular</I>, and <I>peri</I> styles.  These define
+<I>dipole</I>, <I>ellipsoid</I>, <I>granular</I>, and <I>peri</I> styles, which define
 finite-size particles.  For <I>colloid</I>, <I>dipole</I>, and <I>ellipsoid</I>
 systems, the <A HREF = "shape.html">shape</A> command is used to specify the size
 and shape of particles on a per-type basis, which is spherical for
@@ -85,13 +84,6 @@ the specified diameter and density are used to calculate each
 particle's mass.  For <I>peri</I> systems, the speficied volume and density
 are used to calculate each particle's mass.
 </P>
-<P>Only the <I>colloid</I>, <I>dpd</I>, and <I>granular</I> styles communicate
-velocities and angular velocities (if defined) with ghost atoms; the
-others do not.  This is because the pairwise interactions calculated
-by the pair styles that typically use these atom styles
-(e.g. <A HREF = "pair_dpd.html">pair_style dpd</A> and <A HREF = "pair_gran.html">pair_style
-granular</A>) require velocities of both particles.
-</P>
 <HR>
 
 <P>Typically, simulations require only a single (non-hybrid) atom style.
@@ -103,10 +95,10 @@ If some atoms have bonds, but others do not, use the <I>bond</I> style.
 </P>
 <P>The only scenario where the <I>hybrid</I> style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want charged DPD particles, you would need to use
-"atom_style hybrid dpd charge".  When a hybrid style is used, atoms
-store and communicate the union of all quantities implied by the
-individual styles.
+example, if you want colloidal particles with charge, you would need
+to use "atom_style hybrid colloid charge".  When a hybrid style is
+used, atoms store and communicate the union of all quantities implied
+by the individual styles.
 </P>
 <P>LAMMPS can be extended with new atom styles; see <A HREF = "Section_modify.html">this
 section</A>.
@@ -118,13 +110,12 @@ section</A>.
 </P>
 <P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
 "molecular" package.  The <I>granular</I> style is part of the "granular"
-package.  The <I>dpd</I> style is part of the "dpd" package.  The <I>colloid</I>
-style is part of the "colloid" package.  The <I>dipole</I> style is part of
-the "dipole" package.  The <I>ellipsoid</I> style is part of the "asphere"
-package.  The <I>peri</I> style is part of the "peri" package for
-Peridynamics.  They are only enabled if LAMMPS was built with that
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info.
+package.  The <I>colloid</I> style is part of the "colloid" package.  The
+<I>dipole</I> style is part of the "dipole" package.  The <I>ellipsoid</I> style
+is part of the "asphere" package.  The <I>peri</I> style is part of the
+"peri" package for Peridynamics.  They are only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

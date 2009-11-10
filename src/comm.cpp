@@ -451,19 +451,18 @@ void Comm::communicate()
 
     } else {
       if (comm_x_only) {
-	if (sendnum[iswap]) {
+	if (sendnum[iswap])
 	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
 			      x[firstrecv[iswap]],pbc_flag[iswap],
 			      pbc[iswap]);
-	} else if (ghost_velocity) {
-	  n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-				  buf_send,pbc_flag[iswap],pbc[iswap]);
-	  avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
-	} else {
-	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			      buf_send,pbc_flag[iswap],pbc[iswap]);
-	  avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
-	}
+      } else if (ghost_velocity) {
+	n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+				buf_send,pbc_flag[iswap],pbc[iswap]);
+	avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
+      } else {
+	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+			    buf_send,pbc_flag[iswap],pbc[iswap]);
+	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
   }

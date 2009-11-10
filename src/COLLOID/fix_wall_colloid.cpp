@@ -119,7 +119,7 @@ void FixWallColloid::init()
 	(atom->shape[i][1] != atom->shape[i][2]))
       error->all("Fix wall/colloid requires spherical particles");
 
-  // insure all particles in group are finite-size
+  // insure all particles in group are extended particles
 
   double **shape = atom->shape;
   int *type = atom->type;
@@ -133,7 +133,7 @@ void FixWallColloid::init()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("Fix wall/colloid requires finite-size particles");
+  if (flagall) error->all("Fix wall/colloid requires extended particles");
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

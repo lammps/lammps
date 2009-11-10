@@ -515,7 +515,7 @@ void FixATC::initial_integrate(int vflag)
 void FixATC::final_integrate()
 {
   // need updated ghost atom positions
-  comm->comm_fix(this);
+  comm->forward_comm_fix(this);
 
   try {
     atcTransfer_->pre_final_integrate();

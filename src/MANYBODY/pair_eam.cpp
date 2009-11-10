@@ -225,7 +225,7 @@ void PairEAM::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->comm_pair(this);
+  comm->forward_comm_pair(this);
 
   // compute forces on each atom
   // loop over neighbors of my atoms

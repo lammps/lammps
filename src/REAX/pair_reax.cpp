@@ -168,7 +168,7 @@ void PairREAX::compute(int eflag, int vflag)
   // communicate local atomic bond order to ghost atomic bond order
 
   packflag = 0;
-  comm->comm_pair(this);
+  comm->forward_comm_pair(this);
 
   FORTRAN(molec, MOLEC)();
   FORTRAN(encalc, ENCALC)();
@@ -941,7 +941,7 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
   
   packflag = 1;
   comm->reverse_comm_pair(this);
-  comm->comm_pair(this);
+  comm->forward_comm_pair(this);
   
   MPI_Allreduce(&w[n-1], &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
   w[n-1] = sumtmp;
@@ -978,7 +978,7 @@ void PairREAX::cg_solve(const int & nlocal, const int & nghost,
     }
       
     comm->reverse_comm_pair(this);
-    comm->comm_pair(this);
+    comm->forward_comm_pair(this);
 
     MPI_Allreduce(&w[n-1], &sumtmp, 1, MPI_DOUBLE, MPI_SUM, world);
     w[n-1] = sumtmp;

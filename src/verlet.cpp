@@ -115,7 +115,7 @@ void Verlet::setup()
     force->kspace->compute(eflag,vflag);
   }
 
-  if (force->newton) comm->reverse_communicate();
+  if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
   output->setup(1);
@@ -165,7 +165,7 @@ void Verlet::setup_minimal(int flag)
     force->kspace->compute(eflag,vflag);
   }
 
-  if (force->newton) comm->reverse_communicate();
+  if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
 }
@@ -201,7 +201,7 @@ void Verlet::run(int n)
 
     if (nflag == 0) {
       timer->stamp();
-      comm->communicate();
+      comm->forward_comm();
       timer->stamp(TIME_COMM);
     } else {
       if (n_pre_exchange) modify->pre_exchange();
@@ -250,7 +250,7 @@ void Verlet::run(int n)
     // reverse communication of forces
 
     if (force->newton) {
-      comm->reverse_communicate();
+      comm->reverse_comm();
       timer->stamp(TIME_COMM);
     }
 

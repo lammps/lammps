@@ -503,7 +503,7 @@ void FixShake::post_force(int vflag)
 
   // communicate results if necessary
 
-  if (nprocs > 1) comm->comm_fix(this);
+  if (nprocs > 1) comm->forward_comm_fix(this);
 
   // virial setup
 
@@ -2331,7 +2331,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 
   // communicate results if necessary
 
-  if (nprocs > 1) comm->comm_fix(this);
+  if (nprocs > 1) comm->forward_comm_fix(this);
 
   // virial setup
 

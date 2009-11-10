@@ -260,7 +260,7 @@ void PairMEAM::compute(int eflag, int vflag)
     error->one(str);
   }
 
-  comm->comm_pair(this);
+  comm->forward_comm_pair(this);
 
   offset = 0;
 

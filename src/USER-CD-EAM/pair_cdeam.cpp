@@ -193,7 +193,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 	// Communicate derivative of embedding function and densities
 	// and D_values (this for one-site formulation only).
 	communicationStage = 2;
-	comm->comm_pair(this);
+	comm->forward_comm_pair(this);
 
 	// The electron densities may not drop to zero because then the concentration would no longer be defined.
 	// But the concentration is not needed anyway if there is no interaction with another atom, which is the case
@@ -262,7 +262,7 @@ void PairCDEAM::compute(int eflag, int vflag)
 			comm->reverse_comm_pair(this);
 		}
 		communicationStage = 4;
-		comm->comm_pair(this);
+		comm->forward_comm_pair(this);
 	}
 
 	// Stage III

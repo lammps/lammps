@@ -163,7 +163,7 @@ void FixBondBreak::post_integrate()
 
   // need updated ghost atom positions
 
-  comm->communicate();
+  comm->forward_comm();
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -235,7 +235,7 @@ void FixBondBreak::post_integrate()
       if (partner[i]) probability[i] = random->uniform();
   }
 
-  comm->comm_fix(this);
+  comm->forward_comm_fix(this);
 
   // break bonds
   // if both atoms list each other as winning bond partner

@@ -403,11 +403,11 @@ void Comm::setup()
 }
 
 /* ----------------------------------------------------------------------
-   communication of atom coords every timestep
+   forward communication of atom coords every timestep
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void Comm::communicate()
+void Comm::forward_comm()
 {
   int n;
   MPI_Request request;
@@ -473,7 +473,7 @@ void Comm::communicate()
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
       
-void Comm::reverse_communicate()
+void Comm::reverse_comm()
 {
   int n;
   MPI_Request request;
@@ -808,7 +808,7 @@ void Comm::borders()
    forward communication invoked by a Pair
 ------------------------------------------------------------------------- */
 
-void Comm::comm_pair(Pair *pair)
+void Comm::forward_comm_pair(Pair *pair)
 {
   int iswap,n;
   double *buf;
@@ -877,7 +877,7 @@ void Comm::reverse_comm_pair(Pair *pair)
    forward communication invoked by a Fix
 ------------------------------------------------------------------------- */
 
-void Comm::comm_fix(Fix *fix)
+void Comm::forward_comm_fix(Fix *fix)
 {
   int iswap,n;
   double *buf;
@@ -946,7 +946,7 @@ void Comm::reverse_comm_fix(Fix *fix)
    forward communication invoked by a Compute
 ------------------------------------------------------------------------- */
 
-void Comm::comm_compute(Compute *compute)
+void Comm::forward_comm_compute(Compute *compute)
 {
   int iswap,n;
   double *buf;

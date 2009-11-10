@@ -43,16 +43,16 @@ class Comm : protected Pointers {
   void init();
   void set_procs();                 // setup 3d grid of procs
   void setup();                     // setup 3d communication pattern
-  void communicate();               // communication of atom coords
-  void reverse_communicate();       // reverse communication of forces
+  void forward_comm();              // forward communication of atom coords
+  void reverse_comm();              // reverse communication of forces
   void exchange();                  // move atoms to new procs
   void borders();                   // setup list of atoms to communicate
 
-  void comm_pair(class Pair *);                // forward comm from a Pair
+  void forward_comm_pair(class Pair *);        // forward comm from a Pair
   void reverse_comm_pair(class Pair *);        // reverse comm from a Pair
-  void comm_fix(class Fix *);                  // forward comm from a Fix
+  void forward_comm_fix(class Fix *);          // forward comm from a Fix
   void reverse_comm_fix(class Fix *);          // reverse comm from a Fix
-  void comm_compute(class Compute *);          // forward comm from a Compute
+  void forward_comm_compute(class Compute *);  // forward comm from a Compute
   void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
 
   void irregular();                 // irregular communication across all procs

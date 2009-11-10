@@ -273,12 +273,12 @@ void FixBondCreate::post_integrate()
 
   // need updated ghost atom positions
 
-  comm->communicate();
+  comm->forward_comm();
 
   // forward comm of bondcount, so ghosts have it
 
   commflag = 0;
-  comm->comm_fix(this);
+  comm->forward_comm_fix(this);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -376,7 +376,7 @@ void FixBondCreate::post_integrate()
   }
  
   commflag = 1;
-  comm->comm_fix(this);
+  comm->forward_comm_fix(this);
 
   // create bonds for atoms I own
   // if other atom is owned by another proc, it should create same bond

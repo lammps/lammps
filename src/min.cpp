@@ -233,7 +233,7 @@ void Min::setup()
     force->kspace->compute(eflag,vflag);
   }
 
-  if (force->newton) comm->reverse_communicate();
+  if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
   output->setup(1);
@@ -287,7 +287,7 @@ void Min::setup_minimal(int flag)
     force->kspace->compute(eflag,vflag);
   }
 
-  if (force->newton) comm->reverse_communicate();
+  if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
 
@@ -394,7 +394,7 @@ double Min::energy_force(int resetflag)
 
   if (nflag == 0) {
     timer->stamp();
-    comm->communicate();
+    comm->forward_comm();
     timer->stamp(TIME_COMM);
   } else {
     if (modify->n_min_pre_exchange) modify->min_pre_exchange();
@@ -438,7 +438,7 @@ double Min::energy_force(int resetflag)
   }
 
   if (force->newton) {
-    comm->reverse_communicate();
+    comm->reverse_comm();
     timer->stamp(TIME_COMM);
   }
 

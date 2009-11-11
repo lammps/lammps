@@ -16,7 +16,7 @@ pair_style sw :pre
 
 pair_style sw
 pair_coeff * * si.sw Si
-pair_coeff * * SiC.sw Si C Si :pre
+pair_coeff * * GaN.sw Ga N Ga :pre
 
 [Description:]
 
@@ -38,7 +38,7 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of SW elements to atom types :ul
 
-As an example, imagine the SiC.sw file has Stillinger-Weber values for
+As an example, imagine a file SiC.sw has Stillinger-Weber values for
 Si and C.  If your LAMMPS simulation has 4 atoms types and you want
 the 1st 3 to be Si, and the 4th to be C, you would use the following
 pair_coeff command:

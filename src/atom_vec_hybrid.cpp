@@ -57,6 +57,9 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   // hybrid settings are MAX or MIN of sub-style settings
   // hybrid sizes are minimial values plus extra values for each sub-style
 
+  molecular = 0;
+  comm_x_only = comm_f_only = 1;
+
   size_forward = 3;
   size_reverse = 3;
   size_border = 6;

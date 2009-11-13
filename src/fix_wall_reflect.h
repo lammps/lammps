@@ -22,6 +22,7 @@ class FixWallReflect : public Fix {
  public:
   FixWallReflect(class LAMMPS *, int, char **);
   int setmask();
+  void init();
   void post_integrate();
 
  private:

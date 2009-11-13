@@ -14,6 +14,7 @@
 #include "string.h"
 #include "fix_wall_reflect.h"
 #include "atom.h"
+#include "comm.h"
 #include "modify.h"
 #include "domain.h"
 #include "error.h"
@@ -54,6 +55,19 @@ int FixWallReflect::setmask()
   mask |= POST_INTEGRATE;
   mask |= POST_INTEGRATE_RESPA;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixWallReflect::init()
+{
+  int nrigid = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->rigid_flag) nrigid++;
+
+  if (nrigid && comm->me == 0) 
+    error->warning("Should not allow rigid bodies to bounce off "
+		   "relecting walls");
 }
 
 /* ---------------------------------------------------------------------- */

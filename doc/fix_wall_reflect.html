@@ -57,11 +57,13 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 </P>
 <P>Any dimension (xyz) that has a reflecting wall must be non-periodic.
 </P>
-<P>A reflecting wall cannot be used with rigid bodies such as those
+<P>A reflecting wall should not be used with rigid bodies such as those
 defined by a "fix rigid" command.  This is because the wall/reflect
 displaces atoms directly rather than exerts a force on them.  For
 rigid bodies, use a soft wall instead, such as <A HREF = "fix_wall_lj93.html">fix
-wall/lj93</A>.
+wall/lj93</A>.  LAMMPS will flag the use of a rigid
+fix with fix wall/reflect with a warning, but will not generate an
+error.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -80,9 +80,13 @@ class FixIMD : public Fix {
   int    imd_trate;             // IMD transmission rate.
 
   int    unwrap_flag;           // true if coordinates need to be unwrapped before sending
+  int    nowait_flag;           // true if LAMMPS should not wait with the execution for VMD.
+  int    connect_msg;           // flag to indicate whether a "listen for connection message" is needed.
 
   int    me;                    // my MPI rank in this "world".
   int    nlevels_respa;         // flag to determine respa levels.
+
+  int reconnect();
 };
 
 }

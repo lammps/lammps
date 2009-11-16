@@ -234,6 +234,8 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
 
   /* default values for optional flags */
   unwrap_flag = 0;
+  nowait_flag = 0;
+  connect_msg = 1;
   imd_fscale = 1.0;
   imd_trate = 1;
   
@@ -245,6 +247,12 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
         unwrap_flag = 1;
       } else {
         unwrap_flag = 0;
+      }
+    } else if (0 == strcmp(arg[argsdone], "nowait")) {
+      if (0 == strcmp(arg[argsdone+1], "on")) {  
+        nowait_flag = 1;
+      } else {
+        nowait_flag = 0;
       }
     } else if (0 == strcmp(arg[argsdone], "fscale")) {
       imd_fscale = atof(arg[argsdone+1]);
@@ -338,6 +346,72 @@ void FixIMD::init()
 }
 
 /* ---------------------------------------------------------------------- */
+
+/* (re-)connect to an IMD client (e.g. VMD). return 1 if
+   new connection was made, 0 if not. */
+int FixIMD::reconnect()
+{
+  /* set up IMD communication. */
+  imd_terminate = 0;
+  imd_inactive = 0;
+  
+  if (me == 0) {
+    if (screen && connect_msg)
+      if (nowait_flag)
+        fprintf(screen,"Listening for IMD connection on port %d.\n",imd_port);
+      else
+        fprintf(screen,"Waiting for IMD connection on port %d.\n",imd_port);
+    
+    connect_msg = 0;
+    clientsock = NULL;
+    if (nowait_flag) {
+      int retval = imdsock_selread(localsock,0);
+      if (retval > 0) {
+        clientsock = imdsock_accept(localsock);
+      } else {
+        imd_inactive = 1;
+        return 0;
+      }
+    } else {
+      int retval=0;
+      do {
+        retval = imdsock_selread(localsock, 60);
+      } while (retval <= 0);
+      clientsock = imdsock_accept(localsock);
+    }
+    
+    if (!imd_inactive && !clientsock) {
+      if (screen)
+        fprintf(screen, "IMD socket accept error. Dropping connection.\n");
+      imd_terminate = 1;
+      return 0;
+    } else {
+      /* check endianness and IMD protocol version. */
+      if (imd_handshake(clientsock)) {
+        if (screen)
+          fprintf(screen, "IMD handshake error. Dropping connection.\n");
+        imdsock_destroy(clientsock);
+        imd_terminate = 1;
+        return 0;
+      } else {
+        int32 length;
+        if (imdsock_selread(clientsock, 1) != 1 ||
+            imd_recv_header(clientsock, &length) != IMD_GO) {
+          if (screen)
+            fprintf(screen, "Incompatible IMD client version? Dropping connection.\n");
+          imdsock_destroy(clientsock);
+          imd_terminate = 1;
+          return 0;
+        } else {
+          return 1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
 /* wait for IMD client (e.g. VMD) to respond, initialize communication 
  * buffers and collect tag/id maps. */
 void FixIMD::setup(int)
@@ -359,40 +433,9 @@ void FixIMD::setup(int)
   maxbuf = nmax*size_one;
   comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
 
-  /* set up IMD communication. */
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"Waiting for IMD connection on port %d.\n",imd_port);
-    
-    int retval=0;
-    do {
-      retval = imdsock_selread(localsock, 60);
-    } while (retval <= 0);
-    clientsock = imdsock_accept(localsock);
-
-    if (!clientsock) {
-          if (screen)
-            fprintf(screen, "IMD socket accept error. Dropping connection.\n");
-          imd_terminate = 1;
-    } else {
-      /* check endianness and IMD protocol version. */
-      if (imd_handshake(clientsock)) {
-        if (screen)
-          fprintf(screen, "IMD handshake error. Dropping connection.\n");
-        imdsock_destroy(clientsock);
-        imd_terminate = 1;
-      } else {
-        int32 length;
-        if (imdsock_selread(clientsock, 1) != 1 ||
-            imd_recv_header(clientsock, &length) != IMD_GO) {
-          if (screen)
-            fprintf(screen, "Incompatible IMD client version? Dropping connection.\n");
-          imdsock_destroy(clientsock);
-          imd_terminate = 1;
-        }
-      }
-    }
-  }
+  connect_msg = 1;
+  reconnect();
+  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
   if (imd_terminate)
     error->all("LAMMPS terminated on error in setting up IMD connection.");
@@ -464,7 +507,16 @@ void FixIMD::setup(int)
  * Send coodinates, energies, and add IMD forces to atoms. */
 void FixIMD::post_force(int vflag)
 {
-  if (imd_inactive) return;     /* IMD client has detached. do nothing. */
+  /* check for reconnect */
+  if (imd_inactive) {
+    reconnect();
+    MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
+    MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
+    if (imd_terminate)
+      error->all("LAMMPS terminated on error in setting up IMD connection.");
+    if (imd_inactive)
+      return;     /* IMD client has detached and not yet come back. do nothing. */
+  }
 
   int *tag = atom->tag;
   double **x = atom->x;
@@ -614,37 +666,11 @@ void FixIMD::post_force(int vflag)
           force_buf = NULL;
           imdsock_destroy(clientsock);
           clientsock = NULL;
-          if (screen) {
+          if (screen)
             fprintf(screen, "IMD client detached. LAMMPS run continues.\n");
-            fprintf(screen, "Waiting for new IMD connection on port %d.\n",imd_port);
-          }
-          int retval=0;
-          do {
-            retval = imdsock_selread(localsock, 60);
-          } while (retval <= 0);
-          clientsock = imdsock_accept(localsock);
-          if (!clientsock) {
-            if (screen)
-              fprintf(screen, "IMD socket accept error. Dropping connection.\n");
-            imd_terminate = 1;
-          } else {
-            /* check endianness and IMD protocol version. */
-            if (imd_handshake(clientsock)) {
-              if (screen)
-                fprintf(screen, "IMD handshake error. Dropping connection.\n");
-              imdsock_destroy(clientsock);
-              imd_terminate = 1;
-            } else {
-              int32 length;
-              if (imdsock_selread(clientsock, 1) != 1 ||
-                  imd_recv_header(clientsock, &length) != IMD_GO) {
-                if (screen)
-                  fprintf(screen, "Incompatible IMD client version? Dropping connection.\n");
-                imdsock_destroy(clientsock);
-                imd_terminate = 1;
-              }
-            }
-          }
+
+          connect_msg = 1;
+          reconnect();
           if (imd_terminate) imd_inactive = 1;
           break;
         }
@@ -708,11 +734,11 @@ void FixIMD::post_force(int vflag)
           buf = static_cast<struct commdata *>(force_buf);
           
           /* compare data to hash table */
-          for (int i=0; i < length; ++i) {
-            buf[i].tag = rev_idmap[imd_tags[i]];
-            buf[i].x   = imd_fdat[3*i];
-            buf[i].y   = imd_fdat[3*i+1];
-            buf[i].z   = imd_fdat[3*i+2];
+          for (int ii=0; ii < length; ++ii) {
+            buf[ii].tag = rev_idmap[imd_tags[ii]];
+            buf[ii].x   = imd_fdat[3*ii];
+            buf[ii].y   = imd_fdat[3*ii+1];
+            buf[ii].z   = imd_fdat[3*ii+2];
           }
           delete[] imd_tags;
           delete[] imd_fdat;

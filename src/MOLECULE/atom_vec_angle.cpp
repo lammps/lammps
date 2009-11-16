@@ -175,9 +175,6 @@ int AtomVecAngle::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -194,9 +191,6 @@ int AtomVecAngle::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      buf[m++] = v[j][0];
-      buf[m++] = v[j][1];
-      buf[m++] = v[j][2];
     }
   }
   return m;
@@ -217,6 +211,9 @@ int AtomVecAngle::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
     }
   } else {
     if (domain->triclinic == 0) {
@@ -233,6 +230,9 @@ int AtomVecAngle::pack_comm_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
+      buf[m++] = v[j][0];
+      buf[m++] = v[j][1];
+      buf[m++] = v[j][2];
     }
   }
   return m;

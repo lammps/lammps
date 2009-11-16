@@ -39,15 +39,15 @@
 
 // External functions from cuda library for force decomposition
 
-int * lj_gpu_init(int &ij_size, const int ntypes, double **cutsq, 
-                  double **sigma, double **epsilon, double **host_lj1, 
-                  double **host_lj2, double **host_lj3, double **host_lj4, 
-                  double **offset, double *special_lj, const int max_nbors, 
-                  const int gpu_id);
+bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq, 
+                 double **sigma, double **epsilon, double **host_lj1, 
+                 double **host_lj2, double **host_lj3, double **host_lj4, 
+                 double **offset, double *special_lj, const int max_nbors, 
+                 const int gpu_id);
 void lj_gpu_clear();
 bool lj_gpu_reset_nbors(const int nall, const int inum, int *ilist, 
                         const int *numj);
-void lj_gpu_nbors(const int num_ij);
+void lj_gpu_nbors(const int *ij, const int num_ij);
 void lj_gpu_atom(double **host_x, const int *host_type, const bool rebuild);
 void lj_gpu(const bool eflag, const bool vflag, const bool rebuild);
 double lj_gpu_forces(double **f, const int *ilist, const bool eflag, 
@@ -75,22 +75,17 @@ PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), multi_gpu_mode(0)
 
 PairLJCutGPU::~PairLJCutGPU()
 {
-  if (comm->me == 0 && screen) {
-    printf("\n\n-------------------------------------");
-    printf("--------------------------------\n");
-    printf("      GPU Time Stamps: ");
-    printf("\n-------------------------------------");
-    printf("--------------------------------\n");
-    lj_gpu_time();
-    printf("Procs: %d\n",comm->nprocs);
-    printf("-------------------------------------");
-    printf("--------------------------------\n\n");
-  }
+  printf("\n\n-------------------------------------");
+  printf("--------------------------------\n");
+  printf("      GPU Time Stamps: ");
+  printf("\n-------------------------------------");
+  printf("--------------------------------\n");
+  lj_gpu_time();
+  printf("-------------------------------------");
+  printf("--------------------------------\n\n");
   lj_gpu_clear();
-  if (ij_new!=NULL) {
-    ij_new=NULL;
+  if (ij_new!=NULL)
     delete [] ij_new;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,16 +138,14 @@ void PairLJCutGPU::compute(int eflag, int vflag)
         num_ij++;
           
         if (num_ij==ij_size) {
-          memcpy(ij,ij_new,num_ij*sizeof(int));
-          lj_gpu_nbors(num_ij);
+          lj_gpu_nbors(ij_new, num_ij);
           ijp=ij_new;
           num_ij=0;
         }
       }
     }
     if (num_ij>0) {
-      memcpy(ij,ij_new,num_ij*sizeof(int));
-      lj_gpu_nbors(num_ij);
+      lj_gpu_nbors(ij_new, num_ij);
     }
   }
   
@@ -230,9 +223,8 @@ void PairLJCutGPU::init_style()
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
 
-  ij=lj_gpu_init(ij_size, atom->ntypes+1, cutsq, sigma, epsilon, lj1, lj2, lj3, 
-                 lj4, offset, force->special_lj, neighbor->oneatom, my_gpu);
-  if (ij==0)
+  if (!lj_gpu_init(ij_size, atom->ntypes+1, cutsq, sigma, epsilon, lj1, lj2,lj3, 
+                   lj4, offset, force->special_lj, neighbor->oneatom, my_gpu))
     error->one("AT LEAST ONE PROCESS COULD NOT ALLOCATE A CUDA-ENABLED GPU.");
     
   if (ij_new!=NULL)

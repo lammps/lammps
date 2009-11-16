@@ -32,7 +32,7 @@ class PairGayBerneGPU : public PairGayBerne {
 
  private:  
   int ij_size;
-  int *ij[MAX_GPU_THREADS], *ij_new[MAX_GPU_THREADS], *olist[MAX_GPU_THREADS];
+  int *ij_new[MAX_GPU_THREADS], *olist[MAX_GPU_THREADS];
  
   int my_thread, nthreads, thread_inum[MAX_GPU_THREADS], omp_chunk;
  

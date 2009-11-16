@@ -43,18 +43,19 @@
 
 // External functions from cuda library for atom decomposition
 
-int * gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
-                  const double upsilon, const double mu, double **shape,
-                  double **well, double **cutsq, double **sigma, 
-                  double **epsilon, double *host_lshape, int **form,
-                  double **host_lj1, double **host_lj2, double **host_lj3, 
-                  double **host_lj4, double **offset, double *special_lj, 
-                  const int max_nbors, const int thread, const int gpu_id);
+bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
+                 const double upsilon, const double mu, double **shape,
+                 double **well, double **cutsq, double **sigma, 
+                 double **epsilon, double *host_lshape, int **form,
+                 double **host_lj1, double **host_lj2, double **host_lj3, 
+                 double **host_lj4, double **offset, double *special_lj, 
+                 const int max_nbors, const int thread, const int gpu_id);
 void gb_gpu_clear(const int thread);
 int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum, 
                          int *ilist, const int *numj, const int *type,
                          const int thread, bool &success);
-void gb_gpu_nbors(const int num_ij, const bool eflag, const int thread);
+void gb_gpu_nbors(const int *ij, const int num_ij, const bool eflag, 
+                  const int thread);
 void gb_gpu_atom(double **host_x, double **host_quat, const int *host_type, 
                  const bool rebuild, const int thread);
 void gb_gpu_gayberne(const bool eflag, const bool vflag, const bool rebuild, 
@@ -86,27 +87,23 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), my_thread(0),
 
 PairGayBerneGPU::~PairGayBerneGPU()
 {
-  if (comm->me == 0 && screen) {
-    printf("\n\n-------------------------------------");
-    printf("--------------------------------\n");
-    printf("      GPU Time Stamps: ");
-    printf("\n-------------------------------------");
-    printf("--------------------------------\n");
-    gb_gpu_time(my_thread);
-    printf("Procs: %d\n",comm->nprocs);
-    printf("-------------------------------------");
-    printf("--------------------------------\n\n");
-  }
+  printf("\n\n-------------------------------------");
+  printf("--------------------------------\n");
+  printf("      GPU Time Stamps: ");
+  printf("\n-------------------------------------");
+  printf("--------------------------------\n");
+  gb_gpu_time(my_thread);
+  printf("-------------------------------------");
+  printf("--------------------------------\n\n");
+  
   #pragma omp parallel
   {
     #ifdef GB_GPU_OMP
     int my_thread=omp_get_thread_num();
     #endif
     gb_gpu_clear(my_thread);
-    if (ij_new[my_thread]!=NULL) {
-      ij_new[my_thread]=NULL;
+    if (ij_new[my_thread]!=NULL)
       delete [] ij_new[my_thread];
-    }
   }
 }
 
@@ -187,17 +184,14 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
         num_ij++;
           
         if (num_ij==ij_size) {
-          memcpy(ij[my_thread],ij_new[my_thread],num_ij*sizeof(int));
-          gb_gpu_nbors(num_ij,eflag,my_thread);
+          gb_gpu_nbors(ij_new[my_thread],num_ij,eflag,my_thread);
           ijp=ij_new[my_thread];
           num_ij=0;
         }
       }
     }
-    if (num_ij>0) {
-      memcpy(ij[my_thread],ij_new[my_thread],num_ij*sizeof(int));
-      gb_gpu_nbors(num_ij,eflag,my_thread);
-    }
+    if (num_ij>0)
+      gb_gpu_nbors(ij_new[my_thread],num_ij,eflag,my_thread);
   }
   
   gb_gpu_gayberne(eflag,vflag,rebuild,my_thread);
@@ -325,11 +319,11 @@ void PairGayBerneGPU::init_style()
       my_gpu+=multi_gpu_param;
     #endif
     
-    ij[my_thread]=gb_gpu_init(ij_size, atom->ntypes+1, gamma, upsilon, mu, 
-                              shape, well, cutsq, sigma, epsilon, lshape, form,
-                              lj1, lj2, lj3, lj4, offset, force->special_lj, 
-                              neighbor->oneatom, my_thread, my_gpu);
-    if (ij[my_thread]==0)
+    bool init_ok=gb_gpu_init(ij_size, atom->ntypes+1, gamma, upsilon, mu, 
+                             shape, well, cutsq, sigma, epsilon, lshape, form,
+                             lj1, lj2, lj3, lj4, offset, force->special_lj, 
+                             neighbor->oneatom, my_thread, my_gpu);
+    if (!init_ok)
       error->one("AT LEAST ONE PROCESS COULD NOT ALLOCATE A CUDA-ENABLED GPU.");
     
     if (ij_new[my_thread]!=NULL)

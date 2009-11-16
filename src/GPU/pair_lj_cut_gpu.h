@@ -31,7 +31,7 @@ class PairLJCutGPU : public PairLJCut {
 
  private:  
   int ij_size;
-  int *ij, *ij_new;
+  int *ij_new;
  
   int last_neighbor, multi_gpu_mode, multi_gpu_param;
 };

@@ -754,9 +754,6 @@ int AtomVecAngle::data_atom_hybrid(int nlocal, char **values)
 {
   molecule[nlocal] = atoi(values[0]);
 
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
   num_bond[nlocal] = 0;
   num_angle[nlocal] = 0;
 

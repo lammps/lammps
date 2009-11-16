@@ -737,13 +737,6 @@ int AtomVecGranular::data_atom_hybrid(int nlocal, char **values)
     rmass[nlocal] = 4.0*PI/3.0 *
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density[nlocal];
 
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-  omega[nlocal][0] = 0.0;
-  omega[nlocal][1] = 0.0;
-  omega[nlocal][2] = 0.0;
-
   return 2;
 }
 

@@ -715,6 +715,20 @@ void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values)
   image[nlocal] = imagetmp;
   mask[nlocal] = 1;
 
+  v[nlocal][0] = 0.0;
+  v[nlocal][1] = 0.0;
+  v[nlocal][2] = 0.0;
+  if (atom->omega_flag) {
+    omega[nlocal][0];
+    omega[nlocal][1];
+    omega[nlocal][2];
+  }
+  if (atom->angmom_flag) {
+    angmom[nlocal][0];
+    angmom[nlocal][1];
+    angmom[nlocal][2];
+  }
+
   // each sub-style parses sub-style specific values
 
   int m = 5;

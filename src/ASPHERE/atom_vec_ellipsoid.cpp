@@ -782,14 +782,7 @@ int AtomVecEllipsoid::data_atom_hybrid(int nlocal, char **values)
   quat[nlocal][3] = atof(values[3]);
   MathExtra::normalize4(quat[nlocal]);
 
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-  angmom[nlocal][0] = 0.0;
-  angmom[nlocal][1] = 0.0;
-  angmom[nlocal][2] = 0.0;
-
-  return 0;
+  return 4;
 }
 
 /* ----------------------------------------------------------------------

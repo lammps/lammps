@@ -74,7 +74,7 @@ class AtomVec : protected Pointers {
 
   virtual void create_atom(int, double *) = 0;
   virtual void data_atom(double *, int, char **) = 0;
-  virtual int data_atom_hybrid(int, char **) = 0;
+  virtual int data_atom_hybrid(int, char **) {return 0;}
   virtual void data_vel(int, char **);
   virtual int data_vel_hybrid(int, char **) {return 0;}
 

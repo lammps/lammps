@@ -727,10 +727,6 @@ int AtomVecPeri::data_atom_hybrid(int nlocal, char **values)
   rmass[nlocal] = density[nlocal];
   if (rmass[nlocal] <= 0.0) error->one("Invalid mass value");
 
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-
   s0[nlocal] = DBL_MAX;
   x0[nlocal][0] = x[nlocal][0];
   x0[nlocal][1] = x[nlocal][1];

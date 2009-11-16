@@ -561,20 +561,6 @@ void AtomVecAtomic::data_atom(double *coord, int imagetmp, char **values)
 }
 
 /* ----------------------------------------------------------------------
-   unpack hybrid quantities from one line in Atoms section of data file
-   initialize other atom quantities for this sub-style
-------------------------------------------------------------------------- */
-
-int AtomVecAtomic::data_atom_hybrid(int nlocal, char **values)
-{
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 

@@ -770,13 +770,6 @@ int AtomVecDipole::data_atom_hybrid(int nlocal, char **values)
   mu[nlocal][1] = atof(values[2]);
   mu[nlocal][2] = atof(values[3]);
 
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-  omega[nlocal][0] = 0.0;
-  omega[nlocal][1] = 0.0;
-  omega[nlocal][2] = 0.0;
-
   return 4;
 }
 

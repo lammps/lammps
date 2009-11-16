@@ -610,10 +610,6 @@ int AtomVecCharge::data_atom_hybrid(int nlocal, char **values)
 {
   q[nlocal] = atof(values[0]);
 
-  v[nlocal][0] = 0.0;
-  v[nlocal][1] = 0.0;
-  v[nlocal][2] = 0.0;
-
   return 1;
 }
 

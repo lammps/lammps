@@ -40,7 +40,7 @@ class LJ_GPU_Memory {
   ~LJ_GPU_Memory() { clear(); }
  
   /// Allocate memory on host and device
-  int* init(const int ij_size, const int ntypes, double **host_cutsq, 
+  bool init(const int ij_size, const int ntypes, double **host_cutsq, 
             double **host_sigma, double **host_epsilon, 
             double **host_lj1, double **host_lj2, double **host_lj3, 
             double **host_lj4, double **host_offset, double *host_special_lj,

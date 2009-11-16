@@ -33,11 +33,16 @@ using namespace std;
 /// Class for looking at device properties
 /** \note Calls to change the device outside of the class results in incorrect
   *       behavior 
-  * \note There is no error checking for indexing past the number of devices **/
+  * \note There is no error checking for indexing past the number of devices
+  * \note init() at least once before using any of the routines **/
 class NVCDevice {
  public:
   /// Grabs the properties for all devices
-  NVCDevice();
+  /** \note init() must be called following construction before any routines **/
+  NVCDevice() {}
+
+  /// Collect properties for every GPU on the node and set active GPU to ID 0
+  void init();
 
   /// Return the number of devices that support CUDA
   inline int num_devices() { return _properties.size(); }

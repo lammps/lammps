@@ -39,7 +39,7 @@ int LJ_GPU_MemoryT::get_max_atoms(const size_t gpu_bytes, const int max_nbors) {
 }
   
 template <class numtyp, class acctyp>
-int* LJ_GPU_MemoryT::init(const int ij_size, const int ntypes, 
+bool LJ_GPU_MemoryT::init(const int ij_size, const int ntypes, 
                           double **host_cutsq, double **host_sigma, 
                           double **host_epsilon, double **host_lj1, 
                           double **host_lj2, double **host_lj3, 
@@ -50,10 +50,10 @@ int* LJ_GPU_MemoryT::init(const int ij_size, const int ntypes,
     clear();
     
   if (me>=gpu.num_devices())
-    return 0;
+    return false;
   gpu.set(me);
   if (gpu.revision()<1.0)
-    return 0;  
+    return false;  
     
   // Initialize timers for the selected GPU
   time_pair.init();
@@ -114,8 +114,7 @@ int* LJ_GPU_MemoryT::init(const int ij_size, const int ntypes,
   dev_error.zero();
     
   allocated=true;
-
-  return nbor.host_ij.begin();
+  return true;
 }
   
 template <class numtyp, class acctyp>

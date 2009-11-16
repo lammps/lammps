@@ -28,7 +28,9 @@
 #include "nvc_device.h"
 
 // Grabs the properties for all devices
-NVCDevice::NVCDevice() {
+void NVCDevice::init() {
+  _properties.clear();
+  
   CUDA_SAFE_CALL(cudaGetDeviceCount(&_num_devices));
   for (int dev=0; dev<_num_devices; ++dev) {
     cudaDeviceProp deviceProp;

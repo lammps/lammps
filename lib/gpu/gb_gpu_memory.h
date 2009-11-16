@@ -35,7 +35,7 @@ class GB_GPU_Memory : public LJ_GPU_Memory<numtyp,acctyp> {
   GB_GPU_Memory();
   ~GB_GPU_Memory(); 
  
-  int* init(const int ij_size, const int ntypes, const double gamma,
+  bool init(const int ij_size, const int ntypes, const double gamma,
             const double upsilon, const double mu, double **host_shape,
             double **host_well, double **host_cutsq, double **host_sigma, 
             double **host_epsilon, double *host_lshape, int **h_form,

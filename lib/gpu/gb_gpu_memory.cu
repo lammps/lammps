@@ -37,7 +37,7 @@ GB_GPU_MemoryT::~GB_GPU_Memory() {
 }
  
 template <class numtyp, class acctyp>
-int* GB_GPU_MemoryT::init(const int ij_size, const int ntypes, 
+bool GB_GPU_MemoryT::init(const int ij_size, const int ntypes, 
                           const double gamma, const double upsilon, 
                           const double mu, double **host_shape,
                           double **host_well, double **host_cutsq, 
@@ -50,9 +50,11 @@ int* GB_GPU_MemoryT::init(const int ij_size, const int ntypes,
   if (this->allocated)
     clear();
     
-  LJ_GPU_MemoryT::init(ij_size,ntypes,host_cutsq,host_sigma,host_epsilon,
-                       host_lj1, host_lj2, host_lj3, host_lj4, host_offset,
-                       host_special_lj, max_nbors, me);
+  bool p=LJ_GPU_MemoryT::init(ij_size,ntypes,host_cutsq,host_sigma,host_epsilon,
+                              host_lj1, host_lj2, host_lj3, host_lj4, 
+                              host_offset, host_special_lj, max_nbors, me);
+  if (!p)
+    return false;                              
     
   host_form=h_form;
     
@@ -100,7 +102,7 @@ int* GB_GPU_MemoryT::init(const int ij_size, const int ntypes,
   // Memory for ilist ordered by particle type
   host_olist.safe_alloc_rw(this->max_atoms);
 
-  return this->nbor.host_ij.begin();
+  return true;
 }
   
 template <class numtyp, class acctyp>

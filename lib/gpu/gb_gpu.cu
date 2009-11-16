@@ -203,17 +203,19 @@ string gb_gpu_name(const int id, const int max_nbors) {
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int * gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
-                  const double upsilon, const double mu, double **shape,
-                  double **well, double **cutsq, double **sigma, 
-                  double **epsilon, double *host_lshape, int **form,
-                  double **host_lj1, double **host_lj2, double **host_lj3, 
-                  double **host_lj4, double **offset, double *special_lj,
-                  const int max_nbors, const int thread, const int gpu_id) {
+bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
+                 const double upsilon, const double mu, double **shape,
+                 double **well, double **cutsq, double **sigma, 
+                 double **epsilon, double *host_lshape, int **form,
+                 double **host_lj1, double **host_lj2, double **host_lj3, 
+                 double **host_lj4, double **offset, double *special_lj,
+                 const int max_nbors, const int thread, const int gpu_id) {
   assert(thread<MAX_GPU_THREADS);
   
+  GBMF[thread].gpu.init();
+  
   if (GBMF[thread].gpu.num_devices()==0)
-    return 0;                   
+    return false;                   
 
   ij_size=IJ_SIZE;
   return GBMF[thread].init(ij_size, ntypes, gamma, upsilon, mu, shape,
@@ -337,17 +339,20 @@ int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum,
 // forces, and torques for those interactions
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
-void _gb_gpu_nbors(gbmtyp &gbm, const int num_ij, const bool eflag) {
+void _gb_gpu_nbors(gbmtyp &gbm, const int *ij, const int num_ij, 
+                   const bool eflag) {
   gbm.nbor.time_nbor.add_to_total();
   // CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream)); // Not if timed
   
+  memcpy(gbm.nbor.host_ij.begin(),ij,num_ij*sizeof(int));
   gbm.nbor.time_nbor.start();
   gbm.nbor.add(num_ij,gbm.pair_stream);
   gbm.nbor.time_nbor.stop();
 }
 
-void gb_gpu_nbors(const int num_ij, const bool eflag, const int thread) {
-  _gb_gpu_nbors(GBMF[thread],num_ij,eflag);
+void gb_gpu_nbors(const int *ij, const int num_ij, const bool eflag, 
+                  const int thread) {
+  _gb_gpu_nbors(GBMF[thread],ij,num_ij,eflag);
 }
 
 // ---------------------------------------------------------------------------
@@ -475,7 +480,7 @@ double _gb_gpu_forces(GBMT &gbm, double **f, double **tor, const int *ilist,
     gbm.time_gayberne2.add_to_total();
     gbm.time_pair.add_to_total();
   }      
-  // CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream)); // Not if timed
+  CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream));
   
   evdw=gbm.atom.energy_virial(ilist,eflag_atom,vflag_atom,eatom,vatom,virial);
   gbm.atom.add_forces(ilist,f);

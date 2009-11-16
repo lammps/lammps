@@ -63,12 +63,13 @@ string lj_gpu_name(const int id, const int max_nbors) {
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int * lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **sigma, 
-                  double **epsilon, double **host_lj1, double **host_lj2, 
-                  double **host_lj3, double **host_lj4, double **offset, 
-                  double *special_lj, const int max_nbors, const int gpu_id) {
+bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **sigma, 
+                 double **epsilon, double **host_lj1, double **host_lj2, 
+                 double **host_lj3, double **host_lj4, double **offset, 
+                 double *special_lj, const int max_nbors, const int gpu_id) {
+  LJMF.gpu.init();                  
   if (LJMF.gpu.num_devices()==0)
-    return 0;                   
+    return false;                   
 
   ij_size=IJ_SIZE;
   return LJMF.init(ij_size, ntypes, cutsq, sigma, epsilon, host_lj1, host_lj2, 
@@ -142,17 +143,19 @@ bool lj_gpu_reset_nbors(const int nall, const int inum, int *ilist,
 // forces, and torques for those interactions
 // ---------------------------------------------------------------------------
 template <class LJMTyp>
-void _lj_gpu_nbors(LJMTyp &ljm, const int num_ij) {
+void _lj_gpu_nbors(LJMTyp &ljm, const int *ij, const int num_ij) {
   ljm.nbor.time_nbor.add_to_total();
-  // CUDA_SAFE_CALL(cudaStreamSynchronize(ljm.pair_stream)); // Not if timed
   
+  // CUDA_SAFE_CALL(cudaStreamSynchronize(ljm.pair_stream)); // Not if timed
+
+  memcpy(ljm.nbor.host_ij.begin(),ij,num_ij*sizeof(int));
   ljm.nbor.time_nbor.start();
   ljm.nbor.add(num_ij,ljm.pair_stream);
   ljm.nbor.time_nbor.stop();
 }
 
-void lj_gpu_nbors(const int num_ij) {
-  _lj_gpu_nbors(LJMF,num_ij);
+void lj_gpu_nbors(const int *ij, const int num_ij) {
+  _lj_gpu_nbors(LJMF,ij,num_ij);
 }
 
 // ---------------------------------------------------------------------------
@@ -201,7 +204,7 @@ double _lj_gpu_forces(LJMT &ljm, double **f, const int *ilist,
   ljm.atom.time_atom.add_to_total();
   ljm.nbor.time_nbor.add_to_total();
   ljm.time_pair.add_to_total();
-  // CUDA_SAFE_CALL(cudaStreamSynchronize(ljm.pair_stream)); // not if timed
+  CUDA_SAFE_CALL(cudaStreamSynchronize(ljm.pair_stream));
 
   evdw=ljm.atom.energy_virial(ilist,eflag_atom,vflag_atom,eatom,vatom,virial);
   ljm.atom.add_forces(ilist,f);

@@ -20,7 +20,7 @@ static __inline__ __device__ numbr cuda_zero() { return 0.0; }
 template <>
 static __inline__ __device__ float cuda_zero<float>() { return 0.0f; }
 
-#ifdef DEBUG
+#ifndef NO_DEBUG
 
 #  define CU_SAFE_CALL_NO_SYNC( call ) do {                                  \
     CUresult err = call;                                                     \

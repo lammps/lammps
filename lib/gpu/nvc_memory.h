@@ -156,25 +156,26 @@ class NVC_Host {
   /// Asynchronous copy from device (numel is not bytes)
   inline void copy_from_device(const numtyp *device_p, size_t numel,
                                cudaStream_t &stream) {
-    CUDA_SAFE_CALL(cudaMemcpyAsync(_array,device_p,numel*sizeof(numtyp),
-                                   cudaMemcpyDeviceToHost,stream));
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(_array,device_p,numel*sizeof(numtyp),
+                                           cudaMemcpyDeviceToHost,stream));
   }
   
   /// Asynchronous copy to device (numel is not bytes)
   inline void copy_to_device(numtyp *device_p, size_t numel,
                              cudaStream_t &stream) {
-    CUDA_SAFE_CALL(cudaMemcpyAsync(device_p,_array,numel*sizeof(numtyp),
-                                   cudaMemcpyHostToDevice,stream));
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(device_p,_array,numel*sizeof(numtyp),
+                                           cudaMemcpyHostToDevice,stream));
   }
   
   /// Asynchronous copy to 2D matrix on device (numel is not bytes)
   inline void copy_to_2Ddevice(numtyp *device_p, const size_t dev_row_size,
                                const size_t rows, const size_t cols,
                                cudaStream_t &stream) {
-    CUDA_SAFE_CALL(cudaMemcpy2DAsync(device_p,dev_row_size*sizeof(numtyp),
-                                     _array,cols*sizeof(numtyp),
-                                     cols*sizeof(numtyp),rows,
-                                     cudaMemcpyHostToDevice,stream));
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpy2DAsync(device_p,
+                                             dev_row_size*sizeof(numtyp),
+                                             _array,cols*sizeof(numtyp),
+                                             cols*sizeof(numtyp),rows,
+                                             cudaMemcpyHostToDevice,stream));
   }
   
  private:
@@ -226,8 +227,8 @@ class NVC_Vec {
 
   /// Asynchronous copy from host
   inline void copy_from_host(const numtyp *host_p, cudaStream_t &stream)
-    { CUDA_SAFE_CALL(cudaMemcpyAsync(_array,host_p,row_bytes(), 
-                     cudaMemcpyHostToDevice, stream)); }
+    { CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(_array,host_p,row_bytes(), 
+                             cudaMemcpyHostToDevice, stream)); }
 
   /// Copy to host
   inline void copy_to_host(numtyp *host_p)
@@ -328,17 +329,17 @@ class NVC_Mat {
   /// Asynchronous copy from host (elements not bytes)
   inline void copy_from_host(const numtyp *host_p, const size_t numel,
                              cudaStream_t &stream)
-    { CUDA_SAFE_CALL(cudaMemcpyAsync(_array,host_p,numel*sizeof(numtyp), 
-                     cudaMemcpyHostToDevice, stream)); }
+    { CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyAsync(_array,host_p,numel*sizeof(numtyp), 
+                             cudaMemcpyHostToDevice, stream)); }
 
   /// Asynchronous Copy from Host
   /** \note Used when the number of columns/rows allocated on host smaller than
     *       on device **/
   inline void copy_2Dfrom_host(const numtyp *host_p, const size_t rows,
                                const size_t cols, cudaStream_t &stream) {
-    CUDA_SAFE_CALL(cudaMemcpy2DAsync(_array, _pitch, host_p,cols*sizeof(numtyp), 
-                                     cols*sizeof(numtyp), rows,
-                                     cudaMemcpyHostToDevice,stream));
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpy2DAsync(_array, _pitch, host_p,
+                           cols*sizeof(numtyp), cols*sizeof(numtyp), rows,
+                           cudaMemcpyHostToDevice,stream));
   }
 
  private:
@@ -416,9 +417,10 @@ class NVC_ConstMat {
 
   /// Asynchronous Copy from Host
   inline void copy_from_host(const numtyp *host_p, cudaStream_t &stream) {
-    CUDA_SAFE_CALL(cudaMemcpyToArrayAsync(_array, 0, 0, host_p, 
-                                          numel()*sizeof(numtyp),
-                                          cudaMemcpyHostToDevice,stream));
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpyToArrayAsync(_array, 0, 0, host_p, 
+                                                  numel()*sizeof(numtyp),
+                                                  cudaMemcpyHostToDevice,
+                                                  stream));
   }
       
   /// Asynchronous Copy from Host
@@ -426,9 +428,9 @@ class NVC_ConstMat {
     *       on device **/
   inline void copy_2Dfrom_host(const numtyp *host_p, const size_t rows,
                                const size_t cols, cudaStream_t &stream) {
-    CUDA_SAFE_CALL(cudaMemcpy2DToArrayAsync(_array, 0, 0, host_p, 
-                         cols*sizeof(numtyp), cols*sizeof(numtyp), rows,
-                         cudaMemcpyHostToDevice,stream));
+    CUDA_SAFE_CALL_NO_SYNC(cudaMemcpy2DToArrayAsync(_array, 0, 0, host_p, 
+                           cols*sizeof(numtyp), cols*sizeof(numtyp), rows,
+                           cudaMemcpyHostToDevice,stream));
   }                               
 
   /// Cast buffer to numtyp in host_write and copy to array

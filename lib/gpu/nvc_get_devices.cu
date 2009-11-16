@@ -25,6 +25,7 @@
 
 int main(int argc, char** argv) {
   NVCDevice gpu;
+  gpu.init();
   gpu.print_all(cout);
   return 0;
 }

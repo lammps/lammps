@@ -113,13 +113,16 @@ void AtomVecHybrid::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
 
+  // sub-styles perform all reallocation
+  // turn off nextra_grow so hybrid can do that once below
+
   int tmp = atom->nextra_grow;
   atom->nextra_grow = 0;
   for (int k = 0; k < nstyles; k++) styles[k]->grow(nmax);
   atom->nextra_grow = tmp;
 
   // insure sub-style ptrs and hybrid local ptrs are up to date
-  // for sub-styles, is in case sub-style reallocs actually realloced
+  // for sub-styles, do this in case multiple sub-style reallocs occurred
 
   for (int k = 0; k < nstyles; k++) styles[k]->grow_reset();
   grow_reset();

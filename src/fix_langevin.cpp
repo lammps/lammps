@@ -195,7 +195,12 @@ void FixLangevin::post_force_no_tally()
   double t_target = t_start + delta * (t_stop-t_start);
   double tsqrt = sqrt(t_target);
 
-  // apply damping and thermostat to appropriate atoms
+  // apply damping and thermostat to atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   test v = 0 since some computes mask non-participating atoms via v = 0
+  //   and added force has extra term not multiplied by v = 0
 
   if (rmass) {
     double boltz = force->boltz;
@@ -216,12 +221,8 @@ void FixLangevin::post_force_no_tally()
 	}
       }
 
-    // invoke temperature since some computes require it to remove bias
-    // test v = 0 since some computes mask non-participating atoms via v = 0
-
     } else if (which == BIAS) {
       double tmp = temperature->compute_scalar();
-      
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = -rmass[i] / t_period / ftm2v;
@@ -252,12 +253,8 @@ void FixLangevin::post_force_no_tally()
 	}
       }
 
-    // invoke temperature since some computes require it to remove bias
-    // test v = 0 since some computes mask non-participating atoms via v = 0
-
     } else if (which == BIAS) {
       double tmp = temperature->compute_scalar();
-      
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = gfactor1[type[i]];
@@ -303,6 +300,11 @@ void FixLangevin::post_force_tally()
   double tsqrt = sqrt(t_target);
 
   // apply damping and thermostat to appropriate atoms
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   test v = 0 since some computes mask non-participating atoms via v = 0
+  //   and added force has extra term not multiplied by v = 0
 
   if (rmass) {
     double boltz = force->boltz;
@@ -326,12 +328,8 @@ void FixLangevin::post_force_tally()
 	}
       }
 
-    // invoke temperature since some computes require it to remove bias
-    // test v = 0 since some computes mask non-participating atoms via v = 0
-
     } else if (which == BIAS) {
       double tmp = temperature->compute_scalar();
-      
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = -rmass[i] / t_period / ftm2v;
@@ -368,12 +366,8 @@ void FixLangevin::post_force_tally()
 	}
       }
 
-    // invoke temperature since some computes require it to remove bias
-    // test v = 0 since some computes mask non-participating atoms via v = 0
-
     } else if (which == BIAS) {
       double tmp = temperature->compute_scalar();
-      
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  gamma1 = gfactor1[type[i]];

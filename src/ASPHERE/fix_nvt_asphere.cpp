@@ -101,6 +101,12 @@ void FixNVTAsphere::initial_integrate(int vflag)
   eta += dtv*eta_dot;
   factor = exp(-dthalf*eta_dot);
 
+  // update v,x,angmom of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -140,7 +146,8 @@ void FixNVTAsphere::initial_integrate(int vflag)
       }
     }
 
-  } else if (which == BIAS) {
+  } else {
+    double tmp = temperature->compute_scalar();
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	temperature->remove_bias(i,v[i]);
@@ -173,6 +180,12 @@ void FixNVTAsphere::final_integrate()
 {
   double dtfm;
 
+  // update v,angmom of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
   double **v = atom->v;
   double **f = atom->f;
   double **angmom = atom->angmom;
@@ -196,7 +209,8 @@ void FixNVTAsphere::final_integrate()
       }
     }
 
-  } else if (which == BIAS) {
+  } else {
+    double tmp = temperature->compute_scalar();
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	temperature->remove_bias(i,v[i]);

@@ -200,7 +200,11 @@ void FixNVT::initial_integrate(int vflag)
 
   factor = exp(-dthalf*eta_dot);
 
-  // update v and x of only atoms in group
+  // update v and x of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   double **x = atom->x;
   double **v = atom->v;
@@ -223,7 +227,8 @@ void FixNVT::initial_integrate(int vflag)
 	  x[i][2] += dtv * v[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -252,7 +257,8 @@ void FixNVT::initial_integrate(int vflag)
 	  x[i][2] += dtv * v[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -284,7 +290,11 @@ void FixNVT::final_integrate()
 {
   double dtfm;
 
-  // update v of only atoms in group
+  // update v of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   double **v = atom->v;
   double **f = atom->f;
@@ -307,7 +317,8 @@ void FixNVT::final_integrate()
 	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -330,7 +341,8 @@ void FixNVT::final_integrate()
 	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -369,19 +381,20 @@ void FixNVT::final_integrate()
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    dtfm = dtf / mass[type[i]];
-	    v[i][0] = v[i][0] * factor;
-	    v[i][1] = v[i][1] * factor;
-	    v[i][2] = v[i][2] * factor;
+	    v[i][0] *= factor;
+	    v[i][1] *= factor;
+	    v[i][2] *= factor;
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    temperature->remove_bias(i,v[i]);
 	    dtfm = dtf / mass[type[i]];
-	    v[i][0] = v[i][0] * factor;
-	    v[i][1] = v[i][1] * factor;
-	    v[i][2] = v[i][2] * factor;
+	    v[i][0] *= factor;
+	    v[i][1] *= factor;
+	    v[i][2] *= factor;
 	    temperature->restore_bias(i,v[i]);
 	  }
 	}
@@ -392,19 +405,20 @@ void FixNVT::final_integrate()
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    dtfm = dtf / mass[type[i]];
-	    v[i][0] = v[i][0] * factor;
-	    v[i][1] = v[i][1] * factor;
-	    v[i][2] = v[i][2] * factor;
+	    v[i][0] *= factor;
+	    v[i][1] *= factor;
+	    v[i][2] *= factor;
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    temperature->remove_bias(i,v[i]);
 	    dtfm = dtf / mass[type[i]];
-	    v[i][0] = v[i][0] * factor;
-	    v[i][1] = v[i][1] * factor;
-	    v[i][2] = v[i][2] * factor;
+	    v[i][0] *= factor;
+	    v[i][1] *= factor;
+	    v[i][2] *= factor;
 	    temperature->restore_bias(i,v[i]);
 	  }
 	}
@@ -492,7 +506,8 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	  v[i][2] = v[i][2]*factor + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -516,7 +531,8 @@ void FixNVT::initial_integrate_respa(int vflag, int ilevel, int flag)
 	}
       }
 
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);

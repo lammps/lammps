@@ -388,6 +388,12 @@ void FixNPT::initial_integrate(int vflag)
     dilation[i] = exp(dthalf*omega_dot[i]);
   }
 
+  // update v and x of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -408,7 +414,8 @@ void FixNPT::initial_integrate(int vflag)
 	  v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -431,7 +438,8 @@ void FixNPT::initial_integrate(int vflag)
 	  v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -449,7 +457,7 @@ void FixNPT::initial_integrate(int vflag)
 
   remap(0);
 
-  // x update by full step only for atoms in group
+  // update x by full step for atoms in group
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -475,6 +483,12 @@ void FixNPT::final_integrate()
   int i;
   double dtfm;
 
+  // update v of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;
@@ -494,7 +508,8 @@ void FixNPT::final_integrate()
 	  v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -517,7 +532,8 @@ void FixNPT::final_integrate()
 	  v[i][2] = (v[i][2] + dtfm*f[i][2]) * factor[2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -602,7 +618,7 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 
   // outermost level - update eta_dot and omega_dot, apply to v, remap box
   // all other levels - NVE update of v
-  // x,v updates only performed for atoms in group
+  // x,v updates performed for atoms in group
 
   if (ilevel == nlevels_respa-1) {
 
@@ -635,7 +651,7 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
       dilation[i] = exp(dthalf*omega_dot[i]);
     }
 
-    // v update only for atoms in group
+    // update v for atoms in group
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
@@ -663,57 +679,31 @@ void FixNPT::initial_integrate_respa(int vflag, int ilevel, int flag)
 
   } else {
 
-    // v update only for atoms in group
+    // update v for atoms in group
 
     if (rmass) {
-      if (which == NOBIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    dtfm = dtf / rmass[i];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	  }
-	}
-      } else if (which == BIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    temperature->remove_bias(i,v[i]);
-	    dtfm = dtf / rmass[i];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	    temperature->restore_bias(i,v[i]);
-	  }
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
 	}
       }
 
     } else {
-      if (which == NOBIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    dtfm = dtf / mass[type[i]];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	  }
-	}
-      } else if (which == BIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    temperature->remove_bias(i,v[i]);
-	    dtfm = dtf / mass[type[i]];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	    temperature->restore_bias(i,v[i]);
-	  }
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
 	}
       }
     }
   }
 
-  // innermost level - also update x only for atoms in group
+  // innermost level - also update x for atoms in group
 
   if (ilevel == 0) {
     for (int i = 0; i < nlocal; i++) {
@@ -740,12 +730,12 @@ void FixNPT::final_integrate_respa(int ilevel)
   // outermost level - update eta_dot and omega_dot,
   //   apply to v via final_integrate()
   // all other levels - NVE update of v
-  // v update only performed for atoms in group
+  // update v for atoms in group
 
   if (ilevel == nlevels_respa-1) final_integrate();
   else {
 
-    // v update only for atoms in group
+    // update v for atoms in group
 
     double **v = atom->v;
     double **f = atom->f;
@@ -757,48 +747,22 @@ void FixNPT::final_integrate_respa(int ilevel)
     if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
     if (rmass) {
-      if (which == NOBIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    dtfm = dtf / rmass[i];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	  }
-	}
-      } else if (which == BIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    temperature->remove_bias(i,v[i]);
-	    dtfm = dtf / rmass[i];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	    temperature->restore_bias(i,v[i]);
-	  }
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / rmass[i];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
 	}
       }
 
     } else {
-      if (which == NOBIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    dtfm = dtf / mass[type[i]];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	  }
-	}
-      } else if (which == BIAS) {
-	for (int i = 0; i < nlocal; i++) {
-	  if (mask[i] & groupbit) {
-	    temperature->remove_bias(i,v[i]);
-	    dtfm = dtf / mass[type[i]];
-	    v[i][0] += dtfm*f[i][0];
-	    v[i][1] += dtfm*f[i][1];
-	    v[i][2] += dtfm*f[i][2];
-	    temperature->restore_bias(i,v[i]);
-	  }
+      for (int i = 0; i < nlocal; i++) {
+	if (mask[i] & groupbit) {
+	  dtfm = dtf / mass[type[i]];
+	  v[i][0] += dtfm*f[i][0];
+	  v[i][1] += dtfm*f[i][1];
+	  v[i][2] += dtfm*f[i][2];
 	}
       }
     }

@@ -109,6 +109,9 @@ void FixTempBerendsen::end_of_step()
   t_target = t_start + delta * (t_stop-t_start);
 
   // rescale velocities by lamda
+  // for BIAS:
+  //   temperature is current, so do not need to re-compute
+  //   OK to not test returned v = 0, since lamda is multiplied by v
 
   double lamda = sqrt(1.0 + update->dt/t_period*(t_target/t_current - 1.0));
 
@@ -124,7 +127,7 @@ void FixTempBerendsen::end_of_step()
 	v[i][2] *= lamda;
       }
     }
-  } else if (which == BIAS) {
+  } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	temperature->remove_bias(i,v[i]);

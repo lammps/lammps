@@ -35,7 +35,6 @@
 using namespace LAMMPS_NS;
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
-enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,13 +50,17 @@ void FixNVTSlodd::init()
   if (!temperature->tempbias)
     error->all("Temperature for fix nvt/sllod does not have a bias");
 
+  nondeformbias = 0;
+  if (strcmp(temperature->style,"temp/deform") != 0) nondeformbias = 1;
+
   // check fix deform remap settings
 
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
-	error->all("Using fix nvt/sllod with inconsistent fix deform remap option");
+	error->all("Using fix nvt/sllod with inconsistent fix deform "
+		   "remap option");
       break;
     }
   if (i == modify->nfix)
@@ -82,10 +85,15 @@ void FixNVTSlodd::initial_integrate(int vflag)
   eta += dtv*eta_dot;
   factor = exp(-dthalf*eta_dot);
 
-  // update v and x of only atoms in group
+  // update v and x of atoms in group
   // remove and restore bias = streaming velocity = Hrate*lamda + Hratelo
   // thermostat thermal velocity only
   // vdelu = SLLOD correction = Hrate*Hinv*vthermal
+  // for non temp/deform BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+
+  if (nondeformbias) double tmp = temperature->compute_scalar();
 
   double **x = atom->x;
   double **v = atom->v;
@@ -124,10 +132,16 @@ void FixNVTSlodd::final_integrate()
 {
   double dtfm;
 
-  // update v of only atoms in group
+  // update v of atoms in group
   // remove and restore bias = streaming velocity = Hrate*lamda + Hratelo
   // thermostat thermal velocity only
   // vdelu = SLLOD correction = Hrate*Hinv*vthermal
+  // for non temp/deform BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
+  if (nondeformbias) double tmp = temperature->compute_scalar();
 
   double **v = atom->v;
   double **f = atom->f;
@@ -207,7 +221,9 @@ void FixNVTSlodd::initial_integrate_respa(int vflag, int ilevel, int flag)
     factor = exp(-dthalf*eta_dot);
   } else factor = 1.0;
 
-  // update v of only atoms in group
+  // update v of atoms in group
+
+  if (nondeformbias) double tmp = temperature->compute_scalar();
 
   double h_two[6],vdelu[3];
   MathExtra::multiply_shape_shape(domain->h_rate,domain->h_inv,h_two);

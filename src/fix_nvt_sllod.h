@@ -25,6 +25,9 @@ class FixNVTSlodd : public FixNVT {
   void initial_integrate(int);
   void final_integrate();
   void initial_integrate_respa(int, int, int);
+
+ private:
+  int nondeformbias;
 };
 
 }

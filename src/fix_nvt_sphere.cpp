@@ -125,9 +125,13 @@ void FixNVTSphere::initial_integrate(int vflag)
 
   double dtfrotate = dtf / INERTIA;
 
-  // update v,x,omega for all particles
+  // update v,x,omega of atoms in group
   // d_omega/dt = torque / inertia
   // 8 cases depending on radius vs shape, rmass vs mass, bias vs nobias
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   if (radius) {
     if (rmass) {
@@ -148,7 +152,8 @@ void FixNVTSphere::initial_integrate(int vflag)
 	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    temperature->remove_bias(i,v[i]);
@@ -188,7 +193,8 @@ void FixNVTSphere::initial_integrate(int vflag)
 	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
@@ -231,7 +237,8 @@ void FixNVTSphere::initial_integrate(int vflag)
 	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
@@ -273,7 +280,8 @@ void FixNVTSphere::initial_integrate(int vflag)
 	    omega[i][2] = omega[i][2]*factor + dtirotate*torque[i][2];
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
@@ -306,7 +314,13 @@ void FixNVTSphere::final_integrate()
   int itype;
   double dtfm,dtirotate;
 
-  // update v of only atoms in group
+  // update v,omega of atoms in group
+  // d_omega/dt = torque / inertia
+  // 8 cases depending on radius vs shape, rmass vs mass, bias vs nobias
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   double **v = atom->v;
   double **f = atom->f;
@@ -325,10 +339,6 @@ void FixNVTSphere::final_integrate()
 
   double dtfrotate = dtf / INERTIA;
 
-  // update v,omega for all particles
-  // d_omega/dt = torque / inertia
-  // 8 cases depending on radius vs shape, rmass vs mass, bias vs nobias
-
   if (radius) {
     if (rmass) {
       if (which == NOBIAS) {
@@ -346,6 +356,7 @@ void FixNVTSphere::final_integrate()
 	  }
 	}
       } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    temperature->remove_bias(i,v[i]);
@@ -380,6 +391,7 @@ void FixNVTSphere::final_integrate()
 	  }
 	}
       } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
@@ -417,6 +429,7 @@ void FixNVTSphere::final_integrate()
 	  }
 	}
       } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
@@ -453,6 +466,7 @@ void FixNVTSphere::final_integrate()
 	  }
 	}
       } else {
+	double tmp = temperature->compute_scalar();
 	for (int i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];

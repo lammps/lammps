@@ -122,6 +122,12 @@ void FixNPTSphere::initial_integrate(int vflag)
   }
   factor_rotate = exp(-dthalf*eta_dot);
 
+  // update v of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -146,7 +152,8 @@ void FixNPTSphere::initial_integrate(int vflag)
 	  v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -169,7 +176,8 @@ void FixNPTSphere::initial_integrate(int vflag)
 	  v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
 	}
       }
-    } else if (which == BIAS) {
+    } else {
+      double tmp = temperature->compute_scalar();
       for (i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
 	  temperature->remove_bias(i,v[i]);
@@ -187,7 +195,7 @@ void FixNPTSphere::initial_integrate(int vflag)
 
   remap(0);
 
-  // x update by full step only for atoms in group
+  // update x by full step for atoms in group
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -282,9 +290,13 @@ void FixNPTSphere::final_integrate()
 
   double dtfrotate = dtf / INERTIA;
 
-  // update v,omega for all particles
+  // update v,omega of atoms in group
   // d_omega/dt = torque / inertia
   // 8 cases depending on radius vs shape, rmass vs mass, bias vs nobias
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   if (radius) {
     if (rmass) {
@@ -305,7 +317,8 @@ void FixNPTSphere::final_integrate()
 	      factor_rotate;
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    temperature->remove_bias(i,v[i]);
@@ -345,8 +358,9 @@ void FixNPTSphere::final_integrate()
 	      factor_rotate;
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
 	for (i = 0; i < nlocal; i++) {
+	  double tmp = temperature->compute_scalar();
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
 	    temperature->remove_bias(i,v[i]);
@@ -388,7 +402,8 @@ void FixNPTSphere::final_integrate()
 	      factor_rotate;
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];
@@ -430,7 +445,8 @@ void FixNPTSphere::final_integrate()
 	      factor_rotate;
 	  }
 	}
-      } else if (which == BIAS) {
+      } else {
+	double tmp = temperature->compute_scalar();
 	for (i = 0; i < nlocal; i++) {
 	  if (mask[i] & groupbit) {
 	    itype = type[i];

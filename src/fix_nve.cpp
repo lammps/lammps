@@ -64,6 +64,8 @@ void FixNVE::initial_integrate(int vflag)
 {
   double dtfm;
 
+  // update v and x of atoms in group
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -107,6 +109,8 @@ void FixNVE::initial_integrate(int vflag)
 void FixNVE::final_integrate()
 {
   double dtfm;
+
+  // update v of atoms in group
 
   double **v = atom->v;
   double **f = atom->f;

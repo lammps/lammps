@@ -119,6 +119,12 @@ void FixNPTAsphere::initial_integrate(int vflag)
   }
   factor_rotate = exp(-dthalf*eta_dot);
 
+  // update v of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -140,7 +146,8 @@ void FixNPTAsphere::initial_integrate(int vflag)
 	v[i][2] = v[i][2]*factor[2] + dtfm*f[i][2];
       }
     }
-  } else if (which == BIAS) {
+  } else {
+    double tmp = temperature->compute_scalar();
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	temperature->remove_bias(i,v[i]);
@@ -157,7 +164,7 @@ void FixNPTAsphere::initial_integrate(int vflag)
 
   remap(0);
 
-  // x update by full step only for atoms in group
+  // update x by full step for atoms in group
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -171,7 +178,7 @@ void FixNPTAsphere::initial_integrate(int vflag)
 
   dtq = 0.5 * dtv;
 
-  // update angular momentum by 1/2 step for all particles
+  // update angular momentum by 1/2 step for atoms in group
   // update quaternion a full step via Richardson iteration
   // returns new normalized quaternion
 
@@ -199,7 +206,11 @@ void FixNPTAsphere::final_integrate()
   int i;
   double dtfm;
 
-  // update v of only atoms in group
+  // update v,angmom of atoms in group
+  // for BIAS:
+  //   calculate temperature since some computes require temp
+  //   computed on current nlocal atoms to remove bias
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   double **v = atom->v;
   double **f = atom->f;
@@ -223,7 +234,8 @@ void FixNPTAsphere::final_integrate()
 	angmom[i][2] = (angmom[i][2] + dtf * torque[i][2]) * factor_rotate;
       }
     }
-  } else if (which == BIAS) {
+  } else {
+    double tmp = temperature->compute_scalar();
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 	temperature->remove_bias(i,v[i]);

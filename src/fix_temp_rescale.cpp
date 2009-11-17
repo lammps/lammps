@@ -114,6 +114,9 @@ void FixTempRescale::end_of_step()
   double t_target = t_start + delta * (t_stop-t_start);
 
   // rescale velocity of appropriate atoms if outside window
+  // for BIAS:
+  //   temperature is current, so do not need to re-compute
+  //   OK to not test returned v = 0, since factor is multiplied by v
 
   if (fabs(t_current-t_target) > t_window) {
     t_target = t_current - fraction*(t_current-t_target);
@@ -133,8 +136,7 @@ void FixTempRescale::end_of_step()
 	  v[i][2] *= factor;
 	}
       }
-
-    } else if (which == BIAS) {
+    } else {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
 	if (mask[i] & groupbit) {
@@ -177,7 +179,6 @@ int FixTempRescale::modify_param(int narg, char **arg)
   }
   return 0;
 }
-
 
 /* ---------------------------------------------------------------------- */
 

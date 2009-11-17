@@ -41,7 +41,6 @@ using namespace LAMMPS_NS;
 
 LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 {
-  printf("AAA\n");
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);

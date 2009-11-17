@@ -146,11 +146,28 @@ void AtomVecMolecular::grow(int n)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reset local array ptrs
+------------------------------------------------------------------------- */
 
-void AtomVecMolecular::reset_special()
+void AtomVecMolecular::grow_reset()
 {
-  special = atom->special;
+  tag = atom->tag; type = atom->type;
+  mask = atom->mask; image = atom->image;
+  x = atom->x; v = atom->v; f = atom->f;
+  molecule = atom->molecule;
+  nspecial = atom->nspecial; special = atom->special;
+  num_bond = atom->num_bond; bond_type = atom->bond_type;
+  bond_atom = atom->bond_atom;
+  num_angle = atom->num_angle; angle_type = atom->angle_type;
+  angle_atom1 = atom->angle_atom1; angle_atom2 = atom->angle_atom2;
+  angle_atom3 = atom->angle_atom3;
+  num_dihedral = atom->num_dihedral; dihedral_type = atom->dihedral_type;
+  dihedral_atom1 = atom->dihedral_atom1; dihedral_atom2 = atom->dihedral_atom2;
+  dihedral_atom3 = atom->dihedral_atom3; dihedral_atom4 = atom->dihedral_atom4;
+  num_improper = atom->num_improper; improper_type = atom->improper_type;
+  improper_atom1 = atom->improper_atom1; improper_atom2 = atom->improper_atom2;
+  improper_atom3 = atom->improper_atom3; improper_atom4 = atom->improper_atom4;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -84,6 +84,19 @@ void AtomVecDipole::grow(int n)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
+/* ----------------------------------------------------------------------
+   reset local array ptrs
+------------------------------------------------------------------------- */
+
+void AtomVecDipole::grow_reset()
+{
+  tag = atom->tag; type = atom->type;
+  mask = atom->mask; image = atom->image;
+  x = atom->x; v = atom->v; f = atom->f;
+  q = atom->q; mu = atom->mu;
+  omega = atom->omega; torque = atom->torque;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecDipole::copy(int i, int j)

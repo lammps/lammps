@@ -43,7 +43,7 @@ class AtomVec : protected Pointers {
   virtual void init() {}
 
   virtual void grow(int) = 0;
-  virtual void reset_special() {}
+  virtual void grow_reset() = 0;
   virtual void copy(int, int) = 0;
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;

@@ -87,6 +87,18 @@ void AtomVecEllipsoid::grow(int n)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
+/* ----------------------------------------------------------------------
+   reset local array ptrs
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::grow_reset()
+{
+  tag = atom->tag; type = atom->type;
+  mask = atom->mask; image = atom->image;
+  x = atom->x; v = atom->v; f = atom->f;
+  quat = atom->quat; angmom = atom->angmom; torque = atom->torque;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::copy(int i, int j)

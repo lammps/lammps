@@ -110,11 +110,22 @@ void AtomVecAngle::grow(int n)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reset local array ptrs
+------------------------------------------------------------------------- */
 
-void AtomVecAngle::reset_special()
+void AtomVecAngle::grow_reset()
 {
-  special = atom->special;
+  tag = atom->tag; type = atom->type;
+  mask = atom->mask; image = atom->image;
+  x = atom->x; v = atom->v; f = atom->f;
+  molecule = atom->molecule;
+  nspecial = atom->nspecial; special = atom->special;
+  num_bond = atom->num_bond; bond_type = atom->bond_type;
+  bond_atom = atom->bond_atom;
+  num_angle = atom->num_angle; angle_type = atom->angle_type;
+  angle_atom1 = atom->angle_atom1; angle_atom2 = atom->angle_atom2;
+  angle_atom3 = atom->angle_atom3;
 }
 
 /* ---------------------------------------------------------------------- */

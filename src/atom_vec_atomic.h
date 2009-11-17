@@ -23,6 +23,7 @@ class AtomVecAtomic : public AtomVec {
   AtomVecAtomic(class LAMMPS *, int, char **);
   ~AtomVecAtomic() {}
   void grow(int);
+  void grow_reset();
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);

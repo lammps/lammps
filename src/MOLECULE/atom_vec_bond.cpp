@@ -95,11 +95,19 @@ void AtomVecBond::grow(int n)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reset local array ptrs
+------------------------------------------------------------------------- */
 
-void AtomVecBond::reset_special()
+void AtomVecBond::grow_reset()
 {
-  special = atom->special;
+  tag = atom->tag; type = atom->type;
+  mask = atom->mask; image = atom->image;
+  x = atom->x; v = atom->v; f = atom->f;
+  molecule = atom->molecule;
+  nspecial = atom->nspecial; special = atom->special;
+  num_bond = atom->num_bond; bond_type = atom->bond_type;
+  bond_atom = atom->bond_atom;
 }
 
 /* ---------------------------------------------------------------------- */

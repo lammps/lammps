@@ -118,29 +118,27 @@ void AtomVecHybrid::grow(int n)
   for (int k = 0; k < nstyles; k++) styles[k]->grow(nmax);
   atom->nextra_grow = tmp;
 
-  // pointers for arrays used directly by hybrid style
+  // insure sub-style ptrs and hybrid local ptrs are up to date
+  // for sub-styles, is in case sub-style reallocs actually realloced
 
-  tag = atom->tag;
-  type = atom->type;
-  mask = atom->mask;
-  image = atom->image;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-
-  omega = atom->omega;
-  angmom = atom->angmom;
+  for (int k = 0; k < nstyles; k++) styles[k]->grow_reset();
+  grow_reset();
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reset local array ptrs
+------------------------------------------------------------------------- */
 
-void AtomVecHybrid::reset_special()
+void AtomVecHybrid::grow_reset()
 {
-  for (int k = 0; k < nstyles; k++) styles[k]->reset_special();
+  tag = atom->tag; type = atom->type;
+  mask = atom->mask; image = atom->image;
+  x = atom->x; v = atom->v; f = atom->f;
+  omega = atom->omega; angmom = atom->angmom;
 }
 
 /* ----------------------------------------------------------------------

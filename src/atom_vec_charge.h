@@ -22,6 +22,7 @@ class AtomVecCharge : public AtomVec {
  public:
   AtomVecCharge(class LAMMPS *, int, char **);
   void grow(int);
+  void grow_reset();
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);

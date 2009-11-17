@@ -22,7 +22,7 @@ class AtomVecBond : public AtomVec {
  public:
   AtomVecBond(class LAMMPS *, int, char **);
   void grow(int);
-  void reset_special();
+  void grow_reset();
   void copy(int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);

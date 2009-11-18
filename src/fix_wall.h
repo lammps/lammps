@@ -36,9 +36,9 @@ class FixWall : public Fix {
   virtual void wall_particle(int, double) = 0;
 
  protected:
-  int wflag[6];
+  int wallflag[6];
   double coord0[6],epsilon[6],sigma[6],cutoff[6];
-  int vflag,aflag;
+  int velflag,wigflag;
   double vel,amplitude,period,omega;
   int eflag;
   double ewall[7],ewall_all[7];

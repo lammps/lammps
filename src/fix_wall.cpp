@@ -40,69 +40,71 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  for (int m = 0; m < 6; m++) wflag[m] = 0;
-  vflag = 0;
-  aflag = 0;
+  for (int m = 0; m < 6; m++) wallflag[m] = 0;
+  velflag = 0;
+  wigflag = 0;
 
   int iarg = 3;
-  if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
-      (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
-      (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-    if (iarg+5 > narg) error->all("Illegal fix wall command");
-    int m;
-    if (strcmp(arg[iarg],"xlo") == 0) m = XLO;
-    else if (strcmp(arg[iarg],"xhi") == 0) m = XHI;
-    else if (strcmp(arg[iarg],"ylo") == 0) m = YLO;
-    else if (strcmp(arg[iarg],"yhi") == 0) m = YHI;
-    else if (strcmp(arg[iarg],"zlo") == 0) m = ZLO;
-    else if (strcmp(arg[iarg],"zhi") == 0) m = ZHI;
-    wflag[m] = 1;
-    coord0[m] = atof(arg[iarg+1]);
-    epsilon[m] = atof(arg[iarg+2]);
-    sigma[m] = atof(arg[iarg+3]);
-    cutoff[m] = atof(arg[iarg+4]);
-    iarg += 5;
-  } else if (strcmp(arg[iarg],"vel") == 0) {
-    if (iarg+2 > narg) error->all("Illegal fix wall command");
-    vflag = 1;
-    vel = atof(arg[iarg+1]);
-    iarg += 2;
-  } else if (strcmp(arg[iarg],"wiggle/sin") == 0) {
-    if (iarg+3 > narg) error->all("Illegal fix wall command");
-    aflag = 1;
-    amplitude = atof(arg[iarg+1]);
-    period = atof(arg[iarg+2]);
-    iarg += 3;
-  } else if (strcmp(arg[iarg],"wiggle/cos") == 0) {
-    if (iarg+3 > narg) error->all("Illegal fix wall command");
-    aflag = 2;
-    amplitude = atof(arg[iarg+1]);
-    period = atof(arg[iarg+2]);
-    iarg += 3;
-  } else error->all("Illegal fix wall command");
+  while (iarg < narg) {
+    if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
+	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
+	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
+      if (iarg+5 > narg) error->all("Illegal fix wall command");
+      int m;
+      if (strcmp(arg[iarg],"xlo") == 0) m = XLO;
+      else if (strcmp(arg[iarg],"xhi") == 0) m = XHI;
+      else if (strcmp(arg[iarg],"ylo") == 0) m = YLO;
+      else if (strcmp(arg[iarg],"yhi") == 0) m = YHI;
+      else if (strcmp(arg[iarg],"zlo") == 0) m = ZLO;
+      else if (strcmp(arg[iarg],"zhi") == 0) m = ZHI;
+      wallflag[m] = 1;
+      coord0[m] = atof(arg[iarg+1]);
+      epsilon[m] = atof(arg[iarg+2]);
+      sigma[m] = atof(arg[iarg+3]);
+      cutoff[m] = atof(arg[iarg+4]);
+      iarg += 5;
+    } else if (strcmp(arg[iarg],"vel") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix wall command");
+      velflag = 1;
+      vel = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wiggle/sin") == 0) {
+      if (iarg+3 > narg) error->all("Illegal fix wall command");
+      wigflag = 1;
+      amplitude = atof(arg[iarg+1]);
+      period = atof(arg[iarg+2]);
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"wiggle/cos") == 0) {
+      if (iarg+3 > narg) error->all("Illegal fix wall command");
+      wigflag = 2;
+      amplitude = atof(arg[iarg+1]);
+      period = atof(arg[iarg+2]);
+      iarg += 3;
+    } else error->all("Illegal fix wall command");
+  }
 
   // error check
 
   int flag = 0;
-  for (int m = 0; m < 6; m++) if (wflag[m]) flag;
+  for (int m = 0; m < 6; m++) if (wallflag[m]) flag = 1;
   if (!flag) error->all("Illegal fix wall command");
 
-  if (vflag && aflag) 
+  if (velflag && wigflag) 
     error->all("Cannot set both vel and wiggle in fix wall command");
 
-  if ((wflag[XLO] || wflag[XHI]) && domain->xperiodic)
+  if ((wallflag[XLO] || wallflag[XHI]) && domain->xperiodic)
     error->all("Cannot use fix wall in periodic dimension");
-  if ((wflag[YLO] || wflag[YHI]) && domain->yperiodic)
+  if ((wallflag[YLO] || wallflag[YHI]) && domain->yperiodic)
     error->all("Cannot use fix wall in periodic dimension");
-  if ((wflag[ZLO] || wflag[ZHI]) && domain->xperiodic)
+  if ((wallflag[ZLO] || wallflag[ZHI]) && domain->xperiodic)
     error->all("Cannot use fix wall in periodic zimension");
 
-  if ((wflag[ZLO] || wflag[ZHI]) && domain->dimension == 2)
+  if ((wallflag[ZLO] || wallflag[ZHI]) && domain->dimension == 2)
     error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
 
   // setup oscillations
 
-  if (aflag) {
+  if (wigflag) {
     double PI = 4.0 * atan(1.0);
     omega = 2.0*PI / period;
   }
@@ -132,7 +134,7 @@ void FixWall::init()
   // setup coefficients
 
   for (int m = 0; m < 6; m++)
-    if (wflag[m]) precompute(m);
+    if (wallflag[m]) precompute(m);
 
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -172,16 +174,16 @@ void FixWall::post_force(int vflag)
   double coord;
 
   for (int m = 0; m < 6; m++) {
-    if (wflag[m] == 0) continue;
+    if (wallflag[m] == 0) continue;
 
-    if (vflag) {
-      if (m/2 == 0) coord = coord0[m] + delta*vel;
+    if (velflag) {
+      if (m % 2 == 0) coord = coord0[m] + delta*vel;
       else coord = coord0[m] - delta*vel;
-    } else if (aflag == 1) {
-      if (m/2 == 0) coord = coord0[m] + amplitude*sin(omega*delta);
+    } else if (wigflag == 1) {
+      if (m % 2 == 0) coord = coord0[m] + amplitude*sin(omega*delta);
       else coord = coord0[m] - amplitude*sin(omega*delta);
-    } else if (aflag == 2) {
-      if (m/2 == 0) coord = coord0[m] + amplitude * (1.0 - cos(omega*delta));
+    } else if (wigflag == 2) {
+      if (m % 2 == 0) coord = coord0[m] + amplitude * (1.0 - cos(omega*delta));
       else coord = coord0[m] - amplitude * (1.0 - cos(omega*delta));
     } else coord = coord0[m];
 

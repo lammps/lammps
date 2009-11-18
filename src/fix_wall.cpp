@@ -17,6 +17,7 @@
 #include "fix_wall.h"
 #include "atom.h"
 #include "domain.h"
+#include "lattice.h"
 #include "update.h"
 #include "output.h"
 #include "respa.h"
@@ -43,6 +44,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   for (int m = 0; m < 6; m++) wallflag[m] = 0;
   velflag = 0;
   wigflag = 0;
+  int scaleflag = 1;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -66,20 +68,29 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix wall command");
       velflag = 1;
-      vel = atof(arg[iarg+1]);
+      double vtmp = atof(arg[iarg+1]);
+      for (int m = 0; m < 6; m++) vel[m] = vtmp;
       iarg += 2;
     } else if (strcmp(arg[iarg],"wiggle/sin") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix wall command");
       wigflag = 1;
-      amplitude = atof(arg[iarg+1]);
+      double atmp = atof(arg[iarg+1]);
       period = atof(arg[iarg+2]);
+      for (int m = 0; m < 6; m++) amplitude[m] = atmp;
       iarg += 3;
     } else if (strcmp(arg[iarg],"wiggle/cos") == 0) {
       if (iarg+3 > narg) error->all("Illegal fix wall command");
       wigflag = 2;
-      amplitude = atof(arg[iarg+1]);
+      double atmp = atof(arg[iarg+1]);
       period = atof(arg[iarg+2]);
+      for (int m = 0; m < 6; m++) amplitude[m] = atmp;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"units") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix wall command");
+      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
+      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      else error->all("Illegal fix wall command");
+      iarg += 2;
     } else error->all("Illegal fix wall command");
   }
 
@@ -101,6 +112,32 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   if ((wallflag[ZLO] || wallflag[ZHI]) && domain->dimension == 2)
     error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
+
+  // setup scaling
+
+  if (scaleflag && domain->lattice == NULL)
+    error->all("Use of fix wall with undefined lattice");
+
+  double xscale,yscale,zscale;
+  if (scaleflag) {
+    xscale = domain->lattice->xlattice;
+    yscale = domain->lattice->ylattice;
+    zscale = domain->lattice->zlattice;
+  }
+  else xscale = yscale = zscale = 1.0;
+
+  // apply scaling factors to coord0, vel, amplitude
+
+  double scale;
+  for (int m = 0; m < 6; m++) {
+    if (wallflag[m] == 0) continue;
+    if (m < 2) scale = xscale;
+    else if (m < 4) scale = yscale;
+    else scale = zscale;
+    coord0[0] *= scale;
+    if (velflag) vel[m] *= scale;
+    if (wigflag) amplitude[m] *= scale;
+  }
 
   // setup oscillations
 
@@ -177,14 +214,14 @@ void FixWall::post_force(int vflag)
     if (wallflag[m] == 0) continue;
 
     if (velflag) {
-      if (m % 2 == 0) coord = coord0[m] + delta*vel;
-      else coord = coord0[m] - delta*vel;
+      if (m % 2 == 0) coord = coord0[m] + delta*vel[m];
+      else coord = coord0[m] - delta*vel[m];
     } else if (wigflag == 1) {
-      if (m % 2 == 0) coord = coord0[m] + amplitude*sin(omega*delta);
-      else coord = coord0[m] - amplitude*sin(omega*delta);
+      if (m % 2 == 0) coord = coord0[m] + amplitude[m]*sin(omega*delta);
+      else coord = coord0[m] - amplitude[m]*sin(omega*delta);
     } else if (wigflag == 2) {
-      if (m % 2 == 0) coord = coord0[m] + amplitude * (1.0 - cos(omega*delta));
-      else coord = coord0[m] - amplitude * (1.0 - cos(omega*delta));
+      if (m % 2 == 0) coord = coord0[m] + amplitude[m]*(1.0-cos(omega*delta));
+      else coord = coord0[m] - amplitude[m]*(1.0-cos(omega*delta));
     } else coord = coord0[m];
 
     wall_particle(m,coord);

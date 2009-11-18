@@ -39,7 +39,8 @@ class FixWall : public Fix {
   int wallflag[6];
   double coord0[6],epsilon[6],sigma[6],cutoff[6];
   int velflag,wigflag;
-  double vel,amplitude,period,omega;
+  double vel[6],amplitude[6];
+  double period,omega;
   int eflag;
   double ewall[7],ewall_all[7];
   int nlevels_respa;

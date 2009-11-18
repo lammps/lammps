@@ -17,7 +17,7 @@ fix ID group-ID style keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style = {wall/lj93} or {wall/lj126} or {wall/colloid} :l
 one or more keyword/value pairs may be appended :l
-keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {vel} or {wiggle/sin} or {wiggle/cos} :l
+keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {vel} or {wiggle/sin} or {wiggle/cos} or {units} :l
   {xlo}, {xhi}, {ylo}, {yhi}, {zlo}, {zhi} values = coord epsilon sigma cutoff
     coord = position of wall (distance units)
     epsilon = strength factor for wall-particle interaction (energy units)
@@ -27,13 +27,16 @@ keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {vel} or {wiggle
     v = velocity of wall in perpendicular direction (velocity units)
   {wiggle} values = amplitude period
     amplitude = size of oscillation (distance units)
-    period = time of oscillation (time units) :pre
+    period = time of oscillation (time units)
+  {units} value = {lattice} or {box}
+    lattice = the wall is defined in lattice units
+    box = the wall is defined in simulation box units :pre
 :ule
 
 [Examples:]
 
 fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5
-fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 2.5 vel 1.0
+fix wallhi all wall/lj126 xhi 23.2 1.0 1.0 2.5 vel 1.0 units box
 fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858 :pre
 
 [Description:]
@@ -125,6 +128,19 @@ velocity of the wall is a maximum at time 0.  By contrast, for the
 direction and the velocity of the wall is 0 at time 0.  If you want
 different walls to oscillate with different amplitudes or periods,
 then you need to use multiple fix wall commands.
+
+The {units} keyword determines the meaning of the distance units used
+to define the position of the wall and its velocity and wiggle
+amplitude.  A {box} value selects standard distance units as defined
+by the "units"_units.html command, e.g. Angstroms for units = real or
+metal.  A {lattice} value means the distance units are in lattice
+spacings.  The "lattice"_lattice.html command must have been
+previously used to define the lattice spacing.  Note that with the
+{lattice} option, the wall's position is specified in lattice
+spacings, the wall's velocity is specified in lattice spacings per
+time, and the wall's oscillation amplitude is specified in lattice
+spacings.  Each of these 3 quantities may be dependent on the x,y,z
+dimension, since the lattice spacings can be different in x,y,z.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

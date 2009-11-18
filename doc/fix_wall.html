@@ -50,33 +50,34 @@ fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858
 </P>
 <P>Bound the simulation domain on one or more of its faces with a flat
 wall that interacts with the atoms in the group by generating a force
-on the atom in a direction perpendicular to the wall.  The energy E of
+on the atom in a direction perpendicular to the wall.  The energy of
 wall-particle interactions depends on the style.
 </P>
-<P>For style <I>wall/lj93</I>, the energy is given by the 9/3 potential:
+<P>For style <I>wall/lj93</I>, the energy E is given by the 9/3 potential:
 </P>
 <CENTER><IMG SRC = "Eqs/fix_wall_lj93.jpg">
 </CENTER>
-<P>For style <I>wall/lj126</I>, the energy is given by the 12/6 potential:
+<P>For style <I>wall/lj126</I>, the energy E is given by the 12/6 potential:
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj.jpg">
 </CENTER>
-<P>For style <I>wall/colloid</I>, the energy is given by an integrated form of
+<P>For style <I>wall/colloid</I>, the energy E is given by an integrated form of
 the <A HREF = "pair_colloid.html">pair_style colloid</A> potential:
 </P>
 <CENTER><IMG SRC = "Eqs/fix_wall_colloid.jpg">
 </CENTER>
-<P>In all cases, <I>r</I> is the distance from the particle to the wall
-<I>coord</I>, and Rc is the <I>cutoff</I> distance at which the particle and
-wall no longer interact, as specified in the command.  The energy of
-the wall potential is shifted so that the energy of the wall-particle
-interaction is 0.0 at the cutoff distance.
+<P>In all cases, <I>r</I> is the distance from the particle to the wall at
+position <I>coord</I>, and Rc is the <I>cutoff</I> distance at which the
+particle and wall no longer interact.  The energy of the wall
+potential is shifted so that the wall-particle interaction energy is
+0.0 at the cutoff distance.
 </P>
 <P>For the <I>wall/lj93</I> and <I>wall/lj126</I> styles, <I>epsilon</I> and <I>sigma</I> are
 the usual Lennard-Jones parameters, which determine the strength and
 size of the particle as it interacts with the wall.  Note that this
-<I>sigma</I> may be different than any <I>sigma</I> values defined for a pair
-style that computes particle-particle interactions.
+<I>epsilon</I> and <I>sigma</I> may be different than any <I>epsilon</I> or <I>sigma</I>
+values defined for a pair style that computes particle-particle
+interactions.
 </P>
 <P>The <I>wall/lj93</I> interaction is derived by integrating over a 3d
 half-lattice of Lennard-Jones 12/6 particles.  The <I>wall/lj126</I>
@@ -92,18 +93,18 @@ center to the wall.
 </P>
 <P>The <I>wall/colloid</I> interaction is derived by integrating over
 constituent LJ particles of size <I>sigma</I> within the colloid particle
-and a 3d half-lattice of Lennard-Jones 12/6 particles with the same
-<I>sigma</I> in the wall.
+and a 3d half-lattice of Lennard-Jones 12/6 particles of size <I>sigma</I>
+in the wall.
 </P>
 <P>If the <I>vel</I> keyword is specified, the position of all walls will move
 during the simulation in a perpendicular direction, based on their
-initial position (coord), the specified velocity (vel), and the time
+initial <I>coord</I> position, the specified velocity <I>vel</I>, and the time
 elapsed since the beginning of the simulation.  See the note below
 about making a wall move continuously across multiple runs.  A
 positive velocity means each wall moves inward, towards the center of
-the box.  I.e. an <I>xlo</I> wall will move in the +x direction; an <I>xhi</I>
-wall will move in the -x direction.  A negative velocity means each
-wall moves outward, away from the center of the box.  If you want
+the box.  I.e. an <I>xlo</I> wall will move in the +x direction and an
+<I>xhi</I> wall will move in the -x direction.  A negative velocity means
+each wall moves outward, away from the center of the box.  If you want
 different walls to move with different velocities, then you need to
 use multiple fix wall commands.
 </P>
@@ -113,13 +114,13 @@ direction, according to the equation:
 </P>
 <PRE>position = pos0 + A sin (omega * delta) 
 </PRE>
-<P>where <I>pos0</I> is the position at the time the beginning of the
-simulation, <I>A</I> is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and
-<I>delta</I> is the time elapsed since the beginning of the simulation.
-See the note below about making a wall oscillate continuously across
-multiple runs.  A positive amplitude means each wall initially moves
-inward, towards the center of the box.  I.e. an <I>xlo</I> wall will move
-initially in the +x direction; an <I>xhi</I> wall will move in the -x
+<P>where <I>pos0</I> is the position at the beginning of the simulation, <I>A</I>
+is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
+time elapsed since the beginning of the simulation.  See the note
+below about making a wall oscillate continuously across multiple runs.
+A positive amplitude means each wall initially moves inward, towards
+the center of the box.  I.e. an <I>xlo</I> wall will move initially in the
++x direction and an <I>xhi</I> wall will move initially in the -x
 direction.  A negative velocity means each wall moves initially
 outward, away from the center of the box.  If you want different walls
 to oscillate with different amplitudes or periods, then you need to
@@ -135,14 +136,18 @@ fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
 output</A>.
 </P>
-<P>This fix computes a scalar energy and a 3-vector of forces (on the
-walls), which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+<P>This fix computes a scalar energy and a 6-length vector of forces (one
+force magnitude per wall), which can be accessed by various <A HREF = "Section_howto.html#4_15">output
 commands</A>.  The scalar and vector values
 calculated by this fix are "extensive", meaning they scale with the
-number of atoms in the simulation.  Note that if you define multiple
-walls, then the energy and force will be summed over all the walls.
-If you want the energy/force on a per-wall basis, you need to use
-multiple fix wall commands.
+number of atoms in the simulation.  Note that the scalar energy is the
+sum of interactions with all defined walls.  If you want the energy on
+a per-wall basis, you need to use multiple fix wall commands.  The 6
+vector quantities are the force on the <I>xlo</I> wall, the <I>xhi</I> wall,
+<I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I>.  These values will only be non-zero if the
+corresponding wall is defined.  Note that an outward force on a wall
+will be a negative value for <I>lo</I> walls and a positive value for <I>hi</I>
+walls.
 </P>
 <P>This fix can change the position of each wall, due to the <I>vel</I> or
 <I>wiggle</I> keywords, continuously over multiple runs, using the <I>start</I>

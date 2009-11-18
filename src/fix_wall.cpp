@@ -67,9 +67,15 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     vflag = 1;
     vel = atof(arg[iarg+1]);
     iarg += 2;
-  } else if (strcmp(arg[iarg],"wiggle") == 0) {
+  } else if (strcmp(arg[iarg],"wiggle/sin") == 0) {
     if (iarg+3 > narg) error->all("Illegal fix wall command");
     aflag = 1;
+    amplitude = atof(arg[iarg+1]);
+    period = atof(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"wiggle/cos") == 0) {
+    if (iarg+3 > narg) error->all("Illegal fix wall command");
+    aflag = 2;
     amplitude = atof(arg[iarg+1]);
     period = atof(arg[iarg+2]);
     iarg += 3;
@@ -90,6 +96,9 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     error->all("Cannot use fix wall in periodic dimension");
   if ((wflag[ZLO] || wflag[ZHI]) && domain->xperiodic)
     error->all("Cannot use fix wall in periodic zimension");
+
+  if ((wflag[ZLO] || wflag[ZHI]) && domain->dimension == 2)
+    error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
 
   // setup oscillations
 
@@ -168,9 +177,12 @@ void FixWall::post_force(int vflag)
     if (vflag) {
       if (m/2 == 0) coord = coord0[m] + delta*vel;
       else coord = coord0[m] - delta*vel;
-    } else if (aflag) {
+    } else if (aflag == 1) {
       if (m/2 == 0) coord = coord0[m] + amplitude*sin(omega*delta);
       else coord = coord0[m] - amplitude*sin(omega*delta);
+    } else if (aflag == 2) {
+      if (m/2 == 0) coord = coord0[m] + amplitude * (1.0 - cos(omega*delta));
+      else coord = coord0[m] - amplitude * (1.0 - cos(omega*delta));
     } else coord = coord0[m];
 
     wall_particle(m,coord);

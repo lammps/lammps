@@ -34,7 +34,6 @@ void FixWallLJ93::precompute(int m)
   double rinv = 1.0/cutoff[m];
   double r2inv = rinv*rinv;
   double r4inv = r2inv*r2inv;
-  printf("AAA %d %g %g %g\n",m,coeff3[m],coeff4[m],rinv);
   offset[m] = coeff3[m]*r4inv*r4inv*rinv - coeff4[m]*r2inv*rinv;
 }
 

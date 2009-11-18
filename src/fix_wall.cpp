@@ -134,7 +134,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     if (m < 2) scale = xscale;
     else if (m < 4) scale = yscale;
     else scale = zscale;
-    coord0[0] *= scale;
+    coord0[m] *= scale;
     if (velflag) vel[m] *= scale;
     if (wigflag) amplitude[m] *= scale;
   }

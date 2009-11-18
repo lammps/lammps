@@ -441,10 +441,10 @@ of each style or click on the style itself for a full description:
 "ttm"_fix_ttm.html,
 "viscosity"_fix_viscosity.html,
 "viscous"_fix_viscous.html,
-"wall/colloid"_fix_wall_colloid.html,
+"wall/colloid"_fix_wall.html,
 "wall/gran"_fix_wall_gran.html,
-"wall/lj126"_fix_wall_lj126.html,
-"wall/lj93"_fix_wall_lj93.html,
+"wall/lj126"_fix_wall.html,
+"wall/lj93"_fix_wall.html,
 "wall/reflect"_fix_wall_reflect.html,
 "wiggle"_fix_wiggle.html :tb(c=8,ea=c)
 

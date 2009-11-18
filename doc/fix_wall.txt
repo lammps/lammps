@@ -1,0 +1,164 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix wall/lj93 command :h3
+fix wall/lj126 command :h3
+fix wall/colloid command :h3
+
+[Syntax:]
+
+fix ID group-ID style keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+style = {wall/lj93} or {wall/lj126} or {wall/colloid} :l
+one or more keyword/value pairs may be appended :l
+keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {vel} or {wiggle} :l
+  {xlo}, {xhi}, {ylo}, {yhi}, {zlo}, {zhi} values = coord epsilon sigma cutoff
+    coord = position of wall (distance units)
+    epsilon = strength factor for wall-particle interaction (energy units)
+    sigma = size factor for wall-particle interaction (distance units)
+    cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
+  {vel} value = v
+    v = velocity of wall in perpendicular direction (velocity units)
+  {wiggle} values = amplitude period
+    amplitude = size of oscillation (distance units)
+    period = time of oscillation (time units) :pre
+:ule
+
+[Examples:]
+
+fix wallhi all wall/lj93 xhi 10.0 1.0 1.0 2.5
+fix wallhi all wall/lj126 xhi 10.0 1.0 1.0 2.5 vel 1.0
+fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858 :pre
+
+[Description:]
+
+Bound the simulation domain on one or more of its faces with a flat
+wall that interacts with the atoms in the group by generating a force
+on the atom in a direction perpendicular to the wall.  The energy of
+wall-particle interactions depends on the style.
+
+For style {wall/lj93}, the energy E is given by the 9/3 potential:
+
+:c,image(Eqs/fix_wall_lj93.jpg)
+
+For style {wall/lj126}, the energy E is given by the 12/6 potential:
+
+:c,image(Eqs/pair_lj.jpg)
+
+For style {wall/colloid}, the energy E is given by an integrated form of
+the "pair_style colloid"_pair_colloid.html potential:
+
+:c,image(Eqs/fix_wall_colloid.jpg)
+
+In all cases, {r} is the distance from the particle to the wall at
+position {coord}, and Rc is the {cutoff} distance at which the
+particle and wall no longer interact.  The energy of the wall
+potential is shifted so that the wall-particle interaction energy is
+0.0 at the cutoff distance.
+
+For the {wall/lj93} and {wall/lj126} styles, {epsilon} and {sigma} are
+the usual Lennard-Jones parameters, which determine the strength and
+size of the particle as it interacts with the wall.  Note that this
+{epsilon} and {sigma} may be different than any {epsilon} or {sigma}
+values defined for a pair style that computes particle-particle
+interactions.
+
+The {wall/lj93} interaction is derived by integrating over a 3d
+half-lattice of Lennard-Jones 12/6 particles.  The {wall/lj126}
+interaction is effectively a harder, more repulsive wall interaction.
+
+For the {wall/colloid} style, {epsilon} is effectively a Hamaker
+constant for the colloid-wall interaction, {R} is the radius of the
+colloid particle, {D} is the distance from the surface of the colloid
+particle to the wall (r-R), and {sigma} is the size of the constituent
+LJ particle inside the colloid particle.  Note that the cutoff
+distance Rc in this case is the distance from the colloid particle
+center to the wall.
+
+The {wall/colloid} interaction is derived by integrating over
+constituent LJ particles of size {sigma} within the colloid particle
+and a 3d half-lattice of Lennard-Jones 12/6 particles of size {sigma}
+in the wall.
+
+If the {vel} keyword is specified, the position of all walls will move
+during the simulation in a perpendicular direction, based on their
+initial {coord} position, the specified velocity {vel}, and the time
+elapsed since the beginning of the simulation.  See the note below
+about making a wall move continuously across multiple runs.  A
+positive velocity means each wall moves inward, towards the center of
+the box.  I.e. an {xlo} wall will move in the +x direction and an
+{xhi} wall will move in the -x direction.  A negative velocity means
+each wall moves outward, away from the center of the box.  If you want
+different walls to move with different velocities, then you need to
+use multiple fix wall commands.
+
+If the {wiggle} keyword is specified, the position of all walls will
+oscillate sinusoidally during the simulation in the perpendicular
+direction, according to the equation:
+
+position = pos0 + A sin (omega * delta) :pre
+
+where {pos0} is the position at the beginning of the simulation, {A}
+is the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the
+time elapsed since the beginning of the simulation.  See the note
+below about making a wall oscillate continuously across multiple runs.
+A positive amplitude means each wall initially moves inward, towards
+the center of the box.  I.e. an {xlo} wall will move initially in the
++x direction and an {xhi} wall will move initially in the -x
+direction.  A negative velocity means each wall moves initially
+outward, away from the center of the box.  If you want different walls
+to oscillate with different amplitudes or periods, then you need to
+use multiple fix wall commands.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the energy of interaction between atoms and each wall to
+the system's potential energy as part of "thermodynamic
+output"_thermo_style.html.
+
+This fix computes a scalar energy and a 3-vector of forces (on the
+walls), which can be accessed by various "output
+commands"_Section_howto.html#4_15.  The scalar and vector values
+calculated by this fix are "extensive", meaning they scale with the
+number of atoms in the simulation.  Note that if you define multiple
+walls, then the energy and force will be summed over all the walls.
+If you want the energy/force on a per-wall basis, you need to use
+multiple fix wall commands.
+
+This fix can change the position of each wall, due to the {vel} or
+{wiggle} keywords, continuously over multiple runs, using the {start}
+and {stop} keywords of the "run"_run.html command.  If you do not do
+this, the wall position will be reset to {coord} at the beginning of
+each run.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.
+
+IMPORTANT NOTE: If you want the atom/wall interaction energy to be
+included in the total potential energy of the system (the quantity
+being minimized), you MUST enable the "fix_modify"_fix_modify.html
+{energy} option for this fix.
+
+[Restrictions:]
+
+Any dimension (xyz) that has a wall must be non-periodic.
+
+You cannot use both the {vel} and {wiggle} keywords together.
+
+[Related commands:]
+
+"fix wall/reflect"_fix_wall_reflect.html wall/gran"_fix_wall_gran.html
+
+[Default:]
+
+The option defaults are no velocity and no wiggle.

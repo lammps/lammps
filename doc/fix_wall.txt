@@ -187,7 +187,8 @@ You cannot use both the {vel} and {wiggle} keywords together.
 
 [Related commands:]
 
-"fix wall/reflect"_fix_wall_reflect.html wall/gran"_fix_wall_gran.html
+"fix wall/reflect"_fix_wall_reflect.html, "fix
+wall/gran"_fix_wall_gran.html
 
 [Default:]
 

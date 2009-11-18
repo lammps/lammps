@@ -14,34 +14,19 @@
 #ifndef FIX_WALL_LJ126_H
 #define FIX_WALL_LJ126_H
 
-#include "fix.h"
+#include "fix_wall.h"
 
 namespace LAMMPS_NS {
 
-class FixWallLJ126 : public Fix {
+class FixWallLJ126 : public FixWall {
  public:
   FixWallLJ126(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  void precompute(int);
+  void wall_particle(int, double);
 
  private:
-  int dim,side,thermo_flag,eflag_enable;
-  double coord,epsilon,sigma,cutoff;
-  double coeff1,coeff2,coeff3,coeff4,offset;
-  double wall[4],wall_all[4];
-  double vel,coord0;
-  int wall_flag;
-  int nlevels_respa;
+  double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];
 };
 
 #endif
 }
-
-

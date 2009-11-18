@@ -14,31 +14,19 @@
 #ifndef FIX_WALL_COLLOID_H
 #define FIX_WALL_COLLOID_H
 
-#include "fix.h"
+#include "fix_wall.h"
 
 namespace LAMMPS_NS {
 
-class FixWallColloid : public Fix {
+class FixWallColloid : public FixWall {
  public:
   FixWallColloid(class LAMMPS *, int, char **);
-  ~FixWallColloid() {}
-  int setmask();
   void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  void precompute(int);
+  void wall_particle(int, double);
 
  private:
-  int dim,side,thermo_flag,eflag_enable;
-  double coord,hamaker,sigma,cutoff;
-  double coeff1,coeff2,coeff3,coeff4,offset;
-  double wall[4],wall_all[4];
-  int wall_flag;
-  int nlevels_respa;
+  double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];
 };
 
 }

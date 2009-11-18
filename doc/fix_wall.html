@@ -25,7 +25,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> or <I>vel</I> or <I>wiggle</I> 
+<LI>keyword = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> or <I>vel</I> or <I>wiggle/sin</I> or <I>wiggle/cos</I> 
 
 <PRE>  <I>xlo</I>, <I>xhi</I>, <I>ylo</I>, <I>yhi</I>, <I>zlo</I>, <I>zhi</I> values = coord epsilon sigma cutoff
     coord = position of wall (distance units)
@@ -108,23 +108,33 @@ each wall moves outward, away from the center of the box.  If you want
 different walls to move with different velocities, then you need to
 use multiple fix wall commands.
 </P>
-<P>If the <I>wiggle</I> keyword is specified, the position of all walls will
-oscillate sinusoidally during the simulation in the perpendicular
+<P>If the <I>wiggle/sin</I> keyword is specified, the position of all walls
+will oscillate sinusoidally during the simulation in the perpendicular
 direction, according to the equation:
 </P>
-<PRE>position = pos0 + A sin (omega * delta) 
+<PRE>position = pos0 + A sin(omega*delta) 
 </PRE>
-<P>where <I>pos0</I> is the position at the beginning of the simulation, <I>A</I>
-is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
-time elapsed since the beginning of the simulation.  See the note
-below about making a wall oscillate continuously across multiple runs.
-A positive amplitude means each wall initially moves inward, towards
-the center of the box.  I.e. an <I>xlo</I> wall will move initially in the
-+x direction and an <I>xhi</I> wall will move initially in the -x
-direction.  A negative velocity means each wall moves initially
-outward, away from the center of the box.  If you want different walls
-to oscillate with different amplitudes or periods, then you need to
-use multiple fix wall commands.
+<P>If the <I>wiggle/cos</I> keyword is specified, the position of all walls
+will oscillate sinusoidally during the simulation in the perpendicular
+direction, according to the equation:
+</P>
+<PRE>position = pos0 + A (1 - cos(omega*delta)) 
+</PRE>
+<P>In both cases, <I>pos0</I> is the position at the beginning of the
+simulation, <I>A</I> is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and
+<I>delta</I> is the time elapsed since the beginning of the simulation.
+See the note below about making a wall oscillate continuously across
+multiple runs.  A positive amplitude means each wall initially moves
+inward, towards the center of the box.  I.e. an <I>xlo</I> wall will move
+initially in the +x direction and an <I>xhi</I> wall will move initially in
+the -x direction.  A negative velocity means each wall moves initially
+outward, away from the center of the box.  Note that the <I>wiggle/sin</I>
+option oscillates with amplitude <I>A</I> around the pos0 position and the
+velocity of the wall is a maximum at time 0.  By contrast, for the
+<I>wiggle/cos</I> option the wall moves up to <I>2A</I> away from pos0 in one
+direction and the velocity of the wall is 0 at time 0.  If you want
+different walls to oscillate with different amplitudes or periods,
+then you need to use multiple fix wall commands.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

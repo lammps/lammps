@@ -110,6 +110,8 @@ been previously defined in the input script.  Variables of style
 fixes, or variables when they are evaluated, so this is a very general
 means of generating per-atom quantities to time average.
 
+:line
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart

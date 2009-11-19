@@ -248,9 +248,9 @@ class log:
 
     file = list[0]
     if file[-3:] == ".gz":
-      f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r')
+      f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'rb')
     else:
-      f = open(file)
+      f = open(file,'rb')
 
     if len(list) == 2: f.seek(list[1])
     txt = f.read()

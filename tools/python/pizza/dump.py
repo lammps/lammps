@@ -253,15 +253,15 @@ class dump:
     if len(self.snaps) == 0:
       print "no column assignments made"
     elif len(self.names):
-      print "column assignments made from self-describing file"
+      print "assigned columns:",self.names2str()
     elif self.snaps[0].atoms == None:
       print "no column assignments made"
     elif len(self.snaps[0].atoms[0]) == 5:
       self.map(1,"id",2,"type",3,"x",4,"y",5,"z")
-      print "assigned columns id,type,x,y,z"
+      print "assigned columns:",self.names2str()
     elif len(self.snaps[0].atoms[0]) == 8:
       self.map(1,"id",2,"type",3,"x",4,"y",5,"z",6,"ix",7,"iy",8,"iz")
-      print "assigned columns id,type,x,y,z,ix,iy,iz"
+      print "assigned columns:",self.names2str()
     else:
       print "no column assignments made"
 
@@ -287,7 +287,7 @@ class dump:
     # if new snapshot time stamp already exists, read next snapshot
 
     while 1:
-      f = open(self.flist[self.nextfile],'r')
+      f = open(self.flist[self.nextfile],'rb')
       f.seek(self.eof)
       snap = self.read_snapshot(f)
       if not snap:
@@ -319,6 +319,7 @@ class dump:
   # read a single snapshot from file f
   # return snapshot or 0 if failed
   # assign column names if not already done and file is self-describing
+  # convert xs,xu to x
   
   def read_snapshot(self,f):
     try:
@@ -343,7 +344,13 @@ class dump:
         words = item.split()[2:]
         if len(words):
           for i in range(len(words)):
-            self.names[words[i]] = i
+            if words[i] == "xs" or words[i] == "xu":
+              self.names["x"] = i
+            elif words[i] == "ys" or words[i] == "yu":
+              self.names["y"] = i
+            elif words[i] == "zs" or words[i] == "zu":
+              self.names["z"] = i
+            else: self.names[words[i]] = i
 
       if snap.natoms:
         words = f.readline().split()
@@ -540,6 +547,18 @@ class dump:
         atoms[i][z] += (atoms[i][iz]-atoms[j][iz])*zprd
 
   # --------------------------------------------------------------------
+  # convert column names assignment to a string, in column order
+  
+  def names2str(self):
+    ncol = len(self.snaps[0].atoms[0])
+    pairs = self.names.items()
+    values = self.names.values()
+    str = ""
+    for i in xrange(ncol):
+      if i in values: str += pairs[values.index(i)][0] + ' '
+    return str
+
+  # --------------------------------------------------------------------
   # sort atoms by atom ID in all selected timesteps by default
   # if arg = string, sort all steps by that column
   # if arg = numeric, sort atoms in single step
@@ -574,6 +593,7 @@ class dump:
   # write a single dump file from current selection
 
   def write(self,file):
+    if len(self.snaps): namestr = self.names2str()
     f = open(file,"w")
     for snap in self.snaps:
       if not snap.tselect: continue
@@ -588,7 +608,7 @@ class dump:
       print >>f,snap.xlo,snap.xhi
       print >>f,snap.ylo,snap.yhi
       print >>f,snap.zlo,snap.zhi
-      print >>f,"ITEM: ATOMS"
+      print >>f,"ITEM: ATOMS",namestr
       
       atoms = snap.atoms
       nvalues = len(atoms[0])
@@ -608,6 +628,7 @@ class dump:
   # write one dump file per snapshot from current selection
 
   def scatter(self,root):
+    if len(self.snaps): namestr = self.names2str()
     for snap in self.snaps:
       if not snap.tselect: continue
       print snap.time,
@@ -623,7 +644,7 @@ class dump:
       print >>f,snap.xlo,snap.xhi
       print >>f,snap.ylo,snap.yhi
       print >>f,snap.zlo,snap.zhi
-      print >>f,"ITEM: ATOMS"
+      print >>f,"ITEM: ATOMS",namestr
       
       atoms = snap.atoms
       nvalues = len(atoms[0])

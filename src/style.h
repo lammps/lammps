@@ -174,6 +174,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_minimize.h"
 #include "fix_msd.h"
 #include "fix_momentum.h"
+#include "fix_move.h"
 #include "fix_nph.h"
 #include "fix_npt.h"
 #include "fix_npt_sphere.h"
@@ -234,6 +235,7 @@ FixStyle(indent,FixIndent)
 FixStyle(langevin,FixLangevin)
 FixStyle(lineforce,FixLineForce)
 FixStyle(MINIMIZE,FixMinimize)
+FixStyle(move,FixMove)
 FixStyle(momentum,FixMomentum)
 FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)

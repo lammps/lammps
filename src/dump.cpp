@@ -66,6 +66,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   //   else if ends in .gz = gzipped text file
   //   else ASCII text file
 
+  fp = NULL;
   singlefile_opened = 0;
   compressed = 0;
   binary = 0;

@@ -101,10 +101,11 @@ void FixWallColloid::wall_particle(int m, double coord)
 
   int dim = m/2;
   int side = m % 2;
+  if (side == 0) side = -1;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (side == 0) delta = x[i][dim] - coord;
+      if (side < 0) delta = x[i][dim] - coord;
       else delta = coord - x[i][dim];
       if (delta <= 0.0) continue;
       if (delta > cutoff[m]) continue;
@@ -119,10 +120,10 @@ void FixWallColloid::wall_particle(int m, double coord)
       r2inv = rinv*rinv;
       r4inv = r2inv*r2inv;
       r8inv = r4inv*r4inv;
-      fwall = (coeff1[m]*(rad8*rad + 27.0*rad4*rad2*rad*pow(delta,2.0)
-			  + 63.0*rad4*rad*pow(delta,4.0)
-			  + 21.0*rad2*rad*pow(delta,6.0))*r8inv - 
-	       new_coeff2*r2inv) * side;
+      fwall = side * (coeff1[m]*(rad8*rad + 27.0*rad4*rad2*rad*pow(delta,2.0)
+				 + 63.0*rad4*rad*pow(delta,4.0)
+				 + 21.0*rad2*rad*pow(delta,6.0))*r8inv - 
+		      new_coeff2*r2inv);
       f[i][dim] -= fwall;
       r2 = 0.5*diam - delta;
       rinv2 = 1.0/r2;

@@ -283,7 +283,8 @@ void FixRDF::end_of_step()
             nideal = constant*nrdfatoms[j] *
               (rupper*rupper*rupper - rlower*rlower*rlower);
             irdf = rdfpair[i][j] - 1;
-            if (nrdfatoms[i]*nideal != 0.0) gr = hist_all[irdf][bin] / (nrdfatoms[i]*nideal);
+            if (nrdfatoms[i]*nideal != 0.0) 
+	      gr = hist_all[irdf][bin] / (nrdfatoms[i]*nideal);
             else gr = 0.0;
             ncoord[irdf] += gr*nideal;
             fprintf(fp,"%f %f ",gr,ncoord[irdf]);  

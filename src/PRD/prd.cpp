@@ -52,16 +52,8 @@ using namespace LAMMPS_NS;
 
 PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
 
-/* ---------------------------------------------------------------------- */
-
-PRD::~PRD()
-{
-  delete [] loop_setting;
-  delete [] dist_setting;
-}
-
 /* ----------------------------------------------------------------------
-   perform PRD
+   perform PRD simulation on one or more replicas
 ------------------------------------------------------------------------- */
 
 void PRD::command(int narg, char **arg)

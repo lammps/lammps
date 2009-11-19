@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class PRD : protected Pointers {
  public:
   PRD(class LAMMPS *);
-  ~PRD();
+  ~PRD() {}
   void command(int, char **);
 
  private:

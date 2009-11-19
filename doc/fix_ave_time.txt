@@ -26,7 +26,7 @@ value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   v_name = global value calculated by an equal-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {file} or {ave} :l
+keyword = {file} or {ave} or {start} :l
   {file} arg = filename
     filename = name of file to output time averages to
   {ave} args = {one} or {running} or {window M}

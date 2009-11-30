@@ -107,8 +107,8 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     error->all("Cannot use fix wall in periodic dimension");
   if ((wallflag[YLO] || wallflag[YHI]) && domain->yperiodic)
     error->all("Cannot use fix wall in periodic dimension");
-  if ((wallflag[ZLO] || wallflag[ZHI]) && domain->xperiodic)
-    error->all("Cannot use fix wall in periodic zimension");
+  if ((wallflag[ZLO] || wallflag[ZHI]) && domain->zperiodic)
+    error->all("Cannot use fix wall in periodic dimension");
 
   if ((wallflag[ZLO] || wallflag[ZHI]) && domain->dimension == 2)
     error->all("Cannot use fix wall zlo/zhi for a 2d simulation");

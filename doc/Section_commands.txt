@@ -559,7 +559,7 @@ potentials.  Click on the style itself for a full description:
 "table"_pair_table.html,
 "tersoff"_pair_tersoff.html,
 "tersoff/zbl"_pair_tersoff_zbl.html,
-"yukawa"_pair_yukawa.html
+"yukawa"_pair_yukawa.html,
 "yukawa/colloid"_pair_yukawa_colloid.html :tb(c=4,ea=c)
 
 These are pair styles contributed by users, which can be used if

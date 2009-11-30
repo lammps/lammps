@@ -1970,6 +1970,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     int n = read_int(fp);
 
   } else if (strcmp(style,"tersoff") == 0) {
+  } else if (strcmp(style,"tersoff/zbl") == 0) {
 
   } else if (strcmp(style,"yukawa") == 0) {
 
@@ -2658,6 +2659,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"sw") != 0) &&
 	(strcmp(pair_style,"table") != 0) &&
 	(strcmp(pair_style,"tersoff") != 0) &&
+	(strcmp(pair_style,"tersoff/zbl") != 0) &&
 	(strcmp(pair_style,"hybrid") != 0) &&
 	(strcmp(pair_style,"hybrid/overlay") != 0))
       fprintf(fp,"\nPair Coeffs\n\n");

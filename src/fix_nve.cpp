@@ -69,8 +69,8 @@ void FixNVE::initial_integrate(int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double *mass = atom->mass;
   double *rmass = atom->rmass;
+  double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -114,8 +114,8 @@ void FixNVE::final_integrate()
 
   double **v = atom->v;
   double **f = atom->f;
-  double *mass = atom->mass;
   double *rmass = atom->rmass;
+  double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

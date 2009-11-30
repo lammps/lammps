@@ -163,9 +163,9 @@ void ComputeStressAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
 
   if (fixflag) {
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->virial_flag) {
-	double **vatom = modify->fix[i]->vatom;
+    for (int ifix = 0; ifix < modify->nfix; ifix++)
+      if (modify->fix[ifix]->virial_flag) {
+	double **vatom = modify->fix[ifix]->vatom;
 	for (i = 0; i < nlocal; i++)
 	  for (j = 0; j < 6; j++)
 	    stress[i][j] += vatom[i][j];

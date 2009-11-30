@@ -32,13 +32,13 @@ coordinates can be accessed by other <A HREF = "Section_howto.html#4_15">output
 commands</A> that use per-atom quantities such as
 the <A HREF = "dump.html">dump custom</A> command.
 </P>
-<P>IMPORTANT NOTE: To enable displacements to be calculated which include
-the effects of atoms passing through periodic boundaries, the original
-coordinates are stored in "unwrapped" form, by using the image flags
-associated with each atom.  See the <A HREF = "dump.html">dump custom</A> command
-for a discussion of "unwrapped" coordinates.  See the Atoms section of
-the <A HREF = "read_data.html">read_data</A> command for a discussion of image flags
-and how they are set for each atom.
+<P>IMPORTANT NOTE: The original coordinates are stored in "unwrapped"
+form, by using the image flags associated with each atom.  See the
+<A HREF = "dump.html">dump custom</A> command for a discussion of "unwrapped"
+coordinates.  See the Atoms section of the <A HREF = "read_data.html">read_data</A>
+command for a discussion of image flags and how they are set for each
+atom.  You can reset the image flags (e.g. to 0) before invoking this
+fix by using the <A HREF = "set.html">set image</A> command.
 </P>
 <P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
 rigid</A> command), it's periodic image flags are altered,

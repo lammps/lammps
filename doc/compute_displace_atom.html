@@ -31,10 +31,19 @@ due to atoms passing thru periodic boundaries.  The original
 coordinates are stored by a <A HREF = "fix_coord_original.html">fix
 coord/original</A> command, whose ID must be
 specified with this compute.  They are the coordinates at the time the
-fix command was issued.  The displacement can be output directly via
-the <A HREF = "dump.html">dump custom</A> command.  It could also be used to
-calculate a diffusion coefficient for a group of atoms, as is done by
-the <A HREF = "fix_msd.html">fix msd</A> command.
+fix command was issued.
+</P>
+<P>IMPORTANT NOTE: The fix coord/original command stores the initial
+coordinates in "unwrapped" form, by using the image flags associated
+with each atom.  See the <A HREF = "dump.html">dump custom</A> command for a
+discussion of "unwrapped" coordinates.  See the Atoms section of the
+<A HREF = "read_data.html">read_data</A> command for a discussion of image flags and
+how they are set for each atom.  You can reset the image flags
+(e.g. to 0) before invoking the fix and this compute by using the <A HREF = "set.html">set
+image</A> command.
+</P>
+<P>The displacements can be output directly via the <A HREF = "dump.html">dump
+custom</A> command.
 </P>
 <P>The value of the displacement will be 0.0 for atoms not in the
 specified compute group.  Note that the fix defines its own group and

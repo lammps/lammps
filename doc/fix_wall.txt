@@ -192,4 +192,4 @@ wall/gran"_fix_wall_gran.html
 
 [Default:]
 
-The option defaults are no velocity and no wiggle.
+The option defaults are no velocity, no wiggle, and units = lattice.

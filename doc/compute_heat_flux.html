@@ -84,12 +84,19 @@ interval and the appropriate unit conversion factors.  For real
 <A HREF = "units.html">units</A> in LAMMPS, this is 2917703220.0 in this case.  The
 final thermal conductivity value obtained is 0.25 W/mK.
 </P>
+<P>The 6 components of the vector calculated by this compute are as
+follows.  The first 3 components are the x, y, z components of the
+full heat flux.  The next 3 components are the x, y, z components of
+just the convective portion of the flux, which is the energy per atom
+times the velocity of the atom.
+</P>
 <P><B>Output info:</B>
 </P>
-<P>This compute calculates a vector of length 6.  The 6 components are
-the x, y, z components of the full heat flux, followed by the x, y, z
-components of just the convective portion of the flux, which is the
-energy per atom times the velocity of the atom.
+<P>This compute calculates a global vector of length 6 (heat flux
+vector), which can be accessed by indices 1-6.  These values can be
+used by any command that uses global vector values from a compute as
+input.  See <A HREF = "Section_howto.html#4_15">this section</A> for an overview of
+LAMMPS output options.
 </P>
 <P>The vector values calculated by this compute are "extensive", meaning
 they scale with the number of atoms in the simulation.  They should be

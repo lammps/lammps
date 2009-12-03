@@ -118,6 +118,7 @@ available in LAMMPS:
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
+"msd"_compute_msd.html - mean-squared displacement of group of atoms
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor

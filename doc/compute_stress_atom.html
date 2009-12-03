@@ -29,14 +29,10 @@ compute 1 all stress/atom pair bond
 </P>
 <P>Define a computation that computes the symmetric per-atom stress
 tensor for each atom in a group.  The tensor for each atom has 6
-components: xx, yy, zz, xy, xz, yz.  See the <A HREF = "compute_pressure.html">compute
+components and is stored as a 6-element vector in the following order:
+xx, yy, zz, xy, xz, yz.  See the <A HREF = "compute_pressure.html">compute
 pressure</A> command if you want the stress tensor
-(pressure) of the entire system.  The 6 components can be accessed by
-indices 1-6 by any command that uses per-atom computes as input,
-e.g. the <A HREF = "dump.html">dump custom</A> command or <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A> command or <A HREF = "fix_ave_atom.html">fix
-ave/atom</A> command.  See <A HREF = "Section_howto.html#4_15">this
-section</A> for an overview.
+(pressure) of the entire system.
 </P>
 <P>The stress tensor for atom <I>I</I> is given by the following formula,
 where <I>a</I> and <I>b</I> take on values x,y,z to generate the 6 components of
@@ -105,10 +101,9 @@ contribution can easily be computed.
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a vector of length 6 for each atom, which can
-be accessed by indices 1-6 by any command that uses per-atom computes
-as input.  See <A HREF = "Section_howto.html#4_15">this section</A> for an overview
-of LAMMPS output options.  The 6 components of the vector are ordered
-xx, yy, zz, xy, xz, yz.
+be accessed by indices 1-6 by any command that uses per-atom values
+from a compute as input.  See <A HREF = "Section_howto.html#4_15">this section</A>
+for an overview of LAMMPS output options.
 </P>
 <P><B>Restrictions:</B> none
 </P>

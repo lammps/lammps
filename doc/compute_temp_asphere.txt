@@ -62,11 +62,12 @@ IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
 as ellipsoids, not ellipses, meaning their moments of inertia will be
 the same as in 3d.
 
-A 6-component kinetic energy tensor is also calculated by this
-compute.  The formula for the components of the tensor is the same as
-the above formula, except that v^2 and w^2 are replaced by vx*vy and
-wx*wy for the xy component, and the appropriate elements of the
-inertia tensor are used.
+A kinetic energy tensor, stored as a 6-element vector, is also
+calculated by this compute.  The formula for the components of the
+tensor is the same as the above formula, except that v^2 and w^2 are
+replaced by vx*vy and wx*wy for the xy component, and the appropriate
+elements of the inertia tensor are used.  The 6 components of the
+vector are ordered xx, yy, zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the {dynamic} option of the
@@ -94,6 +95,13 @@ discussion of different ways to compute temperature and perform
 thermostatting.
 
 [Output info:]
+
+This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See "this
+section"_Section_howto.html#4_15 for an overview of LAMMPS output
+options.
 
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.  The vector

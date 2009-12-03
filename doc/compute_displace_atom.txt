@@ -23,9 +23,12 @@ compute 1 all displace/atom :pre
 
 Define a computation that calculates the current displacement of each
 atom in the group from its original coordinates, including all effects
-due to atoms passing thru periodic boundaries.  Four quantites per
-atom are computed: the x,y,z displacements and the total displacement.
-See below for details.
+due to atoms passing thru periodic boundaries.
+
+A vector of four quantites per atom are calculated by this compute.
+The first 3 elements of the cector are the dx,dy,dz displacements.
+The 4th component is the total displacement, i.e. sqrt(dx*dx + dy*dy +
+dz*dz).
 
 To store the original coordinates at the time this compute is issued,
 the compute creates its own fix of style "coord/original", as if this
@@ -38,6 +41,9 @@ details.  Note that the ID of the new fix is the compute-ID +
 underscore + "coord_original", and the group for the new fix is
 the same as the compute group.
 
+The value of the displacement will be 0.0 for atoms not in the
+specified compute group.
+
 IMPORTANT NOTE: Fix coord/original stores the initial coordinates in
 "unwrapped" form, by using the image flags associated with each atom.
 See the "dump custom"_dump.html command for a discussion of
@@ -47,11 +53,13 @@ how they are set for each atom.  You can reset the image flags
 (e.g. to 0) before invoking this compute by using the "set
 image"_set.html command.
 
-The displacements can be output directly via the "dump
-custom"_dump.html command.
-
-The value of the displacement will be 0.0 for atoms not in the
-specified compute group.
+IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
+rigid"_fix_rigid.html command), it's periodic image flags are altered,
+and the computed MSD will not reflect its true displacement.  See the
+"fix rigid"_fix_rigid.html command for details.  Thus, to compute the
+MSD of rigid bodies as they cross periodic boundaries, you will need
+to post-process a "dump file"_dump.html containing coordinates of the
+atoms in the bodies.
 
 IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a "restart file"_read_restart.html,
@@ -65,14 +73,13 @@ file.
 This compute calculates a vector of length 4 for each atom, which can
 be accessed by indices 1-4 by any command that uses per-atom computes
 as input.  See "this section"_Section_howto.html#4_15 for an overview
-of LAMMPS output options.  The first 3 components of the vector are
-the x,y,z displacements.  The 4th component is the total displacement,
-i.e. sqrt(dx*dx + dy*dy + dz*dz).
+of LAMMPS output options.
 
 [Restrictions:] none
 
 [Related commands:]
 
-"dump custom"_dump.html, "fix msd"_fix_msd.html
+"compute msd"_compute_msd.html, "dump custom"_dump.html, "fix
+coord/original"_fix_coord_original.html
 
 [Default:] none

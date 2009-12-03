@@ -13,14 +13,24 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID coord/original 
+<PRE>fix ID group-ID coord/original keyword values ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
 <LI>coord/original = style name of this fix command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>com</I> 
+
+<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all coord/original 
+<PRE>fix 1 all coord/original
+fix 1 upper coord/original com yes 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -44,6 +54,11 @@ fix by using the <A HREF = "set.html">set image</A> command.
 rigid</A> command), it's periodic image flags are altered,
 and its original coordinates may not be what you expect.  See the
 <A HREF = "fix_rigid.html">fix rigid</A> command for details.
+</P>
+<P>If the <I>com</I> keyword is set to <I>yes</I> then the position
+of each atom relative to the center-of-mass of the group of
+atoms is stored, instead of the absolute position.  This option
+is used by the <A HREF = "compute_msd.html">compute msd</A> command.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -71,9 +86,11 @@ minimization</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_msd.html">fix msd</A>, <A HREF = "compute_displace_atom.html">compute
+<P><A HREF = "compute_msd.html">compute msd</A>, <A HREF = "compute_displace_atom.html">compute
 displace/atom</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option default is com = no.
 </P>
 </HTML>

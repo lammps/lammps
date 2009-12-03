@@ -27,12 +27,7 @@ compute 1 all pe/atom pair bond :pre
 
 Define a computation that computes the per-atom potential energy for
 each atom in a group.  See the "compute pe"_compute_pe.html command if
-you want the potential energy of the entire system.  The per-atom
-energies can be accessed as scalar values by any command that uses
-per-atom computes, e.g. the "dump custom"_dump.html command or "fix
-ave/spatial"_fix_ave_spatial.html command or "fix
-ave/atom"_fix_ave_atom.html command.  See "this
-section"_Section_howto.html#4_15 for an overview.
+you want the potential energy of the entire system.
 
 The per-atom energy is calculated by the various pair, bond, etc
 potentials defined for the simulation.  If no extra keywords are
@@ -68,9 +63,9 @@ contribution can easily be computed.
 [Output info:]
 
 This compute calculates a scalar quantity for each atom, which can be
-accessed by any command that uses per-atom computes as input.  See
-"this section"_Section_howto.html#4_15 for an overview of LAMMPS
-output options.
+accessed by any command that uses per-atom values from a compute as
+input.  See "this section"_Section_howto.html#4_15 for an overview of
+LAMMPS output options.
 
 [Restrictions:]
 

@@ -10,14 +10,19 @@ fix coord/original command :h3
 
 [Syntax:]
 
-fix ID group-ID coord/original :pre
+fix ID group-ID coord/original keyword values ... :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-coord/original = style name of this fix command :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+coord/original = style name of this fix command :l
+zero or more keyword/value pairs may be appended :l
+keyword = {com} :l
+  {com} value = {yes} or {no} :pre
+:ule
 
 [Examples:]
 
-fix 1 all coord/original :pre
+fix 1 all coord/original
+fix 1 upper coord/original com yes :pre
 
 [Description:]
 
@@ -41,6 +46,11 @@ IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
 rigid"_fix_rigid.html command), it's periodic image flags are altered,
 and its original coordinates may not be what you expect.  See the
 "fix rigid"_fix_rigid.html command for details.
+
+If the {com} keyword is set to {yes} then the position
+of each atom relative to the center-of-mass of the group of
+atoms is stored, instead of the absolute position.  This option
+is used by the "compute msd"_compute_msd.html command.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -68,7 +78,9 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"fix msd"_fix_msd.html, "compute
+"compute msd"_compute_msd.html, "compute
 displace/atom"_compute_displace_atom.html
 
-[Default:] none
+[Default:]
+
+The option default is com = no.

@@ -54,10 +54,12 @@ means the distance units are in lattice spacings; e.g. velocity =
 lattice spacings / tau.  The "lattice"_lattice.html command must have
 been previously used to define the lattice spacing.
 
-A 6-component kinetic energy tensor is also calculated by this compute
-for use in the calculation of a pressure tensor.  The formula for the
-components of the tensor is the same as the above formula, except that
-v^2 is replaced by vx * vy for the xy component, etc.
+A kinetic energy tensor, stored as a 6-element vector, is also
+calculated by this compute for use in the computation of a pressure
+tensor.  The formula for the components of the tensor is the same as
+the above formula, except that v^2 is replaced by vx*vy for the xy
+component, etc.  The 6 components of the vector are ordered xx, yy,
+zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the {dynamic} option of the
@@ -86,6 +88,13 @@ discussion of different ways to compute temperature and perform
 thermostatting.
 
 [Output info:]
+
+This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See "this
+section"_Section_howto.html#4_15 for an overview of LAMMPS output
+options.
 
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.  The vector

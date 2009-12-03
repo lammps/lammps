@@ -26,9 +26,12 @@
 </P>
 <P>Define a computation that calculates the current displacement of each
 atom in the group from its original coordinates, including all effects
-due to atoms passing thru periodic boundaries.  Four quantites per
-atom are computed: the x,y,z displacements and the total displacement.
-See below for details.
+due to atoms passing thru periodic boundaries.
+</P>
+<P>A vector of four quantites per atom are calculated by this compute.
+The first 3 elements of the cector are the dx,dy,dz displacements.
+The 4th component is the total displacement, i.e. sqrt(dx*dx + dy*dy +
+dz*dz).
 </P>
 <P>To store the original coordinates at the time this compute is issued,
 the compute creates its own fix of style "coord/original", as if this
@@ -41,6 +44,9 @@ details.  Note that the ID of the new fix is the compute-ID +
 underscore + "coord_original", and the group for the new fix is
 the same as the compute group.
 </P>
+<P>The value of the displacement will be 0.0 for atoms not in the
+specified compute group.
+</P>
 <P>IMPORTANT NOTE: Fix coord/original stores the initial coordinates in
 "unwrapped" form, by using the image flags associated with each atom.
 See the <A HREF = "dump.html">dump custom</A> command for a discussion of
@@ -50,11 +56,13 @@ how they are set for each atom.  You can reset the image flags
 (e.g. to 0) before invoking this compute by using the <A HREF = "set.html">set
 image</A> command.
 </P>
-<P>The displacements can be output directly via the <A HREF = "dump.html">dump
-custom</A> command.
-</P>
-<P>The value of the displacement will be 0.0 for atoms not in the
-specified compute group.
+<P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
+rigid</A> command), it's periodic image flags are altered,
+and the computed MSD will not reflect its true displacement.  See the
+<A HREF = "fix_rigid.html">fix rigid</A> command for details.  Thus, to compute the
+MSD of rigid bodies as they cross periodic boundaries, you will need
+to post-process a <A HREF = "dump.html">dump file</A> containing coordinates of the
+atoms in the bodies.
 </P>
 <P>IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
@@ -68,15 +76,14 @@ file.
 <P>This compute calculates a vector of length 4 for each atom, which can
 be accessed by indices 1-4 by any command that uses per-atom computes
 as input.  See <A HREF = "Section_howto.html#4_15">this section</A> for an overview
-of LAMMPS output options.  The first 3 components of the vector are
-the x,y,z displacements.  The 4th component is the total displacement,
-i.e. sqrt(dx*dx + dy*dy + dz*dz).
+of LAMMPS output options.
 </P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump custom</A>, <A HREF = "fix_msd.html">fix msd</A>
+<P><A HREF = "compute_msd.html">compute msd</A>, <A HREF = "dump.html">dump custom</A>, <A HREF = "fix_coord_original.html">fix
+coord/original</A>
 </P>
 <P><B>Default:</B> none
 </P>

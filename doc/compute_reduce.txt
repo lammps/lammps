@@ -40,12 +40,7 @@ compute 2 all reduce min c_press[2] f_ave v_myKE :pre
 Define a calculation that "reduces" one or more per-atom inputs across
 all atoms in the group to yield a single global scalar for each listed
 input.  If the compute reduce/region command is used, the selection of
-atoms is limited to atoms in the region as well as in the group.  The
-resulting value(s) can be accessed by any command that uses global
-computes, e.g. the "thermo custom"_therml_style.html command or "fix
-ave/time"_fix_ave_time.html command or by a "variable"_variable.html
-command.  See "this section"_Section_howto.html#4_15 of the
-documentation for an overview of output options.
+atoms is limited to atoms in the region as well as in the group.
 
 The reduction operation is specified by the {mode} setting.  The {sum}
 option adds the per-atom quantities into a global total.  The {min} or
@@ -88,6 +83,13 @@ option.  Or it can be accessed by a "variable"_variable.html that
 divides by the appropriate atom count.
 
 [Output info:]
+
+This compute calculates a global scalar or global vector of length N
+where N is the number of inputs, and which can be accessed by indices
+1-6.  These values can be used by any command that uses global scalar
+or vector values from a compute as input.  See "this
+section"_Section_howto.html#4_15 for an overview of LAMMPS output
+options.
 
 For {sum} mode, the scalar and vector values calculated by this
 compute are "extensive", meaning they scale with the number of atoms

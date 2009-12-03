@@ -53,6 +53,13 @@ custom"_dump.html command.
 The value of the displacement will be 0.0 for atoms not in the
 specified compute group.
 
+IMPORTANT NOTE: If you want the quantities calculated by this compute
+to be continuous when running from a "restart file"_read_restart.html,
+then you should use the same ID for this compute, as in the original
+run.  This is so that the created fix will also have the same ID, and
+thus be initialized correctly with atom coordinates from the restart
+file.
+
 [Output info:]
 
 This compute calculates a vector of length 4 for each atom, which can

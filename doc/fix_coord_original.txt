@@ -22,7 +22,7 @@ fix 1 all coord/original :pre
 [Description:]
 
 Store the original coordinates of atoms in the group at the time the
-fix command is issued.  This is useful for computing a displacement of
+fix command is issued.  This is used for computing a displacement of
 the atoms at later times, via the "compute
 displace/atom"_compute_displace_atom.html command.  Or the original
 coordinates can be accessed by other "output
@@ -68,6 +68,7 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"fix msd"_fix_msd.html
+"fix msd"_fix_msd.html, "compute
+displace/atom"_compute_displace_atom.html
 
 [Default:] none

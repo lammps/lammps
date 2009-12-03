@@ -56,6 +56,13 @@ custom</A> command.
 <P>The value of the displacement will be 0.0 for atoms not in the
 specified compute group.
 </P>
+<P>IMPORTANT NOTE: If you want the quantities calculated by this compute
+to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
+then you should use the same ID for this compute, as in the original
+run.  This is so that the created fix will also have the same ID, and
+thus be initialized correctly with atom coordinates from the restart
+file.
+</P>
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a vector of length 4 for each atom, which can

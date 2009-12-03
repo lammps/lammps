@@ -16,6 +16,7 @@
 #include "compute_displace_atom.h"
 #include "atom.h"
 #include "update.h"
+#include "group.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -29,19 +30,25 @@ using namespace LAMMPS_NS;
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute displace/atom command");
+  if (narg != 3) error->all("Illegal compute displace/atom command");
 
   peratom_flag = 1;
   size_peratom = 4;
 
-  // store fix ID which stores original atom coords
+  // create a new fix coord/original style
+  // id = compute-ID + coord_original, fix group = compute group
 
-  int n = strlen(arg[3]) + 1;
+  int n = strlen(id) + strlen("_coord_original") + 1;
   id_fix = new char[n];
-  strcpy(id_fix,arg[3]);
+  strcpy(id_fix,id);
+  strcat(id_fix,"_coord_original");
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all("Could not find compute displace/atom fix ID");
+  char **newarg = new char*[3];
+  newarg[0] = id_fix;
+  newarg[1] = group->names[igroup];
+  newarg[2] = (char *) "coord/original";
+  modify->add_fix(3,newarg);
+  delete [] newarg;
 
   nmax = 0;
   displace = NULL;
@@ -51,6 +58,10 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeDisplaceAtom::~ComputeDisplaceAtom()
 {
+  // check nfix in case all fixes have already been deleted
+
+  if (modify->nfix) modify->delete_fix(id_fix);
+
   delete [] id_fix;
   memory->destroy_2d_double_array(displace);
 }
@@ -65,9 +76,6 @@ void ComputeDisplaceAtom::init()
   int ifix = modify->find_fix(id_fix);
   if (ifix < 0) error->all("Could not find compute displace/atom fix ID");
   fix = modify->fix[ifix];
-
-  if (strcmp(fix->style,"coord/original") != 0)
-    error->all("Invalid fix style used in compute displace/atom command");
 }
 
 /* ---------------------------------------------------------------------- */

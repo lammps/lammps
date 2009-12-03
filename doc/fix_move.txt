@@ -78,8 +78,8 @@ X(t) = X0 + V * delta :pre
 
 where {X0} = (x0,y0,z0) is their position at the time the fix is
 specified, {V} is the specified velocity vector with components
-(Vx,Vy,Vz), and {delta} is the time elapsed since the beginning of the
-simulation.  This style also sets the velocity of each atom to V =
+(Vx,Vy,Vz), and {delta} is the time elapsed since the fix was
+specified.  This style also sets the velocity of each atom to V =
 (Vx,Vy,Vz).  If any of the velocity components is specified as NULL,
 then the position and velocity of that component is time integrated
 the same as the "fix nve"_fix_nve.html command would perform, using
@@ -94,9 +94,9 @@ X(t) = X0 + A sin(omega*delta) :pre
 where {X0} = (x0,y0,z0) is their position at the time the fix is
 specified, {A} is the specified amplitude vector with components
 (Ax,Ay,Az), {omega} is 2 PI / {period}, and {delta} is the time
-elapsed since the beginning of the simulation.  This style also sets
-the velocity of each atom to the time derivative of this expression.
-If any of the amplitude components is specified as NULL, then the
+elapsed since the fix was specified.  This style also sets the
+velocity of each atom to the time derivative of this expression.  If
+any of the amplitude components is specified as NULL, then the
 position and velocity of that component is time integrated the same as
 the "fix nve"_fix_nve.html command would perform, using the
 corresponding force component on the atom.
@@ -178,11 +178,9 @@ for each atom is 3, and the components store the original unwrapped
 x,y,z coords of each atom.  The per-atom values be accessed on any
 timestep.
 
-This fix can move atoms continously over multiple runs, using the
-{start} and {stop} keywords of the "run"_run.html command.  See the
-"run"_run.html command for details of how to do this.
-
-This fix is not invoked during "energy minimization"_minimize.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:] none
 

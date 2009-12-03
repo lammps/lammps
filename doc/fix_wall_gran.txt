@@ -108,13 +108,12 @@ is perpendicular to the wall, it is more of a shaking motion.  A
 Each timestep, the position of a wiggled wall in the appropriate {dim}
 is set according to this equation:
 
-position = pos0 + A - A cos (omega * delta) :pre
+position = coord + A - A cos (omega * delta) :pre
 
-where {pos0} is the position at the beginning of the simulation, {A}
-is the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the
-elapsed time since the beginning of the simulatoin.  The velocity of
-the wall is set to the derivative of this expression.  See the note
-below about making a wall oscillate continuously across multiple runs.
+where {coord} is the specified initial position of the wall, {A} is
+the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the time
+elapsed since the fix was specified.  The velocity of the wall is set
+to the derivative of this expression.
 
 For the {shear} keyword, the wall moves continuously in the specified
 dimension with velocity {vshear}.  The dimension must be tangential to
@@ -139,14 +138,8 @@ uninterrupted fashion.
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global scalar or vector or per-atom quantities are stored by
 this fix for access by various "output
-commands"_Section_howto.html#4_15. 
-
-This fix can change the position and velocity of the wall(s), due to
-the {wiggle} keyword, continuously over multiple runs, using the
-{start} and {stop} keywords of the "run"_run.html command.  If you do
-not do this, the wall position and velocity will be reset to its
-initial values at the beginning of each run.
-
+commands"_Section_howto.html#4_15.  No parameter of this fix can be
+used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]

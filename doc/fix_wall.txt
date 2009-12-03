@@ -25,7 +25,10 @@ keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {vel} or {wiggle
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
   {vel} value = v
     v = velocity of wall in perpendicular direction (velocity units)
-  {wiggle} values = amplitude period
+  {wiggle/sin} values = amplitude period
+    amplitude = size of oscillation (distance units)
+    period = time of oscillation (time units)
+  {wiggle/cos} values = amplitude period
     amplitude = size of oscillation (distance units)
     period = time of oscillation (time units)
   {units} value = {lattice} or {box}
@@ -92,42 +95,39 @@ in the wall.
 If the {vel} keyword is specified, the position of all walls will move
 during the simulation in a perpendicular direction, based on their
 initial {coord} position, the specified velocity {vel}, and the time
-elapsed since the beginning of the simulation.  See the note below
-about making a wall move continuously across multiple runs.  A
-positive velocity means each wall moves inward, towards the center of
-the box.  I.e. an {xlo} wall will move in the +x direction and an
-{xhi} wall will move in the -x direction.  A negative velocity means
-each wall moves outward, away from the center of the box.  If you want
-different walls to move with different velocities, then you need to
-use multiple fix wall commands.
+elapsed since the fix was specified.  A positive velocity means each
+wall moves inward, towards the center of the box.  I.e. an {xlo} wall
+will move in the +x direction and an {xhi} wall will move in the -x
+direction.  A negative velocity means each wall moves outward, away
+from the center of the box.  If you want different walls to move with
+different velocities, then you need to use multiple fix wall commands.
 
 If the {wiggle/sin} keyword is specified, the position of all walls
 will oscillate sinusoidally during the simulation in the perpendicular
 direction, according to the equation:
 
-position = pos0 + A sin(omega*delta) :pre
+position = coord + A sin(omega*delta) :pre
 
 If the {wiggle/cos} keyword is specified, the position of all walls
 will oscillate sinusoidally during the simulation in the perpendicular
 direction, according to the equation:
 
-position = pos0 + A (1 - cos(omega*delta)) :pre
+position = coord + A (1 - cos(omega*delta)) :pre
 
-In both cases, {pos0} is the position at the beginning of the
-simulation, {A} is the {amplitude}, {omega} is 2 PI / {period}, and
-{delta} is the time elapsed since the beginning of the simulation.
-See the note below about making a wall oscillate continuously across
-multiple runs.  A positive amplitude means each wall initially moves
-inward, towards the center of the box.  I.e. an {xlo} wall will move
-initially in the +x direction and an {xhi} wall will move initially in
-the -x direction.  A negative velocity means each wall moves initially
-outward, away from the center of the box.  Note that the {wiggle/sin}
-option oscillates with amplitude {A} around the pos0 position and the
-velocity of the wall is a maximum at time 0.  By contrast, for the
-{wiggle/cos} option the wall moves up to {2A} away from pos0 in one
-direction and the velocity of the wall is 0 at time 0.  If you want
-different walls to oscillate with different amplitudes or periods,
-then you need to use multiple fix wall commands.
+In both cases, {coord} is the specified initial position of the wall,
+{A} is the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the
+time elapsed since the fix was specified.  A positive amplitude means
+each wall initially moves inward, towards the center of the box.
+I.e. an {xlo} wall will move initially in the +x direction and an
+{xhi} wall will move initially in the -x direction.  A negative
+velocity means each wall moves initially outward, away from the center
+of the box.  Note that the {wiggle/sin} option oscillates with
+amplitude {A} around the pos0 position and the velocity of the wall is
+a maximum at time 0.  By contrast, for the {wiggle/cos} option the
+wall moves up to {2A} away from pos0 in one direction and the velocity
+of the wall is 0 at time 0.  If you want different walls to oscillate
+with different amplitudes or periods, then you need to use multiple
+fix wall commands.
 
 The {units} keyword determines the meaning of the distance units used
 to define the position of the wall and its velocity and wiggle
@@ -165,11 +165,8 @@ corresponding wall is defined.  Note that an outward force on a wall
 will be a negative value for {lo} walls and a positive value for {hi}
 walls.
 
-This fix can change the position of each wall, due to the {vel} or
-{wiggle} keywords, continuously over multiple runs, using the {start}
-and {stop} keywords of the "run"_run.html command.  If you do not do
-this, the wall position will be reset to {coord} at the beginning of
-each run.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.
@@ -183,7 +180,8 @@ being minimized), you MUST enable the "fix_modify"_fix_modify.html
 
 Any dimension (xyz) that has a wall must be non-periodic.
 
-You cannot use both the {vel} and {wiggle} keywords together.
+You cannot use both the {vel} and either of the {wiggle} keywords
+together.
 
 [Related commands:]
 

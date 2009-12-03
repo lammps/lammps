@@ -271,23 +271,41 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha,
 }
 
 /* ----------------------------------------------------------------------
-   linemin: quadratic line search (adapted from Dennis and Schnabel)
-   basic idea is to backtrack until change in energy is sufficiently small
-     based on ENERGY_QUADRATIC, then use a quadratic approximation
-     using forces at two alpha values to project to minimum
-   use forces rather than energy change to do projection
-   this is b/c the forces are going to zero and can become very small
-     unlike energy differences which are the difference of two finite
-     values and are thus limited by machine precision
-   two changes that were critical to making this method work:
-     a) limit maximum step to alpha <= 1
-     b) ignore energy criterion if delE <= ENERGY_QUADRATIC
-   several other ideas also seemed to help:
-     c) making each step from starting point (alpha = 0), not previous alpha
-     d) quadratic model based on forces, not energy
-     e) exiting immediately if f.dir <= 0 (search direction not downhill)
-        so that CG can restart
-   a,c,e were also adopted for the backtracking linemin function
+    // linemin: quadratic line search (adapted from Dennis and Schnabel)
+    // The objective function is approximated by a quadratic 
+    // function in alpha, for sufficiently small alpha. 
+    // This idea is the same as that used in the well-known secant
+    // method. However, since the change in the objective function 
+    // (difference of two finite numbers) is not known as accurately 
+    // as the gradient (which is close to zero), all the expressions 
+    // are written in terms of gradients. In this way, we can converge 
+    // the LAMMPS forces much closer to zero. 
+    //
+    // We know E,Eprev,fh,fhprev. The Taylor series about alpha_prev 
+    // truncated at the quadratic term is:
+    //
+    //     E = Eprev - del_alpha*fhprev + (1/2)del_alpha^2*Hprev
+    //
+    // and
+    //
+    //     fh = fhprev - del_alpha*Hprev
+    //
+    // where del_alpha = alpha-alpha_prev
+    //
+    // We solve these two equations for Hprev and E=Esolve, giving:
+    //
+    //     Esolve = Eprev - del_alpha*(f+fprev)/2
+    //
+    // We define relerr to be:
+    //
+    //      relerr = |(Esolve-E)/Eprev|
+    //             = |1.0 - (0.5*del_alpha*(f+fprev)+E)/Eprev|
+    // 
+    // If this is accurate to within a reasonable tolerance, then
+    // we go ahead and use a secant step to fh = 0:
+    //
+    //      alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
+    //
 ------------------------------------------------------------------------- */
 
 int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha, 
@@ -411,11 +429,10 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha,
       return ZEROQUAD;
     }
 
-    // check if ready for quadratic projection, equivalent to secant method
+    // Check if ready for quadratic projection, equivalent to secant method
     // alpha0 = projected alpha
 
-    relerr = fabs(1.0+(0.5*alpha*(alpha-alphaprev)*
-		       (fh+fhprev)-ecurrent)/engprev);
+    relerr = fabs(1.0-(0.5*(alpha-alphaprev)*(fh+fhprev)+ecurrent)/engprev);
     alpha0 = alpha - (alpha-alphaprev)*fh/delfh;
 
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0) {

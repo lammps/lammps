@@ -130,8 +130,10 @@ name of the variable that appears elsewhere in the input script.
 a function of the timestep as well as of other simulation values.
 <I>Atom</I>-style variables compute a numeric quantity for each atom, that
 can be a function per-atom quantities, such as the atom's position, as
-well as of the timestep and other simulation values.  See the
-<A HREF = "variable.html">variable</A> command for details.
+well as of the timestep and other simulation values.  Note that this
+fix stores the original coordinates of each atom (see note below) so
+that per-atom quantity can be used in an atom-style variable formula.
+See the <A HREF = "variable.html">variable</A> command for details.
 </P>
 <P>The first 3 variables (v_dx,v_dy,v_dz) specified for the <I>variable</I>
 style are used to calculate a displacement from the atom's original

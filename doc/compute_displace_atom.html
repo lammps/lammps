@@ -13,42 +13,48 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID displace/atom fix-ID 
+<PRE>compute ID group-ID displace/atom 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>displace/atom = style name of this compute command
-<LI>fix-ID = ID of a fix of style <A HREF = "fix_coord_original.html">coord/original</A> 
+<LI>displace/atom = style name of this compute command 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all displace/atom myCoords 
+<PRE>compute 1 all displace/atom 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the current displacement of each
 atom in the group from its original coordinates, including all effects
-due to atoms passing thru periodic boundaries.  The original
-coordinates are stored by a <A HREF = "fix_coord_original.html">fix
-coord/original</A> command, whose ID must be
-specified with this compute.  They are the coordinates at the time the
-fix command was issued.
+due to atoms passing thru periodic boundaries.  Four quantites per
+atom are computed: the x,y,z displacements and the total displacement.
+See below for details.
 </P>
-<P>IMPORTANT NOTE: The fix coord/original command stores the initial
-coordinates in "unwrapped" form, by using the image flags associated
-with each atom.  See the <A HREF = "dump.html">dump custom</A> command for a
-discussion of "unwrapped" coordinates.  See the Atoms section of the
+<P>To store the original coordinates at the time this compute is issued,
+the compute creates its own fix of style "coord/original", as if this
+command had been issued:
+</P>
+<PRE>fix compute-ID_coord_original group-ID coord/original 
+</PRE>
+<P>See the <A HREF = "fix_coord_original.html">fix coord/original</A> command for
+details.  Note that the ID of the new fix is the compute-ID +
+underscore + "coord_original", and the group for the new fix is
+the same as the compute group.
+</P>
+<P>IMPORTANT NOTE: Fix coord/original stores the initial coordinates in
+"unwrapped" form, by using the image flags associated with each atom.
+See the <A HREF = "dump.html">dump custom</A> command for a discussion of
+"unwrapped" coordinates.  See the Atoms section of the
 <A HREF = "read_data.html">read_data</A> command for a discussion of image flags and
 how they are set for each atom.  You can reset the image flags
-(e.g. to 0) before invoking the fix and this compute by using the <A HREF = "set.html">set
+(e.g. to 0) before invoking this compute by using the <A HREF = "set.html">set
 image</A> command.
 </P>
 <P>The displacements can be output directly via the <A HREF = "dump.html">dump
 custom</A> command.
 </P>
 <P>The value of the displacement will be 0.0 for atoms not in the
-specified compute group.  Note that the fix defines its own group and
-stores (0.0,0.0,0.0) for the original coordinates of any atom not in
-the fix group.
+specified compute group.
 </P>
 <P><B>Output info:</B>
 </P>

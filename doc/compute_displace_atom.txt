@@ -10,42 +10,48 @@ compute displace/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID displace/atom fix-ID :pre
+compute ID group-ID displace/atom :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-displace/atom = style name of this compute command
-fix-ID = ID of a fix of style "coord/original"_fix_coord_original.html :ul
+displace/atom = style name of this compute command :ul
 
 [Examples:]
 
-compute 1 all displace/atom myCoords :pre
+compute 1 all displace/atom :pre
 
 [Description:]
 
 Define a computation that calculates the current displacement of each
 atom in the group from its original coordinates, including all effects
-due to atoms passing thru periodic boundaries.  The original
-coordinates are stored by a "fix
-coord/original"_fix_coord_original.html command, whose ID must be
-specified with this compute.  They are the coordinates at the time the
-fix command was issued.
+due to atoms passing thru periodic boundaries.  Four quantites per
+atom are computed: the x,y,z displacements and the total displacement.
+See below for details.
 
-IMPORTANT NOTE: The fix coord/original command stores the initial
-coordinates in "unwrapped" form, by using the image flags associated
-with each atom.  See the "dump custom"_dump.html command for a
-discussion of "unwrapped" coordinates.  See the Atoms section of the
+To store the original coordinates at the time this compute is issued,
+the compute creates its own fix of style "coord/original", as if this
+command had been issued:
+
+fix compute-ID_coord_original group-ID coord/original :pre
+
+See the "fix coord/original"_fix_coord_original.html command for
+details.  Note that the ID of the new fix is the compute-ID +
+underscore + "coord_original", and the group for the new fix is
+the same as the compute group.
+
+IMPORTANT NOTE: Fix coord/original stores the initial coordinates in
+"unwrapped" form, by using the image flags associated with each atom.
+See the "dump custom"_dump.html command for a discussion of
+"unwrapped" coordinates.  See the Atoms section of the
 "read_data"_read_data.html command for a discussion of image flags and
 how they are set for each atom.  You can reset the image flags
-(e.g. to 0) before invoking the fix and this compute by using the "set
+(e.g. to 0) before invoking this compute by using the "set
 image"_set.html command.
 
 The displacements can be output directly via the "dump
 custom"_dump.html command.
 
 The value of the displacement will be 0.0 for atoms not in the
-specified compute group.  Note that the fix defines its own group and
-stores (0.0,0.0,0.0) for the original coordinates of any atom not in
-the fix group.
+specified compute group.
 
 [Output info:]
 

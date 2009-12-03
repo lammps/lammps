@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 
 // customize a new keyword by adding to this list:
 
-// step, atoms, cpu, temp, press, pe, ke, etotal, enthalpy
+// step, atoms, cpu, dt, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
 // pxx, pyy, pzz, pxy, pxz, pyz
@@ -575,6 +575,8 @@ void Thermo::parse_fields(char *str)
       addfield("Atoms",&Thermo::compute_atoms,INT);
     } else if (strcmp(word,"cpu") == 0) {
       addfield("CPU",&Thermo::compute_cpu,FLOAT);
+    } else if (strcmp(word,"dt") == 0) {
+      addfield("Dt",&Thermo::compute_dt,FLOAT);
 
     } else if (strcmp(word,"temp") == 0) {
       addfield("Temp",&Thermo::compute_temp,FLOAT);
@@ -834,6 +836,9 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"cpu") == 0) {
     if (update->whichflag == 0) firststep = 0;
     compute_cpu();
+
+  } else if (strcmp(word,"dt") == 0) {
+    compute_dt();
 
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
@@ -1210,6 +1215,13 @@ void Thermo::compute_cpu()
 {
   if (firststep == 0) dvalue = 0.0;
   else dvalue = timer->elapsed(TIME_LOOP);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_dt()
+{
+  dvalue = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */

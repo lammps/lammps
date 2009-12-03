@@ -109,6 +109,7 @@ class Thermo : protected Pointers {
   void compute_step();    
   void compute_atoms();
   void compute_cpu();
+  void compute_dt();
 
   void compute_temp();
   void compute_press();

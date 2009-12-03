@@ -79,8 +79,9 @@ the gradient arguments are in full rotations per time unit.  E.g. a
 timestep of 0.001 and a gradient of 0.1 means the acceleration vector
 would rotate thru 360 degrees every 10,000 timesteps.  For the
 time-dependent case, the initial direction of the acceleration vector
-is phi,theta at the time the fix is specified.  For 2d systems, <I>phi</I>
-and <I>phi_grad</I> are ignored.
+is phi,theta at the beginning of the simulation.  For 2d systems,
+<I>phi</I> and <I>phi_grad</I> are ignored.  See the note below about making the
+acceleration vector rotate continuously across multiple runs.
 </P>
 <P>Style <I>vector</I> imposes an acceleration in the vector direction given
 by (x,y,z).  For 2d systems, the z component is ignored.
@@ -91,9 +92,15 @@ by (x,y,z).  For 2d systems, the z component is ignored.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.  No global scalar or vector or per-atom
 quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+commands</A>.  
+</P>
+<P>This fix can change the direction of the gravity vector, due to the
+time-dependent <I>gradient</I> keyword, continuously over multiple runs,
+using the <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.
+If you do not do this, the direction of the gravity vector will be
+reset to its initial value at the beginning of each run.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

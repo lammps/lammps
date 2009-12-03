@@ -56,8 +56,9 @@ fix.
 
 This fix produces a per-atom vector which can be accessed by various
 "output commands"_Section_howto.html#4_15.  The length of the vector
-for each atom is 3, and the components store the x,y,z coords of each
-atom.  The per-atom values be accessed on any timestep.
+for each atom is 3, and the components store the original unwrapped
+x,y,z coords of each atom.  The per-atom values be accessed on any
+timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

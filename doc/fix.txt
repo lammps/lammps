@@ -129,6 +129,7 @@ list of fix styles available in LAMMPS:
      (i.e. diffusion coefficient)
 "momentum"_fix_momentum.html - zero the linear and/or angular momentum \
   of a group of atoms
+"move"_fix_move.html - move atoms in a prescribed fashion
 "nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
 "npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
@@ -177,8 +178,7 @@ list of fix styles available in LAMMPS:
 "wall/gran"_fix_wall_gran.html - frictional wall(s) for granular simulations
 "wall/lj126"_fix_wall_lj126.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall_lj93.html - Lennard-Jones 9-3 wall
-"wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
-"wiggle"_fix_wiggle.html - oscillate walls and frozen atoms :ul
+"wall/reflect"_fix_wall_reflect.html - reflecting wall(s) :ul
 
 There are also additional fix styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

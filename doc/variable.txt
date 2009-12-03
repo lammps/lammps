@@ -263,17 +263,18 @@ can use formula elements that produce either global values or per-atom
 values.
 
 The thermo keywords allowed in a formula are those defined by the
-"thermo_style custom" command.  Thermo keywords that require a
-"compute"_compute.html to calculate their values such as "temp" or
-"press", use computes stored and invoked by the thermo_style command.
-This means that you can only use those keywords in a variable if the
-style you are using with the thermo_style command (and the thermo
-keywords associated with that style) also define and use the needed
-compute.  Note that some thermo keywords use a compute indirectly to
-calculate their value (e.g. the enthalpy keyword uses temp, pe, and
-pressure).  If a variable is evaluated in an input script (not during
-a run), then the values accessed by the thermo keyword must be
-current.  See the discussion below about "Variable Accuracy".
+"thermo_style custom"_thermo_style.html command.  Thermo keywords that
+require a "compute"_compute.html to calculate their values such as
+"temp" or "press", use computes stored and invoked by the
+"thermo_style"_thermo_style.html command.  This means that you can
+only use those keywords in a variable if the style you are using with
+the thermo_style command (and the thermo keywords associated with that
+style) also define and use the needed compute.  Note that some thermo
+keywords use a compute indirectly to calculate their value (e.g. the
+enthalpy keyword uses temp, pe, and pressure).  If a variable is
+evaluated in an input script (not during a run), then the values
+accessed by the thermo keyword must be current.  See the discussion
+below about "Variable Accuracy".
 
 Math operations are written in the usual way, where the "x" and "y" in
 the examples above can be another section of the formula.  Operators

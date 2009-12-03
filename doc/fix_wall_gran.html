@@ -127,10 +127,11 @@ is set according to this equation:
 </P>
 <PRE>position = pos0 + A - A cos (omega * delta) 
 </PRE>
-<P>where <I>pos0</I> is the position at the time the fix was specified, <I>A</I> is
-the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
-elapsed time since the fix was specified.  The velocity of the wall is
-set to the derivative of this expression.
+<P>where <I>pos0</I> is the position at the beginning of the simulation, <I>A</I>
+is the <I>amplitude</I>, <I>omega</I> is 2 PI / <I>period</I>, and <I>delta</I> is the
+elapsed time since the beginning of the simulatoin.  The velocity of
+the wall is set to the derivative of this expression.  See the note
+below about making a wall oscillate continuously across multiple runs.
 </P>
 <P>For the <I>shear</I> keyword, the wall moves continuously in the specified
 dimension with velocity <I>vshear</I>.  The dimension must be tangential to
@@ -155,9 +156,15 @@ uninterrupted fashion.
 <P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
 fix.  No global scalar or vector or per-atom quantities are stored by
 this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+commands</A>. 
+</P>
+<P>This fix can change the position and velocity of the wall(s), due to
+the <I>wiggle</I> keyword, continuously over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  If you do
+not do this, the wall position and velocity will be reset to its
+initial values at the beginning of each run.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -169,7 +176,7 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_wiggle.html<A HREF = "pair_gran.html">>fix_wiggle</A>, pair_style granular</A>
+<P><A HREF = "fix_wiggle.html">fix_wiggle</A>, <A HREF = "pair_gran.html">pair_style granular</A>
 </P>
 <P><B>Default:</B> none
 </P>

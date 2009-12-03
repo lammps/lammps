@@ -71,7 +71,6 @@ ComputeDisplaceAtom::~ComputeDisplaceAtom()
 void ComputeDisplaceAtom::init()
 {
   // set fix which stores original atom coords
-  // check if is correct style
 
   int ifix = modify->find_fix(id_fix);
   if (ifix < 0) error->all("Could not find compute displace/atom fix ID");
@@ -109,6 +108,7 @@ void ComputeDisplaceAtom::compute_peratom()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
+
   int xbox,ybox,zbox;
   double dx,dy,dz;
 

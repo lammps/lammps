@@ -84,6 +84,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_heat_flux.h"
 #include "compute_ke.h"
 #include "compute_ke_atom.h"
+#include "compute_msd.h"
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
@@ -110,6 +111,7 @@ ComputeStyle(group/group,ComputeGroupGroup)
 ComputeStyle(heat/flux,ComputeHeatFlux)
 ComputeStyle(ke,ComputeKE)
 ComputeStyle(ke/atom,ComputeKEAtom)
+ComputeStyle(msd,ComputeMSD)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)

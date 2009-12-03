@@ -27,12 +27,27 @@ using namespace LAMMPS_NS;
 FixCoordOriginal::FixCoordOriginal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix coord/original command");
+  if (narg < 3) error->all("Illegal fix coord/original command");
 
   restart_peratom = 1;
   peratom_flag = 1;
   size_peratom = 3;
   peratom_freq = 1;
+
+  // optional args
+
+  int comflag = 0;
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"com") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix coord/original command");
+      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
+      else error->all("Illegal fix coord/original command");
+      iarg += 2;
+    } else error->all("Illegal fix coord/original command");
+  }
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -42,16 +57,31 @@ FixCoordOriginal::FixCoordOriginal(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
 
+  // cm = original center of mass
+
+  double cm[3];
+  if (comflag) {
+    double masstotal = group->mass(igroup);
+    group->xcm(igroup,masstotal,cm);
+  }
+
   // xoriginal = initial unwrapped positions of atoms
-  
+  // relative to center of mass if comflag is set
+
   double **x = atom->x;
   int *mask = atom->mask;
   int *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
-    else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
+    if (mask[i] & groupbit) {
+      domain->unmap(x[i],image[i],xoriginal[i]);
+      if (comflag) {
+	xoriginal[i][0] -= cm[0];
+	xoriginal[i][1] -= cm[1];
+	xoriginal[i][2] -= cm[2];
+      }
+    } else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 }
 

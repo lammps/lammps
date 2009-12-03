@@ -37,6 +37,7 @@ class FixGravity : public Fix {
   double xgrav,ygrav,zgrav,xacc,yacc,zacc;
   double degree2rad;
   int nlevels_respa;
+  int time_origin;
 };
 
 }

@@ -45,6 +45,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   size_peratom = 3;
   peratom_freq = 1;
   time_integrate = 1;
+  time_depend = 1;
 
   // parse args
 
@@ -254,6 +255,8 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
     else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
+
+  time_origin = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -368,7 +371,7 @@ void FixMove::initial_integrate(int vflag)
   double xold[3],a[3],b[3],c[3],d[3],disp[3];
   double x0dotr,dx,dy,dz;
 
-  double delta = (update->ntimestep - update->beginstep) * dt;
+  double delta = (update->ntimestep - time_origin) * dt;
 
   double **x = atom->x;
   double **v = atom->v;

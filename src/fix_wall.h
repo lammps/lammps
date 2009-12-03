@@ -45,6 +45,7 @@ class FixWall : public Fix {
   double ewall[7],ewall_all[7];
   int nlevels_respa;
   double dt;
+  int time_origin;
 };
 
 }

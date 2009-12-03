@@ -50,6 +50,7 @@ class FixMove : public Fix {
   int xvar,yvar,zvar,vxvar,vyvar,vzvar;
   int xvarstyle,yvarstyle,zvarstyle,vxvarstyle,vyvarstyle,vzvarstyle;
   int omega_flag,nlevels_respa;
+  int time_origin;
 
   double **xoriginal;         // original coords of atoms
   int displaceflag,velocityflag;

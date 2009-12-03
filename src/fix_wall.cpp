@@ -38,6 +38,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   scalar_vector_freq = 1;
   extscalar = 1;
   extvector = 1;
+  time_depend = 1;
 
   // parse args
 
@@ -148,6 +149,8 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   eflag = 0;
   for (int m = 0; m < 7; m++) ewall[m] = 0.0;
+
+  time_origin = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -207,7 +210,7 @@ void FixWall::post_force(int vflag)
   // coord0 = initial position of wall
   // coord = current position of wall
 
-  double delta = (update->ntimestep - update->beginstep) * dt;
+  double delta = (update->ntimestep - time_origin) * dt;
   double coord;
 
   for (int m = 0; m < 6; m++) {

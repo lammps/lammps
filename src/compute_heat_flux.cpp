@@ -131,6 +131,10 @@ void ComputeHeatFlux::compute_vector()
 
   neighbor->build_one(list->index);
 
+  // invoke ghost comm to insure ghost vels are up-to-date
+
+  comm->forward_comm();
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;

@@ -33,6 +33,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all("Illegal fix gravity command");
 
+  time_depend = 1;
+
   magnitude = atof(arg[3]);
 
   if (strcmp(arg[4],"chute") == 0) {
@@ -86,6 +88,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       zgrav = 0.0;
     }
   }
+
+  time_origin = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,15 +138,15 @@ void FixGravity::post_force(int vflag)
   if (style == GRADIENT) {
     if (domain->dimension == 3) {
       double phi_current = degree2rad * 
-	(phi + (update->ntimestep-update->beginstep)*dt*phigrad*360.0);
+	(phi + (update->ntimestep - time_origin)*dt*phigrad*360.0);
       double theta_current = degree2rad * 
-	(theta + (update->ntimestep-update->beginstep)*dt*thetagrad*360.0);
+	(theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
       xgrav = sin(theta_current) * cos(phi_current);
       ygrav = sin(theta_current) * sin(phi_current);
       zgrav = cos(theta_current);
     } else {
       double theta_current = degree2rad * 
-	(theta + (update->ntimestep-update->beginstep)*dt*thetagrad*360.0);
+	(theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
       xgrav = sin(theta_current);
       ygrav = cos(theta_current);
     }

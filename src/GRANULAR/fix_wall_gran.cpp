@@ -51,6 +51,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   create_attribute = 1;
+  time_depend = 1;
 
   // wall/particle coefficients
 
@@ -179,6 +180,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
     shear[i][0] = shear[i][1] = shear[i][2] = 0.0;
+
+  time_origin = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -251,7 +254,7 @@ void FixWallGran::post_force(int vflag)
   double whi = hi;
   vwall[0] = vwall[1] = vwall[2] = 0.0;
   if (wiggle) {
-    double arg = omega * (update->ntimestep - update->beginstep) * dt;
+    double arg = omega * (update->ntimestep - time_origin) * dt;
     wlo = lo + amplitude - amplitude*cos(arg);
     whi = hi + amplitude - amplitude*cos(arg);
     vwall[axis] = amplitude*omega*sin(arg);

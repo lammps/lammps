@@ -81,7 +81,7 @@ void ComputeDamageAtom::compute_peratom()
     memory->sfree(damage);
     nmax = atom->nmax;
     damage = (double *) memory->smalloc(nmax*sizeof(double),
-					"compute/damage/atom:damage");
+					"damage/atom:damage");
     scalar_atom = damage;
   }
 

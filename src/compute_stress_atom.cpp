@@ -100,7 +100,7 @@ void ComputeStressAtom::compute_peratom()
     memory->destroy_2d_double_array(stress);
     nmax = atom->nmax;
     stress =
-      memory->create_2d_double_array(nmax,6,"compute/stress/atom:stress");
+      memory->create_2d_double_array(nmax,6,"stress/atom:stress");
     vector_atom = stress;
   }
 

@@ -46,8 +46,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 10) error->all("Illegal fix wall/gran command");
 
-  time_depend = 1;
-
   if (!atom->radius_flag || !atom->omega_flag || !atom->torque_flag)
     error->all("Fix wall/gran requires atom attributes radius, omega, torque");
 
@@ -166,7 +164,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (wiggle) {
     double PI = 4.0 * atan(1.0);
     omega = 2.0*PI / period;
-    time_origin = update->ntimestep;
   }
 
   // perform initial allocation of atom-based arrays
@@ -254,7 +251,7 @@ void FixWallGran::post_force(int vflag)
   double whi = hi;
   vwall[0] = vwall[1] = vwall[2] = 0.0;
   if (wiggle) {
-    double arg = omega * (update->ntimestep - time_origin) * dt;
+    double arg = omega * (update->ntimestep - update->beginstep) * dt;
     wlo = lo + amplitude - amplitude*cos(arg);
     whi = hi + amplitude - amplitude*cos(arg);
     vwall[axis] = amplitude*omega*sin(arg);

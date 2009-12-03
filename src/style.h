@@ -174,6 +174,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_minimize.h"
 #include "fix_msd.h"
 #include "fix_momentum.h"
+#include "fix_move.h"
 #include "fix_nph.h"
 #include "fix_npt.h"
 #include "fix_npt_sphere.h"
@@ -208,7 +209,6 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_wall_lj126.h"
 #include "fix_wall_lj93.h"
 #include "fix_wall_reflect.h"
-#include "fix_wiggle.h"
 #endif
 
 #ifdef FixClass
@@ -235,6 +235,7 @@ FixStyle(langevin,FixLangevin)
 FixStyle(lineforce,FixLineForce)
 FixStyle(MINIMIZE,FixMinimize)
 FixStyle(momentum,FixMomentum)
+FixStyle(move,FixMove)
 FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)
 FixStyle(npt,FixNPT)
@@ -270,7 +271,6 @@ FixStyle(viscous,FixViscous)
 FixStyle(wall/lj126,FixWallLJ126)
 FixStyle(wall/lj93,FixWallLJ93)
 FixStyle(wall/reflect,FixWallReflect)
-FixStyle(wiggle,FixWiggle)
 #endif
 
 #ifdef ImproperInclude

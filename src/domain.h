@@ -40,15 +40,18 @@ class Domain : protected Pointers {
   double xprd,yprd,zprd;                 // global box dimensions
   double xprd_half,yprd_half,zprd_half;  // half dimensions
   double prd[3];                         // array form of dimensions
+  double prd_half[3];                    // array form of half dimensions
 
                                          // triclinic box
-                                         // xprd,half,prd = same (as if untilt)
+                                         // xprd,xprd_half,prd,prd_half =
+                                         // same as if untilted
   double prd_lamda[3];                   // lamda box = (1,1,1)
+  double prd_half_lamda[3];              // lamda half box = (0.5,0.5,0.5)
 
   double boxlo[3],boxhi[3];              // orthogonal box global bounds
 
                                          // triclinic box
-                                         // boxlo/hi = same (as if untilted)
+                                         // boxlo/hi = same as if untilted
   double boxlo_lamda[3],boxhi_lamda[3];  // lamda box = (0,1)
   double boxlo_bound[3],boxhi_bound[3];  // bounding box of tilted domain
 
@@ -91,6 +94,7 @@ class Domain : protected Pointers {
   void pbc();
   void remap(double *, int &);
   void remap(double *);
+  void remap_near(double *, double *);
   void unmap(double *, int);
   void unmap(double *, int, double *);
   void minimum_image(double &, double &, double &);

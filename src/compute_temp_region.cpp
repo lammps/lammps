@@ -182,7 +182,7 @@ void ComputeTempRegion::remove_bias_all()
     memory->destroy_2d_double_array(vbiasall);
     maxbias = atom->nmax;
     vbiasall = memory->create_2d_double_array(maxbias,3,
-					      "compute/temp:vbiasall");
+					      "temp/region:vbiasall");
   }
   
   Region *region = domain->regions[iregion];

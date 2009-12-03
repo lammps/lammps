@@ -30,7 +30,7 @@ class FixGravity : public Fix {
   void post_force_respa(int, int, int);
 
  private:
-  int style,time_initial;
+  int style;
   double magnitude,dt;
   double phi,theta,phigrad,thetagrad;
   double xdir,ydir,zdir;

@@ -86,7 +86,7 @@ void ComputePEAtom::compute_peratom()
     memory->sfree(energy);
     nmax = atom->nmax;
     energy = (double *) 
-      memory->smalloc(nmax*sizeof(double),"compute/pe/atom:energy");
+      memory->smalloc(nmax*sizeof(double),"pe/atom:energy");
     scalar_atom = energy;
   }
 

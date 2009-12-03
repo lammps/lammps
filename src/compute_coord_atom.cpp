@@ -101,7 +101,7 @@ void ComputeCoordAtom::compute_peratom()
     memory->sfree(coordination);
     nmax = atom->nmax;
     coordination = (double *) 
-      memory->smalloc(nmax*sizeof(double),"compute/coord/atom:coordination");
+      memory->smalloc(nmax*sizeof(double),"coord/atom:coordination");
     scalar_atom = coordination;
   }
 

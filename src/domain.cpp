@@ -78,6 +78,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   h_ratelo[0] = h_ratelo[1] = h_ratelo[2] = 0.0;
   
   prd_lamda[0] = prd_lamda[1] = prd_lamda[2] = 1.0;
+  prd_half_lamda[0] = prd_half_lamda[1] = prd_half_lamda[2] = 0.5;
   boxlo_lamda[0] = boxlo_lamda[1] = boxlo_lamda[2] = 0.0;
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
@@ -186,9 +187,9 @@ void Domain::set_global_box()
   h_inv[1] = 1.0/h[1];
   h_inv[2] = 1.0/h[2];
 
-  xprd_half = 0.5*xprd;
-  yprd_half = 0.5*yprd;
-  zprd_half = 0.5*zprd;
+  prd_half[0] = xprd_half = 0.5*xprd;
+  prd_half[1] = yprd_half = 0.5*yprd;
+  prd_half[2] = zprd_half = 0.5*zprd;
 
   if (triclinic) {
     h[3] = yz;
@@ -680,7 +681,7 @@ void Domain::remap(double *x, int &image)
    remap the point into the periodic box no matter how far away
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
-   for triclinic, point is converted to lamda coords (0-1) before doing remap
+   for triclinic, point is converted to lamda coords (0-1) before remap
 ------------------------------------------------------------------------- */
 
 void Domain::remap(double *x)
@@ -720,6 +721,83 @@ void Domain::remap(double *x)
   }
 
   if (triclinic) lamda2x(coord,x);
+}
+
+/* ----------------------------------------------------------------------
+   remap xnew to be within half box length of xold
+   do it directly, not iteratively, in case is far away
+   for triclinic, both points are converted to lamda coords (0-1) before remap
+------------------------------------------------------------------------- */
+
+void Domain::remap_near(double *xnew, double *xold)
+{
+  int n;
+  double *coordnew,*coordold,*period,*half;
+  double lamdanew[3],lamdaold[3];
+
+  if (triclinic == 0) {
+    period = prd;
+    half = prd_half;
+    coordnew = xnew;
+    coordold = xold;
+  } else {
+    period = prd_lamda;
+    half = prd_half_lamda;
+    x2lamda(xnew,lamdanew);
+    coordnew = lamdanew;
+    x2lamda(xold,lamdaold);
+    coordold = lamdaold;
+  }
+
+  // iterative form
+  // if (xperiodic) {
+  //   while (xnew[0]-xold[0] > half[0]) xnew[0] -= period[0];
+  //   while (xold[0]-xnew[0] > half[0]) xnew[0] += period[0];
+  // }
+
+  if (xperiodic) {
+    if (coordnew[0]-coordold[0] > period[0]) {
+      n = static_cast<int> ((coordnew[0]-coordold[0])/period[0]);
+      xnew[0] -= n*period[0];
+    }
+    while (xnew[0]-xold[0] > half[0]) xnew[0] -= period[0];
+    if (xold[0]-xnew[0] > period[0]) {
+      n = static_cast<int> ((xold[0]-xnew[0])/period[0]);
+      xnew[0] += n*period[0];
+    }
+    while (xold[0]-xnew[0] > half[0]) xnew[0] += period[0];
+  }
+
+  if (yperiodic) {
+    if (coordnew[1]-coordold[1] > period[1]) {
+      n = static_cast<int> ((coordnew[1]-coordold[1])/period[1]);
+      xnew[1] -= n*period[1];
+    }
+    while (xnew[1]-xold[1] > half[1]) xnew[1] -= period[1];
+    if (xold[1]-xnew[1] > period[1]) {
+      n = static_cast<int> ((xold[1]-xnew[1])/period[1]);
+      xnew[1] += n*period[1];
+    }
+    while (xold[1]-xnew[1] > half[1]) xnew[1] += period[1];
+  }
+
+  if (zperiodic) {
+    if (coordnew[2]-coordold[2] > period[2]) {
+      n = static_cast<int> ((coordnew[2]-coordold[2])/period[2]);
+      xnew[2] -= n*period[2];
+    }
+    while (xnew[2]-xold[2] > half[2]) xnew[2] -= period[2];
+    if (xold[2]-xnew[2] > period[2]) {
+      n = static_cast<int> ((xold[2]-xnew[2])/period[2]);
+      xnew[2] += n*period[2];
+    }
+    while (xold[2]-xnew[2] > half[2]) xnew[2] += period[2];
+  }
+
+  if (triclinic) {
+    lamda2x(coordnew,xnew);
+    lamda2x(coordold,xold);
+  }
 }
 
 /* ----------------------------------------------------------------------

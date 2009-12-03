@@ -336,7 +336,7 @@ double ComputeReduce::compute_one(int m)
       maxatom = atom->nmax;
       memory->sfree(varatom);
       varatom =	(double *) 
-	memory->smalloc(maxatom*sizeof(double),"compute/reduce:varatom");
+	memory->smalloc(maxatom*sizeof(double),"reduce:varatom");
     }
 
     input->variable->compute_atom(n,igroup,varatom,1,0);

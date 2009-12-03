@@ -398,7 +398,8 @@ double Variable::compute_equal(int ivar)
 
 /* ----------------------------------------------------------------------
    compute result of atom-style variable evaluation
-   stride used since result may not be contiguous memory locs
+   only computed for atoms in igroup, else result is 0.0
+   answers are placed every stride locations into result
    if sumflag, add variable values to existing result
 ------------------------------------------------------------------------- */
 

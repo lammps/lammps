@@ -66,7 +66,7 @@ void ComputeKEAtom::compute_peratom()
   if (atom->nlocal > nmax) {
     memory->sfree(ke);
     nmax = atom->nmax;
-    ke = (double *) memory->smalloc(nmax*sizeof(double),"compute/ke/atom:ke");
+    ke = (double *) memory->smalloc(nmax*sizeof(double),"ke/atom:ke");
     scalar_atom = ke;
   }
 

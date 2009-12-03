@@ -82,7 +82,7 @@ void ComputeDisplaceAtom::compute_peratom()
     memory->destroy_2d_double_array(displace);
     nmax = atom->nmax;
     displace =
-      memory->create_2d_double_array(nmax,4,"compute/displace/atom:displace");
+      memory->create_2d_double_array(nmax,4,"displace/atom:displace");
     vector_atom = displace;
   }
 

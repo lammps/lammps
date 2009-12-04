@@ -82,6 +82,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_coord_atom.h"
 #include "compute_displace_atom.h"
 #include "compute_group_group.h"
+#include "compute_gyration.h"
 #include "compute_heat_flux.h"
 #include "compute_ke.h"
 #include "compute_ke_atom.h"
@@ -110,6 +111,7 @@ ComputeStyle(com,ComputeCOM)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(group/group,ComputeGroupGroup)
+ComputeStyle(gyration,ComputeGyration)
 ComputeStyle(heat/flux,ComputeHeatFlux)
 ComputeStyle(ke,ComputeKE)
 ComputeStyle(ke/atom,ComputeKEAtom)

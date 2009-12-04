@@ -260,14 +260,13 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   scalar_flag = atcTransfer_->scalar_flag();
   vector_flag = atcTransfer_->vector_flag();
   size_vector = atcTransfer_->size_vector();
-  scalar_vector_freq = atcTransfer_->scalar_vector_freq();
+  global_freq = atcTransfer_->global_freq();
   extscalar = atcTransfer_->extscalar();
   extvector = atcTransfer_->extvector();
   extlist = atcTransfer_->extlist();
 
   // set comm size needed by this fix
   comm_forward = 3;
-
 }
 
 /*----------------------------------------------------------------------- */

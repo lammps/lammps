@@ -47,7 +47,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 11) error->all("Illegal fix orient/fcc command");
 
   scalar_flag = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 1;
 
   nstats = atoi(arg[3]);

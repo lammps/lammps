@@ -52,7 +52,7 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   vector_flag = 1;
   size_vector = 7;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extvector = 1;
 
   int argoffs=3;

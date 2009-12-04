@@ -38,7 +38,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all("Illegal compute stress/atom command");
 
   peratom_flag = 1;
-  size_peratom = 6;
+  size_peratom_cols = 6;
   pressatomflag = 1;
   timeflag = 1;
   comm_reverse = 6;
@@ -101,7 +101,7 @@ void ComputeStressAtom::compute_peratom()
     nmax = atom->nmax;
     stress =
       memory->create_2d_double_array(nmax,6,"stress/atom:stress");
-    vector_atom = stress;
+    array_atom = stress;
   }
 
   // npair includes ghosts if either newton flag is set

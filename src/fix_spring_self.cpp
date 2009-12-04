@@ -36,7 +36,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   scalar_flag = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 1;
 
   k = atof(arg[3]);

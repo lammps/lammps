@@ -43,7 +43,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   if (nevery <= 0) error->all("Illegal fix viscosity command");
 
   scalar_flag = 1;
-  scalar_vector_freq = nevery;
+  global_freq = nevery;
   extscalar = 0;
 
   if (strcmp(arg[4],"x") == 0) vdim = 0;

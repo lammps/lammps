@@ -52,7 +52,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = -1;
   vector_flag = 1;
   size_vector = 2;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extvector = 1;
 
   iatomtype = atoi(arg[4]);

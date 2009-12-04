@@ -41,7 +41,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   if (nevery <= 0) error->all("Illegal fix temp/rescale command");
 
   scalar_flag = 1;
-  scalar_vector_freq = nevery;
+  global_freq = nevery;
   extscalar = 1;
 
   t_start = atof(arg[4]);

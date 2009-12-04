@@ -42,7 +42,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   peratom_flag = 1;
-  size_peratom = 3;
+  size_peratom_cols = 3;
   peratom_freq = 1;
   time_integrate = 1;
   time_depend = 1;
@@ -804,7 +804,7 @@ void FixMove::grow_arrays(int nmax)
 {
   xoriginal =
     memory->grow_2d_double_array(xoriginal,nmax,3,"move:xoriginal");
-  vector_atom = xoriginal;
+  array_atom = xoriginal;
 }
 
 /* ----------------------------------------------------------------------

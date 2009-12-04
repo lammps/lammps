@@ -31,7 +31,7 @@ ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all("Illegal compute ke/atom command");
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
 
   nmax = 0;
   ke = NULL;
@@ -67,7 +67,7 @@ void ComputeKEAtom::compute_peratom()
     memory->sfree(ke);
     nmax = atom->nmax;
     ke = (double *) memory->smalloc(nmax*sizeof(double),"ke/atom:ke");
-    scalar_atom = ke;
+    vector_atom = ke;
   }
 
   // compute kinetic energy for each atom in group

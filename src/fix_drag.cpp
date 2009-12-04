@@ -32,7 +32,7 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
 
   vector_flag = 1;
   size_vector = 3;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extvector = 1;
 
   xflag = yflag = zflag = 1;

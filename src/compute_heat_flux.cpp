@@ -214,7 +214,7 @@ void ComputeHeatFlux::compute_vector()
       massone =  (rmass) ? rmass[i] : mass[type[i]];
       ke = mvv2e * 0.5 * massone *
 	(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-      pe = atomPE->scalar_atom[i]; 
+      pe = atomPE->vector_atom[i]; 
       eng = pe + ke;
       Jc[0] += v[i][0]*eng; 
       Jc[1] += v[i][1]*eng;

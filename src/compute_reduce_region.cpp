@@ -87,16 +87,16 @@ double ComputeReduceRegion::compute_one(int m)
     }
 
     if (j == 0) {
-      double *compute_scalar = compute->scalar_atom;
+      double *compute_vector = compute->vector_atom;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,compute_scalar[i]);
+	  combine(one,compute_vector[i]);
     } else {
-      double **compute_vector = compute->vector_atom;
+      double **compute_array = compute->array_atom;
       int jm1 = j - 1;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,compute_vector[i][jm1]);
+	  combine(one,compute_array[i][jm1]);
     }
 
   // access fix fields, check if frequency is a match
@@ -106,16 +106,16 @@ double ComputeReduceRegion::compute_one(int m)
       error->all("Fix used in compute reduce not computed at compatible time");
 
     if (j == 0) {
-      double *fix_scalar = modify->fix[n]->scalar_atom;
+      double *fix_vector = modify->fix[n]->vector_atom;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,fix_scalar[i]);
+	  combine(one,fix_vector[i]);
     } else {
-      double **fix_vector = modify->fix[n]->vector_atom;
+      double **fix_array = modify->fix[n]->array_atom;
       int jm1 = j - 1;
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,fix_vector[i][jm1]);
+	  combine(one,fix_array[i][jm1]);
     }
     
   // evaluate atom-style variable

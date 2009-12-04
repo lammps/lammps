@@ -40,7 +40,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   cutsq = cutoff*cutoff;
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
 
   nmax = 0;
   coordination = NULL;
@@ -102,7 +102,7 @@ void ComputeCoordAtom::compute_peratom()
     nmax = atom->nmax;
     coordination = (double *) 
       memory->smalloc(nmax*sizeof(double),"coord/atom:coordination");
-    scalar_atom = coordination;
+    vector_atom = coordination;
   }
 
   // invoke full neighbor list (will copy or build if necessary)

@@ -713,10 +713,10 @@ double Variable::evaluate(char *str, Tree **tree)
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 
-        // c_ID[] = per-atom scalar
+        // c_ID[] = per-atom vector
 
 	} else if (nbracket == 1 && index1 == 0 && 
-		   compute->peratom_flag && compute->size_peratom == 0) {
+		   compute->peratom_flag && compute->size_peratom_cols == 0) {
 
 	  if (tree == NULL)
 	    error->all("Per-atom compute in equal-style variable formula");
@@ -731,15 +731,15 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
-	  newtree->array = compute->scalar_atom;
+	  newtree->array = compute->vector_atom;
 	  newtree->nstride = 1;
 	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
-        // c_ID[N] = global value from per-atom scalar
+        // c_ID[N] = global value from per-atom vector
 
 	} else if (nbracket == 1 && index1 > 0 && 
-		   compute->peratom_flag && compute->size_peratom == 0) {
+		   compute->peratom_flag && compute->size_peratom_cols == 0) {
 
 	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
@@ -750,17 +750,17 @@ double Variable::evaluate(char *str, Tree **tree)
 	    compute->invoked_flag |= INVOKED_PERATOM;
 	  }
 
-	  peratom2global(1,NULL,compute->scalar_atom,1,index1,
+	  peratom2global(1,NULL,compute->vector_atom,1,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
 
-        // c_ID[][2] = per-atom vector
+        // c_ID[][2] = per-atom array
 
 	} else if (nbracket == 2 && index1 == 0 && index2 > 0 &&
 		   compute->peratom_flag) {
 
 	  if (tree == NULL)
 	    error->all("Per-atom compute in equal-style variable formula");
-	  if (index2 > compute->size_peratom)
+	  if (index2 > compute->size_peratom_cols)
 	    error->all("Compute vector in variable formula is too small");
 	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
@@ -773,17 +773,17 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
-	  newtree->array = &compute->vector_atom[0][index2-1];
-	  newtree->nstride = compute->size_peratom;
+	  newtree->array = &compute->array_atom[0][index2-1];
+	  newtree->nstride = compute->size_peratom_cols;
 	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
-        // c_ID[N][2] = global value from per-atom vector
+        // c_ID[N][2] = global value from per-atom array
 
 	} else if (nbracket == 2 && index1 > 0 && index2 > 0 &&
 		   compute->peratom_flag) {
 
-	  if (index2 > compute->size_peratom)
+	  if (index2 > compute->size_peratom_cols)
 	    error->all("Compute vector in variable formula is too small");
 	  if (update->whichflag == 0) {
 	    if (compute->invoked_peratom != update->ntimestep)
@@ -794,8 +794,8 @@ double Variable::evaluate(char *str, Tree **tree)
 	    compute->invoked_flag |= INVOKED_PERATOM;
 	  }
 
-	  peratom2global(1,NULL,&compute->vector_atom[0][index2-1],
-			 compute->size_peratom,index1,
+	  peratom2global(1,NULL,&compute->array_atom[0][index2-1],
+			 compute->size_peratom_cols,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
 
 	} else error->all("Mismatched compute in variable formula");
@@ -839,8 +839,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	if (nbracket == 0 && fix->scalar_flag) {
 
-	  if (update->whichflag > 0 &&
-	      update->ntimestep % fix->scalar_vector_freq)
+	  if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  value1 = fix->compute_scalar();
 	  if (tree) {
@@ -857,8 +856,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	  if (index1 > fix->size_vector)
 	      error->all("Fix vector in variable formula is too small");
-	  if (update->whichflag > 0 && 
-	      update->ntimestep % fix->scalar_vector_freq)
+	  if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  value1 = fix->compute_vector(index1-1);
 	  if (tree) {
@@ -869,10 +867,10 @@ double Variable::evaluate(char *str, Tree **tree)
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = value1;
 
-        // f_ID[] = per-atom scalar
+        // f_ID[] = per-atom vector
 
 	} else if (nbracket == 1 && index1 == 0 && 
-		   fix->peratom_flag && fix->size_peratom == 0) {
+		   fix->peratom_flag && fix->size_peratom_cols == 0) {
 
 	  if (tree == NULL)
 	    error->all("Per-atom fix in equal-style variable formula");
@@ -881,53 +879,53 @@ double Variable::evaluate(char *str, Tree **tree)
 	    error->all("Fix in variable not computed at compatible time");
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
-	  newtree->array = fix->scalar_atom;
+	  newtree->array = fix->vector_atom;
 	  newtree->nstride = 1;
 	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
-        // f_ID[N] = global value from per-atom scalar
+        // f_ID[N] = global value from per-atom vector
 
 	} else if (nbracket == 1 && index1 > 0 && 
-		   fix->peratom_flag && fix->size_peratom == 0) {
+		   fix->peratom_flag && fix->size_peratom_cols == 0) {
 
 	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
-	  peratom2global(1,NULL,fix->scalar_atom,1,index1,
+	  peratom2global(1,NULL,fix->vector_atom,1,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
 
-        // f_ID[][2] = per-atom vector
+        // f_ID[][2] = per-atom array
 
 	} else if (nbracket == 2 && index1 == 0 && index2 > 0 &&
 		   fix->peratom_flag) {
 
 	  if (tree == NULL)
 	    error->all("Per-atom fix in equal-style variable formula");
-	  if (index2 > fix->size_peratom)
+	  if (index2 > fix->size_peratom_cols)
 	    error->all("Fix vector in variable formula is too small");
 	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
 	  Tree *newtree = new Tree();
 	  newtree->type = ATOMARRAY;
-	  newtree->array = &fix->vector_atom[0][index2-1];
-	  newtree->nstride = fix->size_peratom;
+	  newtree->array = &fix->array_atom[0][index2-1];
+	  newtree->nstride = fix->size_peratom_cols;
 	  newtree->left = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
-        // f_ID[N][2] = global value from per-atom vector
+        // f_ID[N][2] = global value from per-atom array
 
 	} else if (nbracket == 2 && index1 > 0 && index2 > 0 &&
 		   fix->peratom_flag) {
 
-	  if (index2 > fix->size_peratom)
+	  if (index2 > fix->size_peratom_cols)
 	    error->all("Fix vector in variable formula is too small");
 	  if (update->whichflag > 0 && 
 	      update->ntimestep % fix->peratom_freq)
 	    error->all("Fix in variable not computed at compatible time");
-	  peratom2global(1,NULL,&fix->vector_atom[0][index2-1],
-			 fix->size_peratom,index1,
+	  peratom2global(1,NULL,&fix->array_atom[0][index2-1],
+			 fix->size_peratom_cols,index1,
 			 tree,treestack,ntreestack,argstack,nargstack);
 
 	} else error->all("Mismatched fix in variable formula");

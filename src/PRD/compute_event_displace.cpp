@@ -90,7 +90,7 @@ double ComputeEventDisplace::compute_scalar()
   if (id_event == NULL) return 0.0;
 
   double event = 0.0;
-  double **xevent = fix->vector_atom;
+  double **xevent = fix->array_atom;
 
   double **x = atom->x;
   int *mask = atom->mask;

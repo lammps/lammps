@@ -40,7 +40,7 @@ class FixAveAtom : public Fix {
   int *which,*argindex,*value2index;
   char **ids;
 
-  double **vector;
+  double **array;
 };
 
 }

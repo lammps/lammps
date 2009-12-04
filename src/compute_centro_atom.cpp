@@ -35,7 +35,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all("Illegal compute centro/atom command");
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
 
   nmax = 0;
   centro = NULL;
@@ -101,7 +101,7 @@ void ComputeCentroAtom::compute_peratom()
     nmax = atom->nmax;
     centro = (double *) 
       memory->smalloc(nmax*sizeof(double),"centro/atom:centro");
-    scalar_atom = centro;
+    vector_atom = centro;
   }
 
   // invoke full neighbor list (will copy or build if necessary)

@@ -50,7 +50,7 @@ FixNPH::FixNPH(LAMMPS *lmp, int narg, char **arg) :
   box_change = 1;
   time_integrate = 1;
   scalar_flag = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 1;
 
   double p_period[3];

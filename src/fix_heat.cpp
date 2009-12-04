@@ -35,7 +35,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (narg < 4) error->all("Illegal fix heat command");
 
   scalar_flag = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 0;
 
   nevery = atoi(arg[3]);

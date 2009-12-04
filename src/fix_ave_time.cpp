@@ -190,7 +190,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces either a global scalar or vector
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  scalar_vector_freq = nfreq;
+  global_freq = nfreq;
   extlist = NULL;
 
   if (nvalues == 1) {
@@ -301,7 +301,7 @@ void FixAveTime::init()
 	error->all("Fix ID for fix ave/time does not exist");
       value2index[i] = ifix;
 
-      if (nevery % modify->fix[ifix]->scalar_vector_freq)
+      if (nevery % modify->fix[ifix]->global_freq)
 	error->all("Fix for fix ave/time not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {

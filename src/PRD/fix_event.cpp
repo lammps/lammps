@@ -159,7 +159,7 @@ void FixEvent::grow_arrays(int nmax)
 
   // allow compute event to access stored event coords
 
-  vector_atom = xevent;
+  array_atom = xevent;
 }
 
 /* ----------------------------------------------------------------------

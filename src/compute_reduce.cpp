@@ -137,21 +137,25 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       if (icompute < 0)
 	error->all("Compute ID for compute reduce does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Compute reduce compute does not calculate per-atom values");
-      if (argindex[i] == 0 && modify->compute[icompute]->size_peratom != 0)
-	error->all("Compute reduce compute does not calculate a per-atom scalar");
-      if (argindex[i] && modify->compute[icompute]->size_peratom == 0)
-	error->all("Compute reduce compute does not calculate a per-atom vector");
+	error->all("Compute reduce compute does not "
+		   "calculate per-atom values");
+      if (argindex[i] == 0 && 
+	  modify->compute[icompute]->size_peratom_cols != 0)
+	error->all("Compute reduce compute does not "
+		   "calculate a per-atom vector");
+      if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+	error->all("Compute reduce compute does not "
+		   "calculate a per-atom array");
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for compute reduce does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
 	error->all("Compute reduce fix does not calculate per-atom values");
-      if (argindex[i] == 0 && modify->fix[ifix]->size_peratom != 0)
-	error->all("Compute reduce fix does not calculate a per-atom scalar");
-      if (argindex[i] && modify->fix[ifix]->size_peratom == 0)
+      if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
 	error->all("Compute reduce fix does not calculate a per-atom vector");
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+	error->all("Compute reduce fix does not calculate a per-atom array");
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
@@ -302,14 +306,14 @@ double ComputeReduce::compute_one(int m)
     }
 
     if (j == 0) {
-      double *compute_scalar = compute->scalar_atom;
+      double *compute_vector = compute->vector_atom;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,compute_scalar[i]);
+	if (mask[i] & groupbit) combine(one,compute_vector[i]);
     } else {
-      double **compute_vector = compute->vector_atom;
+      double **compute_array = compute->array_atom;
       int jm1 = j - 1;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,compute_vector[i][jm1]);
+	if (mask[i] & groupbit) combine(one,compute_array[i][jm1]);
     }
 
   // access fix fields, check if frequency is a match
@@ -319,14 +323,14 @@ double ComputeReduce::compute_one(int m)
       error->all("Fix used in compute reduce not computed at compatible time");
 
     if (j == 0) {
-      double *fix_scalar = modify->fix[n]->scalar_atom;
+      double *fix_vector = modify->fix[n]->vector_atom;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,fix_scalar[i]);
+	if (mask[i] & groupbit) combine(one,fix_vector[i]);
     } else {
-      double **fix_vector = modify->fix[n]->vector_atom;
+      double **fix_array = modify->fix[n]->array_atom;
       int jm1 = j - 1;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,fix_vector[i][jm1]);
+	if (mask[i] & groupbit) combine(one,fix_array[i][jm1]);
     }
     
   // evaluate atom-style variable

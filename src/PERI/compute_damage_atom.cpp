@@ -37,7 +37,7 @@ ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all("Illegal compute damage/atom command");
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
 
   nmax = 0;
   damage = NULL;
@@ -82,7 +82,7 @@ void ComputeDamageAtom::compute_peratom()
     nmax = atom->nmax;
     damage = (double *) memory->smalloc(nmax*sizeof(double),
 					"damage/atom:damage");
-    scalar_atom = damage;
+    vector_atom = damage;
   }
 
   // compute damage for each atom in group

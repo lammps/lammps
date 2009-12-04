@@ -42,17 +42,30 @@ class Fix : protected Pointers {
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
-  int size_vector;               // N = size of global vector
-  int scalar_vector_freq;        // frequency s/v data is available at
-  int extscalar;                 // 0/1 if scalar is intensive/extensive
-  int extvector;                 // 0/1/-1 if vector is all int/ext/extlist
-  int *extlist;                  // list of 0/1 int/ext for each vec component
+  int array_flag;                // 0/1 if compute_array() function exists
+  int size_vector;               // length of global vector
+  int size_array_rows;           // rows in global array
+  int size_array_cols;           // columns in global array
+  int global_freq;               // frequency s/v data is available at
 
   int peratom_flag;              // 0/1 if per-atom data is stored
-  int size_peratom;              // 0 = scalar_atom, N = size of vector_atom
-  double *scalar_atom;           // computed per-atom scalar
-  double **vector_atom;          // computed per-atom vector
+  int size_peratom_cols;         // 0 = vector, N = columns in peratom array
   int peratom_freq;              // frequency per-atom data is available at
+
+  int local_flag;                // 0/1 if local data is stored
+  int size_local_rows;           // rows in local vector or array
+  int size_local_cols;           // 0 = vector, N = columns in local array
+  int local_freq;                // frequency local data is available at
+
+  int extscalar;            // 0/1 if global scalar is intensive/extensive
+  int extvector;            // 0/1/-1 if global vector is all int/ext/extlist
+  int *extlist;             // list of 0/1 int/ext for each vec component
+  int extarray;             // 0/1 if global array is intensive/extensive
+
+  double *vector_atom;           // computed per-atom vector
+  double **array_atom;           // computed per-atom array
+  double *vector_local;          // computed local vector
+  double **array_local;          // computed local array
 
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
@@ -123,6 +136,7 @@ class Fix : protected Pointers {
 
   virtual double compute_scalar() {return 0.0;}
   virtual double compute_vector(int) {return 0.0;}
+  virtual double compute_array(int) {return 0.0;}
 
   virtual int dof(int) {return 0;}
   virtual void deform(int) {}

@@ -668,21 +668,21 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == COMPUTE) {
 	i = nfield + ithresh;
 	if (argindex[i] == 0) {
-	  ptr = compute[field2index[i]]->scalar_atom;
+	  ptr = compute[field2index[i]]->vector_atom;
 	  nstride = 1;
 	} else {
-	  ptr = &compute[field2index[i]]->vector_atom[0][argindex[i]-1];
-	  nstride = compute[field2index[i]]->size_peratom;
+	  ptr = &compute[field2index[i]]->array_atom[0][argindex[i]-1];
+	  nstride = compute[field2index[i]]->size_peratom_cols;
 	}
 
       } else if (thresh_array[ithresh] == FIX) {
 	i = nfield + ithresh;
 	if (argindex[i] == 0) {
-	  ptr = fix[field2index[i]]->scalar_atom;
+	  ptr = fix[field2index[i]]->vector_atom;
 	  nstride = 1;
 	} else {
-	  ptr = &fix[field2index[i]]->vector_atom[0][argindex[i]-1];
-	  nstride = fix[field2index[i]]->size_peratom;
+	  ptr = &fix[field2index[i]]->array_atom[0][argindex[i]-1];
+	  nstride = fix[field2index[i]]->size_peratom_cols;
 	}
 
       } else if (thresh_array[ithresh] == VARIABLE) {
@@ -981,13 +981,13 @@ void DumpCustom::parse_fields(int narg, char **arg)
       n = modify->find_compute(suffix);
       if (n < 0) error->all("Could not find dump custom compute ID");
       if (modify->compute[n]->peratom_flag == 0)
-	error->all("Dump custom compute ID does not compute peratom info");
-      if (argindex[i] == 0 && modify->compute[n]->size_peratom > 0)
-	error->all("Dump custom compute ID does not compute scalar per atom");
-      if (argindex[i] > 0 && modify->compute[n]->size_peratom == 0)
-	error->all("Dump custom compute ID does not compute vector per atom");
+	error->all("Dump custom compute ID does not compute per-atom info");
+      if (argindex[i] == 0 && modify->compute[n]->size_peratom_cols > 0)
+	error->all("Dump custom compute ID does not compute per-atom vector");
+      if (argindex[i] > 0 && modify->compute[n]->size_peratom_cols == 0)
+	error->all("Dump custom compute ID does not compute per-atom array");
       if (argindex[i] > 0 && 
-	  argindex[i] > modify->compute[n]->size_peratom)
+	  argindex[i] > modify->compute[n]->size_peratom_cols)
 	error->all("Dump custom compute ID vector is not large enough");
 
       field2index[i] = add_compute(suffix);
@@ -1015,13 +1015,13 @@ void DumpCustom::parse_fields(int narg, char **arg)
       n = modify->find_fix(suffix);
       if (n < 0) error->all("Could not find dump custom fix ID");
       if (modify->fix[n]->peratom_flag == 0)
-	error->all("Dump custom fix ID does not compute peratom info");
-      if (argindex[i] == 0 && modify->fix[n]->size_peratom > 0)
-	error->all("Dump custom fix ID does not compute scalar per atom");
-      if (argindex[i] > 0 && modify->fix[n]->size_peratom == 0)
-	error->all("Dump custom fix ID does not compute vector per atom");
+	error->all("Dump custom fix ID does not compute per-atom info");
+      if (argindex[i] == 0 && modify->fix[n]->size_peratom_cols > 0)
+	error->all("Dump custom fix ID does not compute per-atom vector");
+      if (argindex[i] > 0 && modify->fix[n]->size_peratom_cols == 0)
+	error->all("Dump custom fix ID does not compute per-atom array");
       if (argindex[i] > 0 && 
-	  argindex[i] > modify->fix[n]->size_peratom)
+	  argindex[i] > modify->fix[n]->size_peratom_cols)
 	error->all("Dump custom fix ID vector is not large enough");
 
       field2index[i] = add_fix(suffix);
@@ -1266,15 +1266,15 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (n < 0) error->all("Could not find dump custom compute ID");
 
       if (modify->compute[n]->peratom_flag == 0)
-	error->all("Dump custom compute ID does not compute peratom info");
+	error->all("Dump custom compute ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
-	  modify->compute[n]->size_peratom > 0)
-	error->all("Dump custom compute ID does not compute scalar per atom");
+	  modify->compute[n]->size_peratom_cols > 0)
+	error->all("Dump custom compute ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
-	  modify->compute[n]->size_peratom == 0)
-	error->all("Dump custom compute ID does not compute vector per atom");
+	  modify->compute[n]->size_peratom_cols == 0)
+	error->all("Dump custom compute ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
-	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom)
+	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom_cols)
 	error->all("Dump custom compute ID vector is not large enough");
 
       field2index[nfield+nthresh] = add_compute(suffix);
@@ -1308,15 +1308,15 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (n < 0) error->all("Could not find dump custom fix ID");
 
       if (modify->fix[n]->peratom_flag == 0)
-	error->all("Dump custom fix ID does not compute peratom info");
+	error->all("Dump custom fix ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
-	  modify->fix[n]->size_peratom > 0)
-	error->all("Dump custom fix ID does not compute scalar per atom");
+	  modify->fix[n]->size_peratom_cols > 0)
+	error->all("Dump custom fix ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
-	  modify->fix[n]->size_peratom == 0)
-	error->all("Dump custom fix ID does not compute vector per atom");
+	  modify->fix[n]->size_peratom_cols == 0)
+	error->all("Dump custom fix ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
-	  argindex[nfield+nthresh] > modify->fix[n]->size_peratom)
+	  argindex[nfield+nthresh] > modify->fix[n]->size_peratom_cols)
 	error->all("Dump custom fix ID vector is not large enough");
 
       field2index[nfield+nthresh] = add_fix(suffix);
@@ -1395,8 +1395,8 @@ double DumpCustom::memory_usage()
 
 void DumpCustom::pack_compute(int n)
 {
-  double *vector = compute[field2index[n]]->scalar_atom;
-  double **array = compute[field2index[n]]->vector_atom;
+  double *vector = compute[field2index[n]]->vector_atom;
+  double **array = compute[field2index[n]]->array_atom;
   int index = argindex[n];
 
   int nlocal = atom->nlocal;
@@ -1421,8 +1421,8 @@ void DumpCustom::pack_compute(int n)
 
 void DumpCustom::pack_fix(int n)
 {
-  double *vector = fix[field2index[n]]->scalar_atom;
-  double **array = fix[field2index[n]]->vector_atom;
+  double *vector = fix[field2index[n]]->vector_atom;
+  double **array = fix[field2index[n]]->array_atom;
   int index = argindex[n];
 
   int nlocal = atom->nlocal;

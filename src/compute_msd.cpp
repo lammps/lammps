@@ -124,7 +124,7 @@ void ComputeMSD::compute_vector()
   // relative to center of mass if comflag is set
   // for triclinic, need to unwrap current atom coord via h matrix
 
-  double **xoriginal = fix->vector_atom;
+  double **xoriginal = fix->array_atom;
 
   double **x = atom->x;
   int *mask = atom->mask;

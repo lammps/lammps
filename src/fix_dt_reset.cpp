@@ -47,7 +47,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 0;
   extvector = 0;
 

@@ -138,11 +138,15 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute ID for fix ave/atom does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
 	error->all("Fix ave/atom compute does not calculate per-atom values");
-      if (argindex[i] == 0 && modify->compute[icompute]->size_peratom != 0)
-	error->all("Fix ave/atom compute does not calculate a per-atom scalar");
-      if (argindex[i] && modify->compute[icompute]->size_peratom == 0)
-	error->all("Fix ave/atom compute does not calculate a per-atom vector");
-      if (argindex[i] && argindex[i] > modify->compute[icompute]->size_peratom)
+      if (argindex[i] == 0 && 
+	  modify->compute[icompute]->size_peratom_cols != 0)
+	error->all("Fix ave/atom compute does not "
+		   "calculate a per-atom vector");
+      if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+	error->all("Fix ave/atom compute does not "
+		   "calculate a per-atom array");
+      if (argindex[i] && 
+	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
 	error->all("Fix ave/atom compute vector is accessed out-of-range");
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
@@ -150,11 +154,11 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Fix ID for fix ave/atom does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
 	error->all("Fix ave/atom fix does not calculate per-atom values");
-      if (argindex[i] && modify->fix[ifix]->size_peratom != 0)
-	error->all("Fix ave/atom fix does not calculate a per-atom scalar");
-      if (argindex[i] && modify->fix[ifix]->size_peratom == 0)
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
 	error->all("Fix ave/atom fix does not calculate a per-atom vector");
-      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom)
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+	error->all("Fix ave/atom fix does not calculate a per-atom array");
+      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
 	error->all("Fix ave/atom fix vector is accessed out-of-range");
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
@@ -165,16 +169,16 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // this fix produces either a per-atom scalar or vector
+  // this fix produces either a per-atom vector or array
 
   peratom_flag = 1;
-  if (nvalues == 1) size_peratom = 0;
-  else size_peratom = nvalues;
+  if (nvalues == 1) size_peratom_cols = 0;
+  else size_peratom_cols = nvalues;
 
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  vector = NULL;
+  array = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
@@ -184,7 +188,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
     for (int m = 0; m < nvalues; m++)
-      vector[i][m] = 0.0;
+      array[i][m] = 0.0;
   
   // nvalid = next step on which end_of_step does something
   // can be this timestep if multiple of peratom_freq and nrepeat = 1
@@ -219,7 +223,7 @@ FixAveAtom::~FixAveAtom()
   delete [] ids;
   delete [] value2index;
 
-  memory->destroy_2d_double_array(vector);
+  memory->destroy_2d_double_array(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -291,7 +295,7 @@ void FixAveAtom::end_of_step()
   if (irepeat == 0)
     for (i = 0; i < nlocal; i++)
       for (m = 0; m < nvalues; m++)
-	vector[i][m] = 0.0;
+	array[i][m] = 0.0;
   
   // accumulate results of attributes,computes,fixes,variables to local copy
   // compute/fix/variable may invoke computes so wrap with clear/add
@@ -307,7 +311,7 @@ void FixAveAtom::end_of_step()
     if (which[m] == X) {
       double **x = atom->x;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) vector[i][m] += x[i][j];
+	if (mask[i] & groupbit) array[i][m] += x[i][j];
 
     } else if (which[m] == XU) {
       double **x = atom->x;
@@ -316,28 +320,28 @@ void FixAveAtom::end_of_step()
 	double xprd = domain->xprd;
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) 
-	    vector[i][m] += x[i][0] + ((image[i] & 1023) - 512) * xprd;
+	    array[i][m] += x[i][0] + ((image[i] & 1023) - 512) * xprd;
       } else if (j == 1) {
 	double yprd = domain->yprd;
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) 
-	    vector[i][m] += x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
+	    array[i][m] += x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
       } else {
 	double zprd = domain->zprd;
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) 
-	    vector[i][m] += x[i][2] + ((image[i] >> 20) - 512) * zprd;
+	    array[i][m] += x[i][2] + ((image[i] >> 20) - 512) * zprd;
       }
 
     } else if (which[m] == V) {
       double **v = atom->v;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) vector[i][m] += v[i][j];
+	if (mask[i] & groupbit) array[i][m] += v[i][j];
 
     } else if (which[m] == F) {
       double **f = atom->f;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) vector[i][m] += f[i][j];
+	if (mask[i] & groupbit) array[i][m] += f[i][j];
 
     // invoke compute if not previously invoked
 
@@ -349,34 +353,34 @@ void FixAveAtom::end_of_step()
       }
 
       if (j == 0) {
-	double *compute_scalar = compute->scalar_atom;
+	double *compute_vector = compute->vector_atom;
 	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) vector[i][m] += compute_scalar[i];
+	  if (mask[i] & groupbit) array[i][m] += compute_vector[i];
       } else {
 	int jm1 = j - 1;
-	double **compute_vector = compute->vector_atom;
+	double **compute_array = compute->array_atom;
 	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) vector[i][m] += compute_vector[i][jm1];
+	  if (mask[i] & groupbit) array[i][m] += compute_array[i][jm1];
       }
 
     // access fix fields, guaranteed to be ready
 
     } else if (which[m] == FIX) {
       if (j == 0) {
-	double *fix_scalar = modify->fix[n]->scalar_atom;
+	double *fix_vector = modify->fix[n]->vector_atom;
 	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) vector[i][m] += fix_scalar[i];
+	  if (mask[i] & groupbit) array[i][m] += fix_vector[i];
       } else {
 	int jm1 = j - 1;
-	double **fix_vector = modify->fix[n]->vector_atom;
+	double **fix_array = modify->fix[n]->array_atom;
 	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) vector[i][m] += fix_vector[i][jm1];
+	  if (mask[i] & groupbit) array[i][m] += fix_array[i][jm1];
       }
 
     // evaluate atom-style variable
 
     } else if (which[m] == VARIABLE)
-      input->variable->compute_atom(n,igroup,&vector[0][m],nvalues,1);
+      input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
   }
 
   // done if irepeat < nrepeat
@@ -398,7 +402,7 @@ void FixAveAtom::end_of_step()
   double repeat = nrepeat;
   for (i = 0; i < nlocal; i++)
     for (m = 0; m < nvalues; m++)
-      vector[i][m] /= repeat;
+      array[i][m] /= repeat;
 }
 
 /* ----------------------------------------------------------------------
@@ -418,10 +422,10 @@ double FixAveAtom::memory_usage()
 
 void FixAveAtom::grow_arrays(int nmax)
 {
-  vector = memory->grow_2d_double_array(vector,nmax,nvalues,
-					"fix_ave/atom:vector");
-  vector_atom = vector;
-  scalar_atom = vector[0];
+  array = memory->grow_2d_double_array(array,nmax,nvalues,
+				       "fix_ave/atom:array");
+  array_atom = array;
+  vector_atom = array[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -431,7 +435,7 @@ void FixAveAtom::grow_arrays(int nmax)
 void FixAveAtom::copy_arrays(int i, int j)
 {
   for (int m = 0; m < nvalues; m++)
-    vector[j][m] = vector[i][m];
+    array[j][m] = array[i][m];
 }
 
 /* ----------------------------------------------------------------------
@@ -440,7 +444,7 @@ void FixAveAtom::copy_arrays(int i, int j)
 
 int FixAveAtom::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < nvalues; m++) buf[m] = vector[i][m];
+  for (int m = 0; m < nvalues; m++) buf[m] = array[i][m];
   return nvalues;
 }
 
@@ -450,6 +454,6 @@ int FixAveAtom::pack_exchange(int i, double *buf)
 
 int FixAveAtom::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < nvalues; m++) vector[nlocal][m] = buf[m];
+  for (int m = 0; m < nvalues; m++) array[nlocal][m] = buf[m];
   return nvalues;
 }

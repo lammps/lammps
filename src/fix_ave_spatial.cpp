@@ -211,11 +211,15 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute ID for fix ave/spatial does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
 	error->all("Fix ave/spatial compute does not calculate per-atom values");
-      if (argindex[i] == 0 && modify->compute[icompute]->size_peratom != 0)
-	error->all("Fix ave/spatial compute does not calculate a per-atom scalar");
-      if (argindex[i] && modify->compute[icompute]->size_peratom == 0)
-	error->all("Fix ave/spatial compute does not calculate a per-atom vector");
-      if (argindex[i] && argindex[i] > modify->compute[icompute]->size_peratom)
+      if (argindex[i] == 0 && 
+	  modify->compute[icompute]->size_peratom_cols != 0)
+	error->all("Fix ave/spatial compute does not "
+		   "calculate a per-atom vector");
+      if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+	error->all("Fix ave/spatial compute does not "
+		   "calculate a per-atom array");
+      if (argindex[i] && 
+	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
 	error->all("Fix ave/spatial compute vector is accessed out-of-range");
 
     } else if (which[i] == FIX) {
@@ -224,11 +228,11 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Fix ID for fix ave/spatial does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
 	error->all("Fix ave/spatial fix does not calculate per-atom values");
-      if (argindex[i] && modify->fix[ifix]->size_peratom != 0)
-	error->all("Fix ave/spatial fix does not calculate a per-atom scalar");
-      if (argindex[i] && modify->fix[ifix]->size_peratom == 0)
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
 	error->all("Fix ave/spatial fix does not calculate a per-atom vector");
-      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom)
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+	error->all("Fix ave/spatial fix does not calculate a per-atom array");
+      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
 	error->all("Fix ave/spatial fix vector is accessed out-of-range");
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
@@ -258,7 +262,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   vector_flag = 1;
   size_vector = BIG;
-  scalar_vector_freq = nfreq;
+  global_freq = nfreq;
   extvector = 0;
 
   // setup scaling
@@ -628,27 +632,27 @@ void FixAveSpatial::end_of_step()
 	compute->compute_peratom();
 	compute->invoked_flag |= INVOKED_PERATOM;
       }
-      double *scalar = compute->scalar_atom;
-      double **vector = compute->vector_atom;
+      double *vector = compute->vector_atom;
+      double **array = compute->array_atom;
       int jm1 = j - 1;
 
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit)
-	  if (j == 0) values_one[layer[i]][m] += scalar[i];
-	  else values_one[layer[i]][m] += vector[i][jm1];
+	  if (j == 0) values_one[layer[i]][m] += vector[i];
+	  else values_one[layer[i]][m] += array[i][jm1];
       
     // FIX adds its scalar or vector component to values
     // access fix fields, guaranteed to be ready
 
     } else if (which[m] == FIX) {
-      double *scalar = modify->fix[n]->scalar_atom;
-      double **vector = modify->fix[n]->vector_atom;
+      double *vector = modify->fix[n]->vector_atom;
+      double **array = modify->fix[n]->array_atom;
       int jm1 = j - 1;
 
       for (i = 0; i < nlocal; i++)
 	if (mask[i] & groupbit) {
-	  if (j == 0) values_one[layer[i]][m] += scalar[i];
-	  else values_one[layer[i]][m] += vector[i][jm1];
+	  if (j == 0) values_one[layer[i]][m] += vector[i];
+	  else values_one[layer[i]][m] += array[i][jm1];
 	}
 
     // VARIABLE adds its per-atom quantities to values

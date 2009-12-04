@@ -33,7 +33,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all("Illegal compute displace/atom command");
 
   peratom_flag = 1;
-  size_peratom = 4;
+  size_peratom_cols = 4;
 
   // create a new fix coord/original style
   // id = compute-ID + coord_original, fix group = compute group
@@ -90,14 +90,14 @@ void ComputeDisplaceAtom::compute_peratom()
     nmax = atom->nmax;
     displace =
       memory->create_2d_double_array(nmax,4,"displace/atom:displace");
-    vector_atom = displace;
+    array_atom = displace;
   }
 
   // dx,dy,dz = displacement of atom from original position
   // original unwrapped position is stored by fix
   // for triclinic, need to unwrap current atom coord via h matrix
 
-  double **xoriginal = fix->vector_atom;
+  double **xoriginal = fix->array_atom;
 
   double **x = atom->x;
   int *mask = atom->mask;

@@ -55,11 +55,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // set child class defaults
 
-  vector = NULL;
-  scalar_atom = NULL;
-  vector_atom = NULL;
-  
-  scalar_flag = vector_flag = peratom_flag = 0;
+  scalar_flag = vector_flag = array_flag = 0;
+  peratom_flag = local_flag = 0;
+
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;
   tempbias = 0;
@@ -67,7 +65,8 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   timeflag = 0;
   comm_forward = comm_reverse = 0;
 
-  invoked_scalar = invoked_vector = invoked_peratom = -1;
+  invoked_scalar = invoked_vector = invoked_array = -1;
+  invoked_peratom = invoked_local = -1;
 
   // set modify defaults
 

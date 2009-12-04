@@ -44,7 +44,7 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   time_integrate = 1;
   scalar_flag = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 1;
 
   t_start = atof(arg[3]);

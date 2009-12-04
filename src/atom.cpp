@@ -1392,7 +1392,7 @@ void *Atom::extract(char *name)
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
-   call to avec sums per-atom vectors
+   call to avec tallies per-atom vectors
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 

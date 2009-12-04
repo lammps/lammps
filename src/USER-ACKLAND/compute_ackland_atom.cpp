@@ -43,7 +43,7 @@ ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all("Illegal compute ackland/atom command");
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
 
   nmax = 0;
   structure = NULL;
@@ -110,7 +110,7 @@ void ComputeAcklandAtom::compute_peratom()
     nmax = atom->nmax;
     structure = (double *) 
       memory->smalloc(nmax*sizeof(double),"compute/ackland/atom:ackland");
-    scalar_atom = structure;
+    vector_atom = structure;
   }
 
   // invoke half neighbor list (will copy or build if necessary)

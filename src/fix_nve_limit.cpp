@@ -33,7 +33,7 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
 
   time_integrate = 1;
   scalar_flag = 1;
-  scalar_vector_freq = 1;
+  global_freq = 1;
   extscalar = 1;
 
   xlimit = atof(arg[3]);

@@ -50,7 +50,7 @@ ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all("Illegal compute cna/atom command");
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
 
   double cutoff = atof(arg[3]);
   if (cutoff < 0.0) error->all("Illegal compute cna/atom command");
@@ -136,7 +136,7 @@ void ComputeCNAAtom::compute_peratom()
     nnearest = (int *) memory->smalloc(nmax*sizeof(int),"cna:nnearest");
     pattern = (double *) memory->smalloc(nmax*sizeof(double),
 					 "cna:cna_pattern");
-    scalar_atom = pattern;
+    vector_atom = pattern;
   }
 
   // invoke full neighbor list (will copy or build if necessary)

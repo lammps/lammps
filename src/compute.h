@@ -25,17 +25,30 @@ class Compute : protected Pointers {
 
   double scalar;            // computed global scalar
   double *vector;           // computed global vector
-  double *scalar_atom;      // computed per-atom scalar
-  double **vector_atom;     // computed per-atom vector
+  double *array;            // computed global array
+  double *vector_atom;      // computed per-atom vector
+  double **array_atom;      // computed per-atom array
+  double *vector_local;     // computed local vector
+  double **array_local;     // computed local array
 
   int scalar_flag;          // 0/1 if compute_scalar() function exists
   int vector_flag;          // 0/1 if compute_vector() function exists
-  int size_vector;          // N = size of global vector
+  int array_flag;           // 0/1 if compute_array() function exists
+  int size_vector;          // length of global vector
+  int size_array_rows;      // rows in global array
+  int size_array_cols;      // columns in global array
+
   int peratom_flag;         // 0/1 if compute_peratom() function exists
-  int size_peratom;         // 0 = scalar_atom, N = size of vector_atom
-  int extscalar;            // 0/1 if scalar is intensive/extensive
-  int extvector;            // 0/1/-1 if vector is all int/ext/extlist
+  int size_peratom_cols;    // 0 = vector, N = columns in peratom array
+
+  int local_flag;           // 0/1 if compute_local() function exists
+  int size_local_rows;      // rows in local vector or array
+  int size_local_cols;      // 0 = vector, N = columns in local array
+
+  int extscalar;            // 0/1 if global scalar is intensive/extensive
+  int extvector;            // 0/1/-1 if global vector is all int/ext/extlist
   int *extlist;             // list of 0/1 int/ext for each vec component
+  int extarray;             // 0/1 if global array is intensive/extensive
 
   int tempflag;       // 1 if Compute can be used as temperature
                       // must have both compute_scalar, compute_vector
@@ -55,7 +68,9 @@ class Compute : protected Pointers {
   int invoked_flag;     // non-zero if invoked or accessed this step, 0 if not
   int invoked_scalar;   // last timestep on which compute_scalar() was invoked
   int invoked_vector;   // ditto for compute_vector()
+  int invoked_array;    // ditto for compute_array()
   int invoked_peratom;  // ditto for compute_peratom()
+  int invoked_local;    // ditto for compute_local()
 
   double dof;         // degrees-of-freedom for temperature
 
@@ -71,7 +86,9 @@ class Compute : protected Pointers {
   virtual void init_list(int, class NeighList *) {}
   virtual double compute_scalar() {return 0.0;}
   virtual void compute_vector() {}
+  virtual void compute_array() {}
   virtual void compute_peratom() {}
+  virtual void compute_local() {}
 
   virtual int pack_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}

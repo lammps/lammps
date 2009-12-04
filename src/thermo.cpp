@@ -212,7 +212,7 @@ void Thermo::init()
     ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all("Could not find thermo fix ID");
     fixes[i] = modify->fix[ifix];
-    if (output->thermo_every % fixes[i]->scalar_vector_freq)
+    if (output->thermo_every % fixes[i]->global_freq)
       error->all("Thermo and fix not computed at compatible times");
   }
 

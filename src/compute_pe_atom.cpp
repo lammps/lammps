@@ -35,7 +35,7 @@ ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all("Illegal compute pe/atom command");
 
   peratom_flag = 1;
-  size_peratom = 0;
+  size_peratom_cols = 0;
   peatomflag = 1;
   timeflag = 1;
   comm_reverse = 1;
@@ -87,7 +87,7 @@ void ComputePEAtom::compute_peratom()
     nmax = atom->nmax;
     energy = (double *) 
       memory->smalloc(nmax*sizeof(double),"pe/atom:energy");
-    scalar_atom = energy;
+    vector_atom = energy;
   }
 
   // npair includes ghosts if either newton flag is set

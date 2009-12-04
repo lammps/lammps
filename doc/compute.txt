@@ -116,6 +116,7 @@ available in LAMMPS:
 "erotate/sphere"_compute_erotate_sphere.html - rotational energy of spherical particles
 "event/displace"_compute_event_displace.html - detect event on atom displacement
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
+"gyration"_compute_gyration.html - radius of gyration of group of atoms
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom

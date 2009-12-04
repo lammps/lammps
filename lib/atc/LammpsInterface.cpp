@@ -557,7 +557,7 @@ double**  LammpsInterface::compute_vector_data(const char* tag)
     cmpt->compute_peratom();
     cmpt->invoked_flag |= INVOKED_PERATOM;
   }
-  return cmpt->vector_atom;
+  return cmpt->array_atom;
 }
 
 double*  LammpsInterface::compute_scalar_data(const char* tag) 
@@ -567,13 +567,13 @@ double*  LammpsInterface::compute_scalar_data(const char* tag)
     cmpt->compute_peratom();
     cmpt->invoked_flag |= INVOKED_PERATOM;
   }
-  return cmpt->scalar_atom;
+  return cmpt->vector_atom;
 }
 
 int  LammpsInterface::compute_ncols(const char* tag) 
 {
   int icompute = find_compute(tag);
-  int ncols = lammps_->modify->compute[icompute]->size_peratom;
+  int ncols = lammps_->modify->compute[icompute]->size_peratom_cols;
   if (ncols == 0) ncols = 1; // oddity of lammps, used as flag for scalar
   return ncols;
 }
@@ -615,7 +615,7 @@ double * LammpsInterface::atomPE_compute(void)
 {
   if (atomPE_) {
     atomPE_->compute_peratom();
-    return atomPE_->scalar_atom;
+    return atomPE_->vector_atom;
   }
   else {
     return NULL;

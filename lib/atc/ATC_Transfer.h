@@ -201,7 +201,7 @@ namespace ATC {
     int scalar_flag() const {return scalarFlag_;}
     int vector_flag() const {return vectorFlag_;}
     int size_vector() const {return sizeVector_;}
-    int scalar_vector_freq() const {return scalarVectorFreq_;};
+    int global_freq() const {return globalFreq_;};
     int extscalar() const {return extScalar_;};
     int extvector() const {return extVector_;};
     int * extlist() {return extList_;};
@@ -716,7 +716,7 @@ namespace ATC {
     int scalarFlag_;              // 0/1 if compute_scalar() function exists
     int vectorFlag_;              // 0/1 if compute_vector() function exists
     int sizeVector_;              // N = size of global vector
-    int scalarVectorFreq_;        // frequency compute s/v data is available at
+    int globalFreq_;              // frequency global data is available at
     int extScalar_;               // 0/1 if scalar is intensive/extensive
     int extVector_;               // 0/1/-1 if vector is all int/ext/extlist
     int *extList_;                // list of 0/1 int/ext for each vec component

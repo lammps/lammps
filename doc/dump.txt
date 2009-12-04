@@ -49,11 +49,11 @@ args = list of arguments for a particular style :l
       angmomx,angmomy,angmomz = angular momentum of extended particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
-      c_ID = per-atom scalar value calculated by a compute with ID
-      c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
-      f_ID = per-atom scalar value calculated by a fix with ID
-      f_ID\[N\] = Nth component of per-atom vector calculated by a fix with ID
-      v_name = per-atom value calculated by an atom-style variable with name :pre
+      c_ID = per-atom vector value calculated by a compute with ID
+      c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
+      f_ID = per-atom vector value calculated by a fix with ID
+      f_ID\[N\] = Nth column of per-atom array calculated by a fix with ID
+      v_name = per-atom vector calculated by an atom-style variable with name :pre
 :ule
 
 [Examples:]
@@ -321,8 +321,8 @@ custom"_thermo_style.html command.
 
 If {c_ID} is used as a keyword, then the scalar per-atom quantity
 calculated by the compute is printed.  If {c_ID\[N\]} is used, then N
-must be in the range from 1-M, which will print the Nth component of
-the M-length per-atom vector calculated by the compute.
+must be in the range from 1-M, which will print the Nth column of
+the M-length per-atom array calculated by the compute.
 
 The {f_ID} and {f_ID\[N\]} keywords allow scalar or vector per-atom
 quantities calculated by a "fix"_fix.html to be output.  The ID in the
@@ -336,8 +336,8 @@ be written to a dump file.
 
 If {f_ID} is used as a keyword, then the scalar per-atom quantity
 calculated by the fix is printed.  If {f_ID\[N\]} is used, then N must
-be in the range from 1-M, which will print the Nth component of the
-M-length per-atom vector calculated by the fix.
+be in the range from 1-M, which will print the Nth column of the
+M-length per-atom array calculated by the fix.
 
 The {v_name} keyword allows per-atom quantities calculated by a
 "variable"_variable.html to be output.  The name in the keyword should

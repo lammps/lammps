@@ -58,11 +58,11 @@
       angmomx,angmomy,angmomz = angular momentum of extended particle
       quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
-      c_ID = per-atom scalar value calculated by a compute with ID
-      c_ID[N] = Nth component of per-atom vector calculated by a compute with ID
-      f_ID = per-atom scalar value calculated by a fix with ID
-      f_ID[N] = Nth component of per-atom vector calculated by a fix with ID
-      v_name = per-atom value calculated by an atom-style variable with name 
+      c_ID = per-atom vector value calculated by a compute with ID
+      c_ID[N] = Nth column of per-atom array calculated by a compute with ID
+      f_ID = per-atom vector value calculated by a fix with ID
+      f_ID[N] = Nth column of per-atom array calculated by a fix with ID
+      v_name = per-atom vector calculated by an atom-style variable with name 
 </PRE>
 
 </UL>
@@ -331,8 +331,8 @@ custom</A> command.
 </P>
 <P>If <I>c_ID</I> is used as a keyword, then the scalar per-atom quantity
 calculated by the compute is printed.  If <I>c_ID[N]</I> is used, then N
-must be in the range from 1-M, which will print the Nth component of
-the M-length per-atom vector calculated by the compute.
+must be in the range from 1-M, which will print the Nth column of
+the M-length per-atom array calculated by the compute.
 </P>
 <P>The <I>f_ID</I> and <I>f_ID[N]</I> keywords allow scalar or vector per-atom
 quantities calculated by a <A HREF = "fix.html">fix</A> to be output.  The ID in the
@@ -346,8 +346,8 @@ be written to a dump file.
 </P>
 <P>If <I>f_ID</I> is used as a keyword, then the scalar per-atom quantity
 calculated by the fix is printed.  If <I>f_ID[N]</I> is used, then N must
-be in the range from 1-M, which will print the Nth component of the
-M-length per-atom vector calculated by the fix.
+be in the range from 1-M, which will print the Nth column of the
+M-length per-atom array calculated by the fix.
 </P>
 <P>The <I>v_name</I> keyword allows per-atom quantities calculated by a
 <A HREF = "variable.html">variable</A> to be output.  The name in the keyword should

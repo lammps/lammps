@@ -337,8 +337,8 @@ c_ID: scalar value of a global compute
 c_ID\[2\]: vector component of a global compute
 c_ID\[N\]: single atom's scalar value of a per-atom compute
 c_ID\[N\]\[M\]: single atom's vector component of a per-atom compute
-c_ID\[\]: per-atom scalar from a per-atom compute
-c_ID\[\]\[M\]: per-atom vector component from a per-atom compute :tb(s=:)
+c_ID\[\]: per-atom vector from a per-atom compute
+c_ID\[\]\[M\]: column of per-atom array from a per-atom compute :tb(s=:)
 
 Fix references access one or more quantities calculated by a
 "fix"_fix.html.  The ID in the reference should be replaced by the

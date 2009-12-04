@@ -22,11 +22,11 @@ mode = {sum} or {min} or {max} :l
 one or more inputs can be listed :l
 input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
-  c_ID = per-atom scalar value calculated by a compute with ID
-  c_ID\[N\] = Nth component of per-atom vector calculated by a compute with ID
-  f_ID = per-atom scalar value calculated by a fix with ID
-  f_ID\[N\] = Nth component of per-atom vector calculated by a fix with ID
-  v_name = per-atom value calculated by an atom-style variable with name :pre
+  c_ID = per-atom vector value calculated by a compute with ID
+  c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
+  f_ID = per-atom vector value calculated by a fix with ID
+  f_ID\[N\] = Nth column of per-atom array calculated by a fix with ID
+  v_name = per-atom vector calculated by an atom-style variable with name :pre
 :ule
 
 [Examples:]

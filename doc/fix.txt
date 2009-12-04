@@ -68,7 +68,7 @@ accessed by various commands for output, including "equal- and
 atom-style variables"_variable.html, "thermo_style
 custom"_thermo_style.html, and "fix ave/time"_fix_ave_time.html.
 
-Some fixes calculate a per-atom scalar or vector quantity which can be
+Some fixes calculate a per-atom vector or array quantity which can be
 accessed by various commands for output, including "atom-style
 variables"_variable.html, "dump_style custom"_dump.html, and "fix
 ave/spatial"_fix_ave_spatial.html.

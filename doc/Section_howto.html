@@ -1136,18 +1136,18 @@ frequencies and global vs per-atom attributes are the same.
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Command</TD><TD > Input</TD><TD > Input Freq</TD><TD > Output</TD><TD > Output Freq</TD></TR>
 <TR><TD >thermo_style custom</TD><TD > thermo keyword, global scalar/vector compute, global scalar/vector fix, equal variable</TD><TD > nthermo</TD><TD > screen, log</TD><TD > nthermo</TD></TR>
-<TR><TD >dump custom</TD><TD > keyword, peratom scalar/vector compute, peratom scalar/vector fix, atom variable</TD><TD > dump freq</TD><TD > file</TD><TD > dump freq</TD></TR>
+<TR><TD >dump custom</TD><TD > keyword, per-atom compute, per-atom fix, atom variable</TD><TD > dump freq</TD><TD > file</TD><TD > dump freq</TD></TR>
 <TR><TD >global fixes</TD><TD > N/A</TD><TD > N/A</TD><TD >	global scalar/vector</TD><TD > 1 or nevery</TD></TR>
-<TR><TD >peratom fixes</TD><TD > N/A</TD><TD > N/A</TD><TD > peratom scalar/vector</TD><TD > 1 or nevery</TD></TR>
+<TR><TD >per-atom fixes</TD><TD > N/A</TD><TD > N/A</TD><TD > per-atom vector/array</TD><TD > 1 or nevery</TD></TR>
 <TR><TD >fix ave/time</TD><TD > global scalar/vector fix, global scalar/vector compute, equal variable</TD><TD > nevery</TD><TD > global scalar/vector, file</TD><TD > nfreq</TD></TR>
-<TR><TD >fix ave/spatial</TD><TD > peratom scalar/vector fix, peratom scalar/vector compute, atom vector, atom variable, density mass/number</TD><TD > nevery</TD><TD > global vector</TD><TD > nfreq, file</TD></TR>
-<TR><TD >fix ave/atom</TD><TD > peratom scalar/vector compute, peratom scalar/vector fix, atom variable, atom vector</TD><TD > nevery</TD><TD > peratom scalar/vector</TD><TD > nfreq</TD></TR>
+<TR><TD >fix ave/spatial</TD><TD > per-atom fix, per-atom compute, atom vector, atom variable, density mass/number</TD><TD > nevery</TD><TD > global vector</TD><TD > nfreq, file</TD></TR>
+<TR><TD >fix ave/atom</TD><TD > per-atom compute, per-atom fix, atom variable, atom vector</TD><TD > nevery</TD><TD > per-atom vector/array</TD><TD > nfreq</TD></TR>
 <TR><TD >fix print</TD><TD > any variable</TD><TD > nevery</TD><TD > screen, file</TD><TD > nevery</TD></TR>
 <TR><TD >global computes</TD><TD > N/A</TD><TD > N/A</TD><TD > global scalar/vector</TD><TD > N/A</TD></TR>
-<TR><TD >peratom computes</TD><TD > N/A</TD><TD > N/A</TD><TD > peratom scalar/vector</TD><TD > N/A</TD></TR>
-<TR><TD >compute sum</TD><TD > peratom scalar/vector compute, peratom scalar/vector fix, atom variable</TD><TD > N/A</TD><TD > global scalar/vector</TD><TD > N/A</TD></TR>
+<TR><TD >per-atom computes</TD><TD > N/A</TD><TD > N/A</TD><TD > per-atom vector/array</TD><TD > N/A</TD></TR>
+<TR><TD >compute sum</TD><TD > per-atom compute, per-atom fix, atom variable</TD><TD > N/A</TD><TD > global scalar/vector</TD><TD > N/A</TD></TR>
 <TR><TD >variable equal</TD><TD > thermo keywords, atom value vx[123], global scalar/vector compute, global scalar/vector fix, non-atom variable</TD><TD > N/A</TD><TD > global scalar</TD><TD > N/A</TD></TR>
-<TR><TD >variable atom</TD><TD > thermo keywords, atom value vx[123], atom vector vx[], global scalar/vector compute, peratom scalar/vector compute, global scalar/vector fix, peratom scalar/vector fix, any variable</TD><TD > N/A</TD><TD > peratom scalar</TD><TD > N/A</TD></TR>
+<TR><TD >variable atom</TD><TD > thermo keywords, atom value vx[123], atom vector vx[], global scalar/vector compute, per-atom compute, global fix, per-atom fix, any variable</TD><TD > N/A</TD><TD > per-atom vector</TD><TD > N/A</TD></TR>
 <TR><TD >print</TD><TD > any variable</TD><TD > N/A</TD><TD > screen, log</TD><TD > between runs</TD></TR>
 <TR><TD >run every</TD><TD > any variable</TD><TD > nevery</TD><TD > screen, log</TD><TD > nevery 
 </TD></TR></TABLE></DIV>

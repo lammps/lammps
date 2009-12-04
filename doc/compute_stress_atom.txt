@@ -97,10 +97,10 @@ contribution can easily be computed.
 
 [Output info:]
 
-This compute calculates a vector of length 6 for each atom, which can
-be accessed by indices 1-6 by any command that uses per-atom values
-from a compute as input.  See "this section"_Section_howto.html#4_15
-for an overview of LAMMPS output options.
+This compute calculates a per-atom array with 6 columns, which can be
+accessed by indices 1-6 by any command that uses per-atom values from
+a compute as input.  See "this section"_Section_howto.html#4_15 for an
+overview of LAMMPS output options.
 
 [Restrictions:] none
 

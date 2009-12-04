@@ -1128,18 +1128,18 @@ frequencies and global vs per-atom attributes are the same.
 
 Command: Input: Input Freq: Output: Output Freq
 thermo_style custom: thermo keyword, global scalar/vector compute, global scalar/vector fix, equal variable: nthermo: screen, log: nthermo
-dump custom: keyword, peratom scalar/vector compute, peratom scalar/vector fix, atom variable: dump freq: file: dump freq
+dump custom: keyword, per-atom compute, per-atom fix, atom variable: dump freq: file: dump freq
 global fixes: N/A: N/A:	global scalar/vector: 1 or nevery
-peratom fixes: N/A: N/A: peratom scalar/vector: 1 or nevery
+per-atom fixes: N/A: N/A: per-atom vector/array: 1 or nevery
 fix ave/time: global scalar/vector fix, global scalar/vector compute, equal variable: nevery: global scalar/vector, file: nfreq
-fix ave/spatial: peratom scalar/vector fix, peratom scalar/vector compute, atom vector, atom variable, density mass/number: nevery: global vector: nfreq, file
-fix ave/atom: peratom scalar/vector compute, peratom scalar/vector fix, atom variable, atom vector: nevery: peratom scalar/vector: nfreq
+fix ave/spatial: per-atom fix, per-atom compute, atom vector, atom variable, density mass/number: nevery: global vector: nfreq, file
+fix ave/atom: per-atom compute, per-atom fix, atom variable, atom vector: nevery: per-atom vector/array: nfreq
 fix print: any variable: nevery: screen, file: nevery
 global computes: N/A: N/A: global scalar/vector: N/A
-peratom computes: N/A: N/A: peratom scalar/vector: N/A
-compute sum: peratom scalar/vector compute, peratom scalar/vector fix, atom variable: N/A: global scalar/vector: N/A
+per-atom computes: N/A: N/A: per-atom vector/array: N/A
+compute sum: per-atom compute, per-atom fix, atom variable: N/A: global scalar/vector: N/A
 variable equal: thermo keywords, atom value vx\[123\], global scalar/vector compute, global scalar/vector fix, non-atom variable: N/A: global scalar: N/A
-variable atom: thermo keywords, atom value vx\[123\], atom vector vx\[\], global scalar/vector compute, peratom scalar/vector compute, global scalar/vector fix, peratom scalar/vector fix, any variable: N/A: peratom scalar: N/A
+variable atom: thermo keywords, atom value vx\[123\], atom vector vx\[\], global scalar/vector compute, per-atom compute, global fix, per-atom fix, any variable: N/A: per-atom vector: N/A
 print: any variable: N/A: screen, log: between runs
 run every: any variable: nevery: screen, log: nevery :tb(s=:)
 

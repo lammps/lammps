@@ -43,7 +43,7 @@ namespace ATC {
     // output[2] = average temperature
     vectorFlag_ = 1;
     sizeVector_ = 2;
-    scalarVectorFreq_ = 1;
+    globalFreq_ = 1;
     extVector_ = 1;
     if (extrinsicModel != NO_MODEL)
       sizeVector_ += extrinsicModelManager_.size_vector(sizeVector_);

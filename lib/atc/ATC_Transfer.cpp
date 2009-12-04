@@ -44,7 +44,7 @@ namespace ATC {
     scalarFlag_(0),
     vectorFlag_(0),
     sizeVector_(0),
-    scalarVectorFreq_(0),
+    globalFreq_(0),
     extScalar_(0),
     extVector_(0),
     extList_(NULL),

@@ -21,8 +21,8 @@ keyword = {com} :l
 
 [Examples:]
 
-fix 1 all compute
-fix 1 upper compute com yes :pre
+compute 1 all msd
+compute 1 upper msd com yes :pre
 
 [Description:]
 
@@ -36,8 +36,8 @@ and averaged over atoms in the group.  The 4th component is the total
 squared displacement, i.e. (dx*dx + dy*dy + dz*dz), summed and
 averaged over atoms in the group.
 
-The slope of the mean-squared displacement versus time is proportional
-to the diffusion coefficient of the diffusing atoms.
+The slope of the mean-squared displacement (MSD) versus time is
+proportional to the diffusion coefficient of the diffusing atoms.
 
 The displacement of an atom is from its original position at the time
 the compute command was issued.  To store the original coordinates,
@@ -67,11 +67,11 @@ image"_set.html command.
 
 IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
 rigid"_fix_rigid.html command), it's periodic image flags are altered,
-and the computed MSD will not reflect its true displacement.  See the
-"fix rigid"_fix_rigid.html command for details.  Thus, to compute the
-MSD of rigid bodies as they cross periodic boundaries, you will need
-to post-process a "dump file"_dump.html containing coordinates of the
-atoms in the bodies.
+and its contribution to the MSD may not reflect its true contribution.
+See the "fix rigid"_fix_rigid.html command for details.  Thus, to
+compute the MSD of rigid bodies as they cross periodic boundaries, you
+will need to post-process a "dump file"_dump.html containing
+coordinates of the atoms in the bodies.
 
 IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a "restart file"_read_restart.html,

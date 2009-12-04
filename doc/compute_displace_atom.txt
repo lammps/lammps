@@ -56,7 +56,7 @@ image"_set.html command.
 
 IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
 rigid"_fix_rigid.html command), it's periodic image flags are altered,
-and the computed displacement will not reflect its true displacement.
+and the computed displacement may not reflect its true displacement.
 See the "fix rigid"_fix_rigid.html command for details.  Thus, to
 compute the displacement of rigid bodies as they cross periodic
 boundaries, you will need to post-process a "dump file"_dump.html

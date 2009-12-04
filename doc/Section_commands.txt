@@ -464,6 +464,7 @@ each style or click on the style itself for a full description:
 
 "centro/atom"_compute_centro_atom.html,
 "cna/atom"_compute_cna_atom.html,
+"com"_compute_com.html,
 "coord/atom"_compute_coord_atom.html,
 "damage/atom"_compute_damage_atom.html,
 "displace/atom"_compute_displace_atom.html,

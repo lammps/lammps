@@ -18,12 +18,12 @@ Nevery = calculate property every this many timesteps :l
 Nrepeat = # of times to repeat the Nevery calculation before averaging :l
 Nfreq = timestep frequency at which the average value is calculated :l
 one or more values can be listed :l
-value = x, y, z, xu, yu, zu, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+value = x, y, z, xu, yu, zu, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[i\], f_ID, f_ID\[i\], v_name :l
   x,y,z,xu,yu,zu,vx,vy,vz,fx,fy,fz = atom attribute (position, unwrapped position, velocity, force component)
-  c_ID = per-atom vector value calculated by a compute with ID
-  c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
-  f_ID = per-atom vector value calculated by a fix with ID
-  f_ID\[N\] = Nth column of per-atom array calculated by a fix with ID
+  c_ID = per-atom vector calculated by a compute with ID
+  c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
+  f_ID = per-atom vector calculated by a fix with ID
+  f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 :ule
 
@@ -48,17 +48,17 @@ Each listed value can be an atom attribute (position, unwrapped
 position, velocity, force component) or can be the result of a
 "compute"_compute.html or "fix"_fix.html or the evaluation of an
 atom-style "variable"_variable.html.  In the latter cases, the
-compute, fix, or variable must produce a per-atom quantity, not a
-global quantity.  If you wish to time-average global quantities from a
-compute, fix, or variable, then see the "fix
+compute, fix, or variable must produce a per-atom vector, not a global
+scalar or vector or array.  If you wish to time-average global
+quantities from a compute, fix, or variable, then see the "fix
 ave/time"_fix_ave_time.html command.
 
-"Computes"_compute.html that produce per-atom quantities are those
-which have the word {atom} in their style name.  See the doc pages for
-individual "fixes"_fix.html to determine which ones produce per-atom
-quantities.  "Variables"_variable.html of style {atom} are the only
-ones that can be used with this fix since all other styles of variable
-produce global quantities.
+"Computes"_compute.html that produce per-atom vectors or arrays are
+those which have the word {atom} in their style name.  See the doc
+pages for individual "fixes"_fix.html to determine which ones produce
+per-atom vectors or arrays.  "Variables"_variable.html of style {atom}
+are the only ones that can be used with this fix since they are the
+only ones that produce per-atom vectors.
 
 :line
 
@@ -91,24 +91,27 @@ is meant by image flags.
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a
-bracketed term is appended, the Nth columnd of the per-atom array
-calculated by the compute is used.  Users can also write code for
-their own compute styles and "add them to LAMMPS"_Section_modify.html.
+bracketed term containing an index I is appended, the Ith column of
+the per-atom array calculated by the compute is used.  Users can also
+write code for their own compute styles and "add them to
+LAMMPS"_Section_modify.html.
 
 If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the fix is used.  If a
-bracketed term is appended, the Nth column of the per-atom array
-calculated by the fix is used.  Note that some fixes only produce
-their values on certain timesteps, which must be compatible with
-{Nevery}, else an error will results.  Users can also write code for
-their own fix styles and "add them to LAMMPS"_Section_modify.html.
+bracketed term containing an index I is appended, the Ith column of
+the per-atom array calculated by the fix is used.  Note that some
+fixes only produce their values on certain timesteps, which must be
+compatible with {Nevery}, else an error will result.  Users can also
+write code for their own fix styles and "add them to
+LAMMPS"_Section_modify.html.
 
 If a value begins with "v_", a variable name must follow which has
-been previously defined in the input script.  Variables of style
-{atom} can reference thermodynamic keywords, or invoke other computes,
-fixes, or variables when they are evaluated, so this is a very general
-means of generating per-atom quantities to time average.
+been previously defined in the input script as an "atom-style
+variable"_variable.html Variables of style {atom} can reference
+thermodynamic keywords, or invoke other computes, fixes, or variables
+when they are evaluated, so this is a very general means of generating
+per-atom quantities to time average.
 
 :line
 

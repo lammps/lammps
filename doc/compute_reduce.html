@@ -25,17 +25,17 @@
   <I>reduce/region</I> arg = region-ID
     region-ID = ID of region to use for choosing atoms 
 </PRE>
-<LI>mode = <I>sum</I> or <I>min</I> or <I>max</I> 
+<LI>mode = <I>sum</I> or <I>min</I> or <I>max</I> or <I>ave</I> 
 
 <LI>one or more inputs can be listed 
 
 <LI>input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name 
 
 <PRE>  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
-  c_ID = per-atom vector value calculated by a compute with ID
-  c_ID[N] = Nth column of per-atom array calculated by a compute with ID
-  f_ID = per-atom vector value calculated by a fix with ID
-  f_ID[N] = Nth column of per-atom array calculated by a fix with ID
+  c_ID = vector calculated by a compute with ID
+  c_ID[I] = Ith column of array calculated by a compute with ID
+  f_ID = vector calculated by a fix with ID
+  f_ID[I] = Ith column of array calculated by a fix with ID
   v_name = per-atom vector calculated by an atom-style variable with name 
 </PRE>
 
@@ -48,37 +48,63 @@ compute 2 all reduce min c_press<B>2</B> f_ave v_myKE
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a calculation that "reduces" one or more per-atom inputs across
-all atoms in the group to yield a single global scalar for each listed
-input.  If the compute reduce/region command is used, the selection of
-atoms is limited to atoms in the region as well as in the group.
+<P>Define a calculation that "reduces" one or more vector inputs into
+scalar values, one per listed input.  The inputs can be global,
+per-atom, or local quantities.  Atom attributes are per-atom
+quantities, <A HREF = "compute.html">computes</A> and <A HREF = "fix.html">fixes</A> may generate
+any of the three kinds of quantities, and <A HREF = "variable.html">atom-style
+variables</A> generate per-atom quantities.
 </P>
 <P>The reduction operation is specified by the <I>mode</I> setting.  The <I>sum</I>
-option adds the per-atom quantities into a global total.  The <I>min</I> or
-<I>max</I> options find the minimum or maximum value across all per-atom
-quantities.
+option adds the values in the vector into a global total.  The <I>min</I>
+or <I>max</I> options find the minimum or maximum value across all vector
+values.  The <I>ave</I> setting adds the vector values into a global total,
+then divides by the number of values in the vector.
 </P>
-<P>Each listed input is operated on independently.  The group specified
-with the command means only atoms within the group contribute to the
-result.  If the compute reduce/region command is used, the atoms must
-also be within the region.  Note that the input that produces the
-per-atom quantities may define its own group which affects the
-quantities it returns.  For example, if a per-atom compute is used as
-an input, it will generate values of 0.0 for atoms that are not in the
+<P>Each listed input is operated on independently.  For per-atom inputs,
+the group specified with this command means only atoms within the
+group contribute to the result.  For per-atom inputs, if the compute
+reduce/region command is used, the atoms must also currently be within
+the region.  Note that an input that produces per-atom quantities may
+define its own group which affects the quantities it returns.  For
+example, if a compute is used as an input which generates a per-atom
+vector, it will generate values of 0.0 for atoms that are not in the
 group specified for that compute.
 </P>
 <P>Each listed input can be an atom attribute (position, velocity, force
 component) or can be the result of a <A HREF = "compute.html">compute</A> or
 <A HREF = "fix.html">fix</A> or the evaluation of an atom-style
-<A HREF = "variable.html">variable</A>.  In the latter cases, the compute, fix, or
-variable must produce per-atom quantities, not a global quantity.
+<A HREF = "variable.html">variable</A>.
 </P>
-<P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
-which have the word <I>atom</I> in their style name.  See the doc pages for
-individual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
-quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are the only
-ones that can be used with this compute since all other variable
-styles produce global quantities.
+<P>Atom attributes are per-atom inputs.
+</P>
+<P>If a value begins with "c_", a compute ID must follow which has been
+previously defined in the input script.  Computes can generate global,
+per-atom, or local quantities.  See the individual
+<A HREF = "compute.html">compute</A> doc page for details.  If no bracketed integer
+is appended, the vector calculated by the compute is used.  If a
+bracketed interger is appended, the Ith column of the array calculated
+by the compute is used.  Users can also write code for their own
+compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
+</P>
+<P>If a value begins with "f_", a fix ID must follow which has been
+previously defined in the input script.  Fixes can generate global,
+per-atom, or local quantities.  See the individual <A HREF = "fix.html">fix</A> doc
+page for details.  Note that some fixes only produce their values on
+certain timesteps, which must be compatible with when compute reduce
+references the values, else an error results.  If no bracketed integer
+is appended, the vector calculated by the fix is used.  If a bracketed
+integer is appended, the Ith column of the array calculated by the fix
+is used.  Users can also write code for their own fix style and <A HREF = "Section_modify.html">add
+them to LAMMPS</A>.
+</P>
+<P>If a value begins with "v_", a variable name must follow which has
+been previously defined in the input script.  It must be an
+<A HREF = "variable.html">atom-style variable</A>.  Atom-style variables can
+reference thermodynamic keywords and various per-atom attributes, or
+invoke other computes, fixes, or variables when they are evaluated, so
+this is a very general means of generating per-atom quantities to
+reduce.
 </P>
 <P>If a single input is specified this compute produces a global scalar
 value.  If multiple inputs are specified, this compute produces a
@@ -97,15 +123,15 @@ divides by the appropriate atom count.
 </P>
 <P>This compute calculates a global scalar or global vector of length N
 where N is the number of inputs, and which can be accessed by indices
-1-6.  These values can be used by any command that uses global scalar
+1-N.  These values can be used by any command that uses global scalar
 or vector values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>
 <P>For <I>sum</I> mode, the scalar and vector values calculated by this
 compute are "extensive", meaning they scale with the number of atoms
-in the simulation.  For <I>min</I> and <I>max</I> modes, the value(s) are
-intensive.
+in the simulation.  For <I>min</I> or <I>max</I> or <I>ave</I> modes, the value(s)
+are intensive.
 </P>
 <P><B>Restrictions:</B> none
 </P>

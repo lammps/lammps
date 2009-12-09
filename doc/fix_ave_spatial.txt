@@ -21,17 +21,17 @@ dim = {x} or {y} or {z} :l
 origin = {lower} or {center} or {upper} or coordinate value (distance units) :l
 delta = thickness of spatial layers in dim (distance units) :l
 one or more values can be listed :l
-value = x, y, z, vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+value = x, y, z, vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
   density/number, density/mass = number or mass density
-  c_ID = per-atom vector value calculated by a compute with ID
-  c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
-  f_ID = per-atom vector value calculated by a fix with ID
-  f_ID\[N\] = Nth column of per-atom array calculated by a fix with ID
+  c_ID = per-atom vector calculated by a compute with ID
+  c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
+  f_ID = per-atom vector calculated by a fix with ID
+  f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {norm} or {units} or {file} or {ave} :l
+keyword = {norm} or {units} or {file} or {ave} or {title1} or {title2} or {title3} :l
   {units} arg = {box} or {lattice} or {reduced}
   {norm} arg = {all} or {sample}
   {file} arg = filename
@@ -39,12 +39,19 @@ keyword = {norm} or {units} or {file} or {ave} :l
   {ave} args = {one} or {running} or {window M}
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
-    window M = output average of M most recent Nfreq steps :pre
+    window M = output average of M most recent Nfreq steps
+  {title1} arg = string
+    string = text to print as 1st line of output file = title
+  {title2} arg = string
+    string = text to print as 2nd line of output file = timestep, # of layers
+  {title3} arg = string
+    string = text to print as 3rd line of output file = values :pre
 :ule
 
 [Examples:]
 
-fix 1 all ave/spatial 10000 1 10000 z lower 0.02 c_myCentro units reduced
+fix 1 all ave/spatial 10000 1 10000 z lower 0.02 c_myCentro units reduced &
+                      title1 "My output values"
 fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 fix 1 flow ave/spatial 100 5 1000 y 0.0 2.5 density/mass ave running :pre
 
@@ -139,16 +146,16 @@ volume of the layer so that units of number/volume or mass/volume are
 output.
 
 If a value begins with "c_", a compute ID must follow which has been
-previously defined in the input script.  If no bracketed term is
+previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
-bracketed term is appended, the Nth column of the per-atom array
+bracketed interger is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
 their own compute styles and "add them to LAMMPS"_Section_modify.html.
 
 If a value begins with "f_", a fix ID must follow which has been
-previously defined in the input script.  If no bracketed term is
+previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
-bracketed term is appended, the Nth column of the per-atom array
+bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with
 {Nevery}, else an error results.  Users can also write code for their
@@ -156,9 +163,10 @@ own fix styles and "add them to LAMMPS"_Section_modify.html.
 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  Variables of style
-{atom} can reference thermodynamic keywords, or invoke other computes,
-fixes, or variables when they are evaluated, so this is a very general
-means of generating per-atom quantities to spatially average.
+{atom} can reference thermodynamic keywords and various per-atom
+attributes, or invoke other computes, fixes, or variables when they
+are evaluated, so this is a very general means of generating per-atom
+quantities to spatially average.
 
 :line
 
@@ -239,6 +247,24 @@ then the output on step 10000 will be the average of the individual
 layer values on steps 8000,9000,10000.  Outputs on early steps will
 average over less than M values if they are not available.
 
+The {title1} and {title2} and {title3} keywords allow specification of
+the strings that will be printed as the first 3 lines of the output
+file, assuming the {file} keyword was used.  LAMMPS uses default
+values for each of these, so they do not need to be specified.  By
+default, theses lines are as follows:
+
+# Spatial-averaged data for fix ID and group name
+# Timestep Number-of-layers
+# Layer Coord Ncount value1 value2 ... :pre
+
+In the first line, ID and name are replaced with the fix-ID and group
+name.  In the last line the values are replaced with the appropriate
+fields from the fix ave/spatial command.  Note the first line is
+essentially a title for the file.  The second line describes the
+header line that appears at the first of each section of output.  The
+third line describes the columns of each layer line within a section
+of output.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -247,21 +273,19 @@ No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
-This fix computes a global vector of quantities which can be accessed
-by various "output commands"_Section_howto.html#4_15.  The values can
+This fix computes a global array of values which can be accessed by
+various "output commands"_Section_howto.html#4_15.  The values can
 only be accessed on timesteps that are multiples of {Nfreq} since that
-is when averaging is performed.  The global vector is of length N =
-nlayers*nvalues where nlayers is the number of layers and nvalues is
-the number of values per layer that the fix is averaging.  When
-accessed by another output command, a single index M is specified
-which is mapped into a layer I as I = M / nvalues + 1 and into value J
-as J = M % nvalues + 1.  If I exceeds the current number of layers
-than a 0.0 is returned by the fix instead of an error, since the
-number of layers can vary as a simulation runs, depending on the
-simulation box size.  The vector values calculated by this fix are
-"intensive", meaning they are independent of the number of atoms in
-the simulation, since they are already normalized by the count of
-atoms in each layer.
+is when averaging is performed.  The global array has Nlayers rows and
+Nvalues+2 columns.  The first column has the layer coordinate, the 2nd
+column has the count of atoms in that layer, and the remaining columns
+are the Nvalue quantities.  When the array is accessed with an I that
+exceeds the current number of layers, than a 0.0 is returned by the
+fix instead of an error, since the number of layers can vary as a
+simulation runs, depending on the simulation box size.  The array
+values calculated by this fix are "intensive", meaning they are
+independent of the number of atoms in the simulation, since they are
+already normalized by the count of atoms in each layer.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -282,4 +306,5 @@ simulation box size doesn't change or if the {units} keyword is set to
 [Default:]
 
 The option defaults are units = lattice, norm = all, no file output,
-and ave = one.
+and ave = one, title 1,2,3 = strings as described above.
+

@@ -29,7 +29,7 @@ class ComputeReduce : public Compute {
 
  protected:
   int mode,nvalues,iregion;
-  int *which,*argindex,*value2index;
+  int *which,*argindex,*flavor,*value2index;
   char **ids;
   double *onevec;
 
@@ -37,6 +37,7 @@ class ComputeReduce : public Compute {
   double *varatom;
 
   virtual double compute_one(int);
+  virtual double count(int);
   void combine(double &, double);
 };
 

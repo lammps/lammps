@@ -40,7 +40,8 @@ enum{ID,MOL,TYPE,MASS,
        COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE};
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+
+#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -960,7 +961,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       vtype[i] = DOUBLE;
 
     // compute value = c_ID
-    // if no trailing [], then arg is set to 0, else arg is between []
+    // if no trailing [], then arg is set to 0, else arg is int between []
 
     } else if (strncmp(arg[iarg],"c_",2) == 0) {
       pack_choice[i] = &DumpCustom::pack_compute;
@@ -981,14 +982,14 @@ void DumpCustom::parse_fields(int narg, char **arg)
       n = modify->find_compute(suffix);
       if (n < 0) error->all("Could not find dump custom compute ID");
       if (modify->compute[n]->peratom_flag == 0)
-	error->all("Dump custom compute ID does not compute per-atom info");
+	error->all("Dump custom compute does not compute per-atom info");
       if (argindex[i] == 0 && modify->compute[n]->size_peratom_cols > 0)
-	error->all("Dump custom compute ID does not compute per-atom vector");
+	error->all("Dump custom compute does not calculate per-atom vector");
       if (argindex[i] > 0 && modify->compute[n]->size_peratom_cols == 0)
-	error->all("Dump custom compute ID does not compute per-atom array");
+	error->all("Dump custom compute does not calculate per-atom array");
       if (argindex[i] > 0 && 
 	  argindex[i] > modify->compute[n]->size_peratom_cols)
-	error->all("Dump custom compute ID vector is not large enough");
+	error->all("Dump custom compute vector is accessed out-of-range");
 
       field2index[i] = add_compute(suffix);
       delete [] suffix;
@@ -1015,14 +1016,14 @@ void DumpCustom::parse_fields(int narg, char **arg)
       n = modify->find_fix(suffix);
       if (n < 0) error->all("Could not find dump custom fix ID");
       if (modify->fix[n]->peratom_flag == 0)
-	error->all("Dump custom fix ID does not compute per-atom info");
+	error->all("Dump custom fix does not compute per-atom info");
       if (argindex[i] == 0 && modify->fix[n]->size_peratom_cols > 0)
-	error->all("Dump custom fix ID does not compute per-atom vector");
+	error->all("Dump custom fix does not compute per-atom vector");
       if (argindex[i] > 0 && modify->fix[n]->size_peratom_cols == 0)
-	error->all("Dump custom fix ID does not compute per-atom array");
+	error->all("Dump custom fix does not compute per-atom array");
       if (argindex[i] > 0 && 
 	  argindex[i] > modify->fix[n]->size_peratom_cols)
-	error->all("Dump custom fix ID vector is not large enough");
+	error->all("Dump custom fix vector is accessed out-of-range");
 
       field2index[i] = add_fix(suffix);
       delete [] suffix;
@@ -1398,7 +1399,6 @@ void DumpCustom::pack_compute(int n)
   double *vector = compute[field2index[n]]->vector_atom;
   double **array = compute[field2index[n]]->array_atom;
   int index = argindex[n];
-
   int nlocal = atom->nlocal;
 
   if (index == 0) {
@@ -1424,7 +1424,6 @@ void DumpCustom::pack_fix(int n)
   double *vector = fix[field2index[n]]->vector_atom;
   double **array = fix[field2index[n]]->array_atom;
   int index = argindex[n];
-
   int nlocal = atom->nlocal;
 
   if (index == 0) {
@@ -1448,7 +1447,6 @@ void DumpCustom::pack_fix(int n)
 void DumpCustom::pack_variable(int n)
 {
   double *vector = vbuf[field2index[n]];
-
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)

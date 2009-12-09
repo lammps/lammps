@@ -26,8 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
-
 #define INERTIA 0.4          // moment of inertia for sphere
 
 /* ---------------------------------------------------------------------- */

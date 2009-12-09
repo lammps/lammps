@@ -25,7 +25,7 @@ class Compute : protected Pointers {
 
   double scalar;            // computed global scalar
   double *vector;           // computed global vector
-  double *array;            // computed global array
+  double **array;           // computed global array
   double *vector_atom;      // computed per-atom vector
   double **array_atom;      // computed per-atom array
   double *vector_local;     // computed local vector
@@ -48,7 +48,7 @@ class Compute : protected Pointers {
   int extscalar;            // 0/1 if global scalar is intensive/extensive
   int extvector;            // 0/1/-1 if global vector is all int/ext/extlist
   int *extlist;             // list of 0/1 int/ext for each vec component
-  int extarray;             // 0/1 if global array is intensive/extensive
+  int extarray;             // 0/1 if global array is all intensive/extensive
 
   int tempflag;       // 1 if Compute can be used as temperature
                       // must have both compute_scalar, compute_vector

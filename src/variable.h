@@ -31,6 +31,7 @@ class Variable : protected Pointers {
   char *retrieve(char *);
   double compute_equal(int);
   void compute_atom(int, int, double *, int, int);
+  int int_between_brackets(char *&);
 
  private:
   int me;
@@ -59,12 +60,12 @@ class Variable : protected Pointers {
   double eval_tree(Tree *, int);
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&);
-  int int_between_brackets(char *, int, int &, int);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int region_function(char *);
   void peratom2global(int, char *, double *, int, int,
 		      Tree **, Tree **, int &, double *, int &);
+  int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
 };
 

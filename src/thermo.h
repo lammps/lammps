@@ -62,8 +62,8 @@ class Thermo : protected Pointers {
   double dvalue,natoms;  // dvalue = double value to print
   int ifield;            // which field in thermo output is being computed
   int *field2index;      // which compute,fix,variable calcs this field
-  int *argindex;         // index into compute,fix scalar,vector
-
+  int *argindex1;        // indices into compute,fix scalar,vector
+  int *argindex2;
                          // data for keyword-specific Compute objects
                          // index = where they are in computes list
                          // id = ID of Compute objects

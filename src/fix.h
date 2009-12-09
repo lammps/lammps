@@ -136,7 +136,7 @@ class Fix : protected Pointers {
 
   virtual double compute_scalar() {return 0.0;}
   virtual double compute_vector(int) {return 0.0;}
-  virtual double compute_array(int) {return 0.0;}
+  virtual double compute_array(int,int) {return 0.0;}
 
   virtual int dof(int) {return 0;}
   virtual void deform(int) {}

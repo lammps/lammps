@@ -36,7 +36,8 @@ enum{X,V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+
+#define INVOKED_PERATOM 8
 
 #define BIG 1000000000
 
@@ -154,6 +155,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   scaleflag = LATTICE;
   fp = NULL;
   ave = ONE;
+  char *title1 = NULL;
+  char *title2 = NULL;
+  char *title3 = NULL;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
@@ -193,6 +197,27 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
+    } else if (strcmp(arg[iarg],"title1") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      delete [] title1;
+      int n = strlen(arg[iarg+1]) + 1;
+      title1 = new char[n];
+      strcpy(title1,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"title2") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      delete [] title2;
+      int n = strlen(arg[iarg+1]) + 1;
+      title2 = new char[n];
+      strcpy(title2,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"title3") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      delete [] title3;
+      int n = strlen(arg[iarg+1]) + 1;
+      title3 = new char[n];
+      strcpy(title3,arg[iarg+1]);
+      iarg += 2;
     } else error->all("Illegal fix ave/spatial command");
   }
 
@@ -243,27 +268,38 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // print header into file
+  // print file comment lines
 
   if (fp && me == 0) {
-    fprintf(fp,"# Spatial-averaged data for fix %s and group %s\n",id,arg[1]);
-    fprintf(fp,"# TimeStep Number-of-layers\n");
-    fprintf(fp,"# Layer Coordinate Natoms");
-    for (int i = 0; i < nvalues; i++)
-      if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
-      else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
-      else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
-      else fprintf(fp," %s",arg[9+i]);
-    fprintf(fp,"\n");
+    if (title1) fprintf(fp,"%s\n",title1);
+    else fprintf(fp,"# Spatial-averaged data for fix %s and group %s\n",
+		 id,arg[1]);
+    if (title2) fprintf(fp,"%s\n",title2);
+    else fprintf(fp,"# Timestep Number-of-layers\n");
+    if (title3) fprintf(fp,"%s\n",title3);
+    else {
+      fprintf(fp,"# Layer Coord Ncount");
+      for (int i = 0; i < nvalues; i++) {
+	if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
+	else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
+	else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
+	else fprintf(fp," %s",arg[9+i]);
+      }
+      fprintf(fp,"\n");
+    }
   }
-  
-  // this fix produces a global vector
-  // set size_vector to BIG since compute_vector() checks bounds on-the-fly
 
-  vector_flag = 1;
-  size_vector = BIG;
+  delete [] title1;
+  delete [] title2;
+  delete [] title3;
+
+  // this fix produces a global array
+
+  array_flag = 1;
+  size_local_rows = BIG;
+  size_local_cols = nvalues+2;
   global_freq = nfreq;
-  extvector = 0;
+  extarray = 0;
 
   // setup scaling
 
@@ -803,18 +839,18 @@ void FixAveSpatial::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   return Nth vector value
-   since values_sum is 2d array, map N into ilayer and ivalue
-   if ilayer exceeds current layers, return 0.0 instead of generate an error
+   return I,J array value
+   if I exceeds current layers, return 0.0 instead of generating an error
+   1st column = bin coord, 2nd column = count, remaining columns = Nvalues
 ------------------------------------------------------------------------- */
 
-double FixAveSpatial::compute_vector(int n)
+double FixAveSpatial::compute_array(int i, int j)
 {
-  int ivalue = n % nvalues;
-  int ilayer = n / nvalues;
-  if (ilayer >= nlayers) return 0.0;
   if (values_total == NULL) return 0.0;
-  return values_total[ilayer][ivalue]/norm;
+  if (i >= nlayers) return 0.0;
+  if (j == 0) return coord[i];
+  if (j == 1) return count_total[i]/norm;
+  return values_total[i][j]/norm;
 }
 
 /* ----------------------------------------------------------------------

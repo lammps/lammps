@@ -27,7 +27,8 @@
 using namespace LAMMPS_NS;
 
 enum{X,XU,V,F,COMPUTE,FIX,VARIABLE};
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+
+#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -125,6 +126,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // setup and error check
+  // for fix inputs, check that fix frequency is acceptable
 
   if (nevery <= 0) error->all("Illegal fix ave/atom command");
   if (peratom_freq < nevery || peratom_freq % nevery ||
@@ -147,19 +149,23 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all("Fix ave/atom compute vector is accessed out-of-range");
+	error->all("Fix ave/atom compute array is accessed out-of-range");
+
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for fix ave/atom does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
 	error->all("Fix ave/atom fix does not calculate per-atom values");
-      if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
+      if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
 	error->all("Fix ave/atom fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
 	error->all("Fix ave/atom fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all("Fix ave/atom fix vector is accessed out-of-range");
+	error->all("Fix ave/atom fix array is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->peratom_freq)
+	error->all("Fix for fix ave/atom not computed at compatible time");
+
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
@@ -240,7 +246,6 @@ int FixAveAtom::setmask()
 void FixAveAtom::init()
 {
   // set indices and check validity of all computes,fixes,variables
-  // check that fix frequency is acceptable
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == COMPUTE) {
@@ -254,9 +259,6 @@ void FixAveAtom::init()
       if (ifix < 0) 
 	error->all("Fix ID for fix ave/atom does not exist");
       value2index[m] = ifix;
-
-      if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all("Fix for fix ave/atom not computed at compatible time");
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);

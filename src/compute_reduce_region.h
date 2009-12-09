@@ -25,6 +25,7 @@ class ComputeReduceRegion : public ComputeReduce {
 
  private:
   double compute_one(int);
+  double count(int);
 };
 
 }

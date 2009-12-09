@@ -53,7 +53,11 @@ using namespace LAMMPS_NS;
 enum{IGNORE,WARN,ERROR};           // same as write_restart.cpp
 enum{ONELINE,MULTILINE};
 enum{INT,FLOAT};
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+enum{SCALAR,VECTOR,ARRAY};
+
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+#define INVOKED_ARRAY 4
 
 #define MAXLINE 1024
 #define DELTA 8
@@ -271,15 +275,20 @@ void Thermo::compute(int flag)
   // which = 0 is global scalar, which = 1 is global vector
 
   for (i = 0; i < ncompute; i++)
-    if (compute_which[i] == 0) {
+    if (compute_which[i] == SCALAR) {
       if (!(computes[i]->invoked_flag & INVOKED_SCALAR)) {
 	computes[i]->compute_scalar();
 	computes[i]->invoked_flag |= INVOKED_SCALAR;
       }
-    } else {
+    } else if (compute_which[i] == VECTOR) {
       if (!(computes[i]->invoked_flag & INVOKED_VECTOR)) {
 	computes[i]->compute_vector();
 	computes[i]->invoked_flag |= INVOKED_VECTOR;
+      }
+    } else if (compute_which[i] == ARRAY) {
+      if (!(computes[i]->invoked_flag & INVOKED_ARRAY)) {
+	computes[i]->compute_array();
+	computes[i]->invoked_flag |= INVOKED_ARRAY;
       }
     }
 
@@ -502,7 +511,8 @@ void Thermo::allocate()
   for (int i = 0; i < n; i++) format_user[i] = NULL;
 
   field2index = new int[n];
-  argindex = new int[n];
+  argindex1 = new int[n];
+  argindex2 = new int[n];
 
   // factor of 3 is max number of computes a single field can add
 
@@ -539,7 +549,8 @@ void Thermo::deallocate()
   delete [] format_user;
 
   delete [] field2index;
-  delete [] argindex;
+  delete [] argindex1;
+  delete [] argindex2;
 
   for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
   delete [] id_compute;
@@ -580,56 +591,56 @@ void Thermo::parse_fields(char *str)
 
     } else if (strcmp(word,"temp") == 0) {
       addfield("Temp",&Thermo::compute_temp,FLOAT);
-      index_temp = add_compute(id_temp,0);
+      index_temp = add_compute(id_temp,SCALAR);
     } else if (strcmp(word,"press") == 0) {
       addfield("Press",&Thermo::compute_press,FLOAT);
-      index_press_scalar = add_compute(id_press,0);
+      index_press_scalar = add_compute(id_press,SCALAR);
     } else if (strcmp(word,"pe") == 0) {
       addfield("PotEng",&Thermo::compute_pe,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"ke") == 0) {
       addfield("KinEng",&Thermo::compute_ke,FLOAT);
-      index_temp = add_compute(id_temp,0);
+      index_temp = add_compute(id_temp,SCALAR);
     } else if (strcmp(word,"etotal") == 0) {
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
-      index_temp = add_compute(id_temp,0);
-      index_pe = add_compute(id_pe,0);
+      index_temp = add_compute(id_temp,SCALAR);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"enthalpy") == 0) {
       addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
-      index_temp = add_compute(id_temp,0);
-      index_press_scalar = add_compute(id_press,0);
-      index_pe = add_compute(id_pe,0);
+      index_temp = add_compute(id_temp,SCALAR);
+      index_press_scalar = add_compute(id_press,SCALAR);
+      index_pe = add_compute(id_pe,SCALAR);
 
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"ecoul") == 0) {
       addfield("E_coul",&Thermo::compute_ecoul,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"epair") == 0) {
       addfield("E_pair",&Thermo::compute_epair,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"ebond") == 0) {
       addfield("E_bond",&Thermo::compute_ebond,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"eangle") == 0) {
       addfield("E_angle",&Thermo::compute_eangle,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"edihed") == 0) {
       addfield("E_dihed",&Thermo::compute_edihed,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"eimp") == 0) {
       addfield("E_impro",&Thermo::compute_eimp,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"emol") == 0) {
       addfield("E_mol",&Thermo::compute_emol,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"elong") == 0) {
       addfield("E_long",&Thermo::compute_elong,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"etail") == 0) {
       addfield("E_tail",&Thermo::compute_etail,FLOAT);
-      index_pe = add_compute(id_pe,0);
+      index_pe = add_compute(id_pe,SCALAR);
 
     } else if (strcmp(word,"vol") == 0) {
       addfield("Volume",&Thermo::compute_vol,FLOAT);
@@ -662,25 +673,25 @@ void Thermo::parse_fields(char *str)
 
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
-      index_press_vector = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,VECTOR);
     } else if (strcmp(word,"pyy") == 0) {
       addfield("Pyy",&Thermo::compute_pyy,FLOAT);
-      index_press_vector = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,VECTOR);
     } else if (strcmp(word,"pzz") == 0) {
       addfield("Pzz",&Thermo::compute_pzz,FLOAT);
-      index_press_vector = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,VECTOR);
     } else if (strcmp(word,"pxy") == 0) {
       addfield("Pxy",&Thermo::compute_pxy,FLOAT);
-      index_press_vector = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,VECTOR);
     } else if (strcmp(word,"pxz") == 0) {
       addfield("Pxz",&Thermo::compute_pxz,FLOAT);
-      index_press_vector = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,VECTOR);
     } else if (strcmp(word,"pyz") == 0) {
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
-      index_press_vector = add_compute(id_press,1);
+      index_press_vector = add_compute(id_press,VECTOR);
 
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
-    // if no trailing [], then arg is set to 0, else arg is between []
+    // count trailing [] and store int arguments
     // copy = at most 8 chars of ID to pass to addfield
 
     } else if ((strncmp(word,"c_",2) == 0) || (strncmp(word,"f_",2) == 0) ||
@@ -693,38 +704,66 @@ void Thermo::parse_fields(char *str)
       strncpy(copy,id,8);
       copy[8] = '\0';
 
+      // parse zero or one or two trailing brackets from ID
+      // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
+
       char *ptr = strchr(id,'[');
-      if (ptr) {
-	if (id[strlen(id)-1] != ']')
-	  error->all("Invalid keyword in thermo_style custom command");
-	argindex[nfield] = atoi(ptr+1);
+      if (ptr == NULL) argindex1[nfield] = 0;
+      else {
 	*ptr = '\0';
-      } else argindex[nfield] = 0;
+	argindex1[nfield] = input->variable->int_between_brackets(ptr);
+	ptr++;
+	if (*ptr == '[') {
+	  argindex2[nfield] = input->variable->int_between_brackets(ptr);
+	  ptr++;
+	} else argindex2[nfield] = 0;
+      }
 
       if (word[0] == 'c') {
 	n = modify->find_compute(id);
 	if (n < 0) error->all("Could not find thermo custom compute ID");
-	if (argindex[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
-	  error->all("Thermo compute ID does not compute scalar info");
-	if (argindex[nfield] > 0 && modify->compute[n]->vector_flag == 0)
-	  error->all("Thermo compute ID does not compute vector info");
-	if (argindex[nfield] > 0 && 
-	    argindex[nfield] > modify->compute[n]->size_vector)
-	  error->all("Thermo compute ID vector is not large enough");
+	if (argindex1[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
+	  error->all("Thermo compute does not compute scalar");
+	if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
+	  if (modify->compute[n]->vector_flag == 0)
+	    error->all("Thermo compute does not compute vector");
+	  if (argindex1[nfield] > modify->compute[n]->size_vector)
+	    error->all("Thermo compute vector is accessed out-of-range");
+	}
+	if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
+	  if (modify->compute[n]->array_flag == 0)
+	    error->all("Thermo compute does not compute array");
+	  if (argindex1[nfield] > modify->compute[n]->size_array_rows ||
+	      argindex2[nfield] > modify->compute[n]->size_array_cols)
+	    error->all("Thermo compute array is accessed out-of-range");
+	}
 
-	field2index[nfield] = add_compute(id,MIN(argindex[nfield],1));
+	if (argindex1[nfield] == 0)
+	  field2index[nfield] = add_compute(id,SCALAR);
+	else if (argindex2[nfield] == 0)
+	  field2index[nfield] = add_compute(id,VECTOR);
+	else 
+	  field2index[nfield] = add_compute(id,ARRAY);
 	addfield(copy,&Thermo::compute_compute,FLOAT);
 
       } else if (word[0] == 'f') {
 	n = modify->find_fix(id);
 	if (n < 0) error->all("Could not find thermo custom fix ID");
-	if (argindex[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
-	  error->all("Thermo fix ID does not compute scalar info");
-	if (argindex[nfield] > 0 && modify->fix[n]->vector_flag == 0)
-	  error->all("Thermo fix ID does not compute vector info");
-	if (argindex[nfield] > 0 && 
-	    argindex[nfield] > modify->fix[n]->size_vector)
-	  error->all("Thermo fix ID vector is not large enough");
+	if (argindex1[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
+	  error->all("Thermo fix does not compute scalar");
+	if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
+	  if (modify->fix[n]->vector_flag == 0)
+	    error->all("Thermo fix does not compute vector");
+	  if (argindex1[nfield] > modify->fix[n]->size_vector)
+	    error->all("Thermo fix vector is accessed out-of-range");
+	}
+	if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
+	  if (modify->fix[n]->array_flag == 0)
+	    error->all("Thermo fix does not compute array");
+	  if (argindex1[nfield] > modify->fix[n]->size_array_rows ||
+	      argindex2[nfield] > modify->fix[n]->size_array_cols)
+	    error->all("Thermo fix array is accessed out-of-range");
+	}
 
 	field2index[nfield] = add_fix(id);
 	addfield(copy,&Thermo::compute_fix,FLOAT);
@@ -734,6 +773,8 @@ void Thermo::parse_fields(char *str)
 	if (n < 0) error->all("Could not find thermo custom variable name");
 	if (input->variable->equalstyle(n) == 0)
 	  error->all("Thermo custom variable is not equal-style variable");
+	if (argindex1[nfield]) 
+	  error->all("Thermo custom variable cannot be indexed");
 
 	field2index[nfield] = add_variable(id);
 	addfield(copy,&Thermo::compute_variable,FLOAT);
@@ -1150,17 +1191,22 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
 void Thermo::compute_compute()
 {
-  Compute *compute = computes[field2index[ifield]];
-  if (argindex[ifield] == 0) {
+  int m = field2index[ifield];
+  Compute *compute = computes[m];
+
+  if (compute_which[m] == SCALAR) {
     dvalue = compute->scalar;
     if (normflag && compute->extscalar) dvalue /= natoms;
-  } else {
-    dvalue = compute->vector[argindex[ifield]-1];
+  } else if (compute_which[m] == VECTOR) {
+    dvalue = compute->vector[argindex1[ifield]-1];
     if (normflag) {
       if (compute->extvector == 0) return;
       else if (compute->extvector == 1) dvalue /= natoms;
-      else if (compute->extlist[argindex[ifield]-1]) dvalue /= natoms;
+      else if (compute->extlist[argindex1[ifield]-1]) dvalue /= natoms;
     }
+  } else {
+    dvalue = compute->array[argindex1[ifield]-1][argindex2[ifield]-1];
+    if (normflag && compute->extarray) dvalue /= natoms;
   }
 }
 
@@ -1168,17 +1214,22 @@ void Thermo::compute_compute()
 
 void Thermo::compute_fix()
 {
-  Fix *fix = fixes[field2index[ifield]];
-  if (argindex[ifield] == 0) {
+  int m = field2index[ifield];
+  Fix *fix = fixes[m];
+
+  if (argindex1[ifield] == 0) {
     dvalue = fix->compute_scalar();
     if (normflag && fix->extscalar) dvalue /= natoms;
-  } else {
-    dvalue = fix->compute_vector(argindex[ifield]-1);
+  } else if (argindex2[ifield] == 0) {
+    dvalue = fix->compute_vector(argindex1[ifield]-1);
     if (normflag) {
       if (fix->extvector == 0) return;
       else if (fix->extvector == 1) dvalue /= natoms;
-      else if (fix->extlist[argindex[ifield]-1]) dvalue /= natoms;
+      else if (fix->extlist[argindex1[ifield]-1]) dvalue /= natoms;
     }
+  } else {
+    dvalue = fix->compute_array(argindex1[ifield]-1,argindex2[ifield]-1);
+    if (normflag && fix->extarray) dvalue /= natoms;
   }
 }
 

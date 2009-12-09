@@ -29,6 +29,7 @@ class FixAveTime : public Fix {
   void end_of_step();
   double compute_scalar();
   double compute_vector(int);
+  double compute_array(int,int);
 
  private:
   int me,nvalues;
@@ -43,6 +44,7 @@ class FixAveTime : public Fix {
   int norm,iwindow,window_limit;
   double *vector_total;
   double **vector_list;
+  double **array_total;
 };
 
 }

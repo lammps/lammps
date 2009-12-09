@@ -18,6 +18,7 @@
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
+#include "group.h"
 #include "region.h"
 #include "fix.h"
 #include "input.h"
@@ -29,7 +30,12 @@ using namespace LAMMPS_NS;
 
 enum{SUM,MINN,MAXX};
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+enum{GLOBAL,PERATOM,LOCAL};
+
+#define INVOKED_VECTOR 2
+#define INVOKED_ARRAY 4
+#define INVOKED_PERATOM 8
+#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 
@@ -81,41 +87,118 @@ double ComputeReduceRegion::compute_one(int m)
 
   } else if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[n];
-    if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-      compute->compute_peratom();
-      compute->invoked_flag |= INVOKED_PERATOM;
-    }
-
-    if (j == 0) {
-      double *compute_vector = compute->vector_atom;
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+    
+    if (flavor[m] == GLOBAL) {
+      if (j == 0) {
+	if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	  compute->compute_vector();
+	  compute->invoked_flag |= INVOKED_VECTOR;
+	}
+	double *compute_vector = compute->vector;
+	int n = compute->size_vector;
+	for (i = 0; i < n; i++)
 	  combine(one,compute_vector[i]);
-    } else {
-      double **compute_array = compute->array_atom;
-      int jm1 = j - 1;
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      } else {
+	if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+	  compute->compute_array();
+	  compute->invoked_flag |= INVOKED_ARRAY;
+	}
+	double **compute_array = compute->array;
+	int n = compute->size_array_rows;
+	int jm1 = j - 1;
+	for (i = 0; i < n; i++)
 	  combine(one,compute_array[i][jm1]);
+      }
+
+    } else if (flavor[m] == PERATOM) {
+      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	compute->compute_peratom();
+	compute->invoked_flag |= INVOKED_PERATOM;
+      }
+
+      if (j == 0) {
+	double *compute_vector = compute->vector_atom;
+	int n = nlocal;
+	for (i = 0; i < n; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    combine(one,compute_vector[i]);
+      } else {
+	double **compute_array = compute->array_atom;
+	int n = nlocal;
+	int jm1 = j - 1;
+	for (i = 0; i < n; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    combine(one,compute_array[i][jm1]);
+      }
+
+    } else if (flavor[m] == LOCAL) {
+      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+	compute->compute_local();
+	compute->invoked_flag |= INVOKED_LOCAL;
+      }
+
+      if (j == 0) {
+	double *compute_vector = compute->vector_local;
+	int n = compute->size_local_rows;
+	for (i = 0; i < n; i++)
+	  combine(one,compute_vector[i]);
+      } else {
+	double **compute_array = compute->array_local;
+	int n = compute->size_local_rows;
+	int jm1 = j - 1;
+	for (i = 0; i < n; i++)
+	  combine(one,compute_array[i][jm1]);
+      }
     }
 
-  // access fix fields, check if frequency is a match
+  // check if fix frequency is a match
 
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[n]->peratom_freq)
       error->all("Fix used in compute reduce not computed at compatible time");
+    Fix *fix = modify->fix[n];
 
-    if (j == 0) {
-      double *fix_vector = modify->fix[n]->vector_atom;
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+    if (flavor[m] == GLOBAL) {
+      if (j == 0) {
+	int n = fix->size_vector;
+	for (i = 0; i < n; i++)
+	  combine(one,fix->compute_vector(i));
+      } else {
+	int n = fix->size_array_rows;
+	int jm1 = j - 1;
+	for (i = 0; i < nlocal; i++)
+	  combine(one,fix->compute_array(i,jm1));
+      }
+
+    } else if (flavor[m] == PERATOM) {
+      if (j == 0) {
+	double *fix_vector = fix->vector_atom;
+	int n = nlocal;
+	for (i = 0; i < n; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    combine(one,fix_vector[i]);
+      } else {
+	double **fix_array = fix->array_atom;
+	int n = nlocal;
+	int jm1 = j - 1;
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+	    combine(one,fix_array[i][jm1]);
+      }
+
+    } else if (flavor[m] == LOCAL) {
+      if (j == 0) {
+	double *fix_vector = fix->vector_local;
+	int n = fix->size_local_rows;
+	for (i = 0; i < n; i++)
 	  combine(one,fix_vector[i]);
-    } else {
-      double **fix_array = modify->fix[n]->array_atom;
-      int jm1 = j - 1;
-      for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+      } else {
+	double **fix_array = fix->array_local;
+	int n = fix->size_local_rows;
+	int jm1 = j - 1;
+	for (i = 0; i < n; i++)
 	  combine(one,fix_array[i][jm1]);
+      }
     }
     
   // evaluate atom-style variable
@@ -135,4 +218,48 @@ double ComputeReduceRegion::compute_one(int m)
   }
 
   return one;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeReduceRegion::count(int m)
+{
+  int n = value2index[m];
+  int j = argindex[m];
+
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (which[m] == X || which[m] == V || which[m] == F)
+    return group->count(igroup,iregion);
+  else if (which[m] == COMPUTE) {
+    Compute *compute = modify->compute[n];
+    if (flavor[m] == GLOBAL) {
+      if (j == 0) return(1.0*compute->size_vector);
+      else return(1.0*compute->size_array_rows);
+    } else if (flavor[m] == PERATOM) {
+      return group->count(igroup,iregion);
+    } else if (flavor[m] == LOCAL) {
+      double ncount = compute->size_local_rows;
+      double ncountall;
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
+      return ncountall;
+    }
+  } else if (which[m] == FIX) {
+    Fix *fix = modify->fix[n];
+    if (flavor[m] == GLOBAL) {
+      if (j == 0) return(1.0*fix->size_vector);
+      else return(1.0*fix->size_array_rows);
+    } else if (flavor[m] == PERATOM) {
+      return group->count(igroup,iregion);
+    } else if (flavor[m] == LOCAL) {
+      double ncount = fix->size_local_rows;
+      double ncountall;
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
+      return ncountall;
+    }
+  } else if (which[m] == VARIABLE)
+    return group->count(igroup,iregion);
+
+  return 0.0;
 }

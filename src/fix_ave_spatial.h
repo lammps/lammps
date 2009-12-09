@@ -27,7 +27,7 @@ class FixAveSpatial : public Fix {
   void init();
   void setup(int);
   void end_of_step();
-  double compute_vector(int);
+  double compute_array(int,int);
   double memory_usage();
 
  private:
@@ -35,6 +35,7 @@ class FixAveSpatial : public Fix {
   int nrepeat,nfreq,nvalid,irepeat;
   int dim,originflag,normflag;
   double origin,delta;
+  char *tstring,*sstring;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;

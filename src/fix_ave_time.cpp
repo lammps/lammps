@@ -31,7 +31,10 @@ using namespace LAMMPS_NS;
 
 enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING,WINDOW};
-enum{DUMMY0,INVOKED_SCALAR,INVOKED_VECTOR,DUMMMY3,INVOKED_PERATOM};
+
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+#define INVOKED_ARRAY 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -129,6 +132,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // setup and error check
+  // for fix inputs, check that fix frequency is acceptable
 
   if (nevery <= 0) error->all("Illegal fix ave/time command");
   if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
@@ -145,6 +149,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Fix ave/time compute does not calculate a vector");
       if (argindex[i] && argindex[i] > modify->compute[icompute]->size_vector)
 	error->all("Fix ave/time compute vector is accessed out-of-range");
+
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
@@ -155,6 +160,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Fix ave/time fix does not calculate a vector");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_vector)
 	error->all("Fix ave/time fix vector is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->global_freq)
+	error->all("Fix for fix ave/time not computed at compatible time");
+
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
@@ -285,8 +293,7 @@ int FixAveTime::setmask()
 
 void FixAveTime::init()
 {
-  // set indices and check validity of all computes,fixes,variables
-  // check that fix frequency is acceptable
+  // set current indices for all computes,fixes,variables
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
@@ -300,9 +307,6 @@ void FixAveTime::init()
       if (ifix < 0) 
 	error->all("Fix ID for fix ave/time does not exist");
       value2index[i] = ifix;
-
-      if (nevery % modify->fix[ifix]->global_freq)
-	error->all("Fix for fix ave/time not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
@@ -440,7 +444,6 @@ void FixAveTime::end_of_step()
 
 /* ----------------------------------------------------------------------
    return scalar value
-   could be ONE, RUNNING, or WINDOW value
 ------------------------------------------------------------------------- */
 
 double FixAveTime::compute_scalar()
@@ -450,12 +453,21 @@ double FixAveTime::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
-   return Nth vector value
-   could be ONE, RUNNING, or WINDOW value
+   return Ith vector value
 ------------------------------------------------------------------------- */
 
-double FixAveTime::compute_vector(int n)
+double FixAveTime::compute_vector(int i)
 {
-  if (norm) return vector_total[n]/norm;
+  if (norm) return vector_total[i]/norm;
+  return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   return I,J array value
+------------------------------------------------------------------------- */
+
+double FixAveTime::compute_array(int i, int j)
+{
+  if (norm) return array_total[i][j]/norm;
   return 0.0;
 }

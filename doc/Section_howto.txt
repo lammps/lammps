@@ -1130,7 +1130,7 @@ Summary table of output options and data flow between commands :h5,link(table)
 
 This table summarizes the various commands that can be used for
 generating output from LAMMPS.  Each command produces output data of
-some kind and/or writes data to a file.  Some of the commands take
+some kind and/or writes data to a file.  Most of the commands can take
 data from other commands as input.  Thus you can link many of these
 commands together in pipeline form, where data produced by one command
 is used as input to another command and eventually written to the
@@ -1152,7 +1152,7 @@ Command: Input: Output:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
 "fix ave/time"_fix_ave_time.html: global scalars: global scalar/vector, file:
-"fix ave/spatial"_fix_ave_spatial.html: per-atom vectors/arrays: global array, file:
+"fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:
 "fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 :tb(s=:)
 

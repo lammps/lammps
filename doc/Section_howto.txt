@@ -1143,17 +1143,17 @@ input, that could be an element of a vector or array.  Likewise a
 vector input could be a column of an array.
 
 Command: Input: Output:
-thermo_style custom: global scalars: screen, log file:
-dump custom: per-atom vectors: dump file:
-fix print: global scalar from variable: screen, file:
-print: global scalar from variable: screen:
-computes: N/A: global/per-atom/local scalar/vector/array:
-fixes: N/A: global/per-atom/local scalar/vector/array:
-variables: global scalars, per-atom vectors: global scalar, per-atom vector:
-compute reduce: global/per-atom/local vectors: global scalar/vector:
-fix ave/time: global scalars: global scalar/vector, file:
-fix ave/spatial: per-atom vectors/arrays: global array, file:
-fix ave/atom: per-atom vectors: per-atom vector/array:
+"thermo_style custom"_thermo_style.html: global scalars: screen, log file:
+"dump custom"_dump.html: per-atom vectors: dump file:
+"fix print"_fix_print.html: global scalar from variable: screen, file:
+"print"_print.html: global scalar from variable: screen:
+"computes"_compute.html: N/A: global/per-atom/local scalar/vector/array:
+"fixes"_fix.html: N/A: global/per-atom/local scalar/vector/array:
+"variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
+"compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
+"fix ave/time"_fix_ave_time.html: global scalars: global scalar/vector, file:
+"fix ave/spatial"_fix_ave_spatial.html: per-atom vectors/arrays: global array, file:
+"fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 :tb(s=:)
 
 :line

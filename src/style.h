@@ -90,7 +90,6 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
-#include "compute_rdf.h"
 #include "compute_reduce.h"
 #include "compute_reduce_region.h"
 #include "compute_erotate_sphere.h"
@@ -122,7 +121,6 @@ ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)
 ComputeStyle(reduce,ComputeReduce)
 ComputeStyle(reduce/region,ComputeReduceRegion)
-ComputeStyle(rdf,ComputeRDF)
 ComputeStyle(erotate/sphere,ComputeERotateSphere)
 ComputeStyle(stress/atom,ComputeStressAtom)
 ComputeStyle(temp,ComputeTemp)

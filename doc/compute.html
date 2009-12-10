@@ -32,7 +32,12 @@ compute 3 all ke/atom
 Quantities calculated by a compute are instantaneous values, meaning
 they are calculated from information about atoms on the current
 timestep or iteration, though a compute may internally store some
-information about a previous state of the system.
+information about a previous state of the system.  Defining a compute
+does not perform a computation.  Instead computes are invoked by other
+LAMMPS commands as needed, e.g. to calculate a temperature needed for
+a thermostat fix or to generate thermodynamic or dump file output.
+See this <A HREF = "Section_howto.html#4_15">howto section</A> for a summary of
+various LAMMPS output options, many of which involve computes.
 </P>
 <P>The ID of a compute can only contain alphanumeric characters and
 underscores.
@@ -109,9 +114,6 @@ variable</A>.
 reduce</A> command, or histogrammed by the <A HREF = "fix_ave_histo.html">fix
 ave/histo</A> command. 
 </UL>
-<P>See this <A HREF = "Section_howto.html#4_15">howto section</A> for a summary of
-various LAMMPS output options, many of which involve computes.
-</P>
 <P>The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is
 independent of the number of atoms in the simulation,

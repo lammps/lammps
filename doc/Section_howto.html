@@ -956,200 +956,215 @@ particles are point masses.
 
 <A NAME = "4_15"></A><H4>4.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) 
 </H4>
-<P>Aside from <A HREF = "restart.html">restart files</A>, there are two basic kinds of
-LAMMPS output.  The first is <A HREF = "thermo_style.html">thermodynamic output</A>,
-which is a list of quantities printed every few timesteps to the
-screen and logfile.  The second is <A HREF = "dump.html">dump files</A>, which
-contain snapshots of atoms and various per-atom values and are written
-at a specified frequency.  A simulation prints one set of
-thermodynamic output; it may generate any number of dump files.  As
-discussed below, LAMMPS gives you a variety of ways to determine what
-quantities are computed and printed when thermodynamic info or dump
-files are output.  There are also three fixes which can do their own
-output of user-chosen quantities: <A HREF = "fix_ave_time.html">fix ave/time</A> for
-time averaging, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> for spatial
-averaging, and <A HREF = "fix_print.html">fix print</A>.  These are also described
-below.  Throughout this discussion, note that users can <A HREF = "Section_modify.html">add their own
-computes and fixes to LAMMPS</A> which can then
-generate values that can be output with these commands.
+<P>There are four basic kinds of LAMMPS output:
 </P>
-<H5>Thermodynamic output 
+<UL><LI><A HREF = "thermo_style.html">Thermodynamic output</A>, which is a list
+of quantities printed every few timesteps to the screen and logfile. 
+
+<LI><A HREF = "dump.html">Dump files</A>, which contain snapshots of atoms and various
+per-atom values and are written at a specified frequency. 
+
+<LI>Certain fixes can output user-specified quantities to files: <A HREF = "fix_ave_time.html">fix
+ave/time</A> for time averaging, <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> for spatial averaging, and <A HREF = "fix_print.html">fix
+print</A> for single-line output of
+<A HREF = "variable.html">variables</A>.  Fix print can also output to the
+screen. 
+
+<LI><A HREF = "restart.html">Restart files</A>. 
+</UL>
+<P>A simulation prints one set of thermodynamic output and (optionally)
+restart files.  It can generate any number of dump files and fix
+output files, depending on what <A HREF = "dump.html">dump</A> and <A HREF = "fix.html">fix</A>
+commands you specify.
+</P>
+<P>As discussed below, LAMMPS gives you a variety of ways to determine
+what quantities are computed and printed when the thermodynamics,
+dump, or fix commands listed above perform output.  Throughout this
+discussion, note that users can also <A HREF = "Section_modify.html">add their own computes and fixes
+to LAMMPS</A> which can then generate values that can
+then be output with these commands.
+</P>
+<P>The following sub-sections discuss different LAMMPS command related
+to output and the kind of data they operate on and produce:
+</P>
+<UL><LI><A HREF = "#global">Global/per-atom/local data</A>
+<LI><A HREF = "#scalar">Scalar/vector/array data</A>
+<LI><A HREF = "#thermo">Thermodynamic output</A>
+<LI><A HREF = "#dump">Dump file output</A>
+<LI><A HREF = "#fixoutput">Fixes that write output files</A>
+<LI><A HREF = "#computeoutput">Computes that process output quantities</A>
+<LI><A HREF = "#compute">Computes that generate values to output</A>
+<LI><A HREF = "#fix">Fixes that generate values to output</A>
+<LI><A HREF = "#variable">Variables that generate values to output</A>
+<LI><A HREF = "#table">Summary table of output options and data flow between commands</A> 
+</UL>
+<H5><A NAME = "global"></A>Global/per-atom/local data 
+</H5>
+<P>Various output-related commands work with three different styles of
+data: global, per-atom, or local.  A global datum is one or more
+system-wide values, e.g. the temperature of the system.  A per-atom
+datum is one or more values per atom, e.g. the kinetic energy of each
+atom.  Local datums are calculated by each processor based on the
+atoms it owns, but there may be zero or more per atom, e.g. a list of
+bond distances.
+</P>
+<H5><A NAME = "scalar"></A>Scalar/vector/array data 
+</H5>
+<P>Global, per-atom, and local datums can each come in three kinds: a
+single scalar value, a vector of values, or a 2d array of values.  The
+doc page for a "compute" or "fix" or "variable" that generates data
+will specify both the style and kind of data it produces, e.g. a
+per-atom vector.
+</P>
+<P>When a quantity is accessed, as in many of the output commands
+discussed below, it can be referenced via the following bracket
+notation, where ID in this case is the ID of a compute.  The leading
+"c_" would be replaced by "f_" for a fix, or "v_" for a variable:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >c_ID </TD><TD > entire scalar, vector, or array</TD></TR>
+<TR><TD >c_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
+<TR><TD >c_ID[I][J] </TD><TD > one element of array 
+</TD></TR></TABLE></DIV>
+
+<P>In other words, using one bracket reduces the dimension of the data
+once (vector -> scalar, array -> vector).  Using two brackets reduces
+the dimension twice (array -> scalar).  Thus a command that uses
+scalar values as input can typically also process elements of a vector
+or array.
+</P>
+<H5><A NAME = "thermo"></A>Thermodynamic output 
 </H5>
 <P>The frequency and format of thermodynamic output is set by the
 <A HREF = "thermo.html">thermo</A>, <A HREF = "thermo_style.html">thermo_style</A>, and
 <A HREF = "thermo_modify.html">thermo_modify</A> commands.  The
-<A HREF = "thermo_style.html">thermo_style</A> command also specifies what values are
-calculated and written out.  Pre-defined keywords can be specified
-(e.g. press, etotal, etc).  Three additional kinds of keywords can also
-be specified (c_ID, f_ID, v_name), where a <A HREF = "compute.html">compute</A> or
-<A HREF = "fix.html">fix</A> or <A HREF = "variable.html">variable</A> provides the value to be
-output.  Each of these are described in turn.
+<A HREF = "thermo_style.html">thermo_style</A> command also specifies what values
+are calculated and written out.  Pre-defined keywords can be specified
+(e.g. press, etotal, etc).  Three additional kinds of keywords can
+also be specified (c_ID, f_ID, v_name), where a <A HREF = "compute.html">compute</A>
+or <A HREF = "fix.html">fix</A> or <A HREF = "variable.html">variable</A> provides the value to be
+output.  In each case, the compute, fix, or variable must generate
+global values for input to the <A HREF = "dump.html">thermo_style custom</A>
+command.
 </P>
-<P>In LAMMPS, a <A HREF = "compute.html">compute</A> comes in two flavors: ones that
-compute global values (a scalar or a vector, e.g. temperature,
-6-element pressure tensor) and ones that compute per-atom values.
-Only global quantities from a compute can be used for thermodynamic
-output.  The user-defined ID of the compute is used along with an
-optional subscript as part of the <A HREF = "thermo_style.html">thermo_style</A>
-command.  E.g. c_myTemp outputs the single scalar value generated by
-the compute; c_myTemp[2] outputs the 2nd vector value.  Note that
-there is a <A HREF = "compute_reduce.html">compute reduce</A> command which can sum
-per-atom quantities into a global scalar or vector.
-</P>
-<P><A HREF = "fix.html">Fixes</A> can generate global scalar or vector values which can
-be output with thermodynamic output, e.g. the energy of an indenter's
-interaction with the simulation atoms.  These values are accessed via
-the same format as a compute's values, as f_ID or f_ID[N].  See the
-doc pages for individual fix commands to see which ones generate
-global values that can be output with thermodynamic info.  The <A HREF = "fix_ave_time.html">fix
-ave/time</A> command generates time-averaged global
-quantities which can be accessed for thermodynamic output, e.g. a
-time-averaged pressure.
-</P>
-<P><A HREF = "variable.html">Variables</A> can be defined in the input script.  All
-styles except the atom-style variable can be used for thermodynamic
-output, since it generates per-atom values.  A variable with the name
-"abc" is referenced in a thermo_style command as v_abc.
-</P>
-<P>The formula associated with equal-style variables can contain math
-operations and functions (x+y,x*y,(),sqrt,exp,etc), atom values
-(x[N],fx[N],etc), group functions (mass(),vcm(),etc), references
-to thermodynamic quantities (temp,press,vol,etc), references to
-<A HREF = "compute.html">computes</A> that generate global values, references to
-<A HREF = "fix.html">fixes</A> that generate global values, or references to other
-<A HREF = "variable.html">variables</A>.  Thus an equal-style variable is the most
-general way to define some quantity to calculate and include with
-thermodynamic output.
-</P>
-<H5>Dump file output 
+<H5><A NAME = "dump"></A>Dump file output 
 </H5>
 <P>Dump file output is specified by the <A HREF = "dump.html">dump</A> and
 <A HREF = "dump_modify.html">dump_modify</A> commands.  There are several
 pre-defined formats (dump atom, dump xtc, etc).  There is also a <A HREF = "dump.html">dump
 custom</A> format where the user specifies what values are
-output with each atom.  Pre-defined keywords can be specified (tag, x,
+output with each atom.  Pre-defined keywords can be specified (id, x,
 fx, etc).  Three additional kinds of keywords can also be specified
 (c_ID, f_ID, v_name), where a <A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A>
-or <A HREF = "variable.html">variable</A> provides the value to be output.  Each of
-these are described in turn.
+or <A HREF = "variable.html">variable</A> provides the values to be output.  In each
+case, the compute, fix, or variable must generate per-atom values for
+input to the <A HREF = "dump.html">dump custom</A> command.
 </P>
-<P><A HREF = "compute.html">Computes</A> that generate one or more per-atom values can
-be accessed by the dump custom command.  These are computes that have
-the word "atom" in their style name, e.g. ke/atom, stress/atom, etc.
-The values are accessed as c_myKE for a scalar per-atom quantity or as
-c_myStress[2] for a component of a vector per-atom quantity.
-</P>
-<P><A HREF = "fix.html">Fixes</A> can generate per-atom values to output to dump files.
-For example, the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command calculates
-time-averages of per-atom quantities, such as per-atom
-<A HREF = "compute.html">computes</A> and atom-style <A HREF = "variable.html">variables</A>.
-These per-atom fix values are accessed by the <A HREF = "dump.html">dump custom</A>
-command via the same format as a compute's values, as f_myKE or
-f_myStress[2].
-</P>
-<P><A HREF = "variable.html">Variables</A> can be defined in the input script.  Only
-atom-style variables can be used for dump custom output, since only
-they produce per-atom values.  A variable with the name "abc" is
-referenced in a dump custom command as v_abc.
-</P>
-<P>Just like equal-style variables, the formula associated with
-atom-style variables can contain math operations and functions
-(x+y,x*y,(),sqrt,exp,etc), atom values (x[N],fx[N],etc), group
-functions (mass(),vcm(),etc), references to thermodynamic quantities
-(temp,press,vol,etc), references to <A HREF = "compute.html">computes</A> that
-generate global values, references to <A HREF = "fix.html">fixes</A> that generate
-global values, or references to non atom-style variables that generate
-global values.  In addition, an atom-style variable can reference
-vectors of atom values (x[],fx[],etc), <A HREF = "compute.html">computes</A>
-that generate per-atom values, <A HREF = "fix.html">fixes</A> that generate per-atom
-values, or other atom-style variables.  Thus an atom-style variable is
-the most general way to define some quantity to calculate and output
-to a dump file.
-</P>
-<H5>Fix output 
+<H5><A NAME = "fixoutput"></A>Fixes that write output files 
 </H5>
-<P>Three other fixes are of particular note for output: <A HREF = "fix_ave_time.html">fix
-ave/time</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
-and <A HREF = "fix_print.html">fix print</A>.
+<P>Three fixes take various quantities as input and can write output
+files: <A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A>, and <A HREF = "fix_print.html">fix print</A>.
 </P>
-<P>The <A HREF = "fix_ave_time.html">fix ave/time</A> command enables time-averaging of
-any global quantity, like those output with thermodynamic info.  The
-user specifies one or more quantities to time average.  These can be
-global <A HREF = "compute.html">compute</A> values, global <A HREF = "fix.html">fix</A> values, or
+<P>The <A HREF = "fix_ave_time.html">fix ave/time</A> command enables direct output to
+a file and/or time-averaging of any global quantity.  The user
+specifies one or more quantities as input.  These can be global
+<A HREF = "compute.html">compute</A> values, global <A HREF = "fix.html">fix</A> values, or
 <A HREF = "variable.html">variables</A> of any style except the atom style which
 produces per-atom values.  Since a variable can refer to keywords used
 by the <A HREF = "thermo_style.html">thermo_style custom</A> command (like temp or
-press), any thermodynamic quantity can be time averaged in this way.
+press) and individual per-atom values, a wide variety of quantities
+can be time averaged and/or output in this way.  The time-averaged
+output of this fix can also be used as input to other output commands.
 </P>
-<P>The <A HREF = "fix_ave_time.html">fix ave/time</A> command offers several options
-for how it performs time averaging.  The results it produces can be
-used in two ways.  First, they can be written directly to a file, one
-line per timestamp.  Note that the averaging parameters can be
-specified in such a way that averaging is not done at all, in which
-case this is simply a convenient means of outputting desired
-quantities directly to a separate file.  Like other fixes that produce
-global quantities, the results of this fix can also be used as input
-to any command that accesses global quantities, e.g. by the
-<A HREF = "thermo_style.html">thermo_style custom</A> command, by a variable, etc.
-</P>
-<P>The <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command enables
-spatial-averaging of per-atom quantities like those output in dump
-files, within 1d layers of the simulation box.  The per-atom
-quantities can be atom density (mass or number) or atom attributes
-such as position, velocity, force.  They can also be per-atom
-quantities calculated by a <A HREF = "compute.html">compute</A>, by a
-<A HREF = "fix.html">fix</A>, or by an atom-style <A HREF = "variable.html">variable</A>.
-</P>
-<P>The <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command offers several
-options for how it performs time averaging.  The per-layer values it
-produces can be used in two ways.  First, they can be written directly
-to a file.  Note that the averaging parameters can be specified in
-such a way that time averaging is not done, in which case this is a
-convenient means of simply outputting desired quantities (summed over
-atoms within a 1d layer) directly to a separate file.  Like other
-fixes that produce global quantities, the results of this fix can also
-be used as input by any command that accesses global quantities,
-e.g. by the <A HREF = "thermo_style.html">thermo_style custom</A> command, by a
-variable, etc.  See the doc page for <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A> for a description of how these
-values are indexed.
+<P>The <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command enables direct
+output to a file of spatial-averaged per-atom quantities like those
+output in dump files, within 1d layers of the simulation box.  The
+per-atom quantities can be atom density (mass or number) or atom
+attributes such as position, velocity, force.  They can also be
+per-atom quantities calculated by a <A HREF = "compute.html">compute</A>, by a
+<A HREF = "fix.html">fix</A>, or by an atom-style <A HREF = "variable.html">variable</A>.  The
+spatial-averaged output of this fix can also be used as input to other
+output commands.
 </P>
 <P>The <A HREF = "fix_print.html">fix print</A> command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
-<A HREF = "variable.html">variable</A> values (for any style variable except the
-atom style), and as explained above, variables themselves can contain
+<A HREF = "variable.html">variable</A> values for any style variable except the atom
+style).  As explained above, variables themselves can contain
 references to global values generated by <A HREF = "thermo_style.html">thermodynamic
 keywords</A>, <A HREF = "compute.html">computes</A>,
-<A HREF = "fix.html">fixes</A>, or other <A HREF = "variable.html">variables</A>.  Thus the <A HREF = "fix_print.html">fix
-print</A> command is a means to output any desired
-calculated quantity separate from normal thermodynamic or dump file
-output.
+<A HREF = "fix.html">fixes</A>, or other <A HREF = "variable.html">variables</A>, or to per-atom
+values for a specific atom.  Thus the <A HREF = "fix_print.html">fix print</A>
+command is a means to output a wide variety of quantities separate
+from normal thermodynamic or dump file output.
 </P>
-<P>This table summarizes the various output options, specifying what
-their inputs and outputs are.  The frequency with which they are
-invoked and produce output is also listed.  Basically, any two
-commands can be hooked together so long as one produces output that
-matches the input needs of the other.  A "match" means that the
-frequencies and global vs per-atom attributes are the same.
+<H5><A NAME = "computeoutput"></A>Computes that process output quantities 
+</H5>
+<P>The <A HREF = "compute_reduce.html">compute reduce</A> and <A HREF = "compute_reduce.html">compute
+reduce/region</A> commands take one or more vector
+quantities as inputs and "reduce" them (sum, min, max, ave) to scalar
+quantities.  These are produced as output values which can be used as
+input to other output commands.
+</P>
+<H5><A NAME = "compute"></A>Computes that generate values to output 
+</H5>
+<P>Every <A HREF = "compute.html">compute</A> in LAMMPS produces either global or
+per-atom or local quantities.  The quantities can be scalars or
+vectors or arrays of data.  The doc page for each compute command
+describes what it produces.  These values can be output using
+the other commands described in this section.
+</P>
+<H5><A NAME = "fix"></A>Fixes that generate values to output 
+</H5>
+<P>Some <A HREF = "fix.html">fixes</A> in LAMMPS produces either global or per-atom or
+local quantities which can be accessed by other commands.  The
+quantities can be scalars or vectors or arrays of data.  The doc page
+for each fix command tells whether it produces any output quantities
+and describes them.  These values can be output using the other
+commands described in this section.
+</P>
+<H5><A NAME = "variable"></A>Variables that generate values to output 
+</H5>
+<P>Every <A HREF = "variable.html">variables</A> defined in an input script generates
+either a global scalar value or a per-atom vector (only atom-style
+variables) when it is accessed.  The formulas used to define equal-
+and atom-style variables can contain references to the thermodynamic
+keywords and to global and per-atom data generated by computes, fixes,
+and other variables.  The values generated by variables can be output
+using the other commands described in this section.
+</P>
+<H5><A NAME = "table"></A>Summary table of output options and data flow between commands 
+</H5>
+<P>This table summarizes the various commands that can be used for
+generating output from LAMMPS.  Each command produces output data of
+some kind and/or writes data to a file.  Some of the commands take
+data from other commands as input.  Thus you can link many of these
+commands together in pipeline form, where data produced by one command
+is used as input to another command and eventually written to the
+screen or to a file.  Note that to hook two commands together the
+output and input data types must match, e.g. global/per-atom/local
+data and scalar/vector/array data.
+</P>
+<P>Also note that, as described above, when a command takes a scalar as
+input, that could be an element of a vector or array.  Likewise a
+vector input could be a column of an array.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >Command</TD><TD > Input</TD><TD > Input Freq</TD><TD > Output</TD><TD > Output Freq</TD></TR>
-<TR><TD >thermo_style custom</TD><TD > thermo keyword, global scalar/vector compute, global scalar/vector fix, equal variable</TD><TD > nthermo</TD><TD > screen, log</TD><TD > nthermo</TD></TR>
-<TR><TD >dump custom</TD><TD > keyword, per-atom compute, per-atom fix, atom variable</TD><TD > dump freq</TD><TD > file</TD><TD > dump freq</TD></TR>
-<TR><TD >global fixes</TD><TD > N/A</TD><TD > N/A</TD><TD >	global scalar/vector</TD><TD > 1 or nevery</TD></TR>
-<TR><TD >per-atom fixes</TD><TD > N/A</TD><TD > N/A</TD><TD > per-atom vector/array</TD><TD > 1 or nevery</TD></TR>
-<TR><TD >fix ave/time</TD><TD > global scalar/vector fix, global scalar/vector compute, equal variable</TD><TD > nevery</TD><TD > global scalar/vector, file</TD><TD > nfreq</TD></TR>
-<TR><TD >fix ave/spatial</TD><TD > per-atom fix, per-atom compute, atom vector, atom variable, density mass/number</TD><TD > nevery</TD><TD > global vector</TD><TD > nfreq, file</TD></TR>
-<TR><TD >fix ave/atom</TD><TD > per-atom compute, per-atom fix, atom variable, atom vector</TD><TD > nevery</TD><TD > per-atom vector/array</TD><TD > nfreq</TD></TR>
-<TR><TD >fix print</TD><TD > any variable</TD><TD > nevery</TD><TD > screen, file</TD><TD > nevery</TD></TR>
-<TR><TD >global computes</TD><TD > N/A</TD><TD > N/A</TD><TD > global scalar/vector</TD><TD > N/A</TD></TR>
-<TR><TD >per-atom computes</TD><TD > N/A</TD><TD > N/A</TD><TD > per-atom vector/array</TD><TD > N/A</TD></TR>
-<TR><TD >compute sum</TD><TD > per-atom compute, per-atom fix, atom variable</TD><TD > N/A</TD><TD > global scalar/vector</TD><TD > N/A</TD></TR>
-<TR><TD >variable equal</TD><TD > thermo keywords, atom value vx[123], global scalar/vector compute, global scalar/vector fix, non-atom variable</TD><TD > N/A</TD><TD > global scalar</TD><TD > N/A</TD></TR>
-<TR><TD >variable atom</TD><TD > thermo keywords, atom value vx[123], atom vector vx[], global scalar/vector compute, per-atom compute, global fix, per-atom fix, any variable</TD><TD > N/A</TD><TD > per-atom vector</TD><TD > N/A</TD></TR>
-<TR><TD >print</TD><TD > any variable</TD><TD > N/A</TD><TD > screen, log</TD><TD > between runs</TD></TR>
-<TR><TD >run every</TD><TD > any variable</TD><TD > nevery</TD><TD > screen, log</TD><TD > nevery 
+<TR><TD >Command</TD><TD > Input</TD><TD > Output</TD><TD ></TD></TR>
+<TR><TD >thermo_style custom</TD><TD > global scalars</TD><TD > screen, log file</TD><TD ></TD></TR>
+<TR><TD >dump custom</TD><TD > per-atom vectors</TD><TD > dump file</TD><TD ></TD></TR>
+<TR><TD >fix print</TD><TD > global scalar from variable</TD><TD > screen, file</TD><TD ></TD></TR>
+<TR><TD >print</TD><TD > global scalar from variable</TD><TD > screen</TD><TD ></TD></TR>
+<TR><TD >computes</TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
+<TR><TD >fixes</TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
+<TR><TD >variables</TD><TD > global scalars, per-atom vectors</TD><TD > global scalar, per-atom vector</TD><TD ></TD></TR>
+<TR><TD >compute reduce</TD><TD > global/per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
+<TR><TD >fix ave/time</TD><TD > global scalars</TD><TD > global scalar/vector, file</TD><TD ></TD></TR>
+<TR><TD >fix ave/spatial</TD><TD > per-atom vectors/arrays</TD><TD > global array, file</TD><TD ></TD></TR>
+<TR><TD >fix ave/atom</TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
+<TR><TD >
 </TD></TR></TABLE></DIV>
 
 <HR>

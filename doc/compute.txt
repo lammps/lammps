@@ -29,7 +29,12 @@ Define a computation that will be performed on a group of atoms.
 Quantities calculated by a compute are instantaneous values, meaning
 they are calculated from information about atoms on the current
 timestep or iteration, though a compute may internally store some
-information about a previous state of the system.
+information about a previous state of the system.  Defining a compute
+does not perform a computation.  Instead computes are invoked by other
+LAMMPS commands as needed, e.g. to calculate a temperature needed for
+a thermostat fix or to generate thermodynamic or dump file output.
+See this "howto section"_Section_howto.html#4_15 for a summary of
+various LAMMPS output options, many of which involve computes.
 
 The ID of a compute can only contain alphanumeric characters and
 underscores.
@@ -103,9 +108,6 @@ variable"_variable.html. :l
 Local values can be reduced by the "compute
 reduce"_compute_reduce.html command, or histogrammed by the "fix
 ave/histo"_fix_ave_histo.html command. :l,ule
-
-See this "howto section"_Section_howto.html#4_15 for a summary of
-various LAMMPS output options, many of which involve computes.
 
 The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is

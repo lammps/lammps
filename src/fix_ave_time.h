@@ -37,14 +37,24 @@ class FixAveTime : public Fix {
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
+  int nrows;
 
-  int ave,nwindow,nsum,startstep;
-  double *vector;
+  int ave,nwindow,nsum,startstep,mode;
+  int *offcol;
+  char *title1,*title2,*title3;
 
   int norm,iwindow,window_limit;
+  double *vector;
   double *vector_total;
   double **vector_list;
+  double *column;
+  double **array;
   double **array_total;
+  double ***array_list;
+
+  void invoke_scalar(int);
+  void invoke_vector(int);
+  void options(int, char **);
 };
 
 }

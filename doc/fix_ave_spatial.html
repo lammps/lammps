@@ -60,7 +60,7 @@
   <I>title2</I> arg = string
     string = text to print as 2nd line of output file = timestep, # of layers
   <I>title3</I> arg = string
-    string = text to print as 3rd line of output file = values 
+    string = text to print as 3rd line of output file = column headings for values 
 </PRE>
 
 </UL>
@@ -224,19 +224,6 @@ computed, i.e. Sample-quantity / Sample-count.  The printed value for
 the layer is the average of the <I>Nrepeat</I> "average sample values", In
 other words it is an average of an average.
 </P>
-<P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
-timesteps, layer info will be written to a text file in the following
-format.  A line with the timestep and number of layers is written.
-Then one line per layer is written, containing the layer ID (1-N), the
-coordinate of the center of the layer, the number of atoms in the
-layer, and one or more calculated values.  The number of values in
-each line corresponds to the number of values specified in the fix
-ave/spatial command.  The number of atoms and the value(s) are average
-quantities.  If the value of the <I>units</I> keyword is <I>box</I> or
-<I>lattice</I>, the "coord" is printed in box units.  If the value of the
-<I>units</I> keyword is <I>reduced</I>, the "coord" is printed in reduced units
-(0-1).
-</P>
 <P>The <I>ave</I> keyword determines how the layer values produced every
 <I>Nfreq</I> steps are averaged with layer values produced on previous
 steps that were multiples of <I>Nfreq</I>, before they are accessed by
@@ -263,23 +250,34 @@ then the output on step 10000 will be the average of the individual
 layer values on steps 8000,9000,10000.  Outputs on early steps will
 average over less than M values if they are not available.
 </P>
+<P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
+timesteps, a section of layer info will be written to a text file in
+the following format.  A line with the timestep and number of layers
+is written.  Then one line per layer is written, containing the layer
+ID (1-N), the coordinate of the center of the layer, the number of
+atoms in the layer, and one or more calculated values.  The number of
+values in each line corresponds to the number of values specified in
+the fix ave/spatial command.  The number of atoms and the value(s) are
+average quantities.  If the value of the <I>units</I> keyword is <I>box</I> or
+<I>lattice</I>, the "coord" is printed in box units.  If the value of the
+<I>units</I> keyword is <I>reduced</I>, the "coord" is printed in reduced units
+(0-1).
+</P>
 <P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
 the strings that will be printed as the first 3 lines of the output
 file, assuming the <I>file</I> keyword was used.  LAMMPS uses default
-values for each of these, so they do not need to be specified.  By
-default, theses lines are as follows:
+values for each of these, so they do not need to be specified.
+</P>
+<P>By default, these header lines are as follows:
 </P>
 <PRE># Spatial-averaged data for fix ID and group name
 # Timestep Number-of-layers
 # Layer Coord Ncount value1 value2 ... 
 </PRE>
 <P>In the first line, ID and name are replaced with the fix-ID and group
-name.  In the last line the values are replaced with the appropriate
-fields from the fix ave/spatial command.  Note the first line is
-essentially a title for the file.  The second line describes the
-header line that appears at the first of each section of output.  The
-third line describes the columns of each layer line within a section
-of output.
+name.  The second line describes the two values that are printed at
+the first of each section of output.  In the third line the values are
+replaced with the appropriate fields from the fix ave/spatial command.
 </P>
 <HR>
 
@@ -292,12 +290,12 @@ are relevant to this fix.
 <P>This fix computes a global array of values which can be accessed by
 various <A HREF = "Section_howto.html#4_15">output commands</A>.  The values can
 only be accessed on timesteps that are multiples of <I>Nfreq</I> since that
-is when averaging is performed.  The global array has Nlayers rows and
-Nvalues+2 columns.  The first column has the layer coordinate, the 2nd
-column has the count of atoms in that layer, and the remaining columns
-are the Nvalue quantities.  When the array is accessed with an I that
-exceeds the current number of layers, than a 0.0 is returned by the
-fix instead of an error, since the number of layers can vary as a
+is when averaging is performed.  The global array has rows = Nlayers
+and columns = Nvalues+2.  The first column has the layer coordinate,
+the 2nd column has the count of atoms in that layer, and the remaining
+columns are the Nvalue quantities.  When the array is accessed with an
+I that exceeds the current number of layers, than a 0.0 is returned by
+the fix instead of an error, since the number of layers can vary as a
 simulation runs, depending on the simulation box size.  The array
 values calculated by this fix are "intensive", meaning they are
 independent of the number of atoms in the simulation, since they are

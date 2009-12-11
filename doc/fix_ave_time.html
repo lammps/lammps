@@ -29,32 +29,44 @@
 
 <LI>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name 
 
-<PRE>  c_ID = global scalar value calculated by a compute with ID
-  c_ID[N] = Nth component of global vector calculated by a compute with ID
-  f_ID = global scalar value calculated by a fix with ID
-  f_ID[N] = Nth component of global vector calculated by a fix with ID
+<PRE>  c_ID = global scalar or vector calculated by a compute with ID
+  c_ID[I] = Ith component of global vector or Ith column of global array calculated by a compute with ID
+  f_ID = global scalar or vector calculated by a fix with ID
+  f_ID[I] = Ith component of global vector or Ith column of global array calculated by a fix with ID
   v_name = global value calculated by an equal-style variable with name 
 </PRE>
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>file</I> or <I>ave</I> or <I>start</I> 
+<LI>keyword = <I>mode</I> or <I>file</I> or <I>ave</I> or <I>start</I> or <I>off</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
 
-<PRE>  <I>file</I> arg = filename
+<PRE>  <I>mode</I> arg = <I>scalar</I> or <I>vector</I>
+    scalar = all input values are global scalars
+    vector = all input values are global vectors
+  <I>file</I> arg = filename
     filename = name of file to output time averages to
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
     one = output a new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
   <I>start</I> args = Nstart
-    Nstart = start averaging on this timestep 
+    Nstart = start averaging on this timestep
+  <I>off</I> arg = M = do not average this value
+    M = value # from 1 to Nvalues
+  <I>title1</I> arg = string
+    string = text to print as 1st line of output file = title
+  <I>title2</I> arg = string
+    string = text to print as 2nd line of output file
+  <I>title3</I> arg = string
+    string = text to print as 3rd line of output file, only for vector mode 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 1 all ave/time 100 5 1000 c_myTemp c_thermo_temp file temp.profile
-fix 1 all ave/time 100 5 1000 c_thermo_press[2] ave window 20
-fix 1 all ave/time 1 100 1000 f_indent f_indent[1] file temp.indent 
+fix 1 all ave/time 100 5 1000 c_thermo_press[2] ave window 20 &
+                              title1 "My output values"
+fix 1 all ave/time 1 100 1000 f_indent f_indent[1] file temp.indent off 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -62,14 +74,13 @@ fix 1 all ave/time 1 100 1000 f_indent f_indent[1] file temp.indent
 timesteps, and average them over longer timescales.  The resulting
 averages can be used by other <A HREF = "Section_howto.html#4_15">output
 commands</A> such as <A HREF = "thermo_style.html">thermo_style
-custom</A>, and can also be written to a file.  If no
-averaging is done, this command is a convenient way to simply write
-one or more desired quantities to a separate file.
+custom</A>, and can also be written to a file.  Note
+that if no time averaging is done, this command can simply be used as
+a convenient way to output one or more desired quantities to a
+separate file.
 </P>
-<P>Each listed value is averaged independently.  If written to a file,
-then over time, one column of numbers is produced for each value.  The
-group specified with the command is ignored, since calculations are
-performed by computes and fixes which store their own "group"
+<P>The group specified with this command is ignored, since calculations
+are performed by computes and fixes which store their own "group"
 definition,
 </P>
 <P>Each listed value can be the result of a <A HREF = "compute.html">compute</A> or
@@ -89,6 +100,15 @@ individual fixes for info on which ones produce such values.
 <A HREF = "variable.html">Variables</A> of style <I>equal</I> are the only ones that can
 be used with this fix.  Variables of style <I>atom</I> cannot be used,
 since they produce per-atom values.
+</P>
+<P>The listed values must either be all global scalars or all global
+vectors, depending on the setting of the <I>mode</I> option.  In both
+cases, the averaging is performed independently on every input
+quantity.  I.e. each input value and the elements of each input value
+(if it is a vector) are averaged independently.
+</P>
+<P>If <I>mode</I> = vector, then all the input values must be vectors of the
+same length.
 </P>
 <HR>
 
@@ -111,49 +131,56 @@ averaging is done; values are simply generated on timesteps
 <HR>
 
 <P>If a value begins with "c_", a compute ID must follow which has been
-previously defined in the input script.  If no bracketed term is
-appended, the global scalar calculated by the compute is used.  If a
-bracketed term is appended, the Nth vector value calculated by the
-compute is used.  Note that there is a <A HREF = "compute_reduce.html">compute
-reduce</A> command which can sum per-atom quantities
-into a global scalar or vector which can thus be accessed by fix
-ave/time.  Or it can be a compute defined not in your input script,
-but by <A HREF = "thermo_style.html">thermodynamic output</A> or other fixes such as
-<A HREF = "fix_nvt.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.
-See the doc pages for these commands which give the IDs of these
-computes.  Users can also write code for their own compute styles and
-<A HREF = "Section_modify.html">add them to LAMMPS</A>.
+previously defined in the input script.  If <I>mode</I> = scalar, then if
+no bracketed term is appended, the global scalar calculated by the
+compute is used.  If a bracketed term is appended, the Ith element of
+the global vector calculated by the compute is used.  If <I>mode</I> =
+vector, then if no bracketed term is appended, the global vector
+calculated by the compute is used.  If a bracketed term is appended,
+the Ith column of the global array calculated by the compute is used.
+</P>
+<P>Note that there is a <A HREF = "compute_reduce.html">compute reduce</A> command
+which can sum per-atom quantities into a global scalar or vector which
+can thus be accessed by fix ave/time.  Or it can be a compute defined
+not in your input script, but by <A HREF = "thermo_style.html">thermodynamic
+output</A> or other fixes such as <A HREF = "fix_nvt.html">fix
+nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>.  See
+the doc pages for these commands which give the IDs of these computes.
+Users can also write code for their own compute styles and <A HREF = "Section_modify.html">add them
+to LAMMPS</A>.
 </P>
 <P>If a value begins with "f_", a fix ID must follow which has been
-previously defined in the input script.  If no bracketed term is
-appended, the global scalar calculated by the fix is used.  If a
-bracketed term is appended, the Nth vector value calculated by the fix
-is used.  Note that some fixes only produce their values on certain
-timesteps, which must be compatible with <I>Nevery</I>, else an error will
-result.  Users can also write code for their own fix styles and <A HREF = "Section_modify.html">add
-them to LAMMPS</A>.
+previously defined in the input script.  If <I>mode</I> = scalar, then if
+no bracketed term is appended, the global scalar calculated by the fix
+is used.  If a bracketed term is appended, the Ith element of the
+global vector calculated by the fix is used.  If <I>mode</I> = vector, then
+if no bracketed term is appended, the global vector calculated by the
+fix is used.  If a bracketed term is appended, the Ith column of the
+global array calculated by the fix is used.
+</P>
+<P>Note that some fixes only produce their values on certain timesteps,
+which must be compatible with <I>Nevery</I>, else an error will result.
+Users can also write code for their own fix styles and <A HREF = "Section_modify.html">add them to
+LAMMPS</A>.
 </P>
 <P>If a value begins with "v_", a variable name must follow which has
-been previously defined in the input script.  Only equal-style
-variables can be referenced.  See the <A HREF = "variable.html">variable</A> command
-for details.  Variables of style <I>equal</I> define a formula which can
+been previously defined in the input script.  Variables can only be
+used as input for <I>mode</I> = scalar.  Only equal-style variables can be
+referenced.  See the <A HREF = "variable.html">variable</A> command for details.
+Note that variables of style <I>equal</I> define a formula which can
 reference individual atom properties or thermodynamic keywords, or
 they can invoke other computes, fixes, or variables when they are
-evaluated, so this is a very general means of generating quantities to
+evaluated, so this is a very general means of specifying quantities to
 time average.
 </P>
 <HR>
 
 <P>Additional optional keywords also affect the operation of this fix.
 </P>
-<P>The <I>file</I> keyword allows a filename to be specified.  Each timestamp,
-one quantity is written to the file for each value specified in the
-fix ave/time command.  The file is in a self-explanatory text format.
-</P>
-<P>The <I>ave</I> keyword determines how the scalar and/or vector values
-produced every <I>Nfreq</I> steps are averaged with values produced on
-previous steps that were multiples of <I>Nfreq</I>, before they are
-accessed by another output command or written to a file.
+<P>The <I>ave</I> keyword determines how the values produced every <I>Nfreq</I>
+steps are averaged with values produced on previous steps that were
+multiples of <I>Nfreq</I>, before they are accessed by another output
+command or written to a file.
 </P>
 <P>If the <I>ave</I> setting is <I>one</I>, then the values produced on timesteps
 that are multiples of <I>Nfreq</I> are independent of each other; they are
@@ -176,9 +203,54 @@ on step 10000 will be the average of the individual values on steps
 values if they are not available.
 </P>
 <P>The <I>start</I> keyword specifies what timestep averaging will begin on.
-The default is step 0.  Often this value is 0.0, so setting <I>start</I> to
-a larger value can avoid including a 0.0 in a running or windowed
-average.
+The default is step 0.  Often input values can be 0.0 at time 0, so
+setting <I>start</I> to a larger value can avoid including a 0.0 in a
+running or windowed average.
+</P>
+<P>The <I>off</I> keyword can be used to flag any of the input values.  If a
+value is flagged, it will not be time averaged.  Instead the most
+recent input value will always be stored and output.  This is useful
+if one of more of the inputs produced by a compute or fix or variable
+are effectively constant or are simply current values.  E.g. they are
+being written to a file with other time-averaged values for purposes
+of creating well-formatted output.
+</P>
+<P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
+steps, one quantity or vector of quantities is written to the file for
+each input value specified in the fix ave/time command.  For <I>mode</I> =
+scalar, this means a single line is written each time output is
+performed.  Thus the file ends up to be a series of lines, i.e. one
+column of numbers for each input value.  For <I>mode</I> = vector, an array
+of numbers is written each time output is performed.  The number of
+rows is the length of the input vectors, and the number of columns is
+the number of values.  Thus the file ends up to be a series of these
+array sections.
+</P>
+<P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
+the strings that will be printed as the first 2 or 3 lines of the
+output file, assuming the <I>file</I> keyword was used.  LAMMPS uses
+default values for each of these, so they do not need to be specified.
+</P>
+<P>By default, these header lines are as follows for <I>mode</I> = scalar:
+</P>
+<PRE># Time-averaged data for fix ID
+# TimeStep value1 value2 ... 
+</PRE>
+<P>In the first line, ID is replaced with the fix-ID.  In the second line
+the values are replaced with the appropriate fields from the fix
+ave/time command.  There is no third line in the header of the file,
+so the <I>title3</I> setting is ignored when <I>mode</I> = scalar.
+</P>
+<P>By default, these header lines are as follows for <I>mode</I> = vector:
+</P>
+<PRE># Time-averaged data for fix ID
+# TimeStep Number-of-rows
+# Row value1 value2 ... 
+</PRE>
+<P>In the first line, ID is replaced with the fix-ID.  The second line
+describes the two values that are printed at the first of each section
+of output.  In the third line the values are replaced with the
+appropriate fields from the fix ave/time command.
 </P>
 <HR>
 
@@ -188,20 +260,30 @@ average.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>This fix produces a global scalar or vector which can be accessed by
-various <A HREF = "Section_howto.html#4_15">output commands</A>.  A scalar is
-produced if only a single quantity is averaged by this fix.  If two or
-more quantities are averaged, then a vector of values is produced.
-The global values can only be accessed on timesteps that are multiples
-of <I>Nfreq</I> since that is when averaging is performed.  Each value
-(scalar or vector component) calculated by this fix may be either
-"intensive" or "extensive".  Intensive means the value is independent
-of the number of atoms in the simulation.  Extensive means the value
-scales with the number of atoms in the simulation.  If a compute or
-fix provides the value being time averaged, then the compute or fix
-determines whether the value is intensive or extensive; see the doc
-page for that compute or fix for further info.  Values produced by a
-variable are whatever the variable calculates.
+<P>This fix produces a global scalar or vector or array which can be
+accessed by various <A HREF = "Section_howto.html#4_15">output commands</A>.  The
+values can only be accessed on timesteps that are multiples of <I>Nfreq</I>
+since that is when averaging is performed.
+</P>
+<P>A scalar is produced if only a single input value is averaged and
+<I>mode</I> = scalar.  A vector is produced if multiple input values are
+averaged for <I>mode</I> = scalar, or a single input value for <I>mode</I> =
+vector.  In the first case, the length of the vector is the number of
+inputs.  In the second case, the length of the vector is the same as
+the length of the input vector.  An array is produced if multiple
+input values are averaged and <I>mode</I> = vector.  The global array has
+rows = length of the input vectors and columns = number of inputs.
+</P>
+<P>If the fix prouduces a scalar or vector, then the scalar and each
+element of the vector may be either "intensive" or "extensive".  If
+the fix produces an array, then all elements in the array will be
+either "intensive" or "extensive".  Intensive means the value is
+independent of the number of atoms in the simulation.  Extensive means
+the value scales with the number of atoms in the simulation.  If a
+compute or fix provides the value being time averaged, then the
+compute or fix determines whether the value is intensive or extensive;
+see the doc page for that compute or fix for further info.  Values
+produced by a variable are whatever the variable calculates.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
@@ -217,6 +299,8 @@ ave/atom</A>
 </P>
 <P><B>Default:</B> none
 </P>
-<P>The option defaults no file output, ave = one, and start = 0.
+<P>The option defaults are mode = scalar, ave = one, start = 0, no file
+output, title 1,2,3 = strings as described above, and no off settings
+for any input values.
 </P>
 </HTML>

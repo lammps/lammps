@@ -19,14 +19,17 @@ Nrepeat = # of times to repeat the Nevery calculation before averaging :l
 Nfreq = timestep frequency at which averages are computed :l
 one or more values can be listed :l
 value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
-  c_ID = global scalar value calculated by a compute with ID
-  c_ID\[N\] = Nth component of global vector calculated by a compute with ID
-  f_ID = global scalar value calculated by a fix with ID
-  f_ID\[N\] = Nth component of global vector calculated by a fix with ID
+  c_ID = global scalar or vector calculated by a compute with ID
+  c_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a compute with ID
+  f_ID = global scalar or vector calculated by a fix with ID
+  f_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a fix with ID
   v_name = global value calculated by an equal-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {file} or {ave} or {start} :l
+keyword = {mode} or {file} or {ave} or {start} or {off} or {title1} or {title2} or {title3} :l
+  {mode} arg = {scalar} or {vector}
+    scalar = all input values are global scalars
+    vector = all input values are global vectors
   {file} arg = filename
     filename = name of file to output time averages to
   {ave} args = {one} or {running} or {window M}
@@ -34,14 +37,23 @@ keyword = {file} or {ave} or {start} :l
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
   {start} args = Nstart
-    Nstart = start averaging on this timestep :pre
+    Nstart = start averaging on this timestep
+  {off} arg = M = do not average this value
+    M = value # from 1 to Nvalues
+  {title1} arg = string
+    string = text to print as 1st line of output file = title
+  {title2} arg = string
+    string = text to print as 2nd line of output file
+  {title3} arg = string
+    string = text to print as 3rd line of output file, only for vector mode :pre
 :ule
 
 [Examples:]
 
 fix 1 all ave/time 100 5 1000 c_myTemp c_thermo_temp file temp.profile
-fix 1 all ave/time 100 5 1000 c_thermo_press\[2\] ave window 20
-fix 1 all ave/time 1 100 1000 f_indent f_indent\[1\] file temp.indent :pre
+fix 1 all ave/time 100 5 1000 c_thermo_press\[2\] ave window 20 &
+                              title1 "My output values"
+fix 1 all ave/time 1 100 1000 f_indent f_indent\[1\] file temp.indent off 1 :pre
 
 [Description:]
 
@@ -49,14 +61,13 @@ Calculate one or more instantaneous global quantities every few
 timesteps, and average them over longer timescales.  The resulting
 averages can be used by other "output
 commands"_Section_howto.html#4_15 such as "thermo_style
-custom"_thermo_style.html, and can also be written to a file.  If no
-averaging is done, this command is a convenient way to simply write
-one or more desired quantities to a separate file.
+custom"_thermo_style.html, and can also be written to a file.  Note
+that if no time averaging is done, this command can simply be used as
+a convenient way to output one or more desired quantities to a
+separate file.
 
-Each listed value is averaged independently.  If written to a file,
-then over time, one column of numbers is produced for each value.  The
-group specified with the command is ignored, since calculations are
-performed by computes and fixes which store their own "group"
+The group specified with this command is ignored, since calculations
+are performed by computes and fixes which store their own "group"
 definition,
 
 Each listed value can be the result of a "compute"_compute.html or
@@ -76,6 +87,15 @@ individual fixes for info on which ones produce such values.
 "Variables"_variable.html of style {equal} are the only ones that can
 be used with this fix.  Variables of style {atom} cannot be used,
 since they produce per-atom values.
+
+The listed values must either be all global scalars or all global
+vectors, depending on the setting of the {mode} option.  In both
+cases, the averaging is performed independently on every input
+quantity.  I.e. each input value and the elements of each input value
+(if it is a vector) are averaged independently.
+
+If {mode} = vector, then all the input values must be vectors of the
+same length.
 
 :line
 
@@ -98,49 +118,56 @@ averaging is done; values are simply generated on timesteps
 :line
 
 If a value begins with "c_", a compute ID must follow which has been
-previously defined in the input script.  If no bracketed term is
-appended, the global scalar calculated by the compute is used.  If a
-bracketed term is appended, the Nth vector value calculated by the
-compute is used.  Note that there is a "compute
-reduce"_compute_reduce.html command which can sum per-atom quantities
-into a global scalar or vector which can thus be accessed by fix
-ave/time.  Or it can be a compute defined not in your input script,
-but by "thermodynamic output"_thermo_style.html or other fixes such as
-"fix nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.
-See the doc pages for these commands which give the IDs of these
-computes.  Users can also write code for their own compute styles and
-"add them to LAMMPS"_Section_modify.html.
+previously defined in the input script.  If {mode} = scalar, then if
+no bracketed term is appended, the global scalar calculated by the
+compute is used.  If a bracketed term is appended, the Ith element of
+the global vector calculated by the compute is used.  If {mode} =
+vector, then if no bracketed term is appended, the global vector
+calculated by the compute is used.  If a bracketed term is appended,
+the Ith column of the global array calculated by the compute is used.
+
+Note that there is a "compute reduce"_compute_reduce.html command
+which can sum per-atom quantities into a global scalar or vector which
+can thus be accessed by fix ave/time.  Or it can be a compute defined
+not in your input script, but by "thermodynamic
+output"_thermo_style.html or other fixes such as "fix
+nvt"_fix_nvt.html or "fix temp/rescale"_fix_temp_rescale.html.  See
+the doc pages for these commands which give the IDs of these computes.
+Users can also write code for their own compute styles and "add them
+to LAMMPS"_Section_modify.html.
 
 If a value begins with "f_", a fix ID must follow which has been
-previously defined in the input script.  If no bracketed term is
-appended, the global scalar calculated by the fix is used.  If a
-bracketed term is appended, the Nth vector value calculated by the fix
-is used.  Note that some fixes only produce their values on certain
-timesteps, which must be compatible with {Nevery}, else an error will
-result.  Users can also write code for their own fix styles and "add
-them to LAMMPS"_Section_modify.html.
+previously defined in the input script.  If {mode} = scalar, then if
+no bracketed term is appended, the global scalar calculated by the fix
+is used.  If a bracketed term is appended, the Ith element of the
+global vector calculated by the fix is used.  If {mode} = vector, then
+if no bracketed term is appended, the global vector calculated by the
+fix is used.  If a bracketed term is appended, the Ith column of the
+global array calculated by the fix is used.
+
+Note that some fixes only produce their values on certain timesteps,
+which must be compatible with {Nevery}, else an error will result.
+Users can also write code for their own fix styles and "add them to
+LAMMPS"_Section_modify.html.
 
 If a value begins with "v_", a variable name must follow which has
-been previously defined in the input script.  Only equal-style
-variables can be referenced.  See the "variable"_variable.html command
-for details.  Variables of style {equal} define a formula which can
+been previously defined in the input script.  Variables can only be
+used as input for {mode} = scalar.  Only equal-style variables can be
+referenced.  See the "variable"_variable.html command for details.
+Note that variables of style {equal} define a formula which can
 reference individual atom properties or thermodynamic keywords, or
 they can invoke other computes, fixes, or variables when they are
-evaluated, so this is a very general means of generating quantities to
+evaluated, so this is a very general means of specifying quantities to
 time average.
 
 :line
 
 Additional optional keywords also affect the operation of this fix.
 
-The {file} keyword allows a filename to be specified.  Each timestamp,
-one quantity is written to the file for each value specified in the
-fix ave/time command.  The file is in a self-explanatory text format.
-
-The {ave} keyword determines how the scalar and/or vector values
-produced every {Nfreq} steps are averaged with values produced on
-previous steps that were multiples of {Nfreq}, before they are
-accessed by another output command or written to a file.
+The {ave} keyword determines how the values produced every {Nfreq}
+steps are averaged with values produced on previous steps that were
+multiples of {Nfreq}, before they are accessed by another output
+command or written to a file.
 
 If the {ave} setting is {one}, then the values produced on timesteps
 that are multiples of {Nfreq} are independent of each other; they are
@@ -163,9 +190,54 @@ on step 10000 will be the average of the individual values on steps
 values if they are not available.
 
 The {start} keyword specifies what timestep averaging will begin on.
-The default is step 0.  Often this value is 0.0, so setting {start} to
-a larger value can avoid including a 0.0 in a running or windowed
-average.
+The default is step 0.  Often input values can be 0.0 at time 0, so
+setting {start} to a larger value can avoid including a 0.0 in a
+running or windowed average.
+
+The {off} keyword can be used to flag any of the input values.  If a
+value is flagged, it will not be time averaged.  Instead the most
+recent input value will always be stored and output.  This is useful
+if one of more of the inputs produced by a compute or fix or variable
+are effectively constant or are simply current values.  E.g. they are
+being written to a file with other time-averaged values for purposes
+of creating well-formatted output.
+
+The {file} keyword allows a filename to be specified.  Every {Nfreq}
+steps, one quantity or vector of quantities is written to the file for
+each input value specified in the fix ave/time command.  For {mode} =
+scalar, this means a single line is written each time output is
+performed.  Thus the file ends up to be a series of lines, i.e. one
+column of numbers for each input value.  For {mode} = vector, an array
+of numbers is written each time output is performed.  The number of
+rows is the length of the input vectors, and the number of columns is
+the number of values.  Thus the file ends up to be a series of these
+array sections.
+
+The {title1} and {title2} and {title3} keywords allow specification of
+the strings that will be printed as the first 2 or 3 lines of the
+output file, assuming the {file} keyword was used.  LAMMPS uses
+default values for each of these, so they do not need to be specified.
+
+By default, these header lines are as follows for {mode} = scalar:
+
+# Time-averaged data for fix ID
+# TimeStep value1 value2 ... :pre
+
+In the first line, ID is replaced with the fix-ID.  In the second line
+the values are replaced with the appropriate fields from the fix
+ave/time command.  There is no third line in the header of the file,
+so the {title3} setting is ignored when {mode} = scalar.
+
+By default, these header lines are as follows for {mode} = vector:
+
+# Time-averaged data for fix ID
+# TimeStep Number-of-rows
+# Row value1 value2 ... :pre
+
+In the first line, ID is replaced with the fix-ID.  The second line
+describes the two values that are printed at the first of each section
+of output.  In the third line the values are replaced with the
+appropriate fields from the fix ave/time command.
 
 :line
 
@@ -175,20 +247,30 @@ No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.
 
-This fix produces a global scalar or vector which can be accessed by
-various "output commands"_Section_howto.html#4_15.  A scalar is
-produced if only a single quantity is averaged by this fix.  If two or
-more quantities are averaged, then a vector of values is produced.
-The global values can only be accessed on timesteps that are multiples
-of {Nfreq} since that is when averaging is performed.  Each value
-(scalar or vector component) calculated by this fix may be either
-"intensive" or "extensive".  Intensive means the value is independent
-of the number of atoms in the simulation.  Extensive means the value
-scales with the number of atoms in the simulation.  If a compute or
-fix provides the value being time averaged, then the compute or fix
-determines whether the value is intensive or extensive; see the doc
-page for that compute or fix for further info.  Values produced by a
-variable are whatever the variable calculates.
+This fix produces a global scalar or vector or array which can be
+accessed by various "output commands"_Section_howto.html#4_15.  The
+values can only be accessed on timesteps that are multiples of {Nfreq}
+since that is when averaging is performed.
+
+A scalar is produced if only a single input value is averaged and
+{mode} = scalar.  A vector is produced if multiple input values are
+averaged for {mode} = scalar, or a single input value for {mode} =
+vector.  In the first case, the length of the vector is the number of
+inputs.  In the second case, the length of the vector is the same as
+the length of the input vector.  An array is produced if multiple
+input values are averaged and {mode} = vector.  The global array has
+rows = length of the input vectors and columns = number of inputs.
+
+If the fix prouduces a scalar or vector, then the scalar and each
+element of the vector may be either "intensive" or "extensive".  If
+the fix produces an array, then all elements in the array will be
+either "intensive" or "extensive".  Intensive means the value is
+independent of the number of atoms in the simulation.  Extensive means
+the value scales with the number of atoms in the simulation.  If a
+compute or fix provides the value being time averaged, then the
+compute or fix determines whether the value is intensive or extensive;
+see the doc page for that compute or fix for further info.  Values
+produced by a variable are whatever the variable calculates.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -204,4 +286,6 @@ ave/atom"_fix_ave_atom.html
 
 [Default:] none
 
-The option defaults no file output, ave = one, and start = 0.
+The option defaults are mode = scalar, ave = one, start = 0, no file
+output, title 1,2,3 = strings as described above, and no off settings
+for any input values.

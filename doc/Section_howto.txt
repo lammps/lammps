@@ -1059,14 +1059,17 @@ files: "fix ave/time"_fix_ave_time.html, "fix
 ave/spatial"_fix_ave_spatial.html, and "fix print"_fix_print.html.
 
 The "fix ave/time"_fix_ave_time.html command enables direct output to
-a file and/or time-averaging of any global quantity.  The user
+a file and/or time-averaging of global scalars or vectors.  The user
 specifies one or more quantities as input.  These can be global
 "compute"_compute.html values, global "fix"_fix.html values, or
 "variables"_variable.html of any style except the atom style which
 produces per-atom values.  Since a variable can refer to keywords used
 by the "thermo_style custom"_thermo_style.html command (like temp or
 press) and individual per-atom values, a wide variety of quantities
-can be time averaged and/or output in this way.  The time-averaged
+can be time averaged and/or output in this way.  If the inputs are one
+or more scalar values, then the fix generate a global scalar or vector
+of output.  If the inputs are one or more vector values, then the fix
+generates a global vector or array of output.  The time-averaged
 output of this fix can also be used as input to other output commands.
 
 The "fix ave/spatial"_fix_ave_spatial.html command enables direct
@@ -1151,7 +1154,7 @@ Command: Input: Output:
 "fixes"_fix.html: N/A: global/per-atom/local scalar/vector/array:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
-"fix ave/time"_fix_ave_time.html: global scalars: global scalar/vector, file:
+"fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:
 "fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 :tb(s=:)

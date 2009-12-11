@@ -1068,14 +1068,17 @@ files: <A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_spatia
 ave/spatial</A>, and <A HREF = "fix_print.html">fix print</A>.
 </P>
 <P>The <A HREF = "fix_ave_time.html">fix ave/time</A> command enables direct output to
-a file and/or time-averaging of any global quantity.  The user
+a file and/or time-averaging of global scalars or vectors.  The user
 specifies one or more quantities as input.  These can be global
 <A HREF = "compute.html">compute</A> values, global <A HREF = "fix.html">fix</A> values, or
 <A HREF = "variable.html">variables</A> of any style except the atom style which
 produces per-atom values.  Since a variable can refer to keywords used
 by the <A HREF = "thermo_style.html">thermo_style custom</A> command (like temp or
 press) and individual per-atom values, a wide variety of quantities
-can be time averaged and/or output in this way.  The time-averaged
+can be time averaged and/or output in this way.  If the inputs are one
+or more scalar values, then the fix generate a global scalar or vector
+of output.  If the inputs are one or more vector values, then the fix
+generates a global vector or array of output.  The time-averaged
 output of this fix can also be used as input to other output commands.
 </P>
 <P>The <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command enables direct
@@ -1161,7 +1164,7 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "fix.html">fixes</A></TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "variable.html">variables</A></TD><TD > global scalars, per-atom vectors</TD><TD > global scalar, per-atom vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_reduce.html">compute reduce</A></TD><TD > global/per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
-<TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars</TD><TD > global scalar/vector, file</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars/vectors</TD><TD > global scalar/vector/array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_spatial.html">fix ave/spatial</A></TD><TD > per-atom vectors</TD><TD > global array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_atom.html">fix ave/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD >

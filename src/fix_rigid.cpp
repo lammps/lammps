@@ -473,7 +473,7 @@ void FixRigid::init()
       // set exactly one of OMEGA and ANGMOM so particle contributes once
       // set OMEGA if either radius or rmass exists
       // set ANGMOM if shape and mass exist
-      // set OMEGE if atom->angmom doesn't exist
+      // set OMEGA if atom->angmom doesn't exist
 
       if (eflags[i] == 0) continue;
 
@@ -483,7 +483,7 @@ void FixRigid::init()
       if (atom->torque_flag) eflags[i] |= TORQUE;
       if ((radius || rmass) && atom->omega_flag) eflags[i] |= OMEGA;
       else if (shape && mass && atom->angmom_flag) eflags[i] |= ANGMOM;
-      else if (atom->omega_flag) eflags[i] != OMEGA;
+      else if (atom->omega_flag) eflags[i] |= OMEGA;
       else error->one("Could not set finite-size particle attribute "
 		      "in fix rigid");
     }
@@ -846,6 +846,7 @@ void FixRigid::init()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
+  double norm;
   for (ibody = 0; ibody < nbody; ibody++) {
     if (inertia[ibody][0] == 0.0) {
       if (fabs(all[ibody][0]) > TOLERANCE)
@@ -868,9 +869,10 @@ void FixRigid::init()
       if (fabs((all[ibody][2]-inertia[ibody][2])/inertia[ibody][2]) > 
 	  TOLERANCE) error->all("Fix rigid: Bad principal moments");
     }
-    if (fabs(all[ibody][3]) > TOLERANCE || 
-	fabs(all[ibody][4]) > TOLERANCE ||
-	fabs(all[ibody][5]) > TOLERANCE)
+    norm = (inertia[ibody][0] + inertia[ibody][1] + inertia[ibody][2]) / 3.0;
+    if (fabs(all[ibody][3]/norm) > TOLERANCE || 
+	fabs(all[ibody][4]/norm) > TOLERANCE ||
+	fabs(all[ibody][5]/norm) > TOLERANCE)
       error->all("Fix rigid: Bad principal moments");
   }
 }

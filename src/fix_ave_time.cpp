@@ -240,7 +240,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (mode == SCALAR) {
     vector = new double[nvalues];
     vector_total = new double[nvalues];
-    for (int i = 0; i < nvalues; i++) vector_total[i] = 0.0;
     if (ave == WINDOW)
       vector_list = memory->create_2d_double_array(nwindow,nvalues,
 						   "ave/time:vector_list");
@@ -248,9 +247,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     array = memory->create_2d_double_array(nrows,nvalues,"ave/time:array");
     array_total = memory->create_2d_double_array(nrows,nvalues,
 						 "ave/time:array_total");
-    for (int i = 0; i < nrows; i++)
-      for (int j = 0; j < nvalues; j++)
-	array_total[i][j] = 0.0;
     if (ave == WINDOW)
       array_list = memory->create_3d_double_array(nwindow,nrows,nvalues,
 						  "ave/time:array_list");

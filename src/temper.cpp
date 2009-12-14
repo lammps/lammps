@@ -342,5 +342,6 @@ void Temper::print_status()
     for (int i = 0; i < nworlds; i++)
       fprintf(universe->ulogfile,"%d ",world2temp[i]);
     fprintf(universe->ulogfile,"\n");
+    fflush(universe->ulogfile);
   }
 }

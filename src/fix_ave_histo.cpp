@@ -96,10 +96,10 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   // parse values until one isn't recognized
 
-  which = new int[nvalues];
-  argindex = new int[nvalues];
-  ids = new char*[nvalues];
-  value2index = new int[nvalues];
+  which = new int[narg-9];
+  argindex = new int[narg-9];
+  ids = new char*[narg-9];
+  value2index = new int[narg-9];
   nvalues = 0;
 
   iarg = 9;
@@ -179,7 +179,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int kindflag;
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == X || which[i] == V || which[i] == F) kindflag = PERATOM;
+    else if (which[i] == COMPUTE) {
       Compute *compute = modify->compute[modify->find_compute(ids[0])];
       if (compute->scalar_flag || compute->vector_flag || compute->array_flag)
 	kindflag = GLOBAL;
@@ -368,8 +369,17 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   bin_total = new double[nbins];
   bin_all = new double[nbins];
   coord = new double[nbins];
+
+  stats_list = NULL;
+  bin_list = NULL;
   vector = NULL;
   maxatom = 0;
+  if (ave == WINDOW) {
+    stats_list = memory->create_2d_double_array(nwindow,4,
+						"ave/histo:stats_list");
+    bin_list = memory->create_2d_double_array(nwindow,nbins,
+					      "ave/histo:bin_list");
+  }
 
   // initializations
   // set coord to bin centers
@@ -432,6 +442,8 @@ FixAveHisto::~FixAveHisto()
   delete [] bin_total;
   delete [] bin_all;
   delete [] coord;
+  memory->destroy_2d_double_array(stats_list);
+  memory->destroy_2d_double_array(bin_list);
   memory->sfree(vector);
 }
 
@@ -512,11 +524,11 @@ void FixAveHisto::end_of_step()
 
     // atom attributes
 
-    if (which[m] == X)
+    if (which[i] == X)
       bin_atoms(&atom->x[0][j],3);
-    else if (which[m] == V)
+    else if (which[i] == V)
       bin_atoms(&atom->v[0][j],3);
-    else if (which[m] == F)
+    else if (which[i] == F)
       bin_atoms(&atom->f[0][j],3);
 
     // invoke compute if not previously invoked
@@ -617,7 +629,7 @@ void FixAveHisto::end_of_step()
 	memory->sfree(vector);
 	maxatom = atom->nmax;
 	vector = (double *) memory->smalloc(maxatom*sizeof(double),
-					    "fix_ave/histo:vector");
+					    "ave/histo:vector");
       }
       input->variable->compute_atom(m,igroup,vector,1,0);
       bin_atoms(vector,1);
@@ -673,6 +685,25 @@ void FixAveHisto::end_of_step()
       for (i = 0; i < nbins; i++) bin_total[i] += bin[i];
       
     } else if (ave == WINDOW) {
+      stats_total[0] += stats[0];
+      if (window_limit) stats_total[0] -= stats_list[iwindow][0];
+      stats_list[iwindow][0] = stats[0];
+      stats_total[1] += stats[1];
+      if (window_limit) stats_total[1] -= stats_list[iwindow][1];
+      stats_list[iwindow][1] = stats[1];
+
+      if (window_limit) m = nwindow;
+      else m = iwindow+1;
+
+      stats_list[iwindow][2] = stats[2];
+      stats_total[2] = stats_list[0][2];
+      for (i = 1; i < m; i++) 
+	stats_total[2] = MIN(stats_total[2],stats_list[i][2]);
+      stats_list[iwindow][3] = stats[3];
+      stats_total[3] = stats_list[0][3];
+      for (i = 1; i < m; i++) 
+	stats_total[3] = MAX(stats_total[3],stats_list[i][3]);
+
       for (i = 0; i < nbins; i++) {
 	bin_total[i] += bin[i];
 	if (window_limit) bin_total[i] -= bin_list[iwindow][i];
@@ -820,8 +851,15 @@ void FixAveHisto::options(int narg, char **arg)
       if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
+      else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
       else error->all("Illegal fix ave/histo command");
+      if (ave == WINDOW) {
+	if (iarg+3 > narg) error->all("Illegal fix ave/histo command");
+	nwindow = atoi(arg[iarg+2]);
+	if (nwindow <= 0) error->all("Illegal fix ave/histo command");
+      }
       iarg += 2;
+      if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
       startstep = atoi(arg[iarg+1]);

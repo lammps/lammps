@@ -40,6 +40,7 @@ class FixAveHisto : public Fix {
   int kind,beyond;
 
   double stats[4],stats_total[4],stats_all[4];
+  double **stats_list;
 
   int nbins;
   double *bin,*bin_total,*bin_all;

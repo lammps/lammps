@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{COMPUTE,FIX,VARIABLE};
+enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{SCALAR,VECTOR,WINDOW};
 enum{GLOBAL,PERATOM,LOCAL};
@@ -75,9 +75,18 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 9;
   while (iarg < narg) {
-    if ((strncmp(arg[iarg],"c_",2) == 0) || 
-	(strncmp(arg[iarg],"f_",2) == 0) || 
-	(strncmp(arg[iarg],"v_",2) == 0)) {
+    if (strcmp(arg[iarg],"x") == 0 ||
+	strcmp(arg[iarg],"y") == 0 ||
+	strcmp(arg[iarg],"z") == 0 || 
+	strcmp(arg[iarg],"vx") == 0 ||
+	strcmp(arg[iarg],"vy") == 0 ||
+	strcmp(arg[iarg],"vz") == 0 ||
+	strcmp(arg[iarg],"fx") == 0 ||
+	strcmp(arg[iarg],"fy") == 0 ||
+	strcmp(arg[iarg],"fz") == 0 ||
+	strncmp(arg[iarg],"c_",2) == 0 || 
+	strncmp(arg[iarg],"f_",2) == 0 || 
+	strncmp(arg[iarg],"v_",2) == 0) {
       nvalues++;
       iarg++;
     } else break;
@@ -95,7 +104,39 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   iarg = 9;
   while (iarg < narg) {
-    if ((strncmp(arg[iarg],"c_",2) == 0) || 
+    ids[nvalues] = NULL;
+
+    if (strcmp(arg[iarg],"x") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"fx") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"fy") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"fz") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 2;
+
+    } else if ((strncmp(arg[iarg],"c_",2) == 0) || 
 	(strncmp(arg[iarg],"f_",2) == 0) || 
 	(strncmp(arg[iarg],"v_",2) == 0)) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
@@ -444,7 +485,7 @@ void FixAveHisto::setup(int vflag)
 
 void FixAveHisto::end_of_step()
 {
-  int i,m;
+  int i,j,m;
 
   // skip if not step which requires doing something
 
@@ -467,14 +508,24 @@ void FixAveHisto::end_of_step()
 
   for (i = 0; i < nvalues; i++) {
     m = value2index[i];
-    
+    j = argindex[i];
+
+    // atom attributes
+
+    if (which[m] == X)
+      bin_atoms(&atom->x[0][j],3);
+    else if (which[m] == V)
+      bin_atoms(&atom->v[0][j],3);
+    else if (which[m] == F)
+      bin_atoms(&atom->f[0][j],3);
+
     // invoke compute if not previously invoked
     
     if (which[i] == COMPUTE) {
       Compute *compute = modify->compute[m];
 
       if (kind == GLOBAL && mode == SCALAR) {
-	if (argindex[i] == 0) {
+	if (j == 0) {
 	  if (!(compute->invoked_flag & INVOKED_SCALAR)) {
 	    compute->compute_scalar();
 	    compute->invoked_flag |= INVOKED_SCALAR;
@@ -485,10 +536,10 @@ void FixAveHisto::end_of_step()
 	    compute->compute_vector();
 	    compute->invoked_flag |= INVOKED_VECTOR;
 	  }
-	  bin_one(compute->vector[argindex[i]-1]);
+	  bin_one(compute->vector[j-1]);
 	}
       } else if (kind == GLOBAL && mode == VECTOR) {
-	if (argindex[i] == 0) {
+	if (j == 0) {
 	  if (!(compute->invoked_flag & INVOKED_VECTOR)) {
 	    compute->compute_vector();
 	    compute->invoked_flag |= INVOKED_VECTOR;
@@ -499,7 +550,7 @@ void FixAveHisto::end_of_step()
 	    compute->compute_array();
 	    compute->invoked_flag |= INVOKED_ARRAY;
 	  }
-	  bin_vector(compute->size_array_rows,compute->array[argindex[i]-1],
+	  bin_vector(compute->size_array_rows,compute->array[j-1],
 		     compute->size_array_cols);
 	}
 
@@ -508,10 +559,10 @@ void FixAveHisto::end_of_step()
 	  compute->compute_peratom();
 	  compute->invoked_flag |= INVOKED_PERATOM;
 	}
-	if (argindex[i] == 0)
+	if (j == 0)
 	  bin_atoms(compute->vector_atom,1);
 	else
-	  bin_atoms(compute->array_atom[argindex[i]-1],
+	  bin_atoms(compute->array_atom[j-1],
 		    compute->size_peratom_cols);
 
       } else if (kind == LOCAL) {
@@ -519,11 +570,10 @@ void FixAveHisto::end_of_step()
 	  compute->compute_local();
 	  compute->invoked_flag |= INVOKED_LOCAL;
 	}
-	if (argindex[i] == 0)
+	if (j == 0)
 	  bin_vector(compute->size_local_rows,compute->vector_local,1);
 	else
-	  bin_vector(compute->size_local_rows,
-		     compute->array_local[argindex[i]-1],
+	  bin_vector(compute->size_local_rows,compute->array_local[j],
 		     compute->size_local_cols);
       }
 
@@ -534,28 +584,26 @@ void FixAveHisto::end_of_step()
       Fix *fix = modify->fix[m];
 
       if (kind == GLOBAL && mode == SCALAR) {
-	if (argindex[i] == 0) bin_one(fix->compute_scalar());
-	else bin_one(fix->compute_vector(argindex[i]-1));
+	if (j == 0) bin_one(fix->compute_scalar());
+	else bin_one(fix->compute_vector(j-1));
 
       } else if (kind == GLOBAL && mode == VECTOR) {
-	if (argindex[i] == 0) {
+	if (j == 0) {
 	  int n = fix->size_vector;
 	  for (i = 0; i < n; i++) bin_one(fix->compute_vector(i));
 	} else {
-	  int j = argindex[i] - 1;
 	  int n = fix->size_vector;
-	  for (i = 0; i < n; i++) bin_one(fix->compute_array(i,j));
+	  for (i = 0; i < n; i++) bin_one(fix->compute_array(i,j-1));
 	}
 
       } else if (kind == PERATOM) {
-	if (argindex[i] == 0) bin_atoms(fix->vector_atom,1);
-	else bin_atoms(fix->array_atom[argindex[i]-1],fix->size_peratom_cols);
+	if (j == 0) bin_atoms(fix->vector_atom,1);
+	else bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
 
       } else if (kind == LOCAL) {
-	if (argindex[i] == 0)
-	  bin_vector(fix->size_local_rows,fix->vector_local,1);
-	else
-	  bin_vector(fix->size_local_rows,fix->array_local[argindex[i]-1],
+	if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
+	else 
+	  bin_vector(fix->size_local_rows,fix->array_local[j-1],
 		     fix->size_local_cols);
       }
 

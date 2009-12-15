@@ -119,9 +119,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = DENSITY_MASS;
       argindex[nvalues++] = 0;
 
-    } else if ((strncmp(arg[iarg],"c_",2) == 0) || 
-	       (strncmp(arg[iarg],"f_",2) == 0) || 
-	       (strncmp(arg[iarg],"v_",2) == 0)) {
+    } else if (strncmp(arg[iarg],"c_",2) == 0 || 
+	       strncmp(arg[iarg],"f_",2) == 0 || 
+	       strncmp(arg[iarg],"v_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;

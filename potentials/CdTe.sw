@@ -1,34 +1,34 @@
-# Stillinger-Weber parameters for CdTe
-# Parameters are from:
-#
-#	Wang, Stroud, and Markworth, PhysRevB, 40,5, 1989
-#
-# these entries are in LAMMPS "metal" units:
-#   epsilon = eV; sigma = Angstroms
-#   other quantities are unitless
+# CdTe Stillinger-Weber potential: Z. Q. Wang, D. Stroud,
+# and A. J. Markworth, Phys. Rev. B, 40, 3129(1989).
 
-# format of a single entry (one or more lines):
-#   element 1, element 2, element 3, 
-#   epsilon, sigma, a, lambda, gamma, costheta0, A, B, p, q, tol
+# The Stillinger-Weber parameters given in the literature are pair
+# specific. While most of the parameters are indeed pairwise parameters
+# according to their definition, the parameters epsilon and lambda
+# should be viewed as three-body dependent. Here we assume that the
+# the three-body epsilon and lambda is a geometric mean of the pairwise
+# epsilon and lambda.
 
-# Note that in LAMMPS, two-body parameters for element i and j are
-# specified by the values on the i-j-j line. Two-body
-# values on the i-j-i or i-i-j lines are ignored by LAMMPS, and so 
-# are set to zero here.
+# In lammps, the parameters for the ij pair are entered in
+# the ijj three-body line. There is no unique way to convert pair
+# parameters to three body parameters so the example here represents
+# only one way. The three-body parameters epsilon_ijk can be calculated
+# from the literature pair parameters using epsilon_ijk =
+# sqrt(lambda_ij*epsilon_ij*lambda_ik*epsilon_ik)/lambda_ik, and the
+# results are directly entered in this table. Obviously, this
+# conversion does not change the two-body parameters epsilon_ijj. 
+# All other ik pair parameters are entered on the i*k line, where *
+# can be any species. This is consistent with the requirement of
+# the ik parameter being on the ikk line.
 
-Cd Cd Cd 	1.03 2.51  1.80  25.0  1.20  -0.333333333333
-         	5.1726 0.8807  4.0  0.0 0.0
-Cd Cd Te 	0.0  0.0  0.0  25.0  1.20  -0.333333333333
-         	0.0 0.0 0.0 0.0 0.0
-Cd Te Cd 	0.0  0.0  0.0  25.0  1.20  -0.333333333333
-         	0.0 0.0 0.0 0.0  0.0
-Cd Te Te 	1.03 2.51  1.80  25.0  1.20  -0.333333333333
-         	7.0496 0.6022  4.0  0.0 0.0 
-Te Cd Cd 	1.03 2.51  1.80  25.0  1.20  -0.333333333333
-         	7.0496 0.6022  4.0  0.0 0.0
-Te Cd Te 	0.0  0.0  0.0  25.0  1.20  -0.333333333333
-         	0.0 0.0 0.0 0.0 0.0
-Te Te Cd 	0.0  0.0  0.0  25.0  1.20  -0.333333333333
-         	0.0 0.0 0.0 0.0 0.0
-Te Te Te 	1.03 2.51  1.80  25.0  1.20  -0.333333333333
-         	8.1415 0.6671  4.0  0.0 0.0 
+# These entries are in LAMMPS "metal" units: epsilon = eV;
+# sigma = Angstroms; other quantities are unitless
+
+#     epsilon sigma a lambda gamma   cos(theta)     A      B     p   q  tol
+Cd Cd Cd 1.03 2.51 1.80 25.0 1.20 -0.333333333333 5.1726 0.8807 4.0 0.0 0.0
+Te Te Te 1.03 2.51 1.80 25.0 1.20 -0.333333333333 8.1415 0.6671 4.0 0.0 0.0
+Cd Cd Te 1.03 2.51 1.80 25.0 1.20 -0.333333333333 7.0496 0.6022 4.0 0.0 0.0
+Cd Te Te 1.03 2.51 1.80 25.0 1.20 -0.333333333333 7.0496 0.6022 4.0 0.0 0.0
+Te Cd Cd 1.03 2.51 1.80 25.0 1.20 -0.333333333333 7.0496 0.6022 4.0 0.0 0.0
+Te Cd Te 1.03 2.51 1.80 25.0 1.20 -0.333333333333 8.1415 0.6671 4.0 0.0 0.0
+Te Te Cd 1.03 2.51 1.80 25.0 1.20 -0.333333333333 7.0496 0.6022 4.0 0.0 0.0
+Cd Te Cd 1.03 2.51 1.80 25.0 1.20 -0.333333333333 5.1726 0.8807 4.0 0.0 0.0

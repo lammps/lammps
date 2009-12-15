@@ -126,6 +126,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // setup and error check
+  // kind = inputs are all global, or all per-atom, or all local
   // for fix inputs, check that fix frequency is acceptable
 
   if (nevery <= 0) error->all("Illegal fix ave/histo command");
@@ -135,96 +136,170 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (lo >= hi) error->all("Illegal fix ave/histo command");
   if (nbins <= 0) error->all("Illegal fix ave/histo command");
 
+  int kindflag;
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE && mode == SCALAR) {
+    if (which[i] == COMPUTE) {
+      Compute *compute = modify->compute[modify->find_compute(ids[0])];
+      if (compute->scalar_flag || compute->vector_flag || compute->array_flag)
+	kindflag = GLOBAL;
+      else if (compute->peratom_flag) kindflag = PERATOM;
+      else if (compute->local_flag) kindflag = LOCAL;
+      else error->all("Fix ave/histo input is invalid compute");
+    } else if (which[i] == FIX) {
+      Fix *fix = modify->fix[modify->find_fix(ids[0])];
+      if (fix->scalar_flag || fix->vector_flag || fix->array_flag)
+	kindflag = GLOBAL;
+      else if (fix->peratom_flag) kindflag = PERATOM;
+      else if (fix->local_flag) kindflag = LOCAL;
+      else error->all("Fix ave/histo input is invalid fix");
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (input->variable->equalstyle(ivariable)) kindflag = GLOBAL;
+      else if (input->variable->atomstyle(ivariable)) kindflag = PERATOM;
+      else error->all("Fix ave/histo input is invalid variable");
+    }
+    if (i == 0) kind = kindflag;
+    else if (kindflag != kind)
+      error->all("Fix ave/histo inputs are not all global, peraton, or local");
+  }
+
+  if (kind == PERATOM && mode == SCALAR) 
+    error->all("Fix ave/histo cannot input per-atom values in scalar mode");
+  if (kind == LOCAL && mode == SCALAR)
+    error->all("Fix ave/histo cannot input local values in scalar mode");
+
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE && kind == GLOBAL && mode == SCALAR) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
 	error->all("Compute ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->compute[icompute]->scalar_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a scalar");
+	error->all("Fix ave/histo compute does not calculate a global scalar");
       if (argindex[i] && modify->compute[icompute]->vector_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a vector");
+	error->all("Fix ave/histo compute does not calculate a global vector");
       if (argindex[i] && argindex[i] > modify->compute[icompute]->size_vector)
 	error->all("Fix ave/histo compute vector is accessed out-of-range");
 
-    } else if (which[i] == COMPUTE && mode == VECTOR) {
+    } else if (which[i] == COMPUTE && kind == GLOBAL && mode == VECTOR) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
 	error->all("Compute ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->compute[icompute]->vector_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a vector");
+	error->all("Fix ave/histo compute does not calculate a global vector");
       if (argindex[i] && modify->compute[icompute]->array_flag == 0)
-	error->all("Fix ave/histo compute does not calculate a array");
+	error->all("Fix ave/histo compute does not calculate a global array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_array_cols)
 	error->all("Fix ave/histo compute array is accessed out-of-range");
 
-    } else if (which[i] == FIX && mode == SCALAR) {
+    } else if (which[i] == COMPUTE && kind == PERATOM) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/histo does not exist");
+      if (modify->compute[icompute]->peratom_flag == 0)
+	error->all("Fix ave/histo compute does not calculate per-atom values");
+      if (argindex[i] == 0 && 
+	  modify->compute[icompute]->size_peratom_cols != 0)
+	error->all("Fix ave/histo compute does not "
+		   "calculate a per-atom vector");
+      if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+	error->all("Fix ave/histo compute does not "
+		   "calculate a per-atom array");
+      if (argindex[i] && 
+	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
+	error->all("Fix ave/histo compute array is accessed out-of-range");
+
+    } else if (which[i] == COMPUTE && kind == LOCAL) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/histo does not exist");
+      if (modify->compute[icompute]->local_flag == 0)
+	error->all("Fix ave/histo compute does not calculate local values");
+      if (argindex[i] == 0 && 
+	  modify->compute[icompute]->size_local_cols != 0)
+	error->all("Fix ave/histo compute does not "
+		   "calculate a local vector");
+      if (argindex[i] && modify->compute[icompute]->size_local_cols == 0)
+	error->all("Fix ave/histo compute does not "
+		   "calculate a local array");
+      if (argindex[i] && 
+	  argindex[i] > modify->compute[icompute]->size_local_cols)
+	error->all("Fix ave/histo compute array is accessed out-of-range");
+
+    } else if (which[i] == FIX && kind == GLOBAL && mode == SCALAR) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for fix ave/histo does not exist");
       if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a scalar");
+	error->all("Fix ave/histo fix does not calculate a global scalar");
       if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a vector");
+	error->all("Fix ave/histo fix does not calculate a global vector");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_vector)
 	error->all("Fix ave/histo fix vector is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
 	error->all("Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == FIX && mode == VECTOR) {
+    } else if (which[i] == FIX && kind == GLOBAL && mode == VECTOR) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all("Fix ID for fix ave/histo does not exist");
-      if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a vector");
-      if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
-	error->all("Fix ave/histo fix does not calculate a array");
+      if (argindex[i] == 0 && modify->fix[ifix]->vector_flag == 0)
+	error->all("Fix ave/histo fix does not calculate a global vector");
+      if (argindex[i] && modify->fix[ifix]->array_flag == 0)
+	error->all("Fix ave/histo fix does not calculate a global array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_array_cols)
 	error->all("Fix ave/histo fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
 	error->all("Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == VARIABLE && mode == SCALAR) {
+    } else if (which[i] == FIX && kind == PERATOM) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+	error->all("Fix ID for fix ave/histo does not exist");
+      if (modify->fix[ifix]->peratom_flag == 0)
+	error->all("Fix ave/histo fix does not calculate per-atom values");
+      if (argindex[i] == 0 && 
+	  modify->fix[ifix]->size_peratom_cols != 0)
+	error->all("Fix ave/histo fix does not "
+		   "calculate a per-atom vector");
+      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+	error->all("Fix ave/histo fix does not "
+		   "calculate a per-atom array");
+      if (argindex[i] && 
+	  argindex[i] > modify->fix[ifix]->size_peratom_cols)
+	error->all("Fix ave/histo fix array is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->global_freq)
+	error->all("Fix for fix ave/histo not computed at compatible time");
+
+    } else if (which[i] == FIX && kind == LOCAL) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+	error->all("Fix ID for fix ave/histo does not exist");
+      if (modify->fix[ifix]->local_flag == 0)
+	error->all("Fix ave/histo fix does not calculate local values");
+      if (argindex[i] == 0 && 
+	  modify->fix[ifix]->size_local_cols != 0)
+	error->all("Fix ave/histo fix does not "
+		   "calculate a local vector");
+      if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
+	error->all("Fix ave/histo fix does not "
+		   "calculate a local array");
+      if (argindex[i] && 
+	  argindex[i] > modify->fix[ifix]->size_local_cols)
+	error->all("Fix ave/histo fix array is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->global_freq)
+	error->all("Fix for fix ave/histo not computed at compatible time");
+
+    } else if (which[i] == VARIABLE && kind == GLOBAL) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
 	error->all("Variable name for fix ave/histo does not exist");
-      if (input->variable->equalstyle(ivariable) == 0)
-	error->all("Fix ave/histo variable is not equal-style variable");
 
-    } else if (which[i] == VARIABLE && mode == VECTOR) {
+    } else if (which[i] == VARIABLE && kind == PERATOM) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
 	error->all("Variable name for fix ave/histo does not exist");
-      if (input->variable->atomstyle(ivariable) == 0)
-	error->all("Fix ave/histo variable is not atom-style variable");
     }
-  }
-
-  // check that inputs are all global, or all per-atom, or all local
-
-  int kindflag;
-  for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
-      Compute *compute = modify->compute[modify->find_compute(ids[0])];
-      if (compute->scalar_flag || compute->vector_flag || compute->scalar_flag)
-	kindflag = GLOBAL;
-      else if (compute->peratom_flag) kindflag = PERATOM;
-      else kindflag = LOCAL;
-    } else if (which[i] == FIX) {
-      Fix *fix = modify->fix[modify->find_fix(ids[0])];
-      if (fix->scalar_flag || fix->vector_flag || fix->scalar_flag)
-	kindflag = GLOBAL;
-      else if (fix->peratom_flag) kindflag = PERATOM;
-      else kindflag = LOCAL;
-    } else if (which[i] == VARIABLE) {
-      int ivariable = input->variable->find(ids[i]);
-      if (input->variable->equalstyle(ivariable) == 0) kindflag = GLOBAL;
-      else kindflag = PERATOM;
-    }
-    if (i == 0) kind = kindflag;
-    else if (kindflag != kind)
-      error->all("Fix ave/histo inputs are not all global, peraton, or local");
   }
 
   // print file comment lines
@@ -252,12 +327,20 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   bin_total = new double[nbins];
   bin_all = new double[nbins];
   coord = new double[nbins];
+  vector = NULL;
+  maxatom = 0;
 
   // initializations
   // set coord to bin centers
 
-  double binsize = hi - lo;
-  bininv = binsize/nbins;
+  if (beyond == EXTRA) {
+    binsize = (hi-lo)/(nbins-2);
+    bininv = 1.0/binsize;
+  } else {
+    binsize = (hi-lo)/nbins;
+    bininv = 1.0/binsize;
+  }
+
   if (beyond == EXTRA) {
     coord[0] = lo;
     coord[nbins-1] = hi;
@@ -308,6 +391,7 @@ FixAveHisto::~FixAveHisto()
   delete [] bin_total;
   delete [] bin_all;
   delete [] coord;
+  memory->sfree(vector);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -427,7 +511,8 @@ void FixAveHisto::end_of_step()
 	if (argindex[i] == 0)
 	  bin_atoms(compute->vector_atom,1);
 	else
-	  bin_atoms(compute->array_atom[argindex[i]-1],size_peratom_cols);
+	  bin_atoms(compute->array_atom[argindex[i]-1],
+		    compute->size_peratom_cols);
 
       } else if (kind == LOCAL) {
 	if (!(compute->invoked_flag & INVOKED_LOCAL)) {
@@ -446,10 +531,48 @@ void FixAveHisto::end_of_step()
       
     } else if (which[i] == FIX) {
 
+      Fix *fix = modify->fix[m];
+
+      if (kind == GLOBAL && mode == SCALAR) {
+	if (argindex[i] == 0) bin_one(fix->compute_scalar());
+	else bin_one(fix->compute_vector(argindex[i]-1));
+
+      } else if (kind == GLOBAL && mode == VECTOR) {
+	if (argindex[i] == 0) {
+	  int n = fix->size_vector;
+	  for (i = 0; i < n; i++) bin_one(fix->compute_vector(i));
+	} else {
+	  int j = argindex[i] - 1;
+	  int n = fix->size_vector;
+	  for (i = 0; i < n; i++) bin_one(fix->compute_array(i,j));
+	}
+
+      } else if (kind == PERATOM) {
+	if (argindex[i] == 0) bin_atoms(fix->vector_atom,1);
+	else bin_atoms(fix->array_atom[argindex[i]-1],fix->size_peratom_cols);
+
+      } else if (kind == LOCAL) {
+	if (argindex[i] == 0)
+	  bin_vector(fix->size_local_rows,fix->vector_local,1);
+	else
+	  bin_vector(fix->size_local_rows,fix->array_local[argindex[i]-1],
+		     fix->size_local_cols);
+      }
+
       // evaluate equal-style variable
       
-    } else if (which[i] == VARIABLE) {
-      //scalar = input->variable->compute_equal(m);
+    } else if (which[i] == VARIABLE && kind == GLOBAL) {
+      bin_one(input->variable->compute_equal(m));
+
+    } else if (which[i] == VARIABLE && kind == PERATOM) {
+      if (atom->nlocal > maxatom) {
+	memory->sfree(vector);
+	maxatom = atom->nmax;
+	vector = (double *) memory->smalloc(maxatom*sizeof(double),
+					    "fix_ave/histo:vector");
+      }
+      input->variable->compute_atom(m,igroup,vector,1,0);
+      bin_atoms(vector,1);
     }
   }
 
@@ -580,7 +703,6 @@ void FixAveHisto::bin_one(double value)
     bin[ibin] += 1.0;
   }
 
-  stats[0] += 1.0;
   stats[0] += 1.0;
 }
 

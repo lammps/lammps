@@ -36,16 +36,18 @@ class FixAveHisto : public Fix {
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
-  double lo,hi;
-  double bininv;
+  double lo,hi,binsize,bininv;
   int kind,beyond;
+
+  double stats[4],stats_total[4],stats_all[4];
 
   int nbins;
   double *bin,*bin_total,*bin_all;
-  double *coord;
   double **bin_list;
+  double *coord;
 
-  double stats[4],stats_total[4],stats_all[4];
+  double *vector;
+  int maxatom;
 
   int ave,nwindow,nsum,startstep,mode;
   char *title1,*title2,*title3;

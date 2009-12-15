@@ -52,21 +52,13 @@ FFT_LIB =	-lfftw
 # SYSPATH = paths of libraries
 
 gpu_SYSLIB =       -lcudart
-# Intel ifort
-meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
-reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
-# gfortran
-#meam_SYSLIB =      -lgfortran
-#reax_SYSLIB =      -lgfortran
+meam_SYSLIB =      -lgfortran
+reax_SYSLIB =      -lgfortran
 user-atc_SYSLIB =  -lblas -llapack
 
 gpu_SYSPATH =      -L/usr/local/cuda/lib64
-# Intel ifort
-meam_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-reax_SYSPATH =     -L/opt/intel/fce/10.0.023/lib
-# gfortran
-#meam_SYSPATH =     -L/usr/local/lib/x86_64
-#reax_SYSPATH =     -L/usr/local/lib/x86_64
+meam_SYSPATH =     -L/usr/local/lib/x86_64
+reax_SYSPATH =     -L/usr/local/lib/x86_64
 user-atc_SYSPATH = 	
 
 # ---------------------------------------------------------------------

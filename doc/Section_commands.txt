@@ -382,6 +382,7 @@ of each style or click on the style itself for a full description:
 "addforce"_fix_addforce.html,
 "aveforce"_fix_aveforce.html,
 "ave/atom"_fix_ave_atom.html,
+"ave/histo"_fix_ave_histo.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
 "bond/break"_fix_bond_break.html,

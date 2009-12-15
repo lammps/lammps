@@ -994,6 +994,7 @@ to output and the kind of data they operate on and produce:
 <LI><A HREF = "#dump">Dump file output</A>
 <LI><A HREF = "#fixoutput">Fixes that write output files</A>
 <LI><A HREF = "#computeoutput">Computes that process output quantities</A>
+<LI><A HREF = "#fixoutput">Fixes that process output quantities</A>
 <LI><A HREF = "#compute">Computes that generate values to output</A>
 <LI><A HREF = "#fix">Fixes that generate values to output</A>
 <LI><A HREF = "#variable">Variables that generate values to output</A>
@@ -1091,6 +1092,11 @@ per-atom quantities calculated by a <A HREF = "compute.html">compute</A>, by a
 spatial-averaged output of this fix can also be used as input to other
 output commands.
 </P>
+<P>The <A HREF = "fix_ave_histo.html">fix ave/histo</A> command enables direct output
+to a file of histogrammed quantities, which can be global or per-atom
+or local quantities.  The histogram output of this fix can also be
+used as input to other output commands.
+</P>
 <P>The <A HREF = "fix_print.html">fix print</A> command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
@@ -1110,6 +1116,16 @@ reduce/region</A> commands take one or more vector
 quantities as inputs and "reduce" them (sum, min, max, ave) to scalar
 quantities.  These are produced as output values which can be used as
 input to other output commands.
+</P>
+<H5><A NAME = "fixoutput"></A>Fixes that process output quantities 
+</H5>
+<P>The <A HREF = "fix_ave_atom.html">fix ave/atom</A> command performs time-averaging
+of per-atom vectors.  The per-atom quantities can be atom attributes
+such as position, velocity, force.  They can also be per-atom
+quantities calculated by a <A HREF = "compute.html">compute</A>, by a
+<A HREF = "fix.html">fix</A>, or by an atom-style <A HREF = "variable.html">variable</A>.  The
+time-averaged per-atom output of this fix can be used as input to
+other output commands.
 </P>
 <H5><A NAME = "compute"></A>Computes that generate values to output 
 </H5>
@@ -1164,9 +1180,10 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "fix.html">fixes</A></TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "variable.html">variables</A></TD><TD > global scalars, per-atom vectors</TD><TD > global scalar, per-atom vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_reduce.html">compute reduce</A></TD><TD > global/per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_ave_atom.html">fix ave/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars/vectors</TD><TD > global scalar/vector/array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_spatial.html">fix ave/spatial</A></TD><TD > per-atom vectors</TD><TD > global array, file</TD><TD ></TD></TR>
-<TR><TD ><A HREF = "fix_ave_atom.html">fix ave/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_ave_histo.html">fix ave/histo</A></TD><TD > global/per-atom/local scalars and vectors</TD><TD > global array, file</TD><TD ></TD></TR>
 <TR><TD >
 </TD></TR></TABLE></DIV>
 

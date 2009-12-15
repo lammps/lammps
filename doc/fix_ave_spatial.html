@@ -19,19 +19,18 @@
 
 <LI>ave/spatial = style name of this fix command 
 
-<LI>Nevery = calculate property every this many timesteps 
+<LI>Nevery = use input values every this many timesteps 
 
-<LI>Nrepeat = # of times to repeat the Nevery calculation before averaging 
+<LI>Nrepeat = # of times to use input values for calculating averages 
 
-<LI>Nfreq = timestep frequency at which the average value is computed 
-
-<LI>dim = <I>x</I> or <I>y</I> or <I>z</I> 
+<LI>Nfreq = calculate averages every this many timesteps
+dim = <I>x</I> or <I>y</I> or <I>z</I> 
 
 <LI>origin = <I>lower</I> or <I>center</I> or <I>upper</I> or coordinate value (distance units) 
 
 <LI>delta = thickness of spatial layers in dim (distance units) 
 
-<LI>one or more values can be listed 
+<LI>one or more input values can be listed 
 
 <LI>value = x, y, z, vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID[I], f_ID, f_ID[I], v_name 
 
@@ -73,16 +72,14 @@ fix 1 flow ave/spatial 100 5 1000 y 0.0 2.5 density/mass ave running
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Calculate one or more instantaneous per-atom quantities every few
-timesteps, average them by layer in a chosen dimension, and average
-the layer values over a longer timescale.  The resulting averages can
-be used by other <A HREF = "Section_howto.html#4_15">output commands</A> such as
-<A HREF = "thermo_style.html">thermo_style custom</A>, and can also be written to a
-file.
+<P>Use one or more per-atom vectors as inputs every few timesteps, bin
+them spatially by layer in a dimension, and average the layer values
+over longer timescales.  The resulting layer averages can be used by
+other <A HREF = "Section_howto.html#4_15">output commands</A> such as <A HREF = "thermo_style.html">thermo_style
+custom</A>, and can also be written to a file.
 </P>
-<P>Each listed value is averaged independently.  The group specified with
-the command means only atoms within the group contribute to the layer
-averages.
+<P>The group specified with the command means only atoms within the group
+contribute to layer averages.
 </P>
 <P>Each listed value can be an atom attribute (position, velocity, force
 component), a mass or number density, or the result of a
@@ -100,17 +97,20 @@ quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are th
 ones that can be used with this fix since all other styles of variable
 produce global quantities.
 </P>
+<P>The per-atom values of each input vector are binned and averaged
+independently of the per-atom values in other input vectors.
+</P>
 <HR>
 
 <P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
-timesteps the layer values will be generated in order to contribute to
-the average.  The final averaged quantities are generated every
-<I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I> quantities, computed
-in the preceding portion of the simulation every <I>Nevery</I> timesteps.
-<I>Nfreq</I> must be a multiple of <I>Nevery</I> and <I>Nevery</I> must be non-zero
-even if <I>Nrepeat</I> is 1.  Also, the timesteps contributing to the
-average value cannot overlap, i.e. Nfreq > (Nrepeat-1)*Nevery is
-required.
+timesteps the input values will be used to bin them into layers and
+contribute to the average.  The final averaged quantities are
+generated every <I>Nfreq</I> timesteps.  The average is over <I>Nrepeat</I>
+quantities, computed in the preceding portion of the simulation every
+<I>Nevery</I> timesteps.  <I>Nfreq</I> must be a multiple of <I>Nevery</I> and
+<I>Nevery</I> must be non-zero even if <I>Nrepeat</I> is 1.  Also, the timesteps
+contributing to the average value cannot overlap, i.e. Nfreq >
+(Nrepeat-1)*Nevery is required.
 </P>
 <P>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
@@ -272,7 +272,7 @@ values for each of these, so they do not need to be specified.
 </P>
 <PRE># Spatial-averaged data for fix ID and group name
 # Timestep Number-of-layers
-# Layer Coord Ncount value1 value2 ... 
+# Layer Coord Count value1 value2 ... 
 </PRE>
 <P>In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
@@ -290,16 +290,16 @@ are relevant to this fix.
 <P>This fix computes a global array of values which can be accessed by
 various <A HREF = "Section_howto.html#4_15">output commands</A>.  The values can
 only be accessed on timesteps that are multiples of <I>Nfreq</I> since that
-is when averaging is performed.  The global array has rows = Nlayers
-and columns = Nvalues+2.  The first column has the layer coordinate,
-the 2nd column has the count of atoms in that layer, and the remaining
-columns are the Nvalue quantities.  When the array is accessed with an
-I that exceeds the current number of layers, than a 0.0 is returned by
-the fix instead of an error, since the number of layers can vary as a
-simulation runs, depending on the simulation box size.  The array
-values calculated by this fix are "intensive", meaning they are
-independent of the number of atoms in the simulation, since they are
-already normalized by the count of atoms in each layer.
+is when averaging is performed.  The global array has # of rows =
+Nlayers and # of columns = Nvalues+2.  The first column has the layer
+coordinate, the 2nd column has the count of atoms in that layer, and
+the remaining columns are the Nvalue quantities.  When the array is
+accessed with an I that exceeds the current number of layers, than a
+0.0 is returned by the fix instead of an error, since the number of
+layers can vary as a simulation runs, depending on the simulation box
+size.  The array values calculated by this fix are "intensive",
+meaning they are independent of the number of atoms in the simulation,
+since they are already normalized by the count of atoms in each layer.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
@@ -315,7 +315,9 @@ simulation box size doesn't change or if the <I>units</I> keyword is set to
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>
+<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_histo.html">fix
+ave/histo</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>,
+<A HREF = "variable.html">variable</A>,
 </P>
 <P><B>Default:</B>
 </P>

@@ -987,6 +987,7 @@ to output and the kind of data they operate on and produce:
 "Dump file output"_#dump
 "Fixes that write output files"_#fixoutput
 "Computes that process output quantities"_#computeoutput
+"Fixes that process output quantities"_#fixoutput
 "Computes that generate values to output"_#compute
 "Fixes that generate values to output"_#fix
 "Variables that generate values to output"_#variable
@@ -1082,6 +1083,11 @@ per-atom quantities calculated by a "compute"_compute.html, by a
 spatial-averaged output of this fix can also be used as input to other
 output commands.
 
+The "fix ave/histo"_fix_ave_histo.html command enables direct output
+to a file of histogrammed quantities, which can be global or per-atom
+or local quantities.  The histogram output of this fix can also be
+used as input to other output commands.
+
 The "fix print"_fix_print.html command can generate a line of output
 written to the screen and log file or to a separate file, periodically
 during a running simulation.  The line can contain one or more
@@ -1101,6 +1107,16 @@ reduce/region"_compute_reduce.html commands take one or more vector
 quantities as inputs and "reduce" them (sum, min, max, ave) to scalar
 quantities.  These are produced as output values which can be used as
 input to other output commands.
+
+Fixes that process output quantities :h5,link(fixoutput)
+
+The "fix ave/atom"_fix_ave_atom.html command performs time-averaging
+of per-atom vectors.  The per-atom quantities can be atom attributes
+such as position, velocity, force.  They can also be per-atom
+quantities calculated by a "compute"_compute.html, by a
+"fix"_fix.html, or by an atom-style "variable"_variable.html.  The
+time-averaged per-atom output of this fix can be used as input to
+other output commands.
 
 Computes that generate values to output :h5,link(compute)
 
@@ -1154,9 +1170,10 @@ Command: Input: Output:
 "fixes"_fix.html: N/A: global/per-atom/local scalar/vector/array:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
+"fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 "fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:
-"fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
+"fix ave/histo"_fix_ave_histo.html: global/per-atom/local scalars and vectors: global array, file:
 :tb(s=:)
 
 :line

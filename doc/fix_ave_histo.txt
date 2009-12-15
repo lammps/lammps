@@ -20,8 +20,8 @@ Nfreq = calculate histogram every this many timesteps
 lo,hi = lo/hi bounds within which to histogram
 Nbin = # of histogram bins
 one or more input values can be listed :l
-value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
-  c_ID = scalar or vector calculated by a compute with ID
+value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)c_ID = scalar or vector calculated by a compute with ID
   c_ID\[I\] = Ith component of vector or Ith column of array calculated by a compute with ID
   f_ID = scalar or vector calculated by a fix with ID
   f_ID\[I\] = Ith component of vector or Ith column of array calculated by a fix with ID
@@ -75,7 +75,8 @@ a histogram bin.  {Nbins} are defined, with even spacing between {lo}
 and {hi}.  Values that fall outside the lo/hi bounds can be treated in
 different ways; see the discussion of the {beyond} keyword below.
 
-Each input value can be the result of a "compute"_compute.html or
+Each input value can be an atom attribute (position, velocity, force
+component) or can be the result of a "compute"_compute.html or
 "fix"_fix.html or the evaluation of an equal-style or atom-style
 "variable"_variable.html.  The set of input values can be either all
 global, all per-atom, or all local quantities.  Inputs of different
@@ -83,8 +84,9 @@ kinds (e.g. global and per-atom) cannot be mixed.  The input values
 must also be either all scalar or all vector values, depending on the
 setting of the {mode} keyword.
 
-See the doc page for individual "compute" and "fix" commands to see
-what kinds of quantities they generate.
+Atom attributes are per-atom vector values.  See the doc page for
+individual "compute" and "fix" commands to see what kinds of
+quantities they generate.
 
 The output of this command is a single histogram for all input values
 combined together, not one histogram per input value.  See below for
@@ -109,6 +111,9 @@ histogram on timestep 100.  Similarly for timesteps
 simply generated on timesteps 100,200,etc.
 
 :line
+
+The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
+self-explanatory.
 
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If {mode} = scalar, then if

@@ -34,9 +34,10 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {title1} or {title
     vector = all input values are vectors
   {file} arg = filename
     filename = name of file to output histogram(s) to
-  {ave} args = {one} or {running}
+  {ave} args = {one} or {running} or {window}
     one = output a new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
+    window M = output average of M most recent Nfreq steps
   {start} args = Nstart
     Nstart = start averaging on this timestep
   {beyond} arg = {ignore} or {end} or {extra}
@@ -203,10 +204,18 @@ when the fix is defined; it can only be restarted by deleting the fix
 via the "unfix"_unfix.html command, or by re-defining the fix by
 re-specifying it.
 
+If the {ave} setting is {window}, then the histograms produced on
+timesteps that are multiples of {Nfreq} are summed within a moving
+"window" of time, so that the last M histograms are used to produce
+the output.  E.g. if M = 3 and Nfreq = 1000, then the output on step
+10000 will be the combined histogram of the individual histograms on
+steps 8000,9000,10000.  Outputs on early steps will be sums over less
+than M histograms if they are not available.
+
 The {start} keyword specifies what timestep histogramming will begin
 on.  The default is step 0.  Often input values can be 0.0 at time 0,
 so setting {start} to a larger value can avoid including a 0.0 in
-a running histogram.
+a running or windowed histogram.
 
 The {file} keyword allows a filename to be specified.  Every {Nfreq}
 steps, one histogram is written to the file.  This includes a leading

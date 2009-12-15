@@ -45,9 +45,10 @@ one or more input values can be listed
     vector = all input values are vectors
   <I>file</I> arg = filename
     filename = name of file to output histogram(s) to
-  <I>ave</I> args = <I>one</I> or <I>running</I>
+  <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window</I>
     one = output a new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
+    window M = output average of M most recent Nfreq steps
   <I>start</I> args = Nstart
     Nstart = start averaging on this timestep
   <I>beyond</I> arg = <I>ignore</I> or <I>end</I> or <I>extra</I>
@@ -215,10 +216,18 @@ when the fix is defined; it can only be restarted by deleting the fix
 via the <A HREF = "unfix.html">unfix</A> command, or by re-defining the fix by
 re-specifying it.
 </P>
+<P>If the <I>ave</I> setting is <I>window</I>, then the histograms produced on
+timesteps that are multiples of <I>Nfreq</I> are summed within a moving
+"window" of time, so that the last M histograms are used to produce
+the output.  E.g. if M = 3 and Nfreq = 1000, then the output on step
+10000 will be the combined histogram of the individual histograms on
+steps 8000,9000,10000.  Outputs on early steps will be sums over less
+than M histograms if they are not available.
+</P>
 <P>The <I>start</I> keyword specifies what timestep histogramming will begin
 on.  The default is step 0.  Often input values can be 0.0 at time 0,
 so setting <I>start</I> to a larger value can avoid including a 0.0 in
-a running histogram.
+a running or windowed histogram.
 </P>
 <P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
 steps, one histogram is written to the file.  This includes a leading

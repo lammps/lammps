@@ -25,7 +25,7 @@ args = list of arguments for a particular style :l
   {xtc} args = none
   {xyz} args = none
   {custom} args = list of atom attributes
-    possible attributes = id, mol, type,
+    possible attributes = id, mol, type, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
@@ -255,13 +255,13 @@ styles.
 This section explains the atom quantities that can be specified as
 part of the {custom} and {cfg} styles.
 
-The {id}, {mol}, {type}, {vx}, {vy}, {vz}, {fx}, {fy},
+The {id}, {mol}, {type}, {mass}, {vx}, {vy}, {vz}, {fx}, {fy},
 {fz}, {q} keywords are self-explanatory.
 
 {Id} is the atom ID.  {Mol} is the molecule ID, included in the data
-file for molecular systems.  {Type} is the atom type.  {Vx}, {vy},
-{vz}, {fx}, {fy}, {fz}, and {q} are components of atom velocity and
-force and atomic charge.
+file for molecular systems.  {Type} is the atom type.  {Mass} is the
+atom mass.  {Vx}, {vy}, {vz}, {fx}, {fy}, {fz}, and {q} are components
+of atom velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The {x},
 {y}, {z} keywords write atom coordinates "unscaled", in the

@@ -34,7 +34,7 @@
   <I>xtc</I> args = none
   <I>xyz</I> args = none
   <I>custom</I> args = list of atom attributes
-    possible attributes = id, mol, type,
+    possible attributes = id, mol, type, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz,
@@ -265,13 +265,13 @@ styles.
 <P>This section explains the atom quantities that can be specified as
 part of the <I>custom</I> and <I>cfg</I> styles.
 </P>
-<P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
+<P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>mass</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
 <I>fz</I>, <I>q</I> keywords are self-explanatory.
 </P>
 <P><I>Id</I> is the atom ID.  <I>Mol</I> is the molecule ID, included in the data
-file for molecular systems.  <I>Type</I> is the atom type.  <I>Vx</I>, <I>vy</I>,
-<I>vz</I>, <I>fx</I>, <I>fy</I>, <I>fz</I>, and <I>q</I> are components of atom velocity and
-force and atomic charge.
+file for molecular systems.  <I>Type</I> is the atom type.  <I>Mass</I> is the
+atom mass.  <I>Vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>, <I>fz</I>, and <I>q</I> are components
+of atom velocity and force and atomic charge.
 </P>
 <P>There are several options for outputting atom coordinates.  The <I>x</I>,
 <I>y</I>, <I>z</I> keywords write atom coordinates "unscaled", in the

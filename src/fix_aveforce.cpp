@@ -14,7 +14,7 @@
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
-#include "fix_ave_force.h"
+#include "fix_aveforce.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

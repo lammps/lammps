@@ -11,16 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_AVE_FORCE_H
-#define FIX_AVE_FORCE_H
+#ifndef FIX_ADDFORCE_H
+#define FIX_ADDFORCE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixAveForce : public Fix {
+class FixAddForce : public Fix {
  public:
-  FixAveForce(class LAMMPS *, int, char **);
+  FixAddForce(class LAMMPS *, int, char **);
   int setmask();
   void init();
   void setup(int);
@@ -28,12 +28,14 @@ class FixAveForce : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  double compute_scalar();
   double compute_vector(int);
 
  private:
-  int xflag,yflag,zflag,iregion;
+  int iregion;
   double xvalue,yvalue,zvalue;
-  double foriginal_all[4];
+  double foriginal[4],foriginal_all[4];
+  int force_flag;
   int nlevels_respa;
 };
 

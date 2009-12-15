@@ -11,25 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_LINE_FORCE_H
-#define FIX_LINE_FORCE_H
+#ifndef FIX_AVEFORCE_H
+#define FIX_AVEFORCE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixLineForce : public Fix {
+class FixAveForce : public Fix {
  public:
-  FixLineForce(class LAMMPS *, int, char **);
+  FixAveForce(class LAMMPS *, int, char **);
   int setmask();
+  void init();
   void setup(int);
   void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  double compute_vector(int);
 
  private:
-  double xdir,ydir,zdir;
+  int xflag,yflag,zflag,iregion;
+  double xvalue,yvalue,zvalue;
+  double foriginal_all[4];
+  int nlevels_respa;
 };
 
 }

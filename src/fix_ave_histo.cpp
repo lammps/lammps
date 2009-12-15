@@ -1,0 +1,695 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "stdlib.h"
+#include "string.h"
+#include "fix_ave_histo.h"
+#include "atom.h"
+#include "update.h"
+#include "modify.h"
+#include "compute.h"
+#include "group.h"
+#include "input.h"
+#include "variable.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+
+enum{COMPUTE,FIX,VARIABLE};
+enum{ONE,RUNNING};
+enum{SCALAR,VECTOR,WINDOW};
+enum{GLOBAL,PERATOM,LOCAL};
+enum{IGNORE,END,EXTRA};
+
+#define INVOKED_SCALAR 1
+#define INVOKED_VECTOR 2
+#define INVOKED_ARRAY 4
+#define INVOKED_PERATOM 8
+#define INVOKED_LOCAL 16
+
+#define BIG 1.0e20
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+
+/* ---------------------------------------------------------------------- */
+
+FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
+{
+  if (narg < 10) error->all("Illegal fix ave/histo command");
+
+  global_freq = nfreq;
+  vector_flag = 1;
+  size_vector = 4;
+  extvector = 0;
+  array_flag = 1;
+  size_local_cols = 3;
+  extarray = 0;
+  time_depend = 1;
+
+  MPI_Comm_rank(world,&me);
+
+  nevery = atoi(arg[3]);
+  nrepeat = atoi(arg[4]);
+  nfreq = atoi(arg[5]);
+
+  lo = atof(arg[6]);
+  hi = atof(arg[7]);
+  nbins = atoi(arg[8]);
+
+  // scan values to count them
+  // then read options so know mode = SCALAR/VECTOR before re-reading values
+
+  nvalues = 0;
+
+  int iarg = 9;
+  while (iarg < narg) {
+    if ((strncmp(arg[iarg],"c_",2) == 0) || 
+	(strncmp(arg[iarg],"f_",2) == 0) || 
+	(strncmp(arg[iarg],"v_",2) == 0)) {
+      nvalues++;
+      iarg++;
+    } else break;
+  }
+
+  options(narg,arg);
+
+  // parse values until one isn't recognized
+
+  which = new int[nvalues];
+  argindex = new int[nvalues];
+  ids = new char*[nvalues];
+  value2index = new int[nvalues];
+  nvalues = 0;
+
+  iarg = 9;
+  while (iarg < narg) {
+    if ((strncmp(arg[iarg],"c_",2) == 0) || 
+	(strncmp(arg[iarg],"f_",2) == 0) || 
+	(strncmp(arg[iarg],"v_",2) == 0)) {
+      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
+      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][2]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+	if (suffix[strlen(suffix)-1] != ']')
+	  error->all("Illegal fix ave/histo command");
+	argindex[nvalues] = atoi(ptr+1);
+	*ptr = '\0';
+      } else argindex[nvalues] = 0;
+
+      n = strlen(suffix) + 1;
+      ids[nvalues] = new char[n];
+      strcpy(ids[nvalues],suffix);
+      nvalues++;
+      delete [] suffix;
+
+    } else break;
+
+    iarg++;
+  }
+
+  // setup and error check
+  // for fix inputs, check that fix frequency is acceptable
+
+  if (nevery <= 0) error->all("Illegal fix ave/histo command");
+  if (nfreq < nevery || nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+    error->all("Illegal fix ave/histo command");
+
+  if (lo >= hi) error->all("Illegal fix ave/histo command");
+  if (nbins <= 0) error->all("Illegal fix ave/histo command");
+
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE && mode == SCALAR) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/histo does not exist");
+      if (argindex[i] == 0 && modify->compute[icompute]->scalar_flag == 0)
+	error->all("Fix ave/histo compute does not calculate a scalar");
+      if (argindex[i] && modify->compute[icompute]->vector_flag == 0)
+	error->all("Fix ave/histo compute does not calculate a vector");
+      if (argindex[i] && argindex[i] > modify->compute[icompute]->size_vector)
+	error->all("Fix ave/histo compute vector is accessed out-of-range");
+
+    } else if (which[i] == COMPUTE && mode == VECTOR) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/histo does not exist");
+      if (argindex[i] == 0 && modify->compute[icompute]->vector_flag == 0)
+	error->all("Fix ave/histo compute does not calculate a vector");
+      if (argindex[i] && modify->compute[icompute]->array_flag == 0)
+	error->all("Fix ave/histo compute does not calculate a array");
+      if (argindex[i] && 
+	  argindex[i] > modify->compute[icompute]->size_array_cols)
+	error->all("Fix ave/histo compute array is accessed out-of-range");
+
+    } else if (which[i] == FIX && mode == SCALAR) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+	error->all("Fix ID for fix ave/histo does not exist");
+      if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
+	error->all("Fix ave/histo fix does not calculate a scalar");
+      if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
+	error->all("Fix ave/histo fix does not calculate a vector");
+      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_vector)
+	error->all("Fix ave/histo fix vector is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->global_freq)
+	error->all("Fix for fix ave/histo not computed at compatible time");
+
+    } else if (which[i] == FIX && mode == VECTOR) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+	error->all("Fix ID for fix ave/histo does not exist");
+      if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
+	error->all("Fix ave/histo fix does not calculate a vector");
+      if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
+	error->all("Fix ave/histo fix does not calculate a array");
+      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_array_cols)
+	error->all("Fix ave/histo fix array is accessed out-of-range");
+      if (nevery % modify->fix[ifix]->global_freq)
+	error->all("Fix for fix ave/histo not computed at compatible time");
+
+    } else if (which[i] == VARIABLE && mode == SCALAR) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+	error->all("Variable name for fix ave/histo does not exist");
+      if (input->variable->equalstyle(ivariable) == 0)
+	error->all("Fix ave/histo variable is not equal-style variable");
+
+    } else if (which[i] == VARIABLE && mode == VECTOR) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+	error->all("Variable name for fix ave/histo does not exist");
+      if (input->variable->atomstyle(ivariable) == 0)
+	error->all("Fix ave/histo variable is not atom-style variable");
+    }
+  }
+
+  // check that inputs are all global, or all per-atom, or all local
+
+  int kindflag;
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE) {
+      Compute *compute = modify->compute[modify->find_compute(ids[0])];
+      if (compute->scalar_flag || compute->vector_flag || compute->scalar_flag)
+	kindflag = GLOBAL;
+      else if (compute->peratom_flag) kindflag = PERATOM;
+      else kindflag = LOCAL;
+    } else if (which[i] == FIX) {
+      Fix *fix = modify->fix[modify->find_fix(ids[0])];
+      if (fix->scalar_flag || fix->vector_flag || fix->scalar_flag)
+	kindflag = GLOBAL;
+      else if (fix->peratom_flag) kindflag = PERATOM;
+      else kindflag = LOCAL;
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (input->variable->equalstyle(ivariable) == 0) kindflag = GLOBAL;
+      else kindflag = PERATOM;
+    }
+    if (i == 0) kind = kindflag;
+    else if (kindflag != kind)
+      error->all("Fix ave/histo inputs are not all global, peraton, or local");
+  }
+
+  // print file comment lines
+
+  if (fp && me == 0) {
+    if (title1) fprintf(fp,"%s\n",title1);
+    else fprintf(fp,"# Histogrammed data for fix %s\n",id);
+    if (title2) fprintf(fp,"%s\n",title2);
+    else fprintf(fp,"# TimeStep Number-of-bins "
+		 "Total-counts Missing-counts Min-value Max-value\n");
+    if (title3) fprintf(fp,"%s\n",title3);
+    else fprintf(fp,"# Bin Coord Count Count/Total\n");
+  }
+
+  delete [] title1;
+  delete [] title2;
+  delete [] title3;
+
+  // allocate and initialize memory for averaging
+
+  if (beyond == EXTRA) nbins += 2;
+  size_local_rows = nbins;
+
+  bin = new double[nbins];
+  bin_total = new double[nbins];
+  bin_all = new double[nbins];
+  coord = new double[nbins];
+
+  // initializations
+  // set coord to bin centers
+
+  double binsize = hi - lo;
+  bininv = binsize/nbins;
+  if (beyond == EXTRA) {
+    coord[0] = lo;
+    coord[nbins-1] = hi;
+    for (int i = 1; i < nbins-1; i++)
+      coord[i] = lo + (i-1+0.5)*binsize;
+  } else {
+    for (int i = 0; i < nbins; i++)
+      coord[i] = lo + (i+0.5)*binsize;
+  }
+
+  irepeat = 0;
+  iwindow = window_limit = 0;
+
+  stats_total[0] = stats_total[1] = stats_total[2] = stats_total[3] = 0.0;
+  for (int i = 0; i < nbins; i++) bin_total[i] = 0.0;
+
+  // nvalid = next step on which end_of_step does something
+  // can be this timestep if multiple of nfreq and nrepeat = 1
+  // else backup from next multiple of nfreq
+
+  nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+  if (nvalid < update->ntimestep) nvalid += nfreq;
+
+  // add nvalid to all computes that store invocation times
+  // since don't know a priori which are invoked by this fix
+  // once in end_of_step() can set timestep for ones actually invoked
+
+  modify->addstep_compute_all(nvalid);
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixAveHisto::~FixAveHisto()
+{
+  delete [] which;
+  delete [] argindex;
+  for (int i = 0; i < nvalues; i++) delete [] ids[i];
+  delete [] ids;
+  delete [] value2index;
+
+  if (fp && me == 0) fclose(fp);
+
+  delete [] bin;
+  delete [] bin_total;
+  delete [] bin_all;
+  delete [] coord;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixAveHisto::setmask()
+{
+  int mask = 0;
+  mask |= END_OF_STEP;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAveHisto::init()
+{
+  // set current indices for all computes,fixes,variables
+
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+	error->all("Compute ID for fix ave/histo does not exist");
+      value2index[i] = icompute;
+
+    } else if (which[i] == FIX) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0) 
+	error->all("Fix ID for fix ave/histo does not exist");
+      value2index[i] = ifix;
+
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0) 
+	error->all("Variable name for fix ave/histo does not exist");
+      value2index[i] = ivariable;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   only does something if nvalid = current timestep
+------------------------------------------------------------------------- */
+
+void FixAveHisto::setup(int vflag)
+{
+  end_of_step();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAveHisto::end_of_step()
+{
+  int i,m;
+
+  // skip if not step which requires doing something
+
+  int ntimestep = update->ntimestep;
+  if (ntimestep != nvalid) return;
+
+  // zero if first step
+
+  if (irepeat == 0) {
+    stats[0] = stats[1] = 0.0;
+    stats[2] = BIG;
+    stats[3] = -BIG;
+    for (i = 0; i < nbins; i++) bin[i] = 0.0;
+  }
+
+  // accumulate results of computes,fixes,variables to local copy
+  // compute/fix/variable may invoke computes so wrap with clear/add
+
+  modify->clearstep_compute();
+
+  for (i = 0; i < nvalues; i++) {
+    m = value2index[i];
+    
+    // invoke compute if not previously invoked
+    
+    if (which[i] == COMPUTE) {
+      Compute *compute = modify->compute[m];
+
+      if (kind == GLOBAL && mode == SCALAR) {
+	if (argindex[i] == 0) {
+	  if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+	    compute->compute_scalar();
+	    compute->invoked_flag |= INVOKED_SCALAR;
+	  }
+	  bin_one(compute->scalar);
+	} else {
+	  if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	    compute->compute_vector();
+	    compute->invoked_flag |= INVOKED_VECTOR;
+	  }
+	  bin_one(compute->vector[argindex[i]-1]);
+	}
+      } else if (kind == GLOBAL && mode == VECTOR) {
+	if (argindex[i] == 0) {
+	  if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+	    compute->compute_vector();
+	    compute->invoked_flag |= INVOKED_VECTOR;
+	  }
+	  bin_vector(compute->size_vector,compute->vector,1);
+	} else {
+	  if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+	    compute->compute_array();
+	    compute->invoked_flag |= INVOKED_ARRAY;
+	  }
+	  bin_vector(compute->size_array_rows,compute->array[argindex[i]-1],
+		     compute->size_array_cols);
+	}
+
+      } else if (kind == PERATOM) {
+	if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+	  compute->compute_peratom();
+	  compute->invoked_flag |= INVOKED_PERATOM;
+	}
+	if (argindex[i] == 0)
+	  bin_atoms(compute->vector_atom,1);
+	else
+	  bin_atoms(compute->array_atom[argindex[i]-1],size_peratom_cols);
+
+      } else if (kind == LOCAL) {
+	if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+	  compute->compute_local();
+	  compute->invoked_flag |= INVOKED_LOCAL;
+	}
+	if (argindex[i] == 0)
+	  bin_vector(compute->size_local_rows,compute->vector_local,1);
+	else
+	  bin_vector(compute->size_local_rows,
+		     compute->array_local[argindex[i]-1],
+		     compute->size_local_cols);
+      }
+
+      // access fix fields, guaranteed to be ready
+      
+    } else if (which[i] == FIX) {
+
+      // evaluate equal-style variable
+      
+    } else if (which[i] == VARIABLE) {
+      //scalar = input->variable->compute_equal(m);
+    }
+  }
+
+  // done if irepeat < nrepeat
+  // else reset irepeat and nvalid
+
+  irepeat++;
+  if (irepeat < nrepeat) {
+    nvalid += nevery;
+    modify->addstep_compute(nvalid);
+    return;
+  }
+
+  irepeat = 0;
+  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  modify->addstep_compute(nvalid);
+
+  // merge histogram stats across procs if necessary
+
+  if (kind == PERATOM || kind == LOCAL) {
+    MPI_Allreduce(stats,stats_all,2,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&stats[2],&stats_all[2],1,MPI_DOUBLE,MPI_MIN,world);
+    MPI_Allreduce(&stats[3],&stats_all[3],1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(bin,bin_all,nbins,MPI_DOUBLE,MPI_SUM,world);
+
+    stats[0] = stats_all[0];
+    stats[1] = stats_all[1];
+    stats[2] = stats_all[2];
+    stats[3] = stats_all[3];
+    for (i = 0; i < nbins; i++) bin[i] = bin_all[i];
+  }
+
+  // if ave = ONE, only single Nfreq timestep value is needed
+  // if ave = RUNNING, combine with all previous Nfreq timestep values
+  // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
+
+  if (ntimestep >= startstep) {
+    if (ave == ONE) {
+      stats_total[0] = stats[0];
+      stats_total[1] = stats[1];
+      stats_total[2] = stats[2];
+      stats_total[3] = stats[3];
+      for (i = 0; i < nbins; i++) bin_total[i] = bin[i];
+
+    } else if (ave == RUNNING) {
+      stats_total[0] += stats[0];
+      stats_total[1] += stats[1];
+      stats_total[2] = MIN(stats_total[2],stats[2]);
+      stats_total[3] = MAX(stats_total[3],stats[3]);
+      for (i = 0; i < nbins; i++) bin_total[i] += bin[i];
+      
+    } else if (ave == WINDOW) {
+      for (i = 0; i < nbins; i++) {
+	bin_total[i] += bin[i];
+	if (window_limit) bin_total[i] -= bin_list[iwindow][i];
+	bin_list[iwindow][i] = bin[i];
+      }
+      
+      iwindow++;
+      if (iwindow == nwindow) {
+	iwindow = 0;
+	window_limit = 1;
+      }
+    }
+  }
+
+  // output result to file
+
+  if (fp && me == 0) {
+    fprintf(fp,"%d %d %g %g %g %g\n",
+	    ntimestep,nbins,
+	    stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
+    if (stats_total[0] != 0.0)
+      for (i = 0; i < nbins; i++)
+	fprintf(fp,"%d %g %g %g\n",
+		i+1,coord[i],bin_total[i],bin_total[i]/stats_total[0]);
+    else
+      for (i = 0; i < nbins; i++)
+	fprintf(fp,"%d %g %g %g\n",i+1,coord[i],0.0,0.0);
+    fflush(fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   return Ith vector value
+------------------------------------------------------------------------- */
+
+double FixAveHisto::compute_vector(int i)
+{
+  return stats_total[i];
+}
+
+/* ----------------------------------------------------------------------
+   return I,J array value
+------------------------------------------------------------------------- */
+
+double FixAveHisto::compute_array(int i, int j)
+{
+  if (j == 0) return coord[j];
+  else if (j == 1) return bin_total[j];
+  else if (stats_total[0] != 0.0) return bin_total[j]/stats_total[0];
+  return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   bin a single value
+------------------------------------------------------------------------- */
+
+void FixAveHisto::bin_one(double value)
+{
+  stats[2] = MIN(stats[2],value);
+  stats[3] = MAX(stats[3],value);
+
+  if (value < lo) {
+    if (beyond == IGNORE) {
+      stats[1] += 1.0;
+      return;
+    } else bin[0] += 1.0;
+  } else if (value > hi) {
+    if (beyond == IGNORE) {
+      stats[1] += 1.0;
+      return;
+    } else bin[nbins-1] += 1.0;
+  } else {
+    int ibin = static_cast<int> ((value-lo)*bininv);
+    ibin = MIN(ibin,nbins-1);
+    if (beyond == EXTRA) ibin++;
+    bin[ibin] += 1.0;
+  }
+
+  stats[0] += 1.0;
+  stats[0] += 1.0;
+}
+
+/* ----------------------------------------------------------------------
+   bin a vector of values with stride
+------------------------------------------------------------------------- */
+
+void FixAveHisto::bin_vector(int n, double *values, int stride)
+{
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    bin_one(values[m]);
+    m += stride;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   bin a per-atom vector of values with stride
+   only bin if atom is in group
+------------------------------------------------------------------------- */
+
+void FixAveHisto::bin_atoms(double *values, int stride)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) bin_one(values[m]);
+    m += stride;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   parse optional args
+------------------------------------------------------------------------- */
+
+void FixAveHisto::options(int narg, char **arg)
+{
+  // option defaults
+
+  fp = NULL;
+  ave = ONE;
+  startstep = 0;
+  mode = SCALAR;
+  beyond = IGNORE;
+  title1 = NULL;
+  title2 = NULL;
+  title3 = NULL;
+
+  // optional args
+
+  int iarg = 9 + nvalues;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (me == 0) {
+	fp = fopen(arg[iarg+1],"w");
+	if (fp == NULL) {
+	  char str[128];
+	  sprintf(str,"Cannot open fix ave/histo file %s",arg[iarg+1]);
+	  error->one(str);
+	}
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ave") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
+      else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
+      else error->all("Illegal fix ave/histo command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"start") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      startstep = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mode") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (strcmp(arg[iarg+1],"scalar") == 0) mode = SCALAR;
+      else if (strcmp(arg[iarg+1],"vector") == 0) mode = VECTOR;
+      else error->all("Illegal fix ave/histo command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"beyond") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/histo command");
+      if (strcmp(arg[iarg+1],"ignore") == 0) beyond = IGNORE;
+      else if (strcmp(arg[iarg+1],"end") == 0) beyond = END;
+      else if (strcmp(arg[iarg+1],"extra") == 0) beyond = EXTRA;
+      else error->all("Illegal fix ave/histo command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"title1") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      delete [] title1;
+      int n = strlen(arg[iarg+1]) + 1;
+      title1 = new char[n];
+      strcpy(title1,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"title2") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      delete [] title2;
+      int n = strlen(arg[iarg+1]) + 1;
+      title2 = new char[n];
+      strcpy(title2,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"title3") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      delete [] title3;
+      int n = strlen(arg[iarg+1]) + 1;
+      title3 = new char[n];
+      strcpy(title3,arg[iarg+1]);
+      iarg += 2;
+    } else error->all("Illegal fix ave/histo command");
+  }
+}

@@ -11,16 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_PLANE_FORCE_H
-#define FIX_PLANE_FORCE_H
+#ifndef FIX_LINEFORCE_H
+#define FIX_LINEFORCE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixPlaneForce : public Fix {
+class FixLineForce : public Fix {
  public:
-  FixPlaneForce(class LAMMPS *, int, char **);
+  FixLineForce(class LAMMPS *, int, char **);
   int setmask();
   void setup(int);
   void min_setup(int);

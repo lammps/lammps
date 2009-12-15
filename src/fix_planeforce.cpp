@@ -14,7 +14,7 @@
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"
-#include "fix_plane_force.h"
+#include "fix_planeforce.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"

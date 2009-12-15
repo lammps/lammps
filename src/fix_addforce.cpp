@@ -13,7 +13,7 @@
 
 #include "string.h"
 #include "stdlib.h"
-#include "fix_add_force.h"
+#include "fix_addforce.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

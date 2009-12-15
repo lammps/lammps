@@ -156,9 +156,10 @@ DumpStyle(xyz,DumpXYZ)
 #endif
 
 #ifdef FixInclude
-#include "fix_add_force.h"
+#include "fix_addforce.h"
+#include "fix_aveforce.h"
 #include "fix_ave_atom.h"
-#include "fix_ave_force.h"
+#include "fix_ave_histo.h"
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
 #include "fix_box_relax.h"
@@ -176,7 +177,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_heat.h"
 #include "fix_indent.h"
 #include "fix_langevin.h"
-#include "fix_line_force.h"
+#include "fix_lineforce.h"
 #include "fix_minimize.h"
 #include "fix_msd.h"
 #include "fix_momentum.h"
@@ -191,7 +192,7 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_nvt.h"
 #include "fix_nvt_sllod.h"
 #include "fix_nvt_sphere.h"
-#include "fix_plane_force.h"
+#include "fix_planeforce.h"
 #include "fix_press_berendsen.h"
 #include "fix_print.h"
 #include "fix_orient_fcc.h"
@@ -219,8 +220,9 @@ DumpStyle(xyz,DumpXYZ)
 
 #ifdef FixClass
 FixStyle(addforce,FixAddForce)
-FixStyle(ave/atom,FixAveAtom)
 FixStyle(aveforce,FixAveForce)
+FixStyle(ave/atom,FixAveAtom)
+FixStyle(ave/histo,FixAveHisto)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
 FixStyle(box/relax,FixBoxRelax)

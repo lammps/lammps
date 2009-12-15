@@ -44,7 +44,7 @@ The group specified with the command means only atoms within the group
 have their averages computed.  Results are set to 0.0 for atoms not in
 the group.
 
-Each listed value can be an atom attribute (position, unwrapped
+Each input value can be an atom attribute (position, unwrapped
 position, velocity, force component) or can be the result of a
 "compute"_compute.html or "fix"_fix.html or the evaluation of an
 atom-style "variable"_variable.html.  In the latter cases, the

@@ -23,6 +23,7 @@
 #include "update.h"
 #include "force.h"
 #include "pair.h"
+#include "domain.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
@@ -37,67 +38,124 @@ using namespace LAMMPS_NS;
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 8 || (narg-6) % 2) error->all("Illegal compute rdf command");
+  if (narg < 4 || (narg-4) % 2) error->all("Illegal compute rdf command");
 
   array_flag = 1;
-  size_array_rows = 1;
-  size_array_cols = 1;
-  extarray = 1;
+  extarray = 0;
 
-  maxbin = atoi(arg[5]);
+  nbin = atoi(arg[3]);
+  if (nbin < 1) error->all("Illegal compute rdf command");
+  if (narg == 4) npairs = 1;
+  else npairs = (narg-4)/2;
 
-  npairs = 0;
-  rdfpair = memory->create_2d_int_array(atom->ntypes+1,atom->ntypes+1,
+  size_array_rows = nbin;
+  size_array_cols = 1 + 2*npairs;
+
+  int ntypes = atom->ntypes;
+  rdfpair = memory->create_3d_int_array(npairs,ntypes+1,ntypes+1,
 					"rdf:rdfpair");
+  nrdfpair = memory->create_2d_int_array(ntypes+1,ntypes+1,"rdf:nrdfpair");
+  ilo = new int[npairs];
+  ihi = new int[npairs];
+  jlo = new int[npairs];
+  jhi = new int[npairs];
 
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = 1; j <= atom->ntypes; j++)
-      rdfpair[i][j] = 0;
+  if (narg == 4) {
+    ilo[0] = 1; ihi[0] = ntypes;
+    jlo[0] = 1; jhi[0] = ntypes;
+    npairs = 1;
 
-  int itype,jtype;
-  for (int i = 6; i < narg; i += 2) {
-    itype = atoi(arg[i]);
-    jtype = atoi(arg[i+1]);
-    if (itype < 1 || jtype < 1 || itype > atom->ntypes || jtype > atom->ntypes)
-      error->all("Invalid atom type in compute rdf command");
-    npairs++;
-    rdfpair[itype][jtype] = npairs;
+  } else {
+    npairs = 0;
+    int iarg = 4;
+    while (iarg < narg) {
+      force->bounds(arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
+      force->bounds(arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
+      if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
+	error->all("Illegal compute rdf command");
+      npairs++;
+      iarg += 2;
+    }
   }
 
-  hist = memory->create_2d_double_array(maxbin,npairs+1,"rdf:hist");
-  array = memory->create_2d_double_array(maxbin,npairs+1,"rdf:array");
+  int i,j;
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++)
+      nrdfpair[i][j] = 0;
 
-  int *nrdfatom = new int[atom->ntypes+1];
-  for (int i = 1; i <= atom->ntypes; i++) nrdfatom[i] = 0;
+  for (int m = 0; m < npairs; m++)
+    for (i = ilo[m]; i <= ihi[m]; i++)
+      for (j = jlo[m]; j <= jhi[m]; j++)
+	rdfpair[nrdfpair[i][j]++][i][j] = m;
 
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) nrdfatom[type[i]]++;
-
-  nrdfatoms = new int[atom->ntypes+1];
-  MPI_Allreduce(&nrdfatom[1],&nrdfatoms[1],atom->ntypes,MPI_INT,MPI_SUM,world);
-  delete [] nrdfatom;
+  hist = memory->create_2d_double_array(npairs,nbin,"rdf:hist");
+  histall = memory->create_2d_double_array(npairs,nbin,"rdf:histall");
+  array = memory->create_2d_double_array(nbin,1+2*npairs,"rdf:array");
+  typecount = new int[ntypes+1];
+  icount = new int[npairs];
+  jcount = new int[npairs];
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRDF::~ComputeRDF()
 {
-  memory->destroy_2d_int_array(rdfpair);
+  memory->destroy_3d_int_array(rdfpair);
+  memory->destroy_2d_int_array(nrdfpair);
+  delete [] ilo;
+  delete [] ihi;
+  delete [] jlo;
+  delete [] jhi;
   memory->destroy_2d_double_array(hist);
-  delete [] nrdfatoms;
+  memory->destroy_2d_double_array(histall);
+  memory->destroy_2d_double_array(array);
+  delete [] typecount;
+  delete [] icount;
+  delete [] jcount;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeRDF::init()
 {
-  if (force->pair) delr = force->pair->cutforce / maxbin;
+  int i,m;
+
+  if (force->pair) delr = force->pair->cutforce / nbin;
   else error->all("Compute rdf requires a pair style be defined");
   delrinv = 1.0/delr;
+
+  // set 1st column of output array to bin coords
+
+  for (int i = 0; i < nbin; i++)
+    array[i][0] = (i+0.5) * delr;
+
+  // count atoms of each type that are also in group
+
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int ntypes = atom->ntypes;
+
+  for (i = 1; i <= ntypes; i++) typecount[i] = 0;
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) typecount[type[i]]++;
+
+  // icount = # of I atoms participating in I,J pairs for each histogram
+  // jcount = # of J atoms participating in I,J pairs for each histogram
+
+  for (m = 0; m < npairs; m++) {
+    icount[m] = 0;
+    for (i = ilo[m]; i <= ihi[m]; i++) icount[m] += typecount[i];
+    jcount[m] = 0;
+    for (i = jlo[m]; i <= jhi[m]; i++) jcount[m] += typecount[i];
+  }
+
+  int *scratch = new int[npairs];
+  MPI_Allreduce(icount,scratch,npairs,MPI_INT,MPI_SUM,world);
+  for (i = 0; i < npairs; i++) icount[i] = scratch[i];
+  MPI_Allreduce(jcount,scratch,npairs,MPI_INT,MPI_SUM,world);
+  for (i = 0; i < npairs; i++) jcount[i] = scratch[i];
+  delete [] scratch;
 
   // need an occasional half neighbor list
 
@@ -118,20 +176,11 @@ void ComputeRDF::init_list(int id, NeighList *ptr)
 
 void ComputeRDF::compute_array()
 {
-  invoked_array = update->ntimestep;
-
-  double **x = atom->x;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  int nall = atom->nlocal + atom->nghost;
-  int newton_pair = force->newton_pair;
-
-  int i,j,ii,jj,inum,jnum,itype,jtype,ipair,jpair,bin;
+  int i,j,m,ii,jj,inum,jnum,itype,jtype,ipair,jpair,ibin,ihisto;
   double xtmp,ytmp,ztmp,delx,dely,delz,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
+
+  invoked_array = update->ntimestep;
 
   // invoke half neighbor list (will copy or build if necessary)
 
@@ -144,8 +193,8 @@ void ComputeRDF::compute_array()
 
   // zero the histogram counts
 
-  for (int i = 0; i < maxbin; i++)
-    for (int j = 0; j < npairs; j++)
+  for (i = 0; i < npairs; i++)
+    for (j = 0; j < nbin; j++)
       hist[i][j] = 0;
 
   // tally the RDF
@@ -153,50 +202,110 @@ void ComputeRDF::compute_array()
   // itype,jtype must have been specified by user
   // weighting factor must be != 0.0 for this pair
   //   could be 0 and still be in neigh list for long-range Coulombics
-  // count the interaction once even if neighbor pair is stored on 2 procs
-  // if itype = jtype, count the interaction twice
+  // consider I,J as one interaction even if neighbor pair is stored on 2 procs
+  // tally I,J pair each time I is central atom, and each time J is central
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int nall = atom->nlocal + atom->nghost;
+
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      itype = type[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+    if (!(mask[i] & groupbit)) continue;
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-      for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
 
-	if (j >= nall) {
-	  if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0)
-	    continue;
-	  j %= nall;
-	}
+      if (j >= nall) {
+	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0)
+	  continue;
+	j %= nall;
+      }
 
-        if (mask[j] & groupbit) {
-          jtype = type[j];
-	  ipair = rdfpair[itype][jtype];
-	  jpair = rdfpair[jtype][itype];
-	  if (!ipair && !jpair) continue;
+      if (!(mask[j] & groupbit)) continue;
+      jtype = type[j];
+      ipair = nrdfpair[itype][jtype];
+      jpair = nrdfpair[jtype][itype];
+      if (!ipair && !jpair) continue;
 
-          delx = xtmp - x[j][0];
-          dely = ytmp - x[j][1];
-          delz = ztmp - x[j][2];
-          r = sqrt(delx*delx + dely*dely + delz*delz);
-          bin = static_cast<int> (r*delrinv);
-	  if (bin >= maxbin) continue;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      r = sqrt(delx*delx + dely*dely + delz*delz);
+      ibin = static_cast<int> (r*delrinv);
+      if (ibin >= nbin) continue;
 
-	  if (ipair) hist[bin][ipair-1]++;
-	  if (newton_pair || j < nlocal)
-	    if (jpair) hist[bin][jpair-1]++;
-	}
+      if (ipair)
+	for (ihisto = 0; ihisto < ipair; ihisto++)
+	  hist[rdfpair[ihisto][itype][jtype]][ibin] += 1.0;
+      if (newton_pair || j < nlocal) {
+	if (jpair)
+	  for (ihisto = 0; ihisto < jpair; ihisto++)
+	    hist[rdfpair[ihisto][jtype][itype]][ibin] += 1.0;
       }
     }
   }
 
-  // sum histogram across procs
+  // sum histograms across procs
 
-  MPI_Allreduce(hist[0],array[0],maxbin*npairs,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(hist[0],histall[0],npairs*nbin,MPI_DOUBLE,MPI_SUM,world);
+
+  // convert counts to g(r) and coord(r) and copy into output array
+  // nideal = # of J atoms surrounding single I atom in a single bin
+  //   assuming J atoms are at uniform density
+
+  double constant,nideal,gr,ncoord,rlower,rupper;
+  double PI = 4.0*atan(1.0);
+
+  if (domain->dimension == 3) {
+    constant = 4.0*PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
+
+    for (m = 0; m < npairs; m++) {
+      ncoord = 0.0;
+      for (ibin = 0; ibin < nbin; ibin++) {
+	rlower = ibin*delr;
+	rupper = (ibin+1)*delr;
+	nideal = constant * 
+	  (rupper*rupper*rupper - rlower*rlower*rlower) * jcount[m];
+	if (icount[m]*nideal != 0.0) 
+	  gr = histall[m][ibin] / (icount[m]*nideal);
+	else gr = 0.0;
+	ncoord += gr*nideal;
+	array[ibin][1+2*m] = gr;
+	array[ibin][2+2*m] = ncoord;
+      }
+    }
+
+  } else {
+    constant = PI / (domain->xprd*domain->yprd);
+
+    for (m = 0; m < npairs; m++) {
+      ncoord = 0.0;
+      for (ibin = 0; ibin < nbin; ibin++) {
+	rlower = ibin*delr;
+	rupper = (ibin+1)*delr;
+	nideal = constant * (rupper*rupper - rlower*rlower) * jcount[m];
+	if (icount[m]*nideal != 0.0) 
+	  gr = histall[m][ibin] / (icount[m]*nideal);
+	else gr = 0.0;
+	ncoord += gr*nideal;
+	array[ibin][1+2*m] = gr;
+	array[ibin][2+2*m] = ncoord;
+      }
+    }
+  }
 }
+
+

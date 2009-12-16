@@ -29,12 +29,18 @@ class ComputeRDF : public Compute {
 
  private:
   int first;
-  int maxbin;			 // # of rdf bins
+  int nbin;			 // # of rdf bins
   int npairs;            	 // # of rdf pairs
   double delr,delrinv;		 // bin width and its inverse
-  int **rdfpair;              	 // mapping from 2 types to rdf pair
+  int ***rdfpair;              	 // map 2 type pair to rdf pair for each histo
+  int **nrdfpair;                // # of histograms for each type pair
+  int *ilo,*ihi,*jlo,*jhi;
   double **hist;	         // histogram bins
-  int *nrdfatoms;             	 // # of atoms of each type in the group
+  double **histall;	         // summed histogram bins across all procs
+
+  int *typecount;
+  int *icount,*jcount;
+
   class NeighList *list;         // half neighbor list
 };
 

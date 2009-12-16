@@ -588,7 +588,6 @@ void FixAveTime::invoke_scalar(int ntimestep)
 void FixAveTime::invoke_vector(int ntimestep)
 {
   int i,j,m;
-  double *cptr;
   
   // zero if first step
 
@@ -614,22 +613,25 @@ void FixAveTime::invoke_vector(int ntimestep)
 	  compute->compute_vector();
 	  compute->invoked_flag |= INVOKED_VECTOR;
 	}
-	cptr = compute->vector;
+	double *cvector = compute->vector;
+	for (i = 0; i < nrows; i++)
+	  column[i] = cvector[i];
 	
       } else {
 	if (!(compute->invoked_flag & INVOKED_ARRAY)) {
 	  compute->compute_array();
 	  compute->invoked_flag |= INVOKED_ARRAY;
 	}
-	cptr = compute->array[argindex[j]-1];
+	double **carray = compute->array;
+	int icol = argindex[j]-1;
+	for (i = 0; i < nrows; i++)
+	  column[i] = carray[i][icol];
       }
       
-      // access fix fields, guaranteed to be ready
+    // access fix fields, guaranteed to be ready
       
     } else if (which[j] == FIX) {
       Fix *fix = modify->fix[m];
-      cptr = column;
-      
       if (argindex[j] == 0)
 	for (i = 0; i < nrows; i++)
 	  column[i] = fix->compute_vector(i);
@@ -638,14 +640,14 @@ void FixAveTime::invoke_vector(int ntimestep)
 	  column[i] = fix->compute_array(i,argindex[j]);
     }
     
-    // add values to array or just set directly if offcol is set
+    // add columns of values to array or just set directly if offcol is set
     
     if (offcol[j]) {
       for (i = 0; i < nrows; i++)
-	array[i][j] = cptr[i];
+	array[i][j] = column[i];
     } else {
       for (i = 0; i < nrows; i++)
-	array[i][j] += cptr[i];
+	array[i][j] += column[i];
     }
   }
   

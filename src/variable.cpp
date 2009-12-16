@@ -1234,7 +1234,7 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == VALUE) return tree->value;
   if (tree->type == ATOMARRAY) return tree->array[i*tree->nstride];
   if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
-  if (tree->type == INTARRAY) return tree->iarray[i*tree->nstride];
+  if (tree->type == INTARRAY) return (double) tree->iarray[i*tree->nstride];
 
   if (tree->type == ADD)
     return eval_tree(tree->left,i) + eval_tree(tree->right,i);

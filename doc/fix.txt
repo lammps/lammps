@@ -163,7 +163,6 @@ list of fix styles available in LAMMPS:
 "bond/create"_fix_bond_create.html - create bonds on the fly
 "bond/swap"_fix_bond_swap.html - Monte Carlo bond swapping
 "box/relax"_fix_box_relax.html - relax box size during energy minimization
-"com"_fix_com.html - compute a center-of-mass
 "coord/original"_fix_coord_original.html - store original coords of each atom
 "deform"_fix_deform.html - change the simulation box size/shape
 "deposit"_fix_deposit.html - add new atoms above a surface
@@ -174,15 +173,11 @@ list of fix styles available in LAMMPS:
 "evaporate"_fix_evaporate.html - remove atoms from simulation periodically
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
-"gyration"_fix_gyration.html - compute radius of gyration
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "indent"_fix_indent.html - impose force due to an indenter
 "langevin"_fix_langevin.html - Langevin temperature control
 "lineforce"_fix_lineforce.html - constrain atoms to move in a line
-"msd"_fix_msd.html - compute mean-squared displacement \
-     (i.e. diffusion coefficient)
-"momentum"_fix_momentum.html - zero the linear and/or angular momentum \
-  of a group of atoms
+"momentum"_fix_momentum.html - zero the linear and/or angular momentum of a group of atoms
 "move"_fix_move.html - move atoms in a prescribed fashion
 "nph"_fix_nph.html - constant NPH time integration via Nose/Hoover
 "npt"_fix_npt.html - constant NPT time integration via Nose/Hoover
@@ -205,7 +200,6 @@ list of fix styles available in LAMMPS:
 "press/berendsen"_fix_press_berendsen.html - pressure control by \
      Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
-"rdf"_fix_rdf.html - compute radial distribution functions
 "reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms

@@ -1024,7 +1024,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  i = ptr-str+1;
 	}
 
-        // v_name = non atom-style variable = global value
+        // v_name = scalar from non atom-style global scalar
 
 	if (nbracket == 0 && style[ivar] != ATOM) {
 
@@ -1039,7 +1039,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	    treestack[ntreestack++] = newtree;
 	  } else argstack[nargstack++] = atof(var);
 
-        // v_name = atom-style variable
+        // v_name = vector from atom-style per-atom vector
 
 	} else if (nbracket == 0 && style[ivar] == ATOM) {
 
@@ -1049,7 +1049,7 @@ double Variable::evaluate(char *str, Tree **tree)
 	  double tmp = evaluate(data[ivar][0],&newtree);
 	  treestack[ntreestack++] = newtree;
 
-        // v_name[N] = global value from atom-style variable
+        // v_name[N] = scalar from atom-style per-atom vector
 	// compute the per-atom variable in result
 	// use peratom2global to extract single value from result
 

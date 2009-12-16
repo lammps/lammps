@@ -30,7 +30,8 @@
 
 using namespace LAMMPS_NS;
 
-// customize by adding keyword to 1st enum
+// customize by adding keyword
+// same as in compute_property.cpp, also customize that command
 
 enum{ID,MOL,TYPE,MASS,
        X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
@@ -392,7 +393,7 @@ int DumpCustom::count()
 	nstride = 1;
       } else if (thresh_array[ithresh] == MOL) {
 	if (!atom->molecule_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	int *molecule = atom->molecule;
 	for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
 	ptr = dchoose;
@@ -577,92 +578,92 @@ int DumpCustom::count()
 	nstride = 3;
       } else if (thresh_array[ithresh] == Q) {
 	if (!atom->q_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = atom->q;
 	nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == MUY) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == MUZ) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == RADIUS) {
 	if (!atom->radius_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = atom->radius;
 	nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
 	if (!atom->omega_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAY) {
 	if (!atom->omega_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAZ) {
 	if (!atom->omega_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMX) {
 	if (!atom->angmom_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMY) {
 	if (!atom->angmom_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMZ) {
 	if (!atom->angmom_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == QUATW) {
 	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->quat[0][0];
 	nstride = 4;
       } else if (thresh_array[ithresh] == QUATI) {
 	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->quat[0][1];
 	nstride = 4;
       } else if (thresh_array[ithresh] == QUATJ) {
 	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->quat[0][2];
 	nstride = 4;
       } else if (thresh_array[ithresh] == QUATK) {
 	if (!atom->quat_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->quat[0][3];
 	nstride = 4;
       } else if (thresh_array[ithresh] == TQX) {
 	if (!atom->torque_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQY) {
 	if (!atom->torque_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQZ) {
 	if (!atom->torque_flag)
-	  error->all("Threshhold for an atom quantity that isn't allocated");
+	  error->all("Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][2];
 	nstride = 3;
 
@@ -795,7 +796,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_molecule;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"type") == 0) {
@@ -869,94 +870,94 @@ void DumpCustom::parse_fields(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_q;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mux;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_radius;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegax;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegay;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegaz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomx;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomz;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       if (!atom->quat_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quatw;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       if (!atom->quat_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quati;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       if (!atom->quat_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quatj;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       if (!atom->quat_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_quatk;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqx;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-	error->all("Dumping an atom quantity that isn't allocated");
+	error->all("Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
 
@@ -1458,7 +1459,7 @@ void DumpCustom::pack_variable(int n)
 
 /* ----------------------------------------------------------------------
    one method for every keyword dump custom can output
-   the atom quantity is packed into buf starting at n with stride size_one
+   the atom property is packed into buf starting at n with stride size_one
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
 

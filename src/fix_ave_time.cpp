@@ -209,19 +209,13 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     if (title2) fprintf(fp,"%s\n",title2);
     else if (mode == SCALAR) {
       fprintf(fp,"# TimeStep");
-      for (int i = 0; i < nvalues; i++)
-	if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
-	else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
-	else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+i]);
       fprintf(fp,"\n");
     } else fprintf(fp,"# TimeStep Number-of-rows\n");
     if (title3 && mode == VECTOR) fprintf(fp,"%s\n",title3);
     else if (mode == VECTOR) {
       fprintf(fp,"# Row");
-      for (int i = 0; i < nvalues; i++)
-	if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
-	else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
-	else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+i]);
       fprintf(fp,"\n");
     }
   }

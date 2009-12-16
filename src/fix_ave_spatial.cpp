@@ -279,11 +279,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     if (title3) fprintf(fp,"%s\n",title3);
     else {
       fprintf(fp,"# Layer Coord Ncount");
-      for (int i = 0; i < nvalues; i++)
-	if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
-	else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
-	else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
-	else fprintf(fp," %s",arg[9+i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[9+i]);
       fprintf(fp,"\n");
     }
   }

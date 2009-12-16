@@ -1,0 +1,87 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute property/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID property/atom input1 input2 ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+property/atom = style name of this compute command :l
+input = one or more atom attributes :l
+  possible attributes = id, mol, type, mass,
+ 	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+		        vx, vy, vz, fx, fy, fz,
+                        q, mux, muy, muz,
+                        radius, omegax, omegay, omegaz,
+                        angmomx, angmomy, angmomz,
+		        quatw, quati, quatj, quatk, tqx, tqy, tqz
+      id = atom ID
+      mol = molecule ID
+      type = atom type
+      mass = atom mass
+      x,y,z = unscaled atom coordinates
+      xs,ys,zs = scaled atom coordinates
+      xu,yu,zu = unwrapped atom coordinates
+      ix,iy,iz = box image that the atom is in
+      vx,vy,vz = atom velocities
+      fx,fy,fz = forces on atoms
+      q = atom charge
+      mux,muy,muz = orientation of dipolar atom
+      radius = radius of extended spherical particle
+      omegax,omegay,omegaz = angular velocity of extended particle
+      angmomx,angmomy,angmomz = angular momentum of extended particle
+      quatw,quati,quatj,quatk = quaternion components for aspherical particles
+      tqx,tqy,tqz = torque on extended particles :pre
+:ule
+
+[Examples:]
+
+compute 1 all property/atom xs vx fx mux 
+compute 2 all property/atom type
+compute 1 all property/atom ix iy iz :pre
+
+[Description:]
+
+Define a computation that simply stores atom attributes for each atom
+in the group.  This is useful so that the values can be used by other
+"output commands"_Section_howto.html#4_15 that take computes as
+inputs.  See for example, the "compute reduce"_compute_reduce.html,
+"fix ave/atom"_fix_ave_atom.html, "fix ave/histo"_fix_ave_histo.html,
+"fix ave/spatial"_fix_ave_spatial.html, and "atom-style
+variable"_variable.html commands.
+
+The list of possible attributes is the same as that used by the "dump
+custom"_dump.html command, which describes their meaning.  Basically,
+this list gives your input script access to any per-atom quantity
+stored by LAMMPS.
+
+The values are stored in a per-atom vector or array as
+discussed below.  Zeroes are stored for atoms not in the specified
+group.
+
+[Output info:]
+
+This compute calculates a per-atom vector or per-atom array depending
+on the number of input values.  If a single input is specified, a
+per-atom vector is produced.  If two or more inputs are specified, a
+per-atom array is produced where the number of columns = the number of
+inputs.  The vector or array can be accessed by any command that uses
+per-atom values from a compute as input.  See "this
+section"_Section_howto.html#4_15 for an overview of LAMMPS output
+options.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dump custom"_dump.html, "compute reduce"_compute_reduce.html, "fix
+ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html
+
+[Default:] none

@@ -126,7 +126,10 @@ simply generated on timesteps 100,200,etc.
 <HR>
 
 <P>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.
+self-explanatory.  Note that other atom attributes can be used as
+inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
+property/atom</A> command and then specifying
+an input value from that compute.
 </P>
 <P>If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If <I>mode</I> = scalar, then if

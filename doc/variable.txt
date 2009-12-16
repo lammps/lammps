@@ -314,7 +314,10 @@ atom with ID = 243.
 
 Atom vectors generate one value per atom, so that a reference like
 "vx" means the x-component of each atom's velocity will be used when
-evaluating the variable.
+evaluating the variable.  Note that other atom attributes can be used
+as inputs to a variable by using the "compute
+property/atom"_compute_property_atom.html command and then specifying
+a quantity from that compute.
 
 Compute references access quantities calculated by a
 "compute"_compute.html.  The ID in the reference should be replaced by

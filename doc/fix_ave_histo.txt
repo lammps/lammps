@@ -114,7 +114,10 @@ simply generated on timesteps 100,200,etc.
 :line
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.
+self-explanatory.  Note that other atom attributes can be used as
+inputs to this fix by using the "compute
+property/atom"_compute_property_atom.html command and then specifying
+an input value from that compute.
 
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If {mode} = scalar, then if

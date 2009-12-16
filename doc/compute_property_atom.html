@@ -1,0 +1,96 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute property/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID property/atom input1 input2 ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>property/atom = style name of this compute command 
+
+<LI>input = one or more atom attributes 
+
+<PRE>  possible attributes = id, mol, type, mass,
+ 	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+		        vx, vy, vz, fx, fy, fz,
+                        q, mux, muy, muz,
+                        radius, omegax, omegay, omegaz,
+                        angmomx, angmomy, angmomz,
+		        quatw, quati, quatj, quatk, tqx, tqy, tqz
+      id = atom ID
+      mol = molecule ID
+      type = atom type
+      mass = atom mass
+      x,y,z = unscaled atom coordinates
+      xs,ys,zs = scaled atom coordinates
+      xu,yu,zu = unwrapped atom coordinates
+      ix,iy,iz = box image that the atom is in
+      vx,vy,vz = atom velocities
+      fx,fy,fz = forces on atoms
+      q = atom charge
+      mux,muy,muz = orientation of dipolar atom
+      radius = radius of extended spherical particle
+      omegax,omegay,omegaz = angular velocity of extended particle
+      angmomx,angmomy,angmomz = angular momentum of extended particle
+      quatw,quati,quatj,quatk = quaternion components for aspherical particles
+      tqx,tqy,tqz = torque on extended particles 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all property/atom xs vx fx mux 
+compute 2 all property/atom type
+compute 1 all property/atom ix iy iz 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that simply stores atom attributes for each atom
+in the group.  This is useful so that the values can be used by other
+<A HREF = "Section_howto.html#4_15">output commands</A> that take computes as
+inputs.  See for example, the <A HREF = "compute_reduce.html">compute reduce</A>,
+<A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>,
+<A HREF = "fix_ave_spatial.html">fix ave/spatial</A>, and <A HREF = "variable.html">atom-style
+variable</A> commands.
+</P>
+<P>The list of possible attributes is the same as that used by the <A HREF = "dump.html">dump
+custom</A> command, which describes their meaning.  Basically,
+this list gives your input script access to any per-atom quantity
+stored by LAMMPS.
+</P>
+<P>The values are stored in a per-atom vector or array as
+discussed below.  Zeroes are stored for atoms not in the specified
+group.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom vector or per-atom array depending
+on the number of input values.  If a single input is specified, a
+per-atom vector is produced.  If two or more inputs are specified, a
+per-atom array is produced where the number of columns = the number of
+inputs.  The vector or array can be accessed by any command that uses
+per-atom values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump custom</A>, <A HREF = "compute_reduce.html">compute reduce</A>, <A HREF = "fix_ave_atom.html">fix
+ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -152,7 +152,10 @@ box, as discussed below.
 <HR>
 
 <P>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.
+self-explanatory.  Note that other atom attributes can be used as
+inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
+property/atom</A> command and then specifying
+an input value from that compute.
 </P>
 <P>The <I>density/number</I> value means the number density is computed in
 each layer, i.e. a weighting of 1 for each atom.  The <I>density/mass</I>

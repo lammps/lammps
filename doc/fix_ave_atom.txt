@@ -18,8 +18,8 @@ Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating averages :l
 Nfreq = calculate averages every this many timesteps
 one or more input values can be listed :l
-value = x, y, z, xu, yu, zu, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[i\], f_ID, f_ID\[i\], v_name :l
-  x,y,z,xu,yu,zu,vx,vy,vz,fx,fy,fz = atom attribute (position, unwrapped position, velocity, force component)
+value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[i\], f_ID, f_ID\[i\], v_name :l
+  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
   c_ID = per-atom vector calculated by a compute with ID
   c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
   f_ID = per-atom vector calculated by a fix with ID
@@ -44,13 +44,13 @@ The group specified with the command means only atoms within the group
 have their averages computed.  Results are set to 0.0 for atoms not in
 the group.
 
-Each input value can be an atom attribute (position, unwrapped
-position, velocity, force component) or can be the result of a
-"compute"_compute.html or "fix"_fix.html or the evaluation of an
-atom-style "variable"_variable.html.  In the latter cases, the
-compute, fix, or variable must produce a per-atom vector, not a global
-quantity or local quantity.  If you wish to time-average global
-quantities from a compute, fix, or variable, then see the "fix
+Each input value can be an atom attribute (position, velocity, force
+component) or can be the result of a "compute"_compute.html or
+"fix"_fix.html or the evaluation of an atom-style
+"variable"_variable.html.  In the latter cases, the compute, fix, or
+variable must produce a per-atom vector, not a global quantity or
+local quantity.  If you wish to time-average global quantities from a
+compute, fix, or variable, then see the "fix
 ave/time"_fix_ave_time.html command.
 
 "Computes"_compute.html that produce per-atom vectors or arrays are
@@ -81,14 +81,10 @@ timestep 200, etc.
 :line
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.  The unwrapped values (xu,yu,zu) mean that the
-coordinates are "unwrapped" by the images flags for each atom.  This
-means that if the atom has passed thru a periodic boundary one or more
-times, its unwrapped value is what the coordinate would be if it had
-not been wrapped back into the periodic box.  Note that this means the
-coordinate value may be far outside the box.  The
-"dump_modify"_dump_modify.html command describes in more detail what
-is meant by image flags.
+self-explanatory.  Note that other atom attributes can be used as
+inputs to this fix by using the "compute
+property/atom"_compute_property_atom.html command and then specifying
+an input value from that compute.
 
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is

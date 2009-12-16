@@ -90,6 +90,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
+#include "compute_rdf.h"
 #include "compute_reduce.h"
 #include "compute_reduce_region.h"
 #include "compute_erotate_sphere.h"
@@ -120,6 +121,7 @@ ComputeStyle(msd,ComputeMSD)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)
+ComputeStyle(rdf,ComputeRDF)
 ComputeStyle(reduce,ComputeReduce)
 ComputeStyle(reduce/region,ComputeReduceRegion)
 ComputeStyle(erotate/sphere,ComputeERotateSphere)
@@ -165,7 +167,6 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
 #include "fix_box_relax.h"
-#include "fix_com.h"
 #include "fix_coord_original.h"
 #include "fix_deform.h"
 #include "fix_deposit.h"
@@ -175,13 +176,11 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_enforce2d.h"
 #include "fix_evaporate.h"
 #include "fix_gravity.h"
-#include "fix_gyration.h"
 #include "fix_heat.h"
 #include "fix_indent.h"
 #include "fix_langevin.h"
 #include "fix_lineforce.h"
 #include "fix_minimize.h"
-#include "fix_msd.h"
 #include "fix_momentum.h"
 #include "fix_move.h"
 #include "fix_nph.h"
@@ -228,7 +227,6 @@ FixStyle(ave/histo,FixAveHisto)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
 FixStyle(box/relax,FixBoxRelax)
-FixStyle(com,FixCOM)
 FixStyle(coord/original,FixCoordOriginal)
 FixStyle(deform,FixDeform)
 FixStyle(deposit,FixDeposit)
@@ -238,7 +236,6 @@ FixStyle(efield,FixEfield)
 FixStyle(enforce2d,FixEnforce2D)
 FixStyle(evaporate,FixEvaporate)
 FixStyle(gravity,FixGravity)
-FixStyle(gyration,FixGyration)
 FixStyle(heat,FixHeat)
 FixStyle(indent,FixIndent)
 FixStyle(langevin,FixLangevin)
@@ -246,7 +243,6 @@ FixStyle(lineforce,FixLineForce)
 FixStyle(MINIMIZE,FixMinimize)
 FixStyle(momentum,FixMomentum)
 FixStyle(move,FixMove)
-FixStyle(msd,FixMSD)
 FixStyle(nph,FixNPH)
 FixStyle(npt,FixNPT)
 FixStyle(npt/sphere,FixNPTSphere)

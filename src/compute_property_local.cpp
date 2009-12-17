@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "error.h"
 
+
+#include "comm.h"
+
 using namespace LAMMPS_NS;
 
 // customize by adding keyword
@@ -174,6 +177,7 @@ void ComputePropertyLocal::init()
   else if (kindflag == IMPROPER) ncount = count_impropers(0);
 
   if (ncount > nmax) reallocate(ncount);
+  size_local_rows = ncount;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,6 +194,7 @@ void ComputePropertyLocal::compute_local()
   else if (kindflag == IMPROPER) ncount = count_impropers(0);
 
   if (ncount > nmax) reallocate(ncount);
+  size_local_rows = ncount;
 
   if (kindflag == BOND) ncount = count_bonds(1);
   else if (kindflag == ANGLE) ncount = count_angles(1);
@@ -245,6 +250,7 @@ int ComputePropertyLocal::count_bonds(int flag)
       m++;
     }
   }
+
   return m;
 }
 
@@ -285,6 +291,7 @@ int ComputePropertyLocal::count_angles(int flag)
       m++;
     }
   }
+
   return m;
 }
 
@@ -328,6 +335,7 @@ int ComputePropertyLocal::count_dihedrals(int flag)
       m++;
     }
   }
+
   return m;
 }
 
@@ -371,6 +379,7 @@ int ComputePropertyLocal::count_impropers(int flag)
       m++;
     }
   }
+
   return m;
 }
 
@@ -379,8 +388,6 @@ int ComputePropertyLocal::count_impropers(int flag)
 void ComputePropertyLocal::reallocate(int n)
 {
   // grow vector or array and indices array
-
-  size_local_rows = n;
 
   while (nmax < n) nmax += DELTA;
   if (nvalues == 1) {

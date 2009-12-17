@@ -247,6 +247,7 @@ void Update::reset_timestep(int narg, char **arg)
     modify->compute[i]->invoked_scalar = -1;
     modify->compute[i]->invoked_vector = -1;
     modify->compute[i]->invoked_peratom = -1;
+    modify->compute[i]->invoked_local = -1;
   }
 
   for (int i = 0; i < modify->ncompute; i++)

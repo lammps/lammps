@@ -133,12 +133,13 @@ void Output::setup(int flag)
   // will not write on last step of run unless multiple of every
   // set next_dump_any to smallest next_dump
   // if no dumps, set next_dump_any to last+1 so will not influence next
-  // dump custom/cfg may invoke computes so wrap with clear/add
+  // wrap dumps that invoke computes with clear/add
 
   if (ndump && update->restrict_output == 0) {
     for (int idump = 0; idump < ndump; idump++) {
       if (strcmp(dump[idump]->style,"custom") == 0 ||
-	  strcmp(dump[idump]->style,"cfg") == 0)
+	  strcmp(dump[idump]->style,"cfg") == 0 ||
+	  strcmp(dump[idump]->style,"local") == 0)
 	modify->clearstep_compute();
       if ((ntimestep % dump_every[idump] == 0 && 
 	  last_dump[idump] != ntimestep) || last_dump[idump] < 0) {
@@ -148,7 +149,8 @@ void Output::setup(int flag)
       next_dump[idump] = 
 	(ntimestep/dump_every[idump])*dump_every[idump] + dump_every[idump];
       if (strcmp(dump[idump]->style,"custom") == 0 ||
-	  strcmp(dump[idump]->style,"cfg") == 0)
+	  strcmp(dump[idump]->style,"cfg") == 0 ||
+	  strcmp(dump[idump]->style,"local") == 0)
 	modify->addstep_compute(next_dump[idump]);
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
@@ -201,19 +203,21 @@ void Output::setup(int flag)
 void Output::write(int ntimestep)
 {
   // next_dump does not force output on last step of run
-  // dump custom/cfg may invoke computes so wrap with clear/add
+  // wrap dumps that invoke computes with clear/add
 
   if (next_dump_any == ntimestep) {
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep && last_dump[idump] != ntimestep) {
         if (strcmp(dump[idump]->style,"custom") == 0 ||
-	    strcmp(dump[idump]->style,"cfg") == 0)
+	    strcmp(dump[idump]->style,"cfg") == 0 ||
+	    strcmp(dump[idump]->style,"local") == 0)
           modify->clearstep_compute();
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
 	next_dump[idump] += dump_every[idump];
         if (strcmp(dump[idump]->style,"custom") == 0 ||
-	    strcmp(dump[idump]->style,"cfg") == 0)
+	    strcmp(dump[idump]->style,"cfg") == 0 ||
+	    strcmp(dump[idump]->style,"local") == 0)
 	  modify->addstep_compute(next_dump[idump]);
       }
       if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);

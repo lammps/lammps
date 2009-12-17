@@ -35,7 +35,6 @@ if ($1 == 1) then
   cp dihedral_hybrid.cpp ..
   cp dihedral_multi_harmonic.cpp ..
   cp dihedral_opls.cpp ..
-  cp dump_bond.cpp ..
   cp fix_bond_break.cpp ..
   cp fix_bond_create.cpp ..
   cp fix_bond_swap.cpp ..
@@ -74,7 +73,6 @@ if ($1 == 1) then
   cp dihedral_hybrid.h ..
   cp dihedral_multi_harmonic.h ..
   cp dihedral_opls.h ..
-  cp dump_bond.h ..
   cp fix_bond_break.h ..
   cp fix_bond_create.h ..
   cp fix_bond_swap.h ..
@@ -118,7 +116,6 @@ else if ($1 == 0) then
   rm ../dihedral_hybrid.cpp
   rm ../dihedral_multi_harmonic.cpp
   rm ../dihedral_opls.cpp
-  rm ../dump_bond.cpp
   rm ../fix_bond_break.cpp
   rm ../fix_bond_create.cpp
   rm ../fix_bond_swap.cpp
@@ -157,7 +154,6 @@ else if ($1 == 0) then
   rm ../dihedral_hybrid.h
   rm ../dihedral_multi_harmonic.h
   rm ../dihedral_opls.h
-  rm ../dump_bond.h
   rm ../fix_bond_break.h
   rm ../fix_bond_create.h
   rm ../fix_bond_swap.h

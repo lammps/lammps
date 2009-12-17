@@ -85,14 +85,6 @@ DihedralStyle(multi/harmonic,DihedralMultiHarmonic)
 DihedralStyle(opls,DihedralOPLS)
 #endif
 
-#ifdef DumpInclude
-#include "dump_bond.h"
-#endif
-
-#ifdef DumpClass
-DumpStyle(bond,DumpBond)
-#endif
-
 #ifdef FixInclude
 #include "fix_bond_break.h"
 #include "fix_bond_create.h"

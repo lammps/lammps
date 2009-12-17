@@ -197,7 +197,6 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_press_berendsen.h"
 #include "fix_print.h"
 #include "fix_orient_fcc.h"
-#include "fix_rdf.h"
 #include "fix_recenter.h"
 #include "fix_respa.h"
 #include "fix_rigid.h"
@@ -257,7 +256,6 @@ FixStyle(orient/fcc,FixOrientFCC)
 FixStyle(press/berendsen,FixPressBerendsen)
 FixStyle(planeforce,FixPlaneForce)
 FixStyle(print,FixPrint)
-FixStyle(rdf,FixRDF)
 FixStyle(recenter,FixRecenter)
 FixStyle(RESPA,FixRespa)
 FixStyle(rigid,FixRigid)

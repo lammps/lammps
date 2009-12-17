@@ -307,5 +307,3 @@ void ComputeRDF::compute_array()
     }
   }
 }
-
-

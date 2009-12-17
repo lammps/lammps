@@ -52,6 +52,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format = NULL;
   format_user = NULL;
 
+  clearstep = 0;
   sort_flag = 0;
   append_flag = 0;
 

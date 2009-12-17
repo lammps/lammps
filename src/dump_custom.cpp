@@ -51,6 +51,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg == 5) error->all("No dump custom arguments specified");
 
+  clearstep = 1;
+
   nevery = atoi(arg[3]);
 
   size_one = nfield = narg-5;
@@ -81,7 +83,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   variable = NULL;
   vbuf = NULL;
 
-  // process keywords
+  // process attributes
 
   parse_fields(narg,arg);
 
@@ -974,7 +976,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump custom command");
+	  error->all("Invalid attribute in dump custom command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
@@ -1008,7 +1010,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump custom command");
+	  error->all("Invalid attribute in dump custom command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
@@ -1048,7 +1050,7 @@ void DumpCustom::parse_fields(int narg, char **arg)
       field2index[i] = add_variable(suffix);
       delete [] suffix;
 
-    } else error->all("Invalid keyword in dump custom command");
+    } else error->all("Invalid attribute in dump custom command");
   }
 }
 
@@ -1173,7 +1175,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       memory->srealloc(thresh_value,(nthresh+1)*sizeof(double),
 		       "dump:thresh_value");
 
-    // set keyword type of threshhold
+    // set attribute type of threshhold
     // customize by adding to if statement
     
     if (strcmp(arg[1],"id") == 0) thresh_array[nthresh] = ID;
@@ -1258,25 +1260,25 @@ int DumpCustom::modify_param(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump custom command");
+	  error->all("Invalid attribute in dump modify command");
 	argindex[nfield+nthresh] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nfield+nthresh] = 0;
       
       n = modify->find_compute(suffix);
-      if (n < 0) error->all("Could not find dump custom compute ID");
+      if (n < 0) error->all("Could not find dump modify compute ID");
 
       if (modify->compute[n]->peratom_flag == 0)
-	error->all("Dump custom compute ID does not compute per-atom info");
+	error->all("Dump modify compute ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
 	  modify->compute[n]->size_peratom_cols > 0)
-	error->all("Dump custom compute ID does not compute per-atom vector");
+	error->all("Dump modify compute ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
 	  modify->compute[n]->size_peratom_cols == 0)
-	error->all("Dump custom compute ID does not compute per-atom array");
+	error->all("Dump modify compute ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
 	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom_cols)
-	error->all("Dump custom compute ID vector is not large enough");
+	error->all("Dump modify compute ID vector is not large enough");
 
       field2index[nfield+nthresh] = add_compute(suffix);
       delete [] suffix;
@@ -1300,25 +1302,25 @@ int DumpCustom::modify_param(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump custom command");
+	  error->all("Invalid attribute in dump modify command");
 	argindex[nfield+nthresh] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nfield+nthresh] = 0;
       
       n = modify->find_fix(suffix);
-      if (n < 0) error->all("Could not find dump custom fix ID");
+      if (n < 0) error->all("Could not find dump modify fix ID");
 
       if (modify->fix[n]->peratom_flag == 0)
-	error->all("Dump custom fix ID does not compute per-atom info");
+	error->all("Dump modify fix ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
 	  modify->fix[n]->size_peratom_cols > 0)
-	error->all("Dump custom fix ID does not compute per-atom vector");
+	error->all("Dump modify fix ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
 	  modify->fix[n]->size_peratom_cols == 0)
-	error->all("Dump custom fix ID does not compute per-atom array");
+	error->all("Dump modify fix ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
 	  argindex[nfield+nthresh] > modify->fix[n]->size_peratom_cols)
-	error->all("Dump custom fix ID vector is not large enough");
+	error->all("Dump modify fix ID vector is not large enough");
 
       field2index[nfield+nthresh] = add_fix(suffix);
       delete [] suffix;
@@ -1341,9 +1343,9 @@ int DumpCustom::modify_param(int narg, char **arg)
       argindex[nfield+nthresh] = 0;
       
       n = input->variable->find(suffix);
-      if (n < 0) error->all("Could not find dump custom variable name");
+      if (n < 0) error->all("Could not find dump modify variable name");
       if (input->variable->atomstyle(n) == 0)
-	error->all("Dump custom variable is not atom-style variable");
+	error->all("Dump modify variable is not atom-style variable");
 
       field2index[nfield+nthresh] = add_variable(suffix);
       delete [] suffix;
@@ -1457,9 +1459,9 @@ void DumpCustom::pack_variable(int n)
 }
 
 /* ----------------------------------------------------------------------
-   one method for every keyword dump custom can output
+   one method for every attribute dump custom can output
    the atom property is packed into buf starting at n with stride size_one
-   customize a new keyword by adding a method
+   customize a new attribute by adding a method
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */

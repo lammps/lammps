@@ -48,8 +48,7 @@ class DumpLocal : public Dump {
   char **id_fix;             // their IDs
   class Fix **fix;           // list of ptrs to the Fix objects
 
-  // private methods
-
+  int modify_param(int, char **);
   void write_header(int);
   int count();
   int pack();

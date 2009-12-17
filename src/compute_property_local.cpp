@@ -14,14 +14,12 @@
 #include "string.h"
 #include "compute_property_local.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-
-
-#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -110,7 +108,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
     } else if (strcmp(arg[iarg],"datom4") == 0) {
-      pack_choice[i] = &ComputePropertyLocal::pack_datom3;
+      pack_choice[i] = &ComputePropertyLocal::pack_datom4;
       if (kindflag != NONE && kindflag != DIHEDRAL) 
 	error->all("Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
@@ -136,7 +134,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 	error->all("Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
     } else if (strcmp(arg[iarg],"iatom4") == 0) {
-      pack_choice[i] = &ComputePropertyLocal::pack_iatom3;
+      pack_choice[i] = &ComputePropertyLocal::pack_iatom4;
       if (kindflag != NONE && kindflag != IMPROPER) 
 	error->all("Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
@@ -148,6 +146,17 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
     } else error->all("Invalid keyword in compute property/local command");
   }
+
+  // error check
+
+  if (kindflag == BOND && atom->avec->bonds_allow == 0)
+    error->all("Compute property/local for property that isn't allocated");
+  if (kindflag == ANGLE && atom->avec->angles_allow == 0)
+    error->all("Compute property/local for property that isn't allocated");
+  if (kindflag == DIHEDRAL && atom->avec->dihedrals_allow == 0)
+    error->all("Compute property/local for property that isn't allocated");
+  if (kindflag == IMPROPER && atom->avec->impropers_allow == 0)
+    error->all("Compute property/local for property that isn't allocated");
 
   nmax = 0;
   vector = NULL;
@@ -207,7 +216,7 @@ void ComputePropertyLocal::compute_local()
     buf = vector;
     (this->*pack_choice[0])(0);
   } else {
-    buf = array[0];
+    if (array) buf = array[0];
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }

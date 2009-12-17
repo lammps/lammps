@@ -249,7 +249,7 @@ void ComputePropertyAtom::compute_peratom()
     buf = vector;
     (this->*pack_choice[0])(0);
   } else {
-    buf = array[0];
+    if (array) buf = array[0];
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }

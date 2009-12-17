@@ -24,12 +24,8 @@
 #include "memory.h"
 #include "error.h"
 
-
-#include "comm.h"
-
 using namespace LAMMPS_NS;
 
-enum{INDEX,COMPUTE,FIX};
 enum{INT,DOUBLE};
 
 #define INVOKED_LOCAL 16
@@ -40,6 +36,8 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg)
 {
   if (narg == 5) error->all("No dump local arguments specified");
+
+  clearstep = 1;
 
   nevery = atoi(arg[3]);
 
@@ -60,7 +58,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   id_fix = NULL;
   fix = NULL;
 
-  // process keywords
+  // process attributes
 
   parse_fields(narg,arg);
 
@@ -88,7 +86,12 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
     strcat(columns," ");
   }
 
-  label = "BONDS";
+  // setup default label string
+
+  char *str = "ENTRIES";
+  n = strlen(str) + 1;
+  label = new char[n];
+  strcpy(label,str);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,6 +115,7 @@ DumpLocal::~DumpLocal()
   delete [] vformat;
 
   delete [] columns;
+  delete [] label;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,22 +149,37 @@ void DumpLocal::init()
   int icompute;
   for (int i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all("Could not find dump custom compute ID");
+    if (icompute < 0) error->all("Could not find dump local compute ID");
     compute[i] = modify->compute[icompute];
   }
 
   int ifix;
   for (int i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all("Could not find dump custom fix ID");
+    if (ifix < 0) error->all("Could not find dump local fix ID");
     fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all("Dump custom and fix not computed at compatible times");
+    if (nevery % modify->fix[ifix]->local_freq)
+      error->all("Dump local and fix not computed at compatible times");
   }
 
   // open single file, one time only
 
   if (multifile == 0) openfile();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpLocal::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"label") == 0) {
+    if (narg < 2) error->all("Illegal dump_modify command");
+    delete [] label;
+    int n = strlen(arg[1]) + 1;
+    label = new char[n];
+    strcpy(label,arg[1]);
+    return 2;
+  }
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,7 +191,7 @@ void DumpLocal::write_header(int ndump)
     fprintf(fp,"%d\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);
     fprintf(fp,"%d\n",ndump);
-    fprintf(fp,"ITEM: %s\n",label);
+    fprintf(fp,"ITEM: %s %s\n",label,columns);
   }
 }
 
@@ -190,9 +209,27 @@ int DumpLocal::count()
       if (!(compute[i]->invoked_flag & INVOKED_LOCAL)) {
 	compute[i]->compute_local();
 	compute[i]->invoked_flag |= INVOKED_LOCAL;
-	nmine = compute[i]->size_local_rows;
       }
     }
+  }
+
+  // nmine = # of local values I contribute
+  // must be consistent for all input fields
+
+  nmine = -1;
+
+  int icompute;
+  for (int i = 0; i < ncompute; i++) {
+    if (nmine < 0) nmine = compute[i]->size_local_rows;
+    else if (nmine != compute[i]->size_local_rows)
+      error->one("Dump local count is not consistent across input fields");
+  }
+
+  int ifix;
+  for (int i = 0; i < nfix; i++) {
+    if (nmine < 0) nmine = fix[i]->size_local_rows;
+    else if (nmine != fix[i]->size_local_rows)
+      error->one("Dump local count is not consistent across input fields");
   }
 
   return nmine;
@@ -227,6 +264,8 @@ void DumpLocal::write_data(int n, double *buf)
 
 void DumpLocal::parse_fields(int narg, char **arg)
 {
+  int computefixflag = 0;
+
   // customize by adding to if statement
 
   int i;
@@ -241,6 +280,7 @@ void DumpLocal::parse_fields(int narg, char **arg)
     // if no trailing [], then arg is set to 0, else arg is int between []
 
     } else if (strncmp(arg[iarg],"c_",2) == 0) {
+      computefixflag = 1;
       pack_choice[i] = &DumpLocal::pack_compute;
       vtype[i] = DOUBLE;
 
@@ -251,7 +291,7 @@ void DumpLocal::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump local command");
+	  error->all("Invalid attribute in dump local command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
@@ -275,6 +315,7 @@ void DumpLocal::parse_fields(int narg, char **arg)
     // if no trailing [], then arg is set to 0, else arg is between []
 
     } else if (strncmp(arg[iarg],"f_",2) == 0) {
+      computefixflag = 1;
       pack_choice[i] = &DumpLocal::pack_fix;
       vtype[i] = DOUBLE;
 
@@ -285,7 +326,7 @@ void DumpLocal::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump local command");
+	  error->all("Invalid attribute in dump local command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
@@ -305,8 +346,11 @@ void DumpLocal::parse_fields(int narg, char **arg)
       field2index[i] = add_fix(suffix);
       delete [] suffix;
 
-    } else error->all("Invalid keyword in dump local command");
+    } else error->all("Invalid attribute in dump local command");
   }
+
+  if (computefixflag == 0)
+    error->all("Dump local attributes contain no compute or fix");
 }
 
 /* ----------------------------------------------------------------------
@@ -407,9 +451,9 @@ void DumpLocal::pack_fix(int n)
 }
 
 /* ----------------------------------------------------------------------
-   one method for every keyword dump local can output
+   one method for every attribute dump local can output
    the local value is packed into buf starting at n with stride size_one
-   customize a new keyword by adding a method
+   customize a new attribute by adding a method
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */

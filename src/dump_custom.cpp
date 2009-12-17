@@ -329,7 +329,7 @@ int DumpCustom::count()
     }
   }
 
-  // invoke Computes for per-atom dump quantities
+  // invoke Computes for per-atom quantities
 
   if (ncompute) {
     int ntimestep = update->ntimestep;
@@ -340,7 +340,7 @@ int DumpCustom::count()
       }
   }
 
-  // evaluate atom-style Variables for per-atom dump quantities
+  // evaluate atom-style Variables for per-atom quantities
 
   if (nvariable)
     for (i = 0; i < nvariable; i++)

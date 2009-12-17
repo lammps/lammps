@@ -32,7 +32,8 @@ args = list of arguments for a particular style :l
                           radius, omegax, omegay, omegaz,
                           angmomx, angmomy, angmomz,
 			  quatw, quati, quatj, quatk, tqx, tqy, tqz,
-			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name
+			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
+
       id = atom ID
       mol = molecule ID
       type = atom type

@@ -1044,14 +1044,25 @@ Dump file output :h5,link(dump)
 
 Dump file output is specified by the "dump"_dump.html and
 "dump_modify"_dump_modify.html commands.  There are several
-pre-defined formats (dump atom, dump xtc, etc).  There is also a "dump
-custom"_dump.html format where the user specifies what values are
-output with each atom.  Pre-defined atom attributes can be specified
-(id, x, fx, etc).  Three additional kinds of keywords can also be
-specified (c_ID, f_ID, v_name), where a "compute"_compute.html or
-"fix"_fix.html or "variable"_variable.html provides the values to be
-output.  In each case, the compute, fix, or variable must generate
-per-atom values for input to the "dump custom"_dump.html command.
+pre-defined formats (dump atom, dump xtc, etc).
+
+There is also a "dump custom"_dump.html format where the user
+specifies what values are output with each atom.  Pre-defined atom
+attributes can be specified (id, x, fx, etc).  Three additional kinds
+of keywords can also be specified (c_ID, f_ID, v_name), where a
+"compute"_compute.html or "fix"_fix.html or "variable"_variable.html
+provides the values to be output.  In each case, the compute, fix, or
+variable must generate per-atom values for input to the "dump
+custom"_dump.html command.
+
+There is also a "dump local"_dump.html format where the user specifies
+what local values to output.  A pre-defined index keyword can be
+specified to enumuerate the local values.  Two additional kinds of
+keywords can also be specified (c_ID, f_ID), where a
+"compute"_compute.html or "fix"_fix.html or "variable"_variable.html
+provides the values to be output.  In each case, the compute or fix
+must generate local values for input to the "dump local"_dump.html
+command.
 
 Fixes that write output files :h5,link(fixoutput)
 
@@ -1115,6 +1126,12 @@ as output values which can be used as input to other output commands.
 The list of atom attributes is the same as for the "dump
 custom"_dump.html command.
 
+The "compute property/local"_compute_property_local.html command takes
+a list of one or more pre-defined local attributes (bond info, angle
+info, etc) and stores the values in a local vector or array.  These
+are produced as output values which can be used as input to other
+output commands.
+
 Fixes that process output quantities :h5,link(fixoutput)
 
 The "fix ave/atom"_fix_ave_atom.html command performs time-averaging
@@ -1171,6 +1188,7 @@ vector input could be a column of an array.
 Command: Input: Output:
 "thermo_style custom"_thermo_style.html: global scalars: screen, log file:
 "dump custom"_dump.html: per-atom vectors: dump file:
+"dump local"_dump.html: local vectors: dump file:
 "fix print"_fix_print.html: global scalar from variable: screen, file:
 "print"_print.html: global scalar from variable: screen:
 "computes"_compute.html: N/A: global/per-atom/local scalar/vector/array:
@@ -1178,6 +1196,7 @@ Command: Input: Output:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
 "compute property/atom"_compute_property_atom.html: per-atom vectors: per-atom vector/array:
+"compute property/local"_compute_local_atom.html: local vectors: local vector/array:
 "fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 "fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:

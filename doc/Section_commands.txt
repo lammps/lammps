@@ -478,6 +478,7 @@ each style or click on the style itself for a full description:
 "pe/atom"_compute_pe_atom.html,
 "pressure"_compute_pressure.html,
 "property/atom"_compute_property_atom.html,
+"property/local"_compute_property_local.html,
 "rdf"_compute_rdf.html,
 "reduce"_compute_reduce.html,
 "reduce/region"_compute_reduce.html,

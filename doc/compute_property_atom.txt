@@ -21,7 +21,8 @@ input = one or more atom attributes :l
                         q, mux, muy, muz,
                         radius, omegax, omegay, omegaz,
                         angmomx, angmomy, angmomz,
-		        quatw, quati, quatj, quatk, tqx, tqy, tqz
+		        quatw, quati, quatj, quatk, tqx, tqy, tqz :pre
+
       id = atom ID
       mol = molecule ID
       type = atom type

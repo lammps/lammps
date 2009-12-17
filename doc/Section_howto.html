@@ -1053,14 +1053,25 @@ command.
 </H5>
 <P>Dump file output is specified by the <A HREF = "dump.html">dump</A> and
 <A HREF = "dump_modify.html">dump_modify</A> commands.  There are several
-pre-defined formats (dump atom, dump xtc, etc).  There is also a <A HREF = "dump.html">dump
-custom</A> format where the user specifies what values are
-output with each atom.  Pre-defined atom attributes can be specified
-(id, x, fx, etc).  Three additional kinds of keywords can also be
-specified (c_ID, f_ID, v_name), where a <A HREF = "compute.html">compute</A> or
-<A HREF = "fix.html">fix</A> or <A HREF = "variable.html">variable</A> provides the values to be
-output.  In each case, the compute, fix, or variable must generate
-per-atom values for input to the <A HREF = "dump.html">dump custom</A> command.
+pre-defined formats (dump atom, dump xtc, etc).
+</P>
+<P>There is also a <A HREF = "dump.html">dump custom</A> format where the user
+specifies what values are output with each atom.  Pre-defined atom
+attributes can be specified (id, x, fx, etc).  Three additional kinds
+of keywords can also be specified (c_ID, f_ID, v_name), where a
+<A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A> or <A HREF = "variable.html">variable</A>
+provides the values to be output.  In each case, the compute, fix, or
+variable must generate per-atom values for input to the <A HREF = "dump.html">dump
+custom</A> command.
+</P>
+<P>There is also a <A HREF = "dump.html">dump local</A> format where the user specifies
+what local values to output.  A pre-defined index keyword can be
+specified to enumuerate the local values.  Two additional kinds of
+keywords can also be specified (c_ID, f_ID), where a
+<A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A> or <A HREF = "variable.html">variable</A>
+provides the values to be output.  In each case, the compute or fix
+must generate local values for input to the <A HREF = "dump.html">dump local</A>
+command.
 </P>
 <H5><A NAME = "fixoutput"></A>Fixes that write output files 
 </H5>
@@ -1124,6 +1135,12 @@ as output values which can be used as input to other output commands.
 The list of atom attributes is the same as for the <A HREF = "dump.html">dump
 custom</A> command.
 </P>
+<P>The <A HREF = "compute_property_local.html">compute property/local</A> command takes
+a list of one or more pre-defined local attributes (bond info, angle
+info, etc) and stores the values in a local vector or array.  These
+are produced as output values which can be used as input to other
+output commands.
+</P>
 <H5><A NAME = "fixoutput"></A>Fixes that process output quantities 
 </H5>
 <P>The <A HREF = "fix_ave_atom.html">fix ave/atom</A> command performs time-averaging
@@ -1181,6 +1198,7 @@ vector input could be a column of an array.
 <TR><TD >Command</TD><TD > Input</TD><TD > Output</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "thermo_style.html">thermo_style custom</A></TD><TD > global scalars</TD><TD > screen, log file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "dump.html">dump custom</A></TD><TD > per-atom vectors</TD><TD > dump file</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "dump.html">dump local</A></TD><TD > local vectors</TD><TD > dump file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_print.html">fix print</A></TD><TD > global scalar from variable</TD><TD > screen, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "print.html">print</A></TD><TD > global scalar from variable</TD><TD > screen</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute.html">computes</A></TD><TD > N/A</TD><TD > global/per-atom/local scalar/vector/array</TD><TD ></TD></TR>
@@ -1188,6 +1206,7 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "variable.html">variables</A></TD><TD > global scalars, per-atom vectors</TD><TD > global scalar, per-atom vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_reduce.html">compute reduce</A></TD><TD > global/per-atom/local vectors</TD><TD > global scalar/vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_property_atom.html">compute property/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "compute_local_atom.html">compute property/local</A></TD><TD > local vectors</TD><TD > local vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_atom.html">fix ave/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars/vectors</TD><TD > global scalar/vector/array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_spatial.html">fix ave/spatial</A></TD><TD > per-atom vectors</TD><TD > global array, file</TD><TD ></TD></TR>

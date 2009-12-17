@@ -112,7 +112,8 @@ variable</A>.
 
 <LI>Local values can be reduced by the <A HREF = "compute_reduce.html">compute
 reduce</A> command, or histogrammed by the <A HREF = "fix_ave_histo.html">fix
-ave/histo</A> command. 
+ave/histo</A> command, or output by the <A HREF = "dump.html">dump
+local</A> command. 
 </UL>
 <P>The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is
@@ -184,6 +185,7 @@ available in LAMMPS:
 <LI><A HREF = "compute_pe_atom.html">pe/atom</A> - potential energy for each atom
 <LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
 <LI><A HREF = "compute_property_atom.html">property/atom</A> - convert atom attributes to per-atom vectors/arrays
+<LI><A HREF = "compute_property_local.html">property/local</A> - convert local attributes to localvectors/arrays
 <LI><A HREF = "compute_rdf.html">rdf</A> - radial distribution function g(r) histogram of group of atoms
 <LI><A HREF = "compute_reduce.html">reduce</A> - combine per-atom quantities into a single global value
 <LI><A HREF = "compute_reduce.html">reduce/region</A> - same as compute reduce, within a region
@@ -209,7 +211,7 @@ page</A>.
 </P>
 <P><A HREF = "uncompute.html">uncompute</A>, <A HREF = "compute_modify.html">compute_modify</A>, <A HREF = "fix_ave_atom.html">fix
 ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
-<A HREF = "fix_ave_time.html">fix ave/time</A>
+<A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>
 </P>
 <P><B>Default:</B> none
 </P>

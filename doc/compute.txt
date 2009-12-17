@@ -107,7 +107,8 @@ variable"_variable.html. :l
 
 Local values can be reduced by the "compute
 reduce"_compute_reduce.html command, or histogrammed by the "fix
-ave/histo"_fix_ave_histo.html command. :l,ule
+ave/histo"_fix_ave_histo.html command, or output by the "dump
+local"_dump.html command. :l,ule
 
 The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is
@@ -179,6 +180,7 @@ available in LAMMPS:
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "property/atom"_compute_property_atom.html - convert atom attributes to per-atom vectors/arrays
+"property/local"_compute_property_local.html - convert local attributes to localvectors/arrays
 "rdf"_compute_rdf.html - radial distribution function g(r) histogram of group of atoms
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region
@@ -204,6 +206,6 @@ page"_Section_commands.html#3_5.
 
 "uncompute"_uncompute.html, "compute_modify"_compute_modify.html, "fix
 ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html,
-"fix ave/time"_fix_ave_time.html
+"fix ave/time"_fix_ave_time.html, "fix ave/histo"_fix_ave_histo.html
 
 [Default:] none

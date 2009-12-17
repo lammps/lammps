@@ -280,14 +280,15 @@ various "output commands"_Section_howto.html#4_15.  The values can
 only be accessed on timesteps that are multiples of {Nfreq} since that
 is when averaging is performed.  The global array has # of rows =
 Nlayers and # of columns = Nvalues+2.  The first column has the layer
-coordinate, the 2nd column has the count of atoms in that layer, and
-the remaining columns are the Nvalue quantities.  When the array is
-accessed with an I that exceeds the current number of layers, than a
-0.0 is returned by the fix instead of an error, since the number of
-layers can vary as a simulation runs, depending on the simulation box
-size.  The array values calculated by this fix are "intensive",
-meaning they are independent of the number of atoms in the simulation,
-since they are already normalized by the count of atoms in each layer.
+coordinate (center of the layer), the 2nd column has the count of
+atoms in that layer, and the remaining columns are the Nvalue
+quantities.  When the array is accessed with an I that exceeds the
+current number of layers, than a 0.0 is returned by the fix instead of
+an error, since the number of layers can vary as a simulation runs,
+depending on the simulation box size.  The array values calculated by
+this fix are "intensive", meaning they are independent of the number
+of atoms in the simulation, since they are already normalized by the
+count of atoms in each layer.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

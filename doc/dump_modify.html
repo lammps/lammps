@@ -19,7 +19,7 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>append</I> or <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
+<LI>keyword = <I>append</I> or <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>label</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
 
 <PRE>  <I>append</I> arg = <I>yes</I> or <I>no</I>
   <I>element</I> args = E1 E2 ... EN, where N = # of atom types
@@ -29,6 +29,8 @@
   <I>format</I> arg = C-style format string for one line of output
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
   <I>image</I> arg = <I>yes</I> or <I>no</I>
+  <I>label</I> arg = string
+    string = character string (e.g. BONDS) to use in header of dump local file
   <I>precision</I> arg = power-of-10 value from 10 to 1000000
   <I>region</I> arg = region-ID or "none"
   <I>scale</I> arg = <I>yes</I> or <I>no</I>
@@ -103,6 +105,17 @@ current coordinate.  Note that for dump style <I>custom</I> these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
 </P>
+<P>The <I>label</I> keyword applies only to the dump <I>local</I> style.  When
+it writes local informatoin, such as bond or angle topology
+to a dump file, it will use the specified <I>label</I> to format
+the header.  By default this includes 2 lines:
+</P>
+<PRE>ITEM: NUMBER OF ENTRIES
+ITEM: ENTRIES ... 
+</PRE>
+<P>The word "ENTRIES" will be replaced with the string specified,
+e.g. BONDS or ANGLES.
+</P>
 <P>The <I>precision</I> keyword only applies to the dump <I>xtc</I> style.  A
 specified value of N means that coordinates are stored to 1/N
 nanometer accuracy, e.g. for N = 1000, the coordinates are written to
@@ -164,6 +177,7 @@ box size stored with the snapshot.
 <LI>flush = yes (except for the dump <I>xtc</I> style)
 <LI>format = %d and %g for each integer or floating point value
 <LI>image = no
+<LI>label = ENTRIES
 <LI>precision = 1000
 <LI>region = none
 <LI>scale = yes

@@ -31,7 +31,7 @@
 using namespace LAMMPS_NS;
 
 // customize by adding keyword
-// same as in compute_property.cpp, also customize that command
+// same list as in compute_property.cpp, also customize that command
 
 enum{ID,MOL,TYPE,MASS,
        X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,

@@ -95,6 +95,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_reduce_region.h"
 #include "compute_erotate_sphere.h"
 #include "compute_property_atom.h"
+#include "compute_property_local.h"
 #include "compute_stress_atom.h"
 #include "compute_temp.h"
 #include "compute_temp_com.h"
@@ -126,6 +127,7 @@ ComputeStyle(reduce,ComputeReduce)
 ComputeStyle(reduce/region,ComputeReduceRegion)
 ComputeStyle(erotate/sphere,ComputeERotateSphere)
 ComputeStyle(property/atom,ComputePropertyAtom)
+ComputeStyle(property/local,ComputePropertyLocal)
 ComputeStyle(stress/atom,ComputeStressAtom)
 ComputeStyle(temp,ComputeTemp)
 ComputeStyle(temp/com,ComputeTempCOM)

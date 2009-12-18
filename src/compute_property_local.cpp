@@ -40,7 +40,7 @@ enum{NONE,BOND,ANGLE,DIHEDRAL,IMPROPER};
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute property/atom command");
+  if (narg < 4) error->all("Illegal compute property/local command");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -233,6 +233,8 @@ void ComputePropertyLocal::compute_local()
 
 int ComputePropertyLocal::count_bonds(int flag)
 {
+  int i,atom1,atom2;
+
   int *num_bond = atom->num_bond;
   int **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
@@ -240,8 +242,6 @@ int ComputePropertyLocal::count_bonds(int flag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
-
-  int i,atom1,atom2;
 
   int m = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
@@ -272,6 +272,8 @@ int ComputePropertyLocal::count_bonds(int flag)
 
 int ComputePropertyLocal::count_angles(int flag)
 {
+  int i,atom1,atom2,atom3;
+
   int *num_angle = atom->num_angle;
   int **angle_atom1 = atom->angle_atom1;
   int **angle_atom2 = atom->angle_atom2;
@@ -280,8 +282,6 @@ int ComputePropertyLocal::count_angles(int flag)
   int *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  int i,atom1,atom2,atom3;
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -313,6 +313,8 @@ int ComputePropertyLocal::count_angles(int flag)
 
 int ComputePropertyLocal::count_dihedrals(int flag)
 {
+  int i,atom1,atom2,atom3,atom4;
+
   int *num_dihedral = atom->num_dihedral;
   int **dihedral_atom1 = atom->dihedral_atom1;
   int **dihedral_atom2 = atom->dihedral_atom2;
@@ -322,8 +324,6 @@ int ComputePropertyLocal::count_dihedrals(int flag)
   int *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  int i,atom1,atom2,atom3,atom4;
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -357,6 +357,8 @@ int ComputePropertyLocal::count_dihedrals(int flag)
 
 int ComputePropertyLocal::count_impropers(int flag)
 {
+  int i,atom1,atom2,atom3,atom4;
+
   int *num_improper = atom->num_improper;
   int **improper_atom1 = atom->improper_atom1;
   int **improper_atom2 = atom->improper_atom2;
@@ -366,8 +368,6 @@ int ComputePropertyLocal::count_impropers(int flag)
   int *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  int i,atom1,atom2,atom3,atom4;
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {

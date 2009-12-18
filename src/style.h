@@ -76,6 +76,8 @@ CommandStyle(write_restart,WriteRestart)
 #endif
 
 #ifdef ComputeInclude
+#include "compute_angle_local.h"
+#include "compute_bond_local.h"
 #include "compute_centro_atom.h"
 #include "compute_cna_atom.h"
 #include "compute_com.h"
@@ -108,6 +110,8 @@ CommandStyle(write_restart,WriteRestart)
 #endif
 
 #ifdef ComputeClass
+ComputeStyle(angle/local,ComputeAngleLocal)
+ComputeStyle(bond/local,ComputeBondLocal)
 ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(cna/atom,ComputeCNAAtom)
 ComputeStyle(com,ComputeCOM)

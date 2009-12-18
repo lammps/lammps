@@ -1,0 +1,52 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifndef COMPUTE_BOND_LOCAL_H
+#define COMPUTE_BOND_LOCAL_H
+
+#include "compute.h"
+
+namespace LAMMPS_NS {
+
+class ComputeBondLocal : public Compute {
+ public:
+  ComputeBondLocal(class LAMMPS *, int, char **);
+  ~ComputeBondLocal();
+  void init();
+  void compute_local();
+  double memory_usage();
+
+ private:
+  int nvalues,dflag,eflag;
+  int *which;
+  int ncount;
+
+  int nmax;
+  double *distance;
+  double *energy;
+  double **array;
+  double *buf;
+
+  int compute_bonds(int);
+  void reallocate(int);
+
+  typedef void (ComputeBondLocal::*FnPtrPack)(int);
+  FnPtrPack *pack_choice;              // ptrs to pack functions
+
+  void pack_distance(int);
+  void pack_energy(int);
+};
+
+}
+
+#endif

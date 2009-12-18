@@ -11,30 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_ANGLE_LOCAL_H
-#define COMPUTE_ANGLE_LOCAL_H
+#ifndef COMPUTE_DIHEDRAL_LOCAL_H
+#define COMPUTE_DIHEDRAL_LOCAL_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeAngleLocal : public Compute {
+class ComputeDihedralLocal : public Compute {
  public:
-  ComputeAngleLocal(class LAMMPS *, int, char **);
-  ~ComputeAngleLocal();
+  ComputeDihedralLocal(class LAMMPS *, int, char **);
+  ~ComputeDihedralLocal();
   void init();
   void compute_local();
   double memory_usage();
 
  private:
-  int nvalues,tflag,eflag;
+  int nvalues,pflag;
   int ncount;
 
   int nmax;
   double *vector;
   double **array;
 
-  int compute_angles(int);
+  int compute_dihedrals(int);
   void reallocate(int);
 };
 

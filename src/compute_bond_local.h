@@ -28,23 +28,15 @@ class ComputeBondLocal : public Compute {
 
  private:
   int nvalues,dflag,eflag;
-  int *which;
   int ncount;
 
   int nmax;
-  double *distance;
-  double *energy;
+  double *vector;
   double **array;
   double *buf;
 
   int compute_bonds(int);
   void reallocate(int);
-
-  typedef void (ComputeBondLocal::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
-
-  void pack_distance(int);
-  void pack_energy(int);
 };
 
 }

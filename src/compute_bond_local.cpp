@@ -25,8 +25,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{DISTANCE,ENERGY};
-
 #define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
@@ -44,28 +42,19 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
 
-  which = new int[nvalues];
-  pack_choice = new FnPtrPack[nvalues];
-
-  dflag = eflag = 0;
+  dflag = eflag = -1;
+  nvalues = 0;
 
   int i;
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
-
-    if (strcmp(arg[iarg],"distance") == 0) {
-      dflag = 1;
-      which[i] = DISTANCE;
-      pack_choice[i] = &ComputeBondLocal::pack_distance;
-    } else if (strcmp(arg[iarg],"energy") == 0) {
-      eflag = 1;
-      which[i] = ENERGY;
-      pack_choice[i] = &ComputeBondLocal::pack_energy;
-    } else error->all("Invalid keyword in compute bond/local command");
+    if (strcmp(arg[iarg],"dist") == 0) dflag = nvalues++;
+    else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
+    else error->all("Invalid keyword in compute bond/local command");
   }
 
   nmax = 0;
-  distance = energy = NULL;
+  vector = NULL;
   array = NULL;
 }
 
@@ -73,10 +62,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeBondLocal::~ComputeBondLocal()
 {
-  delete [] which;
-  delete [] pack_choice;
-  memory->sfree(distance);
-  memory->sfree(energy);
+  memory->sfree(vector);
   memory->destroy_2d_double_array(array);
 }
 
@@ -106,14 +92,6 @@ void ComputeBondLocal::compute_local()
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
   ncount = compute_bonds(1);
-
-  // fill array with distance/energy values
-
-  if (nvalues > 1) {
-    if (array) buf = array[0];
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -129,8 +107,9 @@ void ComputeBondLocal::compute_local()
 
 int ComputeBondLocal::compute_bonds(int flag)
 {
-  int i,atom1,atom2;
+  int i,m,n,atom1,atom2;
   double delx,dely,delz,rsq;
+  double *dbuf,*ebuf;
 
   double **x = atom->x;
   int *num_bond = atom->num_bond;
@@ -141,9 +120,19 @@ int ComputeBondLocal::compute_bonds(int flag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  if (flag) {
+    if (nvalues == 1) {
+      if (dflag >= 0) dbuf = vector;
+      if (eflag >= 0) ebuf = vector;
+    } else {
+      if (dflag >= 0) dbuf = &array[0][dflag];
+      if (eflag >= 0) ebuf = &array[0][eflag];
+    }
+  }
+
   Bond *bond = force->bond;
 
-  int m = 0;
+  m = n = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
     for (i = 0; i < num_bond[atom1]; i++) {
@@ -158,12 +147,13 @@ int ComputeBondLocal::compute_bonds(int flag)
 	delz = x[atom1][2] - x[atom2][2];
 	domain->minimum_image(delx,dely,delz);
 	rsq = delx*delx + dely*dely + delz*delz;
-	if (dflag) distance[m] = sqrt(rsq);
-	if (eflag) {
+	if (dflag >= 0) dbuf[n] = sqrt(rsq);
+	if (eflag >= 0) {
 	  if (bond_type[atom1][i] > 0)
-	    energy[m] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
-	  else energy[m] = 0.0;
+	    ebuf[n] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
+	  else ebuf[n] = 0.0;
 	}
+	n += nvalues;
       }
 
       m++;
@@ -175,46 +165,17 @@ int ComputeBondLocal::compute_bonds(int flag)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBondLocal::pack_distance(int n)
-{
-  for (int m = 0; m < ncount; m++) {
-    buf[n] = distance[m];
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeBondLocal::pack_energy(int n)
-{
-  for (int m = 0; m < ncount; m++) {
-    buf[n] = energy[m];
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputeBondLocal::reallocate(int n)
 {
   // grow vector or array and indices array
 
   while (nmax < n) nmax += DELTA;
 
-  if (dflag) {
-    memory->sfree(distance);
-    distance = (double *) memory->smalloc(nmax*sizeof(double),
-					  "bond/local:distance");
-  }
-  if (eflag) {
-    memory->sfree(energy);
-    energy = (double *) memory->smalloc(nmax*sizeof(double),
-					"bond/local:energy");
-  }
-
   if (nvalues == 1) {
-    if (dflag) vector_local = distance;
-    if (eflag) vector_local = energy;
+    memory->sfree(vector);
+    vector = (double *) memory->smalloc(nmax*sizeof(double),
+					"bond/local:vector");
+    vector_local = vector;
   } else {
     memory->destroy_2d_double_array(array);
     array = memory->create_2d_double_array(nmax,nvalues,
@@ -229,9 +190,6 @@ void ComputeBondLocal::reallocate(int n)
 
 double ComputeBondLocal::memory_usage()
 {
-  double bytes = 0.0;
-  if (dflag) bytes += nmax * sizeof(double);
-  if (eflag) bytes += nmax * sizeof(double);
-  if (nvalues > 1) bytes += nmax*nvalues * sizeof(double);
+  double bytes = nmax*nvalues * sizeof(double);
   return bytes;
 }

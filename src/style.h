@@ -82,6 +82,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_cna_atom.h"
 #include "compute_com.h"
 #include "compute_coord_atom.h"
+#include "compute_dihedral_local.h"
 #include "compute_displace_atom.h"
 #include "compute_group_group.h"
 #include "compute_gyration.h"
@@ -116,6 +117,7 @@ ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(cna/atom,ComputeCNAAtom)
 ComputeStyle(com,ComputeCOM)
 ComputeStyle(coord/atom,ComputeCoordAtom)
+ComputeStyle(dihedral/local,ComputeDihedralLocal)
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(group/group,ComputeGroupGroup)
 ComputeStyle(gyration,ComputeGyration)

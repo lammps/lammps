@@ -25,8 +25,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{THETA,ENERGY};
-
 #define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
@@ -44,28 +42,19 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
 
-  which = new int[nvalues];
-  pack_choice = new FnPtrPack[nvalues];
-
-  tflag = eflag = 0;
+  tflag = eflag = -1;
+  nvalues = 0;
 
   int i;
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
-
-    if (strcmp(arg[iarg],"theta") == 0) {
-      tflag = 1;
-      which[i] = THETA;
-      pack_choice[i] = &ComputeAngleLocal::pack_theta;
-    } else if (strcmp(arg[iarg],"energy") == 0) {
-      eflag = 1;
-      which[i] = ENERGY;
-      pack_choice[i] = &ComputeAngleLocal::pack_energy;
-    } else error->all("Invalid keyword in compute angle/local command");
+    if (strcmp(arg[iarg],"theta") == 0) tflag = nvalues++;
+    else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
+    else error->all("Invalid keyword in compute angle/local command");
   }
 
   nmax = 0;
-  theta = energy = NULL;
+  vector = NULL;
   array = NULL;
 }
 
@@ -73,10 +62,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeAngleLocal::~ComputeAngleLocal()
 {
-  delete [] which;
-  delete [] pack_choice;
-  memory->sfree(theta);
-  memory->sfree(energy);
+  memory->sfree(vector);
   memory->destroy_2d_double_array(array);
 }
 
@@ -106,14 +92,6 @@ void ComputeAngleLocal::compute_local()
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
   ncount = compute_angles(1);
-
-  // fill array with theta/energy values
-
-  if (nvalues > 1) {
-    if (array) buf = array[0];
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -129,9 +107,10 @@ void ComputeAngleLocal::compute_local()
 
 int ComputeAngleLocal::compute_angles(int flag)
 {
-  int i,atom1,atom2,atom3;
+  int i,m,n,atom1,atom2,atom3;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c;
+  double *tbuf,*ebuf;
 
   double **x = atom->x;
   int *num_angle = atom->num_angle;
@@ -143,10 +122,20 @@ int ComputeAngleLocal::compute_angles(int flag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (flag) {
+    if (nvalues == 1) {
+      if (tflag >= 0) tbuf = vector;
+      if (eflag >= 0) ebuf = vector;
+    } else {
+      if (tflag >= 0) tbuf = &array[0][tflag];
+      if (eflag >= 0) ebuf = &array[0][eflag];
+    }
+  }
+
   Angle *angle = force->angle;
   double PI = 4.0*atan(1.0);
 
-  int m = 0;
+  m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
     for (i = 0; i < num_angle[atom2]; i++) {
@@ -158,7 +147,7 @@ int ComputeAngleLocal::compute_angles(int flag)
       if (angle_type[atom2][i] == 0) continue;
 
       if (flag) {
-	if (tflag) {
+	if (tflag >= 0) {
 	  delx1 = x[atom1][0] - x[atom2][0];
 	  dely1 = x[atom1][1] - x[atom2][1];
 	  delz1 = x[atom1][2] - x[atom2][2];
@@ -181,14 +170,15 @@ int ComputeAngleLocal::compute_angles(int flag)
 	  c /= r1*r2;
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  theta[m] = 180.0*acos(c)/PI;
+	  tbuf[n] = 180.0*acos(c)/PI;
 	}
 
-	if (eflag) {
+	if (eflag >= 0) {
 	  if (angle_type[atom2][i] > 0)
-	    energy[m] = angle->single(angle_type[atom2][i],atom1,atom2,atom3);
-	  else energy[m] = 0.0;
+	    ebuf[n] = angle->single(angle_type[atom2][i],atom1,atom2,atom3);
+	  else ebuf[n] = 0.0;
 	}
+	n += nvalues;
       }
 
       m++;
@@ -200,46 +190,17 @@ int ComputeAngleLocal::compute_angles(int flag)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeAngleLocal::pack_theta(int n)
-{
-  for (int m = 0; m < ncount; m++) {
-    buf[n] = theta[m];
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeAngleLocal::pack_energy(int n)
-{
-  for (int m = 0; m < ncount; m++) {
-    buf[n] = energy[m];
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputeAngleLocal::reallocate(int n)
 {
   // grow vector or array and indices array
 
   while (nmax < n) nmax += DELTA;
 
-  if (tflag) {
-    memory->sfree(theta);
-    theta = (double *) memory->smalloc(nmax*sizeof(double),
-					  "bond/local:theta");
-  }
-  if (eflag) {
-    memory->sfree(energy);
-    energy = (double *) memory->smalloc(nmax*sizeof(double),
-					"bond/local:energy");
-  }
-
   if (nvalues == 1) {
-    if (tflag) vector_local = theta;
-    if (eflag) vector_local = energy;
+    memory->sfree(vector);
+    vector = (double *) memory->smalloc(nmax*sizeof(double),
+					"bond/local:vector");
+    vector_local = vector;
   } else {
     memory->destroy_2d_double_array(array);
     array = memory->create_2d_double_array(nmax,nvalues,
@@ -254,9 +215,6 @@ void ComputeAngleLocal::reallocate(int n)
 
 double ComputeAngleLocal::memory_usage()
 {
-  double bytes = 0.0;
-  if (tflag) bytes += nmax * sizeof(double);
-  if (eflag) bytes += nmax * sizeof(double);
-  if (nvalues > 1) bytes += nmax*nvalues * sizeof(double);
+  double bytes = nmax*nvalues * sizeof(double);
   return bytes;
 }

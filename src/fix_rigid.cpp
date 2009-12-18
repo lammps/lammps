@@ -203,10 +203,11 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize force/torque flags to default = 1.0
 
-  vector_flag = 1;
-  size_vector = 12*nbody;
+  array_flag = 1;
+  size_array_rows = nbody;
+  size_array_cols = 12;
   global_freq = 1;
-  extvector = 0;
+  extarray = 0;
 
   for (i = 0; i < nbody; i++) {
     fflag[i][0] = fflag[i][1] = fflag[i][2] = 1.0;
@@ -2139,14 +2140,10 @@ void FixRigid::reset_dt()
    xcm = 1,2,3; vcm = 4,5,6; fcm = 7,8,9; torque = 10,11,12
 ------------------------------------------------------------------------- */
 
-double FixRigid::compute_vector(int n)
+double FixRigid::compute_array(int i, int j)
 {
-  int ibody = n/12;
-  int iattribute = (n % 12) / 3;
-  int index = n % 3;
-
-  if (iattribute == 0) return xcm[ibody][index];
-  else if (iattribute == 1) return vcm[ibody][index];
-  else if (iattribute == 2) return fcm[ibody][index];
-  else return torque[ibody][index];
+  if (j <= 3) return xcm[i][j];
+  if (j <= 6) return vcm[i][j-3];
+  if (j <= 9) return fcm[i][j-6];
+  return torque[i][j-9];
 }

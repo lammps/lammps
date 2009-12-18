@@ -124,6 +124,7 @@ void ComputeBondLocal::compute_local()
    if bond is deleted (type = 0), do not count
    if bond is turned off (type < 0), still count
    if flag is set, compute requested info about bond
+   if bond is turned off (type < 0), energy = 0.0
 ------------------------------------------------------------------------- */
 
 int ComputeBondLocal::compute_bonds(int flag)
@@ -158,8 +159,11 @@ int ComputeBondLocal::compute_bonds(int flag)
 	domain->minimum_image(delx,dely,delz);
 	rsq = delx*delx + dely*dely + delz*delz;
 	if (dflag) distance[m] = sqrt(rsq);
-	if (eflag)
-	  energy[m] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
+	if (eflag) {
+	  if (bond_type[atom1][i] > 0)
+	    energy[m] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
+	  else energy[m] = 0.0;
+	}
       }
 
       m++;

@@ -27,7 +27,7 @@ class ComputeAngleLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,dflag,eflag;
+  int nvalues,tflag,eflag;
   int *which;
   int ncount;
 

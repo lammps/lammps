@@ -47,14 +47,14 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   which = new int[nvalues];
   pack_choice = new FnPtrPack[nvalues];
 
-  dflag = eflag = 0;
+  tflag = eflag = 0;
 
   int i;
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
 
     if (strcmp(arg[iarg],"theta") == 0) {
-      dflag = 1;
+      tflag = 1;
       which[i] = THETA;
       pack_choice[i] = &ComputeAngleLocal::pack_theta;
     } else if (strcmp(arg[iarg],"energy") == 0) {
@@ -124,6 +124,7 @@ void ComputeAngleLocal::compute_local()
    if angle is deleted (type = 0), do not count
    if angle is turned off (type < 0), still count
    if flag is set, compute requested info about angle
+   if angle is turned off (type < 0), energy = 0.0
 ------------------------------------------------------------------------- */
 
 int ComputeAngleLocal::compute_angles(int flag)
@@ -143,6 +144,7 @@ int ComputeAngleLocal::compute_angles(int flag)
   int nlocal = atom->nlocal;
 
   Angle *angle = force->angle;
+  double PI = 4.0*atan(1.0);
 
   int m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -153,10 +155,10 @@ int ComputeAngleLocal::compute_angles(int flag)
       if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
       atom3 = atom->map(angle_atom3[atom2][i]);
       if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (angle_type[atom2][i] == 0) continue;
 
       if (flag) {
-
-	if (dflag) {
+	if (tflag) {
 	  delx1 = x[atom1][0] - x[atom2][0];
 	  dely1 = x[atom1][1] - x[atom2][1];
 	  delz1 = x[atom1][2] - x[atom2][2];
@@ -179,11 +181,14 @@ int ComputeAngleLocal::compute_angles(int flag)
 	  c /= r1*r2;
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  theta[m] = acos(c);
+	  theta[m] = 180.0*acos(c)/PI;
 	}
 
-	if (eflag)
-	  energy[m] = angle->single(angle_type[atom1][i],atom1,atom2,atom3);
+	if (eflag) {
+	  if (angle_type[atom2][i] > 0)
+	    energy[m] = angle->single(angle_type[atom2][i],atom1,atom2,atom3);
+	  else energy[m] = 0.0;
+	}
       }
 
       m++;
@@ -221,7 +226,7 @@ void ComputeAngleLocal::reallocate(int n)
 
   while (nmax < n) nmax += DELTA;
 
-  if (dflag) {
+  if (tflag) {
     memory->sfree(theta);
     theta = (double *) memory->smalloc(nmax*sizeof(double),
 					  "bond/local:theta");
@@ -233,7 +238,7 @@ void ComputeAngleLocal::reallocate(int n)
   }
 
   if (nvalues == 1) {
-    if (dflag) vector_local = theta;
+    if (tflag) vector_local = theta;
     if (eflag) vector_local = energy;
   } else {
     memory->destroy_2d_double_array(array);
@@ -250,7 +255,7 @@ void ComputeAngleLocal::reallocate(int n)
 double ComputeAngleLocal::memory_usage()
 {
   double bytes = 0.0;
-  if (dflag) bytes += nmax * sizeof(double);
+  if (tflag) bytes += nmax * sizeof(double);
   if (eflag) bytes += nmax * sizeof(double);
   if (nvalues > 1) bytes += nmax*nvalues * sizeof(double);
   return bytes;

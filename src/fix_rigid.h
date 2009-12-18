@@ -41,7 +41,7 @@ class FixRigid : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
-  double compute_vector(int);
+  double compute_array(int, int);
 
  private:
   double dtv,dtf,dtq;

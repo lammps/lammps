@@ -87,6 +87,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_group_group.h"
 #include "compute_gyration.h"
 #include "compute_heat_flux.h"
+#include "compute_improper_local.h"
 #include "compute_ke.h"
 #include "compute_ke_atom.h"
 #include "compute_msd.h"
@@ -122,6 +123,7 @@ ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(group/group,ComputeGroupGroup)
 ComputeStyle(gyration,ComputeGyration)
 ComputeStyle(heat/flux,ComputeHeatFlux)
+ComputeStyle(improper/local,ComputeImproperLocal)
 ComputeStyle(ke,ComputeKE)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(msd,ComputeMSD)

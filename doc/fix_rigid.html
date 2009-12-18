@@ -207,26 +207,25 @@ the system size.
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>This fix computes a global vector of quantities which can be accessed
-by various <A HREF = "Section_howto.html#4_15">output commands</A>.  For each rigid
-body, 12 values are stored: the xyz coords of the center of mass
-(COM), the xyz components of the COM velocity, the xyz components of
-the force acting on the COM, and the xyz components of the torque
-acting on the COM.  The force and torque values in the vector are not
-affected by the <I>force</I> and <I>torque</I> keywords in the fix rigid
-command; they reflect values before any changes are made by those
-keywords.
+<P>This fix computes a global array of values which can be accessed by
+various <A HREF = "Section_howto.html#4_15">output commands</A>.  The number of rows
+in the array is equal to the number of rigid bodies.  The number of
+columns is 12.  Thus for each rigid body, 12 values are stored: the
+xyz coords of the center of mass (COM), the xyz components of the COM
+velocity, the xyz components of the force acting on the COM, and the
+xyz components of the torque acting on the COM.  The force and torque
+values in the array are not affected by the <I>force</I> and <I>torque</I>
+keywords in the fix rigid command; they reflect values before any
+changes are made by those keywords.
 </P>
-<P>The total length of the vector is 12*Nbody where Nbody is the number
-of rigid bodies defined by the fix.  Thus the 15th value in the vector
-would be the z-coord of the COM of the 2nd rigid body.  LAMMPS chooses
-the ordering of the rigid bodies internally.  The ordering of the
-rigid bodies is as follows.  For the <I>single</I> keyword there is just
-one rigid body.  For the <I>molecule</I> keyword, the bodies are ordered by
-ascending molecule ID.  For the <I>group</I> keyword, the list of group IDs
-determines the ordering of bodies.  The vector values calculated by
-this fix are "intensive", meaning they are independent of the number
-of atoms in the simulation.
+<P>The ordering of the rigid bodies (by row in the array) is as follows.
+For the <I>single</I> keyword there is just one rigid body.  For the
+<I>molecule</I> keyword, the bodies are ordered by ascending molecule ID.
+For the <I>group</I> keyword, the list of group IDs determines the ordering
+of bodies.
+</P>
+<P>The array values calculated by this fix are "intensive", meaning they
+are independent of the number of atoms in the simulation.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

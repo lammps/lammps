@@ -459,7 +459,8 @@ Compute styles :h4
 See the "compute"_compute.html command for one-line descriptions of
 each style or click on the style itself for a full description:
 
-"centro/atom"_compute_centro_atom.html,
+"angle/local"_compute_angle_local.html,
+"bond/local"_compute_bond_local.html,
 "cna/atom"_compute_cna_atom.html,
 "com"_compute_com.html,
 "coord/atom"_compute_coord_atom.html,

@@ -33,7 +33,6 @@ class ComputeBondLocal : public Compute {
   int nmax;
   double *vector;
   double **array;
-  double *buf;
 
   int compute_bonds(int);
   void reallocate(int);

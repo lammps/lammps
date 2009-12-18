@@ -268,6 +268,8 @@ int ComputePropertyLocal::count_bonds(int flag)
    only count if 2nd atom is the one storing the angle
    all atoms in interaction must be in group
    all atoms in interaction must be known to proc
+   if angle is deleted (type = 0), do not count
+   if angle is turned off (type < 0), still count
 ------------------------------------------------------------------------- */
 
 int ComputePropertyLocal::count_angles(int flag)
@@ -292,6 +294,7 @@ int ComputePropertyLocal::count_angles(int flag)
       if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
       atom3 = atom->map(angle_atom3[atom2][i]);
       if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (angle_type[atom2][i] == 0) continue;
 
       if (flag) {
 	indices[m][0] = atom2;

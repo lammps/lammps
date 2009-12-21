@@ -43,6 +43,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   fp = NULL;
   screenflag = 1;
+  char *title = NULL;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -64,12 +65,24 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
       else error->all("Illegal fix print command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"title") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix print command");
+      delete [] title;
+      int n = strlen(arg[iarg+1]) + 1;
+      title = new char[n];
+      strcpy(title,arg[iarg+1]);
+      iarg += 2;
     } else error->all("Illegal fix print command");
   }
 
-  // print header into file
+  // print file comment line
 
-  if (fp && me == 0) fprintf(fp,"# Fix print output for fix %s\n",id);
+  if (fp && me == 0) {
+    if (title) fprintf(fp,"%s\n",title);
+    else fprintf(fp,"# Fix print output for fix %s\n",id);
+  }
+
+  delete [] title;
 
   copy = new char[MAXLINE];
   work = new char[MAXLINE];

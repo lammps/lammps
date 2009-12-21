@@ -118,6 +118,10 @@ class Compute : protected Pointers {
   double vbias[3];             // stored velocity bias for one atom
   double **vbiasall;           // stored velocity bias for all atoms
   int maxbias;                 // size of vbiasall array
+
+  int *molmap;                 // convert molecule ID to local index
+
+  int molecules_in_group(int &, int &);
 };
 
 }

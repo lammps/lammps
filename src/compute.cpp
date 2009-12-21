@@ -15,18 +15,21 @@
 #include "stdlib.h"
 #include "string.h"
 #include "ctype.h"
-#include "comm.h"
 #include "compute.h"
+#include "atom.h"
 #include "domain.h"
+#include "comm.h"
 #include "group.h"
-#include "modify.h"
-#include "lattice.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 #define DELTA 4
+#define BIG 2000000000
+
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,6 +80,10 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   
   ntime = maxtime = 0;
   tlist = NULL;
+
+  // setup map for molecule IDs
+
+  molmap = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,6 +94,7 @@ Compute::~Compute()
   delete [] style;
 
   memory->sfree(tlist);
+  memory->sfree(molmap);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,4 +196,100 @@ int Compute::matchstep(int ntimestep)
 void Compute::clearstep()
 {
   ntime = 0;
+}
+
+/* ----------------------------------------------------------------------
+   identify molecule IDs with atoms in group
+   warn if any atom in group has molecule ID = 0
+   warn if any molecule has only some atoms in group
+   return Ncount = # of molecules with atoms in group
+   set molmap to NULL if molecule IDs include all in range from 1 to Ncount
+   else: molecule IDs range from idlo to idhi
+         set molmap to vector of length idhi-idlo+1
+	 molmap[id-idlo] = index from 0 to Ncount-1
+         return idlo and idhi
+------------------------------------------------------------------------- */
+
+int Compute::molecules_in_group(int &idlo, int &idhi)
+{
+  int i;
+
+  memory->sfree(molmap);
+  molmap = NULL;
+
+  // find lo/hi molecule ID for any atom in group
+  // warn if atom in group has ID = 0
+
+  int *molecule = atom->molecule;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  int lo = BIG;
+  int hi = -BIG;
+  int flag = 0;
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      if (molecule[i] == 0) {
+	flag = 1;
+	continue;
+      }
+      lo = MIN(lo,molecule[i]);
+      hi = MAX(hi,molecule[i]);
+    }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall && comm->me == 0)
+    error->warning("Atom with molecule ID = 0 included in "
+		   "compute molecule group");
+
+  MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
+  MPI_Allreduce(&hi,&idhi,1,MPI_INT,MPI_MAX,world);
+  if (idlo == BIG) return 0;
+
+  // molmap = vector of length nlen
+  // set to 1 for IDs that appear in group across all procs, else 0
+
+  int nlen = idhi-idlo+1;
+  molmap = (int *) memory->smalloc(nlen*sizeof(int),"compute:molmap");
+  for (i = 0; i < nlen; i++) molmap[i] = 0;
+
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      molmap[molecule[i]-idlo] = 1;
+
+  int *molmapall = 
+    (int *) memory->smalloc(nlen*sizeof(int),"compute:molmapall");
+  MPI_Allreduce(molmap,molmapall,nlen,MPI_INT,MPI_MAX,world);
+
+  // nmolecules = # of non-zero IDs in molmap
+  // molmap[i] = index of molecule, skipping molecules not in group with -1
+
+  int nmolecules = 0;
+  for (i = 0; i < nlen; i++)
+    if (molmapall[i]) molmap[i] = nmolecules++;
+    else molmap[i] = -1;
+  memory->sfree(molmapall);
+
+  // warn if any molecule has some atoms in group and some not in group
+
+  flag = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) continue;
+    if (molecule[i] == 0) continue;
+    if (molecule[i] < idlo || molecule[i] > idhi) continue;
+    if (molmap[molecule[i]-idlo] >= 0) flag = 1;
+  }
+
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall && comm->me == 0)
+    error->warning("One or more compute molecules has atoms not in group");
+
+  // if molmap simply stores 1 to Nmolecules, then free it
+
+  if (nmolecules < nlen) return nmolecules;
+  if (idlo > 1) return nmolecules;
+  memory->sfree(molmap);
+  molmap = NULL;
+  return nmolecules;
 }

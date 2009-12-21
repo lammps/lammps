@@ -81,16 +81,19 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_centro_atom.h"
 #include "compute_cna_atom.h"
 #include "compute_com.h"
+#include "compute_com_molecule.h"
 #include "compute_coord_atom.h"
 #include "compute_dihedral_local.h"
 #include "compute_displace_atom.h"
 #include "compute_group_group.h"
 #include "compute_gyration.h"
+#include "compute_gyration_molecule.h"
 #include "compute_heat_flux.h"
 #include "compute_improper_local.h"
 #include "compute_ke.h"
 #include "compute_ke_atom.h"
 #include "compute_msd.h"
+#include "compute_msd_molecule.h"
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
@@ -117,16 +120,19 @@ ComputeStyle(bond/local,ComputeBondLocal)
 ComputeStyle(centro/atom,ComputeCentroAtom)
 ComputeStyle(cna/atom,ComputeCNAAtom)
 ComputeStyle(com,ComputeCOM)
+ComputeStyle(com/molecule,ComputeCOMMolecule)
 ComputeStyle(coord/atom,ComputeCoordAtom)
 ComputeStyle(dihedral/local,ComputeDihedralLocal)
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
 ComputeStyle(group/group,ComputeGroupGroup)
 ComputeStyle(gyration,ComputeGyration)
+ComputeStyle(gyration/molecule,ComputeGyrationMolecule)
 ComputeStyle(heat/flux,ComputeHeatFlux)
 ComputeStyle(improper/local,ComputeImproperLocal)
 ComputeStyle(ke,ComputeKE)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(msd,ComputeMSD)
+ComputeStyle(msd/molecule,ComputeMSDMolecule)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)

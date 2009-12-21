@@ -216,7 +216,7 @@ void ComputePropertyLocal::compute_local()
     buf = vector;
     (this->*pack_choice[0])(0);
   } else {
-    if (array) buf = array[0];
+    if (array) buf = &array[0][0];
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }

@@ -118,6 +118,7 @@ void ComputeMSD::compute_vector()
 
   double cm[3];
   if (comflag) group->xcm(igroup,masstotal,cm);
+  else cm[0] = cm[1] = cm[2] = 0.0;
 
   // dx,dy,dz = displacement of atom from original position
   // original unwrapped position is stored by fix
@@ -148,15 +149,9 @@ void ComputeMSD::compute_vector()
 	xbox = (image[i] & 1023) - 512;
 	ybox = (image[i] >> 10 & 1023) - 512;
 	zbox = (image[i] >> 20) - 512;
-	if (comflag) {
-	  dx = x[i][0] + xbox*xprd - cm[0] - xoriginal[i][0];
-	  dy = x[i][1] + ybox*yprd - cm[1] - xoriginal[i][1];
-	  dz = x[i][2] + zbox*zprd - cm[2] - xoriginal[i][2];
-	} else {
-	  dx = x[i][0] + xbox*xprd - xoriginal[i][0];
-	  dy = x[i][1] + ybox*yprd - xoriginal[i][1];
-	  dz = x[i][2] + zbox*zprd - xoriginal[i][2];
-	}
+	dx = x[i][0] + xbox*xprd - cm[0] - xoriginal[i][0];
+	dy = x[i][1] + ybox*yprd - cm[1] - xoriginal[i][1];
+	dz = x[i][2] + zbox*zprd - cm[2] - xoriginal[i][2];
 	msd[0] += dx*dx;
 	msd[1] += dy*dy;
 	msd[2] += dz*dz;
@@ -169,16 +164,10 @@ void ComputeMSD::compute_vector()
 	xbox = (image[i] & 1023) - 512;
 	ybox = (image[i] >> 10 & 1023) - 512;
 	zbox = (image[i] >> 20) - 512;
-	if (comflag) {
-	  dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - 
-	    cm[0] - xoriginal[i][0];
-	  dy = x[i][1] + h[1]*ybox + h[3]*zbox - cm[1] - xoriginal[i][1];
-	  dz = x[i][2] + h[2]*zbox - cm[2] - xoriginal[i][2];
-	} else {
-	  dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
-	  dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
-	  dz = x[i][2] + h[2]*zbox - xoriginal[i][2];
-	}
+	dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - 
+	  cm[0] - xoriginal[i][0];
+	dy = x[i][1] + h[1]*ybox + h[3]*zbox - cm[1] - xoriginal[i][1];
+	dz = x[i][2] + h[2]*zbox - cm[2] - xoriginal[i][2];
 	msd[0] += dx*dx;
 	msd[1] += dy*dy;
 	msd[2] += dz*dz;

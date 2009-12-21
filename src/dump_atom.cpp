@@ -153,9 +153,9 @@ int DumpAtom::pack()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::write_data(int n, double *buf)
+void DumpAtom::write_data(int n, double *mybuf)
 {
-  (this->*write_choice)(n,buf);
+  (this->*write_choice)(n,mybuf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -397,36 +397,36 @@ int DumpAtom::pack_noscale_noimage()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::write_binary(int n, double *buf)
+void DumpAtom::write_binary(int n, double *mybuf)
 {
   n *= size_one;
   fwrite(&n,sizeof(int),1,fp);
-  fwrite(buf,sizeof(double),n,fp);
+  fwrite(mybuf,sizeof(double),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::write_image(int n, double *buf)
+void DumpAtom::write_image(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-	    static_cast<int> (buf[m]), static_cast<int> (buf[m+1]),
-	    buf[m+2],buf[m+3],buf[m+4], static_cast<int> (buf[m+5]),
-	    static_cast<int> (buf[m+6]), static_cast<int> (buf[m+7]));
+	    static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+	    mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
+	    static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
     m += size_one;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::write_noimage(int n, double *buf)
+void DumpAtom::write_noimage(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-	    static_cast<int> (buf[m]), static_cast<int> (buf[m+1]),
-	    buf[m+2],buf[m+3],buf[m+4]);
+	    static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+	    mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
   }
 }

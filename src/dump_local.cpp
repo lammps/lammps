@@ -245,15 +245,15 @@ int DumpLocal::pack()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpLocal::write_data(int n, double *buf)
+void DumpLocal::write_data(int n, double *mybuf)
 {
   int i,j;
 
   int m = 0;
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (buf[m]));
-      else fprintf(fp,vformat[j],buf[m]);
+      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      else fprintf(fp,vformat[j],mybuf[m]);
       m++;
     }
     fprintf(fp,"\n");

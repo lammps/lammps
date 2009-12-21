@@ -751,31 +751,31 @@ int DumpCustom::pack()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::write_data(int n, double *buf)
+void DumpCustom::write_data(int n, double *mybuf)
 {
-  (this->*write_choice)(n,buf);
+  (this->*write_choice)(n,mybuf);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::write_binary(int n, double *buf)
+void DumpCustom::write_binary(int n, double *mybuf)
 {
   n *= size_one;
   fwrite(&n,sizeof(int),1,fp);
-  fwrite(buf,sizeof(double),n,fp);
+  fwrite(mybuf,sizeof(double),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::write_text(int n, double *buf)
+void DumpCustom::write_text(int n, double *mybuf)
 {
   int i,j;
 
   int m = 0;
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (buf[m]));
-      else fprintf(fp,vformat[j],buf[m]);
+      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      else fprintf(fp,vformat[j],mybuf[m]);
       m++;
     }
     fprintf(fp,"\n");

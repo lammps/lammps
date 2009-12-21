@@ -229,7 +229,7 @@ void DumpCFG::write_header(int n)
    write head of block (mass & element name) only if has atoms of the type
 ------------------------------------------------------------------------- */
 
-void DumpCFG::write_data(int n, double *buf)
+void DumpCFG::write_data(int n, double *mybuf)
 {
   int i,j,m,itype;
   int tag_i,index;
@@ -241,7 +241,7 @@ void DumpCFG::write_data(int n, double *buf)
   if (sort_flag == 0) {
     for (i = 0, m = 0; i < n; i++) {
       for (j = 0; j < size_one; j++)
-	rbuf[nlines][j] = buf[m++];
+	rbuf[nlines][j] = mybuf[m++];
       nlines++;
     }
 
@@ -282,7 +282,7 @@ void DumpCFG::write_data(int n, double *buf)
     //   to this index
 
     for (i = 0, m = 0; i < n; i++) {
-      tag_i = static_cast<int>(buf[m]);
+      tag_i = static_cast<int>(mybuf[m]);
       for (j = 0; j < nchosen; j++) {
 	if (tag_i == tags[j]) {
 	  index = j;
@@ -290,7 +290,7 @@ void DumpCFG::write_data(int n, double *buf)
 	}
       }
       for (j = 0; j < size_one; j++)
-	rbuf[index][j] = buf[m++];
+	rbuf[index][j] = mybuf[m++];
     }
 
     //  write data lines in rbuf to file after transfer is done

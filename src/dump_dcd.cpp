@@ -233,17 +233,17 @@ int DumpDCD::pack()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpDCD::write_data(int n, double *buf)
+void DumpDCD::write_data(int n, double *mybuf)
 {
   // spread buf atom coords into global arrays
 
   int tag;
   int m = 0;
   for (int i = 0; i < n; i++) {
-    tag = static_cast<int> (buf[m]) - 1;
-    xf[tag] = buf[m+1];
-    yf[tag] = buf[m+2];
-    zf[tag] = buf[m+3];
+    tag = static_cast<int> (mybuf[m]) - 1;
+    xf[tag] = mybuf[m+1];
+    yf[tag] = mybuf[m+2];
+    zf[tag] = mybuf[m+3];
     m += size_one;
   }
 

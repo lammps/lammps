@@ -183,7 +183,7 @@ void ComputeMSDMolecule::compute_array()
 double ComputeMSDMolecule::memory_usage()
 {
   double bytes = 2*nmolecules * sizeof(double);
-  if (molmap) bytes += nmolecules * sizeof(int);
+  if (molmap) bytes += (idhi-idlo+1) * sizeof(int);
   bytes += 2*nmolecules*3 * sizeof(double);
   bytes += nmolecules*4 * sizeof(double);
   return bytes;

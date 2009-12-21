@@ -229,18 +229,18 @@ int DumpXTC::pack()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXTC::write_data(int n, double *buf)
+void DumpXTC::write_data(int n, double *mybuf)
 {
   float *xyz;
   int j,tag;
 
   int m = 0;
   for (int i = 0; i < n; i++) {
-    tag = static_cast<int> (buf[m]) - 1;
+    tag = static_cast<int> (mybuf[m]) - 1;
     j = 3*tag;
-    coords[j++] = buf[m+1];
-    coords[j++] = buf[m+2];
-    coords[j] = buf[m+3];
+    coords[j++] = mybuf[m+1];
+    coords[j++] = mybuf[m+2];
+    coords[j] = mybuf[m+3];
     m += size_one;
   }
 

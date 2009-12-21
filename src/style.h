@@ -94,6 +94,7 @@ CommandStyle(write_restart,WriteRestart)
 #include "compute_ke_atom.h"
 #include "compute_msd.h"
 #include "compute_msd_molecule.h"
+#include "compute_pair_local.h"
 #include "compute_pe.h"
 #include "compute_pe_atom.h"
 #include "compute_pressure.h"
@@ -134,6 +135,7 @@ ComputeStyle(ke,ComputeKE)
 ComputeStyle(ke/atom,ComputeKEAtom)
 ComputeStyle(msd,ComputeMSD)
 ComputeStyle(msd/molecule,ComputeMSDMolecule)
+ComputeStyle(pair/local,ComputePairLocal)
 ComputeStyle(pe,ComputePE)
 ComputeStyle(pe/atom,ComputePEAtom)
 ComputeStyle(pressure,ComputePressure)

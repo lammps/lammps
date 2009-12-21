@@ -17,10 +17,12 @@ print = style name of this fix command :l
 N = print every N steps :l
 string = text string to print with optional variable names :l
 zero or more keyword/value pairs may be appended :l
-keyword = {file} or {append} or {screen} :l
+keyword = {file} or {append} or {screen} or {title} :l
   {file} value = filename
   {append} value = filename
-  {screen} value = {yes} or {no} :pre
+  {screen} value = {yes} or {no}
+  {title} value = string
+    string =  text to print as 1st line of output file :pre
 :ule
 
 [Examples:]
@@ -56,6 +58,14 @@ exists, or created if it does not exist.
 If the {screen} keyword is used, output by this fix to the screen and
 logfile can be turned on or off as desired.
 
+The {title} keyword allow specification of the string that will be
+printed as the first line of the output file, assuming the {file}
+keyword was used.  By default, the title line is as follows:
+
+# Fix print output for fix ID :pre
+
+where ID is replaced with the fix-ID.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
@@ -74,4 +84,5 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Default:]
 
-The option defaults are no file output and screen = yes.
+The option defaults are no file output, screen = yes, and title string
+as described above.

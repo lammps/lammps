@@ -45,7 +45,7 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {title1} or {title
     end = count values outside histogram lo/hi bounds in end bins
     extra = create 2 extra bins for value outside histogram lo/hi bounds
   {title1} arg = string
-    string = text to print as 1st line of output file = title
+    string = text to print as 1st line of output file
   {title2} arg = string
     string = text to print as 2nd line of output file
   {title3} arg = string

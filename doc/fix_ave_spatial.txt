@@ -41,11 +41,11 @@ keyword = {norm} or {units} or {file} or {ave} or {title1} or {title2} or {title
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
   {title1} arg = string
-    string = text to print as 1st line of output file = title
+    string = text to print as 1st line of output file
   {title2} arg = string
-    string = text to print as 2nd line of output file = timestep, # of layers
+    string = text to print as 2nd line of output file
   {title3} arg = string
-    string = text to print as 3rd line of output file = column headings for values :pre
+    string = text to print as 3rd line of output file :pre
 :ule
 
 [Examples:]

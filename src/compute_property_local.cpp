@@ -17,21 +17,16 @@
 #include "atom_vec.h"
 #include "update.h"
 #include "force.h"
-#include "domain.h"
+#include "pair.h"
+#include "neighbor.h"
+#include "neigh_request.h"
+#include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
-// customize by adding keyword
-// same list as in dump_custom.cpp
-
-enum{ID,MOL,TYPE,MASS,
-       X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,IX,IY,IZ,
-       VX,VY,VZ,FX,FY,FZ,
-       Q,MUX,MUY,MUZ,RADIUS,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-       QUATW,QUATI,QUATJ,QUATK,TQX,TQY,TQZ};
-enum{NONE,BOND,ANGLE,DIHEDRAL,IMPROPER};
+enum{NONE,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 #define DELTA 10000
 
@@ -55,7 +50,18 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
 
-    if (strcmp(arg[iarg],"batom1") == 0) {
+    if (strcmp(arg[iarg],"patom1") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_patom1;
+      if (kindflag != NONE && kindflag != PAIR) 
+	error->all("Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+    } else if (strcmp(arg[iarg],"patom2") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_patom2;
+      if (kindflag != NONE && kindflag != PAIR) 
+	error->all("Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+
+    } else if (strcmp(arg[iarg],"batom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_batom1;
       if (kindflag != NONE && kindflag != BOND) 
 	error->all("Compute property/local cannot use these inputs together");
@@ -178,9 +184,27 @@ ComputePropertyLocal::~ComputePropertyLocal()
 
 void ComputePropertyLocal::init()
 {
-  // do initial memory allocation so that memory_usage() is correct
+  if (kindflag == PAIR) {
+    if (force->pair == NULL) 
+      error->all("No pair style is defined for compute property/local");
+    if (force->pair->single_enable == 0)
+      error->all("Pair style does not support compute property/local");
+  }
 
-  if (kindflag == BOND) ncount = count_bonds(0);
+  // for PAIR< need an occasional half neighbor list
+
+  if (kindflag == PAIR) {
+    int irequest = neighbor->request((void *) this);
+    neighbor->requests[irequest]->pair = 0;
+    neighbor->requests[irequest]->compute = 1;
+    neighbor->requests[irequest]->occasional = 1;
+  }
+
+  // do initial memory allocation so that memory_usage() is correct
+  // cannot be done yet for PAIR, since neigh list does not exist
+
+  if (kindflag == PAIR) ncount = 0;
+  else if (kindflag == BOND) ncount = count_bonds(0);
   else if (kindflag == ANGLE) ncount = count_angles(0);
   else if (kindflag == DIHEDRAL) ncount = count_dihedrals(0);
   else if (kindflag == IMPROPER) ncount = count_impropers(0);
@@ -191,13 +215,21 @@ void ComputePropertyLocal::init()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputePropertyLocal::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputePropertyLocal::compute_local()
 {
   invoked_local = update->ntimestep;
 
   // count local entries and generate list of indices
 
-  if (kindflag == BOND) ncount = count_bonds(0);
+  if (kindflag == PAIR) ncount = count_pairs(0);
+  else if (kindflag == BOND) ncount = count_bonds(0);
   else if (kindflag == ANGLE) ncount = count_angles(0);
   else if (kindflag == DIHEDRAL) ncount = count_dihedrals(0);
   else if (kindflag == IMPROPER) ncount = count_impropers(0);
@@ -205,7 +237,8 @@ void ComputePropertyLocal::compute_local()
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
 
-  if (kindflag == BOND) ncount = count_bonds(1);
+  if (kindflag == PAIR) ncount = count_pairs(1);
+  else if (kindflag == BOND) ncount = count_bonds(1);
   else if (kindflag == ANGLE) ncount = count_angles(1);
   else if (kindflag == DIHEDRAL) ncount = count_dihedrals(1);
   else if (kindflag == IMPROPER) ncount = count_impropers(1);
@@ -220,6 +253,88 @@ void ComputePropertyLocal::compute_local()
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }
+}
+
+/* ----------------------------------------------------------------------
+   count pairs and compute pair info on this proc
+   only count pair once if newton_pair is off
+   both atom I,J must be in group
+   if flag is set, compute requested info about pair
+------------------------------------------------------------------------- */
+
+int ComputePropertyLocal::count_pairs(int flag)
+{
+  int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double rsq,eng,fpair,factor_coul,factor_lj;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  int *tag = atom->tag;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
+
+  // invoke half neighbor list (will copy or build if necessary)
+
+  if (flag == 0) neighbor->build_one(list->index);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // loop over neighbors of my atoms
+  // skip if I or J are not in group
+
+  Pair *pair = force->pair;
+  double **cutsq = force->pair->cutsq;
+
+  m = n = 0;
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    if (!(mask[i] & groupbit)) continue;
+
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+
+      if (j < nall) factor_coul = factor_lj = 1.0;
+      else {
+	factor_coul = special_coul[j/nall];
+	factor_lj = special_lj[j/nall];
+	j %= nall;
+      }
+
+      if (!(mask[j] & groupbit)) continue;
+      if (newton_pair == 0 && j >= nlocal) continue;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+      if (rsq >= cutsq[itype][jtype]) continue;
+
+      if (flag) {
+	indices[m][0] = tag[i];
+	indices[m][1] = tag[j];
+      }
+      m++;
+    }
+  }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -434,6 +549,26 @@ double ComputePropertyLocal::memory_usage()
    the atom property is packed into buf starting at n with stride nvalues
    customize a new keyword by adding a method
 ------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_patom1(int n)
+{
+  for (int m = 0; m < ncount; m++) {
+    buf[n] = indices[m][0];
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_patom2(int n)
+{
+  for (int m = 0; m < ncount; m++) {
+    buf[n] = indices[m][1];
+    n += nvalues;
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 

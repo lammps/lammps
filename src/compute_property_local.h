@@ -23,6 +23,7 @@ class ComputePropertyLocal : public Compute {
   ComputePropertyLocal(class LAMMPS *, int, char **);
   ~ComputePropertyLocal();
   void init();
+  void init_list(int, class NeighList *);
   void compute_local();
   double memory_usage();
 
@@ -34,9 +35,12 @@ class ComputePropertyLocal : public Compute {
   double **array;
   double *buf;
 
+  class NeighList *list;
+
   int ncount;
   int **indices;
 
+  int count_pairs(int);
   int count_bonds(int);
   int count_angles(int);
   int count_dihedrals(int);
@@ -45,6 +49,9 @@ class ComputePropertyLocal : public Compute {
 
   typedef void (ComputePropertyLocal::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
+
+  void pack_patom1(int);
+  void pack_patom2(int);
 
   void pack_batom1(int);
   void pack_batom2(int);

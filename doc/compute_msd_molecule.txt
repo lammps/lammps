@@ -69,12 +69,12 @@ coordinates of the atoms in the bodies.
 IMPORTANT NOTE: Unlike the "compute msd"_compute_msd.html command,
 this compute does not store the initial center-of-mass coorindates of
 its molecules in a restart file.  Thus you cannot continue the MSD per
-molecule calculation when running from a "restart
+molecule calculation of this compute when running from a "restart
 file"_read_restart.html.
 
 [Output info:]
 
-This compute calculates a global array with the number of rows =
+This compute calculates a global array where the number of rows =
 Nmolecules and the number of columns = 4 for dx,dy,dz and the total
 displacement.  These values can be accessed by any command that uses
 global array values from a compute as input.  See "this

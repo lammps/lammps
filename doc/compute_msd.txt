@@ -95,7 +95,8 @@ number of atoms in the simulation.
 [Related commands:]
 
 "compute displace_atom"_compute_displace_atom.html, "fix
-coord/original"_fix_coord_original.html
+coord/original"_fix_coord_original.html, "compute
+msd/molecule"_compute_msd_molecule.html
 
 [Default:]
 

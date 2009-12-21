@@ -72,12 +72,12 @@ coordinates of the atoms in the bodies.
 <P>IMPORTANT NOTE: Unlike the <A HREF = "compute_msd.html">compute msd</A> command,
 this compute does not store the initial center-of-mass coorindates of
 its molecules in a restart file.  Thus you cannot continue the MSD per
-molecule calculation when running from a <A HREF = "read_restart.html">restart
+molecule calculation of this compute when running from a <A HREF = "read_restart.html">restart
 file</A>.
 </P>
 <P><B>Output info:</B>
 </P>
-<P>This compute calculates a global array with the number of rows =
+<P>This compute calculates a global array where the number of rows =
 Nmolecules and the number of columns = 4 for dx,dy,dz and the total
 displacement.  These values can be accessed by any command that uses
 global array values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this

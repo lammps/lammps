@@ -33,8 +33,9 @@ formula
 </P>
 <CENTER><IMG SRC = "Eqs/compute_gyration.jpg">
 </CENTER>
-<P>where M is the total mass of the molecule and Rcm is the center-of-mass
-position of the molecule.
+<P>where M is the total mass of the molecule, Rcm is the center-of-mass
+position of the molecule, and the sum is over all atoms in the
+molecule and in the group.
 </P>
 <P>Rg for a particular molecule is only computed if one or more of its
 atoms are in the specified group.  Normally all atoms in the molecule
@@ -58,9 +59,9 @@ image</A> command.
 </P>
 <P><B>Output info:</B>
 </P>
-<P>This compute calculates a global vector of Rg values with the number
-of elements = Nmolecules.  These values can be used by any command
-that uses a global vector values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
+<P>This compute calculates a global vector of Rg values where the length
+of the vector = Nmolecules.  These values can be used by any command
+that uses global vector values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>

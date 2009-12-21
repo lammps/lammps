@@ -30,8 +30,8 @@ this formula
 
 :c,image(Eqs/compute_gyration.jpg)
 
-where M is the total mass of the group and Rcm is the center-of-mass
-position of the group.
+where M is the total mass of the group, Rcm is the center-of-mass
+position of the group, and the sum is over all atoms in the group.
 
 IMPORTANT NOTE: The coordinates of an atom contribute to Rg in
 "unwrapped" form, by using the image flags associated with each atom.
@@ -54,6 +54,8 @@ is independent of the number of atoms in the simulation.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"compute gyration/molecule"_compute_gyration_molecule.html
 
 [Default:] none

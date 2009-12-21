@@ -57,6 +57,8 @@ number of atoms in the simulation.
 
 [Restrictions:] none
 
-[Related commands:] none
+[Related commands:]
+
+"compute com/molecule"_compute_com_molecule.html
 
 [Default:] none

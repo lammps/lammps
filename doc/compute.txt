@@ -183,6 +183,7 @@ available in LAMMPS:
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/molecule"_compute_msd_molecule.html - mean-squared displacement for each molecule
+"pair/local"_compute_pair_local.html - distance/energy/force of each pairwise interaction
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor

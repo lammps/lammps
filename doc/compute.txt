@@ -188,6 +188,7 @@ available in LAMMPS:
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "property/atom"_compute_property_atom.html - convert atom attributes to per-atom vectors/arrays
 "property/local"_compute_property_local.html - convert local attributes to localvectors/arrays
+"property/molecule"_compute_property_molecule.html - convert molecule attributes to localvectors/arrays
 "rdf"_compute_rdf.html - radial distribution function g(r) histogram of group of atoms
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region

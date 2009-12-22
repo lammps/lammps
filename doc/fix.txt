@@ -163,7 +163,6 @@ list of fix styles available in LAMMPS:
 "bond/create"_fix_bond_create.html - create bonds on the fly
 "bond/swap"_fix_bond_swap.html - Monte Carlo bond swapping
 "box/relax"_fix_box_relax.html - relax box size during energy minimization
-"coord/original"_fix_coord_original.html - store original coords of each atom
 "deform"_fix_deform.html - change the simulation box size/shape
 "deposit"_fix_deposit.html - add new atoms above a surface
 "drag"_fix_drag.html - drag atoms towards a defined coordinate
@@ -211,6 +210,8 @@ list of fix styles available in LAMMPS:
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
 "spring/self"_fix_spring_self.html - spring from each atom to its origin
+"store/coord"_fix_store_coord.html - store coords of each atom
+"store/force"_fix_store_force.html - store force on each atom
 "temp/berendsen"_fix_temp_berendsen.html - temperature control by \
      Berendsen thermostat
 "temp/rescale"_fix_temp_rescale.html - temperature control by \

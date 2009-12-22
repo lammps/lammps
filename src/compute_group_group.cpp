@@ -141,7 +141,7 @@ void ComputeGroupGroup::interact()
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
-  // skip if i,j are not in 2 groups
+  // skip if I,J are not in 2 groups
 
   double one[4],all[4];
   one[0] = one[1] = one[2] = one[3] = 0.0;

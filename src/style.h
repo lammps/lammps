@@ -189,7 +189,6 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ave_spatial.h"
 #include "fix_ave_time.h"
 #include "fix_box_relax.h"
-#include "fix_coord_original.h"
 #include "fix_deform.h"
 #include "fix_deposit.h"
 #include "fix_drag.h"
@@ -228,6 +227,8 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_spring.h"
 #include "fix_spring_rg.h"
 #include "fix_spring_self.h"
+#include "fix_store_coord.h"
+#include "fix_store_force.h"
 #include "fix_temp_berendsen.h"
 #include "fix_temp_rescale.h"
 #include "fix_thermal_conductivity.h"
@@ -248,7 +249,6 @@ FixStyle(ave/histo,FixAveHisto)
 FixStyle(ave/spatial,FixAveSpatial)
 FixStyle(ave/time,FixAveTime)
 FixStyle(box/relax,FixBoxRelax)
-FixStyle(coord/original,FixCoordOriginal)
 FixStyle(deform,FixDeform)
 FixStyle(deposit,FixDeposit)
 FixStyle(drag,FixDrag)
@@ -287,6 +287,8 @@ FixStyle(SHEAR_HISTORY,FixShearHistory)
 FixStyle(spring,FixSpring)
 FixStyle(spring/rg,FixSpringRG)
 FixStyle(spring/self,FixSpringSelf)
+FixStyle(store/coord,FixStoreCoord)
+FixStyle(store/force,FixStoreForce)
 FixStyle(temp/berendsen,FixTempBerendsen)
 FixStyle(temp/rescale,FixTempRescale)
 FixStyle(thermal/conductivity,FixThermalConductivity)

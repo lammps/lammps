@@ -1,0 +1,139 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "string.h"
+#include "fix_store_force.h"
+#include "atom.h"
+#include "update.h"
+#include "group.h"
+#include "respa.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
+
+FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
+{
+  if (narg < 3) error->all("Illegal fix store/coord command");
+
+  peratom_flag = 1;
+  size_peratom_cols = 3;
+  peratom_freq = 1;
+
+  nmax = atom->nmax;
+  foriginal = memory->create_2d_double_array(nmax,3,"store/force:foriginal");
+  array_atom = foriginal;
+
+  // zero the array since dump may access it on timestep 0
+  // zero the array since a variable may access it before first run
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++)
+    foriginal[i][0] = foriginal[i][1] = foriginal[i][2] = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixStoreForce::~FixStoreForce()
+{
+  memory->destroy_2d_double_array(foriginal);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixStoreForce::setmask()
+{
+  int mask = 0;
+  mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_FORCE;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStoreForce::init()
+{
+  if (strcmp(update->integrate_style,"respa") == 0)
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStoreForce::setup(int vflag)
+{
+  if (strcmp(update->integrate_style,"verlet") == 0)
+    post_force(vflag);
+  else {
+    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    post_force_respa(vflag,nlevels_respa-1,0);
+    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStoreForce::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStoreForce::post_force(int vflag)
+{
+  if (atom->nlocal > nmax) {
+    nmax = atom->nmax;
+    memory->destroy_2d_double_array(foriginal);
+    foriginal = memory->create_2d_double_array(nmax,3,"store/force:foriginal");
+    array_atom = foriginal;
+  }
+
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      foriginal[i][0] = f[i][0];
+      foriginal[i][1] = f[i][1];
+      foriginal[i][2] = f[i][2];
+    } else foriginal[i][0] = foriginal[i][1] = foriginal[i][2] = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStoreForce::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixStoreForce::min_post_force(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based array
+------------------------------------------------------------------------- */
+
+double FixStoreForce::memory_usage()
+{
+  double bytes = atom->nmax*3 * sizeof(double);
+  return bytes;
+}

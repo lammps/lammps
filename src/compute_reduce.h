@@ -28,17 +28,26 @@ class ComputeReduce : public Compute {
   double memory_usage();
 
  protected:
+  int me;
   int mode,nvalues,iregion;
   int *which,*argindex,*flavor,*value2index;
   char **ids;
   double *onevec;
+  int *replace,*indices,*owner;
+  int index;
 
   int maxatom;
   double *varatom;
 
-  virtual double compute_one(int);
+  struct Pair {
+    double value;
+    int proc;
+  };
+  Pair pairme,pairall;
+
+  virtual double compute_one(int, int);
   virtual double count(int);
-  void combine(double &, double);
+  void combine(double &, double, int);
 };
 
 }

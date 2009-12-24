@@ -65,7 +65,9 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   else error->all("Illegal compute reduce command");
   iarg++;
 
-  // parse remaining values
+  MPI_Comm_rank(world,&me);
+
+  // parse remaining values until one isn't recognized
 
   which = new int[narg-4];
   argindex = new int[narg-4];
@@ -132,9 +134,41 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       nvalues++;
       delete [] suffix;
 
-    } else error->all("Illegal compute reduce command");
+    } else break;
 
     iarg++;
+  }
+
+  // optional args
+
+  replace = new int[nvalues];
+  for (int i = 0; i < nvalues; i++) replace[i] = -1;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"replace") == 0) {
+      if (iarg+3 > narg) error->all("Illegal compute reduce command");
+      if (mode != MINN && mode != MAXX)
+	error->all("Compute reduce replace requires min or max mode");
+      int col1 = atoi(arg[iarg+1]) - 1;
+      int col2 = atoi(arg[iarg+2]) - 1;
+      if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
+	error->all("Illegal compute reduce command");
+      if (col1 == col2)	error->all("Illegal compute reduce command");
+      if (replace[col1] >= 0 || replace[col2] >= 0)
+	error->all("Invalid replace values in compute reduce"); 
+      replace[col1] = col2;
+      iarg += 3;
+    } else error->all("Illegal compute reduce command");
+  }
+
+  // delete replace if not set
+
+  int flag = 0;
+  for (int i = 0; i < nvalues; i++)
+    if (replace[i] >= 0) flag = 1;
+  if (!flag) {
+    delete [] replace;
+    replace = NULL;
   }
 
   // setup and error check
@@ -250,6 +284,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     else extvector = 0;
     vector = new double[size_vector];
     onevec = new double[size_vector];
+    indices = new int[size_vector];
+    owner = new int[size_vector];
   }
 
   maxatom = 0;
@@ -266,9 +302,12 @@ ComputeReduce::~ComputeReduce()
   for (int m = 0; m < nvalues; m++) delete [] ids[m];
   delete [] ids;
   delete [] value2index;
+  delete [] replace;
 
   delete [] vector;
   delete [] onevec;
+  delete [] indices;
+  delete [] owner;
 
   memory->sfree(varatom);
 }
@@ -308,7 +347,7 @@ double ComputeReduce::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  double one = compute_one(0);
+  double one = compute_one(0,-1);
 
   if (mode == SUM)
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -329,30 +368,79 @@ void ComputeReduce::compute_vector()
 {
   invoked_vector = update->ntimestep;
 
-  for (int m = 0; m < nvalues; m++) onevec[m] = compute_one(m);
+  for (int m = 0; m < nvalues; m++)
+    if (!replace || replace[m] < 0) {
+      onevec[m] = compute_one(m,-1);
+      indices[m] = index;
+    }
 
   if (mode == SUM)
     MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
-  else if (mode == MINN)
-    MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MIN,world);
-  else if (mode == MAXX)
-    MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MAX,world);
-  else if (mode == AVE) {
+
+  else if (mode == MINN) {
+    if (!replace)
+      MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MIN,world);
+    else {
+      for (int m = 0; m < nvalues; m++)
+	if (replace[m] < 0) {
+	  pairme.value = onevec[m];
+	  pairme.proc = me;
+	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
+	  vector[m] = pairall.value;
+	  owner[m] = pairall.proc;
+	}
+      for (int m = 0; m < nvalues; m++)
+	if (replace[m] >= 0) {
+	  if (me == owner[replace[m]])
+	    vector[m] = compute_one(m,indices[replace[m]]);
+	  MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
+	}
+    }
+
+  } else if (mode == MAXX) {
+    if (!replace)
+      MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MAX,world);
+    else {
+      for (int m = 0; m < nvalues; m++)
+	if (replace[m] < 0) {
+	  pairme.value = onevec[m];
+	  pairme.proc = me;
+	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
+	  vector[m] = pairall.value;
+	  owner[m] = pairall.proc;
+	}
+      for (int m = 0; m < nvalues; m++)
+	if (replace[m] >= 0) {
+	  if (me == owner[replace[m]])
+	    vector[m] = compute_one(m,indices[replace[m]]);
+	  MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
+	}
+    }
+
+  } else if (mode == AVE) {
     MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MAX,world);
     for (int m = 0; m < nvalues; m++) vector[m] /= count(m);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate reduced value for one input M and return it
+   if flag = -1:
+     sum/min/max/ave all values in vector
+     for per-atom quantities, limit to atoms in group
+     if mode = MIN or MAX, also set index to which vector value wins
+   if flag >= 0: simply return vector[flag]
+------------------------------------------------------------------------- */
 
-double ComputeReduce::compute_one(int m)
+double ComputeReduce::compute_one(int m, int flag)
 {
   int i;
 
   // invoke the appropriate attribute,compute,fix,variable
-  // compute scalar quantity by summing over atom properties
+  // for flag = -1, compute scalar quantity by scanning over atom properties
   // only include atoms in group for atom properties and per-atom quantities
 
+  index = -1;
   int n = value2index[m];
   int j = argindex[m];
 
@@ -366,16 +454,22 @@ double ComputeReduce::compute_one(int m)
 
   if (which[m] == X) {
     double **x = atom->x;
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) combine(one,x[i][j]);
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) combine(one,x[i][j],i);
+    } else one = x[flag][j];
   } else if (which[m] == V) {
     double **v = atom->v;
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) combine(one,v[i][j]);
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) combine(one,v[i][j],i);
+    } else one = v[flag][j];
   } else if (which[m] == F) {
     double **f = atom->f;
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) combine(one,f[i][j]);
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) combine(one,f[i][j],i);
+    } else one = f[flag][j];
     
   // invoke compute if not previously invoked
 
@@ -390,8 +484,10 @@ double ComputeReduce::compute_one(int m)
 	}
 	double *compute_vector = compute->vector;
 	int n = compute->size_vector;
-	for (i = 0; i < n; i++)
-	  combine(one,compute_vector[i]);
+	if (flag < 0) 
+	  for (i = 0; i < n; i++)
+	    combine(one,compute_vector[i],i);
+	else one = compute_vector[flag];
       } else {
 	if (!(compute->invoked_flag & INVOKED_ARRAY)) {
 	  compute->compute_array();
@@ -400,8 +496,10 @@ double ComputeReduce::compute_one(int m)
 	double **compute_array = compute->array;
 	int n = compute->size_array_rows;
 	int jm1 = j - 1;
-	for (i = 0; i < n; i++)
-	  combine(one,compute_array[i][jm1]);
+	if (flag < 0)
+	  for (i = 0; i < n; i++)
+	    combine(one,compute_array[i][jm1],i);
+	else one = compute_array[flag][jm1];
       }
 
     } else if (flavor[m] == PERATOM) {
@@ -413,14 +511,18 @@ double ComputeReduce::compute_one(int m)
       if (j == 0) {
 	double *compute_vector = compute->vector_atom;
 	int n = nlocal;
-	for (i = 0; i < n; i++)
-	  if (mask[i] & groupbit) combine(one,compute_vector[i]);
+	if (flag < 0) {
+	  for (i = 0; i < n; i++)
+	    if (mask[i] & groupbit) combine(one,compute_vector[i],i);
+	} else one = compute_vector[flag];
       } else {
 	double **compute_array = compute->array_atom;
 	int n = nlocal;
 	int jm1 = j - 1;
-	for (i = 0; i < n; i++)
-	  if (mask[i] & groupbit) combine(one,compute_array[i][jm1]);
+	if (flag < 0) {
+	  for (i = 0; i < n; i++)
+	    if (mask[i] & groupbit) combine(one,compute_array[i][jm1],i);
+	} else one = compute_array[flag][jm1];
       }
 
     } else if (flavor[m] == LOCAL) {
@@ -432,14 +534,18 @@ double ComputeReduce::compute_one(int m)
       if (j == 0) {
 	double *compute_vector = compute->vector_local;
 	int n = compute->size_local_rows;
-	for (i = 0; i < n; i++)
-	  combine(one,compute_vector[i]);
+	if (flag < 0)
+	  for (i = 0; i < n; i++)
+	    combine(one,compute_vector[i],i);
+	else one = compute_vector[flag];
       } else {
 	double **compute_array = compute->array_local;
 	int n = compute->size_local_rows;
 	int jm1 = j - 1;
-	for (i = 0; i < n; i++)
-	  combine(one,compute_array[i][jm1]);
+	if (flag < 0)
+	  for (i = 0; i < n; i++)
+	    combine(one,compute_array[i][jm1],i);
+	else one = compute_array[flag][jm1];
       }
     }
 
@@ -453,41 +559,53 @@ double ComputeReduce::compute_one(int m)
     if (flavor[m] == GLOBAL) {
       if (j == 0) {
 	int n = fix->size_vector;
-	for (i = 0; i < n; i++)
-	  combine(one,fix->compute_vector(i));
+	if (flag < 0)
+	  for (i = 0; i < n; i++)
+	    combine(one,fix->compute_vector(i),i);
+	else one = fix->compute_vector(flag);
       } else {
 	int n = fix->size_array_rows;
 	int jm1 = j - 1;
-	for (i = 0; i < nlocal; i++)
-	  combine(one,fix->compute_array(i,jm1));
+	if (flag < 0)
+	  for (i = 0; i < nlocal; i++)
+	    combine(one,fix->compute_array(i,jm1),i);
+	else one = fix->compute_array(flag,jm1);
       }
 
     } else if (flavor[m] == PERATOM) {
       if (j == 0) {
 	double *fix_vector = fix->vector_atom;
 	int n = nlocal;
-	for (i = 0; i < n; i++)
-	  if (mask[i] & groupbit) combine(one,fix_vector[i]);
+	if (flag < 0) {
+	  for (i = 0; i < n; i++)
+	    if (mask[i] & groupbit) combine(one,fix_vector[i],i);
+	} else one = fix_vector[flag];
       } else {
 	double **fix_array = fix->array_atom;
 	int n = nlocal;
 	int jm1 = j - 1;
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) combine(one,fix_array[i][jm1]);
+	if (flag < 0) {
+	  for (i = 0; i < nlocal; i++)
+	    if (mask[i] & groupbit) combine(one,fix_array[i][jm1],i);
+	} else one = fix_array[flag][jm1];
       }
 
     } else if (flavor[m] == LOCAL) {
       if (j == 0) {
 	double *fix_vector = fix->vector_local;
 	int n = fix->size_local_rows;
-	for (i = 0; i < n; i++)
-	  combine(one,fix_vector[i]);
+	if (flag < 0)
+	  for (i = 0; i < n; i++)
+	    combine(one,fix_vector[i],i);
+	else one = fix_vector[flag];
       } else {
 	double **fix_array = fix->array_local;
 	int n = fix->size_local_rows;
 	int jm1 = j - 1;
-	for (i = 0; i < n; i++)
-	  combine(one,fix_array[i][jm1]);
+	if (flag < 0)
+	  for (i = 0; i < n; i++)
+	    combine(one,fix_array[i][jm1],i);
+	else one = fix_array[flag][jm1];
       }
     }
     
@@ -502,8 +620,10 @@ double ComputeReduce::compute_one(int m)
     }
 
     input->variable->compute_atom(n,igroup,varatom,1,0);
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) combine(one,varatom[i]);
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit) combine(one,varatom[i],i);
+    } else one = varatom[flag];
   }
 
   return one;
@@ -555,13 +675,23 @@ double ComputeReduce::count(int m)
 
 /* ----------------------------------------------------------------------
    combine two values according to reduction mode
+   for MIN/MAX, also update index with winner
 ------------------------------------------------------------------------- */
 
-void ComputeReduce::combine(double &one, double two)
+void ComputeReduce::combine(double &one, double two, int i)
 {
   if (mode == SUM || mode == AVE) one += two;
-  else if (mode == MINN) one = MIN(one,two);
-  else if (mode == MAXX) one = MAX(one,two);
+  else if (mode == MINN) {
+    if (two < one) {
+      one = two;
+      index = i;
+    }
+  } else if (mode == MAXX) {
+    if (two > one) {
+      one = two;
+      index = i;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

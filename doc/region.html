@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>ID = user-assigned name for the region 
 
-<LI>style = <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
+<LI>style = <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>plane</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
 
 <PRE>  <I>block</I> args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
@@ -31,6 +31,9 @@
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
     lo,hi = bounds of cylinder in dim (distance units)
+  <I>plane</I> args = px py pz nx ny nz
+    px,py,pz = point on the plane
+    nx,ny,nz = direction normal to plane (distance units)
   <I>prism</I> args = xlo xhi ylo yhi zlo zhi xy xz yz
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
     xy = distance to tilt y in x direction (distance units)
@@ -88,7 +91,7 @@ parameter cannot be used.
 </P>
 <P>For style <I>cone</I>, an axis-aligned cone is defined which is like a
 <I>cylinder</I> except that two different radii (one at each end) can be
-defined.
+defined.  Either of the radii can be 0.0.
 </P>
 <P>For style <I>cone</I> and <I>cylinder</I>, the c1,c2 params are coordinates in
 the 2 other dimensions besides the cylinder axis dimension.  For dim =

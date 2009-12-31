@@ -13,7 +13,7 @@ region command :h3
 region ID style args keyword value ... :pre
 
 ID = user-assigned name for the region :ulb,l
-style = {block} or {cone} or {cylinder} or {prism} or {sphere} or {union} or {intersect} :l
+style = {block} or {cone} or {cylinder} or {plane} or {prism} or {sphere} or {union} or {intersect} :l
   {block} args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
   {cone} args = dim c1 c2 radlo radhi lo hi
@@ -26,6 +26,9 @@ style = {block} or {cone} or {cylinder} or {prism} or {sphere} or {union} or {in
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
     lo,hi = bounds of cylinder in dim (distance units)
+  {plane} args = px py pz nx ny nz
+    px,py,pz = point on the plane
+    nx,ny,nz = direction normal to plane (distance units)
   {prism} args = xlo xhi ylo yhi zlo zhi xy xz yz
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
     xy = distance to tilt y in x direction (distance units)
@@ -79,7 +82,7 @@ parameter cannot be used.
 
 For style {cone}, an axis-aligned cone is defined which is like a
 {cylinder} except that two different radii (one at each end) can be
-defined.
+defined.  Either of the radii can be 0.0.
 
 For style {cone} and {cylinder}, the c1,c2 params are coordinates in
 the 2 other dimensions besides the cylinder axis dimension.  For dim =

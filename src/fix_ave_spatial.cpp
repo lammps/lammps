@@ -50,12 +50,13 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  no_change_box = 1;
-  time_depend = 1;
-
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
   nfreq = atoi(arg[5]);
+
+  global_freq = nfreq;
+  no_change_box = 1;
+  time_depend = 1;
 
   if (strcmp(arg[6],"x") == 0) dim = 0;
   else if (strcmp(arg[6],"y") == 0) dim = 1;
@@ -293,7 +294,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   size_local_rows = BIG;
   size_local_cols = nvalues+2;
-  global_freq = nfreq;
   extarray = 0;
 
   // setup scaling

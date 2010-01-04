@@ -44,13 +44,14 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all("Illegal fix ave/time command");
 
-  time_depend = 1;
-
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
   nfreq = atoi(arg[5]);
+
+  global_freq = nfreq;
+  time_depend = 1;
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -251,7 +252,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // VECTOR mode produces either a vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
   
-  global_freq = nfreq;
   extlist = NULL;
 
   if (mode == SCALAR) {

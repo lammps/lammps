@@ -49,6 +49,12 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 10) error->all("Illegal fix ave/histo command");
 
+  MPI_Comm_rank(world,&me);
+
+  nevery = atoi(arg[3]);
+  nrepeat = atoi(arg[4]);
+  nfreq = atoi(arg[5]);
+
   global_freq = nfreq;
   vector_flag = 1;
   size_vector = 4;
@@ -57,12 +63,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   size_local_cols = 3;
   extarray = 0;
   time_depend = 1;
-
-  MPI_Comm_rank(world,&me);
-
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  nfreq = atoi(arg[5]);
 
   lo = atof(arg[6]);
   hi = atof(arg[7]);

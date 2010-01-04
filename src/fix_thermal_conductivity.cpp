@@ -37,14 +37,14 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
 {
   if (narg < 6) error->all("Illegal fix thermal/conductivity command");
 
-  scalar_flag = 1;
-  global_freq = nevery;
-  extscalar = 0;
-
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all("Illegal fix thermal/conductivity command");
+
+  scalar_flag = 1;
+  global_freq = nevery;
+  extscalar = 0;
 
   if (strcmp(arg[4],"x") == 0) edim = 0;
   else if (strcmp(arg[4],"y") == 0) edim = 1;

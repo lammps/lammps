@@ -9,6 +9,7 @@
 fix wall/lj93 command :h3
 fix wall/lj126 command :h3
 fix wall/colloid command :h3
+fix wall/harmonic command :h3
 
 [Syntax:]
 

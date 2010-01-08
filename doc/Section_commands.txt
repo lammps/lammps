@@ -445,7 +445,8 @@ of each style or click on the style itself for a full description:
 "wall/harmonic"_fix_wall.html,
 "wall/lj126"_fix_wall.html,
 "wall/lj93"_fix_wall.html,
-"wall/reflect"_fix_wall_reflect.html :tb(c=8,ea=c)
+"wall/reflect"_fix_wall_reflect.html,
+"wall/region"_fix_wall_region.html :tb(c=8,ea=c)
 
 These are fix styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate package"_Section_start.html#2_3.

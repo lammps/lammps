@@ -46,8 +46,8 @@ void CreateBox::command(int narg, char **arg)
 
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all("Create_box region ID does not exist");
-  if (domain->regions[iregion]->interior == 0)
-    error->all("Create_box region must be of type inside");
+  if (domain->regions[iregion]->bboxflag == 0)
+    error->all("Create_box region does not support a bounding box");
 
   // if region not prism:
   //   setup orthogonal domain

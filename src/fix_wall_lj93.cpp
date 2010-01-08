@@ -14,6 +14,7 @@
 #include "math.h"
 #include "fix_wall_lj93.h"
 #include "atom.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,7 +38,10 @@ void FixWallLJ93::precompute(int m)
   offset[m] = coeff3[m]*r4inv*r4inv*rinv - coeff4[m]*r2inv*rinv;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   interaction of all particles in group with all 6 walls (if defined)
+   error if any particle is on or behind wall
+------------------------------------------------------------------------- */
 
 void FixWallLJ93::wall_particle(int m, double coord)
 {
@@ -52,12 +56,17 @@ void FixWallLJ93::wall_particle(int m, double coord)
   int side = m % 2;
   if (side == 0) side = -1;
 
+  int onflag = 0;
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (side < 0) delta = x[i][dim] - coord;
       else delta = coord - x[i][dim];
-      if (delta <= 0.0) continue;
-      if (delta > cutoff[m]) continue;
+      if (delta >= cutoff[m]) continue;
+      if (delta <= 0.0) {
+	onflag = 1;
+	continue;
+      }
       rinv = 1.0/delta;
       r2inv = rinv*rinv;
       r4inv = r2inv*r2inv;
@@ -68,4 +77,6 @@ void FixWallLJ93::wall_particle(int m, double coord)
 	coeff4[m]*r2inv*rinv - offset[m];
       ewall[m+1] += fwall;
     }
+
+  if (onflag) error->one("Particle on or inside fix wall surface");
 }

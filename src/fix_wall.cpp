@@ -101,6 +101,10 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   for (int m = 0; m < 6; m++) if (wallflag[m]) flag = 1;
   if (!flag) error->all("Illegal fix wall command");
 
+  for (int m = 0; m < 6; m++)
+    if (wallflag[m] && cutoff[m] <= 0.0)
+      error->all("Fix wall cutoff <= 0.0");
+
   if (velflag && wigflag) 
     error->all("Cannot set both vel and wiggle in fix wall command");
 

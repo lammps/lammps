@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "stdlib.h"
 #include "string.h"
 #include "region.h"
@@ -82,4 +83,31 @@ void Region::options(int narg, char **arg)
     zscale = domain->lattice->zlattice;
   }
   else xscale = yscale = zscale = 1.0;
+}
+
+/* ----------------------------------------------------------------------
+   generate list of contact points for interior or exterior regions
+------------------------------------------------------------------------- */
+
+int Region::surface(double *x, double cutoff)
+{
+  if (interior) return surface_interior(x,cutoff);
+  return surface_exterior(x,cutoff);
+}
+
+/* ----------------------------------------------------------------------
+   add a single contact at Nth location in contact array
+   x = particle position
+   xp,yp,zp = region surface point
+------------------------------------------------------------------------- */
+
+void Region::add_contact(int n, double *x, double xp, double yp, double zp)
+{
+  double delx = x[0] - xp;
+  double dely = x[1] - yp;
+  double delz = x[2] - zp;
+  contact[n].r = sqrt(delx*delx + dely*dely + delz*delz);
+  contact[n].delx = delx;
+  contact[n].dely = dely;
+  contact[n].delz = delz;
 }

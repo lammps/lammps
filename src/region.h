@@ -27,13 +27,27 @@ class Region : protected Pointers {
   double extent_xlo,extent_xhi;     // bounding box on region
   double extent_ylo,extent_yhi;
   double extent_zlo,extent_zhi;
-  
+  int bboxflag;                     // 1 if bounding box is computable
+
+  // contact = particle near region surface
+
+  struct Contact {
+    double r;                 // distance between particle & surf, r > 0.0
+    double delx,dely,delz;    // vector from surface pt to particle
+  };
+  Contact *contact;           // list of contacts
+  int cmax;                   // max # of contacts possible with region
+ 
   Region(class LAMMPS *, int, char **);
   virtual ~Region();
   virtual int match(double, double, double) = 0;
+  int surface(double *, double);
+  virtual int surface_interior(double *, double) = 0;
+  virtual int surface_exterior(double *, double) = 0;
 
  protected:
   void options(int, char **);
+  void add_contact(int, double *, double, double, double);
 };
 
 }

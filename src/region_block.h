@@ -23,7 +23,10 @@ class RegBlock : public Region {
 
  public:
   RegBlock(class LAMMPS *, int, char **);
+  ~RegBlock();
   int match(double, double, double);
+  int surface_interior(double *, double);
+  int surface_exterior(double *, double);
 
  private:
   double xlo,xhi,ylo,yhi,zlo,zhi;

@@ -2,8 +2,8 @@
 # this file is auto-edited when those packages are included/excluded
 
 PKG_INC =  -I../../lib/reax -I../../lib/poems -I../../lib/meam 
-PKG_PATH = -L../../lib/gpu -L../../lib/reax -L../../lib/poems -L../../lib/meam 
-PKG_LIB =  -lgpu -lreax -lpoems -lmeam 
+PKG_PATH = -L../../lib/reax -L../../lib/poems -L../../lib/meam 
+PKG_LIB =  -lreax -lpoems -lmeam 
 
-PKG_SYSPATH = $(gpu_SYSPATH) $(reax_SYSPATH) $(meam_SYSPATH) 
-PKG_SYSLIB =  $(gpu_SYSLIB) $(reax_SYSLIB) $(meam_SYSLIB) 
+PKG_SYSPATH = $(reax_SYSPATH) $(meam_SYSPATH) 
+PKG_SYSLIB =  $(reax_SYSLIB) $(meam_SYSLIB) 

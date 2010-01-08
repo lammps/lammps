@@ -23,6 +23,8 @@ class RegIntersect : public Region {
   RegIntersect(class LAMMPS *, int, char **);
   ~RegIntersect();
   int match(double, double, double);
+  int surface_interior(double *, double);
+  int surface_exterior(double *, double);
 
  private:
   int nregion;

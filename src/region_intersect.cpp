@@ -45,24 +45,44 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // extent of intersection of regions
+  // has bounding box if interior and any sub-region has bounding box
 
   Region **regions = domain->regions;
 
-  extent_xlo = regions[list[0]]->extent_xlo;
-  extent_ylo = regions[list[0]]->extent_ylo;
-  extent_zlo = regions[list[0]]->extent_zlo;
-  extent_xhi = regions[list[0]]->extent_xhi;
-  extent_yhi = regions[list[0]]->extent_yhi;
-  extent_zhi = regions[list[0]]->extent_zhi;
+  bboxflag = 0;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (regions[list[ilist]]->bboxflag == 1) bboxflag = 1;
+  if (!interior) bboxflag = 0;
 
-  for (int ilist = 1; ilist < nregion; ilist++) {
-    extent_xlo = MAX(extent_xlo,regions[list[ilist]]->extent_xlo);
-    extent_ylo = MAX(extent_ylo,regions[list[ilist]]->extent_ylo);
-    extent_zlo = MAX(extent_zlo,regions[list[ilist]]->extent_zlo);
-    extent_xhi = MIN(extent_xhi,regions[list[ilist]]->extent_xhi);
-    extent_yhi = MIN(extent_yhi,regions[list[ilist]]->extent_yhi);
-    extent_zhi = MIN(extent_zhi,regions[list[ilist]]->extent_zhi);
+  if (bboxflag) {
+    int first = 1;
+    for (int ilist = 0; ilist < nregion; ilist++) {
+      if (regions[list[ilist]]->bboxflag == 0) continue;
+      if (first) {
+	extent_xlo = regions[list[ilist]]->extent_xlo;
+	extent_ylo = regions[list[ilist]]->extent_ylo;
+	extent_zlo = regions[list[ilist]]->extent_zlo;
+	extent_xhi = regions[list[ilist]]->extent_xhi;
+	extent_yhi = regions[list[ilist]]->extent_yhi;
+	extent_zhi = regions[list[ilist]]->extent_zhi;
+	first = 0;
+      }
+
+      extent_xlo = MAX(extent_xlo,regions[list[ilist]]->extent_xlo);
+      extent_ylo = MAX(extent_ylo,regions[list[ilist]]->extent_ylo);
+      extent_zlo = MAX(extent_zlo,regions[list[ilist]]->extent_zlo);
+      extent_xhi = MIN(extent_xhi,regions[list[ilist]]->extent_xhi);
+      extent_yhi = MIN(extent_yhi,regions[list[ilist]]->extent_yhi);
+      extent_zhi = MIN(extent_zhi,regions[list[ilist]]->extent_zhi);
+    }
   }
+
+  // possible contacts = sum of possible contacts in all sub-regions
+
+  cmax = 0;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    cmax += regions[list[ilist]]->cmax;
+  contact = new Contact[cmax];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,9 +90,13 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
 RegIntersect::~RegIntersect()
 {
   delete [] list;
+  delete [] contact;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   inside = 1 if x,y,z is match() with all sub-regions
+   else inside = 0
+------------------------------------------------------------------------- */
 
 int RegIntersect::match(double x, double y, double z)
 {
@@ -81,9 +105,95 @@ int RegIntersect::match(double x, double y, double z)
   for (ilist = 0; ilist < nregion; ilist++)
     if (!regions[list[ilist]]->match(x,y,z)) break;
 
-  int inside;                          // inside if matched all regions
+  int inside = 0;                      // inside if matched all regions
   if (ilist == nregion) inside = 1;
-  else inside = 0;
 
   return !(inside ^ interior);         // 1 if same, 0 if different
+}
+
+/* ----------------------------------------------------------------------
+   compute contacts with interior of intersection of sub-regions
+   (1) compute contacts in each sub-region
+   (2) only keep a contact if surface point is match() to all other regions
+------------------------------------------------------------------------- */
+
+int RegIntersect::surface_interior(double *x, double cutoff)
+{
+  int m,ilist,jlist,iregion,jregion,ncontacts;
+  double xs,ys,zs;
+
+  Region **regions = domain->regions;
+  int n = 0;
+
+  for (ilist = 0; ilist < nregion; ilist++) {
+    iregion = list[ilist];
+    ncontacts = regions[iregion]->surface(x,cutoff);
+    for (m = 0; m < ncontacts; m++) {
+      xs = x[0] - regions[iregion]->contact[m].delx;
+      ys = x[1] - regions[iregion]->contact[m].dely;
+      zs = x[2] - regions[iregion]->contact[m].delz;
+      for (jlist = 0; jlist < nregion; jlist++) {
+	if (jlist == ilist) continue;
+	jregion = list[jlist];
+	if (!regions[jregion]->match(xs,ys,zs)) break;
+      }
+      if (jlist == nregion) {
+	contact[n].r = regions[iregion]->contact[m].r;
+	contact[n].delx = regions[iregion]->contact[m].delx;
+	contact[n].dely = regions[iregion]->contact[m].dely;
+	contact[n].delz = regions[iregion]->contact[m].delz;
+	n++;
+      }
+    }
+  }
+  
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   compute contacts with interior of intersection of sub-regions
+   (1) flip interior/exterior flag of each sub-region
+   (2) compute contacts in each sub-region
+   (3) only keep a contact if surface point is not match() to all other regions
+   (4) flip interior/exterior flags back to original settings
+   this is effectively same algorithm as surface_interior() for RegUnion
+------------------------------------------------------------------------- */
+
+int RegIntersect::surface_exterior(double *x, double cutoff)
+{
+  int m,ilist,jlist,iregion,jregion,ncontacts;
+  double xs,ys,zs;
+
+  Region **regions = domain->regions;
+  int n = 0;
+
+  for (ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->interior ^= 1;
+
+  for (ilist = 0; ilist < nregion; ilist++) {
+    iregion = list[ilist];
+    ncontacts = regions[iregion]->surface(x,cutoff);
+    for (m = 0; m < ncontacts; m++) {
+      xs = x[0] - regions[iregion]->contact[m].delx;
+      ys = x[1] - regions[iregion]->contact[m].dely;
+      zs = x[2] - regions[iregion]->contact[m].delz;
+      for (jlist = 0; jlist < nregion; jlist++) {
+	if (jlist == ilist) continue;
+	jregion = list[jlist];
+	if (regions[jregion]->match(xs,ys,zs)) break;
+      }
+      if (jlist == nregion) {
+	contact[n].r = regions[iregion]->contact[m].r;
+	contact[n].delx = regions[iregion]->contact[m].delx;
+	contact[n].dely = regions[iregion]->contact[m].dely;
+	contact[n].delz = regions[iregion]->contact[m].delz;
+	n++;
+      }
+    }
+  }
+
+  for (ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->interior ^= 1;
+  
+  return n;
 }

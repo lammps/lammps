@@ -68,8 +68,8 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   // error check on region and its extent being inside simulation box
 
   if (iregion == -1) error->all("Must specify a region in fix deposit");
-  if (domain->regions[iregion]->interior == 0)
-    error->all("Must use region with side = in with fix deposit");
+  if (domain->regions[iregion]->bboxflag == 0)
+    error->all("Fix deposit region does not support a bounding box");
 
   xlo = domain->regions[iregion]->extent_xlo;
   xhi = domain->regions[iregion]->extent_xhi;

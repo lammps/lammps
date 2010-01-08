@@ -23,6 +23,8 @@ class RegUnion : public Region {
   RegUnion(class LAMMPS *, int, char **);
   ~RegUnion();
   int match(double, double, double);
+  int surface_interior(double *, double);
+  int surface_exterior(double *, double);
 
  private:
   int nregion;

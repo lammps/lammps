@@ -21,13 +21,23 @@ namespace LAMMPS_NS {
 class RegCone : public Region {
  public:
   RegCone(class LAMMPS *, int, char **);
+  ~RegCone();
   int match(double, double, double);
+  int surface_interior(double *, double);
+  int surface_exterior(double *, double);
 
  private:
   char axis;
   double c1,c2;
   double radiuslo,radiushi;
   double lo,hi;
+  double maxradius;
+
+  void point_on_line_segment(double *, double *, double *, double *);
+  double closest(double *, double *, double *, double);
+
+  void subtract(double *, double *, double *);
+  double dotproduct(double *, double *);
 };
 
 }

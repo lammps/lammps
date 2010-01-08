@@ -21,7 +21,10 @@ namespace LAMMPS_NS {
 class RegSphere : public Region {
  public:
   RegSphere(class LAMMPS *, int, char **);
+  ~RegSphere();
   int match(double, double, double);
+  int surface_interior(double *, double);
+  int surface_exterior(double *, double);
 
  private:
   double xc,yc,zc;

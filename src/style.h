@@ -236,9 +236,11 @@ DumpStyle(xyz,DumpXYZ)
 #include "fix_ttm.h"
 #include "fix_viscosity.h"
 #include "fix_viscous.h"
+#include "fix_wall_harmonic.h"
 #include "fix_wall_lj126.h"
 #include "fix_wall_lj93.h"
 #include "fix_wall_reflect.h"
+#include "fix_wall_region.h"
 #endif
 
 #ifdef FixClass
@@ -296,9 +298,11 @@ FixStyle(tmd,FixTMD)
 FixStyle(ttm,FixTTM)
 FixStyle(viscosity,FixViscosity)
 FixStyle(viscous,FixViscous)
+FixStyle(wall/harmonic,FixWallHarmonic)
 FixStyle(wall/lj126,FixWallLJ126)
 FixStyle(wall/lj93,FixWallLJ93)
 FixStyle(wall/reflect,FixWallReflect)
+FixStyle(wall/region,FixWallRegion)
 #endif
 
 #ifdef ImproperInclude
@@ -384,6 +388,7 @@ PairStyle(yukawa,PairYukawa)
 #include "region_cone.h"
 #include "region_cylinder.h"
 #include "region_intersect.h"
+#include "region_plane.h"
 #include "region_prism.h"
 #include "region_sphere.h"
 #include "region_union.h"
@@ -394,6 +399,7 @@ RegionStyle(block,RegBlock)
 RegionStyle(cone,RegCone)
 RegionStyle(cylinder,RegCylinder)
 RegionStyle(intersect,RegIntersect)
+RegionStyle(plane,RegPlane)
 RegionStyle(prism,RegPrism)
 RegionStyle(sphere,RegSphere)
 RegionStyle(union,RegUnion)

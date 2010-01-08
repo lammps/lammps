@@ -23,7 +23,10 @@ class RegCylinder : public Region {
 
  public:
   RegCylinder(class LAMMPS *, int, char **);
+  ~RegCylinder();
   int match(double, double, double);
+  int surface_interior(double *, double);
+  int surface_exterior(double *, double);
 
  private:
   char axis;

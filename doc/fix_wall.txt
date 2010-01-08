@@ -15,12 +15,12 @@ fix wall/colloid command :h3
 fix ID group-ID style keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-style = {wall/lj93} or {wall/lj126} or {wall/colloid} :l
+style = {wall/lj93} or {wall/lj126} or {wall/colloid} or {wall/harmonic} :l
 one or more keyword/value pairs may be appended :l
 keyword = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {vel} or {wiggle/sin} or {wiggle/cos} or {units} :l
   {xlo}, {xhi}, {ylo}, {yhi}, {zlo}, {zhi} values = coord epsilon sigma cutoff
     coord = position of wall (distance units)
-    epsilon = strength factor for wall-particle interaction (energy units)
+    epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
     sigma = size factor for wall-particle interaction (distance units)
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
   {vel} value = v
@@ -62,6 +62,11 @@ the "pair_style colloid"_pair_colloid.html potential:
 
 :c,image(Eqs/fix_wall_colloid.jpg)
 
+For style {wall/harmonic}, the energy E is given by a harmonic spring
+potential:
+
+:c,image(Eqs/fix_wall_harmonic.jpg)
+
 In all cases, {r} is the distance from the particle to the wall at
 position {coord}, and Rc is the {cutoff} distance at which the
 particle and wall no longer interact.  The energy of the wall
@@ -70,27 +75,47 @@ potential is shifted so that the wall-particle interaction energy is
 
 For the {wall/lj93} and {wall/lj126} styles, {epsilon} and {sigma} are
 the usual Lennard-Jones parameters, which determine the strength and
-size of the particle as it interacts with the wall.  Note that this
-{epsilon} and {sigma} may be different than any {epsilon} or {sigma}
-values defined for a pair style that computes particle-particle
-interactions.
+size of the particle as it interacts with the wall.  Epsilon has
+energy units.  Note that this {epsilon} and {sigma} may be different
+than any {epsilon} or {sigma} values defined for a pair style that
+computes particle-particle interactions.
 
 The {wall/lj93} interaction is derived by integrating over a 3d
 half-lattice of Lennard-Jones 12/6 particles.  The {wall/lj126}
 interaction is effectively a harder, more repulsive wall interaction.
 
 For the {wall/colloid} style, {epsilon} is effectively a Hamaker
-constant for the colloid-wall interaction, {R} is the radius of the
-colloid particle, {D} is the distance from the surface of the colloid
-particle to the wall (r-R), and {sigma} is the size of the constituent
-LJ particle inside the colloid particle.  Note that the cutoff
-distance Rc in this case is the distance from the colloid particle
-center to the wall.
+constant with energy units for the colloid-wall interaction, {R} is
+the radius of the colloid particle, {D} is the distance from the
+surface of the colloid particle to the wall (r-R), and {sigma} is the
+size of a constituent LJ particle inside the colloid particle.  Note
+that the cutoff distance Rc in this case is the distance from the
+colloid particle center to the wall.
 
 The {wall/colloid} interaction is derived by integrating over
 constituent LJ particles of size {sigma} within the colloid particle
 and a 3d half-lattice of Lennard-Jones 12/6 particles of size {sigma}
 in the wall.
+
+For the {wall/harmonic} style, {epsilon} is effectively the spring
+constant K, and has units (energy/distance^2).  The input parameter
+{sigma} is ignored.  The minimum energy position of the harmonic
+spring is at the {cutoff}.  This is a repulsive-only spring since the
+interaction is truncated at the {cutoff}
+
+IMPORTANT NOTE: For all of the styles, you must insure that r is
+always > 0 for all particles in the group, or LAMMPS will generate an
+error.  This means you cannot start your simulation with particles at
+the wall position {coord} (r = 0) or with particles on the wrong side
+of the wall (r < 0).  For the {wall/lj93} and {wall/lj126} styles, the
+energy of the wall/particle interaction (and hence the force on the
+particle) blows up as r -> 0.  The {wall/colloid} style is even more
+restrictive, since the energy blows up as D = r-R -> 0.  This means
+the finite-size particles of radius R must be a distance larger than R
+from the wall position {coord}.  The {harmonic} style is a softer
+potential and does not blow up as r -> 0, but you must use a large
+enough {epsilon} that particles always reamin on the correct side of
+the wall (r > 0).
 
 If the {vel} keyword is specified, the position of all walls will move
 during the simulation in a perpendicular direction, based on their
@@ -185,8 +210,9 @@ together.
 
 [Related commands:]
 
-"fix wall/reflect"_fix_wall_reflect.html, "fix
-wall/gran"_fix_wall_gran.html
+"fix wall/reflect"_fix_wall_reflect.html,
+"fix wall/gran"_fix_wall_gran.html,
+"fix wall/region"_fix_wall_region.html
 
 [Default:]
 

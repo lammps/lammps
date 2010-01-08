@@ -442,6 +442,7 @@ of each style or click on the style itself for a full description:
 "viscous"_fix_viscous.html,
 "wall/colloid"_fix_wall.html,
 "wall/gran"_fix_wall_gran.html,
+"wall/harmonic"_fix_wall.html,
 "wall/lj126"_fix_wall.html,
 "wall/lj93"_fix_wall.html,
 "wall/reflect"_fix_wall_reflect.html :tb(c=8,ea=c)

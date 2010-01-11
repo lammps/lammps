@@ -65,7 +65,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg-7,&arg[7]);
 
-  // error check on region and its extent being inside simulation box
+  // error checks on region and its extent being inside simulation box
 
   if (iregion == -1) error->all("Must specify a region in fix deposit");
   if (domain->regions[iregion]->bboxflag == 0)

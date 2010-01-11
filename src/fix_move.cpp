@@ -491,12 +491,12 @@ void FixMove::initial_integrate(int vflag)
       }
     }
 
-  // for rotate:
-  // P = vector = point of rotation
+  // for rotate by right-hand rule around omega:
+  // P = point = vector = point of rotation
   // R = vector = axis of rotation
   // w = omega of rotation (from period)
-  // X0 = initial coord of atom
-  // R0 = unit vector for R
+  // X0 = xoriginal = initial coord of atom
+  // R0 = runit = unit vector for R
   // C = (X0 dot R0) R0 = projection of atom coord onto R
   // D = X0 - P = vector from P to X0
   // A = D - C = vector from R line to X0

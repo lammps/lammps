@@ -80,11 +80,6 @@ region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4
 region 2 sphere 0.0 0.0 0.0 5 side out wiggle 1 1 0 10 
 </PRE>
-<P>Note that the
-direction of rotation for the atoms around the rotation axis is
-consistent with the right-hand rule: if the right-hand's thumb points
-along <I>R</I>, then the fingers wrap around in the direction of rotation.
-</P>
 <P><B>Description:</B>
 </P>
 <P>This command defines a geometric region of space.  Various other
@@ -279,6 +274,7 @@ parameters must be 0.0.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are side = in and units = lattice.
+<P>The option defaults are side = in, units = lattice, and no
+velocity, wiggling, or rotation.
 </P>
 </HTML>

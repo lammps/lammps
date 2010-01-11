@@ -24,6 +24,7 @@
 #include "update.h"
 #include "atom.h"
 #include "domain.h"
+#include "region.h"
 #include "comm.h"
 #include "velocity.h"
 #include "integrate.h"
@@ -221,11 +222,15 @@ void PRD::command(int narg, char **arg)
 
   update->minimize->init();
 
-  // cannot use PRD with time-dependent fixes
+  // cannot use PRD with time-dependent fixes or regions
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
       error->all("Cannot use PRD with a time-dependent fix defined");
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (domain->regions[i]->dynamic)
+      error->all("Cannot use PRD with a time-dependent region defined");
 
   // perform PRD simulation
 

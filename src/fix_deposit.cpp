@@ -70,6 +70,8 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   if (iregion == -1) error->all("Must specify a region in fix deposit");
   if (domain->regions[iregion]->bboxflag == 0)
     error->all("Fix deposit region does not support a bounding box");
+  if (domain->regions[iregion]->dynamic_check())
+    error->all("Fix deposit region cannot be dynamic");
 
   xlo = domain->regions[iregion]->extent_xlo;
   xhi = domain->regions[iregion]->extent_xhi;

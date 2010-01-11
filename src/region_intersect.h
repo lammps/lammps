@@ -22,6 +22,7 @@ class RegIntersect : public Region {
  public:
   RegIntersect(class LAMMPS *, int, char **);
   ~RegIntersect();
+  int dynamic_check();
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);

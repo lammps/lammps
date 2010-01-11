@@ -42,6 +42,7 @@ class Region : protected Pointers {
   Region(class LAMMPS *, int, char **);
   virtual ~Region();
   void init();
+  virtual int dynamic_check();
   int match(double, double, double);
   int surface(double, double, double, double);
 

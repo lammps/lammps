@@ -22,7 +22,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
+enum{NONE,VELOCITY,WIGGLE,ROTATE,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -82,12 +82,12 @@ void Region::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"out") == 0) interior = 0;
       else error->all("Illegal region command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"linear") == 0) {
+    } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+4 > narg) error->all("Illegal region command");
       vx = atof(arg[iarg+1]);
       vy = atof(arg[iarg+2]);
       vz = atof(arg[iarg+3]);
-      dynamic = LINEAR;
+      dynamic = VELOCITY;
       iarg += 4;
     } else if (strcmp(arg[iarg],"wiggle") == 0) {
       if (iarg+5 > narg) error->all("Illegal region command");
@@ -129,7 +129,7 @@ void Region::options(int narg, char **arg)
   }
   else xscale = yscale = zscale = 1.0;
 
-  if (dynamic == LINEAR) {
+  if (dynamic == VELOCITY) {
     vx *= xscale;
     vy *= yscale;
     vz *= zscale;
@@ -161,6 +161,17 @@ void Region::options(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   return 1 if region is dynamic, 0 if static
+   only primitive regions define it here
+   union/intersect regions have their own dynamic_check()
+------------------------------------------------------------------------- */
+
+int Region::dynamic_check()
+{
+  return dynamic;
+}
+
+/* ----------------------------------------------------------------------
    determine if point x,y,z is a match to region volume
    XOR computes 0 if 2 args are the same, 1 if different
    note that inside() returns 1 for points on surface of region
@@ -174,7 +185,7 @@ int Region::match(double x, double y, double z)
 
   if (dynamic) {
     double delta = (update->ntimestep - time_origin) * dt;
-    if (dynamic == LINEAR) {
+    if (dynamic == VELOCITY) {
       x -= vx*delta;
       y -= vy*delta;
       z -= vz*delta;
@@ -207,7 +218,7 @@ int Region::surface(double x, double y, double z, double cutoff)
 
   if (dynamic) {
     double delta = (update->ntimestep - time_origin) * dt;
-    if (dynamic == LINEAR) {
+    if (dynamic == VELOCITY) {
       x -= vx*delta;
       y -= vy*delta;
       z -= vz*delta;

@@ -62,9 +62,6 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
   eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
-
-  // set this when regions have time dependence
-  // time_depend = 1;
 }
 
 /* ---------------------------------------------------------------------- */

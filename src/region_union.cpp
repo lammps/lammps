@@ -86,6 +86,19 @@ RegUnion::~RegUnion()
 }
 
 /* ----------------------------------------------------------------------
+   return 1 if region is dynamic, 0 if static
+   dynamic if any sub-region is dynamic, else static
+------------------------------------------------------------------------- */
+
+int RegUnion::dynamic_check()
+{
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (regions[list[ilist]]->dynamic_check()) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    inside = 1 if x,y,z is match() with any sub-region
    else inside = 0
 ------------------------------------------------------------------------- */

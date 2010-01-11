@@ -114,14 +114,13 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     } else error->all("Illegal fix pour command");
   }
 
-  // error check that a valid region was specified
+  // error checks on region and its extent being inside simulation box
 
   if (iregion == -1) error->all("Must specify a region in fix pour");
-
-  // error checks on region
-
-  if (domain->regions[iregion]->interior == 0)
-    error->all("Must use region with side = in with fix pour");
+  if (domain->regions[iregion]->bboxflag == 0)
+    error->all("Fix pour region does not support a bounding box");
+  if (domain->regions[iregion]->dynamic_check())
+    error->all("Fix pour region cannot be dynamic");
 
   if (strcmp(domain->regions[iregion]->style,"block") == 0) {
     region_style = 1;

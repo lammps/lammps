@@ -119,6 +119,10 @@ void Domain::init()
 	deform_groupbit = modify->fix[i]->groupbit;
       } else deform_remap = 0;
     }
+
+  // region inits
+
+  for (int i = 0; i < nregion; i++) regions[i]->init();
 }
 
 /* ----------------------------------------------------------------------

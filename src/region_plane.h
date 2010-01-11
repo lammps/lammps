@@ -11,25 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_BLOCK_H
-#define REGION_BLOCK_H
+#ifndef REGION_PLANE_H
+#define REGION_PLANE_H
 
 #include "region.h"
 
 namespace LAMMPS_NS {
 
-class RegBlock : public Region {
-  friend class FixPour;
-
+class RegPlane : public Region {
  public:
-  RegBlock(class LAMMPS *, int, char **);
-  ~RegBlock();
+  RegPlane(class LAMMPS *, int, char **);
+  ~RegPlane();
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
 
  private:
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  double xp,yp,zp;
+  double normal[3];
 };
 
 }

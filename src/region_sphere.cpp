@@ -63,21 +63,19 @@ RegSphere::~RegSphere()
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */
 
-int RegSphere::match(double x, double y, double z)
+int RegSphere::	inside(double x, double y, double z)
 {
   double delx = x - xc;
   double dely = y - yc;
   double delz = z - zc;
   double r = sqrt(delx*delx + dely*dely + delz*delz);
 
-  int inside = 0;
-  if (r <= radius) inside = 1;
-
-  return !(inside ^ interior);         // 1 if same, 0 if different
+  if (r <= radius) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
-   one contact if 0 <= x < cutoff away from inner surface of sphere
+   one contact if 0 <= x < cutoff from inner surface of sphere
    no contact if outside (possible if called from union/intersect)
    delxyz = vector from nearest point on sphere to x
    special case: no contact if x is at center of sphere
@@ -103,7 +101,7 @@ int RegSphere::surface_interior(double *x, double cutoff)
 }
 
 /* ----------------------------------------------------------------------
-   one contact if 0 <= x < cutoff away from outer surface of sphere
+   one contact if 0 <= x < cutoff from outer surface of sphere
    no contact if inside (possible if called from union/intersect)
    delxyz = vector from nearest point on sphere to x
 ------------------------------------------------------------------------- */

@@ -24,7 +24,7 @@ class RegPrism : public Region {
  public:
   RegPrism(class LAMMPS *, int, char **);
   ~RegPrism();
-  int match(double, double, double);
+  int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
 

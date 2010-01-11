@@ -204,7 +204,7 @@ void FixWallRegion::post_force(int vflag)
       if (style == COLLOID) tooclose = shape[type[i]][0];
       else tooclose = 0.0;
 
-      n = region->surface(x[i],cutoff);
+      n = region->surface(x[i][0],x[i][1],x[i][2],cutoff);
 
       for (m = 0; m < n; m++) {
 	if (region->contact[m].r <= tooclose) {

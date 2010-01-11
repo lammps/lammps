@@ -18,6 +18,8 @@
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
+#include "domain.h"
+#include "region.h"
 #include "compute.h"
 #include "output.h"
 #include "memory.h"
@@ -222,6 +224,7 @@ void Update::create_minimize(int narg, char **arg)
    reset timestep from input script
    do not allow dump files or a restart to be defined
    do not allow any timestep-dependent fixes to be defined
+   do not allow any dynamic regions to be defined
    reset eflag/vflag global so nothing will think eng/virial are current
    reset invoked flags of computes, so nothing will think they are current
    clear timestep list of computes that store future invocation times
@@ -240,6 +243,10 @@ void Update::reset_timestep(int narg, char **arg)
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
       error->all("Cannot reset timestep with a time-dependent fix defined");
+
+  for (int i = 0; i < domain->nregion; i++)
+    if (domain->regions[i]->dynamic)
+      error->all("Cannot reset timestep with a dynamic region defined");
 
   eflag_global = vflag_global = -1;
 

@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 {
   options(narg-8,&arg[8]);
-
+  
   if (strcmp(arg[2],"INF") == 0 || strcmp(arg[2],"EDGE") == 0) {
     if (domain->box_exist == 0) 
       error->all("Cannot use region INF or EDGE when box does not exist");
@@ -113,13 +113,11 @@ RegBlock::~RegBlock()
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */
 
-int RegBlock::match(double x, double y, double z)
+int RegBlock::inside(double x, double y, double z)
 {
-  int inside = 0;
   if (x >= xlo && x <= xhi && y >= ylo && y <= yhi && z >= zlo && z <= zhi)
-    inside = 1;
-
-  return !(inside ^ interior);         // 1 if same, 0 if different
+    return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

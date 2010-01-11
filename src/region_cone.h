@@ -22,7 +22,7 @@ class RegCone : public Region {
  public:
   RegCone(class LAMMPS *, int, char **);
   ~RegCone();
-  int match(double, double, double);
+  int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
 

@@ -90,17 +90,15 @@ RegUnion::~RegUnion()
    else inside = 0
 ------------------------------------------------------------------------- */
 
-int RegUnion::match(double x, double y, double z)
+int RegUnion::inside(double x, double y, double z)
 {
   int ilist;
   Region **regions = domain->regions;
   for (ilist = 0; ilist < nregion; ilist++)
     if (regions[list[ilist]]->match(x,y,z)) break;
 
-  int inside = 1;                      // inside if matched any region
-  if (ilist == nregion) inside = 0;
-
-  return !(inside ^ interior);         // 1 if same, 0 if different
+  if (ilist == nregion) return 0;
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -119,7 +117,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
 
   for (ilist = 0; ilist < nregion; ilist++) {
     iregion = list[ilist];
-    ncontacts = regions[iregion]->surface(x,cutoff);
+    ncontacts = regions[iregion]->surface(x[0],x[1],x[2],cutoff);
     for (m = 0; m < ncontacts; m++) {
       xs = x[0] - regions[iregion]->contact[m].delx;
       ys = x[1] - regions[iregion]->contact[m].dely;
@@ -164,7 +162,7 @@ int RegUnion::surface_exterior(double *x, double cutoff)
 
   for (ilist = 0; ilist < nregion; ilist++) {
     iregion = list[ilist];
-    ncontacts = regions[iregion]->surface(x,cutoff);
+    ncontacts = regions[iregion]->surface(x[0],x[1],x[2],cutoff);
     for (m = 0; m < ncontacts; m++) {
       xs = x[0] - regions[iregion]->contact[m].delx;
       ys = x[1] - regions[iregion]->contact[m].dely;

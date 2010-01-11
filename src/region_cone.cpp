@@ -162,7 +162,7 @@ RegCone::~RegCone()
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */
 
-int RegCone::match(double x, double y, double z)
+int RegCone::inside(double x, double y, double z)
 {
   double del1,del2,dist;
   double currentradius;
@@ -193,7 +193,7 @@ int RegCone::match(double x, double y, double z)
     else inside = 0;
   }
 
-  return !(inside ^ interior);         // 1 if same, 0 if different
+  return inside;
 }
 
 /* ----------------------------------------------------------------------

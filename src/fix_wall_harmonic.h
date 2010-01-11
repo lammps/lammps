@@ -11,25 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_BLOCK_H
-#define REGION_BLOCK_H
+#ifndef FIX_WALL_HARMONIC_H
+#define FIX_WALL_HARMONIC_H
 
-#include "region.h"
+#include "fix_wall.h"
 
 namespace LAMMPS_NS {
 
-class RegBlock : public Region {
-  friend class FixPour;
-
+class FixWallHarmonic : public FixWall {
  public:
-  RegBlock(class LAMMPS *, int, char **);
-  ~RegBlock();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  FixWallHarmonic(class LAMMPS *, int, char **);
+  void precompute(int) {}
+  void wall_particle(int, double);
 
  private:
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  double offset[6];
 };
 
 }

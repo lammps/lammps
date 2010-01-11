@@ -150,7 +150,7 @@ RegCylinder::~RegCylinder()
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */
 
-int RegCylinder::match(double x, double y, double z)
+int RegCylinder::inside(double x, double y, double z)
 {
   double del1,del2,dist;
   int inside;
@@ -175,7 +175,7 @@ int RegCylinder::match(double x, double y, double z)
     else inside = 0;
   }
 
-  return !(inside ^ interior);         // 1 if same, 0 if different
+  return inside;
 }
 
 /* ----------------------------------------------------------------------

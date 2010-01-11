@@ -51,6 +51,10 @@ include the "ave" fixes such as <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A>.  Also <A HREF = "fix_dt_reset.html">fix
 dt/reset</A> and <A HREF = "fix_deposity.html">fix deposit</A>.
 </P>
+<P>This command cannot be used when any dynamic regions are defined via
+the <A HREF = "region.html">region</A> command, which have time-dependent position
+and orientation.
+</P>
 <P>There are other fixes which use the current timestep which may produce
 unexpected behavior, but LAMMPS allows them to be in place when
 resetting the timestep.  For example, commands which thermostat the

@@ -108,7 +108,10 @@ each atom to (omega cross Rperp) where omega is its angular velocity
 around the rotation axis and Rperp is a perpendicular vector from the
 rotation axis to the atom.  If the defined
 "atom_style"_atom_style.html assigns an angular velocity to each atom,
-then each atom's angular velocity is also set to omega.
+then each atom's angular velocity is also set to omega.  Note that the
+direction of rotation for the atoms around the rotation axis is
+consistent with the right-hand rule: if the right-hand's thumb points
+along {R}, then the fingers wrap around in the direction of rotation.
 
 The {variable} style allows the position and velocity components of
 each atom to be set by formulas specified via the

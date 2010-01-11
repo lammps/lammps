@@ -44,13 +44,22 @@ style = {block} or {cone} or {cylinder} or {plane} or {prism} or {sphere} or {un
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to intersect :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {side} or {units} :l
+keyword = {side} or {units} or {vel} or {wiggle} or {rotate} :l
   {side} value = {in} or {out}
     {in} = the region is inside the specified geometry
     {out} = the region is outside the specified geometry
   {units} value = {lattice} or {box}
     {lattice} = the geometry is defined in lattice units
-    {box} = the geometry is defined in simulation box units :pre
+    {box} = the geometry is defined in simulation box units
+  {vel} args = Vx Vy Vz
+    Vx,Vy,Vz = components of velocity vector (velocity units)
+  {wiggle} args = Ax Ay Az period
+    Ax,Ay,Az = components of amplitude vector (distance units)
+    period = period of oscillation (time units)
+  {rotate} args = Px Py Pz Rx Ry Rz period
+    Px,Py,Pz = origin point of axis of rotation (distance units)
+    Rx,Ry,Rz = axis of rotation vector
+    period = period of rotation (time units) :pre
 :ule
 
 [Examples:]
@@ -59,7 +68,13 @@ region 1 block -3.0 5.0 INF 10.0 INF INF
 region 2 sphere 0.0 0.0 0.0 5 side out
 region void cylinder y 2 3 5 -5.0 EDGE units box
 region 1 prism 0 10 0 10 0 10 2 0 0
-region outside union 4 side1 side2 side3 side4 :pre
+region outside union 4 side1 side2 side3 side4
+region 2 sphere 0.0 0.0 0.0 5 side out wiggle 1 1 0 10 :pre
+
+Note that the
+direction of rotation for the atoms around the rotation axis is
+consistent with the right-hand rule: if the right-hand's thumb points
+along {R}, then the fingers wrap around in the direction of rotation.
 
 [Description:]
 
@@ -70,6 +85,15 @@ in the region can be identified as a group via the "group"_group.html
 command, or deleted via the "delete_atoms"_delete_atoms.html command.
 Or the surface of the region can be used as a boundary wall via the
 "fix wall/region"_fix_wall_region.html command.
+
+Normally, regions in LAMMPS are "static", meaning their geometric
+extent does not change with time.  If the {vel} or {wiggle} or
+{rotate} keyword is used, as described below, the region becomes
+"dynamic", meaning it's location or orientation changes with time.
+This may be useful, for example, when thermostatting a region, via the
+compute temp/region command, or when the fix wall/region command uses
+a region surface as a bounding wall on particle motion, i.e. a
+rotating container.
 
 The lo/hi values for {block} or {cone} or {cylinder} or {prism} styles
 can be specified as EDGE or INF.  EDGE means they extend all the way
@@ -142,6 +166,8 @@ The {union} style creates a region consisting of the volume of all the
 listed regions combined.  The {intersect} style creates a region
 consisting of the volume that is common to all the listed regions.
 
+:line
+
 The {side} keyword determines whether the region is considered to be
 inside or outside of the specified geometry.  Using this keyword in
 conjunction with {union} and {intersect} regions, complex geometries
@@ -153,12 +179,16 @@ both of the spheres.
 
 The {units} keyword determines the meaning of the distance units used
 to define the region for any argument above listed as having distance
-units.  A {box} value selects standard distance units as defined by
-the "units"_units.html command, e.g. Angstroms for units = real or
-metal.  A {lattice} value means the distance units are in lattice
-spacings.  The "lattice"_lattice.html command must have been
-previously used to define the lattice spacings which are used as
-follows:
+units.  It also affects the scaling of the velocity vector specfied
+with the {vel} keyword, the amplitude vector specified with the
+{wiggle} keyword, and the rotation point specified with the {rotate}
+keyword, since they each involve a distance metric.
+
+A {box} value selects standard distance units as defined by the
+"units"_units.html command, e.g. Angstroms for units = real or metal.
+A {lattice} value means the distance units are in lattice spacings.
+The "lattice"_lattice.html command must have been previously used to
+define the lattice spacings which are used as follows:
 
 For style {block}, the lattice spacing in dimension x is applied to
 xlo and xhi, similarly the spacings in dimensions y,z are applied to
@@ -186,6 +216,46 @@ to yz. :l
 For style {sphere}, the lattice spacing in dimensions x,y,z are
 applied to the sphere center x,y,z.  The spacing in dimension x is
 applied to the sphere radius. :l,ule
+
+:line
+
+If the {vel} or {wiggle} or {rotate} keywords are used, the region
+is "dynamic", meaning its location or orientation changes with time.
+No more than one of these keywords can be used at a time.  These
+keywords cannot be used with a {union} or {intersect} style region.
+Instead, the keywords should be used to define the individual
+sub-regions of the {union} or {intersect} region.  Normally, each
+sub-region should be "dynamic" in the same manner (e.g. rotate around
+the same point), though this is not a requirement.
+
+The {vel} style moves the region at a constant velocity, so that its
+position {X} = (x,y,z) as a function of time is given in vector
+notation as
+
+X(t) = X0 + V * delta :pre
+
+where {X0} = (x0,y0,z0) is its position at the time the region is
+specified, {V} is the specified velocity vector with components
+(Vx,Vy,Vz), and {delta} is the time elapsed since the region was
+specified. 
+
+The {wiggle} style moves the region in an oscillatory fashion, so that
+its position {X} = (x,y,z) as a function of time is given in vector
+notation as
+
+X(t) = X0 + A sin(omega*delta) :pre
+
+where {X0} = (x0,y0,z0) is its position at the time the region is
+specified, {A} is the specified amplitude vector with components
+(Ax,Ay,Az), {omega} is 2 PI / {period}, and {delta} is the time
+elapsed since the region was specified.
+
+The {rotate} style rotates the region around a rotation axis {R} =
+(Rx,Ry,Rz) that goes thru a point {P} = (Px,Py,Pz).  The {period} of
+the rotation is also specified.  The direction of rotation for the
+region around the rotation axis is consistent with the right-hand
+rule: if your right-hand thumb points along {R}, then your fingers
+wrap around the axis in the direction of rotation.
 
 [Restrictions:]
 

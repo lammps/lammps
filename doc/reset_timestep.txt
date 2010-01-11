@@ -48,6 +48,10 @@ include the "ave" fixes such as "fix
 ave/spatial"_fix_ave_spatial.html.  Also "fix
 dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposity.html.
 
+This command cannot be used when any dynamic regions are defined via
+the "region"_region.html command, which have time-dependent position
+and orientation.
+
 There are other fixes which use the current timestep which may produce
 unexpected behavior, but LAMMPS allows them to be in place when
 resetting the timestep.  For example, commands which thermostat the

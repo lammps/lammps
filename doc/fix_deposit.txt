@@ -136,7 +136,10 @@ commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+The specified insertion region cannot be a "dynamic" region, as
+defined by the "region"_region.html command.
 
 [Related commands:]
 

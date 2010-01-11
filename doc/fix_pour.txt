@@ -124,6 +124,9 @@ For 3d simulations, a gravity fix in the -z direction must be defined
 for use in conjunction with this fix.  For 2d simulations, gravity
 must be defined in the -y direction.
 
+The specified insertion region cannot be a "dynamic" region, as
+defined by the "region"_region.html command.
+
 [Related commands:]
 
 "fix_deposit"_fix_deposit.html, "fix_gravity"_fix_gravity.html,

@@ -1413,7 +1413,9 @@ generality, since the region surface is treated as a wall, and the
 geometry of the region can be a simple primitive volume (e.g. a
 sphere, or cube, or plane), or a complex volume made from the union
 and intersection of primitive volumes.  "Regions"_region.html can also
-be "dynamic" meaning they move with constant velocity, oscillate, or
+specify a volume "interior" or "exterior" to the specified primitive
+shape or {union} or {intersection}.  "Regions"_region.html can also be
+"dynamic" meaning they move with constant velocity, oscillate, or
 rotate.
 
 The only frictional idealized walls currently in LAMMPS are flat or

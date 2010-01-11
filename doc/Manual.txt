@@ -104,7 +104,8 @@ listed above.
   4.13 "NEMD simulations"_4_13 :b
   4.14 "Extended spherical and aspherical particles"_4_14 :b
   4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_4_15 :b
-  4.16 "Thermostatting, barostatting, and compute temperature"_4_16 :ule,b
+  4.16 "Thermostatting, barostatting, and compute temperature"_4_16 :b
+  4.17 "Walls"_4_17 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l

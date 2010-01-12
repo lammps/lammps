@@ -153,7 +153,7 @@ no-%:
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
 	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
-	  cd $(NODIR); csh -f Install.csh 0; cd ..; $(MAKE) clean-all; \
+	  cd $(NODIR); csh -f Install.csh 0; cd ..; \
         fi;
 
 # status = list differences between src and package files

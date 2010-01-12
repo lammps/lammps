@@ -56,11 +56,15 @@ command like
 </P>
 <PRE>pair_style foo 0.1 3.5 
 </PRE>
-<P>then these lines should appear at the top of your pair_foo.h file:
+<P>then your pair_foo.h file should be structured as follows:
 </P>
 <PRE>#ifdef PAIR_CLASS
 PairStyle(foo,PairFoo)
-#else 
+#else
+...
+(class definition for PairFoo)
+...
+#endif 
 </PRE>
 <P>where "foo" is the style keyword in the pair_style command, and
 PairFoo is the class name defined in your pair_foo.cpp and pair_foo.h

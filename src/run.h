@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef RUN_H
-#define RUN_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(run,Run)
+
+#else
+
+#ifndef LMP_RUN_H
+#define LMP_RUN_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class Run : protected Pointers {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_DISPLACE_ATOM_H
-#define COMPUTE_DISPLACE_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(displace/atom,ComputeDisplaceAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_DISPLACE_ATOM_H
+#define LMP_COMPUTE_DISPLACE_ATOM_H
 
 #include "compute.h"
 
@@ -35,4 +41,5 @@ class ComputeDisplaceAtom : public Compute {
 
 }
 
+#endif
 #endif

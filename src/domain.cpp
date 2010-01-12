@@ -21,6 +21,7 @@
 #include "stdio.h"
 #include "math.h"
 #include "domain.h"
+#include "style_region.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -32,10 +33,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-
-#define RegionInclude
-#include "style.h"
-#undef RegionInclude
 
 using namespace LAMMPS_NS;
 
@@ -887,12 +884,12 @@ void Domain::add_region(int narg, char **arg)
 
   if (strcmp(arg[1],"none") == 0) error->all("Invalid region style");
 
-#define RegionClass
+#define REGION_CLASS
 #define RegionStyle(key,Class) \
   else if (strcmp(arg[1],#key) == 0) \
     regions[nregion] = new Class(lmp,narg,arg);
-#include "style.h"
-#undef RegionClass
+#include "style_region.h"
+#undef REGION_CLASS
 
   else error->all("Invalid region style");
 

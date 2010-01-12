@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_H
-#define FIX_H
+#ifndef LMP_FIX_H
+#define LMP_FIX_H
 
 #include "pointers.h"
 

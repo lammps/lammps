@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_INDENT_H
-#define FIX_INDENT_H
+#ifdef FIX_CLASS
+
+FixStyle(indent,FixIndent)
+
+#else
+
+#ifndef LMP_FIX_INDENT_H
+#define LMP_FIX_INDENT_H
 
 #include "fix.h"
 
@@ -47,4 +53,5 @@ class FixIndent : public Fix {
 
 }
 
+#endif
 #endif

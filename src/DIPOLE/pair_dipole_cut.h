@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_DIPOLE_CUT_H
-#define PAIR_DIPOLE_CUT_H
+#ifdef PAIR_CLASS
+
+PairStyle(dipole/cut,PairDipoleCut)
+
+#else
+
+#ifndef LMP_PAIR_DIPOLE_CUT_H
+#define LMP_PAIR_DIPOLE_CUT_H
 
 #include "pair.h"
 
@@ -44,4 +50,5 @@ class PairDipoleCut : public Pair {
 
 }
 
+#endif
 #endif

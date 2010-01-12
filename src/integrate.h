@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef INTEGRATE_H
-#define INTEGRATE_H
+#ifndef LMP_INTEGRATE_H
+#define LMP_INTEGRATE_H
 
 #include "pointers.h"
 

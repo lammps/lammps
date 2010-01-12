@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef LMP_INPUT_H
+#define LMP_INPUT_H
 
 #include "stdio.h"
 #include "pointers.h"

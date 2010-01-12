@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_H
-#define BOND_H
+#ifndef LMP_BOND_H
+#define LMP_BOND_H
 
 #include "stdio.h"
 #include "pointers.h"

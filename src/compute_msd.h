@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_MSD_H
-#define COMPUTE_MSD_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(msd,ComputeMSD)
+
+#else
+
+#ifndef LMP_COMPUTE_MSD_H
+#define LMP_COMPUTE_MSD_H
 
 #include "compute.h"
 
@@ -34,4 +40,5 @@ class ComputeMSD : public Compute {
 
 }
 
+#endif
 #endif

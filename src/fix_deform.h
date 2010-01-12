@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_DEFORM_H
-#define FIX_DEFORM_H
+#ifdef FIX_CLASS
+
+FixStyle(deform,FixDeform)
+
+#else
+
+#ifndef LMP_FIX_DEFORM_H
+#define LMP_FIX_DEFORM_H
 
 #include "fix.h"
 
@@ -59,4 +65,5 @@ class FixDeform : public Fix {
 
 }
 
+#endif
 #endif

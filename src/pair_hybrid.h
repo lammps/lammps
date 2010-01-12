@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_HYBRID_H
-#define PAIR_HYBRID_H
+#ifdef PAIR_CLASS
+
+PairStyle(hybrid,PairHybrid)
+
+#else
+
+#ifndef LMP_PAIR_HYBRID_H
+#define LMP_PAIR_HYBRID_H
 
 #include "stdio.h"
 #include "pair.h"
@@ -54,4 +60,5 @@ class PairHybrid : public Pair {
 
 }
 
+#endif
 #endif

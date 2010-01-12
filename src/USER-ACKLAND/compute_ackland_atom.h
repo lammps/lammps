@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_ACKLAND_ATOM_H
-#define COMPUTE_ACKLAND_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(ackland/atom,ComputeAcklandAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_ACKLAND_ATOM_H
+#define LMP_COMPUTE_ACKLAND_ATOM_H
 
 #include "compute.h"
 
@@ -40,4 +46,5 @@ class ComputeAcklandAtom : public Compute {
 
 }
 
+#endif
 #endif

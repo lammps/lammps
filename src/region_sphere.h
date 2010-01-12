@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_SPHERE_H
-#define REGION_SPHERE_H
+#ifdef REGION_CLASS
+
+RegionStyle(sphere,RegSphere)
+
+#else
+
+#ifndef LMP_REGION_SPHERE_H
+#define LMP_REGION_SPHERE_H
 
 #include "region.h"
 
@@ -33,4 +39,5 @@ class RegSphere : public Region {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_GAYBERNE_H
-#define PAIR_GAYBERNE_H
+#ifdef PAIR_CLASS
+
+PairStyle(gayberne,PairGayBerne)
+
+#else
+
+#ifndef LMP_PAIR_GAYBERNE_H
+#define LMP_PAIR_GAYBERNE_H
 
 #include "pair.h"
 
@@ -61,4 +67,5 @@ class PairGayBerne : public Pair {
 };
 
 }
+#endif
 #endif

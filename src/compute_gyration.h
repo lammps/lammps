@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_GYRATION_H
-#define COMPUTE_GYRATION_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(gyration,ComputeGyration)
+
+#else
+
+#ifndef LMP_COMPUTE_GYRATION_H
+#define LMP_COMPUTE_GYRATION_H
 
 #include "compute.h"
 
@@ -31,4 +37,5 @@ class ComputeGyration : public Compute {
 
 }
 
+#endif
 #endif

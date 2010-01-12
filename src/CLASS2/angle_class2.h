@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_CLASS2_H
-#define ANGLE_CLASS2_H
+#ifdef ANGLE_CLASS
+
+AngleStyle(class2,AngleClass2)
+
+#else
+
+#ifndef LMP_ANGLE_CLASS2_H
+#define LMP_ANGLE_CLASS2_H
 
 #include "stdio.h"
 #include "angle.h"
@@ -41,4 +47,5 @@ class AngleClass2 : public Angle {
 
 }
 
+#endif
 #endif

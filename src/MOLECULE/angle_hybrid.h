@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_HYBRID_H
-#define ANGLE_HYBRID_H
+#ifdef ANGLE_CLASS
+
+AngleStyle(hybrid,AngleHybrid)
+
+#else
+
+#ifndef LMP_ANGLE_HYBRID_H
+#define LMP_ANGLE_HYBRID_H
 
 #include "stdio.h"
 #include "angle.h"
@@ -47,4 +53,5 @@ class AngleHybrid : public Angle {
 
 }
 
+#endif
 #endif

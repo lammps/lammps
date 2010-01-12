@@ -15,6 +15,12 @@
 #include "string.h"
 #include "ctype.h"
 #include "force.h"
+#include "style_bond.h"
+#include "style_angle.h"
+#include "style_dihedral.h"
+#include "style_improper.h"
+#include "style_pair.h"
+#include "style_kspace.h"
 #include "atom.h"
 #include "comm.h"
 #include "pair.h"
@@ -28,20 +34,6 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
-
-#define BondInclude
-#define AngleInclude
-#define DihedralInclude
-#define ImproperInclude
-#define PairInclude
-#define KSpaceInclude
-#include "style.h"
-#undef BondInclude
-#undef AngleInclude
-#undef DihedralInclude
-#undef ImproperInclude
-#undef PairInclude
-#undef KSpaceInclude
 
 using namespace LAMMPS_NS;
 
@@ -142,11 +134,11 @@ Pair *Force::new_pair(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
-#define PairClass
+#define PAIR_CLASS
 #define PairStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style.h"
-#undef PairClass
+#include "style_pair.h"
+#undef PAIR_CLASS
 
   else error->all("Invalid pair style");
   return NULL;
@@ -220,11 +212,11 @@ Bond *Force::new_bond(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
-#define BondClass
+#define BOND_CLASS
 #define BondStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style.h"
-#undef BondClass
+#include "style_bond.h"
+#undef BOND_CLASS
 
   else error->all("Invalid bond style");
   return NULL;
@@ -268,11 +260,11 @@ Angle *Force::new_angle(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
-#define AngleClass
+#define ANGLE_CLASS
 #define AngleStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style.h"
-#undef AngleClass
+#include "style_angle.h"
+#undef ANGLE_CLASS
 
   else error->all("Invalid angle style");
   return NULL;
@@ -301,11 +293,11 @@ Dihedral *Force::new_dihedral(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
-#define DihedralClass
+#define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style.h"
-#undef DihedralClass
+#include "style_dihedral.h"
+#undef DIHEDRAL_CLASS
 
   else error->all("Invalid dihedral style");
   return NULL;
@@ -334,11 +326,11 @@ Improper *Force::new_improper(const char *style)
 {
   if (strcmp(style,"none") == 0) return NULL;
 
-#define ImproperClass
+#define IMPROPER_CLASS
 #define ImproperStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style.h"
-#undef ImproperClass
+#include "style_improper.h"
+#undef IMPROPER_CLASS
 
   else error->all("Invalid improper style");
   return NULL;
@@ -355,11 +347,11 @@ void Force::create_kspace(int narg, char **arg)
 
   if (strcmp(arg[0],"none") == 0) kspace = NULL;
 
-#define KSpaceClass
+#define KSPACE_CLASS
 #define KSpaceStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) kspace = new Class(lmp,narg-1,&arg[1]);
-#include "style.h"
-#undef KSpaceClass
+#include "style_kspace.h"
+#undef KSPACE_CLASS
 
   else error->all("Invalid kspace style");
 

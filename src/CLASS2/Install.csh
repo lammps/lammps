@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp style_class2.h ..
-
   cp bond_class2.cpp ..
   cp angle_class2.cpp ..
   cp dihedral_class2.cpp ..
@@ -23,9 +21,6 @@ if ($1 == 1) then
   cp pair_lj_class2_coul_long.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_class2.h
-  touch ../style_class2.h
 
   rm ../bond_class2.cpp
   rm ../angle_class2.cpp

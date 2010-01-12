@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_PROPERTY_LOCAL_H
-#define COMPUTE_PROPERTY_LOCAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(property/local,ComputePropertyLocal)
+
+#else
+
+#ifndef LMP_COMPUTE_PROPERTY_LOCAL_H
+#define LMP_COMPUTE_PROPERTY_LOCAL_H
 
 #include "compute.h"
 
@@ -77,4 +83,5 @@ class ComputePropertyLocal : public Compute {
 
 }
 
+#endif
 #endif

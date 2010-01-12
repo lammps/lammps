@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_HEATFLUX_H
-#define COMPUTE_HEATFLUX_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(heat/flux,ComputeHeatFlux)
+
+#else
+
+#ifndef LMP_COMPUTE_HEAT_FLUX_H
+#define LMP_COMPUTE_HEAT_FLUX_H
 
 #include "compute.h"
 
@@ -36,4 +42,5 @@ class ComputeHeatFlux : public Compute {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef IMPROPER_H
-#define IMPROPER_H
+#ifndef LMP_IMPROPER_H
+#define LMP_IMPROPER_H
 
 #include "stdio.h"
 #include "pointers.h"

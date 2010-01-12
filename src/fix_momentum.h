@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_MOMENTUM_H
-#define FIX_MOMENTUM_H
+#ifdef FIX_CLASS
+
+FixStyle(momentum,FixMomentum)
+
+#else
+
+#ifndef LMP_FIX_MOMENTUM_H
+#define LMP_FIX_MOMENTUM_H
 
 #include "fix.h"
 
@@ -33,4 +39,5 @@ class FixMomentum : public Fix {
 
 }
 
+#endif
 #endif

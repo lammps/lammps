@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DOMAIN_H
-#define DOMAIN_H
+#ifndef LMP_DOMAIN_H
+#define LMP_DOMAIN_H
 
 #include "pointers.h"
 

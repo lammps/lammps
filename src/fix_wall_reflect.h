@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_REFLECT_H
-#define FIX_WALL_REFLECT_H
+#ifdef FIX_CLASS
+
+FixStyle(wall/reflect,FixWallReflect)
+
+#else
+
+#ifndef LMP_FIX_WALL_REFLECT_H
+#define LMP_FIX_WALL_REFLECT_H
 
 #include "fix.h"
 
@@ -31,4 +37,5 @@ class FixWallReflect : public Fix {
 
 }
 
+#endif
 #endif

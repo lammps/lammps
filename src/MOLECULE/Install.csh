@@ -5,8 +5,6 @@
 
 if ($1 == 1) then
 
-  cp style_molecule.h ..
-
   cp angle.cpp ..
   cp angle_charmm.cpp ..
   cp angle_cosine.cpp ..
@@ -84,9 +82,6 @@ if ($1 == 1) then
   cp pair_lj_charmm_coul_charmm_implicit.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_molecule.h
-  touch ../style_molecule.h
 
   rm ../angle.cpp
   rm ../angle_charmm.cpp

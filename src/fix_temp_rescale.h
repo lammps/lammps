@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_TEMP_RESCALE_H
-#define FIX_TEMP_RESCALE_H
+#ifdef FIX_CLASS
+
+FixStyle(temp/rescale,FixTempRescale)
+
+#else
+
+#ifndef LMP_FIX_TEMP_RESCALE_H
+#define LMP_FIX_TEMP_RESCALE_H
 
 #include "fix.h"
 
@@ -41,4 +47,5 @@ class FixTempRescale : public Fix {
 
 }
 
+#endif
 #endif

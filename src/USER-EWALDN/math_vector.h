@@ -15,8 +15,8 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#ifndef MATH_VECTOR_H
-#define MATH_VECTOR_H
+#ifndef LMP_MATH_VECTOR_H
+#define LMP_MATH_VECTOR_H
 
 #include "math.h"
 

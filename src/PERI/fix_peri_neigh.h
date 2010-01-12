@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_PERI_NEIGH_H
-#define FIX_PERI_NEIGH_H
+#ifdef FIX_CLASS
+
+FixStyle(PERI_NEIGH,FixPeriNeigh)
+
+#else
+
+#ifndef LMP_FIX_PERI_NEIGH_H
+#define LMP_FIX_PERI_NEIGH_H
 
 #include "fix.h"
 
@@ -53,4 +59,5 @@ class FixPeriNeigh : public Fix {
 
 }
 
+#endif
 #endif

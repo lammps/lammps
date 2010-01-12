@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_ORIENT_FCC_H
-#define FIX_ORIENT_FCC_H
+#ifdef FIX_CLASS
+
+FixStyle(orient/fcc,FixOrientFCC)
+
+#else
+
+#ifndef LMP_FIX_ORIENT_FCC_H
+#define LMP_FIX_ORIENT_FCC_H
 
 #include "fix.h"
 
@@ -78,4 +84,5 @@ class FixOrientFCC : public Fix {
 
 }
 
+#endif
 #endif

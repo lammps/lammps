@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_BOND_BREAK_H
-#define FIX_BOND_BREAK_H
+#ifdef FIX_CLASS
+
+FixStyle(bond/break,FixBondBreak)
+
+#else
+
+#ifndef LMP_FIX_BOND_BREAK_H
+#define LMP_FIX_BOND_BREAK_H
 
 #include "fix.h"
 
@@ -50,4 +56,5 @@ class FixBondBreak : public Fix {
 
 }
 
+#endif
 #endif

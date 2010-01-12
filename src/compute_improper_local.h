@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_IMPROPER_LOCAL_H
-#define COMPUTE_IMPROPER_LOCAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(improper/local,ComputeImproperLocal)
+
+#else
+
+#ifndef LMP_COMPUTE_IMPROPER_LOCAL_H
+#define LMP_COMPUTE_IMPROPER_LOCAL_H
 
 #include "compute.h"
 
@@ -40,4 +46,5 @@ class ComputeImproperLocal : public Compute {
 
 }
 
+#endif
 #endif

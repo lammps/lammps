@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_SHAKE_H
-#define FIX_SHAKE_H
+#ifdef FIX_CLASS
+
+FixStyle(shake,FixShake)
+
+#else
+
+#ifndef LMP_FIX_SHAKE_H
+#define LMP_FIX_SHAKE_H
 
 #include "fix.h"
 
@@ -107,4 +113,5 @@ class FixShake : public Fix {
 
 }
 
+#endif
 #endif

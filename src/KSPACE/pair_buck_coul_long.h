@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_BUCK_COUL_LONG_H
-#define PAIR_BUCK_COUL_LONG_H
+#ifdef PAIR_CLASS
+
+PairStyle(buck/coul/long,PairBuckCoulLong)
+
+#else
+
+#ifndef LMP_PAIR_BUCK_COUL_LONG_H
+#define LMP_PAIR_BUCK_COUL_LONG_H
 
 #include "pair.h"
 
@@ -47,4 +53,5 @@ class PairBuckCoulLong : public Pair {
 
 }
 
+#endif
 #endif

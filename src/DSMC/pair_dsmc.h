@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_DSMC_H
-#define PAIR_DSMC_H
+#ifdef PAIR_CLASS
+
+PairStyle(dsmc,PairDSMC)
+
+#else
+
+#ifndef LMP_PAIR_DSMC_H
+#define LMP_PAIR_DSMC_H
 
 #include "pair.h"
 
@@ -99,4 +105,5 @@ class PairDSMC : public Pair {
 
 }
 
+#endif
 #endif

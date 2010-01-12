@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ATOM_VEC_ANGLE_H
-#define ATOM_VEC_ANGLE_H
+#ifdef ATOM_CLASS
+
+AtomStyle(angle,AtomVecAngle)
+
+#else
+
+#ifndef LMP_ATOM_VEC_ANGLE_H
+#define LMP_ATOM_VEC_ANGLE_H
 
 #include "atom_vec.h"
 
@@ -60,4 +66,5 @@ class AtomVecAngle : public AtomVec {
 
 }
 
+#endif
 #endif

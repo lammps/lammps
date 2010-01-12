@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_COM_H
-#define COMPUTE_COM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(com,ComputeCOM)
+
+#else
+
+#ifndef LMP_COMPUTE_COM_H
+#define LMP_COMPUTE_COM_H
 
 #include "compute.h"
 
@@ -31,4 +37,5 @@ class ComputeCOM : public Compute {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_DAMAGE_ATOM_H
-#define COMPUTE_DAMAGE_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(damage/atom,ComputeDamageAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_DAMAGE_ATOM_H
+#define LMP_COMPUTE_DAMAGE_ATOM_H
 
 #include "compute.h"
 
@@ -34,4 +40,5 @@ class ComputeDamageAtom : public Compute {
 
 }
 
+#endif
 #endif

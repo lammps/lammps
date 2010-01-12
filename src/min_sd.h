@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MIN_SD_H
-#define MIN_SD_H
+#ifdef MINIMIZE_CLASS
+
+MinimizeStyle(sd,MinSD)
+
+#else
+
+#ifndef LMP_MIN_SD_H
+#define LMP_MIN_SD_H
 
 #include "min_linesearch.h"
 
@@ -26,4 +32,5 @@ class MinSD : public MinLineSearch {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIHEDRAL_OPLS_H
-#define DIHEDRAL_OPLS_H
+#ifdef DIHEDRAL_CLASS
+
+DihedralStyle(opls,DihedralOPLS)
+
+#else
+
+#ifndef LMP_DIHEDRAL_OPLS_H
+#define LMP_DIHEDRAL_OPLS_H
 
 #include "stdio.h"
 #include "dihedral.h"
@@ -36,4 +42,5 @@ class DihedralOPLS : public Dihedral {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef IMPROPER_CLASS2_H
-#define IMPROPER_CLASS2_H
+#ifdef IMPROPER_CLASS
+
+ImproperStyle(class2,ImproperClass2)
+
+#else
+
+#ifndef LMP_IMPROPER_CLASS2_H
+#define LMP_IMPROPER_CLASS2_H
 
 #include "stdio.h"
 #include "improper.h"
@@ -42,4 +48,5 @@ class ImproperClass2 : public Improper {
 
 }
 
+#endif
 #endif

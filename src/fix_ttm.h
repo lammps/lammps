@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_TTM_H
-#define FIX_TTM_H
+#ifdef FIX_CLASS
+
+FixStyle(ttm,FixTTM)
+
+#else
+
+#ifndef LMP_FIX_TTM_H
+#define LMP_FIX_TTM_H
 
 #include "fix.h"
 
@@ -66,4 +72,5 @@ class FixTTM : public Fix {
 
 }
 
+#endif
 #endif

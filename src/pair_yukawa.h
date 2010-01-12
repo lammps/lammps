@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_YUKAWA_H
-#define PAIR_YUKAWA_H
+#ifdef PAIR_CLASS
+
+PairStyle(yukawa,PairYukawa)
+
+#else
+
+#ifndef LMP_PAIR_YUKAWA_H
+#define LMP_PAIR_YUKAWA_H
 
 #include "pair.h"
 
@@ -42,4 +48,5 @@ class PairYukawa : public Pair {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_HEAT_H
-#define FIX_HEAT_H
+#ifdef FIX_CLASS
+
+FixStyle(heat,FixHeat)
+
+#else
+
+#ifndef LMP_FIX_HEAT_H
+#define LMP_FIX_HEAT_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixHeat : public Fix {
 
 }
 
+#endif
 #endif

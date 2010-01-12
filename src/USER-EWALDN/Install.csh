@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp -p style_user_ewaldn.h ..
-
   cp -p ewald_n.cpp ..
   cp -p pair_buck_coul.cpp ..
   cp -p pair_lj_coul.cpp ..
@@ -16,9 +14,6 @@ if ($1 == 1) then
   cp -p math_complex.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_user_ewaldn.h
-  touch ../style_user_ewaldn.h
 
   rm ../ewald_n.cpp
   rm ../pair_buck_coul.cpp

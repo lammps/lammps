@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NVE_LIMIT_H
-#define FIX_NVE_LIMIT_H
+#ifdef FIX_CLASS
+
+FixStyle(nve/limit,FixNVELimit)
+
+#else
+
+#ifndef LMP_FIX_NVE_LIMIT_H
+#define LMP_FIX_NVE_LIMIT_H
 
 #include "fix.h"
 
@@ -39,4 +45,5 @@ class FixNVELimit : public Fix {
 
 }
 
+#endif
 #endif

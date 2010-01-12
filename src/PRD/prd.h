@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PRD_H
-#define PRD_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(prd,PRD)
+
+#else
+
+#ifndef LMP_PRD_H
+#define LMP_PRD_H
 
 #include "pointers.h"
 
@@ -62,4 +68,5 @@ class PRD : protected Pointers {
 
 }
 
+#endif
 #endif

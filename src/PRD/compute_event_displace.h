@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_EVENT_DISPLACE_H
-#define COMPUTE_EVENT_DISPLACE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(event/displace,ComputeEventDisplace)
+
+#else
+
+#ifndef LMP_COMPUTE_EVENT_DISPLACE_H
+#define LMP_COMPUTE_EVENT_DISPLACE_H
 
 #include "compute.h"
 
@@ -35,4 +41,5 @@ class ComputeEventDisplace : public Compute {
 
 }
 
+#endif
 #endif

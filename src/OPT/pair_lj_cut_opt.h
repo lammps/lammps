@@ -18,8 +18,14 @@
      Vincent Natol, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CUT_OPT_H
-#define PAIR_LJ_CUT_OPT_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/cut/opt,PairLJCutOpt)
+
+#else
+
+#ifndef LMP_PAIR_LJ_CUT_OPT_H
+#define LMP_PAIR_LJ_CUT_OPT_H
 
 #include "stdlib.h"
 #include "pair_lj_cut.h"
@@ -187,4 +193,5 @@ void PairLJCutOpt::eval()
 
 }
 
+#endif
 #endif

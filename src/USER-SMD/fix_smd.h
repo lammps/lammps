@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_SMD_H
-#define FIX_SMD_H
+#ifdef FIX_CLASS
+
+FixStyle(smd,FixSMD)
+
+#else
+
+#ifndef LMP_FIX_SMD_H
+#define LMP_FIX_SMD_H
 
 #include "fix.h"
 
@@ -50,4 +56,5 @@ class FixSMD : public Fix {
 
 }
 
+#endif
 #endif

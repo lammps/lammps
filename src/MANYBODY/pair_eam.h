@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_EAM_H
-#define PAIR_EAM_H
+#ifdef PAIR_CLASS
+
+PairStyle(eam,PairEAM)
+
+#else
+
+#ifndef LMP_PAIR_EAM_H
+#define LMP_PAIR_EAM_H
 
 #include "pair.h"
 
@@ -99,4 +105,5 @@ class PairEAM : public Pair {
 
 }
 
+#endif
 #endif

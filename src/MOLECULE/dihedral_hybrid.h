@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIHEDRAL_HYBRID_H
-#define DIHEDRAL_HYBRID_H
+#ifdef DIHEDRAL_CLASS
+
+DihedralStyle(hybrid,DihedralHybrid)
+
+#else
+
+#ifndef LMP_DIHEDRAL_HYBRID_H
+#define LMP_DIHEDRAL_HYBRID_H
 
 #include "stdio.h"
 #include "dihedral.h"
@@ -46,4 +52,5 @@ class DihedralHybrid : public Dihedral {
 
 }
 
+#endif
 #endif

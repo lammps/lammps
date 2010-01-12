@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ATOM_H
-#define ATOM_H
+#ifndef LMP_ATOM_H
+#define LMP_ATOM_H
 
 #include "pointers.h"
 

@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "output.h"
+#include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -29,10 +30,6 @@
 #include "write_restart.h"
 #include "memory.h"
 #include "error.h"
-
-#define DumpInclude
-#include "style.h"
-#undef DumpInclude
 
 using namespace LAMMPS_NS;
 
@@ -325,11 +322,11 @@ void Output::add_dump(int narg, char **arg)
 
   if (0) return;         // dummy line to enable else-if macro expansion
 
-#define DumpClass
+#define DUMP_CLASS
 #define DumpStyle(key,Class) \
   else if (strcmp(arg[2],#key) == 0) dump[ndump] = new Class(lmp,narg,arg);
-#include "style.h"
-#undef DumpClass
+#include "style_dump.h"
+#undef DUMP_CLASS
 
   else error->all("Invalid dump style");
 

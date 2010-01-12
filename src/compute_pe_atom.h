@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_PE_ATOM_H
-#define COMPUTE_PE_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(pe/atom,ComputePEAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_PE_ATOM_H
+#define LMP_COMPUTE_PE_ATOM_H
 
 #include "compute.h"
 
@@ -36,4 +42,5 @@ class ComputePEAtom : public Compute {
 
 }
 
+#endif
 #endif

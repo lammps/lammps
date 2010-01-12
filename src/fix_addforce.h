@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_ADDFORCE_H
-#define FIX_ADDFORCE_H
+#ifdef FIX_CLASS
+
+FixStyle(addforce,FixAddForce)
+
+#else
+
+#ifndef LMP_FIX_ADDFORCE_H
+#define LMP_FIX_ADDFORCE_H
 
 #include "fix.h"
 
@@ -41,4 +47,5 @@ class FixAddForce : public Fix {
 
 }
 
+#endif
 #endif

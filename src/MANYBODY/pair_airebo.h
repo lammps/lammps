@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_AIREBO_H
-#define PAIR_AIREBO_H
+#ifdef PAIR_CLASS
+
+PairStyle(airebo,PairAIREBO)
+
+#else
+
+#ifndef LMP_PAIR_AIREBO_H
+#define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
 
@@ -110,4 +116,5 @@ class PairAIREBO : public Pair {
 
 }
 
+#endif
 #endif

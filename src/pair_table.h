@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_TABLE_H
-#define PAIR_TABLE_H
+#ifdef PAIR_CLASS
+
+PairStyle(table,PairTable)
+
+#else
+
+#ifndef LMP_PAIR_TABLE_H
+#define LMP_PAIR_TABLE_H
 
 #include "pair.h"
 
@@ -63,4 +69,5 @@ class PairTable : public Pair {
 
 }
 
+#endif
 #endif

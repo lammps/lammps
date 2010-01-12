@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIHEDRAL_CHARMM_H
-#define DIHEDRAL_CHARMM_H
+#ifdef DIHEDRAL_CLASS
+
+DihedralStyle(charmm,DihedralCharmm)
+
+#else
+
+#ifndef LMP_DIHEDRAL_CHARMM_H
+#define LMP_DIHEDRAL_CHARMM_H
 
 #include "stdio.h"
 #include "dihedral.h"
@@ -40,4 +46,5 @@ class DihedralCharmm : public Dihedral {
 
 }
 
+#endif
 #endif

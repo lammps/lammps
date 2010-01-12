@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REPLICATE_H
-#define REPLICATE_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(replicate,Replicate)
+
+#else
+
+#ifndef LMP_REPLICATE_H
+#define LMP_REPLICATE_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class Replicate : protected Pointers {
 
 }
 
+#endif
 #endif

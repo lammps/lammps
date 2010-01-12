@@ -14,6 +14,8 @@
 #include "string.h"
 #include "stdlib.h"
 #include "update.h"
+#include "style_integrate.h"
+#include "style_minimize.h"
 #include "neighbor.h"
 #include "force.h"
 #include "modify.h"
@@ -24,12 +26,6 @@
 #include "output.h"
 #include "memory.h"
 #include "error.h"
-
-#define IntegrateInclude
-#define MinimizeInclude
-#include "style.h"
-#undef IntegrateInclude
-#undef MinimizeInclude
 
 using namespace LAMMPS_NS;
 
@@ -183,11 +179,11 @@ void Update::create_integrate(int narg, char **arg)
 
   if (0) return;      // dummy line to enable else-if macro expansion
 
-#define IntegrateClass
+#define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) integrate = new Class(lmp,narg-1,&arg[1]);
-#include "style.h"
-#undef IntegrateClass
+#include "style_integrate.h"
+#undef INTEGRATE_CLASS
 
   else error->all("Illegal run_style command");
 
@@ -207,11 +203,11 @@ void Update::create_minimize(int narg, char **arg)
 
   if (0) return;      // dummy line to enable else-if macro expansion
 
-#define MinimizeClass
+#define MINIMIZE_CLASS
 #define MinimizeStyle(key,Class) \
   else if (strcmp(arg[0],#key) == 0) minimize = new Class(lmp);
-#include "style.h"
-#undef MinimizeClass
+#include "style_minimize.h"
+#undef MINIMIZE_CLASS
 
   else error->all("Illegal min_style command");
 

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_HYBRID_OVERLAY_H
-#define PAIR_HYBRID_OVERLAY_H
+#ifdef PAIR_CLASS
+
+PairStyle(hybrid/overlay,PairHybridOverlay)
+
+#else
+
+#ifndef LMP_PAIR_HYBRID_OVERLAY_H
+#define LMP_PAIR_HYBRID_OVERLAY_H
 
 #include "pair_hybrid.h"
 
@@ -29,4 +35,5 @@ class PairHybridOverlay : public PairHybrid {
 
 }
 
+#endif
 #endif

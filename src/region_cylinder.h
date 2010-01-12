@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_CYLINDER_H
-#define REGION_CYLINDER_H
+#ifdef REGION_CLASS
+
+RegionStyle(cylinder,RegCylinder)
+
+#else
+
+#ifndef LMP_REGION_CYLINDER_H
+#define LMP_REGION_CYLINDER_H
 
 #include "region.h"
 
@@ -37,4 +43,5 @@ class RegCylinder : public Region {
 
 }
 
+#endif
 #endif

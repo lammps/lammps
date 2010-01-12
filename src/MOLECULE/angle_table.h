@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_TABLE_H
-#define ANGLE_TABLE_H
+#ifdef ANGLE_CLASS
+
+AngleStyle(table,AngleTable)
+
+#else
+
+#ifndef LMP_ANGLE_TABLE_H
+#define LMP_ANGLE_TABLE_H
 
 #include "stdio.h"
 #include "angle.h"
@@ -66,4 +72,5 @@ class AngleTable : public Angle {
 
 }
 
+#endif
 #endif

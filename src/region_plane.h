@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_PLANE_H
-#define REGION_PLANE_H
+#ifdef REGION_CLASS
+
+RegionStyle(plane,RegPlane)
+
+#else
+
+#ifndef LMP_REGION_PLANE_H
+#define LMP_REGION_PLANE_H
 
 #include "region.h"
 
@@ -33,4 +39,5 @@ class RegPlane : public Region {
 
 }
 
+#endif
 #endif

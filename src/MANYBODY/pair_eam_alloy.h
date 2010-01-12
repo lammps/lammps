@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_EAM_ALLOY_H
-#define PAIR_EAM_ALLOY_H
+#ifdef PAIR_CLASS
+
+PairStyle(eam/alloy,PairEAMAlloy)
+
+#else
+
+#ifndef LMP_PAIR_EAM_ALLOY_H
+#define LMP_PAIR_EAM_ALLOY_H
 
 #include "pair_eam.h"
 
@@ -33,4 +39,5 @@ class PairEAMAlloy : virtual public PairEAM {
 
 }
 
+#endif
 #endif

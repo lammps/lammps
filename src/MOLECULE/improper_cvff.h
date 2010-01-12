@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef IMPROPER_CVFF_H
-#define IMPROPER_CVFF_H
+#ifdef IMPROPER_CLASS
+
+ImproperStyle(cvff,ImproperCvff)
+
+#else
+
+#ifndef LMP_IMPROPER_CVFF_H
+#define LMP_IMPROPER_CVFF_H
 
 #include "stdio.h"
 #include "improper.h"
@@ -37,4 +43,5 @@ class ImproperCvff : public Improper {
 
 }
 
+#endif
 #endif

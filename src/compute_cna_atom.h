@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_CNA_ATOM_H
-#define COMPUTE_CNA_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(cna/atom,ComputeCNAAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_CNA_ATOM_H
+#define LMP_COMPUTE_CNA_ATOM_H
 
 #include "compute.h"
 
@@ -38,4 +44,5 @@ class ComputeCNAAtom : public Compute {
 
 }
 
+#endif
 #endif

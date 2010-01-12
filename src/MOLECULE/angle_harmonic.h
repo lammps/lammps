@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_HARMONIC_H
-#define ANGLE_HARMONIC_H
+#ifdef ANGLE_CLASS
+
+AngleStyle(harmonic,AngleHarmonic)
+
+#else
+
+#ifndef LMP_ANGLE_HARMONIC_H
+#define LMP_ANGLE_HARMONIC_H
 
 #include "stdio.h"
 #include "angle.h"
@@ -38,4 +44,5 @@ class AngleHarmonic : public Angle {
 
 }
 
+#endif
 #endif

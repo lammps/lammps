@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_PERI_PMB_H
-#define PAIR_PERI_PMB_H
+#ifdef PAIR_CLASS
+
+PairStyle(peri/pmb,PairPeriPMB)
+
+#else
+
+#ifndef LMP_PAIR_PERI_PMB_H
+#define LMP_PAIR_PERI_PMB_H
 
 #include "pair.h"
 
@@ -48,4 +54,5 @@ class PairPeriPMB : public Pair {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MIN_H
-#define MIN_H
+#ifndef LMP_MIN_H
+#define LMP_MIN_H
 
 #include "pointers.h"
 

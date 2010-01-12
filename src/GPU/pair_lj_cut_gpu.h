@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CUT_GPU_H
-#define PAIR_LJ_CUT_GPU_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/cut/gpu,PairLJCutGPU)
+
+#else
+
+#ifndef LMP_PAIR_LJ_CUT_GPU_H
+#define LMP_PAIR_LJ_CUT_GPU_H
 
 #include "pair_lj_cut.h"
 
@@ -37,4 +43,5 @@ class PairLJCutGPU : public PairLJCut {
 };
 
 }
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef READ_RESTART_H
-#define READ_RESTART_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(read_restart,ReadRestart)
+
+#else
+
+#ifndef LMP_READ_RESTART_H
+#define LMP_READ_RESTART_H
 
 #include "stdio.h"
 #include "pointers.h"
@@ -41,4 +47,5 @@ class ReadRestart : protected Pointers {
 
 }
 
+#endif
 #endif

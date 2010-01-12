@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_RESPA_H
-#define FIX_RESPA_H
+#ifdef FIX_CLASS
+
+FixStyle(RESPA,FixRespa)
+
+#else
+
+#ifndef LMP_FIX_RESPA_H
+#define LMP_FIX_RESPA_H
 
 #include "fix.h"
 
@@ -41,4 +47,5 @@ class FixRespa : public Fix {
 
 }
 
+#endif
 #endif

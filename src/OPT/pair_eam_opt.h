@@ -19,8 +19,14 @@
      Vincent Natol, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_EAM_OPT_H
-#define PAIR_EAM_OPT_H
+#ifdef PAIR_CLASS
+
+PairStyle(eam/opt,PairEAMOpt)
+
+#else
+
+#ifndef LMP_PAIR_EAM_OPT_H
+#define LMP_PAIR_EAM_OPT_H
 
 #include "math.h"
 #include "stdlib.h"
@@ -321,4 +327,5 @@ void PairEAMOpt::eval()
 
 }
 
+#endif
 #endif

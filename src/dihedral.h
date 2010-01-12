@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIHEDRAL_H
-#define DIHEDRAL_H
+#ifndef LMP_DIHEDRAL_H
+#define LMP_DIHEDRAL_H
 
 #include "stdio.h"
 #include "pointers.h"

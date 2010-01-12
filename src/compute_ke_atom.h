@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_KE_ATOM_H
-#define COMPUTE_KE_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(ke/atom,ComputeKEAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_KE_ATOM_H
+#define LMP_COMPUTE_KE_ATOM_H
 
 #include "compute.h"
 
@@ -33,4 +39,5 @@ class ComputeKEAtom : public Compute {
 
 }
 
+#endif
 #endif

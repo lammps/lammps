@@ -8,14 +8,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Special Angle Potential for the CMM coarse grained MD potentials.
-   Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
-------------------------------------------------------------------------- */
+#ifdef ANGLE_CLASS
 
+AngleStyle(cg/cmm,AngleCGCMM)
 
-#ifndef ANGLE_CG_CMM_H
-#define ANGLE_CG_CMM_H
+#else
+
+#ifndef LMP_ANGLE_CG_CMM_H
+#define LMP_ANGLE_CG_CMM_H
 
 #include "stdio.h"
 #include "angle.h"
@@ -48,4 +48,5 @@ class AngleCGCMM : public Angle, public CGCMMParms {
 
 }
 
+#endif
 #endif

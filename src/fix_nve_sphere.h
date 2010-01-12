@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NVE_SPHERE_H
-#define FIX_NVE_SPHERE_H
+#ifdef FIX_CLASS
+
+FixStyle(nve/sphere,FixNVESphere)
+
+#else
+
+#ifndef LMP_FIX_NVE_SPHERE_H
+#define LMP_FIX_NVE_SPHERE_H
 
 #include "fix_nve.h"
 
@@ -33,4 +39,5 @@ class FixNVESphere : public FixNVE {
 
 }
 
+#endif
 #endif

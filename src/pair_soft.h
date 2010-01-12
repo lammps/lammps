@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_SOFT_H
-#define PAIR_SOFT_H
+#ifdef PAIR_CLASS
+
+PairStyle(soft,PairSoft)
+
+#else
+
+#ifndef LMP_PAIR_SOFT_H
+#define LMP_PAIR_SOFT_H
 
 #include "pair.h"
 
@@ -46,4 +52,5 @@ class PairSoft : public Pair {
 
 }
 
+#endif
 #endif

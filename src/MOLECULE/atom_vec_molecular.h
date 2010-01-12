@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ATOM_VEC_MOLECULAR_H
-#define ATOM_VEC_MOLECULAR_H
+#ifdef ATOM_CLASS
+
+AtomStyle(molecular,AtomVecMolecular)
+
+#else
+
+#ifndef LMP_ATOM_VEC_MOLECULAR_H
+#define LMP_ATOM_VEC_MOLECULAR_H
 
 #include "atom_vec.h"
 
@@ -66,4 +72,5 @@ class AtomVecMolecular : public AtomVec {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_H
-#define REGION_H
+#ifndef LMP_REGION_H
+#define LMP_REGION_H
 
 #include "pointers.h"
 

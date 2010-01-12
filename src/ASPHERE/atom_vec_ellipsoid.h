@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ATOM_VEC_ELLIPSOID_H
-#define ATOM_VEC_ELLIPSOID_H
+#ifdef ATOM_CLASS
+
+AtomStyle(ellipsoid,AtomVecEllipsoid)
+
+#else
+
+#ifndef LMP_ATOM_VEC_ELLIPSOID_H
+#define LMP_ATOM_VEC_ELLIPSOID_H
 
 #include "atom_vec.h"
 
@@ -61,4 +67,5 @@ class AtomVecEllipsoid : public AtomVec {
 
 }
 
+#endif
 #endif

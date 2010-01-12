@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_TERSOFF_H
-#define PAIR_TERSOFF_H
+#ifdef PAIR_CLASS
+
+PairStyle(tersoff,PairTersoff)
+
+#else
+
+#ifndef LMP_PAIR_TERSOFF_H
+#define LMP_PAIR_TERSOFF_H
 
 #include "pair.h"
 
@@ -93,4 +99,5 @@ class PairTersoff : public Pair {
 
 }
 
+#endif
 #endif

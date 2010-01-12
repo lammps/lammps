@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_EXPAND_H
-#define PAIR_LJ_EXPAND_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/expand,PairLJExpand)
+
+#else
+
+#ifndef LMP_PAIR_LJ_EXPAND_H
+#define LMP_PAIR_LJ_EXPAND_H
 
 #include "pair.h"
 
@@ -43,4 +49,5 @@ class PairLJExpand : public Pair {
 
 }
 
+#endif
 #endif

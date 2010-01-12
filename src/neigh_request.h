@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef NEIGH_REQUEST_H
-#define NEIGH_REQUEST_H
+#ifndef LMP_NEIGH_REQUEST_H
+#define LMP_NEIGH_REQUEST_H
 
 #include "pointers.h"
 

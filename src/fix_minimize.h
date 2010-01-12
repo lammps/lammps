@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_MINIMIZE_H
-#define FIX_MINIMIZE_H
+#ifdef FIX_CLASS
+
+FixStyle(MINIMIZE,FixMinimize)
+
+#else
+
+#ifndef LMP_FIX_MINIMIZE_H
+#define LMP_FIX_MINIMIZE_H
 
 #include "fix.h"
 
@@ -49,4 +55,5 @@ class FixMinimize : public Fix {
 
 }
 
+#endif
 #endif

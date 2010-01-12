@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_BOND_CREATE_H
-#define FIX_BOND_CREATE_H
+#ifdef FIX_CLASS
+
+FixStyle(bond/create,FixBondCreate)
+
+#else
+
+#ifndef LMP_FIX_BOND_CREATE_H
+#define LMP_FIX_BOND_CREATE_H
 
 #include "fix.h"
 
@@ -64,4 +70,5 @@ class FixBondCreate : public Fix {
 
 }
 
+#endif
 #endif

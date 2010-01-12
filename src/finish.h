@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FINISH_H
-#define FINISH_H
+#ifndef LMP_FINISH_H
+#define LMP_FINISH_H
 
 #include "pointers.h"
 

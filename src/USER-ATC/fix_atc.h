@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_ATC_H
-#define FIX_ATC_H
+#ifdef FIX_CLASS
+
+FixStyle(atc,FixATC)
+
+#else
+
+#ifndef LMP_FIX_ATC_H
+#define LMP_FIX_ATC_H
 
 #include "fix.h"
 
@@ -83,4 +89,5 @@ namespace LAMMPS_NS {
 
 }
 
+#endif
 #endif

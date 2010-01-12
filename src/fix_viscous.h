@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_VISCOUS_H
-#define FIX_VISCOUS_H
+#ifdef FIX_CLASS
+
+FixStyle(viscous,FixViscous)
+
+#else
+
+#ifndef LMP_FIX_VISCOUS_H
+#define LMP_FIX_VISCOUS_H
 
 #include "fix.h"
 
@@ -35,4 +41,5 @@ class FixViscous : public Fix {
 
 }
 
+#endif
 #endif

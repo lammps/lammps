@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef LMP_ERROR_H
+#define LMP_ERROR_H
 
 #include "pointers.h"
 

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_AVE_TIME_H
-#define FIX_AVE_TIME_H
+#ifdef FIX_CLASS
+
+FixStyle(ave/time,FixAveTime)
+
+#else
+
+#ifndef LMP_FIX_AVE_TIME_H
+#define LMP_FIX_AVE_TIME_H
 
 #include "stdio.h"
 #include "fix.h"
@@ -59,4 +65,5 @@ class FixAveTime : public Fix {
 
 }
 
+#endif
 #endif

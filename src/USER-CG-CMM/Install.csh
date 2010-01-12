@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp style_user_cg_cmm.h ..
-
   cp angle_cg_cmm.h ..
   cp angle_cg_cmm.cpp ..
 
@@ -20,9 +18,6 @@ if ($1 == 1) then
   cp pair_cg_cmm_coul_long.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_user_cg_cmm.h
-  touch ../style_user_cg_cmm.h
 
   rm ../angle_cg_cmm.h
   rm ../angle_cg_cmm.cpp

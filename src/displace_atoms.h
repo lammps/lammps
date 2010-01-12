@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DISPLACE_ATOMS_H
-#define DISPLACE_ATOMS_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(displace_atoms,DisplaceAtoms)
+
+#else
+
+#ifndef LMP_DISPLACE_ATOMS_H
+#define LMP_DISPLACE_ATOMS_H
 
 #include "pointers.h"
 
@@ -30,4 +36,5 @@ class DisplaceAtoms : protected Pointers {
 
 }
 
+#endif
 #endif

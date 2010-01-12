@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------ */
 
-#ifndef BOND_QUARTIC_H
-#define BOND_QUARTIC_H
+#ifdef BOND_CLASS
+
+BondStyle(quartic,BondQuartic)
+
+#else
+
+#ifndef LMP_BOND_QUARTIC_H
+#define LMP_BOND_QUARTIC_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -40,4 +46,5 @@ class BondQuartic : public Bond {
 
 }
 
+#endif
 #endif

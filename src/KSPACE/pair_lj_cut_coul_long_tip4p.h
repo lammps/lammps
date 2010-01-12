@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CUT_COUL_LONG_TIP4P_H
-#define PAIR_LJ_CUT_COUL_LONG_TIP4P_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/cut/coul/long/tip4p,PairLJCutCoulLongTIP4P)
+
+#else
+
+#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_H
+#define LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_H
 
 #include "pair_lj_cut_coul_long.h"
 
@@ -39,4 +45,5 @@ class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
 
 }
 
+#endif
 #endif

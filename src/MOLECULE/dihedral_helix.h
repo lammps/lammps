@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIHEDRAL_HELIX_H
-#define DIHEDRAL_HELIX_H
+#ifdef DIHEDRAL_CLASS
+
+DihedralStyle(helix,DihedralHelix)
+
+#else
+
+#ifndef LMP_DIHEDRAL_HELIX_H
+#define LMP_DIHEDRAL_HELIX_H
 
 #include "stdio.h"
 #include "dihedral.h"
@@ -36,4 +42,5 @@ class DihedralHelix : public Dihedral {
 
 }
 
+#endif
 #endif

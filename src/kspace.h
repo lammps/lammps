@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef KSPACE_H
-#define KSPACE_H
+#ifndef LMP_KSPACE_H
+#define LMP_KSPACE_H
 
 #include "pointers.h"
 

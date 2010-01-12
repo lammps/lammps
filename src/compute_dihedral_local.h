@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_DIHEDRAL_LOCAL_H
-#define COMPUTE_DIHEDRAL_LOCAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(dihedral/local,ComputeDihedralLocal)
+
+#else
+
+#ifndef LMP_COMPUTE_DIHEDRAL_LOCAL_H
+#define LMP_COMPUTE_DIHEDRAL_LOCAL_H
 
 #include "compute.h"
 
@@ -40,4 +46,5 @@ class ComputeDihedralLocal : public Compute {
 
 }
 
+#endif
 #endif

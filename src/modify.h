@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MODIFY_H
-#define MODIFY_H
+#ifndef LMP_MODIFY_H
+#define LMP_MODIFY_H
 
 #include "stdio.h"
 #include "pointers.h"

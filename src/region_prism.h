@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_PRISM_H
-#define REGION_PRISM_H
+#ifdef REGION_CLASS
+
+RegionStyle(prism,RegPrism)
+
+#else
+
+#ifndef LMP_REGION_PRISM_H
+#define LMP_REGION_PRISM_H
 
 #include "region.h"
 
@@ -52,4 +58,5 @@ class RegPrism : public Region {
 
 }
 
+#endif
 #endif

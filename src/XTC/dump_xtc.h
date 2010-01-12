@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_XTC_H
-#define DUMP_XTC_H
+#ifdef DUMP_CLASS
+
+DumpStyle(xtc,DumpXTC)
+
+#else
+
+#ifndef LMP_DUMP_XTC_H
+#define LMP_DUMP_XTC_H
 
 #include "dump.h"
 
@@ -52,4 +58,5 @@ class DumpXTC : public Dump {
 
 }
 
+#endif
 #endif

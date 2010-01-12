@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_TEMP_ASPHERE_H
-#define COMPUTE_TEMP_ASPHERE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(temp/asphere,ComputeTempAsphere)
+
+#else
+
+#ifndef LMP_COMPUTE_TEMP_ASPHERE_H
+#define LMP_COMPUTE_TEMP_ASPHERE_H
 
 #include "compute.h"
 
@@ -42,4 +48,5 @@ class ComputeTempAsphere : public Compute {
 
 }
 
+#endif
 #endif

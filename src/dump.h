@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_H
-#define DUMP_H
+#ifndef LMP_DUMP_H
+#define LMP_DUMP_H
 
 #include "stdio.h"
 #include "pointers.h"

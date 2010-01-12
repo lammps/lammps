@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef GROUP_H
-#define GROUP_H
+#ifndef LMP_GROUP_H
+#define LMP_GROUP_H
 
 #include "stdio.h"
 #include "pointers.h"

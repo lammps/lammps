@@ -5,8 +5,6 @@
 
 if ($1 == 1) then
 
-  cp style_kspace.h ..
-
   cp ewald.cpp ..
   cp pppm.cpp ..
   cp pppm_tip4p.cpp ..
@@ -37,9 +35,6 @@ if ($1 == 1) then
 
 else if ($1 == 0) then
 
-  rm ../style_kspace.h
-  touch ../style_kspace.h
-
   rm ../ewald.cpp
   rm ../pppm.cpp
   rm ../pppm_tip4p.cpp
@@ -68,7 +63,7 @@ else if ($1 == 0) then
   rm ../remap.h
   rm ../remap_wrap.h
 
-  if (! -z ../style_opt.h) then
+  if (-e ../pair_lj_charmm_coul_long_opt.h) then
     cd ../OPT; csh -f Install.csh 0; csh -f Install.csh 1
   endif
 

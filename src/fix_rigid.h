@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_RIGID_H
-#define FIX_RIGID_H
+#ifdef FIX_CLASS
+
+FixStyle(rigid,FixRigid)
+
+#else
+
+#ifndef LMP_FIX_RIGID_H
+#define LMP_FIX_RIGID_H
 
 #include "fix.h"
 
@@ -105,4 +111,5 @@ class FixRigid : public Fix {
 
 }
 
+#endif
 #endif

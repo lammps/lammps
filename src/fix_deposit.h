@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_DEPOSIT_H
-#define FIX_DEPOSIT_H
+#ifdef FIX_CLASS
+
+FixStyle(deposit,FixDeposit)
+
+#else
+
+#ifndef LMP_FIX_DEPOSIT_H
+#define LMP_FIX_DEPOSIT_H
 
 #include "fix.h"
 
@@ -41,4 +47,5 @@ class FixDeposit : public Fix {
 
 }
 
+#endif
 #endif

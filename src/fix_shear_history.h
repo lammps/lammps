@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_SHEAR_HISTORY_H
-#define FIX_SHEAR_HISTORY_H
+#ifdef FIX_CLASS
+
+FixStyle(SHEAR_HISTORY,FixShearHistory)
+
+#else
+
+#ifndef LMP_FIX_SHEAR_HISTORY_H
+#define LMP_FIX_SHEAR_HISTORY_H
 
 #include "fix.h"
 
@@ -51,4 +57,5 @@ class FixShearHistory : public Fix {
 
 }
 
+#endif
 #endif

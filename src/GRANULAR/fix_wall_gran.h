@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_GRAN_H
-#define FIX_WALL_GRAN_H
+#ifdef FIX_CLASS
+
+FixStyle(wall/gran,FixWallGran)
+
+#else
+
+#ifndef LMP_FIX_WALL_GRAN_H
+#define LMP_FIX_WALL_GRAN_H
 
 #include "fix.h"
 
@@ -64,4 +70,5 @@ class FixWallGran : public Fix {
 
 }
 
+#endif
 #endif

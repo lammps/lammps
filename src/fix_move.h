@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_MOVE_H
-#define FIX_MOVE_H
+#ifdef FIX_CLASS
+
+FixStyle(move,FixMove)
+
+#else
+
+#ifndef LMP_FIX_MOVE_H
+#define LMP_FIX_MOVE_H
 
 #include "fix.h"
 
@@ -60,4 +66,5 @@ class FixMove : public Fix {
 
 }
 
+#endif
 #endif

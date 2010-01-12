@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_PRINT_H
-#define FIX_PRINT_H
+#ifdef FIX_CLASS
+
+FixStyle(print,FixPrint)
+
+#else
+
+#ifndef LMP_FIX_PRINT_H
+#define LMP_FIX_PRINT_H
 
 #include "stdio.h"
 #include "fix.h"
@@ -34,4 +40,5 @@ class FixPrint : public Fix {
 
 }
 
+#endif
 #endif

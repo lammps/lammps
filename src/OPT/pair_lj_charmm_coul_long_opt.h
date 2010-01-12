@@ -18,8 +18,14 @@
      Vincent Natol, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CHARMM_COUL_LONG_OPT_H
-#define PAIR_LJ_CHARMM_COUL_LONG_OPT_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/charmm/coul/long/opt,PairLJCharmmCoulLongOpt)
+
+#else
+
+#ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_OPT_H
+#define LMP_PAIR_LJ_CHARMM_COUL_LONG_OPT_H
 
 #include "math.h"
 #include "stdlib.h"
@@ -337,4 +343,5 @@ void PairLJCharmmCoulLongOpt::eval()
  
 }
 
+#endif
 #endif

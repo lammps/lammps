@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_PRESSURE_H
-#define COMPUTE_PRESSURE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(pressure,ComputePressure)
+
+#else
+
+#ifndef LMP_COMPUTE_PRESSURE_H
+#define LMP_COMPUTE_PRESSURE_H
 
 #include "compute.h"
 
@@ -43,4 +49,5 @@ class ComputePressure : public Compute {
 
 }
 
+#endif
 #endif

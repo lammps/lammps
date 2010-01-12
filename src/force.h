@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FORCE_H
-#define FORCE_H
+#ifndef LMP_FORCE_H
+#define LMP_FORCE_H
 
 #include "pointers.h"
 

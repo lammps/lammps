@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef IMPROPER_HYBRID_H
-#define IMPROPER_HYBRID_H
+#ifdef IMPROPER_CLASS
+
+ImproperStyle(hybrid,ImproperHybrid)
+
+#else
+
+#ifndef LMP_IMPROPER_HYBRID_H
+#define LMP_IMPROPER_HYBRID_H
 
 #include "stdio.h"
 #include "improper.h"
@@ -45,4 +51,5 @@ class ImproperHybrid : public Improper {
 
 }
 
+#endif
 #endif

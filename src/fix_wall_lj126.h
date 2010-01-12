@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_LJ126_H
-#define FIX_WALL_LJ126_H
+#ifdef FIX_CLASS
+
+FixStyle(wall/lj126,FixWallLJ126)
+
+#else
+
+#ifndef LMP_FIX_WALL_LJ126_H
+#define LMP_FIX_WALL_LJ126_H
 
 #include "fix_wall.h"
 
@@ -30,3 +36,4 @@ class FixWallLJ126 : public FixWall {
 
 #endif
 }
+#endif

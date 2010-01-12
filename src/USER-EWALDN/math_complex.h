@@ -15,8 +15,8 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#ifndef MATH_COMPLEX_H
-#define MATH_COMPLEX_H
+#ifndef LMP_MATH_COMPLEX_H
+#define LMP_MATH_COMPLEX_H
 
 #define COMPLEX_NULL	{0, 0}
 

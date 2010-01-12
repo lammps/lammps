@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef RESPA_H
-#define RESPA_H
+#ifdef INTEGRATE_CLASS
+
+IntegrateStyle(respa,Respa)
+
+#else
+
+#ifndef LMP_RESPA_H
+#define LMP_RESPA_H
 
 #include "integrate.h"
 
@@ -58,4 +64,5 @@ class Respa : public Integrate {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_TEMP_BERENDSEN_H
-#define FIX_TEMP_BERENDSEN_H
+#ifdef FIX_CLASS
+
+FixStyle(temp/berendsen,FixTempBerendsen)
+
+#else
+
+#ifndef LMP_FIX_TEMP_BERENDSEN_H
+#define LMP_FIX_TEMP_BERENDSEN_H
 
 #include "fix.h"
 
@@ -39,4 +45,5 @@ class FixTempBerendsen : public Fix {
 
 }
 
+#endif
 #endif

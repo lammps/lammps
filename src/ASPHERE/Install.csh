@@ -5,8 +5,6 @@
 
 if ($1 == 1) then
 
-  cp style_asphere.h ..
-
   cp atom_vec_ellipsoid.cpp ..
   cp compute_erotate_asphere.cpp ..
   cp compute_temp_asphere.cpp ..
@@ -27,9 +25,6 @@ if ($1 == 1) then
 
 else if ($1 == 0) then
 
-  rm ../style_asphere.h
-  touch ../style_asphere.h
-
   rm ../atom_vec_ellipsoid.cpp
   rm ../compute_erotate_asphere.cpp
   rm ../compute_temp_asphere.cpp
@@ -48,7 +43,7 @@ else if ($1 == 0) then
   rm ../pair_gayberne.h
   rm ../pair_resquared.h
 
-  if (! -z ../style_gpu.h) then
+  if (-e ../pair_gayberne_gpu.h) then
     cd ../GPU; csh -f Install.csh 0; csh -f Install.csh 1
   endif
 

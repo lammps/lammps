@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_PRESS_BERENDSEN_H
-#define FIX_PRESS_BERENDSEN_H
+#ifdef FIX_CLASS
+
+FixStyle(press/berendsen,FixPressBerendsen)
+
+#else
+
+#ifndef LMP_FIX_PRESS_BERENDSEN_H
+#define LMP_FIX_PRESS_BERENDSEN_H
 
 #include "fix.h"
 
@@ -52,4 +58,5 @@ class FixPressBerendsen : public Fix {
 
 }
 
+#endif
 #endif

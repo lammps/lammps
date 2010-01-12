@@ -11,9 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMMAND_CLASS
 
-#ifndef WRITE_RESTART_H
-#define WRITE_RESTART_H
+CommandStyle(write_restart,WriteRestart)
+
+#else
+
+#ifndef LMP_WRITE_RESTART_H
+#define LMP_WRITE_RESTART_H
 
 #include "stdio.h"
 #include "pointers.h"
@@ -42,4 +47,5 @@ class WriteRestart : protected Pointers {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DIHEDRAL_MULTI_HARMONIC_H
-#define DIHEDRAL_MULTI_HARMONIC_H
+#ifdef DIHEDRAL_CLASS
+
+DihedralStyle(multi/harmonic,DihedralMultiHarmonic)
+
+#else
+
+#ifndef LMP_DIHEDRAL_MULTI_HARMONIC_H
+#define LMP_DIHEDRAL_MULTI_HARMONIC_H
 
 #include "stdio.h"
 #include "dihedral.h"
@@ -36,4 +42,5 @@ class DihedralMultiHarmonic : public Dihedral {
 
 }
 
+#endif
 #endif

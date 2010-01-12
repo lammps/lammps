@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_TEMP_H
-#define COMPUTE_TEMP_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(temp,ComputeTemp)
+
+#else
+
+#ifndef LMP_COMPUTE_TEMP_H
+#define LMP_COMPUTE_TEMP_H
 
 #include "compute.h"
 
@@ -35,4 +41,5 @@ class ComputeTemp : public Compute {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_ENFORCE2D_H
-#define FIX_ENFORCE2D_H
+#ifdef FIX_CLASS
+
+FixStyle(enforce2d,FixEnforce2D)
+
+#else
+
+#ifndef LMP_FIX_ENFORCE2D_H
+#define LMP_FIX_ENFORCE2D_H
 
 #include "fix.h"
 
@@ -32,4 +38,5 @@ class FixEnforce2D : public Fix {
 
 }
 
+#endif
 #endif

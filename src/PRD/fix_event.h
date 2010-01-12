@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_EVENT_H
-#define FIX_EVENT_H
+#ifdef FIX_CLASS
+
+FixStyle(EVENT,FixEvent)
+
+#else
+
+#ifndef LMP_FIX_EVENT_H
+#define LMP_FIX_EVENT_H
 
 #include "fix.h"
 
@@ -52,4 +58,5 @@ class FixEvent : public Fix {
 
 }
 
+#endif
 #endif

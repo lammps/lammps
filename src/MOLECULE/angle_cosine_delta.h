@@ -8,8 +8,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_COSINE_DELTA_H
-#define ANGLE_COSINE_DELTA_H
+#ifdef ANGLE_CLASS
+
+AngleStyle(cosine/delta,AngleCosineDelta)
+
+#else
+
+#ifndef LMP_ANGLE_COSINE_DELTA_H
+#define LMP_ANGLE_COSINE_DELTA_H
 
 #include "stdio.h"
 #include "angle_cosine_squared.h"
@@ -25,4 +31,5 @@ class AngleCosineDelta : public AngleCosineSquared {
 
 }
 
+#endif
 #endif

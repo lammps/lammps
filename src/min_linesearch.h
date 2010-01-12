@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MIN_LSRCH_H
-#define MIN_LSRCH_H
+#ifndef LMP_MIN_LSRCH_H
+#define LMP_MIN_LSRCH_H
 
 #include "min.h"
 

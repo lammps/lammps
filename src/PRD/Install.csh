@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp style_prd.h ..
-
   cp compute_event_displace.cpp ..
   cp fix_event.cpp ..
   cp prd.cpp ..
@@ -13,9 +11,6 @@ if ($1 == 1) then
   cp prd.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_prd.h
-  touch ../style_prd.h
 
   rm ../compute_event_displace.cpp
   rm ../fix_event.cpp

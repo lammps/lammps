@@ -14,6 +14,8 @@
 #include "stdio.h"
 #include "string.h"
 #include "modify.h"
+#include "style_compute.h"
+#include "style_fix.h"
 #include "atom.h"
 #include "comm.h"
 #include "fix.h"
@@ -23,12 +25,6 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-
-#define ComputeInclude
-#define FixInclude
-#include "style.h"
-#undef ComputeInclude
-#undef FixInclude
 
 using namespace LAMMPS_NS;
 
@@ -562,11 +558,11 @@ void Modify::add_fix(int narg, char **arg)
 
   if (0) return;         // dummy line to enable else-if macro expansion
 
-#define FixClass
+#define FIX_CLASS
 #define FixStyle(key,Class) \
   else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
-#include "style.h"
-#undef FixClass
+#include "style_fix.h"
+#undef FIX_CLASS
 
   else error->all("Invalid fix style");
 
@@ -686,11 +682,12 @@ void Modify::add_compute(int narg, char **arg)
 
   if (0) return;         // dummy line to enable else-if macro expansion
 
-#define ComputeClass
+#define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
   else if (strcmp(arg[2],#key) == 0) \
     compute[ncompute] = new Class(lmp,narg,arg);
-#include "style.h"
+#include "style_compute.h"
+#undef COMPUTE_CLASS
 
   else error->all("Invalid compute style");
 

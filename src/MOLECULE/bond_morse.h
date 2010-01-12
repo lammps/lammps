@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_MORSE_H
-#define BOND_MORSE_H
+#ifdef BOND_CLASS
+
+BondStyle(morse,BondMorse)
+
+#else
+
+#ifndef LMP_BOND_MORSE_H
+#define LMP_BOND_MORSE_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -38,4 +44,5 @@ class BondMorse : public Bond {
 
 }
 
+#endif
 #endif

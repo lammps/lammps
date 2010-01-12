@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_LINEFORCE_H
-#define FIX_LINEFORCE_H
+#ifdef FIX_CLASS
+
+FixStyle(lineforce,FixLineForce)
+
+#else
+
+#ifndef LMP_FIX_LINEFORCE_H
+#define LMP_FIX_LINEFORCE_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixLineForce : public Fix {
 
 }
 
+#endif
 #endif

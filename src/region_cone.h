@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_CONE_H
-#define REGION_CONE_H
+#ifdef REGION_CLASS
+
+RegionStyle(cone,RegCone)
+
+#else
+
+#ifndef LMP_REGION_CONE_H
+#define LMP_REGION_CONE_H
 
 #include "region.h"
 
@@ -42,4 +48,5 @@ class RegCone : public Region {
 
 }
 
+#endif
 #endif

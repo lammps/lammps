@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SET_H
-#define SET_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(set,Set)
+
+#else
+
+#ifndef LMP_SET_H
+#define LMP_SET_H
 
 #include "pointers.h"
 
@@ -39,4 +45,5 @@ class Set : protected Pointers {
 
 }
 
+#endif
 #endif

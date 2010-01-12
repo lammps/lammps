@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef CREATE_ATOMS_H
-#define CREATE_ATOMS_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(create_atoms,CreateAtoms)
+
+#else
+
+#ifndef LMP_CREATE_ATOMS_H
+#define LMP_CREATE_ATOMS_H
 
 #include "pointers.h"
 
@@ -34,4 +40,5 @@ class CreateAtoms : protected Pointers {
 
 }
 
+#endif
 #endif

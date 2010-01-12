@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_CLASS2_H
-#define BOND_CLASS2_H
+#ifdef BOND_CLASS
+
+BondStyle(class2,BondClass2)
+
+#else
+
+#ifndef LMP_BOND_CLASS2_H
+#define LMP_BOND_CLASS2_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -38,4 +44,5 @@ class BondClass2 : public Bond {
 
 }
 
+#endif
 #endif

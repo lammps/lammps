@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NVE_NOFORCE_H
-#define FIX_NVE_NOFORCE_H
+#ifdef FIX_CLASS
+
+FixStyle(nve/noforce,FixNVENoforce)
+
+#else
+
+#ifndef LMP_FIX_NVE_NOFORCE_H
+#define LMP_FIX_NVE_NOFORCE_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixNVENoforce : public Fix {
 
 }
 
+#endif
 #endif

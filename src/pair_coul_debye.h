@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_COUL_DEBYE_H
-#define PAIR_COUL_DEBYE_H
+#ifdef PAIR_CLASS
+
+PairStyle(coul/debye,PairCoulDebye)
+
+#else
+
+#ifndef LMP_PAIR_COUL_DEBYE_H
+#define LMP_PAIR_COUL_DEBYE_H
 
 #include "pair_coul_cut.h"
 
@@ -33,4 +39,5 @@ class PairCoulDebye : public PairCoulCut {
 
 }
 
+#endif
 #endif

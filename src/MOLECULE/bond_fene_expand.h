@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_FENE_EXPAND_H
-#define BOND_FENE_EXPAND_H
+#ifdef BOND_CLASS
+
+BondStyle(fene/expand,BondFENEExpand)
+
+#else
+
+#ifndef LMP_BOND_FENE_EXPAND_H
+#define LMP_BOND_FENE_EXPAND_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -40,4 +46,5 @@ class BondFENEExpand : public Bond {
 
 }
 
+#endif
 #endif

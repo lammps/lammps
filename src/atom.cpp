@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "atom.h"
+#include "style_atom.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
@@ -28,10 +29,6 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
-
-#define AtomInclude
-#include "style.h"
-#undef AtomInclude
 
 using namespace LAMMPS_NS;
 
@@ -252,11 +249,11 @@ AtomVec *Atom::new_avec(const char *style, int narg, char **arg)
 {
   if (0) return NULL;
 
-#define AtomClass
+#define ATOM_CLASS
 #define AtomStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
-#include "style.h"
-#undef AtomClass
+#include "style_atom.h"
+#undef ATOM_CLASS
 
   else error->all("Invalid atom style");
   return NULL;

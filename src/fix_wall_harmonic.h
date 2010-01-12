@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_HARMONIC_H
-#define FIX_WALL_HARMONIC_H
+#ifdef FIX_CLASS
+
+FixStyle(wall/harmonic,FixWallHarmonic)
+
+#else
+
+#ifndef LMP_FIX_WALL_HARMONIC_H
+#define LMP_FIX_WALL_HARMONIC_H
 
 #include "fix_wall.h"
 
@@ -30,4 +36,5 @@ class FixWallHarmonic : public FixWall {
 
 }
 
+#endif
 #endif

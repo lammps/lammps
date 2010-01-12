@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_GROMACS_COUL_GROMACS_H
-#define PAIR_LJ_GROMACS_COUL_GROMACS_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/gromacs/coul/gromacs,PairLJGromacsCoulGromacs)
+
+#else
+
+#ifndef LMP_PAIR_LJ_GROMACS_COUL_GROMACS_H
+#define LMP_PAIR_LJ_GROMACS_COUL_GROMACS_H
 
 #include "pair.h"
 
@@ -46,4 +52,5 @@ class PairLJGromacsCoulGromacs : public Pair {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_RECENTER_H
-#define FIX_RECENTER_H
+#ifdef FIX_CLASS
+
+FixStyle(recenter,FixRecenter)
+
+#else
+
+#ifndef LMP_FIX_RECENTER_H
+#define LMP_FIX_RECENTER_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixRecenter : public Fix {
 
 }
 
+#endif
 #endif

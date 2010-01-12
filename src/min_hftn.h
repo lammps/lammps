@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MIN_HFTN_H
-#define MIN_HFTN_H
+#ifdef MINIMIZE_CLASS
+
+MinimizeStyle(hftn,MinHFTN)
+
+#else
+
+#ifndef LMP_MIN_HFTN_H
+#define LMP_MIN_HFTN_H
 
 #include "min.h"
 
@@ -116,4 +122,5 @@ class MinHFTN : public Min
  
 }
 
+#endif
 #endif

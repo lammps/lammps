@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LATTICE_H
-#define LATTICE_H
+#ifndef LMP_LATTICE_H
+#define LMP_LATTICE_H
 
 #include "pointers.h"
 

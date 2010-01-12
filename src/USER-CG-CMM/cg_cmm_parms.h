@@ -13,8 +13,8 @@
    Contributing author: Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
 ------------------------------------------------------------------------- */
 
-#ifndef CG_CMM_PARMS_H
-#define CG_CMM_PARMS_H
+#ifndef LMP_CG_CMM_PARMS_H
+#define LMP_CG_CMM_PARMS_H
 
 namespace LAMMPS_NS {
 

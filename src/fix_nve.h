@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NVE_H
-#define FIX_NVE_H
+#ifdef FIX_CLASS
+
+FixStyle(nve,FixNVE)
+
+#else
+
+#ifndef LMP_FIX_NVE_H
+#define LMP_FIX_NVE_H
 
 #include "fix.h"
 
@@ -37,4 +43,5 @@ class FixNVE : public Fix {
 
 }
 
+#endif
 #endif

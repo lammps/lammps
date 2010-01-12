@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DELETE_BONDS_H
-#define DELETE_BONDS_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(delete_bonds,DeleteBonds)
+
+#else
+
+#ifndef LMP_DELETE_BONDS_H
+#define LMP_DELETE_BONDS_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class DeleteBonds : protected Pointers {
 
 }
 
+#endif
 #endif

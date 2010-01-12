@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_REDUCE_REGION_H
-#define COMPUTE_REDUCE_REGION_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(reduce/region,ComputeReduceRegion)
+
+#else
+
+#ifndef LMP_COMPUTE_REDUCE_REGION_H
+#define LMP_COMPUTE_REDUCE_REGION_H
 
 #include "compute_reduce.h"
 
@@ -30,4 +36,5 @@ class ComputeReduceRegion : public ComputeReduce {
 
 }
 
+#endif
 #endif

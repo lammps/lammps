@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_H
-#define FIX_WALL_H
+#ifndef LMP_FIX_WALL_H
+#define LMP_FIX_WALL_H
 
 #include "fix.h"
 

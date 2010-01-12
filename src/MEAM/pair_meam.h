@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_MEAM_H
-#define PAIR_MEAM_H
+#ifdef PAIR_CLASS
+
+PairStyle(meam,PairMEAM)
+
+#else
+
+#ifndef LMP_PAIR_MEAM_H
+#define LMP_PAIR_MEAM_H
 
 extern "C" {
   void meam_setup_global_(int *, int *, double *, int *, double *, double *,
@@ -94,4 +100,5 @@ class PairMEAM : public Pair {
 
 }
 
+#endif
 #endif

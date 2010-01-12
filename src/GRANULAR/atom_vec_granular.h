@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ATOM_VEC_GRANULAR_H
-#define ATOM_VEC_GRANULAR_H
+#ifdef ATOM_CLASS
+
+AtomStyle(granular,AtomVecGranular)
+
+#else
+
+#ifndef LMP_ATOM_VEC_GRANULAR_H
+#define LMP_ATOM_VEC_GRANULAR_H
 
 #include "atom_vec.h"
 
@@ -61,4 +67,5 @@ class AtomVecGranular : public AtomVec {
 
 }
 
+#endif
 #endif

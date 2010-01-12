@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_TEMP_PARTIAL_H
-#define COMPUTE_TEMP_PARTIAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(temp/partial,ComputeTempPartial)
+
+#else
+
+#ifndef LMP_COMPUTE_TEMP_PARTIAL_H
+#define LMP_COMPUTE_TEMP_PARTIAL_H
 
 #include "compute.h"
 
@@ -43,4 +49,5 @@ class ComputeTempPartial : public Compute {
 
 }
 
+#endif
 #endif

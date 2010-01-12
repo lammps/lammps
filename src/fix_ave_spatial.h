@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_AVE_SPATIAL_H
-#define FIX_AVE_SPATIAL_H
+#ifdef FIX_CLASS
+
+FixStyle(ave/spatial,FixAveSpatial)
+
+#else
+
+#ifndef LMP_FIX_AVE_SPATIAL_H
+#define LMP_FIX_AVE_SPATIAL_H
 
 #include "stdio.h"
 #include "fix.h"
@@ -64,4 +70,5 @@ class FixAveSpatial : public Fix {
 
 }
 
+#endif
 #endif

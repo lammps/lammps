@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_ANGLE_LOCAL_H
-#define COMPUTE_ANGLE_LOCAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(angle/local,ComputeAngleLocal)
+
+#else
+
+#ifndef LMP_COMPUTE_ANGLE_LOCAL_H
+#define LMP_COMPUTE_ANGLE_LOCAL_H
 
 #include "compute.h"
 
@@ -40,4 +46,5 @@ class ComputeAngleLocal : public Compute {
 
 }
 
+#endif
 #endif

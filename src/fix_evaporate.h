@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_EVAPORATE_H
-#define FIX_EVAPORATE_H
+#ifdef FIX_CLASS
+
+FixStyle(evaporate,FixEvaporate)
+
+#else
+
+#ifndef LMP_FIX_EVAPORATE_H
+#define LMP_FIX_EVAPORATE_H
 
 #include "fix.h"
 
@@ -40,4 +46,5 @@ class FixEvaporate : public Fix {
 
 }
 
+#endif
 #endif

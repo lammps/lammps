@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_DRAG_H
-#define FIX_DRAG_H
+#ifdef FIX_CLASS
+
+FixStyle(drag,FixDrag)
+
+#else
+
+#ifndef LMP_FIX_DRAG_H
+#define LMP_FIX_DRAG_H
 
 #include "fix.h"
 
@@ -40,4 +46,5 @@ class FixDrag : public Fix {
 
 }
 
+#endif
 #endif

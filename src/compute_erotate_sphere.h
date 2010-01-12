@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_EROTATE_SPHERE_H
-#define COMPUTE_EROTATE_SPHERE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(erotate/sphere,ComputeERotateSphere)
+
+#else
+
+#ifndef LMP_COMPUTE_EROTATE_SPHERE_H
+#define LMP_COMPUTE_EROTATE_SPHERE_H
 
 #include "compute.h"
 
@@ -31,4 +37,5 @@ class ComputeERotateSphere : public Compute {
 
 }
 
+#endif
 #endif

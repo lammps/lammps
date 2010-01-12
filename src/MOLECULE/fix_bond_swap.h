@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_BONDSWAP_H
-#define FIX_BONDSWAP_H
+#ifdef FIX_CLASS
+
+FixStyle(bond/swap,FixBondSwap)
+
+#else
+
+#ifndef LMP_FIX_BONDSWAP_H
+#define LMP_FIX_BONDSWAP_H
 
 #include "fix.h"
 #include "pair.h"
@@ -53,4 +59,5 @@ class FixBondSwap : public Fix {
 
 }
 
+#endif
 #endif

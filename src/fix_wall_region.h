@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_WALL_REGION_H
-#define FIX_WALL_REGION_H
+#ifdef FIX_CLASS
+
+FixStyle(wall/region,FixWallRegion)
+
+#else
+
+#ifndef LMP_FIX_WALL_REGION_H
+#define LMP_FIX_WALL_REGION_H
 
 #include "fix.h"
 
@@ -51,4 +57,5 @@ class FixWallRegion : public Fix {
 
 }
 
+#endif
 #endif

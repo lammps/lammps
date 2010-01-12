@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_GRAN_HOOKE_H
-#define PAIR_GRAN_HOOKE_H
+#ifdef PAIR_CLASS
+
+PairStyle(gran/hooke,PairGranHooke)
+
+#else
+
+#ifndef LMP_PAIR_GRAN_HOOKE_H
+#define LMP_PAIR_GRAN_HOOKE_H
 
 #include "pair_gran_hooke_history.h"
 
@@ -26,4 +32,5 @@ class PairGranHooke : public PairGranHookeHistory {
 
 }
 
+#endif
 #endif

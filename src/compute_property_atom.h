@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_PROPERTY_ATOM_H
-#define COMPUTE_PROPERTY_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(property/atom,ComputePropertyAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_PROPERTY_ATOM_H
+#define LMP_COMPUTE_PROPERTY_ATOM_H
 
 #include "compute.h"
 
@@ -88,4 +94,5 @@ class ComputePropertyAtom : public Compute {
 
 }
 
+#endif
 #endif

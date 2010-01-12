@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_EAM_FS_OPT_H
-#define PAIR_EAM_FS_OPT_H
+#ifdef PAIR_CLASS
+
+PairStyle(eam/fs/opt,PairEAMFSOpt)
+
+#else
+
+#ifndef LMP_PAIR_EAM_FS_OPT_H
+#define LMP_PAIR_EAM_FS_OPT_H
 
 #include "pair_eam_fs.h"
 #include "pair_eam_opt.h"
@@ -32,3 +38,4 @@ class PairEAMFSOpt : public PairEAMFS, public PairEAMOpt {
 
 #endif
 
+#endif

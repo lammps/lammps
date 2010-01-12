@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_DCD_H
-#define DUMP_DCD_H
+#ifdef DUMP_CLASS
+
+DumpStyle(dcd,DumpDCD)
+
+#else
+
+#ifndef LMP_DUMP_DCD_H
+#define LMP_DUMP_DCD_H
 
 #include "stdio.h"
 #include "dump.h"
@@ -45,4 +51,5 @@ class DumpDCD : public Dump {
 
 }
 
+#endif
 #endif

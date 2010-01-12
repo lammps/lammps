@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp style_peri.h ..
-
   cp atom_vec_peri.cpp ..
   cp pair_peri_pmb.cpp ..
   cp fix_peri_neigh.cpp ..
@@ -15,9 +13,6 @@ if ($1 == 1) then
   cp compute_damage_atom.h ..
 
 else if ($1 == 0) then
-
-  rm -f ../style_peri.h
-  touch ../style_peri.h
 
   rm -f ../atom_vec_peri.cpp
   rm -f ../pair_peri_pmb.cpp

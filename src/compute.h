@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_H
-#define COMPUTE_H
+#ifndef LMP_COMPUTE_H
+#define LMP_COMPUTE_H
 
 #include "pointers.h"
 

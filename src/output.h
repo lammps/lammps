@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#ifndef LMP_OUTPUT_H
+#define LMP_OUTPUT_H
 
 #include "pointers.h"
 

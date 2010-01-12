@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_MORSE_H
-#define PAIR_MORSE_H
+#ifdef PAIR_CLASS
+
+PairStyle(morse,PairMorse)
+
+#else
+
+#ifndef LMP_PAIR_MORSE_H
+#define LMP_PAIR_MORSE_H
 
 #include "pair.h"
 
@@ -44,4 +50,5 @@ class PairMorse : public Pair {
 
 }
 
+#endif
 #endif

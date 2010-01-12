@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PPPM_H
-#define PPPM_H
+#ifdef KSPACE_CLASS
+
+KSpaceStyle(pppm,PPPM)
+
+#else
+
+#ifndef LMP_PPPM_H
+#define LMP_PPPM_H
 
 #include "kspace.h"
 
@@ -95,4 +101,5 @@ class PPPM : public KSpace {
 
 }
 
+#endif
 #endif

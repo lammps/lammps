@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MIN_CG_H
-#define MIN_CG_H
+#ifdef MINIMIZE_CLASS
+
+MinimizeStyle(cg,MinCG)
+
+#else
+
+#ifndef LMP_MIN_CG_H
+#define LMP_MIN_CG_H
 
 #include "min_linesearch.h"
 
@@ -26,4 +32,5 @@ class MinCG : public MinLineSearch {
 
 }
 
+#endif
 #endif

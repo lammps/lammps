@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef NEIGHBOR_H
-#define NEIGHBOR_H
+#ifndef LMP_NEIGHBOR_H
+#define LMP_NEIGHBOR_H
 
 #include "pointers.h"
 

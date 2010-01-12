@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DISPLACE_BOX_H
-#define DISPLACE_BOX_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(displace_box,DisplaceBox)
+
+#else
+
+#ifndef LMP_DISPLACE_BOX_H
+#define LMP_DISPLACE_BOX_H
 
 #include "pointers.h"
 
@@ -44,4 +50,5 @@ class DisplaceBox : protected Pointers {
 
 }
 
+#endif
 #endif

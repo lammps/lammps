@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_SPRING_RG_H
-#define FIX_SPRING_RG_H
+#ifdef FIX_CLASS
+
+FixStyle(spring/rg,FixSpringRG)
+
+#else
+
+#ifndef LMP_FIX_SPRING_RG_H
+#define LMP_FIX_SPRING_RG_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixSpringRG : public Fix {
 
 }
 
+#endif
 #endif

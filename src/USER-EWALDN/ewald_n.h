@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef EWALD_N_H
-#define EWALD_N_H
+#ifdef KSPACE_CLASS
+
+KSpaceStyle(ewald/n,EwaldN)
+
+#else
+
+#ifndef LMP_EWALD_N_H
+#define LMP_EWALD_N_H
 
 #include "kspace.h"
 #include "math_complex.h"
@@ -73,4 +79,4 @@ class EwaldN : public KSpace {
 }
 
 #endif
-
+#endif

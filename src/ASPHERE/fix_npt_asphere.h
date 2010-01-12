@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NPT_ASPHERE_H
-#define FIX_NPT_ASPHERE_H
+#ifdef FIX_CLASS
+
+FixStyle(npt/asphere,FixNPTAsphere)
+
+#else
+
+#ifndef LMP_FIX_NPT_ASPHERE_H
+#define LMP_FIX_NPT_ASPHERE_H
 
 #include "fix_npt.h"
 
@@ -38,4 +44,5 @@ class FixNPTAsphere : public FixNPT {
 
 }
 
+#endif
 #endif

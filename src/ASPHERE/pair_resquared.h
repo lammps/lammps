@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_RESQUARED_H
-#define PAIR_RESQUARED_H
+#ifdef PAIR_CLASS
+
+PairStyle(resquared,PairRESquared)
+
+#else
+
+#ifndef LMP_PAIR_RESQUARED_H
+#define LMP_PAIR_RESQUARED_H
 
 #include "pair.h"
 
@@ -83,4 +89,5 @@ class PairRESquared : public Pair {
 };
 
 }
+#endif
 #endif

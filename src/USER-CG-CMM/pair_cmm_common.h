@@ -13,8 +13,8 @@
    Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_CMM_COMMON_H
-#define PAIR_CMM_COMMON_H
+#ifndef LMP_PAIR_CMM_COMMON_H
+#define LMP_PAIR_CMM_COMMON_H
 
 #include "pair.h"
 #include "atom.h"

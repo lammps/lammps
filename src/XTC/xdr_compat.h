@@ -1,5 +1,5 @@
-#ifndef XDR_COMPAT_H
-#define XDR_COMPAT_H
+#ifndef LMP_XDR_COMPAT_H
+#define LMP_XDR_COMPAT_H
 
 #include <limits.h>
 #include <stdio.h>
@@ -83,12 +83,12 @@ enum xdr_op {
   XDR_FREE = 2
 };
 
-#ifndef FALSE
-#      define  FALSE   (0)
+#ifndef LMP_FALSE
+#      dLMP_efine  FALSE   (0)
 #endif
-#ifndef TRUE
-#      define  TRUE    (1)
-#endif
+#ifndef LMP_TRUE
+#      dLMP_efine  TLMP_RUE    (1)
+#endifLMP_
 
 
 #define BYTES_PER_XDR_UNIT	(4)

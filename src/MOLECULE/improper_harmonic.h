@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef IMPROPER_HARMONIC_H
-#define IMPROPER_HARMONIC_H
+#ifdef IMPROPER_CLASS
+
+ImproperStyle(harmonic,ImproperHarmonic)
+
+#else
+
+#ifndef LMP_IMPROPER_HARMONIC_H
+#define LMP_IMPROPER_HARMONIC_H
 
 #include "stdio.h"
 #include "improper.h"
@@ -36,4 +42,5 @@ class ImproperHarmonic : public Improper {
 
 }
 
+#endif
 #endif

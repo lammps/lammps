@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_CENTRO_ATOM_H
-#define COMPUTE_CENTRO_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(centro/atom,ComputeCentroAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_CENTRO_ATOM_H
+#define LMP_COMPUTE_CENTRO_ATOM_H
 
 #include "compute.h"
 
@@ -40,4 +46,5 @@ class ComputeCentroAtom : public Compute {
 
 }
 
+#endif
 #endif

@@ -62,7 +62,8 @@ help:
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
-	@cp -p $(SRC) $(INC) Obj_$@
+	@csh Make.csh style
+	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cp Makefile.package Obj_$@
 	@cd Obj_$@; \

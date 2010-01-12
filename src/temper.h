@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef TEMPER_H
-#define TEMPER_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(temper,Temper)
+
+#else
+
+#ifndef LMP_TEMPER_H
+#define LMP_TEMPER_H
 
 #include "pointers.h"
 
@@ -49,4 +55,5 @@ class Temper : protected Pointers {
 
 }
 
+#endif
 #endif

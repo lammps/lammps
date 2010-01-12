@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_REAX_BONDS_H
-#define FIX_REAX_BONDS_H
+#ifdef FIX_CLASS
+
+FixStyle(reax/bonds,FixReaxBonds)
+
+#else
+
+#ifndef LMP_FIX_REAX_BONDS_H
+#define LMP_FIX_REAX_BONDS_H
 
 #include "stdio.h"
 #include "fix.h"
@@ -39,4 +45,5 @@ class FixReaxBonds : public Fix {
 
 }
 
+#endif
 #endif

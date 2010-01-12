@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_CHARMM_H
-#define ANGLE_CHARMM_H
+#ifdef ANGLE_CLASS
+
+AngleStyle(charmm,AngleCharmm)
+
+#else
+
+#ifndef LMP_ANGLE_CHARMM_H
+#define LMP_ANGLE_CHARMM_H
 
 #include "stdio.h"
 #include "angle.h"
@@ -38,4 +44,5 @@ class AngleCharmm : public Angle {
 
 }
 
+#endif
 #endif

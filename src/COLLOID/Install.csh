@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp style_colloid.h ..
-
   cp atom_vec_colloid.cpp ..
   cp fix_wall_colloid.cpp ..
   cp pair_colloid.cpp ..
@@ -17,9 +15,6 @@ if ($1 == 1) then
   cp pair_yukawa_colloid.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_colloid.h
-  touch ../style_colloid.h
 
   rm ../atom_vec_colloid.cpp
   rm ../fix_wall_colloid.cpp

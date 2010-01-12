@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CHARMM_COUL_LONG_H
-#define PAIR_LJ_CHARMM_COUL_LONG_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/charmm/coul/long,PairLJCharmmCoulLong)
+
+#else
+
+#ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_H
+#define LMP_PAIR_LJ_CHARMM_COUL_LONG_H
 
 #include "pair.h"
 
@@ -64,4 +70,5 @@ class PairLJCharmmCoulLong : public Pair {
 
 }
 
+#endif
 #endif

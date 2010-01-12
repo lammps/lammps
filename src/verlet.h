@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef VERLET_H
-#define VERLET_H
+#ifdef INTEGRATE_CLASS
+
+IntegrateStyle(verlet,Verlet)
+
+#else
+
+#ifndef LMP_VERLET_H
+#define LMP_VERLET_H
 
 #include "integrate.h"
 
@@ -36,4 +42,5 @@ class Verlet : public Integrate {
 
 }
 
+#endif
 #endif

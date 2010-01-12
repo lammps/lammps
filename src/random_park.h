@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef RANPARK_H
-#define RANPARK_H
+#ifndef LMP_RANPARK_H
+#define LMP_RANPARK_H
 
 #include "pointers.h"
 

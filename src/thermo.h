@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef THERMO_H
-#define THERMO_H
+#ifndef LMP_THERMO_H
+#define LMP_THERMO_H
 
 #include "pointers.h"
 

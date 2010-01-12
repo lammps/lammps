@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#ifndef MATH_EXTRA_H
-#define MATH_EXTRA_H
+#ifndef LMP_MATH_EXTRA_H
+#define LMP_MATH_EXTRA_H
 
 #include "math.h"
 #include "stdio.h"

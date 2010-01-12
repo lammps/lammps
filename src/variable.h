@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef VARIABLE_H
-#define VARIABLE_H
+#ifndef LMP_VARIABLE_H
+#define LMP_VARIABLE_H
 
 #include "pointers.h"
 

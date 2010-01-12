@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_GROUP_GROUP_H
-#define COMPUTE_GROUP_GROUP_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(group/group,ComputeGroupGroup)
+
+#else
+
+#ifndef LMP_COMPUTE_GROUP_GROUP_H
+#define LMP_COMPUTE_GROUP_GROUP_H
 
 #include "compute.h"
 
@@ -39,4 +45,5 @@ class ComputeGroupGroup : public Compute {
 
 }
 
+#endif
 #endif

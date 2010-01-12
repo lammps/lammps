@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_BOX_RELAX_H
-#define FIX_BOX_RELAX_H
+#ifdef FIX_CLASS
+
+FixStyle(box/relax,FixBoxRelax)
+
+#else
+
+#ifndef LMP_FIX_BOX_RELAX_H
+#define LMP_FIX_BOX_RELAX_H
 
 #include "fix.h"
 
@@ -66,4 +72,5 @@ class FixBoxRelax : public Fix {
 
 }
 
+#endif
 #endif

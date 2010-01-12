@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MINIMIZE_H
-#define MINIMIZE_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(minimize,Minimize)
+
+#else
+
+#ifndef LMP_MINIMIZE_H
+#define LMP_MINIMIZE_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class Minimize : protected Pointers {
 
 }
 
+#endif
 #endif

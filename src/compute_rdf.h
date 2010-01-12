@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_RDF_H
-#define COMPUTE_RDF_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(rdf,ComputeRDF)
+
+#else
+
+#ifndef LMP_COMPUTE_RDF_H
+#define LMP_COMPUTE_RDF_H
 
 #include "stdio.h"
 #include "compute.h"
@@ -46,4 +52,5 @@ class ComputeRDF : public Compute {
 
 }
 
+#endif
 #endif

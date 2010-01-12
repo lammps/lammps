@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NPT_H
-#define FIX_NPT_H
+#ifdef FIX_CLASS
+
+FixStyle(npt,FixNPT)
+
+#else
+
+#ifndef LMP_FIX_NPT_H
+#define LMP_FIX_NPT_H
 
 #include "fix.h"
 
@@ -71,4 +77,5 @@ class FixNPT : public Fix {
 
 }
 
+#endif
 #endif

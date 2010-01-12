@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_HYBRID_H
-#define BOND_HYBRID_H
+#ifdef BOND_CLASS
+
+BondStyle(hybrid,BondHybrid)
+
+#else
+
+#ifndef LMP_BOND_HYBRID_H
+#define LMP_BOND_HYBRID_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -50,4 +56,5 @@ class BondHybrid : public Bond {
 
 }
 
+#endif
 #endif

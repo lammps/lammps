@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SHELL_H
-#define SHELL_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(shell,Shell)
+
+#else
+
+#ifndef LMP_SHELL_H
+#define LMP_SHELL_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class Shell : protected Pointers {
 
 }
 
+#endif
 #endif

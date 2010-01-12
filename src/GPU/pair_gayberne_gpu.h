@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_GPU_H
-#define PAIR_GPU_H
+#ifdef PAIR_CLASS
+
+PairStyle(gayberne/gpu,PairGayBerneGPU)
+
+#else
+
+#ifndef LMP_PAIR_GPU_H
+#define LMP_PAIR_GPU_H
 
 #include "pair_gayberne.h"
 #define MAX_GPU_THREADS 4
@@ -40,4 +46,5 @@ class PairGayBerneGPU : public PairGayBerne {
 };
 
 }
+#endif
 #endif

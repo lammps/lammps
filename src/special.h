@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef SPECIAL_H
-#define SPECIAL_H
+#ifndef LMP_SPECIAL_H
+#define LMP_SPECIAL_H
 
 #include "pointers.h"
 

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_COORD_ATOM_H
-#define COMPUTE_COORD_ATOM_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(coord/atom,ComputeCoordAtom)
+
+#else
+
+#ifndef LMP_COMPUTE_COORD_ATOM_H
+#define LMP_COMPUTE_COORD_ATOM_H
 
 #include "compute.h"
 
@@ -36,4 +42,5 @@ class ComputeCoordAtom : public Compute {
 
 }
 
+#endif
 #endif

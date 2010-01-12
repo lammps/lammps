@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_REAX_H
-#define PAIR_REAX_H
+#ifdef PAIR_CLASS
+
+PairStyle(reax,PairREAX)
+
+#else
+
+#ifndef LMP_PAIR_REAX_H
+#define LMP_PAIR_REAX_H
 
 #include "pair.h"
 
@@ -87,4 +93,5 @@ class PairREAX : public Pair {
 
 }
 
+#endif
 #endif

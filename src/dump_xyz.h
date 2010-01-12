@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_XYZ_H
-#define DUMP_XYZ_H
+#ifdef DUMP_CLASS
+
+DumpStyle(xyz,DumpXYZ)
+
+#else
+
+#ifndef LMP_DUMP_XYZ_H
+#define LMP_DUMP_XYZ_H
 
 #include "dump.h"
 
@@ -39,4 +45,5 @@ class DumpXYZ : public Dump {
 
 }
 
+#endif
 #endif

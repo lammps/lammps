@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef UPDATE_H
-#define UPDATE_H
+#ifndef LMP_UPDATE_H
+#define LMP_UPDATE_H
 
 #include "pointers.h"
 

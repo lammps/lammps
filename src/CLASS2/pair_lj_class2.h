@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_CLASS2_H
-#define PAIR_LJ_CLASS2_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/class2,PairLJClass2)
+
+#else
+
+#ifndef LMP_PAIR_LJ_CLASS2_H
+#define LMP_PAIR_LJ_CLASS2_H
 
 #include "pair.h"
 
@@ -43,4 +49,5 @@ class PairLJClass2 : public Pair {
 
 }
 
+#endif
 #endif

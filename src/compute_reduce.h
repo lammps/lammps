@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_REDUCE_H
-#define COMPUTE_REDUCE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(reduce,ComputeReduce)
+
+#else
+
+#ifndef LMP_COMPUTE_REDUCE_H
+#define LMP_COMPUTE_REDUCE_H
 
 #include "compute.h"
 
@@ -52,4 +58,5 @@ class ComputeReduce : public Compute {
 
 }
 
+#endif
 #endif

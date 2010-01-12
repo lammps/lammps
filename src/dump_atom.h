@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_ATOM_H
-#define DUMP_ATOM_H
+#ifdef DUMP_CLASS
+
+DumpStyle(atom,DumpAtom)
+
+#else
+
+#ifndef LMP_DUMP_ATOM_H
+#define LMP_DUMP_ATOM_H
 
 #include "dump.h"
 
@@ -60,4 +66,5 @@ class DumpAtom : public Dump {
 
 }
 
+#endif
 #endif

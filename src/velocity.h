@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef VELOCITY_H
-#define VELOCITY_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(velocity,Velocity)
+
+#else
+
+#ifndef LMP_VELOCITY_H
+#define LMP_VELOCITY_H
 
 #include "pointers.h"
 
@@ -45,4 +51,5 @@ class Velocity : protected Pointers {
 
 }
 
+#endif
 #endif

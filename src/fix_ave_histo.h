@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_AVE_HISTO_H
-#define FIX_AVE_HISTO_H
+#ifdef FIX_CLASS
+
+FixStyle(ave/histo,FixAveHisto)
+
+#else
+
+#ifndef LMP_FIX_AVE_HISTO_H
+#define LMP_FIX_AVE_HISTO_H
 
 #include "stdio.h"
 #include "fix.h"
@@ -62,4 +68,5 @@ class FixAveHisto : public Fix {
 
 }
 
+#endif
 #endif

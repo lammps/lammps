@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REMAP_WRAP_H
-#define REMAP_WRAP_H
+#ifndef LMP_REMAP_WRAP_H
+#define LMP_REMAP_WRAP_H
 
 #include "pointers.h"
 #include "remap.h"

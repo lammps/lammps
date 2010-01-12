@@ -8,8 +8,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_CG_CMM_COUL_CUT_H
-#define PAIR_CG_CMM_COUL_CUT_H
+#ifdef PAIR_CLASS
+
+PairStyle(cg/cmm/coul/cut,PairCGCMMCoulCut)
+
+#else
+
+#ifndef LMP_PAIR_CG_CMM_COUL_CUT_H
+#define LMP_PAIR_CG_CMM_COUL_CUT_H
 
 #include "pair_cmm_common.h"
 
@@ -40,4 +46,5 @@ namespace LAMMPS_NS {
   };
 }
 
+#endif
 #endif

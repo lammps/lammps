@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_TEMP_REGION_H
-#define COMPUTE_TEMP_REGION_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(temp/region,ComputeTempRegion)
+
+#else
+
+#ifndef LMP_COMPUTE_TEMP_REGION_H
+#define LMP_COMPUTE_TEMP_REGION_H
 
 #include "compute.h"
 
@@ -39,4 +45,5 @@ class ComputeTempRegion : public Compute {
 
 }
 
+#endif
 #endif

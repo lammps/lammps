@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMM_H
-#define COMM_H
+#ifndef LMP_COMM_H
+#define LMP_COMM_H
 
 #include "pointers.h"
 

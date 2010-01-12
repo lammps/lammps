@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LJ_SMOOTH_H
-#define PAIR_LJ_SMOOTH_H
+#ifdef PAIR_CLASS
+
+PairStyle(lj/smooth,PairLJSmooth)
+
+#else
+
+#ifndef LMP_PAIR_LJ_SMOOTH_H
+#define LMP_PAIR_LJ_SMOOTH_H
 
 #include "pair.h"
 
@@ -45,4 +51,5 @@ class PairLJSmooth : public Pair {
 
 }
 
+#endif
 #endif

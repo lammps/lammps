@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef UNIVERSE_H
-#define UNIVERSE_H
+#ifndef LMP_UNIVERSE_H
+#define LMP_UNIVERSE_H
 
 #include "mpi.h"
 #include "stdio.h"

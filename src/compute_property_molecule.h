@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_PROPERTY_MOLECULE_H
-#define COMPUTE_PROPERTY_MOLECULE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(property/molecule,ComputePropertyMolecule)
+
+#else
+
+#ifndef LMP_COMPUTE_PROPERTY_MOLECULE_H
+#define LMP_COMPUTE_PROPERTY_MOLECULE_H
 
 #include "compute.h"
 
@@ -41,4 +47,5 @@ class ComputePropertyMolecule : public Compute {
 
 }
 
+#endif
 #endif

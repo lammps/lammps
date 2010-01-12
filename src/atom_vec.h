@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FOO_H
-#define FOO_H
+#ifndef LMP_ATOM_VEC_H
+#define LMP_ATOM_VEC_H
 
 #include "pointers.h"
 

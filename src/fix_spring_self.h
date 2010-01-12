@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_SPRING_SELF_H
-#define FIX_SPRING_SELF_H
+#ifdef FIX_CLASS
+
+FixStyle(spring/self,FixSpringSelf)
+
+#else
+
+#ifndef LMP_FIX_SPRING_SELF_H
+#define LMP_FIX_SPRING_SELF_H
 
 #include "fix.h"
 
@@ -49,4 +55,5 @@ class FixSpringSelf : public Fix {
 
 }
 
+#endif
 #endif

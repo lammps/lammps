@@ -11,8 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_CDEAM_H
-#define PAIR_CDEAM_H
+#ifdef PAIR_CLASS
+
+PairStyle(eam/cd,PairCDEAM_OneSite)
+PairStyle(eam/cd/old,PairCDEAM_TwoSite)
+
+#else
+
+#ifndef LMP_PAIR_CDEAM_H
+#define LMP_PAIR_CDEAM_H
 
 #include "pair_eam_alloy.h"
 
@@ -219,4 +226,5 @@ public:
  
 };
 
+#endif
 #endif

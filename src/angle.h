@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef ANGLE_H
-#define ANGLE_H
+#ifndef LMP_ANGLE_H
+#define LMP_ANGLE_H
 
 #include "stdio.h"
 #include "pointers.h"

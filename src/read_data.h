@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef READ_DATA_H
-#define READ_DATA_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(read_data,ReadData)
+
+#else
+
+#ifndef LMP_READ_DATA_H
+#define LMP_READ_DATA_H
 
 #include "stdio.h"
 #include "pointers.h"
@@ -60,4 +66,5 @@ class ReadData : protected Pointers {
 
 }
 
+#endif
 #endif

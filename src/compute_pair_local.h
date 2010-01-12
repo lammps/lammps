@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_PAIR_LOCAL_H
-#define COMPUTE_PAIR_LOCAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(pair/local,ComputePairLocal)
+
+#else
+
+#ifndef LMP_COMPUTE_PAIR_LOCAL_H
+#define LMP_COMPUTE_PAIR_LOCAL_H
 
 #include "compute.h"
 
@@ -43,4 +49,5 @@ class ComputePairLocal : public Compute {
 
 }
 
+#endif
 #endif

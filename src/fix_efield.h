@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_EFIELD_H
-#define FIX_EFIELD_H
+#ifdef FIX_CLASS
+
+FixStyle(efield,FixEfield)
+
+#else
+
+#ifndef LMP_FIX_EFIELD_H
+#define LMP_FIX_EFIELD_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixEfield : public Fix {
 
 }
 
+#endif
 #endif

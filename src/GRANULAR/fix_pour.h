@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_POUR_H
-#define FIX_POUR_H
+#ifdef FIX_CLASS
+
+FixStyle(pour,FixPour)
+
+#else
+
+#ifndef LMP_FIX_POUR_H
+#define LMP_FIX_POUR_H
 
 #include "fix.h"
 
@@ -57,4 +63,5 @@ class FixPour : public Fix {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_H
-#define PAIR_H
+#ifndef LMP_PAIR_H
+#define LMP_PAIR_H
 
 #include "pointers.h"
 

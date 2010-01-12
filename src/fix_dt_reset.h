@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_DT_RESET_H
-#define FIX_DT_RESET_H
+#ifdef FIX_CLASS
+
+FixStyle(dt/reset,FixDtReset)
+
+#else
+
+#ifndef LMP_FIX_DT_RESET_H
+#define LMP_FIX_DT_RESET_H
 
 #include "fix.h"
 
@@ -39,4 +45,5 @@ class FixDtReset : public Fix {
 
 }
 
+#endif
 #endif

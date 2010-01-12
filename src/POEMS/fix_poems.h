@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------ */
 
-#ifndef FIX_POEMS_H
-#define FIX_POEMS_H
+#ifdef FIX_CLASS
+
+FixStyle(poems,FixPOEMS)
+
+#else
+
+#ifndef LMP_FIX_POEMS_H
+#define LMP_FIX_POEMS_H
 
 #include "fix.h"
 
@@ -105,4 +111,5 @@ class FixPOEMS : public Fix  {
 
 }
 
+#endif
 #endif

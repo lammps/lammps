@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_SW_H
-#define PAIR_SW_H
+#ifdef PAIR_CLASS
+
+PairStyle(sw,PairSW)
+
+#else
+
+#ifndef LMP_PAIR_SW_H
+#define LMP_PAIR_SW_H
 
 #include "pair.h"
 
@@ -60,4 +66,5 @@ class PairSW : public Pair {
 
 }
 
+#endif
 #endif

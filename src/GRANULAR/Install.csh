@@ -2,8 +2,6 @@
 
 if ($1 == 1) then
 
-  cp style_granular.h ..
-
   cp atom_vec_granular.cpp ..
   cp fix_freeze.cpp ..
   cp fix_pour.cpp ..
@@ -21,9 +19,6 @@ if ($1 == 1) then
   cp pair_gran_hooke_history.h ..
 
 else if ($1 == 0) then
-
-  rm ../style_granular.h
-  touch ../style_granular.h
 
   rm ../atom_vec_granular.cpp
   rm ../fix_freeze.cpp

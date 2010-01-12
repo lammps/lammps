@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_CUSTOM_H
-#define DUMP_CUSTOM_H
+#ifdef DUMP_CLASS
+
+DumpStyle(custom,DumpCustom)
+
+#else
+
+#ifndef LMP_DUMP_CUSTOM_H
+#define LMP_DUMP_CUSTOM_H
 
 #include "dump.h"
 
@@ -149,4 +155,5 @@ class DumpCustom : public Dump {
 
 }
 
+#endif
 #endif

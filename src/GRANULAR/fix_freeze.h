@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_FREEZE_H
-#define FIX_FREEZE_H
+#ifdef FIX_CLASS
+
+FixStyle(freeze,FixFreeze)
+
+#else
+
+#ifndef LMP_FIX_FREEZE_H
+#define LMP_FIX_FREEZE_H
 
 #include "fix.h"
 
@@ -35,4 +41,5 @@ class FixFreeze : public Fix {
 
 }
 
+#endif
 #endif

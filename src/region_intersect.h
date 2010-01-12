@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_INTERSECT_H
-#define REGION_INTERSECT_H
+#ifdef REGION_CLASS
+
+RegionStyle(intersect,RegIntersect)
+
+#else
+
+#ifndef LMP_REGION_INTERSECT_H
+#define LMP_REGION_INTERSECT_H
 
 #include "region.h"
 
@@ -34,4 +40,5 @@ class RegIntersect : public Region {
 
 }
 
+#endif
 #endif

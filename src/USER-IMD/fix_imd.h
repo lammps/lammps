@@ -41,8 +41,14 @@ license with Illinois.  Licensee may contact Illinois (vmd@ks.uiuc.edu) to
 negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_IMD_H
-#define FIX_IMD_H
+#ifdef FIX_CLASS
+
+FixStyle(imd,FixIMD)
+
+#else
+
+#ifndef LMP_FIX_IMD_H
+#define LMP_FIX_IMD_H
 
 #include "fix.h"
 
@@ -92,6 +98,7 @@ class FixIMD : public Fix {
 }
 
 #endif
+#endif
 
 // Local Variables:
 // mode: c++
@@ -100,4 +107,3 @@ class FixIMD : public Fix {
 // fill-column: 76
 // indent-tabs-mode: nil
 // End:
-

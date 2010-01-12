@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef CREATE_BOX_H
-#define CREATE_BOX_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(create_box,CreateBox)
+
+#else
+
+#ifndef LMP_CREATE_BOX_H
+#define LMP_CREATE_BOX_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class CreateBox : protected Pointers {
 
 }
 
+#endif
 #endif

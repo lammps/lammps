@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FFT3D_WRAP_H
-#define FFT3D_WRAP_H
+#ifndef LMP_FFT3D_WRAP_H
+#define LMP_FFT3D_WRAP_H
 
 #include "pointers.h"
 #include "fft3d.h"

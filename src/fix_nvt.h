@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_NVT_H
-#define FIX_NVT_H
+#ifdef FIX_CLASS
+
+FixStyle(nvt,FixNVT)
+
+#else
+
+#ifndef LMP_FIX_NVT_H
+#define LMP_FIX_NVT_H
 
 #include "fix.h"
 
@@ -54,4 +60,5 @@ class FixNVT : public Fix {
 
 }
 
+#endif
 #endif

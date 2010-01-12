@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef RANMARS_H
-#define RANMARS_H
+#ifndef LMP_RANMARS_H
+#define LMP_RANMARS_H
 
 #include "pointers.h"
 

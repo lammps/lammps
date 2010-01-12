@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_THERMAL_CONDUCTIVITY_H
-#define FIX_THERMAL_CONDUCTIVITY_H
+#ifdef FIX_CLASS
+
+FixStyle(thermal/conductivity,FixThermalConductivity)
+
+#else
+
+#ifndef LMP_FIX_THERMAL_CONDUCTIVITY_H
+#define LMP_FIX_THERMAL_CONDUCTIVITY_H
 
 #include "fix.h"
 
@@ -42,4 +48,5 @@ class FixThermalConductivity : public Fix {
 
 }
 
+#endif
 #endif

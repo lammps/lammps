@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DELETE_ATOMS_H
-#define DELETE_ATOMS_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(delete_atoms,DeleteAtoms)
+
+#else
+
+#ifndef LMP_DELETE_ATOMS_H
+#define LMP_DELETE_ATOMS_H
 
 #include "pointers.h"
 
@@ -34,4 +40,5 @@ class DeleteAtoms : protected Pointers {
 
 }
 
+#endif
 #endif

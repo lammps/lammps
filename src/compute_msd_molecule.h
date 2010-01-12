@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_MSD_MOLECULE_H
-#define COMPUTE_MSD_MOLECULE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(msd/molecule,ComputeMSDMolecule)
+
+#else
+
+#ifndef LMP_COMPUTE_MSD_MOLECULE_H
+#define LMP_COMPUTE_MSD_MOLECULE_H
 
 #include "compute.h"
 
@@ -38,4 +44,5 @@ class ComputeMSDMolecule : public Compute {
 
 }
 
+#endif
 #endif

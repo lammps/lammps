@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DUMP_CFG_H
-#define DUMP_CFG_H
+#ifdef DUMP_CLASS
+
+DumpStyle(cfg,DumpCFG)
+
+#else
+
+#ifndef LMP_DUMP_CFG_H
+#define LMP_DUMP_CFG_H
 
 #include "dump_custom.h"
 
@@ -44,4 +50,5 @@ class DumpCFG : public DumpCustom {
 
 }
 
+#endif
 #endif

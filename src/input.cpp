@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "input.h"
+#include "style_command.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -40,10 +41,6 @@
 #include "variable.h"
 #include "error.h"
 #include "memory.h"
-
-#define CommandInclude
-#include "style.h"
-#undef CommandInclude
 
 using namespace LAMMPS_NS;
 
@@ -466,15 +463,15 @@ int Input::execute_command()
 
   if (0) return 0;      // dummy line to enable else-if macro expansion
 
-#define CommandClass
+#define COMMAND_CLASS
 #define CommandStyle(key,Class)         \
   else if (strcmp(command,#key) == 0) { \
     Class key(lmp);			\
     key.command(narg,arg);              \
     return 0;                           \
   }
-#include "style.h"
-#undef CommandClass
+#include "style_command.h"
+#undef COMMAND_CLASS
 
   // unrecognized command
 

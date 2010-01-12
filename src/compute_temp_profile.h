@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_TEMP_PROFILE_H
-#define COMPUTE_TEMP_PROFILE_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(temp/profile,ComputeTempProfile)
+
+#else
+
+#ifndef LMP_COMPUTE_TEMP_PROFILE_H
+#define LMP_COMPUTE_TEMP_PROFILE_H
 
 #include "compute.h"
 
@@ -56,4 +62,5 @@ class ComputeTempProfile : public Compute {
 
 }
 
+#endif
 #endif

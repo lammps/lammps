@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_PLANEFORCE_H
-#define FIX_PLANEFORCE_H
+#ifdef FIX_CLASS
+
+FixStyle(planeforce,FixPlaneForce)
+
+#else
+
+#ifndef LMP_FIX_PLANEFORCE_H
+#define LMP_FIX_PLANEFORCE_H
 
 #include "fix.h"
 
@@ -34,4 +40,5 @@ class FixPlaneForce : public Fix {
 
 }
 
+#endif
 #endif

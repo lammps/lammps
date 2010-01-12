@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_LUBRICATE_H
-#define PAIR_LUBRICATE_H
+#ifdef PAIR_CLASS
+
+PairStyle(lubricate,PairLubricate)
+
+#else
+
+#ifndef LMP_PAIR_LUBRICATE_H
+#define LMP_PAIR_LUBRICATE_H
 
 #include "pair.h"
 
@@ -46,4 +52,5 @@ class PairLubricate : public Pair {
 
 }
 
+#endif
 #endif

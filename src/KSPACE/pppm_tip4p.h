@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PPPM_TIP4P_H
-#define PPPM_TIP4P_H
+#ifdef KSPACE_CLASS
+
+KSpaceStyle(pppm/tip4p,PPPMTIP4P)
+
+#else
+
+#ifndef LMP_PPPM_TIP4P_H
+#define LMP_PPPM_TIP4P_H
 
 #include "pppm.h"
 
@@ -32,4 +38,5 @@ class PPPMTIP4P : public PPPM {
 
 }
 
+#endif
 #endif

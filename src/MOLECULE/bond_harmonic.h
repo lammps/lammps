@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_HARMONIC_H
-#define BOND_HARMONIC_H
+#ifdef BOND_CLASS
+
+BondStyle(harmonic,BondHarmonic)
+
+#else
+
+#ifndef LMP_BOND_HARMONIC_H
+#define LMP_BOND_HARMONIC_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -38,4 +44,5 @@ class BondHarmonic : public Bond {
 
 }
 
+#endif
 #endif

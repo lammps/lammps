@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_YUKAWA_COLLOID_H
-#define PAIR_YUKAWA_COLLOID_H
+#ifdef PAIR_CLASS
+
+PairStyle(yukawa/colloid,PairYukawaColloid)
+
+#else
+
+#ifndef LMP_PAIR_YUKAWA_COLLOID_H
+#define LMP_PAIR_YUKAWA_COLLOID_H
 
 #include "pair_yukawa.h"
 
@@ -30,4 +36,5 @@ class PairYukawaColloid : public PairYukawa {
 
 }
 
+#endif
 #endif

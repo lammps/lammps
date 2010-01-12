@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_AVE_ATOM_H
-#define FIX_AVE_ATOM_H
+#ifdef FIX_CLASS
+
+FixStyle(ave/atom,FixAveAtom)
+
+#else
+
+#ifndef LMP_FIX_AVE_ATOM_H
+#define LMP_FIX_AVE_ATOM_H
 
 #include "stdio.h"
 #include "fix.h"
@@ -45,4 +51,5 @@ class FixAveAtom : public Fix {
 
 }
 
+#endif
 #endif

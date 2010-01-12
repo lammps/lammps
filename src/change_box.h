@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef CHANGE_BOX_H
-#define CHANGE_BOX_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(change_box,ChangeBox)
+
+#else
+
+#ifndef LMP_CHANGE_BOX_H
+#define LMP_CHANGE_BOX_H
 
 #include "pointers.h"
 
@@ -26,4 +32,5 @@ class ChangeBox : protected Pointers {
 
 }
 
+#endif
 #endif

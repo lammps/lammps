@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_NONLINEAR_H
-#define BOND_NONLINEAR_H
+#ifdef BOND_CLASS
+
+BondStyle(nonlinear,BondNonlinear)
+
+#else
+
+#ifndef LMP_BOND_NONLINEAR_H
+#define LMP_BOND_NONLINEAR_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -38,4 +44,5 @@ class BondNonlinear : public Bond {
 
 }
 
+#endif
 #endif

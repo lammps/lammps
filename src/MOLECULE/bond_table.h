@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef BOND_TABLE_H
-#define BOND_TABLE_H
+#ifdef BOND_CLASS
+
+BondStyle(table,BondTable)
+
+#else
+
+#ifndef LMP_BOND_TABLE_H
+#define LMP_BOND_TABLE_H
 
 #include "stdio.h"
 #include "bond.h"
@@ -66,4 +72,5 @@ class BondTable : public Bond {
 
 }
 
+#endif
 #endif

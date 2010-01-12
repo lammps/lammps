@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef LMP_MEMORY_H
+#define LMP_MEMORY_H
 
 #include "pointers.h"
 

@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef COMPUTE_BOND_LOCAL_H
-#define COMPUTE_BOND_LOCAL_H
+#ifdef COMPUTE_CLASS
+
+ComputeStyle(bond/local,ComputeBondLocal)
+
+#else
+
+#ifndef LMP_COMPUTE_BOND_LOCAL_H
+#define LMP_COMPUTE_BOND_LOCAL_H
 
 #include "compute.h"
 
@@ -40,4 +46,5 @@ class ComputeBondLocal : public Compute {
 
 }
 
+#endif
 #endif

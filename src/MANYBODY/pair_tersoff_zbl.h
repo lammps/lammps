@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef PAIR_TERSOFF_ZBL_H
-#define PAIR_TERSOFF_ZBL_H
+#ifdef PAIR_CLASS
+
+PairStyle(tersoff/zbl,PairTersoffZBL)
+
+#else
+
+#ifndef LMP_PAIR_TERSOFF_ZBL_H
+#define LMP_PAIR_TERSOFF_ZBL_H
 
 #include "pair_tersoff.h"
 
@@ -40,4 +46,5 @@ class PairTersoffZBL : public PairTersoff {
 
 }
 
+#endif
 #endif

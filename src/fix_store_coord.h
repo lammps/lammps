@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_STORE_COORD_H
-#define FIX_STORE_COORD_H
+#ifdef FIX_CLASS
+
+FixStyle(store/coord,FixStoreCoord)
+
+#else
+
+#ifndef LMP_FIX_STORE_COORD_H
+#define LMP_FIX_STORE_COORD_H
 
 #include "fix.h"
 
@@ -40,4 +46,5 @@ class FixStoreCoord : public Fix {
 
 }
 
+#endif
 #endif

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LAMMPS_H
-#define LAMMPS_H
+#ifndef LMP_LAMMPS_H
+#define LMP_LAMMPS_H
 
 #include "mpi.h"
 #include "stdio.h"

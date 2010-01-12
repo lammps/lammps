@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef FIX_GRAVITY_H
-#define FIX_GRAVITY_H
+#ifdef FIX_CLASS
+
+FixStyle(gravity,FixGravity)
+
+#else
+
+#ifndef LMP_FIX_GRAVITY_H
+#define LMP_FIX_GRAVITY_H
 
 #include "fix.h"
 
@@ -42,4 +48,5 @@ class FixGravity : public Fix {
 
 }
 
+#endif
 #endif

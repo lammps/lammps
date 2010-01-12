@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef REGION_BLOCK_H
-#define REGION_BLOCK_H
+#ifdef REGION_CLASS
+
+RegionStyle(block,RegBlock)
+
+#else
+
+#ifndef LMP_REGION_BLOCK_H
+#define LMP_REGION_BLOCK_H
 
 #include "region.h"
 
@@ -34,4 +40,5 @@ class RegBlock : public Region {
 
 }
 
+#endif
 #endif

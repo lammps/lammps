@@ -5,8 +5,6 @@
 
 if ($1 == 1) then
 
-  cp style_manybody.h ..
-
   cp pair_airebo.cpp ..
   cp pair_eam.cpp ..
   cp pair_eam_alloy.cpp ..
@@ -25,9 +23,6 @@ if ($1 == 1) then
 
 else if ($1 == 0) then
 
-  rm ../style_manybody.h
-  touch ../style_manybody.h
-
   rm ../pair_airebo.cpp
   rm ../pair_eam.cpp
   rm ../pair_eam_alloy.cpp
@@ -44,7 +39,7 @@ else if ($1 == 0) then
   rm ../pair_tersoff.h
   rm ../pair_tersoff_zbl.h
 
-  if (! -z ../style_opt.h) then
+  if (-e ../pair_eam_opt.h) then
     cd ../OPT; csh -f Install.csh 0; csh -f Install.csh 1
   endif
 

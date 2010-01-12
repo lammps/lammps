@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef LMP_TIMER_H
+#define LMP_TIMER_H
 
 #include "pointers.h"
 

@@ -19,6 +19,7 @@
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "comm.h"
+#include "neighbor.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
@@ -108,6 +109,13 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nextra_grow_max = nextra_restart_max = 0;
   nextra_store = 0;
   extra = NULL;
+
+  // sorting
+
+  sortflag = 0;
+  maxbin = maxnext = 0;
+  binhead = NULL;
+  next = permute = NULL;
 
   // default mapping values and hash table primes
 
@@ -203,9 +211,19 @@ Atom::~Atom()
   delete [] dipole;
   delete [] dipole_setflag;
 
+  // delete sorting arrays
+
+  memory->sfree(binhead);
+  memory->sfree(next);
+  memory->sfree(permute);
+
+  // delete extra arrays
+
   memory->sfree(extra_grow);
   memory->sfree(extra_restart);
   memory->destroy_2d_double_array(extra);
+
+  // delete mapping data structures
 
   map_delete();
   delete [] primes;
@@ -290,6 +308,21 @@ void Atom::init()
   avec->init();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void Atom::setup()
+{
+  // setup for sorting
+  // binsize = user setting or 1/2 of neighbor cutoff
+
+  if (sortflag) {
+    double binsize;
+    if (userbinsize > 0.0) binsize = userbinsize;
+    else binsize = 0.5 * neighbor->cutneighmax;
+    bininv = 1.0/binsize;
+  }
+}
+
 /* ----------------------------------------------------------------------
    return 1 if style matches atom style or hybrid sub-style
    else return 0
@@ -331,6 +364,15 @@ void Atom::modify_params(int narg, char **arg)
 	strcpy(firstgroupname,arg[iarg+1]);
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"sort") == 0) {
+      if (iarg+3 > narg) error->all("Illegal atom_modify command");
+      sortfreq = atoi(arg[iarg+1]);
+      userbinsize = atof(arg[iarg+2]);
+      if (sortfreq < 0 || userbinsize < 0.0)
+	error->all("Illegal atom_modify command");
+      if (sortfreq == 0) sortflag = 0;
+      else sortflag = 1;
+      iarg += 3;
     } else error->all("Illegal atom_modify command");
   }
 }
@@ -1284,6 +1326,122 @@ void Atom::first_reorder()
       while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   perform spatial sort of atoms within my sub-domain
+------------------------------------------------------------------------- */
+
+void Atom::sort()
+{
+  int i,m,n,ix,iy,iz,ibin,empty,ndone;
+
+  // setup local bins, grow arrays as necessary
+
+  double *sublo = domain->sublo;
+  double *subhi = domain->subhi;
+
+  int nbinx = static_cast<int> ((subhi[0]-sublo[0]) * bininv);
+  int nbiny = static_cast<int> ((subhi[1]-sublo[1]) * bininv);
+  int nbinz = static_cast<int> ((subhi[2]-sublo[2]) * bininv);
+
+  nbinx = MAX(nbinx,1);
+  nbinx = MAX(nbiny,1);
+  nbinx = MAX(nbinz,1);
+
+  int nbins = nbinx*nbiny*nbinz;
+  if (nbins == 1) return;
+
+  // reallocate per-bin memory if needed
+
+  if (nbins > maxbin) {
+    memory->sfree(binhead);
+    maxbin = nbins;
+    binhead = (int *) memory->smalloc(maxbin*sizeof(int),"sort:binhead");
+  }
+
+  // reallocate per-atom memory if needed
+
+  if (nlocal > maxnext) {
+    memory->sfree(next);
+    memory->sfree(permute);
+    maxnext = atom->nmax;
+    next = (int *) memory->smalloc(maxnext*sizeof(int),"atom:next");
+    permute = (int *) memory->smalloc(maxnext*sizeof(int),"atom:permute");
+  }
+
+  // insure one extra location at end of atom arrays
+
+  if (nlocal == nmax) avec->grow(0);
+
+  // bin atoms in reverse order so linked list will be in forward order
+
+  for (i = 0; i < nbins; i++) binhead[i] = -1;
+
+  for (i = nlocal-1; i >= 0; i--) {
+    ix = static_cast<int> ((x[i][0]-sublo[0])*bininv);
+    iy = static_cast<int> ((x[i][1]-sublo[1])*bininv);
+    iz = static_cast<int> ((x[i][2]-sublo[2])*bininv);
+    ix = MAX(ix,0);
+    iy = MAX(iy,0);
+    iz = MAX(iz,0);
+    ix = MIN(ix,nbinx-1);
+    iy = MIN(iy,nbiny-1);
+    iz = MIN(iz,nbinz-1);
+    ibin = iz*nbiny*nbinx + iy*nbinx + ix;
+    next[i] = binhead[ibin];
+    binhead[ibin] = i;
+  }
+
+  // permute = desired permutation of atoms
+  // permute[I] = J means Ith new atom will be Jth old atom
+
+  n = 0;
+  for (m = 0; m < nbins; m++) {
+    i = binhead[m];
+    while (i >= 0) {
+      permute[n++] = i;
+      i = next[i];
+    }
+  }
+
+  // current = current permutation, just reuse next vector
+  // current[I] = J means Ith current atom is Jth old atom
+
+  int *current = next;
+  for (i = 0; i < nlocal; i++) current[i] = i;
+
+  // reorder local atom list, when done, current = permute
+  // perform "in place" using copy() to extra atom location at end of list
+  // inner while loop processes one cycle of the permutation
+  // copy before inner-loop moves an atom to end of atom list
+  // copy after inner-loop moves atom at end of list back into list
+  // empty = location in atom list that is currently empty
+
+  for (i = 0; i < nlocal; i++) {
+    if (current[i] == permute[i]) continue;
+    avec->copy(i,nlocal);
+    empty = i;
+    while (permute[empty] != i) {
+      avec->copy(permute[empty],empty);
+      empty = current[empty] = permute[empty];
+    }      
+    avec->copy(nlocal,empty);
+    current[empty] = permute[empty];
+  }
+
+  // sanity check that current = permute
+
+  int flag = 0;
+  for (i = 0; i < nlocal; i++)
+    if (current[i] != permute[i]) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all("Atom sort did not operate correctly");
+
+  // set next timestep for sorting to take place
+
+  nextsort += sortfreq;
 }
 
 /* ----------------------------------------------------------------------

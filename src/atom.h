@@ -100,6 +100,11 @@ class Atom : protected Pointers {
   int map_style;                  // default or user-specified style of map
                                   // 0 = none, 1 = array, 2 = hash
 
+  // spatial sorting of atoms
+
+  int sortflag;             // 0 = off, 1 = on
+  int nextsort;             // next timestep to sort on
+
   // functions
 
   Atom(class LAMMPS *);
@@ -109,6 +114,7 @@ class Atom : protected Pointers {
   void create_avec(const char *, int, char **);
   class AtomVec *new_avec(const char *, int, char **);
   void init();
+  void setup();
 
   int style_match(const char *);
   void modify_params(int, char **);
@@ -141,6 +147,7 @@ class Atom : protected Pointers {
   void check_dipole();
 
   void first_reorder();
+  void sort();
 
   void add_callback(int);
   void delete_callback(const char *, int);
@@ -168,7 +175,7 @@ class Atom : protected Pointers {
 
  private:
 
-  // data for global to local ID mapping
+  // global to local ID mapping
 
   int map_tag_max;
   int *map_array;
@@ -186,6 +193,17 @@ class Atom : protected Pointers {
   HashElem *map_hash;             // hash table
   int *primes;                    // table of prime #s for hashing
   int nprimes;                    // # of primes
+
+  // spatial sorting of atoms
+
+  int maxbin;                     // # of bins memory is allocated for
+  int maxnext;                    // max size of next,permute
+  int *binhead;                   // 1st atom in each bin
+  int *next;                      // next atom in bin
+  int *permute;                   // permutation vector
+  double userbinsize;             // sorting bin size
+  double bininv;
+  int sortfreq;
 
   int memlength;                  // allocated size of memstr
   char *memstr;                   // string of array names already counted

@@ -936,7 +936,7 @@ void *imdsock_accept(void * v) {
 #endif
 
   len = sizeof(s->addr);
-  rc = accept(s->sd, (struct sockaddr *) &s->addr, &len);
+  rc = accept(s->sd, (struct sockaddr *) &s->addr, ( socklen_t * ) &len);
   if (rc >= 0) {
     new_s = (imdsocket *) malloc(sizeof(imdsocket));
     if (new_s != NULL) {

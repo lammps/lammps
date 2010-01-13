@@ -85,12 +85,14 @@ void Verlet::setup()
   // acquire ghosts
   // build neighbor lists
 
+  atom->setup();
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
+  if (atom->sortflag) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build();
@@ -184,6 +186,7 @@ void Verlet::run(int n)
   int n_pre_force = modify->n_pre_force;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
+  int sortflag = atom->sortflag;
 
   for (int i = 0; i < n; i++) {
 
@@ -214,6 +217,7 @@ void Verlet::run(int n)
       }
       timer->stamp();
       comm->exchange();
+      if (sortflag && ntimestep > atom->nextsort) atom->sort();
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       timer->stamp(TIME_COMM);

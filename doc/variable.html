@@ -507,8 +507,8 @@ used by the variable and the result will be accurate.
 <P>(2) LAMMPS may not be able to evaluate the variable and generate an
 error.  For example, if the variable requires a quantity from a
 <A HREF = "compute.html">compute</A> that is not current, LAMMPS will not do it.
-This means, for example, that such a variable then the variable cannot
-be evaluated before the first run has occurred.
+This means, for example, that such a variable cannot be evaluated
+before the first run has occurred.
 </P>
 <P>One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands

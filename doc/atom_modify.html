@@ -13,20 +13,24 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>atom_modify keyword value ... 
+<PRE>atom_modify keyword values ... 
 </PRE>
 <UL><LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>map</I> or <I>first</I> 
+<LI>keyword = <I>map</I> or <I>first</I> or <I>sort</I> 
 
 <PRE>  <I>map</I> value = <I>array</I> or <I>hash</I>
-  <I>first</I> value = group-ID = group whose atoms will appear first in internal atom lists 
+  <I>first</I> value = group-ID = group whose atoms will appear first in internal atom lists
+  <I>sort</I> values = Nfreq binsize
+    Nfreq = sort atoms spatially every this many time steps
+    binsize = bin size for spatial sorting (distance units) 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>atom_modify map hash
+atom_modify map array sort 10000 2.0
 atom_modify first colloid 
 </PRE>
 <P><B>Description:</B>
@@ -59,16 +63,55 @@ integration fixes like <A HREF = "fix_nve.html">fix nve</A>, also take advantage
 this setting if the group they operate on is the group specified by
 this command.
 </P>
-<P>Note that because the atom_modify command must be used in an input
-script before a simulation is setup and groups are defined, this means
-the <I>first</I> keyword will specify a group that is not yet defined.
-This is OK; LAMMPS will check that the group exists before the first
-simulation is performed.
+<P>It is OK to use the <I>first</I> keyword with a group that has not yet been
+defined, e.g. to use the atom_modify command at the beginning of your
+input script.  LAMMPS will check that the group exists before the
+first simulation is performed.
+</P>
+<P>The <I>sort</I> keyword turns on a spatial sorting or reordering of atoms
+within each processor's sub-domain every <I>Nfreq</I> timesteps.  This can
+improve cache performance and thus speed=up a LAMMPS simulation, as
+discussed in a paper by <A HREF = "#Meloni">(Meloni)</A>.  In tests we have done,
+the amount of speed-up can range from zero to 3-4x.  It is typically
+more effective at speeding up simulations of liquids as opposed to
+solids.
+</P>
+<P>Reordering is peformed every <I>Nfreq</I> timesteps during a dynamics run
+or iterations during a minimization.  More precisely, reordering
+occurs at the first reneighboring that occurs after the target
+timestep.  The reordering is performed locally by each processor,
+using bins of the specified <I>binsize</I>.  If <I>binsize</I> is set to 0.0,
+then a binsize equal to half the <A HREF = "neighbor.html">neighbor</A> cutoff
+distance (force cutoff plus skin distance) is used, which is a
+reasonable value.  After the atoms have been binned, they are
+reordered so that atoms in the same bin are adjacent to each other in
+the processor's 1d list of atoms.
+</P>
+<P>The goal of this procedure is for atoms be near each other in the
+processor's 1d list of atoms that are also near to each other
+spatially.  This can improve cache performance when pairwise
+intereractions and neighbor lists are computed.  Note that if bins are
+too small, there will be few atoms/bin.  Likewise if bins are too
+large, there will be many atoms/bin.  In both cases, the goal of cache
+locality can be undermined.
+</P>
+<P>IMPORTANT NOTE: Running a simulation with sorting on versus off should
+not change the simulation results in a statistical sense.  However,
+reordering will induce round-off differences, which will lead to
+diverging trajectories when comparing two simluations.  Various
+commands, particularly those which use random numbers (e.g. <A HREF = "velocity.html">velocity
+create</A>, and <A HREF = "fix_langevin.html">fix langevin</A>), may
+generate different results (but statistically identical) depending on
+the order in which they process atoms.  The order of atoms in a
+<A HREF = "dump.html">dump</A> file will also change if sorting is enabled.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This command must be used before the simulation box is defined by a
-<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+<P>The map keyword can only be used before the simulation box is defined
+by a <A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A>
+command.
+</P>
+<P>The <I>first</I> and <I>sort</I> options cannot be used together.
 </P>
 <P><B>Related commands:</B> none
 </P>
@@ -76,6 +119,14 @@ simulation is performed.
 </P>
 <P>By default, atomic (non-molecular) problems do not allocate maps.  For
 molecular problems, the option default is map = array.  By default, a
-"first" group is not defined.
+"first" group is not defined.  By default, sorting is enabled with a
+frequency of 1000 and a binsize of 0.0, which means the neighbor
+cutoff will be used to set the bin size.
+</P>
+<HR>
+
+<A NAME = "Meloni"></A>
+
+<P><B>(Meloni)</B> Meloni and Rasati, J Chem Phys, 126, 121102 (2007).
 </P>
 </HTML>

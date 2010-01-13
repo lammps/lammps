@@ -52,6 +52,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   extra_bond_per_atom = 0;
 
   firstgroupname = NULL;
+  sortfreq = 0;
+  maxbin = maxnext = 0;
+  binhead = NULL;
+  next = permute = NULL;
 
   // initialize atom arrays
   // customize by adding new array
@@ -110,13 +114,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nextra_store = 0;
   extra = NULL;
 
-  // sorting
-
-  sortflag = 0;
-  maxbin = maxnext = 0;
-  binhead = NULL;
-  next = permute = NULL;
-
   // default mapping values and hash table primes
 
   tag_enable = 1;
@@ -146,7 +143,11 @@ Atom::~Atom()
 {
   delete [] atom_style;
   delete avec;
+
   delete [] firstgroupname;
+  memory->sfree(binhead);
+  memory->sfree(next);
+  memory->sfree(permute);
 
   // delete atom arrays
   // customize by adding new array
@@ -210,12 +211,6 @@ Atom::~Atom()
   delete [] shape_setflag;
   delete [] dipole;
   delete [] dipole_setflag;
-
-  // delete sorting arrays
-
-  memory->sfree(binhead);
-  memory->sfree(next);
-  memory->sfree(permute);
 
   // delete extra arrays
 
@@ -315,7 +310,7 @@ void Atom::setup()
   // setup for sorting
   // binsize = user setting or 1/2 of neighbor cutoff
 
-  if (sortflag) {
+  if (sortfreq > 0) {
     double binsize;
     if (userbinsize > 0.0) binsize = userbinsize;
     else binsize = 0.5 * neighbor->cutneighmax;
@@ -341,6 +336,8 @@ int Atom::style_match(const char *style)
 
 /* ----------------------------------------------------------------------
    modify parameters of the atom style
+   some options can only be invoked before simulation box is defined
+   first and sort options cannot be used together
 ------------------------------------------------------------------------- */
 
 void Atom::modify_params(int narg, char **arg)
@@ -354,6 +351,8 @@ void Atom::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"array") == 0) map_style = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_style = 2;
       else error->all("Illegal atom_modify command");
+      if (domain->box_exist) 
+	error->all("Atom_modify map command after simulation box is defined");
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all("Illegal atom_modify command");
@@ -363,6 +362,7 @@ void Atom::modify_params(int narg, char **arg)
 	firstgroupname = new char[n];
 	strcpy(firstgroupname,arg[iarg+1]);
       }
+      sortfreq = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all("Illegal atom_modify command");
@@ -370,8 +370,9 @@ void Atom::modify_params(int narg, char **arg)
       userbinsize = atof(arg[iarg+2]);
       if (sortfreq < 0 || userbinsize < 0.0)
 	error->all("Illegal atom_modify command");
-      if (sortfreq == 0) sortflag = 0;
-      else sortflag = 1;
+      if (sortfreq >= 0 && firstgroupname) 
+	error->all("Atom_modify sort and first options "
+		   "cannot be used together");
       iarg += 3;
     } else error->all("Illegal atom_modify command");
   }
@@ -1370,7 +1371,7 @@ void Atom::sort()
     permute = (int *) memory->smalloc(maxnext*sizeof(int),"atom:permute");
   }
 
-  // insure one extra location at end of atom arrays
+  // insure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 

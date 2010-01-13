@@ -222,7 +222,8 @@ void Update::create_minimize(int narg, char **arg)
    do not allow any timestep-dependent fixes to be defined
    do not allow any dynamic regions to be defined
    reset eflag/vflag global so nothing will think eng/virial are current
-   reset invoked flags of computes, so nothing will think they are current
+   reset invoked flags of computes,
+     so nothing will think they are current between runs
    clear timestep list of computes that store future invocation times
 ------------------------------------------------------------------------- */
 
@@ -249,6 +250,7 @@ void Update::reset_timestep(int narg, char **arg)
   for (int i = 0; i < modify->ncompute; i++) {
     modify->compute[i]->invoked_scalar = -1;
     modify->compute[i]->invoked_vector = -1;
+    modify->compute[i]->invoked_array = -1;
     modify->compute[i]->invoked_peratom = -1;
     modify->compute[i]->invoked_local = -1;
   }

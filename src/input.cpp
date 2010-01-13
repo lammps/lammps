@@ -691,8 +691,6 @@ void Input::angle_style()
 
 void Input::atom_modify()
 {
-  if (domain->box_exist) 
-    error->all("Atom_modify command after simulation box is defined");
   atom->modify_params(narg,arg);
 }
 

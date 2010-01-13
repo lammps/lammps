@@ -192,12 +192,20 @@ void Modify::init()
   list_init_compute();
 
   // init each compute
+  // set invoked_scalar,vector,etc to -1 to force new run to re-compute them
   // add initial timestep to all computes that store invocation times
   //   since any of them may be invoked by initial thermo
   // do not clear out invocation times stored within a compute,
   //   b/c some may be holdovers from previous run, like for ave fixes
 
-  for (i = 0; i < ncompute; i++) compute[i]->init();
+  for (i = 0; i < ncompute; i++) {
+    compute[i]->init();
+    compute[i]->invoked_scalar = -1;
+    compute[i]->invoked_vector = -1;
+    compute[i]->invoked_array = -1;
+    compute[i]->invoked_peratom = -1;
+    compute[i]->invoked_local = -1;
+  }
   addstep_compute_all(update->ntimestep);
 
   // warn if any particle is time integrated more than once

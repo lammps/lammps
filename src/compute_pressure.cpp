@@ -172,7 +172,7 @@ double ComputePressure::compute_scalar()
 
   double t;
   if (keflag) {
-    if (temperature->invoked_scalar == update->ntimestep)
+    if (temperature->invoked_scalar != update->ntimestep)
       t = temperature->compute_scalar();
     else t = temperature->scalar;
   }
@@ -209,7 +209,7 @@ void ComputePressure::compute_vector()
   if (update->vflag_global != invoked_vector)
     error->all("Virial was not tallied on needed timestep");
 
-  // invoke temperature it it hasn't been already
+  // invoke temperature if it hasn't been already
 
   double *ke_tensor;
   if (keflag) {

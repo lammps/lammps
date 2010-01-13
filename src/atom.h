@@ -102,7 +102,7 @@ class Atom : protected Pointers {
 
   // spatial sorting of atoms
 
-  int sortflag;             // 0 = off, 1 = on
+  int sortfreq;             // sort atoms every this many steps, 0 = off
   int nextsort;             // next timestep to sort on
 
   // functions
@@ -203,7 +203,6 @@ class Atom : protected Pointers {
   int *permute;                   // permutation vector
   double userbinsize;             // sorting bin size
   double bininv;
-  int sortfreq;
 
   int memlength;                  // allocated size of memstr
   char *memstr;                   // string of array names already counted

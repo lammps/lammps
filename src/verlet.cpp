@@ -92,7 +92,7 @@ void Verlet::setup()
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
-  if (atom->sortflag) atom->sort();
+  if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build();
@@ -178,7 +178,7 @@ void Verlet::setup_minimal(int flag)
 
 void Verlet::run(int n)
 {
-  int nflag,ntimestep;
+  int nflag,ntimestep,sortflag;
 
   int n_post_integrate = modify->n_post_integrate;
   int n_pre_exchange = modify->n_pre_exchange;
@@ -186,7 +186,9 @@ void Verlet::run(int n)
   int n_pre_force = modify->n_pre_force;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
-  int sortflag = atom->sortflag;
+
+  if (atom->sortfreq > 0) sortflag = 1;
+  else sortflag = 0;
 
   for (int i = 0; i < n; i++) {
 
@@ -217,7 +219,7 @@ void Verlet::run(int n)
       }
       timer->stamp();
       comm->exchange();
-      if (sortflag && ntimestep > atom->nextsort) atom->sort();
+      if (sortflag && ntimestep >= atom->nextsort) atom->sort();
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       timer->stamp(TIME_COMM);

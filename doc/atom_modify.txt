@@ -105,7 +105,9 @@ The map keyword can only be used before the simulation box is defined
 by a "read_data"_read_data.html or "create_box"_create_box.html
 command.
 
-The {first} and {sort} options cannot be used together.
+The {first} and {sort} options cannot be used together.  Since sorting
+is on by default, it will be turned off if the {first} keyword is
+used.
 
 [Related commands:] none
 

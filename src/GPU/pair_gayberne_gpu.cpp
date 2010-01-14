@@ -114,7 +114,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   if (vflag_atom) 
-    error->all("Per-atom virial not available with GPU Gay-Berne.");
+    error->all("Per-atom virial not available with GPU Gay-Berne");
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -151,7 +151,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
                                         success);
   #endif
   if (!success)
-    error->one("Total # of atoms exceeds maximum allowed per GPGPU.\n");
+    error->one("Total # of atoms exceeds maximum allowed per GPGPU");
   
   // copy atom data to GPU
   gb_gpu_atom(atom->x,atom->quat,atom->type,rebuild,my_thread);
@@ -324,7 +324,7 @@ void PairGayBerneGPU::init_style()
                              lj1, lj2, lj3, lj4, offset, force->special_lj, 
                              neighbor->oneatom, my_thread, my_gpu);
     if (!init_ok)
-      error->one("AT LEAST ONE PROCESS COULD NOT ALLOCATE A CUDA-ENABLED GPU.");
+      error->one("At least one process could not allocate a CUDA-enabled gpu");
     
     if (ij_new[my_thread]!=NULL)
       delete [] ij_new[my_thread];
@@ -335,7 +335,7 @@ void PairGayBerneGPU::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   if (force->newton_pair) 
-    error->all("Cannot use newton with GPU GayBerne pair style.");
+    error->all("Cannot use newton pair with GPU GayBerne pair style");
 
   if (comm->me == 0 && screen) {
     printf("\n-------------------------------------");

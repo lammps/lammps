@@ -149,14 +149,11 @@ void DumpCFG::init()
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
     else ptr = strtok(NULL," \0");
-    if (ptr == NULL) error->all("Dump cfg user format string error");
     delete [] vformat[i];
     vformat[i] = new char[strlen(ptr) + 2];
     strcpy(vformat[i],ptr);
     vformat[i] = strcat(vformat[i]," ");
   }
-  if (strtok(NULL," \0"))
-    error->all("Dump cfg user format string error");
 
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable

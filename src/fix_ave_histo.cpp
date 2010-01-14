@@ -202,7 +202,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     }
     if (i == 0) kind = kindflag;
     else if (kindflag != kind)
-      error->all("Fix ave/histo inputs are not all global, peraton, or local");
+      error->all("Fix ave/histo inputs are not all global, peratom, or local");
   }
 
   if (kind == PERATOM && mode == SCALAR) 

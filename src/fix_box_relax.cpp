@@ -337,7 +337,7 @@ void FixBoxRelax::min_clearstore()
 void FixBoxRelax::min_pushstore()
 {
   if (current_lifo >= MAX_LIFO_DEPTH) {
-    error->all("Attempt to push beyond stack limit <FixBoxRelax>");
+    error->all("Attempt to push beyond stack limit in fix box/relax");
     return;
   }
 
@@ -352,7 +352,7 @@ void FixBoxRelax::min_pushstore()
 void FixBoxRelax::min_popstore()
 {
   if (current_lifo <= 0) {
-    error->all("Attempt to pop empty stack <FixBoxRelax>");
+    error->all("Attempt to pop empty stack in fix box/relax");
     return;
   }
 

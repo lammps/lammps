@@ -88,7 +88,7 @@ void PRD::command(int narg, char **arg)
 
   // total # of timesteps must be multiple of t_event
 
-  if (t_event == 0) error->universe_all("Invalid t_event in prd command");
+  if (t_event <= 0) error->universe_all("Invalid t_event in prd command");
   if (nsteps % t_event) 
     error->universe_all("PRD nsteps must be multiple of t_event");
   if (t_corr % t_event)

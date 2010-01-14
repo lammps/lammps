@@ -44,7 +44,7 @@ ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
 
   double displace_dist = atof(arg[3]);
   if (displace_dist <= 0.0) 
-    error->all("Distnace must be > 0 for compute event/displace");
+    error->all("Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;
 
   // fix event ID will be set later by PRD

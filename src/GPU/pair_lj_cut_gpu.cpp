@@ -95,7 +95,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   if (vflag_atom) 
-    error->all("Per-atom virial not available with GPU Gay-Berne.");
+    error->all("Per-atom virial not available with GPU lj/cut");
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -111,7 +111,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
   // copy nbors to GPU
   if (rebuild)
     if (!lj_gpu_reset_nbors(nall, inum, ilist, list->numneigh))
-      error->one("Total # of atoms exceed maximum allowed per GPGPU.\n");
+      error->one("Total # of atoms exceeds maximum allowed per GPGPU");
   
   // copy atom data to GPU
   lj_gpu_atom(atom->x,atom->type,rebuild);
@@ -225,7 +225,7 @@ void PairLJCutGPU::init_style()
 
   if (!lj_gpu_init(ij_size, atom->ntypes+1, cutsq, sigma, epsilon, lj1, lj2,lj3, 
                    lj4, offset, force->special_lj, neighbor->oneatom, my_gpu))
-    error->one("AT LEAST ONE PROCESS COULD NOT ALLOCATE A CUDA-ENABLED GPU.");
+    error->one("At least one process could not allocate a CUDA-enabled gpu");
     
   if (ij_new!=NULL)
     delete [] ij_new;
@@ -235,7 +235,7 @@ void PairLJCutGPU::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   if (force->newton_pair) 
-    error->all("Cannot use newton with GPU LJCut pair style.");
+    error->all("Cannot use newton pair with GPU lj/cut pair style");
 
   if (comm->me == 0 && screen) {
     printf("\n-------------------------------------");

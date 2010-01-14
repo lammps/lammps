@@ -8,6 +8,7 @@ units           metal
 atom_style      atomic
 atom_modify     map array
 boundary        p p p
+atom_modify	sort 0 0.0
 
 # temperature
 

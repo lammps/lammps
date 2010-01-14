@@ -105,27 +105,27 @@ LAMMPS.
 <LI>  spatial-decomposition of simulation domain for parallelism
 <LI>  open-source distribution
 <LI>  highly portable C++
-<LI>  optional libraries needed: MPI and single-processor FFT
+<LI>  optional libraries used: MPI and single-processor FFT
 <LI>  easy to extend with new features and functionality
-<LI>  in parallel, run one or multiple simulations simultaneously
 <LI>  runs from an input script
 <LI>  syntax for defining and using variables and formulas
 <LI>  syntax for looping over runs and breaking out of loops
-<LI>  run a series of simluations from one script 
+<LI>  run one or multiple simulations simultaneously (in parallel) from one script 
 </UL>
-<H4>Kinds of systems LAMMPS can simulate 
+<H4>Particle and model types 
 </H4>
 <P>(<A HREF = "atom_style.html">atom style</A> command)
 </P>
-<UL><LI>  atomic (e.g. box of Lennard-Jonesium)
-<LI>  bead-spring polymers
+<UL><LI>  atoms
+<LI>  coarse-grained particles (e.g. bead-spring polymers)
 <LI>  united-atom polymers or organic molecules
 <LI>  all-atom polymers, organic molecules, proteins, DNA
 <LI>  metals
 <LI>  granular materials
 <LI>  coarse-grained mesoscale models
-<LI>  ellipsoidal particles
+<LI>  extended spherical and ellipsoidal particles
 <LI>  point dipolar particles
+<LI>  rigid collections of particles
 <LI>  hybrid combinations of these 
 </UL>
 <H4>Force fields 
@@ -138,29 +138,32 @@ commands)
 <UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse,     Yukawa, soft, class 2 (COMPASS), tabulated
 <LI>  charged pairwise potentials: Coulombic, point-dipole
 <LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     Stillinger-Weber, Tersoff, AI-REBO, ReaxFF
-<LI>  coarse-grain potentials: DPD, GayBerne, REsquared, colloidal
+<LI>  coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
 <LI>  mesoscopic potentials: granular, Peridynamics
 <LI>  bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable)
 <LI>  angle potentials: harmonic, CHARMM, cosine, cosine/squared,     class 2 (COMPASS)
 <LI>  dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS
 <LI>  improper potentials: harmonic, cvff, class 2 (COMPASS)
-<LI>  hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
-<LI>  overlaid potentials: superposition of multiple pair potentials
 <LI>  polymer potentials: all-atom, united-atom, bead-spring, breakable
 <LI>  water potentials: TIP3P, TIP4P, SPC
 <LI>  implicit solvent potentials: hydrodynamic lubrication, Debye
 <LI>  long-range Coulombics and dispersion: Ewald,     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-<LI>  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options 
+<LI>  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options
+<LI>  handful of GPU-enabled pair styles 
 </UL>
-<H4>Creation of atoms 
+<P>  hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
+  overlaid potentials: superposition of multiple pair potentials
+</P>
+<H4>Atom creation 
 </H4>
 <P>(<A HREF = "read_data.html">read_data</A>, <A HREF = "lattice.html">lattice</A>,
 <A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "delete_atoms.html">delete_atoms</A>,
-<A HREF = "displace_atoms.html">displace_atoms</A> commands)
+<A HREF = "displace_atoms.html">displace_atoms</A>, <A HREF = "replicate.html">replicate</A> commands)
 </P>
 <UL><LI>  read in atom coords from files
 <LI>  create atoms on one or more lattices (e.g. grain boundaries)
 <LI>  delete geometric or logical groups of atoms (e.g. voids)
+<LI>  replicate existing atoms multiple times
 <LI>  displace atoms 
 </UL>
 <H4>Ensembles, constraints, and boundary conditions 
@@ -174,29 +177,26 @@ commands)
 <LI>  pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
 <LI>  simulation box deformation (tensile and shear)
 <LI>  harmonic (umbrella) constraint forces
-<LI>  independent or coupled rigid body integration
+<LI>  rigid body constraints
 <LI>  SHAKE bond and angle constraints
 <LI>  bond breaking, formation, swapping
 <LI>  walls of various kinds
-<LI>  targeted molecular dynamics (TMD) and steered molecule dynamics (SMD) constraints
 <LI>  non-equilibrium molecular dynamics (NEMD)
 <LI>  variety of additional boundary conditions and constraints 
 </UL>
 <H4>Integrators 
 </H4>
-<P>(<A HREF = "run.html">run</A>, <A HREF = "run_style.html">run_style</A>, <A HREF = "temper.html">temper</A> commands) 
+<P>(<A HREF = "run.html">run</A>, <A HREF = "run_style.html">run_style</A>, <A HREF = "minimize.html">minimize</A> commands) 
 </P>
 <UL><LI>  velocity-Verlet integrator
 <LI>  Brownian dynamics
+<LI>  rigid body integration
 <LI>  energy minimization via conjugate gradient or steepest descent relaxation
-<LI>  rRESPA hierarchical timestepping
-<LI>  parallel tempering (replica exchange) 
+<LI>  rRESPA hierarchical timestepping 
 </UL>
 <H4>Diagnostics 
 </H4>
-<P>(<A HREF = "fix.html">fix</A> command, <A HREF = "compute.html">compute</A> command) 
-</P>
-<UL><LI>  see the various flavors of the fix and compute commands 
+<UL><LI>  see the various flavors of the <A HREF = "fix.html">fix</A> and <A HREF = "compute.html">compute</A> commands 
 </UL>
 <H4>Output 
 </H4>
@@ -209,20 +209,38 @@ commands)
 <LI>  user-defined system-wide (log file) or per-atom (dump file) calculations
 <LI>  spatial and time averaging of per-atom quantities
 <LI>  time averaging of system-wide quantities
-<LI>  atom snapshots in native, XYZ, XTC, DCD formats 
+<LI>  atom snapshots in native, XYZ, XTC, DCD, CFG formats 
 </UL>
 <H4>Pre- and post-processing 
 </H4>
-<P>Our group has also written and released a separate toolkit called
+<UL><LI>Various pre- and post-processing serial tools are packaged
+with LAMMPS; see these <A HREF = "Section_tools.html">doc pages</A>. 
+
+<LI>Our group has also written and released a separate toolkit called
 <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools for doing setup, analysis,
 plotting, and visualization for LAMMPS simulations.  Pizza.py is
 written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">the
-Pizza.py WWW site</A>.
+Pizza.py WWW site</A>. 
+</UL>
+
+
+
+
+<H4>Specialized features 
+</H4>
+<P>These are LAMMPS capabilities which you may not think of as typical
+molecular dynamics options:
 </P>
-
-
-
-
+<UL><LI><A HREF = "fix_imd.html">real-time visualization and interactive MD</A>
+<LI><A HREF = "fix_atc.html">atom-to-continuum coupling</A> with finite elements
+<LI>coupled rigid body integration via the <A HREF = "fix_poems.html">POEMS</A> library
+<LI><A HREF = "temper.html">parallel tempering</A>
+<LI><A HREF = "prd.html">parallel replica dynamics</A>
+<LI><A HREF = "pair_dsmc.html">Direct Simulation Monte Carlo</A> for low-density fluids
+<LI><A HREF = "pair_peri.html">Peridynamics mesoscale modeling</A>
+<LI><A HREF = "fix_tmd.html">targeted</A> and <A HREF = "fix_smd.html">steered</A> molecular dynamics
+<LI><A HREF = "fix_ttm.html">two-temperature electron model</A> 
+</UL>
 <HR>
 
 <A NAME = "1_3"></A><H4>1.3 LAMMPS non-features 
@@ -477,6 +495,19 @@ the list.
 
 
 <DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >pair yukawa/colloid </TD><TD > Randy Schunk (Sandia)</TD></TR>
+<TR><TD >fix wall/colloid </TD><TD > Jeremy Lechman (Sandia)</TD></TR>
+<TR><TD >pair_style dsmc for Direct Simulation Monte Carlo (DSMC) modeling </TD><TD > Paul Crozier (Sandia)</TD></TR>
+<TR><TD >fix imd for real-time viz and interactive MD </TD><TD > Axel Kohlmeyer (Temple Univ)</TD></TR>
+<TR><TD >concentration-dependent EAM potential </TD><TD > Alexander Stukowski (Technical University of Darmstadt)</TD></TR>
+<TR><TD >parallel replica dymamics (PRD) </TD><TD > Mike Brown (Sandia)</TD></TR>
+<TR><TD >min_style hftn </TD><TD > Todd Plantenga (Sandia)</TD></TR>
+<TR><TD >fix atc </TD><TD > Reese Jones, Jon Zimmerman, Jeremy Templeton (Sandia)</TD></TR>
+<TR><TD >dump cfg </TD><TD > Liang Wan (Chinese Academy of Sciences)</TD></TR>
+<TR><TD >fix nvt with Nose/Hoover chains </TD><TD > Andy Ballard (U Maryland)</TD></TR>
+<TR><TD >pair_style lj/cut/gpu, pair_style gayberne/gpu </TD><TD > Mike Brown (Sandia)</TD></TR>
+<TR><TD >pair_style lj96/cut, bond_style table, angle_style table </TD><TD > Chuanfu Luo</TD></TR>
+<TR><TD >fix langevin tally </TD><TD > Carolyn Phillips (U Michigan)</TD></TR>
 <TR><TD >compute heat/flux for Green-Kubo </TD><TD > Reese Jones (Sandia), Philip Howell (Siemens), Vikas Varsney (AFRL)</TD></TR>
 <TR><TD >region cone </TD><TD > Pim Schravendijk</TD></TR>
 <TR><TD >fix reax/bonds </TD><TD > Aidan Thompson (Sandia)</TD></TR>

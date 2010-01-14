@@ -102,26 +102,26 @@ General features :h4
   spatial-decomposition of simulation domain for parallelism
   open-source distribution
   highly portable C++
-  optional libraries needed: MPI and single-processor FFT
+  optional libraries used: MPI and single-processor FFT
   easy to extend with new features and functionality
-  in parallel, run one or multiple simulations simultaneously
   runs from an input script
   syntax for defining and using variables and formulas
   syntax for looping over runs and breaking out of loops
-  run a series of simluations from one script :ul
+  run one or multiple simulations simultaneously (in parallel) from one script :ul
 
-Kinds of systems LAMMPS can simulate :h4
+Particle and model types :h4
 ("atom style"_atom_style.html command)
 
-  atomic (e.g. box of Lennard-Jonesium)
-  bead-spring polymers
+  atoms
+  coarse-grained particles (e.g. bead-spring polymers)
   united-atom polymers or organic molecules
   all-atom polymers, organic molecules, proteins, DNA
   metals
   granular materials
   coarse-grained mesoscale models
-  ellipsoidal particles
+  extended spherical and ellipsoidal particles
   point dipolar particles
+  rigid collections of particles
   hybrid combinations of these :ul
 
 Force fields :h4
@@ -135,7 +135,7 @@ commands)
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     Stillinger-Weber, Tersoff, AI-REBO, ReaxFF
-  coarse-grain potentials: DPD, GayBerne, REsquared, colloidal
+  coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
@@ -144,24 +144,26 @@ commands)
   dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, \
     class 2 (COMPASS), OPLS
   improper potentials: harmonic, cvff, class 2 (COMPASS)
-  hybrid potentials: multiple pair, bond, angle, dihedral, improper \
-    potentials can be used in one simulation
-  overlaid potentials: superposition of multiple pair potentials
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
   long-range Coulombics and dispersion: Ewald, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options :ul
+  force-field compatibility with common CHARMM, AMBER, OPLS, GROMACS options
+  handful of GPU-enabled pair styles :ul
+  hybrid potentials: multiple pair, bond, angle, dihedral, improper \
+    potentials can be used in one simulation
+  overlaid potentials: superposition of multiple pair potentials
 
-Creation of atoms :h4
+Atom creation :h4
 ("read_data"_read_data.html, "lattice"_lattice.html,
 "create_atoms"_create_atoms.html, "delete_atoms"_delete_atoms.html,
-"displace_atoms"_displace_atoms.html commands)
+"displace_atoms"_displace_atoms.html, "replicate"_replicate.html commands)
 
   read in atom coords from files
   create atoms on one or more lattices (e.g. grain boundaries)
   delete geometric or logical groups of atoms (e.g. voids)
+  replicate existing atoms multiple times
   displace atoms :ul
 
 Ensembles, constraints, and boundary conditions :h4
@@ -174,27 +176,25 @@ Ensembles, constraints, and boundary conditions :h4
   pressure control via Nose/Hoover or Berendsen barostatting in 1 to 3 dimensions
   simulation box deformation (tensile and shear)
   harmonic (umbrella) constraint forces
-  independent or coupled rigid body integration
+  rigid body constraints
   SHAKE bond and angle constraints
   bond breaking, formation, swapping
   walls of various kinds
-  targeted molecular dynamics (TMD) and steered molecule dynamics (SMD) constraints
   non-equilibrium molecular dynamics (NEMD)
   variety of additional boundary conditions and constraints :ul
 
 Integrators :h4
-("run"_run.html, "run_style"_run_style.html, "temper"_temper.html commands) 
+("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands) 
 
   velocity-Verlet integrator
   Brownian dynamics
+  rigid body integration
   energy minimization via conjugate gradient or steepest descent relaxation
-  rRESPA hierarchical timestepping
-  parallel tempering (replica exchange) :ul
+  rRESPA hierarchical timestepping :ul
 
 Diagnostics :h4
-("fix"_fix.html command, "compute"_compute.html command) 
 
-  see the various flavors of the fix and compute commands :ul
+  see the various flavors of the "fix"_fix.html and "compute"_compute.html commands :ul
 
 Output :h4
 ("dump"_dump.html, "restart"_restart.html commands) 
@@ -206,18 +206,36 @@ Output :h4
   user-defined system-wide (log file) or per-atom (dump file) calculations
   spatial and time averaging of per-atom quantities
   time averaging of system-wide quantities
-  atom snapshots in native, XYZ, XTC, DCD formats :ul
+  atom snapshots in native, XYZ, XTC, DCD, CFG formats :ul
 
 Pre- and post-processing :h4
+
+Various pre- and post-processing serial tools are packaged
+with LAMMPS; see these "doc pages"_Section_tools.html. :ulb,l
 
 Our group has also written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools for doing setup, analysis,
 plotting, and visualization for LAMMPS simulations.  Pizza.py is
 written in "Python"_python and is available for download from "the
-Pizza.py WWW site"_pizza.
+Pizza.py WWW site"_pizza. :l,ule
 
 :link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(python,http://www.python.org)
+
+Specialized features :h4
+
+These are LAMMPS capabilities which you may not think of as typical
+molecular dynamics options:
+
+"real-time visualization and interactive MD"_fix_imd.html
+"atom-to-continuum coupling"_fix_atc.html with finite elements
+coupled rigid body integration via the "POEMS"_fix_poems.html library
+"parallel tempering"_temper.html
+"parallel replica dynamics"_prd.html
+"Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
+"Peridynamics mesoscale modeling"_pair_peri.html
+"targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics
+"two-temperature electron model"_fix_ttm.html :ul
 
 :line
 
@@ -462,6 +480,19 @@ the list.
 
 :link(sjp,http://www.cs.sandia.gov/~sjplimp)
 
+pair yukawa/colloid : Randy Schunk (Sandia)
+fix wall/colloid : Jeremy Lechman (Sandia)
+pair_style dsmc for Direct Simulation Monte Carlo (DSMC) modeling : Paul Crozier (Sandia)
+fix imd for real-time viz and interactive MD : Axel Kohlmeyer (Temple Univ)
+concentration-dependent EAM potential : Alexander Stukowski (Technical University of Darmstadt)
+parallel replica dymamics (PRD) : Mike Brown (Sandia)
+min_style hftn : Todd Plantenga (Sandia)
+fix atc : Reese Jones, Jon Zimmerman, Jeremy Templeton (Sandia)
+dump cfg : Liang Wan (Chinese Academy of Sciences)
+fix nvt with Nose/Hoover chains : Andy Ballard (U Maryland)
+pair_style lj/cut/gpu, pair_style gayberne/gpu : Mike Brown (Sandia)
+pair_style lj96/cut, bond_style table, angle_style table : Chuanfu Luo
+fix langevin tally : Carolyn Phillips (U Michigan)
 compute heat/flux for Green-Kubo : Reese Jones (Sandia), Philip Howell (Siemens), Vikas Varsney (AFRL)
 region cone : Pim Schravendijk
 fix reax/bonds : Aidan Thompson (Sandia)

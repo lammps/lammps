@@ -26,15 +26,24 @@ GranFlow for granular materials.
 
 These are new features we'd like to eventually add to LAMMPS.  Some
 are being worked on; some haven't been implemented because of lack of
-time or interest; others are just a lot of work!
+time or interest; others are just a lot of work!  See "this
+page"_lwsfuture on the LAMMPS WWW site for more details.
 
-coupling to finite elements
-new ReaxFF implementation (in addition to existing one)
-stochastic rotation dynamics
+:link(lwsfuture,http://lammps.sandia.gov/future.html)
+
+Coupling to finite elements for streess-strain
+New ReaxFF implementation
+Nudged elastic band
+Temperature accelerated dynamics
+Triangulated particles
+Stochastic rotation dynamics
 Stokesian dynamics via fast lubrication dynamics
 NPT with changing box shape (Parinello-Rahman)
-long-range point-dipole solver
-torsional shear boundary conditions and temperature calculation :ul
+Long-range point-dipole solver
+Per-atom energy and stress for long-range Coulombics
+Long-range Coulombics via Ewald and PPPM for triclinic boxes
+Metadynamics
+Direct Simulation Monte Carlo - DSMC :ul
 
 :line
 

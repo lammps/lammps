@@ -328,12 +328,13 @@ void LAMMPS::destroy()
   delete update;
   delete neighbor;
   delete comm;
-  delete domain;
   delete force;
   delete group;
   delete output;
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
+  delete domain;          // domain must come after modify
+                          //   since fix destructors access domain
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
   delete timer;

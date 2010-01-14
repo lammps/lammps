@@ -5,6 +5,7 @@ units		lj
 atom_style	granular
 boundary	p p fs
 newton		off
+communicate	single vel yes
 
 read_data	data.chute
 

@@ -871,10 +871,6 @@ This feature is not yet supported. :dd
 The kspace style pppm cannot be used in 2d simulations.  You can use
 2d PPPM in a 3d simulation; see the kspace_modify command. :dd
 
-{Cannot use PRD command with multi-proc replicas unless atom map exists} :dt
-
-Use the atom_modify command to create an atom map. :dd
-
 {Cannot use PRD with a time-dependent fix defined} :dt
 
 PRD alters the timestep in ways that will mess up these fixes. :dd
@@ -882,6 +878,15 @@ PRD alters the timestep in ways that will mess up these fixes. :dd
 {Cannot use PRD with a time-dependent region defined} :dt
 
 PRD alters the timestep in ways that will mess up these regions. :dd
+
+{Cannot use PRD with atom_modify sort enabled} :dt
+
+This is a current restriction of PRD.  You must turn off sorting,
+which is enabled by default, via the atom_modify command. :dd
+
+{Cannot use PRD with multi-proc replicas unless atom map exists} :dt
+
+Use the atom_modify command to create an atom map. :dd
 
 {Cannot use delete_atoms unless atoms have IDs} :dt
 

@@ -25,7 +25,9 @@ fix		2 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
 
 group		peptide type <= 12
 dump		1 peptide atom 10 dump.peptide
-dump		2 peptide bond 300 dump.bond
+
+compute		bnd all property/local btype batom1 batom2
+dump		2 peptide local 300 dump.bond index c_bnd[1] c_bnd[2] c_bnd[3]
 
 run		300
 

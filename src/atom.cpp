@@ -53,8 +53,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   extra_bond_per_atom = 0;
 
   firstgroupname = NULL;
-  sortfreq = 0;
-  //sortfreq = 1000;
+  sortfreq = 1000;
   userbinsize = 0.0;
   maxbin = maxnext = 0;
   binhead = NULL;

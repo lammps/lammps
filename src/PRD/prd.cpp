@@ -228,8 +228,8 @@ void PRD::command(int narg, char **arg)
     if (modify->fix[i]->time_depend)
       error->all("Cannot use PRD with a time-dependent fix defined");
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (domain->regions[i]->dynamic)
+  for (int i = 0; i < domain->nregion; i++)
+    if (domain->regions[i]->dynamic_check())
       error->all("Cannot use PRD with a time-dependent region defined");
 
   // perform PRD simulation

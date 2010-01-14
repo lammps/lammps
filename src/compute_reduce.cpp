@@ -275,8 +275,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     scalar_flag = 1;
     if (mode == SUM) extscalar = 1;
     else extscalar = 0;
-    vector = NULL;
-    onevec = NULL;
+    vector = onevec = NULL;
+    indices = owner = NULL;
   } else {
     vector_flag = 1;
     size_vector = nvalues;

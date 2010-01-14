@@ -67,8 +67,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   // computes, fixes, variables which the dump accesses
 
-  field2index = new int[nfield];
-  argindex = new int[nfield];
+  field2index = (int *) memory->smalloc(nfield*sizeof(int),"dump:field2index");
+  argindex = (int *) memory->smalloc(nfield*sizeof(int),"dump:argindex");
 
   ncompute = 0;
   id_compute = NULL;
@@ -124,8 +124,8 @@ DumpCustom::~DumpCustom()
 {
   delete [] pack_choice;
   delete [] vtype;
-  delete [] field2index;
-  delete [] argindex;
+  memory->sfree(field2index);
+  memory->sfree(argindex);
 
   memory->sfree(thresh_array);
   memory->sfree(thresh_op);

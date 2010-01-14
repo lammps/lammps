@@ -242,7 +242,7 @@ void Update::reset_timestep(int narg, char **arg)
       error->all("Cannot reset timestep with a time-dependent fix defined");
 
   for (int i = 0; i < domain->nregion; i++)
-    if (domain->regions[i]->dynamic)
+    if (domain->regions[i]->dynamic_check())
       error->all("Cannot reset timestep with a dynamic region defined");
 
   eflag_global = vflag_global = -1;

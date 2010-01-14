@@ -28,7 +28,6 @@ class Region : protected Pointers {
   double extent_ylo,extent_yhi;
   double extent_zlo,extent_zhi;
   int bboxflag;                     // 1 if bounding box is computable
-  int dynamic;                      // 1 if region changes over time
 
   // contact = particle near region surface
 
@@ -60,6 +59,8 @@ class Region : protected Pointers {
   double vx,vy,vz;
   double ax,ay,az;
   double point[3],axis[3],runit[3];
+
+  int dynamic;                      // 1 if region changes over time
 
   void rotate(double &, double &, double &, double);
 };

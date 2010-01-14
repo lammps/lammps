@@ -55,12 +55,13 @@ commands are two examples of commands that require this setting to
 work efficiently.  Several "fixes"_fix.html, most notably time
 integration fixes like "fix nve"_fix_nve.html, also take advantage of
 this setting if the group they operate on is the group specified by
-this command.
+this command.  Note that specifying "all" as the group-ID effectively
+turns off the {first} option.
 
 It is OK to use the {first} keyword with a group that has not yet been
-defined, e.g. to use the atom_modify command at the beginning of your
-input script.  LAMMPS will check that the group exists before the
-first simulation is performed.
+defined, e.g. to use the atom_modify first command at the beginning of
+your input script.  LAMMPS does not use the group until a simullation
+is run.
 
 The {sort} keyword turns on a spatial sorting or reordering of atoms
 within each processor's sub-domain every {Nfreq} timesteps.  This can
@@ -107,7 +108,7 @@ command.
 
 The {first} and {sort} options cannot be used together.  Since sorting
 is on by default, it will be turned off if the {first} keyword is
-used.
+used with a group-ID that is not "all".
 
 [Related commands:] none
 

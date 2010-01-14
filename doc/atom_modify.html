@@ -61,12 +61,13 @@ commands are two examples of commands that require this setting to
 work efficiently.  Several <A HREF = "fix.html">fixes</A>, most notably time
 integration fixes like <A HREF = "fix_nve.html">fix nve</A>, also take advantage of
 this setting if the group they operate on is the group specified by
-this command.
+this command.  Note that specifying "all" as the group-ID effectively
+turns off the <I>first</I> option.
 </P>
 <P>It is OK to use the <I>first</I> keyword with a group that has not yet been
-defined, e.g. to use the atom_modify command at the beginning of your
-input script.  LAMMPS will check that the group exists before the
-first simulation is performed.
+defined, e.g. to use the atom_modify first command at the beginning of
+your input script.  LAMMPS does not use the group until a simullation
+is run.
 </P>
 <P>The <I>sort</I> keyword turns on a spatial sorting or reordering of atoms
 within each processor's sub-domain every <I>Nfreq</I> timesteps.  This can
@@ -113,7 +114,7 @@ command.
 </P>
 <P>The <I>first</I> and <I>sort</I> options cannot be used together.  Since sorting
 is on by default, it will be turned off if the <I>first</I> keyword is
-used.
+used with a group-ID that is not "all".
 </P>
 <P><B>Related commands:</B> none
 </P>

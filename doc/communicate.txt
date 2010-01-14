@@ -24,8 +24,8 @@ keyword = {cutoff} or {group} or {vel} :l
 
 communicate multi
 communicate multi group solvent
-communicate single ghost yes
-communicate single cutoff 5.0 ghost yes :pre
+communicate single vel yes
+communicate single cutoff 5.0 vel yes :pre
 
 [Description:]
 

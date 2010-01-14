@@ -1,9 +1,9 @@
 # Settings for libraries used by specific LAMMPS packages
 # this file is auto-edited when those packages are included/excluded
 
-PKG_INC =  -I../../lib/reax -I../../lib/poems -I../../lib/meam 
-PKG_PATH = -L../../lib/reax -L../../lib/poems -L../../lib/meam -L../../lib/gpu 
-PKG_LIB =  -lreax -lpoems -lmeam -lgpu 
+PKG_INC =  
+PKG_PATH = 
+PKG_LIB =  
 
-PKG_SYSPATH = $(reax_SYSPATH) $(meam_SYSPATH) $(gpu_SYSPATH) 
-PKG_SYSLIB =  $(reax_SYSLIB) $(meam_SYSLIB) $(gpu_SYSLIB) 
+PKG_SYSPATH = 
+PKG_SYSLIB =  

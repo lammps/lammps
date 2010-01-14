@@ -53,7 +53,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   extra_bond_per_atom = 0;
 
   firstgroupname = NULL;
-  sortfreq = 1000;
+  sortfreq = 0;
+  //sortfreq = 1000;
   userbinsize = 0.0;
   maxbin = maxnext = 0;
   binhead = NULL;
@@ -353,13 +354,15 @@ void Atom::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all("Illegal atom_modify command");
-      if (strcmp(arg[iarg+1],"all") == 0) delete [] firstgroupname;
-      else {
+      if (strcmp(arg[iarg+1],"all") == 0) {
+	delete [] firstgroupname;
+	firstgroupname = NULL;
+      } else {
 	int n = strlen(arg[iarg+1]) + 1;
 	firstgroupname = new char[n];
 	strcpy(firstgroupname,arg[iarg+1]);
+	sortfreq = 0;
       }
-      sortfreq = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all("Illegal atom_modify command");
@@ -1360,9 +1363,9 @@ void Atom::sort()
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
   for (i = nlocal-1; i >= 0; i--) {
-    ix = static_cast<int> ((x[i][0]-bboxlo[0])*bininv);
-    iy = static_cast<int> ((x[i][1]-bboxlo[1])*bininv);
-    iz = static_cast<int> ((x[i][2]-bboxlo[2])*bininv);
+    ix = static_cast<int> ((x[i][0]-bboxlo[0])*bininvx);
+    iy = static_cast<int> ((x[i][1]-bboxlo[1])*bininvy);
+    iz = static_cast<int> ((x[i][2]-bboxlo[2])*bininvz);
     ix = MAX(ix,0);
     iy = MAX(iy,0);
     iz = MAX(iz,0);
@@ -1439,7 +1442,7 @@ void Atom::setup_sort_bins()
   else binsize = 0.5 * neighbor->cutneighmax;
   if (binsize == 0.0) error->all("Atom sorting has bin size = 0.0");
 
-  bininv = 1.0/binsize;
+  double bininv = 1.0/binsize;
 
   // nbin xyz = local bins
   // bbox lo/hi = bounding box of my sub-domain
@@ -1458,10 +1461,15 @@ void Atom::setup_sort_bins()
   nbinx = static_cast<int> ((bboxhi[0]-bboxlo[0]) * bininv);
   nbiny = static_cast<int> ((bboxhi[1]-bboxlo[1]) * bininv);
   nbinz = static_cast<int> ((bboxhi[2]-bboxlo[2]) * bininv);
+  if (domain->dimension == 2) nbinz = 1;
   
-  nbinx = MAX(nbinx,1);
-  nbinx = MAX(nbiny,1);
-  nbinx = MAX(nbinz,1);
+  if (nbinx == 0) nbinx = 1;
+  if (nbiny == 0) nbiny = 1;
+  if (nbinz == 0) nbinz = 1;
+
+  bininvx = nbinx / (bboxhi[0]-bboxlo[0]);
+  bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
+  bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX) 
     error->one("Too many atom sorting bins");

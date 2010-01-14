@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (char *) "7 Jul 2009";
+  version = (char *) "15 Jan 2010";
 
   uworld = communicator;
   MPI_Comm_rank(uworld,&me);

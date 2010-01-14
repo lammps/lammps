@@ -203,8 +203,8 @@ class Atom : protected Pointers {
   int *binhead;                   // 1st atom in each bin
   int *next;                      // next atom in bin
   int *permute;                   // permutation vector
-  double userbinsize;             // sorting bin size
-  double bininv;
+  double userbinsize;             // requested sort bin size
+  double bininvx,bininvy,bininvz; // inverse actual bin sizes
   double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
 
   int memlength;                  // allocated size of memstr

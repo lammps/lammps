@@ -222,7 +222,7 @@ void PRD::command(int narg, char **arg)
 
   update->minimize->init();
 
-  // cannot use PRD with time-dependent fixes or regions
+  // cannot use PRD with time-dependent fixes or regions or atom sorting
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
@@ -231,6 +231,9 @@ void PRD::command(int narg, char **arg)
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())
       error->all("Cannot use PRD with a time-dependent region defined");
+
+  if (atom->sortfreq > 0)
+    error->all("Cannot use PRD with atom_modify sort enabled");
 
   // perform PRD simulation
 

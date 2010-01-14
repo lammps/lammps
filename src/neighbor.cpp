@@ -1255,6 +1255,8 @@ void Neighbor::setup_bins()
 
   // memory for bin ptrs
 
+  if (1.0*mbinx*mbiny*mbinz > INT_MAX) error->one("Too many neighbor bins");
+
   mbins = mbinx*mbiny*mbinz;
   if (mbins > maxhead) {
     maxhead = mbins;

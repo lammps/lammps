@@ -196,16 +196,21 @@ class Atom : protected Pointers {
 
   // spatial sorting of atoms
 
-  int maxbin;                     // # of bins memory is allocated for
+  int nbins;                      // # of sorting bins
+  int nbinx,nbiny,nbinz;          // bins in each dimension
+  int maxbin;                     // max # of bins
   int maxnext;                    // max size of next,permute
   int *binhead;                   // 1st atom in each bin
   int *next;                      // next atom in bin
   int *permute;                   // permutation vector
   double userbinsize;             // sorting bin size
   double bininv;
+  double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
 
   int memlength;                  // allocated size of memstr
   char *memstr;                   // string of array names already counted
+
+  void setup_sort_bins();
 };
 
 }

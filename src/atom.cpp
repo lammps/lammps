@@ -15,6 +15,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "limits.h"
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
@@ -52,7 +53,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   extra_bond_per_atom = 0;
 
   firstgroupname = NULL;
-  sortfreq = 0;
+  sortfreq = 1000;
+  userbinsize = 0.0;
   maxbin = maxnext = 0;
   binhead = NULL;
   next = permute = NULL;
@@ -307,15 +309,10 @@ void Atom::init()
 
 void Atom::setup()
 {
-  // setup for sorting
-  // binsize = user setting or 1/2 of neighbor cutoff
+  // setup bins for sorting
+  // cannot do this in init() because uses neighbor cutoff
 
-  if (sortfreq > 0) {
-    double binsize;
-    if (userbinsize > 0.0) binsize = userbinsize;
-    else binsize = 0.5 * neighbor->cutneighmax;
-    bininv = 1.0/binsize;
-  }
+  if (sortfreq > 0) setup_sort_bins();
 }
 
 /* ----------------------------------------------------------------------
@@ -1331,37 +1328,20 @@ void Atom::first_reorder()
 
 /* ----------------------------------------------------------------------
    perform spatial sort of atoms within my sub-domain
+   always called between comm->exchange() and comm->borders()
+   don't have to worry about clearing/setting atom->map since done in comm
 ------------------------------------------------------------------------- */
 
 void Atom::sort()
 {
   int i,m,n,ix,iy,iz,ibin,empty,ndone;
 
-  // setup local bins, grow arrays as necessary
+  // re-setup sort bins if needed
 
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
-
-  int nbinx = static_cast<int> ((subhi[0]-sublo[0]) * bininv);
-  int nbiny = static_cast<int> ((subhi[1]-sublo[1]) * bininv);
-  int nbinz = static_cast<int> ((subhi[2]-sublo[2]) * bininv);
-
-  nbinx = MAX(nbinx,1);
-  nbinx = MAX(nbiny,1);
-  nbinx = MAX(nbinz,1);
-
-  int nbins = nbinx*nbiny*nbinz;
+  if (domain->box_change) setup_sort_bins();
   if (nbins == 1) return;
 
-  // reallocate per-bin memory if needed
-
-  if (nbins > maxbin) {
-    memory->sfree(binhead);
-    maxbin = nbins;
-    binhead = (int *) memory->smalloc(maxbin*sizeof(int),"sort:binhead");
-  }
-
-  // reallocate per-atom memory if needed
+  // reallocate per-atom vectors if needed
 
   if (nlocal > maxnext) {
     memory->sfree(next);
@@ -1380,9 +1360,9 @@ void Atom::sort()
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
   for (i = nlocal-1; i >= 0; i--) {
-    ix = static_cast<int> ((x[i][0]-sublo[0])*bininv);
-    iy = static_cast<int> ((x[i][1]-sublo[1])*bininv);
-    iz = static_cast<int> ((x[i][2]-sublo[2])*bininv);
+    ix = static_cast<int> ((x[i][0]-bboxlo[0])*bininv);
+    iy = static_cast<int> ((x[i][1]-bboxlo[1])*bininv);
+    iz = static_cast<int> ((x[i][2]-bboxlo[2])*bininv);
     ix = MAX(ix,0);
     iy = MAX(iy,0);
     iz = MAX(iz,0);
@@ -1433,16 +1413,68 @@ void Atom::sort()
 
   // sanity check that current = permute
 
-  int flag = 0;
-  for (i = 0; i < nlocal; i++)
-    if (current[i] != permute[i]) flag = 1;
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("Atom sort did not operate correctly");
+  //int flag = 0;
+  //for (i = 0; i < nlocal; i++)
+  //  if (current[i] != permute[i]) flag = 1;
+  //int flagall;
+  //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  //if (flagall) error->all("Atom sort did not operate correctly");
 
   // set next timestep for sorting to take place
 
-  nextsort += sortfreq;
+  nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
+}
+
+/* ----------------------------------------------------------------------
+   setup bins for spatial sorting of atoms
+------------------------------------------------------------------------- */
+
+void Atom::setup_sort_bins()
+{
+  // binsize = user setting or 1/2 of neighbor cutoff
+  // neighbor cutoff can be 0.0
+
+  double binsize;
+  if (userbinsize > 0.0) binsize = userbinsize;
+  else binsize = 0.5 * neighbor->cutneighmax;
+  if (binsize == 0.0) error->all("Atom sorting has bin size = 0.0");
+
+  bininv = 1.0/binsize;
+
+  // nbin xyz = local bins
+  // bbox lo/hi = bounding box of my sub-domain
+ 
+  if (domain->triclinic)
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,bboxlo,bboxhi);
+  else {
+    bboxlo[0] = domain->sublo[0];
+    bboxlo[1] = domain->sublo[1];
+    bboxlo[2] = domain->sublo[2];
+    bboxhi[0] = domain->subhi[0];
+    bboxhi[1] = domain->subhi[1];
+    bboxhi[2] = domain->subhi[2];
+  }
+  
+  nbinx = static_cast<int> ((bboxhi[0]-bboxlo[0]) * bininv);
+  nbiny = static_cast<int> ((bboxhi[1]-bboxlo[1]) * bininv);
+  nbinz = static_cast<int> ((bboxhi[2]-bboxlo[2]) * bininv);
+  
+  nbinx = MAX(nbinx,1);
+  nbinx = MAX(nbiny,1);
+  nbinx = MAX(nbinz,1);
+
+  if (1.0*nbinx*nbiny*nbinz > INT_MAX) 
+    error->one("Too many atom sorting bins");
+
+  nbins = nbinx*nbiny*nbinz;
+
+  // reallocate per-bin memory if needed
+
+  if (nbins > maxbin) {
+    memory->sfree(binhead);
+    maxbin = nbins;
+    binhead = (int *) memory->smalloc(maxbin*sizeof(int),"atom:binhead");
+  }
 }
 
 /* ----------------------------------------------------------------------

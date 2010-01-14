@@ -316,12 +316,14 @@ void Respa::setup()
   // acquire ghosts
   // build neighbor lists
 
+  atom->setup();
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
+  if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build();
@@ -503,6 +505,8 @@ void Respa::recurse(int ilevel)
 	}
 	timer->stamp();
 	comm->exchange();
+	if (atom->sortfreq > 0 && 
+	    update->ntimestep >= atom->nextsort) atom->sort();
 	comm->borders();
 	if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 	timer->stamp(TIME_COMM);

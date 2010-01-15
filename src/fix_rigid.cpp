@@ -65,17 +65,21 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   // parse command-line args
   // set nbody and body[i] for each atom
+  // bodystyle = index of style arg for vanilla,NVE,NVT,NPT
 
-  if (narg < 4) error->all("Illegal fix rigid command");
-  
+  if (strcmp(style,"rigid/nvt") == 0) bodystyle = 6;
+  else if (strcmp(style,"rigid/npt") == 0) bodystyle = 9;
+  else bodystyle = 3;
+
+  if (narg < bodystyle+1) error->all("Illegal fix rigid command");
+  int iarg;
+
   // single rigid body
   // nbody = 1
   // all atoms in fix group are part of body
 
-  int iarg;
-
-  if (strcmp(arg[3],"single") == 0) {
-    iarg = 4;
+  if (strcmp(arg[bodystyle],"single") == 0) {
+    iarg = bodystyle+1;
     nbody = 1;
 
     int *mask = atom->mask;
@@ -92,8 +96,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // nbody = # of non-zero ncount values
   // use nall as incremented ptr to set body[] values for each atom
 
-  } else if (strcmp(arg[3],"molecule") == 0) {
-    iarg = 4;
+  } else if (strcmp(arg[bodystyle],"molecule") == 0) {
+    iarg = bodystyle+1;
     if (atom->molecular == 0)
       error->all("Must use a molecular atom style with fix rigid molecule");
 
@@ -136,12 +140,11 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // an atom must belong to fix group and listed group to be in rigid body
   // error if atom belongs to more than 1 rigid body
 
-  } else if (strcmp(arg[3],"group") == 0) {
-    if (narg < 5) error->all("Illegal fix rigid command");
-    nbody = atoi(arg[4]);
+  } else if (strcmp(arg[bodystyle],"group") == 0) {
+    nbody = atoi(arg[bodystyle+1]);
     if (nbody <= 0) error->all("Illegal fix rigid command");
-    if (narg < 5+nbody) error->all("Illegal fix rigid command");
-    iarg = 5 + nbody;
+    if (narg < bodystyle+2 + nbody) error->all("Illegal fix rigid command");
+    iarg = bodystyle+2 + nbody;
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
@@ -1157,8 +1160,7 @@ void FixRigid::richardson(double *q, double *w,
 void FixRigid::final_integrate()
 {
   int i,ibody;
-  double dtfm;
-  double xy,xz,yz;
+  double dtfm,xy,xz,yz;
 
   // sum over atoms to get force and torque on rigid body
   
@@ -1251,14 +1253,13 @@ void FixRigid::final_integrate()
     angmom[ibody][0] += dtf * torque[ibody][0] * tflag[ibody][0];
     angmom[ibody][1] += dtf * torque[ibody][1] * tflag[ibody][1];
     angmom[ibody][2] += dtf * torque[ibody][2] * tflag[ibody][2];
+
+    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
+		      ez_space[ibody],inertia[ibody],omega[ibody]);
   }
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
-
-  for (ibody = 0; ibody < nbody; ibody++) 
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		      ez_space[ibody],inertia[ibody],omega[ibody]);
 
   set_v();
 }
@@ -1597,7 +1598,7 @@ void FixRigid::exyz_from_q(double *q, double *ex, double *ey, double *ez)
 
 void FixRigid::vecquat(double *a, double *b, double *c)
 {
-  c[0] = -(a[0]*b[1] + a[1]*b[2] + a[2]*b[3]);
+  c[0] = -a[0]*b[1] - a[1]*b[2] - a[2]*b[3];
   c[1] = b[0]*a[0] + a[1]*b[3] - a[2]*b[2];
   c[2] = b[0]*a[1] + a[2]*b[1] - a[0]*b[3];
   c[3] = b[0]*a[2] + a[0]*b[2] - a[1]*b[1];
@@ -1609,7 +1610,7 @@ void FixRigid::vecquat(double *a, double *b, double *c)
 
 void FixRigid::quatvec(double *a, double *b, double *c)
 {
-  c[0] = - (a[1]*b[0] + a[2]*b[1] + a[3]*b[2]);
+  c[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
   c[1] = a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
   c[2] = a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
   c[3] = a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
@@ -1625,6 +1626,20 @@ void FixRigid::quatquat(double *a, double *b, double *c)
   c[1] = a[0]*b[1] + b[0]*a[1] + a[2]*b[3] - a[3]*b[2];
   c[2] = a[0]*b[2] + b[0]*a[2] + a[3]*b[1] - a[1]*b[3];
   c[3] = a[0]*b[3] + b[0]*a[3] + a[1]*b[2] - a[2]*b[1];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion multiply: c = inv(a)*b
+   a is a quaternion
+   b is a four component vector
+   c is a three component vector
+------------------------------------------------------------------------- */
+
+void FixRigid::invquatvec(double *a, double *b, double *c)
+{ 
+  c[0] = -a[1]*b[0] + a[0]*b[1] + a[3]*b[2] - a[2]*b[3];
+  c[1] = -a[2]*b[0] - a[3]*b[1] + a[0]*b[2] + a[1]*b[3];
+  c[2] = -a[3]*b[0] + a[2]*b[1] - a[1]*b[2] + a[0]*b[3];
 }
 
 /* ----------------------------------------------------------------------
@@ -1651,6 +1666,30 @@ void FixRigid::qnormalize(double *q)
   q[1] *= norm;
   q[2] *= norm;
   q[3] *= norm;
+}
+
+/* ----------------------------------------------------------------------
+  matvec_rows: c = Ab, where rows of A are x, y, z
+------------------------------------------------------------------------- */
+
+void FixRigid::matvec_rows(double *x, double *y, double *z, 
+			   double *b, double *c)
+{
+  c[0] = x[0]*b[0] + x[1]*b[1] + x[2]*b[2];
+  c[1] = y[0]*b[0] + y[1]*b[1] + y[2]*b[2];
+  c[2] = z[0]*b[0] + z[1]*b[1] + z[2]*b[2];
+}
+
+/* ----------------------------------------------------------------------
+  matvec_cols: c = Ab, where columns of A are x, y, z
+------------------------------------------------------------------------- */
+
+void FixRigid::matvec_cols(double *x, double *y, double *z,
+			   double *b, double *c)
+{
+  c[0] = x[0]*b[0] + y[0]*b[1] + z[0]*b[2];
+  c[1] = x[1]*b[0] + y[1]*b[1] + z[1]*b[2];
+  c[2] = x[2]*b[0] + y[2]*b[1] + z[2]*b[2];
 }
 
 /* ----------------------------------------------------------------------

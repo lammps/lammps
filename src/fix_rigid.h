@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixRigid : public Fix {
  public:
   FixRigid(class LAMMPS *, int, char **);
-  ~FixRigid();
+  virtual ~FixRigid();
   int setmask();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void final_integrate();
+  virtual void init();
+  virtual void setup(int);
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int);
 
@@ -49,10 +49,11 @@ class FixRigid : public Fix {
   void reset_dt();
   double compute_array(int, int);
 
- private:
+ protected:
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
+  int bodystyle;            // arg index for bodystyle
 
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
@@ -94,11 +95,16 @@ class FixRigid : public Fix {
   void rotate(double **, int, int, int, int, double, double);
   void q_from_exyz(double *, double *, double *, double *);
   void exyz_from_q(double *, double *, double *, double *);
+
   void vecquat(double *, double *, double *);
   void quatvec(double *, double *, double *);
   void quatquat(double *, double *, double *);
+  void invquatvec(double *, double *, double *); 
   void qconjugate(double *, double *);
   void qnormalize(double *);
+  void matvec_rows(double *, double *, double *, double *, double *);
+  void matvec_cols(double *, double *, double *, double *, double *);
+
   void richardson(double *, double *, double *, double *,
 		  double *, double *, double *);
   void omega_from_angmom(double *, double *, double *,

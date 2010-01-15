@@ -65,7 +65,7 @@ is run.
 
 The {sort} keyword turns on a spatial sorting or reordering of atoms
 within each processor's sub-domain every {Nfreq} timesteps.  This can
-improve cache performance and thus speed=up a LAMMPS simulation, as
+improve cache performance and thus speed-up a LAMMPS simulation, as
 discussed in a paper by "(Meloni)"_#Meloni.  In tests we have done,
 the amount of speed-up can range from zero to 3-4x.  It is typically
 more effective at speeding up simulations of liquids as opposed to
@@ -83,12 +83,12 @@ reordered so that atoms in the same bin are adjacent to each other in
 the processor's 1d list of atoms.
 
 The goal of this procedure is for atoms be near each other in the
-processor's 1d list of atoms that are also near to each other
-spatially.  This can improve cache performance when pairwise
+processor's one-dimensional list of atoms that are also near to each
+other spatially.  This can improve cache performance when pairwise
 intereractions and neighbor lists are computed.  Note that if bins are
 too small, there will be few atoms/bin.  Likewise if bins are too
 large, there will be many atoms/bin.  In both cases, the goal of cache
-locality can be undermined.
+locality will be undermined.
 
 IMPORTANT NOTE: Running a simulation with sorting on versus off should
 not change the simulation results in a statistical sense.  However,

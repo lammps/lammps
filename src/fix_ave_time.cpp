@@ -200,7 +200,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     }
 
     column = new double[nrows];
-  }
+  } else column = NULL;
 
   // print file comment lines
 

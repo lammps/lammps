@@ -133,7 +133,7 @@ double ComputePropertyMolecule::memory_usage()
 void ComputePropertyMolecule::pack_mol(int n)
 {
   for (int i = idlo; i <= idhi; i++)
-    if (molmap[i-idlo] >= 0) {
+    if (molmap == NULL || molmap[i-idlo] >= 0) {
       buf[n] = i;
       n += nvalues;
     }

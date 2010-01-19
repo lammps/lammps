@@ -13,15 +13,15 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>if value1 operator value2 then command1 else command2 
+<PRE>if value1 operator value2 then T1 T2 ... else E1 E2 ... 
 </PRE>
 <UL><LI>value1 = 1st value
 <LI>operator = "<" or "<=" or ">" or ">=" or "==" or "!="
 <LI>value2 = 2nd value
 <LI>then = required word
-<LI>command1 = command to execute if condition is met
-<LI>else = optional word
-<LI>command2 = command to execute if condition is not met (optional argument) 
+<LI>T1,T2,...,TN = one or more commands to execute if condition is met
+<LI>else = optional argument
+<LI>E1,E2,...,EN = one or more commands to execute if condition is not met (optional arguments) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -32,30 +32,45 @@ if ${eng} > ${eng_previous} then "jump file1" else "jump file2"
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command provides an in-then-else test capability within an input
+<P>This command provides an in-then-else capability within an input
 script.  Two values are numerically compared to each other and the
 result is TRUE or FALSE.  Note that as in the examples above, either
-of the values can be variables, as defined by the
-<A HREF = "variable.html">variable</A> command, so that when they are evaluated when
-substituted for in the if command, a user-defined computation will be
-performed which can depend on the current state of the simulation.
+of the two values can be variables, as defined by the
+<A HREF = "variable.html">variable</A> command, so that when the if command is
+executed, the variable(s) will be evaluated, which could calculate a
+user-defined formula that reflects the current state of the
+simulation.
 </P>
-<P>If the result of the if test is TRUE, then command1 is executed.  This
-can be any valid LAMMPS input script command.  If the command is more
-than 1 word, it should be enclosed in double quotes, so that it will
+<P>If the result of the if test is TRUE, then one or more commands (T1,
+T2, ..., TN) are executed.  If the result of the if test is FALSE and
+no optional "else" argument is included, then the if command does
+nothing.  If the result of the if test is FALSE and the optional
+"else" argument is included, then one or more commands (E1,
+E2, ..., En) are executed.
+</P>
+<P>Each then or else command (T1,E1,etc) can be any valid LAMMPS input
+script command.  Each command should be enclosed in quotes, so it will
 be treated as a single argument, as in the examples above.
 </P>
-<P>The if command can contain an optional "else" clause.  If it does and
-the result of the if test is FALSE, then command2 is executed.
+<P>Note that by using the line continuation character "&", the if command
+can be spread across many lines, though it is still a single
+command:
+</P>
+<PRE>if $a < $b then &
+  "print Minimum value = $a"
+  "run 1000" &
+else &      
+  "print Minimum value = $b" &
+  "minimize 0.001 0.001 1000 10000" 
+</PRE>
+<P>Note that if any executed comand is a bogus LAMMPS command, such as
+"exit" in the first example above, then executing the command will
+cause LAMMPS to halt.
 </P>
 <P>Note that by jumping to a label in the same input script, the if
 command can be used to break out of a loop.  See the <A HREF = "variable.html">variable
 delete</A> for info on how to delete the associated loop
 variable, so that it can be re-used later in the input script.
-</P>
-<P>Note that if either command1 or command2 is a bogus LAMMPS command,
-such as "exit" in the first example, then executing the command will
-cause LAMMPS to halt.
 </P>
 <P>Here is an example of a double loop which uses the if and
 <A HREF = "jump.html">jump</A> commands to break out of the inner loop when a
@@ -80,7 +95,7 @@ jump	    in.script loopa
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "variable.html">variable</A>
+<P><A HREF = "variable.html">variable</A>, <A HREF = "print.html">print</A>
 </P>
 <P><B>Default:</B> none
 </P>

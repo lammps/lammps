@@ -81,25 +81,27 @@ file names or user-chosen ID strings.
 
 Here is how each line in the input script is parsed by LAMMPS:
 
-(1) If the line ends with a "&" character (the "and" character which
-is shift-7 on most keyboards) with no trailing whitespace (and no
-surrounding quotes), the command is assumed to continue on the next
-line.  The next line is concatenated to the previous line by removing
-the "&" character ("and" character) and newline.  This allows long
-commands to be continued across two or more lines.
+(1) If the last printable character on the line is a "&" character
+(with no surrounding quotes), the command is assumed to continue on
+the next line.  The next line is concatenated to the previous line by
+removing the "&" character and newline.  This allows long commands to
+be continued across two or more lines.
 
 (2) All characters from the first "#" character onward are treated as
-comment and discarded.
+comment and discarded.  See an exception in (6).  Note that a
+comment after a trailing "&" character will prevent the command from
+continuing on the next line.  Also note that for multi-line commands a
+single leading "#" will comment out the entire command.
 
-(3) The line is searched repeatedly for $ characters which indicate
-variables that are replaced with a text string.  If the $ is followed
-by curly brackets, then the variable name is the text inside the curly
-brackets.  If no curly brackets follow the $, then the variable name
-is the character immediately following the $.  Thus $\{myTemp\} and $x
-refer to variable names "myTemp" and "x".  See the
-"variable"_variable.html command for details of how strings are
-assigned to variables and how they are substituted for in input
-scripts.
+(3) The line is searched repeatedly for $ characters, which indicate
+variables that are replaced with a text string.  See an exception in
+(6).  If the $ is followed by curly brackets, then the variable name
+is the text inside the curly brackets.  If no curly brackets follow
+the $, then the variable name is the single character immediately
+following the $.  Thus $\{myTemp\} and $x refer to variable names
+"myTemp" and "x".  See the "variable"_variable.html command for
+details of how strings are assigned to variables and how they are
+substituted for in input script commands.
 
 (4) The line is broken into "words" separated by whitespace (tabs,
 spaces).  Note that words can thus contain letters, digits,
@@ -108,11 +110,12 @@ underscores, or punctuation characters.
 (5) The first word is the command name.  All successive words in the
 line are arguments.
 
-(6) Text with spaces can be enclosed in double quotes so it will be
-treated as a single argument.  See the "dump modify"_dump_modify.html
-or "fix print"_fix_print.html commands for examples.  A '#' or '$'
-character that is in text between double quotes will not be treated as
-a comment or substituted for as a variable.
+(6) If you want text with spaces to be treated as a single argument,
+it can be enclosed in double quotes.  The quotes are removed when the
+single argument is stored in its final form.  See the "dump modify
+format"_dump_modify.html or "if"_if.html commands for examples.  A "#"
+or "$" character that is between double quotes will not be treated as
+a comment indicator in (2) or substituted for as a variable in (3).
 
 :line
 

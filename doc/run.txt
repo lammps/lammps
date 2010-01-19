@@ -22,10 +22,10 @@ keyword = {upto} or {start} or {stop} or {pre} or {post} or {every} :l
     N2 = timestep at which last run will end
   {pre} value = {no} or {yes}
   {post} value = {no} or {yes} 
-  {every} values = M command1 command2 ...
+  {every} values = M c1 c2 ...
     M = break the run into M-timestep segments and invoke one or more commands between each segment
-    command1,command2,... = a single LAMMPS command, enclosed in quotes
-    command1 = NULL means no command will be invoked :pre
+    c1,c2,...,cN = one or more LAMMPS commands, each enclosed in quotes
+    c1 = NULL means no command will be invoked :pre
 :ule
 
 [Examples:]
@@ -107,14 +107,14 @@ If {post} is specified as "no", the full timing summary is skipped;
 only a one-line summary timing is printed.
 
 The {every} keyword provides a means of breaking a LAMMPS run into a
-series of shorter runs.  Optionally, one or more LAMMPS commands will
-be executed in between the short runs.  If used, the {every} keyword
-must be the last keyword, since it has a variable number of arguments.
-Each of the trailing arguments is a single LAMMPS command, and each
-command should be enclosed in quotes, so that the entire command will
-be treated as a single argument.  This will also prevent any variables
-in the command from being evaluated until it is executed during the
-run.
+series of shorter runs.  Optionally, one or more LAMMPS commands (c1,
+c2, ..., cN) will be executed in between the short runs.  If used, the
+{every} keyword must be the last keyword, since it has a variable
+number of arguments.  Each of the trailing arguments is a single
+LAMMPS command, and each command should be enclosed in quotes, so that
+the entire command will be treated as a single argument.  This will
+also prevent any variables in the command from being evaluated until
+it is executed multiple times during the run.
 
 The {every} keyword is a means to avoid listing a long series of runs
 and interleaving commands in your input script.  For example, a

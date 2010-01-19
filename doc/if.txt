@@ -10,15 +10,15 @@ if command :h3
 
 [Syntax:]
 
-if value1 operator value2 then T1 T2 ... else E1 E2 ... :pre
+if value1 operator value2 then t1 t2 ... else e1 e2 ... :pre
 
 value1 = 1st value
 operator = "<" or "<=" or ">" or ">=" or "==" or "!="
 value2 = 2nd value
 then = required word
-T1,T2,...,TN = one or more commands to execute if condition is met
+t1,t2,...,tN = one or more LAMMPS commands to execute if condition is met, each enclosed in quotes
 else = optional argument
-E1,E2,...,EN = one or more commands to execute if condition is not met (optional arguments) :ul
+e1,e2,...,eN = one or more LAMMPS commands to execute if condition is not met, each enclosed in quotes (optional arguments) :ul
 
 [Examples:]
 
@@ -38,14 +38,14 @@ executed, the variable(s) will be evaluated, which could calculate a
 user-defined formula that reflects the current state of the
 simulation.
 
-If the result of the if test is TRUE, then one or more commands (T1,
-T2, ..., TN) are executed.  If the result of the if test is FALSE and
+If the result of the if test is TRUE, then one or more commands (t1,
+t2, ..., tN) are executed.  If the result of the if test is FALSE and
 no optional "else" argument is included, then the if command does
 nothing.  If the result of the if test is FALSE and the optional
-"else" argument is included, then one or more commands (E1,
-E2, ..., En) are executed.
+"else" argument is included, then one or more commands (e1,
+e2, ..., eN) are executed.
 
-Each then or else command (T1,E1,etc) can be any valid LAMMPS input
+Each then or else command (t1, e1, etc) can be any valid LAMMPS input
 script command.  Each command should be enclosed in quotes, so it will
 be treated as a single argument, as in the examples above.
 

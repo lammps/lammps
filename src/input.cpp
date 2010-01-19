@@ -15,6 +15,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "input.h"
 #include "style_command.h"
 #include "universe.h"
@@ -117,20 +118,24 @@ Input::~Input()
 
 void Input::file()
 {
-  int n;
+  int m,n;
 
   while (1) {
     
-    // read one line from input script
+    // read a line from input script
     // if line ends in continuation char '&', concatenate next line(s)
-    // n = str length of line
-    
+    // n = length of line including str terminator, 0 if end of file
+    // m = position of last printable char in line or -1 if blank line
+
     if (me == 0) {
-      if (fgets(line,MAXLINE,infile) == NULL) n = 0;
-      else n = strlen(line) + 1;
-      while (n >= 3 && line[n-3] == '&') {
-	if (fgets(&line[n-3],MAXLINE-n+3,infile) == NULL) n = 0;
+      m = 0;
+      while (1) {
+	if (fgets(&line[m],MAXLINE-m,infile) == NULL) n = 0;
 	else n = strlen(line) + 1;
+	if (n == 0) break;
+	m = n-2;
+	while (m >= 0 && isspace(line[m])) m--;
+	if (m < 0 || line[m] != '&') break;
       }
     }
 
@@ -516,7 +521,10 @@ void Input::echo()
 
 void Input::ifthenelse()
 {
-  if (narg != 5 && narg != 7) error->all("Illegal if command");
+  if (narg < 5) error->all("Illegal if command");
+
+  // flag = 0 for "then"
+  // flag = 1 for "else"
 
   int flag = 0;
   if (strcmp(arg[1],"==") == 0) {
@@ -533,16 +541,35 @@ void Input::ifthenelse()
     if (atof(arg[0]) >= atof(arg[2])) flag = 1;
   } else error->all("Illegal if command");
 
+  // first = arg index of first "then" or "else" command
+  // last = arg index of last "then" or "else" command
+  
+  int iarg,first,last;
+
   if (strcmp(arg[3],"then") != 0) error->all("Illegal if command");
-  if (narg == 7 && strcmp(arg[5],"else") != 0) 
-    error->all("Illegal if command");
+  if (flag) {
+    iarg = first = 4;
+    while (iarg < narg && strcmp(arg[iarg],"else") != 0) iarg++;
+    last = iarg-1;
+  } else {
+    iarg = 4;
+    while (iarg < narg && strcmp(arg[iarg],"else") != 0) iarg++;
+    if (iarg == narg) error->all("Illegal if command");
+    first = iarg+1;
+    last = narg-1;
+  }
 
-  char str[128] = "\0";
-  if (flag) strcpy(str,arg[4]);
-  else if (narg == 7) strcpy(str,arg[6]);
-  strcat(str,"\n");
+  if (last-first < 0) error->all("Illegal if command");
 
-  if (strlen(str) > 1) char *tmp = one(str);
+  // execute the list of commands
+
+  char str[256];
+  for (int i = first; i <= last; i++) {
+    if (strlen(arg[i]) == 0) error->all("Illegal if command");
+    strcpy(str,arg[i]);
+    strcat(str,"\n");
+    char *tmp = one(str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -638,15 +665,22 @@ void Input::next_command()
 
 void Input::print()
 {
-  if (narg != 1) error->all("Illegal print command");
+  if (narg == 0) error->all("Illegal print command");
 
   // substitute for $ variables (no printing)
+  // print args one at a time, separated by spaces
 
-  substitute(arg[0],0);
+  for (int i = 0; i < narg; i++) {
+    substitute(arg[i],0);
+    if (me == 0) {
+      if (screen) fprintf(screen,"%s ",arg[i]);
+      if (logfile) fprintf(logfile,"%s ",arg[i]);
+    }
+  }
 
   if (me == 0) {
-    if (screen) fprintf(screen,"%s\n",arg[0]);
-    if (logfile) fprintf(logfile,"%s\n",arg[0]);
+    if (screen) fprintf(screen,"\n");
+    if (logfile) fprintf(logfile,"\n");
   }
 }
 

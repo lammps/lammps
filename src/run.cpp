@@ -55,7 +55,7 @@ void Run::command(int narg, char **arg)
   int preflag = 1;
   int postflag = 1;
   int nevery = 0;
-  char *commandstr = NULL;
+  int first,last,ncommands;
     
   int iarg = 1;
   while (iarg < narg) {
@@ -86,24 +86,18 @@ void Run::command(int narg, char **arg)
       else error->all("Illegal run command");
       iarg += 2;
 
-    // generate commandstr if last arg is not NULL
-    // commandstr = concatenation of all remaining args
-    // if an arg has spaces, enclose in quotes since input parser removed them
+      // all remaining args are commands
+      // first,last = arg index of first/last commands
+      // set ncommands = 0 if single command and it is NULL
 
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) error->all("Illegal run command");
       nevery = atoi(arg[iarg+1]);
       if (nevery <= 0) error->all("Illegal run command");
-      if (strcmp(arg[iarg+2],"NULL") != 0) {
-	commandstr = new char[MAXLINE];
-	commandstr[0] = '\0';
-	for (int jarg = iarg+2; jarg < narg; jarg++) {
-	  if (strchr(arg[jarg],' ')) strcat(commandstr,"\"");
-	  strcat(commandstr,arg[jarg]);
-	  if (strchr(arg[jarg],' ')) strcat(commandstr,"\"");
-	  strcat(commandstr," ");
-	}
-      }
+      first = iarg+2;
+      last = narg-1;
+      ncommands = last-first + 1;
+      if (ncommands == 1 && strcmp(arg[first],"NULL") == 0) ncommands = 0;
       iarg = narg;
     } else error->all("Illegal run command");
   }
@@ -111,6 +105,21 @@ void Run::command(int narg, char **arg)
   // adjust nsteps if upto was specified
 
   if (uptoflag) nsteps -= update->ntimestep;
+
+  // if nevery, make copies of arg strings that are commands
+  // required because re-parsing commands during run will wipe out args
+
+  char **commands = NULL;
+  if (nevery && ncommands > 0) {
+    commands = new char*[ncommands];
+    ncommands = 0;
+    for (int i = first; i <= last; i++) {
+      int n = strlen(arg[i]) + 1;
+      commands[ncommands] = new char[n];
+      strcpy(commands[ncommands],arg[i]);
+      ncommands++;
+    }
+  }
 
   // error check
 
@@ -156,7 +165,7 @@ void Run::command(int narg, char **arg)
     Finish finish(lmp);
     finish.end(postflag);
 
-  // perform multiple runs optionally interleaved with invocation of a command
+  // perform multiple runs optionally interleaved with invocation command(s)
   // use start/stop to set begin/end step
   // if pre or 1st iteration of multiple runs, do System init/setup,
   //   else just init timer and setup output
@@ -195,12 +204,13 @@ void Run::command(int narg, char **arg)
       if (postflag || nleft <= nsteps) finish.end(1);
       else finish.end(0);
 
-      // command string may invoke computes via command with variable
-      // so wrap with clearstep/addstep
+      // wrap command invocation with clearstep/addstep
+      // since a command may invoke computes via variables
 
-      if (commandstr) {
+      if (ncommands) {
 	modify->clearstep_compute();
-	char *command = input->one(commandstr);
+	for (int i = 0; i < ncommands; i++)
+	  char *command = input->one(commands[i]);
 	modify->addstep_compute(update->ntimestep + nevery);
       }
 
@@ -212,5 +222,9 @@ void Run::command(int narg, char **arg)
   update->whichflag = 0;
   update->firststep = update->laststep = 0;
   update->beginstep = update->endstep = 0;
-  delete [] commandstr;
+
+  if (commands) {
+    for (int i = 0; i < ncommands; i++) delete [] commands[i];
+    delete [] commands;
+  }
 }

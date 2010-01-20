@@ -107,7 +107,7 @@ void Run::command(int narg, char **arg)
   if (uptoflag) nsteps -= update->ntimestep;
 
   // if nevery, make copies of arg strings that are commands
-  // required because re-parsing commands during run will wipe out args
+  // required because re-parsing commands via input->one() will wipe out args
 
   char **commands = NULL;
   if (nevery && ncommands > 0) {

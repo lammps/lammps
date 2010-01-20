@@ -559,17 +559,31 @@ void Input::ifthenelse()
     last = narg-1;
   }
 
-  if (last-first < 0) error->all("Illegal if command");
+  int ncommands = last-first + 1;
+  if (ncommands <= 0) error->all("Illegal if command");
+
+  // make copies of arg strings that are commands
+  // required because re-parsing commands via one() will wipe out args
+
+  char **commands = new char*[ncommands];
+  ncommands = 0;
+  for (int i = first; i <= last; i++) {
+    int n = strlen(arg[i]) + 1;
+    if (n == 1) error->all("Illegal if command");
+    commands[ncommands] = new char[n];
+    strcpy(commands[ncommands],arg[i]);
+    ncommands++;
+  }
 
   // execute the list of commands
 
-  char str[256];
-  for (int i = first; i <= last; i++) {
-    if (strlen(arg[i]) == 0) error->all("Illegal if command");
-    strcpy(str,arg[i]);
-    strcat(str,"\n");
-    char *tmp = one(str);
-  }
+  for (int i = 0; i < ncommands; i++)
+    char *command = input->one(commands[i]);
+
+  // clean up
+
+  for (int i = 0; i < ncommands; i++) delete [] commands[i];
+  delete [] commands;
 }
 
 /* ---------------------------------------------------------------------- */

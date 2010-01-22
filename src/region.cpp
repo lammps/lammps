@@ -181,7 +181,7 @@ int Region::dynamic_check()
 
 int Region::match(double x, double y, double z)
 {
-  double a[3],b[3],c[3],d[3],disp[0];
+  double a[3],b[3],c[3],d[3];
 
   if (dynamic) {
     double delta = (update->ntimestep - time_origin) * dt;
@@ -299,7 +299,7 @@ void Region::add_contact(int n, double *x, double xp, double yp, double zp)
 
 void Region::rotate(double &x, double &y, double &z, double angle)
 {
-  double a[3],b[3],c[3],d[3],disp[0];
+  double a[3],b[3],c[3],d[3],disp[3];
 
   double sine = sin(angle);
   double cosine = cos(angle);

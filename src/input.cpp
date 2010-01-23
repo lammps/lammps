@@ -546,6 +546,9 @@ void Input::ifthenelse()
   
   int iarg,first,last;
 
+  // identify range of commands within arg list for then or else
+  // for else, if no comands, just return
+
   if (strcmp(arg[3],"then") != 0) error->all("Illegal if command");
   if (flag) {
     iarg = first = 4;
@@ -554,7 +557,7 @@ void Input::ifthenelse()
   } else {
     iarg = 4;
     while (iarg < narg && strcmp(arg[iarg],"else") != 0) iarg++;
-    if (iarg == narg) error->all("Illegal if command");
+    if (iarg == narg) return;
     first = iarg+1;
     last = narg-1;
   }

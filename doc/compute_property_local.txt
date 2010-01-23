@@ -111,6 +111,9 @@ that uses local values from a compute as input.  See "this
 section"_Section_howto.html#4_15 for an overview of LAMMPS output
 options.
 
+The vector or array values will be integers that correspond to the
+specified attribute.
+
 [Restrictions:] none
 
 [Related commands:]

@@ -55,6 +55,8 @@ for an overview of LAMMPS output options.
 The vector values are "intensive", meaning they are independent of the
 number of atoms in the simulation.
 
+The vector values will be in distance "units"_units.html.
+
 [Restrictions:] none
 
 [Related commands:]

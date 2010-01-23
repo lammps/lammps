@@ -49,6 +49,9 @@ Both the scalar and vector values calculated by this compute are
 "extensive", meaning they scale with the number of atoms in the
 simulation.
 
+The scalar value will be in energy "units"_units.html.  The vector
+values will be in force "units"_units.html.
+
 [Restrictions:]
 
 Only pairwise interactions, as defined by the

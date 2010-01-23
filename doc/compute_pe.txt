@@ -61,6 +61,8 @@ overview of LAMMPS output options.
 The scalar value calculated by this compute is "extensive", meaning it
 it scales with the number of atoms in the simulation.
 
+The scalar value will be in energy "units"_units.html.
+
 [Restrictions:] none
 
 [Related commands:]

@@ -65,6 +65,8 @@ options.
 The vector values calculated by this compute are "intensive", meaning
 it is independent of the number of atoms in the simulation.
 
+The vector values will be in distance "units"_units.html.
+
 [Restrictions:] none
 
 [Related commands:] none

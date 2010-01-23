@@ -84,6 +84,8 @@ options.
 The array values are "intensive", meaning they are independent of the
 number of atoms in the simulation.
 
+The array values will be in distance^2 "units"_units.html.
+
 [Restrictions:] none
 
 [Related commands:]

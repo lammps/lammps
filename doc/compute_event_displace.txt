@@ -43,6 +43,8 @@ LAMMPS output options.
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.
 
+The scalar value will be a 0 or 1 as explained above.
+
 [Restrictions:]
 
 This command can only be used if LAMMPS was built with the "prd"

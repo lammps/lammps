@@ -34,8 +34,6 @@ the atoms owned on a processor and their dihedrals.  A dihedral will
 only be included if all 4 atoms in the dihedral are in the specified
 compute group.
 
-The output {phi} will be in degrees.
-
 Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array
 from one timestep to the next.  The only consistency that is
@@ -57,6 +55,8 @@ keywords.  The vector or array can be accessed by any command that
 uses local values from a compute as input.  See "this
 section"_Section_howto.html#4_15 for an overview of LAMMPS output
 options.
+
+The output for {phi} will be in degrees.
 
 [Restrictions:] none
 

@@ -41,9 +41,6 @@ shake"_fix_shake.html or "delete_bonds"_delete_bonds.html commands) by
 setting their angle type negative are written into the file, but their
 energy will be 0.0.
 
-The output {theta} will be in degrees.  The output {eng} will be in
-energy "units"_units.html.
-
 Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array
 from one timestep to the next.  The only consistency that is
@@ -65,6 +62,9 @@ keywords.  The vector or array can be accessed by any command that
 uses local values from a compute as input.  See "this
 section"_Section_howto.html#4_15 for an overview of LAMMPS output
 options.
+
+The output for {theta} will be in degrees.  The output for {eng} will
+be in energy "units"_units.html.
 
 [Restrictions:] none
 

@@ -112,6 +112,11 @@ The array values calculated by this compute are all "intensive", since
 they are normalized, meaning they are independent of the number of
 atoms in the simulation.
 
+The first column of array values will be in distance
+"units"_units.html.  The g(r) columns of array values are normalized
+numbers >= 0.0.  The coordination number columns of array values are
+also numbers >= 0.0.
+
 [Restrictions:]
 
 The RDF is not computed for distances longer than the force cutoff,

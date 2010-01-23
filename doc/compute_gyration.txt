@@ -52,6 +52,8 @@ LAMMPS output options.
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.
 
+The scalar value will be in distance "units"_units.html.
+
 [Restrictions:] none
 
 [Related commands:]

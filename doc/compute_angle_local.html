@@ -49,9 +49,6 @@ shake</A> or <A HREF = "delete_bonds.html">delete_bonds</A> commands) by
 setting their angle type negative are written into the file, but their
 energy will be 0.0.
 </P>
-<P>The output <I>theta</I> will be in degrees.  The output <I>eng</I> will be in
-energy <A HREF = "units.html">units</A>.
-</P>
 <P>Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array
 from one timestep to the next.  The only consistency that is
@@ -73,6 +70,9 @@ keywords.  The vector or array can be accessed by any command that
 uses local values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
 section</A> for an overview of LAMMPS output
 options.
+</P>
+<P>The output for <I>theta</I> will be in degrees.  The output for <I>eng</I> will
+be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

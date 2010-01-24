@@ -75,9 +75,9 @@ pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
 </P>
 <P>Note that as defined in the formula, per-atom stress is the negative
-of the per-atom pressure tensor.  It is also really a stress-volume
+of the per-atom pressure tensor.  It is also really a stress*volume
 formulation, meaning the computed quantity is in units of
-pressure-volume.  It would need to be divided by a per-atom volume to
+pressure*volume.  It would need to be divided by a per-atom volume to
 have units of stress (pressure), but an individual atom's volume is
 not well defined or easy to compute in a deformed solid or a liquid.
 Thus, if the diagonal components of the per-atom stress tensor are

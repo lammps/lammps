@@ -227,7 +227,7 @@ void ComputeStressAtom::compute_peratom()
     }
   }
 
-  // convert to pressure units (actually stress/volume = -pressure)
+  // convert to stress*volume units = -pressure*volume
 
   double nktv2p = -force->nktv2p;
   for (i = 0; i < nlocal; i++)

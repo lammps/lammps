@@ -34,7 +34,7 @@ class Temper : protected Pointers {
   int me,me_universe;          // my proc ID in world and universe
   int iworld,nworlds;          // world info
   double boltz;                // copy from output->boltz
-  MPI_Comm roots;              // Comm with 1 root proc from each world
+  MPI_Comm roots;              // MPI comm with 1 root proc from each world
   class RanPark *ranswap,*ranboltz;  // RNGs for swapping and Boltz factor
   int nevery;                  // # of timesteps between swaps
   int nswaps;                  // # of tempering swaps to perform

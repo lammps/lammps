@@ -122,7 +122,7 @@ The event check is performed by a compute with the specified
 PRD commmand, which is the "compute
 event/displace"_compute_event_displace.html command.  Other
 event-checking computes may be added.  "Compute
-event/displace"_compute_event_displace checks whether any atom in the
+event/displace"_compute_event_displace.html checks whether any atom in the
 compute group has moved further than a specified threshold distance.
 If so, an "event" has occurred.
 

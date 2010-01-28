@@ -36,7 +36,7 @@ keyword = {min} or {temp} or {vel} :l
 [Examples:]
 
 prd 5000 100 10 10 100 1 54982
-prd 5000 100 10 10 100 1 54982 maxiter 100 :pre
+prd 5000 100 10 10 100 1 54982 min 0.1 0.1 100 200 :pre
 
 [Description:]
 

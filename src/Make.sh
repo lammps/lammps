@@ -4,6 +4,7 @@
 #         sh Make.sh Makefile.list
 
 # function to create one style_*.h file
+# return 0 so will not kill make if last rm command is a no-op
 
 style () {
   list=`grep -l $1 $2*.h`
@@ -26,6 +27,7 @@ style () {
   else
     rm style_$3.tmp
   fi
+  return 0
 }
 
 # create individual style files

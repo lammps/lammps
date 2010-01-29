@@ -62,7 +62,7 @@ help:
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
-	@csh Make.csh style
+	@/bin/sh Make.sh style
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@cp Makefile.package Obj_$@
@@ -87,7 +87,7 @@ clean-%:
 tar:
 	@cd STUBS; make clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.csh src/MAKE src/*.cpp src/*.h src/STUBS \
+	  src/Make* src/Package.sh src/MAKE src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
 	@cd STUBS; make
@@ -96,10 +96,10 @@ tar:
 # Update Makefile.lib and Makefile.list
 
 makelib:
-	@csh Make.csh Makefile.lib
+	@/bin/sh Make.sh Makefile.lib
 
 makelist:
-	@csh Make.csh Makefile.list
+	@/bin/sh Make.sh Makefile.list
 
 # Package management
 
@@ -145,7 +145,7 @@ yes-%:
 	  echo "Package $(@:yes-%=%) does not exist"; \
 	else \
 	  echo "Installing package $(@:yes-%=%)"; \
-	  cd $(YESDIR); csh -f Install.csh 1; \
+	  cd $(YESDIR); /bin/sh Install.sh 1; \
 	fi;
 
 no-%:
@@ -153,7 +153,7 @@ no-%:
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
 	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
-	  cd $(NODIR); csh -f Install.csh 0; cd ..; \
+	  cd $(NODIR); /bin/sh Install.sh 0; cd ..; \
         fi;
 
 # status = list differences between src and package files
@@ -161,16 +161,16 @@ no-%:
 # overwrite = overwrite package files with newer src files
 
 package-status:
-	@for p in $(PACKAGEUC); do csh -f Package.csh $$p status; done
+	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p status; done
 	@echo ''
-	@for p in $(PACKUSERUC); do csh -f Package.csh $$p status; done
+	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p status; done
 
 package-update:
-	@for p in $(PACKAGEUC); do csh -f Package.csh $$p update; done
+	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p update; done
 	@echo ''
-	@for p in $(PACKUSERUC); do csh -f Package.csh $$p update; done
+	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p update; done
 
 package-overwrite:
-	@for p in $(PACKAGEUC); do csh -f Package.csh $$p overwrite; done
+	@for p in $(PACKAGEUC); do /bin/sh Package.sh $$p overwrite; done
 	@echo ''
-	@for p in $(PACKUSERUC); do csh -f Package.csh $$p overwrite; done
+	@for p in $(PACKUSERUC); do /bin/sh Package.sh $$p overwrite; done

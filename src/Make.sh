@@ -4,30 +4,28 @@
 #         sh Make.sh Makefile.list
 
 # function to create one style_*.h file
-# return 0 so will not kill make if last rm command is a no-op
 
 style () {
   list=`grep -l $1 $2*.h`
   if (test -e style_$3.tmp) then
-    rm style_$3.tmp
+    rm -f style_$3.tmp
   fi
   for file in $list; do
     qfile="\"$file\""
     echo "#include $qfile" >> style_$3.tmp
   done
   if (test ! -e style_$3.tmp) then
-    rm style_$3.h
+    rm -f style_$3.h
     touch style_$3.h
   elif (test ! -e style_$3.h) then
     mv style_$3.tmp style_$3.h
-    rm Obj_*/$4.d
+    rm -f Obj_*/$4.d
   elif (test "`diff --brief style_$3.h style_$3.tmp`" != "") then
     mv style_$3.tmp style_$3.h
-    rm Obj_*/$4.d
+    rm -f Obj_*/$4.d
   else
-    rm style_$3.tmp
+    rm -f style_$3.tmp
   fi
-  return 0
 }
 
 # create individual style files

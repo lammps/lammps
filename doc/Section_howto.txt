@@ -1199,7 +1199,7 @@ Command: Input: Output:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: global/per-atom/local vectors: global scalar/vector:
 "compute property/atom"_compute_property_atom.html: per-atom vectors: per-atom vector/array:
-"compute property/local"_compute_local_atom.html: local vectors: local vector/array:
+"compute property/local"_compute_property_local.html: local vectors: local vector/array:
 "fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 "fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:

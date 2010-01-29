@@ -21,7 +21,8 @@ lo,hi = lo/hi bounds within which to histogram
 Nbin = # of histogram bins
 one or more input values can be listed :l
 value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
-  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)c_ID = scalar or vector calculated by a compute with ID
+  x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+  c_ID = scalar or vector calculated by a compute with ID
   c_ID\[I\] = Ith component of vector or Ith column of array calculated by a compute with ID
   f_ID = scalar or vector calculated by a fix with ID
   f_ID\[I\] = Ith component of vector or Ith column of array calculated by a fix with ID

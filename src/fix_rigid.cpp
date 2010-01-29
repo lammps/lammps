@@ -63,23 +63,18 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
-  // parse command-line args
+  // parse args for rigid body specification
   // set nbody and body[i] for each atom
-  // bodystyle = index of style arg for vanilla,NVE,NVT,NPT
 
-  if (strcmp(style,"rigid/nvt") == 0) bodystyle = 6;
-  else if (strcmp(style,"rigid/npt") == 0) bodystyle = 9;
-  else bodystyle = 3;
-
-  if (narg < bodystyle+1) error->all("Illegal fix rigid command");
+  if (narg < 4) error->all("Illegal fix rigid command");
   int iarg;
 
   // single rigid body
   // nbody = 1
   // all atoms in fix group are part of body
 
-  if (strcmp(arg[bodystyle],"single") == 0) {
-    iarg = bodystyle+1;
+  if (strcmp(arg[3],"single") == 0) {
+    iarg = 4;
     nbody = 1;
 
     int *mask = atom->mask;
@@ -96,8 +91,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // nbody = # of non-zero ncount values
   // use nall as incremented ptr to set body[] values for each atom
 
-  } else if (strcmp(arg[bodystyle],"molecule") == 0) {
-    iarg = bodystyle+1;
+  } else if (strcmp(arg[3],"molecule") == 0) {
+    iarg = 4;
     if (atom->molecular == 0)
       error->all("Must use a molecular atom style with fix rigid molecule");
 
@@ -140,11 +135,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // an atom must belong to fix group and listed group to be in rigid body
   // error if atom belongs to more than 1 rigid body
 
-  } else if (strcmp(arg[bodystyle],"group") == 0) {
-    nbody = atoi(arg[bodystyle+1]);
+  } else if (strcmp(arg[3],"group") == 0) {
+    if (narg < 5) error->all("Illegal fix rigid command");
+    nbody = atoi(arg[4]);
     if (nbody <= 0) error->all("Illegal fix rigid command");
-    if (narg < bodystyle+2 + nbody) error->all("Illegal fix rigid command");
-    iarg = bodystyle+2 + nbody;
+    if (narg < 5+nbody) error->all("Illegal fix rigid command");
+    iarg = 5+nbody;
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
@@ -217,7 +213,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     tflag[i][0] = tflag[i][1] = tflag[i][2] = 1.0;
   }
 
-  // parse optional args that set fflag and tflag
+  // parse optional args
+
+  tempflag = 0;
+  pressflag = 0;
+  t_chain = 10;
+  t_iter = 1;
+  t_order = 3;
+  p_chain = 10;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"force") == 0) {
@@ -247,6 +250,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (count == 0) error->all("Illegal fix rigid command");
 
       iarg += 5;
+
     } else if (strcmp(arg[iarg],"torque") == 0) {
       if (iarg+5 > narg) error->all("Illegal fix rigid command");
 
@@ -274,6 +278,43 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (count == 0) error->all("Illegal fix rigid command");
 
       iarg += 5;
+
+    } else if (strcmp(arg[iarg],"temp") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix rigid command");
+      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
+	error->all("Illegal fix/rigid command");
+      tempflag = 1;
+      t_start = atof(arg[iarg+1]);
+      t_stop = atof(arg[iarg+2]);
+      t_period = atof(arg[iarg+3]);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"press") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0)
+	error->all("Illegal fix/rigid command");
+      pressflag = 1;
+      p_start = atof(arg[iarg+1]);
+      p_stop = atof(arg[iarg+2]);
+      p_period = atof(arg[iarg+3]);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"tparam") == 0) {
+      if (iarg+4 > narg) error->all("Illegal fix rigid command");
+      if (strcmp(style,"rigid/nvt") != 0)
+	error->all("Illegal fix/rigid command");
+      t_chain = atoi(arg[iarg+1]);
+      t_iter = atoi(arg[iarg+2]);
+      t_order = atoi(arg[iarg+3]);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"pparam") == 0) {
+      if (iarg+2 > narg) error->all("Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0)
+	error->all("Illegal fix/rigid command");
+      p_chain = atoi(arg[iarg+1]);
+      iarg += 2;
+
     } else error->all("Illegal fix rigid command");
   }
 
@@ -1096,67 +1137,6 @@ void FixRigid::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRigid::richardson(double *q, double *w,
-			  double *m, double *moments,
-			  double *ex, double *ey, double *ez)
-{
-  // compute omega at 1/2 step from m at 1/2 step and q at 0
-  
-  omega_from_angmom(m,ex,ey,ez,moments,w);
-
-  // full update from dq/dt = 1/2 w q
-
-  double wq[4];
-  vecquat(w,q,wq);
-
-  double qfull[4];
-  qfull[0] = q[0] + dtq * wq[0];
-  qfull[1] = q[1] + dtq * wq[1];
-  qfull[2] = q[2] + dtq * wq[2];
-  qfull[3] = q[3] + dtq * wq[3];
-
-  qnormalize(qfull);
-
-  // 1st half update from dq/dt = 1/2 w q
-
-  double qhalf[4];
-  qhalf[0] = q[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q[3] + 0.5*dtq * wq[3];
-
-  qnormalize(qhalf);
-
-  // udpate ex,ey,ez from qhalf
-  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
-  // recompute wq
-
-  exyz_from_q(qhalf,ex,ey,ez);
-  omega_from_angmom(m,ex,ey,ez,moments,w);
-  vecquat(w,qhalf,wq);
-
-  // 2nd half update from dq/dt = 1/2 w q
-
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
-
-  qnormalize(qhalf);
-
-  // corrected Richardson update
-
-  q[0] = 2.0*qhalf[0] - qfull[0];
-  q[1] = 2.0*qhalf[1] - qfull[1];
-  q[2] = 2.0*qhalf[2] - qfull[2];
-  q[3] = 2.0*qhalf[3] - qfull[3];
-
-  qnormalize(q);
-  exyz_from_q(q,ex,ey,ez);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixRigid::final_integrate()
 {
   int i,ibody;
@@ -1262,6 +1242,117 @@ void FixRigid::final_integrate()
   // virial is already setup from initial_integrate
 
   set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigid::richardson(double *q, double *w,
+			  double *m, double *moments,
+			  double *ex, double *ey, double *ez)
+{
+  // compute omega at 1/2 step from m at 1/2 step and q at 0
+  
+  omega_from_angmom(m,ex,ey,ez,moments,w);
+
+  // full update from dq/dt = 1/2 w q
+
+  double wq[4];
+  vecquat(w,q,wq);
+
+  double qfull[4];
+  qfull[0] = q[0] + dtq * wq[0];
+  qfull[1] = q[1] + dtq * wq[1];
+  qfull[2] = q[2] + dtq * wq[2];
+  qfull[3] = q[3] + dtq * wq[3];
+
+  qnormalize(qfull);
+
+  // 1st half update from dq/dt = 1/2 w q
+
+  double qhalf[4];
+  qhalf[0] = q[0] + 0.5*dtq * wq[0];
+  qhalf[1] = q[1] + 0.5*dtq * wq[1];
+  qhalf[2] = q[2] + 0.5*dtq * wq[2];
+  qhalf[3] = q[3] + 0.5*dtq * wq[3];
+
+  qnormalize(qhalf);
+
+  // udpate ex,ey,ez from qhalf
+  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
+  // recompute wq
+
+  exyz_from_q(qhalf,ex,ey,ez);
+  omega_from_angmom(m,ex,ey,ez,moments,w);
+  vecquat(w,qhalf,wq);
+
+  // 2nd half update from dq/dt = 1/2 w q
+
+  qhalf[0] += 0.5*dtq * wq[0];
+  qhalf[1] += 0.5*dtq * wq[1];
+  qhalf[2] += 0.5*dtq * wq[2];
+  qhalf[3] += 0.5*dtq * wq[3];
+
+  qnormalize(qhalf);
+
+  // corrected Richardson update
+
+  q[0] = 2.0*qhalf[0] - qfull[0];
+  q[1] = 2.0*qhalf[1] - qfull[1];
+  q[2] = 2.0*qhalf[2] - qfull[2];
+  q[3] = 2.0*qhalf[3] - qfull[3];
+
+  qnormalize(q);
+  exyz_from_q(q,ex,ey,ez);
+}
+
+/* ----------------------------------------------------------------------
+   apply evolution operators to quat, quat momentum
+   see Miller paper cited in fix rigid/nvt and fix rigid/npt
+------------------------------------------------------------------------- */
+
+void FixRigid::no_squish_rotate(int k, double *p, double *q, 
+				double *inertia, double dt)
+{
+  double phi,c_phi,s_phi,kp[4],kq[4];
+  
+  // apply permuation operator on p and q, get kp and kq
+
+  if (k == 1) {
+    kq[0] = -q[1];  kp[0] = -p[1];
+    kq[1] =  q[0];  kp[1] =  p[0];
+    kq[2] =  q[3];  kp[2] =  p[3];
+    kq[3] = -q[2];  kp[3] = -p[2];
+  } else if (k == 2) {
+    kq[0] = -q[2];  kp[0] = -p[2];
+    kq[1] = -q[3];  kp[1] = -p[3];
+    kq[2] =  q[0];  kp[2] =  p[0];
+    kq[3] =  q[1];  kp[3] =  p[1];
+  } else if (k == 3) {
+    kq[0] = -q[3];  kp[0] = -p[3];
+    kq[1] =  q[2];  kp[1] =  p[2];
+    kq[2] = -q[1];  kp[2] = -p[1];
+    kq[3] =  q[0];  kp[3] =  p[0];
+  } else error->all("Invalid no-squish rotate pivot value");
+    
+  // obtain phi, cosines and sines
+  
+  phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
+  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;	
+  else phi /= 4.0 * inertia[k-1];
+  c_phi = cos(dt * phi);
+  s_phi = sin(dt * phi);
+  
+  // advance p and q
+  
+  p[0] = c_phi*p[0] + s_phi*kp[0];
+  p[1] = c_phi*p[1] + s_phi*kp[1];
+  p[2] = c_phi*p[2] + s_phi*kp[2];
+  p[3] = c_phi*p[3] + s_phi*kp[3];
+  
+  q[0] = c_phi*q[0] + s_phi*kq[0];
+  q[1] = c_phi*q[1] + s_phi*kq[1];
+  q[2] = c_phi*q[2] + s_phi*kq[2];
+  q[3] = c_phi*q[3] + s_phi*kq[3];
 }
 
 /* ---------------------------------------------------------------------- */

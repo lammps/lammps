@@ -53,7 +53,6 @@ class FixRigid : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
-  int bodystyle;            // arg index for bodystyle
 
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
@@ -86,6 +85,16 @@ class FixRigid : public Fix {
   double **qorient;         // rotation state of ext particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
 
+  int tempflag;             // NVT settings
+  double t_start,t_stop;
+  double t_period,t_freq;
+  int t_chain,t_iter,t_order;
+
+  int pressflag;            // NPT settings
+  double p_start,p_stop;
+  double p_period,p_freq;
+  int p_chain;
+
                             // bitmasks for eflags
   int INERTIA_SPHERE_RADIUS,INERTIA_SPHERE_SHAPE,INERTIA_ELLIPSOID;
   int ORIENT_DIPOLE,ORIENT_QUAT;
@@ -107,6 +116,7 @@ class FixRigid : public Fix {
 
   void richardson(double *, double *, double *, double *,
 		  double *, double *, double *);
+  void no_squish_rotate(int, double *, double *, double *, double);
   void omega_from_angmom(double *, double *, double *,
 			 double *, double *, double *);
   void angmom_from_omega(double *, double *, double *,

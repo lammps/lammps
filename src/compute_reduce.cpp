@@ -349,16 +349,29 @@ double ComputeReduce::compute_scalar()
 
   double one = compute_one(0,-1);
 
-  if (mode == SUM)
-    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  else if (mode == MINN)
-    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MIN,world);
-  else if (mode == MAXX)
-    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
-  else if (mode == AVE) {
-    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  if (mode == SUM) {
+    if (flavor[0] == GLOBAL)
+      scalar = one;
+    else
+      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  } else if (mode == MINN) {
+    if (flavor[0] == GLOBAL)
+      scalar = one;
+    else
+      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MIN,world);
+  } else if (mode == MAXX) {
+    if (flavor[0] == GLOBAL)
+      scalar = one;
+    else
+      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
+  } else if (mode == AVE) {
+    if (flavor[0] == GLOBAL)
+      scalar = one;
+    else
+      MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
     scalar /= count(0);
   }
+
   return scalar;
 }
 
@@ -374,20 +387,35 @@ void ComputeReduce::compute_vector()
       indices[m] = index;
     }
 
-  if (mode == SUM)
-    MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
+  if (mode == SUM) {
+    for (int m = 0; m < nvalues; m++) {
+      if (flavor[m] == GLOBAL)
+	vector[m] = onevec[m];
+      else
+	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
+    }
 
-  else if (mode == MINN) {
-    if (!replace)
-      MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MIN,world);
-    else {
+  } else if (mode == MINN) {
+    if (!replace) {
+      for (int m = 0; m < nvalues; m++) {
+	if (flavor[m] == GLOBAL)
+	  vector[m] = onevec[m];
+	else
+	  MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MIN,world);
+      }
+    } else {
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] < 0) {
-	  pairme.value = onevec[m];
-	  pairme.proc = me;
-	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
-	  vector[m] = pairall.value;
-	  owner[m] = pairall.proc;
+	  if (flavor[m] == GLOBAL) {
+	    vector[m] = onevec[m];
+	    owner[m] = me;
+	  } else {
+	    pairme.value = onevec[m];
+	    pairme.proc = me;
+	    MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
+	    vector[m] = pairall.value;
+	    owner[m] = pairall.proc;
+	  }
 	}
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] >= 0) {
@@ -398,16 +426,26 @@ void ComputeReduce::compute_vector()
     }
 
   } else if (mode == MAXX) {
-    if (!replace)
-      MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MAX,world);
-    else {
+    if (!replace) {
+      for (int m = 0; m < nvalues; m++) {
+	if (flavor[m] == GLOBAL)
+	  vector[m] = onevec[m];
+	else
+	  MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MAX,world);
+      }
+    } else {
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] < 0) {
-	  pairme.value = onevec[m];
-	  pairme.proc = me;
-	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
-	  vector[m] = pairall.value;
-	  owner[m] = pairall.proc;
+	  if (flavor[m] == GLOBAL) {
+	    vector[m] = onevec[m];
+	    owner[m] = me;
+	  } else {
+	    pairme.value = onevec[m];
+	    pairme.proc = me;
+	    MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
+	    vector[m] = pairall.value;
+	    owner[m] = pairall.proc;
+	  }
 	}
       for (int m = 0; m < nvalues; m++)
 	if (replace[m] >= 0) {
@@ -418,8 +456,13 @@ void ComputeReduce::compute_vector()
     }
 
   } else if (mode == AVE) {
-    MPI_Allreduce(onevec,vector,size_vector,MPI_DOUBLE,MPI_MAX,world);
-    for (int m = 0; m < nvalues; m++) vector[m] /= count(m);
+    for (int m = 0; m < nvalues; m++) {
+      if (flavor[m] == GLOBAL)
+	vector[m] = onevec[m];
+      else
+	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
+      vector[m] /= count(m);
+    }
   }
 }
 
@@ -451,6 +494,7 @@ double ComputeReduce::compute_one(int m, int flag)
   if (mode == SUM) one = 0.0;
   else if (mode == MINN) one = BIG;
   else if (mode == MAXX) one = -BIG;
+  else if (mode == AVE) one = 0.0;
 
   if (which[m] == X) {
     double **x = atom->x;

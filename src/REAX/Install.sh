@@ -1,7 +1,7 @@
 # Install/unInstall package files in LAMMPS
 # edit Makefile.package to include/exclude REAX library
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   sed -i -e 's/[^ \t]*reax //' ../Makefile.package
   sed -i -e 's/[^ \t]*reax_[^ \t]*) //' ../Makefile.package
@@ -18,7 +18,7 @@ if (test $1 == 1) then
   cp fix_reax_bonds.h ..
   cp fix_reax_bonds.cpp ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   sed -i -e 's/[^ \t]*reax //' ../Makefile.package
   sed -i -e 's/[^ \t]*reax_[^ \t]*) //' ../Makefile.package

@@ -1,7 +1,7 @@
 # Install/unInstall package files in LAMMPS
 # edit Makefile.package to include/exclude MEAM library
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   sed -i -e 's/[^ \t]*meam //' ../Makefile.package
   sed -i -e 's/[^ \t]*meam_[^ \t]*) //' ../Makefile.package
@@ -15,7 +15,7 @@ if (test $1 == 1) then
 
   cp pair_meam.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   sed -i -e 's/[^ \t]*meam //' ../Makefile.package
   sed -i -e 's/[^ \t]*meam_[^ \t]*) //' ../Makefile.package

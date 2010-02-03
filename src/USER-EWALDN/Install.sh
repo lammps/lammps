@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp -p ewald_n.cpp ..
   cp -p pair_buck_coul.cpp ..
@@ -13,7 +13,7 @@ if (test $1 == 1) then
   cp -p math_vector.h ..
   cp -p math_complex.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../ewald_n.cpp
   rm ../pair_buck_coul.cpp

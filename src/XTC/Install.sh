@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp dump_xtc.cpp ..
 
@@ -9,7 +9,7 @@ if (test $1 == 1) then
   cp xdr_compat.cpp ..
   cp xdr_compat.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../dump_xtc.cpp
 

@@ -3,7 +3,7 @@
 #   so it will remove OPT files that depend on KSPACE files,
 #   then replace others
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp ewald.cpp ..
   cp pppm.cpp ..
@@ -33,7 +33,7 @@ if (test $1 == 1) then
   cp remap.h ..
   cp remap_wrap.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../ewald.cpp
   rm ../pppm.cpp

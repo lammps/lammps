@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp compute_event_displace.cpp ..
   cp fix_event.cpp ..
@@ -10,7 +10,7 @@ if (test $1 == 1) then
   cp fix_event.h ..
   cp prd.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../compute_event_displace.cpp
   rm ../fix_event.cpp

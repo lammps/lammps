@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp angle_charmm.cpp ..
   cp angle_cosine.cpp ..
@@ -68,7 +68,7 @@ if (test $1 == 1) then
   cp pair_lj_charmm_coul_charmm.h ..
   cp pair_lj_charmm_coul_charmm_implicit.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../angle_charmm.cpp
   rm ../angle_cosine.cpp

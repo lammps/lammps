@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp atom_vec_peri.cpp ..
   cp pair_peri_pmb.cpp ..
@@ -12,7 +12,7 @@ if (test $1 == 1) then
   cp fix_peri_neigh.h ..
   cp compute_damage_atom.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm -f ../atom_vec_peri.cpp
   rm -f ../pair_peri_pmb.cpp

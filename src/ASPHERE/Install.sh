@@ -3,7 +3,7 @@
 #   so it will remove GPU files that depend on ASPHERE files,
 #   then replace others
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp atom_vec_ellipsoid.cpp ..
   cp compute_erotate_asphere.cpp ..
@@ -23,7 +23,7 @@ if (test $1 == 1) then
   cp pair_gayberne.h ..
   cp pair_resquared.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../atom_vec_ellipsoid.cpp
   rm ../compute_erotate_asphere.cpp

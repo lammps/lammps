@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp bond_class2.cpp ..
   cp angle_class2.cpp ..
@@ -20,7 +20,7 @@ if (test $1 == 1) then
   cp pair_lj_class2_coul_cut.h ..
   cp pair_lj_class2_coul_long.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../bond_class2.cpp
   rm ../angle_class2.cpp

@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp atom_vec_granular.cpp ..
   cp fix_freeze.cpp ..
@@ -18,7 +18,7 @@ if (test $1 == 1) then
   cp pair_gran_hooke.h ..
   cp pair_gran_hooke_history.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../atom_vec_granular.cpp
   rm ../fix_freeze.cpp

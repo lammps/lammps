@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp atom_vec_colloid.cpp ..
   cp fix_wall_colloid.cpp ..
@@ -14,7 +14,7 @@ if (test $1 == 1) then
   cp pair_lubricate.h ..
   cp pair_yukawa_colloid.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../atom_vec_colloid.cpp
   rm ../fix_wall_colloid.cpp

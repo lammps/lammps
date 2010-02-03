@@ -1,7 +1,7 @@
 # Install/unInstall package files in LAMMPS
 # do not copy eam and charmm files if non-OPT versions do not exist
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   if (test -e ../pair_eam.cpp) then
     cp pair_eam_opt.cpp ..
@@ -23,7 +23,7 @@ if (test $1 == 1) then
   cp pair_morse_opt.cpp ..
   cp pair_morse_opt.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../pair_eam_opt.cpp
   rm ../pair_eam_alloy_opt.cpp

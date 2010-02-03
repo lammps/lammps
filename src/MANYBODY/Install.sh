@@ -3,7 +3,7 @@
 #   so it will remove OPT files that depend on MANYBODY files,
 #   then replace others
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp pair_airebo.cpp ..
   cp pair_eam.cpp ..
@@ -21,7 +21,7 @@ if (test $1 == 1) then
   cp pair_tersoff.h ..
   cp pair_tersoff_zbl.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../pair_airebo.cpp
   rm ../pair_eam.cpp

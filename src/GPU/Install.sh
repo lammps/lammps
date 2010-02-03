@@ -2,7 +2,7 @@
 # edit Makefile.package to include/exclude GPU library
 # do not copy gayberne files if non-GPU version does not exist
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
   sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package
@@ -19,7 +19,7 @@ if (test $1 == 1) then
   cp pair_lj_cut_gpu.cpp ..
   cp pair_lj_cut_gpu.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   sed -i -e 's/[^ \t]*gpu //' ../Makefile.package
   sed -i -e 's/[^ \t]*gpu_[^ \t]*) //' ../Makefile.package

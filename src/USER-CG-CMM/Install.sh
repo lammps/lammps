@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp angle_cg_cmm.h ..
   cp angle_cg_cmm.cpp ..
@@ -17,7 +17,7 @@ if (test $1 == 1) then
   cp pair_cg_cmm_coul_long.cpp ..
   cp pair_cg_cmm_coul_long.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm ../angle_cg_cmm.h
   rm ../angle_cg_cmm.cpp

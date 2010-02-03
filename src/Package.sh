@@ -38,7 +38,7 @@ if (test $2 = "status") then
 # if installed:
 # cp package file to src if doesn't exist or is different
 
-elif (test $2 == "update") then
+elif (test $2 = "update") then
 
   echo "Updating src files from $1 package files"
 
@@ -60,7 +60,7 @@ elif (test $2 == "update") then
 # if package file not in src, issue warning
 # if src file different than package file, overwrite package file
 
-elif (test $2 == "overwrite") then
+elif (test $2 = "overwrite") then
 
   echo "Overwriting $1 package files with src files"
 

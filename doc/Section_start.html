@@ -38,7 +38,7 @@ tar xvf lammps*.tar
 <P>This will create a LAMMPS directory containing two files and several
 sub-directories:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >README</TD><TD > text file</TD></TR>
 <TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
 <TR><TD >bench</TD><TD > benchmark problems</TD></TR>
@@ -355,7 +355,7 @@ package".
 </P>
 <P>The current list of standard packages is as follows:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >asphere </TD><TD > aspherical particles and force fields</TD></TR>
 <TR><TD >class2 </TD><TD > class 2 force fields</TD></TR>
 <TR><TD >colloid </TD><TD > colloidal particle force fields</TD></TR>
@@ -757,7 +757,7 @@ output is performed.
 <P>Specify a variable that will be defined for substitution purposes when
 the input script is read.  "Name" is the variable name which can be a
 single character (referenced as $x in the input script) or a full
-string (referenced as ${abc}).  The value can be any string.  Using
+string (referenced as $\<I>abc\</I>).  The value can be any string.  Using
 this command-line option is equivalent to putting the line "variable
 name index value" at the beginning of the input script.  Defining an
 index variable as a command-line argument overrides any setting for
@@ -918,24 +918,27 @@ clusters.
 </P>
 <H4>GPU single vs double precision 
 </H4>
-<P>See the lammps/lib/gpu/README for instructions on how to build the
-LAMMPS gpu library for single vs double precision.  The latter
-requires that your GPU card supports double precision.
+<P>See the lammps/lib/gpu/README file for instructions on how to build 
+the LAMMPS gpu library for single vs double precision.  The latter
+requires that your GPU card supports double precision. The lj/cut/gpu
+pair style does not support double precision.
 </P>
 <H4>GPU Memory 
 </H4>
-<P>Upon initialization of the pair style, LAMMPS will reserve memory for
-64K atoms per GPU or 70% of each card's GPU memory, whichever value is
-limiting.  If the GPU library is compiled for double precision, the
-maximum number of atoms per GPU is 32K.  When running a periodic
-system and/or in parallel, this maximum atom count includes ghost
-atoms.
+<P>There are restrictions on the number of atoms per GPU when running
+the gayberne/gpu pair style. Upon initialization of the gayberne/gpu
+pair style, LAMMPS will reserve memory for 64K atoms per GPU or 70% 
+of each card's GPU memory, whichever value is limiting.  If the GPU
+library is compiled for double precision, the maximum number of 
+atoms per GPU is 32K.  When running a periodic system and/or in 
+parallel, this maximum atom count includes ghost atoms.
 </P>
 <P>The value of 70% can be changed by editing the PERCENT_GPU_MEMORY
-definition in the appopriate lammps/lib/gpu source file.  The value of
-64K cannot be increased and is the maximum number of atoms allowed per
-GPU.  By default, enough memory to store at least the maximum number
-of neighbors per atom is reserved on the GPU, which is set by the
+definition in the appopriate lammps/lib/gpu source file.  For the 
+gayberne/gpu pair style, the value of 64K cannot be increased and is
+the maximum number of atoms allowed per GPU.  By default, enough 
+memory to store at least the maximum number of neighbors per atom is
+reserved on the GPU, which is set by the 
 <A HREF = "neigh_modify.html">neigh_modify one</A> command.  The default value of
 2000 will be very high for many cases.  If memory on the graphics card
 is limiting, the number of atoms allowed can be increased by

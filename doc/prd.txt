@@ -95,8 +95,8 @@ done by choosing a random set of velocities, based on the
 {random_seed} that is specified, and running {t_dephase} timesteps of
 dynamics.  This is repeated {n_dephase} times.  If the {temp} keyword
 is not specified, the target temperature for velocity randomization
-for each replica is the temperature at the timestep replication
-occured, otherwise, it is the specified {Tdephase} temperature.  The
+for each replica is the current temperature of that replica.
+Otherwise, it is the specified {Tdephase} temperature.  The
 style of velocity randomization is controlled using the keyword {vel}
 with arguments that have the same meaning as their counterparts in the
 "velocity"_velocity.html command.
@@ -126,13 +126,17 @@ event/displace"_compute_event_displace.html checks whether any atom in the
 compute group has moved further than a specified threshold distance.
 If so, an "event" has occurred.
 
-In the third stage, the replica on which the event occurred continues
+In the third stage, the replica on which the event occurred 
+(event replica) continues 
 to run dynamics to search for correlated events.  This is done by
 running dynamics for {t_correlate} steps, quenching every {t_event}
 steps, and checking if another event has occurred.  The first time no
-correlated event occurs, the final state of the system is shared with
+correlated event occurs, the final state of the event replica is shared with
 all replicas, the new basin reference coordinates are updated with the
-quenched state, and the outer loop begins again.
+quenched state, and the outer loop begins again. While the  replica event is
+searching for correlated events, all the other replicas also run 
+dynamics and event checking with the same schedule, but the final states 
+are always overwritten by the state of the event replica.
 
 :line
 
@@ -147,7 +151,8 @@ only a single replica then the event statistics will be intermixed
 with the usual thermodynamic output discussed below.
 
 The quantities printed each time an event occurs are the timestep,
-clock, event number, a correlation flag, and the replica number.
+CPU time, clock, event number, a correlation flag, 
+the number of coincident events, and the replica number of the chosen event.
 
 The timestep is the usual LAMMPS timestep, except that time does not
 advance during dephasing or quenches, but only during dynamics.  Note
@@ -155,6 +160,9 @@ that are two kinds of dynamics in the PRD loop listed above.  The
 first is when all replicas are performing independent dynamics.  The
 second is when correlated events are being searched for and only one
 replica is running dynamics.
+
+The CPU time is the total processor time since the start of the PRD
+run. 
 
 The clock is the same as the timestep except that it advances by M
 steps every timestep during the first kind of dynamics when the M
@@ -169,10 +177,16 @@ The event number is a counter that increments with each event, whether
 it is uncorrelated or correlated.
 
 The correlation flag will be 0 when an uncorrelated event occurs
-during the second stage of the loop listed above.  I.e. when all
+during the second stage of the loop listed above, i.e. when all
 replicas are running independently.  The correlation flag will be 1
 when a correlated event occurs during the third stage of the loop
-listed above.  I.e. when only one replica is running dynamics.
+listed above, i.e. when only one replica is running dynamics.
+
+When more than one replica detects an event at the end of the second
+stage, then one of them is chosen at random. The number of coincident 
+events is the number of replicas that detected an event. Normally, we
+expect this value to be 1. If it is often greater than 1, then either
+the number of replicas is too large, or {t_event} is too large.
 
 The replica number is the ID of the replica (from 0 to M-1) that
 found the event.

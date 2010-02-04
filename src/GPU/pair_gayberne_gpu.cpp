@@ -41,6 +41,8 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#ifndef WINDLL
+
 // External functions from cuda library for atom decomposition
 
 bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
@@ -64,10 +66,53 @@ double gb_gpu_forces(double **f, double **tor, const int *ilist,
                      const bool eflag, const bool vflag, const bool eflag_atom,
                      const bool vflag_atom, double *eatom, double **vatom,
                      double *virial, const int thread);
-std::string gb_gpu_name(const int i, const int max_nbors);
+void gb_gpu_name(const int gpu_id, const int max_nbors, char * name);
 void gb_gpu_time(const int thread);
 int gb_gpu_num_devices();
 double gb_gpu_bytes();
+
+#else
+#include <windows.h>
+
+typedef bool (*_gb_gpu_init)(int &ij_size, const int ntypes, const double gamma,
+                 const double upsilon, const double mu, double **shape,
+                 double **well, double **cutsq, double **sigma, 
+                 double **epsilon, double *host_lshape, int **form,
+                 double **host_lj1, double **host_lj2, double **host_lj3, 
+                 double **host_lj4, double **offset, double *special_lj, 
+                 const int max_nbors, const int thread, const int gpu_id);
+typedef void (*_gb_gpu_clear)(const int thread);
+typedef int * (*_gb_gpu_reset_nbors)(const int nall, const int nlocal, const int inum, 
+                         int *ilist, const int *numj, const int *type,
+                         const int thread, bool &success);
+typedef void (*_gb_gpu_nbors)(const int *ij, const int num_ij, const bool eflag, 
+                  const int thread);
+typedef void (*_gb_gpu_atom)(double **host_x, double **host_quat, const int *host_type, 
+                 const bool rebuild, const int thread);
+typedef void (*_gb_gpu_gayberne)(const bool eflag, const bool vflag, const bool rebuild, 
+                     const int thread);
+typedef double (*_gb_gpu_forces)(double **f, double **tor, const int *ilist,
+                     const bool eflag, const bool vflag, const bool eflag_atom,
+                     const bool vflag_atom, double *eatom, double **vatom,
+                     double *virial, const int thread);
+typedef void (*_gb_gpu_name)(const int gpu_id, const int max_nbors, char * name);
+typedef void (*_gb_gpu_time)(const int thread);
+typedef int (*_gb_gpu_num_devices)();
+typedef double (*_gb_gpu_bytes)();
+
+_gb_gpu_init gb_gpu_init;
+_gb_gpu_clear gb_gpu_clear;
+_gb_gpu_reset_nbors gb_gpu_reset_nbors;
+_gb_gpu_nbors gb_gpu_nbors;
+_gb_gpu_atom gb_gpu_atom;
+_gb_gpu_gayberne gb_gpu_gayberne;
+_gb_gpu_forces gb_gpu_forces;
+_gb_gpu_name gb_gpu_name;
+_gb_gpu_time gb_gpu_time;
+_gb_gpu_num_devices gb_gpu_num_devices;
+_gb_gpu_bytes gb_gpu_bytes;
+
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -79,6 +124,26 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), my_thread(0),
                                                 multi_gpu_param(0)
 {
   ij_new[0]=NULL;
+  
+#ifdef WINDLL
+  HINSTANCE hinstLib = LoadLibrary(TEXT("gpu.dll"));
+  if (hinstLib == NULL) {
+    printf("\nUnable to load gpu.dll\n");
+    exit(1);
+  }
+
+  gb_gpu_init=(_gb_gpu_init)GetProcAddress(hinstLib,"gb_gpu_init");
+  gb_gpu_clear=(_gb_gpu_clear)GetProcAddress(hinstLib,"gb_gpu_clear");
+  gb_gpu_reset_nbors=(_gb_gpu_reset_nbors)GetProcAddress(hinstLib,"gb_gpu_reset_nbors");
+  gb_gpu_nbors=(_gb_gpu_nbors)GetProcAddress(hinstLib,"gb_gpu_nbors");
+  gb_gpu_atom=(_gb_gpu_atom)GetProcAddress(hinstLib,"gb_gpu_atom");
+  gb_gpu_gayberne=(_gb_gpu_gayberne)GetProcAddress(hinstLib,"gb_gpu_gayberne");
+  gb_gpu_forces=(_gb_gpu_forces)GetProcAddress(hinstLib,"gb_gpu_forces");
+  gb_gpu_name=(_gb_gpu_name)GetProcAddress(hinstLib,"gb_gpu_name");
+  gb_gpu_time=(_gb_gpu_time)GetProcAddress(hinstLib,"gb_gpu_time");
+  gb_gpu_num_devices=(_gb_gpu_num_devices)GetProcAddress(hinstLib,"gb_gpu_num_devices");
+  gb_gpu_bytes=(_gb_gpu_bytes)GetProcAddress(hinstLib,"gb_gpu_bytes");
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -350,8 +415,9 @@ void PairGayBerneGPU::init_style()
         gpui=i+multi_gpu_param;
       else if (multi_gpu_mode==MULTI_GPU)
         gpui=i;
-      std::string gpu_string=gb_gpu_name(gpui,neighbor->oneatom);
-      printf("GPU %d: %s\n",gpui,gpu_string.c_str());  
+      char gpu_string[500];
+      gb_gpu_name(gpui,neighbor->oneatom,gpu_string);
+      printf("GPU %d: %s\n",gpui,gpu_string);         
     }
     printf("-------------------------------------");
     printf("-------------------------------------\n\n");

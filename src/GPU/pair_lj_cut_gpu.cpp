@@ -12,7 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mike Brown (SNL)
+   Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
+                         Peng Wang (Nvidia), penwang@nvidia.com
+                         Paul Crozier (SNL), pscrozi@sandia.gov
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -21,6 +23,7 @@
 #include "pair_lj_cut_gpu.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "domain.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
@@ -29,7 +32,6 @@
 #include "integrate.h"
 #include "memory.h"
 #include "error.h"
-#include "neigh_request.h"
 #include "universe.h"
 
 #include <string>
@@ -37,27 +39,57 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#ifndef WINDLL
+
 // External functions from cuda library for force decomposition
 
-bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq, 
-                 double **sigma, double **epsilon, double **host_lj1, 
-                 double **host_lj2, double **host_lj3, double **host_lj4, 
-                 double **offset, double *special_lj, const int max_nbors, 
-                 const int gpu_id);
+bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **sigma, 
+                  double **epsilon, double **host_lj1, double **host_lj2, 
+                  double **host_lj3, double **host_lj4, double **offset, 
+                  double *special_lj, double *boxlo, double *boxhi, double cell_len, double skin,
+                  const int max_nbors, const int gpu_id);
 void lj_gpu_clear();
-bool lj_gpu_reset_nbors(const int nall, const int inum, int *ilist, 
-                        const int *numj);
-void lj_gpu_nbors(const int *ij, const int num_ij);
-void lj_gpu_atom(double **host_x, const int *host_type, const bool rebuild);
-void lj_gpu(const bool eflag, const bool vflag, const bool rebuild);
-double lj_gpu_forces(double **f, const int *ilist, const bool eflag, 
-                     const bool vflag, const bool eflag_atom, 
-                     const bool vflag_atom, double *eatom, double **vatom,
-                     double *virial);
-std::string lj_gpu_name(const int gpu_id, const int max_nbors);
+double lj_gpu_cell(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
+		   const int ago, const bool eflag, const bool vflag, 
+		   const double *boxlo, const double *boxhi);
+double   lj_gpu_n2(double **force, double *virial, double **host_x, const int inum, const int nall, 
+		   const bool eflag, const bool vflag,
+		   const double *boxlo, const double *boxhi);
+void lj_gpu_name(const int gpu_id, const int max_nbors, char * name);
 void lj_gpu_time();
 int lj_gpu_num_devices();
 double lj_gpu_bytes();
+
+#else
+#include <windows.h>
+
+typedef bool (*_lj_gpu_init)(int &ij_size, const int ntypes, double **cutsq,double **sigma, 
+                  double **epsilon, double **host_lj1, double **host_lj2, 
+                  double **host_lj3, double **host_lj4, double **offset, 
+                  double *special_lj, double *boxlo, double *boxhi, double cell_len, double skin,
+                  const int max_nbors, const int gpu_id);
+typedef void (*_lj_gpu_clear)();
+typedef double (*_lj_gpu_cell)(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
+		   const int ago, const bool eflag, const bool vflag, 
+		   const double *boxlo, const double *boxhi);
+typedef double   (*_lj_gpu_n2)(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
+		   const bool eflag, const bool vflag,
+		   const double *boxlo, const double *boxhi);
+typedef void (*_lj_gpu_name)(const int gpu_id, const int max_nbors, char * name);
+typedef void (*_lj_gpu_time)();
+typedef int (*_lj_gpu_num_devices)();
+typedef double (*_lj_gpu_bytes)();
+
+_lj_gpu_init lj_gpu_init;
+_lj_gpu_clear lj_gpu_clear;
+_lj_gpu_cell lj_gpu_cell;
+_lj_gpu_n2 lj_gpu_n2;
+_lj_gpu_name lj_gpu_name;
+_lj_gpu_time lj_gpu_time;
+_lj_gpu_num_devices lj_gpu_num_devices;
+_lj_gpu_bytes lj_gpu_bytes;
+
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -67,6 +99,24 @@ PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), multi_gpu_mode(0)
 {
   ij_new=NULL;
   respa_enable = 0;
+
+#ifdef WINDLL
+  HINSTANCE hinstLib = LoadLibrary(TEXT("gpu.dll"));
+  if (hinstLib == NULL) {
+    printf("\nUnable to load gpu.dll\n");
+    exit(1);
+  }
+
+  lj_gpu_init=(_lj_gpu_init)GetProcAddress(hinstLib,"lj_gpu_init");
+  lj_gpu_clear=(_lj_gpu_clear)GetProcAddress(hinstLib,"lj_gpu_clear");
+  lj_gpu_cell=(_lj_gpu_cell)GetProcAddress(hinstLib,"lj_gpu_cell");
+  lj_gpu_n2=(_lj_gpu_n2)GetProcAddress(hinstLib,"lj_gpu_n2");
+  lj_gpu_name=(_lj_gpu_name)GetProcAddress(hinstLib,"lj_gpu_name");
+  lj_gpu_time=(_lj_gpu_time)GetProcAddress(hinstLib,"lj_gpu_time");
+  lj_gpu_num_devices=(_lj_gpu_num_devices)GetProcAddress(hinstLib,"lj_gpu_num_devices");
+  lj_gpu_bytes=(_lj_gpu_bytes)GetProcAddress(hinstLib,"lj_gpu_bytes");
+#endif
+
 }
 
 /* ----------------------------------------------------------------------
@@ -94,64 +144,10 @@ void PairLJCutGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  if (vflag_atom) 
-    error->all("Per-atom virial not available with GPU lj/cut");
 
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  int inum = list->inum;
-  int *ilist = list->ilist;
-  
-  bool rebuild=false;
-  if (neighbor->ncalls > last_neighbor) {
-    last_neighbor=neighbor->ncalls;
-    rebuild=true;
-  }
-  
-  // copy nbors to GPU
-  if (rebuild)
-    if (!lj_gpu_reset_nbors(nall, inum, ilist, list->numneigh))
-      error->one("Total # of atoms exceeds maximum allowed per GPGPU");
-  
-  // copy atom data to GPU
-  lj_gpu_atom(atom->x,atom->type,rebuild);
-
-  int i,j,ii,jj,jnum;
-  double factor_lj;
-  int *jlist;
-
-  if (rebuild==true) {
-    int num_ij = 0;
-
-    // loop over neighbors of my atoms
-    int *ijp=ij_new;
-    for (ii = 0; ii<inum; ii++) {
-      i = ilist[ii];
-      jlist = list->firstneigh[i];
-      jnum = list->numneigh[i];
-      
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-
-        *ijp=j;
-        ijp++;
-        num_ij++;
-          
-        if (num_ij==ij_size) {
-          lj_gpu_nbors(ij_new, num_ij);
-          ijp=ij_new;
-          num_ij=0;
-        }
-      }
-    }
-    if (num_ij>0) {
-      lj_gpu_nbors(ij_new, num_ij);
-    }
-  }
-  
-  lj_gpu(eflag,vflag,rebuild);
-  eng_vdwl=lj_gpu_forces(atom->f,ilist,eflag,vflag, eflag_atom, vflag_atom, 
-                         eatom, vatom, virial);
+  // compute forces on GPU
+  eng_vdwl = lj_gpu_cell(atom->f, virial, atom->x, atom->type, atom->nlocal, atom->nlocal + atom->nghost, 
+			 neighbor->ago, eflag, vflag, domain->boxlo, domain->boxhi);
 
   if (vflag_fdotr) virial_compute();
 }
@@ -211,8 +207,7 @@ void PairLJCutGPU::init_style()
     if (ngpus>universe->nprocs)
       ngpus=universe->nprocs;
   }
-  
-  int irequest = neighbor->request(this);
+
   cut_respa=NULL;
 
   // Repeat cutsq calculation because done after call to init_style
@@ -223,17 +218,25 @@ void PairLJCutGPU::init_style()
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
 
-  if (!lj_gpu_init(ij_size, atom->ntypes+1, cutsq, sigma, epsilon, lj1, lj2,lj3, 
-                   lj4, offset, force->special_lj, neighbor->oneatom, my_gpu))
+  // use the max cutoff length as the cell length
+  double maxcut = -1.0;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      if (cutsq[i][j] > maxcut) maxcut = cutsq[i][j];
+
+  // for this problem, adding skin results in better perf
+  // this may be a parameter in the future
+  double cell_len = sqrt(maxcut) + neighbor->skin;
+
+  if (!lj_gpu_init(ij_size, atom->ntypes+1, cutsq, sigma, epsilon, lj1, lj2, lj3, 
+                 lj4, offset, force->special_lj, domain->boxlo, domain->boxhi, 
+                 cell_len, neighbor->skin, neighbor->oneatom, my_gpu))
     error->one("At least one process could not allocate a CUDA-enabled gpu");
-    
+
   if (ij_new!=NULL)
     delete [] ij_new;
   ij_new=new int[ij_size];
   
-  last_neighbor = -1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
   if (force->newton_pair) 
     error->all("Cannot use newton pair with GPU lj/cut pair style");
 
@@ -250,8 +253,9 @@ void PairLJCutGPU::init_style()
         gpui=i+multi_gpu_param;
       else if (multi_gpu_mode==MULTI_GPU)
         gpui=i;
-      std::string gpu_string=lj_gpu_name(gpui,neighbor->oneatom);
-      printf("GPU %d: %s\n",gpui,gpu_string.c_str());  
+      char gpu_string[500];
+      lj_gpu_name(gpui,neighbor->oneatom,gpu_string);
+      printf("GPU %d: %s\n",gpui,gpu_string);   
     }
     printf("-------------------------------------");
     printf("-------------------------------------\n\n");

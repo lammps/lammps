@@ -1,27 +1,21 @@
-/***************************************************************************
-                                  gb_gpu.cu
-                             -------------------
-                               W. Michael Brown
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
-  Gay-Berne anisotropic potential GPU calcultation
-
-   *** Force decomposition by Atom Version ***
-
- __________________________________________________________________________
-    This file is part of the LAMMPS GPU Library
- __________________________________________________________________________
-
-    begin                : Tue Jun 23 2009
-    copyright            : (C) 2009 by W. Michael Brown
-    email                : wmbrown@sandia.gov
- ***************************************************************************/
-
-/* -----------------------------------------------------------------------
-   Copyright (2009) Sandia Corporation.  Under the terms of Contract
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under 
    the GNU General Public License.
-   ----------------------------------------------------------------------- */
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
+                         Peng Wang (Nvidia), penwang@nvidia.com
+                         Paul Crozier (SNL), pscrozi@sandia.gov
+------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <cassert>
@@ -190,30 +184,30 @@ inline string gb_gpu_toa(const t& in) {
 // ---------------------------------------------------------------------------
 // Return string with GPU info
 // ---------------------------------------------------------------------------
-string gb_gpu_name(const int id, const int max_nbors) {
-  string name=GBMF[0].gpu.name(id)+", "+
+EXTERN void gb_gpu_name(const int id, const int max_nbors, char * name) {
+  string sname=GBMF[0].gpu.name(id)+", "+
               gb_gpu_toa(GBMF[0].gpu.cores(id))+" cores, "+
               gb_gpu_toa(GBMF[0].gpu.gigabytes(id))+" GB, "+
               gb_gpu_toa(GBMF[0].gpu.clock_rate(id))+" GHZ, "+
               gb_gpu_toa(GBMF[0].get_max_atoms(GBMF[0].gpu.bytes(id),
                                                max_nbors))+" Atoms";
-  return name;
+  strcpy(name,sname.c_str());
 }
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
-                 const double upsilon, const double mu, double **shape,
-                 double **well, double **cutsq, double **sigma, 
-                 double **epsilon, double *host_lshape, int **form,
-                 double **host_lj1, double **host_lj2, double **host_lj3, 
-                 double **host_lj4, double **offset, double *special_lj,
-                 const int max_nbors, const int thread, const int gpu_id) {
+EXTERN bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
+                  const double upsilon, const double mu, double **shape,
+                  double **well, double **cutsq, double **sigma, 
+                  double **epsilon, double *host_lshape, int **form,
+                  double **host_lj1, double **host_lj2, double **host_lj3, 
+                  double **host_lj4, double **offset, double *special_lj,
+                  const int max_nbors, const int thread, const int gpu_id) {
   assert(thread<MAX_GPU_THREADS);
   
   GBMF[thread].gpu.init();
-  
+
   if (GBMF[thread].gpu.num_devices()==0)
     return false;                   
 
@@ -227,7 +221,7 @@ bool gb_gpu_init(int &ij_size, const int ntypes, const double gamma,
 // ---------------------------------------------------------------------------
 // Clear memory on host and device
 // ---------------------------------------------------------------------------
-void gb_gpu_clear(const int thread) {
+EXTERN void gb_gpu_clear(const int thread) {
   GBMF[thread].clear();
 }
 
@@ -262,7 +256,7 @@ inline void _gb_gpu_atom(PairGPUAtom<numtyp,acctyp> &atom, double **host_x,
   atom.time_atom.stop();
 }
 
-void gb_gpu_atom(double **host_x, double **host_quat, 
+EXTERN void gb_gpu_atom(double **host_x, double **host_quat, 
                  const int *host_type, const bool rebuild, const int thread) {
   _gb_gpu_atom(GBMF[thread].atom, host_x, host_quat, host_type, rebuild,
                GBMF[thread].pair_stream);
@@ -327,7 +321,7 @@ int * _gb_gpu_reset_nbors(gbmtyp &gbm, const int nall, const int nlocal,
   return ilist;
 }
 
-int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum, 
+EXTERN int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum, 
                          int *ilist, const int *numj, const int *type,
                          const int thread, bool &success) {
   return _gb_gpu_reset_nbors(GBMF[thread],nall,nlocal,inum,ilist,numj,type,
@@ -340,7 +334,7 @@ int * gb_gpu_reset_nbors(const int nall, const int nlocal, const int inum,
 // ---------------------------------------------------------------------------
 template <class gbmtyp>
 void _gb_gpu_nbors(gbmtyp &gbm, const int *ij, const int num_ij, 
-                   const bool eflag) {
+        const bool eflag) {
   gbm.nbor.time_nbor.add_to_total();
   // CUDA_SAFE_CALL(cudaStreamSynchronize(gbm.pair_stream)); // Not if timed
   
@@ -350,8 +344,8 @@ void _gb_gpu_nbors(gbmtyp &gbm, const int *ij, const int num_ij,
   gbm.nbor.time_nbor.stop();
 }
 
-void gb_gpu_nbors(const int *ij, const int num_ij, const bool eflag, 
-                  const int thread) {
+EXTERN void gb_gpu_nbors(const int *ij, const int num_ij, const bool eflag,
+            const int thread) {
   _gb_gpu_nbors(GBMF[thread],ij,num_ij,eflag);
 }
 
@@ -453,7 +447,7 @@ void _gb_gpu_gayberne(GBMT &gbm, const bool eflag, const bool vflag,
   }
 }
 
-void gb_gpu_gayberne(const bool eflag, const bool vflag, const bool rebuild, 
+EXTERN void gb_gpu_gayberne(const bool eflag, const bool vflag, const bool rebuild, 
                      const int thread) {
   _gb_gpu_gayberne<PRECISION,ACC_PRECISION>(GBMF[thread],eflag,vflag,rebuild);
 }
@@ -490,7 +484,7 @@ double _gb_gpu_forces(GBMT &gbm, double **f, double **tor, const int *ilist,
   return evdw;
 }
 
-double gb_gpu_forces(double **f, double **tor, const int *ilist,
+EXTERN double gb_gpu_forces(double **f, double **tor, const int *ilist,
                      const bool eflag, const bool vflag, const bool eflag_atom,
                      const bool vflag_atom, double *eatom, double **vatom,
                      double *virial, const int thread) {
@@ -499,7 +493,7 @@ double gb_gpu_forces(double **f, double **tor, const int *ilist,
                         vflag_atom,eatom,vatom,virial);
 }
 
-void gb_gpu_time(const int i) {
+EXTERN void gb_gpu_time(const int i) {
   cout.precision(4);
   cout << "Atom copy:     " << GBMF[i].atom.time_atom.total_seconds() 
        << " s.\n"
@@ -515,10 +509,10 @@ void gb_gpu_time(const int i) {
        << " s.\n";
 }
 
-int gb_gpu_num_devices() {
+EXTERN int gb_gpu_num_devices() {
   return GBMF[0].gpu.num_devices();
 }
 
-double gb_gpu_bytes() {
+EXTERN double gb_gpu_bytes() {
   return GBMF[0].host_memory_usage();
 }

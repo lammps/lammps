@@ -1,0 +1,72 @@
+# /* ----------------------------------------------------------------------
+#    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+#    http://lammps.sandia.gov, Sandia National Laboratories
+#    Steve Plimpton, sjplimp@sandia.gov
+# 
+#    Copyright (2003) Sandia Corporation.  Under the terms of Contract
+#    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+#    certain rights in this software.  This software is distributed under 
+#    the GNU General Public License.
+# 
+#    See the README file in the top-level LAMMPS directory.
+# ------------------------------------------------------------------------- */
+# 
+# /* ----------------------------------------------------------------------
+#    Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
+#                          Peng Wang (Nvidia), penwang@nvidia.com
+#                          Paul Crozier (SNL), pscrozi@sandia.gov
+# ------------------------------------------------------------------------- */
+
+BIN_DIR = .
+OBJ_DIR = .
+AR = ar
+CUDA_CPP  = /cygdrive/c/CUDA/bin/nvcc -I/cygdrive/c/CUDA/include -O3 -DWINDLL -DUNIX -Xptxas -v --use_fast_math
+CUDA_ARCH = -arch=sm_13
+CUDA_PREC = -D_SINGLE_SINGLE
+CUDA_LINK = -L/cygdrive/c/CUDA/lib -lcudart $(CUDA_LIB)
+
+CUDA = $(CUDA_CPP) $(CUDA_ARCH) $(CUDA_PREC)
+
+CUDA_LIB = $(OBJ_DIR)/gpu.dll
+
+# Headers for CUDA Stuff
+NVC_H  = nvc_macros.h nvc_device.h nvc_timer.h nvc_memory.h nvc_traits.h
+# Headers for Pair Stuff
+PAIR_H  = pair_gpu_texture.h pair_gpu_atom.h pair_gpu_nbor.h pair_gpu_cell.h
+# Dependencies for the Texture Tar
+TAR_H = $(NVC_H) $(PAIR_H) pair_gpu_atom.cu lj_gpu_memory.h lj_gpu_memory.cu \
+        lj_gpu_kernel.h lj_gpu.cu gb_gpu_memory.h gb_gpu_memory.cu \
+        gb_gpu_extra.h gb_gpu_kernel.h gb_gpu.cu
+
+ALL_H = $(NVC_H) $(PAIR_H)
+
+EXECS = $(BIN_DIR)/nvc_get_devices
+OBJS = $(OBJ_DIR)/nvc_device.obj $(OBJ_DIR)/pair_gpu_nbor.obj \
+       $(OBJ_DIR)/pair_tex_tar.obj $(OBJ_DIR)/pair_gpu_cell.obj 
+
+all: $(CUDA_LIB) $(EXECS)
+
+$(OBJ_DIR)/nvc_device.obj : nvc_device.cu $(NVC_H)
+	$(CUDA) -o $@ -c nvc_device.cu
+
+$(OBJ_DIR)/pair_gpu_nbor.obj: pair_gpu_nbor.cu pair_gpu_texture.h pair_gpu_nbor.h $(NVC_H)
+	$(CUDA) -o $@ -c pair_gpu_nbor.cu
+
+$(OBJ_DIR)/pair_tex_tar.obj: $(TAR_H)
+	$(CUDA) -o $@ -c pair_tex_tar.cu
+
+$(OBJ_DIR)/pair_gpu_cell.obj: pair_gpu_cell.cu pair_gpu_cell.h lj_gpu_memory.h
+	$(CUDA) -o $@ -c pair_gpu_cell.cu
+
+$(BIN_DIR)/nvc_get_devices: nvc_get_devices.cu $(NVC_H) $(OBJ_DIR)/nvc_device.obj 
+	$(CUDA) -o $@ nvc_get_devices.cu $(CUDALNK) $(OBJ_DIR)/nvc_device.obj 
+
+$(CUDA_LIB): $(OBJS) $(TAR_H)
+	$(CUDA) -o $@ -shared $(OBJS)
+	
+clean:
+	rm -rf $(EXECS) $(CUDA_LIB) $(OBJS) *.exe *.exp *.lib *.dll *.linkinfo
+
+veryclean: clean
+	rm -rf *~ *.linkinfo
+

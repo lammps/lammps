@@ -1,25 +1,21 @@
-/***************************************************************************
-                               pair_gpu_atom.cu
-                             -------------------
-                               W. Michael Brown
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
-  Memory routines for moving atom and force data between host and gpu
-
- __________________________________________________________________________
-    This file is part of the LAMMPS GPU Library
- __________________________________________________________________________
-
-    begin                : Tue Aug 4 2009
-    copyright            : (C) 2009 by W. Michael Brown
-    email                : wmbrown@sandia.gov
- ***************************************************************************/
-
-/* -----------------------------------------------------------------------
-   Copyright (2009) Sandia Corporation.  Under the terms of Contract
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under 
    the GNU General Public License.
-   ----------------------------------------------------------------------- */
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Mike Brown (SNL), wmbrown@sandia.gov
+                         Peng Wang (Nvidia), penwang@nvidia.com
+                         Paul Crozier (SNL), pscrozi@sandia.gov
+------------------------------------------------------------------------- */
 
 #include "pair_gpu_texture.h"
 #include "pair_gpu_atom.h"

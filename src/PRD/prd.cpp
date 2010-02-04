@@ -242,9 +242,9 @@ void PRD::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen) 
-      fprintf(universe->uscreen,"Step Clock Event Correlated Replica\n");
+      fprintf(universe->uscreen,"Step CPU Clock Event Correlated Coincident Replica\n");
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,"Step Clock Event Correlated Replica\n");
+      fprintf(universe->ulogfile,"Step CPU Clock Event Correlated Coincident Replica\n");
   }
 
   // store hot state and quenched event for replica 0
@@ -256,7 +256,10 @@ void PRD::command(int narg, char **arg)
 
   fix_event->store_state();
   quench();
+  ncoincident = 0;
   share_event(0,0);
+  timer->barrier_start(TIME_LOOP);
+  time_start = timer->array[TIME_LOOP];
   log_event();
 
   // do full init/setup since are starting all replicas after event
@@ -281,7 +284,7 @@ void PRD::command(int narg, char **arg)
   time_dephase = time_dynamics = time_quench = time_comm = time_output = 0.0;
 
   timer->barrier_start(TIME_LOOP);
-  double time_start = timer->array[TIME_LOOP];
+  time_start = timer->array[TIME_LOOP];
 
   while (update->ntimestep < update->endstep) {
     dephase();
@@ -538,6 +541,7 @@ int PRD::check_event(int replica_num)
   if (me == 0) MPI_Allreduce(&worldflag,&universeflag,1,
 		             MPI_INT,MPI_SUM,comm_replica);
   MPI_Bcast(&universeflag,1,MPI_INT,0,world);
+  ncoincident = universeflag;  
   if (!universeflag) ireplica = -1;
   else {
     if (universeflag > 1) {
@@ -555,7 +559,6 @@ int PRD::check_event(int replica_num)
   			     MPI_INT,MPI_SUM,comm_replica);
     MPI_Bcast(&ireplica,1,MPI_INT,0,world);
   }
-    
   timer->barrier_stop(TIME_LOOP);
   time_comm += timer->array[TIME_LOOP];
   return ireplica;
@@ -604,6 +607,7 @@ void PRD::share_event(int ireplica, int flag)
     fix_event->replica_number = ireplica;
     fix_event->correlated_event = 0;
     if (flag == 2) fix_event->correlated_event = 1;
+    fix_event->ncoincident = ncoincident;
   } 
   if (flag == 0) fix_event->event_number--;
 
@@ -636,16 +640,23 @@ void PRD::share_event(int ireplica, int flag)
 
 void PRD::log_event()
 {
+  timer->array[TIME_LOOP] = time_start;
   if (universe->me == 0) {
     if (universe->uscreen)
-      fprintf(universe->uscreen,"%d %d %d %d %d\n",
-              fix_event->event_timestep,fix_event->clock,
+      fprintf(universe->uscreen,"%d %.3f %d %d %d %d %d\n",
+              fix_event->event_timestep,
+	      timer->elapsed(TIME_LOOP),
+	      fix_event->clock,
               fix_event->event_number,fix_event->correlated_event,
+	      fix_event->ncoincident,
               fix_event->replica_number);
     if (universe->ulogfile)
-      fprintf(universe->ulogfile,"%d %d %d %d %d\n",
-              fix_event->event_timestep,fix_event->clock,
+      fprintf(universe->ulogfile,"%d %.3f %d %d %d %d %d\n",
+              fix_event->event_timestep,
+	      timer->elapsed(TIME_LOOP),
+	      fix_event->clock,
               fix_event->event_number,fix_event->correlated_event,
+	      fix_event->ncoincident,
               fix_event->replica_number);
   }
 }

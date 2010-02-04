@@ -224,6 +224,7 @@ void FixEvent::write_restart(FILE *fp)
   list[n++] = clock;
   list[n++] = replica_number;
   list[n++] = correlated_event;
+  list[n++] = ncoincident;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -246,4 +247,5 @@ void FixEvent::restart(char *buf)
   clock = static_cast<int> (list[n++]);
   replica_number = static_cast<int> (list[n++]);
   correlated_event = static_cast<int> (list[n++]);
+  ncoincident = static_cast<int> (list[n++]);
 }

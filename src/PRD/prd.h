@@ -43,10 +43,13 @@ class PRD : protected Pointers {
   int quench_reneighbor;
 
   double time_dephase,time_dynamics,time_quench,time_comm,time_output;
+  double time_start;
 
   MPI_Comm comm_replica;
   int *tagall,*displacements,*imageall;
   double **xall;
+
+  int ncoincident;
   
   class RanPark *random_select;
   class RanMars *random_dephase;

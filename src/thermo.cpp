@@ -16,9 +16,10 @@
 #include "string.h"
 #include "thermo.h"
 #include "atom.h"
+#include "update.h"
 #include "comm.h"
 #include "domain.h"
-#include "update.h"
+#include "lattice.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
@@ -42,7 +43,7 @@ using namespace LAMMPS_NS;
 
 // step, atoms, cpu, dt, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
+// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
 // pxx, pyy, pzz, pxy, pxz, pyz
 
 // customize a new thermo style by adding a DEFINE to this list
@@ -671,6 +672,19 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"yz") == 0) {
       addfield("Yz",&Thermo::compute_yz,FLOAT);
 
+    } else if (strcmp(word,"xlat") == 0) {
+      if (domain->lattice == NULL) 
+	error->all("Thermo keyword requires lattice be defined");
+      addfield("Xlat",&Thermo::compute_xlat,FLOAT);
+    } else if (strcmp(word,"ylat") == 0) {
+      if (domain->lattice == NULL) 
+	error->all("Thermo keyword requires lattice be defined");
+      addfield("Ylat",&Thermo::compute_ylat,FLOAT);
+    } else if (strcmp(word,"zlat") == 0) {
+      if (domain->lattice == NULL) 
+	error->all("Thermo keyword requires lattice be defined");
+      addfield("Zlat",&Thermo::compute_zlat,FLOAT);
+
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
@@ -1091,7 +1105,20 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"xz") == 0) compute_xz();
   else if (strcmp(word,"yz") == 0) compute_yz();
 
-  else if (strcmp(word,"pxx") == 0) {
+  else if (strcmp(word,"xlat") == 0) {
+    if (domain->lattice == NULL) 
+      error->all("Thermo keyword in variable requires lattice be defined");
+    compute_xlat();
+  } else if (strcmp(word,"ylat") == 0) {
+    if (domain->lattice == NULL) 
+      error->all("Thermo keyword in variable requires lattice be defined");
+    compute_ylat(); 
+  } else if (strcmp(word,"zlat") == 0) {
+    if (domain->lattice == NULL) 
+      error->all("Thermo keyword in variable requires lattice be defined");
+    compute_zlat();
+
+  } else if (strcmp(word,"pxx") == 0) {
     if (!pressure)
       error->all("Thermo keyword in variable requires "
 		 "thermo to use/init press");
@@ -1549,6 +1576,27 @@ void Thermo::compute_xz()
 void Thermo::compute_yz()
 {
   dvalue = domain->yz;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_xlat()
+{
+  dvalue = domain->lattice->xlattice;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_ylat()
+{
+  dvalue = domain->lattice->ylattice;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_zlat()
+{
+  dvalue = domain->lattice->zlattice;
 }
 
 /* ---------------------------------------------------------------------- */

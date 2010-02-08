@@ -242,9 +242,11 @@ void PRD::command(int narg, char **arg)
 
   if (me_universe == 0) {
     if (universe->uscreen) 
-      fprintf(universe->uscreen,"Step CPU Clock Event Correlated Coincident Replica\n");
+      fprintf(universe->uscreen,"Step CPU Clock Event "
+	      "Correlated Coincident Replica\n");
     if (universe->ulogfile) 
-      fprintf(universe->ulogfile,"Step CPU Clock Event Correlated Coincident Replica\n");
+      fprintf(universe->ulogfile,"Step CPU Clock Event "
+	      "Correlated Coincident Replica\n");
   }
 
   // store hot state and quenched event for replica 0
@@ -485,18 +487,22 @@ void PRD::dynamics()
 void PRD::quench()
 {
   int ntimestep_hold = update->ntimestep;
+  int endstep_hold = update->endstep;
 
   // need to change whichflag so that minimize->setup() calling 
   // modify->setup() will call fix->min_setup()
 
   update->whichflag = 2;
   update->nsteps = maxiter;
+  update->endstep = update->laststep = update->firststep + maxiter;
 
   // full init works
+
   lmp->init();
   update->minimize->setup();
 
   // partial init does not work
+
   //modify->addstep_compute_all(update->ntimestep);
   //update->minimize->setup_minimal(1);
 
@@ -517,6 +523,7 @@ void PRD::quench()
   // clear timestep storage from computes, since now invalid
 
   update->ntimestep = ntimestep_hold;
+  update->endstep = update->laststep = endstep_hold;
   for (int i = 0; i < modify->ncompute; i++)
     if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
 }

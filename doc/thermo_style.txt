@@ -22,7 +22,7 @@ args = list of arguments for a particular style :l
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-			  xy, xz, yz,
+			  xy, xz, yz, xlat, ylat, zlat,
 			  pxx, pyy, pzz, pxy, pxz, pyz,
 			  c_ID, c_ID\[I\], c_ID\[I\]\[J\],
                           f_ID, f_ID\[I\], f_ID\[I\]\[J\],
@@ -50,6 +50,7 @@ args = list of arguments for a particular style :l
       lx,ly,lz = box lengths in x,y,z
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
+      xlat,ylat,zlat = lattice spacings as calculated by "lattice"_lattice.html command
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[I\] = Ith component of global vector calculated by a compute with ID

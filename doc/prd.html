@@ -108,10 +108,10 @@ done by choosing a random set of velocities, based on the
 <I>random_seed</I> that is specified, and running <I>t_dephase</I> timesteps of
 dynamics.  This is repeated <I>n_dephase</I> times.  If the <I>temp</I> keyword
 is not specified, the target temperature for velocity randomization
-for each replica is the temperature at the timestep replication
-occured, otherwise, it is the specified <I>Tdephase</I> temperature.  The
-style of velocity randomization is controlled using the keyword <I>vel</I>
-with arguments that have the same meaning as their counterparts in the
+for each replica is the current temperature of that replica.
+Otherwise, it is the specified <I>Tdephase</I> temperature.  The style of
+velocity randomization is controlled using the keyword <I>vel</I> with
+arguments that have the same meaning as their counterparts in the
 <A HREF = "velocity.html">velocity</A> command.
 </P>
 <P>In the second stage, each replica runs dynamics continuously, stopping
@@ -135,17 +135,21 @@ event.
 PRD commmand, which is the <A HREF = "compute_event_displace.html">compute
 event/displace</A> command.  Other
 event-checking computes may be added.  <A HREF = "compute_event_displace.html">Compute
-event/displace</A> checks whether any atom in the
-compute group has moved further than a specified threshold distance.
-If so, an "event" has occurred.
+event/displace</A> checks whether any atom in
+the compute group has moved further than a specified threshold
+distance.  If so, an "event" has occurred.
 </P>
-<P>In the third stage, the replica on which the event occurred continues
-to run dynamics to search for correlated events.  This is done by
-running dynamics for <I>t_correlate</I> steps, quenching every <I>t_event</I>
-steps, and checking if another event has occurred.  The first time no
-correlated event occurs, the final state of the system is shared with
-all replicas, the new basin reference coordinates are updated with the
-quenched state, and the outer loop begins again.
+<P>In the third stage, the replica on which the event occurred (event
+replica) continues to run dynamics to search for correlated events.
+This is done by running dynamics for <I>t_correlate</I> steps, quenching
+every <I>t_event</I> steps, and checking if another event has occurred.
+The first time no correlated event occurs, the final state of the
+event replica is shared with all replicas, the new basin reference
+coordinates are updated with the quenched state, and the outer loop
+begins again. While the replica event is searching for correlated
+events, all the other replicas also run dynamics and event checking
+with the same schedule, but the final states are always overwritten by
+the state of the event replica.
 </P>
 <HR>
 
@@ -160,7 +164,8 @@ only a single replica then the event statistics will be intermixed
 with the usual thermodynamic output discussed below.
 </P>
 <P>The quantities printed each time an event occurs are the timestep,
-clock, event number, a correlation flag, and the replica number.
+CPU time, clock, event number, a correlation flag, 
+the number of coincident events, and the replica number of the chosen event.
 </P>
 <P>The timestep is the usual LAMMPS timestep, except that time does not
 advance during dephasing or quenches, but only during dynamics.  Note
@@ -168,6 +173,9 @@ that are two kinds of dynamics in the PRD loop listed above.  The
 first is when all replicas are performing independent dynamics.  The
 second is when correlated events are being searched for and only one
 replica is running dynamics.
+</P>
+<P>The CPU time is the total processor time since the start of the PRD
+run. 
 </P>
 <P>The clock is the same as the timestep except that it advances by M
 steps every timestep during the first kind of dynamics when the M
@@ -182,10 +190,16 @@ drawn from p(t).
 it is uncorrelated or correlated.
 </P>
 <P>The correlation flag will be 0 when an uncorrelated event occurs
-during the second stage of the loop listed above.  I.e. when all
+during the second stage of the loop listed above, i.e. when all
 replicas are running independently.  The correlation flag will be 1
 when a correlated event occurs during the third stage of the loop
-listed above.  I.e. when only one replica is running dynamics.
+listed above, i.e. when only one replica is running dynamics.
+</P>
+<P>When more than one replica detects an event at the end of the second
+stage, then one of them is chosen at random. The number of coincident 
+events is the number of replicas that detected an event. Normally, we
+expect this value to be 1. If it is often greater than 1, then either
+the number of replicas is too large, or <I>t_event</I> is too large.
 </P>
 <P>The replica number is the ID of the replica (from 0 to M-1) that
 found the event.
@@ -277,7 +291,7 @@ dt/reset</A> and <A HREF = "fix_deposity.html">fix deposit</A>.
 </P>
 <P><B>Default:</B> 
 </P>
-<P>The option defaults are <I>min</I> = 40 50 0.1 0.1, no <I>temp</I> setting, and
+<P>The option defaults are <I>min</I> = 0.1 0.1 40 50, no <I>temp</I> setting, and
 <I>vel</I> = <I>geom</I> <I>gaussian</I>.
 </P>
 <HR>

@@ -467,6 +467,7 @@ each style or click on the style itself for a full description:
 
 "angle/local"_compute_angle_local.html,
 "bond/local"_compute_bond_local.html,
+"centro/atom"_compute_centro_atom.html,
 "cna/atom"_compute_cna_atom.html,
 "com"_compute_com.html,
 "com/molecule"_compute_com_molecule.html,

@@ -96,9 +96,9 @@ done by choosing a random set of velocities, based on the
 dynamics.  This is repeated {n_dephase} times.  If the {temp} keyword
 is not specified, the target temperature for velocity randomization
 for each replica is the current temperature of that replica.
-Otherwise, it is the specified {Tdephase} temperature.  The
-style of velocity randomization is controlled using the keyword {vel}
-with arguments that have the same meaning as their counterparts in the
+Otherwise, it is the specified {Tdephase} temperature.  The style of
+velocity randomization is controlled using the keyword {vel} with
+arguments that have the same meaning as their counterparts in the
 "velocity"_velocity.html command.
 
 In the second stage, each replica runs dynamics continuously, stopping
@@ -122,21 +122,21 @@ The event check is performed by a compute with the specified
 PRD commmand, which is the "compute
 event/displace"_compute_event_displace.html command.  Other
 event-checking computes may be added.  "Compute
-event/displace"_compute_event_displace.html checks whether any atom in the
-compute group has moved further than a specified threshold distance.
-If so, an "event" has occurred.
+event/displace"_compute_event_displace.html checks whether any atom in
+the compute group has moved further than a specified threshold
+distance.  If so, an "event" has occurred.
 
-In the third stage, the replica on which the event occurred 
-(event replica) continues 
-to run dynamics to search for correlated events.  This is done by
-running dynamics for {t_correlate} steps, quenching every {t_event}
-steps, and checking if another event has occurred.  The first time no
-correlated event occurs, the final state of the event replica is shared with
-all replicas, the new basin reference coordinates are updated with the
-quenched state, and the outer loop begins again. While the  replica event is
-searching for correlated events, all the other replicas also run 
-dynamics and event checking with the same schedule, but the final states 
-are always overwritten by the state of the event replica.
+In the third stage, the replica on which the event occurred (event
+replica) continues to run dynamics to search for correlated events.
+This is done by running dynamics for {t_correlate} steps, quenching
+every {t_event} steps, and checking if another event has occurred.
+The first time no correlated event occurs, the final state of the
+event replica is shared with all replicas, the new basin reference
+coordinates are updated with the quenched state, and the outer loop
+begins again. While the replica event is searching for correlated
+events, all the other replicas also run dynamics and event checking
+with the same schedule, but the final states are always overwritten by
+the state of the event replica.
 
 :line
 
@@ -278,7 +278,7 @@ dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposity.html.
 
 [Default:] 
 
-The option defaults are {min} = 40 50 0.1 0.1, no {temp} setting, and
+The option defaults are {min} = 0.1 0.1 40 50, no {temp} setting, and
 {vel} = {geom} {gaussian}.
 
 :line

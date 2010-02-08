@@ -31,7 +31,7 @@ class FixEvent : public Fix {
   int clock;             // total elapsed timesteps across all replicas
   int replica_number;    // replica where last event occured
   int correlated_event;  // 1 if last event was correlated, 0 otherwise
-  int ncoincident;    // number of simultaneous events on different replicas
+  int ncoincident;       // # of simultaneous events on different replicas
 
   FixEvent(class LAMMPS *, int, char **);
   ~FixEvent();

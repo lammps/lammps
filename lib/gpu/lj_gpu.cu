@@ -27,29 +27,12 @@
 #include "lj_gpu_memory.cu"
 #include "lj_gpu_kernel.h"
 
-#ifdef WINDLL
-#include <windows.h>
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
-{
-    return TRUE;
-}
-#endif
 
-#ifdef WINDLL
-#define EXTERN extern "C" __declspec(dllexport) 
-#else
-#define EXTERN 
-#endif
-using namespace std;
 
 static LJ_GPU_Memory<PRECISION,ACC_PRECISION> LJMF;
 #define LJMT LJ_GPU_Memory<numtyp,acctyp>
 
-static float kernelTime = 0.0;
-static int ncell1D;
-static float *energy, *d_energy;
-static float3 *d_force, *f_temp, *v_temp, *d_virial;
-static cell_list cell_list_gpu;
+
 
 // ---------------------------------------------------------------------------
 // Convert something to a string
@@ -93,8 +76,10 @@ EXTERN bool lj_gpu_init(int &ij_size, const int ntypes, double **cutsq,double **
   bool ret = LJMF.init(ij_size, ntypes, cutsq, sigma, epsilon, host_lj1, host_lj2, 
 		       host_lj3, host_lj4, offset, special_lj, max_nbors, gpu_id);
 
-  ncell1D = ceil(((boxhi[0] - boxlo[0]) + 2.0*cell_size) / cell_size);
-
+  ncellx = ceil(((boxhi[0] - boxlo[0]) + 2.0*cell_size) / cell_size);
+  ncelly = ceil(((boxhi[1] - boxlo[1]) + 2.0*cell_size) / cell_size);
+  ncellz = ceil(((boxhi[2] - boxlo[2]) + 2.0*cell_size) / cell_size);
+   
   init_cell_list_const(cell_size, skin, boxlo, boxhi);
 
   return ret;
@@ -153,6 +138,8 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
 		    const int nall, const int ago, const bool eflag, const bool vflag, 
 		    const double *boxlo, const double *boxhi)
 {
+  cudaError_t err;
+  
   ljm.atom.nall(nall);
   ljm.atom.inum(inum);
 
@@ -161,8 +148,8 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
 
   double evdwl=0.0;
 
-  static int buffer = CELL_SIZE;
-  static int ncell = (int)pow((float)ncell1D,3);
+  static int blockSize = BLOCK_1D;
+  static int ncell = ncellx*ncelly*ncellz;
 
   static int first_call = 1;
 
@@ -176,7 +163,7 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
     cudaMalloc((void**)&d_energy,    inum*sizeof(float));
     cudaMalloc((void**)&d_virial,    inum*3*sizeof(float3));
 
-    init_cell_list(cell_list_gpu, nall, ncell, buffer);
+    init_cell_list(cell_list_gpu, nall, ncell, blockSize);
 
     first_call = 0;
   }
@@ -198,13 +185,13 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
     cudaMalloc((void**)&d_virial,    inum*3*sizeof(float3));
 
     clear_cell_list(cell_list_gpu);
-    init_cell_list(cell_list_gpu, nall, ncell, buffer);
+    init_cell_list(cell_list_gpu, nall, ncell, blockSize);
   }
 
   // build cell-list on GPU
   ljm.atom.time_atom.start();
   build_cell_list(host_x[0], host_type, cell_list_gpu, 
-		  ncell, ncell1D, buffer, inum, nall, ago);
+		  ncell, ncellx, ncelly, ncellz, blockSize, inum, nall, ago);
   ljm.atom.time_atom.stop();
 
   ljm.time_pair.start();
@@ -216,25 +203,32 @@ double _lj_gpu_cell(LJMT &ljm, double **force, double *virial,
   cudaEventRecord(start, 0);
 #endif
 
+#define KERNEL_LJ_CELL(e, v, b, s)     kernel_lj_cell<e,v,b><<<GX, BX, s>>> \
+                                       (d_force, d_energy, d_virial, \
+					cell_list_gpu.pos, \
+					cell_list_gpu.idx, \
+					cell_list_gpu.type, \
+					cell_list_gpu.natom, \
+					inum, nall, ncell, ncellx, ncelly, ncellz); 
+
   // call the cell-list force kernel
-  const int BX=BLOCK_1D;
-  dim3 GX(ncell1D, ncell1D*ncell1D);
+  const int BX=blockSize;
+  dim3 GX(ncellx, ncelly*ncellz);
+  
   if (eflag == 0 && vflag == 0) {
-    kernel_lj_cell<false,false><<<GX, BX, 0>>>
-      (d_force, d_energy, d_virial, 
-       cell_list_gpu.pos, 
-       cell_list_gpu.idx, 
-       cell_list_gpu.type, 
-       cell_list_gpu.natom,
-       inum, nall, ncell);
+    if (blockSize == 64 ) KERNEL_LJ_CELL(false, false, 64,  0);
+    if (blockSize == 128) KERNEL_LJ_CELL(false, false, 128, 0);
+    if (blockSize == 256) KERNEL_LJ_CELL(false, false, 256, 0);    
   } else {
-    kernel_lj_cell<true,true><<<GX, BX, 3*sizeof(float)*MAX_SHARED_TYPES*MAX_SHARED_TYPES>>>
-      (d_force, d_energy, d_virial, 
-       cell_list_gpu.pos, 
-       cell_list_gpu.idx, 
-       cell_list_gpu.type, 
-       cell_list_gpu.natom,
-       inum, nall, ncell);
+    if (blockSize == 64)  KERNEL_LJ_CELL(true, true, 64,  3*sizeof(float)*MAX_SHARED_TYPES*MAX_SHARED_TYPES);
+    if (blockSize == 128) KERNEL_LJ_CELL(true, true, 128, 3*sizeof(float)*MAX_SHARED_TYPES*MAX_SHARED_TYPES);
+    if (blockSize == 256) KERNEL_LJ_CELL(true, true, 256, 3*sizeof(float)*MAX_SHARED_TYPES*MAX_SHARED_TYPES);
+  }
+  
+  err = cudaGetLastError();
+  if (err != cudaSuccess) {
+    printf("LJ force kernel launch error: %d\n", err);
+    exit(1);
   }
 
 #ifdef TIMING
@@ -294,122 +288,6 @@ EXTERN double lj_gpu_cell(double **force, double *virial, double **host_x, int *
 {
   return _lj_gpu_cell<PRECISION,ACC_PRECISION>(LJMF, force, virial, host_x, host_type, inum, nall, 
 					       ago, eflag, vflag, boxlo, boxhi);
-}
-
-template <class numtyp, class acctyp>
-double _lj_gpu_n2(LJMT &ljm, double **force, double *virial,
-		  double **host_x, int *host_type, const int inum, const int nall, const bool eflag, const bool vflag,
-		  const double *boxlo, const double *boxhi)
-{
-  ljm.atom.nall(nall);
-  ljm.atom.inum(inum);
-
-
-  ljm.nbor.time_nbor.start();
-  ljm.nbor.time_nbor.stop();
-
-  
-  double evdwl=0.0;
-
-#ifdef NOUSE
-  static int first_call = 1;
-
-  if (first_call) {
-    energy    = (float*)    malloc(inum*sizeof(float));
-    v_temp    = (float3*)   malloc(inum*2*sizeof(float3));
-    cudaMallocHost((void**)&f_temp,   inum*sizeof(float3));
-    cudaMallocHost((void**)&pos_temp, nall*sizeof(float3));
-    cudaMalloc((void**)&d_force,     inum*sizeof(float3));
-    cudaMalloc((void**)&d_energy,    inum*sizeof(float));
-    cudaMalloc((void**)&d_virial,    inum*3*sizeof(float3));
-    cudaMalloc((void**)&d_pos,       nall*sizeof(float3));
-    cudaMalloc((void**)&d_type,      nall*sizeof(int));
-    first_call = 0;
-  }
-
-
-  ljm.atom.time_atom.start();
-  double *atom_pos = host_x[0];
-  for (int i = 0; i < 3*nall; i+=3) { 
-    pos_temp[i/3] = make_float3(atom_pos[i], atom_pos[i+1], atom_pos[i+2]);
-  }
-  cudaMemcpy(d_pos, pos_temp, nall*sizeof(float3), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_type, host_type, nall*sizeof(int),  cudaMemcpyHostToDevice);
-
-  ljm.atom.time_atom.stop();
-
-  ljm.time_pair.start();
-  
-  // Compute the block size and grid size to keep all cores busy
-  const int BX=BLOCK_1D;
-  dim3 GX(static_cast<int>(ceil(static_cast<double>(inum)/BX)));
-
-#ifdef TIMING
-  cudaEvent_t start, stop;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
-  cudaEventRecord(start, 0);
-#endif
-
-  // N^2 force kernel
-  kernel_lj_n2<numtyp, acctyp><<<GX, BX>>>(d_force, d_energy, d_virial, 
-					   d_pos, d_type, eflag, vflag, inum, nall);
-
-#ifdef TIMING
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
-  float kTime;
-  cudaEventElapsedTime(&kTime, start, stop);
-  kernelTime += kTime;
-  printf("kernelTime = %f, eflag=%d, vflag=%d\n", kTime, eflag, vflag);
-  cudaEventDestroy(start);
-  cudaEventDestroy(stop);
-#endif
-
-  // copy results from GPU to CPU
-  cudaMemcpy(f_temp, d_force, inum*sizeof(float3), cudaMemcpyDeviceToHost);
-  if (eflag) {
-    cudaMemcpy(energy, d_energy, inum*sizeof(float), cudaMemcpyDeviceToHost);
-    for (int i = 0; i < inum; i++) {
-      evdwl += energy[i];
-    }
-    evdwl *= 0.5f;
-  }
-  if (vflag) {
-    cudaMemcpy(v_temp, d_virial, inum*2*sizeof(float3), cudaMemcpyDeviceToHost);
-    for (int i = 0; i < inum; i++) {
-      virial[0] += v_temp[2*i].x;
-      virial[1] += v_temp[2*i].y;
-      virial[2] += v_temp[2*i].z;
-      virial[3] += v_temp[2*i+1].x;
-      virial[4] += v_temp[2*i+1].y;
-      virial[5] += v_temp[2*i+1].z;
-    }
-    for (int i = 0; i < 6; i++) 
-      virial[i] *= 0.5f;
-  }
-
-  for (int i = 0; i < inum; i++) {
-    force[i][0] += f_temp[i].x;
-    force[i][1] += f_temp[i].y;
-    force[i][2] += f_temp[i].z;
-  }
-#endif
-  ljm.time_pair.stop();
-
-  ljm.atom.time_atom.add_to_total();
-  ljm.nbor.time_nbor.add_to_total();
-  ljm.time_pair.add_to_total();
-
-  return evdwl;
-}
-
-EXTERN double lj_gpu_n2(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
-		 const bool eflag, const bool vflag,
-		 const double *boxlo, const double *boxhi) 
-{
-  return _lj_gpu_n2<PRECISION,ACC_PRECISION>(LJMF, force, virial, host_x, host_type, inum, nall, 
-					  eflag, vflag, boxlo, boxhi);
 }
 
 EXTERN void lj_gpu_time() {

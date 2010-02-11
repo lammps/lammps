@@ -20,6 +20,22 @@
 #ifndef PAIR_GPU_CELL_H
 #define PAIR_GPU_CELL_H
 
+#ifdef WINDLL
+#include <windows.h>
+#endif
+
+#ifdef WINDLL
+#define EXTERN extern "C" __declspec(dllexport) 
+#else
+#define EXTERN 
+#endif
+using namespace std;
+
+static float kernelTime = 0.0;
+static int ncellx, ncelly, ncellz;
+static float *energy, *d_energy;
+static float3 *d_force, *f_temp, *v_temp, *d_virial;
+
 
 typedef struct {
   float3 *pos;
@@ -27,6 +43,8 @@ typedef struct {
   int *type;
   int *natom;
 } cell_list;
+
+static cell_list cell_list_gpu;
 
 __global__ void kernel_set_cell_list(unsigned int *cell_idx);
 __global__ void kernel_build_cell_list(float3 *cell_list, 
@@ -54,8 +72,8 @@ void init_cell_list(cell_list &cell_list_gpu,
 
 void build_cell_list(double *atom_pos, int *atom_type, 
 		    cell_list &cell_list_gpu, 
-		    const int ncell, const int ncell1D, const int buffer,
-		    const int inum, const int nall, const int ago);
+		    const int ncell, const int ncellx, const int ncelly, const int ncellz, 
+		    const int buffer, const int inum, const int nall, const int ago);
 
 void clear_cell_list(cell_list &cell_list_gpu);
 

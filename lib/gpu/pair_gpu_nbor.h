@@ -24,7 +24,6 @@
 #include "nvc_timer.h"
 #include "nvc_memory.h"
 
-#define BLOCK_1D 64
 #define IJ_SIZE 131072
 
 class PairGPUNbor {

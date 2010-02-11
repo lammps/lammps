@@ -25,8 +25,8 @@
 #include "pair_gpu_atom.h"
 #include "pair_gpu_nbor.h"
 
-#define BLOCK_1D 64
-#define CELL_SIZE 64
+#define BLOCK_1D 64           // max value = 256
+#define CELL_SIZE BLOCK_1D
 #define MAX_SHARED_TYPES 8
 #define PERCENT_GPU_MEMORY 0.7
 #define BIG_NUMBER 100000000

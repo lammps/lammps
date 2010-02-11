@@ -17,6 +17,7 @@
                          Paul Crozier (SNL), pscrozi@sandia.gov
 ------------------------------------------------------------------------- */
 
+#include <assert.h>
 #include "lj_gpu_memory.h"
 #include "pair_gpu_cell.h"
 
@@ -60,11 +61,14 @@ __global__ void kernel_build_cell_list(float3 *cell_list,
 				       float3 *pos, 
 				       int *type, 
 				       const int inum, 
-				       const int nall)
+				       const int nall,
+				       const int cell_size)
 {
   unsigned int gid = threadIdx.x + blockIdx.x*blockDim.x;
   float cSize = d_cell_size[0];
-  int ncell1D = ceil(((d_boxhi[0] - d_boxlo[0]) + 2.0f*cSize) / cSize);
+  int ncellx = ceil(((d_boxhi[0] - d_boxlo[0]) + 2.0f*cSize) / cSize);
+  int ncelly = ceil(((d_boxhi[1] - d_boxlo[1]) + 2.0f*cSize) / cSize);
+  int ncellz = ceil(((d_boxhi[2] - d_boxlo[2]) + 2.0f*cSize) / cSize);
 
   if (gid < nall) {
     float3 p = pos[gid];
@@ -75,11 +79,11 @@ __global__ void kernel_build_cell_list(float3 *cell_list,
     p.z = fmaxf(p.z, d_boxlo[2]-cSize);
     p.z = fminf(p.z, d_boxhi[2]+cSize);
 
-    int cell_id = (int)(p.x/cSize + 1.0) + (int)(p.y/cSize + 1.0) * ncell1D
-    		  + (int)(p.z/cSize + 1.0) * ncell1D * ncell1D;
+    int cell_id = (int)(p.x/cSize + 1.0) + (int)(p.y/cSize + 1.0) * ncellx
+    		    + (int)(p.z/cSize + 1.0) * ncellx * ncelly;
 
     int atom_pos = atomicAdd(&cell_atom[cell_id], 1);
-    int pid = cell_id*CELL_SIZE + atom_pos;
+    int pid = cell_id*cell_size + atom_pos;
 
     cell_list[pid] = pos[gid];
     cell_type[pid] = type[gid];
@@ -92,18 +96,20 @@ __global__ void kernel_test_rebuild(float3 *cell_list, int *cell_atom, int *rebu
 {
 
   float cSize = d_cell_size[0];
-  int ncell1D = ceil(((d_boxhi[0] - d_boxlo[0]) + 2.0f*cSize) / cSize);
+  int ncellx = ceil(((d_boxhi[0] - d_boxlo[0]) + 2.0f*cSize) / cSize);
+  int ncelly = ceil(((d_boxhi[1] - d_boxlo[1]) + 2.0f*cSize) / cSize);
+  int ncellz = ceil(((d_boxhi[2] - d_boxlo[2]) + 2.0f*cSize) / cSize);
 
   // calculate 3D block idx from 2d block
   int bx = blockIdx.x;
-  int by = blockIdx.y % gridDim.x;
-  int bz = blockIdx.y / gridDim.x;
+  int by = blockIdx.y % ncelly;
+  int bz = blockIdx.y / ncelly;
 
   int tid = threadIdx.x;
 
   // compute cell idx from 3D block idx
-  int cid = bx + INT_MUL(by, gridDim.x) + INT_MUL(bz, gridDim.x*gridDim.x);
-  int pbase = INT_MUL(cid,CELL_SIZE); // atom position id in cell list
+  int cid = bx + INT_MUL(by, ncellx) + INT_MUL(bz, INT_MUL(ncellx,ncelly));
+  int pbase = INT_MUL(cid,blockDim.x); // atom position id in cell list
 
   float skin = d_skin[0];
   float lowx = d_boxlo[0] + (bx-1)*cSize - 0.5*skin;
@@ -113,7 +119,7 @@ __global__ void kernel_test_rebuild(float3 *cell_list, int *cell_atom, int *rebu
   float lowz = d_boxlo[2] + (bz-1)*cSize - 0.5*skin;
   float hiz  = lowz + cSize + skin;
 
-  for (int i = tid; i < cell_atom[cid]; i += BLOCK_1D) {
+  for (int i = tid; i < cell_atom[cid]; i += blockDim.x) {
     int pid = pbase + i;
     float3 p = cell_list[pid];
     p.x = fmaxf(p.x, d_boxlo[0]-cSize);
@@ -136,25 +142,30 @@ __global__ void kernel_test_overflow(int *cell_atom, int *overflow, const int nc
   unsigned int gid = threadIdx.x + blockIdx.x*blockDim.x;
 
   if (gid < ncell) {
-    if (cell_atom[gid] > CELL_SIZE) 
+    if (cell_atom[gid] > blockDim.x) 
       *overflow = 1;
   }
 }
 
 __global__ void kernel_copy_list(float3 *cell_list, unsigned int *cell_idx, int *cell_atom, float3 *pos)
 {
+  float cSize = d_cell_size[0];
+  int ncellx = ceil(((d_boxhi[0] - d_boxlo[0]) + 2.0f*cSize) / cSize);
+  int ncelly = ceil(((d_boxhi[1] - d_boxlo[1]) + 2.0f*cSize) / cSize);
+  int ncellz = ceil(((d_boxhi[2] - d_boxlo[2]) + 2.0f*cSize) / cSize);
+
   // calculate 3D block idx from 2d block
   int bx = blockIdx.x;
-  int by = blockIdx.y % gridDim.x;
-  int bz = blockIdx.y / gridDim.x;
+  int by = blockIdx.y % ncelly;
+  int bz = blockIdx.y / ncelly;
 
   int tid = threadIdx.x;
 
   // compute cell idx from 3D block idx
-  int cid = bx + INT_MUL(by, gridDim.x) + INT_MUL(bz, gridDim.x*gridDim.x);
-  int pbase = INT_MUL(cid,CELL_SIZE); // atom position id in cell list
+  int cid = bx + INT_MUL(by, ncellx) + INT_MUL(bz, INT_MUL(ncellx,ncelly));
+  int pbase = INT_MUL(cid,blockDim.x); // atom position id in cell list
 
-  for (int i = tid; i < cell_atom[cid]; i += BLOCK_1D) {
+  for (int i = tid; i < cell_atom[cid]; i += blockDim.x) {
     int pid = pbase + i;
     cell_list[pid] = pos[cell_idx[pid]];
   }
@@ -164,17 +175,7 @@ __global__ void kernel_copy_list(float3 *cell_list, unsigned int *cell_idx, int 
 
 __global__ void radixSortBlocks(unsigned int *keys, float3 *values1, int *values2, unsigned int nbits, unsigned int startbit); 
 
-void sortBlocks(unsigned int *keys, float3 *values1, int *values2, const int size)
-{
-  int i = 0;
-  const unsigned int bitSize = sizeof(unsigned int)*8;
-  const unsigned int bitStep = 4;
-  const int gSize = size/BLOCK_1D;
-  while (bitSize > i*bitStep) {
-    radixSortBlocks<<<gSize, BLOCK_1D, 2*BLOCK_1D*sizeof(unsigned int)>>>(keys, values1, values2, bitStep, i*bitStep);
-    i++;
-  }
-}
+
 
 #ifdef __DEVICE_EMULATION__
 #define __SYNC __syncthreads();
@@ -253,7 +254,7 @@ __device__ unsigned int rank(unsigned int preds)
     unsigned int address = scan(preds);  
 
     __shared__ unsigned int numtrue;
-    if (threadIdx.x == BLOCK_1D - 1)
+    if (threadIdx.x == blockDim.x - 1)
     {
         numtrue = address + preds;
     }
@@ -266,11 +267,12 @@ __device__ unsigned int rank(unsigned int preds)
     return rank;
 }
 
+template<int blockSize>
 __device__ void radixSortBlock(unsigned int *key, float3 *value1, int *value2, unsigned int nbits, unsigned int startbit)
 {
   extern __shared__ unsigned int sMem1[];
-  __shared__ float sMem2[BLOCK_1D];
-  __shared__ int sMem3[BLOCK_1D];
+  __shared__ float sMem2[blockSize];
+  __shared__ int sMem3[blockSize];
 
   int tid = threadIdx.x;
 
@@ -314,7 +316,11 @@ __device__ void radixSortBlock(unsigned int *key, float3 *value1, int *value2, u
 
 }
 
-__global__ void radixSortBlocks(unsigned int *keys, float3 *values1, int *values2, unsigned int nbits, unsigned int startbit)
+__global__ void radixSortBlocks(unsigned int *keys, 
+				float3 *values1, 
+				int *values2, 
+				unsigned int nbits, 
+				unsigned int startbit)
 {
 
   extern __shared__ unsigned int sMem[];
@@ -328,11 +334,28 @@ __global__ void radixSortBlocks(unsigned int *keys, float3 *values1, int *values
   value2 = values2[gid];
   __syncthreads();
 
-  radixSortBlock(&key, &value1, &value2, nbits, startbit);
+  if (blockDim.x == 64) 
+    radixSortBlock<64>(&key, &value1, &value2, nbits, startbit);
+  else if (blockDim.x == 128) 
+    radixSortBlock<128>(&key, &value1, &value2, nbits, startbit);
+  else if (blockDim.x == 256)
+    radixSortBlock<256>(&key, &value1, &value2, nbits, startbit);
 
   keys[gid] = key;
   values1[gid] = value1;
   values2[gid] = value2;
+}
+
+void sortBlocks(unsigned int *keys, float3 *values1, int *values2, const int size, int cell_size)
+{
+  int i = 0;
+  const unsigned int bitSize = sizeof(unsigned int)*8;
+  const unsigned int bitStep = 4;
+  const int gSize = size/cell_size;
+  while (bitSize > i*bitStep) {
+    radixSortBlocks<<<gSize, cell_size, 2*cell_size*sizeof(unsigned int)>>>(keys, values1, values2, bitStep, i*bitStep);
+    i++;
+  }
 }
 
 static float3 *d_pos, *pos_temp;
@@ -376,9 +399,12 @@ void clear_cell_list(cell_list &cell_list_gpu)
 
 void build_cell_list(double *atom_pos, int *atom_type, 
 		     cell_list &cell_list_gpu, 
-		     const int ncell, const int ncell1D, const int buffer,
-		     const int inum, const int nall, const int ago)
+		     const int ncell, const int ncellx, const int ncelly, const int ncellz, 
+		     const int buffer, const int inum, const int nall, const int ago)
 {
+
+  cudaError_t err;				     
+
   cudaMemset(d_overflow, 0, sizeof(int));
   cudaMemset(d_rebuild, 0, sizeof(int));
 
@@ -394,28 +420,24 @@ void build_cell_list(double *atom_pos, int *atom_type,
 
   // copy the last built cell-list and test whether it needs to be rebuilt
   if (!first_build) {
-    dim3 block(BLOCK_1D);
-    dim3 grid(ncell1D, ncell1D*ncell1D);
-    kernel_copy_list<<<grid, block>>>(cell_list_gpu.pos, 
+    
+    dim3 grid(ncellx, ncelly*ncellz);
+    kernel_copy_list<<<grid, buffer>>>(cell_list_gpu.pos, 
 				 cell_list_gpu.idx, 
 				 cell_list_gpu.natom, d_pos);
     cudaMemset(d_rebuild, 0, sizeof(int));
     int *temp = (int*)malloc(sizeof(int)*ncell);
-    kernel_test_rebuild<<<grid, block>>>(cell_list_gpu.pos, 
+    kernel_test_rebuild<<<grid, buffer>>>(cell_list_gpu.pos, 
 					 cell_list_gpu.natom,
 					 d_rebuild);
     cudaMemcpy(&rebuild, d_rebuild, sizeof(int), cudaMemcpyDeviceToHost);
+    
+    err = cudaGetLastError();
+    assert(err == cudaSuccess);
   }
 
-  /*if (!first_build) {
-    dim3 block(BLOCK_1D);
-    dim3 grid(ncell1D, ncell1D*ncell1D);
-    kernel_copy_list<<<grid, block>>>(cell_list_gpu.pos, 
-				      cell_list_gpu.idx, 
-				      cell_list_gpu.natom, d_pos);
-				      }*/
   if (ago == 0) rebuild = 1;
-
+  
   // build cell-list for the first time
   if (first_build || rebuild) {
     first_build = 0;
@@ -431,24 +453,32 @@ void build_cell_list(double *atom_pos, int *atom_type,
 						  cell_list_gpu.idx, 
 						  cell_list_gpu.type, 
 						  cell_list_gpu.natom, 
-						  d_pos, d_type, inum, nall);
-    
+						  d_pos, d_type, inum, nall, buffer);
+    err = cudaGetLastError();
+    assert(err == cudaSuccess);
     // check cell list overflow
-    int overflow;
-    int gDimCell = static_cast<int>(ceil(static_cast<double>(ncell)/BLOCK_1D));
-    kernel_test_overflow<<<gDimCell, BLOCK_1D>>>(cell_list_gpu.natom, 
-						 d_overflow, ncell);
+    int overflow = 0;
+    int gDimCell = static_cast<int>(ceil(static_cast<double>(ncell)/buffer));
+    kernel_test_overflow<<<gDimCell, buffer>>>(cell_list_gpu.natom, 
+					       d_overflow, ncell);
     cudaMemcpy(&overflow, d_overflow, sizeof(int), cudaMemcpyDeviceToHost);
+     
     if (overflow > 0) {
-      printf("\n\nBLOCK_1D too small for cell list, please increase it!\n\n");
+      printf("\n BLOCK_1D too small for cell list, please increase it!");
+      printf("\n BLOCK_1D = %d",BLOCK_1D);
+      printf("\n ncell = %d",ncell);
+      printf("\n gDimCell = %d",gDimCell);
+      printf("\n overflow = %d \n",overflow);
       exit(0);
     }
-
+    
     // sort atoms in every cell by atom index to avoid floating point associativity problem.
     sortBlocks(cell_list_gpu.idx, cell_list_gpu.pos, 
-	       cell_list_gpu.type, ncell*buffer);
+	       cell_list_gpu.type, ncell*buffer, buffer);
 
     cudaThreadSynchronize();
+    err = cudaGetLastError();
+    assert(err == cudaSuccess);
   }
 
 }

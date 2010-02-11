@@ -52,12 +52,8 @@ void lj_gpu_clear();
 double lj_gpu_cell(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
 		   const int ago, const bool eflag, const bool vflag, 
 		   const double *boxlo, const double *boxhi);
-double   lj_gpu_n2(double **force, double *virial, double **host_x, const int inum, const int nall, 
-		   const bool eflag, const bool vflag,
-		   const double *boxlo, const double *boxhi);
 void lj_gpu_name(const int gpu_id, const int max_nbors, char * name);
 void lj_gpu_time();
-int lj_gpu_num_devices();
 double lj_gpu_bytes();
 
 #else
@@ -72,21 +68,15 @@ typedef void (*_lj_gpu_clear)();
 typedef double (*_lj_gpu_cell)(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
 		   const int ago, const bool eflag, const bool vflag, 
 		   const double *boxlo, const double *boxhi);
-typedef double   (*_lj_gpu_n2)(double **force, double *virial, double **host_x, int *host_type, const int inum, const int nall, 
-		   const bool eflag, const bool vflag,
-		   const double *boxlo, const double *boxhi);
 typedef void (*_lj_gpu_name)(const int gpu_id, const int max_nbors, char * name);
 typedef void (*_lj_gpu_time)();
-typedef int (*_lj_gpu_num_devices)();
 typedef double (*_lj_gpu_bytes)();
 
 _lj_gpu_init lj_gpu_init;
 _lj_gpu_clear lj_gpu_clear;
 _lj_gpu_cell lj_gpu_cell;
-_lj_gpu_n2 lj_gpu_n2;
 _lj_gpu_name lj_gpu_name;
 _lj_gpu_time lj_gpu_time;
-_lj_gpu_num_devices lj_gpu_num_devices;
 _lj_gpu_bytes lj_gpu_bytes;
 
 #endif
@@ -110,10 +100,8 @@ PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), multi_gpu_mode(0)
   lj_gpu_init=(_lj_gpu_init)GetProcAddress(hinstLib,"lj_gpu_init");
   lj_gpu_clear=(_lj_gpu_clear)GetProcAddress(hinstLib,"lj_gpu_clear");
   lj_gpu_cell=(_lj_gpu_cell)GetProcAddress(hinstLib,"lj_gpu_cell");
-  lj_gpu_n2=(_lj_gpu_n2)GetProcAddress(hinstLib,"lj_gpu_n2");
   lj_gpu_name=(_lj_gpu_name)GetProcAddress(hinstLib,"lj_gpu_name");
   lj_gpu_time=(_lj_gpu_time)GetProcAddress(hinstLib,"lj_gpu_time");
-  lj_gpu_num_devices=(_lj_gpu_num_devices)GetProcAddress(hinstLib,"lj_gpu_num_devices");
   lj_gpu_bytes=(_lj_gpu_bytes)GetProcAddress(hinstLib,"lj_gpu_bytes");
 #endif
 

@@ -193,10 +193,9 @@ multiple rigid fixes to be defined, but it is more expensive.
 
 :line
 
-As stated above, the {rigid} and {rigid/nve} styles
-perform constant NVE time integration.  Thus the
-{temp}, {press}, {tparam}, and {pparam} keywords cannot
-be used with these styles.
+As stated above, the {rigid} and {rigid/nve} styles perform constant
+NVE time integration.  Thus the {temp}, {press}, {tparam}, and
+{pparam} keywords cannot be used with these styles.
 
 The {rigid/nvt} style performs constant NVT time integration, using a
 temperature it computes for the rigid bodies which includes their

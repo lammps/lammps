@@ -96,9 +96,11 @@ tar:
 # Update Makefile.lib and Makefile.list
 
 makelib:
+	@/bin/sh Make.sh style
 	@/bin/sh Make.sh Makefile.lib
 
 makelist:
+	@/bin/sh Make.sh style
 	@/bin/sh Make.sh Makefile.list
 
 # Package management

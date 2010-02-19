@@ -32,17 +32,20 @@ represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF. The version implemented 
 in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper: <A HREF = "#Chenoweth_2008">(Chenoweth et al.,
- 2008)</A>. The parameter values in
-the file ffield.reax provided with the ReaxFF examples are based on those 
-used in: <A HREF = "#Strachan_2005">(Strachan et al., 2005)</A>.
+ 2008)</A>. 
 </P>
-<P>LAMMPS provides a ReaxFF potential file in its potentials dir, namely
-potentials/ffield.reax.  Its format is identical to that used by van
-Duin and co-workers.  It contains parameterizations for the following
-elements: C, H, O, N, S.  Si has been temporarily removed.  You can
-use another file in place of it, and ReaxFF files with
-parameterizations for other elements or for specific chemical systems
-may be available elsewhere.
+<P>LAMMPS requires that a file called ffield.reax be provided, containing the
+ReaxFF parameters for each atom type, bond type, etc. The format is identical to
+the ffield file used by van Duin and co-workers. The filename is also
+reuqired as an argument in the pair_coeff command. Any value other than
+ffield.reax will be rejected (see below).
+</P>
+<P>LAMMPS provides several different versions of ffield.reax
+in its potentials dir, each called potentials/ffield.reax.label.
+These are documented in potentials/README.reax.
+The default ffield.reax contains parameterizations for the following
+elements: C, H, O, N, S. You can use one of the other files in place of it, 
+or obtain a file from elsewhere.
 </P>
 <P>The <I>hbcut</I> and <I>precision</I> settings are optional arguments.  If
 neither is provided, default settings are used: <I>hbcut</I> = 10 (which is
@@ -83,10 +86,9 @@ another ReaxFF potential file, then name it "ffield.reax" and put it
 in the directory you run from.
 </P>
 <P>In the ReaxFF potential file, near the top, is a section that contains
-element names, each with a couple dozen numeric parameters.  The
-ffield.reax provided with LAMMPS lists 6 elements: C, H, O, N, S, Si,
-though Si has been temporarily removed.  Think of these as numbered 1
-to 6.  Each of the N indices you specify for the N atom types of
+element names, each with a couple dozen numeric parameters.  The default
+ffield.reax provided with LAMMPS lists 5 elements: C, H, O, N, S.  
+Think of these as numbered 1 to 6.  Each of the N indices you specify for the N atom types of
 LAMMPS atoms must be an integer from 1 to 6.  Atoms with LAMMPS type 1
 will be mapped to whatever element you specify as the first index
 value, etc.
@@ -142,10 +144,5 @@ do this.
 
 <P><B>(Chenoweth)</B> Chenoweth, van Duin and Goddard III, 
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
-</P>
-<A NAME = "Strachan_2005"></A>
-
-<P><B>(Strachan)</B> Strachan, Kober, van Duin, Oxgaard, and Goddard,
-Journal of Chemical Physics, 122, 054502 (2005). 
 </P>
 </HTML>

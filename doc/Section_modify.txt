@@ -345,8 +345,7 @@ quantities and/or to be summed to the potential energy of the system.
 Input script commands :link(command),h4
 
 New commands can be added to LAMMPS input scripts by adding new
-classes that have a "command" method and are listed in the Command
-sections of style.h (or style_user.h).  For example, the create_atoms,
+classes that have a "command" method.  For example, the create_atoms,
 read_data, velocity, and run commands are all implemented in this
 fashion.  When such a command is encountered in the LAMMPS input
 script, LAMMPS simply creates a class with the corresponding name,

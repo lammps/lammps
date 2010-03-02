@@ -33,6 +33,7 @@ class Dump : protected Pointers {
   int multiproc;             // 0 = proc 0 writes for all, 1 = one file/proc
 
   int header_flag;           // 0 = item, 2 = xyz
+  int first_flag;            // 0 if no initial dump, 1 if yes initial dump
   int flush_flag;            // 0 if no flush, 1 if flush every dump
   int sort_flag;             // 1 if write in sorted order, 0 if not
   int append_flag;           // 1 if open file in append mode, 0 if not

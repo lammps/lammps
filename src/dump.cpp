@@ -48,10 +48,10 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   filename = new char[n];
   strcpy(filename,arg[4]);
 
+  first_flag = 0;
   flush_flag = 1;
   format = NULL;
   format_user = NULL;
-
   clearstep = 0;
   sort_flag = 0;
   append_flag = 0;
@@ -252,6 +252,18 @@ void Dump::modify_params(int narg, char **arg)
 	if (strcmp(id,output->dump[idump]->id) == 0) break;
       output->dump_every[idump] = n;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"first") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) first_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) first_flag = 0;
+      else error->all("Illegal dump_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"flush") == 0) {
+      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
+      else error->all("Illegal dump_modify command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");
       delete [] format_user;
@@ -261,12 +273,6 @@ void Dump::modify_params(int narg, char **arg)
 	format_user = new char[n];
 	strcpy(format_user,arg[iarg+1]);
       }
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"flush") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
-      else error->all("Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all("Illegal dump_modify command");

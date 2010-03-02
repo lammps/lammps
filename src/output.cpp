@@ -132,11 +132,16 @@ void Output::setup(int flag)
   // if no dumps, set next_dump_any to last+1 so will not influence next
   // wrap dumps that invoke computes with clear/add
 
+  int writeflag;
+
   if (ndump && update->restrict_output == 0) {
     for (int idump = 0; idump < ndump; idump++) {
       if (dump[idump]->clearstep) modify->clearstep_compute();
-      if ((ntimestep % dump_every[idump] == 0 && 
-	  last_dump[idump] != ntimestep) || last_dump[idump] < 0) {
+      writeflag = 0;
+      if (ntimestep % dump_every[idump] == 0 && last_dump[idump] != ntimestep)
+	writeflag = 1;
+      if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
+      if (writeflag) {
 	dump[idump]->write();
 	last_dump[idump] = ntimestep;
       }

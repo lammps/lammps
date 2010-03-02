@@ -49,7 +49,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 2;
   global_freq = 1;
-  extvector = 1;
+  extvector = 0;
 
   btype = atoi(arg[4]);
   double cutoff = atof(arg[5]);

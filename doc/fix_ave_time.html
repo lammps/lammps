@@ -281,13 +281,11 @@ inputs.
 <P>If the fix prouduces a scalar or vector, then the scalar and each
 element of the vector may be either "intensive" or "extensive".  If
 the fix produces an array, then all elements in the array will be
-either "intensive" or "extensive".  Intensive means the value is
-independent of the number of atoms in the simulation.  Extensive means
-the value scales with the number of atoms in the simulation.  If a
-compute or fix provides the value being time averaged, then the
-compute or fix determines whether the value is intensive or extensive;
-see the doc page for that compute or fix for further info.  Values
-produced by a variable are whatever the variable calculates.
+either "intensive" or "extensive".  If a compute or fix provides the
+value being time averaged, then the compute or fix determines whether
+the value is intensive or extensive; see the doc page for that compute
+or fix for further info.  Values produced by a variable are whatever
+the variable calculates.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

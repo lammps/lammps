@@ -108,8 +108,7 @@ the spring, as a positive value if (r-R0) > 0 and a negative value if
 (r-R0) < 0.  This sign convention can be useful when using the spring
 force to compute a potential of mean force (PMF).
 
-The scalar and vector values calculated by this fix are "extensive",
-meaning they scale with the number of atoms in the simulation.
+The scalar and vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

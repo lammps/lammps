@@ -163,9 +163,8 @@ setting the {tally} keyword to {yes}.
 The cummulative energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various "output
 commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive", meaning it scales with the number of atoms in
-the simulation.  Note that use of this option requires setting the
-{tally} keyword to {yes}.
+this fix is "extensive".  Note that calculation of this quantity
+requires setting the {tally} keyword to {yes}.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

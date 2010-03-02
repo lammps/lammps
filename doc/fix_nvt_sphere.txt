@@ -119,8 +119,7 @@ output"_thermo_style.html.
 The cummulative energy change due to this fix is stored as a scalar
 quantity, which can be accessed by various "output
 commands"_Section_howto.html#4_15.  The scalar value calculated by
-this fix is "extensive", meaning it scales with the number of atoms in
-the simulation.
+this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

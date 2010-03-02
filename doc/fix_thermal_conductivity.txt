@@ -105,8 +105,7 @@ the quantity are energy; see the "units"_units.html command for
 details.  This quantity can be accessed by various "output
 commands"_Section_howto.html#4_15, such as "thermo_style
 custom"_thermo_style.html.  The scalar value calculated by this fix is
-"intensive", meaning it is independent of the number of atoms in the
-simulation.
+"intensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

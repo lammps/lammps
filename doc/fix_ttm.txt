@@ -156,8 +156,7 @@ energy. As a result of this, users may notice slight fluctuations in
 the sum of the atomic and electronic subsystem energies reported at 
 the end of the timestep. 
 
-The vector values calculated by this fix are "extensive",
-meaning they scale with the number of atoms in the simulation.
+The vector values calculated by this fix are "extensive".
 
 IMPORTANT NOTE: The current implementation creates a copy of the
 electron grid that overlays the entire simulation domain, for each

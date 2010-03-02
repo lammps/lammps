@@ -159,9 +159,8 @@ are relevant to this fix.
 
 This fix computes two statistics which it stores in a vector of length
 2, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  The vector values
-calculated by this fix are "extensive", meaning they scale with the
-number of atoms in the simulation.
+commands"_Section_howto.html#4_15.  The vector values calculated by
+this fix are "intensive".
 
 These are the 2 quantities:
 

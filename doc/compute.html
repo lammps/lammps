@@ -121,9 +121,10 @@ independent of the number of atoms in the simulation,
 e.g. temperature.  Extensive means the value scales with the number of
 atoms in the simulation, e.g. total rotational kinetic energy.
 <A HREF = "thermo_style.html">Thermodynamic output</A> will normalize extensive
-values depending on the "thermo_modify norm" setting.  But if a
-compute value is accessed in another way, e.g. by a
-<A HREF = "variable.html">variable</A>, you may need to know whether it is an
+values by the number of atoms in the system, depending on the
+"thermo_modify norm" setting.  It will not normalize intensive values.
+If a compute value is accessed in another way, e.g. by a
+<A HREF = "variable.html">variable</A>, you may want to know whether it is an
 intensive or extensive value.  See the doc page for individual
 computes for further info.
 </P>

@@ -91,10 +91,8 @@ section"_Section_howto.html#4_15 for an overview of LAMMPS output
 options.
 
 The scalar and vector values calculated by this compute are
-"intensive", meaning they are independent of the number of atoms in
-the simulation.
-
-The scalar and vector values will be in pressure "units"_units.html.
+"intensive".  The scalar and vector values will be in pressure
+"units"_units.html.
 
 [Restrictions:] none
 

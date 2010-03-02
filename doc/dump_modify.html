@@ -26,6 +26,7 @@
     E1,...,EN = element name, e.g. C or Fe or Ga
   <I>every</I> arg = N
     N = dump every this many timesteps
+  <I>first</I> arg = <I>yes</I> or <I>no</I>
   <I>format</I> arg = C-style format string for one line of output
   <I>flush</I> arg = <I>yes</I> or <I>no</I>
   <I>image</I> arg = <I>yes</I> or <I>no</I>
@@ -78,6 +79,14 @@ atom types.
 <P>The <I>every</I> keyword changes the dump frequency originally specified by
 the <A HREF = "dump.html">dump</A> command to a new value which must be > 0.  The
 dump frequency cannot be changed for the dump <I>dcd</I> style.
+</P>
+<P>The <I>first</I> keyword determines whether a dump snapshot is written on
+the very first timestep after the dump command is invoked.  This will
+always occur if the current timestep is a multiple of N, the frequency
+specified in the <A HREF = "dump.html">dump</A> command, including timestep 0.  But
+if this is not the case, a dump snapshot will only be written if the
+setting of this keyword is <I>yes</I>.  If it is <I>no</I>, which is the
+default, then it will not be written.
 </P>
 <P>The <I>flush</I> keyword determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
@@ -174,6 +183,7 @@ box size stored with the snapshot.
 <UL><LI>append = no
 <LI>element = "C" for every atom type
 <LI>every = whatever it was set to via the <A HREF = "dump.html">dump</A> command
+<LI>first = no
 <LI>flush = yes (except for the dump <I>xtc</I> style)
 <LI>format = %d and %g for each integer or floating point value
 <LI>image = no

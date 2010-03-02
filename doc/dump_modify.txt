@@ -20,6 +20,7 @@ keyword = {append} or {every} or {flush} or {format} or {image} or {label} or {p
     E1,...,EN = element name, e.g. C or Fe or Ga
   {every} arg = N
     N = dump every this many timesteps
+  {first} arg = {yes} or {no}
   {format} arg = C-style format string for one line of output
   {flush} arg = {yes} or {no}
   {image} arg = {yes} or {no}
@@ -71,6 +72,14 @@ atom types.
 The {every} keyword changes the dump frequency originally specified by
 the "dump"_dump.html command to a new value which must be > 0.  The
 dump frequency cannot be changed for the dump {dcd} style.
+
+The {first} keyword determines whether a dump snapshot is written on
+the very first timestep after the dump command is invoked.  This will
+always occur if the current timestep is a multiple of N, the frequency
+specified in the "dump"_dump.html command, including timestep 0.  But
+if this is not the case, a dump snapshot will only be written if the
+setting of this keyword is {yes}.  If it is {no}, which is the
+default, then it will not be written.
 
 The {flush} keyword determines whether a flush operation in invoked
 after a dump snapshot is written to the dump file.  A flush insures
@@ -167,6 +176,7 @@ The option defaults are
 append = no
 element = "C" for every atom type
 every = whatever it was set to via the "dump"_dump.html command
+first = no
 flush = yes (except for the dump {xtc} style)
 format = %d and %g for each integer or floating point value
 image = no

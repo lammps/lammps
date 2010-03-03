@@ -22,8 +22,8 @@
 <PRE>  <I>one</I> args = none
   <I>multi</I> args = none
   <I>custom</I> args = list of attributes
-    possible attributes = step, atoms, cpu, temp, press,
-                          pe, ke, etotal, enthalpy,
+    possible attributes = step, elapsed, elaplong, dt, cpu,
+                          atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
                           vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
@@ -33,8 +33,11 @@
                           f_ID, f_ID[I], f_ID[I][J],
                           v_name
       step = timestep
-      atoms = # of atoms
+      elapsed = timesteps since start of this run
+      elaplong = timesteps since start of initial run in a series of runs
+      dt = timestep size
       cpu = elapsed CPU time
+      atoms = # of atoms
       temp = temperature
       press = pressure
       pe = total potential energy
@@ -192,6 +195,16 @@ etc.
 </P>
 <HR>
 
+<P>The <I>step</I>, <I>elapsed</I>, and <I>elaplong</I> keywords refer to timestep
+count.  <I>Step</I> is the current timestep, or iteration count when a
+<A HREF = "minimize.html">minimization</A> is being performed.  <I>Elapsed</I> is the
+number of timesteps elapsed since the beginning of this run.
+<I>Elaplong</I> is the number of timesteps elapsed since the beginning of
+an initial run in a series of runs.  See the <I>start</I> and <I>stop</I>
+keywords for the <A HREF = "run.html">run</A> for info on how to invoke a series of
+runs that keep track of an initial starting time.  If these keywords
+are not used, then <I>elapsed</I> and <I>elaplong</I> are the same value.
+</P>
 <P>The <I>c_ID</I> and <I>c_ID[I]</I> and <I>c_ID[I][J]</I> keywords allow global
 values calculated by a compute to be output.  As discussed on the
 <A HREF = "compute.html">compute</A> doc page, computes can calculate global,

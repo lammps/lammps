@@ -37,21 +37,22 @@ fix		1 all nve
 fix		2 lower setforce 0.0 0.0 0.0
 fix		3 all temp/rescale 100 0.1 0.1 0.01 1.0
 
-# indenter
-
-fix		4 all indent 1000.0 sphere 10 13 0 5.0 vel 0.0 -0.02 0.0
-fix		5 all enforce2d
-
-# Run with indenter
+# run with indenter
 
 timestep	0.003
+variable	k equal 1000.0/xlat
+variable        y equal "13.0*ylat - step*dt*0.02*ylat"
+
+fix		4 all indent $k sphere 10 v_y 0 5.0
+fix		5 all enforce2d
+
 thermo		1000
 thermo_modify	temp new
 
 dump		1 all atom 250 dump.indent
 run		30000
 
-# Run without indenter
+# run without indenter
 
 unfix           4
 run		30000

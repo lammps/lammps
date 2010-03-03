@@ -106,11 +106,13 @@ class Thermo : protected Pointers {
   // functions that compute a single value
   // customize a new keyword by adding a method prototype
 
-  void compute_step();    
-  void compute_atoms();
-  void compute_cpu();
+  void compute_step();
+  void compute_elapsed();
+  void compute_elapsed_long();
   void compute_dt();
+  void compute_cpu();
 
+  void compute_atoms();
   void compute_temp();
   void compute_press();
   void compute_pe();

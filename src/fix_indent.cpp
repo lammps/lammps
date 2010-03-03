@@ -20,6 +20,8 @@
 #include "stdlib.h"
 #include "fix_indent.h"
 #include "atom.h"
+#include "input.h"
+#include "variable.h"
 #include "domain.h"
 #include "lattice.h"
 #include "update.h"
@@ -47,6 +49,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
 
   k = atof(arg[3]);
+  k3 = k/3.0;
 
   // read options from end of input line
 
@@ -65,45 +68,32 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   }
   else xscale = yscale = zscale = 1.0;
 
-  // apply scaling factors to force constant, velocity, and geometry
+  // apply scaling factors to geometry
 
-  k /= xscale;
-  k3 = k/3.0;
-  vx *= xscale;
-  vy *= yscale;
-  vz *= zscale;
-
-  if (istyle == SPHERE) {
-    x0 *= xscale;
-    y0 *= yscale;
-    z0 *= zscale;
-    r0_stop *= xscale;
-    r0_start *= xscale;
-  } else if (istyle == CYLINDER) {
-    if (cdim == 0) {
-      c1 *= yscale;
-      c2 *= zscale;
-      r0_stop *= xscale;
-      r0_start *= xscale;
-    } else if (cdim == 1) {
-      c1 *= xscale;
-      c2 *= zscale;
-      r0_stop *= yscale;
-      r0_start *= yscale;
-    } else if (cdim == 2) {
-      c1 *= xscale;
-      c2 *= yscale;
-      r0_stop *= zscale;
-      r0_start *= zscale;
-    }
+  if (istyle == SPHERE || istyle == CYLINDER) {
+    if (!xstr) xvalue *= xscale;
+    if (!ystr) yvalue *= yscale;
+    if (!zstr) zvalue *= zscale;
+    if (!rstr) rvalue *= xscale;
   } else if (istyle == PLANE) {
-    if (cdim == 0) planepos *= xscale;
-    else if (cdim == 1) planepos *= yscale;
-    else if (cdim == 2) planepos *= zscale;
+    if (cdim == 0 && !pstr) pvalue *= xscale;
+    else if (cdim == 1 && !pstr) pvalue *= yscale;
+    else if (cdim == 2 && !pstr) pvalue *= zscale;
   } else error->all("Illegal fix indent command");
 
   indenter_flag = 0;
   indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixIndent::~FixIndent()
+{
+  delete [] xstr;
+  delete [] ystr;
+  delete [] zstr;
+  delete [] rstr;
+  delete [] pstr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,6 +112,37 @@ int FixIndent::setmask()
 
 void FixIndent::init()
 {
+  if (xstr) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0) error->all("Variable name for fix indent does not exist");
+    if (!input->variable->equalstyle(xvar))
+      error->all("Variable for fix indent is not equal style");
+  }
+  if (ystr) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0) error->all("Variable name for fix indent does not exist");
+    if (!input->variable->equalstyle(yvar))
+      error->all("Variable for fix indent is not equal style");
+  }
+  if (zstr) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0) error->all("Variable name for fix indent does not exist");
+    if (!input->variable->equalstyle(zvar))
+      error->all("Variable for fix indent is not equal style");
+  }
+  if (rstr) {
+    rvar = input->variable->find(rstr);
+    if (rvar < 0) error->all("Variable name for fix indent does not exist");
+    if (!input->variable->equalstyle(rvar))
+      error->all("Variable for fix indent is not equal style");
+  }
+  if (pstr) {
+    pvar = input->variable->find(pstr);
+    if (pvar < 0) error->all("Variable name for fix indent does not exist");
+    if (!input->variable->equalstyle(pvar))
+      error->all("Variable for fix indent is not equal style");
+  }
+
   if (strcmp(update->integrate_style,"respa") == 0)
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
@@ -150,17 +171,6 @@ void FixIndent::min_setup(int vflag)
 
 void FixIndent::post_force(int vflag)
 {
-  // set current r0
-  // for minimization, always set to r0_stop
-
-  double r0;
-  if (!radflag || update->whichflag == 2) r0 = r0_stop;
-  else {
-    double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
-    r0 = r0_start + delta * (r0_stop-r0_start);
-  }
-
   // indenter values, 0 = energy, 1-3 = force components
 
   indenter_flag = 0;
@@ -170,15 +180,21 @@ void FixIndent::post_force(int vflag)
 
   if (istyle == SPHERE) {
 
-    // ctr = current indenter center from original x0,y0,z0
+    // ctr = current indenter center
     // remap into periodic box
 
     double ctr[3];
-    double delta = (update->ntimestep - update->beginstep) * update->dt;
-    ctr[0] = x0 + delta*vx;
-    ctr[1] = y0 + delta*vy;
-    ctr[2] = z0 + delta*vz;
+    if (xstr) ctr[0] = input->variable->compute_equal(xvar);
+    else ctr[0] = xvalue;
+    if (ystr) ctr[1] = input->variable->compute_equal(yvar);
+    else ctr[1] = yvalue;
+    if (zstr) ctr[2] = input->variable->compute_equal(zvar);
+    else ctr[2] = zvalue;
     domain->remap(ctr);
+
+    double radius;
+    if (rstr) radius = input->variable->compute_equal(zvar);
+    else radius = rvalue;
 
     double **x = atom->x;
     double **f = atom->f;
@@ -195,10 +211,10 @@ void FixIndent::post_force(int vflag)
 	domain->minimum_image(delx,dely,delz);
 	r = sqrt(delx*delx + dely*dely + delz*delz);
 	if (side == OUTSIDE) {
-	  dr = r - r0;
+	  dr = r - radius;
 	  fmag = k*dr*dr;
 	} else {
-	  dr = r0 - r;
+	  dr = radius - r;
 	  fmag = -k*dr*dr;
 	}
 	if (dr >= 0.0) continue;
@@ -218,26 +234,35 @@ void FixIndent::post_force(int vflag)
 
   } else if (istyle == CYLINDER) {
 
-    // ctr = current indenter axis from original c1,c2
+    // ctr = current indenter axis
     // remap into periodic box
     // 3rd coord is just near box for remap(), since isn't used
 	      
     double ctr[3];
-    double delta = (update->ntimestep - update->beginstep) * update->dt;
     if (cdim == 0) {
       ctr[0] = domain->boxlo[0];
-      ctr[1] = c1 + delta*vy;
-      ctr[2] = c2 + delta*vz;
+      if (ystr) ctr[1] = input->variable->compute_equal(yvar);
+      else ctr[1] = yvalue;
+      if (zstr) ctr[2] = input->variable->compute_equal(zvar);
+      else ctr[2] = zvalue;
     } else if (cdim == 1) {
-      ctr[0] = c1 + delta*vx;
+      if (xstr) ctr[0] = input->variable->compute_equal(xvar);
+      else ctr[0] = xvalue;
       ctr[1] = domain->boxlo[1];
-      ctr[2] = c2 + delta*vz;
+      if (zstr) ctr[2] = input->variable->compute_equal(zvar);
+      else ctr[2] = zvalue;
     } else {
-      ctr[0] = c1 + delta*vx;
-      ctr[1] = c2 + delta*vy;
+      if (xstr) ctr[0] = input->variable->compute_equal(xvar);
+      else ctr[0] = xvalue;
+      if (ystr) ctr[1] = input->variable->compute_equal(yvar);
+      else ctr[1] = yvalue;
       ctr[2] = domain->boxlo[2];
     }
     domain->remap(ctr);
+
+    double radius;
+    if (rstr) radius = input->variable->compute_equal(zvar);
+    else radius = rvalue;
 
     double **x = atom->x;
     double **f = atom->f;
@@ -264,10 +289,10 @@ void FixIndent::post_force(int vflag)
 	domain->minimum_image(delx,dely,delz);
 	r = sqrt(delx*delx + dely*dely + delz*delz);
 	if (side == OUTSIDE) {
-	  dr = r - r0;
+	  dr = r - radius;
 	  fmag = k*dr*dr;
 	} else {
-	  dr = r0 - r;
+	  dr = radius - r;
 	  fmag = -k*dr*dr;
 	}
 	if (dr >= 0.0) continue;
@@ -287,13 +312,11 @@ void FixIndent::post_force(int vflag)
 
   } else {
 
-    // posnew = current coord of plane from original planepos
+    // plane = current plane position
 	      
-    double delta = (update->ntimestep - update->beginstep) * update->dt;
-    double posnew;
-    if (cdim == 0) posnew = planepos + delta*vx;
-    else if (cdim == 1) posnew = planepos + delta*vy;
-    else if (cdim == 2) posnew = planepos + delta*vz;
+    double plane;
+    if (pstr) plane = input->variable->compute_equal(pvar);
+    else plane = pvalue;
     
     double **x = atom->x;
     double **f = atom->f;
@@ -304,7 +327,7 @@ void FixIndent::post_force(int vflag)
     
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	dr = planeside * (posnew - x[i][cdim]);
+	dr = planeside * (plane - x[i][cdim]);
 	if (dr >= 0.0) continue;
 	fatom = -planeside * k*dr*dr;
 	f[i][cdim] += fatom;
@@ -367,9 +390,8 @@ void FixIndent::options(int narg, char **arg)
   if (narg < 0) error->all("Illegal fix indent command");
 
   istyle = NONE;
-  vx = vy = vz = 0.0;
-  radflag = 0;
-  r0_start = 0.0;
+  xstr = ystr = zstr = rstr = pstr = NULL;
+  xvalue = yvalue = zvalue = rvalue = pvalue = 0.0;
   scaleflag = 1;
   side = OUTSIDE;
 
@@ -377,52 +399,107 @@ void FixIndent::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sphere") == 0) {
       if (iarg+5 > narg) error->all("Illegal fix indent command");
-      x0 = atof(arg[iarg+1]);
-      y0 = atof(arg[iarg+2]);
-      z0 = atof(arg[iarg+3]);
-      r0_stop = atof(arg[iarg+4]);
+
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+	int n = strlen(&arg[iarg+1][2]) + 1;
+	xstr = new char[n];
+	strcpy(xstr,&arg[iarg+1][2]);
+      } else xvalue = atof(arg[iarg+1]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+	int n = strlen(&arg[iarg+2][2]) + 1;
+	ystr = new char[n];
+	strcpy(ystr,&arg[iarg+2][2]);
+      } else yvalue = atof(arg[iarg+2]);
+      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+	int n = strlen(&arg[iarg+3][2]) + 1;
+	zstr = new char[n];
+	strcpy(zstr,&arg[iarg+3][2]);
+      } else zvalue = atof(arg[iarg+3]);
+      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
+	int n = strlen(&arg[iarg+4][2]) + 1;
+	rstr = new char[n];
+	strcpy(rstr,&arg[iarg+4][2]);
+      } else rvalue = atof(arg[iarg+4]);
+
       istyle = SPHERE;
       iarg += 5;
+
     } else if (strcmp(arg[iarg],"cylinder") == 0) {
       if (iarg+5 > narg) error->all("Illegal fix indent command");
-      if (strcmp(arg[iarg+1],"x") == 0) cdim = 0;
-      else if (strcmp(arg[iarg+1],"y") == 0) cdim = 1;
-      else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
-      else error->all("Illegal fix indent command");
-      c1 = atof(arg[iarg+2]);
-      c2 = atof(arg[iarg+3]);
-      r0_stop = atof(arg[iarg+4]);
+
+      if (strcmp(arg[iarg+1],"x") == 0) {
+	cdim = 0;
+	if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+	  int n = strlen(&arg[iarg+2][2]) + 1;
+	  ystr = new char[n];
+	  strcpy(ystr,&arg[iarg+2][2]);
+	} else yvalue = atof(arg[iarg+2]);
+	if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+	  int n = strlen(&arg[iarg+3][2]) + 1;
+	  zstr = new char[n];
+	  strcpy(zstr,&arg[iarg+3][2]);
+	} else zvalue = atof(arg[iarg+3]);
+      } else if (strcmp(arg[iarg+1],"y") == 0) {
+	cdim = 1;
+	if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+	  int n = strlen(&arg[iarg+2][2]) + 1;
+	  xstr = new char[n];
+	  strcpy(xstr,&arg[iarg+2][2]);
+	} else xvalue = atof(arg[iarg+2]);
+	if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+	  int n = strlen(&arg[iarg+3][2]) + 1;
+	  zstr = new char[n];
+	  strcpy(zstr,&arg[iarg+3][2]);
+	} else zvalue = atof(arg[iarg+3]);
+      } else if (strcmp(arg[iarg+1],"z") == 0) {
+	cdim = 2;
+	if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+	  int n = strlen(&arg[iarg+2][2]) + 1;
+	  xstr = new char[n];
+	  strcpy(xstr,&arg[iarg+2][2]);
+	} else xvalue = atof(arg[iarg+2]);
+	if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+	  int n = strlen(&arg[iarg+3][2]) + 1;
+	  ystr = new char[n];
+	  strcpy(ystr,&arg[iarg+3][2]);
+	} else yvalue = atof(arg[iarg+3]);
+      } else error->all("Illegal fix indent command");
+
+      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
+	int n = strlen(&arg[iarg+4][2]) + 1;
+	rstr = new char[n];
+	strcpy(rstr,&arg[iarg+4][2]);
+      } else rvalue = atof(arg[iarg+4]);
+
       istyle = CYLINDER;
       iarg += 5;
+
     } else if (strcmp(arg[iarg],"plane") == 0) {
       if (iarg+4 > narg) error->all("Illegal fix indent command");
       if (strcmp(arg[iarg+1],"x") == 0) cdim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) cdim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
       else error->all("Illegal fix indent command");
-      planepos = atof(arg[iarg+2]);
+
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+	int n = strlen(&arg[iarg+2][2]) + 1;
+	pstr = new char[n];
+	strcpy(pstr,&arg[iarg+2][2]);
+      } else pvalue = atof(arg[iarg+2]);
+
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
       else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;
       else error->all("Illegal fix indent command");
       istyle = PLANE;
       iarg += 4;
-    } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix indent command");
-      vx = atof(arg[iarg+1]);
-      vy = atof(arg[iarg+2]);
-      vz = atof(arg[iarg+3]);
-      iarg += 4;
-    } else if (strcmp(arg[iarg],"rstart") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix indent command");
-      radflag = 1;
-      r0_start = atof(arg[iarg+1]);
-      iarg += 2;
+
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix indent command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else error->all("Illegal fix indent command");
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"side") == 0) {
       if (iarg+2 > narg) error->all("Illegal fix indent command");
       if (strcmp(arg[iarg+1],"in") == 0) side = INSIDE;

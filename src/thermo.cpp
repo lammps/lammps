@@ -41,7 +41,8 @@ using namespace LAMMPS_NS;
 
 // customize a new keyword by adding to this list:
 
-// step, atoms, cpu, dt, temp, press, pe, ke, etotal, enthalpy
+// step, elapsed, elaplong, dt, cpu
+// atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
 // pxx, pyy, pzz, pxy, pxz, pyz
@@ -60,7 +61,7 @@ enum{SCALAR,VECTOR,ARRAY};
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
 
-#define MAXLINE 1024
+#define MAXLINE 8192               // make this 4x longer than Input::MAXLINE
 #define DELTA 8
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
@@ -583,13 +584,17 @@ void Thermo::parse_fields(char *str)
 
     if (strcmp(word,"step") == 0) {
       addfield("Step",&Thermo::compute_step,INT);
-    } else if (strcmp(word,"atoms") == 0) {
-      addfield("Atoms",&Thermo::compute_atoms,INT);
-    } else if (strcmp(word,"cpu") == 0) {
-      addfield("CPU",&Thermo::compute_cpu,FLOAT);
+    } else if (strcmp(word,"elapsed") == 0) {
+      addfield("Elapsed",&Thermo::compute_elapsed,INT);
+    } else if (strcmp(word,"elaplong") == 0) {
+      addfield("Elaplong",&Thermo::compute_elapsed_long,INT);
     } else if (strcmp(word,"dt") == 0) {
       addfield("Dt",&Thermo::compute_dt,FLOAT);
+    } else if (strcmp(word,"cpu") == 0) {
+      addfield("CPU",&Thermo::compute_cpu,FLOAT);
 
+    } else if (strcmp(word,"atoms") == 0) {
+      addfield("Atoms",&Thermo::compute_atoms,INT);
     } else if (strcmp(word,"temp") == 0) {
       addfield("Temp",&Thermo::compute_temp,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
@@ -884,16 +889,28 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_step();
     dvalue = ivalue;
 
-  } else if (strcmp(word,"atoms") == 0) {
-    compute_atoms();
+  } else if (strcmp(word,"elapsed") == 0) {
+    if (update->whichflag == 0) 
+      error->all("This variable thermo keyword cannot be used between runs");
+    compute_elapsed();
     dvalue = ivalue;
+
+  } else if (strcmp(word,"elaplong") == 0) {
+    if (update->whichflag == 0) 
+      error->all("This variable thermo keyword cannot be used between runs");
+    compute_elapsed_long();
+    dvalue = ivalue;
+
+  } else if (strcmp(word,"dt") == 0) {
+    compute_dt();
 
   } else if (strcmp(word,"cpu") == 0) {
     if (update->whichflag == 0) firststep = 0;
     compute_cpu();
 
-  } else if (strcmp(word,"dt") == 0) {
-    compute_dt();
+  } else if (strcmp(word,"atoms") == 0) {
+    compute_atoms();
+    dvalue = ivalue;
 
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
@@ -1282,9 +1299,23 @@ void Thermo::compute_step()
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_atoms()
+void Thermo::compute_elapsed()
 {
-  ivalue = static_cast<int> (natoms);
+  ivalue = update->ntimestep - update->firststep;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_elapsed_long()
+{
+  ivalue = update->ntimestep - update->beginstep;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_dt()
+{
+  dvalue = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1297,9 +1328,9 @@ void Thermo::compute_cpu()
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_dt()
+void Thermo::compute_atoms()
 {
-  dvalue = update->dt;
+  ivalue = static_cast<int> (natoms);
 }
 
 /* ---------------------------------------------------------------------- */

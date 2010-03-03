@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixIndent : public Fix {
  public:
   FixIndent(class LAMMPS *, int, char **);
+  ~FixIndent();
   int setmask();
   void init();
   void setup(int);
@@ -38,14 +39,14 @@ class FixIndent : public Fix {
   double compute_vector(int);
 
  private:
-  int istyle,scaleflag,radflag,thermo_flag,eflag_enable,side;
+  int istyle,scaleflag,thermo_flag,eflag_enable,side;
   double k,k3;
-  double x0,y0,z0,r0_stop,r0_start,planepos;
+  char *xstr,*ystr,*zstr,*rstr,*pstr;
+  int xvar,yvar,zvar,rvar,pvar;
+  double xvalue,yvalue,zvalue,rvalue,pvalue;
   int indenter_flag,planeside;
   double indenter[4],indenter_all[4];
   int cdim;
-  double c1,c2;
-  double vx,vy,vz;
   int nlevels_respa;
 
   void options(int, char **);

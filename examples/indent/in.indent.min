@@ -45,26 +45,29 @@ dump_modify   1 scale no
 
 minimize      1.0e-6 1.0e-6 1000 1000
 
-fix           4 all indent 5000.0 sphere 10 13.0 0 6.0
+variable      k equal 5000.0/xlat
+variable      k1 equal 1000.0/xlat
+
+fix           4 all indent $k sphere 10 13.0 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
 
-fix           4 all indent 1000.0 sphere 10 12.5 0 6.0
+fix           4 all indent ${k1} sphere 10 12.5 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
 
-fix           4 all indent 1000.0 sphere 10 12.0 0 6.0
+fix           4 all indent ${k1} sphere 10 12.0 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
 
-fix           4 all indent 1000.0 sphere 10 11.4 0 6.0
+fix           4 all indent ${k1} sphere 10 11.4 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
 
-fix           4 all indent 1000.0 sphere 10 11.2 0 6.0
+fix           4 all indent ${k1} sphere 10 11.2 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000
 
-fix	      4 all indent 1000.0 sphere 10 11.0 0 6.0
+fix	      4 all indent ${k1} sphere 10 11.0 0 6.0
 fix_modify    4 energy yes
 minimize      1.0e-6 1.0e-6 1000 1000

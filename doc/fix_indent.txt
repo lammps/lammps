@@ -143,6 +143,10 @@ distance units as defined by the "units"_units.html command,
 e.g. Angstroms for units = real or metal.  A {lattice} value means the
 distance units are in lattice spacings.  The "lattice"_lattice.html
 command must have been previously used to define the lattice spacing.
+The (x,y,z) coords of the indenter position are scaled by the x,y,z
+lattice spacings respectively.  The radius of a spherical or
+cylindrical indenter is scaled by the x lattice spacing.
+
 Note that the units keyword only affects indenter geometry parameters
 specified directly with numbers, not those specified as variables.  In
 the latter case, you should use the {xlat}, {ylat}, {zlat} keywords of
